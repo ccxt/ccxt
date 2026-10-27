@@ -1294,8 +1294,8 @@ func (this *Bitget) HandleOrderBook(client any, message any) {
 		var bids []any = ccxt.SafeList2Typed(rawOrderBook, "bids", "b", []any{})
 		this.HandleDeltas(storedOrderBook.GetAsks(), asks)
 		this.HandleDeltas(storedOrderBook.GetBids(), bids)
-		ccxt.AddElementToObject(storedOrderBook, "timestamp", timestamp)
-		ccxt.AddElementToObject(storedOrderBook, "datetime", this.Iso8601(timestamp))
+		storedOrderBook.SetTimestamp(timestamp)
+		storedOrderBook.SetDatetime(this.Iso8601(timestamp))
 		var checksum any = this.HandleOption("watchOrderBook", "checksum", true)
 		// UTA order books do not provide a crc32 checksum (they rely on seq/pseq for integrity),
 		// so only validate the checksum when the exchange actually sends one

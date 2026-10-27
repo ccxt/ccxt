@@ -846,8 +846,8 @@ func (this *Grvt) HandleOrderBook(client any, message map[string]any) {
 		var bids []any = ccxt.SafeListTypedDefault(data, "bids", []any{})
 		this.HandleDeltasWithKeys(orderbook.GetAsks(), asks, "price", "size")
 		this.HandleDeltasWithKeys(orderbook.GetBids(), bids, "price", "size")
-		ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
-		ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))
+		orderbook.SetTimestamp(timestamp)
+		orderbook.SetDatetime(this.Iso8601(timestamp))
 	}
 	// grvt defaults to the delta channel (v1.book.d); if the very first
 	// message is a delta, the freshly-created orderbook has symbol=null

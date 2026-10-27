@@ -1445,8 +1445,8 @@ func (this *Onetrading) FindTimeframe(timeframe any, optionalArgs ...any) *strin
 	var keys []string = ccxt.ObjectKeys(timeframesResolved)
 	for i := 0; i < len(keys); i++ {
 		var key string = keys[i]
-		var timeframeResolved any = this.SafeDict(timeframesResolved, key, map[string]any{})
-		if ccxt.IsEqual(ccxt.GetValue(timeframeResolved, "unit"), ccxt.GetValue(timeframe, "unit")) && ccxt.IsEqual(ccxt.GetValue(timeframeResolved, "period"), ccxt.GetValue(timeframe, "period")) {
+		var timeframeResolved map[string]any = this.SafeDictMap(timeframesResolved, key, map[string]any{})
+		if ccxt.IsEqual(timeframeResolved["unit"], ccxt.GetValue(timeframe, "unit")) && ccxt.IsEqual(timeframeResolved["period"], ccxt.GetValue(timeframe, "period")) {
 			return ccxt.SafeStringPtr(key)
 		}
 	}

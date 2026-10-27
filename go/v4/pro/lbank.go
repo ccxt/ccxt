@@ -260,7 +260,7 @@ func (this *Lbank) HandleOHLCV(client any, message map[string]any) {
 	var marketId *string = this.SafeString(message, "pair")
 	var symbol *string = this.SafeSymbol(marketId, nil, "_")
 	var watchOHLCVOptions map[string]any = ccxt.SafeMapTyped(this.Options, "watchOHLCV")
-	var timeframes any = this.SafeDict(watchOHLCVOptions, "timeframes", map[string]any{})
+	var timeframes map[string]any = this.SafeDictMap(watchOHLCVOptions, "timeframes", map[string]any{})
 	var records []any = ccxt.SafeListTyped(message, "records")
 	if records != nil {
 		var rawOHLCV []any = ccxt.SafeListTyped(records, 0)
@@ -978,7 +978,7 @@ func (this *Lbank) HandleBalance(client any, message map[string]any) {
 	//         "TS": "2021-07-26T19:48:03.548"
 	//     }
 	//
-	var data any = this.SafeDict(message, "data", map[string]any{})
+	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
 	var timestamp *int64 = this.Parse8601(this.SafeString(message, "TS"))
 	var datetime *string = this.Iso8601(timestamp)
 	ccxt.AddElementToObject(this.Balance, "info", data)

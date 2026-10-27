@@ -897,8 +897,8 @@ func (this *Blockchaincom) HandleOrderBook(client any, message map[string]any) {
 		var bids []any = ccxt.SafeListTypedDefault(message, "bids", []any{})
 		this.HandleDeltas(orderbook.GetAsks(), asks)
 		this.HandleDeltas(orderbook.GetBids(), bids)
-		ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
-		ccxt.AddElementToObject(orderbook, "datetime", datetime)
+		orderbook.SetTimestamp(timestamp)
+		orderbook.SetDatetime(datetime)
 	} else {
 		panic(ccxt.NotSupported(this.Id + " watchOrderBook() does not support " + *event + " yet"))
 	}

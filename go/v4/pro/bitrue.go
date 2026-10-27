@@ -494,7 +494,7 @@ func (this *Bitrue) HandleOrderBook(client any, message map[string]any) {
 		return
 	}
 	var timestamp *int64 = this.SafeInteger(message, "ts")
-	var tick any = this.SafeDict(message, "tick", map[string]any{})
+	var tick map[string]any = this.SafeDictMap(message, "tick", map[string]any{})
 	var parseable any = tick
 	if isFutures {
 		var rawAsks []any = ccxt.SafeListTypedDefault(tick, "asks", []any{})

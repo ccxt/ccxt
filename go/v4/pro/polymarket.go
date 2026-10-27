@@ -707,7 +707,7 @@ func (this *Polymarket) HandleTrades(client any, message map[string]any) {
 		trades = this.Trades[*symbol]
 	}
 	for i := 0; i < rowsLength; i++ {
-		var row any = this.SafeDict(rows, i, map[string]any{})
+		var row map[string]any = this.SafeDictMap(rows, i, map[string]any{})
 		var trade map[string]any = this.ParseWsTrade(row, market)
 		trades.(ccxt.Appender).Append(trade)
 	}
@@ -1098,7 +1098,7 @@ func (this *Polymarket) HandleOrder(client any, message any) {
 	var stored any = this.Orders
 	var symbols map[string]any = map[string]any{}
 	for i := 0; i < rowsLength; i++ {
-		var row any = this.SafeDict(rows, i, map[string]any{})
+		var row map[string]any = this.SafeDictMap(rows, i, map[string]any{})
 		var parsed map[string]any = ccxt.OrderToMap(this.ParseOrder(row))
 		stored.(ccxt.Appender).Append(parsed)
 		var symbol *string = this.SafeString(parsed, "symbol")
@@ -1227,7 +1227,7 @@ func (this *Polymarket) HandleMyTrades(client any, message map[string]any) {
 	var stored any = this.MyTrades
 	var symbols map[string]any = map[string]any{}
 	for i := 0; i < rowsLength; i++ {
-		var row any = this.SafeDict(rows, i, map[string]any{})
+		var row map[string]any = this.SafeDictMap(rows, i, map[string]any{})
 		var parsed map[string]any = ccxt.TradeToMap(this.ParseTrade(row))
 		stored.(ccxt.Appender).Append(parsed)
 		var symbol *string = this.SafeString(parsed, "symbol")

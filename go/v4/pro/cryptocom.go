@@ -385,10 +385,10 @@ func (this *Cryptocom) HandleOrderBook(client any, message map[string]any) {
 	var books any = data
 	if channel != nil && *channel == "book" {
 		orderbook.(ccxt.OrderBookInterface).Reset(map[string]any{})
-		ccxt.AddElementToObject(orderbook, "symbol", symbol)
-		ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
-		ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))
-		ccxt.AddElementToObject(orderbook, "nonce", nonce)
+		orderbook.SetSymbol(symbol)
+		orderbook.SetTimestamp(timestamp)
+		orderbook.SetDatetime(this.Iso8601(timestamp))
+		orderbook.SetNonce(nonce)
 	} else {
 		books = this.SafeDict(data, "update", map[string]any{})
 		var previousNonce *int64 = this.SafeInteger(data, "pu")
@@ -402,7 +402,7 @@ func (this *Cryptocom) HandleOrderBook(client any, message map[string]any) {
 	}
 	this.HandleDeltas(orderbook.GetAsks(), this.SafeList(books, "asks", []any{}))
 	this.HandleDeltas(orderbook.GetBids(), this.SafeList(books, "bids", []any{}))
-	ccxt.AddElementToObject(orderbook, "nonce", nonce)
+	orderbook.SetNonce(nonce)
 	if symbol != nil {
 		this.Orderbooks[*symbol] = orderbook
 	}

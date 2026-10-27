@@ -2109,24 +2109,24 @@ func (this *BaseExchange) FeatureValueByType(marketType any, subType any, option
 	if !(InOp(this.Features, marketType)) {
 		return defaultValue // unsupported marketType, check "exchange.features" for details
 	}
+	var methodsContainer any = GetValue(this.Features, marketType)
 	// if marketType dict undefined
-	if IsEqual(GetValue(this.Features, marketType), nil) {
+	if IsEqual(methodsContainer, nil) {
 		return defaultValue
 	}
-	var methodsContainer any = GetValue(this.Features, marketType)
 	if IsEqual(subType, nil) {
 		if marketType != "spot" {
 			return defaultValue // subType is required for non-spot markets
 		}
 	} else {
-		if !(InOp(GetValue(this.Features, marketType), subType)) {
+		if !(InOp(methodsContainer, subType)) {
 			return defaultValue // unsupported subType, check "exchange.features" for details
 		}
+		methodsContainer = GetValue(methodsContainer, subType)
 		// if subType dict undefined
-		if IsEqual(GetValue(GetValue(this.Features, marketType), subType), nil) {
+		if IsEqual(methodsContainer, nil) {
 			return defaultValue
 		}
-		methodsContainer = GetValue(GetValue(this.Features, marketType), subType)
 	}
 	// if user wanted only marketType and didn't provide methodName, eg: featureIsSupported('spot')
 	if methodName == nil {
@@ -3078,7 +3078,7 @@ func (this *BaseExchange) CalculateFee(symbol any, typeVar any, side any, amount
 	_ = params
 	return this.CalculateFeeWithRate(symbol, typeVar, side, amount, price, takerOrMaker, nil, params)
 }
-func (this *BaseExchange) SafeLiquidation(liquidation any, optionalArgs ...any) any {
+func (this *BaseExchange) SafeLiquidation(liquidation map[string]any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var contracts *string = this.SafeString(liquidation, "contracts")
@@ -3092,11 +3092,11 @@ func (this *BaseExchange) SafeLiquidation(liquidation any, optionalArgs ...any) 
 	if (quoteValue == nil) && (baseValue != nil) && (price != nil) {
 		quoteValue = Precise.StringMul(baseValue, price)
 	}
-	AddElementToObject(liquidation, "contracts", this.ParseNumber(contracts))
-	AddElementToObject(liquidation, "contractSize", this.ParseNumber(contractSize))
-	AddElementToObject(liquidation, "price", this.ParseNumber(price))
-	AddElementToObject(liquidation, "baseValue", this.ParseNumber(baseValue))
-	AddElementToObject(liquidation, "quoteValue", this.ParseNumber(quoteValue))
+	liquidation["contracts"] = this.ParseNumber(contracts)
+	liquidation["contractSize"] = this.ParseNumber(contractSize)
+	liquidation["price"] = this.ParseNumber(price)
+	liquidation["baseValue"] = this.ParseNumber(baseValue)
+	liquidation["quoteValue"] = this.ParseNumber(quoteValue)
 	return liquidation
 }
 func (this *BaseExchange) SafeTrade(trade map[string]any, optionalArgs ...any) Trade {
@@ -5291,25 +5291,24 @@ func (this *BaseExchange) BuildOHLCVC(trades any, optionalArgs ...any) any {
 			ohlcvs = append(ohlcvs, []any{openingTime, price, price, price, price, trade["amount"], 1})
 		} else {
 			// still processing the same timeframe -> update opening trade
-			var prevHigh any = GetValue(GetValue(ohlcvs, candle), i_high)
-			var prevLow any = GetValue(GetValue(ohlcvs, candle), i_low)
-			var prevHighValue any = func() any {
+			var prevCandle any = this.SafeValue(ohlcvs, candle)
+			var prevHigh any = this.SafeValue(prevCandle, i_high)
+			var prevLow any = this.SafeValue(prevCandle, i_low)
+			AddElementToObject(GetValue(ohlcvs, candle), i_high, mathMax(func() any {
 				if prevHigh == nil {
 					return price
 				}
 				return prevHigh
-			}()
-			var prevLowValue any = func() any {
+			}(), price))
+			AddElementToObject(GetValue(ohlcvs, candle), i_low, mathMin(func() any {
 				if prevLow == nil {
 					return price
 				}
 				return prevLow
-			}()
-			AddElementToObject(GetValue(ohlcvs, candle), i_high, mathMax(prevHighValue, price))
-			AddElementToObject(GetValue(ohlcvs, candle), i_low, mathMin(prevLowValue, price))
+			}(), price))
 			AddElementToObject(GetValue(ohlcvs, candle), i_close, price)
-			AddElementToObject(GetValue(ohlcvs, candle), i_volume, this.Sum(GetValue(GetValue(ohlcvs, candle), i_volume), trade["amount"]))
-			AddElementToObject(GetValue(ohlcvs, candle), i_count, this.Sum(GetValue(GetValue(ohlcvs, candle), i_count), 1))
+			AddElementToObject(GetValue(ohlcvs, candle), i_volume, this.Sum(this.SafeValue(prevCandle, i_volume), trade["amount"]))
+			AddElementToObject(GetValue(ohlcvs, candle), i_count, this.Sum(this.SafeValue(prevCandle, i_count), 1))
 		}
 	}
 	return ohlcvs
@@ -5692,11 +5691,11 @@ func (this *BaseExchange) fetchTransactionFeeBody(ch chan AsyncResult[map[string
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes705815 map[string]any = r.Value
-	if retRes705815 == nil {
+	var retRes705715 map[string]any = r.Value
+	if retRes705715 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes705815}
+		ch <- AsyncResult[map[string]any]{Value: retRes705715}
 	}
 	return nil
 }
@@ -7028,8 +7027,7 @@ func (this *BaseExchange) ParseLastPrices(pricesData any, optionalArgs ...any) m
 	var results []any = []any{}
 	if IsArray(pricesData) {
 		for i := 0; i < GetArrayLength(pricesData); i++ {
-			var priceData map[string]any = this.Extend(this.DerivedExchange.ParseLastPrice(GetValue(pricesData, i)), params)
-			results = append(results, priceData)
+			results = append(results, this.Extend(this.DerivedExchange.ParseLastPrice(GetValue(pricesData, i)), params))
 		}
 	} else {
 		var marketIds []string = ObjectKeys(pricesData)
@@ -7037,12 +7035,10 @@ func (this *BaseExchange) ParseLastPrices(pricesData any, optionalArgs ...any) m
 			var marketId string = marketIds[i]
 
 			var market map[string]any = this.DerivedExchange.SafeMarket(marketId)
-			var priceData map[string]any = this.Extend(this.DerivedExchange.ParseLastPrice(GetValue(pricesData, marketId), market), params)
-			results = append(results, priceData)
+			results = append(results, this.Extend(this.DerivedExchange.ParseLastPrice(GetValue(pricesData, marketId), market), params))
 		}
 	}
-	var symbolsNormalized []string = this.MarketSymbols(symbols)
-	return this.IndexBy(this.FilterByArray(results, "symbol", symbolsNormalized, false), "symbol")
+	return this.IndexBy(this.FilterByArray(results, "symbol", this.MarketSymbols(symbols), false), "symbol")
 }
 func (this *BaseExchange) ParseTickers(tickers any, optionalArgs ...any) map[string]any {
 	//
@@ -7074,10 +7070,7 @@ func (this *BaseExchange) ParseTickers(tickers any, optionalArgs ...any) map[str
 	var results []any = []any{}
 	if IsArray(tickers) {
 		for i := 0; i < GetArrayLength(tickers); i++ {
-
-			var parsedTicker map[string]any = TickerToMap(this.DerivedExchange.ParseTicker(GetValue(tickers, i)))
-			var ticker map[string]any = this.Extend(parsedTicker, params)
-			results = append(results, ticker)
+			results = append(results, this.Extend(TickerToMap(this.DerivedExchange.ParseTicker(GetValue(tickers, i))), params))
 		}
 	} else {
 		var marketIds []string = ObjectKeys(tickers)
@@ -7085,14 +7078,10 @@ func (this *BaseExchange) ParseTickers(tickers any, optionalArgs ...any) map[str
 			var marketId string = marketIds[i]
 
 			var market map[string]any = this.DerivedExchange.SafeMarket(marketId)
-
-			var parsed map[string]any = TickerToMap(this.DerivedExchange.ParseTicker(GetValue(tickers, marketId), market))
-			var ticker map[string]any = this.Extend(parsed, params)
-			results = append(results, ticker)
+			results = append(results, this.Extend(TickerToMap(this.DerivedExchange.ParseTicker(GetValue(tickers, marketId), market)), params))
 		}
 	}
-	var symbolsNormalized []string = this.MarketSymbols(symbols)
-	return this.FilterByArrayTickers(results, "symbol", symbolsNormalized)
+	return this.FilterByArrayTickers(results, "symbol", this.MarketSymbols(symbols))
 }
 func (this *BaseExchange) ParseDepositAddresses(addresses any, optionalArgs ...any) []any {
 	var codes []string = GetArgStringSlice(optionalArgs, 0, nil)
@@ -8774,11 +8763,7 @@ func (this *BaseExchange) ParseAllGreeks(greeks any, optionalArgs ...any) map[st
 	var results []any = []any{}
 	if IsArray(greeks) {
 		for i := 0; i < GetArrayLength(greeks); i++ {
-
-			var parsedTicker any = GreeksToMap(this.DerivedExchange.ParseGreeks(GetValue(greeks, i)))
-			PanicOnError(parsedTicker)
-			var greek map[string]any = this.Extend(parsedTicker, params)
-			results = append(results, greek)
+			results = append(results, this.Extend(GreeksToMap(this.DerivedExchange.ParseGreeks(GetValue(greeks, i))), params))
 		}
 	} else {
 		var marketIds []string = ObjectKeys(greeks)
@@ -8786,15 +8771,10 @@ func (this *BaseExchange) ParseAllGreeks(greeks any, optionalArgs ...any) map[st
 			var marketId string = marketIds[i]
 
 			var market map[string]any = this.DerivedExchange.SafeMarket(marketId)
-
-			var parsed any = GreeksToMap(this.DerivedExchange.ParseGreeks(GetValue(greeks, marketId), market))
-			PanicOnError(parsed)
-			var greek map[string]any = this.Extend(parsed, params)
-			results = append(results, greek)
+			results = append(results, this.Extend(GreeksToMap(this.DerivedExchange.ParseGreeks(GetValue(greeks, marketId), market)), params))
 		}
 	}
-	var symbolsNormalized []string = this.MarketSymbols(symbols)
-	return this.IndexBy(this.FilterByArray(results, "symbol", symbolsNormalized, false), "symbol")
+	return this.IndexBy(this.FilterByArray(results, "symbol", this.MarketSymbols(symbols), false), "symbol")
 }
 func (this *BaseExchange) ParseOption(chain any, optionalArgs ...any) Option {
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
@@ -11581,12 +11561,12 @@ func (this *Exchange) cancelOrdersWithClientOrderIdsBody(ch chan AsyncResult[[]O
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listRecv11205, _ := OrdersToList(r.Value), r.Value != nil
-	var retRes1048715 []any = listRecv11205
-	if retRes1048715 == nil {
+	listRecv11183, _ := OrdersToList(r.Value), r.Value != nil
+	var retRes1047315 []any = listRecv11183
+	if retRes1047315 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes1048715)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes1047315)}
 	}
 	return nil
 }

@@ -108,7 +108,7 @@ func (this *Hyperliquid) createOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Orde
 	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["public"])
 	var ordersRequest any = this.CreateOrdersRequest(orders, params)
 	var wrapped map[string]any = this.WrapAsPostAction(ordersRequest)
-	var request any = this.SafeDict(wrapped, "request", map[string]any{})
+	var request map[string]any = this.SafeDictMap(wrapped, "request", map[string]any{})
 	var requestId *string = this.SafeString(wrapped, "requestId")
 
 	r1 := <-this.Watch(url, requestId, request, requestId)
@@ -233,7 +233,7 @@ func (this *Hyperliquid) editOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], i
 	var globalParams map[string]any = ccxt.MapTyped(orderglobalParamsVariable[1])
 	var postRequest any = this.EditOrdersRequest([]any{order}, globalParams)
 	var wrapped map[string]any = this.WrapAsPostAction(postRequest)
-	var request any = this.SafeDict(wrapped, "request", map[string]any{})
+	var request map[string]any = this.SafeDictMap(wrapped, "request", map[string]any{})
 	var requestId *string = this.SafeString(wrapped, "requestId")
 
 	r1 := <-this.Watch(url, requestId, request, requestId)
@@ -245,7 +245,7 @@ func (this *Hyperliquid) editOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], i
 	var responseObject map[string]any = ccxt.SafeMapTyped(response, "response")
 	var dataObject map[string]any = ccxt.SafeMapTyped(responseObject, "data")
 	var statuses []any = ccxt.SafeListTyped(dataObject, "statuses")
-	var first any = this.SafeDict(statuses, 0, map[string]any{})
+	var first map[string]any = this.SafeDictMap(statuses, 0, map[string]any{})
 	var parsedOrder map[string]any = ccxt.OrderToMap(this.ParseOrder(first, market))
 
 	ch <- ccxt.AsyncResult[ccxt.Order]{Value: ccxt.OrderFromMap(parsedOrder)}
@@ -287,7 +287,7 @@ func (this *Hyperliquid) cancelOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Orde
 	var request any = this.CancelOrdersRequest(ids, symbol, params)
 	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["public"])
 	var wrapped map[string]any = this.WrapAsPostAction(request)
-	var wsRequest any = this.SafeDict(wrapped, "request", map[string]any{})
+	var wsRequest map[string]any = this.SafeDictMap(wrapped, "request", map[string]any{})
 	var requestId *string = this.SafeString(wrapped, "requestId")
 
 	r1 := <-this.Watch(url, requestId, wsRequest, requestId)

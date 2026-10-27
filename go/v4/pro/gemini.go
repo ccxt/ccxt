@@ -823,10 +823,10 @@ func (this *Gemini) HandleOrderBookForMultidata(client any, rawOrderBookChanges 
 	}
 	ccxt.AddElementToObject(orderbook, "bids", bids)
 	ccxt.AddElementToObject(orderbook, "asks", asks)
-	ccxt.AddElementToObject(orderbook, "symbol", symbol)
-	ccxt.AddElementToObject(orderbook, "nonce", nonce)
-	ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
-	ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))
+	orderbook.SetSymbol(symbol)
+	orderbook.SetNonce(nonce)
+	orderbook.SetTimestamp(timestamp)
+	orderbook.SetDatetime(this.Iso8601(timestamp))
 	if symbol != nil {
 		this.Orderbooks[*symbol] = orderbook
 	}
@@ -1247,7 +1247,7 @@ func (this *Gemini) authenticateBody(ch chan ccxt.AsyncResult[*string], optional
 	this.ExtendExchangeOptions(defaultOptions)
 	var wsOptions map[string]any = ccxt.SafeMapTyped(this.Options, "ws")
 	var wsSubOptions map[string]any = ccxt.SafeMapTyped(wsOptions, "options")
-	var originalHeaders any = this.SafeDict(wsSubOptions, "headers", map[string]any{})
+	var originalHeaders map[string]any = this.SafeDictMap(wsSubOptions, "headers", map[string]any{})
 	var headers map[string]any = map[string]any{
 		"X-GEMINI-APIKEY":    this.ApiKey,
 		"X-GEMINI-PAYLOAD":   b64,

@@ -291,8 +291,8 @@ func (this *Independentreserve) HandleOrderBook(client any, message map[string]a
 		var bids []any = ccxt.SafeListTypedDefault(orderBook, "Bids", []any{})
 		this.HandleDeltas(orderbook.GetAsks(), asks)
 		this.HandleDeltas(orderbook.GetBids(), bids)
-		ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
-		ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))
+		orderbook.SetTimestamp(timestamp)
+		orderbook.SetDatetime(this.Iso8601(timestamp))
 	}
 	var checksum any = this.HandleOption("watchOrderBook", "checksum", true)
 	if (checksum == true) && (receivedSnapshot != nil && *receivedSnapshot) {

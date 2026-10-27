@@ -65,10 +65,10 @@ func (this *Mudrex) SetBrokerHeaders() {
 		return
 	}
 	var wsOptions any = this.SafeDict(this.Options, "ws", map[string]any{})
-	var innerOptions any = this.SafeDict(wsOptions, "options", map[string]any{})
-	var headers any = this.SafeDict(innerOptions, "headers", map[string]any{})
-	ccxt.AddElementToObject(headers, "Partner-Id", brokerId)
-	ccxt.AddElementToObject(innerOptions, "headers", headers)
+	var innerOptions map[string]any = this.SafeDictMap(wsOptions, "options", map[string]any{})
+	var headers map[string]any = this.SafeDictMap(innerOptions, "headers", map[string]any{})
+	headers["Partner-Id"] = *brokerId
+	innerOptions["headers"] = headers
 	ccxt.AddElementToObject(wsOptions, "options", innerOptions)
 	this.Options["ws"] = wsOptions
 }

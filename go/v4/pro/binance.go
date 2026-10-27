@@ -1547,7 +1547,7 @@ func (this *Binance) HandleSubscriptionStatus(client any, message any) any {
 	//
 	var id *string = this.SafeString(message, "id")
 	var subscriptionsById map[string]any = this.IndexBy(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), "id")
-	var subscription any = this.SafeDict(subscriptionsById, id, map[string]any{})
+	var subscription map[string]any = this.SafeDictMap(subscriptionsById, id, map[string]any{})
 	var method any = this.SafeValue(subscription, "method")
 	if method != nil {
 		ccxt.CallDynamically(method, client, message, subscription)

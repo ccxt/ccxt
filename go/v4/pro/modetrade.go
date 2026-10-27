@@ -1690,7 +1690,7 @@ func (this *Modetrade) HandleBalance(client any, message map[string]any) {
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(message, "data", map[string]any{})
+	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
 	var balances map[string]any = ccxt.SafeMapTyped(data, "balances")
 	var keys []string = nil
 	if balances != nil {

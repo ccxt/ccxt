@@ -3239,7 +3239,7 @@ func (this *Okx) HandlePlaceOrders(client any, message map[string]any) {
 		this.HandleErrors(1, "", ccxt.StringArg(client.(ccxt.ClientInterface).GetUrl()), method, map[string]any{}, stringMsg, message, map[string]any{}, map[string]any{})
 	}
 	var orders []any = ccxt.ArrayTyped(this.ParseOrders(args, nil, nil, nil))
-	var first any = this.SafeDict(orders, 0, map[string]any{})
+	var first map[string]any = this.SafeDictMap(orders, 0, map[string]any{})
 	client.(ccxt.ClientInterface).Resolve(first, messageHash)
 }
 

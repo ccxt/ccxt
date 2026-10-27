@@ -1598,7 +1598,7 @@ func (this *Coinbaseinternational) HandleOHLCV(client any, message map[string]an
 	var symbol *string = this.SafeString(market, "symbol", "")
 	var resolution *string = this.SafeString(parts, 3)
 	var wsOptions map[string]any = ccxt.SafeMapTyped(this.Options, "ws")
-	var timeframes any = this.SafeDict(wsOptions, "timeframes", map[string]any{})
+	var timeframes map[string]any = this.SafeDictMap(wsOptions, "timeframes", map[string]any{})
 	var timeframe *string = this.FindTimeframe(resolution, timeframes)
 	if symbol != nil {
 		if this.Ohlcvs[*symbol] == nil {
@@ -2504,7 +2504,7 @@ func (this *Coinbaseinternational) createOrderWsBody(ch chan ccxt.AsyncResult[cc
 		panic(r1.Err)
 	}
 	result := r1.Value
-	var order any = this.SafeDict(result, "order", map[string]any{})
+	var order map[string]any = this.SafeDictMap(result, "order", map[string]any{})
 	ccxt.AddElementToObject(order, "trades", this.SafeList(result, "trades", []any{}))
 
 	ch <- ccxt.AsyncResult[ccxt.Order]{Value: this.ParseOrder(order, market)}
@@ -2570,7 +2570,7 @@ func (this *Coinbaseinternational) editOrderWsBody(ch chan ccxt.AsyncResult[ccxt
 		panic(r1.Err)
 	}
 	result := r1.Value
-	var order any = this.SafeDict(result, "order", map[string]any{})
+	var order map[string]any = this.SafeDictMap(result, "order", map[string]any{})
 	ccxt.AddElementToObject(order, "trades", this.SafeList(result, "trades", []any{}))
 
 	ch <- ccxt.AsyncResult[ccxt.Order]{Value: this.ParseOrder(order, market)}

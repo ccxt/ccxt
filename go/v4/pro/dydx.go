@@ -368,7 +368,7 @@ func (this *Dydx) HandleOrderBook(client any, message map[string]any) {
 	var bids []any = ccxt.SafeListTypedDefault(content, "bids", []any{})
 	this.HandleDeltas(orderbook.GetAsks(), asks)
 	this.HandleDeltas(orderbook.GetBids(), bids)
-	ccxt.AddElementToObject(orderbook, "nonce", this.SafeInteger(message, "message_id"))
+	orderbook.SetNonce(this.SafeInteger(message, "message_id"))
 	var messageHash string = "orderbook:" + *symbol
 	this.Orderbooks[*symbol] = orderbook
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)

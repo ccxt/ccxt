@@ -619,10 +619,16 @@ func (this *Bitopro) HandleBalance(client any, message map[string]any) {
 	//     }
 	//
 	var event *string = this.SafeString(message, "event")
-	var data any = this.SafeDict(message, "data", map[string]any{})
+	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
 	var timestamp *int64 = this.SafeInteger(message, "timestamp")
 	var datetime *string = this.SafeString(message, "datetime")
-	var currencies []string = ccxt.ObjectKeys(data)
+	var currencies []string = nil
+	if data != nil {
+		currencies = make([]string, 0, len(data))
+		for objectKey := range data {
+			currencies = append(currencies, objectKey)
+		}
+	}
 	// merge updates into the existing balance object instead of building a
 	// fresh one: a consumer awakened by an earlier message holds a
 	// reference to this.balance, and ccxt.Client.resolve is a no-op while

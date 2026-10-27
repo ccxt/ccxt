@@ -129,7 +129,7 @@ func (this *Cex) HandleBalance(client any, message map[string]any) {
 	// to this.balance, and ccxt.Client.resolve is a no-op while nobody is
 	// awaiting, so a replaced object would make responses landing in that
 	// window invisible to the consumer forever (same class as issue #26773)
-	var data any = this.SafeDict(message, "data", map[string]any{})
+	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
 	var freeBalance map[string]any = ccxt.SafeMapTyped(data, "balance")
 	var usedBalance map[string]any = ccxt.SafeMapTyped(data, "obalance")
 	if ccxt.IsEqual(this.Balance, nil) {

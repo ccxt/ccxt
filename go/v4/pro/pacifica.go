@@ -1912,7 +1912,7 @@ func (this *Pacifica) HandleErrorMessage(client any, message any) any {
 	}
 	var wsOptions map[string]any = ccxt.SafeMapTyped(this.Options, "ws")
 	var wsHeaders map[string]any = ccxt.SafeMapTyped(wsOptions, "options")
-	var wsHeadersFinal any = this.SafeDict(wsHeaders, "headers", map[string]any{})
+	var wsHeadersFinal map[string]any = this.SafeDictMap(wsHeaders, "headers", map[string]any{})
 
 	{
 		func(this *Pacifica) (ret_ any) {

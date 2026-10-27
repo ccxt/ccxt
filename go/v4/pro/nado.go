@@ -1444,7 +1444,7 @@ func (this *Nado) createOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], symbol
 	if r1.Value != nil {
 		request = r1.Value
 	}
-	var placeOrder any = this.SafeDict(request, "place_order", map[string]any{})
+	var placeOrder map[string]any = this.SafeDictMap(request, "place_order", map[string]any{})
 	if ccxt.InOp(placeOrder, "trigger") {
 		panic(ccxt.NotSupported(this.Id + " createOrderWs() does not support trigger orders, use createOrder() instead"))
 	}
@@ -1559,7 +1559,7 @@ func (this *Nado) editOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id strin
 	//     }
 	//
 	var cancelAndPlace map[string]any = ccxt.SafeMapTyped(request, "cancel_and_place")
-	var placeOrder any = this.SafeDict(cancelAndPlace, "place_order", map[string]any{})
+	var placeOrder map[string]any = this.SafeDictMap(cancelAndPlace, "place_order", map[string]any{})
 
 	ch <- ccxt.AsyncResult[ccxt.Order]{Value: this.ParseOrder(this.Extend(map[string]any{
 		"place_order": placeOrder,
@@ -2720,9 +2720,9 @@ func (this *Nado) HandleOrderBook(client any, message map[string]any) {
 	this.HandleDeltas(orderbook.GetAsks(), asks)
 	this.HandleDeltas(orderbook.GetBids(), bids)
 	var timestamp any = this.ParseWsTimestamp(message, "max_timestamp")
-	ccxt.AddElementToObject(orderbook, "symbol", symbol)
+	orderbook.SetSymbol(symbol)
 	ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
-	ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))
+	orderbook.SetDatetime(this.Iso8601(timestamp))
 	ccxt.AddElementToObject(orderbook, "maxTimestamp", this.SafeString(message, "max_timestamp"))
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }

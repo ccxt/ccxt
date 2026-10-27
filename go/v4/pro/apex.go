@@ -461,8 +461,8 @@ func (this *Apex) HandleOrderBook(client any, message map[string]any) {
 		var bids []any = ccxt.SafeListTypedDefault(data, "b", []any{})
 		this.HandleDeltas(orderbook.GetAsks(), asks)
 		this.HandleDeltas(orderbook.GetBids(), bids)
-		ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
-		ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))
+		orderbook.SetTimestamp(timestamp)
+		orderbook.SetDatetime(this.Iso8601(timestamp))
 	}
 	var messageHash string = "orderbook" + ":" + *symbol
 	this.Orderbooks[*symbol] = orderbook
@@ -616,7 +616,7 @@ func (this *Apex) HandleTicker(client any, message map[string]any) {
 		var market map[string]any = this.SafeMarket(marketId, nil, nil)
 		symbol = ccxt.DerefScalar(this.SafeString(market, "symbol"))
 		var ticker map[string]any = ccxt.MapTyped(this.Tickers.Get(symbol))
-		var rawTicker any = this.SafeDict(ticker, "info", map[string]any{})
+		var rawTicker map[string]any = this.SafeDictMap(ticker, "info", map[string]any{})
 		var merged map[string]any = this.Extend(rawTicker, data)
 		parsed = ccxt.TickerToMap(this.ParseTicker(merged))
 	}

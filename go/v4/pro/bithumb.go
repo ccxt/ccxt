@@ -1100,14 +1100,20 @@ func (this *Bithumb) HandleBalance(client any, message map[string]any) {
  */
 func (this *Bithumb) BuildGen2SubscriptionRequest(subscriptionType string, subscription map[string]any) []any {
 	var wsOptions any = this.SafeDict(this.Options, "ws", map[string]any{})
-	var subscriptions any = this.SafeDict(wsOptions, "gen2Subscriptions", map[string]any{})
+	var subscriptions map[string]any = this.SafeDictMap(wsOptions, "gen2Subscriptions", map[string]any{})
 	ccxt.AddElementToObject(subscriptions, subscriptionType, subscription)
 	ccxt.AddElementToObject(wsOptions, "gen2Subscriptions", subscriptions)
 	this.Options["ws"] = wsOptions
 	var request []any = []any{map[string]any{
 		"ticket": "ccxt",
 	}}
-	var keys []string = ccxt.ObjectKeys(subscriptions)
+	var keys []string = nil
+	if subscriptions != nil {
+		keys = make([]string, 0, len(subscriptions))
+		for objectKey := range subscriptions {
+			keys = append(keys, objectKey)
+		}
+	}
 	for i := 0; i < len(keys); i++ {
 		request = append(request, ccxt.GetValue(subscriptions, keys[i]))
 	}

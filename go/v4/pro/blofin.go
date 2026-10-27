@@ -334,8 +334,8 @@ func (this *Blofin) HandleOrderBook(client any, message map[string]any) {
 		var bids []any = ccxt.SafeListTypedDefault(data, "bids", []any{})
 		this.HandleDeltasWithKeys(orderbook.GetAsks(), asks)
 		this.HandleDeltasWithKeys(orderbook.GetBids(), bids)
-		ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
-		ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))
+		orderbook.SetTimestamp(timestamp)
+		orderbook.SetDatetime(this.Iso8601(timestamp))
 	}
 	if symbol != nil {
 		this.Orderbooks[*symbol] = orderbook

@@ -1100,7 +1100,7 @@ func (this *Bingx) HandleOHLCV(client any, message any) {
 	var timeframeParts []string = strings.Split(*dataType, "_")
 	var rawTimeframe *string = this.SafeString(timeframeParts, 1)
 	var marketOptions map[string]any = ccxt.SafeMapTyped(this.Options, marketType)
-	var timeframes any = this.SafeDict(marketOptions, "timeframes", map[string]any{})
+	var timeframes map[string]any = this.SafeDictMap(marketOptions, "timeframes", map[string]any{})
 	var unifiedTimeframe *string = this.FindTimeframe(rawTimeframe, timeframes)
 	if ccxt.IsEqual(this.SafeValue(ccxt.GetValue(this.Ohlcvs, symbol), unifiedTimeframe), nil) {
 		var subscriptionHash *string = dataType
@@ -2519,7 +2519,7 @@ func (this *Bingx) HandleSubscriptionStatus(client any, message any) any {
 	//
 	var id *string = this.SafeString(message, "id")
 	var subscriptionsById map[string]any = this.IndexBy(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), "id")
-	var subscription any = this.SafeDict(subscriptionsById, id, map[string]any{})
+	var subscription map[string]any = this.SafeDictMap(subscriptionsById, id, map[string]any{})
 	var isUnSubMessage *bool = this.SafeBool(subscription, "unsubscribe", false)
 	if isUnSubMessage != nil && *isUnSubMessage {
 		this.HandleUnSubscription(client, subscription)

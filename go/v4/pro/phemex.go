@@ -1020,9 +1020,9 @@ func (this *Phemex) HandleOrderBook(client any, message any) {
 			var bids []any = ccxt.SafeListTypedDefault(changes, "bids", []any{})
 			this.CustomHandleDeltas(orderbook.GetAsks(), asks, market)
 			this.CustomHandleDeltas(orderbook.GetBids(), bids, market)
-			ccxt.AddElementToObject(orderbook, "nonce", nonce)
-			ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
-			ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))
+			orderbook.SetNonce(nonce)
+			orderbook.SetTimestamp(timestamp)
+			orderbook.SetDatetime(this.Iso8601(timestamp))
 			ccxt.AddElementToObject(this.Orderbooks, symbol, orderbook)
 			client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 		}

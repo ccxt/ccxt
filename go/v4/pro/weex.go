@@ -1413,9 +1413,9 @@ func (this *Weex) HandleOrderBook(client any, message map[string]any) {
 		var bids []any = ccxt.SafeListTypedDefault(message, "b", []any{})
 		this.HandleDeltas(orderbook.GetAsks(), asks)
 		this.HandleDeltas(orderbook.GetBids(), bids)
-		ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
-		ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))
-		ccxt.AddElementToObject(orderbook, "nonce", nonce)
+		orderbook.SetTimestamp(timestamp)
+		orderbook.SetDatetime(this.Iso8601(timestamp))
+		orderbook.SetNonce(nonce)
 	}
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
@@ -2735,7 +2735,7 @@ func (this *Weex) HandleSubscriptionStatus(client any, message map[string]any) a
 	//
 	var id *string = this.SafeString(message, "id")
 	var subscriptionsById map[string]any = this.IndexBy(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), "id")
-	var subscription any = this.SafeDict(subscriptionsById, id, map[string]any{})
+	var subscription map[string]any = this.SafeDictMap(subscriptionsById, id, map[string]any{})
 	var unsubscribe *bool = this.SafeBool(subscription, "unsubscribe", false)
 	if unsubscribe != nil && *unsubscribe {
 		var subHashIsPrefix *bool = this.SafeBool(subscription, "subHashIsPrefix", false)

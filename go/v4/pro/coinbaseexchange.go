@@ -978,7 +978,7 @@ func (this *Coinbaseexchange) HandleOrder(client any, message map[string]any) {
 			if sequence == nil {
 				return
 			}
-			var previousInfo any = this.SafeDict(previousOrder, "info", map[string]any{})
+			var previousInfo map[string]any = this.SafeDictMap(previousOrder, "info", map[string]any{})
 			var previousSequence *int64 = this.SafeInteger(previousInfo, "sequence")
 			if (previousSequence == nil) || (sequence != nil && (previousSequence == nil || *sequence > *previousSequence)) {
 				if typeVar != nil && *typeVar == "match" {

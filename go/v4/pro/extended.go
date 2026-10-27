@@ -158,9 +158,9 @@ func (this *Extended) HandleOrderBook(client any, message map[string]any) {
 	}
 	this.HandleDeltas(orderbook.GetBids(), this.SafeList(data, "b", []any{}))
 	this.HandleDeltas(orderbook.GetAsks(), this.SafeList(data, "a", []any{}))
-	ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
-	ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))
-	ccxt.AddElementToObject(orderbook, "nonce", nonce)
+	orderbook.SetTimestamp(timestamp)
+	orderbook.SetDatetime(this.Iso8601(timestamp))
+	orderbook.SetNonce(nonce)
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
 func (this *Extended) HandleDelta(bookside any, delta any) {
@@ -195,7 +195,7 @@ func (this *Extended) watchPrivateBody(ch chan ccxt.AsyncResult[any], messageHas
 		}
 		this.ExtendExchangeOptions(defaultOptions)
 		var originalOptions any = ccxt.GetValue(this.Options["ws"], "options")
-		var originalHeaders any = this.SafeDict(originalOptions, "headers", map[string]any{})
+		var originalHeaders map[string]any = this.SafeDictMap(originalOptions, "headers", map[string]any{})
 		ccxt.AddElementToObject(this.Options["ws"], "options", this.Extend(this.Extend(map[string]any{}, originalOptions), map[string]any{
 			"headers": this.Extend(this.Extend(map[string]any{
 				"User-Agent": this.UserAgents["chrome"],
@@ -345,7 +345,7 @@ func (this *Extended) HandleBalance(client any, message map[string]any) {
 	if ccxt.IsEqual(this.Balance, nil) {
 		this.Balance = map[string]any{}
 	}
-	var data any = this.SafeDict(message, "data", map[string]any{})
+	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
 	ccxt.AddElementToObject(this.Balance, "info", data)
 	var balance map[string]any = ccxt.SafeMapTyped(data, "balance")
 	if balance != nil {

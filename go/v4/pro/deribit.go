@@ -175,7 +175,7 @@ func (this *Deribit) HandleBalance(client any, message map[string]any) {
 	//     }
 	//
 	var params map[string]any = ccxt.SafeMapTyped(message, "params")
-	var data any = this.SafeDict(params, "data", map[string]any{})
+	var data map[string]any = this.SafeDictMap(params, "data", map[string]any{})
 	ccxt.AddElementToObject(this.Balance, "info", data)
 	var currencyId *string = this.SafeString(data, "currency")
 	var currencyCode *string = this.SafeCurrencyCode(currencyId)
@@ -902,10 +902,10 @@ func (this *Deribit) HandleOrderBook(client any, message map[string]any) {
 	var bids []any = ccxt.SafeListTypedDefault(data, "bids", []any{})
 	this.HandleDeltas(storedOrderBook.GetAsks(), asks)
 	this.HandleDeltas(storedOrderBook.GetBids(), bids)
-	ccxt.AddElementToObject(storedOrderBook, "nonce", timestamp)
-	ccxt.AddElementToObject(storedOrderBook, "timestamp", timestamp)
-	ccxt.AddElementToObject(storedOrderBook, "datetime", this.Iso8601(timestamp))
-	ccxt.AddElementToObject(storedOrderBook, "symbol", symbol)
+	storedOrderBook.SetNonce(timestamp)
+	storedOrderBook.SetTimestamp(timestamp)
+	storedOrderBook.SetDatetime(this.Iso8601(timestamp))
+	storedOrderBook.SetSymbol(symbol)
 	if symbol != nil {
 		this.Orderbooks[*symbol] = storedOrderBook
 	}
@@ -1225,7 +1225,7 @@ func (this *Deribit) HandleOHLCV(client any, message map[string]any) {
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var wsOptions map[string]any = ccxt.SafeMapTyped(this.Options, "ws")
-	var timeframes any = this.SafeDict(wsOptions, "timeframes", map[string]any{})
+	var timeframes map[string]any = this.SafeDictMap(wsOptions, "timeframes", map[string]any{})
 	var unifiedTimeframe *string = this.FindTimeframe(rawTimeframe, timeframes)
 	if symbol != nil {
 		if this.Ohlcvs[*symbol] == nil {

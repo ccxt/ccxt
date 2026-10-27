@@ -1715,7 +1715,7 @@ func (this *Kraken) HandleMyTrades(client any, message map[string]any, optionalA
 		var stored any = this.MyTrades
 		var symbols map[string]any = map[string]any{}
 		for i := 0; i < len(allTrades); i++ {
-			var trade any = this.SafeDict(allTrades, i, map[string]any{})
+			var trade map[string]any = this.SafeDictMap(allTrades, i, map[string]any{})
 			var parsed map[string]any = this.ParseWsTrade(trade)
 			stored.(ccxt.Appender).Append(parsed)
 			var symbol *string = ccxt.SafeStringPtr(parsed["symbol"])
@@ -1879,7 +1879,7 @@ func (this *Kraken) HandleOrders(client any, message map[string]any, optionalArg
 		var stored any = this.Orders
 		var symbols map[string]any = map[string]any{}
 		for i := 0; i < len(allOrders); i++ {
-			var order any = this.SafeDict(allOrders, i, map[string]any{})
+			var order map[string]any = this.SafeDictMap(allOrders, i, map[string]any{})
 			var id *string = this.SafeString(order, "order_id")
 			var parsed map[string]any = this.ParseWsOrder(order)
 			var symbol *string = this.SafeString(order, "symbol")

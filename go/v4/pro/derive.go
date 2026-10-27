@@ -722,7 +722,7 @@ func (this *Derive) HandleTrade(client any, message map[string]any) {
 	//
 	//
 	var params map[string]any = ccxt.SafeMapTyped(message, "params")
-	var data any = this.SafeDict(params, "data", map[string]any{})
+	var data map[string]any = this.SafeDictMap(params, "data", map[string]any{})
 	var topic *string = this.SafeString(params, "channel", "")
 	var parsedTopic []string = strings.Split(*topic, ".")
 	var marketId *string = this.SafeString(parsedTopic, 1)

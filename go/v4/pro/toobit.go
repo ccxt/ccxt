@@ -827,7 +827,7 @@ func (this *Toobit) HandleOrderBook(client any, message map[string]any) {
 		var asks []any = ccxt.SafeListTypedDefault(entry, "a", []any{})
 		this.HandleDeltas(orderBook.GetAsks(), asks)
 		this.HandleDeltas(orderBook.GetBids(), bids)
-		ccxt.AddElementToObject(orderBook, "timestamp", timestamp)
+		orderBook.SetTimestamp(timestamp)
 		if symbol != nil {
 			this.Orderbooks[*symbol] = orderBook
 		}

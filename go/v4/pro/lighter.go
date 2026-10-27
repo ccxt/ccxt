@@ -1600,7 +1600,7 @@ func (this *Lighter) HandleBalance(client any, message map[string]any) bool {
 			}
 		}
 	} else {
-		var stats any = this.SafeDict(message, "stats", map[string]any{})
+		var stats map[string]any = this.SafeDictMap(message, "stats", map[string]any{})
 		var account map[string]any = this.Account()
 		account["free"] = this.SafeString(stats, "available_balance")
 		account["total"] = this.SafeString(stats, "collateral")

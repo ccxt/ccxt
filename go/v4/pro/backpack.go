@@ -195,7 +195,7 @@ func (this *Backpack) subscribeWsTickersBody(ch chan ccxt.AsyncResult[any], meth
 		}
 		var marketSelection any = this.HandleStockParams(methodName, query, market)
 		var marketStock *bool = this.SafeBool(marketSelection, 0, false)
-		var marketParams any = this.SafeDict(marketSelection, 1, map[string]any{})
+		var marketParams map[string]any = this.SafeDictMap(marketSelection, 1, map[string]any{})
 		var isRfq bool = (this.SafeString(market["info"], "marketType") != nil && *this.SafeString(market["info"], "marketType") == "RFQ")
 		var source *string = explicitSource
 		if source == nil {
@@ -620,7 +620,7 @@ func (this *Backpack) HandleTicker(client any, message any) {
 	//         stream: 'bookTicker.ETH_USDC'
 	//     }
 	//
-	var ticker any = this.SafeDict(message, "data", map[string]any{})
+	var ticker map[string]any = this.SafeDictMap(message, "data", map[string]any{})
 	var stream *string = this.SafeString(message, "stream", "")
 	var subscriptions map[string]any = client.(ccxt.ClientInterface).SubscriptionDict("marketData:" + *stream)
 	var hashes []string = nil

@@ -1171,8 +1171,8 @@ func (this *Krakenfutures) HandleOrder(client any, message map[string]any) any {
 					"currency": this.NumberToString(this.SafeString(trade["fee"], "currency")),
 				})
 			}
-			var previousFee any = this.SafeDict(previousOrder, "fee", map[string]any{})
-			if (!ccxt.IsEqual(ccxt.GetValue(previousFee, "cost"), nil)) && (this.SafeNumber(trade["fee"], "cost") != nil) {
+			var previousFee map[string]any = this.SafeDictMap(previousOrder, "fee", map[string]any{})
+			if (!ccxt.IsEqual(previousFee["cost"], nil)) && (this.SafeNumber(trade["fee"], "cost") != nil) {
 				var stringOrderCost *string = this.NumberToString(ccxt.GetValue(previousFee, "cost"))
 				var stringTradeCost *string = this.NumberToString(this.SafeNumber(trade["fee"], "cost"))
 				ccxt.AddElementToObject(ccxt.GetValue(previousOrder, "fee"), "cost", ccxt.Precise.StringAdd(stringOrderCost, stringTradeCost))
@@ -1316,12 +1316,12 @@ func (this *Krakenfutures) HandleOrderSnapshot(client any, message map[string]an
 		for j := 0; j < len(cachedIds); j++ {
 			var cachedId string = cachedIds[j]
 			if _, ok := snapshotIds[cachedId]; !ok {
-				var cachedOrder any = this.SafeDict(ordersById, cachedId, map[string]any{})
+				var cachedOrder map[string]any = this.SafeDictMap(ordersById, cachedId, map[string]any{})
 				var cachedStatus *string = this.SafeString(cachedOrder, "status")
 				// parseWsOrder leaves status undefined for snapshot and
 				// non-cancel updates, so undefined means open here
 				if (cachedStatus == nil) || (cachedStatus != nil && *cachedStatus == "open") {
-					ccxt.AddElementToObject(cachedOrder, "status", "canceled")
+					cachedOrder["status"] = "canceled"
 					// write the updated order back through append: the cache
 					// rows are copies in the value-type runtimes (php), and
 					// append also feeds the newUpdates accounting

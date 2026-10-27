@@ -376,8 +376,8 @@ func (this *Alpaca) HandleOrderBook(client any, message map[string]any) {
 		var bids []any = ccxt.SafeListTypedDefault(message, "b", []any{})
 		this.HandleDeltas(orderbook.GetAsks(), asks)
 		this.HandleDeltas(orderbook.GetBids(), bids)
-		ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
-		ccxt.AddElementToObject(orderbook, "datetime", datetime)
+		orderbook.SetTimestamp(timestamp)
+		orderbook.SetDatetime(datetime)
 	}
 	var messageHash string = "orderbook" + ":" + *symbol
 	this.Orderbooks[*symbol] = orderbook

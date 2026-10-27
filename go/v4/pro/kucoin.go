@@ -3774,7 +3774,7 @@ func (this *Kucoin) HandleBalance(client any, message map[string]any) {
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(message, "data", map[string]any{})
+	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
 	var currencyId *string = this.SafeString(data, "currency")
 	var relationEvent *string = this.SafeString(data, "relationEvent")
 	var requestAccountType *string = nil
@@ -3792,7 +3792,7 @@ func (this *Kucoin) HandleBalance(client any, message map[string]any) {
 		if _, ok := this.Balance[*uniformType]; !ok {
 			this.Balance[*uniformType] = map[string]any{}
 		}
-		ccxt.AddElementToObject(this.Balance[*uniformType], "info", data)
+		this.WsBalanceEntryForWrite(*uniformType)["info"] = data
 		var timestamp *int64 = this.SafeInteger2(data, "time", "timestamp")
 		ccxt.AddElementToObject(this.Balance[*uniformType], "timestamp", timestamp)
 		ccxt.AddElementToObject(this.Balance[*uniformType], "datetime", this.Iso8601(timestamp))
@@ -3830,13 +3830,13 @@ func (this *Kucoin) HandleUtaBalance(client any, message map[string]any) {
 	//     }
 	//
 	var typeVar string = "unified"
-	var data any = this.SafeDict(message, "d", map[string]any{})
+	var data map[string]any = this.SafeDictMap(message, "d", map[string]any{})
 	var currencyId *string = this.SafeString(data, "c")
 	var code *string = this.SafeCurrencyCode(currencyId)
 	if _, ok := this.Balance[typeVar]; !ok {
 		this.Balance[typeVar] = map[string]any{}
 	}
-	ccxt.AddElementToObject(this.Balance[typeVar], "info", data)
+	this.WsBalanceEntryForWrite(typeVar)["info"] = data
 	var timestamp *int64 = this.SafeIntegerProduct(data, "U", 0.000001)
 	ccxt.AddElementToObject(this.Balance[typeVar], "timestamp", timestamp)
 	ccxt.AddElementToObject(this.Balance[typeVar], "datetime", this.Iso8601(timestamp))
