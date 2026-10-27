@@ -95,7 +95,7 @@ public partial class coincheck : ccxt.coincheck
         //         }
         //     ]
         //
-        string? symbol = this.symbol(this.safeString(message, 0));
+        string? symbol = this.safeString(this.market(this.safeString(message, 0)), "symbol", "");
         IDictionary<string, object> data = this.safeDict(message, 1, new Dictionary<string, object>() {});
         Int64? timestamp = this.safeTimestamp(data, "last_update_at");
         ccxt.OrderBook snapshot = this.parseOrderBook(data, symbol, timestamp);
@@ -164,7 +164,7 @@ public partial class coincheck : ccxt.coincheck
         //     ]
         //
         List<object> first = this.safeList(message, 0, new List<object>() {});
-        string? symbol = this.symbol(this.safeString(first, 2));
+        string? symbol = this.safeString(this.market(this.safeString(first, 2)), "symbol", "");
         ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
         if ((stored == null))
         {

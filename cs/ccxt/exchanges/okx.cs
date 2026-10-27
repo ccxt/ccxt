@@ -9801,7 +9801,11 @@ public partial class okx : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         int maxLimit = 100;
-        object effectiveLimit = (((limit == null)) || (isGreaterThan(limit, 100))) ? 100 : limit;
+        object effectiveLimit = this.parseToInt(100);
+        if (((limit != null)) && (isGreaterThan(100, limit)))
+        {
+            effectiveLimit = limit;
+        }
         if ((limit != null))
         {
             request["limit"] = effectiveLimit;

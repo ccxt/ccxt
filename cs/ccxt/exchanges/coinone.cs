@@ -1458,21 +1458,15 @@ public partial class coinone : Exchange
             string? currencyId = this.safeString(parts, 0);
             string? secondPart = this.safeString(parts, 1);
             string? code = this.safeCurrencyCode(currencyId);
-            IDictionary<string, object> depositAddress = this.safeDict(result, code);
-            if ((depositAddress == null))
-            {
-                depositAddress = new Dictionary<string, object>() {
-                    { "info", value },
-                    { "currency", code },
-                    { "network", null },
-                    { "address", null },
-                    { "tag", null },
-                };
-            }
-            string? address = this.safeString(depositAddress, "address", value);
+            string? address = this.safeString(this.safeValue(result, code), "address", value);
             this.checkAddress(address);
-            depositAddress["address"] = address;
-            depositAddress["info"] = address;
+            Dictionary<string, object> depositAddress = new Dictionary<string, object>() {
+                { "info", address },
+                { "currency", code },
+                { "network", null },
+                { "address", address },
+                { "tag", this.safeString(this.safeValue(result, code), "tag") },
+            };
             if ((secondPart == "tag" || secondPart == "memo"))
             {
                 depositAddress["tag"] = value;

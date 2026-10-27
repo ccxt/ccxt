@@ -2410,6 +2410,13 @@ public partial class sxbet : PredictionExchange
         };
     }
 
+    public virtual void setWsOption(object group, object key, object value)
+    {
+        Dictionary<string, object> entry = new Dictionary<string, object>() {};
+        entry[(string)key] = value;
+        this.options[(string)group] = this.extend(this.safeDict(this.options, group, new Dictionary<string, object>() {}), entry);
+    }
+
     public virtual Int64 requestId(object url)
     {
         object existing = this.safeValue(this.options, "requestId");
@@ -2438,16 +2445,11 @@ public partial class sxbet : PredictionExchange
      */
     public virtual void registerSxbetWsRequest(object requestId, string? messageHash, string? subscription)
     {
-        IDictionary<string, object> existing = this.safeDict(this.options, "wsPendingRequests");
-        if ((existing == null))
-        {
-            this.options["wsPendingRequests"] = this.createSafeDictionary();
-        }
         string? requestIdString = this.numberToString(requestId);
-        ((IDictionary<string,object>)(this.options.ContainsKey("wsPendingRequests") ? this.options["wsPendingRequests"] : null))[(string)requestIdString] = new Dictionary<string, object>() {
+        this.setWsOption("wsPendingRequests", requestIdString, new Dictionary<string, object>() {
             { "messageHash", messageHash },
             { "subscription", subscription },
-        };
+        });
     }
 
     /**
@@ -2673,12 +2675,7 @@ public partial class sxbet : PredictionExchange
         if ((this.safeOrderBook(this.orderbooks, sym) == null))
         {
             // seed from the REST snapshot so the book is served before the first publication
-            IDictionary<string, object> watchedBooks = this.safeDict(this.options, "wsWatchedBooks");
-            if ((watchedBooks == null))
-            {
-                this.options["wsWatchedBooks"] = this.createSafeDictionary();
-            }
-            ((IDictionary<string,object>)(this.options.ContainsKey("wsWatchedBooks") ? this.options["wsWatchedBooks"] : null))[(string)sym] = marketHash;
+            this.setWsOption("wsWatchedBooks", sym, marketHash);
             IDictionary<string, object> snapshot = await this.fetchSxbetBookSnapshot(marketHash);
             this.applySxbetWsSnapshot(snapshot);
             if ((this.safeOrderBook(this.orderbooks, sym) == null))
@@ -2722,18 +2719,13 @@ public partial class sxbet : PredictionExchange
         {
             return refreshed;
         }
-        IDictionary<string, object> versionsAll = this.safeDict(this.options, "wsBookVersions");
-        if ((versionsAll == null))
-        {
-            this.options["wsBookVersions"] = this.createSafeDictionary();
-        }
-        string? held = this.safeString((this.options.ContainsKey("wsBookVersions") ? this.options["wsBookVersions"] : null), marketHash, "");
+        string? held = this.safeString(this.safeDict(this.options, "wsBookVersions", new Dictionary<string, object>() {}), marketHash, "");
         // versions are fixed-width numeric strings - replace only on a strictly newer publication
         if ((held != "") && (isLessThanOrEqual(version, held)))
         {
             return refreshed;
         }
-        ((IDictionary<string,object>)(this.options.ContainsKey("wsBookVersions") ? this.options["wsBookVersions"] : null))[(string)marketHash] = version;
+        this.setWsOption("wsBookVersions", marketHash, version);
         IDictionary<string, object> watchedBooks = this.safeDict(this.options, "wsWatchedBooks", new Dictionary<string, object>() {});
         List<object> watchedSyms = new List<object>(watchedBooks.Keys);
         Int64 timestamp = this.milliseconds();
@@ -2808,12 +2800,7 @@ public partial class sxbet : PredictionExchange
         string? sym = this.safeString(outcomeObj, "outcome", "");
         string? marketHash = this.safeString((outcomeObj != null && outcomeObj.ContainsKey("info") ? outcomeObj["info"] : null), "marketHash");
         string messageHash = ("ticker::" + sym);
-        IDictionary<string, object> watchedTickers = this.safeDict(this.options, "wsWatchedTickers");
-        if ((watchedTickers == null))
-        {
-            this.options["wsWatchedTickers"] = this.createSafeDictionary();
-        }
-        ((IDictionary<string,object>)(this.options.ContainsKey("wsWatchedTickers") ? this.options["wsWatchedTickers"] : null))[(string)sym] = marketHash;
+        this.setWsOption("wsWatchedTickers", sym, marketHash);
         string? url = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws");
         await this.connectSxbetCentrifugo(url);
         var client = this.client(url);
@@ -3192,8 +3179,7 @@ public partial class sxbet : PredictionExchange
         bool sendAsQuery = ((method == "GET"));
         if ((method == "DELETE"))
         {
-            bool hasOrdersList = (inOp(query, "orders"));
-            sendAsQuery = !hasOrdersList;
+            sendAsQuery = !(inOp(query, "orders"));
         }
         string? bodyValue = null;
         if (sendAsQuery)
@@ -3205,9 +3191,7 @@ public partial class sxbet : PredictionExchange
             }
         } else
         {
-            List<object> queryKeys = new List<object>(((IDictionary<string,object>)query).Keys);
-            int queryKeysLength = queryKeys.Count;
-            if (queryKeysLength > 0)
+            if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
                 bodyValue = this.json(query);
             }

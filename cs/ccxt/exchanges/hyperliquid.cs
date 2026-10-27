@@ -609,7 +609,7 @@ public partial class hyperliquid : Exchange
             IDictionary<string, object> dex = this.safeDict(fetchDexes, i, new Dictionary<string, object>() {});
             Int64 secondPart = ((i * 10000L) - 10000);
             Int64 offset = this.sum(110000, secondPart);
-            perpDexesOffset[(string)(dex != null && dex.ContainsKey("name") ? dex["name"] : null)] = offset;
+            perpDexesOffset[(string)this.safeString(dex, "name", "")] = offset;
         }
         List<object> fetchDexesList = new List<object>() {};
         IDictionary<string, object> options = this.safeDict(this.options, "fetchMarkets", new Dictionary<string, object>() {});
@@ -4795,11 +4795,10 @@ public partial class hyperliquid : Exchange
                 throw new NotSupported ((this.id + " transfer() only support spot <> swap transfer")) ;
             }
             object strAmount = this.numberToString(amount);
-            string? vaultAddress = this.safeString2(parameters, "vaultAddress", "subAccountAddress");
-            if ((vaultAddress != null))
+            string? vaultAddressRaw = this.safeString2(parameters, "vaultAddress", "subAccountAddress");
+            if ((vaultAddressRaw != null))
             {
-                vaultAddress = this.formatVaultAddress(vaultAddress);
-                strAmount = ((strAmount + " subaccount:") + vaultAddress);
+                strAmount = ((strAmount + " subaccount:") + this.formatVaultAddress(vaultAddressRaw));
             }
             object strAmountFinal = strAmount; // java req
             bool toPerp = ((toAccount == "perp")) || ((toAccount == "swap"));

@@ -4015,8 +4015,8 @@ public partial class cryptocom : Exchange
         }
         for (int i = 0; i < getArrayLength(paramsKeys); i++)
         {
-            object key = getValue(paramsKeys, i);
-            returnString = returnString + (key);
+            string? key = this.safeString(paramsKeys, i, "");
+            returnString = returnString + key;
             object value = getValue(obj, key);
             if ((value is "undefined"))
             {

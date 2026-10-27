@@ -282,7 +282,7 @@ public partial class bybit : ccxt.bybit
             await this.loadMarkets();
         }
         Dictionary<string, object> orderRequest = this.createOrderRequest(symbol, type, side, amount, price, parameters, true);
-        string? url = this.implodeHostname(getValue((this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("private") ? this.urlsApiSections["ws"]["private"] : null), "trade"));
+        string? url = this.implodeHostname(this.safeString((this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("private") ? this.urlsApiSections["ws"]["private"] : null), "trade", ""));
         await this.authenticate(url);
         string requestId = this.requestId().ToString();
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -330,7 +330,7 @@ public partial class bybit : ccxt.bybit
             await this.loadMarkets();
         }
         Dictionary<string, object> orderRequest = this.editOrderRequest(id, symbol, type, side, amount, price, parameters);
-        string? url = this.implodeHostname(getValue((this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("private") ? this.urlsApiSections["ws"]["private"] : null), "trade"));
+        string? url = this.implodeHostname(this.safeString((this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("private") ? this.urlsApiSections["ws"]["private"] : null), "trade", ""));
         await this.authenticate(url);
         string requestId = this.requestId().ToString();
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -370,7 +370,7 @@ public partial class bybit : ccxt.bybit
             throw new ArgumentsRequired ((this.id + " cancelOrderWs() requires a symbol argument")) ;
         }
         Dictionary<string, object> orderRequest = this.cancelOrderRequest(id, symbol, parameters);
-        string? url = this.implodeHostname(getValue((this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("private") ? this.urlsApiSections["ws"]["private"] : null), "trade"));
+        string? url = this.implodeHostname(this.safeString((this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("private") ? this.urlsApiSections["ws"]["private"] : null), "trade", ""));
         await this.authenticate(url);
         string requestId = this.requestId().ToString();
         if (orderRequest.ContainsKey("orderFilter"))
@@ -448,7 +448,7 @@ public partial class bybit : ccxt.bybit
         List<object> topics = new List<object>() {};
         for (int i = 0; i < (marketIds?.Count ?? 0); i++)
         {
-            string? marketId = ((string)marketIds[i]);
+            string? marketId = this.safeString(marketIds, i, "");
             topics.Add(((topic + ".") + marketId));
             messageHashes.Add(("ticker:" + this.safeString(symbolsValue, i, "")));
         }
@@ -492,7 +492,7 @@ public partial class bybit : ccxt.bybit
         List<object> topics = new List<object>() {};
         for (int i = 0; i < (marketIds?.Count ?? 0); i++)
         {
-            string? marketId = ((string)marketIds[i]);
+            string? marketId = this.safeString(marketIds, i, "");
             string? symbol = ((string)(symbolsValue != null && i < symbolsValue.Count ? symbolsValue[i] : null));
             topics.Add(((topic + ".") + marketId));
             subMessageHashes.Add(("ticker:" + symbol));
@@ -698,7 +698,7 @@ public partial class bybit : ccxt.bybit
         List<object> topics = new List<object>() {};
         for (int i = 0; i < (marketIds?.Count ?? 0); i++)
         {
-            string? marketId = ((string)marketIds[i]);
+            string? marketId = this.safeString(marketIds, i, "");
             string topic = ("orderbook.1." + marketId);
             topics.Add(topic);
             messageHashes.Add(("bidask:" + this.safeString(symbolsValue, i, "")));

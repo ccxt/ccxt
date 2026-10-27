@@ -607,11 +607,11 @@ public partial class bydfi : Exchange
         string? settleId = this.safeString(market, "marginAsset");
         string? bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
-        if (((bs == null)) || ((quote == null)))
+        string? settle = this.safeCurrencyCode(settleId);
+        if (((bs == null)) || ((quote == null)) || ((settle == null)))
         {
             return null;
         }
-        string? settle = this.safeCurrencyCode(settleId);
         string symbol = ((((bs + "/") + quote) + ":") + settle);
         bool? inverse = this.safeBool(market, "reverse");
         string? limitMaxQty = this.safeString(market, "limitMaxQty");

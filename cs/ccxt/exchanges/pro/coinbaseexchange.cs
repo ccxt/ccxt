@@ -526,13 +526,12 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
             ccxt.Trade trade = this.parseWsTrade(message);
             string type = "myTrades";
             string messageHash = ((type + ":") + marketId);
-            ccxt.pro.ArrayCache tradesArray = this.myTrades;
-            if ((tradesArray == null))
+            if ((this.myTrades == null))
             {
                 Int64? limit = this.safeInteger(this.options, "myTradesLimit", 1000);
-                tradesArray = new ArrayCacheBySymbolById(limit);
-                this.myTrades = tradesArray;
+                this.myTrades = new ArrayCacheBySymbolById(limit);
             }
+            ccxt.pro.ArrayCache tradesArray = this.myTrades;
             tradesArray.append(ccxt.BaseExchange.FromTrade(trade));
             client.resolve(tradesArray, messageHash);
         }
@@ -594,11 +593,12 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         Dictionary<string, object> parsed = ccxt.BaseExchange.FromTrade(base.parseTrade(trade));
         string? feeRate = null;
         bool isMaker = false;
-        if ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("maker_fee_rate")))
+        string? makerFeeRate = this.safeString(trade, "maker_fee_rate");
+        if ((makerFeeRate != null))
         {
             isMaker = true;
             parsed["takerOrMaker"] = "maker";
-            feeRate = this.safeString(trade, "maker_fee_rate");
+            feeRate = makerFeeRate;
         } else
         {
             parsed["takerOrMaker"] = "taker";
@@ -919,7 +919,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
             {
                 this.tickers[(string)symbol] = ccxt.BaseExchange.FromTicker(ticker);
             }
-            string messageHash = ("ticker:" + symbol);
+            string messageHash = ("ticker:" + this.safeString(ccxt.BaseExchange.FromTicker(ticker), "symbol", ""));
             string idMessageHash = ("ticker:" + marketId);
             client.resolve(ccxt.BaseExchange.FromTicker(ticker), messageHash);
             client.resolve(ccxt.BaseExchange.FromTicker(ticker), idMessageHash);

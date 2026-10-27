@@ -1136,7 +1136,7 @@ public partial class hashkey : Exchange
             isSpot = false;
             isSwap = true;
             baseId = this.safeString(market, "underlying");
-            suffix = (":" + settleId);
+            suffix = (":" + this.safeString(market, "marginToken", ""));
         }
         string? bs = this.safeCurrencyCode(baseId);
         if (((bs == null)) || ((quote == null)))
@@ -4336,9 +4336,8 @@ public partial class hashkey : Exchange
         {
             throw new BadSymbol ((this.id + " modifyMarginHelper() supports swap markets only")) ;
         }
-        IList<object> sideParamparamsSideVariable = (IList<object>)this.handleParamString(parameters, "side");
-        string? sideParam = (string)sideParamparamsSideVariable[0];
-        IDictionary<string, object> paramsSide = ((IDictionary<string, object>)sideParamparamsSideVariable[1]);
+        string? sideParam = this.safeString(parameters, "side");
+        IDictionary<string, object> paramsSide = ((IDictionary<string, object>)this.omit(parameters, "side"));
         if ((sideParam == null))
         {
             throw new ArgumentsRequired ((((this.id + " ") + (type)) + "Margin() requires a params[\"side\"] argument, either \"long\" or \"short\"")) ;

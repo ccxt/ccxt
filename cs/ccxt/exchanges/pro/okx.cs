@@ -962,7 +962,7 @@ public partial class okx : ccxt.okx
         {
             object rawLiquidation = rawLiquidations[i];
             Dictionary<string, object> liquidation = this.parseWsLiquidation(rawLiquidation);
-            string? symbol = this.safeString(liquidation, "symbol");
+            string? symbol = this.safeString(liquidation, "symbol", "");
             if ((this.liquidations == null))
             {
                 Int64? limit = this.safeInteger(this.options, "liquidationsLimit", 1000);
@@ -1079,7 +1079,7 @@ public partial class okx : ccxt.okx
                 return;
             }
             Dictionary<string, object> liquidation = this.parseWsMyLiquidation(rawLiquidation);
-            string? symbol = this.safeString(liquidation, "symbol");
+            string? symbol = this.safeString(liquidation, "symbol", "");
             if ((this.liquidations == null))
             {
                 Int64? limit = this.safeInteger(this.options, "liquidationsLimit", 1000);
@@ -1630,10 +1630,8 @@ public partial class okx : ccxt.okx
         //
         List<object> asks = this.safeList(message, "asks", new List<object>() {});
         List<object> bids = this.safeList(message, "bids", new List<object>() {});
-        ccxt.pro.IAsks storedAsks = orderbook?.asks;
-        ccxt.pro.IBids storedBids = orderbook?.bids;
-        this.handleDeltas(storedAsks, asks);
-        this.handleDeltas(storedBids, bids);
+        this.handleDeltas(orderbook?.asks, asks);
+        this.handleDeltas(orderbook?.bids, bids);
         string? marketId = this.safeString(message, "instId");
         string? symbol = this.safeSymbol(marketId, market);
         Int64? seqId = this.safeInteger(message, "seqId");
@@ -2257,7 +2255,7 @@ public partial class okx : ccxt.okx
         {
             IDictionary<string, object> rawPosition = ((IDictionary<string, object>)data[i]);
             Dictionary<string, object> position = this.parsePosition(rawPosition);
-            if (isEqual((position != null && position.ContainsKey("contracts") ? position["contracts"] : null), 0) && (this.safeString(rawPosition, "posSide") == "net"))
+            if ((this.safeNumber(position, "contracts") == 0) && (this.safeString(rawPosition, "posSide") == "net"))
             {
                 position["side"] = "long";
                 object shortPosition = this.clone(position);
@@ -2432,7 +2430,7 @@ public partial class okx : ccxt.okx
             {
                 IDictionary<string, object> order = ((IDictionary<string, object>)parsed[i]);
                 ccxt.pro.BaseCache.appendTo(stored, order);
-                string? symbol = ((string)(order != null && order.ContainsKey("symbol") ? order["symbol"] : null));
+                string? symbol = this.safeString(order, "symbol", "");
                 Dictionary<string, object> market = this.market(symbol);
                 marketIds.Add((market.ContainsKey("id") ? market["id"] : null));
             }

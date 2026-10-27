@@ -2178,13 +2178,13 @@ public partial class mexc : ccxt.mexc
             } else if ((messageHash?.IndexOf("candles", StringComparison.Ordinal) ?? -1) >= 0)
             {
                 List<object> splitHashes = messageHash.Split(new [] {":"}, StringSplitOptions.None).ToList<object>();
-                object candlesSymbol = this.safeString(splitHashes, 2);
+                object candlesSymbol = this.safeString(splitHashes, 2, "");
                 int splitHashesLength = splitHashes.Count; // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
                 if (splitHashesLength > 4)
                 {
-                    candlesSymbol = add(candlesSymbol, (":" + this.safeString(splitHashes, 3)));
+                    candlesSymbol = ((candlesSymbol + ":") + this.safeString(splitHashes, 3, ""));
                 }
-                if (((candlesSymbol != null)) && ((this.ohlcvs != null && candlesSymbol is string inOpKey0 && this.ohlcvs.ContainsKey(inOpKey0))))
+                if ((this.ohlcvs != null && candlesSymbol is string inOpKey0 && this.ohlcvs.ContainsKey(inOpKey0)))
                 {
                     this.ohlcvs.Remove((string)candlesSymbol);
                 }

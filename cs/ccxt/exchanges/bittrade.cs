@@ -2108,7 +2108,7 @@ public partial class bittrade : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < (success?.Count ?? 0); i++)
         {
-            object order = success[i];
+            string? order = this.safeString(success, i);
             result.Add(ccxt.BaseExchange.FromOrder(this.safeOrder(new Dictionary<string, object>() {
                 { "info", order },
                 { "id", order },

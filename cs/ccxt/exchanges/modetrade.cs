@@ -3791,7 +3791,7 @@ public partial class modetrade : Exchange
             string? apiKey = this.apiKey;
             if ((apiKey?.IndexOf("ed25519:", StringComparison.Ordinal) ?? -1) < 0)
             {
-                apiKey = ("ed25519:" + (apiKey));
+                apiKey = ("ed25519:" + apiKey);
             }
             Dictionary<string, object> signedHeaders = new Dictionary<string, object>() {
                 { "orderly-account-id", this.accountId },

@@ -1839,8 +1839,10 @@ public partial class luno : Exchange
         //     }
         //
         Dictionary<string, object> result = this.depositWithdrawFee(response);
-        ((IDictionary<string,object>)(result != null && result.ContainsKey("withdraw") ? result["withdraw"] : null))["fee"] = this.safeNumber(response, "fee");
-        ((IDictionary<string,object>)(result != null && result.ContainsKey("withdraw") ? result["withdraw"] : null))["percentage"] = false;
+        result["withdraw"] = new Dictionary<string, object>() {
+            { "fee", this.safeNumber(response, "fee") },
+            { "percentage", false },
+        };
         return ccxt.BaseExchange.ToDepositWithdrawFee(this.assignDefaultDepositWithdrawFees(result, currency));
     }
 

@@ -355,11 +355,12 @@ public partial class coincheck : Exchange
             string? code = ((string)codes[i]);
             Dictionary<string, object> currency = this.currency(code);
             object currencyId = (currency.ContainsKey("id") ? currency["id"] : null);
-            if (inOp(response, currencyId))
+            string? free = this.safeString(response, currencyId);
+            if ((free != null))
             {
                 Dictionary<string, object> account = this.account();
                 object reserved = add(currencyId, "_reserved");
-                account["free"] = this.safeString(response, currencyId);
+                account["free"] = free;
                 account["used"] = this.safeString(response, reserved);
                 result[(string)code] = account;
             }
@@ -670,12 +671,13 @@ public partial class coincheck : Exchange
         string? side = null;
         Dictionary<string, object> fee = null;
         string? orderId = null;
-        if ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("liquidity")))
+        string? liquidity = this.safeString(trade, "liquidity");
+        if ((liquidity != null))
         {
-            if ((this.safeString(trade, "liquidity") == "T"))
+            if (liquidity == "T")
             {
                 takerOrMaker = "taker";
-            } else if ((this.safeString(trade, "liquidity") == "M"))
+            } else if (liquidity == "M")
             {
                 takerOrMaker = "maker";
             }

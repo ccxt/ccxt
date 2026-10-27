@@ -442,7 +442,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         int symbolsLength = (symbolsResolved?.Count ?? 0);
         for (int i = 0; i < symbolsLength; i++)
         {
-            channels.Add(((("user.orders." + this.safeString(this.market((symbolsResolved != null && i < symbolsResolved.Count ? symbolsResolved[i] : null)), "id", "")) + ".") + interval));
+            channels.Add(((("user.orders." + this.safeString(this.market(this.safeString(symbolsResolved, i, "")), "id", "")) + ".") + interval));
         }
         object orders = await this.subscribe(channels, channels, true, paramsInterval);
         Int64? limitResolved = limit;
@@ -546,7 +546,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         {
             for (int i = 0; i < symbolsLength; i++)
             {
-                channels.Add(((("user.changes." + this.safeString(this.market((symbolsResolved != null && i < symbolsResolved.Count ? symbolsResolved[i] : null)), "id", "")) + ".") + interval));
+                channels.Add(((("user.changes." + this.safeString(this.market(this.safeString(symbolsResolved, i, "")), "id", "")) + ".") + interval));
             }
         } else
         {
@@ -593,7 +593,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         {
             for (int i = 0; i < symbolsLength; i++)
             {
-                channels.Add(((("user.changes." + this.safeString(this.market((symbolsResolved != null && i < symbolsResolved.Count ? symbolsResolved[i] : null)), "id", "")) + ".") + interval));
+                channels.Add(((("user.changes." + this.safeString(this.market(this.safeString(symbolsResolved, i, "")), "id", "")) + ".") + interval));
             }
         } else
         {
@@ -788,7 +788,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         int symbolsLength = (symbolsResolved?.Count ?? 0);
         for (int i = 0; i < symbolsLength; i++)
         {
-            Dictionary<string, object> market = this.market((symbolsResolved != null && i < symbolsResolved.Count ? symbolsResolved[i] : null));
+            Dictionary<string, object> market = this.market(this.safeString(symbolsResolved, i, ""));
             channels.Add(((("ticker." + this.safeString(market, "id", "")) + ".") + interval));
         }
         object ticker = await this.subscribe(channels, channels, isPrivate, paramsInterval);
@@ -832,7 +832,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         int symbolsLength = (symbolsResolved?.Count ?? 0);
         for (int i = 0; i < symbolsLength; i++)
         {
-            channels.Add(((("ticker." + this.safeString(this.market((symbolsResolved != null && i < symbolsResolved.Count ? symbolsResolved[i] : null)), "id", "")) + ".") + interval));
+            channels.Add(((("ticker." + this.safeString(this.market(this.safeString(symbolsResolved, i, "")), "id", "")) + ".") + interval));
         }
         return await this.unSubscribe(channels, (interval == "raw"), paramsInterval);
     }
@@ -935,7 +935,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         int symbolsLength = (symbolsResolved?.Count ?? 0);
         for (int i = 0; i < symbolsLength; i++)
         {
-            Dictionary<string, object> market = this.market((symbolsResolved != null && i < symbolsResolved.Count ? symbolsResolved[i] : null));
+            Dictionary<string, object> market = this.market(this.safeString(symbolsResolved, i, ""));
             channels.Add(("quote." + this.safeString(market, "id", "")));
         }
         object ticker = await this.subscribe(channels, channels, false, paramsResolved);
@@ -972,7 +972,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         int symbolsLength = (symbolsResolved?.Count ?? 0);
         for (int i = 0; i < symbolsLength; i++)
         {
-            channels.Add(("quote." + this.safeString(this.market((symbolsResolved != null && i < symbolsResolved.Count ? symbolsResolved[i] : null)), "id", "")));
+            channels.Add(("quote." + this.safeString(this.market(this.safeString(symbolsResolved, i, "")), "id", "")));
         }
         return await this.unSubscribe(channels, false, paramsResolved);
     }
@@ -1227,7 +1227,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         int symbolsLength = (symbolsResolved?.Count ?? 0);
         for (int i = 0; i < symbolsLength; i++)
         {
-            Dictionary<string, object> market = this.market((symbolsResolved != null && i < symbolsResolved.Count ? symbolsResolved[i] : null));
+            Dictionary<string, object> market = this.market(this.safeString(symbolsResolved, i, ""));
             channels.Add(((("trades." + this.safeString(market, "id", "")) + ".") + interval));
         }
         object trades = await this.subscribe(channels, channels, isPrivate, paramsInterval);
@@ -1286,7 +1286,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         int symbolsLength = (symbolsResolved?.Count ?? 0);
         for (int i = 0; i < symbolsLength; i++)
         {
-            channels.Add(((("trades." + this.safeString(this.market((symbolsResolved != null && i < symbolsResolved.Count ? symbolsResolved[i] : null)), "id", "")) + ".") + interval));
+            channels.Add(((("trades." + this.safeString(this.market(this.safeString(symbolsResolved, i, "")), "id", "")) + ".") + interval));
         }
         return await this.unSubscribe(channels, (interval == "raw"), paramsInterval);
     }
@@ -1383,7 +1383,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         int symbolsLength = symbols?.Count ?? 0;
         for (int i = 0; i < symbolsLength; i++)
         {
-            Dictionary<string, object> market = this.market((symbols != null && i < symbols.Count ? symbols[i] : null));
+            Dictionary<string, object> market = this.market(this.safeString(symbols, i, ""));
             channels.Add(((("book." + this.safeString(market, "id", "")) + ".") + (descriptor)));
         }
         ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.subscribe(channels, channels, isPrivate, paramsChannel));
@@ -1450,7 +1450,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         int symbolsLength = symbols?.Count ?? 0;
         for (int i = 0; i < symbolsLength; i++)
         {
-            channels.Add(((("book." + this.safeString(this.market((symbols != null && i < symbols.Count ? symbols[i] : null)), "id", "")) + ".") + (descriptor)));
+            channels.Add(((("book." + this.safeString(this.market(this.safeString(symbols, i, "")), "id", "")) + ".") + (descriptor)));
         }
         return await this.unSubscribe(channels, (interval == "raw"), paramsChannel);
     }

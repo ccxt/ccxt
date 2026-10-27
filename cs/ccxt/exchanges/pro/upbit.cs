@@ -434,18 +434,13 @@ public partial class upbit : ccxt.upbit
         }
         // Build subscription message with all requested private channels
         // Format: [{'ticket': uuid}, {'type': 'myOrder'}, {'type': 'myAsset'}, ...]
-        List<object> requests = new List<object>() {};
-        List<object> channelKeys = new List<object>(subscriptions.Keys);
-        for (int i = 0; i < channelKeys.Count; i++)
-        {
-            requests.Add((subscriptions != null && channelKeys[i] != null && subscriptions.ContainsKey((string)channelKeys[i]) ? subscriptions[(string)channelKeys[i]] : null));
-        }
         List<object> message = new List<object>() {new Dictionary<string, object>() {
     { "ticket", this.uuid() },
 }};
-        for (int i = 0; i < (requests?.Count ?? 0); i++)
+        List<object> channelKeys = new List<object>(subscriptions.Keys);
+        for (int i = 0; i < channelKeys.Count; i++)
         {
-            message.Add(requests[i]);
+            message.Add((subscriptions != null && channelKeys[i] != null && subscriptions.ContainsKey((string)channelKeys[i]) ? subscriptions[(string)channelKeys[i]] : null));
         }
         return await this.watch(url, messageHashResolved, message, messageHashResolved);
     }

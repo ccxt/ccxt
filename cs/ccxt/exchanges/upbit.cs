@@ -1361,7 +1361,7 @@ public partial class upbit : Exchange
         return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(ohlcvs, market,timeframeVar, since, limitResolved));
     }
 
-    public virtual string? calcOrderPrice(string? symbol, double? amount, double? price = null, object parameters = null)
+    public virtual string? calcOrderPrice(string? symbol, double? amount = null, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? quoteAmount = null;

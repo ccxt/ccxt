@@ -144,7 +144,8 @@ public partial class hitbtc : ccxt.hitbtc
         {
             for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
             {
-                messageHashes.Add(add(add(messageHashPrefix, "::"), symbolsNormalized[i]));
+                string? symbolId = ((string)symbolsNormalized[i]);
+                messageHashes.Add(add(add(messageHashPrefix, "::"), symbolId));
             }
         } else
         {

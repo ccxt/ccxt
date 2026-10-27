@@ -1046,8 +1046,9 @@ public partial class backpack : ccxt.backpack
         for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
         {
             string? symbol = ((string)symbolsNormalized[i]);
-            object marketId = this.wsVenueMarketId("watchTradesForSymbols", this.market(symbol), query);
-            topics.Add(("trade." + (marketId)));
+            Dictionary<string, object> market = this.market(symbol);
+            this.wsVenueMarketId("watchTradesForSymbols", market, query);
+            topics.Add(("trade." + this.safeString(market, "id", "")));
             messageHashes.Add(("trades:" + symbol));
         }
         object trades = await this.watchPublic(topics, messageHashes, this.omit(query, new List<object>() {"stock", "source"}));
@@ -1092,8 +1093,9 @@ public partial class backpack : ccxt.backpack
         for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
         {
             string? symbol = ((string)symbolsNormalized[i]);
-            object marketId = this.wsVenueMarketId("watchTradesForSymbols", this.market(symbol), query);
-            topics.Add(("trade." + (marketId)));
+            Dictionary<string, object> market = this.market(symbol);
+            this.wsVenueMarketId("watchTradesForSymbols", market, query);
+            topics.Add(("trade." + this.safeString(market, "id", "")));
             messageHashes.Add(("unsubscribe:trades:" + symbol));
         }
         return await this.watchPublic(topics, messageHashes, this.omit(query, new List<object>() {"stock", "source"}), true);
@@ -1248,9 +1250,9 @@ public partial class backpack : ccxt.backpack
         {
             string? symbol = ((string)symbolsNormalized[i]);
             messageHashes.Add(("orderbook:" + symbol));
-            object marketId = this.wsVenueMarketId("watchOrderBookForSymbols", this.market(symbol), query);
-            string topic = ("depth." + (marketId));
-            topics.Add(topic);
+            Dictionary<string, object> market = this.market(symbol);
+            this.wsVenueMarketId("watchOrderBookForSymbols", market, query);
+            topics.Add(("depth." + this.safeString(market, "id", "")));
             if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
             {
                 ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
@@ -1303,9 +1305,9 @@ public partial class backpack : ccxt.backpack
         {
             string? symbol = ((string)symbolsNormalized[i]);
             messageHashes.Add(("unsubscribe:orderbook:" + symbol));
-            object marketId = this.wsVenueMarketId("watchOrderBookForSymbols", this.market(symbol), query);
-            string topic = ("depth." + (marketId));
-            topics.Add(topic);
+            Dictionary<string, object> market = this.market(symbol);
+            this.wsVenueMarketId("watchOrderBookForSymbols", market, query);
+            topics.Add(("depth." + this.safeString(market, "id", "")));
         }
         return await this.watchPublic(topics, messageHashes, this.omit(query, new List<object>() {"stock", "source"}), true);
     }
@@ -1506,7 +1508,6 @@ public partial class backpack : ccxt.backpack
             market = this.market(symbol);
             this.handleStockParams("watchOrders", query, market);
         }
-        object symbolResolved = ((market != null)) ? (market.ContainsKey("symbol") ? market["symbol"] : null) : symbol;
         string topic = "account.orderUpdate";
         string messageHash = "unsubscribe:orders";
         if ((market != null))
@@ -1516,7 +1517,7 @@ public partial class backpack : ccxt.backpack
             {
                 topic = ("account.rfqUpdate." + this.safeString(market, "id", ""));
             }
-            messageHash = ("unsubscribe:orders:" + (symbolResolved));
+            messageHash = ("unsubscribe:orders:" + this.safeString(market, "symbol", ""));
         }
         List<object> topics = new List<object>() {topic};
         if ((market == null))

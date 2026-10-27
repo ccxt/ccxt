@@ -1483,10 +1483,10 @@ public partial class xt : Exchange
     public async virtual Task<List<ccxt.MarketInterface>> FetchSwapAndFutureMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        var hxauTask66627_0 = this.publicLinearGetFutureMarketV1PublicSymbolList(parameters);
-        var hxauTask66627_1 = this.publicInverseGetFutureMarketV1PublicSymbolList(parameters);
-        await Task.WhenAll(hxauTask66627_0, hxauTask66627_1);
-        List<object> markets = new List<object> { hxauTask66627_0.Result, hxauTask66627_1.Result };
+        var hxauTask66628_0 = this.publicLinearGetFutureMarketV1PublicSymbolList(parameters);
+        var hxauTask66628_1 = this.publicInverseGetFutureMarketV1PublicSymbolList(parameters);
+        await Task.WhenAll(hxauTask66628_0, hxauTask66628_1);
+        List<object> markets = new List<object> { hxauTask66628_0.Result, hxauTask66628_1.Result };
         //
         //     {
         //         "returnCode": 0,

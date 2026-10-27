@@ -1147,7 +1147,7 @@ public partial class woofipro : ccxt.woofipro
         bool awaitPositionsSnapshot = ((bool)this.handleOption("watchPositions", "awaitPositionsSnapshot", true));
         if (((fetchPositionsSnapshot == true)) && ((awaitPositionsSnapshot == true)) && ((this.positions == null)))
         {
-            ccxt.pro.ArrayCache snapshot = ((ccxt.pro.ArrayCache)await client.future("fetchPositionsSnapshot"));
+            object snapshot = await client.future("fetchPositionsSnapshot");
             return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(snapshot, symbolsNormalized, since, limit, true));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -1194,9 +1194,9 @@ public partial class woofipro : ccxt.woofipro
             }
         }
         // don't remove the future from the .futures cache
-        if ((client.futures != null && messageHash != null && client.futures.ContainsKey((string)messageHash)))
+        Future future = ((Future)this.safeValue(client.futures, messageHash));
+        if ((future != null))
         {
-            Future future = (client.futures != null && messageHash != null && client.futures.ContainsKey(messageHash.ToString()) ? client.futures[messageHash.ToString()] : null);
             (future as Future).resolve(cache);
             client.resolve(cache, "positions");
         }

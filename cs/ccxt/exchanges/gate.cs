@@ -2178,9 +2178,9 @@ public partial class gate : Exchange
             string? id = this.safeString(spotMarket, "id");
             IDictionary<string, object> marginMarket = this.safeDict(marginMarkets, id);
             Dictionary<string, object> market = this.deepExtend(marginMarket, spotMarket);
-            var baseIdquoteIdVariable = id.Split(new [] {"_"}, StringSplitOptions.None).ToList<object>();
-            var baseId = baseIdquoteIdVariable[0];
-            var quoteId = baseIdquoteIdVariable[1];
+            List<object> idParts = id.Split(new [] {"_"}, StringSplitOptions.None).ToList<object>();
+            string? baseId = this.safeString(idParts, 0);
+            string? quoteId = this.safeString(idParts, 1);
             string? bs = this.safeCurrencyCode(baseId);
             string? quote = this.safeCurrencyCode(quoteId);
             if (((bs == null)) || ((quote == null)))
@@ -2263,7 +2263,7 @@ public partial class gate : Exchange
         }
         for (int c = 0; c < (swapSettlementCurrencies?.Count ?? 0); c++)
         {
-            object settleId = swapSettlementCurrencies[c];
+            string? settleId = this.safeString(swapSettlementCurrencies, c);
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "settle", settleId },
             };
@@ -2292,7 +2292,7 @@ public partial class gate : Exchange
         List<object> futureSettlementCurrencies = this.getSettlementCurrencies("future", "fetchMarkets");
         for (int c = 0; c < (futureSettlementCurrencies?.Count ?? 0); c++)
         {
-            object settleId = futureSettlementCurrencies[c];
+            string? settleId = this.safeString(futureSettlementCurrencies, c);
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "settle", settleId },
             };
@@ -7332,7 +7332,7 @@ public partial class gate : Exchange
             List<object> ordersRequests = new List<object>() {};
             for (int i = 0; i < (ids?.Count ?? 0); i++)
             {
-                string? id = ((string)(ids != null && i < ids.Count ? ids[i] : null));
+                string? id = this.safeString(ids, i, "");
                 Dictionary<string, object> orderItem = new Dictionary<string, object>() {
                     { "id", id },
                     { "symbol", symbol },
@@ -7347,7 +7347,7 @@ public partial class gate : Exchange
         List<object> finalList = new List<object>() {request}; // hacky but needs to be done here
         for (int i = 0; i < (ids?.Count ?? 0); i++)
         {
-            finalList.Add((ids != null && i < ids.Count ? ids[i] : null));
+            finalList.Add(this.safeString(ids, i, ""));
         }
         List<object> response = await this.privateFuturesPostSettleBatchCancelOrders(finalList);
         return this.parseOrders(response);

@@ -1678,10 +1678,10 @@ public partial class dydx : Exchange
     public virtual string? createOrderIdFromParts(object address, object subAccountNumber, object clientOrderId, object orderFlags, object clobPairId)
     {
         string? nameSp = this.safeString(this.options, "namespace", "0f9da948-a6fb-4c45-9edc-4685c3f3317d");
-        object prefixAddress = add(add(address, "-"), this.numberToString(subAccountNumber));
-        object prefix = this.uuid5(nameSp, prefixAddress);
-        object orderInfo = add(add(add(add(add(add(prefix, "-"), this.numberToString(clientOrderId)), "-"), this.numberToString(clobPairId)), "-"), this.numberToString(orderFlags));
-        return ((string?)((object)(this.uuid5(nameSp, orderInfo))));
+        string? clientOrderIdString = this.numberToString(clientOrderId);
+        string? clobPairIdString = this.numberToString(clobPairId);
+        string? orderFlagsString = this.numberToString(orderFlags);
+        return ((string?)((object)(this.uuid5(nameSp, add(add(add(add(add(add(this.uuid5(nameSp, add(add(address, "-"), this.numberToString(subAccountNumber))), "-"), clientOrderIdString), "-"), clobPairIdString), "-"), orderFlagsString)))));
     }
 
     public async virtual Task<Int64> FetchLatestBlockHeight(IDictionary<string, object>? parameters = null)

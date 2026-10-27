@@ -1609,9 +1609,7 @@ public partial class apex : Exchange
         Dictionary<string, object> configResponse = await this.publicGetV3Symbols(parameters);
         IDictionary<string, object> configData = this.safeDict(configResponse, "data", new Dictionary<string, object>() {});
         IDictionary<string, object> contractConfig = this.safeDict(configData, "contractConfig", new Dictionary<string, object>() {});
-        List<object> contractAssets = this.safeList(contractConfig, "assets", new List<object>() {});
         IDictionary<string, object> spotConfig = this.safeDict(configData, "spotConfig", new Dictionary<string, object>() {});
-        List<object> spotAssets = this.safeList(spotConfig, "assets", new List<object>() {});
         IDictionary<string, object> globalConfig = this.safeDict(spotConfig, "global", new Dictionary<string, object>() {});
         string? receiverAddress = this.safeString(globalConfig, "contractAssetPoolEthAddress", "");
         string? receiverZkAccountId = this.safeString(globalConfig, "contractAssetPoolZkAccountId", "");
@@ -1633,16 +1631,18 @@ public partial class apex : Exchange
         string? accountId = this.safeString(accountData, "id", "");
         IDictionary<string, object> currency = new Dictionary<string, object>() {};
         bool isContract = (fromAccount.ToLower() == "contract");
-        List<object> assets = spotAssets;
+        List<object> assets = this.safeList(spotConfig, "assets", new List<object>() {});
         if (isContract)
         {
-            assets = contractAssets;
+            assets = this.safeList(contractConfig, "assets", new List<object>() {});
         }
-        for (int i = 0; i < (assets?.Count ?? 0); i++)
+        int numAssets = assets.Count;
+        for (int i = 0; i < numAssets; i++)
         {
-            if ((this.safeString(this.safeDict(assets, i, new Dictionary<string, object>() {}), "token", "") == code))
+            IDictionary<string, object> asset = this.safeDict(assets, i, new Dictionary<string, object>() {});
+            if ((this.safeString(asset, "token", "") == code))
             {
-                currency = this.safeDict(assets, i, new Dictionary<string, object>() {});
+                currency = asset;
             }
         }
         string? tokenId = this.safeString(currency, "tokenId", "");

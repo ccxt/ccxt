@@ -4098,7 +4098,7 @@ public partial class woofipro : Exchange
             string auth = "";
             string ts = this.nonce().ToString();
             url = url + pathWithParams;
-            object apiKey = this.apiKey;
+            string? apiKey = this.apiKey;
             if (this.apiKey.IndexOf("ed25519:", StringComparison.Ordinal) < 0)
             {
                 apiKey = ("ed25519:" + this.apiKey);

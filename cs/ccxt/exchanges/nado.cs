@@ -1093,7 +1093,7 @@ public partial class nado : Exchange
         if ((symbol != null))
         {
             market = this.market(symbol);
-            productIds.Add(this.parseToInt((market.ContainsKey("id") ? market["id"] : null)));
+            productIds.Add(this.parseToInt(this.safeString(market, "id")));
         }
         (string?, object) subaccountparamsSubaccountVariable = this.handleOptionStringAndParams(parameters, "fetchOrders", "subaccount", "default");
         string? subaccount = subaccountparamsSubaccountVariable.Item1;
@@ -1110,7 +1110,7 @@ public partial class nado : Exchange
         IDictionary<string, object> paramsRecvWindow = ((IDictionary<string, object>)recvWindowparamsRecvWindowVariable.Item2);
         Dictionary<string, object> tx = new Dictionary<string, object>() {
             { "sender", sender },
-            { "recvTime", this.numberToString(add(this.milliseconds(), recvWindow)) },
+            { "recvTime", this.numberToString(this.sum(this.milliseconds(), recvWindow)) },
         };
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "tx", tx },
@@ -1281,7 +1281,7 @@ public partial class nado : Exchange
         };
         if ((market != null))
         {
-            ordersRequest["product_ids"] = new List<object> {this.parseToInt((market.ContainsKey("id") ? market["id"] : null))};
+            ordersRequest["product_ids"] = new List<object> {this.parseToInt(this.safeString(market, "id"))};
         }
         if ((limit != null))
         {
@@ -1402,7 +1402,7 @@ public partial class nado : Exchange
         };
         if ((market != null))
         {
-            matchesRequest["product_ids"] = new List<object> {this.parseToInt((market.ContainsKey("id") ? market["id"] : null))};
+            matchesRequest["product_ids"] = new List<object> {this.parseToInt(this.safeString(market, "id"))};
         }
         if ((limit != null))
         {

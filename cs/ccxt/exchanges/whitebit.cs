@@ -972,7 +972,7 @@ public partial class whitebit : Exchange
         List<object> allNetworks = this.arrayConcat(depositsNetworks, withdrawsNetworks);
         for (int j = 0; j < (allNetworks?.Count ?? 0); j++)
         {
-            object networkId = allNetworks[j];
+            string? networkId = this.safeString(allNetworks, j, "");
             string? networkCode = this.networkIdToCode(networkId, code);
             IDictionary<string, object> networkDepositLimits = this.safeDict(depositLimits, networkId, new Dictionary<string, object>() {});
             IDictionary<string, object> networkWithdrawLimits = this.safeDict(withdrawLimits, networkId, new Dictionary<string, object>() {});
@@ -4881,7 +4881,7 @@ public partial class whitebit : Exchange
         parameters ??= new Dictionary<string, object>();
         object query = this.omit(parameters, this.extractParams(path));
         string? version = ((string)(api != null && 0 < api.Count ? api[0] : null));
-        string? accessibility = this.safeString(api, 1);
+        string? accessibility = ((string)(api != null && 1 < api.Count ? api[1] : null));
         Dictionary<string, object> publicHeaders = new Dictionary<string, object>() {};
         publicHeaders["User-Agent"] = ((("ccxt/" + this.id) + "-") + this.version);
         string pathWithParams = ("/" + this.implodeParams(path, parameters));
@@ -4968,7 +4968,7 @@ public partial class whitebit : Exchange
             if (hasErrorStatus || (codeNew != null))
             {
                 string feedback = ((this.id + " ") + (body));
-                object errorInfo = message;
+                string? errorInfo = message;
                 if (hasErrorStatus)
                 {
                     errorInfo = status;
@@ -4979,10 +4979,9 @@ public partial class whitebit : Exchange
                     int errorsLength = errorKeys.Count;
                     if (errorsLength > 0)
                     {
-                        string? errorKey = ((string)(errorKeys != null && 0 < errorKeys.Count ? errorKeys[0] : null));
+                        string? errorKey = this.safeString(errorKeys, 0, "");
                         List<object> errorMessageArray = this.safeList(errorObject, errorKey, new List<object>() {});
-                        int errorMessageLength = errorMessageArray.Count;
-                        errorInfo = (errorMessageLength > 0) ? (errorMessageArray != null && 0 < errorMessageArray.Count ? errorMessageArray[0] : null) : body;
+                        errorInfo = this.safeString(errorMessageArray, 0, body);
                     }
                 }
                 this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorInfo, feedback);
@@ -4999,10 +4998,9 @@ public partial class whitebit : Exchange
                 object errorInfo = body;
                 if (errKeysLength > 0)
                 {
-                    string? errorKey = ((string)(errKeys != null && 0 < errKeys.Count ? errKeys[0] : null));
+                    string? errorKey = this.safeString(errKeys, 0, "");
                     List<object> errorMessageArray = this.safeList(errMsg, errorKey, new List<object>() {});
-                    int errorMessageLength = errorMessageArray.Count;
-                    errorInfo = (errorMessageLength > 0) ? (errorMessageArray != null && 0 < errorMessageArray.Count ? errorMessageArray[0] : null) : body;
+                    errorInfo = this.safeString(errorMessageArray, 0, body);
                 }
                 string feedback = ((this.id + " ") + (body));
                 this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorInfo, feedback);

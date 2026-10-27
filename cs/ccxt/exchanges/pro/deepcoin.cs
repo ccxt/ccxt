@@ -976,10 +976,7 @@ public partial class deepcoin : ccxt.deepcoin
         if ((symbol != null))
         {
             symbolResolved = this.symbol(symbol);
-        }
-        if ((symbolResolved != null))
-        {
-            messageHash = (("myTrades" + "::") + symbolResolved);
+            messageHash = (("myTrades" + "::") + this.safeString(this.market(symbol), "symbol", ""));
         }
         object trades = await this.watchPrivate(messageHash, parameters);
         Int64? limitResolved = limit;
@@ -1068,10 +1065,7 @@ public partial class deepcoin : ccxt.deepcoin
         if ((symbol != null))
         {
             symbolResolved = this.symbol(symbol);
-        }
-        if ((symbolResolved != null))
-        {
-            messageHash = (("orders" + "::") + symbolResolved);
+            messageHash = (("orders" + "::") + this.safeString(this.market(symbol), "symbol", ""));
         }
         object orders = await this.watchPrivate(messageHash, parameters);
         Int64? limitResolved = limit;

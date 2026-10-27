@@ -4589,10 +4589,7 @@ public partial class mexc : Exchange
                 if ((symbols != null))
                 {
                     IList<object> symbolIds = this.marketIds(symbols);
-                    if ((symbolIds != null))
-                    {
-                        parsedSymbols = String.Join(",", symbolIds.ToArray());
-                    }
+                    parsedSymbols = String.Join(",", symbolIds.ToArray());
                 }
             } else
             {
@@ -5763,7 +5760,8 @@ public partial class mexc : Exchange
         string? currencyWithNetwork = this.safeString(transaction, "coin");
         if ((currencyWithNetwork != null))
         {
-            currencyId = getValue(currencyWithNetwork.Split(new [] {"-"}, StringSplitOptions.None).ToList<object>(), 0);
+            List<object> currencyParts = currencyWithNetwork.Split(new [] {"-"}, StringSplitOptions.None).ToList<object>();
+            currencyId = (currencyParts != null && 0 < currencyParts.Count ? currencyParts[0] : null);
         }
         string? code = this.safeCurrencyCode(currencyId, currency);
         string? network = null;

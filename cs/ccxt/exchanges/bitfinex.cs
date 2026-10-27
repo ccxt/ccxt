@@ -2102,7 +2102,7 @@ public partial class bitfinex : Exchange
         string? timeInForce = this.safeString(parameters, "timeInForce");
         bool? postOnlyParam = this.safeBool(parameters, "postOnly", false);
         bool? reduceOnly = this.safeBool(parameters, "reduceOnly", false);
-        object clientOrderId = this.safeValue2(parameters, "cid", "clientOrderId");
+        Int64? clientOrderId = this.safeInteger2(parameters, "cid", "clientOrderId");
         string orderType = type.ToUpper();
         if ((trailingAmount != null))
         {
@@ -2387,7 +2387,7 @@ public partial class bitfinex : Exchange
         {
             await this.loadMarkets();
         }
-        object cid = this.safeValue2(parameters, "cid", "clientOrderId"); // client order id
+        Int64? cid = this.safeInteger2(parameters, "cid", "clientOrderId"); // client order id
         Dictionary<string, object> request = null;
         IDictionary<string, object> market = null;
         if ((symbol != null))

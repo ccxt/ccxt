@@ -4204,7 +4204,7 @@ public partial class kraken : Exchange
         {
             return null;
         }
-        if ((getValue(body, 0) is "{"))
+        if ((this.safeString(body, 0) == "{"))
         {
             if (!(response is string))
             {

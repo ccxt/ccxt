@@ -3561,9 +3561,7 @@ public partial class bitrue : Exchange
                 string signMessage = ((timestamp + method) + (((((signPrefix + "/") + version) + "/") + path)));
                 if ((method == "GET"))
                 {
-                    List<object> keys = new List<object>(((IDictionary<string,object>)paramsOmitted).Keys);
-                    int keysLength = keys.Count;
-                    if (keysLength > 0)
+                    if ((new List<object>(((IDictionary<string,object>)paramsOmitted).Keys)).Count > 0)
                     {
                         signMessage = signMessage + ("?" + this.urlencode(paramsOmitted));
                     }
@@ -3645,14 +3643,7 @@ public partial class bitrue : Exchange
             string? messageInner = this.safeString(response, "msg");
             if ((messageInner != null))
             {
-                try
-                {
-                    parsedMessage = JsonHelper.Deserialize(messageInner);
-                } catch(Exception e)
-                {
-                    // do nothing
-                    parsedMessage = null;
-                }
+                parsedMessage = this.parseJson(messageInner);
             }
         }
         object errorResponse = ((parsedMessage != null)) ? parsedMessage : response;

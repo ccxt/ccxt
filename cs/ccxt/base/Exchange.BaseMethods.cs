@@ -4623,7 +4623,11 @@ public partial class BaseExchange
     public virtual List<object> handleParamString(object parameters, string paramName, object defaultValue = null)
     {
         string? value = this.safeString(parameters, paramName, defaultValue);
-        object paramsOmitted = ((value != null)) ? this.omit(parameters, paramName) : parameters;
+        object paramsOmitted = parameters;
+        if ((value != null))
+        {
+            paramsOmitted = this.omit(parameters, paramName);
+        }
         return new List<object>() {value, paramsOmitted};
     }
 
@@ -4632,35 +4636,55 @@ public partial class BaseExchange
     public virtual List<object> handleParamString2(object parameters, string paramName1, string paramName2, string? defaultValue = null)
     {
         string? value = this.safeString2(parameters, paramName1, paramName2, defaultValue);
-        object paramsOmitted = ((value != null)) ? this.omit(parameters, new List<object>() {paramName1, paramName2}) : parameters;
+        object paramsOmitted = parameters;
+        if ((value != null))
+        {
+            paramsOmitted = this.omit(parameters, new List<object>() {paramName1, paramName2});
+        }
         return new List<object>() {value, paramsOmitted};
     }
 
     public virtual List<object> handleParamInteger(object parameters, string paramName, object defaultValue = null)
     {
         Int64? value = this.safeInteger(parameters, paramName, defaultValue);
-        object paramsOmitted = ((value != null)) ? this.omit(parameters, paramName) : parameters;
+        object paramsOmitted = parameters;
+        if ((value != null))
+        {
+            paramsOmitted = this.omit(parameters, paramName);
+        }
         return new List<object>() {value, paramsOmitted};
     }
 
     public virtual List<object> handleParamInteger2(object parameters, string paramName1, string paramName2, object defaultValue = null)
     {
         Int64? value = this.safeInteger2(parameters, paramName1, paramName2, defaultValue);
-        object paramsOmitted = ((value != null)) ? this.omit(parameters, new List<object>() {paramName1, paramName2}) : parameters;
+        object paramsOmitted = parameters;
+        if ((value != null))
+        {
+            paramsOmitted = this.omit(parameters, new List<object>() {paramName1, paramName2});
+        }
         return new List<object>() {value, paramsOmitted};
     }
 
     public virtual List<object> handleParamBool(object parameters, object paramName, bool? defaultValue = null)
     {
         bool? value = this.safeBool(parameters, paramName, defaultValue);
-        object paramsOmitted = ((value != null)) ? this.omit(parameters, paramName) : parameters;
+        object paramsOmitted = parameters;
+        if ((value != null))
+        {
+            paramsOmitted = this.omit(parameters, paramName);
+        }
         return new List<object>() {value, paramsOmitted};
     }
 
     public virtual List<object> handleParamBool2(object parameters, object paramName1, object paramName2, bool? defaultValue = null)
     {
         bool? value = this.safeBool2(parameters, paramName1, paramName2, defaultValue);
-        object paramsOmitted = ((value != null)) ? this.omit(parameters, new List<object>() {paramName1, paramName2}) : parameters;
+        object paramsOmitted = parameters;
+        if ((value != null))
+        {
+            paramsOmitted = this.omit(parameters, new List<object>() {paramName1, paramName2});
+        }
         return new List<object>() {value, paramsOmitted};
     }
 
@@ -5357,7 +5381,10 @@ public partial class BaseExchange
                 value = this.safeValue2(this.options, optionName, defaultOptionName);
             }
             // if it's still undefined, use the default value
-            value = ((value != null)) ? value : defaultValue;
+            if ((value == null))
+            {
+                value = defaultValue;
+            }
             return new List<object>() {value, paramsCallerMethodName};
         }
     }

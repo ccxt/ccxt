@@ -1501,9 +1501,9 @@ public partial class coinbaseinternational : Exchange
                 }
                 for (int i = 0; i < (depths?.Count ?? 0); i++)
                 {
-                    if (isLessThanOrEqual(limit, this.parseToInt(depths[i])))
+                    if (isLessThanOrEqual(limit, this.parseToInt((depths != null && i < depths.Count ? depths[i] : null))))
                     {
-                        request["depth"] = this.parseToInt(depths[i]);
+                        request["depth"] = this.safeInteger(depths, i, 0);
                         break;
                     }
                 }

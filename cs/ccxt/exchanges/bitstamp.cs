@@ -3523,13 +3523,13 @@ public partial class bitstamp : Exchange
         bool isPrivatePost = (apiName != "public") && ((method == "POST"));
         // an empty POST triggers an API0020 error, so empty requests send a dummy object
         // https://github.com/ccxt/ccxt/issues/6846
-        string emptyPostBody = this.urlencode(new Dictionary<string, object>() {
+        string queryString = this.urlencode(query);
+        string postBody = this.urlencode(new Dictionary<string, object>() {
             { "foo", "bar" },
         });
-        string postBody = emptyPostBody;
-        if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
+        if (queryString != "")
         {
-            postBody = this.urlencode(query);
+            postBody = queryString;
         }
         string? requestBody = null;
         if (isPrivatePost)
@@ -3539,9 +3539,9 @@ public partial class bitstamp : Exchange
         Dictionary<string, object> privateHeaders = new Dictionary<string, object>() {};
         if (apiName == "public")
         {
-            if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
+            if (queryString != "")
             {
-                url = url + ("?" + this.urlencode(query));
+                url = url + ("?" + queryString);
             }
         } else
         {

@@ -556,7 +556,7 @@ public partial class deepcoin : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < (types?.Count ?? 0); i++)
         {
-            promises.Add(this.FetchMarketsByType(types[i], parameters));
+            promises.Add(this.FetchMarketsByType(this.safeString(types, i), parameters));
         }
         List<object> responses = await promiseAll(promises);
         for (int i = 0; i < (responses?.Count ?? 0); i++)
@@ -2094,7 +2094,7 @@ public partial class deepcoin : Exchange
         string? timeInForce = this.handleTimeInForce(paramsPostOnly);
         Dictionary<string, object> paramsOmitted = this.omit(paramsPostOnly, "timeInForce");
         object typeValue = typePostOnly;
-        if (((timeInForce != null)) && (timeInForce == "IOC"))
+        if (timeInForce == "IOC")
         {
             typeValue = "ioc";
         }
@@ -2303,9 +2303,8 @@ public partial class deepcoin : Exchange
             return ccxt.BaseExchange.ToOrderList(await this.fetchPaginatedCallDynamic("fetchCanceledAndClosedOrders", symbol, since, limit, paramsPaginate));
         }
         bool? trigger = this.safeBool(paramsPaginate, "trigger", false);
-        IList<object> methodNameparamsMethodNameVariable = (IList<object>)this.handleParamString(paramsPaginate, "methodName", "fetchCanceledAndClosedOrders");
-        string? methodName = (string)methodNameparamsMethodNameVariable[0];
-        IDictionary<string, object> paramsMethodName = ((IDictionary<string, object>)methodNameparamsMethodNameVariable[1]);
+        string? methodName = this.safeString(paramsPaginate, "methodName", "fetchCanceledAndClosedOrders");
+        Dictionary<string, object> paramsMethodName = this.omit(paramsPaginate, "methodName");
         IDictionary<string, object> market = null;
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if ((symbol != null))
@@ -2324,7 +2323,7 @@ public partial class deepcoin : Exchange
         Dictionary<string, object> response = null;
         if ((trigger == true))
         {
-            if (!(methodName == "fetchCanceledAndClosedOrders"))
+            if (methodName != "fetchCanceledAndClosedOrders")
             {
                 throw new BadRequest ((((this.id + " ") + methodName) + "() does not support trigger orders")) ;
             }
@@ -3596,9 +3595,10 @@ public partial class deepcoin : Exchange
                 { "DC-ACCESS-PASSPHRASE", this.password },
                 { "appid", "200103" },
             };
-            string? requestBody = ((method != "GET")) ? this.json(parameters) : null;
+            string? requestBody = null;
             if ((method != "GET"))
             {
+                requestBody = this.json(parameters);
                 privateHeaders["Content-Type"] = "application/json";
                 payload = add(payload, requestBody);
             }

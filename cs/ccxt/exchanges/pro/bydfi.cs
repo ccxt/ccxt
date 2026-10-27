@@ -488,6 +488,10 @@ public partial class bydfi : ccxt.bydfi
         string? interval = this.safeString(message, "i");
         IDictionary<string, object> timeframes = this.safeDict(this.options, "timeframes", new Dictionary<string, object>() {});
         string? timeframe = this.findTimeframe(interval, timeframes);
+        if ((timeframe == null))
+        {
+            return;
+        }
         string messageHash = ((("ohlcv::" + symbol) + "::") + timeframe);
         if (!(((symbol != null) && ((IDictionary<string, object>)this.ohlcvs).ContainsKey(symbol))))
         {

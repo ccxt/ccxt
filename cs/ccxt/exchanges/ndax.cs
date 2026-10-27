@@ -907,6 +907,8 @@ public partial class ndax : Exchange
             { "datetime", null },
             { "nonce", null },
         };
+        List<object> bids = new List<object>() {};
+        List<object> asks = new List<object>() {};
         for (int i = 0; i < getArrayLength(orderbook); i++)
         {
             object level = this.safeValue(orderbook, i);
@@ -922,11 +924,16 @@ public partial class ndax : Exchange
             }
             List<object> bidask = this.parseOrderBookBidAsk(level, priceKey, amountKey);
             Int64? levelSide = this.safeInteger(level, 9);
-            object side = ((levelSide != null) && (levelSide != 0)) ? asksKey : bidsKey;
-            ((IList<object>)(result != null && side != null && result.ContainsKey((string)side) ? result[(string)side] : null)).Add(bidask);
+            if ((levelSide != null) && (levelSide != 0))
+            {
+                asks.Add(bidask);
+            } else
+            {
+                bids.Add(bidask);
+            }
         }
-        result["bids"] = this.sortBy(result["bids"], 0, true);
-        result["asks"] = this.sortBy(result["asks"], 0);
+        result["bids"] = this.sortBy(bids, 0, true);
+        result["asks"] = this.sortBy(asks, 0);
         result["timestamp"] = latestTimestamp;
         result["datetime"] = this.iso8601(latestTimestamp);
         result["nonce"] = nonce;

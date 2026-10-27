@@ -1524,7 +1524,7 @@ public partial class predictfun : PredictionExchange
             // an unmatched indexSet would otherwise return a ticker whose every quote is
             // undefined, which reads as an empty book rather than as a market that never
             // carried this outcome
-            string? requested = this.safeOutcomeSymbol(null, market);
+            string? requested = this.safeString(market, "outcome", "");
             throw new BadSymbol ((((this.id + " fetchTicker() did not find ") + requested) + " among the outcomes of its market")) ;
         }
         // the venue quotes each outcome on its own side of the book, so no complement is needed
@@ -3083,7 +3083,7 @@ public partial class predictfun : PredictionExchange
             int operatorsLength = (operators?.Count ?? 0);
             for (int i = 0; i < operatorsLength; i++)
             {
-                object operatorAddress = (operators != null && i < operators.Count ? operators[i] : null);
+                string? operatorAddress = this.safeString(operators, i);
                 if ((operatorAddress == null))
                 {
                     throw new ArgumentsRequired (((this.id + " approve() could not resolve the operator to approve for chain ") + chainKey)) ;

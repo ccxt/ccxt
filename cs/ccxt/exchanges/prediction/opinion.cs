@@ -343,8 +343,8 @@ public partial class opinion : PredictionExchange
         string? resolvedOutcome = null;
         for (int i = 0; i < (outcomeLabels?.Count ?? 0); i++)
         {
-            string? label = ((string)outcomeLabels[i]);
-            string? tokenId = ((string)(outcomeTokenIds != null && i < outcomeTokenIds.Count ? outcomeTokenIds[i] : null));
+            string? label = this.safeString(outcomeLabels, i);
+            string? tokenId = this.safeString(outcomeTokenIds, i);
             string? outcomeHandle = this.slugToOutcomeSymbol(effectiveEventSlug, slug, label);
             bool? winner = null;
             int? settleFraction = null;
@@ -848,8 +848,8 @@ public partial class opinion : PredictionExchange
         {
             IDictionary<string, object> outcomeObj = this.outcome((outcomes != null && i < outcomes.Count ? outcomes[i] : null));
             Int64 priceIndex = (i * 2L);
-            object priceResponse = (responses != null && priceIndex < responses.Count ? responses[(int)priceIndex] : null);
-            object bookResponse = (responses != null && (priceIndex + 1) < responses.Count ? responses[(int)(priceIndex + 1)] : null);
+            object priceResponse = this.safeValue(responses, priceIndex);
+            object bookResponse = this.safeValue(responses, this.sum(priceIndex, 1));
             Dictionary<string, object> response = new Dictionary<string, object>() {
                 { "price", priceResponse },
                 { "book", bookResponse },
@@ -1095,7 +1095,7 @@ public partial class opinion : PredictionExchange
         };
         byte[] encoded = this.ethEncodeStructuredData(domain, messageTypes, order);
         Dictionary<string, object> sig = this.signMessage(encoded, this.privateKey);
-        return ((("0x" + this.remove0xPrefix((sig != null && sig.ContainsKey("r") ? sig["r"] : null))) + this.remove0xPrefix((sig != null && sig.ContainsKey("s") ? sig["s"] : null))) + this.intToBase16((sig != null && sig.ContainsKey("v") ? sig["v"] : null)));
+        return ((("0x" + this.remove0xPrefix(this.safeString(sig, "r"))) + this.remove0xPrefix(this.safeString(sig, "s"))) + this.intToBase16(this.safeInteger(sig, "v")));
     }
 
     public virtual Dictionary<string, object> opinionOrderRawAmounts(bool isMarket, string? side, double? amount, double? price, object decimals)
@@ -1786,7 +1786,7 @@ public partial class opinion : PredictionExchange
         };
         byte[] encoded = this.ethEncodeStructuredData(domain, messageTypes, messageData);
         Dictionary<string, object> sig = this.signMessage(encoded, this.privateKey);
-        return ((("0x" + this.remove0xPrefix((sig != null && sig.ContainsKey("r") ? sig["r"] : null))) + this.remove0xPrefix((sig != null && sig.ContainsKey("s") ? sig["s"] : null))) + this.intToBase16((sig != null && sig.ContainsKey("v") ? sig["v"] : null)));
+        return ((("0x" + this.remove0xPrefix(this.safeString(sig, "r"))) + this.remove0xPrefix(this.safeString(sig, "s"))) + this.intToBase16(this.safeInteger(sig, "v")));
     }
 
     /**

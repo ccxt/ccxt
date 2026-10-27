@@ -821,10 +821,10 @@ public partial class grvt : Exchange
         {
             return ((bool?)((object)(true)));  // skip if builder fee is already approved
         }
-        var hxauTask33769_0 = this.privateTradingPostFullV1GetAuthorizedBuilders();
-        var hxauTask33769_1 = this.loadAccountInfos();
-        await Task.WhenAll(hxauTask33769_0, hxauTask33769_1);
-        List<object> results = new List<object> { hxauTask33769_0.Result, hxauTask33769_1.Result };
+        var hxauTask33770_0 = this.privateTradingPostFullV1GetAuthorizedBuilders();
+        var hxauTask33770_1 = this.loadAccountInfos();
+        await Task.WhenAll(hxauTask33770_0, hxauTask33770_1);
+        List<object> results = new List<object> { hxauTask33770_0.Result, hxauTask33770_1.Result };
         //
         // {
         //     "results": [{
@@ -1306,13 +1306,13 @@ public partial class grvt : Exchange
         {
             request["limit"] = Math.Min(limit.Value, 1000);
         }
+        if ((since != null))
+        {
+            request["start_time"] = this.numberToString((since * 1000000));
+        }
         IList<object> requestUntilOptionStringparamsUntilOptionStringVariable = (IList<object>)this.handleUntilOptionString("end_time", request, parameters, 1000000);
         Dictionary<string, object> requestUntilOptionString = (Dictionary<string, object>)requestUntilOptionStringparamsUntilOptionStringVariable[0];
         IDictionary<string, object> paramsUntilOptionString = ((IDictionary<string, object>)requestUntilOptionStringparamsUntilOptionStringVariable[1]);
-        if ((since != null))
-        {
-            requestUntilOptionString["start_time"] = this.numberToString((since * 1000000));
-        }
         Dictionary<string, object> response = await this.publicMarketPostFullV1TradeHistory(this.extend(requestUntilOptionString, paramsUntilOptionString));
         //
         //    {
@@ -1474,13 +1474,13 @@ public partial class grvt : Exchange
         {
             request["limit"] = Math.Min(limit.Value, 1000);
         }
+        if ((since != null))
+        {
+            request["start_time"] = this.numberToString((since * 1000000));
+        }
         IList<object> requestUntilOptionStringparamsUntilOptionStringVariable = (IList<object>)this.handleUntilOptionString("end_time", request, paramsPaginate, 1000000);
         Dictionary<string, object> requestUntilOptionString = (Dictionary<string, object>)requestUntilOptionStringparamsUntilOptionStringVariable[0];
         IDictionary<string, object> paramsUntilOptionString = ((IDictionary<string, object>)requestUntilOptionStringparamsUntilOptionStringVariable[1]);
-        if ((since != null))
-        {
-            requestUntilOptionString["start_time"] = this.numberToString((since * 1000000));
-        }
         Dictionary<string, object> response = await this.publicMarketPostFullV1Kline(this.extend(requestUntilOptionString, paramsUntilOptionString));
         //
         //    {
@@ -1563,13 +1563,13 @@ public partial class grvt : Exchange
         {
             request["limit"] = Math.Min(limit.Value, 1000);
         }
+        if ((since != null))
+        {
+            request["start_time"] = this.numberToString((since * 1000000));
+        }
         IList<object> requestUntilOptionStringparamsUntilOptionStringVariable = (IList<object>)this.handleUntilOptionString("end_time", request, paramsPaginate, 1000000);
         Dictionary<string, object> requestUntilOptionString = (Dictionary<string, object>)requestUntilOptionStringparamsUntilOptionStringVariable[0];
         IDictionary<string, object> paramsUntilOptionString = ((IDictionary<string, object>)requestUntilOptionStringparamsUntilOptionStringVariable[1]);
-        if ((since != null))
-        {
-            requestUntilOptionString["start_time"] = this.numberToString((since * 1000000));
-        }
         Dictionary<string, object> response = await this.publicMarketPostFullV1Funding(this.extend(requestUntilOptionString, paramsUntilOptionString));
         //
         //    {
@@ -1619,7 +1619,7 @@ public partial class grvt : Exchange
 
     public virtual string? getSubAccountId(object parameters)
     {
-        object subAccountId = getValue(this.handleOptionAndParams(parameters, "getSubAccountId", "accountId"), 0);
+        string? subAccountId = this.safeString(this.handleOptionAndParams(parameters, "getSubAccountId", "accountId"), 0);
         if ((subAccountId == null))
         {
             throw new ArgumentsRequired ((this.id + " you should set \"accountId\" in options or params, which can be found in the grvt dashboard, under Api-Keys page")) ;
@@ -1754,13 +1754,13 @@ public partial class grvt : Exchange
         {
             request["limit"] = Math.Min(limit.Value, 1000);
         }
+        if ((since != null))
+        {
+            request["start_time"] = this.numberToString((since * 1000000));
+        }
         IList<object> requestUntilOptionStringparamsUntilOptionStringVariable = (IList<object>)this.handleUntilOptionString("end_time", request, parameters, 1000000);
         Dictionary<string, object> requestUntilOptionString = (Dictionary<string, object>)requestUntilOptionStringparamsUntilOptionStringVariable[0];
         IDictionary<string, object> paramsUntilOptionString = ((IDictionary<string, object>)requestUntilOptionStringparamsUntilOptionStringVariable[1]);
-        if ((since != null))
-        {
-            requestUntilOptionString["start_time"] = this.numberToString((since * 1000000));
-        }
         bool? useTransfersEndpoint = this.safeBool(this.options, "useTransfersEndpointForDepositsWithdrawals", true);
         if ((useTransfersEndpoint == true))
         {
@@ -1820,13 +1820,13 @@ public partial class grvt : Exchange
         {
             request["limit"] = Math.Min(limit.Value, 1000);
         }
+        if ((since != null))
+        {
+            request["start_time"] = this.numberToString((since * 1000000));
+        }
         IList<object> requestUntilOptionStringparamsUntilOptionStringVariable = (IList<object>)this.handleUntilOptionString("end_time", request, parameters, 1000000);
         Dictionary<string, object> requestUntilOptionString = (Dictionary<string, object>)requestUntilOptionStringparamsUntilOptionStringVariable[0];
         IDictionary<string, object> paramsUntilOptionString = ((IDictionary<string, object>)requestUntilOptionStringparamsUntilOptionStringVariable[1]);
-        if ((since != null))
-        {
-            requestUntilOptionString["start_time"] = this.numberToString((since * 1000000));
-        }
         bool? useTransfersEndpoint = this.safeBool(this.options, "useTransfersEndpointForDepositsWithdrawals", true);
         if ((useTransfersEndpoint == true))
         {
@@ -2052,13 +2052,13 @@ public partial class grvt : Exchange
         {
             request["limit"] = Math.Min(limit.Value, 1000);
         }
+        if ((since != null))
+        {
+            request["start_time"] = this.numberToString((since * 1000000));
+        }
         IList<object> requestUntilOptionStringparamsUntilOptionStringVariable = (IList<object>)this.handleUntilOptionString("end_time", request, paramsPaginate, 1000000);
         Dictionary<string, object> requestUntilOptionString = (Dictionary<string, object>)requestUntilOptionStringparamsUntilOptionStringVariable[0];
         IDictionary<string, object> paramsUntilOptionString = ((IDictionary<string, object>)requestUntilOptionStringparamsUntilOptionStringVariable[1]);
-        if ((since != null))
-        {
-            requestUntilOptionString["start_time"] = this.numberToString((since * 1000000));
-        }
         Dictionary<string, object> response = await this.privateTradingPostFullV1TransferHistory(this.extend(requestUntilOptionString, paramsUntilOptionString));
         //
         //    {
@@ -2702,13 +2702,13 @@ public partial class grvt : Exchange
         {
             request["limit"] = Math.Min(limit.Value, 1000);
         }
+        if ((since != null))
+        {
+            request["start_time"] = this.numberToString((since * 1000000));
+        }
         IList<object> requestUntilOptionStringparamsUntilOptionStringVariable = (IList<object>)this.handleUntilOptionString("end_time", request, paramsPaginate, 1000000);
         Dictionary<string, object> requestUntilOptionString = (Dictionary<string, object>)requestUntilOptionStringparamsUntilOptionStringVariable[0];
         IDictionary<string, object> paramsUntilOptionString = ((IDictionary<string, object>)requestUntilOptionStringparamsUntilOptionStringVariable[1]);
-        if ((since != null))
-        {
-            requestUntilOptionString["start_time"] = this.numberToString((since * 1000000));
-        }
         Dictionary<string, object> response = await this.privateTradingPostFullV1FillHistory(this.extend(requestUntilOptionString, paramsUntilOptionString));
         //
         //    {
@@ -2764,8 +2764,8 @@ public partial class grvt : Exchange
         IList<object> symbolsNormalized = this.marketSymbols(symbols);
         if ((symbolsNormalized != null))
         {
-            request["base"] = new List<object>() {};
-            request["quote"] = new List<object>() {};
+            List<object> baseIds = new List<object>() {};
+            List<object> quoteIds = new List<object>() {};
             for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
             {
                 string? symbol = ((string)symbolsNormalized[i]);
@@ -2774,9 +2774,11 @@ public partial class grvt : Exchange
                 {
                     throw new BadRequest ((this.id + " fetchPositions() supports contract markets only")) ;
                 }
-                ((IList<object>)(request != null && request.ContainsKey("base") ? request["base"] : null)).Add((market.ContainsKey("baseId") ? market["baseId"] : null));
-                ((IList<object>)(request != null && request.ContainsKey("quote") ? request["quote"] : null)).Add((market.ContainsKey("quoteId") ? market["quoteId"] : null));
+                baseIds.Add((market.ContainsKey("baseId") ? market["baseId"] : null));
+                quoteIds.Add((market.ContainsKey("quoteId") ? market["quoteId"] : null));
             }
+            request["base"] = baseIds;
+            request["quote"] = quoteIds;
         }
         Dictionary<string, object> response = await this.privateTradingPostFullV1Positions(this.extend(request, parameters));
         //
@@ -3066,13 +3068,13 @@ public partial class grvt : Exchange
         {
             request["limit"] = Math.Min(limit.Value, 1000);
         }
+        if ((since != null))
+        {
+            request["start_time"] = this.numberToString((since * 1000000));
+        }
         IList<object> requestUntilOptionStringparamsUntilOptionStringVariable = (IList<object>)this.handleUntilOptionString("end_time", request, paramsPaginate, 1000000);
         Dictionary<string, object> requestUntilOptionString = (Dictionary<string, object>)requestUntilOptionStringparamsUntilOptionStringVariable[0];
         IDictionary<string, object> paramsUntilOptionString = ((IDictionary<string, object>)requestUntilOptionStringparamsUntilOptionStringVariable[1]);
-        if ((since != null))
-        {
-            requestUntilOptionString["start_time"] = this.numberToString((since * 1000000));
-        }
         Dictionary<string, object> response = await this.privateTradingPostFullV1FundingPaymentHistory(this.extend(requestUntilOptionString, paramsUntilOptionString));
         //
         //    {
@@ -3151,13 +3153,13 @@ public partial class grvt : Exchange
         {
             request["limit"] = Math.Min(limit.Value, 1000);
         }
+        if ((since != null))
+        {
+            request["start_time"] = this.numberToString((since * 1000000));
+        }
         IList<object> requestUntilOptionStringparamsUntilOptionStringVariable = (IList<object>)this.handleUntilOptionString("end_time", request, parameters, 1000000);
         Dictionary<string, object> requestUntilOptionString = (Dictionary<string, object>)requestUntilOptionStringparamsUntilOptionStringVariable[0];
         IDictionary<string, object> paramsUntilOptionString = ((IDictionary<string, object>)requestUntilOptionStringparamsUntilOptionStringVariable[1]);
-        if ((since != null))
-        {
-            requestUntilOptionString["start_time"] = this.numberToString((since * 1000000));
-        }
         Dictionary<string, object> response = await this.privateTradingPostFullV1OrderHistory(this.extend(requestUntilOptionString, paramsUntilOptionString));
         //
         //    {
@@ -3726,11 +3728,10 @@ public partial class grvt : Exchange
         Dictionary<string, object> domainData = this.eipDomainData();
         Dictionary<string, object> definitions = this.eipDefinitions();
         byte[] ethEncodedMessage = this.ethEncodeStructuredData(domainData, (definitions != null && structureType != null && definitions.ContainsKey(structureType) ? definitions[structureType] : null), messageData);
-        string ethEncodedMessageHashed = ("0x" + (this.hash(ethEncodedMessage, keccak, "hex")));
         bool usesPrivKey = this.usesPrivateKey(); // py transpiler needs this line separated
         string? secretOrPrivkey = usesPrivKey ? this.privateKey : this.secret;
         string privateKeyWithoutZero = this.remove0xPrefix(secretOrPrivkey);
-        Dictionary<string, object> signature = ecdsa(this.remove0xPrefix(ethEncodedMessageHashed), privateKeyWithoutZero, secp256k1, null);
+        Dictionary<string, object> signature = ecdsa(this.hash(ethEncodedMessage, keccak, "hex"), privateKeyWithoutZero, secp256k1, null);
         request["signature"] = new Dictionary<string, object>() {
             { "signer", ((signerAddress == null)) ? this.ethGetAddressFromPrivateKey(("0x" + privateKeyWithoutZero)) : signerAddress },
             { "r", this.formatSignatureRS((signature != null && signature.ContainsKey("r") ? signature["r"] : null)) },
@@ -3839,12 +3840,12 @@ public partial class grvt : Exchange
             {
                 requestPath = ((path + "?") + queryString);
             }
-            requestHeaders = new Dictionary<string, object>() {
-                { "Content-Type", "application/json" },
-            };
             if (((((string)requestPath).EndsWith("auth/api_key/login") == true)) || ((((string)requestPath).EndsWith("auth/wallet/login") == true)))
             {
-                requestHeaders["Cookie"] = "rm=true;";
+                requestHeaders = new Dictionary<string, object>() {
+                    { "Content-Type", "application/json" },
+                    { "Cookie", "rm=true;" },
+                };
             } else
             {
                 string? accountId = this.safeString(this.options, "AuthAccountId");
@@ -3853,8 +3854,11 @@ public partial class grvt : Exchange
                 {
                     throw new AuthenticationError ((this.id + " : at first, you need to authenticate with exchange using signIn() method.")) ;
                 }
-                requestHeaders["Cookie"] = cookieValue;
-                requestHeaders["X-Grvt-Account-Id"] = accountId;
+                requestHeaders = new Dictionary<string, object>() {
+                    { "Content-Type", "application/json" },
+                    { "Cookie", cookieValue },
+                    { "X-Grvt-Account-Id", accountId },
+                };
             }
         }
         return new Dictionary<string, object>() {

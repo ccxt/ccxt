@@ -1403,7 +1403,7 @@ public partial class weex : Exchange
         List<object> results = new List<object>() {};
         for (int i = 0; i < (response?.Count ?? 0); i++)
         {
-            object rawTicker = response[i];
+            object rawTicker = this.safeValue(response, i);
             // book tickers have no markPrice, so resolve the market from the endpoint type to disambiguate the spot/swap market id in parseTicker
             string? marketId = this.safeString(rawTicker, "symbol");
             Dictionary<string, object> tickerMarket = this.safeMarket(marketId, null, null, marketType);
@@ -1845,16 +1845,16 @@ public partial class weex : Exchange
             Int64 now = this.milliseconds();
             if (((since == null)) || ((until == null)))
             {
-                Int64 duration = (this.parseTimeframe(timeframeVar) * 1000L);
+                Int64? duration = this.parseToInt((this.parseTimeframe(timeframeVar) * 1000L));
                 // the history endpoint returns at most maxHistoricalLimit candles and serves the
                 // newest ones inside the window, so a wider window would silently drop the candles
                 // right after since, keep the window at what one call can return
-                object historyLimit = maxHistoricalLimit;
+                Int64? historyLimit = this.parseToInt(maxHistoricalLimit);
                 if ((limit != null) && (limit != null) && (limit != 0))
                 {
-                    historyLimit = Math.Min(limit.Value, maxHistoricalLimit);
+                    historyLimit = this.parseToInt(Math.Min(limit.Value, maxHistoricalLimit));
                 }
-                object timeDelta = ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))(historyLimit, duration);
+                Int64? timeDelta = this.parseToInt((historyLimit * duration));
                 if (((since == null)) && ((until == null)))
                 {
                     endTime = now;

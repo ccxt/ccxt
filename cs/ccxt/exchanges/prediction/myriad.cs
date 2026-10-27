@@ -711,10 +711,8 @@ public partial class myriad : PredictionExchange
         string? outcomeTitle = this.safeString(position, "outcomeTitle", "");
         string? outcome = this.slugToOutcomeSymbol(marketSlug, marketSlug, outcomeTitle);
         string? marketSymbol = this.slugToMarketSymbol(marketSlug, marketSlug);
-        object networkId = this.safeString(position, "networkId");
-        string? marketId = this.safeString(position, "marketId");
         string? outcomeId = this.safeString(position, "outcomeId");
-        string? id = ((string)add(add(add(add(networkId, ":"), marketId), "/"), outcomeId));
+        string id = ((((this.safeString(position, "networkId", "") + ":") + this.safeString(position, "marketId", "")) + "/") + this.safeString(position, "outcomeId", ""));
         double? shares = this.safeNumber(position, "shares");
         double? value = this.safeNumber(position, "value");
         double? profit = this.safeNumber(position, "profit");
@@ -3405,10 +3403,10 @@ public partial class myriad : PredictionExchange
         if (queriesLength > 0)
         {
             // some markets are only discoverable through the questions search endpoint
-            var hxauTask154911_0 = this.FetchRawMarketsBySearch(queries, rest);
-            var hxauTask154911_1 = this.FetchRawQuestionsBySearch(queries, rest);
-            await Task.WhenAll(hxauTask154911_0, hxauTask154911_1);
-            List<object> responses = new List<object> { hxauTask154911_0.Result, hxauTask154911_1.Result };
+            var hxauTask154882_0 = this.FetchRawMarketsBySearch(queries, rest);
+            var hxauTask154882_1 = this.FetchRawQuestionsBySearch(queries, rest);
+            await Task.WhenAll(hxauTask154882_0, hxauTask154882_1);
+            List<object> responses = new List<object> { hxauTask154882_0.Result, hxauTask154882_1.Result };
             rawMarkets = this.safeList(responses, 0, new List<object>() {});
             rawQuestions = this.safeList(responses, 1, new List<object>() {});
         } else if ((eventId != null))
@@ -3429,10 +3427,10 @@ public partial class myriad : PredictionExchange
             if ((requestedTagsLength == 0))
             {
                 // unscoped mode: fetch bounded open lists from both sources and merge
-                var hxauTask155889_0 = this.FetchRawMarketsList(rest);
-                var hxauTask155889_1 = this.FetchRawQuestionsList(rest);
-                await Task.WhenAll(hxauTask155889_0, hxauTask155889_1);
-                List<object> listResponses = new List<object> { hxauTask155889_0.Result, hxauTask155889_1.Result };
+                var hxauTask155860_0 = this.FetchRawMarketsList(rest);
+                var hxauTask155860_1 = this.FetchRawQuestionsList(rest);
+                await Task.WhenAll(hxauTask155860_0, hxauTask155860_1);
+                List<object> listResponses = new List<object> { hxauTask155860_0.Result, hxauTask155860_1.Result };
                 rawMarkets = this.safeList(listResponses, 0, new List<object>() {});
                 rawQuestions = this.safeList(listResponses, 1, new List<object>() {});
             } else
@@ -3446,10 +3444,10 @@ public partial class myriad : PredictionExchange
                 }
                 // run both searches in parallel; some events are only discoverable from questions,
                 // while market search is still the primary source for market-level data
-                var hxauTask156672_0 = this.FetchRawMarketsBySearch(tagQueries, rest);
-                var hxauTask156672_1 = this.FetchRawQuestionsBySearch(tagQueries, rest);
-                await Task.WhenAll(hxauTask156672_0, hxauTask156672_1);
-                List<object> responses = new List<object> { hxauTask156672_0.Result, hxauTask156672_1.Result };
+                var hxauTask156643_0 = this.FetchRawMarketsBySearch(tagQueries, rest);
+                var hxauTask156643_1 = this.FetchRawQuestionsBySearch(tagQueries, rest);
+                await Task.WhenAll(hxauTask156643_0, hxauTask156643_1);
+                List<object> responses = new List<object> { hxauTask156643_0.Result, hxauTask156643_1.Result };
                 rawMarkets = this.safeList(responses, 0, new List<object>() {});
                 rawQuestions = this.safeList(responses, 1, new List<object>() {});
             }
@@ -3879,7 +3877,7 @@ public partial class myriad : PredictionExchange
     public virtual string? walletAddressOrUndefined()
     {
         // like walletAddressFromKeys but returns undefined instead of throwing when no wallet is configured
-        if (((this.walletAddress != null)) && (this.walletAddress.Length > 0))
+        if (((this.walletAddress != null)) && (!(this.walletAddress == "")))
         {
             return this.walletAddress.ToLower();
         }
@@ -4368,17 +4366,15 @@ public partial class myriad : PredictionExchange
         // the orders/positions channels are keyed by the lowercase trader address (Centrifugo channels
         // are case-sensitive); lowercase here so the channel matches regardless of the address checksum.
         // check length too: an unset walletAddress is an empty string (not undefined) in some languages
-        string address = this.walletAddress;
-        bool hasWallet = ((address != null)) && (this.walletAddress.Length > 0);
-        if (!hasWallet)
+        if (((this.walletAddress != null)) && (!(this.walletAddress == "")))
         {
-            if ((this.privateKey == null))
-            {
-                throw new ArgumentsRequired ((this.id + " requires a walletAddress or privateKey to watch private channels")) ;
-            }
-            address = this.ethGetAddressFromPrivateKey(this.privateKey);
+            return this.walletAddress.ToLower();
         }
-        return address.ToLower();
+        if ((this.privateKey == null))
+        {
+            throw new ArgumentsRequired ((this.id + " requires a walletAddress or privateKey to watch private channels")) ;
+        }
+        return this.ethGetAddressFromPrivateKey(this.privateKey).ToLower();
     }
 
     public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)

@@ -253,7 +253,7 @@ public partial class gemini : ccxt.gemini
             }
             for (int i = 0; i < trades.Count; i++)
             {
-                ccxt.Trade trade = this.parseWsTrade(trades[i], market);
+                ccxt.Trade trade = this.parseWsTrade(this.safeValue(trades, i), market);
                 stored.append(ccxt.BaseExchange.FromTrade(trade));
             }
             string messageHash = ("trades:" + symbol);
@@ -622,7 +622,7 @@ public partial class gemini : ccxt.gemini
         List<object> marketIds = new List<object>() {};
         for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
         {
-            string? symbol = ((string)symbolsNormalized[i]);
+            string? symbol = this.safeString(symbolsNormalized, i, "");
             string messageHash = ((itemHashName + ":") + symbol);
             messageHashes.Add(messageHash);
             Dictionary<string, object> market = this.market(symbol);
@@ -1034,7 +1034,7 @@ public partial class gemini : ccxt.gemini
             int eventsLength = events.Count;
             for (int i = 0; i < events.Count; i++)
             {
-                object eventVar = events[i];
+                object eventVar = this.safeValue(events, i);
                 string? eventType = this.safeString(eventVar, "type");
                 string? side = this.safeString(eventVar, "side");
                 bool isOrderBook = (eventType == "change") && ((side != null)) && this.inArray(side, new List<object>() {"ask", "bid"});
@@ -1048,7 +1048,7 @@ public partial class gemini : ccxt.gemini
                     orderBookItems.Add(eventVar);
                 } else if (eventType == "trade")
                 {
-                    collectedEventsOfTrades.Add(events[i]);
+                    collectedEventsOfTrades.Add(eventVar);
                 }
             }
             int lengthBa = (bidaskItems?.Count ?? 0);

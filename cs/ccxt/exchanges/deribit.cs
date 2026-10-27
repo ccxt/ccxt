@@ -3819,14 +3819,22 @@ public partial class deribit : Exchange
         Int64 month = ((((30L * 24L) * 60) * 60) * 1000);
         Int64 defaultSince = (now - month);
         Int64? sinceResolved = ((since == null)) ? defaultSince : since;
-        Int64? time = ((since == null)) ? now : this.parseToInt((since + month));
+        Int64? time = now;
+        if ((since != null))
+        {
+            time = this.parseToInt((since + month));
+        }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instrument_name", (market.ContainsKey("id") ? market["id"] : null) },
             { "start_timestamp", (sinceResolved - 1) },
         };
         Int64? until = this.safeInteger2(paramsPaginate, "until", "end_timestamp");
         object paramsUntil = ((until != null)) ? this.omit(paramsPaginate, new List<object>() {"until"}) : paramsPaginate;
-        Int64? endTimestamp = ((until != null)) ? until : time;
+        Int64? endTimestamp = time;
+        if ((until != null))
+        {
+            endTimestamp = this.parseToInt(until);
+        }
         request["end_timestamp"] = endTimestamp;
         bool? isPaginationCall = this.safeBool(paramsUntil, "isDeribitPaginationCall", false);
         object paramsOmitted = paramsUntil;

@@ -235,7 +235,6 @@ public partial class revolutx : Exchange
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> requestHeaders = null;
-        string? requestBody = null;
         string? implodedPath = this.implodeParams(path, parameters);
         object query = this.omit(parameters, this.extractParams(path));
         string? apiName = ((string)(api != null && 0 < api.Count ? api[0] : null));
@@ -247,6 +246,7 @@ public partial class revolutx : Exchange
         string baseUrl = baseApiUrl;
         string url = ((baseUrl + "/") + implodedPath);
         string queryString = "";
+        string bodyString = "";
         if (apiName == "private")
         {
             this.checkRequiredCredentials();
@@ -267,11 +267,9 @@ public partial class revolutx : Exchange
                 }
             } else
             {
-                requestBody = this.json(query);
+                bodyString = this.json(query);
             }
             string requestPath = ("/api/" + implodedPath);
-            string? bodyValue = requestBody;
-            string? bodyString = ((bodyValue != null)) ? bodyValue : "";
             string message = ((((timestamp + method.ToUpper()) + requestPath) + queryString) + bodyString);
             string signature = eddsa(this.encode(message), this.privateKey, ed25519);
             requestHeaders = new Dictionary<string, object>() {
@@ -296,14 +294,14 @@ public partial class revolutx : Exchange
                 }
             } else
             {
-                requestBody = this.json(query);
+                bodyString = this.json(query);
                 requestHeaders = new Dictionary<string, object>() {
                     { "Content-Type", "application/json" },
                 };
             }
         }
         Dictionary<string, object> headersResult = requestHeaders;
-        string? bodyResult = requestBody;
+        string? bodyResult = (bodyString != "") ? bodyString : null;
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },

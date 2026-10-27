@@ -2464,7 +2464,7 @@ public partial class poloniex : Exchange
                 {
                     merged["mgnMode"] = "CROSS";
                 }
-                if (!(merged.ContainsKey("posSide")))
+                if ((this.safeString(merged, "posSide") == null))
                 {
                     merged["posSide"] = "BOTH";
                 }
@@ -2543,7 +2543,7 @@ public partial class poloniex : Exchange
                 {
                     throw new ArgumentsRequired ((this.id + " createOrder() requires a marginMode parameter \"cross\" or \"isolated\" for hedged orders")) ;
                 }
-                if (!((query is IDictionary<string, object> inOpDict0 && inOpDict0.ContainsKey("posSide"))))
+                if ((this.safeString(query, "posSide") == null))
                 {
                     throw new ArgumentsRequired ((this.id + " createOrder() requires a posSide parameter \"LONG\" or \"SHORT\" for hedged orders")) ;
                 }
@@ -4255,7 +4255,7 @@ public partial class poloniex : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         string mode = "ONE_WAY";
-        if (hedged)
+        if ((hedged == true))
         {
             mode = "HEDGE";
         }

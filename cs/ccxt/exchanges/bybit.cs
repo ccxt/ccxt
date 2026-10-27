@@ -5370,8 +5370,8 @@ public partial class bybit : Exchange
         bool? hedged = this.safeBool(parameters, "hedged", false);
         bool? reduceOnly = this.safeBool(parameters, "reduceOnly");
         object triggerPrice = this.safeValue2(parameters, "triggerPrice", "stopPrice");
-        object stopLossTriggerPrice = this.safeValue(parameters, "stopLossPrice");
-        object takeProfitTriggerPrice = this.safeValue(parameters, "takeProfitPrice");
+        string? stopLossTriggerPrice = this.safeString(parameters, "stopLossPrice");
+        string? takeProfitTriggerPrice = this.safeString(parameters, "takeProfitPrice");
         object stopLoss = this.safeValue(parameters, "stopLoss");
         object takeProfit = this.safeValue(parameters, "takeProfit");
         string? trailingTriggerPrice = this.safeString2(parameters, "trailingTriggerPrice", "activePrice", this.numberToString(price));

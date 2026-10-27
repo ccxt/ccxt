@@ -2049,8 +2049,8 @@ public partial class digifinex : Exchange
             }
             string? type = this.safeString(rawOrder, "type");
             string? side = this.safeString(rawOrder, "side");
-            object amount = this.safeValue(rawOrder, "amount");
-            object price = this.safeValue(rawOrder, "price");
+            double? amount = this.safeNumber(rawOrder, "amount");
+            double? price = this.safeNumber(rawOrder, "price");
             IDictionary<string, object> orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
             (string?, object) marginResult = this.handleMarginModeAndParams("createOrders", orderParams);
             string? currentMarginMode = marginResult.Item1;
@@ -2117,7 +2117,7 @@ public partial class digifinex : Exchange
         {
             IDictionary<string, object> rawOrder = this.safeDict(orders, i);
             Dictionary<string, object> individualOrder = new Dictionary<string, object>() {};
-            individualOrder["order_id"] = this.safeValue(data, i);
+            individualOrder["order_id"] = this.safeString(data, i);
             individualOrder["instrument_id"] = (market.ContainsKey("id") ? market["id"] : null);
             individualOrder["amount"] = this.safeNumber(rawOrder, "amount");
             individualOrder["price"] = this.safeNumber(rawOrder, "price");
@@ -5095,7 +5095,7 @@ public partial class digifinex : Exchange
                 object depositWithdrawInfo = (depositWithdrawFee != null && depositWithdrawFee.ContainsKey("info") ? depositWithdrawFee["info"] : null);
                 ((IList<object>)depositWithdrawInfo).Add(entry);
                 string? networkId = this.safeString(entry, "chain");
-                object withdrawFee = this.safeValue(entry, "min_withdraw_fee");
+                double? withdrawFee = this.safeNumber(entry, "min_withdraw_fee");
                 Dictionary<string, object> withdrawResult = new Dictionary<string, object>() {
                     { "fee", withdrawFee },
                     { "percentage", ((withdrawFee != null)) ? false : null },

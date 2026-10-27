@@ -1095,7 +1095,7 @@ public partial class binance : ccxt.binance
 
     public async virtual Task fetchOrderBookSnapshot(WebSocketClient client, object message, object subscription)
     {
-        string? symbol = this.safeString(subscription, "symbol");
+        string? symbol = this.safeString(subscription, "symbol", "");
         string messageHash = ("orderbook::" + symbol);
         try
         {
@@ -5154,7 +5154,7 @@ public partial class binance : ccxt.binance
         if ((symbol != null))
         {
             market = this.market(symbol);
-            messageHash = messageHash + (":" + (symbolResolved));
+            messageHash = ("orders:" + this.symbol(symbol));
         }
         var typesubTypeparamsValueVariable = this.resolveAuthType("watchOrders", market, paramsStock);
         string? type = (string)typesubTypeparamsValueVariable[0];
@@ -6500,8 +6500,7 @@ public partial class binance : ccxt.binance
             ccxt.pro.ArrayCache myTrades = this.myTrades;
             myTrades.append(ccxt.BaseExchange.FromTrade(trade));
             client.resolve(this.myTrades, messageHash);
-            string messageHashSymbol = ((messageHash + ":") + symbol);
-            client.resolve(this.myTrades, messageHashSymbol);
+            client.resolve(this.myTrades, ("myTrades:" + symbol));
         }
     }
 

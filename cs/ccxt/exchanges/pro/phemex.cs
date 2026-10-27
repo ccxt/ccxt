@@ -926,7 +926,7 @@ public partial class phemex : ccxt.phemex
         IList<object> typeparamsTypeVariable = (IList<object>)this.handleMarketTypeAndParams("watchMyTrades", market, this.extend(parameters, settleRequest));
         string? type = (string)typeparamsTypeVariable[0];
         IDictionary<string, object> paramsType = ((IDictionary<string, object>)typeparamsTypeVariable[1]);
-        if ((symbolResolved == null))
+        if ((symbol == null))
         {
             string? settle = this.safeString(paramsType, "settle");
             if (settle == "USDT")
@@ -1122,7 +1122,7 @@ public partial class phemex : ccxt.phemex
         string? type = (string)typeparamsTypeVariable[0];
         IDictionary<string, object> paramsType = ((IDictionary<string, object>)typeparamsTypeVariable[1]);
         bool isUSDTSettled = (this.safeString(paramsType, "settle") == "USDT");
-        if ((symbolResolved == null))
+        if ((symbol == null))
         {
             if (isUSDTSettled)
             {

@@ -419,7 +419,11 @@ public partial class kalshi : PredictionExchange
                 List<object> parsed = this.parseBinaryMarketToOutcomes(raw);
                 string? eventTicker = this.safeString(raw, "event_ticker");
                 string? eventTitle = this.safeString(raw, "title", eventTicker);
-                string eventKey = ((eventTitle != null) && eventTitle != "") ? this.shortenSlug(eventTitle) : "";
+                string eventKey = "";
+                if ((eventTitle != null) && eventTitle != "")
+                {
+                    eventKey = this.shortenSlug(eventTitle);
+                }
                 for (int j = 0; j < (parsed?.Count ?? 0); j++)
                 {
                     object m = parsed[j];
@@ -2419,7 +2423,7 @@ public partial class kalshi : PredictionExchange
         if ((filledCount != null))
         {
             order["filled"] = filledCount;
-        } else if (((remainingCount != null)) && (!(((object)(amount)) == null)))
+        } else if ((remainingCount != null))
         {
             order["filled"] = (amount - remainingCount);
         }

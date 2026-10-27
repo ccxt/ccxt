@@ -4365,7 +4365,11 @@ public partial class binance : Exchange
                 // begin diff
                 if (isLegacy && (this.safeBool(market, "spot", false) == true))
                 {
-                    object settle = isLegacyLinear ? getValue(market, "quote") : getValue(market, "base");
+                    string? settle = this.safeString(market, "base", "");
+                    if (isLegacyLinear)
+                    {
+                        settle = this.safeString(market, "quote", "");
+                    }
                     object futuresSymbol = add(add(symbol, ":"), settle);
                     if (((this.markets != null)) && ((this.markets != null && futuresSymbol is string inOpKey1 && this.markets.ContainsKey(inOpKey1))))
                     {
@@ -7519,7 +7523,7 @@ public partial class binance : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) != true))
         {
-            throw new NotSupported ((((this.id + " editSpotOrder() does not support ") + ((market.ContainsKey("type") ? market["type"] : null))) + " orders")) ;
+            throw new NotSupported ((((this.id + " editSpotOrder() does not support ") + this.safeString(market, "type", "")) + " orders")) ;
         }
         Dictionary<string, object> payload = this.editSpotOrderRequest(id, symbol, type, side, amount, price, parameters);
         Dictionary<string, object> response = await this.privatePostOrderCancelReplace(payload);
@@ -7748,7 +7752,7 @@ public partial class binance : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if ((((market.ContainsKey("contract") ? market["contract"] : null) as bool?) != true))
         {
-            throw new NotSupported ((((this.id + " editContractOrder() does not support ") + ((market.ContainsKey("type") ? market["type"] : null))) + " orders")) ;
+            throw new NotSupported ((((this.id + " editContractOrder() does not support ") + this.safeString(market, "type", "")) + " orders")) ;
         }
         if ((side == null))
         {
@@ -7882,7 +7886,7 @@ public partial class binance : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if ((((market.ContainsKey("option") ? market["option"] : null) as bool?) == true))
         {
-            throw new NotSupported ((((this.id + " editOrder() does not support ") + ((market.ContainsKey("type") ? market["type"] : null))) + " orders")) ;
+            throw new NotSupported ((((this.id + " editOrder() does not support ") + this.safeString(market, "type", "")) + " orders")) ;
         }
         if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
         {
@@ -7938,7 +7942,7 @@ public partial class binance : Exchange
         Dictionary<string, object> market = this.market((symbols != null && 0 < symbols.Count ? symbols[0] : null));
         if (((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true)) || ((((market.ContainsKey("option") ? market["option"] : null) as bool?) == true)))
         {
-            throw new NotSupported ((((this.id + " editOrders() does not support ") + ((market.ContainsKey("type") ? market["type"] : null))) + " orders")) ;
+            throw new NotSupported ((((this.id + " editOrders() does not support ") + this.safeString(market, "type", "")) + " orders")) ;
         }
         List<object> response = null;
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -8786,7 +8790,7 @@ public partial class binance : Exchange
         Dictionary<string, object> market = this.market((symbols != null && 0 < symbols.Count ? symbols[0] : null));
         if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
         {
-            throw new NotSupported ((((this.id + " createOrders() does not support ") + ((market.ContainsKey("type") ? market["type"] : null))) + " orders")) ;
+            throw new NotSupported ((((this.id + " createOrders() does not support ") + this.safeString(market, "type", "")) + " orders")) ;
         }
         List<object> response = null;
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -16031,20 +16035,24 @@ public partial class binance : Exchange
     {
         // the only callers pass handleErrors' url, which is a non-nullable string everywhere
         string? marketType = null;
-        string? hostname = ((this.hostname != null)) ? this.hostname : "binance.com";
-        if (url.StartsWith((("https://api." + hostname) + "/")) || url.StartsWith("https://demo-api") || url.StartsWith("https://testnet.binance.vision"))
+        object hostname = "binance.com";
+        if ((this.hostname != null))
+        {
+            hostname = this.hostname;
+        }
+        if (url.StartsWith((("https://api." + (hostname)) + "/")) || url.StartsWith("https://demo-api") || url.StartsWith("https://testnet.binance.vision"))
         {
             marketType = "spot";
-        } else if (url.StartsWith((("https://dapi." + hostname) + "/")) || url.StartsWith("https://demo-dapi") || url.StartsWith("https://testnet.binancefuture.com/dapi"))
+        } else if (url.StartsWith((("https://dapi." + (hostname)) + "/")) || url.StartsWith("https://demo-dapi") || url.StartsWith("https://testnet.binancefuture.com/dapi"))
         {
             marketType = "inverse";
-        } else if (url.StartsWith((("https://fapi." + hostname) + "/")) || url.StartsWith("https://demo-fapi") || url.StartsWith("https://testnet.binancefuture.com/fapi"))
+        } else if (url.StartsWith((("https://fapi." + (hostname)) + "/")) || url.StartsWith("https://demo-fapi") || url.StartsWith("https://testnet.binancefuture.com/fapi"))
         {
             marketType = "linear";
-        } else if (url.StartsWith((("https://eapi." + hostname) + "/")))
+        } else if (url.StartsWith((("https://eapi." + (hostname)) + "/")))
         {
             marketType = "option";
-        } else if (url.StartsWith((("https://papi." + hostname) + "/")))
+        } else if (url.StartsWith((("https://papi." + (hostname)) + "/")))
         {
             marketType = "portfolioMargin";
         }
@@ -17315,7 +17323,7 @@ public partial class binance : Exchange
             }
         } else
         {
-            throw new NotSupported ((((this.id + " fetchMyLiquidations() does not support ") + this.safeString(market, "type")) + " markets")) ;
+            throw new NotSupported ((((this.id + " fetchMyLiquidations() does not support ") + this.safeString(market, "type", "")) + " markets")) ;
         }
         //
         // margin

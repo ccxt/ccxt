@@ -908,7 +908,7 @@ public partial class hitbtc : Exchange
                 symbol = ((((bs + "/") + quote) + ":") + settle);
                 if (future)
                 {
-                    symbol = ((((((bs + "/") + quote) + ":") + settle) + "-") + this.numberToString(expiry));
+                    symbol = ((((((bs + "/") + quote) + ":") + settle) + "-") + this.safeString(market, "expiry", ""));
                     type = "future";
                 } else
                 {

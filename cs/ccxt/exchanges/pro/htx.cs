@@ -512,19 +512,19 @@ public partial class htx : ccxt.htx
         // 150-levels/400-level incremental MBP feed is based on the gap
         // between two snapshots at 100ms interval.
         IDictionary<string, object> options = this.safeDict(this.options, "watchOrderBook", new Dictionary<string, object>() {});
-        Int64? limitResolved = ((limit == null)) ? this.safeInteger(options, "depth", 150) : limit;
+        Int64? limitResolved = this.parseToInt(((limit == null)) ? this.safeInteger(options, "depth", 150) : limit);
         if (!this.inArray(limitResolved, allowedLimits))
         {
             throw new ExchangeError ((this.id + " watchOrderBook market accepts limits of 5, 20, 150 or 400 only")) ;
         }
-        string? messageHash = null;
+        string messageHash = "";
         string? marketId = this.safeString(market, "id", "");
         if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
         {
-            messageHash = ((("market." + marketId) + ".mbp.") + this.numberToString(limitResolved));
+            messageHash = ((("market." + marketId) + ".mbp.") + ((object)limitResolved).ToString());
         } else
         {
-            messageHash = (((("market." + marketId) + ".depth.size_") + this.numberToString(limitResolved)) + ".high_freq");
+            messageHash = (((("market." + marketId) + ".depth.size_") + ((object)limitResolved).ToString()) + ".high_freq");
         }
         object url = this.getUrlByMarketType((market.ContainsKey("type") ? market["type"] : null), (market.ContainsKey("linear") ? market["linear"] : null), false, true);
         object method = this.handleOrderBookSubscription;
@@ -565,15 +565,15 @@ public partial class htx : ccxt.htx
         Dictionary<string, object> market = this.market(symbol);
         string topic = "orderbook";
         IDictionary<string, object> options = this.safeDict(this.options, "watchOrderBook", new Dictionary<string, object>() {});
-        Int64? depth = this.safeInteger(options, "depth", 150);
+        Int64? depth = this.parseToInt(this.safeInteger(options, "depth", 150));
         string? marketId = this.safeString(market, "id", "");
-        string? subMessageHash = null;
+        string subMessageHash = "";
         if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
         {
-            subMessageHash = ((("market." + marketId) + ".mbp.") + this.numberToString(depth));
+            subMessageHash = ((("market." + marketId) + ".mbp.") + ((object)depth).ToString());
         } else
         {
-            subMessageHash = (((("market." + marketId) + ".depth.size_") + this.numberToString(depth)) + ".high_freq");
+            subMessageHash = (((("market." + marketId) + ".depth.size_") + ((object)depth).ToString()) + ".high_freq");
         }
         if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) != true))
         {
@@ -655,7 +655,7 @@ public partial class htx : ccxt.htx
                     }
                 } else
                 {
-                    throw new InvalidNonce ((((((this.id + " failed to synchronize WebSocket feed with the snapshot for symbol ") + symbol) + " in ") + ((object)maxAttempts).ToString()) + " attempts")) ;
+                    throw new InvalidNonce ((((((this.id + " failed to synchronize WebSocket feed with the snapshot for symbol ") + this.safeString(subscription, "symbol", "")) + " in ") + ((object)maxAttempts).ToString()) + " attempts")) ;
                 }
             } else
             {

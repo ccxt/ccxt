@@ -636,7 +636,7 @@ public partial class aster : ccxt.aster
         {
             this.bidsasks[(string)symbol] = ticker;
         }
-        string messageHash = ("bidask:" + symbol);
+        string messageHash = ("bidask:" + this.safeString(ticker, "symbol", ""));
         client.resolve(ticker, messageHash);
     }
 
@@ -1093,15 +1093,18 @@ public partial class aster : ccxt.aster
             { "method", "SUBSCRIBE" },
             { "params", subscriptionArgs },
         };
-        object limitResolved = 20;
-        if ((limit == 5) || (limit == 10) || (limit == 20))
+        string depthSuffix = "@depth20";
+        if ((limit == 5))
         {
-            limitResolved = limit;
+            depthSuffix = "@depth5";
+        } else if ((limit == 10))
+        {
+            depthSuffix = "@depth10";
         }
         for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
         {
             Dictionary<string, object> market = this.market(this.safeString(symbolsNormalized, i, ""));
-            subscriptionArgs.Add(((this.safeStringLower(market, "id", "") + "@depth") + this.numberToString(limitResolved)));
+            subscriptionArgs.Add((this.safeStringLower(market, "id", "") + depthSuffix));
             messageHashes.Add(("orderbook:" + this.safeString(market, "symbol", "")));
         }
         ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watchMultiple(url, messageHashes, this.extend(request, this.omit(paramsCallerMethodName, "callerMethodName")), messageHashes));
@@ -1152,15 +1155,18 @@ public partial class aster : ccxt.aster
             { "params", subscriptionArgs },
         };
         double? limit = this.safeNumber(paramsOmitted, "limit");
-        object limitResolved = 20;
-        if ((limit == 5) || (limit == 10) || (limit == 20))
+        string depthSuffix = "@depth20";
+        if ((limit == 5))
         {
-            limitResolved = limit;
+            depthSuffix = "@depth5";
+        } else if ((limit == 10))
+        {
+            depthSuffix = "@depth10";
         }
         for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
         {
             Dictionary<string, object> market = this.market(this.safeString(symbolsNormalized, i, ""));
-            subscriptionArgs.Add(((this.safeStringLower(market, "id", "") + "@depth") + this.numberToString(limitResolved)));
+            subscriptionArgs.Add((this.safeStringLower(market, "id", "") + depthSuffix));
             messageHashes.Add(("unsubscribe:orderbook:" + this.safeString(market, "symbol", "")));
         }
         return await this.watchMultiple(url, messageHashes, this.extend(request, this.omit(paramsOmitted, "limit")), messageHashes);
@@ -2245,7 +2251,7 @@ public partial class aster : ccxt.aster
         }
         ccxt.pro.ArrayCache cache = this.orders;
         ccxt.Order parsed = this.parseWsOrder(message, market);
-        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbol = this.safeString(market, "symbol", "");
         cache.append(ccxt.BaseExchange.FromOrder(parsed));
         List<object> messageHashes = this.findMessageHashes(client, messageHash);
         if (!this.isEmpty(messageHashes))

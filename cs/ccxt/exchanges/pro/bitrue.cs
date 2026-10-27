@@ -737,6 +737,10 @@ public partial class bitrue : ccxt.bitrue
         string? wsInterval = this.safeString(parts, 4);
         IDictionary<string, object> futuresTimeframes = this.safeDict(this.options, "futuresTimeframes", new Dictionary<string, object>() {});
         string? timeframe = this.findTimeframe(wsInterval, futuresTimeframes);
+        if ((timeframe == null))
+        {
+            return;
+        }
         IDictionary<string, object> tick = this.safeDict(message, "tick");
         if ((tick == null))
         {

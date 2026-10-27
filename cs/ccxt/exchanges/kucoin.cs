@@ -4228,13 +4228,12 @@ public partial class kucoin : Exchange
                 request["chain"] = _netIdTmp.ToLower();
             }
         }
-        IDictionary<string, object> getVersions = this.safeDict(this.safeDict(this.safeDict(this.options, "versions", new Dictionary<string, object>() {}), "private", new Dictionary<string, object>() {}), "GET", new Dictionary<string, object>() {});
-        object version = (getVersions != null && getVersions.ContainsKey("deposit-addresses") ? getVersions["deposit-addresses"] : null);
-        ((IDictionary<string,object>)getValue(getValue((this.options.ContainsKey("versions") ? this.options["versions"] : null), "private"), "GET"))["deposit-addresses"] = "v1";
+        string? version = this.getDepositAddressesVersion();
+        this.setDepositAddressesVersion("v1");
         Dictionary<string, object> response = await this.privateGetDepositAddresses(this.extend(request, paramsRequest));
         // BCH {"code":"200000","data":{"address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""}}
         // BTC {"code":"200000","data":{"address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""}}
-        ((IDictionary<string,object>)getValue(getValue((this.options.ContainsKey("versions") ? this.options["versions"] : null), "private"), "GET"))["deposit-addresses"] = version;
+        this.setDepositAddressesVersion(version);
         IDictionary<string, object> data = this.safeDict(response, "data");
         if ((data == null))
         {
@@ -4375,9 +4374,8 @@ public partial class kucoin : Exchange
             response = await this.utaPrivateGetAssetDepositAddress(this.extend(request, paramsRequest));
         } else
         {
-            IDictionary<string, object> getVersions = this.safeDict(this.safeDict(this.safeDict(this.options, "versions", new Dictionary<string, object>() {}), "private", new Dictionary<string, object>() {}), "GET", new Dictionary<string, object>() {});
-            object version = (getVersions != null && getVersions.ContainsKey("deposit-addresses") ? getVersions["deposit-addresses"] : null);
-            ((IDictionary<string,object>)getValue(getValue((this.options.ContainsKey("versions") ? this.options["versions"] : null), "private"), "GET"))["deposit-addresses"] = "v2";
+            string? version = this.getDepositAddressesVersion();
+            this.setDepositAddressesVersion("v2");
             response = await this.privateGetDepositAddresses(this.extend(request, paramsRequest));
             //
             //     {
@@ -4394,7 +4392,7 @@ public partial class kucoin : Exchange
             //         ]
             //     }
             //
-            ((IDictionary<string,object>)getValue(getValue((this.options.ContainsKey("versions") ? this.options["versions"] : null), "private"), "GET"))["deposit-addresses"] = version;
+            this.setDepositAddressesVersion(version);
         }
         List<object> chains = this.safeList(response, "data", new List<object>() {});
         List<object> parsed = ((List<object>)this.parseDepositAddresses(chains, new List<object>() {(currency.ContainsKey("code") ? currency["code"] : null)}, false, new Dictionary<string, object>() {
@@ -13329,6 +13327,17 @@ public partial class kucoin : Exchange
         }
         bool uta = (this.safeBool(this.options, "uta") == true);
         return uta;
+    }
+
+    public virtual string? getDepositAddressesVersion()
+    {
+        IDictionary<string, object> getVersions = this.safeDict(this.safeDict(this.safeDict(this.options, "versions", new Dictionary<string, object>() {}), "private", new Dictionary<string, object>() {}), "GET", new Dictionary<string, object>() {});
+        return this.safeString(getVersions, "deposit-addresses", "v1");
+    }
+
+    public virtual void setDepositAddressesVersion(object version)
+    {
+        ((IDictionary<string,object>)getValue(getValue((this.options.ContainsKey("versions") ? this.options["versions"] : null), "private"), "GET"))["deposit-addresses"] = version;
     }
 
     public override Dictionary<string, object> sign(string path, IList<object> api = null, string method = null, object parameters = null)

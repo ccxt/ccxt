@@ -1156,13 +1156,23 @@ public partial class kraken : ccxt.kraken
                 for (int i = 0; i < 10; i++)
                 {
                     List<object> currentAsk = this.safeList(checkAsks, i, new List<object>() {});
-                    string formattedAsk = (this.formatNumber((currentAsk != null && 0 < currentAsk.Count ? currentAsk[0] : null)) + this.formatNumber((currentAsk != null && 1 < currentAsk.Count ? currentAsk[1] : null)));
+                    int currentAskLength = currentAsk.Count;
+                    string formattedAsk = "";
+                    if (currentAskLength > 1)
+                    {
+                        formattedAsk = (this.formatNumber((currentAsk != null && 0 < currentAsk.Count ? currentAsk[0] : null)) + this.formatNumber((currentAsk != null && 1 < currentAsk.Count ? currentAsk[1] : null)));
+                    }
                     payloadArray.Add(formattedAsk);
                 }
                 for (int i = 0; i < 10; i++)
                 {
                     List<object> currentBid = this.safeList(checkBids, i, new List<object>() {});
-                    string formattedBid = (this.formatNumber((currentBid != null && 0 < currentBid.Count ? currentBid[0] : null)) + this.formatNumber((currentBid != null && 1 < currentBid.Count ? currentBid[1] : null)));
+                    int currentBidLength = currentBid.Count;
+                    string formattedBid = "";
+                    if (currentBidLength > 1)
+                    {
+                        formattedBid = (this.formatNumber((currentBid != null && 0 < currentBid.Count ? currentBid[0] : null)) + this.formatNumber((currentBid != null && 1 < currentBid.Count ? currentBid[1] : null)));
+                    }
                     payloadArray.Add(formattedBid);
                 }
             }

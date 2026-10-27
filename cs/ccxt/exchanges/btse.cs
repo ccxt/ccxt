@@ -2811,7 +2811,11 @@ public partial class btse : Exchange
         if ((marketTypeOption == "spot"))
         {
             // the literal ALL value cancels every open order across all pairs
-            request["symbol"] = ((symbol != null)) ? this.safeString(market, "id") : "ALL";
+            request["symbol"] = "ALL";
+            if ((symbol != null))
+            {
+                request["symbol"] = this.safeString(market, "id");
+            }
             response = await this.privateDeleteSpotApiV4TradeOrdersAll(this.extend(request, paramsMarketType));
         } else
         {
@@ -4153,8 +4157,7 @@ public partial class btse : Exchange
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        string baseUrl = apiUrl;
-        string url = ((baseUrl + "/") + this.implodeParams(path, parameters));
+        string url = ((apiUrl + "/") + this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
         // the futures v3 trading api reads DELETE params from a signed json
         // body like its POST and PUT counterparts, while the spot v4 and the
@@ -4204,13 +4207,11 @@ public partial class btse : Exchange
                 { "BROKER-ID", "ccxt" },
             };
         }
-        string? bodyResolved = requestBody;
-        Dictionary<string, object> headersResolved = requestHeaders;
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
-            { "body", bodyResolved },
-            { "headers", headersResolved },
+            { "body", requestBody },
+            { "headers", requestHeaders },
         };
     }
 

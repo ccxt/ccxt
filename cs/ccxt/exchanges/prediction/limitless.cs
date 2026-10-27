@@ -3465,8 +3465,7 @@ public partial class limitless : PredictionExchange
         int eventKeysLength = eventKeys.Count;
         for (int i = 0; i < eventKeysLength; i++)
         {
-            object g = this.safeValue(eventGroups, (eventKeys != null && i < eventKeys.Count ? eventKeys[i] : null));
-            Dictionary<string, object> ev = this.parseEvent(g);
+            Dictionary<string, object> ev = this.parseEvent(this.safeDict(eventGroups, (eventKeys != null && i < eventKeys.Count ? eventKeys[i] : null), new Dictionary<string, object>() {}));
             result.Add(ev);
         }
         // setEvents keys events by id/slug/handle; populateOutcomes rebuilds the outcome cache
@@ -3640,7 +3639,6 @@ public partial class limitless : PredictionExchange
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         string? apiGroup = ((string)(api != null && 0 < api.Count ? api[0] : null));
-        string? access = ((string)(api != null && 1 < api.Count ? api[1] : null));
         object baseUrls = (this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null);
         object baseUrl = this.safeString(baseUrls, apiGroup, getValue(baseUrls, "limitless"));
         object url = ("/" + this.implodeParams(path, parameters));
@@ -3652,7 +3650,7 @@ public partial class limitless : PredictionExchange
         }
         Dictionary<string, object> headersValue = null;
         string? bodyValue = null;
-        if (access == "private")
+        if (((api != null && 1 < api.Count ? api[1] : null) is "private"))
         {
             string bodyString = "";
             headersValue = new Dictionary<string, object>() {};

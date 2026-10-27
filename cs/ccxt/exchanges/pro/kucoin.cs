@@ -275,7 +275,7 @@ public partial class kucoin : ccxt.kucoin
         Int64 now = this.milliseconds();
         bool expired = (((now - lastUpdate)) >= refreshInterval);
         string messageHash = "utaToken";
-        string? url = ((string)(this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("private") ? this.urlsApiSections["ws"]["private"] : null));
+        string? url = this.safeString((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "private", "");
         var client = this.client(url);
         if (((utaToken == null)) || expired)
         {
@@ -516,7 +516,7 @@ public partial class kucoin : ccxt.kucoin
                 string? symbol = ((string)symbolsNormalized[i]);
                 messageHashes.Add(("ticker:" + symbol));
                 Dictionary<string, object> market = this.market(symbol);
-                topics.Add(add(add(method, ":"), (market.ContainsKey("id") ? market["id"] : null)));
+                topics.Add(add(add(method, ":"), this.safeString(market, "id", "")));
             }
         }
         object url = await this.negotiate(false, isFuturesMethod);

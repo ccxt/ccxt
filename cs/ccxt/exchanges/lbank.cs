@@ -3273,8 +3273,10 @@ public partial class lbank : Exchange
                             result[(string)code] = this.depositWithdrawFee(new List<object>() {fee});
                         } else
                         {
-                            object resultCodeInfo = getValue((result.ContainsKey(code) ? result[code] : null), "info");
-                            ((IList<object>)resultCodeInfo).Add(fee);
+                            List<object> infoList = this.arrayConcat((resultValue != null && resultValue.ContainsKey("info") ? resultValue["info"] : null), new List<object>() {fee});
+                            result[(string)code] = this.extend(resultValue, new Dictionary<string, object>() {
+                                { "info", infoList },
+                            });
                         }
                         string? networkCode = this.networkIdToCode(this.safeString(fee, "chain"), code);
                         if ((networkCode != null))

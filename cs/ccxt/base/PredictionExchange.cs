@@ -662,8 +662,7 @@ public partial class PredictionExchange : BaseExchange
         // removal so labels like "UP OR DOWN" survive intact) — venue labels with spaces or
         // currency symbols ("JD Vance", a dollar-sign price) yield clean handles (JD_VANCE, 120)
         // instead of leaking raw text into the outcome handle
-        object outcomeValue = ((outcome == null)) ? "" : outcome;
-        string upper = ((string)outcomeValue).ToUpper();
+        string upper = ((outcome == null)) ? "" : ((string)outcome).ToUpper();
         string allowed = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
         List<object> chars = this.stringToCharsArray(upper);
         string label = "";
@@ -1576,12 +1575,7 @@ public partial class PredictionExchange : BaseExchange
         int feeListLength = (feeList?.Count ?? 0);
         if (((fee == null)) && (feeListLength > 0))
         {
-            List<object> reduced = this.reduceFeesByCurrency(feeList);
-            int reducedLength = (reduced?.Count ?? 0);
-            if (reducedLength > 0)
-            {
-                fee = this.safeDict(reduced, 0);
-            }
+            fee = this.safeDict(this.reduceFeesByCurrency(feeList), 0);
         }
         // derive timeInForce/postOnly the same way the crypto safeOrder does (prediction has no
         // trigger orders, so the isTriggerOrSLTp guard collapses): a market order defaults to IOC
