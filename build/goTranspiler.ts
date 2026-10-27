@@ -1299,6 +1299,10 @@ function goSliceIndexSelfTest (): string[] {
     ok (f (twice, '\t\tvar a string = GetValue(s, i).(string)\n').indexOf ('var a string = s[i]\n') >= 0, 'repeated []string declarations go native');
     ok (f (sd + '\tvar s []any = nil\n', '\t\tr = GetValue(s, i)\n').indexOf ('GetValue(s, i)') >= 0, 'mixed declaration types keep GetValue');
     ok (f (twice + '\ts = nil\n', '\t\tr = GetValue(s, i)\n').indexOf ('GetValue(s, i)') >= 0, 'written repeated slice keeps GetValue');
+    const sib = nativeLoopBoundedSliceReads ('func (this *X) f(p any) any {\n\tif p != nil {\n\t\tvar s []string = ObjectKeys(p)\n\t\tfor i := 0; i < len(s); i++ {\n\t\t\tvar a string = GetValue(s, i).(string)\n\t\t}\n\t} else {\n\t\tvar s []string = ObjectKeys(p)\n\t\tfor i := 0; i < len(s); i++ {\n\t\t\tvar b string = GetValue(s, i).(string)\n\t\t}\n\t}\n\treturn nil\n}\n');
+    ok ((sib.indexOf ('var a string = s[i]') >= 0) && (sib.indexOf ('var b string = s[i]') >= 0), 'sibling-scope []string declarations: ' + sib);
+    const sibBad = nativeLoopBoundedSliceReads ('func (this *X) f(p any) any {\n\tif p != nil {\n\t\tvar s []string = ObjectKeys(p)\n\t\tfor i := 0; i < len(s); i++ {\n\t\t\tvar a string = GetValue(s, i).(string)\n\t\t}\n\t} else {\n\t\tvar s any = p\n\t\tfor i := 0; i < len(s); i++ {\n\t\t\tvar b string = GetValue(s, i).(string)\n\t\t}\n\t}\n\treturn nil\n}\n');
+    ok (sibBad.indexOf ('s[i]') < 0, 'a non-[]string sibling declaration keeps GetValue: ' + sibBad);
     return problems;
 }
 
@@ -2920,7 +2924,7 @@ function nativeLoopBoundedSliceReads (content: string): string {
                 return match;
             }
             const maskedFunc = maskedLines.slice (fn.open + 1, fn.close + 1).join ('\n');
-            const decl = goAccessSingleDeclaration (maskedFunc, maskedLines[fn.open], slice) ?? goAccessRepeatedStringSliceDeclaration (maskedFunc, maskedLines[fn.open], slice);
+            const decl = goAccessSingleDeclaration (maskedFunc, maskedLines[fn.open], slice) ?? goAccessRepeatedStringSliceDeclaration (maskedFunc, maskedLines[fn.open], slice) ?? goLoopScopedStringSliceDeclaration (maskedLines, blocks, depth, fn, body, slice);
             // hx11 w7: a `[]any` unboxed from a SafeList accessor holds plain JSON values (no *T box
             // for GetValue to deref), so its in-range element is the slice element itself
             const jsonList = (decl !== undefined) && (decl.type === '[]any') && (decl.line !== undefined) && GO_GUARDED_READ_SAFE_LIST.test (decl.line);
@@ -2951,6 +2955,41 @@ function nativeLoopBoundedSliceReads (content: string): string {
         lines[index] = replaced;
     }
     return changed ? lines.join ('\n') : content;
+}
+
+// hx11 w8: `var s []string = ...` declared in several sibling scopes of one func (one per if/else
+// branch), each loop reading the declaration its own scope holds. Every declaration of the name
+// in the func must be a plain `var s []string` line (no param, `:=`, range or func literal
+// binding); the one in scope at the loop is the nearest earlier line whose block still holds it.
+function goLoopScopedStringSliceDeclaration (maskedLines: string[], blocks: any[], depth: number[], fn: any, body: any, slice: string): any {
+    const n = goAccessEscape (slice);
+    const declRx = new RegExp ('^[ \\t]*var ' + n + ' \\[\\]string\\b');
+    const bindRx = new RegExp ('(?:^|[^\\w.])' + n + '\\s*(?:,\\s*\\w+\\s*)*:=|,\\s*' + n + '\\s*(?:,\\s*\\w+\\s*)*:=|\\bvar\\s+' + n + '\\b|\\bfunc\\b[^\\n]*[(,]\\s*' + n + '\\s+[^,()]+[,)]');
+    if (new RegExp ('[(,]\\s*' + n + '\\s+[^,()]+[,)]').test (maskedLines[fn.open])) {
+        return undefined;
+    }
+    // a declaration lives from its line to the first later line that closes its block: a line
+    // starting with `}` at the declaration's depth (`} else {` closes the if body too)
+    const scopes: number[][] = [];
+    for (let k = fn.open + 1; k < fn.close; k++) {
+        if (declRx.test (maskedLines[k])) {
+            let end = fn.close;
+            for (let j = k + 1; j <= fn.close; j++) {
+                if ((depth[j] < depth[k]) || ((depth[j] === depth[k]) && /^\s*\}/.test (maskedLines[j]))) {
+                    end = j;
+                    break;
+                }
+            }
+            scopes.push ([ k, end ]);
+        } else if (bindRx.test (maskedLines[k])) {
+            return undefined;
+        }
+    }
+    const holding = scopes.filter ((c) => (c[0] < body.open) && (body.close < c[1]));
+    if ((holding.length !== 1) || scopes.some ((c) => (c !== holding[0]) && (c[0] > holding[0][0]) && (c[0] < holding[0][1]))) {
+        return undefined;
+    }
+    return { 'type': '[]string', 'index': 0, 'line': maskedLines[holding[0][0]] };
 }
 
 // hx10w3 G04: the pass has to run inside formatGoSource, not only in its own self-test
