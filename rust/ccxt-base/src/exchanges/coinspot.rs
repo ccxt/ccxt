@@ -1513,12 +1513,11 @@ impl CoinspotCore {
         let mut requestBody: Value = Value::Null;
         let mut apiLength: f64 = ((api.len() as i64) as f64);
         let mut isVersionedApi: bool = apiLength > ((1i64) as f64);
-        let mut version: Value = (if isVersionedApi { api.get(0).cloned().unwrap_or(Value::Null) } else { Value::Null });
         let mut accessType: Value = (if isVersionedApi { api.get(1).cloned().unwrap_or(Value::Null) } else { api.get(0).cloned().unwrap_or(Value::Null) });
         let mut endpoint: Value = Value::Str(format!("{}{}", Value::Str("/".into()), self.implode_params(path, params.clone())).into());
         let mut fullPath: Value = endpoint.clone();
-        if (version != Value::Null) {
-            fullPath = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/".into()), version).into()), endpoint).into());
+        if isVersionedApi {
+            fullPath = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/".into()), api.get(0).cloned().unwrap_or(Value::Null)).into()), endpoint).into());
         }
         let mut apiUrl: Option<String> = self.safe_string_opt(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), accessType.clone(), &[]);
         if (apiUrl.is_none()) {

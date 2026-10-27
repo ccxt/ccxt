@@ -1035,7 +1035,7 @@ impl BigoneCore {
         let mut promises: Value = Value::from(vec![self.public_get_asset_pairs(&[params.clone()]).await, self.contract_public_get_symbols(&[params]).await]);
         let mut promisesResult: Value = promise_all(&promises).await;
         let mut response: Value = self.safe_dict(promisesResult.clone(), Value::Int(0), &[]);
-        let mut contractResponse: Value = promisesResult.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
+        let mut contractResponse: Value = self.safe_value(promisesResult, Value::Int(1), &[]);
         //
         //     {
         //         "code":0,
@@ -1311,7 +1311,7 @@ impl BigoneCore {
         //    }
         //
         let mut marketType: Value = Value::Str("swap".into());
-        if (matches!(&ticker, Value::Dict(__d) if __d.contains_key("asset_pair_name"))) {
+        if (self.safe_string_k(ticker.clone(), "asset_pair_name", &[]) != Value::Null) {
             marketType = Value::Str("spot".into());
         }
         let mut marketId: Value = self.safe_string2(ticker.clone(), Value::Str("asset_pair_name".into()), Value::Str("symbol".into()), &[]);
@@ -2841,7 +2841,7 @@ impl BigoneCore {
         let mut address: Option<String> = self.safe_string_k_opt(transaction.clone(), "target_address", &[]);
         let mut tag: Option<String> = self.safe_string_k_opt(transaction.clone(), "memo", &[]);
         let mut type_var: Value = Value::Str("deposit".into());
-        if (matches!(&transaction, Value::Dict(__d) if __d.contains_key("customer_id"))) {
+        if (self.safe_string_k(transaction.clone(), "customer_id", &[]) != Value::Null) {
             type_var = Value::Str("withdrawal".into());
         }
         let mut internal: Value = self.safe_bool_k(transaction.clone(), "is_internal", &[]);

@@ -1162,10 +1162,10 @@ impl IndodaxCore {
             symbol = marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             let mut quoteId: Value = self.safe_string_k(marketResolved.clone(), "quoteId", &[Value::Str("".into())]);
             let mut baseId: Value = self.safe_string_k(marketResolved.clone(), "baseId", &[Value::Str("".into())]);
-            if (marketResolved.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null).as_str() == Some("idr")) && (matches!(&order, Value::Dict(__d) if __d.contains_key("order_rp"))) {
+            if (marketResolved.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null).as_str() == Some("idr")) && (self.safe_string_k(order.clone(), "order_rp", &[]) != Value::Null) {
                 quoteId = Value::Str("rp".into());
             }
-            if (marketResolved.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null).as_str() == Some("idr")) && (matches!(&order, Value::Dict(__d) if __d.contains_key("remain_rp"))) {
+            if (marketResolved.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null).as_str() == Some("idr")) && (self.safe_string_k(order.clone(), "remain_rp", &[]) != Value::Null) {
                 baseId = Value::Str("rp".into());
             }
             cost = self.safe_string(order.clone(), Value::Str(format!("{}{}", Value::Str("order_".into()), quoteId).into()), &[]);
@@ -2102,10 +2102,10 @@ impl IndodaxCore {
             return Value::Null;
         }
         let mut error: Value = self.safe_string_k(response.clone(), "error", &[Value::Str("".into())]);
-        if !(in_op(&response, &Value::Str("success".into()))) && (error.as_str() == Some("")) {
+        let mut status: Option<String> = self.safe_string_k(response.clone(), "success", &[]).as_str().map(str::to_owned);
+        if (status.is_none()) && (error.as_str() == Some("")) {
             return Value::Null;
         }
-        let mut status: Option<String> = self.safe_string_k(response.clone(), "success", &[]).as_str().map(str::to_owned);
         if (status.as_deref() == Some("approved")) {
             return Value::Null;
         }

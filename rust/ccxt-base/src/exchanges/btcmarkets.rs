@@ -906,10 +906,10 @@ impl BtcmarketsCore {
             return Value::Null;
         }
         let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into());
-        let mut fees: indexmap::IndexMap<String, Value> = self.safe_dict(self.safe_dict_k(self.options.clone(), "fees", &[Value::Map({
+        let mut fees: Value = self.safe_dict(self.safe_dict_k(self.options.clone(), "fees", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]), quote.clone(), &[self.fees.clone()]).as_map().cloned().unwrap_or_default();
+})]), quote.clone(), &[self.fees.clone()]);
         let mut pricePrecision: Value = self.parse_number(self.parse_precision(&[self.safe_string_k(market.clone(), "priceDecimals", &[])]), &[]);
         let mut minAmount: Value = self.safe_number_k(market.clone(), "minOrderAmount", &[]);
         let mut maxAmount: Value = self.safe_number_k(market.clone(), "maxOrderAmount", &[]);
@@ -938,8 +938,8 @@ impl BtcmarketsCore {
         m.insert("contract".to_string(), Value::Bool(false));
         m.insert("linear".to_string(), Value::Null);
         m.insert("inverse".to_string(), Value::Null);
-        m.insert("taker".to_string(), fees.get("taker").cloned().unwrap_or(Value::Null));
-        m.insert("maker".to_string(), fees.get("maker").cloned().unwrap_or(Value::Null));
+        m.insert("taker".to_string(), self.safe_number_k(fees.clone(), "taker", &[]));
+        m.insert("maker".to_string(), self.safe_number_k(fees, "maker", &[]));
         m.insert("contractSize".to_string(), Value::Null);
         m.insert("expiry".to_string(), Value::Null);
         m.insert("expiryDatetime".to_string(), Value::Null);
@@ -1574,10 +1574,7 @@ impl BtcmarketsCore {
         let mut cost: Value = Value::Null;
         if (market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null).as_str() == Some("AUD")) {
             currency = self.safe_string_k(market.clone(), "quote", &[]);
-            let mut amountString: Value = self.number_to_string(amount.clone());
-            let mut priceString: Value = self.number_to_string(price);
-            let mut otherUnitsAmount: Value = crate::precise::Precise::stringMul(&amountString, &priceString);
-            cost = self.cost_to_precision(symbol.clone(), otherUnitsAmount);
+            cost = self.cost_to_precision(symbol.clone(), crate::precise::Precise::stringMul(&self.number_to_string(amount.clone()), &self.number_to_string(price)));
         }  else {
             currency = self.safe_string_k(market.clone(), "base", &[]);
             cost = self.amount_to_precision(symbol.clone(), amount);
@@ -1877,9 +1874,8 @@ impl BtcmarketsCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let tagWithdrawTagparamsWithdrawTagVariable: Vec<Value> = self.handle_param_string(params, Value::Str("tag".into()), &[]).as_array().cloned().unwrap_or_default();
-        let mut tagWithdrawTag: Value = tagWithdrawTagparamsWithdrawTagVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsWithdrawTag: Value = tagWithdrawTagparamsWithdrawTagVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut tagWithdrawTag: Option<String> = self.safe_string_k_opt(params.clone(), "tag", &[]);
+        let mut paramsWithdrawTag: Value = self.omit(params, Value::Str("tag".into()), &[]);
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
@@ -1891,11 +1887,11 @@ impl BtcmarketsCore {
             m
         });
         if (code.as_str() != Some("AUD")) {
-            self.check_address(&[address.clone(), code, tagWithdrawTag.clone()]);
+            self.check_address(&[address.clone(), code, tagWithdrawTag.clone().map(Value::from).unwrap_or(Value::Null)]);
             request.insert("toAddress".into(), address.clone());
         }
-        if (tagWithdrawTag != Value::Null) {
-            request.insert("toAddress".into(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", address, Value::Str("?dt=".into())).into()), tagWithdrawTag).into()));
+        if (tagWithdrawTag.is_some()) {
+            request.insert("toAddress".into(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", address, Value::Str("?dt=".into())).into()), tagWithdrawTag.map(Value::from).unwrap_or(Value::Null)).into()));
         }
         let __ws_arg_15 = self.extend(Value::Map(request), &[paramsWithdrawTag]);
         let mut response: Value = self.private_post_withdrawals(&[__ws_arg_15]).await;

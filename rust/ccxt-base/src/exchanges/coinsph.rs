@@ -2059,23 +2059,24 @@ impl CoinsphCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut newOrderRespType: Value = self.safe_value_k(options.clone(), "newOrderRespType", &[Value::Map({
+        let mut newOrderRespTypes: Value = self.safe_value_k(options.clone(), "newOrderRespType", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
+        let mut newOrderRespType: Value = Value::Str("FULL".into());
         // if limit order
         if (orderType.as_str() == Some("LIMIT")) || (orderType.as_str() == Some("STOP_LOSS_LIMIT")) || (orderType.as_str() == Some("TAKE_PROFIT_LIMIT")) || (orderType.as_str() == Some("LIMIT_MAKER")) {
             if (price == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a price argument for a ".into())).into()), type_var).into()), Value::Str(" order".into()))));
             }
-            newOrderRespType = self.safe_string_k(newOrderRespType.clone(), "limit", &[Value::Str("FULL".into())]);
+            newOrderRespType = self.safe_string_k(newOrderRespTypes.clone(), "limit", &[Value::Str("FULL".into())]);
             request.insert("price".into(), self.price_to_precision(symbol.clone(), price.clone()));
             request.insert("quantity".into(), self.amount_to_precision(symbol.clone(), amount.clone()));
             if (orderType.as_str() != Some("LIMIT_MAKER")) {
                 request.insert("timeInForce".into(), self.safe_string_k(options, "timeInForce", &[Value::Str("GTC".into())]));
             }
         }  else if (orderType.as_str() == Some("MARKET")) || (orderType.as_str() == Some("STOP_LOSS")) || (orderType.as_str() == Some("TAKE_PROFIT")) {
-            newOrderRespType = self.safe_string_k(newOrderRespType.clone(), "market", &[Value::Str("FULL".into())]);
+            newOrderRespType = self.safe_string_k(newOrderRespTypes, "market", &[Value::Str("FULL".into())]);
             if (orderSide.as_str() == Some("SELL")) {
                 request.insert("quantity".into(), self.amount_to_precision(symbol.clone(), amount.clone()));
             }  else if (orderSide.as_str() == Some("BUY")) {
@@ -3016,7 +3017,11 @@ impl CoinsphCore {
         if (apiUrl == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
-        let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
+        let __ws_arg_23 = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
+        let mut query: Value = self.extend(Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        }), &[__ws_arg_23]);
         let mut endpoint: Value = self.implode_params(path, params);
         let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl, Value::Str("/".into())).into()), endpoint).into());
         if (apiName.as_str() == Some("private")) {

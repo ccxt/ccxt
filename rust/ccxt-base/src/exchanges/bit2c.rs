@@ -782,7 +782,10 @@ impl Bit2cCore {
         }
         let mut market: Value = self.market(symbol);
         let mut optionValue: Option<String> = self.safe_string_k_opt(self.options.clone(), "fetchTradesMethod", &[]); // kept here for backward compatibility #29154
-        let mut method: Value = self.handle_option(Value::Str("fetchTrades".into()), Value::Str("method".into()), &[optionValue.map(Value::from).unwrap_or(Value::Null)]); // publicGetExchangesPairTrades or publicGetExchangesPairLasttrades
+        let mut method: Option<String> = self.safe_string(self.handle_option_and_params(Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}), Value::Str("fetchTrades".into()), Value::Str("method".into()), &[optionValue.map(Value::from).unwrap_or(Value::Null)]), Value::Int(0), &[]).as_str().map(str::to_owned); // publicGetExchangesPairTrades or publicGetExchangesPairLasttrades
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("pair".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
@@ -795,7 +798,7 @@ impl Bit2cCore {
             request.insert("limit".into(), limit.clone()); // max 100000
         }
         let mut responseList: Value = Value::from(vec![]);
-        if (method.as_str() == Some("publicGetExchangesPairTrades")) || (method.as_str() == Some("public_get_exchanges_pair_trades")) {
+        if (method.as_deref() == Some("publicGetExchangesPairTrades")) || (method.as_deref() == Some("public_get_exchanges_pair_trades")) {
             let __ws_arg_2 = self.extend(Value::Map(request.clone()), &[params.clone()]);
             let mut response: Value = self.public_get_exchanges_pair_trades(&[__ws_arg_2]).await;
             //
@@ -1082,8 +1085,9 @@ impl Bit2cCore {
         //
         let mut orderUnified: Value = Value::Null;
         let mut isNewOrder: bool = false;
-        if (matches!(&order, Value::Dict(__d) if __d.contains_key("NewOrder"))) {
-            orderUnified = order.as_map().and_then(|__m| __m.get("NewOrder")).cloned().unwrap_or(Value::Null);
+        let mut newOrder: Value = self.safe_value_k(order.clone(), "NewOrder", &[]);
+        if (newOrder != Value::Null) {
+            orderUnified = newOrder;
             isNewOrder = true;
         }  else {
             orderUnified = order.clone();

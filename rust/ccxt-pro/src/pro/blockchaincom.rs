@@ -375,12 +375,6 @@ impl BlockchaincomCore {
         // nobody is awaiting, so a replaced object would make updates landing
         // in that window invisible to the consumer forever (same class as
         // issue #26773)
-        if (self.balance.clone() == Value::Null) {
-            self.balance = Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            });
-        }
         if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("info".into(), message); }
         let mut balances: Value = (match __pro_message.get("balances").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
         {
@@ -475,8 +469,7 @@ impl BlockchaincomCore {
         //
         let mut event: Option<String> = (match __pro_message.get("event").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         if (event.as_deref() == Some("rejected")) {
-            let mut jsonMessage: Value = json_stringify(&message);
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), jsonMessage)));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&message))));
         }  else if (event.as_deref() == Some("updated")) {
             let mut marketId: Option<String> = self.safe_string_k_opt(message.clone(), "symbol", &[]);
             let mut symbol: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[Value::Null, Value::Str("-".into())]);
@@ -1089,7 +1082,7 @@ impl BlockchaincomCore {
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderbook:".into()), symbol).into()), Value::Str(":".into())).into()), type_var).into());
         let mut datetime: Option<String> = self.safe_string_k_opt(message.clone(), "timestamp", &[]);
         let mut timestamp: Value = self.parse8601(datetime.clone().map(Value::from).unwrap_or(Value::Null));
-        if (self.safe_value(self.orderbooks.clone(), symbol.clone(), &[]) == Value::Null) {
+        if !(matches!((&self.orderbooks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             { let __be_tmp = self.counted_order_book(&[]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
         }
         let mut orderbook: Value = self.orderbooks.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
@@ -1129,25 +1122,24 @@ impl BlockchaincomCore {
     pub fn handle_message(&mut self, mut client: Value, mut message: Value) {
         let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
-        let mut channel: Value = (match __pro_message.get("channel").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
-        let mut handlers: indexmap::IndexMap<String, Value> = ({
-            let mut m = indexmap::IndexMap::new();
-                m.insert("ticker".to_string(), Value::Str("handle_ticker".into()).clone());
-                m.insert("trades".to_string(), Value::Str("handle_trades".into()).clone());
-                m.insert("prices".to_string(), Value::Str("handle_ohlcv".into()).clone());
-                m.insert("l2".to_string(), Value::Str("handle_order_book".into()).clone());
-                m.insert("l3".to_string(), Value::Str("handle_order_book".into()).clone());
-                m.insert("auth".to_string(), Value::Str("handle_authentication_message".into()).clone());
-                m.insert("balances".to_string(), Value::Str("handle_balance".into()).clone());
-                m.insert("trading".to_string(), Value::Str("handle_orders".into()).clone());
-            m
-        });
-        let mut handler: Value = self.safe_value(Value::Map(handlers), channel, &[]);
-        if (handler != Value::Null) {
-            self.dispatch_ws_handler(&handler, &[client, message.clone()]);
-            return;
+        let mut channel: Option<String> = (match __pro_message.get("channel").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
+        if (channel.as_deref() == Some("ticker")) {
+            self.handle_ticker(client.clone(), message.clone());
+        }  else if (channel.as_deref() == Some("trades")) {
+            self.handle_trades(client.clone(), message.clone());
+        }  else if (channel.as_deref() == Some("prices")) {
+            self.handle_ohlcv(client.clone(), message.clone());
+        }  else if (channel.as_deref() == Some("l2")) || (channel.as_deref() == Some("l3")) {
+            self.handle_order_book(client.clone(), message.clone());
+        }  else if (channel.as_deref() == Some("auth")) {
+            self.handle_authentication_message(client.clone(), message.clone());
+        }  else if (channel.as_deref() == Some("balances")) {
+            self.handle_balance(client.clone(), message.clone());
+        }  else if (channel.as_deref() == Some("trading")) {
+            self.handle_orders(client, message.clone());
+        }  else {
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" received an unsupported message: ".into())).into()), json_stringify(&message))));
         }
-        panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" received an unsupported message: ".into())).into()), json_stringify(&message))));
 }
 
     pub fn handle_authentication_message(&self, mut client: Value, mut message: Value) {

@@ -1107,7 +1107,7 @@ impl MercadoCore {
         let mut id: Option<String> = self.safe_string_k_opt(order.clone(), "order_id", &[]);
         let mut order_type: Option<String> = self.safe_string_k(order.clone(), "order_type", &[]).as_str().map(str::to_owned);
         let mut side: Value = Value::Null;
-        if (matches!(&order, Value::Dict(__d) if __d.contains_key("order_type"))) {
+        if (order_type.is_some()) {
             side = (if (order_type.as_deref() == Some("1")) { Value::Str("buy".into()) } else { Value::Str("sell".into()) });
         }
         let mut status: Value = self.parse_order_status(self.safe_string_k(order.clone(), "status", &[])).map(Value::from).unwrap_or(Value::Null);
