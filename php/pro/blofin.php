@@ -283,7 +283,7 @@ class blofin extends \ccxt\async\blofin {
         $market = $this->market($symbol);
         $symbolValue = $this->safe_string($market, 'symbol', '');
         $result = Async\await($this->watch_tickers(array( $symbolValue ), $params));
-        return $result[$symbolValue];
+        return $this->safe_value($result, $symbolValue);
     }
 
     public function watch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
@@ -565,9 +565,6 @@ class blofin extends \ccxt\async\blofin {
         // landing in that window invisible to the consumer forever (same class
         // as issue #26773); the free/used/total aggregates are rebuilt from
         // the merged currencies by safeBalance
-        if ($this->balance === null) {
-            $this->balance = array();
-        }
         $this->balance[$marketType] = $this->safe_dict($this->balance, $marketType, array());
         $parsed = $this->parse_ws_balance($message);
         $reserved = array( 'free', 'used', 'total' );
@@ -837,7 +834,7 @@ class blofin extends \ccxt\async\blofin {
                     'instId' => $market['id'],
                 );
                 $rawSubscriptions[] = $topic;
-                $messageHashes[] = $channel . ':' . $market['symbol'];
+                $messageHashes[] = $channel . ':' . $this->safe_string($market, 'symbol', '');
             }
         } else {
             $rawSubscriptions[] = array( 'channel' => $channelName );
@@ -849,7 +846,7 @@ class blofin extends \ccxt\async\blofin {
         }
         $request = $this->get_subscription_request($rawSubscriptions);
         $privateOrPublic = 'private';
-        if ($isPublic) {
+        if ($isPublic === true) {
             $privateOrPublic = 'public';
         }
         $typeUrls = $this->safe_dict($this->urls['api']['ws'], $marketType, array());

@@ -112,11 +112,8 @@ class okx extends \ccxt\async\okx {
         ));
     }
 
-    public function get_url(?string $channel, string $access = 'public'): string {
+    public function get_url(string $channel, string $access = 'public'): string {
         // for context: https://www.okx.com/help-center/changes-to-v5-api-websocket-subscription-parameter-and-url
-        if ($channel === null) {
-            throw new ArgumentsRequired($this->id . ' getUrl() requires a channel argument');
-        }
         $isSandbox = $this->options['sandboxMode'];
         $sandboxSuffix = '';
         if ($isSandbox === true) {
@@ -2928,10 +2925,8 @@ class okx extends \ccxt\async\okx {
         $messageHash = 'unsubscribe:' . $subMessageHash;
         $this->clean_unsubscription($client, $subMessageHash, $messageHash);
         // watchOHLCV subscribes through subscribe () under channel:marketId
-        if ($symbol !== null) {
-            $this->clean_unsubscription($client, $channel . ':' . $this->market_id($symbol), null);
-        }
-        if (($symbol !== null) && ($timeframe !== null) && (is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe ?? '', $this->ohlcvs[$symbol]))) {
+        $this->clean_unsubscription($client, $channel . ':' . $this->market_id($symbol), null);
+        if (is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe ?? '', $this->ohlcvs[$symbol])) {
             unset($this->ohlcvs[$symbol][$timeframe]);
         }
     }
@@ -2957,9 +2952,15 @@ class okx extends \ccxt\async\okx {
         // }
         // arg might be an array or list
         $arg = $this->safe_dict($message, 'arg', array());
-        $channel = $this->safe_string($arg, 'channel', '');
+        $channel = $this->safe_string($arg, 'channel');
+        if ($channel === null) {
+            return;
+        }
         $marketId = $this->safe_string($arg, 'instId');
         $symbol = $this->safe_symbol($marketId);
+        if ($symbol === null) {
+            return;
+        }
         if ($channel === 'trades' || $channel === 'trades-all') {
             $this->handle_un_subscription_trades($client, $symbol, $channel);
         } elseif (str_starts_with($channel, 'bbo') || str_starts_with($channel, 'book')) {

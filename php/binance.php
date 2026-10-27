@@ -4169,13 +4169,12 @@ class binance extends Exchange {
             if ($paramSymbols !== null) {
                 $symbols = '';
                 if ((gettype($paramSymbols) === 'array' && array_keys($paramSymbols) === array_keys(array_keys($paramSymbols)))) {
-                    $mid = $this->market_id($this->safe_value($paramSymbols, 0));
+                    $mid = $this->market_id($this->safe_string($paramSymbols, 0));
                     if ($mid !== null) {
                         $symbols = $mid;
                     }
                     for ($i = 1; $i < count($paramSymbols); $i++) {
-                        $symbol = $this->safe_value($paramSymbols, $i);
-                        $id = $this->market_id($symbol);
+                        $id = $this->market_id($this->safe_string($paramSymbols, $i));
                         if ($id !== null) {
                             $symbols .= ',' . $id;
                         }
@@ -13382,7 +13381,7 @@ class binance extends Exchange {
                     $origclientorderidlist = $this->safe_list_2($extendedParams, 'origclientorderidlist', 'origClientOrderIdList', array());
                     $extendedParams = $this->omit($extendedParams, array( 'orderidlist', 'origclientorderidlist', 'origClientOrderIdList' ));
                     if (is_array($extendedParams) && array_key_exists('symbol' ?? '', $extendedParams)) {
-                        $extendedParams['symbol'] = $this->encode_uri_component($extendedParams['symbol']);
+                        $extendedParams['symbol'] = $this->encode_uri_component($this->safe_string($extendedParams, 'symbol', ''));
                     }
                     $query = $this->rawencode($extendedParams);
                     $orderidlistLength = count($orderidlist);
@@ -13394,7 +13393,7 @@ class binance extends Exchange {
                         // wrap clientOrderids around ""
                         $newClientOrderIds = array();
                         for ($i = 0; $i < $origclientorderidlistLength; $i++) {
-                            $newClientOrderIds[] = '%22' . $origclientorderidlist[$i] . '%22';
+                            $newClientOrderIds[] = '%22' . $this->safe_string($origclientorderidlist, $i, '') . '%22';
                         }
                         $query = $query . '&' . 'origclientorderidlist=%5B' . implode('%2C', $newClientOrderIds) . '%5D';
                     }

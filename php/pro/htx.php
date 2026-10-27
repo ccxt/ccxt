@@ -957,12 +957,8 @@ class htx extends \ccxt\async\htx {
         $future = ($type === 'future');
         $isV5Linear = ($linear && ($swap || $future));
         if ($type === 'spot') {
-            $mode = null;
-            if ($mode === null) {
-                $mode = $this->safe_string_2($this->options, 'watchMyTrades', 'mode', '0');
-                $mode = $this->safe_string($paramsRequest, 'mode', $mode);
-                $paramsRequest = $this->omit($paramsRequest, 'mode');
-            }
+            $mode = $this->safe_string($paramsRequest, 'mode', $this->safe_string_2($this->options, 'watchMyTrades', 'mode', '0'));
+            $paramsRequest = $this->omit($paramsRequest, 'mode');
             $messageHash = 'trade.clearing' . '#' . $marketId . '#' . $mode;
             $channel = $messageHash;
         } elseif ($isV5Linear) {

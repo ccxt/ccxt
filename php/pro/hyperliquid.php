@@ -1353,7 +1353,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         for ($i = 0; $i < count($rawBalances); $i++) {
             $this->parse_ws_balance($rawBalances[$i], $account);
         }
-        if ($this->safe_value($this->balance, $account) === null) {
+        if (!(is_array($this->balance) && array_key_exists($account ?? '', $this->balance))) {
             $this->balance[$account] = array();
         }
         $this->balance[$account]['info'] = $info;
@@ -1585,7 +1585,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         $messageHash = 'order';
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $messageHash = 'order:' . $market['symbol'];
+            $messageHash = 'order:' . $this->safe_string($market, 'symbol', '');
         }
         $symbolResolved = ($market !== null) ? $this->safe_string($market, 'symbol') : $symbol;
         $url = $this->urls['api']['ws']['public'];

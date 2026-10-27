@@ -319,7 +319,7 @@ class bitstamp extends \ccxt\async\bitstamp {
         $price = $this->safe_string($trade, 'price');
         $amount = $this->safe_string($trade, 'amount');
         $marketResolved = $this->safe_market(null, $market);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol', '');
         $sideRaw = $this->safe_integer($trade, 'type');
         $side = 'sell';
         if ($sideRaw === 0) {
@@ -370,7 +370,7 @@ class bitstamp extends \ccxt\async\bitstamp {
         $parts = explode('_', $channel);
         $marketId = $this->safe_string($parts, 2);
         $market = $this->safe_market($marketId);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         $messageHash = 'trades:' . $symbol;
         $data = $this->safe_dict($message, 'data');
         $trade = $this->parse_ws_trade($data, $market);
@@ -437,7 +437,7 @@ class bitstamp extends \ccxt\async\bitstamp {
         $parts = explode('_', $channel);
         $marketId = $this->safe_string($parts, 2);
         $market = $this->safe_market($marketId);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         $data = $this->safe_dict($message, 'data', array());
         $fundingRate = $this->parse_funding_rate($data, $market);
         $this->fundingRates[$symbol] = $fundingRate;
@@ -464,7 +464,7 @@ class bitstamp extends \ccxt\async\bitstamp {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         $channel = 'private-my_orders';
         $subscription = array(
             'symbol' => $symbolValue,
@@ -501,7 +501,7 @@ class bitstamp extends \ccxt\async\bitstamp {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         Async\await($this->authenticate());
         $userId = $this->safe_string($this->options, 'userId');
         if ($userId === null) {
@@ -534,7 +534,7 @@ class bitstamp extends \ccxt\async\bitstamp {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         $channel = 'private-my_trades';
         $messageHash = $channel . '_' . $this->safe_string($market, 'id', '');
         $subscription = array(
@@ -572,7 +572,7 @@ class bitstamp extends \ccxt\async\bitstamp {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         Async\await($this->authenticate());
         $userId = $this->safe_string($this->options, 'userId');
         if ($userId === null) {
@@ -641,7 +641,7 @@ class bitstamp extends \ccxt\async\bitstamp {
         $microtimestamp = $this->safe_integer($trade, 'microtimestamp', 0);
         $timestamp = $this->parse_to_int($microtimestamp / 1000);
         $marketResolved = $this->safe_market(null, $market);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol', '');
         $feeCost = $this->safe_string($trade, 'fee');
         $fee = null;
         if ($feeCost !== null) {
@@ -784,7 +784,7 @@ class bitstamp extends \ccxt\async\bitstamp {
         $triggerPrice = $this->safe_string($order, 'stop_price');
         $timestamp = $this->safe_timestamp($order, 'datetime');
         $marketResolved = $this->safe_market(null, $market);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol', '');
         return $this->safe_order(array(
             'info' => $order,
             'symbol' => $symbol,
@@ -1108,7 +1108,7 @@ class bitstamp extends \ccxt\async\bitstamp {
             'event' => 'bts:subscribe',
             'data' => array(
                 'channel' => $messageHashValue,
-                'auth' => $this->options['wsSessionToken'],
+                'auth' => $this->safe_string($this->options, 'wsSessionToken'),
             ),
         );
         $subscription['messageHash'] = $messageHashValue;

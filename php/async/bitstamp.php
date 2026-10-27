@@ -892,14 +892,14 @@ class bitstamp extends Exchange {
                 throw new ExchangeError($this->id . ' parseCurrencies() missing description');
             }
             $descriptionParts = explode(' / ', $description);
-            $baseDescription = $descriptionParts[0];
-            $quoteDescription = $descriptionParts[1];
+            $baseDescription = $this->safe_string($descriptionParts, 0);
+            $quoteDescription = $this->safe_string($descriptionParts, 1);
             $minimumOrder = $this->safe_string($market, 'minimum_order_value');
             if ($minimumOrder === null) {
                 throw new ExchangeError($this->id . ' parseCurrencies() missing minimumOrder');
             }
             $parts = explode(' ', $minimumOrder);
-            $cost = $parts[0];
+            $cost = $this->safe_string($parts, 0);
             if (($base !== null) && !(is_array($result) && array_key_exists($base ?? '', $result))) {
                 $baseDecimals = $this->safe_integer($market, 'base_decimals');
                 $result[$base] = $this->construct_currency_object($baseId, $base, $baseDescription, $baseDecimals, null, $market);
@@ -1269,10 +1269,10 @@ class bitstamp extends Exchange {
                 }
             }
         } else {
-            $side = $this->safe_string($trade, 'type');
-            if ($side === '1') {
+            $sideRaw = $this->safe_string($trade, 'type');
+            if ($sideRaw === '1') {
                 $side = 'sell';
-            } elseif ($side === '0') {
+            } elseif ($sideRaw === '0') {
                 $side = 'buy';
             } else {
                 $side = null;
@@ -2304,9 +2304,9 @@ class bitstamp extends Exchange {
         if ($addressRaw !== null) {
             // dt (destination tag) is embedded into the address field
             $addressParts = explode('?dt=', $addressRaw);
-            $address = $addressParts[0];
+            $address = $this->safe_string($addressParts, 0);
             if (strlen($addressParts) > 1) {
-                $tag = $addressParts[1];
+                $tag = $this->safe_string($addressParts, 1);
             }
         }
         $fee = array(
@@ -2991,7 +2991,7 @@ class bitstamp extends Exchange {
             }
             $feedback = $this->id . ' ' . $body;
             for ($i = 0; $i < count($errors); $i++) {
-                $value = $errors[$i];
+                $value = $this->safe_string($errors, $i);
                 $this->throw_exactly_matched_exception($this->exceptions['exact'], $value, $feedback);
                 $this->throw_broadly_matched_exception($this->exceptions['broad'], $value, $feedback);
             }

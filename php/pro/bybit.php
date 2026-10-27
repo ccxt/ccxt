@@ -427,7 +427,7 @@ class bybit extends \ccxt\async\bybit {
         if (($market['spot'] !== true) && $topic !== 'tickers') {
             throw new BadRequest($this->id . ' watchTicker() only supports name tickers for contract markets');
         }
-        $topics = array( $topic . '.' . $market['id'] );
+        $topics = array( $topic . '.' . $this->safe_string($market, 'id', '') );
         return Async\await($this->watch_topics($url, array( $messageHash ), $topics, $paramsValue));
     }
 
@@ -460,7 +460,7 @@ class bybit extends \ccxt\async\bybit {
         for ($i = 0; $i < count($marketIds); $i++) {
             $marketId = $marketIds[$i];
             $topics[] = $topic . '.' . $marketId;
-            $messageHashes[] = 'ticker:' . $symbolsValue[$i];
+            $messageHashes[] = 'ticker:' . $this->safe_string($symbolsValue, $i, '');
         }
         $ticker = Async\await($this->watch_topics($url, $messageHashes, $topics, $paramsValue));
         if ($this->newUpdates) {
@@ -702,7 +702,7 @@ class bybit extends \ccxt\async\bybit {
             $marketId = $marketIds[$i];
             $topic = 'orderbook.1.' . $marketId;
             $topics[] = $topic;
-            $messageHashes[] = 'bidask:' . $symbolsValue[$i];
+            $messageHashes[] = 'bidask:' . $this->safe_string($symbolsValue, $i, '');
         }
         $ticker = Async\await($this->watch_topics($url, $messageHashes, $topics, $paramsValue));
         if ($this->newUpdates) {
@@ -998,7 +998,7 @@ class bybit extends \ccxt\async\bybit {
             );
             $selectedLimits = $this->safe_list_2($limits, $market['type'], 'default', array());
             if (!$this->in_array($limit, $selectedLimits)) {
-                throw new BadRequest($this->id . ' watchOrderBookForSymbols() => for ' . $market['type'] . ' markets limit can be one of => ' . $this->json($selectedLimits));
+                throw new BadRequest($this->id . ' watchOrderBookForSymbols() => for ' . $this->safe_string($market, 'type', '') . ' markets limit can be one of => ' . $this->json($selectedLimits));
             }
         }
         $topics = array();

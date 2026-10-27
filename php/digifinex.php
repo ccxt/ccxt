@@ -887,8 +887,8 @@ class digifinex extends Exchange {
         list($marketType, $paramsMarketType) = $this->handle_market_type_and_params('fetchBalance', null, $params);
         list($marginMode, $query) = $this->handle_margin_mode_and_params('fetchBalance', $paramsMarketType);
         $response = null;
-        if ($marginMode !== null || $marketType === 'margin') {
-            $marketType = 'margin';
+        $isMargin = ($marginMode !== null) || ($marketType === 'margin');
+        if ($isMargin) {
             $response = $this->privateSpotGetMarginAssets($query);
         } elseif ($marketType === 'spot') {
             $response = $this->privateSpotGetSpotAssets($query);
@@ -934,7 +934,7 @@ class digifinex extends Exchange {
         //     }
         //
         $balanceRequest = 'list';
-        if ($marketType === 'swap') {
+        if (!$isMargin && $marketType === 'swap') {
             $balanceRequest = 'data';
         }
         $balances = $this->safe_list($response, $balanceRequest, array());
@@ -1185,14 +1185,9 @@ class digifinex extends Exchange {
         $tickers = $this->safe_list($response, 'ticker', array());
         $data = $this->safe_dict($response, 'data', array());
         $firstTicker = $this->safe_dict($tickers, 0, array());
-        $result = null;
-        if ($market['swap'] === true) {
-            $result = $data;
-        } else {
+        $result = $data;
+        if ($market['swap'] !== true) {
             $result = $this->extend(array( 'date' => $date ), $firstTicker);
-        }
-        if ($result === null) {
-            throw new NullResponse($this->id . ' fetchTicker() returned empty response');
         }
         return $this->parse_ticker($result, $market);
     }
@@ -2008,8 +2003,8 @@ class digifinex extends Exchange {
         }
         list($marginMode, $query) = $this->handle_margin_mode_and_params('cancelOrder', $paramsMarketType);
         $response = null;
-        if ($marginMode !== null || $marketType === 'margin') {
-            $marketType = 'margin';
+        $isMargin = ($marginMode !== null) || ($marketType === 'margin');
+        if ($isMargin) {
             $response = $this->privateSpotPostMarginOrderCancel($this->extend($request, $query));
         } elseif ($marketType === 'spot') {
             $response = $this->privateSpotPostSpotOrderCancel($this->extend($request, $query));
@@ -2039,7 +2034,7 @@ class digifinex extends Exchange {
         //         "data": "1590923061186531328"
         //     }
         //
-        if (($marketType === 'spot') || ($marketType === 'margin')) {
+        if ($isMargin || ($marketType === 'spot')) {
             $canceledOrders = $this->safe_list($response, 'success', array());
             $numCanceledOrders = count($canceledOrders);
             if ($numCanceledOrders !== 1) {
@@ -2443,8 +2438,8 @@ class digifinex extends Exchange {
             $request[$marketIdRequest] = $market['id'];
         }
         $response = null;
-        if ($marginMode !== null || $marketType === 'margin') {
-            $marketType = 'margin';
+        $isMargin = ($marginMode !== null) || ($marketType === 'margin');
+        if ($isMargin) {
             $response = $this->privateSpotGetMarginOrderCurrent($this->extend($request, $query));
         } elseif ($marketType === 'spot') {
             $response = $this->privateSpotGetSpotOrderCurrent($this->extend($request, $query));
@@ -2554,8 +2549,8 @@ class digifinex extends Exchange {
             $request['limit'] = $limit;
         }
         $response = null;
-        if ($marginMode !== null || $marketType === 'margin') {
-            $marketType = 'margin';
+        $isMargin = ($marginMode !== null) || ($marketType === 'margin');
+        if ($isMargin) {
             $response = $this->privateSpotGetMarginOrderHistory($this->extend($request, $query));
         } elseif ($marketType === 'spot') {
             $response = $this->privateSpotGetSpotOrderHistory($this->extend($request, $query));
@@ -2654,8 +2649,8 @@ class digifinex extends Exchange {
             $request['market'] = $marketType;
         }
         $response = null;
-        if (($marginMode !== null) || ($marketType === 'margin')) {
-            $marketType = 'margin';
+        $isMargin = ($marginMode !== null) || ($marketType === 'margin');
+        if ($isMargin) {
             $response = $this->privateSpotGetMarginOrder($this->extend($request, $query));
         } elseif ($marketType === 'spot') {
             $response = $this->privateSpotGetSpotOrder($this->extend($request, $query));
@@ -2713,7 +2708,7 @@ class digifinex extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data');
-        $order = ($marketType === 'swap') ? $data : $this->safe_value($data, 0);
+        $order = (!$isMargin && ($marketType === 'swap')) ? $data : $this->safe_value($data, 0);
         if ($order === null) {
             throw new OrderNotFound($this->id . ' fetchOrder() order ' . $idValue . ' not found');
         }
@@ -2766,8 +2761,8 @@ class digifinex extends Exchange {
             $request['limit'] = $limit;
         }
         $response = null;
-        if ($marginMode !== null || $marketType === 'margin') {
-            $marketType = 'margin';
+        $isMargin = ($marginMode !== null) || ($marketType === 'margin');
+        if ($isMargin) {
             $response = $this->privateSpotGetMarginMytrades($this->extend($request, $query));
         } elseif ($marketType === 'spot') {
             $response = $this->privateSpotGetSpotMytrades($this->extend($request, $query));
@@ -2822,7 +2817,7 @@ class digifinex extends Exchange {
         //     }
         //
         $responseRequest = 'list';
-        if ($marketType === 'swap') {
+        if (!$isMargin && ($marketType === 'swap')) {
             $responseRequest = 'data';
         }
         $data = $this->safe_list($response, $responseRequest, array());
@@ -2928,8 +2923,8 @@ class digifinex extends Exchange {
             $request['limit'] = $limit;
         }
         $response = null;
-        if ($marginMode !== null || $marketType === 'margin') {
-            $marketType = 'margin';
+        $isMargin = ($marginMode !== null) || ($marketType === 'margin');
+        if ($isMargin) {
             $response = $this->privateSpotGetMarginFinancelog($this->extend($request, $query));
         } elseif ($marketType === 'spot') {
             $response = $this->privateSpotGetSpotFinancelog($this->extend($request, $query));
@@ -2972,7 +2967,7 @@ class digifinex extends Exchange {
         //     }
         //
         $ledger = null;
-        if ($marketType === 'swap') {
+        if (!$isMargin && ($marketType === 'swap')) {
             $ledger = $this->safe_list($response, 'data', array());
         } else {
             $data = $this->safe_dict($response, 'data', array());
@@ -4720,7 +4715,7 @@ class digifinex extends Exchange {
                     $auth .= $urlencoded;
                 }
             } else {
-                $nonce = (string) $this->nonce();
+                $nonce = (string) $this->seconds();
                 $auth = $urlencoded;
             }
             $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');

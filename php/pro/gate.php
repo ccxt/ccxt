@@ -925,7 +925,7 @@ class gate extends \ccxt\async\gate {
         $market = $this->market($symbolsNormalized[0]);
         $messageType = $this->get_type_by_market($market);
         $marketIds = $this->market_ids($symbolsNormalized);
-        list($channelName, $paramsMethod) = $this->handle_option_string_and_params($paramsCallerMethodName, $callerMethodNameOption, 'method');
+        list($channelName, $paramsMethod) = $this->handle_option_string_and_params($paramsCallerMethodName, $callerMethodNameOption, 'method', '');
         $url = $this->get_url_by_market($market);
         $channel = $messageType . '.' . $channelName;
         if ($callerMethodNameOption === null) {
@@ -2408,9 +2408,9 @@ class gate extends \ccxt\async\gate {
         if ($market === null) {
             return null;
         }
-        if ($market['spot'] === true) {
+        if ($this->safe_bool($market, 'spot', false)) {
             return 'spot';
-        } elseif ($market['option'] === true) {
+        } elseif ($this->safe_bool($market, 'option', false)) {
             return 'options';
         } else {
             return 'futures';

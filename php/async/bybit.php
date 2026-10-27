@@ -1604,7 +1604,7 @@ class bybit extends Exchange {
         $symbolBase = explode('/', $symbol);
         $expiry = null;
         $hasSlash = mb_strpos($symbol, '/') > -1;
-        $baseName = null;
+        $baseName = $this->safe_string($optionParts, 0);
         if ($hasSlash) {
             $baseName = $this->safe_string($symbolBase, 0);
             $expiry = $this->safe_string($optionParts, 1);
@@ -1617,7 +1617,6 @@ class bybit extends Exchange {
             $quote = $quoteAndSettle;
             $settle = $quoteAndSettle;
         } else {
-            $baseName = $this->safe_string($optionParts, 0);
             $expiry = $this->convert_market_id_expire_date($this->safe_string($optionParts, 1));
             if (str_ends_with($symbol, '-USDT')) {
                 $quote = 'USDT';
@@ -10468,14 +10467,14 @@ class bybit extends Exchange {
                     'Content-Type' => 'application/json',
                     'X-BAPI-API-KEY' => $this->apiKey,
                     'X-BAPI-TIMESTAMP' => $timestamp,
-                    'X-BAPI-RECV-WINDOW' => $this->number_to_string($this->options['recvWindow']),
+                    'X-BAPI-RECV-WINDOW' => $this->safe_string($this->options, 'recvWindow', ''),
                 );
                 if ($isV3UnifiedMargin || $isV3Contract) {
                     $requestHeaders['X-BAPI-SIGN-TYPE'] = '2';
                 }
                 $query = $this->extend(array(), $params);
                 $queryEncoded = $this->rawencode($query);
-                $auth_base = (string) $timestamp . $this->apiKey . (string) $this->options['recvWindow'];
+                $auth_base = $timestamp . $this->apiKey . $this->safe_string($this->options, 'recvWindow', '');
                 $authFull = null;
                 if ($method === 'POST') {
                     $requestBody = $this->json($query);
@@ -10570,11 +10569,9 @@ class bybit extends Exchange {
                 // {"ret_code":30084,"ret_msg":"Isolated not modified","ext_code":"","ext_info":"","result":null,"time_now":"1642005219.937988","rate_limit_status":73,"rate_limit_reset_ms":1642005219894,"rate_limit":75}
                 return null;
             }
-            $feedback = null;
+            $feedback = $this->id . ' ' . $body;
             if ($errorCode === '10005' && mb_strpos($url, 'order') === false) {
                 $feedback = $this->id . ' private api uses /user/v3/private/query-api to check if you have a unified account. The API key of user id must own one of permissions => "Account Transfer", "Subaccount Transfer", "Withdrawal" ' . $body;
-            } else {
-                $feedback = $this->id . ' ' . $body;
             }
             if (mb_strpos($body, 'Withdraw address chain or destination tag are not equal') > -1) {
                 $feedback = $feedback . '; You might also need to ensure the address is whitelisted';

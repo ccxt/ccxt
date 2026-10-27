@@ -2754,7 +2754,7 @@ class blofin extends Exchange {
             if ($tpslIds !== null) {
                 for ($i = 0; $i < count($tpslIds); $i++) {
                     $request[] = array(
-                        'tpslId' => $tpslIds[$i],
+                        'tpslId' => $this->safe_string($tpslIds, $i),
                         'instId' => $market['id'],
                     );
                 }
@@ -2762,12 +2762,12 @@ class blofin extends Exchange {
             for ($i = 0; $i < count($orderIds); $i++) {
                 if ($trigger === true) {
                     $request[] = array(
-                        'tpslId' => $orderIds[$i],
+                        'tpslId' => $this->safe_string($orderIds, $i),
                         'instId' => $market['id'],
                     );
                 } else {
                     $request[] = array(
-                        'orderId' => $orderIds[$i],
+                        'orderId' => $this->safe_string($orderIds, $i),
                         'instId' => $market['id'],
                     );
                 }
@@ -2776,7 +2776,7 @@ class blofin extends Exchange {
             for ($i = 0; $i < count($clientOrderIds); $i++) {
                 $request[] = array(
                     'instId' => $market['id'],
-                    'clientOrderId' => $clientOrderIds[$i],
+                    'clientOrderId' => $this->safe_string($clientOrderIds, $i),
                 );
             }
         }
@@ -3448,7 +3448,7 @@ class blofin extends Exchange {
          * @return {array} response from the exchange
          */
         $request = array(
-            'positionMode' => $hedged ? 'long_short_mode' : 'net_mode',
+            'positionMode' => ($hedged === true) ? 'long_short_mode' : 'net_mode',
         );
         //
         //     {

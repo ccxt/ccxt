@@ -88,7 +88,9 @@ class woo extends \ccxt\async\woo {
         $options = $this->safe_dict($this->options, 'requestId', array());
         $previousValue = $this->safe_integer($options, $url, 0);
         $newValue = $this->sum($previousValue, 1);
-        $this->options['requestId'][$url] = $newValue;
+        $entry = array();
+        $entry[$url] = $newValue;
+        $this->options['requestId'] = $this->extend($this->safe_dict($this->options, 'requestId', array()), $entry);
         return $newValue;
     }
 
@@ -675,7 +677,7 @@ class woo extends \ccxt\async\woo {
             }
             $ticker['ts'] = $timestamp;
             $parsedTicker = $this->parse_ws_bid_ask($ticker);
-            $symbol = $parsedTicker['symbol'];
+            $symbol = $this->safe_string($parsedTicker, 'symbol');
             if ($symbol !== null) {
                 $this->bidsasks[$symbol] = $parsedTicker;
             }
@@ -1092,8 +1094,9 @@ class woo extends \ccxt\async\woo {
         }
         $paramsOmitted = $this->omit($params, array( 'stop', 'trigger' ));
         $messageHash = $topic;
-        $symbolResolved = ($symbol !== null) ? $this->symbol($symbol) : null;
-        if ($symbolResolved !== null) {
+        $symbolResolved = null;
+        if ($symbol !== null) {
+            $symbolResolved = $this->symbol($symbol);
             $messageHash = $topic . ':' . $symbolResolved;
         }
         $request = array(
@@ -1137,8 +1140,9 @@ class woo extends \ccxt\async\woo {
         }
         $paramsOmitted = $this->omit($params, array( 'stop', 'trigger' ));
         $messageHash = 'myTrades';
-        $symbolResolved = ($symbol !== null) ? $this->symbol($symbol) : null;
-        if ($symbolResolved !== null) {
+        $symbolResolved = null;
+        if ($symbol !== null) {
+            $symbolResolved = $this->symbol($symbol);
             $messageHash = 'myTrades' . ':' . $symbolResolved;
         }
         $request = array(
@@ -1609,16 +1613,13 @@ class woo extends \ccxt\async\woo {
             $value = $this->safe_dict($balances, $key);
             $code = $this->safe_currency_code($key);
             $account = $this->account();
-            if (($code !== null) && (is_array($this->balance) && array_key_exists($code ?? '', $this->balance))) {
-                $account = $this->balance[$code];
-            }
             $total = $this->safe_string($value, 'holding');
             $used = $this->safe_string($value, 'frozen');
             $account['total'] = $total;
             $account['used'] = $used;
             $account['free'] = Precise::string_sub($total, $used);
             if ($code !== null) {
-                $this->balance[$code] = $account;
+                $this->balance[$code] = $this->extend($this->safe_dict($this->balance, $code, array()), $account);
             }
         }
         $this->balance = $this->safe_balance($this->balance);

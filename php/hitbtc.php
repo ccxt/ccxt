@@ -1897,10 +1897,10 @@ class hitbtc extends Exchange {
         if ($since !== null) {
             $request['from'] = $this->iso8601($since);
         }
-        list($requestUntil, $paramsUntil) = $this->handle_until_option('until', $request, $paramsPaginate);
         if ($limit !== null) {
-            $requestUntil['limit'] = min($limit, 1000);
+            $request['limit'] = min($limit, 1000);
         }
+        list($requestUntil, $paramsUntil) = $this->handle_until_option('until', $request, $paramsPaginate);
         $price = $this->safe_string($paramsUntil, 'price');
         $paramsOmitted = $this->omit($paramsUntil, 'price');
         $response = array();
@@ -3901,26 +3901,18 @@ class hitbtc extends Exchange {
             }
         }
         $url = $baseUrl . $getRequest;
-        $bodyResolved = ($method === 'GET') ? null : $this->json($params);
+        $bodyString = '';
+        if ($method !== 'GET') {
+            $bodyString = $this->json($params);
+        }
         if ($apiName === 'private') {
             $this->check_required_credentials();
             $timestamp = $this->number_to_string($this->nonce());
-            $payload = array( $method, '/api/3/' . $implodedPath );
-            if ($method === 'GET') {
-                if ($getRequest !== '') {
-                    $payload[] = $getRequest;
-                }
-            } else {
-                if ($bodyResolved !== null) {
-                    $payload[] = $bodyResolved;
-                }
-            }
-            $payload[] = $timestamp;
-            $payloadString = implode('', $payload);
+            $payloadString = $method . '/api/3/' . $implodedPath . $getRequest . $bodyString . $timestamp;
             $signature = $this->hmac($this->encode($payloadString), $this->encode($this->secret), 'sha256', 'hex');
             $secondPayload = $this->apiKey . ':' . $signature . ':' . $timestamp;
             $headersValue['Authorization'] = 'HS256 ' . base64_encode($secondPayload);
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersValue );
+        return array( 'url' => $url, 'method' => $method, 'body' => ($method === 'GET') ? null : $bodyString, 'headers' => $headersValue );
     }
 }

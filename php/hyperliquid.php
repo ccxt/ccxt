@@ -5192,8 +5192,8 @@ class hyperliquid extends Exchange {
             return null;
         }
         $hi3TokensByname = $this->safe_dict($this->options, 'hip3TokensByName', array());
-        if ($this->safe_dict($hi3TokensByname, $coin) !== null) {
-            $hip3Dict = $this->safe_dict($hi3TokensByname, $coin);
+        $hip3Dict = $this->safe_dict($hi3TokensByname, $coin);
+        if ($hip3Dict !== null) {
             $quote = $this->safe_string($hip3Dict, 'quote', 'USDC');
             $code = $this->safe_string($hip3Dict, 'code', $coin);
             return $code . '/' . $quote . ':' . $quote;

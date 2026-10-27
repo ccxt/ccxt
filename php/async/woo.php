@@ -1538,13 +1538,7 @@ class woo extends Exchange {
             }
         } elseif ($hasStopLoss || $hasTakeProfit) {
             $request['algoType'] = 'BRACKET';
-            $outterOrder = array(
-                'symbol' => $market['id'],
-                'reduceOnly' => false,
-                'algoType' => 'POSITIONAL_TP_SL',
-                'childOrders' => array(),
-            );
-            $childOrders = $outterOrder['childOrders'];
+            $childOrders = array();
             $closeSide = 'BUY';
             if ($orderSide === 'BUY') {
                 $closeSide = 'SELL';
@@ -1571,6 +1565,12 @@ class woo extends Exchange {
                 );
                 $childOrders[] = $takeProfitOrder;
             }
+            $outterOrder = array(
+                'symbol' => $market['id'],
+                'reduceOnly' => false,
+                'algoType' => 'POSITIONAL_TP_SL',
+                'childOrders' => $childOrders,
+            );
             $request['childOrders'] = array( $outterOrder );
         }
         $paramsRequest = $this->omit($paramsCost, array( 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit', 'trailingPercent', 'trailingAmount', 'trailingTriggerPrice' ));
@@ -1613,8 +1613,7 @@ class woo extends Exchange {
         }
         $data = $this->safe_dict($response, 'data', array());
         $data = $this->safe_dict($this->safe_list($data, 'rows'), 0, $data);
-        $data['timestamp'] = $this->safe_string($response, 'timestamp');
-        return $this->parse_order($data, $market);
+        return $this->parse_order($this->extend($data, array( 'timestamp' => $this->safe_string($response, 'timestamp') )), $market);
     }
 
     public function encode_margin_mode(?string $mode): ?string {
@@ -4764,13 +4763,13 @@ class woo extends Exchange {
             Async\await($this->load_markets());
         }
         $request = array();
-        list($requestUntil, $paramsUntil) = $this->handle_until_option('endTime', $request, $params);
         if ($since !== null) {
-            $requestUntil['startTime'] = $since;
+            $request['startTime'] = $since;
         }
         if ($limit !== null) {
-            $requestUntil['size'] = $limit;
+            $request['size'] = $limit;
         }
+        list($requestUntil, $paramsUntil) = $this->handle_until_option('endTime', $request, $params);
         $response = Async\await($this->v3PrivateGetConvertTrades($this->extend($requestUntil, $paramsUntil)));
         //
         //     {

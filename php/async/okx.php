@@ -1524,10 +1524,9 @@ class okx extends Exchange {
         $quote = 'USD';
         $optionParts = explode('-', $symbol);
         $symbolBase = explode('/', $symbol);
+        $base = $this->safe_string($optionParts, 0, '');
         if (mb_strpos($symbol, '/') > -1) {
             $base = $this->safe_string($symbolBase, 0, '');
-        } else {
-            $base = $this->safe_string($optionParts, 0, '');
         }
         $expiry = $this->safe_string($optionParts, 2, '');
         $strike = $this->safe_string($optionParts, 3, '');
@@ -1889,31 +1888,32 @@ class okx extends Exchange {
         if (($base === null) || ($quote === null)) {
             return null;
         }
-        $symbol = $base . '/' . $quote;
+        $baseSymbol = $base . '/' . $quote;
         // handle preopen empty markets
         if ($base === '' || $quote === '') {
-            $symbol = $id;
+            $baseSymbol = $id . '';
         }
+        $symbol = $baseSymbol;
         $expiry = null;
         $strikePrice = null;
         $optionType = null;
         if ($contract) {
+            $settledSymbol = $baseSymbol;
             if ($settle !== null) {
-                $symbol = $symbol . ':' . $settle;
+                $settledSymbol = $baseSymbol . ':' . $settle;
             }
+            $symbol = $settledSymbol;
             if ($future) {
                 $expiry = $this->safe_integer($market, 'expTime');
                 if ($expiry !== null) {
-                    $ymd = $this->yymmdd($expiry);
-                    $symbol = $symbol . '-' . $ymd;
+                    $symbol = $settledSymbol . '-' . $this->yymmdd($expiry);
                 }
             } elseif ($option) {
                 $expiry = $this->safe_integer($market, 'expTime');
                 $strikePrice = $this->safe_string($market, 'stk');
                 $optionType = $this->safe_string($market, 'optType');
                 if ($expiry !== null) {
-                    $ymd = $this->yymmdd($expiry);
-                    $symbol = $symbol . '-' . $ymd . '-' . $strikePrice . '-' . $optionType;
+                    $symbol = $settledSymbol . '-' . $this->yymmdd($expiry) . '-' . $strikePrice . '-' . $optionType;
                     $optionType = ($optionType === 'P') ? 'put' : 'call';
                 }
             }

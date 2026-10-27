@@ -3037,7 +3037,7 @@ class bitget extends Exchange {
         $tiers = array();
         $minNotional = 0;
         for ($i = 0; $i < count($info); $i++) {
-            $item = $info[$i];
+            $item = $this->safe_value($info, $i);
             $minimumNotional = $this->safe_number_2($item, 'startUnit', 'minTierValue');
             if ($minimumNotional !== null) {
                 $minNotional = $minimumNotional;
@@ -4357,7 +4357,7 @@ class bitget extends Exchange {
         $posMode = $this->safe_string($trade, 'posMode');
         $category = $this->safe_string($trade, 'category');
         $isFeeStructure = ($posMode !== null) || ($category !== null);
-        $feeStructure = $isFeeStructure ? $feeDetail[0] : $feeDetail;
+        $feeStructure = $isFeeStructure ? $this->safe_value($feeDetail, 0) : $feeDetail;
         if ($feeStructure !== null) {
             $currencyCode = $this->safe_currency_code($this->safe_string($feeStructure, 'feeCoin'));
             $feeCostString = $this->safe_string_2($feeStructure, 'totalFee', 'fee');
@@ -12553,9 +12553,7 @@ class bitget extends Exchange {
         $url = $this->implode_hostname($apiUrl) . $payload;
         $query = $this->omit($params, $this->extract_params($path));
         if (!$signed && ($method === 'GET')) {
-            $keys = is_array($query) ? array_keys($query) : array();
-            $keysLength = count($keys);
-            if ($keysLength > 0) {
+            if (count($query) > 0) {
                 $url = $url . '?' . $this->urlencode($query);
             }
         }

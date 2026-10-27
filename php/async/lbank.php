@@ -551,8 +551,8 @@ class lbank extends Exchange {
             $this->fetch_swap_markets($params),
         );
         $resolvedMarkets = Async\await(Promise\all($marketsPromises));
-        $spotMarkets = $resolvedMarkets[0];
-        $swapMarkets = $resolvedMarkets[1];
+        $spotMarkets = $this->safe_value($resolvedMarkets, 0);
+        $swapMarkets = $this->safe_value($resolvedMarkets, 1);
         return $this->array_concat($spotMarkets, $swapMarkets);
     }
 
@@ -3264,8 +3264,7 @@ class lbank extends Exchange {
                 'timestamp' => $timestamp,
             ), $signedQuery)));
             $encoded = $this->encode($auth);
-            $hash = $this->hash($encoded, 'md5');
-            $uppercaseHash = strtoupper($hash);
+            $uppercaseHash = strtoupper($this->hash($encoded, 'md5'));
             $sign = null;
             if ($signatureMethod === 'RSA') {
                 $cacheSecretAsPem = $this->safe_bool($this->options, 'cacheSecretAsPem', true);
@@ -3299,7 +3298,7 @@ class lbank extends Exchange {
     }
 
     public function convert_secret_to_pem(mixed $secret): string {
-        $secretLength = strlen($secret) - 0;
+        $secretLength = count($secret);
         $fullLines = $this->parse_to_int($secretLength / 64);
         $pem = "-----BEGIN PRIVATE KEY-----\n"; // eslint-disable-line
         for ($i = 0; $i <= $fullLines; $i++) {

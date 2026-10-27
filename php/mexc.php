@@ -4879,16 +4879,14 @@ class mexc extends Exchange {
         }
         while (Precise::string_lt($floor, $maxVol)) {
             $cap = Precise::string_add($floor, $riskIncrVol);
-            $minNotional = $this->parse_number($floor);
-            $mainMarginRate = $this->parse_number($maintenanceMarginRate);
             $maxLev = $this->parse_number(Precise::string_div('1', $initialMarginRate));
             $tiers[] = array(
                 'tier' => $this->parse_number(Precise::string_div($cap, $riskIncrVol)),
                 'symbol' => $this->safe_symbol($marketId, $market, null, 'contract'),
                 'currency' => $this->safe_currency_code($quoteId),
-                'minNotional' => $minNotional,
+                'minNotional' => $this->parse_number($floor),
                 'maxNotional' => $this->parse_number($cap),
-                'maintenanceMarginRate' => $mainMarginRate,
+                'maintenanceMarginRate' => $this->parse_number($maintenanceMarginRate),
                 'maxLeverage' => $maxLev,
                 'info' => $info,
             );
@@ -5882,9 +5880,8 @@ class mexc extends Exchange {
             return $this->parse_transaction($responseForInternal, $currency);
         }
         $networks = $this->safe_dict($this->options, 'networks', array());
-        $network = $this->safe_string_2($paramsWithdrawTag, 'network', 'netWork'); // this line allows the user to specify either ERC20 or ETH
-        $network = $this->safe_string($networks, $network, $network); // handle ETH > ERC-20 alias
-        $network = $this->network_code_to_id($network, $this->safe_string($currency, 'code'));
+        $networkRaw = $this->safe_string_2($paramsWithdrawTag, 'network', 'netWork'); // this line allows the user to specify either ERC20 or ETH
+        $network = $this->network_code_to_id($this->safe_string($networks, $networkRaw, $networkRaw), $this->safe_string($currency, 'code')); // handle ETH > ERC-20 alias
         $this->check_address($address, $code, $tagResolved);
         $request = array(
             'coin' => $currency['id'],
@@ -6381,7 +6378,7 @@ class mexc extends Exchange {
         $access = $api[1];
         $pathValue = $this->implode_params($path, $params);
         $paramsValue = $this->omit($params, $this->extract_params($path));
-        $url = null;
+        $url = '';
         if ($section === 'spot' || $section === 'broker') {
             if ($section === 'broker') {
                 $apiUrl = $this->safe_string($this->urls['api'][$section], $access);
@@ -6412,12 +6409,12 @@ class mexc extends Exchange {
             $paramsEncoded = '';
             if (count($urlParams) > 0) {
                 $paramsEncoded = $this->urlencode($urlParams);
-                $url .= '?' . $paramsEncoded;
+                $url = $url . '?' . $paramsEncoded;
             }
             if ($access === 'private') {
                 $this->check_required_credentials();
                 $signature = $this->hmac($this->encode($paramsEncoded), $this->encode($this->secret), 'sha256');
-                $url .= '&' . 'signature=' . $signature;
+                $url = $url . '&signature=' . $signature;
                 $requestHeaders = array(
                     'X-MEXC-APIKEY' => $this->apiKey,
                     'source' => $this->safe_string($this->options, 'broker', 'CCXT'),

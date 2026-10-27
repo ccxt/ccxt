@@ -7151,7 +7151,7 @@ class gate extends Exchange {
         $authentication = $api[0]; // public, private
         $type = $api[1]; // spot, margin, future, delivery
         $query = $this->omit($params, $this->extract_params($path));
-        $pathImploded = null;
+        $pathImploded = '';
         $bodyJson = null;
         $signedHeaders = null;
         $containsSettle = mb_strpos($path, 'settle') > -1;

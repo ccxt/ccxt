@@ -2567,7 +2567,7 @@ class bydfi extends Exchange {
             Async\await($this->load_markets());
         }
         $positionType = 'ONEWAY';
-        if ($hedged) {
+        if ($hedged === true) {
             $positionType = 'HEDGE';
         }
         $wallet = 'W001';

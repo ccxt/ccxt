@@ -268,9 +268,9 @@ class binance extends \ccxt\async\binance {
         if (($type === 'option') || ($type === 'optionMarket') || ($type === 'optionPrivate')) {
             // eOptions urls are stored as full public/market/private paths, no category rewrite needed,
             // see https://github.com/ccxt/ccxt/pull/27982 and https://github.com/ccxt/ccxt/issues/26333
-            return $wsUrls[$type];
+            return $this->safe_string($wsUrls, $type, '');
         }
-        $baseUrl = $wsUrls[$type];
+        $baseUrl = $this->safe_string($wsUrls, $type, '');
         if ($type === 'linear') {
             // skip URL manipulation for proxied/bridge URLs (contain an embedded protocol)
             // const firstProtocol = baseUrl.indexOf ('://');
@@ -284,7 +284,7 @@ class binance extends \ccxt\async\binance {
             }
             // only rewrite when the URL ends with exactly "/ws"
             // this avoids matching "/wss", "/ws-api", "/ws-fapi/v1", etc.
-            if (str_ends_with($baseUrl, '/ws')) {
+            if (str_ends_with($baseUrl, '/ws') === true) {
                 $prefix = mb_substr($baseUrl, 0, strlen($baseUrl) - 3 - 0);
                 return $prefix . '/' . $category . '/ws';
             }

@@ -877,7 +877,9 @@ class derive extends Exchange {
             $margin = false;
             $settleId = 'USDC';
             $settle = $this->safe_currency_code($settleId);
-            $symbol = $base . '/' . $quote . ':' . $settle;
+            if ($settle !== null) {
+                $symbol = $base . '/' . $quote . ':' . $settle;
+            }
             $swap = true;
             $linear = true;
             $inverse = false;
@@ -902,7 +904,6 @@ class derive extends Exchange {
             $inverse = false;
         }
         $contractSize = ($spot) ? null : 1;
-        $isContract = ($swap || $option);
         return $this->safe_market_structure(array(
             'id' => $marketId,
             'symbol' => $symbol,
@@ -919,7 +920,7 @@ class derive extends Exchange {
             'future' => false,
             'option' => $option,
             'active' => $this->safe_bool($market, 'is_active'),
-            'contract' => $isContract,
+            'contract' => ($swap || $option),
             'linear' => $linear,
             'inverse' => $inverse,
             'contractSize' => $contractSize,
@@ -1071,12 +1072,11 @@ class derive extends Exchange {
         $timestamp = $this->safe_integer($interest, 't');
         $stats = $this->safe_dict($interest, 'stats', array());
         $amount = $this->safe_string($stats, 'oi');
-        $markPrice = $this->safe_string($interest, 'M');
         $value = null;
         $isOption = $this->safe_bool($market, 'option', false);
         // for options the mark is the premium, a notional derived from it would be misleading, so only the contract amount is reported there
         if (($market !== null) && ($isOption !== true)) {
-            $value = Precise::string_mul($amount, $markPrice);
+            $value = Precise::string_mul($amount, $this->safe_string($interest, 'M'));
         }
         return $this->safe_open_interest(array(
             'symbol' => $this->safe_symbol(null, $market),
@@ -1482,8 +1482,9 @@ class derive extends Exchange {
         $request = array();
         $market = null;
         if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $request['instrument_name'] = $market['id'];
+            $symbolMarket = $this->market($symbol);
+            $market = $symbolMarket;
+            $request['instrument_name'] = $symbolMarket['id'];
         }
         $limitResolved = $limit;
         if ($limit !== null && $limit > 1000) {
@@ -2003,7 +2004,7 @@ class derive extends Exchange {
 
     public function sign_order(mixed $order, string $privateKey): string {
         $hashOrder = $this->hash_order_message($order);
-        return $this->sign_hash(mb_substr($hashOrder, -64), mb_substr($privateKey, -64));
+        return $this->sign_hash($hashOrder, $privateKey);
     }
 
     public function nonce_string(): string {
@@ -2041,7 +2042,7 @@ class derive extends Exchange {
     }
 
     public function sign_message(string $message, string $privateKey): string {
-        return $this->sign_hash($this->hash_message($message), mb_substr($privateKey, -64));
+        return $this->sign_hash($this->hash_message($message), $privateKey);
     }
 
     public function parse_units(string $num, string $dec = '1000000000000000000'): ?string {
@@ -2998,8 +2999,9 @@ class derive extends Exchange {
         );
         $market = null;
         if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $request['instrument_name'] = $market['id'];
+            $symbolMarket = $this->market($symbol);
+            $market = $symbolMarket;
+            $request['instrument_name'] = $symbolMarket['id'];
         }
         if ($limit !== null) {
             $request['page_size'] = $limit;
@@ -3083,8 +3085,9 @@ class derive extends Exchange {
         );
         $market = null;
         if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $request['instrument_name'] = $market['id'];
+            $symbolMarket = $this->market($symbol);
+            $market = $symbolMarket;
+            $request['instrument_name'] = $symbolMarket['id'];
         }
         if ($limit !== null) {
             $request['page_size'] = $limit;
@@ -3348,8 +3351,9 @@ class derive extends Exchange {
         );
         $market = null;
         if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $request['instrument_name'] = $market['id'];
+            $symbolMarket = $this->market($symbol);
+            $market = $symbolMarket;
+            $request['instrument_name'] = $symbolMarket['id'];
         }
         if ($since !== null) {
             $request['start_timestamp'] = $since;
@@ -3725,11 +3729,10 @@ class derive extends Exchange {
         );
         // margin requirements come as negative subaccount-level contributions in usd terms (initial_margin = collaterals_initial_margin + positions_initial_margin, verified on live data), so they are attributed to the usdc settlement currency and clamped by the usdc cash below; other collaterals stay total-only because the shared margin pool cannot be split per currency
         $usedUsd = '0';
-        for ($i = 0; $i < count($response); $i++) {
-            $subaccount = $this->safe_dict($response, $i);
-            $positionsMargin = $this->safe_string($subaccount, 'positions_initial_margin', '0');
-            $ordersMargin = $this->safe_string($subaccount, 'open_orders_margin', '0');
-            $usedUsd = Precise::string_sub($usedUsd, Precise::string_add($positionsMargin, $ordersMargin));
+        $subaccounts = $this->to_array($response);
+        for ($i = 0; $i < count($subaccounts); $i++) {
+            $subaccount = $this->safe_dict($subaccounts, $i);
+            $usedUsd = Precise::string_sub($usedUsd, Precise::string_add($this->safe_string($subaccount, 'positions_initial_margin', '0'), $this->safe_string($subaccount, 'open_orders_margin', '0')));
             $collaterals = $this->safe_list($subaccount, 'collaterals', array());
             for ($j = 0; $j < count($collaterals); $j++) {
                 $balance = $this->safe_dict($collaterals, $j);
@@ -3739,9 +3742,7 @@ class derive extends Exchange {
                     $account = $this->account();
                     $account['total'] = $this->safe_string($balance, 'amount');
                 } else {
-                    $amount = $this->safe_string($balance, 'amount');
-                    $previousTotal = $this->safe_string($account, 'total');
-                    $account['total'] = Precise::string_add($previousTotal, $amount);
+                    $account['total'] = Precise::string_add($this->safe_string($account, 'total'), $this->safe_string($balance, 'amount'));
                 }
                 if ($code !== null) {
                     $result[$code] = $account;
@@ -4421,12 +4422,12 @@ class derive extends Exchange {
                 // remember the first explicitly used subaccount as the instance default, but never overwrite a configured default: a one-off param must not silently re-route later calls
                 $this->options['subaccount_id'] = $subaccountIdInt;
             }
-            return array( $subaccountIdInt, $paramsSubaccountId );
+            return array( $subaccountIdInt, $this->extend($paramsSubaccountId) );
         }
         $optionsWallet = $this->safe_integer($this->options, 'subaccount_id');
         if ($optionsWallet !== null) {
             // parsed, not returned raw: every arm of this tuple has to hand back a plain value so the statically typed ports read the slot natively instead of through a runtime helper
-            return array( $this->parse_to_int($optionsWallet), $paramsSubaccountId );
+            return array( $this->parse_to_int($optionsWallet), $this->extend($paramsSubaccountId) );
         }
         throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a subaccount_id parameter inside \'params\' or exchange.options[\'subaccount_id\']=ID.');
     }
@@ -4435,15 +4436,15 @@ class derive extends Exchange {
         list($deriveWalletAddress, $paramsDeriveWalletAddress) = $this->handle_option_string_and_params($params, $methodName, 'deriveWalletAddress');
         if (($deriveWalletAddress !== null) && ($deriveWalletAddress !== '')) {
             $this->options['deriveWalletAddress'] = $deriveWalletAddress;
-            return array( $deriveWalletAddress, $paramsDeriveWalletAddress );
+            return array( $deriveWalletAddress, $this->extend($paramsDeriveWalletAddress) );
         }
         $optionsWallet = $this->safe_string($this->options, 'deriveWalletAddress');
         if (($optionsWallet !== null) && ($optionsWallet !== '')) {
-            return array( $optionsWallet, $paramsDeriveWalletAddress );
+            return array( $optionsWallet, $this->extend($paramsDeriveWalletAddress) );
         }
         // v3 abolished the separate derive wallet: the owner wallet is the user's own EOA, so the walletAddress credential is the default; set deriveWalletAddress explicitly only when signing with a session key registered to another owner wallet
         if (($this->walletAddress !== null) && ($this->walletAddress !== '')) {
-            return array( $this->walletAddress, $paramsDeriveWalletAddress );
+            return array( $this->walletAddress, $this->extend($paramsDeriveWalletAddress) );
         }
         throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires the walletAddress credential, a deriveWalletAddress parameter inside \'params\', or exchange.options[\'deriveWalletAddress\'] = ADDRESS.');
     }

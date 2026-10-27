@@ -7820,10 +7820,8 @@ class htx extends Exchange {
         $pathString = $path;
         $url = '/';
         $isArrayParams = (gettype($params) === 'array' && array_keys($params) === array_keys(array_keys($params)));
-        $query = null;
-        if ($isArrayParams) {
-            $query = array();
-        } else {
+        $query = array();
+        if (!$isArrayParams) {
             $query = $this->omit($params, $this->extract_params($path));
         }
         $apiLength = count($api);
@@ -7873,7 +7871,7 @@ class htx extends Exchange {
                     );
                 }
             } else {
-                if (($query !== null) && (count($query) > 0)) {
+                if (count($query) > 0) {
                     $url .= '?' . $this->urlencode($query);
                 }
             }
@@ -7902,7 +7900,7 @@ class htx extends Exchange {
             $hostname = $hostnames;
             $url .= $this->implode_params($path, $params);
             if ($access === 'public') {
-                if (($query !== null) && (count($query) > 0)) {
+                if (count($query) > 0) {
                     $url .= '?' . $this->urlencode($query);
                 }
             } elseif ($access === 'private') {
