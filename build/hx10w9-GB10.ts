@@ -13,7 +13,7 @@ const GB10_USER_PATH = /^(?:(?:watch|fetch|seed)\w*Body|loadBalanceSnapshotBody|
 const GB10_SPAWNED = /\bgo\s+\w|\bSpawn\(|\bDelay\(|^(?![^\n]*<-)[^\n]*\w+Async\(/m;
 const GB10_SCALARS = [ 'string', 'int64', 'float64', 'bool' ];
 const GB10_CONTAINERS = [ 'map[string]any', '[]any', '[]string' ];
-const GB10_NEVER_NIL_INIT = /^(?:ccxt\.)?(?:map\[string\]any\{|\[\](?:string|any)\{|this\.(?:Extend|DeepExtend|IndexBy|CreateSafeDictionary|PruneStaleBalanceKeys)\()/;
+const GB10_NEVER_NIL_INIT = /^(?:ccxt\.)?(?:map\[string\]any\{|\[\](?:string|any)\{|this\.(?:Extend|DeepExtend|IndexBy|CreateSafeDictionary|PruneStaleBalanceKeys|Account)\()/;
 
 // blanks every string/char literal and comment so a call inside one is never rewritten
 function gb10Mask (text: string): string {
@@ -97,7 +97,7 @@ function gb10PlainValue (body: string, value: string): boolean {
         return false;
     }
     // a container local needs a never-nil init; a container parameter is the caller's frame
-    return (decl.init === '') || GB10_NEVER_NIL_INIT.test (decl.init);
+    return (decl.init === '') || (GB10_NEVER_NIL_INIT.test (decl.init) && (!decl.init.startsWith ('this.Account(') || gb10NeverRebound (body, text)));
 }
 
 // the key as Go prints it: a string literal, a `string`, or a `*string` from SafeString with a literal
@@ -114,6 +114,21 @@ function gb10StringKey (body: string, key: string): boolean {
         return false;
     }
     return (decl.type === 'string') || ((decl.type === '*string') && /this\.SafeString\w*\(.*, "[^"]*"\)$/.test (decl.init));
+}
+
+// a local `*string` key whose only binding is its declaration (a nil answer is what the guard tests)
+function gb10NilableKey (body: string, key: string): boolean {
+    if (!/^\w+$/.test (key)) {
+        return false;
+    }
+    const decl = gb10Decl (body, key);
+    return (decl !== undefined) && (decl.type === '*string') && (decl.init !== '');
+}
+
+// the name is never assigned again nor has its address taken in the function (a declaration
+// `var name T = x` has the type between the name and the `=`, so it does not match)
+function gb10NeverRebound (body: string, name: string): boolean {
+    return !new RegExp ('(?:^|[^\\w.&*])' + name + '\\s*=(?!=)|&\\s*' + name + '\\b', 'm').test (body);
 }
 
 /**
@@ -166,10 +181,23 @@ export function hx10w9GB10BalanceWrites (content: string): string {
         }
         const key = args[1].trim ();
         const value = args[2].trim ();
-        if (!gb10StringKey (body, key) || !gb10PlainValue (body, value)) {
+        if (gb10StringKey (body, key) && gb10PlainValue (body, value)) {
+            lines[k] = head[1] + receiver + '[' + key + '] = ' + value;
+            masked[k] = gb10Mask (lines[k]);
             continue;
         }
-        lines[k] = head[1] + receiver + '[' + key + '] = ' + value;
+        // a `*string` key the helper's map branch skips when nil: write `[*key]`, directly under an
+        // `if key != nil {` line, else behind that guard
+        if (!gb10NilableKey (body, key) || !gb10PlainValue (body, value) || !gb10NeverRebound (body, key)) {
+            continue;
+        }
+        const before = (k > 0) ? lines[k - 1].trim () : '';
+        const after = ((k + 1) < lines.length) ? lines[k + 1].trim () : '';
+        if ((before === 'if ' + key + ' != nil {') && (after === '}')) {
+            lines[k] = head[1] + receiver + '[*' + key + '] = ' + value;
+        } else {
+            lines[k] = head[1] + 'if ' + key + ' != nil {\n' + head[1] + '\t' + receiver + '[*' + key + '] = ' + value + '\n' + head[1] + '}';
+        }
         masked[k] = gb10Mask (lines[k]);
     }
     return lines.join ('\n');
@@ -231,13 +259,19 @@ export function hx10w9GB10Check (): string[] {
             [ 'pointer value', '\tvar timestamp *int64 = this.SafeInteger(message, "E")\n\tccxt.AddElementToObject(this.Balance, "timestamp", timestamp)\n' ],
             [ 'boxed value', '\tvar data any = this.SafeDict(message, "d")\n\tccxt.AddElementToObject(this.Balance, "info", data)\n' ],
             [ 'nil container value', '\tvar info map[string]any = nil\n\tccxt.AddElementToObject(this.Balance, "info", info)\n' ],
-            [ '*string key without a default', '\tvar code *string = this.SafeCurrencyCode(message)\n\tccxt.AddElementToObject(this.Balance, code, map[string]any{})\n' ],
             [ 'boxed key', '\tvar account any = this.Account()\n\tccxt.AddElementToObject(this.Balance, account, map[string]any{})\n' ],
             [ 'entry store (element is any)', '\tvar typeVar string = "unified"\n\tvar timestamp *int64 = this.SafeInteger(message, "E")\n\tccxt.AddElementToObject(this.Balance[typeVar], "datetime", this.Iso8601(timestamp))\n' ],
             [ 'partial statement', '\tccxt.AddElementToObject(this.Balance, "info", message) + 1\n' ],
         ] as Array<[ string, string ]>) {
             ok (run (src).includes ('AddElementToObject('), 'keeps the helper: ' + name);
         }
+        const guarded = run ('\tvar code *string = this.SafeCurrencyCode(message)\n\tvar account map[string]any = this.Account()\n\tif code != nil {\n\t\tccxt.AddElementToObject(this.Balance, code, account)\n\t}\n');
+        ok (guarded.includes ('\t\tthis.Balance[*code] = account') && !guarded.includes ('AddElementToObject('), 'a guarded *string key writes [*key]: ' + guarded);
+        const unguarded = run ('\tvar code *string = this.SafeCurrencyCode(message)\n\tvar account map[string]any = this.Account()\n\tccxt.AddElementToObject(this.Balance, code, account)\n');
+        ok (unguarded.includes ('\tif code != nil {\n\t\tthis.Balance[*code] = account\n\t}'), 'an unguarded *string key gets its nil guard: ' + unguarded);
+        ok (run ('\tvar code *string = this.SafeCurrencyCode(message)\n\tvar account map[string]any = this.Account()\n\tcode = nil\n\tccxt.AddElementToObject(this.Balance, code, account)\n').includes ('AddElementToObject('), 'keeps the helper: rebound key');
+        ok (run ('\tvar code *string = this.SafeCurrencyCode(message)\n\tvar account map[string]any = this.Account()\n\taccount = nil\n\tccxt.AddElementToObject(this.Balance, code, account)\n').includes ('AddElementToObject('), 'keeps the helper: rebound Account() value');
+        ok (run ('\tvar code *string = this.SafeCurrencyCode(message)\n\tvar account any = this.Account()\n\tccxt.AddElementToObject(this.Balance, code, account)\n').includes ('AddElementToObject('), 'keeps the helper: boxed Account() value');
         const userPath = 'package ccxt\n\nfunc (this *X) watchBalanceBody(ch chan any, message map[string]any) {\n\tccxt.AddElementToObject(this.Balance, "info", message)\n}\n';
         ok (hx10w9GB10BalanceWrites (userPath).includes ('AddElementToObject('), 'keeps the helper: user-path body');
         const boxedField = 'package ccxt\n\nfunc (this *X) G(p any) {\n\tthis.Balance = p\n}\nfunc (this *X) H(message map[string]any) {\n\tccxt.AddElementToObject(this.Balance, "info", message)\n}\n';
