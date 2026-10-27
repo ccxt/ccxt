@@ -2359,9 +2359,8 @@ export const CSHARP_LOCAL_THIS_RETURN_TYPES = {
     'isArray': 'bool',
     'inArray': 'bool',
     'isJsonEncodedObject': 'bool',
-    // Exchange.Functions.cs (JSON.stringify; returns null for a null input — the local
-    // must stay nullable: a `string` spelling would let it sit on the LEFT of `+`)
-    'json': 'string?',
+    // Exchange.Functions.cs: json() is declared `string` in TS and C#
+    'json': 'string',
     // Exchange.Misc.cs — retyped object -> string in this PR, but the value is NOT always
     // a string: a null path returns the null path itself on the empty/all-null dictionary
     // branch and on the list branch (the dictionary branch throws for a null path only
