@@ -3309,9 +3309,7 @@ export default class bitrue extends Exchange {
                 }
                 let signMessage = timestamp + method + (signPrefix + '/' + version + '/' + path);
                 if (method === 'GET') {
-                    const keys = Object.keys (paramsOmitted);
-                    const keysLength = keys.length;
-                    if (keysLength > 0) {
+                    if (Object.keys (paramsOmitted).length > 0) {
                         signMessage += '?' + this.urlencode (paramsOmitted);
                     }
                     const signature = this.hmac (this.encode (signMessage), this.encode (this.secret), sha256);
@@ -3375,12 +3373,7 @@ export default class bitrue extends Exchange {
         if (!success) {
             const messageInner = this.safeString (response, 'msg');
             if (messageInner !== undefined) {
-                try {
-                    parsedMessage = JSON.parse (messageInner);
-                } catch (e) {
-                    // do nothing
-                    parsedMessage = undefined;
-                }
+                parsedMessage = this.parseJson (messageInner);
             }
         }
         const errorResponse = (parsedMessage !== undefined) ? parsedMessage : response;
