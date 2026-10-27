@@ -589,11 +589,11 @@ impl BydfiCore {
                 let mut subHash: Value = self.safe_string(subHashes.clone(), i.clone(), &[]);
                 if (subHash != Value::Null) {
                     let mut parts: Value = Value::Array(subHash.as_str().map(|__s| __s.split("::").map(Value::from).collect()).unwrap_or_default());
-                    let mut symbol: Value = self.safe_string(parts, Value::Int(1), &[]);
-                    if (symbol.as_str() == Some("all")) {
+                    let mut symbol: Option<String> = self.safe_string_opt(parts, Value::Int(1), &[]);
+                    if (symbol.as_deref() == Some("all")) {
                         continue;
                     }
-                    let mut market: Value = self.market(symbol.clone());
+                    let mut market: Value = self.market(symbol.map(Value::from).unwrap_or(Value::Null));
                     let marketId: String = self.safe_string_k_opt(market.clone(), "id", &[Value::Str("".into())]).unwrap_or_default();
                     channels.push(Value::Str(format!("{}{}", marketId, channel).into()));
                 }
@@ -750,14 +750,14 @@ impl BydfiCore {
             let mut __for_first_222: bool = true;
             while { if !__for_first_222 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_222 = false; i.as_f64().unwrap_or(f64::NAN) < symbolsLength } {
             let mut symbolAndTimeframe: Value = self.safe_list(symbolsAndTimeframes.clone(), i.clone(), &[]);
-            let mut marketId: Value = self.safe_string(symbolAndTimeframe.clone(), Value::Int(0), &[]);
-            let mut market: Value = self.market(marketId);
-            let mut tf: Value = self.safe_string(symbolAndTimeframe, Value::Int(1), &[]);
+            let mut marketId: Option<String> = self.safe_string_opt(symbolAndTimeframe.clone(), Value::Int(0), &[]);
+            let mut market: Value = self.market(marketId.map(Value::from).unwrap_or(Value::Null));
+            let mut tf: Option<String> = self.safe_string_opt(symbolAndTimeframe, Value::Int(1), &[]);
             let mut timeframes: Value = self.safe_dict_k(self.options.clone(), "timeframes", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
-            let interval: String = self.safe_string_opt(timeframes, tf, &[Value::Str("".into())]).unwrap_or_default();
+            let interval: String = self.safe_string_opt(timeframes, tf.map(Value::from).unwrap_or(Value::Null), &[Value::Str("".into())]).unwrap_or_default();
             let channelMarketId: String = self.safe_string_k_opt(market.clone(), "id", &[Value::Str("".into())]).unwrap_or_default();
             let channelMarketSymbol: String = self.safe_string_k_opt(market, "symbol", &[Value::Str("".into())]).unwrap_or_default();
             channels.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", channelMarketId, Value::Str("@kline_".into())).into()), interval).into()));
@@ -805,10 +805,10 @@ impl BydfiCore {
             let mut __for_first_223: bool = true;
             while { if !__for_first_223 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_223 = false; i.as_f64().unwrap_or(f64::NAN) < symbolsLength } {
             let mut symbolAndTimeframe: Value = self.safe_list(symbolsAndTimeframes.clone(), i.clone(), &[]);
-            let mut marketId: Value = self.safe_string(symbolAndTimeframe.clone(), Value::Int(0), &[]);
-            let mut market: Value = self.market(marketId);
-            let mut tf: Value = self.safe_string(symbolAndTimeframe, Value::Int(1), &[]);
-            let interval: String = self.safe_string_opt(self.timeframes.clone(), tf, &[Value::Str("".into())]).unwrap_or_default();
+            let mut marketId: Option<String> = self.safe_string_opt(symbolAndTimeframe.clone(), Value::Int(0), &[]);
+            let mut market: Value = self.market(marketId.map(Value::from).unwrap_or(Value::Null));
+            let mut tf: Option<String> = self.safe_string_opt(symbolAndTimeframe, Value::Int(1), &[]);
+            let interval: String = self.safe_string_opt(self.timeframes.clone(), tf.map(Value::from).unwrap_or(Value::Null), &[Value::Str("".into())]).unwrap_or_default();
             let channelMarketId: String = self.safe_string_k_opt(market.clone(), "id", &[Value::Str("".into())]).unwrap_or_default();
             let channelMarketSymbol: String = self.safe_string_k_opt(market, "symbol", &[Value::Str("".into())]).unwrap_or_default();
             channels.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", channelMarketId, Value::Str("@kline_".into())).into()), interval).into()));
@@ -1117,10 +1117,10 @@ impl BydfiCore {
         }
         let mut orders: Value = self.watch_private(Value::from(messageHashes), &[params]).await;
         let mut first: Value = self.safe_dict(orders.clone(), Value::Int(0), &[]);
-        let mut tradeSymbol: Value = self.safe_string_k(first, "symbol", &[]);
+        let mut tradeSymbol: Option<String> = self.safe_string_k_opt(first, "symbol", &[]);
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = orders.get_limit(tradeSymbol, limit);
+            limitResolved = orders.get_limit(tradeSymbol.map(Value::from).unwrap_or(Value::Null), limit);
         }
         return self.filter_by_since_limit(orders, &[since, limitResolved, Value::Str("timestamp".into()), Value::Bool(true)]);
 
@@ -1162,8 +1162,8 @@ impl BydfiCore {
     let mut m = indexmap::IndexMap::new();
     m
 }) });
-        let mut marketId: Value = self.safe_string_k(rawOrder.clone(), "s", &[]);
-        let mut market: Value = self.safe_market(&[marketId]);
+        let mut marketId: Option<String> = self.safe_string_k_opt(rawOrder.clone(), "s", &[]);
+        let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
         let symbol: String = self.safe_string_k_opt(market.clone(), "symbol", &[Value::Str("".into())]).unwrap_or_default();
         let mut messageHash: Value = Value::Str("orders".into());
         let mut symbolMessageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str("::".into())).into()), symbol).into());
@@ -1205,16 +1205,16 @@ impl BydfiCore {
         //         "v": "2"
         //     }
         //
-        let mut marketId: Value = self.safe_string_k(order.clone(), "s", &[]);
-        let mut marketResolved: Value = self.safe_market(&[marketId, market]);
-        let mut rawStatus: Value = self.safe_string_k(order.clone(), "st", &[]);
-        let mut rawType: Value = self.safe_string_k(order.clone(), "t", &[]);
+        let mut marketId: Option<String> = self.safe_string_k_opt(order.clone(), "s", &[]);
+        let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]);
+        let mut rawStatus: Option<String> = self.safe_string_k_opt(order.clone(), "st", &[]);
+        let mut rawType: Option<String> = self.safe_string_k_opt(order.clone(), "t", &[]);
         let mut fee: Value = Value::Null;
-        let mut feeCost: Value = self.safe_string_k(order.clone(), "fee", &[]);
-        if (feeCost != Value::Null) {
+        let mut feeCost: Option<String> = self.safe_string_k_opt(order.clone(), "fee", &[]);
+        if (feeCost.is_some()) {
             fee = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("cost".to_string(), crate::precise::Precise::stringAbs(&feeCost));
+                    m.insert("cost".to_string(), crate::precise::Precise::stringAbs(&feeCost.clone().map(Value::from).unwrap_or(Value::Null)));
                     m.insert("currency".to_string(), marketResolved.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null));
                 m
             });
@@ -1228,9 +1228,9 @@ impl BydfiCore {
         m.insert("datetime".to_string(), Value::Null);
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("lastUpdateTimestamp".to_string(), Value::Null);
-        m.insert("status".to_string(), self.parent.parse_order_status(rawStatus).map(Value::from).unwrap_or(Value::Null));
+        m.insert("status".to_string(), self.parent.parse_order_status(rawStatus.map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null));
         m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
-        m.insert("type".to_string(), self.parent.parse_order_type(rawType).map(Value::from).unwrap_or(Value::Null));
+        m.insert("type".to_string(), self.parent.parse_order_type(rawType.map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null));
         m.insert("timeInForce".to_string(), Value::Null);
         m.insert("postOnly".to_string(), Value::Null);
         m.insert("reduceOnly".to_string(), self.safe_bool_k(order.clone(), "ro", &[]));
@@ -1350,8 +1350,8 @@ impl BydfiCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut marketId: Value = self.safe_string_k(rawPosition.clone(), "s", &[]);
-        let mut market: Value = self.safe_market(&[marketId]);
+        let mut marketId: Option<String> = self.safe_string_k_opt(rawPosition.clone(), "s", &[]);
+        let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
         let symbol: String = self.safe_string_k_opt(market.clone(), "symbol", &[Value::Str("".into())]).unwrap_or_default();
         let mut messageHash: Value = Value::Str("positions".into());
         let mut symbolMessageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str("::".into())).into()), symbol).into());
@@ -1395,9 +1395,9 @@ impl BydfiCore {
         //         "v": "1"
         //     }
         //
-        let mut marketId: Value = self.safe_string_k(position.clone(), "s", &[]);
-        let mut marketResolved: Value = self.safe_market(&[marketId, market]);
-        let mut rawPositionSide: Value = self.safe_string_k(position.clone(), "S", &[]);
+        let mut marketId: Option<String> = self.safe_string_k_opt(position.clone(), "s", &[]);
+        let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]);
+        let mut rawPositionSide: Option<String> = self.safe_string_k_opt(position.clone(), "S", &[]);
         let mut positionMode: Option<String> = self.safe_string_k(position.clone(), "pt", &[]).as_str().map(str::to_owned);
         return self.safe_position(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1411,7 +1411,7 @@ impl BydfiCore {
         m.insert("collateral".to_string(), Value::Null);
         m.insert("unrealizedPnl".to_string(), Value::Null);
         m.insert("realizedPnl".to_string(), self.parse_number(self.safe_string_k(position.clone(), "rp", &[]), &[]));
-        m.insert("side".to_string(), self.parse_ws_position_side(rawPositionSide).map(Value::from).unwrap_or(Value::Null));
+        m.insert("side".to_string(), self.parse_ws_position_side(rawPositionSide.map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null));
         m.insert("contracts".to_string(), self.parse_number(self.safe_string_k(position.clone(), "v", &[]), &[]));
         m.insert("contractSize".to_string(), self.parse_number(self.safe_string_k(position.clone(), "uq", &[]), &[]));
         m.insert("timestamp".to_string(), Value::Null);
@@ -1602,8 +1602,8 @@ impl BydfiCore {
             let mut __for_first_229: bool = true;
             while { if !__for_first_229 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_229 = false; i.as_f64().unwrap_or(f64::NAN) < ((balances.len() as i64) as f64) } {
             let mut balance: Value = self.safe_dict(balances.clone(), i.clone(), &[]);
-            let mut currencyId: Value = self.safe_string_k(balance.clone(), "a", &[]);
-            let mut code: Value = self.safe_currency_code(currencyId, &[]);
+            let mut currencyId: Option<String> = self.safe_string_k_opt(balance.clone(), "a", &[]);
+            let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             account.insert("total".into(), self.safe_string_k(balance.clone(), "wb", &[]));
             account.insert("used".into(), self.safe_string_k(balance.clone(), "tfm", &[]));

@@ -437,9 +437,9 @@ impl CoincheckCore {
         //
         let mut symbol: Value = self.symbol(self.safe_string(trade.clone(), Value::Int(2), &[]));
         let mut timestamp: Value = self.safe_timestamp(trade.clone(), Value::Int(0), &[]);
-        let mut side: Value = self.safe_string(trade.clone(), Value::Int(5), &[]);
-        let mut priceString: Value = self.safe_string(trade.clone(), Value::Int(3), &[]);
-        let mut amountString: Value = self.safe_string(trade.clone(), Value::Int(4), &[]);
+        let mut side: Option<String> = self.safe_string_opt(trade.clone(), Value::Int(5), &[]);
+        let mut priceString: Option<String> = self.safe_string_opt(trade.clone(), Value::Int(3), &[]);
+        let mut amountString: Option<String> = self.safe_string_opt(trade.clone(), Value::Int(4), &[]);
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string(trade.clone(), Value::Int(1), &[]));
@@ -449,10 +449,10 @@ impl CoincheckCore {
         m.insert("order".to_string(), Value::Null);
         m.insert("symbol".to_string(), symbol);
         m.insert("type".to_string(), Value::Null);
-        m.insert("side".to_string(), side);
+        m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("takerOrMaker".to_string(), Value::Null);
-        m.insert("price".to_string(), priceString);
-        m.insert("amount".to_string(), amountString);
+        m.insert("price".to_string(), priceString.map(Value::from).unwrap_or(Value::Null));
+        m.insert("amount".to_string(), amountString.map(Value::from).unwrap_or(Value::Null));
         m.insert("cost".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Null);
     m

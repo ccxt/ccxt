@@ -619,9 +619,9 @@ impl WeexCore {
                 let mut m = indexmap::IndexMap::new();
                 m
             });
-            let mut newTickerSymbol: Value = self.safe_string_k(newTicker.clone(), "symbol", &[]);
-            if (newTickerSymbol != Value::Null) {
-                result.insert(crate::runtime::stringify_param(&newTickerSymbol), newTicker);
+            let mut newTickerSymbol: Option<String> = self.safe_string_k_opt(newTicker.clone(), "symbol", &[]);
+            if (newTickerSymbol.is_some()) {
+                result.insert(newTickerSymbol.as_deref().unwrap_or("null").to_string(), newTicker);
             }
             return Value::Map(result);
         }
@@ -770,7 +770,7 @@ impl WeexCore {
         //     }
         //
         let mut timestamp: Value = self.safe_integer_k(ticker.clone(), "C", &[]);
-        let mut close: Value = self.safe_string_k(ticker.clone(), "c", &[]);
+        let mut close: Option<String> = self.safe_string_k_opt(ticker.clone(), "c", &[]);
         let mut symbol: Value = Value::Null;
         if (market == Value::Null) {
             symbol = Value::Null;
@@ -790,8 +790,8 @@ impl WeexCore {
         m.insert("askVolume".to_string(), self.safe_string_k(ticker.clone(), "A", &[]));
         m.insert("vwap".to_string(), self.safe_string_k(ticker.clone(), "w", &[]));
         m.insert("open".to_string(), self.safe_string_k(ticker.clone(), "o", &[]));
-        m.insert("close".to_string(), close.clone());
-        m.insert("last".to_string(), close);
+        m.insert("close".to_string(), close.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("last".to_string(), close.map(Value::from).unwrap_or(Value::Null));
         m.insert("previousClose".to_string(), self.safe_string_k(ticker.clone(), "x", &[]));
         m.insert("change".to_string(), self.safe_string_k(ticker.clone(), "p", &[]));
         m.insert("percentage".to_string(), crate::precise::Precise::stringMul(&self.safe_string_k(ticker.clone(), "P", &[]), &Value::Str("100".into())));
@@ -874,10 +874,10 @@ impl WeexCore {
         }
         let mut trades: Value = self.subscribe_public(Value::from(messageHashes), Value::from(channels), &[isContract, params]).await;
         let mut first: Value = self.safe_dict(trades.clone(), Value::Int(0), &[]);
-        let mut tradeSymbol: Value = self.safe_string_k(first, "symbol", &[]);
+        let mut tradeSymbol: Option<String> = self.safe_string_k_opt(first, "symbol", &[]);
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = trades.get_limit(tradeSymbol, limit);
+            limitResolved = trades.get_limit(tradeSymbol.map(Value::from).unwrap_or(Value::Null), limit);
         }
         return self.filter_by_since_limit(trades, &[since, limitResolved, Value::Str("timestamp".into()), Value::Bool(true)]);
 
@@ -1122,8 +1122,8 @@ impl WeexCore {
         let mut channels: Vec<Value> = Vec::new();
         let mut messageHashes: Vec<Value> = Vec::new();
         let mut firstEntry: Value = self.safe_list(symbolsAndTimeframes.clone(), Value::Int(0), &[Value::from(vec![])]);
-        let mut firstSymbol: Value = self.safe_string(firstEntry, Value::Int(0), &[]);
-        let mut firstMarket: indexmap::IndexMap<String, Value> = self.market(firstSymbol).as_map().cloned().unwrap_or_default();
+        let mut firstSymbol: Option<String> = self.safe_string_opt(firstEntry, Value::Int(0), &[]);
+        let mut firstMarket: indexmap::IndexMap<String, Value> = self.market(firstSymbol.clone().map(Value::from).unwrap_or(Value::Null)).as_map().cloned().unwrap_or_default();
         let mut isContract: Value = firstMarket.get("contract").cloned().unwrap_or(Value::Null);
         let mut priceType: Value = Value::Str("LAST_PRICE".into());
         let mut paramsPriceType: Value = paramsOmitted.clone();
@@ -1211,8 +1211,8 @@ impl WeexCore {
         let mut subHashes: Vec<Value> = Vec::new();
         let mut unSubHashes: Vec<Value> = Vec::new();
         let mut firstEntry: Value = self.safe_list(symbolsAndTimeframes.clone(), Value::Int(0), &[Value::from(vec![])]);
-        let mut firstSymbol: Value = self.safe_string(firstEntry, Value::Int(0), &[]);
-        let mut firstMarket: indexmap::IndexMap<String, Value> = self.market(firstSymbol).as_map().cloned().unwrap_or_default();
+        let mut firstSymbol: Option<String> = self.safe_string_opt(firstEntry, Value::Int(0), &[]);
+        let mut firstMarket: indexmap::IndexMap<String, Value> = self.market(firstSymbol.clone().map(Value::from).unwrap_or(Value::Null)).as_map().cloned().unwrap_or_default();
         let mut isContract: Value = firstMarket.get("contract").cloned().unwrap_or(Value::Null);
         let mut priceType: Value = Value::Str("LAST_PRICE".into());
         let mut paramsPriceType: Value = paramsOmitted.clone();
@@ -1299,8 +1299,8 @@ impl WeexCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut interval: Value = self.safe_string_k(firstEntry, "i", &[]);
-        let mut timeframe: Value = self.find_timeframe(interval, &[]);
+        let mut interval: Option<String> = self.safe_string_k_opt(firstEntry, "i", &[]);
+        let mut timeframe: Value = self.find_timeframe(interval.clone().map(Value::from).unwrap_or(Value::Null), &[]);
         let mut stored: Value = self.safe_value(self.safe_dict(self.ohlcvs.clone(), symbol.clone(), &[]), timeframe.clone(), &[]);
         if (stored == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
@@ -1609,9 +1609,9 @@ impl WeexCore {
                 let mut m = indexmap::IndexMap::new();
                 m
             });
-            let mut newTickerSymbol: Value = self.safe_string_k(newTicker.clone(), "symbol", &[]);
-            if (newTickerSymbol != Value::Null) {
-                result.insert(crate::runtime::stringify_param(&newTickerSymbol), newTicker);
+            let mut newTickerSymbol: Option<String> = self.safe_string_k_opt(newTicker.clone(), "symbol", &[]);
+            if (newTickerSymbol.is_some()) {
+                result.insert(newTickerSymbol.as_deref().unwrap_or("null").to_string(), newTicker);
             }
             return Value::Map(result);
         }
@@ -1754,7 +1754,7 @@ impl WeexCore {
         if (symbol != Value::Null) {
             market = self.market(symbol);
         }
-        let mut symbolResolved: Value = self.safe_string_k(market.clone(), "symbol", &[]);
+        let mut symbolResolved: Option<String> = self.safe_string_k_opt(market.clone(), "symbol", &[]);
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("watchMyTrades".into()), &[market, params]).as_array().cloned().unwrap_or_default();
         let mut marketType: Value = marketTypeparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
@@ -1764,16 +1764,16 @@ impl WeexCore {
             messageHash = Value::Str("myContractTrades".into());
         }
         let mut subscriptionHash: Value = messageHash.clone();
-        if (symbolResolved != Value::Null) {
-            messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str("::".into()), symbolResolved).into())).into());
+        if (symbolResolved.is_some()) {
+            messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str("::".into()), symbolResolved.clone().map(Value::from).unwrap_or(Value::Null)).into())).into());
         }
         let mut channel: Value = Value::Str("fill".into());
         let mut trades: Value = self.subscribe_private(messageHash, subscriptionHash, channel, &[isContract, paramsMarketType]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = trades.get_limit(symbolResolved.clone(), limit);
+            limitResolved = trades.get_limit(symbolResolved.clone().map(Value::from).unwrap_or(Value::Null), limit);
         }
-        return self.filter_by_symbol_since_limit(trades, &[symbolResolved, since, limitResolved, Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(trades, &[symbolResolved.map(Value::from).unwrap_or(Value::Null), since, limitResolved, Value::Bool(true)]);
 
     Value::Null
 }
@@ -1890,9 +1890,9 @@ impl WeexCore {
                 m
             })]);
             let mut parsed: Value = self.parse_ws_my_trade(trade, &[]);
-            let mut symbol: Value = self.safe_string_k(parsed.clone(), "symbol", &[]);
-            if (symbol != Value::Null) {
-                if let Value::Dict(__d) = &mut symbols { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Bool(true)); }
+            let mut symbol: Option<String> = self.safe_string_k_opt(parsed.clone(), "symbol", &[]);
+            if (symbol.is_some()) {
+                if let Value::Dict(__d) = &mut symbols { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Bool(true)); }
             }
             trades.append(parsed);
         }
@@ -1935,21 +1935,21 @@ impl WeexCore {
         //     }
         //
         let mut timestamp: Value = self.safe_integer_k(trade.clone(), "createdTime", &[]);
-        let mut marketId: Value = self.safe_string_k(trade.clone(), "symbol", &[]);
+        let mut marketId: Option<String> = self.safe_string_k_opt(trade.clone(), "symbol", &[]);
         let mut marketType: String = "spot".to_string();
         let mut positionSide: Option<String> = self.safe_string_k(trade.clone(), "positionSide", &[]).as_str().map(str::to_owned);
         if (positionSide.is_some()) {
             marketType = "swap".to_string();
         }
-        let mut marketResolved: Value = self.safe_market(&[marketId, Value::Null, Value::Null, Value::str(marketType.clone())]);
-        let mut side: Value = self.safe_string_lower_k(trade.clone(), "orderSide", &[]);
+        let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Null, Value::str(marketType.clone())]);
+        let mut side: Option<String> = self.safe_string_lower_k_opt(trade.clone(), "orderSide", &[]);
         let mut fee: Value = Value::Null;
-        let mut commission: Value = self.safe_string_k(trade.clone(), "fillFee", &[]);
-        if (commission != Value::Null) {
-            let mut commissionAsset: Value = self.safe_string_k(trade.clone(), "coin", &[]);
-            let mut feeCurrency: Value = self.safe_currency_code(commissionAsset, &[]);
+        let mut commission: Option<String> = self.safe_string_k_opt(trade.clone(), "fillFee", &[]);
+        if (commission.is_some()) {
+            let mut commissionAsset: Option<String> = self.safe_string_k_opt(trade.clone(), "coin", &[]);
+            let mut feeCurrency: Value = self.safe_currency_code(commissionAsset.map(Value::from).unwrap_or(Value::Null), &[]);
             if ((marketType == "spot")) {
-                if (side.as_str() == Some("buy")) {
+                if (side.as_deref() == Some("buy")) {
                     feeCurrency = self.safe_string_k(marketResolved.clone(), "base", &[]);
                 }  else {
                     feeCurrency = self.safe_string_k(marketResolved.clone(), "quote", &[]);
@@ -1957,7 +1957,7 @@ impl WeexCore {
             }
             fee = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("cost".to_string(), commission);
+                    m.insert("cost".to_string(), commission.map(Value::from).unwrap_or(Value::Null));
                     m.insert("currency".to_string(), feeCurrency);
                 m
             });
@@ -1971,7 +1971,7 @@ impl WeexCore {
         m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
         m.insert("order".to_string(), self.safe_string_k(trade.clone(), "orderId", &[]));
         m.insert("type".to_string(), self.safe_string_k(trade.clone(), "type", &[]));
-        m.insert("side".to_string(), side);
+        m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("takerOrMaker".to_string(), self.safe_string_lower_k(trade.clone(), "direction", &[]));
         m.insert("price".to_string(), Value::Null);
         m.insert("amount".to_string(), self.safe_string_k(trade.clone(), "fillSize", &[]));
@@ -2011,7 +2011,7 @@ impl WeexCore {
         if (symbol != Value::Null) {
             market = self.market(symbol);
         }
-        let mut symbolResolved: Value = self.safe_string_k(market.clone(), "symbol", &[]);
+        let mut symbolResolved: Option<String> = self.safe_string_k_opt(market.clone(), "symbol", &[]);
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("watchOrders".into()), &[market, params]).as_array().cloned().unwrap_or_default();
         let mut marketType: Value = marketTypeparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
@@ -2021,16 +2021,16 @@ impl WeexCore {
             messageHash = Value::Str("contractOrders".into());
         }
         let mut subscriptionHash: Value = messageHash.clone();
-        if (symbolResolved != Value::Null) {
-            messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str("::".into()), symbolResolved).into())).into());
+        if (symbolResolved.is_some()) {
+            messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str("::".into()), symbolResolved.clone().map(Value::from).unwrap_or(Value::Null)).into())).into());
         }
         let mut channel: Value = Value::Str("orders".into());
         let mut orders: Value = self.subscribe_private(messageHash, subscriptionHash, channel, &[isContract, paramsMarketType]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = orders.get_limit(symbolResolved.clone(), limit);
+            limitResolved = orders.get_limit(symbolResolved.clone().map(Value::from).unwrap_or(Value::Null), limit);
         }
-        return self.filter_by_symbol_since_limit(orders, &[symbolResolved, since, limitResolved, Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(orders, &[symbolResolved.map(Value::from).unwrap_or(Value::Null), since, limitResolved, Value::Bool(true)]);
 
     Value::Null
 }
@@ -2148,9 +2148,9 @@ impl WeexCore {
             })]);
             let mut parsed: Value = self.parse_ws_order(rawOrder, &[]);
             orders.append(parsed.clone());
-            let mut symbol: Value = self.safe_string_k(parsed, "symbol", &[]);
-            if (symbol != Value::Null) {
-                if let Value::Dict(__d) = &mut symbols { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Bool(true)); }
+            let mut symbol: Option<String> = self.safe_string_k_opt(parsed, "symbol", &[]);
+            if (symbol.is_some()) {
+                if let Value::Dict(__d) = &mut symbols { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Bool(true)); }
             }
         }
         }
@@ -2260,22 +2260,22 @@ impl WeexCore {
         //     }
         //
         let mut timestamp: Value = self.safe_integer_k(order.clone(), "createdTime", &[]);
-        let mut marketId: Value = self.safe_string_k(order.clone(), "symbol", &[]);
+        let mut marketId: Option<String> = self.safe_string_k_opt(order.clone(), "symbol", &[]);
         let mut marketType: String = "spot".to_string();
         let mut positionSide: Option<String> = self.safe_string_k(order.clone(), "positionSide", &[]).as_str().map(str::to_owned);
         if (positionSide.is_some()) {
             marketType = "swap".to_string();
         }
-        let mut marketResolved: Value = self.safe_market(&[marketId, Value::Null, Value::Null, Value::str(marketType.clone())]);
+        let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Null, Value::str(marketType.clone())]);
         let mut marketValue: Value = marketResolved.clone();
-        let mut side: Value = self.safe_string_lower_k(order.clone(), "orderSide", &[]);
+        let mut side: Option<String> = self.safe_string_lower_k_opt(order.clone(), "orderSide", &[]);
         let mut fee: Value = Value::Null;
-        let mut commission: Value = self.safe_string_k(order.clone(), "cumFillFee", &[]);
-        if (commission != Value::Null) {
-            let mut commissionAsset: Value = self.safe_string_k(order.clone(), "coin", &[]);
-            let mut feeCurrency: Value = self.safe_currency_code(commissionAsset, &[]);
+        let mut commission: Option<String> = self.safe_string_k_opt(order.clone(), "cumFillFee", &[]);
+        if (commission.is_some()) {
+            let mut commissionAsset: Option<String> = self.safe_string_k_opt(order.clone(), "coin", &[]);
+            let mut feeCurrency: Value = self.safe_currency_code(commissionAsset.map(Value::from).unwrap_or(Value::Null), &[]);
             if ((marketType == "spot")) {
-                if (side.as_str() == Some("buy")) {
+                if (side.as_deref() == Some("buy")) {
                     feeCurrency = self.safe_string_k(marketResolved.clone(), "base", &[]);
                 }  else {
                     feeCurrency = self.safe_string_k(marketResolved.clone(), "quote", &[]);
@@ -2283,12 +2283,12 @@ impl WeexCore {
             }
             fee = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("cost".to_string(), commission);
+                    m.insert("cost".to_string(), commission.map(Value::from).unwrap_or(Value::Null));
                     m.insert("currency".to_string(), feeCurrency);
                 m
             });
         }
-        let mut rawStatus: Value = self.safe_string_lower_k(order.clone(), "status", &[]);
+        let mut rawStatus: Option<String> = self.safe_string_lower_k_opt(order.clone(), "status", &[]);
         let mut rawType: Value = self.safe_string_k(order.clone(), "type", &[]);
         let mut triggerPrice: Value = self.omit_zero(self.safe_string_k(order.clone(), "triggerPrice", &[]));
         let mut stopLossPrice: Value = Value::Null;
@@ -2307,7 +2307,7 @@ impl WeexCore {
         m.insert("timeInForce".to_string(), self.safe_string_k(order.clone(), "timeInForce", &[]));
         m.insert("postOnly".to_string(), Value::Null);
         m.insert("reduceOnly".to_string(), self.safe_bool_k(order.clone(), "reduceOnly", &[]));
-        m.insert("side".to_string(), side);
+        m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), self.safe_string_k(order.clone(), "size", &[]));
         m.insert("price".to_string(), self.safe_string_k(order.clone(), "price", &[]));
         m.insert("triggerPrice".to_string(), triggerPrice);
@@ -2317,7 +2317,7 @@ impl WeexCore {
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("fee".to_string(), fee);
-        m.insert("status".to_string(), self.parent.parse_order_status(rawStatus).map(Value::from).unwrap_or(Value::Null));
+        m.insert("status".to_string(), self.parent.parse_order_status(rawStatus.map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("lastUpdateTimestamp".to_string(), self.safe_integer_k(order.clone(), "updatedTime", &[]));
         m.insert("average".to_string(), Value::Null);
@@ -2495,8 +2495,8 @@ impl WeexCore {
             let mut __for_first_682: bool = true;
             while { if !__for_first_682 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_682 = false; i.as_f64().unwrap_or(f64::NAN) < ((balanceUpdates.len() as i64) as f64) } {
             let mut entry: Value = self.safe_dict(balanceUpdates.clone(), i.clone(), &[]);
-            let mut currencyId: Value = self.safe_string_k(entry.clone(), "coin", &[]);
-            let mut code: Value = self.safe_currency_code(currencyId, &[]);
+            let mut currencyId: Option<String> = self.safe_string_k_opt(entry.clone(), "coin", &[]);
+            let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             account.insert("free".into(), self.safe_string2(entry.clone(), Value::Str("available".into()), Value::Str("amount".into()), &[]));
             account.insert("used".into(), self.safe_string_k(entry.clone(), "frozen", &[]));
@@ -2779,9 +2779,9 @@ impl WeexCore {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_686: bool = true;
                 while { if !__for_first_686 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_686 = false; i.as_f64().unwrap_or(f64::NAN) < ((messageHashes.len() as i64) as f64) } {
-                let mut unSubHash: Value = self.safe_string(messageHashes.clone(), i.clone(), &[]);
-                let mut subHash: Value = self.safe_string(subHashes.clone(), i.clone(), &[]);
-                self.clean_unsubscription(client.clone(), subHash, unSubHash, &[subHashIsPrefix.clone()]);
+                let mut unSubHash: Option<String> = self.safe_string_opt(messageHashes.clone(), i.clone(), &[]);
+                let mut subHash: Option<String> = self.safe_string_opt(subHashes.clone(), i.clone(), &[]);
+                self.clean_unsubscription(client.clone(), subHash.map(Value::from).unwrap_or(Value::Null), unSubHash.map(Value::from).unwrap_or(Value::Null), &[subHashIsPrefix.clone()]);
             }
             }
             self.clean_cache(subscription);

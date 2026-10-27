@@ -829,11 +829,11 @@ impl PolymarketCore {
             let mut __for_first_1085: bool = true;
             while { if !__for_first_1085 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1085 = false; i.as_f64().unwrap_or(f64::NAN) < ((instruments.len() as i64) as f64) } {
             let mut instrument: Value = instruments.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
-            let mut baseId: Value = self.safe_string_k(instrument.clone(), "base_asset", &[]);
-            if (baseId == Value::Null) {
+            let mut baseId: Option<String> = self.safe_string_k_opt(instrument.clone(), "base_asset", &[]);
+            if (baseId.is_none()) {
                 continue;
             }
-            let mut code: Value = self.safe_currency_code(baseId.clone(), &[]);
+            let mut code: Value = self.safe_currency_code(baseId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             if !(matches!((&result, &code), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 // the venue tags each underlying with a category - only the
                 // crypto ones are unified as crypto, equities, commodities and
@@ -842,9 +842,9 @@ impl PolymarketCore {
                 let mut currencyType: Value = (if (category.as_deref() == Some("crypto")) { Value::Str("crypto".into()) } else { Value::Str("other".into()) });
                 if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), baseId.clone());
+        m.insert("id".to_string(), baseId.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("code".to_string(), code.clone());
-        m.insert("name".to_string(), baseId);
+        m.insert("name".to_string(), baseId.map(Value::from).unwrap_or(Value::Null));
         m.insert("info".to_string(), instrument.clone());
         m.insert("active".to_string(), Value::Bool(true));
         m.insert("deposit".to_string(), Value::Bool(false));
@@ -888,16 +888,16 @@ impl PolymarketCore {
             let mut __for_first_1086: bool = true;
             while { if !__for_first_1086 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1086 = false; i.as_f64().unwrap_or(f64::NAN) < ((assets.len() as i64) as f64) } {
             let mut asset: Value = assets.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
-            let mut currencyId: Value = self.safe_string_k(asset.clone(), "asset", &[]);
-            if (currencyId == Value::Null) {
+            let mut currencyId: Option<String> = self.safe_string_k_opt(asset.clone(), "asset", &[]);
+            if (currencyId.is_none()) {
                 continue;
             }
-            let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
+            let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), currencyId.clone());
+        m.insert("id".to_string(), currencyId.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("code".to_string(), code.clone());
-        m.insert("name".to_string(), currencyId);
+        m.insert("name".to_string(), currencyId.map(Value::from).unwrap_or(Value::Null));
         m.insert("info".to_string(), asset.clone());
         m.insert("active".to_string(), Value::Bool(true));
         m.insert("deposit".to_string(), Value::Bool(true));
@@ -938,27 +938,27 @@ impl PolymarketCore {
 }
 
     pub fn parse_market(&self, mut market: Value) -> Value {
-        let mut numericId: Value = self.safe_string_k(market.clone(), "instrument_id", &[]);
+        let mut numericId: Option<String> = self.safe_string_k_opt(market.clone(), "instrument_id", &[]);
         let mut venueSymbol: Value = self.safe_string_k(market.clone(), "symbol", &[]);
-        let mut baseId: Value = self.safe_string_k(market.clone(), "base_asset", &[]);
+        let mut baseId: Option<String> = self.safe_string_k_opt(market.clone(), "base_asset", &[]);
         // prices are denominated using USD while pUSD is the 1:1 collateral and settlement token
-        let mut settleId: Value = self.safe_string_k(market.clone(), "quote_asset", &[]);
+        let mut settleId: Option<String> = self.safe_string_k_opt(market.clone(), "quote_asset", &[]);
         let mut parts: Value = Value::Array(venueSymbol.as_str().map(|__s| __s.split("-").map(Value::from).collect()).unwrap_or_default());
         let mut quoteId: Value = self.safe_string(parts, Value::Int(1), &[Value::Str("USD".into())]);
-        let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
+        let mut base: Value = self.safe_currency_code(baseId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
         let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
-        let mut settle: Value = self.safe_currency_code(settleId.clone(), &[]);
+        let mut settle: Value = self.safe_currency_code(settleId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
         let mut crossAllowed: Value = Value::Bool(!(self.safe_bool_k(market.clone(), "isolated_only", &[Value::Bool(false)]).as_bool() == Some(true)));
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), numericId);
+        m.insert("id".to_string(), numericId.map(Value::from).unwrap_or(Value::Null));
         m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into()), Value::Str(":".into())).into()), settle).into()));
         m.insert("base".to_string(), base);
         m.insert("quote".to_string(), quote);
         m.insert("settle".to_string(), settle);
-        m.insert("baseId".to_string(), baseId);
+        m.insert("baseId".to_string(), baseId.map(Value::from).unwrap_or(Value::Null));
         m.insert("quoteId".to_string(), quoteId);
-        m.insert("settleId".to_string(), settleId);
+        m.insert("settleId".to_string(), settleId.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), Value::Str("swap".into()));
         m.insert("spot".to_string(), Value::Bool(false));
         m.insert("margin".to_string(), Value::Bool(false));
@@ -1126,9 +1126,9 @@ impl PolymarketCore {
             let mut __for_first_1087: bool = true;
             while { if !__for_first_1087 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1087 = false; i.as_f64().unwrap_or(f64::NAN) < ((statistics.len() as i64) as f64) } {
             let mut entry: Value = statistics.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
-            let mut instrumentId: Value = self.safe_string_k(entry.clone(), "instrument_id", &[]);
+            let mut instrumentId: Option<String> = self.safe_string_k_opt(entry.clone(), "instrument_id", &[]);
             // the 24 hourly kline rows are dropped from the merged payload to keep tickers light, candles are served by fetchOHLCV
-            merged.insert(crate::runtime::stringify_param(&instrumentId), self.omit(entry.clone(), Value::Str("klines".into()), &[]));
+            merged.insert(instrumentId.as_deref().unwrap_or("null").to_string(), self.omit(entry.clone(), Value::Str("klines".into()), &[]));
         }
         }
         let mut bbos: Vec<Value> = self.safe_list(responses.clone(), Value::Int(2), &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
@@ -1137,13 +1137,13 @@ impl PolymarketCore {
             let mut __for_first_1088: bool = true;
             while { if !__for_first_1088 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1088 = false; i.as_f64().unwrap_or(f64::NAN) < ((bbos.len() as i64) as f64) } {
             let mut entry: Value = bbos.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
-            let mut instrumentId: Value = self.safe_string_k(entry.clone(), "instrument_id", &[]);
-            let mut previous: Value = self.safe_dict(Value::Map(merged.clone()), instrumentId.clone(), &[Value::Map({
+            let mut instrumentId: Option<String> = self.safe_string_k_opt(entry.clone(), "instrument_id", &[]);
+            let mut previous: Value = self.safe_dict(Value::Map(merged.clone()), instrumentId.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
             // the tickers endpoint timestamp wins the merge below because most unified fields come from it - bbo rows carry a slightly newer sampling time
-            merged.insert(crate::runtime::stringify_param(&instrumentId), self.extend(previous.clone(), &[entry.clone()]));
+            merged.insert(instrumentId.as_deref().unwrap_or("null").to_string(), self.extend(previous.clone(), &[entry.clone()]));
         }
         }
         let mut tickers: Vec<Value> = self.safe_list(responses, Value::Int(0), &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
@@ -1153,8 +1153,8 @@ impl PolymarketCore {
             let mut __for_first_1089: bool = true;
             while { if !__for_first_1089 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1089 = false; i.as_f64().unwrap_or(f64::NAN) < ((tickers.len() as i64) as f64) } {
             let mut entry: Value = tickers.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
-            let mut instrumentId: Value = self.safe_string_k(entry.clone(), "instrument_id", &[]);
-            let mut previous: Value = self.safe_dict(Value::Map(merged.clone()), instrumentId, &[Value::Map({
+            let mut instrumentId: Option<String> = self.safe_string_k_opt(entry.clone(), "instrument_id", &[]);
+            let mut previous: Value = self.safe_dict(Value::Map(merged.clone()), instrumentId.map(Value::from).unwrap_or(Value::Null), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -1190,8 +1190,8 @@ impl PolymarketCore {
         //         "timestamp": 1788546972857
         //     }
         //
-        let mut marketId: Value = self.safe_string_k(ticker.clone(), "instrument_id", &[]);
-        let mut marketResolved: Value = self.safe_market(&[marketId, market]);
+        let mut marketId: Option<String> = self.safe_string_k_opt(ticker.clone(), "instrument_id", &[]);
+        let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]);
         let mut timestamp: Value = self.safe_integer_k(ticker.clone(), "timestamp", &[]);
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1377,13 +1377,13 @@ impl PolymarketCore {
         if (isTaker != Value::Null) {
             takerOrMaker = (if isTaker.as_bool() == Some(true) { Value::Str("taker".into()) } else { Value::Str("maker".into()) });
         }
-        let mut feeCost: Value = self.safe_string_k(trade.clone(), "fee", &[]);
+        let mut feeCost: Option<String> = self.safe_string_k_opt(trade.clone(), "fee", &[]);
         let mut fee: Value = Value::Null;
-        if (feeCost != Value::Null) {
+        if (feeCost.is_some()) {
             let mut feeCurrencyId: Value = self.safe_string2(trade.clone(), Value::Str("fee_asset".into()), Value::Str("fea".into()), &[]);
             fee = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("cost".to_string(), feeCost);
+                    m.insert("cost".to_string(), feeCost.map(Value::from).unwrap_or(Value::Null));
                     m.insert("currency".to_string(), self.safe_currency_code(feeCurrencyId, &[]));
                 m
             });
@@ -1554,11 +1554,11 @@ impl PolymarketCore {
         //         "timestamp": 1788546972857
         //     }
         //
-        let mut marketId: Value = self.safe_string_k(contract.clone(), "instrument_id", &[]);
-        let mut marketResolved: Value = self.safe_market(&[marketId, market]);
+        let mut marketId: Option<String> = self.safe_string_k_opt(contract.clone(), "instrument_id", &[]);
+        let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]);
         let mut timestamp: Value = self.safe_integer_k(contract.clone(), "timestamp", &[]);
         let mut nextFundingTimestamp: Value = self.safe_integer_k(contract.clone(), "next_funding", &[]);
-        let mut interval: Value = self.safe_string(marketResolved.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("funding_interval".into()), &[]);
+        let mut interval: Option<String> = self.safe_string_opt(marketResolved.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("funding_interval".into()), &[]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), contract.clone());
@@ -1578,7 +1578,7 @@ impl PolymarketCore {
         m.insert("previousFundingRate".to_string(), Value::Null);
         m.insert("previousFundingTimestamp".to_string(), Value::Null);
         m.insert("previousFundingDatetime".to_string(), Value::Null);
-        m.insert("interval".to_string(), interval);
+        m.insert("interval".to_string(), interval.map(Value::from).unwrap_or(Value::Null));
     m
 });
 
@@ -1735,8 +1735,8 @@ impl PolymarketCore {
         //         "timestamp": 1788546972857
         //     }
         //
-        let mut marketId: Value = self.safe_string_k(interest.clone(), "instrument_id", &[]);
-        let mut marketResolved: Value = self.safe_market(&[marketId, market]);
+        let mut marketId: Option<String> = self.safe_string_k_opt(interest.clone(), "instrument_id", &[]);
+        let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]);
         let mut timestamp: Value = self.safe_integer_k(interest.clone(), "timestamp", &[]);
         return self.safe_open_interest(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1790,8 +1790,8 @@ impl PolymarketCore {
             let mut __for_first_1091: bool = true;
             while { if !__for_first_1091 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1091 = false; i.as_f64().unwrap_or(f64::NAN) < ((schedule.len() as i64) as f64) } {
             let mut entry: Value = schedule.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-            let mut category: Value = self.safe_string_k(entry.clone(), "category", &[]);
-            byCategory.insert(crate::runtime::stringify_param(&category), entry.clone());
+            let mut category: Option<String> = self.safe_string_k_opt(entry.clone(), "category", &[]);
+            byCategory.insert(category.as_deref().unwrap_or("null").to_string(), entry.clone());
         }
         }
         let mut fallback: Value = self.safe_dict(schedule, Value::Int(0), &[Value::Map({
@@ -1808,8 +1808,8 @@ impl PolymarketCore {
             while { if !__for_first_1092 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1092 = false; i.as_f64().unwrap_or(f64::NAN) < ((self.symbols.len() as i64) as f64) } {
             let mut symbol: Value = self.safe_string(self.symbols.clone(), i.clone(), &[Value::Str("".into())]);
             let mut market: indexmap::IndexMap<String, Value> = self.market(symbol.clone()).as_map().cloned().unwrap_or_default();
-            let mut category: Value = self.safe_string_k(market.get("info").cloned().unwrap_or(Value::Null), "category", &[]);
-            let mut entry: Value = self.safe_dict(Value::Map(byCategory.clone()), category, &[fallback.clone()]);
+            let mut category: Option<String> = self.safe_string_k_opt(market.get("info").cloned().unwrap_or(Value::Null), "category", &[]);
+            let mut entry: Value = self.safe_dict(Value::Map(byCategory.clone()), category.map(Value::from).unwrap_or(Value::Null), &[fallback.clone()]);
             if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), entry.clone());
@@ -1965,10 +1965,10 @@ impl PolymarketCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut errorId: Value = self.safe_string_k(firstInfo.clone(), "error", &[]);
+            let mut errorId: Option<String> = self.safe_string_k_opt(firstInfo.clone(), "error", &[]);
             let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() rejected: ".into())).into()), json_stringify(&firstInfo)).into());
-            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorId.clone(), feedback.clone());
-            self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), errorId, feedback.clone());
+            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorId.clone().map(Value::from).unwrap_or(Value::Null), feedback.clone());
+            self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), errorId.map(Value::from).unwrap_or(Value::Null), feedback.clone());
             panic!("{}", crate::exchange_errors::invalid_order(feedback));
         }
         let mut created: Value = self.safe_dict(orders, Value::Int(0), &[]);
@@ -2004,17 +2004,17 @@ impl PolymarketCore {
             let mut __for_first_1093: bool = true;
             while { if !__for_first_1093 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1093 = false; i.as_f64().unwrap_or(f64::NAN) < ((orders.len() as i64) as f64) } {
             let mut rawOrder: Value = orders.get((i).as_i64().map_or(usize::MAX, |__n| __n as usize)).cloned().unwrap_or(Value::Null);
-            let mut symbol: Value = self.safe_string_k(rawOrder.clone(), "symbol", &[]);
-            let mut market: Value = self.market(symbol);
-            let mut type_var: Value = self.safe_string_lower_k(rawOrder.clone(), "type", &[]);
-            let mut side: Value = self.safe_string_lower_k(rawOrder.clone(), "side", &[]);
-            let mut amount: Value = self.safe_string_k(rawOrder.clone(), "amount", &[]);
-            let mut price: Value = self.safe_string_k(rawOrder.clone(), "price", &[]);
+            let mut symbol: Option<String> = self.safe_string_k_opt(rawOrder.clone(), "symbol", &[]);
+            let mut market: Value = self.market(symbol.map(Value::from).unwrap_or(Value::Null));
+            let mut type_var: Option<String> = self.safe_string_lower_k_opt(rawOrder.clone(), "type", &[]);
+            let mut side: Option<String> = self.safe_string_lower_k_opt(rawOrder.clone(), "side", &[]);
+            let mut amount: Option<String> = self.safe_string_k_opt(rawOrder.clone(), "amount", &[]);
+            let mut price: Option<String> = self.safe_string_k_opt(rawOrder.clone(), "price", &[]);
             let mut orderParams: Value = self.safe_dict_k(rawOrder, "params", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut request: indexmap::IndexMap<String, Value> = self.create_order_request(market.clone(), type_var, side, amount, &[price, orderParams]).as_map().cloned().unwrap_or_default();
+            let mut request: indexmap::IndexMap<String, Value> = self.create_order_request(market.clone(), type_var.map(Value::from).unwrap_or(Value::Null), side.map(Value::from).unwrap_or(Value::Null), amount.map(Value::from).unwrap_or(Value::Null), &[price.map(Value::from).unwrap_or(Value::Null), orderParams]).as_map().cloned().unwrap_or_default();
             rows.push(request.get("signable").cloned().unwrap_or(Value::Null));
             entries.push(request.get("entry").cloned().unwrap_or(Value::Null));
             ordersMarkets.push(market);
@@ -2117,9 +2117,9 @@ impl PolymarketCore {
         self.load_markets(&[]).await;
         let mut clientOrderIds: Value = self.safe_list2(params.clone(), Value::Str("clientOrderIds".into()), Value::Str("clientOrderId".into()), &[]);
         if (clientOrderIds == Value::Null) {
-            let mut clientOrderId: Value = self.safe_string_k(params.clone(), "clientOrderId", &[]);
-            if (clientOrderId != Value::Null) {
-                clientOrderIds = Value::from(vec![clientOrderId]);
+            let mut clientOrderId: Option<String> = self.safe_string_k_opt(params.clone(), "clientOrderId", &[]);
+            if (clientOrderId.is_some()) {
+                clientOrderIds = Value::from(vec![clientOrderId.map(Value::from).unwrap_or(Value::Null)]);
             }
         }
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("clientOrderIds".into()), Value::Str("clientOrderId".into())]), &[]);
@@ -2442,11 +2442,11 @@ impl PolymarketCore {
         let mut takeProfitPrice: Value = Value::Null;
         if (tpsl != Value::Null) {
             let mut kind: Option<String> = self.safe_string_k(tpsl.clone(), "kind", &[]).as_str().map(str::to_owned);
-            let mut triggerValue: Value = self.safe_string_k(tpsl, "trp", &[]);
+            let mut triggerValue: Option<String> = self.safe_string_k_opt(tpsl, "trp", &[]);
             if (kind.as_deref() == Some("sl")) {
-                stopLossPrice = triggerValue.clone();
+                stopLossPrice = triggerValue.clone().map(Value::from).unwrap_or(Value::Null);
             }  else if (kind.as_deref() == Some("tp")) {
-                takeProfitPrice = triggerValue;
+                takeProfitPrice = triggerValue.map(Value::from).unwrap_or(Value::Null);
             }
         }
         return self.safe_order(Value::Map({
@@ -2617,12 +2617,12 @@ impl PolymarketCore {
         //         "timestamp": 1788546565789
         //     }
         //
-        let mut marketId: Value = self.safe_string_k(position.clone(), "instrument_id", &[]);
-        let mut marketResolved: Value = self.safe_market(&[marketId, market]);
-        let mut size: Value = self.safe_string_k(position.clone(), "size", &[]);
+        let mut marketId: Option<String> = self.safe_string_k_opt(position.clone(), "instrument_id", &[]);
+        let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]);
+        let mut size: Option<String> = self.safe_string_k_opt(position.clone(), "size", &[]);
         let mut side: Value = Value::Null;
-        if (size != Value::Null) {
-            let mut isLong: Value = crate::precise::Precise::stringGt(&size, &Value::Str("0".into()));
+        if (size.is_some()) {
+            let mut isLong: Value = crate::precise::Precise::stringGt(&size.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into()));
             side = (if isLong.as_bool() == Some(true) { Value::Str("long".into()) } else { Value::Str("short".into()) });
         }
         let mut isCross: Value = self.safe_bool_k(position.clone(), "cross", &[]);
@@ -2631,10 +2631,10 @@ impl PolymarketCore {
             marginMode = (if isCross.as_bool() == Some(true) { Value::Str("cross".into()) } else { Value::Str("isolated".into()) });
         }
         let mut timestamp: Value = self.safe_integer_k(position.clone(), "timestamp", &[]);
-        let mut roe: Value = self.safe_string_k(position.clone(), "return_on_equity", &[]);
+        let mut roe: Option<String> = self.safe_string_k_opt(position.clone(), "return_on_equity", &[]);
         let mut percentage: Value = Value::Null;
-        if (roe != Value::Null) {
-            percentage = self.parse_number(crate::precise::Precise::stringMul(&roe, &Value::Str("100".into())), &[]);
+        if (roe.is_some()) {
+            percentage = self.parse_number(crate::precise::Precise::stringMul(&roe.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())), &[]);
         }
         return self.safe_position(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2653,7 +2653,7 @@ impl PolymarketCore {
         m.insert("leverage".to_string(), self.safe_integer_k(position.clone(), "leverage", &[]));
         m.insert("unrealizedPnl".to_string(), self.safe_number_k(position.clone(), "unrealized_pnl", &[]));
         m.insert("realizedPnl".to_string(), Value::Null);
-        m.insert("contracts".to_string(), self.parse_number(crate::precise::Precise::stringAbs(&size), &[]));
+        m.insert("contracts".to_string(), self.parse_number(crate::precise::Precise::stringAbs(&size.clone().map(Value::from).unwrap_or(Value::Null)), &[]));
         m.insert("contractSize".to_string(), marketResolved.as_map().and_then(|__m| __m.get("contractSize")).cloned().unwrap_or(Value::Null));
         m.insert("marginRatio".to_string(), Value::Null);
         m.insert("liquidationPrice".to_string(), self.parse_number(self.omit_zero(self.safe_string_k(position.clone(), "liquidation_price", &[])), &[]));
@@ -2750,10 +2750,10 @@ impl PolymarketCore {
             paramsOmitted = self.omit(paramsOmitted.clone(), Value::Str("until".into()), &[]);
             request.insert("end_timestamp".into(), until);
         }
-        let mut clientOrderId: Value = self.safe_string_k(paramsOmitted.clone(), "clientOrderId", &[]);
-        if (clientOrderId != Value::Null) {
+        let mut clientOrderId: Option<String> = self.safe_string_k_opt(paramsOmitted.clone(), "clientOrderId", &[]);
+        if (clientOrderId.is_some()) {
             paramsOmitted = self.omit(paramsOmitted.clone(), Value::Str("clientOrderId".into()), &[]);
-            request.insert("client_order_id".into(), clientOrderId);
+            request.insert("client_order_id".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
         }
         let __ws_arg_7 = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut response: Value = self.private_get_account_orders(&[__ws_arg_7]).await;
@@ -2950,12 +2950,12 @@ impl PolymarketCore {
             let mut __for_first_1099: bool = true;
             while { if !__for_first_1099 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1099 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             let mut entry: Value = data.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
-            let mut marketId: Value = self.safe_string_k(entry.clone(), "instrument_id", &[]);
+            let mut marketId: Option<String> = self.safe_string_k_opt(entry.clone(), "instrument_id", &[]);
             let mut timestamp: Value = self.safe_integer_k(entry.clone(), "timestamp", &[]);
             result.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("info".to_string(), entry.clone());
-                    m.insert("symbol".to_string(), self.safe_symbol(marketId, &[market.clone()]));
+                    m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[market.clone()]));
                     m.insert("code".to_string(), self.safe_currency_code(self.safe_string_k(entry.clone(), "funding_asset", &[]), &[]));
                     m.insert("timestamp".to_string(), timestamp.clone());
                     m.insert("datetime".to_string(), self.iso8601(timestamp));
@@ -3015,20 +3015,20 @@ impl PolymarketCore {
         //         "created_timestamp": 1788546565789
         //     }
         //
-        let mut withdrawId: Value = self.safe_string_k(transaction.clone(), "withdraw_id", &[]);
-        let mut type_var: Value = (if (withdrawId != Value::Null) { Value::Str("withdrawal".into()) } else { Value::Str("deposit".into()) });
-        let mut currencyId: Value = self.safe_string_k(transaction.clone(), "asset", &[]);
-        let mut code: Value = self.safe_currency_code(currencyId, &[currency]);
+        let mut withdrawId: Option<String> = self.safe_string_k_opt(transaction.clone(), "withdraw_id", &[]);
+        let mut type_var: Value = (if (withdrawId.is_some()) { Value::Str("withdrawal".into()) } else { Value::Str("deposit".into()) });
+        let mut currencyId: Option<String> = self.safe_string_k_opt(transaction.clone(), "asset", &[]);
+        let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[currency]);
         let mut timestamp: Value = self.safe_integer_k(transaction.clone(), "created_timestamp", &[]);
         let mut rawHash: Value = self.safe_string_k(transaction.clone(), "hash", &[]);
         // the venue reports the literal 0x prefix while the transaction is unmined
         let mut txid: Value = (if (rawHash.as_str() == Some("0x")) { Value::Null } else { rawHash });
-        let mut feeCost: Value = self.safe_string_k(transaction.clone(), "fee", &[]);
+        let mut feeCost: Option<String> = self.safe_string_k_opt(transaction.clone(), "fee", &[]);
         let mut fee: Value = Value::Null;
-        if (feeCost != Value::Null) {
+        if (feeCost.is_some()) {
             fee = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("cost".to_string(), self.parse_number(feeCost, &[]));
+                    m.insert("cost".to_string(), self.parse_number(feeCost.map(Value::from).unwrap_or(Value::Null), &[]));
                     m.insert("currency".to_string(), code.clone());
                 m
             });
@@ -3036,7 +3036,7 @@ impl PolymarketCore {
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), transaction.clone());
-        m.insert("id".to_string(), withdrawId);
+        m.insert("id".to_string(), withdrawId.map(Value::from).unwrap_or(Value::Null));
         m.insert("txid".to_string(), txid);
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
@@ -3179,7 +3179,7 @@ impl PolymarketCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut tokenAddress: Value = self.safe_string_k(collateral.clone(), "address", &[]);
+        let mut tokenAddress: Option<String> = self.safe_string_k_opt(collateral.clone(), "address", &[]);
         let mut decimals: Value = self.safe_string_k(collateral, "decimals", &[Value::Str("6".into())]);
         let mut precision: Value = self.parse_precision(&[decimals]);
         // the signed amount is denominated using raw base units of the token
@@ -3240,7 +3240,7 @@ impl PolymarketCore {
         let mut message: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("account".to_string(), owner.clone());
-                m.insert("token".to_string(), tokenAddress.clone());
+                m.insert("token".to_string(), tokenAddress.clone().map(Value::from).unwrap_or(Value::Null));
                 m.insert("amount".to_string(), self.parse_to_int(baseUnits.clone()));
                 m.insert("fee".to_string(), Value::Int(0));
                 m.insert("to".to_string(), address.clone());
@@ -3258,7 +3258,7 @@ impl PolymarketCore {
         m.insert("args".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("account".to_string(), owner);
-        m.insert("token".to_string(), tokenAddress);
+        m.insert("token".to_string(), tokenAddress.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), baseUnits);
         m.insert("to".to_string(), address);
     m
@@ -3330,8 +3330,8 @@ impl PolymarketCore {
 
     pub fn parse_leverage(&self, mut leverage: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        let mut marketId: Value = self.safe_string_k(leverage.clone(), "instrument_id", &[]);
-        let mut marketResolved: Value = self.safe_market(&[marketId, market]);
+        let mut marketId: Option<String> = self.safe_string_k_opt(leverage.clone(), "instrument_id", &[]);
+        let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]);
         let mut isCross: Value = self.safe_bool_k(leverage.clone(), "cross", &[]);
         let mut marginMode: Value = Value::Null;
         if (isCross != Value::Null) {
@@ -3779,8 +3779,8 @@ impl PolymarketCore {
             m
         });
         let mut encoded: Value = self.eth_encode_structured_data(Value::Map(domain), Value::Map(messageTypes), Value::Map(message));
-        let mut proxyPrivateKey: Value = self.safe_string_k(credentials, "privateKey", &[]);
-        let mut signature: Value = self.sign_message(encoded, proxyPrivateKey);
+        let mut proxyPrivateKey: Option<String> = self.safe_string_k_opt(credentials, "privateKey", &[]);
+        let mut signature: Value = self.sign_message(encoded, proxyPrivateKey.map(Value::from).unwrap_or(Value::Null));
         let mut envelope: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("op".to_string(), bodyOp);
@@ -3980,11 +3980,11 @@ impl PolymarketCore {
 })]);
         }
         let mut status: Option<String> = self.safe_string_k(source.clone(), "status", &[]).as_str().map(str::to_owned);
-        let mut error: Value = self.safe_string_k(source, "error", &[]);
-        if (status.as_deref() == Some("err")) || (error != Value::Null) {
+        let mut error: Option<String> = self.safe_string_k_opt(source, "error", &[]);
+        if (status.as_deref() == Some("err")) || (error.is_some()) {
             let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body).into());
-            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), error.clone(), feedback.clone());
-            self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), error, feedback.clone());
+            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), error.clone().map(Value::from).unwrap_or(Value::Null), feedback.clone());
+            self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), error.map(Value::from).unwrap_or(Value::Null), feedback.clone());
             if (code.as_f64() == Some(400.0)) {
                 panic!("{}", crate::exchange_errors::bad_request(feedback));
             }

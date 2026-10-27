@@ -284,8 +284,8 @@ impl MudrexCore {
  * @description injects the broker Partner-Id into the websocket connection headers
  */
     pub fn set_broker_headers(&mut self) {
-        let mut brokerId: Value = self.safe_string_k(self.options.clone(), "broker", &[]);
-        if (brokerId == Value::Null) {
+        let mut brokerId: Option<String> = self.safe_string_k_opt(self.options.clone(), "broker", &[]);
+        if (brokerId.is_none()) {
             return;
         }
         let mut wsOptions: indexmap::IndexMap<String, Value> = self.safe_dict_k(self.options.clone(), "ws", &[Value::Map({
@@ -300,7 +300,7 @@ impl MudrexCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]).as_map().cloned().unwrap_or_default();
-        headers.insert("Partner-Id".into(), brokerId);
+        headers.insert("Partner-Id".into(), brokerId.map(Value::from).unwrap_or(Value::Null));
         innerOptions.insert("headers".into(), Value::Map(headers));
         wsOptions.insert("options".into(), Value::Map(innerOptions));
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("ws".into(), Value::Map(wsOptions)); }
@@ -381,9 +381,9 @@ impl MudrexCore {
                 let mut m = indexmap::IndexMap::new();
                 m
             });
-            let mut tickerSymbol: Value = self.safe_string_k(ticker.clone(), "symbol", &[]);
-            if (tickerSymbol != Value::Null) {
-                result.insert(crate::runtime::stringify_param(&tickerSymbol), ticker);
+            let mut tickerSymbol: Option<String> = self.safe_string_k_opt(ticker.clone(), "symbol", &[]);
+            if (tickerSymbol.is_some()) {
+                result.insert(tickerSymbol.as_deref().unwrap_or("null").to_string(), ticker);
             }
             return Value::Map(result);
         }

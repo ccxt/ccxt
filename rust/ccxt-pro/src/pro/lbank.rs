@@ -537,8 +537,8 @@ impl LbankCore {
     m
 }) });
             let mut timeframeId: Value = self.safe_string_k(rawOHLCV.clone(), "slot", &[Value::Str("".into())]);
-            let mut datetime: Value = self.safe_string_k(rawOHLCV.clone(), "t", &[]);
-            let mut parsed: Value = Value::from(vec![self.parse8601(datetime), self.safe_number_k(rawOHLCV.clone(), "o", &[]), self.safe_number_k(rawOHLCV.clone(), "h", &[]), self.safe_number_k(rawOHLCV.clone(), "l", &[]), self.safe_number_k(rawOHLCV.clone(), "c", &[]), self.safe_number_k(rawOHLCV, "v", &[])]);
+            let mut datetime: Option<String> = self.safe_string_k_opt(rawOHLCV.clone(), "t", &[]);
+            let mut parsed: Value = Value::from(vec![self.parse8601(datetime.map(Value::from).unwrap_or(Value::Null)), self.safe_number_k(rawOHLCV.clone(), "o", &[]), self.safe_number_k(rawOHLCV.clone(), "h", &[]), self.safe_number_k(rawOHLCV.clone(), "l", &[]), self.safe_number_k(rawOHLCV.clone(), "c", &[]), self.safe_number_k(rawOHLCV, "v", &[])]);
             let mut timeframe: Value = self.find_timeframe(timeframeId.clone(), &[timeframes]);
             let mut ohlcvsForSymbol: Value = self.safe_dict(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -684,15 +684,15 @@ impl LbankCore {
         //         "TS":"2019-07-01T11:33:55.188"
         //     }
         //
-        let mut marketId: Value = self.safe_string_k(ticker.clone(), "pair", &[]);
-        let mut symbol: Value = self.safe_symbol(marketId, &[market.clone()]);
-        let mut datetime: Value = self.safe_string_k(ticker.clone(), "TS", &[]);
+        let mut marketId: Option<String> = self.safe_string_k_opt(ticker.clone(), "pair", &[]);
+        let mut symbol: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[market.clone()]);
+        let mut datetime: Option<String> = self.safe_string_k_opt(ticker.clone(), "TS", &[]);
         let mut tickerData: Value = self.safe_dict_k(ticker.clone(), "tick", &[]);
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol);
-        m.insert("timestamp".to_string(), self.parse8601(datetime.clone()));
-        m.insert("datetime".to_string(), datetime);
+        m.insert("timestamp".to_string(), self.parse8601(datetime.clone().map(Value::from).unwrap_or(Value::Null)));
+        m.insert("datetime".to_string(), datetime.map(Value::from).unwrap_or(Value::Null));
         m.insert("high".to_string(), self.safe_string_k(tickerData.clone(), "high", &[]));
         m.insert("low".to_string(), self.safe_string_k(tickerData.clone(), "low", &[]));
         m.insert("bid".to_string(), Value::Null);
@@ -879,9 +879,9 @@ impl LbankCore {
         }
         let mut rawSide: Value = self.safe_string2(trade.clone(), Value::Str("direction".into()), Value::Int(3), &[]);
         let mut parts: Value = Value::Array(rawSide.as_str().map(|__s| __s.split("_").map(Value::from).collect()).unwrap_or_default());
-        let mut firstPart: Value = self.safe_string(parts.clone(), Value::Int(0), &[]);
+        let mut firstPart: Option<String> = self.safe_string_opt(parts.clone(), Value::Int(0), &[]);
         let mut secondPart: Option<String> = self.safe_string(parts, Value::Int(1), &[]).as_str().map(str::to_owned);
-        let mut side: Value = firstPart;
+        let mut side: Value = firstPart.map(Value::from).unwrap_or(Value::Null);
         // reverse if it was 'maker'
         if (secondPart.is_some()) && (secondPart.as_deref() == Some("maker")) {
             side = (if (side.as_str() == Some("buy")) { Value::Str("sell".into()) } else { Value::Str("buy".into()) });
@@ -1040,20 +1040,20 @@ impl LbankCore {
         })]);
         let mut rawType: Value = self.safe_string_k(orderUpdate.clone(), "type", &[Value::Str("".into())]);
         let mut typeParts: Value = Value::Array(rawType.as_str().map(|__s| __s.split("_").map(Value::from).collect()).unwrap_or_default());
-        let mut side: Value = self.safe_string(typeParts.clone(), Value::Int(0), &[]);
+        let mut side: Option<String> = self.safe_string_opt(typeParts.clone(), Value::Int(0), &[]);
         let mut exchangeType: Option<String> = self.safe_string(typeParts, Value::Int(1), &[]).as_str().map(str::to_owned);
         let mut type_var: Value = Value::Null;
         if (rawType.as_str() != Some("buy")) && (rawType.as_str() != Some("sell")) {
             type_var = (if (exchangeType.as_deref() == Some("market")) { Value::Str("market".into()) } else { Value::Str("limit".into()) });
         }
-        let mut marketId: Value = self.safe_string_k(order.clone(), "pair", &[]);
-        let mut symbol: Value = self.safe_symbol(marketId, &[market.clone(), Value::Str("_".into())]);
+        let mut marketId: Option<String> = self.safe_string_k_opt(order.clone(), "pair", &[]);
+        let mut symbol: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[market.clone(), Value::Str("_".into())]);
         let mut timestamp: Value = self.safe_integer_k(orderUpdate.clone(), "updateTime", &[]);
-        let mut status: Value = self.safe_string_k(orderUpdate.clone(), "orderStatus", &[]);
-        let mut orderAmount: Value = self.safe_string_k(orderUpdate.clone(), "orderAmt", &[]);
+        let mut status: Option<String> = self.safe_string_k_opt(orderUpdate.clone(), "orderStatus", &[]);
+        let mut orderAmount: Option<String> = self.safe_string_k_opt(orderUpdate.clone(), "orderAmt", &[]);
         let mut cost: Value = Value::Null;
-        if (type_var.as_str() == Some("market")) && (side.as_str() == Some("buy")) {
-            cost = orderAmount;
+        if (type_var.as_str() == Some("market")) && (side.as_deref() == Some("buy")) {
+            cost = orderAmount.map(Value::from).unwrap_or(Value::Null);
         }
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1066,14 +1066,14 @@ impl LbankCore {
         m.insert("lastUpdateTimestamp".to_string(), self.safe_integer_k(orderUpdate.clone(), "updateTime", &[]));
         m.insert("symbol".to_string(), symbol);
         m.insert("type".to_string(), type_var);
-        m.insert("side".to_string(), side);
+        m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), self.safe_string2(orderUpdate.clone(), Value::Str("price".into()), Value::Str("orderPrice".into()), &[]));
         m.insert("stopPrice".to_string(), Value::Null);
         m.insert("average".to_string(), self.safe_string_k(orderUpdate.clone(), "avgPrice", &[]));
         m.insert("amount".to_string(), self.safe_string2(orderUpdate.clone(), Value::Str("amount".into()), Value::Str("orderAmt".into()), &[]));
         m.insert("remaining".to_string(), self.safe_string_k(orderUpdate.clone(), "remainAmt", &[]));
         m.insert("filled".to_string(), self.safe_string_k(orderUpdate, "accAmt", &[]));
-        m.insert("status".to_string(), self.parse_ws_order_status(status).map(Value::from).unwrap_or(Value::Null));
+        m.insert("status".to_string(), self.parse_ws_order_status(status.map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), Value::Null);
         m.insert("cost".to_string(), cost);
         m.insert("trades".to_string(), Value::Null);
@@ -1155,8 +1155,8 @@ impl LbankCore {
         if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("info".into(), data.clone()); }
         if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("timestamp".into(), timestamp); }
         if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("datetime".into(), datetime); }
-        let mut currencyId: Value = self.safe_string_k(data.clone(), "assetCode", &[]);
-        let mut code: Value = self.safe_currency_code(currencyId, &[]);
+        let mut currencyId: Option<String> = self.safe_string_k_opt(data.clone(), "assetCode", &[]);
+        let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
         let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
         account.insert("free".into(), self.safe_string_k(data.clone(), "free", &[]));
         account.insert("used".into(), self.safe_string_k(data.clone(), "freeze", &[]));
@@ -1451,8 +1451,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     //
                     //    {"result": "true"}
                     //
-                    let mut result: Value = self.safe_string_k(response, "result", &[]);
-                    if (result.as_str() != Some("true")) {
+                    let mut result: Option<String> = self.safe_string_k_opt(response, "result", &[]);
+                    if (result.as_deref() != Some("true")) {
                         panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" failed to refresh the SubscribeKey".into()))));
                     }
                     add_element_to_object(get_value_mut(&mut __ch.subscriptions, &Value::Str("authenticated".into())), &Value::Str("expires".into()), self.sum(&[now, Value::Int(3300000)])); // SubscribeKey lasts one hour, refresh it 5 minutes before it expires

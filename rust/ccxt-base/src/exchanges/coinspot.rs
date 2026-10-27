@@ -1041,7 +1041,7 @@ impl CoinspotCore {
         //     }
         //
         let mut symbol: Value = self.safe_symbol(Value::Null, &[market.clone()]);
-        let mut last: Value = self.safe_string_k(ticker.clone(), "last", &[]);
+        let mut last: Option<String> = self.safe_string_k_opt(ticker.clone(), "last", &[]);
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol);
@@ -1055,8 +1055,8 @@ impl CoinspotCore {
         m.insert("askVolume".to_string(), Value::Null);
         m.insert("vwap".to_string(), Value::Null);
         m.insert("open".to_string(), Value::Null);
-        m.insert("close".to_string(), last.clone());
-        m.insert("last".to_string(), last);
+        m.insert("close".to_string(), last.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("last".to_string(), last.map(Value::from).unwrap_or(Value::Null));
         m.insert("previousClose".to_string(), Value::Null);
         m.insert("change".to_string(), Value::Null);
         m.insert("percentage".to_string(), Value::Null);
@@ -1335,24 +1335,24 @@ impl CoinspotCore {
         let mut timestamp: Value = Value::Null;
         let mut priceString: Value = Value::Null;
         let mut fee: Value = Value::Null;
-        let mut audTotal: Value = self.safe_string_k(trade.clone(), "audtotal", &[]);
-        let mut costString: Value = self.safe_string_k(trade.clone(), "total", &[audTotal]);
-        let mut side: Value = self.safe_string_k(trade.clone(), "side", &[]);
-        let mut amountString: Value = self.safe_string_k(trade.clone(), "amount", &[]);
-        let mut marketId: Value = self.safe_string_k(trade.clone(), "market", &[]);
-        let mut symbol: Value = self.safe_symbol(marketId, &[market.clone(), Value::Str("/".into())]);
+        let mut audTotal: Option<String> = self.safe_string_k_opt(trade.clone(), "audtotal", &[]);
+        let mut costString: Value = self.safe_string_k(trade.clone(), "total", &[audTotal.map(Value::from).unwrap_or(Value::Null)]);
+        let mut side: Option<String> = self.safe_string_k_opt(trade.clone(), "side", &[]);
+        let mut amountString: Option<String> = self.safe_string_k_opt(trade.clone(), "amount", &[]);
+        let mut marketId: Option<String> = self.safe_string_k_opt(trade.clone(), "market", &[]);
+        let mut symbol: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[market.clone(), Value::Str("/".into())]);
         let mut solddate: Value = self.safe_integer_k(trade.clone(), "solddate", &[]);
         if (solddate != Value::Null) {
             priceString = self.safe_string_k(trade.clone(), "rate", &[]);
             timestamp = solddate;
         }  else {
-            priceString = crate::precise::Precise::stringDiv(&costString, &amountString);
-            let mut createdString: Value = self.safe_string_k(trade.clone(), "created", &[]);
-            timestamp = self.parse8601(createdString);
-            let mut audfeeExGst: Value = self.safe_string_k(trade.clone(), "audfeeExGst", &[]);
-            let mut audGst: Value = self.safe_string_k(trade.clone(), "audGst", &[]);
+            priceString = crate::precise::Precise::stringDiv(&costString, &amountString.clone().map(Value::from).unwrap_or(Value::Null));
+            let mut createdString: Option<String> = self.safe_string_k_opt(trade.clone(), "created", &[]);
+            timestamp = self.parse8601(createdString.map(Value::from).unwrap_or(Value::Null));
+            let mut audfeeExGst: Option<String> = self.safe_string_k_opt(trade.clone(), "audfeeExGst", &[]);
+            let mut audGst: Option<String> = self.safe_string_k_opt(trade.clone(), "audGst", &[]);
             // The transaction fee which consumers pay is inclusive of GST by default
-            let mut feeCost: Value = crate::precise::Precise::stringAdd(&audfeeExGst, &audGst);
+            let mut feeCost: Value = crate::precise::Precise::stringAdd(&audfeeExGst.clone().map(Value::from).unwrap_or(Value::Null), &audGst.clone().map(Value::from).unwrap_or(Value::Null));
             let mut feeCurrencyId: Value = Value::Str("AUD".into());
             fee = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -1370,10 +1370,10 @@ impl CoinspotCore {
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("order".to_string(), Value::Null);
         m.insert("type".to_string(), Value::Null);
-        m.insert("side".to_string(), side);
+        m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("takerOrMaker".to_string(), Value::Null);
         m.insert("price".to_string(), self.parse_number(priceString, &[]));
-        m.insert("amount".to_string(), self.parse_number(amountString, &[]));
+        m.insert("amount".to_string(), self.parse_number(amountString.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("cost".to_string(), self.parse_number(costString, &[]));
         m.insert("fee".to_string(), fee);
     m
@@ -1520,11 +1520,11 @@ impl CoinspotCore {
         if (version != Value::Null) {
             fullPath = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/".into()), version).into()), endpoint).into());
         }
-        let mut apiUrl: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), accessType.clone(), &[]);
-        if (apiUrl == Value::Null) {
+        let mut apiUrl: Option<String> = self.safe_string_opt(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), accessType.clone(), &[]);
+        if (apiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
-        let mut url: Value = Value::Str(format!("{}{}", apiUrl, fullPath).into());
+        let mut url: Value = Value::Str(format!("{}{}", apiUrl.map(Value::from).unwrap_or(Value::Null), fullPath).into());
         if (accessType.as_str() == Some("private")) {
             self.check_required_credentials(&[]);
             // coinspot requires an increasing nonce

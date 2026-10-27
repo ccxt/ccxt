@@ -640,11 +640,11 @@ impl IndodaxCore {
             let mut __for_first_834: bool = true;
             while { if !__for_first_834 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_834 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawMarkets.len() as i64) as f64) } {
             let mut market: Value = rawMarkets.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-            let mut id: Value = self.safe_string_k(market.clone(), "id", &[]);
-            let mut baseId: Value = self.safe_string_k(market.clone(), "traded_currency", &[]);
-            let mut quoteId: Value = self.safe_string_k(market.clone(), "base_currency", &[]);
-            let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
-            let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
+            let mut id: Option<String> = self.safe_string_k_opt(market.clone(), "id", &[]);
+            let mut baseId: Option<String> = self.safe_string_k_opt(market.clone(), "traded_currency", &[]);
+            let mut quoteId: Option<String> = self.safe_string_k_opt(market.clone(), "base_currency", &[]);
+            let mut base: Value = self.safe_currency_code(baseId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+            let mut quote: Value = self.safe_currency_code(quoteId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             if (base == Value::Null) || (quote == Value::Null) {
                 continue;
             }
@@ -652,13 +652,13 @@ impl IndodaxCore {
             let mut inMaintenance: bool = (isMaintenance.is_some()) && (isMaintenance != Some(0));
             result.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("id".to_string(), id);
+                    m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
                     m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into()));
                     m.insert("base".to_string(), base);
                     m.insert("quote".to_string(), quote);
                     m.insert("settle".to_string(), Value::Null);
-                    m.insert("baseId".to_string(), baseId);
-                    m.insert("quoteId".to_string(), quoteId);
+                    m.insert("baseId".to_string(), baseId.map(Value::from).unwrap_or(Value::Null));
+                    m.insert("quoteId".to_string(), quoteId.map(Value::from).unwrap_or(Value::Null));
                     m.insert("settleId".to_string(), Value::Null);
                     m.insert("type".to_string(), Value::Str("spot".into()));
                     m.insert("spot".to_string(), Value::Bool(true));
@@ -838,7 +838,7 @@ impl IndodaxCore {
         let quoteId: String = self.safe_string_lower_k_opt(market.clone(), "quoteId", &[Value::Str("".into())]).unwrap_or_default();
         let mut baseVolume: Value = Value::Str(format!("{}{}", Value::Str("vol_".into()), baseId).into());
         let mut quoteVolume: Value = Value::Str(format!("{}{}", Value::Str("vol_".into()), quoteId).into());
-        let mut last: Value = self.safe_string_k(ticker.clone(), "last", &[]);
+        let mut last: Option<String> = self.safe_string_k_opt(ticker.clone(), "last", &[]);
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol);
@@ -852,8 +852,8 @@ impl IndodaxCore {
         m.insert("askVolume".to_string(), Value::Null);
         m.insert("vwap".to_string(), Value::Null);
         m.insert("open".to_string(), Value::Null);
-        m.insert("close".to_string(), last.clone());
-        m.insert("last".to_string(), last);
+        m.insert("close".to_string(), last.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("last".to_string(), last.map(Value::from).unwrap_or(Value::Null));
         m.insert("previousClose".to_string(), Value::Null);
         m.insert("change".to_string(), Value::Null);
         m.insert("percentage".to_string(), Value::Null);
@@ -1148,16 +1148,16 @@ impl IndodaxCore {
         //        }
         //    }
         //
-        let mut side: Value = self.safe_string_k(order.clone(), "type", &[]);
+        let mut side: Option<String> = self.safe_string_k_opt(order.clone(), "type", &[]);
         let mut status: Value = self.parse_order_status(self.safe_string_k(order.clone(), "status", &[Value::Str("open".into())])).map(Value::from).unwrap_or(Value::Null);
         let mut symbol: Value = Value::Null;
         let mut cost: Value = Value::Null;
-        let mut price: Value = self.safe_string_k(order.clone(), "price", &[]);
+        let mut price: Option<String> = self.safe_string_k_opt(order.clone(), "price", &[]);
         let mut amount: Value = Value::Null;
         let mut remaining: Value = Value::Null;
         let mut filled: Value = Value::Null;
-        let mut marketId: Value = self.safe_string_k(order.clone(), "pair", &[]);
-        let mut marketResolved: Value = self.safe_market(&[marketId, market]);
+        let mut marketId: Option<String> = self.safe_string_k_opt(order.clone(), "pair", &[]);
+        let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]);
         if (marketResolved != Value::Null) {
             symbol = marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             let mut quoteId: Value = self.safe_string_k(marketResolved.clone(), "quoteId", &[Value::Str("".into())]);
@@ -1177,11 +1177,11 @@ impl IndodaxCore {
         }
         let mut timestamp: Value = self.safe_integer_k(order.clone(), "submit_time", &[]);
         let mut fee: Value = Value::Null;
-        let mut id: Value = self.safe_string_k(order.clone(), "order_id", &[]);
+        let mut id: Option<String> = self.safe_string_k_opt(order.clone(), "order_id", &[]);
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order.clone());
-        m.insert("id".to_string(), id);
+        m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), self.safe_string_k(order, "client_order_id", &[]));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
@@ -1190,8 +1190,8 @@ impl IndodaxCore {
         m.insert("type".to_string(), Value::Str("limit".into()));
         m.insert("timeInForce".to_string(), Value::Null);
         m.insert("postOnly".to_string(), Value::Null);
-        m.insert("side".to_string(), side);
-        m.insert("price".to_string(), price);
+        m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
+        m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
         m.insert("triggerPrice".to_string(), Value::Null);
         m.insert("cost".to_string(), cost);
         m.insert("average".to_string(), Value::Null);
@@ -1445,11 +1445,11 @@ impl IndodaxCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut id: Value = self.safe_string_k(data, "order_id", &[]);
+        let mut id: Option<String> = self.safe_string_k_opt(data, "order_id", &[]);
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), result);
-        m.insert("id".to_string(), id);
+        m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
     m
 }), &[market]);
 
@@ -1475,8 +1475,8 @@ impl IndodaxCore {
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires a symbol argument".into()))));
         }
-        let mut side: Value = self.safe_string_k(params.clone(), "side", &[]);
-        if (side == Value::Null) {
+        let mut side: Option<String> = self.safe_string_k_opt(params.clone(), "side", &[]);
+        if (side.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires an extra \"side\" param".into()))));
         }
         if (self.markets.clone() == Value::Null) {
@@ -1487,7 +1487,7 @@ impl IndodaxCore {
             let mut m = indexmap::IndexMap::new();
                 m.insert("order_id".to_string(), id);
                 m.insert("pair".to_string(), market.get("id").cloned().unwrap_or(Value::Null));
-                m.insert("type".to_string(), side);
+                m.insert("type".to_string(), side.map(Value::from).unwrap_or(Value::Null));
             m
         });
         let __ws_arg_9 = self.extend(Value::Map(request), &[params]);
@@ -1556,12 +1556,12 @@ impl IndodaxCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut currencyId: Value = self.safe_string_k(data.clone(), "currency", &[]);
+        let mut currencyId: Option<String> = self.safe_string_k_opt(data.clone(), "currency", &[]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response);
         m.insert("rate".to_string(), self.safe_number_k(data, "withdraw_fee", &[]));
-        m.insert("currency".to_string(), self.safe_currency_code(currencyId, &[currency]));
+        m.insert("currency".to_string(), self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[currency]));
     m
 });
 
@@ -1850,7 +1850,7 @@ impl IndodaxCore {
         //         "deposit_id": "3602369",
         //         "tx": "c816aeb35a5b42f389970325a32aff69bb6b2126784dcda8f23b9dd9570d6573"
         //     },
-        let mut status: Value = self.safe_string_k(transaction.clone(), "status", &[]);
+        let mut status: Option<String> = self.safe_string_k_opt(transaction.clone(), "status", &[]);
         let mut timestamp: Value = self.safe_timestamp2(transaction.clone(), Value::Str("success_time".into()), Value::Str("submit_time".into()), &[]);
         let mut depositId: Option<String> = self.safe_string_k(transaction.clone(), "deposit_id", &[]).as_str().map(str::to_owned);
         let mut feeCost: Value = self.safe_number_k(transaction.clone(), "fee", &[]);
@@ -1877,7 +1877,7 @@ impl IndodaxCore {
         m.insert("amount".to_string(), self.safe_number_n(transaction.clone(), Value::from(vec![Value::Str("amount".into()), Value::Str("withdraw_amount".into()), Value::Str("deposit_amount".into())]), &[]));
         m.insert("type".to_string(), (if (depositId.is_none()) { Value::Str("withdraw".into()) } else { Value::Str("deposit".into()) }));
         m.insert("currency".to_string(), self.safe_currency_code(Value::Null, &[currency]));
-        m.insert("status".to_string(), self.parse_transaction_status(status).map(Value::from).unwrap_or(Value::Null));
+        m.insert("status".to_string(), self.parse_transaction_status(status.map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null));
         m.insert("updated".to_string(), Value::Null);
         m.insert("tagFrom".to_string(), Value::Null);
         m.insert("tag".to_string(), Value::Null);
@@ -1972,9 +1972,9 @@ impl IndodaxCore {
             while { if !__for_first_841 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_841 = false; i.as_f64().unwrap_or(f64::NAN) < ((addressKeys.len() as i64) as f64) } {
             let mut marketId: Value = addressKeys.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
             let mut code: Value = self.safe_currency_code(marketId.clone(), &[]);
-            let mut address: Value = self.safe_string(addresses.clone(), marketId.clone(), &[]);
-            if (address != Value::Null) && ((codes == Value::Null) || self.in_array(code.clone(), codes.clone()).as_bool() == Some(true)) {
-                self.check_address(&[address.clone()]);
+            let mut address: Option<String> = self.safe_string_opt(addresses.clone(), marketId.clone(), &[]);
+            if (address.is_some()) && ((codes == Value::Null) || self.in_array(code.clone(), codes.clone()).as_bool() == Some(true)) {
+                self.check_address(&[address.clone().map(Value::from).unwrap_or(Value::Null)]);
                 let mut network: Value = Value::Null;
                 if (matches!((&networks, &marketId), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                     let mut networkId: Value = self.safe_string(networks.clone(), marketId.clone(), &[]);
@@ -2014,7 +2014,7 @@ impl IndodaxCore {
 }));
                             m.insert("currency".to_string(), code);
                             m.insert("network".to_string(), finalNetwork);
-                            m.insert("address".to_string(), address);
+                            m.insert("address".to_string(), address.clone().map(Value::from).unwrap_or(Value::Null));
                             m.insert("tag".to_string(), Value::Null);
                         m
                     }));
@@ -2037,20 +2037,20 @@ impl IndodaxCore {
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut apiName: Value = api.get(0).cloned().unwrap_or(Value::Null);
-        let mut apiUrl: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone(), &[]);
-        if (apiUrl == Value::Null) {
+        let mut apiUrl: Option<String> = self.safe_string_opt(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone(), &[]);
+        if (apiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
-        let mut url: Value = apiUrl.clone();
+        let mut url: Value = apiUrl.clone().map(Value::from).unwrap_or(Value::Null);
         let mut privateBody: Value = Value::Null;
         let mut privateHeaders: Value = Value::Null;
         let mut isPublic: bool = apiName.as_str() == Some("public");
         if isPublic {
             let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
             let mut requestPath: Value = Value::Str(format!("{}{}", Value::Str("/".into()), self.implode_params(path.clone(), params.clone())).into());
-            url = Value::Str(format!("{}{}", apiUrl, requestPath).into());
+            url = Value::Str(format!("{}{}", apiUrl.clone().map(Value::from).unwrap_or(Value::Null), requestPath).into());
             if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
-                url = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl, requestPath).into()), Value::Str("?".into())).into()), self.urlencode_with_array_repeat(query)).into());
+                url = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.map(Value::from).unwrap_or(Value::Null), requestPath).into()), Value::Str("?".into())).into()), self.urlencode_with_array_repeat(query)).into());
             }
         }  else {
             self.check_required_credentials(&[]);

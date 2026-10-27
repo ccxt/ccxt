@@ -687,8 +687,8 @@ impl LighterCore {
             }
             }
         }  else {
-            let mut marketId: Value = self.safe_string(Value::Map(data.clone()), Value::Str("market_id".into()), &[]);
-            let mut market: Value = self.safe_market(&[marketId]);
+            let mut marketId: Option<String> = self.safe_string_opt(Value::Map(data.clone()), Value::Str("market_id".into()), &[]);
+            let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
             let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             let mut ticker: Value = self.parse_ticker(Value::Map(data), &[market]);
             if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ticker.clone()); }
@@ -817,9 +817,9 @@ impl LighterCore {
                 let mut m = indexmap::IndexMap::new();
                 m
             });
-            let mut newTickerSymbol: Value = self.safe_string_k(newTicker.clone(), "symbol", &[]);
-            if (newTickerSymbol != Value::Null) {
-                result.insert(crate::runtime::stringify_param(&newTickerSymbol), newTicker);
+            let mut newTickerSymbol: Option<String> = self.safe_string_k_opt(newTicker.clone(), "symbol", &[]);
+            if (newTickerSymbol.is_some()) {
+                result.insert(newTickerSymbol.as_deref().unwrap_or("null").to_string(), newTicker);
             }
             return Value::Map(result);
         }
@@ -973,9 +973,9 @@ impl LighterCore {
         //     }
         //
         let mut timestamp: Value = self.safe_integer_k(trade.clone(), "timestamp", &[]);
-        let mut tradeId: Value = self.safe_string_k(trade.clone(), "trade_id", &[]);
-        let mut priceString: Value = self.safe_string_k(trade.clone(), "price", &[]);
-        let mut amountString: Value = self.safe_string_k(trade.clone(), "size", &[]);
+        let mut tradeId: Option<String> = self.safe_string_k_opt(trade.clone(), "trade_id", &[]);
+        let mut priceString: Option<String> = self.safe_string_k_opt(trade.clone(), "price", &[]);
+        let mut amountString: Option<String> = self.safe_string_k_opt(trade.clone(), "size", &[]);
         let mut isMakerAsk: Value = self.safe_bool_k(trade.clone(), "is_maker_ask", &[]);
         let mut side: Value = Value::Str("sell".into());
         if (isMakerAsk.as_bool() == Some(true)) {
@@ -984,7 +984,7 @@ impl LighterCore {
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), trade.clone());
-        m.insert("id".to_string(), tradeId);
+        m.insert("id".to_string(), tradeId.map(Value::from).unwrap_or(Value::Null));
         m.insert("order".to_string(), Value::Null);
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
@@ -992,8 +992,8 @@ impl LighterCore {
         m.insert("type".to_string(), Value::Null);
         m.insert("side".to_string(), side);
         m.insert("takerOrMaker".to_string(), Value::Str("taker".into()));
-        m.insert("price".to_string(), priceString);
-        m.insert("amount".to_string(), amountString);
+        m.insert("price".to_string(), priceString.map(Value::from).unwrap_or(Value::Null));
+        m.insert("amount".to_string(), amountString.map(Value::from).unwrap_or(Value::Null));
         m.insert("cost".to_string(), self.safe_string_k(trade, "usd_amount", &[]));
         m.insert("fee".to_string(), Value::Null);
     m
@@ -1169,10 +1169,10 @@ impl LighterCore {
         //     }
         //
         let mut timestamp: Value = self.safe_integer_k(trade.clone(), "timestamp", &[]);
-        let mut tradeId: Value = self.safe_string_k(trade.clone(), "trade_id", &[]);
-        let mut priceString: Value = self.safe_string_k(trade.clone(), "price", &[]);
-        let mut amountString: Value = self.safe_string_k(trade.clone(), "size", &[]);
-        let mut costString: Value = self.safe_string_k(trade.clone(), "usd_amount", &[]);
+        let mut tradeId: Option<String> = self.safe_string_k_opt(trade.clone(), "trade_id", &[]);
+        let mut priceString: Option<String> = self.safe_string_k_opt(trade.clone(), "price", &[]);
+        let mut amountString: Option<String> = self.safe_string_k_opt(trade.clone(), "size", &[]);
+        let mut costString: Option<String> = self.safe_string_k_opt(trade.clone(), "usd_amount", &[]);
         let mut isMakerAsk: Value = self.safe_bool_k(trade.clone(), "is_maker_ask", &[]);
         let mut accountIndex: Value = self.safe_integer_k(trade.clone(), "accountIndex", &[]);
         let mut bidAccountId: Value = self.safe_integer_k(trade.clone(), "bid_account_id", &[]);
@@ -1205,7 +1205,7 @@ impl LighterCore {
                 feeRateRaw = self.safe_string_k(trade.clone(), "taker_fee", &[]);
             }
             let mut feeRate: Value = (if (feeRateRaw != Value::Null) { crate::precise::Precise::stringDiv(&feeRateRaw, &Value::Str("1000000".into())) } else { Value::Str("0".into()) });
-            let mut feeAmount: Value = crate::precise::Precise::stringMul(&costString, &feeRate);
+            let mut feeAmount: Value = crate::precise::Precise::stringMul(&costString.clone().map(Value::from).unwrap_or(Value::Null), &feeRate);
             fee = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("cost".to_string(), feeAmount);
@@ -1217,7 +1217,7 @@ impl LighterCore {
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), trade);
-        m.insert("id".to_string(), tradeId);
+        m.insert("id".to_string(), tradeId.map(Value::from).unwrap_or(Value::Null));
         m.insert("order".to_string(), order);
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
@@ -1225,9 +1225,9 @@ impl LighterCore {
         m.insert("type".to_string(), Value::Null);
         m.insert("side".to_string(), side);
         m.insert("takerOrMaker".to_string(), takerOrMaker);
-        m.insert("price".to_string(), priceString);
-        m.insert("amount".to_string(), amountString);
-        m.insert("cost".to_string(), costString);
+        m.insert("price".to_string(), priceString.map(Value::from).unwrap_or(Value::Null));
+        m.insert("amount".to_string(), amountString.map(Value::from).unwrap_or(Value::Null));
+        m.insert("cost".to_string(), costString.map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), fee);
     m
 }), &[market]);
@@ -1310,9 +1310,9 @@ impl LighterCore {
                 if let Value::Dict(__d) = &mut tradeRaw { std::sync::Arc::make_mut(__d).insert("accountIndex".into(), accountIndex.clone()); }
                 let mut trade: Value = self.parse_ws_order_trade(tradeRaw, &[market.clone()]);
                 stored.append(trade.clone());
-                let mut symbol: Value = self.safe_string_k(trade, "symbol", &[]);
-                if (symbol != Value::Null) {
-                    let mut symbolSpecificMessageHash: Value = self.get_message_hash(Value::Str("myTrades".into()), &[symbol]).map(Value::from).unwrap_or(Value::Null);
+                let mut symbol: Option<String> = self.safe_string_k_opt(trade, "symbol", &[]);
+                if (symbol.is_some()) {
+                    let mut symbolSpecificMessageHash: Value = self.get_message_hash(Value::Str("myTrades".into()), &[symbol.map(Value::from).unwrap_or(Value::Null)]).map(Value::from).unwrap_or(Value::Null);
                     client.resolve(&[stored.clone(), symbolSpecificMessageHash]);
                 }
             }
@@ -1444,11 +1444,11 @@ impl LighterCore {
         if (isMakerAsk.as_bool() == Some(true)) {
             side = Value::Str("buy".into());
         }
-        let mut contracts: Value = self.safe_string_k(liquidation.clone(), "size", &[]);
-        let mut contractSize: Value = self.safe_string_k(market.clone(), "contractSize", &[]);
-        let mut price: Value = self.safe_string_k(liquidation.clone(), "price", &[]);
-        let mut baseValue: Value = crate::precise::Precise::stringMul(&contracts, &contractSize);
-        let mut quoteValue: Value = crate::precise::Precise::stringMul(&baseValue, &price);
+        let mut contracts: Option<String> = self.safe_string_k_opt(liquidation.clone(), "size", &[]);
+        let mut contractSize: Option<String> = self.safe_string_k_opt(market.clone(), "contractSize", &[]);
+        let mut price: Option<String> = self.safe_string_k_opt(liquidation.clone(), "price", &[]);
+        let mut baseValue: Value = crate::precise::Precise::stringMul(&contracts.clone().map(Value::from).unwrap_or(Value::Null), &contractSize.clone().map(Value::from).unwrap_or(Value::Null));
+        let mut quoteValue: Value = crate::precise::Precise::stringMul(&baseValue, &price.clone().map(Value::from).unwrap_or(Value::Null));
         if (market == Value::Null) {
             return Value::Null;
         }
@@ -1456,9 +1456,9 @@ impl LighterCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), liquidation);
         m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
-        m.insert("contracts".to_string(), contracts);
-        m.insert("contractSize".to_string(), contractSize);
-        m.insert("price".to_string(), price);
+        m.insert("contracts".to_string(), contracts.map(Value::from).unwrap_or(Value::Null));
+        m.insert("contractSize".to_string(), contractSize.map(Value::from).unwrap_or(Value::Null));
+        m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
         m.insert("side".to_string(), side);
         m.insert("baseValue".to_string(), baseValue);
         m.insert("quoteValue".to_string(), quoteValue);
@@ -1689,8 +1689,8 @@ impl LighterCore {
                 while { if !__for_first_485 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_485 = false; i.as_f64().unwrap_or(f64::NAN) < ((assetIds.len() as i64) as f64) } {
                 let mut assetId: Value = assetIds.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
                 let mut asset: Value = self.safe_dict(assets.clone(), assetId, &[]);
-                let mut codeId: Value = self.safe_string_k(asset.clone(), "symbol", &[]);
-                let mut code: Value = self.safe_currency_code(codeId, &[]);
+                let mut codeId: Option<String> = self.safe_string_k_opt(asset.clone(), "symbol", &[]);
+                let mut code: Value = self.safe_currency_code(codeId.map(Value::from).unwrap_or(Value::Null), &[]);
                 let mut account: Value = self.account();
                 if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".into(), self.safe_string_k(asset.clone(), "locked_balance", &[])); }
                 if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".into(), self.safe_string_k(asset, "balance", &[])); }
@@ -2088,11 +2088,11 @@ impl LighterCore {
             // message text, a changed text format falls through to the generic reject below
             let mut notSubscribedMessage: Value = self.safe_string_k(error.clone(), "message", &[Value::Str("".into())]);
             let mut messageParts: Value = Value::Array(notSubscribedMessage.as_str().map(|__s| __s.split(" : ").map(Value::from).collect()).unwrap_or_default());
-            let mut notSubscribedChannel: Value = self.safe_string(messageParts, Value::Int(1), &[]);
-            if (notSubscribedChannel != Value::Null) {
+            let mut notSubscribedChannel: Option<String> = self.safe_string_opt(messageParts, Value::Int(1), &[]);
+            if (notSubscribedChannel.is_some()) {
                 let mut unsubscribed: indexmap::IndexMap<String, Value> = ({
                     let mut m = indexmap::IndexMap::new();
-                        m.insert("channel".to_string(), notSubscribedChannel);
+                        m.insert("channel".to_string(), notSubscribedChannel.map(Value::from).unwrap_or(Value::Null));
                     m
                 });
                 self.handle_un_subscription(client.clone(), Value::Map(unsubscribed));
@@ -2101,11 +2101,11 @@ impl LighterCore {
         }
         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
             if (error != Value::Null) {
-                let mut code: Value = self.safe_string_k(error.clone(), "code", &[]);
-                let mut errorMessage: Value = self.safe_string_k(error.clone(), "message", &[]);
+                let mut code: Option<String> = self.safe_string_k_opt(error.clone(), "code", &[]);
+                let mut errorMessage: Option<String> = self.safe_string_k_opt(error.clone(), "message", &[]);
                 let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&message)).into());
-                self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), code.clone(), feedback.clone());
-                self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), errorMessage.clone(), feedback.clone());
+                self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), code.map(Value::from).unwrap_or(Value::Null), feedback.clone());
+                self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), errorMessage.map(Value::from).unwrap_or(Value::Null), feedback.clone());
                 panic!("{}", crate::exchange_errors::exchange_error(feedback));
             }
          #[allow(unreachable_code)] { Value::Null }}));
@@ -2120,12 +2120,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     while { if !__for_first_488 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_488 = false; i.as_f64().unwrap_or(f64::NAN) < ((subscriptionKeys.len() as i64) as f64) } {
                     let mut subscriptionHash: Value = subscriptionKeys.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
                     let mut subscriptionId: Value = self.safe_string(get_value(&__ch.subscriptions.clone(), &subscriptionHash), Value::Str("id".into()), &[]);
-                    let mut subscription: Value = self.safe_string(get_value(&__ch.subscriptions.clone(), &subscriptionHash), Value::Str("subscription".into()), &[]);
+                    let mut subscription: Option<String> = self.safe_string_opt(get_value(&__ch.subscriptions.clone(), &subscriptionHash), Value::Str("subscription".into()), &[]);
                     if (id == subscriptionId) {
                         client.reject(&[e.clone(), subscriptionHash]);
                         handled = true;
-                        if (subscription != Value::Null) {
-                            remove(&mut __ch.subscriptions, &subscription);
+                        if (subscription.is_some()) {
+                            remove(&mut __ch.subscriptions, &subscription.clone().map(Value::from).unwrap_or(Value::Null));
                         }
                     }
                 }
@@ -2219,17 +2219,17 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut channel: Value = (match message.get("channel") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) });
         let mut parts: Value = Value::Array(channel.as_str().map(|__s| __s.split(":").map(Value::from).collect()).unwrap_or_default());
         let mut name: Option<String> = self.safe_string(parts.clone(), Value::Int(0), &[Value::Str("".into())]).as_str().map(str::to_owned);
-        let mut channelId: Value = self.safe_string(parts, Value::Int(1), &[]);
+        let mut channelId: Option<String> = self.safe_string_opt(parts, Value::Int(1), &[]);
         if (name.as_deref() == Some("order_book")) {
-            self.handle_order_book_un_subscription(client.clone(), channelId.clone());
+            self.handle_order_book_un_subscription(client.clone(), channelId.clone().map(Value::from).unwrap_or(Value::Null));
         }  else if (name.as_deref() == Some("market_stats")) {
-            self.handle_ticker_un_subscription(client.clone(), channelId.clone());
+            self.handle_ticker_un_subscription(client.clone(), channelId.clone().map(Value::from).unwrap_or(Value::Null));
         }  else if (name.as_deref() == Some("trade")) {
-            self.handle_trades_un_subscription(client.clone(), channelId.clone());
+            self.handle_trades_un_subscription(client.clone(), channelId.clone().map(Value::from).unwrap_or(Value::Null));
         }  else if (name.as_deref() == Some("account_all_trades")) {
             self.handle_my_trades_un_subscription(client.clone());
         }  else if (name.as_deref() == Some("account_orders")) {
-            self.handle_orders_un_subscription(client.clone(), channelId);
+            self.handle_orders_un_subscription(client.clone(), channelId.map(Value::from).unwrap_or(Value::Null));
         }  else if (name.as_deref() == Some("account_all_orders")) {
             self.handle_all_orders_un_subscription(client);
         }

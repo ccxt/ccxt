@@ -460,17 +460,17 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
             let mut __for_first_194: bool = true;
             while { if !__for_first_194 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_194 = false; i.as_f64().unwrap_or(f64::NAN) < ((events.len() as i64) as f64) } {
             let mut event: Value = self.safe_value(events.clone(), i.clone(), &[]);
-            let mut id: Value = self.safe_string_k(event.clone(), "id", &[]);
-            let mut slug: Value = self.safe_string_k(event.clone(), "slug", &[]);
-            let mut handle: Value = self.safe_string_k(event.clone(), "event", &[]);
-            if (id != Value::Null) {
-                if let Value::Dict(__d) = &mut self.pred_mut().events { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&id), event.clone()); }
+            let mut id: Option<String> = self.safe_string_k_opt(event.clone(), "id", &[]);
+            let mut slug: Option<String> = self.safe_string_k_opt(event.clone(), "slug", &[]);
+            let mut handle: Option<String> = self.safe_string_k_opt(event.clone(), "event", &[]);
+            if (id.is_some()) {
+                if let Value::Dict(__d) = &mut self.pred_mut().events { std::sync::Arc::make_mut(__d).insert(id.as_deref().unwrap_or("null").to_string(), event.clone()); }
             }
-            if (handle != Value::Null) {
-                if let Value::Dict(__d) = &mut self.pred_mut().events { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&handle), event.clone()); }
+            if (handle.is_some()) {
+                if let Value::Dict(__d) = &mut self.pred_mut().events { std::sync::Arc::make_mut(__d).insert(handle.as_deref().unwrap_or("null").to_string(), event.clone()); }
             }
-            if (slug != Value::Null) {
-                if let Value::Dict(__d) = &mut self.pred_mut().events_by_slug { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&slug), event); }
+            if (slug.is_some()) {
+                if let Value::Dict(__d) = &mut self.pred_mut().events_by_slug { std::sync::Arc::make_mut(__d).insert(slug.as_deref().unwrap_or("null").to_string(), event); }
             }
         }
         }
@@ -1840,7 +1840,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut average: Value = self.omit_zero(self.safe_string_k(outcomeOrder.clone(), "average", &[]));
         let mut price: Value = self.omit_zero(self.safe_string_k(outcomeOrder.clone(), "price", &[]));
         let mut side: Value = self.safe_string_k(outcomeOrder.clone(), "side", &[]);
-        let mut status: Value = self.safe_string_k(outcomeOrder.clone(), "status", &[]);
+        let mut status: Option<String> = self.safe_string_k_opt(outcomeOrder.clone(), "status", &[]);
         let mut lastTradeTimestamp: Value = self.safe_integer_k(outcomeOrder.clone(), "lastTradeTimestamp", &[]);
         // parse embedded fills with the OUTCOME-aware parser (parseTrades would drop them on the symbol filter)
         let mut rawTrades: Value = self.safe_list_k(outcomeOrder.clone(), "trades", &[Value::from(vec![])]);
@@ -1859,13 +1859,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut __for_first_210: bool = true;
                 while { if !__for_first_210 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_210 = false; i.as_f64().unwrap_or(f64::NAN) < tradesLength } {
                 let mut trade: Value = trades.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-                let mut tradeAmount: Value = self.safe_string_k(trade.clone(), "amount", &[]);
-                if (tradeAmount != Value::Null) {
-                    filled = crate::precise::Precise::stringAdd(&filled, &tradeAmount);
+                let mut tradeAmount: Option<String> = self.safe_string_k_opt(trade.clone(), "amount", &[]);
+                if (tradeAmount.is_some()) {
+                    filled = crate::precise::Precise::stringAdd(&filled, &tradeAmount.clone().map(Value::from).unwrap_or(Value::Null));
                 }
-                let mut tradeCost: Value = self.safe_string_k(trade.clone(), "cost", &[]);
-                if (tradeCost != Value::Null) {
-                    cost = crate::precise::Precise::stringAdd(&cost, &tradeCost);
+                let mut tradeCost: Option<String> = self.safe_string_k_opt(trade.clone(), "cost", &[]);
+                if (tradeCost.is_some()) {
+                    cost = crate::precise::Precise::stringAdd(&cost, &tradeCost.clone().map(Value::from).unwrap_or(Value::Null));
                 }
                 if (side == Value::Null) {
                     side = self.safe_string_k(trade.clone(), "side", &[]);
@@ -1916,13 +1916,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         // derive timeInForce/postOnly the same way the crypto safeOrder does (prediction has no
         // trigger orders, so the isTriggerOrSLTp guard collapses): a market order defaults to IOC
-        let mut orderType: Value = self.safe_string_k(outcomeOrder.clone(), "type", &[]);
+        let mut orderType: Option<String> = self.safe_string_k_opt(outcomeOrder.clone(), "type", &[]);
         let mut timeInForce: Value = self.safe_string_k(outcomeOrder.clone(), "timeInForce", &[]);
         // the venue flag and the derived one are each written once, so neither local widens
         let mut postOnlyValue: Value = self.safe_bool_k(outcomeOrder.clone(), "postOnly", &[]);
         let mut derivedPostOnly: Value = Value::Null;
         if (timeInForce == Value::Null) {
-            if (orderType.as_str() == Some("market")) {
+            if (orderType.as_deref() == Some("market")) {
                 timeInForce = Value::Str("IOC".into());
             }
             if (postOnlyValue.as_bool() == Some(true)) {
@@ -1944,8 +1944,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("datetime".to_string(), datetime);
                 m.insert("lastTradeTimestamp".to_string(), lastTradeTimestamp);
                 m.insert("lastUpdateTimestamp".to_string(), self.safe_integer_k(outcomeOrder.clone(), "lastUpdateTimestamp", &[]));
-                m.insert("status".to_string(), status);
-                m.insert("type".to_string(), orderType);
+                m.insert("status".to_string(), status.clone().map(Value::from).unwrap_or(Value::Null));
+                m.insert("type".to_string(), orderType.map(Value::from).unwrap_or(Value::Null));
                 m.insert("timeInForce".to_string(), timeInForce);
                 m.insert("side".to_string(), side);
                 m.insert("price".to_string(), self.parse_number(price, &[]));
@@ -1974,11 +1974,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     fn safe_prediction_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut outcomeObj = get_arg(optional_args, 0, Value::Null);
         // build the prediction trade directly (no crypto safeTrade, which leaks fields the type omits)
-        let mut price: Value = self.safe_string_k(trade.clone(), "price", &[]);
-        let mut amount: Value = self.safe_string_k(trade.clone(), "amount", &[]);
+        let mut price: Option<String> = self.safe_string_k_opt(trade.clone(), "price", &[]);
+        let mut amount: Option<String> = self.safe_string_k_opt(trade.clone(), "amount", &[]);
         let mut cost: Value = self.safe_string_k(trade.clone(), "cost", &[]);
-        if (cost == Value::Null) && (price != Value::Null) && (amount != Value::Null) {
-            cost = crate::precise::Precise::stringMul(&price, &amount);
+        if (cost == Value::Null) && (price.is_some()) && (amount.is_some()) {
+            cost = crate::precise::Precise::stringMul(&price.clone().map(Value::from).unwrap_or(Value::Null), &amount.clone().map(Value::from).unwrap_or(Value::Null));
         }
         let mut timestamp: Value = self.safe_integer_k(trade.clone(), "timestamp", &[]);
         let mut datetime: Value = self.safe_string_k(trade.clone(), "datetime", &[]);
@@ -1994,8 +1994,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("type".to_string(), self.safe_string_k(trade.clone(), "type", &[]));
                 m.insert("side".to_string(), self.safe_string_k(trade.clone(), "side", &[]));
                 m.insert("takerOrMaker".to_string(), self.safe_string_k(trade.clone(), "takerOrMaker", &[]));
-                m.insert("price".to_string(), self.parse_number(price, &[]));
-                m.insert("amount".to_string(), self.parse_number(amount, &[]));
+                m.insert("price".to_string(), self.parse_number(price.map(Value::from).unwrap_or(Value::Null), &[]));
+                m.insert("amount".to_string(), self.parse_number(amount.map(Value::from).unwrap_or(Value::Null), &[]));
                 m.insert("cost".to_string(), self.parse_number(cost, &[]));
                 m.insert("fee".to_string(), self.safe_dict_k(trade.clone(), "fee", &[]));
                 m.insert("realizedPnl".to_string(), self.safe_number_k(trade.clone(), "realizedPnl", &[]));
@@ -2208,8 +2208,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         }
         results = self.sort_by2(results.clone(), Value::Str("timestamp".into()), Value::Str("id".into()), &[]);
-        let mut outcomeHandle: Value = self.safe_string_k(outcomeObj, "outcome", &[]);
-        return self.filter_by_value_since_limit(results, Value::Str("outcome".into()), &[outcomeHandle, since, limit, Value::Str("timestamp".into()), Value::Bool(false)]);
+        let mut outcomeHandle: Option<String> = self.safe_string_k_opt(outcomeObj, "outcome", &[]);
+        return self.filter_by_value_since_limit(results, Value::Str("outcome".into()), &[outcomeHandle.map(Value::from).unwrap_or(Value::Null), since, limit, Value::Str("timestamp".into()), Value::Bool(false)]);
 
     Value::Null
 }
@@ -2247,8 +2247,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         }
         results = self.sort_by(results.clone(), Value::Str("timestamp".into()), &[]);
-        let mut outcomeHandle: Value = self.safe_string_k(outcomeObj, "outcome", &[]);
-        return self.filter_by_outcome_since_limit(results, &[outcomeHandle, since, limit]);
+        let mut outcomeHandle: Option<String> = self.safe_string_k_opt(outcomeObj, "outcome", &[]);
+        return self.filter_by_outcome_since_limit(results, &[outcomeHandle.map(Value::from).unwrap_or(Value::Null), since, limit]);
 
     Value::Null
 }
@@ -2310,24 +2310,24 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 
     fn amount_to_prediction_precision(&self, mut outcome: Value, mut amount: Value) -> Value {
         let mut outcomeObj: Value = self.outcome(outcome.clone());
-        let mut marketSymbol: Value = self.safe_string_k(outcomeObj, "market", &[]);
-        return self.amount_to_precision(marketSymbol, amount);
+        let mut marketSymbol: Option<String> = self.safe_string_k_opt(outcomeObj, "market", &[]);
+        return self.amount_to_precision(marketSymbol.map(Value::from).unwrap_or(Value::Null), amount);
 
     Value::Null
 }
 
     fn price_to_prediction_precision(&self, mut outcome: Value, mut price: Value) -> Value {
         let mut outcomeObj: Value = self.outcome(outcome.clone());
-        let mut marketSymbol: Value = self.safe_string_k(outcomeObj, "market", &[]);
-        return self.price_to_precision(marketSymbol, price);
+        let mut marketSymbol: Option<String> = self.safe_string_k_opt(outcomeObj, "market", &[]);
+        return self.price_to_precision(marketSymbol.map(Value::from).unwrap_or(Value::Null), price);
 
     Value::Null
 }
 
     fn cost_to_prediction_precision(&self, mut outcome: Value, mut cost: Value) -> Value {
         let mut outcomeObj: Value = self.outcome(outcome.clone());
-        let mut marketSymbol: Value = self.safe_string_k(outcomeObj, "market", &[]);
-        return self.cost_to_precision(marketSymbol, cost);
+        let mut marketSymbol: Option<String> = self.safe_string_k_opt(outcomeObj, "market", &[]);
+        return self.cost_to_precision(marketSymbol.map(Value::from).unwrap_or(Value::Null), cost);
 
     Value::Null
 }

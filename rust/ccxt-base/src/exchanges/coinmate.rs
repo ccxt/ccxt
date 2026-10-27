@@ -811,24 +811,24 @@ impl CoinmateCore {
             let mut __for_first_564: bool = true;
             while { if !__for_first_564 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_564 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             let mut market: Value = data.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
-            let mut id: Value = self.safe_string_k(market.clone(), "name", &[]);
-            let mut baseId: Value = self.safe_string_k(market.clone(), "firstCurrency", &[]);
-            let mut quoteId: Value = self.safe_string_k(market.clone(), "secondCurrency", &[]);
-            let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
-            let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
+            let mut id: Option<String> = self.safe_string_k_opt(market.clone(), "name", &[]);
+            let mut baseId: Option<String> = self.safe_string_k_opt(market.clone(), "firstCurrency", &[]);
+            let mut quoteId: Option<String> = self.safe_string_k_opt(market.clone(), "secondCurrency", &[]);
+            let mut base: Value = self.safe_currency_code(baseId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+            let mut quote: Value = self.safe_currency_code(quoteId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             if (base == Value::Null) || (quote == Value::Null) {
                 continue;
             }
             let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into());
             result.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("id".to_string(), id);
+                    m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
                     m.insert("symbol".to_string(), symbol);
                     m.insert("base".to_string(), base);
                     m.insert("quote".to_string(), quote);
                     m.insert("settle".to_string(), Value::Null);
-                    m.insert("baseId".to_string(), baseId);
-                    m.insert("quoteId".to_string(), quoteId);
+                    m.insert("baseId".to_string(), baseId.map(Value::from).unwrap_or(Value::Null));
+                    m.insert("quoteId".to_string(), quoteId.map(Value::from).unwrap_or(Value::Null));
                     m.insert("settleId".to_string(), Value::Null);
                     m.insert("type".to_string(), Value::Str("spot".into()));
                     m.insert("spot".to_string(), Value::Bool(true));
@@ -1238,8 +1238,8 @@ impl CoinmateCore {
         //     }
         //
         let mut timestamp: Value = self.safe_integer_k(transaction.clone(), "timestamp", &[]);
-        let mut currencyId: Value = self.safe_string_k(transaction.clone(), "amountCurrency", &[]);
-        let mut code: Value = self.safe_currency_code(currencyId, &[currency]);
+        let mut currencyId: Option<String> = self.safe_string_k_opt(transaction.clone(), "amountCurrency", &[]);
+        let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[currency]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), transaction.clone());
@@ -1312,8 +1312,8 @@ impl CoinmateCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut method: Value = self.safe_string(methods.clone(), code.clone(), &[]);
-        if (method == Value::Null) {
+        let mut method: Option<String> = self.safe_string_opt(methods.clone(), code.clone(), &[]);
+        if (method.is_none()) {
             let mut allowedCurrencies: Value = Value::Array(methods.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() only allows withdrawing the following currencies: ".into())).into()), Value::Str(allowedCurrencies.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(", ")).unwrap_or_default().into()))));
         }
@@ -1328,26 +1328,26 @@ impl CoinmateCore {
         }
         let mut requestParams: Value = self.extend(Value::Map(request), &[paramsWithdrawTag]);
         let mut response: Value = Value::Null;
-        if (method.as_str() == Some("privatePostBitcoinWithdrawal")) {
+        if (method.as_deref() == Some("privatePostBitcoinWithdrawal")) {
             response = self.private_post_bitcoin_withdrawal(&[requestParams.clone()]).await;
-        }  else if (method.as_str() == Some("privatePostLitecoinWithdrawal")) {
+        }  else if (method.as_deref() == Some("privatePostLitecoinWithdrawal")) {
             response = self.private_post_litecoin_withdrawal(&[requestParams.clone()]).await;
-        }  else if (method.as_str() == Some("privatePostBitcoinCashWithdrawal")) {
+        }  else if (method.as_deref() == Some("privatePostBitcoinCashWithdrawal")) {
             response = self.private_post_bitcoin_cash_withdrawal(&[requestParams.clone()]).await;
-        }  else if (method.as_str() == Some("privatePostEthereumWithdrawal")) {
+        }  else if (method.as_deref() == Some("privatePostEthereumWithdrawal")) {
             response = self.private_post_ethereum_withdrawal(&[requestParams.clone()]).await;
-        }  else if (method.as_str() == Some("privatePostRippleWithdrawal")) {
+        }  else if (method.as_deref() == Some("privatePostRippleWithdrawal")) {
             response = self.private_post_ripple_withdrawal(&[requestParams.clone()]).await;
-        }  else if (method.as_str() == Some("privatePostDashWithdrawal")) {
+        }  else if (method.as_deref() == Some("privatePostDashWithdrawal")) {
             response = self.private_post_dash_withdrawal(&[requestParams.clone()]).await;
-        }  else if (method.as_str() == Some("privatePostDaiWithdrawal")) {
+        }  else if (method.as_deref() == Some("privatePostDaiWithdrawal")) {
             response = self.private_post_dai_withdrawal(&[requestParams.clone()]).await;
-        }  else if (method.as_str() == Some("privatePostAdaWithdrawal")) {
+        }  else if (method.as_deref() == Some("privatePostAdaWithdrawal")) {
             response = self.private_post_ada_withdrawal(&[requestParams.clone()]).await;
-        }  else if (method.as_str() == Some("privatePostSolWithdrawal")) {
+        }  else if (method.as_deref() == Some("privatePostSolWithdrawal")) {
             response = self.private_post_sol_withdrawal(&[requestParams]).await;
         }  else {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() does not support the ".into())).into()), method).into()), Value::Str(" method".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() does not support the ".into())).into()), method.map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(" method".into()))));
         }
         //
         //     {
@@ -1449,21 +1449,21 @@ impl CoinmateCore {
         //         "tradeType":"BUY"
         //     }
         //
-        let mut marketId: Value = self.safe_string_k(trade.clone(), "currencyPair", &[]);
-        let mut marketResolved: Value = self.safe_market(&[marketId, market, Value::Str("_".into())]);
-        let mut priceString: Value = self.safe_string_k(trade.clone(), "price", &[]);
-        let mut amountString: Value = self.safe_string_k(trade.clone(), "amount", &[]);
+        let mut marketId: Option<String> = self.safe_string_k_opt(trade.clone(), "currencyPair", &[]);
+        let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market, Value::Str("_".into())]);
+        let mut priceString: Option<String> = self.safe_string_k_opt(trade.clone(), "price", &[]);
+        let mut amountString: Option<String> = self.safe_string_k_opt(trade.clone(), "amount", &[]);
         let mut side: Value = self.safe_string_lower2(trade.clone(), Value::Str("type".into()), Value::Str("tradeType".into()), &[]);
-        let mut type_var: Value = self.safe_string_lower_k(trade.clone(), "orderType", &[]);
-        let mut orderId: Value = self.safe_string_k(trade.clone(), "orderId", &[]);
-        let mut id: Value = self.safe_string_k(trade.clone(), "transactionId", &[]);
+        let mut type_var: Option<String> = self.safe_string_lower_k_opt(trade.clone(), "orderType", &[]);
+        let mut orderId: Option<String> = self.safe_string_k_opt(trade.clone(), "orderId", &[]);
+        let mut id: Option<String> = self.safe_string_k_opt(trade.clone(), "transactionId", &[]);
         let mut timestamp: Value = self.safe_integer2(trade.clone(), Value::Str("timestamp".into()), Value::Str("createdTimestamp".into()), &[]);
         let mut fee: Value = Value::Null;
-        let mut feeCostString: Value = self.safe_string_k(trade.clone(), "fee", &[]);
-        if (feeCostString != Value::Null) {
+        let mut feeCostString: Option<String> = self.safe_string_k_opt(trade.clone(), "fee", &[]);
+        if (feeCostString.is_some()) {
             fee = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("cost".to_string(), feeCostString);
+                    m.insert("cost".to_string(), feeCostString.map(Value::from).unwrap_or(Value::Null));
                     m.insert("currency".to_string(), marketResolved.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null));
                 m
             });
@@ -1472,17 +1472,17 @@ impl CoinmateCore {
         takerOrMaker = (if (takerOrMaker.as_str() == Some("MAKER")) { Value::Str("maker".into()) } else { Value::Str("taker".into()) });
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), id);
+        m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("info".to_string(), trade);
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
-        m.insert("type".to_string(), type_var);
+        m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
         m.insert("side".to_string(), side);
-        m.insert("order".to_string(), orderId);
+        m.insert("order".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
         m.insert("takerOrMaker".to_string(), takerOrMaker);
-        m.insert("price".to_string(), priceString);
-        m.insert("amount".to_string(), amountString);
+        m.insert("price".to_string(), priceString.map(Value::from).unwrap_or(Value::Null));
+        m.insert("amount".to_string(), amountString.map(Value::from).unwrap_or(Value::Null));
         m.insert("cost".to_string(), Value::Null);
         m.insert("fee".to_string(), fee);
     m
@@ -1579,10 +1579,10 @@ impl CoinmateCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut makerString: Value = self.safe_string_k(data.clone(), "maker", &[]);
-        let mut takerString: Value = self.safe_string_k(data.clone(), "taker", &[]);
-        let mut maker: Value = self.parse_number(crate::precise::Precise::stringDiv(&makerString, &Value::Str("100".into())), &[]);
-        let mut taker: Value = self.parse_number(crate::precise::Precise::stringDiv(&takerString, &Value::Str("100".into())), &[]);
+        let mut makerString: Option<String> = self.safe_string_k_opt(data.clone(), "maker", &[]);
+        let mut takerString: Option<String> = self.safe_string_k_opt(data.clone(), "taker", &[]);
+        let mut maker: Value = self.parse_number(crate::precise::Precise::stringDiv(&makerString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())), &[]);
+        let mut taker: Value = self.parse_number(crate::precise::Precise::stringDiv(&takerString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())), &[]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), data);
@@ -1748,22 +1748,22 @@ impl CoinmateCore {
         //        "remainingAmount": 0.1
         //    }
         //
-        let mut id: Value = self.safe_string_k(order.clone(), "id", &[]);
+        let mut id: Option<String> = self.safe_string_k_opt(order.clone(), "id", &[]);
         let mut timestamp: Value = self.safe_integer_k(order.clone(), "timestamp", &[]);
-        let mut side: Value = self.safe_string_lower_k(order.clone(), "type", &[]);
-        let mut priceString: Value = self.safe_string_k(order.clone(), "price", &[]);
-        let mut amountString: Value = self.safe_string_k(order.clone(), "originalAmount", &[]);
+        let mut side: Option<String> = self.safe_string_lower_k_opt(order.clone(), "type", &[]);
+        let mut priceString: Option<String> = self.safe_string_k_opt(order.clone(), "price", &[]);
+        let mut amountString: Option<String> = self.safe_string_k_opt(order.clone(), "originalAmount", &[]);
         let mut remainingString: Value = self.safe_string2(order.clone(), Value::Str("remainingAmount".into()), Value::Str("amount".into()), &[]);
         let mut status: Value = self.parse_order_status(self.safe_string_k(order.clone(), "status", &[])).map(Value::from).unwrap_or(Value::Null);
         let mut type_var: Value = self.parse_order_type(self.safe_string_k(order.clone(), "orderTradeType", &[])).map(Value::from).unwrap_or(Value::Null);
-        let mut averageString: Value = self.safe_string_k(order.clone(), "avgPrice", &[]);
-        let mut marketId: Value = self.safe_string_k(order.clone(), "currencyPair", &[]);
-        let mut symbol: Value = self.safe_symbol(marketId, &[market.clone(), Value::Str("_".into())]);
-        let mut clientOrderId: Value = self.safe_string_k(order.clone(), "clientOrderId", &[]);
+        let mut averageString: Option<String> = self.safe_string_k_opt(order.clone(), "avgPrice", &[]);
+        let mut marketId: Option<String> = self.safe_string_k_opt(order.clone(), "currencyPair", &[]);
+        let mut symbol: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[market.clone(), Value::Str("_".into())]);
+        let mut clientOrderId: Option<String> = self.safe_string_k_opt(order.clone(), "clientOrderId", &[]);
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), id);
-        m.insert("clientOrderId".to_string(), clientOrderId);
+        m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
+        m.insert("clientOrderId".to_string(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
@@ -1771,12 +1771,12 @@ impl CoinmateCore {
         m.insert("type".to_string(), type_var);
         m.insert("timeInForce".to_string(), Value::Null);
         m.insert("postOnly".to_string(), Value::Null);
-        m.insert("side".to_string(), side);
-        m.insert("price".to_string(), priceString);
+        m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
+        m.insert("price".to_string(), priceString.map(Value::from).unwrap_or(Value::Null));
         m.insert("triggerPrice".to_string(), self.safe_number_k(order.clone(), "stopPrice", &[]));
-        m.insert("amount".to_string(), amountString);
+        m.insert("amount".to_string(), amountString.map(Value::from).unwrap_or(Value::Null));
         m.insert("cost".to_string(), Value::Null);
-        m.insert("average".to_string(), averageString);
+        m.insert("average".to_string(), averageString.map(Value::from).unwrap_or(Value::Null));
         m.insert("filled".to_string(), Value::Null);
         m.insert("remaining".to_string(), remainingString);
         m.insert("status".to_string(), status);
@@ -1846,11 +1846,11 @@ impl CoinmateCore {
         }  else {
             panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() does not support order type ".into())).into()), type_var)));
         }
-        let mut id: Value = self.safe_string_k(response.clone(), "data", &[]);
+        let mut id: Option<String> = self.safe_string_k_opt(response.clone(), "data", &[]);
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response);
-        m.insert("id".to_string(), id);
+        m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
     m
 }), &[market]);
 
@@ -1952,11 +1952,11 @@ impl CoinmateCore {
         let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut bodySigned: Value = Value::Null;
         let mut headersSigned: Value = Value::Null;
-        let mut apiUrl: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("rest".into()), &[]);
-        if (apiUrl == Value::Null) {
+        let mut apiUrl: Option<String> = self.safe_string_opt(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("rest".into()), &[]);
+        if (apiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
-        let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl, Value::Str("/".into())).into()), path).into());
+        let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), path).into());
         if (apiName.as_deref() == Some("public")) {
             let mut publicQuery: Value = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -2008,11 +2008,11 @@ impl CoinmateCore {
         //     {"error":true,"errorMessage":"Api internal error","data":null}
         //     {"error":true,"errorMessage":"Access denied.","data":null}
         //
-        let mut errorMessage: Value = self.safe_string_k(response, "errorMessage", &[]);
-        if (errorMessage != Value::Null) {
+        let mut errorMessage: Option<String> = self.safe_string_k_opt(response, "errorMessage", &[]);
+        if (errorMessage.is_some()) {
             let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body).into());
-            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorMessage.clone(), feedback.clone());
-            self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), errorMessage, feedback.clone());
+            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorMessage.clone().map(Value::from).unwrap_or(Value::Null), feedback.clone());
+            self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), errorMessage.map(Value::from).unwrap_or(Value::Null), feedback.clone());
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         return Value::Null;

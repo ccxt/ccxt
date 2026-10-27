@@ -306,11 +306,11 @@ impl LunoCore {
                 m.insert("symbol".to_string(), symbolValue.clone());
             m
         });
-        let mut wsUrl: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]);
-        if (wsUrl == Value::Null) {
+        let mut wsUrl: Option<String> = self.safe_string_opt(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]);
+        if (wsUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" watchTrades() has no websocket url".into()))));
         }
-        let mut url: Value = Value::Str(format!("{}{}", wsUrl, subscriptionHash).into());
+        let mut url: Value = Value::Str(format!("{}{}", wsUrl.map(Value::from).unwrap_or(Value::Null), subscriptionHash).into());
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("trades:".into()), symbolValue).into());
         let mut subscribe: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -445,11 +445,11 @@ impl LunoCore {
                 m.insert("symbol".to_string(), symbolValue.clone());
             m
         });
-        let mut wsUrl: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]);
-        if (wsUrl == Value::Null) {
+        let mut wsUrl: Option<String> = self.safe_string_opt(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]);
+        if (wsUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBook() has no websocket url".into()))));
         }
-        let mut url: Value = Value::Str(format!("{}{}", wsUrl, subscriptionHash).into());
+        let mut url: Value = Value::Str(format!("{}{}", wsUrl.map(Value::from).unwrap_or(Value::Null), subscriptionHash).into());
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook:".into()), symbolValue).into());
         let mut subscribe: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -642,15 +642,15 @@ impl LunoCore {
             let mut __for_first_492: bool = true;
             while { if !__for_first_492 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_492 = false; i.as_f64().unwrap_or(f64::NAN) < ((tradeUpdates.len() as i64) as f64) } {
             let mut tradeUpdate: Value = tradeUpdates.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
-            let mut makerOrderId: Value = self.safe_string_k(tradeUpdate.clone(), "maker_order_id", &[]);
-            let mut tradedAmount: Value = self.safe_string_k(tradeUpdate, "base", &[]);
-            if (makerOrderId != Value::Null) && (tradedAmount != Value::Null) {
+            let mut makerOrderId: Option<String> = self.safe_string_k_opt(tradeUpdate.clone(), "maker_order_id", &[]);
+            let mut tradedAmount: Option<String> = self.safe_string_k_opt(tradeUpdate, "base", &[]);
+            if (makerOrderId.is_some()) && (tradedAmount.is_some()) {
                 // the message does not carry the side of the maker order and
                 // order ids are unique across the book, so try the bids first
                 // and fall back to the asks only on a miss
-                let mut reduced: Value = self.reduce_order_volume(bidsOrderSide.clone(), makerOrderId.clone(), tradedAmount.clone());
+                let mut reduced: Value = self.reduce_order_volume(bidsOrderSide.clone(), makerOrderId.clone().map(Value::from).unwrap_or(Value::Null), tradedAmount.clone().map(Value::from).unwrap_or(Value::Null));
                 if !(reduced.as_bool() == Some(true)) {
-                    self.reduce_order_volume(asksOrderSide.clone(), makerOrderId, tradedAmount);
+                    self.reduce_order_volume(asksOrderSide.clone(), makerOrderId.map(Value::from).unwrap_or(Value::Null), tradedAmount.map(Value::from).unwrap_or(Value::Null));
                 }
             }
         }
@@ -667,9 +667,9 @@ impl LunoCore {
         }
         let mut deleteUpdate: Value = self.safe_dict_k(message, "delete_update", &[]);
         if (deleteUpdate != Value::Null) {
-            let mut orderId: Value = self.safe_string_k(deleteUpdate, "order_id", &[]);
-            asksOrderSide.store_array(Value::from(vec![Value::Int(0), Value::Int(0), orderId.clone()]));
-            bidsOrderSide.store_array(Value::from(vec![Value::Int(0), Value::Int(0), orderId]));
+            let mut orderId: Option<String> = self.safe_string_k_opt(deleteUpdate, "order_id", &[]);
+            asksOrderSide.store_array(Value::from(vec![Value::Int(0), Value::Int(0), orderId.clone().map(Value::from).unwrap_or(Value::Null)]));
+            bidsOrderSide.store_array(Value::from(vec![Value::Int(0), Value::Int(0), orderId.map(Value::from).unwrap_or(Value::Null)]));
         }
 }
 
@@ -694,8 +694,8 @@ impl LunoCore {
             let mut entryId: Value = self.safe_string(order.clone(), Value::Int(2), &[]);
             if (entryId.as_str() == orderId.as_str()) {
                 let mut price: Value = self.safe_number(order.clone(), Value::Int(0), &[]);
-                let mut currentAmount: Value = self.safe_string(order, Value::Int(1), &[]);
-                let mut remainingAmount: Value = crate::precise::Precise::stringSub(&currentAmount, &tradedAmount);
+                let mut currentAmount: Option<String> = self.safe_string_opt(order, Value::Int(1), &[]);
+                let mut remainingAmount: Value = crate::precise::Precise::stringSub(&currentAmount.clone().map(Value::from).unwrap_or(Value::Null), &tradedAmount);
                 if crate::precise::Precise::stringLe(&remainingAmount, &Value::Str("0".into())).as_bool() == Some(true) {
                     // fully filled, storing a zero amount deletes the order
                     orderSide.store_array(Value::from(vec![price.clone(), Value::Int(0), orderId.clone()]));
