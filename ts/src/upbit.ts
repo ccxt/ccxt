@@ -848,10 +848,9 @@ export default class upbit extends Exchange {
         } else {
             const ids = this.marketIds (symbolsNormalized);
             const promises: List = [];
-            const queries = this.idsQueryStrings (ids, 4000); // the url is limited to about 8000 characters once the commas are percent-encoded
+            const queries = this.idsQueryStrings (ids); // the url is limited to about 8000 characters once the commas are percent-encoded
             for (let i = 0; i < queries.length; i++) {
-                const idsQuery = queries[i];
-                promises.push (this.publicGetTicker (this.extend ({ 'markets': idsQuery }, params)));
+                promises.push (this.publicGetTicker (this.extend ({ 'markets': this.safeString (queries, i, '') }, params)));
             }
             const responses = await Promise.all (promises);
             tickers = this.arraysConcat (responses);
@@ -887,10 +886,7 @@ export default class upbit extends Exchange {
         return this.parseTickers (tickers, symbolsNormalized);
     }
 
-    idsQueryStrings (ids: Strings, maxQueryLength: int): string[] {
-        if (ids === undefined) {
-            return [];
-        }
+    idsQueryStrings (ids: string[]): string[] {
         let idsString: string = '';
         const queries: string[] = [];
         for (let i = 0; i < ids.length; i++) {
@@ -898,7 +894,7 @@ export default class upbit extends Exchange {
                 idsString = idsString + ',';
             }
             idsString = idsString + this.safeString (ids, i, '');
-            if (idsString.length >= maxQueryLength) {
+            if (idsString.length >= 4000) {
                 queries.push (idsString);
                 idsString = '';
             }
@@ -1942,8 +1938,7 @@ export default class upbit extends Exchange {
         let feeCost = this.safeString (order, 'paid_fee');
         const marketId = this.safeString (order, 'market');
         const marketResolved: Market = this.safeMarket (marketId, market);
-        let trades = this.safeList (order, 'trades', []);
-        trades = this.parseTrades (trades, marketResolved, undefined, undefined, {
+        const trades = this.parseTrades (this.safeList (order, 'trades', []), marketResolved, undefined, undefined, {
             'order': id,
             'type': type,
         });
