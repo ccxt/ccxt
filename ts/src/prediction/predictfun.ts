@@ -1428,7 +1428,7 @@ export default class predictfun extends Exchange {
             // an unmatched indexSet would otherwise return a ticker whose every quote is
             // undefined, which reads as an empty book rather than as a market that never
             // carried this outcome
-            const requested = this.safeOutcomeSymbol (undefined, market);
+            const requested = this.safeString (market, 'outcome', '');
             throw new BadSymbol (this.id + ' fetchTicker() did not find ' + requested + ' among the outcomes of its market');
         }
         // the venue quotes each outcome on its own side of the book, so no complement is needed
@@ -2855,7 +2855,7 @@ export default class predictfun extends Exchange {
             const receipts: any[] = [];
             const operatorsLength = operators.length;
             for (let i = 0; i < operatorsLength; i++) {
-                const operatorAddress = operators[i];
+                const operatorAddress = this.safeString (operators, i);
                 if (operatorAddress === undefined) {
                     throw new ArgumentsRequired (this.id + ' approve() could not resolve the operator to approve for chain ' + chainKey);
                 }
