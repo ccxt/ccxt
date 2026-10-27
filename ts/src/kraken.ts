@@ -3776,7 +3776,7 @@ export default class kraken extends Exchange {
         if (response === undefined) {
             return undefined;
         }
-        if (body[0] === '{') {
+        if (this.safeString (body, 0) === '{') {
             if (typeof response !== 'string') {
                 const message = this.id + ' ' + body;
                 const errors = this.safeList (response, 'error');
