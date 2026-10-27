@@ -1456,10 +1456,8 @@ export default class okx extends okxRest {
         //
         const asks = this.safeList (message, 'asks', []);
         const bids = this.safeList (message, 'bids', []);
-        const storedAsks = orderbook['asks'];
-        const storedBids = orderbook['bids'];
-        this.handleDeltas (storedAsks, asks);
-        this.handleDeltas (storedBids, bids);
+        this.handleDeltas (orderbook['asks'], asks);
+        this.handleDeltas (orderbook['bids'], bids);
         const marketId = this.safeString (message, 'instId');
         const symbol = this.safeSymbol (marketId, market);
         const seqId = this.safeInteger (message, 'seqId');
@@ -2030,7 +2028,7 @@ export default class okx extends okxRest {
         for (let i = 0; i < data.length; i++) {
             const rawPosition = data[i];
             const position = this.parsePosition (rawPosition);
-            if (position['contracts'] === 0 && this.safeString (rawPosition, 'posSide') === 'net') {
+            if (this.safeNumber (position, 'contracts') === 0 && this.safeString (rawPosition, 'posSide') === 'net') {
                 position['side'] = 'long';
                 const shortPosition = this.clone (position);
                 shortPosition['side'] = 'short';
@@ -2182,7 +2180,7 @@ export default class okx extends okxRest {
             for (let i = 0; i < parsed.length; i++) {
                 const order = parsed[i];
                 stored.append (order);
-                const symbol = order['symbol'];
+                const symbol = this.safeString (order, 'symbol', '');
                 const market = this.market (symbol);
                 marketIds.push (market['id']);
             }

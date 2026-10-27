@@ -8342,7 +8342,10 @@ export default class okx extends Exchange {
      */
     handleTradingStatisticsWindow (request: Dict, period: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Dict[] {
         const maxLimit = 100;
-        const effectiveLimit = ((limit === undefined) || (limit > 100)) ? 100 : limit;
+        let effectiveLimit = this.parseToInt (100);
+        if ((limit !== undefined) && (100 > limit)) {
+            effectiveLimit = limit;
+        }
         if (limit !== undefined) {
             request['limit'] = effectiveLimit;
         }
