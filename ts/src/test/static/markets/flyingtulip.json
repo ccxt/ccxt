@@ -21,8 +21,8 @@
         "linear": null,
         "inverse": null,
         "subType": null,
-        "taker": null,
-        "maker": null,
+        "taker": 0.0005,
+        "maker": 0.0005,
         "contractSize": null,
         "expiry": null,
         "expiryDatetime": null,
@@ -51,8 +51,8 @@
             }
         },
         "marginModes": {
-            "cross": null,
-            "isolated": null
+            "cross": true,
+            "isolated": false
         },
         "created": null,
         "info": {
@@ -83,8 +83,8 @@
             "baseDecimals": 18,
             "quoteDecimals": 6
         },
-        "tierBased": null,
-        "percentage": null
+        "tierBased": false,
+        "percentage": true
     },
     "WBTC/FTUSD": {
         "id": "WBTC-ftUSD",
@@ -108,15 +108,15 @@
         "linear": null,
         "inverse": null,
         "subType": null,
-        "taker": null,
-        "maker": null,
+        "taker": 0.0005,
+        "maker": 0.0005,
         "contractSize": null,
         "expiry": null,
         "expiryDatetime": null,
         "strike": null,
         "optionType": null,
         "precision": {
-            "amount": 1e-8,
+            "amount": 1e-08,
             "price": 1e-18
         },
         "limits": {
@@ -138,8 +138,8 @@
             }
         },
         "marginModes": {
-            "cross": null,
-            "isolated": null
+            "cross": true,
+            "isolated": false
         },
         "created": null,
         "info": {
@@ -170,8 +170,8 @@
             "baseDecimals": 8,
             "quoteDecimals": 6
         },
-        "tierBased": null,
-        "percentage": null
+        "tierBased": false,
+        "percentage": true
     },
     "WETH/FTUSD": {
         "id": "WETH-ftUSD",
@@ -195,8 +195,8 @@
         "linear": null,
         "inverse": null,
         "subType": null,
-        "taker": null,
-        "maker": null,
+        "taker": 0.0005,
+        "maker": 0.0005,
         "contractSize": null,
         "expiry": null,
         "expiryDatetime": null,
@@ -225,8 +225,8 @@
             }
         },
         "marginModes": {
-            "cross": null,
-            "isolated": null
+            "cross": true,
+            "isolated": false
         },
         "created": null,
         "info": {
@@ -257,8 +257,8 @@
             "baseDecimals": 18,
             "quoteDecimals": 6
         },
-        "tierBased": null,
-        "percentage": null
+        "tierBased": false,
+        "percentage": true
     },
     "STS/FTUSD": {
         "id": "stS-ftUSD",
@@ -282,8 +282,8 @@
         "linear": null,
         "inverse": null,
         "subType": null,
-        "taker": null,
-        "maker": null,
+        "taker": 0.0005,
+        "maker": 0.0005,
         "contractSize": null,
         "expiry": null,
         "expiryDatetime": null,
@@ -312,8 +312,8 @@
             }
         },
         "marginModes": {
-            "cross": null,
-            "isolated": null
+            "cross": true,
+            "isolated": false
         },
         "created": null,
         "info": {
@@ -344,8 +344,8 @@
             "baseDecimals": 18,
             "quoteDecimals": 6
         },
-        "tierBased": null,
-        "percentage": null
+        "tierBased": false,
+        "percentage": true
     },
     "WS/FTUSD": {
         "id": "wS-ftUSD",
@@ -369,8 +369,8 @@
         "linear": null,
         "inverse": null,
         "subType": null,
-        "taker": null,
-        "maker": null,
+        "taker": 0.0005,
+        "maker": 0.0005,
         "contractSize": null,
         "expiry": null,
         "expiryDatetime": null,
@@ -399,8 +399,8 @@
             }
         },
         "marginModes": {
-            "cross": null,
-            "isolated": null
+            "cross": true,
+            "isolated": false
         },
         "created": null,
         "info": {
@@ -431,7 +431,7 @@
             "baseDecimals": 18,
             "quoteDecimals": 6
         },
-        "tierBased": null,
-        "percentage": null
+        "tierBased": false,
+        "percentage": true
     }
 }

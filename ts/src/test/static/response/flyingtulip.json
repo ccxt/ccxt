@@ -336,7 +336,7 @@
                         "numericId": null,
                         "code": "FT",
                         "precision": 1e-18,
-                        "type": null,
+                        "type": "crypto",
                         "name": "FT",
                         "active": null,
                         "deposit": null,
@@ -374,8 +374,8 @@
                         "id": "0x29219dd400f2Bf60E5a23d13Be72B486D4038894",
                         "numericId": null,
                         "code": "USDC",
-                        "precision": 1e-06,
-                        "type": null,
+                        "precision": 0.000001,
+                        "type": "crypto",
                         "name": "USDC",
                         "active": null,
                         "deposit": null,
@@ -414,7 +414,7 @@
                         "numericId": null,
                         "code": "USSD",
                         "precision": 1e-18,
-                        "type": null,
+                        "type": "crypto",
                         "name": "US Sonic Dollar",
                         "active": null,
                         "deposit": null,
@@ -452,8 +452,8 @@
                         "id": "0x0555e30da8f98308edb960aa94c0db47230d2b9c",
                         "numericId": null,
                         "code": "WBTC",
-                        "precision": 1e-08,
-                        "type": null,
+                        "precision": 1e-8,
+                        "type": "crypto",
                         "name": "Wrapped Bitcoin",
                         "active": null,
                         "deposit": null,
@@ -492,7 +492,7 @@
                         "numericId": null,
                         "code": "WETH",
                         "precision": 1e-18,
-                        "type": null,
+                        "type": "crypto",
                         "name": "Wrapped Ether",
                         "active": null,
                         "deposit": null,
@@ -530,8 +530,8 @@
                         "id": "0xF7D85EC4E7710f71992752eac2111312e73E9C9C",
                         "numericId": null,
                         "code": "FTUSD",
-                        "precision": 1e-06,
-                        "type": null,
+                        "precision": 0.000001,
+                        "type": "crypto",
                         "name": "ftUSD",
                         "active": null,
                         "deposit": null,
@@ -570,7 +570,7 @@
                         "numericId": null,
                         "code": "STS",
                         "precision": 1e-18,
-                        "type": null,
+                        "type": "crypto",
                         "name": "Staked Sonic",
                         "active": null,
                         "deposit": null,
@@ -609,7 +609,7 @@
                         "numericId": null,
                         "code": "WS",
                         "precision": 1e-18,
-                        "type": null,
+                        "type": "crypto",
                         "name": "Wrapped Sonic",
                         "active": null,
                         "deposit": null,
@@ -659,8 +659,8 @@
                         "linear": null,
                         "inverse": null,
                         "subType": null,
-                        "taker": null,
-                        "maker": null,
+                        "taker": 0.0005,
+                        "maker": 0.0005,
                         "contractSize": null,
                         "expiry": null,
                         "expiryDatetime": null,
@@ -677,8 +677,8 @@
                             }
                         },
                         "marginModes": {
-                            "cross": null,
-                            "isolated": null
+                            "cross": true,
+                            "isolated": false
                         },
                         "created": null,
                         "info": {
@@ -708,7 +708,9 @@
                             "marginHfSafeBps": 15000,
                             "baseDecimals": 18,
                             "quoteDecimals": 6
-                        }
+                        },
+                        "percentage": true,
+                        "tierBased": false
                     },
                     {
                         "id": "WBTC-ftUSD",
@@ -732,15 +734,15 @@
                         "linear": null,
                         "inverse": null,
                         "subType": null,
-                        "taker": null,
-                        "maker": null,
+                        "taker": 0.0005,
+                        "maker": 0.0005,
                         "contractSize": null,
                         "expiry": null,
                         "expiryDatetime": null,
                         "strike": null,
                         "optionType": null,
                         "precision": {
-                            "amount": 1e-08,
+                            "amount": 1e-8,
                             "price": 1e-18
                         },
                         "limits": {
@@ -750,8 +752,8 @@
                             }
                         },
                         "marginModes": {
-                            "cross": null,
-                            "isolated": null
+                            "cross": true,
+                            "isolated": false
                         },
                         "created": null,
                         "info": {
@@ -781,7 +783,9 @@
                             "marginHfSafeBps": 15000,
                             "baseDecimals": 8,
                             "quoteDecimals": 6
-                        }
+                        },
+                        "percentage": true,
+                        "tierBased": false
                     },
                     {
                         "id": "WETH-ftUSD",
@@ -805,8 +809,8 @@
                         "linear": null,
                         "inverse": null,
                         "subType": null,
-                        "taker": null,
-                        "maker": null,
+                        "taker": 0.0005,
+                        "maker": 0.0005,
                         "contractSize": null,
                         "expiry": null,
                         "expiryDatetime": null,
@@ -823,8 +827,8 @@
                             }
                         },
                         "marginModes": {
-                            "cross": null,
-                            "isolated": null
+                            "cross": true,
+                            "isolated": false
                         },
                         "created": null,
                         "info": {
@@ -854,7 +858,9 @@
                             "marginHfSafeBps": 15000,
                             "baseDecimals": 18,
                             "quoteDecimals": 6
-                        }
+                        },
+                        "percentage": true,
+                        "tierBased": false
                     },
                     {
                         "id": "stS-ftUSD",
@@ -878,8 +884,8 @@
                         "linear": null,
                         "inverse": null,
                         "subType": null,
-                        "taker": null,
-                        "maker": null,
+                        "taker": 0.0005,
+                        "maker": 0.0005,
                         "contractSize": null,
                         "expiry": null,
                         "expiryDatetime": null,
@@ -896,8 +902,8 @@
                             }
                         },
                         "marginModes": {
-                            "cross": null,
-                            "isolated": null
+                            "cross": true,
+                            "isolated": false
                         },
                         "created": null,
                         "info": {
@@ -927,7 +933,9 @@
                             "marginHfSafeBps": 15000,
                             "baseDecimals": 18,
                             "quoteDecimals": 6
-                        }
+                        },
+                        "percentage": true,
+                        "tierBased": false
                     },
                     {
                         "id": "wS-ftUSD",
@@ -951,8 +959,8 @@
                         "linear": null,
                         "inverse": null,
                         "subType": null,
-                        "taker": null,
-                        "maker": null,
+                        "taker": 0.0005,
+                        "maker": 0.0005,
                         "contractSize": null,
                         "expiry": null,
                         "expiryDatetime": null,
@@ -969,8 +977,8 @@
                             }
                         },
                         "marginModes": {
-                            "cross": null,
-                            "isolated": null
+                            "cross": true,
+                            "isolated": false
                         },
                         "created": null,
                         "info": {
@@ -1000,7 +1008,9 @@
                             "marginHfSafeBps": 15000,
                             "baseDecimals": 18,
                             "quoteDecimals": 6
-                        }
+                        },
+                        "percentage": true,
+                        "tierBased": false
                     }
                 ],
                 "httpResponseByUrl": {
@@ -1683,6 +1693,204 @@
                     "indexPrice": null,
                     "markPrice": null
                 }
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "Captured valued executions and explicitly unvalued liquidation",
+                "method": "fetchTrades",
+                "input": [
+                    "WBTC/FTUSD",
+                    null,
+                    3,
+                    {
+                        "before": "eyJibG9ja19udW1iZXIiOjc4MjEyMjQwLCJsb2dfaW5kZXgiOjEwMDAwMCwidHhfaGFzaCI6IjB4ZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZiJ9"
+                    }
+                ],
+                "httpResponse": {
+                    "data": {
+                        "trades": [
+                            {
+                                "tx_hash": "0x147dd7ed650c2bd97c3b645530f0d1d05b75b14d2385c7cbd513b1e240105e12",
+                                "log_index": 5,
+                                "market_key": "0555e30da8f98308edb960aa94c0db47230d2b9c-f7d85ec4e7710f71992752eac2111312e73e9c9c",
+                                "block_number": 78212239,
+                                "block_hash": "0x4855f1b8ad392c64798dc8bc70d5c4738d681365c4f9bb88b9c90ba479c5db2c",
+                                "event_time": "2026-08-26T17:57:06Z",
+                                "user_addr": "0x3c9094fc254371998fe115a6aa38be9955b2f694",
+                                "side": "sell",
+                                "kind": "liquidation",
+                                "size_base": "0.000004310000000000",
+                                "price": "0.000000000000000000",
+                                "notional": "0.000000000000000000",
+                                "valuation_status": "unknown_liquidation",
+                                "fee": "0.000000000000000000",
+                                "projector_version": 1
+                            },
+                            {
+                                "tx_hash": "0x2a77a9357a8fa272de9db5c4c2a92a6f41a55ee2c30d06602a35d3e6f2207764",
+                                "log_index": 39,
+                                "market_key": "0555e30da8f98308edb960aa94c0db47230d2b9c-f7d85ec4e7710f71992752eac2111312e73e9c9c",
+                                "block_number": 78075565,
+                                "block_hash": "0x9de68b8cc542defc691b559ce48d5ace569ccf0457dd21734febadb0869e7bed",
+                                "event_time": "2026-08-24T13:53:37Z",
+                                "user_addr": "0xbad27029207ea4e3ebdaff1507f50e1df807b123",
+                                "side": "sell",
+                                "kind": "close",
+                                "size_base": "0.000015710000000000",
+                                "price": "78114.067472947167409293",
+                                "notional": "1.227172000000000000",
+                                "fee": "0.000000010000000000",
+                                "projector_version": 1,
+                                "source": "trade"
+                            },
+                            {
+                                "tx_hash": "0xf371681201535b8bfe2076d57916aee3ec633a54f1b8723fcedbf4ca316835fc",
+                                "log_index": 43,
+                                "market_key": "0555e30da8f98308edb960aa94c0db47230d2b9c-f7d85ec4e7710f71992752eac2111312e73e9c9c",
+                                "block_number": 78050014,
+                                "block_hash": "0xfe51fe0ab7be8194b5eab7f3564c0394f32d97950c6fe31ada786d87cdb6bea8",
+                                "event_time": "2026-08-24T04:02:12Z",
+                                "user_addr": "0x73157abcf4bfca91fea30282e4bcdfa74741e534",
+                                "side": "buy",
+                                "kind": "close",
+                                "size_base": "0.000013270000000000",
+                                "price": "76982.592313489073097212",
+                                "notional": "1.021559000000000000",
+                                "fee": "0.000510000000000000",
+                                "projector_version": 1,
+                                "source": "trade"
+                            }
+                        ],
+                        "next_cursor": "eyJibG9ja19udW1iZXIiOjc4MDUwMDE0LCJsb2dfaW5kZXgiOjQzLCJ0eF9oYXNoIjoiMHhmMzcxNjgxMjAxNTM1YjhiZmUyMDc2ZDU3OTE2YWVlM2VjNjMzYTU0ZjFiODcyM2ZjZWRiZjRjYTMxNjgzNWZjIn0"
+                    },
+                    "meta": {
+                        "chain_id": 146,
+                        "chain_head_block": 81676031,
+                        "engine_indexed_block": 81676030,
+                        "positions_indexed_block": 81676030,
+                        "oracle_sampled_at": "2026-10-27T04:16:31.958107Z"
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "id": "0xf371681201535b8bfe2076d57916aee3ec633a54f1b8723fcedbf4ca316835fc:43",
+                        "timestamp": 1787544132000,
+                        "datetime": "2026-08-24T04:02:12.000Z",
+                        "symbol": "WBTC/FTUSD",
+                        "order": null,
+                        "takerOrMaker": null,
+                        "side": "buy",
+                        "amount": 0.00001327,
+                        "price": 76982.59231348908,
+                        "cost": 1.021559,
+                        "fee": {
+                            "currency": null,
+                            "cost": 0.00051
+                        },
+                        "info": {
+                            "tx_hash": "0xf371681201535b8bfe2076d57916aee3ec633a54f1b8723fcedbf4ca316835fc",
+                            "log_index": 43,
+                            "market_key": "0555e30da8f98308edb960aa94c0db47230d2b9c-f7d85ec4e7710f71992752eac2111312e73e9c9c",
+                            "block_number": 78050014,
+                            "block_hash": "0xfe51fe0ab7be8194b5eab7f3564c0394f32d97950c6fe31ada786d87cdb6bea8",
+                            "event_time": "2026-08-24T04:02:12Z",
+                            "user_addr": "0x73157abcf4bfca91fea30282e4bcdfa74741e534",
+                            "side": "buy",
+                            "kind": "close",
+                            "size_base": "0.000013270000000000",
+                            "price": "76982.592313489073097212",
+                            "notional": "1.021559000000000000",
+                            "fee": "0.000510000000000000",
+                            "projector_version": 1,
+                            "source": "trade"
+                        },
+                        "fees": [
+                            {
+                                "currency": null,
+                                "cost": 0.00051
+                            }
+                        ]
+                    },
+                    {
+                        "id": "0x2a77a9357a8fa272de9db5c4c2a92a6f41a55ee2c30d06602a35d3e6f2207764:39",
+                        "timestamp": 1787579617000,
+                        "datetime": "2026-08-24T13:53:37.000Z",
+                        "symbol": "WBTC/FTUSD",
+                        "order": null,
+                        "takerOrMaker": null,
+                        "side": "sell",
+                        "amount": 0.00001571,
+                        "price": 78114.06747294716,
+                        "cost": 1.227172,
+                        "fee": {
+                            "currency": null,
+                            "cost": 1e-8
+                        },
+                        "info": {
+                            "tx_hash": "0x2a77a9357a8fa272de9db5c4c2a92a6f41a55ee2c30d06602a35d3e6f2207764",
+                            "log_index": 39,
+                            "market_key": "0555e30da8f98308edb960aa94c0db47230d2b9c-f7d85ec4e7710f71992752eac2111312e73e9c9c",
+                            "block_number": 78075565,
+                            "block_hash": "0x9de68b8cc542defc691b559ce48d5ace569ccf0457dd21734febadb0869e7bed",
+                            "event_time": "2026-08-24T13:53:37Z",
+                            "user_addr": "0xbad27029207ea4e3ebdaff1507f50e1df807b123",
+                            "side": "sell",
+                            "kind": "close",
+                            "size_base": "0.000015710000000000",
+                            "price": "78114.067472947167409293",
+                            "notional": "1.227172000000000000",
+                            "fee": "0.000000010000000000",
+                            "projector_version": 1,
+                            "source": "trade"
+                        },
+                        "fees": [
+                            {
+                                "currency": null,
+                                "cost": 1e-8
+                            }
+                        ]
+                    },
+                    {
+                        "id": "0x147dd7ed650c2bd97c3b645530f0d1d05b75b14d2385c7cbd513b1e240105e12:5",
+                        "timestamp": 1787767026000,
+                        "datetime": "2026-08-26T17:57:06.000Z",
+                        "symbol": "WBTC/FTUSD",
+                        "order": null,
+                        "takerOrMaker": null,
+                        "side": "sell",
+                        "amount": 0.00000431,
+                        "price": null,
+                        "cost": null,
+                        "fee": {
+                            "currency": null,
+                            "cost": 0
+                        },
+                        "info": {
+                            "tx_hash": "0x147dd7ed650c2bd97c3b645530f0d1d05b75b14d2385c7cbd513b1e240105e12",
+                            "log_index": 5,
+                            "market_key": "0555e30da8f98308edb960aa94c0db47230d2b9c-f7d85ec4e7710f71992752eac2111312e73e9c9c",
+                            "block_number": 78212239,
+                            "block_hash": "0x4855f1b8ad392c64798dc8bc70d5c4738d681365c4f9bb88b9c90ba479c5db2c",
+                            "event_time": "2026-08-26T17:57:06Z",
+                            "user_addr": "0x3c9094fc254371998fe115a6aa38be9955b2f694",
+                            "side": "sell",
+                            "kind": "liquidation",
+                            "size_base": "0.000004310000000000",
+                            "price": "0.000000000000000000",
+                            "notional": "0.000000000000000000",
+                            "valuation_status": "unknown_liquidation",
+                            "fee": "0.000000000000000000",
+                            "projector_version": 1
+                        },
+                        "fees": [
+                            {
+                                "currency": null,
+                                "cost": 0
+                            }
+                        ]
+                    }
+                ]
             }
         ]
     }

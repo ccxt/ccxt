@@ -107,6 +107,7 @@ export default class flyingtulip extends Exchange {
                     'delete': { 'mm/leverage/orders/{id}': { 'cost': 1 } as Endpoint<Dict> },
                 },
             },
+            'features': {},
             'requiredCredentials': { 'apiKey': false, 'secret': false },
             'precisionMode': TICK_SIZE,
             'options': {
@@ -298,7 +299,7 @@ export default class flyingtulip extends Exchange {
     /**
      * @method
      * @name flyingtulip#fetchCurrencies
-     * @description fetches token metadata and token precision
+     * @description fetches token metadata and precision; transfer availability is not supplied by the registry
      * @param {object} [params] extra exchange-specific parameters
      * @param {int} [params.chainId] must match options.chainId; use one instance per chain
      * @returns {object} a unified result as documented at https://docs.ccxt.com/docs/manual
@@ -312,6 +313,7 @@ export default class flyingtulip extends Exchange {
             const code = this.safeCurrencyCode (this.safeString (row, 'symbol')) as string;
             result[code] = this.safeCurrencyStructure ({
                 'id': this.assetAddress (row), 'code': code, 'name': this.safeString (row, 'name'),
+                'type': 'crypto',
                 'precision': this.parseNumber ('1e-' + this.numberToString (this.assetDecimals (row))),
                 'info': row,
             });
@@ -349,6 +351,8 @@ export default class flyingtulip extends Exchange {
             'id': this.safeString (trade, 'tradeId', tx + ':' + logIndex),
             'timestamp': timestamp, 'datetime': this.iso8601 (timestamp),
             'symbol': this.safeString (resolvedMarket, 'symbol'),
+            'order': this.safeString2 (trade, 'orderId', 'order_id'),
+            'takerOrMaker': undefined,
             'side': this.safeString2 (trade, 'direction', 'side'),
             'amount': this.safeString2 (trade, 'size', 'size_base'),
             'price': (valuation === 'unknown_liquidation') ? undefined : this.safeString (trade, 'price'),
@@ -422,7 +426,7 @@ export default class flyingtulip extends Exchange {
     /**
      * @method
      * @name flyingtulip#fetchMarkets
-     * @description fetches chain-scoped financed spot markets with independent collateral and debt assets
+     * @description fetches chain-scoped financed spot markets with independent collateral and debt assets; maker/taker rates describe the protocol fee and exclude additional executor gas
      * @param {object} [params] extra exchange-specific parameters
      * @param {int} [params.chainId] must match options.chainId; use one instance per chain
      * @returns {object[]} a unified result as documented at https://docs.ccxt.com/docs/manual
@@ -455,6 +459,11 @@ export default class flyingtulip extends Exchange {
                 'future': false,
                 'option': false,
                 'contract': false,
+                'maker': 0.0005,
+                'taker': 0.0005,
+                'percentage': true,
+                'tierBased': false,
+                'marginModes': { 'cross': true, 'isolated': false },
                 'active': this.safeBool (row, 'canOpenLong', false) || this.safeBool (row, 'canOpenShort', false),
                 'precision': { 'amount': this.parseNumber ('1e-' + this.numberToString (this.assetDecimals (baseAsset))), 'price': 1e-18 },
                 'limits': { 'leverage': { 'min': 1, 'max': this.safeNumber (row, 'maxLeverage') }},

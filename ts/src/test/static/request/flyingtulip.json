@@ -67,6 +67,22 @@
                 ],
                 "output": null
             }
+        ],
+        "fetchTrades": [
+            {
+                "description": "Captured valued executions and explicitly unvalued liquidation",
+                "method": "fetchTrades",
+                "url": "https://api.flyingtulip.com/mm/spot/trades/0555e30da8f98308edb960aa94c0db47230d2b9c-f7d85ec4e7710f71992752eac2111312e73e9c9c?chainId=146&limit=3&before=eyJibG9ja19udW1iZXIiOjc4MjEyMjQwLCJsb2dfaW5kZXgiOjEwMDAwMCwidHhfaGFzaCI6IjB4ZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZiJ9",
+                "input": [
+                    "WBTC/FTUSD",
+                    null,
+                    3,
+                    {
+                        "before": "eyJibG9ja19udW1iZXIiOjc4MjEyMjQwLCJsb2dfaW5kZXgiOjEwMDAwMCwidHhfaGFzaCI6IjB4ZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZiJ9"
+                    }
+                ],
+                "output": null
+            }
         ]
     },
     "outputType": "both"
