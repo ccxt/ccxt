@@ -307,10 +307,10 @@ export default class hyperliquid extends Exchange {
             if (questionClass === 'pricebucket') {
                 const questionUnderlying = this.safeString (questionDesc, 'underlying');
                 const questionExpiry = this.safeString (questionDesc, 'expiry', '');
-                let expiryDate = '';
+                let questionExpiryDate = '';
                 if (questionExpiry !== '') {
-                    const expiryParts = questionExpiry.split ('-');
-                    expiryDate = expiryParts[0];
+                    const questionExpiryParts = questionExpiry.split ('-');
+                    questionExpiryDate = questionExpiryParts[0];
                 }
                 const thresholdsRaw = this.safeString (questionDesc, 'priceThresholds', '');
                 const indexStr = this.safeString (desc, 'index');
@@ -338,8 +338,8 @@ export default class hyperliquid extends Exchange {
                             bucketLabel = 'BETWEEN_' + thresholds[index - 1] + '_' + thresholds[index];
                         }
                         let base = questionUnderlying.toUpperCase () + '_' + bucketLabel;
-                        if (expiryDate !== '') {
-                            base = base + '_' + expiryDate;
+                        if (questionExpiryDate !== '') {
+                            base = base + '_' + questionExpiryDate;
                         }
                         return base;
                     }
@@ -347,8 +347,8 @@ export default class hyperliquid extends Exchange {
                 const isFallbackLike = (rawDescription === 'other') || (nameLower.indexOf ('fallback') >= 0) || (nameLower.indexOf ('other') >= 0);
                 if ((questionUnderlying !== undefined && questionUnderlying !== '') && isFallbackLike) {
                     let base = questionUnderlying.toUpperCase () + '_OTHER';
-                    if (expiryDate !== '') {
-                        base = base + '_' + expiryDate;
+                    if (questionExpiryDate !== '') {
+                        base = base + '_' + questionExpiryDate;
                     }
                     return base;
                 }
