@@ -6335,7 +6335,7 @@ class BaseExchange {
         $noSymbols = ($symbolsNormalized === null) || ($symbolsLength === 0);
         if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
             for ($i = 0; $i < count($response); $i++) {
-                $item = $response[$i];
+                $item = $this->safe_value($response, $i);
                 $id = ($marketIdKey === null) ? null : $this->safe_string($item, $marketIdKey);
                 $market = $this->safe_market($id, null, null, 'swap');
                 $symbol = $this->safe_string($market, 'symbol', '');
@@ -6348,7 +6348,7 @@ class BaseExchange {
             $keys = is_array($response) ? array_keys($response) : array();
             for ($i = 0; $i < count($keys); $i++) {
                 $marketId = $keys[$i];
-                $item = $response[$marketId];
+                $item = $this->safe_value($response, $marketId);
                 $market = $this->safe_market($marketId, null, null, 'swap');
                 $symbol = $this->safe_string($market, 'symbol', '');
                 $contract = $this->safe_bool($market, 'contract', false);

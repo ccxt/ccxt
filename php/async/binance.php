@@ -2922,9 +2922,9 @@ class binance extends Exchange {
                     if ($isLegacyLinear) {
                         $settle = $this->safe_string($market, 'quote', '');
                     }
-                    $futuresSymbol = $symbol . ':' . $settle;
-                    if (($this->markets !== null) && (is_array($this->markets) && array_key_exists($futuresSymbol ?? '', $this->markets))) {
-                        return $this->markets[$futuresSymbol];
+                    $legacySymbol = $this->safe_string($market, 'symbol', '') . ':' . $settle;
+                    if (($this->markets !== null) && (is_array($this->markets) && array_key_exists($legacySymbol ?? '', $this->markets))) {
+                        return $this->markets[$legacySymbol];
                     }
                 } else {
                     return $market;
@@ -5918,9 +5918,9 @@ class binance extends Exchange {
         $validOrderTypes = $this->safe_list($market['info'], 'orderTypes', array());
         if (!$this->in_array($uppercaseType, $validOrderTypes)) {
             if ($initialUppercaseType !== $uppercaseType) {
-                throw new InvalidOrder($this->id . ' triggerPrice parameter is not allowed for ' . $symbol . ' ' . $type . ' orders');
+                throw new InvalidOrder($this->id . ' triggerPrice parameter is not allowed for ' . $this->safe_string($market, 'symbol', '') . ' ' . $type . ' orders');
             } else {
-                throw new InvalidOrder($this->id . ' ' . $type . ' is not a valid order type for the ' . $symbol . ' market');
+                throw new InvalidOrder($this->id . ' ' . $type . ' is not a valid order type for the ' . $this->safe_string($market, 'symbol', '') . ' market');
             }
         }
         if ($clientOrderId === null) {
@@ -7420,7 +7420,7 @@ class binance extends Exchange {
                     $stopLossOrTakeProfit = $this->safe_string($paramsPapi, 'stopLossOrTakeProfit');
                     $omitKeys[] = 'stopLossOrTakeProfit';
                     if (($stopLossOrTakeProfit !== 'stopLoss') && ($stopLossOrTakeProfit !== 'takeProfit')) {
-                        throw new InvalidOrder($this->id . $symbol . ' trailingPercent orders require a stopLossOrTakeProfit parameter of either stopLoss or takeProfit');
+                        throw new InvalidOrder($this->id . $this->safe_string($market, 'symbol', '') . ' trailingPercent orders require a stopLossOrTakeProfit parameter of either stopLoss or takeProfit');
                     }
                     if ($isMarketOrder) {
                         if ($stopLossOrTakeProfit === 'stopLoss') {
@@ -7464,7 +7464,7 @@ class binance extends Exchange {
         }
         if ($market['option'] === true) {
             if ($type === 'market') {
-                throw new InvalidOrder($this->id . ' ' . $type . ' is not a valid order type for the ' . $symbol . ' market');
+                throw new InvalidOrder($this->id . ' ' . $type . ' is not a valid order type for the ' . $this->safe_string($market, 'symbol', '') . ' market');
             }
         } else {
             $validOrderTypes = $this->safe_list($market['info'], 'orderTypes', array());
@@ -7473,9 +7473,9 @@ class binance extends Exchange {
             }
             if (!$this->in_array($uppercaseType, $validOrderTypes)) {
                 if ($initialUppercaseType !== $uppercaseType) {
-                    throw new InvalidOrder($this->id . ' triggerPrice parameter is not allowed for ' . $symbol . ' ' . $type . ' orders');
+                    throw new InvalidOrder($this->id . ' triggerPrice parameter is not allowed for ' . $this->safe_string($market, 'symbol', '') . ' ' . $type . ' orders');
                 } else {
-                    throw new InvalidOrder($this->id . ' ' . $type . ' is not a valid order type for the ' . $symbol . ' market');
+                    throw new InvalidOrder($this->id . ' ' . $type . ' is not a valid order type for the ' . $this->safe_string($market, 'symbol', '') . ' market');
                 }
             }
         }

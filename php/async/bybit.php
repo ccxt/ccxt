@@ -1599,14 +1599,13 @@ class bybit extends Exchange {
     public function create_expired_option_market(string $symbol): array {
         // support expired option contracts
         $quote = null;
-        $settle = null;
         $optionParts = explode('-', $symbol);
         $symbolBase = explode('/', $symbol);
         $expiry = null;
         $hasSlash = mb_strpos($symbol, '/') > -1;
-        $baseName = $this->safe_string($optionParts, 0);
+        $baseName = $this->safe_string($optionParts, 0, '');
         if ($hasSlash) {
-            $baseName = $this->safe_string($symbolBase, 0);
+            $baseName = $this->safe_string($symbolBase, 0, '');
             $expiry = $this->safe_string($optionParts, 1);
             $symbolQuoteAndSettle = $this->safe_string($symbolBase, 1);
             if ($symbolQuoteAndSettle === null) {
@@ -1615,15 +1614,12 @@ class bybit extends Exchange {
             $splitQuote = explode(':', $symbolQuoteAndSettle);
             $quoteAndSettle = $this->safe_string($splitQuote, 0);
             $quote = $quoteAndSettle;
-            $settle = $quoteAndSettle;
         } else {
             $expiry = $this->convert_market_id_expire_date($this->safe_string($optionParts, 1));
             if (str_ends_with($symbol, '-USDT')) {
                 $quote = 'USDT';
-                $settle = 'USDT';
             } else {
                 $quote = 'USDC';
-                $settle = 'USDC';
             }
         }
         $strike = $this->safe_string($optionParts, 2);
@@ -1646,18 +1642,18 @@ class bybit extends Exchange {
         $convertedExpireDate = $this->convert_expire_date_to_market_id_date($expiry);
         return array(
             'id' => $baseName . '-' . $convertedExpireDate . '-' . $strike . '-' . $optionType,
-            'symbol' => $baseName . '/' . $quote . ':' . $settle . '-' . $expiry . '-' . $strike . '-' . $optionType,
+            'symbol' => $baseName . '/' . $quote . ':' . $quote . '-' . $expiry . '-' . $strike . '-' . $optionType,
             'base' => $baseName,
             'quote' => $quote,
-            'settle' => $settle,
+            'settle' => $quote,
             'baseId' => $baseName,
             'quoteId' => $quote,
-            'settleId' => $settle,
+            'settleId' => $quote,
             'active' => false,
             'type' => 'option',
-            'subType' => ($baseName === $settle) ? 'inverse' : 'linear',
-            'linear' => ($baseName !== $settle),
-            'inverse' => ($baseName === $settle),
+            'subType' => ($baseName === $quote) ? 'inverse' : 'linear',
+            'linear' => ($baseName !== $quote),
+            'inverse' => ($baseName === $quote),
             'spot' => false,
             'swap' => false,
             'future' => false,

@@ -984,8 +984,8 @@ class mexc extends \ccxt\async\mexc {
         $nonce = $this->safe_integer($storedOrderBook, 'nonce');
         $shouldReturn = false;
         if ($nonce === null) {
-            $cacheLength = count($storedOrderBook->cache);
-            $snapshotDelay = $this->handle_option('watchOrderBook', 'snapshotDelay', 25);
+            $cacheLength = $this->parse_to_int(strlen($storedOrderBook->cache));
+            $snapshotDelay = $this->parse_to_int($this->handle_option('watchOrderBook', 'snapshotDelay', 25));
             if ($cacheLength === $snapshotDelay) {
                 $this->spawn(array($this, 'load_order_book'), $client, $messageHash, $symbol, $limit, array());
             }

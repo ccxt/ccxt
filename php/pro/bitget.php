@@ -1019,7 +1019,7 @@ class bitget extends \ccxt\async\bitget {
         }
         $marketId = $this->safe_string_2($arg, 'instId', 'symbol');
         $market = $this->safe_market($marketId, null, null, $marketType);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         $messageHash = 'orderbook:' . $symbol;
         $data = $this->safe_value($message, 'data');
         // tokenized stock snapshots arrive as a plain dict instead of a list
@@ -2648,7 +2648,7 @@ class bitget extends \ccxt\async\bitget {
                     $code = $this->safe_currency_code($currencyId);
                     $account = $this->account();
                     if (($code !== null) && (is_array($this->balance) && array_key_exists($code ?? '', $this->balance))) {
-                        $account = $this->balance[$code];
+                        $account = $this->safe_dict($this->balance, $code, $account);
                     }
                     $borrow = $this->safe_string($entry, 'borrow');
                     $debts = $this->safe_string($entry, 'debts');
@@ -2667,7 +2667,7 @@ class bitget extends \ccxt\async\bitget {
                 $code = $this->safe_currency_code($currencyId);
                 $account = $this->account();
                 if (($code !== null) && (is_array($this->balance) && array_key_exists($code ?? '', $this->balance))) {
-                    $account = $this->balance[$code];
+                    $account = $this->safe_dict($this->balance, $code, $account);
                 }
                 $borrow = $this->safe_string($rawBalance, 'borrow');
                 if ($borrow !== null) {
