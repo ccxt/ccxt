@@ -814,7 +814,7 @@ public class Paymium extends PaymiumApi
             Map<String, Object> signedHeaders = new HashMap<String, Object>();
             signedHeaders.put("Api-Key", this.apiKey);
             signedHeaders.put("Api-Nonce", nonce);
-            String signedBody = null;
+            String signedBody = "";
             if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST") && Boolean.TRUE.equals(hasQuery))
             {
                 signedBody = this.json(query);

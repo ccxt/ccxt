@@ -6261,8 +6261,12 @@ public class Bitget extends BitgetApi
             if (Boolean.TRUE.equals(paginate))
             {
                 // the recursive calls read 'stock' and 'uta' themselves, so only peek at the flag here
-                Boolean stockForPagination = (Boolean) ((List<Object>)this.handleOptionBoolAndParams((Map<String, Object>) (paramsPaginate), "fetchTrades", "stock", stockDefault)).get(0);
-                if (java.util.Objects.equals(stockForPagination, true))
+                Boolean stockForPagination = null;
+                Map<String, Object> paramsPeek = null;
+                Pair<Boolean, Map<String, Object>> stockForPaginationparamsPeekVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsPaginate), "fetchTrades", "stock", stockDefault);
+                stockForPagination = stockForPaginationparamsPeekVariable.first();
+                paramsPeek = stockForPaginationparamsPeekVariable.second();
+                if (java.util.Objects.equals(stockForPagination, true) && !java.util.Objects.equals(paramsPeek, null))
                 {
                     throw new BadRequest((this.id + " fetchTrades() does not support paginate for tokenized stock markets")) ;
                 }
@@ -9663,9 +9667,10 @@ public class Bitget extends BitgetApi
                 request.put("symbol", market.get("id"));
                 String defaultType = this.safeString2(this.options, "fetchOpenOrders", "defaultType", "spot");
                 Object marketType = defaultType;
-                if (market.containsKey("type"))
+                String marketTypeValue = this.safeString(market, "type");
+                if (!java.util.Objects.equals(marketTypeValue, null))
                 {
-                    marketType = market.get("type");
+                    marketType = marketTypeValue;
                 }
                 type = this.safeString(paramsMarginMode, "type", marketType);
             } else
@@ -12965,7 +12970,7 @@ public class Bitget extends BitgetApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String posMode = "one_way_mode";
-            if (Boolean.TRUE.equals(hedged))
+            if (java.util.Objects.equals(hedged, true))
             {
                 posMode = "hedge_mode";
             }

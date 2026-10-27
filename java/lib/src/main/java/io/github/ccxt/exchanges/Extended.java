@@ -2343,8 +2343,7 @@ public class Extended extends ExtendedApi
             Map<String, Object> currency = this.currency((String) (code));
             Map<String, Object> account = (this.fetchExtendedAccount(new HashMap<String, Object>() {{}})).join();
             String currentAccountId = this.safeString(account, "accountId", "");
-            Object fromAccountResolved = (((java.util.Objects.equals(fromAccount, null)))) ? currentAccountId : fromAccount;
-            if (!java.util.Objects.equals(fromAccountResolved, currentAccountId))
+            if ((!java.util.Objects.equals(fromAccount, null)) && (!java.util.Objects.equals(fromAccount, currentAccountId)))
             {
                 throw new BadRequest((this.id + " transfer() can only transfer from the authenticated account")) ;
             }
@@ -2356,12 +2355,13 @@ public class Extended extends ExtendedApi
             }
             Object amountString = this.currencyToPrecision((String) (code), amount, (String) null);
             Map<String, Object> settlement = (Map<String, Object>) this.createTransferSettlementData((String) (((String)amountString)), (Map<String, Object>) (currency), (Map<String, Object>) (account), toVault, toL2Key, parameters);
-            Map<String, Object> request = new HashMap<String, Object>();
-            request.put("fromAccount", fromAccountResolved);
-            request.put("toAccount", toAccount);
-            request.put("amount", amountString);
-            request.put("transferredAsset", currency.get("id"));
-            request.put("settlement", settlement);
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "fromAccount", currentAccountId );
+                put( "toAccount", toAccount );
+                put( "amount", amountString );
+                put( "transferredAsset", currency.get("id") );
+                put( "settlement", settlement );
+            }};
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("fromVault", "senderPositionId", "fromL2Key", "senderPublicKey", "toVault", "receiverPositionId", "toL2Key", "receiverPublicKey", "settlementExpiration", "nonce", "assetId", "collateralId", "resolution")));
             Map<String, Object> response = (this.v1PrivatePostUserTransfer(this.extend(request, paramsOmitted))).join();
             //
@@ -2389,7 +2389,7 @@ public class Extended extends ExtendedApi
                 h2kMap2.put("datetime", this.iso8601(now));
                 h2kMap2.put("currency", currency.get("code"));
                 h2kMap2.put("amount", this.parseNumber(amountString));
-                h2kMap2.put("fromAccount", fromAccountResolved);
+                h2kMap2.put("fromAccount", currentAccountId);
                 h2kMap2.put("toAccount", toAccount);
                 h2kMap2.put("status", status);
                 return h2kMap2;

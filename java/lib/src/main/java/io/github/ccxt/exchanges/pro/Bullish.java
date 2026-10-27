@@ -129,8 +129,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
             {
                 throw new ExchangeError((this.id + " watchPublic() has no public websocket url")) ;
             }
-            Object fullUrl = (wsUrl + url);
-            return (this.watch(fullUrl, messageHash, this.deepExtend(message, parameters), messageHash, null)).join();
+            return (this.watch((wsUrl + url), messageHash, this.deepExtend(message, parameters), messageHash, null)).join();
         });
 
     }
@@ -333,9 +332,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
         if (java.util.Objects.equals(updateType, "update"))
         {
             Map<String, Object> ticker = (Map<String, Object>) this.safeDict(this.tickers, symbol, new HashMap<String, Object>() {{}});
-            Map<String, Object> rawTicker = (Map<String, Object>) this.safeDict(ticker, "info", new HashMap<String, Object>() {{}});
-            Map<String, Object> merged = this.extend(rawTicker, data);
-            parsed = (Map<String, Object>) this.parseTicker(merged, market);
+            parsed = (Map<String, Object>) this.parseTicker(this.extend(this.safeDict(ticker, "info", new HashMap<String, Object>() {{}}), data), market);
         }
         this.tickers.put(symbol, parsed);
         String messageHash = ("ticker::" + symbol);
@@ -562,8 +559,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
             Map<String, Object> symbols = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)rawOrders).size(); i++)
             {
-                Object rawOrder = (rawOrders == null || i < 0 || i >= rawOrders.size() ? null : rawOrders.get(i));
-                Map<String, Object> parsedOrder = (Map<String, Object>) this.parseOrder(rawOrder, (Map<String, Object>) null);
+                Map<String, Object> parsedOrder = (Map<String, Object>) this.parseOrder((rawOrders == null || i < 0 || i >= rawOrders.size() ? null : rawOrders.get(i)), (Map<String, Object>) null);
                 orders.append(parsedOrder);
                 String symbol = this.safeString(parsedOrder, "symbol");
                 if (!java.util.Objects.equals(symbol, null))
@@ -693,8 +689,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
             Map<String, Object> symbols = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)rawTrades).size(); i++)
             {
-                Object rawTrade = (rawTrades == null || i < 0 || i >= rawTrades.size() ? null : rawTrades.get(i));
-                Map<String, Object> parsedTrade = (Map<String, Object>) this.parseTrade(rawTrade, (Map<String, Object>) null);
+                Map<String, Object> parsedTrade = (Map<String, Object>) this.parseTrade((rawTrades == null || i < 0 || i >= rawTrades.size() ? null : rawTrades.get(i)), (Map<String, Object>) null);
                 trades.append(parsedTrade);
                 String symbol = this.safeString(parsedTrade, "symbol");
                 if (!java.util.Objects.equals(symbol, null))
@@ -901,8 +896,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
         List<Object> newPositions = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)rawPositions).size(); i++)
         {
-            Object rawPosition = (rawPositions == null || i < 0 || i >= rawPositions.size() ? null : rawPositions.get(i));
-            Map<String, Object> position = (Map<String, Object>) this.parsePosition((Map<String, Object>) (rawPosition), (Map<String, Object>) null);
+            Map<String, Object> position = (Map<String, Object>) this.parsePosition((Map<String, Object>) ((rawPositions == null || i < 0 || i >= rawPositions.size() ? null : rawPositions.get(i))), (Map<String, Object>) null);
             positions.append(position);
             ((List<Object>)newPositions).add(position);
         }

@@ -1702,8 +1702,7 @@ public class Bullish extends BullishApi
             //         }, ...
             //     ]
             //
-            List<Object> ohlcvs = this.toArray(response);
-            return this.parseOHLCVs(ohlcvs, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, false);
+            return this.parseOHLCVs(this.toArray(response), market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }
@@ -1786,8 +1785,7 @@ public class Bullish extends BullishApi
                     j39v1.put("datetime", datetime);
                     yield j39v1; } }));
             }
-            List<Object> sorted = this.sortBy(rates, "timestamp");
-            return this.filterBySymbolSinceLimit(sorted, this.safeString(market, "symbol"), since, limit, false);
+            return this.filterBySymbolSinceLimit(this.sortBy(rates, "timestamp"), this.safeString(market, "symbol"), since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(FundingRateHistory::new).collect(Collectors.toList()));
 
     }
@@ -3066,8 +3064,7 @@ public class Bullish extends BullishApi
             //         }
             //     ]
             //
-            Object results = this.parsePositions(response, symbols, new HashMap<String, Object>() {{}});
-            return this.filterByArrayPositions(results, "symbol", symbols);
+            return this.filterByArrayPositions(this.parsePositions(response, symbols, new HashMap<String, Object>() {{}}), "symbol", symbols);
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }
@@ -3561,8 +3558,7 @@ public class Bullish extends BullishApi
             {
                 requestBody = this.json(parameters);
                 String payload = (((((timestamp + nonce) + java.util.Objects.requireNonNullElse(method, "GET")) + "/trading-api/") + path) + requestBody);
-                Object digest = this.hash(this.encode(payload), sha256(), "hex");
-                String signature = (String) this.hmac(this.encode(digest), this.encode(this.secret), sha256(), "hex");
+                String signature = (String) this.hmac(this.encode(this.hash(this.encode(payload), sha256(), "hex")), this.encode(this.secret), sha256(), "hex");
                 {
                     HashMap<String, Object> hx4NewMap2 = new HashMap<String, Object>();
                     hx4NewMap2.put("BX-TIMESTAMP", timestamp);
@@ -3631,8 +3627,7 @@ public class Bullish extends BullishApi
             //     }
             //
             String token = this.safeString(response, "token");
-            String authorizer = this.safeString(response, "authorizer");
-            this.options.put("authorizer", authorizer);
+            this.options.put("authorizer", this.safeString(response, "authorizer"));
             this.token = token;
             this.options.put("tokenExpires", this.sum(this.milliseconds(), (((1000L * 60L) * 60L) * 24L))); // token expires in 24 hours
             return token;

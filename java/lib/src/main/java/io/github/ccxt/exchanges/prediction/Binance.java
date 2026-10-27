@@ -1290,7 +1290,7 @@ public class Binance extends BinanceApi
                 request.put("limit", limit);
             }
             Object wallet = (this.fetchWallet("fetchOpenOrders", paramsMaxEntriesPerRequest)).join();
-            request.put("walletAddress", Helpers.GetValue(wallet, "walletAddress"));
+            request.put("walletAddress", this.safeString(wallet, "walletAddress"));
             Map<String, Object> response = (this.sapiPrivateGetOrderList(this.extend(request, paramsMaxEntriesPerRequest))).join();
             //
             // {
@@ -1395,7 +1395,7 @@ public class Binance extends BinanceApi
                 request.put("endDate", this.yyyymmdd(until));
             }
             Object wallet = (this.fetchWallet("fetchOrders", paramsOmitted)).join();
-            request.put("walletAddress", Helpers.GetValue(wallet, "walletAddress"));
+            request.put("walletAddress", this.safeString(wallet, "walletAddress"));
             Map<String, Object> response = (this.sapiPrivateGetOrderHistory(this.extend(request, paramsOmitted))).join();
             //
             // {
@@ -1468,7 +1468,7 @@ public class Binance extends BinanceApi
             }
             Object wallet = (this.fetchWallet("fetchPositions", parameters)).join();
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "walletAddress", Helpers.GetValue(wallet, "walletAddress") );
+                put( "walletAddress", Binance.this.safeString(wallet, "walletAddress") );
             }};
             Map<String, Object> response = (this.sapiPrivateGetPositionList(this.extend(request, parameters))).join();
             //
@@ -1566,7 +1566,7 @@ public class Binance extends BinanceApi
                 request.put("marketTopicId", Helpers.GetValue(market.get("info"), "marketTopicId"));
             }
             Object wallet = (this.fetchWallet("fetchOrders", parameters)).join();
-            request.put("walletAddress", Helpers.GetValue(wallet, "walletAddress"));
+            request.put("walletAddress", this.safeString(wallet, "walletAddress"));
             Map<String, Object> response = (this.sapiPrivateGetPositionFilter(this.extend(request, parameters))).join();
             //
             //
@@ -1700,7 +1700,7 @@ public class Binance extends BinanceApi
                 request.put("endDate", this.yyyymmdd(until));
             }
             Object wallet = (this.fetchWallet("fetchMyTrades", paramsOmitted)).join();
-            request.put("walletAddress", Helpers.GetValue(wallet, "walletAddress"));
+            request.put("walletAddress", this.safeString(wallet, "walletAddress"));
             Map<String, Object> response = (this.sapiPrivateGetOrderHistory(this.extend(request, paramsOmitted))).join();
             //
             // {
@@ -2001,7 +2001,7 @@ public class Binance extends BinanceApi
             String cost = this.safeString(parameters, "cost");
             Long slippageBps = this.parseToInt(Precise.stringMul(slippage, "10000"));
             Map<String, Object> commonRequest = new HashMap<String, Object>();
-            commonRequest.put("walletAddress", Helpers.GetValue(wallet, "walletAddress"));
+            commonRequest.put("walletAddress", this.safeString(wallet, "walletAddress"));
             commonRequest.put("orderType", typeUpper);
             commonRequest.put("slippageBps", slippageBps);
             String amountStr = this.numberToString(amount);
@@ -2156,7 +2156,7 @@ public class Binance extends BinanceApi
             }
             Object wallet = (this.fetchWallet("cancelOrders", parameters)).join();
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "walletAddress", Helpers.GetValue(wallet, "walletAddress") );
+                put( "walletAddress", Binance.this.safeString(wallet, "walletAddress") );
                 put( "walletId", Helpers.GetValue(wallet, "walletId") );
             }};
             // flatten cancelInfoList to dot list, eg. cancelInfoList[o].orderId=1234

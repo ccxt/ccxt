@@ -1348,8 +1348,7 @@ public class Zebpay extends ZebpayApi
             Map<String, Object> response = null;
             if (java.util.Objects.equals(market.get("spot"), true))
             {
-                List<Object> orderRequestResult = (List<Object>) this.orderRequest((String) (symbol), (String) (type), amount, (Map<String, Object>) (request), price, query);
-                response = (this.privateSpotPostV2ExOrders(this.extend((orderRequestResult == null || 0 >= ((List<?>)orderRequestResult).size() ? null : ((List<?>)orderRequestResult).get(0)), (orderRequestResult == null || 1 >= ((List<?>)orderRequestResult).size() ? null : ((List<?>)orderRequestResult).get(1))))).join();
+                response = (this.privateSpotPostV2ExOrders(this.spotOrderBody((String) (symbol), type, amount, (Map<String, Object>) (request), price, query))).join();
             } else
             {
                 String marginAsset = this.safeString(query, "marginAsset", "INR");
@@ -1397,7 +1396,7 @@ public class Zebpay extends ZebpayApi
 
     }
 
-    public Object orderRequest(String symbol, String type, Object amount, Map<String, Object> request, Object price, Map<String, Object> parameters)
+    public Object spotOrderBody(String symbol, String type, Object amount, Map<String, Object> request, Object price, Map<String, Object> parameters)
     {
         String upperCaseType = ((String)type).toUpperCase();
         String triggerPrice = this.safeString(parameters, "stopLossPrice");
@@ -1424,7 +1423,7 @@ public class Zebpay extends ZebpayApi
             Helpers.addElementToObject(request, "amount", this.amountToPrecision(symbol, amount));
             Helpers.addElementToObject(request, "price", this.priceToPrecision(symbol, price));
         }
-        return new ArrayList<Object>(Arrays.asList(request, paramsOmitted));
+        return this.extend(request, paramsOmitted);
     }
 
     /**
@@ -2386,13 +2385,12 @@ public class Zebpay extends ZebpayApi
         String timestamp = String.valueOf(this.milliseconds());
         Object signature = "";
         Object query = this.omit(paramsOmitted, this.extractParams(path));
-        Integer queryLength = ((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v3 -> { synchronized (j39v3) { yield new ArrayList<Object>(j39v3.keySet()); } } case null, default -> new ArrayList<Object>(); }).size();
         String access = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         if (java.util.Objects.equals(access, "public"))
         {
             if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET") || java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE"))
             {
-                if (!java.util.Objects.equals(queryLength, 0))
+                if ((((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v3 -> { synchronized (j39v3) { yield new ArrayList<Object>(j39v3.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() != 0))
                 {
                     suffix = ("?" + this.urlencode(query));
                 }
@@ -2416,17 +2414,19 @@ public class Zebpay extends ZebpayApi
         {
             this.checkRequiredCredentials(true);
             Boolean isSpot = java.util.Objects.equals(marketType, "spot");
-            ((Map<String, Object>)paramsOmitted).put("timestamp", timestamp);
+            Map<String, Object> paramsSigned = this.extend(paramsOmitted, new HashMap<String, Object>() {{
+                put( "timestamp", timestamp );
+            }});
             if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET") || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE") && Boolean.TRUE.equals(isSpot)))
             {
                 // For GET/DELETE: Append params to URL and sign the query string
-                String queryString = this.urlencode(paramsOmitted);
+                String queryString = this.urlencode(paramsSigned);
                 signature = this.hmac(this.encode(queryString), this.encode(this.secret), sha256(), "hex");
                 suffix = ("?" + queryString);
             } else
             {
                 // For POST/PUT: Convert body to JSON and sign the stringified payload
-                bodySigned = this.json(paramsOmitted);
+                bodySigned = this.json(paramsSigned);
                 signature = this.hmac(this.encode(bodySigned), this.encode(this.secret), sha256(), "hex");
             }
             {
