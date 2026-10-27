@@ -185487,7 +185487,7 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
     }
 }
 // this is updated by vss.js when building
-_define_property(BaseExchange, "ccxtVersion", '4.5.89');
+_define_property(BaseExchange, "ccxtVersion", '4.5.90');
 class Exchange extends BaseExchange {
     async closePosition(symbol, side = undefined, params = {}) {
         throw new _errors_js__rspack_import_2.NotSupported(this.id + ' closePosition() is not supported yet');
@@ -218817,7 +218817,9 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
                     'account': 'https://open-api.{hostname}/openApi',
                     'copyTrading': 'https://open-api.{hostname}/openApi',
                     'cswap': 'https://open-api.{hostname}/openApi',
-                    'api': 'https://open-api.{hostname}/openApi'
+                    'api': 'https://open-api.{hostname}/openApi',
+                    'agent': 'https://open-api.{hostname}/openApi',
+                    'wealth': 'https://open-api.{hostname}/openApi'
                 },
                 'test': {
                     'fund': 'https://open-api-vst.{hostname}/openApi',
@@ -218830,7 +218832,9 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
                     'account': 'https://open-api-vst.{hostname}/openApi',
                     'copyTrading': 'https://open-api-vst.{hostname}/openApi',
                     'cswap': 'https://open-api-vst.{hostname}/openApi',
-                    'api': 'https://open-api-vst.{hostname}/openApi'
+                    'api': 'https://open-api-vst.{hostname}/openApi',
+                    'agent': 'https://open-api-vst.{hostname}/openApi',
+                    'wealth': 'https://open-api-vst.{hostname}/openApi'
                 },
                 'www': 'https://bingx.com/',
                 'doc': 'https://bingx-api.github.io/docs/',
@@ -221580,8 +221584,15 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
         const high = this.safeString(ticker, 'highPrice');
         const low = this.safeString(ticker, 'lowPrice');
         const close = this.safeString(ticker, 'lastPrice');
-        const quoteVolume = this.safeString(ticker, 'quoteVolume');
-        const baseVolume = this.safeString(ticker, 'volume');
+        let quoteVolume = this.safeString(ticker, 'quoteVolume');
+        let baseVolume = this.safeString(ticker, 'volume');
+        if (marketResolved['inverse'] === true) {
+            // Coin-M volume is in contracts; quoteVolume is in the base currency.
+            // read the resolved market: parseTickers and fetchTickers reach here with no market argument
+            const contractSize = this.safeString(marketResolved, 'contractSize');
+            baseVolume = quoteVolume;
+            quoteVolume = _base_Precise_js__rspack_import_3/* .Precise.stringMul */.Y.stringMul(this.safeString(ticker, 'volume'), contractSize);
+        }
         let percentage = this.safeString(ticker, 'priceChangePercent');
         if (percentage !== undefined) {
             percentage = percentage.replace('%', '');
@@ -221839,7 +221850,7 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
                 const account = this.account();
                 account['free'] = this.safeString2(balance, 'availableMargin', 'availableBalance');
                 account['used'] = this.safeString(balance, 'usedMargin');
-                account['total'] = this.safeString(balance, 'maxWithdrawAmount');
+                account['total'] = this.safeString2(balance, 'balance', 'maxWithdrawAmount');
                 if (code !== undefined) {
                     result[code] = account;
                 }
@@ -222205,7 +222216,13 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
                 collateralString = unrealizedPnlString !== undefined ? _base_Precise_js__rspack_import_3/* .Precise.stringAdd */.Y.stringAdd(initialMarginString, unrealizedPnlString) : initialMarginString;
             }
         }
-        const timestamp = this.safeInteger(position, 'openTime');
+        const timestamp = this.safeInteger2(position, 'openTime', 'createTime');
+        const positionSide = this.safeString(position, 'positionSide');
+        let hedged = undefined;
+        if (positionSide !== undefined) {
+            hedged = positionSide !== 'BOTH';
+        }
+        const percentageString = this.safeString(position, 'pnlRatio');
         return this.safePosition({
             'info': position,
             'id': this.safeString(position, 'positionId'),
@@ -222216,13 +222233,13 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
             'entryPrice': this.safeNumber2(position, 'avgPrice', 'entryPrice'),
             'unrealizedPnl': this.parseNumber(unrealizedPnlString),
             'realizedPnl': this.safeNumber(position, 'realisedProfit'),
-            'percentage': undefined,
+            'percentage': this.parseNumber(_base_Precise_js__rspack_import_3/* .Precise.stringMul */.Y.stringMul(percentageString, '100')),
             'contracts': this.safeNumber(position, 'positionAmt'),
             'contractSize': undefined,
             'markPrice': this.safeNumber(position, 'markPrice'),
             'lastPrice': undefined,
             'side': this.safeStringLower(position, 'positionSide'),
-            'hedged': undefined,
+            'hedged': hedged,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'lastUpdateTimestamp': this.safeInteger(position, 'updateTime'),
@@ -222317,7 +222334,7 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
         const isTriggerOrder = triggerPrice !== undefined;
         const isStopLossPriceOrder = stopLossPrice !== undefined;
         const isTakeProfitPriceOrder = takeProfitPrice !== undefined;
-        let exchangeClientOrderId = 'clientOrderID';
+        let exchangeClientOrderId = 'clientOrderId';
         if (isSpot) {
             exchangeClientOrderId = 'newClientOrderId';
         }
@@ -223329,15 +223346,20 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
             };
             const clientOrderId = this.safeString2(paramsOmitted, 'clientOrderId', 'clientOrderID');
             const paramsOmitted2 = this.omit(paramsOmitted, [
-                'clientOrderId'
+                'clientOrderId',
+                'clientOrderID'
             ]);
+            const [type, paramsMarketType] = this.handleMarketTypeAndParams('cancelOrder', market, paramsOmitted2);
+            const [subType, paramsSubType] = this.handleSubTypeAndParams('cancelOrder', market, paramsMarketType);
             if (clientOrderId !== undefined) {
-                request['clientOrderID'] = clientOrderId;
+                let clientOrderIdRequest = 'clientOrderId';
+                if (type === 'spot') {
+                    clientOrderIdRequest = 'clientOrderID';
+                }
+                request[clientOrderIdRequest] = clientOrderId;
             } else {
                 request['orderId'] = id;
             }
-            const [type, paramsMarketType] = this.handleMarketTypeAndParams('cancelOrder', market, paramsOmitted2);
-            const [subType, paramsSubType] = this.handleSubTypeAndParams('cancelOrder', market, paramsMarketType);
             if (type === 'spot') {
                 response = await this.spotV1PrivatePostTradeCancel(this.extend(request, paramsSubType));
             } else {
@@ -223812,11 +223834,24 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
             }
             market = this.market(symbol);
             const request = {
-                'symbol': market['id'],
-                'orderId': id
+                'symbol': market['id']
             };
-            const [type, paramsMarketType] = this.handleMarketTypeAndParams('fetchOrder', market, paramsOmitted);
+            const clientOrderId = this.safeString2(paramsOmitted, 'clientOrderId', 'clientOrderID');
+            const paramsOmitted2 = this.omit(paramsOmitted, [
+                'clientOrderId',
+                'clientOrderID'
+            ]);
+            const [type, paramsMarketType] = this.handleMarketTypeAndParams('fetchOrder', market, paramsOmitted2);
             const [subType, paramsSubType] = this.handleSubTypeAndParams('fetchOrder', market, paramsMarketType);
+            if (clientOrderId !== undefined) {
+                let clientOrderIdRequest = 'clientOrderId';
+                if (type === 'spot') {
+                    clientOrderIdRequest = 'clientOrderID';
+                }
+                request[clientOrderIdRequest] = clientOrderId;
+            } else {
+                request['orderId'] = id;
+            }
             if (type === 'spot') {
                 response = await this.spotV1PrivateGetTradeQuery(this.extend(request, paramsSubType));
             //
@@ -223954,8 +223989,12 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
             request['symbol'] = market['id'];
         }
         const [type, paramsMarketType] = this.handleMarketTypeAndParams('fetchOrders', market, params);
+        const [subType, paramsSubType] = this.handleSubTypeAndParams('fetchOrders', market, paramsMarketType);
         if (type !== 'swap') {
             throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' fetchOrders() is only supported for swap markets');
+        }
+        if (subType === 'inverse' || market !== undefined && market['inverse'] === true) {
+            throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' fetchOrders() is not supported for inverse swap markets');
         }
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -223963,7 +224002,7 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
         if (since !== undefined) {
             request['startTime'] = since;
         }
-        const [requestUntil, paramsUntil] = this.handleUntilOption('endTime', request, paramsMarketType);
+        const [requestUntil, paramsUntil] = this.handleUntilOption('endTime', request, paramsSubType);
         const response = await this.swapV1PrivateGetTradeFullOrder(this.extend(requestUntil, paramsUntil));
         //
         //     {
@@ -225294,6 +225333,9 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
             if (orderId === undefined) {
                 throw new _base_errors_js__rspack_import_2.ArgumentsRequired(this.id + ' fetchMyTrades() requires an orderId argument for inverse swap trades');
             }
+            if (limit !== undefined) {
+                request['pageSize'] = Math.min(limit, 1000); // api maximum 1000
+            }
             response = await this.cswapV1PrivateGetTradeAllFillOrders(this.extend(request, paramsSubType));
             fills = this.safeList(response, 'data', []);
         //
@@ -225771,7 +225813,7 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
     }
     /**
      * @method
-     * @name bitget#closePositions
+     * @name bingx#closeAllPositions
      * @description closes open positions for a market
      * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Close%20All%20Positions
      * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Close%20all%20positions%20in%20bulk
@@ -225928,6 +225970,7 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
      *
      * EXCHANGE SPECIFIC PARAMETERS
      * @param {string} [params.cancelClientOrderID] the user-defined id of the order to be canceled, 1-40 characters, different orders cannot use the same clientOrderID, only supports a query range of 2 hours
+     * @param {string} [params.cancelClientOrderId] the client order id of the order to cancel
      * @param {string} [params.cancelRestrictions] cancel orders with specified status, NEW: New order, PENDING: Pending order, PARTIALLY_FILLED: Partially filled
      * @param {string} [params.cancelReplaceMode] STOP_ON_FAILURE - if the cancel order fails, it will not continue to place a new order, ALLOW_FAILURE - regardless of whether the cancel order succeeds or fails, it will continue to place a new order
      * @param {float} [params.quoteOrderQty] order amount
@@ -225945,9 +225988,22 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
         if (market['inverse'] === true) {
             throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' editOrder() is not supported for inverse swap markets');
         }
-        const request = this.createOrderRequest(symbol, type, side, amount, price, params);
-        request['cancelOrderId'] = id;
-        request['cancelReplaceMode'] = this.safeString(params, 'cancelReplaceMode', 'STOP_ON_FAILURE');
+        const cancelClientOrderId = this.safeString2(params, 'cancelClientOrderId', 'cancelClientOrderID');
+        const paramsOmitted = this.omit(params, [
+            'cancelClientOrderId',
+            'cancelClientOrderID'
+        ]);
+        const request = this.createOrderRequest(symbol, type, side, amount, price, paramsOmitted);
+        if (cancelClientOrderId !== undefined) {
+            let cancelClientOrderIdRequest = 'cancelClientOrderId';
+            if (market['spot'] === true) {
+                cancelClientOrderIdRequest = 'cancelClientOrderID';
+            }
+            request[cancelClientOrderIdRequest] = cancelClientOrderId;
+        } else {
+            request['cancelOrderId'] = id;
+        }
+        request['cancelReplaceMode'] = this.safeString(paramsOmitted, 'cancelReplaceMode', 'STOP_ON_FAILURE');
         let response;
         if (market['swap'] === true) {
             response = await this.swapV1PrivatePostTradeCancelReplace(request);
@@ -267071,7 +267127,7 @@ class bitteam extends _abstract_bitteam_js__rspack_import_0/* ["default"] */.A {
     }
     /**
      * @method
-     * @name betteam#fetchBalance
+     * @name bitteam#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://bit.team/trade/api/documentation#/PRIVATE/getTradeApiCcxtBalance
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -274166,7 +274222,7 @@ class blofin extends _abstract_blofin_js__rspack_import_0/* ["default"] */.A {
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrder': undefined,
                 'fetchOpenOrders': true,
-                'fetchOrder': undefined,
+                'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': false,
                 'fetchOrders': false,
@@ -274615,7 +274671,12 @@ class blofin extends _abstract_blofin_js__rspack_import_0/* ["default"] */.A {
                         'untilDays': 100000,
                         'symbolRequired': false
                     },
-                    'fetchOrder': undefined,
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': true
+                    },
                     'fetchOpenOrders': {
                         'marginMode': false,
                         'limit': 100,
@@ -274674,7 +274735,9 @@ class blofin extends _abstract_blofin_js__rspack_import_0/* ["default"] */.A {
                     'linear': {
                         'extends': 'forDerivatives'
                     },
-                    'inverse': undefined
+                    'inverse': {
+                        'extends': 'forDerivatives'
+                    }
                 },
                 'future': {
                     'linear': undefined,
@@ -275343,6 +275406,11 @@ class blofin extends _abstract_blofin_js__rspack_import_0/* ["default"] */.A {
             'bar': this.safeString(this.timeframes, timeframe, timeframe),
             'limit': limitResolved
         };
+        if (since !== undefined) {
+            const durationInMilliseconds = this.parseTimeframe(timeframe) * 1000;
+            request['before'] = Math.max(since - 1, 0);
+            request['after'] = this.sum(since, durationInMilliseconds * limitResolved);
+        }
         const until = this.safeInteger(query, 'until');
         if (until !== undefined) {
             request['after'] = until;
@@ -275420,6 +275488,16 @@ class blofin extends _abstract_blofin_js__rspack_import_0/* ["default"] */.A {
         const marketId = this.safeString(contract, 'instId');
         const symbol = this.safeSymbol(marketId, market);
         const fundingTime = this.safeInteger(contract, 'fundingTime');
+        const fundingInterval = this.safeString(contract, 'fundingInterval');
+        const intervalUnits = {
+            'hour': 'h',
+            'minute': 'm'
+        };
+        const intervalUnit = this.safeString(intervalUnits, this.safeString(contract, 'fundingIntervalUnit'));
+        let intervalString = undefined;
+        if (fundingInterval !== undefined && intervalUnit !== undefined) {
+            intervalString = fundingInterval + intervalUnit;
+        }
         // > The current interest is 0.
         return {
             'info': contract,
@@ -275439,7 +275517,7 @@ class blofin extends _abstract_blofin_js__rspack_import_0/* ["default"] */.A {
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
-            'interval': undefined
+            'interval': intervalString
         };
     }
     /**
@@ -276061,6 +276139,55 @@ class blofin extends _abstract_blofin_js__rspack_import_0/* ["default"] */.A {
     }
     /**
      * @method
+     * @name blofin#fetchOrder
+     * @description fetches information on an order made by the user
+     * @see https://docs.blofin.com/index.html#get-order-detail
+     * @see https://docs.blofin.com/index.html#get-tpsl-order-detail
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] client order id, used instead of the id argument
+     * @param {boolean} [params.tpsl] True if fetching a tpsl order
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */ async fetchOrder(id, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new _base_errors_js__rspack_import_1.ArgumentsRequired(this.id + ' fetchOrder() requires a symbol argument');
+        }
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const market = this.market(symbol);
+        const request = {
+            'instId': market['id']
+        };
+        const isTpsl = this.safeBool2(params, 'tpsl', 'TPSL', false);
+        const clientOrderId = this.safeString(params, 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            request['clientOrderId'] = clientOrderId;
+        } else if (isTpsl === true) {
+            request['tpslId'] = id;
+        } else {
+            request['orderId'] = id;
+        }
+        const query = this.omit(params, [
+            'clientOrderId',
+            'tpsl',
+            'TPSL'
+        ]);
+        let response;
+        if (isTpsl === true) {
+            response = await this.privateGetTradeOrderTpslDetail(this.extend(request, query));
+        } else {
+            response = await this.privateGetTradeOrderDetail(this.extend(request, query));
+        }
+        const data = this.safeDict(response, 'data');
+        if (data === undefined) {
+            throw new _base_errors_js__rspack_import_1.OrderNotFound(this.id + ' fetchOrder() could not find order ' + id);
+        }
+        return this.parseOrder(data, market);
+    }
+    /**
+     * @method
      * @name blofin#fetchOpenOrders
      * @description Fetch orders that are still open
      * @see https://blofin.com/docs#get-active-orders
@@ -276142,6 +276269,9 @@ class blofin extends _abstract_blofin_js__rspack_import_0/* ["default"] */.A {
         if (symbol !== undefined) {
             market = this.market(symbol);
             request['instId'] = market['id'];
+        }
+        if (since !== undefined) {
+            request['begin'] = since;
         }
         const [requestUntil, paramsUntil] = this.handleUntilOption('end', request, paramsPaginate);
         if (limit !== undefined) {
@@ -293681,7 +293811,7 @@ class bybit extends _abstract_bybit_js__rspack_import_0/* ["default"] */.A {
     }
     /**
      * @method
-     * @name bybit#createMarkeSellOrderWithCost
+     * @name bybit#createMarketSellOrderWithCost
      * @description create a market sell order by providing the symbol and cost
      * @see https://bybit-exchange.github.io/docs/v5/order/create-order
      * @param {string} symbol unified symbol of the market to create an order in
@@ -302410,7 +302540,7 @@ class bydfi extends _abstract_bydfi_js__rspack_import_0/* ["default"] */.A {
     }
     /**
      * @method
-     * @name budfi#transfer
+     * @name bydfi#transfer
      * @description transfer currency internally between wallets on the same account
      * @see https://developers.bydfi.com/en/account#asset-transfer-between-accounts
      * @param {string} code unified currency code
@@ -328223,7 +328353,7 @@ class cryptocom extends _abstract_cryptocom_js__rspack_import_0/* ["default"] */
     }
     /**
      * @method
-     * @name cryptocom#closePositions
+     * @name cryptocom#closePosition
      * @description closes open positions for a market
      * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-close-position
      * @param {string} symbol Unified CCXT market symbol
@@ -337463,7 +337593,7 @@ class deribit extends _abstract_deribit_js__rspack_import_0/* ["default"] */.A {
                 },
                 'www': 'https://www.deribit.com',
                 'doc': [
-                    'https://docs.deribit.com/v2',
+                    'https://docs.deribit.com',
                     'https://github.com/deribit'
                 ],
                 'fees': 'https://www.deribit.com/pages/information/fees',
@@ -338244,7 +338374,7 @@ class deribit extends _abstract_deribit_js__rspack_import_0/* ["default"] */.A {
      * @method
      * @name deribit#fetchTime
      * @description fetches the current integer timestamp in milliseconds from the exchange server
-     * @see https://docs.deribit.com/#public-get_time
+     * @see https://docs.deribit.com/api-reference/supporting/public-get_time
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */ async fetchTime(params = {}) {
@@ -338265,7 +338395,7 @@ class deribit extends _abstract_deribit_js__rspack_import_0/* ["default"] */.A {
      * @method
      * @name deribit#fetchCurrencies
      * @description fetches all available currencies on an exchange
-     * @see https://docs.deribit.com/#public-get_currencies
+     * @see https://docs.deribit.com/api-reference/market-data/public-get_currencies
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */ async fetchCurrencies(params = {}) {
@@ -338338,7 +338468,7 @@ class deribit extends _abstract_deribit_js__rspack_import_0/* ["default"] */.A {
      * @method
      * @name deribit#fetchStatus
      * @description the latest known information on the availability of the exchange API
-     * @see https://docs.deribit.com/#public-status
+     * @see https://docs.deribit.com/api-reference/supporting/public-status
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */ async fetchStatus(params = {}) {
@@ -338370,7 +338500,7 @@ class deribit extends _abstract_deribit_js__rspack_import_0/* ["default"] */.A {
      * @method
      * @name deribit#fetchAccounts
      * @description fetch all the accounts associated with a profile
-     * @see https://docs.deribit.com/#private-get_subaccounts
+     * @see https://docs.deribit.com/api-reference/account-management/private-get_subaccounts
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
      */ async fetchAccounts(params = {}) {
@@ -338441,8 +338571,8 @@ class deribit extends _abstract_deribit_js__rspack_import_0/* ["default"] */.A {
      * @method
      * @name deribit#fetchMarkets
      * @description retrieves data on all markets for deribit
-     * @see https://docs.deribit.com/#public-get_currencies
-     * @see https://docs.deribit.com/#public-get_instruments
+     * @see https://docs.deribit.com/api-reference/market-data/public-get_currencies
+     * @see https://docs.deribit.com/api-reference/market-data/public-get_instruments
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */ async fetchMarkets(params = {}) {
@@ -338716,8 +338846,8 @@ class deribit extends _abstract_deribit_js__rspack_import_0/* ["default"] */.A {
      * @method
      * @name deribit#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
-     * @see https://docs.deribit.com/#private-get_account_summary
-     * @see https://docs.deribit.com/#private-get_account_summaries
+     * @see https://docs.deribit.com/api-reference/account-management/private-get_account_summary
+     * @see https://docs.deribit.com/api-reference/account-management/private-get_account_summaries
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.code] unified currency code of the currency for the balance, if defined 'privateGetGetAccountSummary' will be used, otherwise 'privateGetGetAccountSummaries' will be used
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
@@ -338786,7 +338916,7 @@ class deribit extends _abstract_deribit_js__rspack_import_0/* ["default"] */.A {
      * @method
      * @name deribit#createDepositAddress
      * @description create a currency deposit address
-     * @see https://docs.deribit.com/#private-create_deposit_address
+     * @see https://docs.deribit.com/api-reference/wallet/private-create_deposit_address
      * @param {string} code unified currency code of the currency for the deposit address
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
@@ -338826,7 +338956,7 @@ class deribit extends _abstract_deribit_js__rspack_import_0/* ["default"] */.A {
      * @method
      * @name deribit#fetchDepositAddress
      * @description fetch the deposit address for a currency associated with this account
-     * @see https://docs.deribit.com/#private-get_current_deposit_address
+     * @see https://docs.deribit.com/api-reference/wallet/private-get_current_deposit_address
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
@@ -338948,7 +339078,7 @@ class deribit extends _abstract_deribit_js__rspack_import_0/* ["default"] */.A {
      * @method
      * @name deribit#fetchTicker
      * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://docs.deribit.com/#public-ticker
+     * @see https://docs.deribit.com/api-reference/market-data/public-ticker
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -338996,7 +339126,7 @@ class deribit extends _abstract_deribit_js__rspack_import_0/* ["default"] */.A {
      * @method
      * @name deribit#fetchTickers
      * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-     * @see https://docs.deribit.com/#public-get_book_summary_by_currency
+     * @see https://docs.deribit.com/api-reference/market-data/public-get_book_summary_by_currency
      * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.code] *required* the currency code to fetch the tickers for, eg. 'BTC', 'ETH'
@@ -339016,7 +339146,7 @@ class deribit extends _abstract_deribit_js__rspack_import_0/* ["default"] */.A {
                 const market = this.market(symbolsNormalized[i]);
                 const marketBase = this.safeString(market, 'base');
                 if (code !== undefined && code !== marketBase) {
-                    throw new _base_errors_js__rspack_import_1.BadRequest(this.id + ' fetchTickers the base currency must be the same for all symbols, this endpoint only supports one base currency at a time. Read more about it here: https://docs.deribit.com/#public-get_book_summary_by_currency');
+                    throw new _base_errors_js__rspack_import_1.BadRequest(this.id + ' fetchTickers the base currency must be the same for all symbols, this endpoint only supports one base currency at a time. Read more about it here: https://docs.deribit.com/api-reference/market-data/public-get_book_summary_by_currency');
                 }
                 if (code === undefined) {
                     code = this.safeString(market, 'base');
@@ -339090,7 +339220,7 @@ class deribit extends _abstract_deribit_js__rspack_import_0/* ["default"] */.A {
      * @method
      * @name deribit#fetchOHLCV
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://docs.deribit.com/#public-get_tradingview_chart_data
+     * @see https://docs.deribit.com/api-reference/market-data/public-get_tradingview_chart_data
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -339251,8 +339381,8 @@ class deribit extends _abstract_deribit_js__rspack_import_0/* ["default"] */.A {
     /**
      * @method
      * @name deribit#fetchTrades
-     * @see https://docs.deribit.com/#public-get_last_trades_by_instrument
-     * @see https://docs.deribit.com/#public-get_last_trades_by_instrument_and_time
+     * @see https://docs.deribit.com/api-reference/market-data/public-get_last_trades_by_instrument
+     * @see https://docs.deribit.com/api-reference/market-data/public-get_last_trades_by_instrument_and_time
      * @description get the list of most recent trades for a particular symbol.
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
@@ -339321,7 +339451,7 @@ class deribit extends _abstract_deribit_js__rspack_import_0/* ["default"] */.A {
      * @method
      * @name deribit#fetchTradingFees
      * @description fetch the trading fees for multiple markets
-     * @see https://docs.deribit.com/#private-get_account_summary
+     * @see https://docs.deribit.com/api-reference/account-management/private-get_account_summary
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */ async fetchTradingFees(params = {}) {
@@ -339440,7 +339570,7 @@ class deribit extends _abstract_deribit_js__rspack_import_0/* ["default"] */.A {
      * @method
      * @name deribit#fetchOrderBook
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://docs.deribit.com/#public-get_order_book
+     * @see https://docs.deribit.com/api-reference/market-data/public-get_order_book
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -339630,7 +339760,7 @@ class deribit extends _abstract_deribit_js__rspack_import_0/* ["default"] */.A {
      * @method
      * @name deribit#fetchOrder
      * @description fetches information on an order made by the user
-     * @see https://docs.deribit.com/#private-get_order_state
+     * @see https://docs.deribit.com/api-reference/trading/private-get_order_state
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -339682,8 +339812,8 @@ class deribit extends _abstract_deribit_js__rspack_import_0/* ["default"] */.A {
      * @method
      * @name deribit#createOrder
      * @description create a trade order
-     * @see https://docs.deribit.com/#private-buy
-     * @see https://docs.deribit.com/#private-sell
+     * @see https://docs.deribit.com/api-reference/trading/private-buy
+     * @see https://docs.deribit.com/api-reference/trading/private-sell
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
@@ -339852,7 +339982,7 @@ class deribit extends _abstract_deribit_js__rspack_import_0/* ["default"] */.A {
      * @method
      * @name deribit#editOrder
      * @description edit a trade order
-     * @see https://docs.deribit.com/#private-edit
+     * @see https://docs.deribit.com/api-reference/trading/private-edit
      * @param {string} id edit order id
      * @param {string} [symbol] unified symbol of the market to edit an order in
      * @param {string} [type] 'market' or 'limit'
@@ -339896,7 +340026,7 @@ class deribit extends _abstract_deribit_js__rspack_import_0/* ["default"] */.A {
      * @method
      * @name deribit#cancelOrder
      * @description cancels an open order
-     * @see https://docs.deribit.com/#private-cancel
+     * @see https://docs.deribit.com/api-reference/trading/private-cancel
      * @param {string} id order id
      * @param {string} symbol not used by cancelOrder ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -339916,8 +340046,8 @@ class deribit extends _abstract_deribit_js__rspack_import_0/* ["default"] */.A {
      * @method
      * @name deribit#cancelAllOrders
      * @description cancel all open orders
-     * @see https://docs.deribit.com/#private-cancel_all
-     * @see https://docs.deribit.com/#private-cancel_all_by_instrument
+     * @see https://docs.deribit.com/api-reference/trading/private-cancel_all
+     * @see https://docs.deribit.com/api-reference/trading/private-cancel_all_by_instrument
      * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
@@ -339954,8 +340084,8 @@ class deribit extends _abstract_deribit_js__rspack_import_0/* ["default"] */.A {
      * @method
      * @name deribit#fetchOpenOrders
      * @description fetch all unfilled currently open orders
-     * @see https://docs.deribit.com/#private-get_open_orders_by_currency
-     * @see https://docs.deribit.com/#private-get_open_orders_by_instrument
+     * @see https://docs.deribit.com/api-reference/trading/private-get_open_orders_by_currency
+     * @see https://docs.deribit.com/api-reference/trading/private-get_open_orders_by_instrument
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of  open orders structures to retrieve
@@ -339985,8 +340115,8 @@ class deribit extends _abstract_deribit_js__rspack_import_0/* ["default"] */.A {
      * @method
      * @name deribit#fetchClosedOrders
      * @description fetches information on multiple closed orders made by the user
-     * @see https://docs.deribit.com/#private-get_order_history_by_currency
-     * @see https://docs.deribit.com/#private-get_order_history_by_instrument
+     * @see https://docs.deribit.com/api-reference/trading/private-get_order_history_by_currency
+     * @see https://docs.deribit.com/api-reference/trading/private-get_order_history_by_instrument
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -340021,7 +340151,7 @@ class deribit extends _abstract_deribit_js__rspack_import_0/* ["default"] */.A {
      * @method
      * @name deribit#fetchOrderTrades
      * @description fetch all the trades made from a single order
-     * @see https://docs.deribit.com/#private-get_user_trades_by_order
+     * @see https://docs.deribit.com/api-reference/trading/private-get_user_trades_by_order
      * @param {string} id order id
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
@@ -340076,10 +340206,10 @@ class deribit extends _abstract_deribit_js__rspack_import_0/* ["default"] */.A {
      * @method
      * @name deribit#fetchMyTrades
      * @description fetch all trades made by the user
-     * @see https://docs.deribit.com/#private-get_user_trades_by_currency
-     * @see https://docs.deribit.com/#private-get_user_trades_by_currency_and_time
-     * @see https://docs.deribit.com/#private-get_user_trades_by_instrument
-     * @see https://docs.deribit.com/#private-get_user_trades_by_instrument_and_time
+     * @see https://docs.deribit.com/api-reference/trading/private-get_user_trades_by_currency
+     * @see https://docs.deribit.com/api-reference/trading/private-get_user_trades_by_currency_and_time
+     * @see https://docs.deribit.com/api-reference/trading/private-get_user_trades_by_instrument
+     * @see https://docs.deribit.com/api-reference/trading/private-get_user_trades_by_instrument_and_time
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades structures to retrieve
@@ -340158,7 +340288,7 @@ class deribit extends _abstract_deribit_js__rspack_import_0/* ["default"] */.A {
      * @method
      * @name deribit#fetchDeposits
      * @description fetch all deposits made to an account
-     * @see https://docs.deribit.com/#private-get_deposits
+     * @see https://docs.deribit.com/api-reference/wallet/private-get_deposits
      * @param {string} code unified currency code
      * @param {int} [since] the earliest time in ms to fetch deposits for
      * @param {int} [limit] the maximum number of deposits structures to retrieve
@@ -340207,7 +340337,7 @@ class deribit extends _abstract_deribit_js__rspack_import_0/* ["default"] */.A {
      * @method
      * @name deribit#fetchWithdrawals
      * @description fetch all withdrawals made from an account
-     * @see https://docs.deribit.com/#private-get_withdrawals
+     * @see https://docs.deribit.com/api-reference/wallet/private-get_withdrawals
      * @param {string} code unified currency code
      * @param {int} [since] the earliest time in ms to fetch withdrawals for
      * @param {int} [limit] the maximum number of withdrawals structures to retrieve
@@ -340403,7 +340533,7 @@ class deribit extends _abstract_deribit_js__rspack_import_0/* ["default"] */.A {
      * @method
      * @name deribit#fetchPosition
      * @description fetch data on a single open contract trade position
-     * @see https://docs.deribit.com/#private-get_position
+     * @see https://docs.deribit.com/api-reference/account-management/private-get_position
      * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
@@ -340449,7 +340579,7 @@ class deribit extends _abstract_deribit_js__rspack_import_0/* ["default"] */.A {
      * @method
      * @name deribit#fetchPositions
      * @description fetch all open positions
-     * @see https://docs.deribit.com/#private-get_positions
+     * @see https://docs.deribit.com/api-reference/account-management/private-get_positions
      * @param {string[]|undefined} symbols list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.currency] currency code filter for positions
@@ -340504,7 +340634,7 @@ class deribit extends _abstract_deribit_js__rspack_import_0/* ["default"] */.A {
      * @method
      * @name deribit#fetchVolatilityHistory
      * @description fetch the historical volatility of an option market based on an underlying asset
-     * @see https://docs.deribit.com/#public-get_historical_volatility
+     * @see https://docs.deribit.com/api-reference/market-data/public-get_historical_volatility
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [volatility history objects]{@link https://docs.ccxt.com/?id=volatility-structure}
@@ -340566,7 +340696,7 @@ class deribit extends _abstract_deribit_js__rspack_import_0/* ["default"] */.A {
      * @method
      * @name deribit#fetchTransfers
      * @description fetch a history of internal transfers made on an account
-     * @see https://docs.deribit.com/#private-get_transfers
+     * @see https://docs.deribit.com/api-reference/wallet/private-get_transfers
      * @param {string} code unified currency code of the currency transferred
      * @param {int} [since] the earliest time in ms to fetch transfers for
      * @param {int} [limit] the maximum number of  transfers structures to retrieve
@@ -340628,8 +340758,8 @@ class deribit extends _abstract_deribit_js__rspack_import_0/* ["default"] */.A {
      * @method
      * @name deribit#transfer
      * @description transfer currency internally between wallets on the same account
-     * @see https://docs.deribit.com/#private-submit_transfer_to_user
-     * @see https://docs.deribit.com/#private-submit_transfer_to_subaccount
+     * @see https://docs.deribit.com/api-reference/wallet/private-submit_transfer_to_user
+     * @see https://docs.deribit.com/api-reference/wallet/private-submit_transfer_to_subaccount
      * @param {string} code unified currency code
      * @param {float} amount amount to transfer
      * @param {string} fromAccount account to transfer from
@@ -340722,7 +340852,7 @@ class deribit extends _abstract_deribit_js__rspack_import_0/* ["default"] */.A {
      * @method
      * @name deribit#withdraw
      * @description make a withdrawal
-     * @see https://docs.deribit.com/#private-withdraw
+     * @see https://docs.deribit.com/api-reference/wallet/private-withdraw
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
@@ -340777,7 +340907,7 @@ class deribit extends _abstract_deribit_js__rspack_import_0/* ["default"] */.A {
      * @method
      * @name deribit#fetchDepositWithdrawFees
      * @description fetch deposit and withdraw fees
-     * @see https://docs.deribit.com/#public-get_currencies
+     * @see https://docs.deribit.com/api-reference/market-data/public-get_currencies
      * @param {string[]|undefined} codes list of unified currency codes
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
@@ -340815,7 +340945,7 @@ class deribit extends _abstract_deribit_js__rspack_import_0/* ["default"] */.A {
      * @method
      * @name deribit#fetchFundingRate
      * @description fetch the current funding rate
-     * @see https://docs.deribit.com/#public-get_funding_rate_value
+     * @see https://docs.deribit.com/api-reference/market-data/public-get_funding_rate_value
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.start_timestamp] fetch funding rate starting from this timestamp
@@ -340849,7 +340979,7 @@ class deribit extends _abstract_deribit_js__rspack_import_0/* ["default"] */.A {
      * @method
      * @name deribit#fetchFundingRateHistory
      * @description fetch the current funding rate
-     * @see https://docs.deribit.com/#public-get_funding_rate_history
+     * @see https://docs.deribit.com/api-reference/market-data/public-get_funding_rate_history
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch funding rate history for
      * @param {int} [limit] the maximum number of entries to retrieve
@@ -340972,7 +341102,7 @@ class deribit extends _abstract_deribit_js__rspack_import_0/* ["default"] */.A {
      * @method
      * @name deribit#fetchLiquidations
      * @description retrieves the public liquidations of a trading pair
-     * @see https://docs.deribit.com/#public-get_last_settlements_by_currency
+     * @see https://docs.deribit.com/api-reference/market-data/public-get_last_settlements_by_currency
      * @param {string} symbol unified CCXT market symbol
      * @param {int} [since] the earliest time in ms to fetch liquidations for
      * @param {int} [limit] the maximum number of liquidation structures to retrieve
@@ -341050,7 +341180,7 @@ class deribit extends _abstract_deribit_js__rspack_import_0/* ["default"] */.A {
      * @method
      * @name deribit#fetchMyLiquidations
      * @description retrieves the users liquidated positions
-     * @see https://docs.deribit.com/#private-get_settlement_history_by_instrument
+     * @see https://docs.deribit.com/api-reference/trading/private-get_settlement_history_by_instrument
      * @param {string} symbol unified CCXT market symbol
      * @param {int} [since] the earliest time in ms to fetch liquidations for
      * @param {int} [limit] the maximum number of liquidation structures to retrieve
@@ -341136,7 +341266,7 @@ class deribit extends _abstract_deribit_js__rspack_import_0/* ["default"] */.A {
      * @method
      * @name deribit#fetchGreeks
      * @description fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
-     * @see https://docs.deribit.com/#public-ticker
+     * @see https://docs.deribit.com/api-reference/market-data/public-ticker
      * @param {string} symbol unified symbol of the market to fetch greeks for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
@@ -341268,7 +341398,7 @@ class deribit extends _abstract_deribit_js__rspack_import_0/* ["default"] */.A {
      * @method
      * @name deribit#fetchOption
      * @description fetches option data that is commonly found in an option chain
-     * @see https://docs.deribit.com/#public-get_book_summary_by_instrument
+     * @see https://docs.deribit.com/api-reference/market-data/public-get_book_summary_by_instrument
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [option chain structure]{@link https://docs.ccxt.com/?id=option-chain-structure}
@@ -341321,7 +341451,7 @@ class deribit extends _abstract_deribit_js__rspack_import_0/* ["default"] */.A {
      * @method
      * @name deribit#fetchOptionChain
      * @description fetches data for an underlying asset that is commonly found in an option chain
-     * @see https://docs.deribit.com/#public-get_book_summary_by_currency
+     * @see https://docs.deribit.com/api-reference/market-data/public-get_book_summary_by_currency
      * @param {string} code base currency to fetch an option chain for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [option chain structures]{@link https://docs.ccxt.com/?id=option-chain-structure}
@@ -341423,7 +341553,7 @@ class deribit extends _abstract_deribit_js__rspack_import_0/* ["default"] */.A {
      * @method
      * @name deribit#fetchOpenInterest
      * @description Retrieves the open interest of a symbol
-     * @see https://docs.deribit.com/?shell#public-get_book_summary_by_instrument
+     * @see https://docs.deribit.com/api-reference/market-data/public-get_book_summary_by_instrument
      * @param {string} symbol unified CCXT market symbol
      * @param {object} [params] exchange specific parameters
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
@@ -405591,7 +405721,7 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
     }
     /**
      * @method
-     * @name hyperliquid#createAccount
+     * @name hyperliquid#createSubAccount
      * @description creates a sub-account under the main account
      * @param {string} name the name of the sub-account
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -415343,10 +415473,7 @@ class krakenfutures extends _abstract_krakenfutures_js__rspack_import_0/* ["defa
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market(symbol);
-        }
+        const symbolResolved = symbol !== undefined ? this.symbol(symbol) : symbol;
         // todo: lastFillTime: this.iso8601(end)
         const response = await this.privateGetFills(params);
         //
@@ -415370,7 +415497,13 @@ class krakenfutures extends _abstract_krakenfutures_js__rspack_import_0/* ["defa
         //    }
         //
         const fills = this.safeList(response, 'fills', []);
-        return this.parseTrades(fills, market, since, limit);
+        // the endpoint returns the fills of every contract, each row resolves its own market
+        const trades = this.parseTrades(fills);
+        // a fill of a contract that is no longer listed in /instruments has no unified symbol,
+        // so safeMarket keeps the raw id (eg 'PF_XRPUSD') in trade['symbol']: it is filtered out
+        // whenever a symbol is requested and returned as-is when symbol is undefined, on purpose,
+        // because it is still the user's own fill and dropping it would hide real trades
+        return this.filterBySymbolSinceLimit(trades, symbolResolved, since, limit);
     }
     /**
      * @method
@@ -429840,6 +429973,7 @@ class latoken extends _abstract_latoken_js__rspack_import_0/* ["default"] */.A {
                 'fetchBorrowRateHistory': false,
                 'fetchBorrowRates': false,
                 'fetchBorrowRatesPerSymbol': false,
+                'fetchClosedOrders': 'emulated',
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
@@ -430183,6 +430317,33 @@ class latoken extends _abstract_latoken_js__rspack_import_0/* ["default"] */.A {
                     'ACCOUNT_TYPE_WALLET': 'wallet',
                     'ACCOUNT_TYPE_SPOT': 'spot'
                 },
+                'networks': {
+                    // the venue names a token chain "<CHAIN>_TOKEN" and the native
+                    // chain by its own ticker, so only the former needs a mapping
+                    'BEP20': 'BSC_TOKEN',
+                    'TRC20': 'TRON',
+                    'ADA': 'ADA_TOKEN',
+                    'ALGO': 'ALGO_TOKEN',
+                    'ARBITRUM': 'ARB_TOKEN',
+                    'AVAXC': 'AVAXC_TOKEN',
+                    'BASE': 'BASE_TOKEN',
+                    'CELO': 'CELO_TOKEN',
+                    'EOS': 'EOS_TOKEN',
+                    'FTM': 'FTM_TOKEN',
+                    'MATIC': 'MATIC_TOKEN',
+                    'OP': 'OP_TOKEN',
+                    'QTUM': 'QTUM_TOKEN',
+                    'SOL': 'SOL_TOKEN',
+                    'TON': 'TON_TOKEN',
+                    'VET': 'VECHAIN_TOKEN',
+                    'WAVES': 'WAVES_TOKEN',
+                    'XDC': 'XDC_TOKEN',
+                    'XLM': 'XLM_TOKEN',
+                    'XRP': 'XRP_TOKEN'
+                },
+                'networksById': {
+                    'BSC': 'BEP20'
+                },
                 'fetchTradingFee': {
                     'method': 'fetchPrivateTradingFee'
                 },
@@ -430210,7 +430371,7 @@ class latoken extends _abstract_latoken_js__rspack_import_0/* ["default"] */.A {
                         'selfTradePrevention': false,
                         'trailing': false,
                         'leverage': false,
-                        'marketBuyByCost': true,
+                        'marketBuyByCost': false,
                         'marketBuyRequiresPrice': false,
                         'iceberg': false
                     },
@@ -430231,11 +430392,19 @@ class latoken extends _abstract_latoken_js__rspack_import_0/* ["default"] */.A {
                     'fetchOpenOrders': {
                         'marginMode': false,
                         'limit': undefined,
-                        'trigger': false,
+                        'trigger': true,
                         'trailing': false,
                         'symbolRequired': true
                     },
-                    'fetchOrders': undefined,
+                    'fetchOrders': {
+                        'marginMode': false,
+                        'limit': undefined,
+                        'daysBack': undefined,
+                        'untilDays': undefined,
+                        'trigger': true,
+                        'trailing': false,
+                        'symbolRequired': false
+                    },
                     'fetchClosedOrders': {
                         'marginMode': false,
                         'limit': 1000,
@@ -430394,9 +430563,13 @@ class latoken extends _abstract_latoken_js__rspack_import_0/* ["default"] */.A {
      * @method
      * @name latoken#fetchCurrencies
      * @description fetches all available currencies on an exchange
+     * @see https://api.latoken.com/doc/v2/#tag/Currency/operation/getActiveCurrencies
+     * @see https://api.latoken.com/doc/v2/#tag/Transaction/operation/getBindings
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */ async fetchCurrencies(params = {}) {
+        // sequential on purpose - with Promise.all the static request harness records
+        // whichever call finished last, which differs between the sync and async ports
         const response = await this.publicGetCurrency(params);
         //
         //     [
@@ -430430,7 +430603,43 @@ class latoken extends _abstract_latoken_js__rspack_import_0/* ["default"] */.A {
         //         },
         //     ]
         //
-        return this.parseCurrencies(response);
+        //     [
+        //         {
+        //             "id":"0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+        //             "tag":"USDT",
+        //             "bindings":[
+        //                 {
+        //                     "minAmount":"5.000000000000000000",
+        //                     "maxAmount":"0",
+        //                     "fee":"3.000000000000000000",
+        //                     "percentFee":"0.250000000000000000",
+        //                     "providerName":"ERC20",
+        //                     "id":"973d2079-1fae-4fa7-82e4-bae55eba8284",
+        //                     "currencyProvider":"4d26b9ec-4bed-4bec-ba2f-02aaca8e84a1",
+        //                     "deflation":"0"
+        //                 },
+        //             ]
+        //         },
+        //     ]
+        //
+        // no params on this one - they belong to the currency request, not to the bindings
+        const bindingsResponse = await this.publicGetTransactionBindings();
+        const bindingsById = this.indexBy(bindingsResponse, 'id');
+        const rawCurrencies = this.toArray(response);
+        const merged = [];
+        for(let i = 0; i < rawCurrencies.length; i++){
+            const rawCurrency = rawCurrencies[i];
+            const bindingEntry = this.safeDict(bindingsById, this.safeString(rawCurrency, 'id'));
+            const bindings = this.safeList(bindingEntry, 'bindings');
+            let mergedCurrency = rawCurrency;
+            if (bindings !== undefined) {
+                mergedCurrency = this.extend(rawCurrency, {
+                    'bindings': bindings
+                });
+            }
+            merged.push(mergedCurrency);
+        }
+        return this.parseCurrencies(merged);
     }
     parseCurrency(currency) {
         const id = this.safeString(currency, 'id');
@@ -430438,6 +430647,42 @@ class latoken extends _abstract_latoken_js__rspack_import_0/* ["default"] */.A {
         const code = this.safeCurrencyCode(tag);
         const currencyType = this.safeString(currency, 'type');
         const isCrypto = currencyType === 'CURRENCY_TYPE_CRYPTO' || currencyType === 'CURRENCY_TYPE_IEO';
+        const bindings = this.safeList(currency, 'bindings', []);
+        const networks = {};
+        for(let i = 0; i < bindings.length; i++){
+            const binding = bindings[i];
+            const networkId = this.safeString(binding, 'providerName');
+            const networkCode = this.networkIdToCode(networkId, code);
+            // the venue lists one provider twice on a currency (MBS, SOL_TOKEN), and both
+            // entries would land on the same unified code - keep the first one for a
+            // deterministic binding id, since withdrawals resolve the chain through it
+            if (networkCode !== undefined && !(networkCode in networks)) {
+                networks[networkCode] = {
+                    'info': binding,
+                    'id': this.safeString(binding, 'id'),
+                    'network': networkCode,
+                    'active': undefined,
+                    // the public endpoint serves one entry per chain without saying
+                    // whether it is bound for deposits, withdrawals or both
+                    'deposit': undefined,
+                    'withdraw': undefined,
+                    'fee': this.safeNumber(binding, 'fee'),
+                    'precision': undefined,
+                    'limits': {
+                        'deposit': {
+                            'min': undefined,
+                            'max': undefined
+                        },
+                        'withdraw': {
+                            'min': this.safeNumber(binding, 'minAmount'),
+                            // maxAmount is "0" on 1990 of the 1996 bindings and contradicts its
+                            // own minimum on the rest, so the venue does not keep it as a real cap
+                            'max': undefined
+                        }
+                    }
+                };
+            }
+        }
         return this.safeCurrencyStructure({
             'id': id,
             'code': code,
@@ -430447,7 +430692,7 @@ class latoken extends _abstract_latoken_js__rspack_import_0/* ["default"] */.A {
             'active': this.safeString(currency, 'status') === 'CURRENCY_STATUS_ACTIVE',
             'deposit': undefined,
             'withdraw': undefined,
-            'fee': this.safeNumber(currency, 'fee'),
+            'fee': undefined,
             'precision': this.parseNumber(this.parsePrecision(this.safeString(currency, 'decimals'))),
             'limits': {
                 'amount': {
@@ -430459,7 +430704,7 @@ class latoken extends _abstract_latoken_js__rspack_import_0/* ["default"] */.A {
                     'max': undefined
                 }
             },
-            'networks': {}
+            'networks': networks
         });
     }
     /**
@@ -437112,7 +437357,7 @@ class lighter extends _abstract_lighter_js__rspack_import_0/* ["default"] */.A {
     }
     /**
      * @method
-     * @name ligher#fetchBalance
+     * @name lighter#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://apidocs.lighter.xyz/reference/account-1
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -443902,7 +444147,7 @@ class mexc extends _abstract_mexc_js__rspack_import_0/* ["default"] */.A {
             if ('positionMode' in trade) {
                 timestamp = this.safeInteger(trade, 'timestamp');
                 amountString = this.safeString(trade, 'vol');
-                side = this.parseOrderSide(this.safeString(trade, 'side'));
+                side = this.parseContractOrderSide(this.safeString(trade, 'side'));
                 fee = {
                     'cost': this.safeString(trade, 'fee'),
                     'currency': this.safeCurrencyCode(this.safeString(trade, 'feeCurrency'))
@@ -444497,6 +444742,7 @@ class mexc extends _abstract_mexc_js__rspack_import_0/* ["default"] */.A {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginMode] only 'isolated' is supported for spot-margin trading
      * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+     * @param {string} [params.triggerDirection] *swap only* 'ascending' triggers when the price rises to triggerPrice, 'descending' when it falls to it, default is 'ascending'
      * @param {bool} [params.postOnly] if true, the order will only be posted if it will be a maker order
      * @param {bool} [params.reduceOnly] *contract only* indicates if this order is to reduce the size of a position
      * @param {bool} [params.hedged] *swap only* true for hedged mode, false for one way mode, default is false
@@ -444754,7 +445000,16 @@ class mexc extends _abstract_mexc_js__rspack_import_0/* ["default"] */.A {
         let response;
         if (triggerPrice !== undefined && triggerPrice !== 0) {
             request['triggerPrice'] = this.priceToPrecision(symbol, triggerPrice);
-            request['triggerType'] = this.safeInteger(paramsOmitted, 'triggerType', 1);
+            const [triggerDirection, paramsTriggerDirection] = this.handleTriggerDirectionAndParams(paramsOmitted, 'triggerType', true);
+            let triggerType = this.safeInteger(paramsTriggerDirection, 'triggerType', 1);
+            if (triggerDirection === 'ascending') {
+                triggerType = 1;
+            } else if (triggerDirection === 'descending') {
+                triggerType = 2;
+            } else if (triggerDirection !== undefined) {
+                throw new _base_errors_js__rspack_import_2.BadRequest(this.id + ' createOrder() triggerDirection must be either "ascending" or "descending"');
+            }
+            request['triggerType'] = triggerType;
             request['executeCycle'] = this.safeInteger(paramsOmitted, 'executeCycle', 1);
             request['trend'] = this.safeInteger(paramsOmitted, 'trend', 1);
             let planOrderType = orderType;
@@ -444762,7 +445017,7 @@ class mexc extends _abstract_mexc_js__rspack_import_0/* ["default"] */.A {
                 planOrderType = 5; // 6 (convert to current price) does not exist for trigger orders, 5 is their market type
             }
             request['orderType'] = this.safeInteger(paramsOmitted, 'orderType', planOrderType);
-            response = await this.contractPrivatePostPlanorderPlace(this.extend(request, paramsOmitted));
+            response = await this.contractPrivatePostPlanorderPlace(this.extend(request, paramsTriggerDirection));
         } else {
             response = await this.contractPrivatePostOrderCreate(this.extend(request, paramsOmitted));
         }
@@ -445826,6 +446081,9 @@ class mexc extends _abstract_mexc_js__rspack_import_0/* ["default"] */.A {
         }
         const marketId = this.safeString(order, 'symbol');
         const marketResolved = this.safeMarket(marketId, market);
+        const isContract = marketResolved['contract'];
+        const sideRaw = this.safeString(order, 'side');
+        const side = isContract === true ? this.parseContractOrderSide(sideRaw) : this.parseOrderSide(sideRaw);
         const timestamp = this.safeIntegerN(order, [
             'time',
             'createTime',
@@ -445853,7 +446111,7 @@ class mexc extends _abstract_mexc_js__rspack_import_0/* ["default"] */.A {
             'symbol': marketResolved['symbol'],
             'type': this.parseOrderType(typeRaw),
             'timeInForce': timeInForce,
-            'side': this.parseOrderSide(this.safeString(order, 'side')),
+            'side': side,
             'price': this.safeNumber(order, 'price'),
             'triggerPrice': this.safeNumber2(order, 'stopPrice', 'triggerPrice'),
             'average': this.safeNumber(order, 'dealAvgPrice'),
@@ -445874,6 +446132,15 @@ class mexc extends _abstract_mexc_js__rspack_import_0/* ["default"] */.A {
             '2': 'sell'
         };
         return this.safeString(statuses, status, status);
+    }
+    parseContractOrderSide(side) {
+        const sides = {
+            '1': 'buy',
+            '2': 'buy',
+            '3': 'sell',
+            '4': 'sell'
+        };
+        return this.safeString(sides, side, side);
     }
     parseOrderType(status) {
         const statuses = {
@@ -468088,6 +468355,7 @@ class okx extends _abstract_okx_js__rspack_import_0/* ["default"] */.A {
      * @param {int} [since] the earliest time in ms to fetch funding history for
      * @param {int} [limit] the maximum number of funding history structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch funding history for
      * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */ async fetchFundingHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -468106,6 +468374,7 @@ class okx extends _abstract_okx_js__rspack_import_0/* ["default"] */.A {
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
+            request['instId'] = market['id'];
             if (market['contract'] === true) {
                 if (market['linear'] === true) {
                     request['ctType'] = 'linear';
@@ -468116,13 +468385,17 @@ class okx extends _abstract_okx_js__rspack_import_0/* ["default"] */.A {
                 }
             }
         }
+        if (since !== undefined) {
+            request['begin'] = since;
+        }
+        const [requestUntil, paramsUntil] = this.handleUntilOption('end', request, params);
         const symbolResolved = market !== undefined ? this.safeString(market, 'symbol') : symbol;
-        const [type, query] = this.handleMarketTypeAndParams('fetchFundingHistory', market, params);
+        const [type, query] = this.handleMarketTypeAndParams('fetchFundingHistory', market, paramsUntil);
         if (type === 'swap') {
-            request['instType'] = this.convertToInstrumentType(type);
+            requestUntil['instType'] = this.convertToInstrumentType(type);
         }
         // AccountBillsArchive has the same cost as AccountBills but supports three months of data
-        const response = await this.privateGetAccountBillsArchive(this.extend(request, query));
+        const response = await this.privateGetAccountBillsArchive(this.extend(requestUntil, query));
         //
         //    {
         //        "bal": "0.0242946200998573",
@@ -473061,98 +473334,102 @@ class p2b extends _abstract_p2b_js__rspack_import_0/* ["default"] */.A {
                 'trading': {
                     'tierBased': true,
                     'percentage': true,
-                    'taker': [
-                        [
-                            this.parseNumber('0'),
-                            this.parseNumber('0.2')
+                    'taker': this.parseNumber('0.002'),
+                    'maker': this.parseNumber('0.002'),
+                    'tiers': {
+                        'taker': [
+                            [
+                                this.parseNumber('0'),
+                                this.parseNumber('0.002')
+                            ],
+                            [
+                                this.parseNumber('1'),
+                                this.parseNumber('0.0019')
+                            ],
+                            [
+                                this.parseNumber('5'),
+                                this.parseNumber('0.0018')
+                            ],
+                            [
+                                this.parseNumber('10'),
+                                this.parseNumber('0.0017')
+                            ],
+                            [
+                                this.parseNumber('25'),
+                                this.parseNumber('0.0016')
+                            ],
+                            [
+                                this.parseNumber('75'),
+                                this.parseNumber('0.0015')
+                            ],
+                            [
+                                this.parseNumber('100'),
+                                this.parseNumber('0.0014')
+                            ],
+                            [
+                                this.parseNumber('150'),
+                                this.parseNumber('0.0013')
+                            ],
+                            [
+                                this.parseNumber('300'),
+                                this.parseNumber('0.0012')
+                            ],
+                            [
+                                this.parseNumber('450'),
+                                this.parseNumber('0.0011')
+                            ],
+                            [
+                                this.parseNumber('500'),
+                                this.parseNumber('0.001')
+                            ]
                         ],
-                        [
-                            this.parseNumber('1'),
-                            this.parseNumber('0.19')
-                        ],
-                        [
-                            this.parseNumber('5'),
-                            this.parseNumber('0.18')
-                        ],
-                        [
-                            this.parseNumber('10'),
-                            this.parseNumber('0.17')
-                        ],
-                        [
-                            this.parseNumber('25'),
-                            this.parseNumber('0.16')
-                        ],
-                        [
-                            this.parseNumber('75'),
-                            this.parseNumber('0.15')
-                        ],
-                        [
-                            this.parseNumber('100'),
-                            this.parseNumber('0.14')
-                        ],
-                        [
-                            this.parseNumber('150'),
-                            this.parseNumber('0.13')
-                        ],
-                        [
-                            this.parseNumber('300'),
-                            this.parseNumber('0.12')
-                        ],
-                        [
-                            this.parseNumber('450'),
-                            this.parseNumber('0.11')
-                        ],
-                        [
-                            this.parseNumber('500'),
-                            this.parseNumber('0.1')
+                        'maker': [
+                            [
+                                this.parseNumber('0'),
+                                this.parseNumber('0.002')
+                            ],
+                            [
+                                this.parseNumber('1'),
+                                this.parseNumber('0.0018')
+                            ],
+                            [
+                                this.parseNumber('5'),
+                                this.parseNumber('0.0016')
+                            ],
+                            [
+                                this.parseNumber('10'),
+                                this.parseNumber('0.0014')
+                            ],
+                            [
+                                this.parseNumber('25'),
+                                this.parseNumber('0.0012')
+                            ],
+                            [
+                                this.parseNumber('75'),
+                                this.parseNumber('0.001')
+                            ],
+                            [
+                                this.parseNumber('100'),
+                                this.parseNumber('0.0008')
+                            ],
+                            [
+                                this.parseNumber('150'),
+                                this.parseNumber('0.0006')
+                            ],
+                            [
+                                this.parseNumber('300'),
+                                this.parseNumber('0.0004')
+                            ],
+                            [
+                                this.parseNumber('450'),
+                                this.parseNumber('0.0002')
+                            ],
+                            [
+                                this.parseNumber('500'),
+                                this.parseNumber('0.0001')
+                            ]
                         ]
-                    ],
-                    'maker': [
-                        [
-                            this.parseNumber('0'),
-                            this.parseNumber('0.2')
-                        ],
-                        [
-                            this.parseNumber('1'),
-                            this.parseNumber('0.18')
-                        ],
-                        [
-                            this.parseNumber('5'),
-                            this.parseNumber('0.16')
-                        ],
-                        [
-                            this.parseNumber('10'),
-                            this.parseNumber('0.14')
-                        ],
-                        [
-                            this.parseNumber('25'),
-                            this.parseNumber('0.12')
-                        ],
-                        [
-                            this.parseNumber('75'),
-                            this.parseNumber('0.1')
-                        ],
-                        [
-                            this.parseNumber('100'),
-                            this.parseNumber('0.08')
-                        ],
-                        [
-                            this.parseNumber('150'),
-                            this.parseNumber('0.06')
-                        ],
-                        [
-                            this.parseNumber('300'),
-                            this.parseNumber('0.04')
-                        ],
-                        [
-                            this.parseNumber('450'),
-                            this.parseNumber('0.02')
-                        ],
-                        [
-                            this.parseNumber('500'),
-                            this.parseNumber('0.01')
-                        ]
-                    ]
+                    }
                 }
             },
             'features': {
@@ -475738,9 +476015,6 @@ class pacifica extends _abstract_pacifica_js__rspack_import_0/* ["default"] */.A
         if (since === undefined) {
             throw new _base_errors_js__rspack_import_1.ArgumentsRequired(this.id + ' fetchOHLCV() requires a "since" argument');
         }
-        if (symbol === undefined) {
-            throw new _base_errors_js__rspack_import_1.ArgumentsRequired(this.id + ' fetchOHLCV() requires a "symbol" argument');
-        }
         const defaultMaxLimit = 3950; // 4000 by docs, but in fact >~3960 returns error
         if (this.markets === undefined) {
             await this.loadMarkets();
@@ -477653,25 +477927,34 @@ class pacifica extends _abstract_pacifica_js__rspack_import_0/* ["default"] */.A
         //
         const timestamp = this.safeInteger(item, 'created_at');
         const type = this.safeString(item, 'event_type');
-        const amount = this.safeString(item, 'amount');
+        const change = this.safeString(item, 'amount');
         const balance = this.safeString(item, 'balance');
+        const currencyResolved = this.safeCurrency('USDC', currency);
+        let direction = undefined;
+        let amount = change;
+        if (_base_Precise_js__rspack_import_3/* .Precise.stringLt */.Y.stringLt(amount, '0')) {
+            direction = 'out';
+            amount = _base_Precise_js__rspack_import_3/* .Precise.stringAbs */.Y.stringAbs(amount);
+        } else {
+            direction = 'in';
+        }
         return this.safeLedgerEntry({
             'info': item,
             'id': undefined,
-            'direction': undefined,
+            'direction': direction,
             'account': undefined,
             'referenceAccount': undefined,
             'referenceId': undefined,
             'type': this.parseLedgerEntryType(type),
-            'currency': undefined,
+            'currency': currencyResolved['code'],
             'amount': this.parseNumber(amount),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'before': undefined,
+            'before': this.parseNumber(_base_Precise_js__rspack_import_3/* .Precise.stringSub */.Y.stringSub(balance, change)),
             'after': this.parseNumber(balance),
             'status': undefined,
             'fee': undefined
-        }, currency);
+        }, currencyResolved);
     }
     parseLedgerEntryType(type) {
         const ledgerType = {
@@ -489878,6 +490161,14 @@ class poloniex extends _abstract_poloniex_js__rspack_import_0/* ["default"] */.A
             request['limit'] = limit;
         }
         const [requestUntil, paramsUntil] = this.handleUntilOption(keyEnd, request, paramsPaginate);
+        if (since !== undefined && limit !== undefined && this.safeInteger(requestUntil, keyEnd) === undefined) {
+            // without an end time the exchange returns the latest candles, not the ones starting at since,
+            // so end the window at the start of the limit-th candle from the first one at or after since
+            const duration = this.parseTimeframe(timeframe) * 1000;
+            const firstCandle = this.parseToInt(Math.ceil(since / duration)) * duration;
+            const endTimeByLimit = this.sum(firstCandle, duration * (limit - 1));
+            requestUntil[keyEnd] = Math.min(endTimeByLimit, this.milliseconds());
+        }
         if (market['contract'] === true) {
             const responseRaw = await this.swapPublicGetV3MarketCandles(this.extend(requestUntil, paramsUntil));
             //
@@ -537350,7 +537641,7 @@ class bingx extends _bingx_js__rspack_import_0/* ["default"] */.A {
         const marketOptions = this.safeDict(this.options, marketType);
         const timeframes = this.safeDict(marketOptions, 'timeframes', {});
         const unifiedTimeframe = this.findTimeframe(rawTimeframe, timeframes);
-        if (this.safeValue(this.ohlcvs[symbol], rawTimeframe) === undefined) {
+        if (this.safeValue(this.ohlcvs[symbol], unifiedTimeframe) === undefined) {
             const subscriptionHash = dataType;
             const subscription = this.safeDict(client.subscriptions, subscriptionHash);
             // subscription.limit is only set when watchOHLCV registers the subscription;
@@ -540791,6 +541082,13 @@ class bitget extends _bitget_js__rspack_import_0/* ["default"] */.A {
                 this.orderbooks[symbol] = ob;
             }
             const storedOrderBook = this.orderbooks[symbol];
+            const isSnapshot = this.safeString(message, 'action') === 'snapshot'; // snapshot does not have a checksum
+            if (isSnapshot) {
+                // a snapshot replaces the book, e.g. after a reconnect, levels absent from it must not survive
+                storedOrderBook.reset({
+                    'symbol': symbol
+                });
+            }
             const asks = this.safeList2(rawOrderBook, 'asks', 'a', []);
             const bids = this.safeList2(rawOrderBook, 'bids', 'b', []);
             this.handleDeltas(storedOrderBook['asks'], asks);
@@ -540798,7 +541096,6 @@ class bitget extends _bitget_js__rspack_import_0/* ["default"] */.A {
             storedOrderBook['timestamp'] = timestamp;
             storedOrderBook['datetime'] = this.iso8601(timestamp);
             const checksum = this.handleOption('watchOrderBook', 'checksum', true);
-            const isSnapshot = this.safeString(message, 'action') === 'snapshot'; // snapshot does not have a checksum
             // UTA order books do not provide a crc32 checksum (they rely on seq/pseq for integrity),
             // so only validate the checksum when the exchange actually sends one
             const responseChecksum = this.safeInteger(rawOrderBook, 'checksum');
@@ -540826,7 +541123,14 @@ class bitget extends _bitget_js__rspack_import_0/* ["default"] */.A {
                 }
             }
         } else {
-            const orderbook = this.orderBook({});
+            // reset the existing orderbook instead of replacing it: a consumer
+            // holds a reference to the old object and would never see updates
+            // after this snapshot (every frame of the non-incremental channels
+            // is a full snapshot)
+            if (!(symbol in this.orderbooks)) {
+                this.orderbooks[symbol] = this.orderBook({});
+            }
+            const orderbook = this.orderbooks[symbol];
             let bidsKey = 'bids';
             let asksKey = 'asks';
             // bitget UTA has `a` and `b` instead of `asks` and `bids`
@@ -540842,7 +541146,6 @@ class bitget extends _bitget_js__rspack_import_0/* ["default"] */.A {
             }
             const parsedOrderbook = this.parseOrderBook(rawOrderBook, symbol, timestamp, bidsKey, asksKey);
             orderbook.reset(parsedOrderbook);
-            this.orderbooks[symbol] = orderbook;
         }
         client.resolve(this.orderbooks[symbol], messageHash);
     }
@@ -544564,11 +544867,18 @@ class bitopro extends _bitopro_js__rspack_import_0/* ["default"] */.A {
         const timestamp = this.safeInteger(message, 'timestamp');
         const datetime = this.safeString(message, 'datetime');
         const currencies = Object.keys(data);
-        const result = {
-            'info': data,
-            'timestamp': timestamp,
-            'datetime': datetime
-        };
+        // merge updates into the existing balance object instead of building a
+        // fresh one: a consumer awakened by an earlier message holds a
+        // reference to this.balance, and Client.resolve is a no-op while
+        // nobody is awaiting, so a replaced object would make updates landing
+        // in that window invisible to the consumer forever (same class as
+        // issue #26773)
+        if (this.balance === undefined) {
+            this.balance = {};
+        }
+        this.balance['info'] = data;
+        this.balance['timestamp'] = timestamp;
+        this.balance['datetime'] = datetime;
         for(let i = 0; i < currencies.length; i++){
             const currency = this.safeString(currencies, i);
             const balance = this.safeDict(data, currency, {});
@@ -544578,10 +544888,10 @@ class bitopro extends _bitopro_js__rspack_import_0/* ["default"] */.A {
             account['free'] = this.safeString(balance, 'available');
             account['total'] = this.safeString(balance, 'amount');
             if (code !== undefined) {
-                result[code] = account;
+                this.balance[code] = account;
             }
         }
-        this.balance = this.safeBalance(result);
+        this.balance = this.safeBalance(this.balance);
         client.resolve(this.balance, event);
     }
     handleMessage(client, message) {
@@ -549292,9 +549602,16 @@ class blockchaincom extends _blockchaincom_js__rspack_import_0/* ["default"] */.
         if (event === 'subscribed') {
             return;
         }
-        const result = {
-            'info': message
-        };
+        // merge updates into the existing balance object instead of building a
+        // fresh one: a consumer awakened by an earlier message holds a
+        // reference to this.balance, and Client.resolve is a no-op while
+        // nobody is awaiting, so a replaced object would make updates landing
+        // in that window invisible to the consumer forever (same class as
+        // issue #26773)
+        if (this.balance === undefined) {
+            this.balance = {};
+        }
+        this.balance['info'] = message;
         const balances = this.safeList(message, 'balances', []);
         for(let i = 0; i < balances.length; i++){
             const entry = this.safeDict(balances, i);
@@ -549304,11 +549621,11 @@ class blockchaincom extends _blockchaincom_js__rspack_import_0/* ["default"] */.
             account['free'] = this.safeString(entry, 'available');
             account['total'] = this.safeString(entry, 'balance');
             if (code !== undefined) {
-                result[code] = account;
+                this.balance[code] = account;
             }
         }
         const messageHash = 'balance';
-        this.balance = this.safeBalance(result);
+        this.balance = this.safeBalance(this.balance);
         client.resolve(this.balance, messageHash);
     }
     /**
@@ -550474,7 +550791,32 @@ class blofin extends _blofin_js__rspack_import_0/* ["default"] */.A {
         //     }
         //
         const marketType = 'swap'; // for now
-        this.balance[marketType] = this.parseWsBalance(message);
+        // merge the parsed update into the existing balance object instead of
+        // replacing it: a consumer awakened by an earlier message holds a
+        // reference to this.balance[marketType], and Client.resolve is a no-op
+        // while nobody is awaiting, so a replaced object would make updates
+        // landing in that window invisible to the consumer forever (same class
+        // as issue #26773); the free/used/total aggregates are rebuilt from
+        // the merged currencies by safeBalance
+        if (this.balance === undefined) {
+            this.balance = {};
+        }
+        this.balance[marketType] = this.safeDict(this.balance, marketType, {});
+        const parsed = this.parseWsBalance(message);
+        const reserved = [
+            'free',
+            'used',
+            'total'
+        ];
+        const keys = Object.keys(parsed);
+        for(let i = 0; i < keys.length; i++){
+            const key = keys[i];
+            if (this.inArray(key, reserved)) {
+                continue;
+            }
+            this.balance[marketType][key] = parsed[key];
+        }
+        this.balance[marketType] = this.safeBalance(this.balance[marketType]);
         const messageHash = marketType + ':balance';
         client.resolve(this.balance[marketType], messageHash);
     }
@@ -555626,7 +555968,37 @@ class bydfi extends _bydfi_js__rspack_import_0/* ["default"] */.A {
             'type': 'swap'
         };
         const response = await this.fetchBalance(params);
-        this.balance = this.extend(response, this.balance);
+        // merge the snapshot into the existing balance object per currency so
+        // the object keeps its identity and deltas that arrived while the
+        // snapshot was in flight are not overwritten; the free/used/total
+        // aggregates are rebuilt from the merged currencies by safeBalance
+        if (this.balance === undefined) {
+            this.balance = {};
+        }
+        const reserved = [
+            'info',
+            'timestamp',
+            'datetime',
+            'free',
+            'used',
+            'total'
+        ];
+        const keys = Object.keys(response);
+        for(let i = 0; i < keys.length; i++){
+            const key = keys[i];
+            if (this.inArray(key, reserved)) {
+                continue;
+            }
+            if (!(key in this.balance)) {
+                this.balance[key] = response[key];
+            }
+        }
+        if (!('info' in this.balance)) {
+            this.balance['info'] = response['info'];
+            this.balance['timestamp'] = response['timestamp'];
+            this.balance['datetime'] = response['datetime'];
+        }
+        this.balance = this.safeBalance(this.balance);
         // don't remove the future from the .futures cache
         const future = client.futures[messageHash];
         future.resolve();
@@ -555673,31 +556045,34 @@ class bydfi extends _bydfi_js__rspack_import_0/* ["default"] */.A {
         //         "e": "ACCOUNT_UPDATE"
         //     }
         //
-        const messageHash = 'balance';
-        if (messageHash in client.futures) {
-            const data = this.safeDict(message, 'a', {});
-            const balances = this.safeList(data, 'B', []);
-            const timestamp = this.safeInteger(message, 'T');
-            const result = {
-                'info': message,
-                'timestamp': timestamp,
-                'datetime': this.iso8601(timestamp)
-            };
-            for(let i = 0; i < balances.length; i++){
-                const balance = this.safeDict(balances, i);
-                const currencyId = this.safeString(balance, 'a');
-                const code = this.safeCurrencyCode(currencyId);
-                const account = this.account();
-                account['total'] = this.safeString(balance, 'wb');
-                account['used'] = this.safeString(balance, 'tfm');
-                if (code !== undefined) {
-                    result[code] = account;
-                }
-            }
-            const parsedBalance = this.safeBalance(result);
-            this.balance = this.extend(this.balance, parsedBalance);
-            client.resolve(this.balance, messageHash);
+        // merge updates into the existing balance object instead of building a
+        // fresh one: a consumer awakened by an earlier message holds a reference
+        // to this.balance, and Client.resolve is a no-op while nobody is
+        // awaiting, so a replaced object would make updates landing in that
+        // window invisible to the consumer forever (issue #26773)
+        if (this.balance === undefined) {
+            this.balance = {};
         }
+        const data = this.safeDict(message, 'a', {});
+        const balances = this.safeList(data, 'B', []);
+        const timestamp = this.safeInteger(message, 'T');
+        this.balance['info'] = message;
+        this.balance['timestamp'] = timestamp;
+        this.balance['datetime'] = this.iso8601(timestamp);
+        for(let i = 0; i < balances.length; i++){
+            const balance = this.safeDict(balances, i);
+            const currencyId = this.safeString(balance, 'a');
+            const code = this.safeCurrencyCode(currencyId);
+            const account = this.account();
+            account['total'] = this.safeString(balance, 'wb');
+            account['used'] = this.safeString(balance, 'tfm');
+            if (code !== undefined) {
+                this.balance[code] = account;
+            }
+        }
+        this.balance = this.safeBalance(this.balance);
+        const messageHash = 'balance';
+        client.resolve(this.balance, messageHash);
     }
     handleSubscriptionStatus(client, message) {
         //
@@ -555868,7 +556243,7 @@ class cex extends _cex_js__rspack_import_0/* ["default"] */.A {
         const subscribe = {
             'e': 'get-balance',
             'data': {},
-            'oid': this.requestId()
+            'oid': messageHash
         };
         const request = this.deepExtend(subscribe, params);
         return await this.watch(url, messageHash, request, messageHash, request);
@@ -555894,12 +556269,18 @@ class cex extends _cex_js__rspack_import_0/* ["default"] */.A {
         //         "ok": "ok"
         //     }
         //
+        // merge updates into the existing balance object instead of building a
+        // fresh one: a consumer awakened by an earlier message holds a reference
+        // to this.balance, and Client.resolve is a no-op while nobody is
+        // awaiting, so a replaced object would make responses landing in that
+        // window invisible to the consumer forever (same class as issue #26773)
         const data = this.safeDict(message, 'data', {});
         const freeBalance = this.safeDict(data, 'balance', {});
         const usedBalance = this.safeDict(data, 'obalance', {});
-        const result = {
-            'info': data
-        };
+        if (this.balance === undefined) {
+            this.balance = {};
+        }
+        this.balance['info'] = data;
         const currencyIds = Object.keys(freeBalance);
         for(let i = 0; i < currencyIds.length; i++){
             const currencyId = currencyIds[i];
@@ -555908,10 +556289,10 @@ class cex extends _cex_js__rspack_import_0/* ["default"] */.A {
             account['used'] = this.safeString(usedBalance, currencyId);
             const code = this.safeCurrencyCode(currencyId);
             if (code !== undefined) {
-                result[code] = account;
+                this.balance[code] = account;
             }
         }
-        this.balance = this.safeBalance(result);
+        this.balance = this.safeBalance(this.balance);
         const messageHash = this.safeString(message, 'oid');
         client.resolve(this.balance, messageHash);
     }
@@ -556812,14 +557193,19 @@ class cex extends _cex_js__rspack_import_0/* ["default"] */.A {
         const messageHash = 'orderbook:' + symbol;
         const timestamp = this.safeInteger2(data, 'timestamp_ms', 'timestamp');
         const incrementalId = this.safeInteger(data, 'id');
-        const orderbook = this.orderBook({});
+        // reset the existing orderbook instead of replacing it: a consumer
+        // holds a reference to the old object and would never see updates
+        // after a re-subscription snapshot
+        if (!(symbol in this.orderbooks)) {
+            this.orderbooks[symbol] = this.orderBook({});
+        }
+        const orderbook = this.orderbooks[symbol];
         const snapshot = this.parseOrderBook(data, symbol, timestamp, 'bids', 'asks');
         snapshot['nonce'] = incrementalId;
         orderbook.reset(snapshot);
         this.options['orderbook'][symbol] = {
             'incrementalId': incrementalId
         };
-        this.orderbooks[symbol] = orderbook;
         client.resolve(orderbook, messageHash);
     }
     pairToSymbol(pair) {
@@ -556951,16 +557337,23 @@ class cex extends _cex_js__rspack_import_0/* ["default"] */.A {
         const market = this.safeMarket(symbol);
         const messageHash = 'ohlcv:' + symbol;
         const data = this.safeList(message, 'data', []);
-        const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
-        const stored = new _base_ws_Cache_js__rspack_import_2/* .ArrayCacheByTimestamp */.TG(limit);
-        const sorted = this.sortBy(data, 0);
-        for(let i = 0; i < sorted.length; i++){
-            stored.append(this.parseOHLCV(sorted[i], market));
-        }
         if (!(symbol in this.ohlcvs)) {
             this.ohlcvs[symbol] = {};
         }
-        this.ohlcvs[symbol]['unknown'] = stored;
+        // fill the existing cache when there is one: replacing it would orphan
+        // consumers holding a reference to the old cache (they would never see
+        // candles appended after a re-subscription)
+        let stored = this.safeValue(this.ohlcvs[symbol], 'unknown');
+        if (stored === undefined) {
+            const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
+            stored = new _base_ws_Cache_js__rspack_import_2/* .ArrayCacheByTimestamp */.TG(limit);
+            this.ohlcvs[symbol]['unknown'] = stored;
+        }
+        const sorted = this.sortBy(data, 0);
+        for(let i = 0; i < sorted.length; i++){
+            const parsed = this.parseOHLCV(sorted[i], market);
+            stored.append(parsed);
+        }
         client.resolve(stored, messageHash);
     }
     handleOHLCV24(client, message) {
@@ -565012,7 +565405,7 @@ class deribit extends _deribit_js__rspack_import_0/* ["default"] */.A {
     /**
      * @method
      * @name deribit#watchBalance
-     * @see https://docs.deribit.com/#user-portfolio-currency
+     * @see https://docs.deribit.com/subscriptions/user/userportfoliocurrency
      * @description watch balance and get the amount of funds available for trading or funds locked in orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
@@ -565096,7 +565489,7 @@ class deribit extends _deribit_js__rspack_import_0/* ["default"] */.A {
     /**
      * @method
      * @name deribit#watchTicker
-     * @see https://docs.deribit.com/#ticker-instrument_name-interval
+     * @see https://docs.deribit.com/subscriptions/market-data/tickerinstrument_nameinterval
      * @description watches a price ticker, a statistical calculation with the information for a specific market.
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -565133,7 +565526,7 @@ class deribit extends _deribit_js__rspack_import_0/* ["default"] */.A {
     /**
      * @method
      * @name deribit#watchTickers
-     * @see https://docs.deribit.com/#ticker-instrument_name-interval
+     * @see https://docs.deribit.com/subscriptions/market-data/tickerinstrument_nameinterval
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
      * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -565220,7 +565613,7 @@ class deribit extends _deribit_js__rspack_import_0/* ["default"] */.A {
     /**
      * @method
      * @name deribit#watchBidsAsks
-     * @see https://docs.deribit.com/#quote-instrument_name
+     * @see https://docs.deribit.com/subscriptions/market-data/quoteinstrument_name
      * @description watches best bid & ask for symbols
      * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -565302,7 +565695,7 @@ class deribit extends _deribit_js__rspack_import_0/* ["default"] */.A {
      * @method
      * @name deribit#watchTrades
      * @description get the list of most recent trades for a particular symbol
-     * @see https://docs.deribit.com/#trades-instrument_name-interval
+     * @see https://docs.deribit.com/subscriptions/trades/tradesinstrument_nameinterval
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
@@ -565319,7 +565712,7 @@ class deribit extends _deribit_js__rspack_import_0/* ["default"] */.A {
      * @method
      * @name deribit#watchTradesForSymbols
      * @description get the list of most recent trades for a list of symbols
-     * @see https://docs.deribit.com/#trades-instrument_name-interval
+     * @see https://docs.deribit.com/subscriptions/trades/tradesinstrument_nameinterval
      * @param {string[]} symbols unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
@@ -565387,7 +565780,7 @@ class deribit extends _deribit_js__rspack_import_0/* ["default"] */.A {
      * @method
      * @name deribit#watchMyTrades
      * @description get the list of trades associated with the user
-     * @see https://docs.deribit.com/#user-trades-instrument_name-interval
+     * @see https://docs.deribit.com/subscriptions/user/usertradesinstrument_nameinterval
      * @param {string} symbol unified symbol of the market to fetch trades for. Use 'any' to watch all trades
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
@@ -565472,7 +565865,7 @@ class deribit extends _deribit_js__rspack_import_0/* ["default"] */.A {
     /**
      * @method
      * @name deribit#watchOrderBook
-     * @see https://docs.deribit.com/#book-instrument_name-group-depth-interval
+     * @see https://docs.deribit.com/subscriptions/orderbook/bookinstrument_namegroupdepthinterval
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
@@ -565489,7 +565882,7 @@ class deribit extends _deribit_js__rspack_import_0/* ["default"] */.A {
      * @method
      * @name deribit#watchOrderBookForSymbols
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://docs.deribit.com/#book-instrument_name-group-depth-interval
+     * @see https://docs.deribit.com/subscriptions/orderbook/bookinstrument_namegroupdepthinterval
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -565642,7 +566035,7 @@ class deribit extends _deribit_js__rspack_import_0/* ["default"] */.A {
     /**
      * @method
      * @name deribit#watchOrders
-     * @see https://docs.deribit.com/#user-orders-instrument_name-raw
+     * @see https://docs.deribit.com/subscriptions/user/userordersinstrument_nameraw
      * @description watches information on multiple orders made by the user
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
@@ -565739,7 +566132,7 @@ class deribit extends _deribit_js__rspack_import_0/* ["default"] */.A {
     /**
      * @method
      * @name deribit#watchOHLCV
-     * @see https://docs.deribit.com/#chart-trades-instrument_name-resolution
+     * @see https://docs.deribit.com/subscriptions/market-data/charttradesinstrument_nameresolution
      * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
@@ -565764,7 +566157,7 @@ class deribit extends _deribit_js__rspack_import_0/* ["default"] */.A {
      * @method
      * @name deribit#watchOHLCVForSymbols
      * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://docs.deribit.com/#chart-trades-instrument_name-resolution
+     * @see https://docs.deribit.com/subscriptions/market-data/charttradesinstrument_nameresolution
      * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
@@ -568597,7 +568990,7 @@ class gate extends _gate_js__rspack_import_0/* ["default"] */.A {
                 'watchPositions': true,
                 'unWatchTicker': false,
                 'unWatchTickers': false,
-                'unWatchOHLCV': false,
+                'unWatchOHLCV': true,
                 'unWatchOHLCVForSymbols': false,
                 'unWatchOrderBook': true,
                 'unWatchOrderBookForSymbols': false,
@@ -569655,6 +570048,77 @@ class gate extends _gate_js__rspack_import_0/* ["default"] */.A {
             limitResolved = ohlcv.getLimit(symbolValue, limit);
         }
         return this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true);
+    }
+    /**
+     * @method
+     * @name gate#unWatchOHLCV
+     * @see https://www.gate.com/docs/developers/apiv4/ws/en/#candlesticks-channel
+     * @see https://www.gate.com/docs/developers/futures/ws/en/#candlesticks-api
+     * @see https://www.gate.com/docs/developers/delivery/ws/en/#candlesticks-api
+     * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unsubscription request
+     */ async unWatchOHLCV(symbol, timeframe = '1m', params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const market = this.market(symbol);
+        const symbolValue = market['symbol'];
+        const marketId = market['id'];
+        const interval = this.safeString(this.timeframes, timeframe, timeframe);
+        const messageType = this.getTypeByMarket(market);
+        const channel = messageType + '.candlesticks';
+        const subMessageHash = 'candles:' + interval + ':' + symbolValue;
+        const messageHash = 'unsubscribe:candles:' + interval + ':' + symbolValue;
+        const url = this.getUrlByMarket(market);
+        const requestId = this.requestId();
+        const request = {
+            'id': requestId,
+            'time': this.seconds(),
+            'channel': channel,
+            'event': 'unsubscribe',
+            'payload': [
+                interval,
+                marketId
+            ]
+        };
+        // mirrors the subscription shape base cleanCache() expects for ohlcv
+        // (same pattern as binance unWatchOHLCVForSymbols), so the ohlcvs
+        // cache entry is dropped when the unsubscribe is acknowledged;
+        // handleOHLCV keys the cache by findTimeframe (interval), so the
+        // exchange interval id is mapped back to the cache key here -
+        // this matters for aliased timeframes such as gate's '1w': '7d';
+        // an unsupported timeframe falls back to the caller's key, matching
+        // the previous no-op cleanup instead of an undefined cache key
+        const cacheTimeframe = this.findTimeframe(interval);
+        const subscription = {
+            'id': requestId.toString(),
+            'topic': 'ohlcv',
+            'unsubscribe': true,
+            'symbols': [
+                symbolValue
+            ],
+            'symbolsAndTimeframes': [
+                [
+                    symbolValue,
+                    cacheTimeframe !== undefined ? cacheTimeframe : timeframe
+                ]
+            ],
+            'messageHashes': [
+                messageHash
+            ],
+            'subMessageHashes': [
+                subMessageHash
+            ]
+        };
+        const message = this.extend(request, params);
+        return await this.watchMultiple(url, [
+            messageHash
+        ], message, [
+            messageHash
+        ], subscription);
     }
     handleOHLCV(client, message) {
         //
@@ -575250,8 +575714,31 @@ class hitbtc extends _hitbtc_js__rspack_import_0/* ["default"] */.A {
         //
         const messageHash = this.safeString(message, 'method');
         const params = this.safeList(message, 'params', []);
+        // merge the parsed update into the existing balance object instead of
+        // replacing it: a consumer awakened by an earlier message holds a
+        // reference to this.balance, and Client.resolve is a no-op while
+        // nobody is awaiting, so a replaced object would make updates landing
+        // in that window invisible to the consumer forever (same class as
+        // issue #26773); the free/used/total aggregates are rebuilt from the
+        // merged currencies by safeBalance
         const balance = this.parseBalance(params);
-        this.balance = this.deepExtend(this.balance, balance);
+        if (this.balance === undefined) {
+            this.balance = {};
+        }
+        const reserved = [
+            'free',
+            'used',
+            'total'
+        ];
+        const keys = Object.keys(balance);
+        for(let i = 0; i < keys.length; i++){
+            const key = keys[i];
+            if (this.inArray(key, reserved)) {
+                continue;
+            }
+            this.balance[key] = balance[key];
+        }
+        this.balance = this.safeBalance(this.balance);
         client.resolve(this.balance, messageHash);
     }
     handleNotification(client, message) {
@@ -582974,23 +583461,27 @@ class kraken extends _kraken_js__rspack_import_0/* ["default"] */.A {
         //         "sequence": 1
         //     }
         //
+        // merge updates into the existing balance object instead of building a
+        // fresh one: a consumer awakened by an earlier message holds a reference
+        // to this.balance[type], and Client.resolve is a no-op while nobody is
+        // awaiting, so a replaced object would make updates landing in that
+        // window invisible to the consumer forever (issue #26773)
+        const type = 'spot';
+        if (this.balance === undefined) {
+            this.balance = {};
+        }
+        this.balance[type] = this.safeDict(this.balance, type, {});
+        this.balance[type]['info'] = message;
         const data = this.safeList(message, 'data', []);
-        const result = {
-            'info': message
-        };
         for(let i = 0; i < data.length; i++){
             const currencyId = this.safeString(data[i], 'asset');
             const code = this.safeCurrencyCode(currencyId);
             const account = this.account();
             const eq = this.safeString(data[i], 'balance');
             account['total'] = eq;
-            result[code] = account;
+            this.balance[type][code] = account;
         }
-        const type = 'spot';
-        const balance = this.safeBalance(result);
-        const oldBalance = this.safeDict(this.balance, type, {});
-        const newBalance = this.deepExtend(oldBalance, balance);
-        this.balance[type] = this.safeBalance(newBalance);
+        this.balance[type] = this.safeBalance(this.balance[type]);
         const channel = this.safeString(message, 'channel');
         client.resolve(this.balance[type], channel);
     }
@@ -591937,7 +592428,6 @@ class mexc extends _mexc_js__rspack_import_0/* ["default"] */.A {
         //         "s": "BTCUSDT"
         //     }
         //
-        this.handleBidAsk(client, message);
         const rawTicker = this.safeDictN(message, [
             'd',
             'data',
@@ -591949,6 +592439,7 @@ class mexc extends _mexc_js__rspack_import_0/* ["default"] */.A {
         const symbol = market['symbol'];
         let ticker;
         if (market['spot'] === true) {
+            this.handleBidAsk(client, message); // the bids-asks channel is spot only
             ticker = this.parseWsTicker(rawTicker, market);
             ticker['timestamp'] = timestamp;
             ticker['datetime'] = this.iso8601(timestamp);
@@ -592229,6 +592720,22 @@ class mexc extends _mexc_js__rspack_import_0/* ["default"] */.A {
     }
     handleBidAsk(client, message) {
         //
+        // protobuf
+        //
+        //    {
+        //        "channel": "spot@public.aggre.bookTicker.v3.api.pb@100ms@BTCUSDT",
+        //        "symbol": "BTCUSDT",
+        //        "sendTime": "1792779974344",
+        //        "publicAggreBookTicker": {
+        //            "bidPrice": "81577.79",
+        //            "bidQuantity": "0.11985594",
+        //            "askPrice": "81577.8",
+        //            "askQuantity": "0.12200121"
+        //        }
+        //    }
+        //
+        // retired json channel
+        //
         //    {
         //        "c": "spot@public.bookTicker.v3.api@BTCUSDT",
         //        "d": {
@@ -592251,19 +592758,23 @@ class mexc extends _mexc_js__rspack_import_0/* ["default"] */.A {
         client.resolve(parsedTicker, messageHash);
     }
     parseWsBidAsk(ticker, market = undefined) {
-        const data = this.safeDict(ticker, 'd');
-        const marketId = this.safeString(ticker, 's');
+        const data = this.safeDictN(ticker, [
+            'd',
+            'data',
+            'publicAggreBookTicker'
+        ]);
+        const marketId = this.safeString2(ticker, 's', 'symbol');
         const marketResolved = this.safeMarket(marketId, market);
         const symbol = this.safeString(marketResolved, 'symbol');
-        const timestamp = this.safeInteger(ticker, 't');
+        const timestamp = this.safeInteger2(ticker, 't', 'sendTime');
         return this.safeTicker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'ask': this.safeNumber(data, 'a'),
-            'askVolume': this.safeNumber(data, 'A'),
-            'bid': this.safeNumber(data, 'b'),
-            'bidVolume': this.safeNumber(data, 'B'),
+            'ask': this.safeNumber2(data, 'a', 'askPrice'),
+            'askVolume': this.safeNumber2(data, 'A', 'askQuantity'),
+            'bid': this.safeNumber2(data, 'b', 'bidPrice'),
+            'bidVolume': this.safeNumber2(data, 'B', 'bidQuantity'),
             'info': ticker
         }, marketResolved);
     }
@@ -594189,10 +594700,11 @@ class modetrade extends _modetrade_js__rspack_import_0/* ["default"] */.A {
         //         "count": 3689
         //     }
         //
+        const timestamp = this.safeInteger(ticker, 'timestamp');
         return this.safeTicker({
             'symbol': this.safeSymbol(undefined, market),
-            'timestamp': undefined,
-            'datetime': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
             'high': this.safeString(ticker, 'high'),
             'low': this.safeString(ticker, 'low'),
             'bid': undefined,
@@ -594234,8 +594746,9 @@ class modetrade extends _modetrade_js__rspack_import_0/* ["default"] */.A {
         const marketId = this.safeString(data, 'symbol');
         const market = this.safeMarket(marketId);
         const timestamp = this.safeInteger(message, 'ts');
-        data['date'] = timestamp;
-        const ticker = this.parseWsTicker(data, market);
+        const ticker = this.parseWsTicker(this.extend(data, {
+            'timestamp': timestamp
+        }), market);
         ticker['symbol'] = market['symbol'];
         this.tickers[market['symbol']] = ticker;
         client.resolve(ticker, topic);
@@ -594292,7 +594805,7 @@ class modetrade extends _modetrade_js__rspack_import_0/* ["default"] */.A {
             const marketId = this.safeString(data[i], 'symbol');
             const market = this.safeMarket(marketId);
             const ticker = this.parseWsTicker(this.extend(data[i], {
-                'date': timestamp
+                'timestamp': timestamp
             }), market);
             this.tickers[market['symbol']] = ticker;
             result.push(ticker);
@@ -595052,7 +595565,7 @@ class modetrade extends _modetrade_js__rspack_import_0/* ["default"] */.A {
         }
         return this.filterBySymbolsSinceLimit(this.positions, symbolsNormalized, since, limit, true);
     }
-    setPositionsCache(client, type, symbols = undefined) {
+    setPositionsCache(client, symbols = undefined) {
         const fetchPositionsSnapshot = this.handleOption('watchPositions', 'fetchPositionsSnapshot', false);
         if (fetchPositionsSnapshot === true) {
             const messageHash = 'fetchPositionsSnapshot';
@@ -598149,12 +598662,19 @@ class ndax extends _ndax_js__rspack_import_0/* ["default"] */.A {
         //     ]
         //
         const symbol = this.safeString(subscription, 'symbol');
+        if (symbol === undefined) {
+            return;
+        }
         const snapshot = this.parseOrderBook(payload, symbol);
         const limit = this.safeInteger(subscription, 'limit');
-        const orderbook = this.orderBook(snapshot, limit);
-        if (symbol !== undefined) {
-            this.orderbooks[symbol] = orderbook;
+        // reset the existing orderbook instead of replacing it: a consumer
+        // holds a reference to the old object and would never see updates
+        // after a re-subscription snapshot
+        if (!(symbol in this.orderbooks)) {
+            this.orderbooks[symbol] = this.orderBook({}, limit);
         }
+        const orderbook = this.orderbooks[symbol];
+        orderbook.reset(snapshot);
         const messageHash = this.safeString(subscription, 'messageHash');
         client.resolve(orderbook, messageHash);
     }
@@ -599802,10 +600322,20 @@ class okx extends _okx_js__rspack_import_0/* ["default"] */.A {
         if (action === 'snapshot') {
             for(let i = 0; i < data.length; i++){
                 const update = data[i];
-                const orderbook = this.orderBook({}, limit);
-                this.orderbooks[symbol] = orderbook;
-                orderbook['symbol'] = symbol;
-                this.handleOrderBookMessage(client, update, orderbook, messageHash, market);
+                // reset the existing orderbook instead of replacing it: a consumer
+                // holds a reference to the old object and would never see updates
+                // after a re-subscription snapshot
+                if (!(symbol in this.orderbooks)) {
+                    this.orderbooks[symbol] = this.orderBook({}, limit);
+                }
+                const orderbook = this.orderbooks[symbol];
+                const timestamp = this.safeInteger(update, 'ts');
+                // rows are [ price, amount, liquidatedOrders, numOrders ] - store
+                // price and amount only, matching handleDelta, so countOrIdKey
+                // points past the row on purpose
+                const snapshot = this.parseOrderBook(update, symbol, timestamp, 'bids', 'asks', 0, 1, 4);
+                snapshot['nonce'] = this.safeInteger(update, 'seqId');
+                orderbook.reset(snapshot);
                 if (!(messageHash in client.subscriptions)) {
                     break;
                 }
@@ -599994,9 +600524,31 @@ class okx extends _okx_js__rspack_import_0/* ["default"] */.A {
         //
         const arg = this.safeDict(message, 'arg', {});
         const channel = this.safeString(arg, 'channel');
+        // merge the parsed update into the existing balance object instead of
+        // replacing it: a consumer awakened by an earlier message holds a
+        // reference to this.balance, and Client.resolve is a no-op while
+        // nobody is awaiting, so a replaced object would make updates landing
+        // in that window invisible to the consumer forever (same class as
+        // issue #26773); the free/used/total aggregates are rebuilt from the
+        // merged currencies by safeBalance
         const balance = this.parseTradingBalance(message);
-        const newBalance = this.deepExtend(this.balance, balance);
-        this.balance = this.safeBalance(newBalance);
+        if (this.balance === undefined) {
+            this.balance = {};
+        }
+        const reserved = [
+            'free',
+            'used',
+            'total'
+        ];
+        const keys = Object.keys(balance);
+        for(let i = 0; i < keys.length; i++){
+            const key = keys[i];
+            if (this.inArray(key, reserved)) {
+                continue;
+            }
+            this.balance[key] = balance[key];
+        }
+        this.balance = this.safeBalance(this.balance);
         client.resolve(this.balance, channel);
     }
     orderToTrade(order, market = undefined) {
@@ -601204,7 +601756,31 @@ class onetrading extends _onetrading_js__rspack_import_0/* ["default"] */.A {
         //         ]
         //     }
         //
-        this.balance = this.parseBalance(message);
+        // merge the parsed update into the existing balance object instead of
+        // replacing it: a consumer awakened by an earlier message holds a
+        // reference to this.balance, and Client.resolve is a no-op while
+        // nobody is awaiting, so a replaced object would make updates landing
+        // in that window invisible to the consumer forever (same class as
+        // issue #26773); the free/used/total aggregates are rebuilt from the
+        // merged currencies by safeBalance
+        const balance = this.parseBalance(message);
+        if (this.balance === undefined) {
+            this.balance = {};
+        }
+        const reserved = [
+            'free',
+            'used',
+            'total'
+        ];
+        const keys = Object.keys(balance);
+        for(let i = 0; i < keys.length; i++){
+            const key = keys[i];
+            if (this.inArray(key, reserved)) {
+                continue;
+            }
+            this.balance[key] = balance[key];
+        }
+        this.balance = this.safeBalance(this.balance);
         const messageHash = 'balance';
         client.resolve(this.balance, messageHash);
     }
@@ -605180,7 +605756,31 @@ class paradex extends _paradex_js__rspack_import_0/* ["default"] */.A {
         //
         const params = this.safeDict(message, 'params', {});
         const data = this.safeDict(params, 'data', {});
-        this.balance = this.parseWsBalance(data);
+        // merge the parsed update into the existing balance object instead of
+        // replacing it: a consumer awakened by an earlier message holds a
+        // reference to this.balance, and Client.resolve is a no-op while
+        // nobody is awaiting, so a replaced object would make updates landing
+        // in that window invisible to the consumer forever (same class as
+        // issue #26773); the free/used/total aggregates are rebuilt from the
+        // merged currencies by safeBalance
+        const balance = this.parseWsBalance(data);
+        if (this.balance === undefined) {
+            this.balance = {};
+        }
+        const reserved = [
+            'free',
+            'used',
+            'total'
+        ];
+        const keys = Object.keys(balance);
+        for(let i = 0; i < keys.length; i++){
+            const key = keys[i];
+            if (this.inArray(key, reserved)) {
+                continue;
+            }
+            this.balance[key] = balance[key];
+        }
+        this.balance = this.safeBalance(this.balance);
         client.resolve(this.balance, 'balance');
     }
     parseWsBalance(data) {
@@ -606867,8 +607467,14 @@ class phemex extends _phemex_js__rspack_import_0/* ["default"] */.A {
             const book = this.safeDict2(message, 'book', 'orderbook_p', {});
             const snapshot = this.customParseOrderBook(book, symbol, timestamp, 'bids', 'asks', 0, 1, market);
             snapshot['nonce'] = nonce;
-            const orderbook = this.orderBook(snapshot, depth);
-            this.orderbooks[symbol] = orderbook;
+            // reset the existing orderbook instead of replacing it: a consumer
+            // holds a reference to the old object and would never see updates
+            // after a re-subscription snapshot
+            if (!(symbol in this.orderbooks)) {
+                this.orderbooks[symbol] = this.orderBook({}, depth);
+            }
+            const orderbook = this.orderbooks[symbol];
+            orderbook.reset(snapshot);
             client.resolve(orderbook, messageHash);
         } else {
             if (symbol in this.orderbooks) {
@@ -636874,7 +637480,7 @@ class weex extends _abstract_weex_js__rspack_import_0/* ["default"] */.A {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @param {boolean} [params.paginate] whether to automatically paginate requests until the required number of candles is returned
-     * @param {boolean} [params.historical] whether to fetch historical klines (default is false). If false, will fetch last price klines
+     * @param {boolean} [params.historical] whether to fetch historical klines (default is false, forced to true when since or until is set because the recent klines endpoints ignore time filters). If false, will fetch last price klines
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */ async fetchContractOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -636906,23 +637512,27 @@ class weex extends _abstract_weex_js__rspack_import_0/* ["default"] */.A {
         let response = undefined;
         // hardcap threshold
         const limitResolved = limit === undefined ? undefined : Math.min(limit, 1000);
-        if (historical) {
+        // the recent-klines endpoints ignore startTime and endTime and only ever return the
+        // latest candles, so a request bounded by since or until has to go through the history
+        // endpoint, which honours both (endTime = since + limit * timeframe when until is absent)
+        const useHistory = historical || since !== undefined || until !== undefined;
+        if (useHistory) {
             if (priceType !== undefined) {
                 request['priceType'] = priceType;
             }
             let startTime = since;
             let endTime = until;
+            const now = this.milliseconds();
             if (since === undefined || until === undefined) {
-                const now = this.milliseconds();
                 const duration = this.parseTimeframe(timeframe) * 1000;
-                let timeDelta = maxHistoricalLimit * duration;
+                // the history endpoint returns at most maxHistoricalLimit candles and serves the
+                // newest ones inside the window, so a wider window would silently drop the candles
+                // right after since, keep the window at what one call can return
+                let historyLimit = maxHistoricalLimit;
                 if (limit !== undefined && limit !== null && limit !== 0) {
-                    if (limit > 1000) {
-                        timeDelta = 1000 * duration;
-                    } else {
-                        timeDelta = limit * duration;
-                    }
+                    historyLimit = Math.min(limit, maxHistoricalLimit);
                 }
+                const timeDelta = historyLimit * duration;
                 if (since === undefined && until === undefined) {
                     endTime = now;
                     startTime = now - timeDelta;
@@ -636932,8 +637542,13 @@ class weex extends _abstract_weex_js__rspack_import_0/* ["default"] */.A {
                     }
                     startTime = until - timeDelta;
                 } else {
-                    endTime = since + timeDelta;
+                    // this.sum, a bare + is string concatenation in the php port
+                    endTime = this.sum(since, timeDelta);
                 }
+            }
+            // the endpoint rejects an endTime in the future (-1142), which a recent since would produce
+            if (endTime !== undefined && endTime > now) {
+                endTime = now;
             }
             request['startTime'] = startTime;
             request['endTime'] = endTime;
@@ -661658,7 +662273,7 @@ class zebpay extends _abstract_zebpay_js__rspack_import_0/* ["default"] */.A {
     }
     /**
      * @method
-     * @name zebpatspot#fetchOrderTrades
+     * @name zebpay#fetchOrderTrades
      * @description fetch all the trades made from a single order
      * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/private-endpoints.md#get-order-fills
      * @param {string} id order id
@@ -689337,7 +689952,7 @@ SOFTWARE.
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.5.89';
+const version = '4.5.90';
 //-----------------------------------------------------------------------------
 
 

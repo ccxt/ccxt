@@ -92,7 +92,7 @@ class blofin extends Exchange {
                 'fetchOpenInterestHistory' => false,
                 'fetchOpenOrder' => null,
                 'fetchOpenOrders' => true,
-                'fetchOrder' => null,
+                'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrderBooks' => false,
                 'fetchOrders' => false,
@@ -333,7 +333,12 @@ class blofin extends Exchange {
                         'untilDays' => 100000,
                         'symbolRequired' => false,
                     ),
-                    'fetchOrder' => null,
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => true,
+                    ),
                     'fetchOpenOrders' => array(
                         'marginMode' => false,
                         'limit' => 100,
@@ -392,7 +397,9 @@ class blofin extends Exchange {
                     'linear' => array(
                         'extends' => 'forDerivatives',
                     ),
-                    'inverse' => null,
+                    'inverse' => array(
+                        'extends' => 'forDerivatives',
+                    ),
                 ),
                 'future' => array(
                     'linear' => null,
@@ -1079,6 +1086,11 @@ class blofin extends Exchange {
             'bar' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             'limit' => $limitResolved,
         );
+        if ($since !== null) {
+            $durationInMilliseconds = $this->parse_timeframe($timeframe) * 1000;
+            $request['before'] = max($since - 1, 0);
+            $request['after'] = $this->sum($since, $durationInMilliseconds * $limitResolved);
+        }
         $until = $this->safe_integer($query, 'until');
         if ($until !== null) {
             $request['after'] = $until;
@@ -1159,6 +1171,16 @@ class blofin extends Exchange {
         $marketId = $this->safe_string($contract, 'instId');
         $symbol = $this->safe_symbol($marketId, $market);
         $fundingTime = $this->safe_integer($contract, 'fundingTime');
+        $fundingInterval = $this->safe_string($contract, 'fundingInterval');
+        $intervalUnits = array(
+            'hour' => 'h',
+            'minute' => 'm',
+        );
+        $intervalUnit = $this->safe_string($intervalUnits, $this->safe_string($contract, 'fundingIntervalUnit'));
+        $intervalString = null;
+        if (($fundingInterval !== null) && ($intervalUnit !== null)) {
+            $intervalString = $fundingInterval . $intervalUnit;
+        }
         // > The current interest is 0.
         return array(
             'info' => $contract,
@@ -1178,7 +1200,7 @@ class blofin extends Exchange {
             'previousFundingRate' => null,
             'previousFundingTimestamp' => null,
             'previousFundingDatetime' => null,
-            'interval' => null,
+            'interval' => $intervalString,
         );
     }
 
@@ -1777,6 +1799,52 @@ class blofin extends Exchange {
         return $this->parse_orders($data);
     }
 
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()): array {
+        /**
+         * fetches information on an order made by the user
+         *
+         * @see https://docs.blofin.com/index.html#get-order-detail
+         * @see https://docs.blofin.com/index.html#get-tpsl-order-detail
+         *
+         * @param {string} $id order $id
+         * @param {string} $symbol unified $symbol of the $market the order was made in
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->clientOrderId] client order $id, used instead of the $id argument
+         * @param {boolean} [$params->tpsl] True if fetching a tpsl order
+         * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
+         */
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchOrder() requires a symbol argument');
+        }
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'instId' => $market['id'],
+        );
+        $isTpsl = $this->safe_bool_2($params, 'tpsl', 'TPSL', false);
+        $clientOrderId = $this->safe_string($params, 'clientOrderId');
+        if ($clientOrderId !== null) {
+            $request['clientOrderId'] = $clientOrderId;
+        } elseif ($isTpsl === true) {
+            $request['tpslId'] = $id;
+        } else {
+            $request['orderId'] = $id;
+        }
+        $query = $this->omit($params, array( 'clientOrderId', 'tpsl', 'TPSL' ));
+        if ($isTpsl === true) {
+            $response = $this->privateGetTradeOrderTpslDetail($this->extend($request, $query));
+        } else {
+            $response = $this->privateGetTradeOrderDetail($this->extend($request, $query));
+        }
+        $data = $this->safe_dict($response, 'data');
+        if ($data === null) {
+            throw new OrderNotFound($this->id . ' fetchOrder() could not find order ' . $id);
+        }
+        return $this->parse_order($data, $market);
+    }
+
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * Fetch orders that are still open
@@ -1855,6 +1923,9 @@ class blofin extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $request['instId'] = $market['id'];
+        }
+        if ($since !== null) {
+            $request['begin'] = $since;
         }
         list($requestUntil, $paramsUntil) = $this->handle_until_option('end', $request, $paramsPaginate);
         if ($limit !== null) {
@@ -3529,7 +3600,7 @@ class blofin extends Exchange {
         return null;
     }
 
-    public function sign(string $path, array $api = array('public'), mixed $method = 'GET', $params = array()): array {
+    public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
         $apiName = $api[0];
         $request = '/api/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));

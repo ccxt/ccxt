@@ -999,6 +999,7 @@ func (this *Coinbaseexchange) HandleOrder(client any, message any) {
 					}
 					retRes70424 := ccxt.GetValue(previousOrder, "trades")
 					ccxt.AppendToArray(&retRes70424, trade)
+					ccxt.AddElementToObject(previousOrder, "trades", retRes70424)
 					ccxt.AddElementToObject(previousOrder, "lastTradeTimestamp", trade["timestamp"])
 					var totalCost any = "0"
 					var totalAmount any = "0"

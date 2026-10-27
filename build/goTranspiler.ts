@@ -1500,6 +1500,80 @@ function assertTypedElementAccess (content: string): string {
     );
 }
 
+// JS `x[key].push (v)` mutates the array the slot holds; Go cannot take the address of a
+// map slot or a slice element, so the printer copies the receiver into `retResN` and the
+// append reaches only that copy. Store the grown slice back into the container.
+const GO_APPEND_COPY_DECL = /^(\s*)(retRes\d+) := (.+)$/;
+const GO_APPEND_COPY_CALL = /^(\s*)(?:[A-Za-z_]\w*\.)?AppendToArray\(&(retRes\d+), /;
+const GO_APPEND_SIMPLE_ARG = /^(?:[A-Za-z_]\w*(?:\.\w+)*(?:\[\*?\w+\])?|\*\w+|"[^"\\\n]*"|-?\d+)$/;
+
+// `container, key` for a receiver the printer copied, or undefined when the receiver is not
+// a mutable slot this pass can address (a temporary call result is never written back).
+function goAppendCopySlot (receiver: string): [string, string] | undefined {
+    const text = receiver.trim ();
+    const call = /^((?:[A-Za-z_]\w*\.)?)GetValue\(([\s\S]*)\)$/.exec (text);
+    if (call !== null) {
+        const args: string[] = [];
+        let depth = 0;
+        let start = 0;
+        const inner = call[2];
+        for (let i = 0; i < inner.length; i++) {
+            const c = inner[i];
+            if ((c === '(') || (c === '[') || (c === '{')) {
+                depth++;
+            } else if ((c === ')') || (c === ']') || (c === '}')) {
+                depth--;
+            } else if ((c === ',') && (depth === 0)) {
+                args.push (inner.substring (start, i));
+                start = i + 1;
+            }
+        }
+        args.push (inner.substring (start));
+        if (args.length !== 2) {
+            return undefined;
+        }
+        const [ container, key ] = args.map ((a: string) => a.trim ());
+        if (!/^[A-Za-z_]\w*(?:\.\w+)*$/.test (container) || !GO_APPEND_SIMPLE_ARG.test (key)) {
+            return undefined;
+        }
+        return [ container, key ];
+    }
+    const index = /^([A-Za-z_]\w*(?:\.\w+)*)\[([^\[\]]+)\]$/.exec (text);
+    if ((index !== null) && GO_APPEND_SIMPLE_ARG.test (index[2].trim ())) {
+        return [ index[1], index[2].trim () ];
+    }
+    return undefined;
+}
+
+function nativeAppendWriteBack (content: string): string {
+    if (content.indexOf ('AppendToArray(&retRes') < 0) {
+        return content;
+    }
+    const lines = content.split ('\n');
+    const out: string[] = [];
+    for (let k = 0; k < lines.length; k++) {
+        out.push (lines[k]);
+        const decl = GO_APPEND_COPY_DECL.exec (lines[k]);
+        if (decl === null) {
+            continue;
+        }
+        const call = GO_APPEND_COPY_CALL.exec (lines[k + 1] ?? '');
+        if ((call === null) || (call[2] !== decl[2]) || (call[1] !== decl[1])) {
+            continue;
+        }
+        const slot = goAppendCopySlot (decl[3]);
+        if (slot === undefined) {
+            continue;
+        }
+        // a ccxtpro file reaches both helpers through the imported ccxt package
+        const pkg = /(?:^|[^\w.])ccxt\./.test (decl[3] + lines[k + 1]) ? 'ccxt.' : '';
+        out.push (lines[k + 1]);
+        out.push (decl[1] + pkg + 'AddElementToObject(' + slot[0] + ', ' + slot[1] + ', ' + decl[2] + ')');
+        k++;
+    }
+    return out.join ('\n');
+}
+
 // gofmt's declaration-list rule (go/printer nodes.go `declList`): a top-level declaration
 // that carries a doc comment is separated from the declaration above it by exactly one
 // blank line (`min = 2` linebreaks), while a declaration without one is emitted adjacent
@@ -2689,6 +2763,7 @@ function formatGoSource (filePath: string, content: string): string {
     content = guardMultiSendCores (content);
     content = h2kG11NativeBoxAbsentSends (content);
     content = assertTypedElementAccess (content);
+    content = nativeAppendWriteBack (content);
     content = retagLoopBoundedElementReads (content);
     content = nativeLoopBoundedSliceReads (content);
     content = hx4X01TupleProducerReads (content);
@@ -4616,7 +4691,7 @@ class NewTranspiler {
     skippedUnchangedExchanges = false;
     // parsed PredictionExchange method signatures; lets a prediction venue that doesn't
     // override a unified method still emit the prediction-typed wrapper (resolving to the
-    // inherited base method) instead of the crypto-typed exchangeTyped fallback
+    // inherited base method) instead of the crypto-typed method promoted from BaseExchange
     predictionBaseMethodsTypes: any[] = [];
     // names of the 62 symbol-based trading methods that live in `export default class Exchange
     // extends BaseExchange` in the TS source. They hang off *Exchange (not *BaseExchange), so
@@ -5618,38 +5693,6 @@ class NewTranspiler {
         return `${header}{\n\t${statement}\n}`;
     }
 
-    createMissingMethodWrapper(exchangeName: string, name: string, methodInfo: any) {
-        if (!methodInfo) {
-            return '';
-        }
-        const itf = methodInfo.interface;
-        // const params = methodInfo.params;
-        const exCap = capitalize(exchangeName);
-        const nameCap = capitalize(name);
-        const wrapper = methodInfo.wrapper;
-
-        let args: string[] = [];
-        for (const param of wrapper.parameters) {
-            if (param.name === 'params' && wrapper.parameters.length === 1) {
-                args.push('params...');
-                break;
-            }
-            if (param.isOptional || param.name === 'params' || param.initializer !== undefined || param.initializer === 'undefined' || param.initializer === '{}') {
-                // if (wrapper.parameters.length === 1) {
-                //     args.push(`params...`)
-                // } else {
-                //     args.push(`options...`)
-                // }
-                args.push(`options...`);
-                break;
-            } else {
-                args.push(this.safeGoName(param.name));
-            }
-        }
-
-        return this.goSingleStatementFunc (`func (this *${exCap}) ${itf} `, `return this.exchangeTyped.${nameCap}(${args.join(', ')})`);
-    }
-
     createWrapper (exchangeName: string, methodWrapper: any, isWs: boolean | 'prediction' = false) {
         // non-async methods with a declared Promise<T> return type (pure delegators) must be wrapped like async ones
         const isAsync = methodWrapper.async || (methodWrapper.returnType ?? '').startsWith ('Promise');
@@ -5711,7 +5754,7 @@ class NewTranspiler {
             params = 'params...';
         }
 
-        const accessor = isExchange ? 'this.Exchange.' : 'this.';
+        const accessor = 'this.';
         const body = [
             // `${two}ch:= make(chan ${unwrappedType})`,
             // `${two}go func() {`,
@@ -5735,7 +5778,9 @@ class NewTranspiler {
             params: stringArgs,
         };
         // wrapperMethods[exchangeName].push([interfaceMethod, stringArgs, methodWrapper]);
-        const funcContext = isExchange ? 'ExchangeTyped' : capitalize(exchangeName);
+        // base typed methods sit on the base structs and reach every venue through embedding:
+        // the 62 symbol-based ones on Exchange, the rest on BaseExchange (prediction venues too)
+        const funcContext = isExchange ? (this.exchangeTierMethods.has (methodName) ? 'Exchange' : 'BaseExchange') : capitalize(exchangeName);
         const method = [
             `${one}func (this *${funcContext}) ${methodNameCapitalized}(${stringArgs}) (${unwrappedType}, error) {`,
             ...body,
@@ -5760,7 +5805,7 @@ class NewTranspiler {
     // Re-runs at most once per process, and that re-run REWRITES exchange_wrappers.go from the
     // current Exchange.ts. The typed interface is regenerated with it: its own gate may already
     // have skipped it earlier in this process, which would leave IExchange declaring the previous
-    // ExchangeTyped signatures and every exchange failing to implement it (#29588).
+    // base typed signatures and every exchange failing to implement it (#29588).
     requireBaseMethodsMetadata () {
         if (WRAPPER_METHODS['Exchange']) {
             return;
@@ -5786,48 +5831,14 @@ class NewTranspiler {
         if (isWs && path === GLOBAL_WRAPPER_FILE) {
             return '';
         }
-        // BaseExchangeTyped mirrors ExchangeTyped but embeds only *BaseExchange and carries only the
-        // base unified methods (never the 62 symbol-based ones). Prediction venues delegate their
-        // inherited base methods to it, so the 62 stay off the prediction API. Reuse the ExchangeTyped
-        // wrapper bodies with the base subset, rewriting the receiver and accessor.
-        if (exchange === 'Exchange' && !isWs) {
-            const baseTypedWrappers = joinGoDeclarations (wrappers
-                .filter ((wrapper: any) => !this.exchangeTierMethods.has (wrapper.name))
-                .map ((wrapper: any) => this.createWrapper (exchange, wrapper, ws)))
-                .replace (/func \(this \*ExchangeTyped\)/g, 'func (this *BaseExchangeTyped)')
-                .replace (/this\.Exchange\./g, 'this.BaseExchange.');
-            if (baseTypedWrappers !== '') {
-                // the base subset is appended after the exchange-tier wrappers: one blank line
-                // when it opens with a doc comment, adjacent otherwise
-                wrappersIndented = wrappersIndented + (goDeclStartsWithComment (baseTypedWrappers) ? '\n\n' : '\n') + baseTypedWrappers;
-            }
-        }
-
         let missingMethodsWrappers = '';
-        if (exchange !== 'Exchange') {
+        if (exchange !== 'Exchange' && this.isPrediction) {
             this.requireBaseMethodsMetadata ();
-            if (!WRAPPER_METHODS['Exchange']) {
-                throw new Error('Exchange wrapper methods are not defined, please transpile base methods first');
-            }
-            const loadMarketsHeader = `func (this *${capitalize(exchange)}) LoadMarkets(params ...any) (map[string]MarketInterface, error) `;
-            missingMethodsWrappers = this.goSingleStatementFunc (loadMarketsHeader, 'return this.exchangeTyped.LoadMarkets(params...)') + '\n';
-            missingMethodsWrappers += joinGoDeclarations (missingMethods.map (m => {
-                // for prediction venues, a unified method the venue doesn't override but
-                // PredictionExchange declares must emit the prediction-typed wrapper (resolving to
-                // the inherited base method on this struct), not the crypto-typed exchangeTyped fallback
-                if (this.isPrediction) {
-                    const predMethod = this.predictionBaseMethodsTypes.find ((w: any) => w.name === m);
-                    if (predMethod) {
-                        return this.createWrapper (exchange, predMethod, ws);
-                    }
-                    // the 62 symbol-based trading methods live only on the Exchange tier (not
-                    // PredictionExchange), so prediction venues must not expose them — this keeps the Go
-                    // prediction API in line with TS/C#/Java and with the Python/PHP tier-split.
-                    if (this.exchangeTierMethods.has (m)) {
-                        return '';
-                    }
-                }
-                return this.createMissingMethodWrapper(exchange, m,  WRAPPER_METHODS['Exchange'][m]);
+            // a unified method PredictionExchange retypes must be emitted on the venue, so it
+            // shadows the crypto-typed one promoted from BaseExchange
+            missingMethodsWrappers = joinGoDeclarations (missingMethods.map (m => {
+                const predMethod = this.predictionBaseMethodsTypes.find ((w: any) => w.name === m);
+                return predMethod ? this.createWrapper (exchange, predMethod, ws) : '';
             }));
         }
 
@@ -5843,8 +5854,7 @@ class NewTranspiler {
                 // gofmt puts one blank line between the last wrapper and the doc comment group of
                 // the base-fallback wrappers (`min = 2` in go/printer declList)
                 '',
-                needsTypedBase ? '// missing typed methods from base' : '',
-                needsTypedBase ? '// nolint' : '',
+                needsTypedBase && missingMethodsWrappers ? '// prediction-typed methods from base' : '',
                 needsTypedBase ? missingMethodsWrappers : '',
             ].join('\n');
             if (ws || this.isPrediction) {
@@ -5853,49 +5863,14 @@ class NewTranspiler {
             return section;
         }
 
-        const exchangeStruct = [
-            // ExchangeTyped embeds the concrete *Exchange (which itself embeds BaseExchange), so it
-            // exposes both the base methods and the 62 symbol-based trading methods — regular venues
-            // delegate their inherited unified methods here. Prediction venues use BaseExchangeTyped
-            // (base methods only) instead, so the 62 stay off the prediction API.
-            `type ExchangeTyped struct {`,
-            `\t*Exchange`,
-            `}`,
-            ``,
-            `type BaseExchangeTyped struct {`,
-            `\t*BaseExchange`,
-            `}`
-        ].join('\n');
-
         const newMethod = [
-            'func NewExchangeTyped(exchangePointer *Exchange) *ExchangeTyped {',
-            `\treturn &ExchangeTyped{`,
-            `\t\tExchange: exchangePointer,`,
-            `\t}`,
-            '}',
-            '',
-            '// NewBaseExchangeTyped wraps a bare *BaseExchange (used by prediction venues, which',
-            '// embed BaseExchange via PredictionExchange rather than the concrete Exchange). It exposes',
-            '// the base unified methods only — never the 62 symbol-based trading methods.',
-            'func NewBaseExchangeTyped(base *BaseExchange) *BaseExchangeTyped {',
-            `\treturn &BaseExchangeTyped{`,
-            `\t\tBaseExchange: base,`,
-            `\t}`,
-            '}',
-            '',
-            'func (this *ExchangeTyped) LoadMarkets(params ...any) (map[string]MarketInterface, error) {',
-            ...goNativeAwaitBody ('\t', 'map[string]MarketInterface', 'NewMarketsMap', `this.Exchange.LoadMarkets${GO_ASYNC_SUFFIX}(params...)`, 'nil'),
-            '}',
-            '',
-            'func (this *BaseExchangeTyped) LoadMarkets(params ...any) (map[string]MarketInterface, error) {',
-            ...goNativeAwaitBody ('\t', 'map[string]MarketInterface', 'NewMarketsMap', `this.BaseExchange.LoadMarkets${GO_ASYNC_SUFFIX}(params...)`, 'nil'),
+            'func (this *BaseExchange) LoadMarkets(params ...any) (map[string]MarketInterface, error) {',
+            ...goNativeAwaitBody ('\t', 'map[string]MarketInterface', 'NewMarketsMap', `this.LoadMarkets${GO_ASYNC_SUFFIX}(params...)`, 'nil'),
             '}',
         ].join('\n');
 
         const file = [
             'package ccxt',
-            '',
-            exchangeStruct,
             '',
             newMethod,
             '',
@@ -5904,20 +5879,15 @@ class NewTranspiler {
             wrappersIndented,
             // blank line before the doc comment group of the base-fallback wrappers, as gofmt
             // spaces every doc-commented top-level declaration (go/printer declList min = 2)
-            '',
-            '// missing typed methods from base',
-            '//nolint',
-            missingMethodsWrappers,
-        ].join('\n');
+        ].join('\n') + '\n';
         log.magenta ('→', (path as any).yellow);
 
         this.writeGeneratedOnce (path, file);
         return '';
     }
 
-    // A non-alias REST exchange embeds only the base Exchange, which carries no typed methods, so
-    // it needs an exchangeTyped delegate for the unified methods it does not override. Aliases embed
-    // their parent and ws exchanges embed their REST twin — both already typed, so promotion covers them.
+    // Aliases embed their parent and ws exchanges embed their REST twin, so only a non-alias REST
+    // exchange may need venue-level re-typings of base methods (prediction venues).
     needsTypedBase (exchange: string, ws: boolean | 'prediction' = false): boolean {
         return (ws !== true) && !this.isAlias (exchange);
     }
@@ -6078,7 +6048,7 @@ ${constStatements.join('\n')}
         let baseClass = baseFile.content as any; // remove this later
 
         // capture the 62 symbol-based method names from the TS `Exchange extends BaseExchange` tier,
-        // so the wrappers keep them on ExchangeTyped (regular venues) and off prediction venues.
+        // so the wrappers keep them on Exchange (regular venues) and off prediction venues.
         const tsRaw = fs.readFileSync (baseExchangeFile, 'utf8');
         const exTierMatch = tsRaw.match (/export default class Exchange extends BaseExchange \{([\s\S]*?)\n\}/);
         this.exchangeTierMethods = new Set ();
@@ -6448,10 +6418,9 @@ ${caseStatements.join('\n')}
         const exchanges = ['exchange'].concat(exchangeIds);
 
         const caseStatements = exchanges.map(exchange => {
-            const struct = exchange === 'exchange' ? 'ExchangeTyped' : capitalize(exchange);
-            const args = exchange === 'exchange' ? 'nil' : 'options';
+            const ctor = exchange === 'exchange' ? '&Exchange{}' : `New${capitalize(exchange)}(options)`;
             return`\tcase "${exchange}":
-\t\titf := New${struct}(${args})
+\t\titf := ${ctor}
 \t\treturn itf`;
         });
 
@@ -7699,13 +7668,11 @@ ${caseStatements.join('\n')}
         const exchangeStructName = this.isPrediction ? 'ccxt.BaseExchange' : (ws ? 'ccxt.Exchange' : 'Exchange');
         let initMethod = '';
         if (!isAlias && !isWs) {
-            const typedInit = this.isPrediction ? 'ccxt.NewBaseExchangeTyped(&this.BaseExchange)' : 'NewExchangeTyped(&this.Exchange)';
             initMethod = `
 func (this *${className}) Init(userConfig map[string]any) {
 \tthis.${baseField} = ${exchangeStructName}{}
 \tthis.${baseField}.DerivedExchange = this
 \tthis.${baseField}.InitParent(userConfig, this.Describe().(map[string]any), this)
-\tthis.exchangeTyped = ${typedInit}
 }\n`;
         } else {
             initMethod = `
@@ -7716,16 +7683,6 @@ func (this *${className}) Init(userConfig map[string]any) {
 }\n`;
         }
 
-        // The typed sync methods live on this same struct. A non-alias REST/prediction exchange
-        // delegates the unified methods it does not override to `exchangeTyped` (set in Init so
-        // that aliases, which embed the parent by value, and ws twins get it too). Aliases and ws
-        // exchanges inherit the whole typed surface through their embedded parent instead.
-        if (!isAlias && !isWs) {
-            const typedType = this.isPrediction ? '*ccxt.BaseExchangeTyped' : '*ExchangeTyped';
-            // the injected field is a real Go field, so it has to survive gofmt unchanged: tab
-            // indentation, and no blank line left before the closing brace
-            content = content.replace (/(type \w+ struct \{)([\s\S]*?)(\n\})/, (_match: string, head: string, body: string, tail: string) => head + body.replace (/\n+$/, '') + '\n\texchangeTyped ' + typedType + tail);
-        }
         // the transpiled zero-arg constructor is the raw allocator (aliases/ws twins reuse it
         // before running their own Init); the public New<X>(userConfig) allocates and inits
         content = content.replace (

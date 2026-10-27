@@ -743,7 +743,7 @@ class bitfinex extends \ccxt\async\bitfinex {
             }
             $orderbook = $this->orderbooks[$symbol];
             if ($isRaw) {
-                $deltas = $message[1];
+                $deltas = $this->safe_list($message, 1, array());
                 for ($i = 0; $i < count($deltas); $i++) {
                     $delta = $deltas[$i];
                     $delta2 = $this->safe_number($delta, 2);
@@ -755,7 +755,7 @@ class bitfinex extends \ccxt\async\bitfinex {
                     $bookside->storeArray(array( $price, $size, $idString ));
                 }
             } else {
-                $deltas = $message[1];
+                $deltas = $this->safe_list($message, 1, array());
                 for ($i = 0; $i < count($deltas); $i++) {
                     $delta = $this->safe_list($deltas, $i);
                     $deltaAmount = $this->safe_number($delta, 2);

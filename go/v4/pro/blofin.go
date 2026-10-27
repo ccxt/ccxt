@@ -812,7 +812,34 @@ func (this *Blofin) HandleBalance(client any, message map[string]any) {
 	//     }
 	//
 	var marketType string = "swap" // for now
-	ccxt.AddElementToObject(this.Balance, marketType, this.ParseWsBalance(message))
+	// merge the parsed update into the existing balance object instead of
+	// replacing it: a consumer awakened by an earlier message holds a
+	// reference to this.balance[marketType], and ccxt.Client.resolve is a no-op
+	// while nobody is awaiting, so a replaced object would make updates
+	// landing in that window invisible to the consumer forever (same class
+	// as issue #26773); the free/used/total aggregates are rebuilt from
+	// the merged currencies by safeBalance
+	if ccxt.IsEqual(this.Balance, nil) {
+		this.Balance = map[string]any{}
+	}
+	ccxt.AddElementToObject(this.Balance, marketType, this.SafeDict(this.Balance, marketType, map[string]any{}))
+	var parsed map[string]any = ccxt.MapTyped(this.ParseWsBalance(message))
+	var reserved []any = []any{"free", "used", "total"}
+	var keys []string = nil
+	if parsed != nil {
+		keys = make([]string, 0, len(parsed))
+		for objectKey := range parsed {
+			keys = append(keys, objectKey)
+		}
+	}
+	for i := 0; i < len(keys); i++ {
+		var key string = keys[i]
+		if this.InArray(key, reserved) {
+			continue
+		}
+		ccxt.AddElementToObject(ccxt.GetValue(this.Balance, marketType), key, parsed[key])
+	}
+	ccxt.AddElementToObject(this.Balance, marketType, this.SafeBalance(ccxt.GetValue(this.Balance, marketType)))
 	var messageHash string = marketType + ":balance"
 	client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Balance, marketType), messageHash)
 }

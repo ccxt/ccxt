@@ -1448,7 +1448,7 @@ class extended extends Exchange {
         return $this->parse_open_interests_history($data, $market, $sinceResolved, $limitResolved);
     }
 
-    public function parse_open_interest(mixed $interest, ?array $market = null): array {
+    public function parse_open_interest(?array $interest, ?array $market = null): array {
         //
         //     {
         //       "i": "112620590.6060360000000000",
@@ -3583,7 +3583,7 @@ class extended extends Exchange {
         return null;
     }
 
-    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+    public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
         $requestHeaders = null;
         $requestBody = null;
         $version = $this->safe_string($api, 0);

@@ -2020,6 +2020,305 @@
                         "symbol": "BTC/USDT"
                     }
                 ]
+            },
+            {
+                "description": "spot orderbook full depth, a second snapshot replaces the book",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "url": "wss://ws.bitget.com/v2/ws/public",
+                "messages": [
+                    {
+                        "event": "subscribe",
+                        "arg": {
+                            "instType": "SPOT",
+                            "channel": "books",
+                            "instId": "BTCUSDT"
+                        }
+                    },
+                    {
+                        "action": "snapshot",
+                        "arg": {
+                            "instType": "SPOT",
+                            "channel": "books",
+                            "instId": "BTCUSDT"
+                        },
+                        "data": [
+                            {
+                                "asks": [
+                                    [
+                                        "101",
+                                        "1"
+                                    ],
+                                    [
+                                        "102",
+                                        "2"
+                                    ]
+                                ],
+                                "bids": [
+                                    [
+                                        "100",
+                                        "1"
+                                    ],
+                                    [
+                                        "99",
+                                        "2"
+                                    ]
+                                ],
+                                "ts": "1786541258000",
+                                "seq": 10,
+                                "pseq": 0
+                            }
+                        ],
+                        "ts": 1786541258001
+                    },
+                    {
+                        "action": "update",
+                        "arg": {
+                            "instType": "SPOT",
+                            "channel": "books",
+                            "instId": "BTCUSDT"
+                        },
+                        "data": [
+                            {
+                                "asks": [
+                                    [
+                                        "101",
+                                        "0.5"
+                                    ]
+                                ],
+                                "bids": [
+                                    [
+                                        "100.5",
+                                        "3"
+                                    ]
+                                ],
+                                "ts": "1786541258100",
+                                "seq": 11,
+                                "pseq": 10
+                            }
+                        ],
+                        "ts": 1786541258101
+                    },
+                    {
+                        "action": "snapshot",
+                        "arg": {
+                            "instType": "SPOT",
+                            "channel": "books",
+                            "instId": "BTCUSDT"
+                        },
+                        "data": [
+                            {
+                                "asks": [
+                                    [
+                                        "100.4",
+                                        "1"
+                                    ],
+                                    [
+                                        "102",
+                                        "2"
+                                    ]
+                                ],
+                                "bids": [
+                                    [
+                                        "100.2",
+                                        "1"
+                                    ],
+                                    [
+                                        "99",
+                                        "2"
+                                    ]
+                                ],
+                                "ts": "1786541259000",
+                                "seq": 20,
+                                "pseq": 0
+                            }
+                        ],
+                        "ts": 1786541259001
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "op": "subscribe",
+                        "args": [
+                            {
+                                "instType": "SPOT",
+                                "channel": "books",
+                                "instId": "BTCUSDT"
+                            }
+                        ]
+                    }
+                ],
+                "parsedResponse": {
+                    "bids": [
+                        [
+                            100.2,
+                            1,
+                            [
+                                "100.2",
+                                "1"
+                            ]
+                        ],
+                        [
+                            99,
+                            2,
+                            [
+                                "99",
+                                "2"
+                            ]
+                        ]
+                    ],
+                    "asks": [
+                        [
+                            100.4,
+                            1,
+                            [
+                                "100.4",
+                                "1"
+                            ]
+                        ],
+                        [
+                            102,
+                            2,
+                            [
+                                "102",
+                                "2"
+                            ]
+                        ]
+                    ],
+                    "timestamp": 1786541259000,
+                    "datetime": "2026-08-12T13:27:39.000Z",
+                    "nonce": null,
+                    "symbol": "BTC/USDT"
+                }
+            },
+            {
+                "description": "books5 resnapshot resets the held orderbook in place - a consumer holding the old object must see post-resnapshot state",
+                "input": [
+                    "BTC/USDT",
+                    5
+                ],
+                "url": "wss://ws.bitget.com/v2/ws/public",
+                "messages": [
+                    {
+                        "event": "subscribe",
+                        "arg": {
+                            "instType": "SPOT",
+                            "channel": "books5",
+                            "instId": "BTCUSDT"
+                        }
+                    },
+                    {
+                        "action": "snapshot",
+                        "arg": {
+                            "instType": "SPOT",
+                            "channel": "books5",
+                            "instId": "BTCUSDT"
+                        },
+                        "data": [
+                            {
+                                "asks": [
+                                    [
+                                        "64024.38",
+                                        "1.753445"
+                                    ],
+                                    [
+                                        "64025",
+                                        "0.02"
+                                    ]
+                                ],
+                                "bids": [
+                                    [
+                                        "64024.37",
+                                        "0.178298"
+                                    ],
+                                    [
+                                        "64022.3",
+                                        "0.029133"
+                                    ]
+                                ],
+                                "ts": "1786538865366",
+                                "seq": 711330212481,
+                                "pseq": 0
+                            }
+                        ],
+                        "ts": 1786538865369
+                    },
+                    {
+                        "action": "snapshot",
+                        "arg": {
+                            "instType": "SPOT",
+                            "channel": "books5",
+                            "instId": "BTCUSDT"
+                        },
+                        "data": [
+                            {
+                                "asks": [
+                                    [
+                                        "64100.5",
+                                        "1.0"
+                                    ],
+                                    [
+                                        "64101",
+                                        "0.5"
+                                    ]
+                                ],
+                                "bids": [
+                                    [
+                                        "64100.1",
+                                        "2.0"
+                                    ],
+                                    [
+                                        "64099",
+                                        "0.25"
+                                    ]
+                                ],
+                                "ts": "1786538870000",
+                                "seq": 711330212481,
+                                "pseq": 0
+                            }
+                        ],
+                        "ts": 1786538870003
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "op": "subscribe",
+                        "args": [
+                            {
+                                "instType": "SPOT",
+                                "channel": "books5",
+                                "instId": "BTCUSDT"
+                            }
+                        ]
+                    }
+                ],
+                "parsedResponse": {
+                    "bids": [
+                        [
+                            64100.1,
+                            2
+                        ],
+                        [
+                            64099,
+                            0.25
+                        ]
+                    ],
+                    "asks": [
+                        [
+                            64100.5,
+                            1
+                        ],
+                        [
+                            64101,
+                            0.5
+                        ]
+                    ],
+                    "timestamp": 1786538870000,
+                    "datetime": "2026-08-12T12:47:50.000Z",
+                    "nonce": null,
+                    "symbol": "BTC/USDT"
+                }
             }
         ],
         "watchOrders": [

@@ -876,6 +876,7 @@ class bitfinex extends Exchange {
         //         ]
         //     ]
         //
+        $networks = $this->safe_list($response, 8, array());
         $indexed = array(
             'sym' => $this->index_by($this->safe_list($response, 1, array()), 0),
             'label' => $this->index_by($this->safe_list($response, 2, array()), 0),
@@ -884,13 +885,13 @@ class bitfinex extends Exchange {
             'pool' => $this->index_by($this->safe_list($response, 5, array()), 0),
             'explorer' => $this->index_by($this->safe_list($response, 6, array()), 0),
             'fees' => $this->index_by($this->safe_list($response, 7, array()), 0),
-            'networks' => $this->safe_list($response, 8, array()),
+            'networks' => $networks,
             'statuses' => $this->index_by($this->safe_list($response, 9, array()), 0),
             'marginables' => $this->safe_list($response, 10, array()),
         );
         $indexedNetworks = array();
-        for ($i = 0; $i < count($indexed['networks']); $i++) {
-            $networkObj = $this->safe_list($indexed['networks'], $i);
+        for ($i = 0; $i < count($networks); $i++) {
+            $networkObj = $this->safe_list($networks, $i);
             $networkId = $this->safe_string($networkObj, 0);
             $valuesList = $this->safe_list($networkObj, 1);
             $networkName = $this->safe_string($valuesList, 0);
@@ -3186,7 +3187,7 @@ class bitfinex extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+    public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
         $apiName = $api[0];
         $request = '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));

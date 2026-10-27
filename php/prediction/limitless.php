@@ -2245,7 +2245,7 @@ class limitless extends Exchange {
         return $parsedOrder;
     }
 
-    public function sign_order_request(array $signRequest, mixed $marketSymbol) {
+    public function sign_order_request(array $signRequest, ?string $marketSymbol): string {
         $this->check_required_credentials();
         if ($this->privateKey === null) {
             throw new ArgumentsRequired($this->id . ' createOrder() requires a privateKey (the embedded/trading wallet key) to sign orders');
@@ -2284,7 +2284,7 @@ class limitless extends Exchange {
         return '0x' . $this->hash($message, 'keccak', 'hex');
     }
 
-    public function sign_hash(string $hash, string $privateKey) {
+    public function sign_hash(string $hash, string $privateKey): string {
         $signature = $this->ecdsa(mb_substr($hash, -64), mb_substr($privateKey, -64), 'secp256k1', null);
         $r = $signature['r'];
         $s = $signature['s'];
@@ -2295,7 +2295,7 @@ class limitless extends Exchange {
         return strtolower($result);
     }
 
-    public function sign_message(mixed $message, string $privateKey) {
+    public function sign_message(mixed $message, string $privateKey): string {
         return $this->sign_hash($this->hash_message($message), mb_substr($privateKey, -64));
     }
 
@@ -3231,7 +3231,7 @@ class limitless extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign(string $path, array $api = array('limitless'), $method = 'GET', $params = array()) {
+    public function sign(string $path, array $api = array('limitless'), string $method = 'GET', $params = array()) {
         /**
          * @ignore
          * builds the request URL and attaches the lmts authentication headers for private endpoints

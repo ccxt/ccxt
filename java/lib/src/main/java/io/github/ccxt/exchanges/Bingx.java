@@ -178,6 +178,8 @@ public class Bingx extends BingxApi
                     put( "copyTrading", "https://open-api.{hostname}/openApi" );
                     put( "cswap", "https://open-api.{hostname}/openApi" );
                     put( "api", "https://open-api.{hostname}/openApi" );
+                    put( "agent", "https://open-api.{hostname}/openApi" );
+                    put( "wealth", "https://open-api.{hostname}/openApi" );
                 }} );
                 put( "test", new HashMap<String, Object>() {{
                     put( "fund", "https://open-api-vst.{hostname}/openApi" );
@@ -191,6 +193,8 @@ public class Bingx extends BingxApi
                     put( "copyTrading", "https://open-api-vst.{hostname}/openApi" );
                     put( "cswap", "https://open-api-vst.{hostname}/openApi" );
                     put( "api", "https://open-api-vst.{hostname}/openApi" );
+                    put( "agent", "https://open-api-vst.{hostname}/openApi" );
+                    put( "wealth", "https://open-api-vst.{hostname}/openApi" );
                 }} );
                 put( "www", "https://bingx.com/" );
                 put( "doc", "https://bingx-api.github.io/docs/" );
@@ -3160,6 +3164,14 @@ public class Bingx extends BingxApi
         String close = this.safeString(ticker, "lastPrice");
         String quoteVolume = this.safeString(ticker, "quoteVolume");
         String baseVolume = this.safeString(ticker, "volume");
+        if (java.util.Objects.equals(marketResolved.get("inverse"), true))
+        {
+            // Coin-M volume is in contracts; quoteVolume is in the base currency.
+            // read the resolved market: parseTickers and fetchTickers reach here with no market argument
+            String contractSize = this.safeString(marketResolved, "contractSize");
+            baseVolume = quoteVolume;
+            quoteVolume = Precise.stringMul(this.safeString(ticker, "volume"), contractSize);
+        }
         String percentage = this.safeString(ticker, "priceChangePercent");
         if (!java.util.Objects.equals(percentage, null))
         {
@@ -3360,7 +3372,7 @@ public class Bingx extends BingxApi
                 Map<String, Object> account = this.account();
                 account.put("free", this.safeString2(balance, "availableMargin", "availableBalance"));
                 account.put("used", this.safeString(balance, "usedMargin"));
-                account.put("total", this.safeString(balance, "maxWithdrawAmount"));
+                account.put("total", this.safeString2(balance, "balance", "maxWithdrawAmount"));
                 if (!java.util.Objects.equals(code, null))
                 {
                     result.put(code, account);
@@ -3667,7 +3679,14 @@ public class Bingx extends BingxApi
                 collateralString = (((!java.util.Objects.equals(unrealizedPnlString, null)))) ? Precise.stringAdd(initialMarginString, unrealizedPnlString) : initialMarginString;
             }
         }
-        Long timestamp = this.safeInteger(position, "openTime");
+        Long timestamp = (Long) this.safeInteger2(position, "openTime", "createTime");
+        String positionSide = this.safeString(position, "positionSide");
+        Boolean hedged = null;
+        if (!java.util.Objects.equals(positionSide, null))
+        {
+            hedged = (!java.util.Objects.equals(positionSide, "BOTH"));
+        }
+        String percentageString = this.safeString(position, "pnlRatio");
         HashMap<String, Object> mapLiteral8 = new HashMap<String, Object>();
         mapLiteral8.put("info", position);
         mapLiteral8.put("id", this.safeString(position, "positionId"));
@@ -3678,13 +3697,13 @@ public class Bingx extends BingxApi
         mapLiteral8.put("entryPrice", this.safeNumber2(position, "avgPrice", "entryPrice", (Object) null));
         mapLiteral8.put("unrealizedPnl", this.parseNumber(unrealizedPnlString));
         mapLiteral8.put("realizedPnl", this.safeNumber(position, "realisedProfit", (Object) null));
-        mapLiteral8.put("percentage", null);
+        mapLiteral8.put("percentage", this.parseNumber(Precise.stringMul(percentageString, "100")));
         mapLiteral8.put("contracts", this.safeNumber(position, "positionAmt", (Object) null));
         mapLiteral8.put("contractSize", null);
         mapLiteral8.put("markPrice", this.safeNumber(position, "markPrice", (Object) null));
         mapLiteral8.put("lastPrice", null);
         mapLiteral8.put("side", this.safeStringLower(position, "positionSide"));
-        mapLiteral8.put("hedged", null);
+        mapLiteral8.put("hedged", hedged);
         mapLiteral8.put("timestamp", timestamp);
         mapLiteral8.put("datetime", this.iso8601(timestamp));
         mapLiteral8.put("lastUpdateTimestamp", this.safeInteger(position, "updateTime"));
@@ -3811,7 +3830,7 @@ public class Bingx extends BingxApi
         Boolean isTriggerOrder = !java.util.Objects.equals(triggerPrice, null);
         Boolean isStopLossPriceOrder = !java.util.Objects.equals(stopLossPrice, null);
         Boolean isTakeProfitPriceOrder = !java.util.Objects.equals(takeProfitPrice, null);
-        String exchangeClientOrderId = "clientOrderID";
+        String exchangeClientOrderId = "clientOrderId";
         if (Boolean.TRUE.equals(isSpot))
         {
             exchangeClientOrderId = "newClientOrderId";
@@ -4881,20 +4900,25 @@ public class Bingx extends BingxApi
                 Map<String, Object> request = new HashMap<String, Object>();
                 request.put("symbol", market.get("id"));
                 String clientOrderId = this.safeString2(paramsOmitted, "clientOrderId", "clientOrderID");
-                Map<String, Object> paramsOmitted2 = this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("clientOrderId")));
-                if (!java.util.Objects.equals(clientOrderId, null))
-                {
-                    request.put("clientOrderID", clientOrderId);
-                } else
-                {
-                    request.put("orderId", id);
-                }
+                Map<String, Object> paramsOmitted2 = this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("clientOrderId", "clientOrderID")));
                 Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("cancelOrder", market, paramsOmitted2, (String) null);
                 String type = typeparamsMarketTypeVariable.first();
                 Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
                 Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("cancelOrder", market, paramsMarketType, (Object) null);
                 String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
                 Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
+                if (!java.util.Objects.equals(clientOrderId, null))
+                {
+                    String clientOrderIdRequest = "clientOrderId";
+                    if (java.util.Objects.equals(type, "spot"))
+                    {
+                        clientOrderIdRequest = "clientOrderID";
+                    }
+                    request.put(clientOrderIdRequest, clientOrderId);
+                } else
+                {
+                    request.put("orderId", id);
+                }
                 if (java.util.Objects.equals(type, "spot"))
                 {
                     response = (this.spotV1PrivatePostTradeCancel(this.extend(request, paramsSubType))).join();
@@ -5254,13 +5278,26 @@ public class Bingx extends BingxApi
                 market = this.market(symbol);
                 Map<String, Object> request = new HashMap<String, Object>();
                 request.put("symbol", market.get("id"));
-                request.put("orderId", id);
-                Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchOrder", market, paramsOmitted, (String) null);
+                String clientOrderId = this.safeString2(paramsOmitted, "clientOrderId", "clientOrderID");
+                Map<String, Object> paramsOmitted2 = this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("clientOrderId", "clientOrderID")));
+                Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchOrder", market, paramsOmitted2, (String) null);
                 String type = typeparamsMarketTypeVariable.first();
                 Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
                 Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchOrder", market, paramsMarketType, (Object) null);
                 String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
                 Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
+                if (!java.util.Objects.equals(clientOrderId, null))
+                {
+                    String clientOrderIdRequest = "clientOrderId";
+                    if (java.util.Objects.equals(type, "spot"))
+                    {
+                        clientOrderIdRequest = "clientOrderID";
+                    }
+                    request.put(clientOrderIdRequest, clientOrderId);
+                } else
+                {
+                    request.put("orderId", id);
+                }
                 if (java.util.Objects.equals(type, "spot"))
                 {
                     response = (this.spotV1PrivateGetTradeQuery(this.extend(request, paramsSubType))).join();
@@ -5315,9 +5352,16 @@ public class Bingx extends BingxApi
             Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchOrders", market, parameters, (String) null);
             String type = typeparamsMarketTypeVariable.first();
             Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
+            Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchOrders", market, paramsMarketType, (Object) null);
+            String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
+            Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
             if (!java.util.Objects.equals(type, "swap"))
             {
                 throw new NotSupported((this.id + " fetchOrders() is only supported for swap markets")) ;
+            }
+            if ((java.util.Objects.equals(subType, "inverse")) || ((!java.util.Objects.equals(market, null)) && (java.util.Objects.equals(market.get("inverse"), true))))
+            {
+                throw new NotSupported((this.id + " fetchOrders() is not supported for inverse swap markets")) ;
             }
             if (!java.util.Objects.equals(limit, null))
             {
@@ -5327,7 +5371,7 @@ public class Bingx extends BingxApi
             {
                 request.put("startTime", since);
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (paramsMarketType), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (paramsSubType), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Map<String, Object> response = (this.swapV1PrivateGetTradeFullOrder(this.extend(requestUntil, paramsUntil))).join();
@@ -6681,6 +6725,10 @@ public class Bingx extends BingxApi
                 {
                     throw new ArgumentsRequired((this.id + " fetchMyTrades() requires an orderId argument for inverse swap trades")) ;
                 }
+                if (!java.util.Objects.equals(limit, null))
+                {
+                    request.put("pageSize", Math.min(limit, 1000)); // api maximum 1000
+                }
                 response = (this.cswapV1PrivateGetTradeAllFillOrders(this.extend(request, paramsSubType))).join();
                 fills = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             } else
@@ -7130,7 +7178,7 @@ public class Bingx extends BingxApi
 
     /**
      * @method
-     * @name bitget#closePositions
+     * @name bingx#closeAllPositions
      * @description closes open positions for a market
      * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Close%20All%20Positions
      * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Close%20all%20positions%20in%20bulk
@@ -7307,6 +7355,7 @@ public class Bingx extends BingxApi
      *
      * EXCHANGE SPECIFIC PARAMETERS
      * @param {string} [params.cancelClientOrderID] the user-defined id of the order to be canceled, 1-40 characters, different orders cannot use the same clientOrderID, only supports a query range of 2 hours
+     * @param {string} [params.cancelClientOrderId] the client order id of the order to cancel
      * @param {string} [params.cancelRestrictions] cancel orders with specified status, NEW: New order, PENDING: Pending order, PARTIALLY_FILLED: Partially filled
      * @param {string} [params.cancelReplaceMode] STOP_ON_FAILURE - if the cancel order fails, it will not continue to place a new order, ALLOW_FAILURE - regardless of whether the cancel order succeeds or fails, it will continue to place a new order
      * @param {float} [params.quoteOrderQty] order amount
@@ -7331,9 +7380,22 @@ public class Bingx extends BingxApi
             {
                 throw new NotSupported((this.id + " editOrder() is not supported for inverse swap markets")) ;
             }
-            Map<String, Object> request = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
-            request.put("cancelOrderId", id);
-            request.put("cancelReplaceMode", this.safeString(parameters, "cancelReplaceMode", "STOP_ON_FAILURE"));
+            String cancelClientOrderId = this.safeString2(parameters, "cancelClientOrderId", "cancelClientOrderID");
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("cancelClientOrderId", "cancelClientOrderID")));
+            Map<String, Object> request = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, paramsOmitted);
+            if (!java.util.Objects.equals(cancelClientOrderId, null))
+            {
+                String cancelClientOrderIdRequest = "cancelClientOrderId";
+                if (java.util.Objects.equals(market.get("spot"), true))
+                {
+                    cancelClientOrderIdRequest = "cancelClientOrderID";
+                }
+                request.put(cancelClientOrderIdRequest, cancelClientOrderId);
+            } else
+            {
+                request.put("cancelOrderId", id);
+            }
+            request.put("cancelReplaceMode", this.safeString(paramsOmitted, "cancelReplaceMode", "STOP_ON_FAILURE"));
             Map<String, Object> response = null;
             if (java.util.Objects.equals(market.get("swap"), true))
             {

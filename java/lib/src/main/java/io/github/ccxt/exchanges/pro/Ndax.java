@@ -594,13 +594,21 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
         //     ]
         //
         String symbol = this.safeString(subscription, "symbol");
+        if (java.util.Objects.equals(symbol, null))
+        {
+            return;
+        }
         Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(payload, symbol, (Long) null, "bids", "asks", 6, 8, 2);
         Long limit = this.safeInteger(subscription, "limit");
-        io.github.ccxt.ws.WsOrderBook orderbook = this.orderBook(snapshot, limit);
-        if (!java.util.Objects.equals(symbol, null))
+        // reset the existing orderbook instead of replacing it: a consumer
+        // holds a reference to the old object and would never see updates
+        // after a re-subscription snapshot
+        if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
         {
-            Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
+            Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
         }
+        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
+        orderbook.reset(snapshot);
         String messageHash = this.safeString(subscription, "messageHash");
         client.resolve(orderbook, messageHash);
     }

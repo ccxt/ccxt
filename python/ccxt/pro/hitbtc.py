@@ -1231,8 +1231,24 @@ class hitbtc(ccxt.async_support.hitbtc):
         #
         messageHash = self.safe_string(message, 'method')
         params = self.safe_list(message, 'params', [])
+        # merge the parsed update into the existing balance object instead of
+        # replacing it: a consumer awakened by an earlier message holds a
+        # reference to this.balance, and Client.resolve is a no-op while
+        # nobody is awaiting, so a replaced object would make updates landing
+        # in that window invisible to the consumer forever (same class as
+        # issue #26773); the free/used/total aggregates are rebuilt from the
+        # merged currencies by safeBalance
         balance = self.parse_balance(params)
-        self.balance = self.deep_extend(self.balance, balance)
+        if self.balance is None:
+            self.balance = {}
+        reserved = ['free', 'used', 'total']
+        keys = list(balance.keys())
+        for i in range(0, len(keys)):
+            key = keys[i]
+            if self.in_array(key, reserved):
+                continue
+            self.balance[key] = balance[key]
+        self.balance = self.safe_balance(self.balance)
         client.resolve(self.balance, messageHash)
 
     def handle_notification(self, client: Client, message: dict) -> dict:

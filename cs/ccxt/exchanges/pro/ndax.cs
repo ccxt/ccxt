@@ -562,13 +562,21 @@ public partial class ndax : ccxt.ndax
         //     ]
         //
         string? symbol = this.safeString(subscription, "symbol");
+        if ((symbol == null))
+        {
+            return;
+        }
         ccxt.OrderBook snapshot = this.parseOrderBook(payload, symbol);
         Int64? limit = this.safeInteger(subscription, "limit");
-        ccxt.pro.OrderBook orderbook = this.orderBook(ccxt.BaseExchange.FromOrderBook(snapshot), limit);
-        if ((symbol != null))
+        // reset the existing orderbook instead of replacing it: a consumer
+        // holds a reference to the old object and would never see updates
+        // after a re-subscription snapshot
+        if (!(((symbol != null) && ((IDictionary<string, object>)this.orderbooks).ContainsKey(symbol))))
         {
-            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
+            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
         }
+        ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
+        (orderbook as IOrderBook).reset(ccxt.BaseExchange.FromOrderBook(snapshot));
         string? messageHash = this.safeString(subscription, "messageHash");
         client.resolve(orderbook, messageHash);
     }

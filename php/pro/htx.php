@@ -701,7 +701,7 @@ class htx extends \ccxt\async\htx {
         $bookside->store($price, $amount);
     }
 
-    public function handle_deltas(mixed $bookside, mixed $deltas) {
+    public function handle_deltas(mixed $bookside, array $deltas) {
         for ($i = 0; $i < count($deltas); $i++) {
             $this->handle_delta($bookside, $deltas[$i]);
         }
@@ -774,7 +774,7 @@ class htx extends \ccxt\async\htx {
         //         "ts":1645023376098
         //     }
         //
-        $ch = $this->safe_value($message, 'ch');
+        $ch = $this->safe_string($message, 'ch', '');
         $parts = explode('.', $ch);
         $marketId = $this->safe_string($parts, 1);
         $market = $this->safe_market($marketId);
@@ -1553,7 +1553,7 @@ class htx extends \ccxt\async\htx {
             );
         }
         $avgPrice = $this->safe_string($order, 'trade_avg_price');
-        $rawTrades = $this->safe_value($order, 'trade');
+        $rawTrades = $this->safe_list($order, 'trade');
         $typeSideParts = array();
         $type = null;
         if ($typeSide !== null) {
@@ -2778,8 +2778,9 @@ class htx extends \ccxt\async\htx {
                 $contractCode = $this->safe_string($message, 'contract_code');
                 $market = ($contractCode !== null) ? $this->safe_market($contractCode) : null;
                 if ((gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data)))) {
-                    for ($i = 0; $i < count($data); $i++) {
-                        $parsed = $this->parse_ws_trade($data[$i], $market);
+                    $dataList = $this->safe_list($message, 'data', array());
+                    for ($i = 0; $i < count($dataList); $i++) {
+                        $parsed = $this->parse_ws_trade($dataList[$i], $market);
                         $symbol = $this->safe_string($parsed, 'symbol');
                         if ($symbol !== null) {
                             $cachedTrades->append($parsed);

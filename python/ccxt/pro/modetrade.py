@@ -189,10 +189,11 @@ class modetrade(ccxt.async_support.modetrade):
         #         "count": 3689
         #     }
         #
+        timestamp = self.safe_integer(ticker, 'timestamp')
         return self.safe_ticker({
             'symbol': self.safe_symbol(None, market),
-            'timestamp': None,
-            'datetime': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
             'high': self.safe_string(ticker, 'high'),
             'low': self.safe_string(ticker, 'low'),
             'bid': None,
@@ -234,8 +235,7 @@ class modetrade(ccxt.async_support.modetrade):
         marketId = self.safe_string(data, 'symbol')
         market = self.safe_market(marketId)
         timestamp = self.safe_integer(message, 'ts')
-        data['date'] = timestamp
-        ticker = self.parse_ws_ticker(data, market)
+        ticker = self.parse_ws_ticker(self.extend(data, {'timestamp': timestamp}), market)
         ticker['symbol'] = market['symbol']
         self.tickers[market['symbol']] = ticker
         client.resolve(ticker, topic)
@@ -291,7 +291,7 @@ class modetrade(ccxt.async_support.modetrade):
         for i in range(0, len(data)):
             marketId = self.safe_string(data[i], 'symbol')
             market = self.safe_market(marketId)
-            ticker = self.parse_ws_ticker(self.extend(data[i], {'date': timestamp}), market)
+            ticker = self.parse_ws_ticker(self.extend(data[i], {'timestamp': timestamp}), market)
             self.tickers[market['symbol']] = ticker
             result.append(ticker)
         client.resolve(result, topic)
@@ -1002,7 +1002,7 @@ class modetrade(ccxt.async_support.modetrade):
             return newPositions
         return self.filter_by_symbols_since_limit(self.positions, symbolsNormalized, since, limit, True)
 
-    def set_positions_cache(self, client: Client, type: object, symbols: Strings = None):
+    def set_positions_cache(self, client: Client, symbols: Strings = None):
         fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', False)
         if fetchPositionsSnapshot is True:
             messageHash = 'fetchPositionsSnapshot'

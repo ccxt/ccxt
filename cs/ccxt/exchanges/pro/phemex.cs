@@ -858,8 +858,15 @@ public partial class phemex : ccxt.phemex
             IDictionary<string, object> book = this.safeDict2(message, "book", "orderbook_p", new Dictionary<string, object>() {});
             Dictionary<string, object> snapshot = this.customParseOrderBook(book, symbol, timestamp, "bids", "asks", 0, 1, market);
             snapshot["nonce"] = nonce;
-            ccxt.pro.OrderBook orderbook = this.orderBook(snapshot, depth);
-            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
+            // reset the existing orderbook instead of replacing it: a consumer
+            // holds a reference to the old object and would never see updates
+            // after a re-subscription snapshot
+            if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
+            {
+                ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, depth);
+            }
+            ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
+            (orderbook as IOrderBook).reset(snapshot);
             client.resolve(orderbook, messageHash);
         } else
         {

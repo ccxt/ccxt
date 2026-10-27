@@ -489,7 +489,28 @@ export default class blofin extends blofinRest {
         //     }
         //
         const marketType = 'swap'; // for now
-        this.balance[marketType] = this.parseWsBalance(message);
+        // merge the parsed update into the existing balance object instead of
+        // replacing it: a consumer awakened by an earlier message holds a
+        // reference to this.balance[marketType], and Client.resolve is a no-op
+        // while nobody is awaiting, so a replaced object would make updates
+        // landing in that window invisible to the consumer forever (same class
+        // as issue #26773); the free/used/total aggregates are rebuilt from
+        // the merged currencies by safeBalance
+        if (this.balance === undefined) {
+            this.balance = {};
+        }
+        this.balance[marketType] = this.safeDict(this.balance, marketType, {});
+        const parsed = this.parseWsBalance(message);
+        const reserved = ['free', 'used', 'total'];
+        const keys = Object.keys(parsed);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            if (this.inArray(key, reserved)) {
+                continue;
+            }
+            this.balance[marketType][key] = parsed[key];
+        }
+        this.balance[marketType] = this.safeBalance(this.balance[marketType]);
         const messageHash = marketType + ':balance';
         client.resolve(this.balance[marketType], messageHash);
     }

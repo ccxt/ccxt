@@ -89,7 +89,7 @@ public partial class blofin : Exchange
                 { "fetchOpenInterestHistory", false },
                 { "fetchOpenOrder", null },
                 { "fetchOpenOrders", true },
-                { "fetchOrder", null },
+                { "fetchOrder", true },
                 { "fetchOrderBook", true },
                 { "fetchOrderBooks", false },
                 { "fetchOrders", false },
@@ -526,7 +526,12 @@ public partial class blofin : Exchange
                         { "untilDays", 100000 },
                         { "symbolRequired", false },
                     } },
-                    { "fetchOrder", null },
+                    { "fetchOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", true },
+                    } },
                     { "fetchOpenOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "limit", 100 },
@@ -585,7 +590,9 @@ public partial class blofin : Exchange
                     { "linear", new Dictionary<string, object>() {
                         { "extends", "forDerivatives" },
                     } },
-                    { "inverse", null },
+                    { "inverse", new Dictionary<string, object>() {
+                        { "extends", "forDerivatives" },
+                    } },
                 } },
                 { "future", new Dictionary<string, object>() {
                     { "linear", null },
@@ -1292,6 +1299,12 @@ public partial class blofin : Exchange
             { "bar", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
             { "limit", limitResolved },
         };
+        if ((since != null))
+        {
+            Int64 durationInMilliseconds = (this.parseTimeframe(timeframeVar) * 1000L);
+            request["before"] = mathMax((since - 1), 0);
+            request["after"] = this.sum(since, (durationInMilliseconds * limitResolved));
+        }
         Int64? until = this.safeInteger(query, "until");
         if ((until != null))
         {
@@ -1385,6 +1398,17 @@ public partial class blofin : Exchange
         string? marketId = this.safeString(contract, "instId");
         string? symbol = this.safeSymbol(marketId, market);
         Int64? fundingTime = this.safeInteger(contract, "fundingTime");
+        string? fundingInterval = this.safeString(contract, "fundingInterval");
+        Dictionary<string, object> intervalUnits = new Dictionary<string, object>() {
+            { "hour", "h" },
+            { "minute", "m" },
+        };
+        string? intervalUnit = this.safeString(intervalUnits, this.safeString(contract, "fundingIntervalUnit"));
+        string? intervalString = null;
+        if (((fundingInterval != null)) && ((intervalUnit != null)))
+        {
+            intervalString = (fundingInterval + intervalUnit);
+        }
         // > The current interest is 0.
         return new Dictionary<string, object>() {
             { "info", contract },
@@ -1404,7 +1428,7 @@ public partial class blofin : Exchange
             { "previousFundingRate", null },
             { "previousFundingTimestamp", null },
             { "previousFundingDatetime", null },
-            { "interval", null },
+            { "interval", intervalString },
         };
     }
 
@@ -2098,6 +2122,63 @@ public partial class blofin : Exchange
 
     /**
      * @method
+     * @name blofin#fetchOrder
+     * @description fetches information on an order made by the user
+     * @see https://docs.blofin.com/index.html#get-order-detail
+     * @see https://docs.blofin.com/index.html#get-tpsl-order-detail
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] client order id, used instead of the id argument
+     * @param {boolean} [params.tpsl] True if fetching a tpsl order
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public async override Task<ccxt.Order> FetchOrder(string id, string symbol = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if ((symbol == null))
+        {
+            throw new ArgumentsRequired ((this.id + " fetchOrder() requires a symbol argument")) ;
+        }
+        if ((this.markets == null))
+        {
+            await this.loadMarkets();
+        }
+        Dictionary<string, object> market = this.market(symbol);
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "instId", (market.ContainsKey("id") ? market["id"] : null) },
+        };
+        bool? isTpsl = this.safeBool2(parameters, "tpsl", "TPSL", false);
+        string? clientOrderId = this.safeString(parameters, "clientOrderId");
+        if ((clientOrderId != null))
+        {
+            request["clientOrderId"] = clientOrderId;
+        } else if ((isTpsl == true))
+        {
+            request["tpslId"] = id;
+        } else
+        {
+            request["orderId"] = id;
+        }
+        IDictionary<string, object> query = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"clientOrderId", "tpsl", "TPSL"}));
+        Dictionary<string, object> response = null;
+        if ((isTpsl == true))
+        {
+            response = await this.privateGetTradeOrderTpslDetail(this.extend(request, query));
+        } else
+        {
+            response = await this.privateGetTradeOrderDetail(this.extend(request, query));
+        }
+        IDictionary<string, object> data = this.safeDict(response, "data");
+        if ((data == null))
+        {
+            throw new OrderNotFound (((this.id + " fetchOrder() could not find order ") + id)) ;
+        }
+        return this.parseOrder(data, market);
+    }
+
+    /**
+     * @method
      * @name blofin#fetchOpenOrders
      * @description Fetch orders that are still open
      * @see https://blofin.com/docs#get-active-orders
@@ -2193,6 +2274,10 @@ public partial class blofin : Exchange
         {
             market = this.market(symbol);
             request["instId"] = (market.ContainsKey("id") ? market["id"] : null);
+        }
+        if ((since != null))
+        {
+            request["begin"] = since;
         }
         IList<object> requestUntilparamsUntilVariable = (IList<object>)this.handleUntilOption("end", request, paramsPaginate);
         Dictionary<string, object> requestUntil = (Dictionary<string, object>)requestUntilparamsUntilVariable[0];

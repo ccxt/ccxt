@@ -211,7 +211,6 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         //         "s": "BTCUSDT"
         //     }
         //
-        this.handleBidAsk(client, (Map<String, Object>) (message));
         Map<String, Object> rawTicker = (Map<String, Object>) this.safeDictN(message, new ArrayList<Object>(Arrays.asList("d", "data", "publicAggreBookTicker")), (Object) null);
         String marketId = this.safeString2(message, "s", "symbol");
         Long timestamp = (Long) this.safeInteger2(message, "t", "sendTime");
@@ -220,6 +219,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         Object ticker = null;
         if (java.util.Objects.equals(market.get("spot"), true))
         {
+            this.handleBidAsk(client, (Map<String, Object>) (message)); // the bids-asks channel is spot only
             ticker = this.parseWsTicker(rawTicker, market);
             Helpers.addElementToObject(ticker, "timestamp", timestamp);
             Helpers.addElementToObject(ticker, "datetime", this.iso8601(timestamp));
@@ -520,6 +520,22 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
     public void handleBidAsk(Client client, Map<String, Object> message)
     {
         //
+        // protobuf
+        //
+        //    {
+        //        "channel": "spot@public.aggre.bookTicker.v3.api.pb@100ms@BTCUSDT",
+        //        "symbol": "BTCUSDT",
+        //        "sendTime": "1792779974344",
+        //        "publicAggreBookTicker": {
+        //            "bidPrice": "81577.79",
+        //            "bidQuantity": "0.11985594",
+        //            "askPrice": "81577.8",
+        //            "askQuantity": "0.12200121"
+        //        }
+        //    }
+        //
+        // retired json channel
+        //
         //    {
         //        "c": "spot@public.bookTicker.v3.api@BTCUSDT",
         //        "d": {
@@ -545,19 +561,19 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
 
     public Object parseWsBidAsk(Map<String, Object> ticker, Map<String, Object> market)
     {
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(ticker, "d", (Object) null);
-        String marketId = this.safeString(ticker, "s");
+        Map<String, Object> data = (Map<String, Object>) this.safeDictN(ticker, new ArrayList<Object>(Arrays.asList("d", "data", "publicAggreBookTicker")), (Object) null);
+        String marketId = this.safeString2(ticker, "s", "symbol");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         String symbol = this.safeString(marketResolved, "symbol");
-        Long timestamp = this.safeInteger(ticker, "t");
+        Long timestamp = (Long) this.safeInteger2(ticker, "t", "sendTime");
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
             put( "datetime", Mexc.this.iso8601(timestamp) );
-            put( "ask", Mexc.this.safeNumber(data, "a", (Object) null) );
-            put( "askVolume", Mexc.this.safeNumber(data, "A", (Object) null) );
-            put( "bid", Mexc.this.safeNumber(data, "b", (Object) null) );
-            put( "bidVolume", Mexc.this.safeNumber(data, "B", (Object) null) );
+            put( "ask", Mexc.this.safeNumber2(data, "a", "askPrice", (Object) null) );
+            put( "askVolume", Mexc.this.safeNumber2(data, "A", "askQuantity", (Object) null) );
+            put( "bid", Mexc.this.safeNumber2(data, "b", "bidPrice", (Object) null) );
+            put( "bidVolume", Mexc.this.safeNumber2(data, "B", "bidQuantity", (Object) null) );
             put( "info", ticker );
         }}, marketResolved);
     }

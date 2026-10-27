@@ -4852,7 +4852,7 @@ class hyperliquid extends Exchange {
             $record = $records[$i];
             if ($this->safe_string($record, 'type') === 'vaultDeposit') {
                 $delta = $this->safe_dict($record, 'delta', array());
-                if ($delta['vault'] === '0x' . $vaultAddress) {
+                if ($this->safe_string($delta, 'vault') === '0x' . $vaultAddress) {
                     $deposits[] = $record;
                 }
             }
@@ -4921,7 +4921,7 @@ class hyperliquid extends Exchange {
             $record = $records[$i];
             if ($this->safe_string($record, 'type') === 'vaultWithdraw') {
                 $delta = $this->safe_dict($record, 'delta', array());
-                if ($delta['vault'] === '0x' . $vaultAddress) {
+                if ($this->safe_string($delta, 'vault') === '0x' . $vaultAddress) {
                     $withdrawals[] = $record;
                 }
             }
@@ -4966,7 +4966,7 @@ class hyperliquid extends Exchange {
         return $openInterest;
     }
 
-    public function parse_open_interest(mixed $interest, ?array $market = null): array {
+    public function parse_open_interest(?array $interest, ?array $market = null): array {
         //
         //  {
         //      szDecimals: '2',
@@ -5247,7 +5247,7 @@ class hyperliquid extends Exchange {
         return null;
     }
 
-    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+    public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
         $apiName = $api[0];
         $apiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($apiUrl === null) {

@@ -8,6 +8,81 @@
     },
     "isSandboxModeEnabled": true,
     "methods": {
+        "fetchLedger": [
+            {
+                "description": "ledger direction from signed amount",
+                "method": "fetchLedger",
+                "input": [],
+                "httpResponse": {
+                    "success": true,
+                    "data": [
+                        {
+                            "amount": "-10",
+                            "balance": "4990.000006",
+                            "pending_balance": "0",
+                            "event_type": "subaccount_transfer",
+                            "created_at": 1789201431086
+                        },
+                        {
+                            "amount": "5000",
+                            "balance": "5000",
+                            "pending_balance": "0",
+                            "event_type": "deposit",
+                            "created_at": 1789199771373
+                        }
+                    ],
+                    "has_more": false
+                },
+                "parsedResponse": [
+                    {
+                        "id": null,
+                        "timestamp": 1789199771373,
+                        "datetime": "2026-09-12T07:56:11.373Z",
+                        "direction": "in",
+                        "account": null,
+                        "referenceId": null,
+                        "referenceAccount": null,
+                        "type": "transaction",
+                        "currency": "USDC",
+                        "amount": 5000,
+                        "before": 0,
+                        "after": 5000,
+                        "status": null,
+                        "fee": null,
+                        "info": {
+                            "amount": "5000",
+                            "balance": "5000",
+                            "pending_balance": "0",
+                            "event_type": "deposit",
+                            "created_at": 1789199771373
+                        }
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1789201431086,
+                        "datetime": "2026-09-12T08:23:51.086Z",
+                        "direction": "out",
+                        "account": null,
+                        "referenceId": null,
+                        "referenceAccount": null,
+                        "type": "transfer",
+                        "currency": "USDC",
+                        "amount": 10,
+                        "before": 5000.000006,
+                        "after": 4990.000006,
+                        "status": null,
+                        "fee": null,
+                        "info": {
+                            "amount": "-10",
+                            "balance": "4990.000006",
+                            "pending_balance": "0",
+                            "event_type": "subaccount_transfer",
+                            "created_at": 1789201431086
+                        }
+                    }
+                ]
+            }
+        ],
         "fetchFundingHistory": [
             {
                 "description": "funding history amount is the payout",

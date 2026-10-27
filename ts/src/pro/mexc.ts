@@ -179,7 +179,6 @@ export default class mexc extends mexcRest {
         //         "s": "BTCUSDT"
         //     }
         //
-        this.handleBidAsk (client, message);
         const rawTicker = this.safeDictN (message, [ 'd', 'data', 'publicAggreBookTicker' ]);
         const marketId = this.safeString2 (message, 's', 'symbol');
         const timestamp = this.safeInteger2 (message, 't', 'sendTime');
@@ -187,6 +186,7 @@ export default class mexc extends mexcRest {
         const symbol = market['symbol'];
         let ticker: Ticker;
         if (market['spot'] === true) {
+            this.handleBidAsk (client, message); // the bids-asks channel is spot only
             ticker = this.parseWsTicker (rawTicker as Dict, market);
             ticker['timestamp'] = timestamp;
             ticker['datetime'] = this.iso8601 (timestamp);
@@ -474,6 +474,22 @@ export default class mexc extends mexcRest {
 
     handleBidAsk (client: Client, message: Dict) {
         //
+        // protobuf
+        //
+        //    {
+        //        "channel": "spot@public.aggre.bookTicker.v3.api.pb@100ms@BTCUSDT",
+        //        "symbol": "BTCUSDT",
+        //        "sendTime": "1792779974344",
+        //        "publicAggreBookTicker": {
+        //            "bidPrice": "81577.79",
+        //            "bidQuantity": "0.11985594",
+        //            "askPrice": "81577.8",
+        //            "askQuantity": "0.12200121"
+        //        }
+        //    }
+        //
+        // retired json channel
+        //
         //    {
         //        "c": "spot@public.bookTicker.v3.api@BTCUSDT",
         //        "d": {
@@ -497,19 +513,19 @@ export default class mexc extends mexcRest {
     }
 
     parseWsBidAsk (ticker: Dict, market: Market = undefined): Ticker {
-        const data = this.safeDict (ticker, 'd');
-        const marketId = this.safeString (ticker, 's');
+        const data = this.safeDictN (ticker, [ 'd', 'data', 'publicAggreBookTicker' ]);
+        const marketId = this.safeString2 (ticker, 's', 'symbol');
         const marketResolved: Market = this.safeMarket (marketId, market);
         const symbol = this.safeString (marketResolved, 'symbol');
-        const timestamp = this.safeInteger (ticker, 't');
+        const timestamp = this.safeInteger2 (ticker, 't', 'sendTime');
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'ask': this.safeNumber (data, 'a'),
-            'askVolume': this.safeNumber (data, 'A'),
-            'bid': this.safeNumber (data, 'b'),
-            'bidVolume': this.safeNumber (data, 'B'),
+            'ask': this.safeNumber2 (data, 'a', 'askPrice'),
+            'askVolume': this.safeNumber2 (data, 'A', 'askQuantity'),
+            'bid': this.safeNumber2 (data, 'b', 'bidPrice'),
+            'bidVolume': this.safeNumber2 (data, 'B', 'bidQuantity'),
             'info': ticker,
         }, marketResolved);
     }

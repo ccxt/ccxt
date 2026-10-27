@@ -182,31 +182,35 @@ class p2b extends Exchange {
                 'trading' => array(
                     'tierBased' => true,
                     'percentage' => true,
-                    'taker' => array(
-                        array( $this->parse_number('0'), $this->parse_number('0.2') ),
-                        array( $this->parse_number('1'), $this->parse_number('0.19') ),
-                        array( $this->parse_number('5'), $this->parse_number('0.18') ),
-                        array( $this->parse_number('10'), $this->parse_number('0.17') ),
-                        array( $this->parse_number('25'), $this->parse_number('0.16') ),
-                        array( $this->parse_number('75'), $this->parse_number('0.15') ),
-                        array( $this->parse_number('100'), $this->parse_number('0.14') ),
-                        array( $this->parse_number('150'), $this->parse_number('0.13') ),
-                        array( $this->parse_number('300'), $this->parse_number('0.12') ),
-                        array( $this->parse_number('450'), $this->parse_number('0.11') ),
-                        array( $this->parse_number('500'), $this->parse_number('0.1') ),
-                    ),
-                    'maker' => array(
-                        array( $this->parse_number('0'), $this->parse_number('0.2') ),
-                        array( $this->parse_number('1'), $this->parse_number('0.18') ),
-                        array( $this->parse_number('5'), $this->parse_number('0.16') ),
-                        array( $this->parse_number('10'), $this->parse_number('0.14') ),
-                        array( $this->parse_number('25'), $this->parse_number('0.12') ),
-                        array( $this->parse_number('75'), $this->parse_number('0.1') ),
-                        array( $this->parse_number('100'), $this->parse_number('0.08') ),
-                        array( $this->parse_number('150'), $this->parse_number('0.06') ),
-                        array( $this->parse_number('300'), $this->parse_number('0.04') ),
-                        array( $this->parse_number('450'), $this->parse_number('0.02') ),
-                        array( $this->parse_number('500'), $this->parse_number('0.01') ),
+                    'taker' => $this->parse_number('0.002'),
+                    'maker' => $this->parse_number('0.002'),
+                    'tiers' => array(
+                        'taker' => array(
+                            array( $this->parse_number('0'), $this->parse_number('0.002') ),
+                            array( $this->parse_number('1'), $this->parse_number('0.0019') ),
+                            array( $this->parse_number('5'), $this->parse_number('0.0018') ),
+                            array( $this->parse_number('10'), $this->parse_number('0.0017') ),
+                            array( $this->parse_number('25'), $this->parse_number('0.0016') ),
+                            array( $this->parse_number('75'), $this->parse_number('0.0015') ),
+                            array( $this->parse_number('100'), $this->parse_number('0.0014') ),
+                            array( $this->parse_number('150'), $this->parse_number('0.0013') ),
+                            array( $this->parse_number('300'), $this->parse_number('0.0012') ),
+                            array( $this->parse_number('450'), $this->parse_number('0.0011') ),
+                            array( $this->parse_number('500'), $this->parse_number('0.001') ),
+                        ),
+                        'maker' => array(
+                            array( $this->parse_number('0'), $this->parse_number('0.002') ),
+                            array( $this->parse_number('1'), $this->parse_number('0.0018') ),
+                            array( $this->parse_number('5'), $this->parse_number('0.0016') ),
+                            array( $this->parse_number('10'), $this->parse_number('0.0014') ),
+                            array( $this->parse_number('25'), $this->parse_number('0.0012') ),
+                            array( $this->parse_number('75'), $this->parse_number('0.001') ),
+                            array( $this->parse_number('100'), $this->parse_number('0.0008') ),
+                            array( $this->parse_number('150'), $this->parse_number('0.0006') ),
+                            array( $this->parse_number('300'), $this->parse_number('0.0004') ),
+                            array( $this->parse_number('450'), $this->parse_number('0.0002') ),
+                            array( $this->parse_number('500'), $this->parse_number('0.0001') ),
+                        ),
                     ),
                 ),
             ),
@@ -1365,7 +1369,7 @@ class p2b extends Exchange {
         ), $marketResolved);
     }
 
-    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+    public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
         $apiName = $api[0];
         $baseApiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($baseApiUrl === null) {

@@ -351,6 +351,16 @@
         ],
         "fetchMyTrades": [
             {
+                "description": "swap trades with since send begin",
+                "method": "fetchMyTrades",
+                "url": "https://openapi.blofin.com/api/v1/trade/fills-history?instId=LTC-USDT&begin=1760522400000&limit=5",
+                "input": [
+                    "LTC/USDT:USDT",
+                    1760522400000,
+                    5
+                ]
+            },
+            {
                 "description": "fetch my spot trades",
                 "method": "fetchMyTrades",
                 "url": "https://openapi.blofin.com/api/v1/spot/trade/fills-history?instType=SPOT",
@@ -504,6 +514,17 @@
             }
         ],
         "fetchOHLCV": [
+            {
+                "description": "fetchOHLCV with since and limit sends the before/after window",
+                "method": "fetchOHLCV",
+                "url": "https://openapi.blofin.com/api/v1/market/candles?instId=BTC-USDT&bar=1H&limit=5&before=1760522399999&after=1760540400000",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1h",
+                    1760522400000,
+                    5
+                ]
+            },
             {
                 "description": "fetch ohlcv",
                 "method": "fetchOHLCV",

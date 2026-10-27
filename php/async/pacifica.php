@@ -1293,9 +1293,6 @@ class pacifica extends Exchange {
         if ($since === null) {
             throw new ArgumentsRequired($this->id . ' fetchOHLCV() requires a "since" argument');
         }
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOHLCV() requires a "symbol" argument');
-        }
         $defaultMaxLimit = 3950; // 4000 by docs, but in fact >~3960 returns error
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -3207,7 +3204,7 @@ class pacifica extends Exchange {
         return $oi;
     }
 
-    public function parse_open_interest(mixed $interest, ?array $market = null): array {
+    public function parse_open_interest(?array $interest, ?array $market = null): array {
         //
         //     {
         //       "funding": "0.00010529",
@@ -3311,25 +3308,34 @@ class pacifica extends Exchange {
         //
         $timestamp = $this->safe_integer($item, 'created_at');
         $type = $this->safe_string($item, 'event_type');
-        $amount = $this->safe_string($item, 'amount');
+        $change = $this->safe_string($item, 'amount');
         $balance = $this->safe_string($item, 'balance');
+        $currencyResolved = $this->safe_currency('USDC', $currency);
+        $direction = null;
+        $amount = $change;
+        if (Precise::string_lt($amount, '0')) {
+            $direction = 'out';
+            $amount = Precise::string_abs($amount);
+        } else {
+            $direction = 'in';
+        }
         return $this->safe_ledger_entry(array(
             'info' => $item,
             'id' => null,
-            'direction' => null,
+            'direction' => $direction,
             'account' => null,
             'referenceAccount' => null,
             'referenceId' => null,
             'type' => $this->parse_ledger_entry_type($type),
-            'currency' => null,
+            'currency' => $currencyResolved['code'],
             'amount' => $this->parse_number($amount),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'before' => null,
+            'before' => $this->parse_number(Precise::string_sub($balance, $change)),
             'after' => $this->parse_number($balance),
             'status' => null,
             'fee' => null,
-        ), $currency);
+        ), $currencyResolved);
     }
 
     public function parse_ledger_entry_type(?string $type): ?string {
@@ -3888,7 +3894,7 @@ class pacifica extends Exchange {
         return null;
     }
 
-    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+    public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
         $requestBody = null;
         $isTestnet = $this->isSandboxModeEnabled;
         $urlKey = 'api';

@@ -2568,13 +2568,13 @@ class krakenfutures extends Exchange {
 
     private function do_fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
-         * fetch all trades made by the user
+         * fetch all $trades made by the user
          *
          * @see https://docs.kraken.com/api/docs/futures-api/trading/get-$fills
          *
-         * @param {string} $symbol unified $market $symbol
-         * @param {int} [$since] *not used by the  api* the earliest time in ms to fetch trades for
-         * @param {int} [$limit] the maximum number of trades structures to retrieve
+         * @param {string} $symbol unified market $symbol
+         * @param {int} [$since] *not used by the  api* the earliest time in ms to fetch $trades for
+         * @param {int} [$limit] the maximum number of $trades structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] the latest time in ms to fetch entries for
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
@@ -2582,10 +2582,7 @@ class krakenfutures extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $market = null;
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-        }
+        $symbolResolved = ($symbol !== null) ? $this->symbol($symbol) : $symbol;
         // todo: lastFillTime: this.iso8601(end)
         $response = Async\await($this->privateGetFills($params));
         //
@@ -2609,7 +2606,13 @@ class krakenfutures extends Exchange {
         //    }
         //
         $fills = $this->safe_list($response, 'fills', array());
-        return $this->parse_trades($fills, $market, $since, $limit);
+        // the endpoint returns the fills of every contract, each row resolves its own market
+        $trades = $this->parse_trades($fills);
+        // a fill of a contract that is no longer listed in /instruments has no unified symbol,
+        // so safeMarket keeps the raw id (eg 'PF_XRPUSD') in trade['symbol']: it is filtered out
+        // whenever a symbol is requested and returned as-is when symbol is undefined, on purpose,
+        // because it is still the user's own fill and dropping it would hide real trades
+        return $this->filter_by_symbol_since_limit($trades, $symbolResolved, $since, $limit);
     }
 
     public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -3959,7 +3962,7 @@ class krakenfutures extends Exchange {
         throw new ExchangeError($feedback); // unknown message
     }
 
-    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+    public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
         $apiName = $api[0];
         $apiVersions = $this->safe_dict($this->options['versions'], $apiName, array());
         $methodVersions = $this->safe_dict($apiVersions, $method, array());

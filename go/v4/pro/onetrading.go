@@ -166,7 +166,27 @@ func (this *Onetrading) HandleBalanceSnapshot(client any, message map[string]any
 	//         ]
 	//     }
 	//
-	this.Balance = this.ParseBalance(message)
+	// merge the parsed update into the existing balance object instead of
+	// replacing it: a consumer awakened by an earlier message holds a
+	// reference to this.balance, and ccxt.Client.resolve is a no-op while
+	// nobody is awaiting, so a replaced object would make updates landing
+	// in that window invisible to the consumer forever (same class as
+	// issue #26773); the free/used/total aggregates are rebuilt from the
+	// merged currencies by safeBalance
+	var balance any = this.ParseBalance(message)
+	if ccxt.IsEqual(this.Balance, nil) {
+		this.Balance = map[string]any{}
+	}
+	var reserved []any = []any{"free", "used", "total"}
+	var keys []string = ccxt.ObjectKeys(balance)
+	for i := 0; i < len(keys); i++ {
+		var key string = keys[i]
+		if this.InArray(key, reserved) {
+			continue
+		}
+		ccxt.AddElementToObject(this.Balance, key, ccxt.GetValue(balance, key))
+	}
+	this.Balance = this.SafeBalance(this.Balance)
 	var messageHash string = "balance"
 	client.(ccxt.ClientInterface).Resolve(this.Balance, messageHash)
 }

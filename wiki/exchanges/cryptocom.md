@@ -37,7 +37,7 @@
 * [fetchFundingRateHistory](#fetchfundingratehistory)
 * [fetchPosition](#fetchposition)
 * [fetchPositions](#fetchpositions)
-* [closePositions](#closepositions)
+* [closePosition](#closeposition)
 * [fetchTradingFee](#fetchtradingfee)
 * [fetchTradingFees](#fetchtradingfees)
 * [watchOrderBook](#watchorderbook)
@@ -797,9 +797,9 @@ cryptocom.fetchPositions (symbols, params?)
 ```
 
 
-<a name="closePositions" id="closepositions"></a>
+<a name="closePosition" id="closeposition"></a>
 
-### closePositions{docsify-ignore}
+### closePosition{docsify-ignore}
 closes open positions for a market
 
 **Kind**: instance method of [<code>cryptocom</code>](#cryptocom)  
@@ -817,7 +817,7 @@ closes open positions for a market
 
 
 ```javascript
-cryptocom.closePositions (symbol, side?, params?)
+cryptocom.closePosition (symbol, side?, params?)
 ```
 
 

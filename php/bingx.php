@@ -135,6 +135,8 @@ class bingx extends Exchange {
                     'copyTrading' => 'https://open-api.{hostname}/openApi',
                     'cswap' => 'https://open-api.{hostname}/openApi',
                     'api' => 'https://open-api.{hostname}/openApi',
+                    'agent' => 'https://open-api.{hostname}/openApi',
+                    'wealth' => 'https://open-api.{hostname}/openApi',
                 ),
                 'test' => array(
                     'fund' => 'https://open-api-vst.{hostname}/openApi',
@@ -148,6 +150,8 @@ class bingx extends Exchange {
                     'copyTrading' => 'https://open-api-vst.{hostname}/openApi',
                     'cswap' => 'https://open-api-vst.{hostname}/openApi',
                     'api' => 'https://open-api-vst.{hostname}/openApi',
+                    'agent' => 'https://open-api-vst.{hostname}/openApi',
+                    'wealth' => 'https://open-api-vst.{hostname}/openApi',
                 ),
                 'www' => 'https://bingx.com/',
                 'doc' => 'https://bingx-api.github.io/docs/',
@@ -2079,7 +2083,7 @@ class bingx extends Exchange {
         return $this->parse_open_interest($result, $market);
     }
 
-    public function parse_open_interest(mixed $interest, ?array $market = null): array {
+    public function parse_open_interest(?array $interest, ?array $market = null): array {
         //
         // linear swap
         //
@@ -2482,6 +2486,13 @@ class bingx extends Exchange {
         $close = $this->safe_string($ticker, 'lastPrice');
         $quoteVolume = $this->safe_string($ticker, 'quoteVolume');
         $baseVolume = $this->safe_string($ticker, 'volume');
+        if ($marketResolved['inverse'] === true) {
+            // Coin-M volume is in contracts; quoteVolume is in the base currency.
+            // read the resolved market: parseTickers and fetchTickers reach here with no market argument
+            $contractSize = $this->safe_string($marketResolved, 'contractSize');
+            $baseVolume = $quoteVolume;
+            $quoteVolume = Precise::string_mul($this->safe_string($ticker, 'volume'), $contractSize);
+        }
         $percentage = $this->safe_string($ticker, 'priceChangePercent');
         if ($percentage !== null) {
             $percentage = str_replace('%', '', $percentage);
@@ -2739,7 +2750,7 @@ class bingx extends Exchange {
                 $account = $this->account();
                 $account['free'] = $this->safe_string_2($balance, 'availableMargin', 'availableBalance');
                 $account['used'] = $this->safe_string($balance, 'usedMargin');
-                $account['total'] = $this->safe_string($balance, 'maxWithdrawAmount');
+                $account['total'] = $this->safe_string_2($balance, 'balance', 'maxWithdrawAmount');
                 if ($code !== null) {
                     $result[$code] = $account;
                 }
@@ -3109,7 +3120,13 @@ class bingx extends Exchange {
                 $collateralString = ($unrealizedPnlString !== null) ? Precise::string_add($initialMarginString, $unrealizedPnlString) : $initialMarginString;
             }
         }
-        $timestamp = $this->safe_integer($position, 'openTime');
+        $timestamp = $this->safe_integer_2($position, 'openTime', 'createTime');
+        $positionSide = $this->safe_string($position, 'positionSide');
+        $hedged = null;
+        if ($positionSide !== null) {
+            $hedged = ($positionSide !== 'BOTH');
+        }
+        $percentageString = $this->safe_string($position, 'pnlRatio');
         return $this->safe_position(array(
             'info' => $position,
             'id' => $this->safe_string($position, 'positionId'),
@@ -3120,13 +3137,13 @@ class bingx extends Exchange {
             'entryPrice' => $this->safe_number_2($position, 'avgPrice', 'entryPrice'),
             'unrealizedPnl' => $this->parse_number($unrealizedPnlString),
             'realizedPnl' => $this->safe_number($position, 'realisedProfit'),
-            'percentage' => null,
+            'percentage' => $this->parse_number(Precise::string_mul($percentageString, '100')),
             'contracts' => $this->safe_number($position, 'positionAmt'),
             'contractSize' => null,
             'markPrice' => $this->safe_number($position, 'markPrice'),
             'lastPrice' => null,
             'side' => $this->safe_string_lower($position, 'positionSide'),
-            'hedged' => null,
+            'hedged' => $hedged,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastUpdateTimestamp' => $this->safe_integer($position, 'updateTime'),
@@ -3221,7 +3238,7 @@ class bingx extends Exchange {
         $isTriggerOrder = $triggerPrice !== null;
         $isStopLossPriceOrder = $stopLossPrice !== null;
         $isTakeProfitPriceOrder = $takeProfitPrice !== null;
-        $exchangeClientOrderId = 'clientOrderID';
+        $exchangeClientOrderId = 'clientOrderId';
         if ($isSpot) {
             $exchangeClientOrderId = 'newClientOrderId';
         }
@@ -4196,14 +4213,18 @@ class bingx extends Exchange {
                 'symbol' => $market['id'],
             );
             $clientOrderId = $this->safe_string_2($paramsOmitted, 'clientOrderId', 'clientOrderID');
-            $paramsOmitted2 = $this->omit($paramsOmitted, array( 'clientOrderId' ));
+            $paramsOmitted2 = $this->omit($paramsOmitted, array( 'clientOrderId', 'clientOrderID' ));
+            list($type, $paramsMarketType) = $this->handle_market_type_and_params('cancelOrder', $market, $paramsOmitted2);
+            list($subType, $paramsSubType) = $this->handle_sub_type_and_params('cancelOrder', $market, $paramsMarketType);
             if ($clientOrderId !== null) {
-                $request['clientOrderID'] = $clientOrderId;
+                $clientOrderIdRequest = 'clientOrderId';
+                if ($type === 'spot') {
+                    $clientOrderIdRequest = 'clientOrderID';
+                }
+                $request[$clientOrderIdRequest] = $clientOrderId;
             } else {
                 $request['orderId'] = $id;
             }
-            list($type, $paramsMarketType) = $this->handle_market_type_and_params('cancelOrder', $market, $paramsOmitted2);
-            list($subType, $paramsSubType) = $this->handle_sub_type_and_params('cancelOrder', $market, $paramsMarketType);
             if ($type === 'spot') {
                 $response = $this->spotV1PrivatePostTradeCancel($this->extend($request, $paramsSubType));
             } else {
@@ -4684,10 +4705,20 @@ class bingx extends Exchange {
             $market = $this->market($symbol);
             $request = array(
                 'symbol' => $market['id'],
-                'orderId' => $id,
             );
-            list($type, $paramsMarketType) = $this->handle_market_type_and_params('fetchOrder', $market, $paramsOmitted);
+            $clientOrderId = $this->safe_string_2($paramsOmitted, 'clientOrderId', 'clientOrderID');
+            $paramsOmitted2 = $this->omit($paramsOmitted, array( 'clientOrderId', 'clientOrderID' ));
+            list($type, $paramsMarketType) = $this->handle_market_type_and_params('fetchOrder', $market, $paramsOmitted2);
             list($subType, $paramsSubType) = $this->handle_sub_type_and_params('fetchOrder', $market, $paramsMarketType);
+            if ($clientOrderId !== null) {
+                $clientOrderIdRequest = 'clientOrderId';
+                if ($type === 'spot') {
+                    $clientOrderIdRequest = 'clientOrderID';
+                }
+                $request[$clientOrderIdRequest] = $clientOrderId;
+            } else {
+                $request['orderId'] = $id;
+            }
             if ($type === 'spot') {
                 $response = $this->spotV1PrivateGetTradeQuery($this->extend($request, $paramsSubType));
                 //
@@ -4827,8 +4858,12 @@ class bingx extends Exchange {
             $request['symbol'] = $market['id'];
         }
         list($type, $paramsMarketType) = $this->handle_market_type_and_params('fetchOrders', $market, $params);
+        list($subType, $paramsSubType) = $this->handle_sub_type_and_params('fetchOrders', $market, $paramsMarketType);
         if ($type !== 'swap') {
             throw new NotSupported($this->id . ' fetchOrders() is only supported for swap markets');
+        }
+        if (($subType === 'inverse') || (($market !== null) && ($market['inverse'] === true))) {
+            throw new NotSupported($this->id . ' fetchOrders() is not supported for inverse swap markets');
         }
         if ($limit !== null) {
             $request['limit'] = $limit;
@@ -4836,7 +4871,7 @@ class bingx extends Exchange {
         if ($since !== null) {
             $request['startTime'] = $since;
         }
-        list($requestUntil, $paramsUntil) = $this->handle_until_option('endTime', $request, $paramsMarketType);
+        list($requestUntil, $paramsUntil) = $this->handle_until_option('endTime', $request, $paramsSubType);
         $response = $this->swapV1PrivateGetTradeFullOrder($this->extend($requestUntil, $paramsUntil));
         //
         //     {
@@ -6172,6 +6207,9 @@ class bingx extends Exchange {
             if ($orderId === null) {
                 throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires an orderId argument for inverse swap trades');
             }
+            if ($limit !== null) {
+                $request['pageSize'] = min($limit, 1000); // api maximum 1000
+            }
             $response = $this->cswapV1PrivateGetTradeAllFillOrders($this->extend($request, $paramsSubType));
             $fills = $this->safe_list($response, 'data', array());
             //
@@ -6287,7 +6325,7 @@ class bingx extends Exchange {
         return $this->parse_trades($fills, $market, $since, $limit, $paramsTrades);
     }
 
-    public function parse_deposit_withdraw_fee(mixed $fee, ?array $currency = null): mixed {
+    public function parse_deposit_withdraw_fee(?array $fee, ?array $currency = null): mixed {
         //
         // currencie structure
         //
@@ -6811,6 +6849,7 @@ class bingx extends Exchange {
          *
          * EXCHANGE SPECIFIC PARAMETERS
          * @param {string} [$params->cancelClientOrderID] the user-defined $id of the order to be canceled, 1-40 characters, different orders cannot use the same clientOrderID, only supports a query range of 2 hours
+         * @param {string} [$params->cancelClientOrderId] the client order $id of the order to cancel
          * @param {string} [$params->cancelRestrictions] cancel orders with specified status, NEW => New order, PENDING => Pending order, PARTIALLY_FILLED => Partially filled
          * @param {string} [$params->cancelReplaceMode] STOP_ON_FAILURE - if the cancel order fails, it will not continue to place a new order, ALLOW_FAILURE - regardless of whether the cancel order succeeds or fails, it will continue to place a new order
          * @param {float} [$params->quoteOrderQty] order $amount
@@ -6828,9 +6867,19 @@ class bingx extends Exchange {
         if ($market['inverse'] === true) {
             throw new NotSupported($this->id . ' editOrder() is not supported for inverse swap markets');
         }
-        $request = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
-        $request['cancelOrderId'] = $id;
-        $request['cancelReplaceMode'] = $this->safe_string($params, 'cancelReplaceMode', 'STOP_ON_FAILURE');
+        $cancelClientOrderId = $this->safe_string_2($params, 'cancelClientOrderId', 'cancelClientOrderID');
+        $paramsOmitted = $this->omit($params, array( 'cancelClientOrderId', 'cancelClientOrderID' ));
+        $request = $this->create_order_request($symbol, $type, $side, $amount, $price, $paramsOmitted);
+        if ($cancelClientOrderId !== null) {
+            $cancelClientOrderIdRequest = 'cancelClientOrderId';
+            if ($market['spot'] === true) {
+                $cancelClientOrderIdRequest = 'cancelClientOrderID';
+            }
+            $request[$cancelClientOrderIdRequest] = $cancelClientOrderId;
+        } else {
+            $request['cancelOrderId'] = $id;
+        }
+        $request['cancelReplaceMode'] = $this->safe_string($paramsOmitted, 'cancelReplaceMode', 'STOP_ON_FAILURE');
         if ($market['swap'] === true) {
             $response = $this->swapV1PrivatePostTradeCancelReplace($request);
             //
@@ -7200,7 +7249,7 @@ class bingx extends Exchange {
         return $tiers;
     }
 
-    public function sign(string $path, array $section = array('public'), $method = 'GET', $params = array()): array {
+    public function sign(string $path, array $section = array('public'), string $method = 'GET', $params = array()): array {
         $type = $section[0];
         $version = $section[1];
         $access = $section[2];

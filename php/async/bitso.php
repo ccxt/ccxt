@@ -2055,7 +2055,7 @@ class bitso extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+    public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
         $requestHeaders = null;
         $requestBody = null;
         $endpoint = '/' . $this->version . '/' . $this->implode_params($path, $params);

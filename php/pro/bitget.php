@@ -1038,6 +1038,11 @@ class bitget extends \ccxt\async\bitget {
                 $this->orderbooks[$symbol] = $ob;
             }
             $storedOrderBook = $this->orderbooks[$symbol];
+            $isSnapshot = $this->safe_string($message, 'action') === 'snapshot'; // snapshot does not have a checksum
+            if ($isSnapshot) {
+                // a snapshot replaces the book, e.g. after a reconnect, levels absent from it must not survive
+                $storedOrderBook->reset(array( 'symbol' => $symbol ));
+            }
             $asks = $this->safe_list_2($rawOrderBook, 'asks', 'a', array());
             $bids = $this->safe_list_2($rawOrderBook, 'bids', 'b', array());
             $this->handle_deltas($storedOrderBook['asks'], $asks);
@@ -1045,7 +1050,6 @@ class bitget extends \ccxt\async\bitget {
             $storedOrderBook['timestamp'] = $timestamp;
             $storedOrderBook['datetime'] = $this->iso8601($timestamp);
             $checksum = $this->handle_option('watchOrderBook', 'checksum', true);
-            $isSnapshot = $this->safe_string($message, 'action') === 'snapshot'; // snapshot does not have a checksum
             // UTA order books do not provide a crc32 checksum (they rely on seq/pseq for integrity),
             // so only validate the checksum when the exchange actually sends one
             $responseChecksum = $this->safe_integer($rawOrderBook, 'checksum');
@@ -1073,7 +1077,14 @@ class bitget extends \ccxt\async\bitget {
                 }
             }
         } else {
-            $orderbook = $this->order_book(array());
+            // reset the existing orderbook instead of replacing it: a consumer
+            // holds a reference to the old object and would never see updates
+            // after this snapshot (every frame of the non-incremental channels
+            // is a full snapshot)
+            if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
+                $this->orderbooks[$symbol] = $this->order_book(array());
+            }
+            $orderbook = $this->orderbooks[$symbol];
             $bidsKey = 'bids';
             $asksKey = 'asks';
             // bitget UTA has `a` and `b` instead of `asks` and `bids`
@@ -1089,7 +1100,6 @@ class bitget extends \ccxt\async\bitget {
             }
             $parsedOrderbook = $this->parse_order_book($rawOrderBook, $symbol, $timestamp, $bidsKey, $asksKey);
             $orderbook->reset($parsedOrderbook);
-            $this->orderbooks[$symbol] = $orderbook;
         }
         $client->resolve($this->orderbooks[$symbol], $messageHash);
     }
@@ -1112,7 +1122,7 @@ class bitget extends \ccxt\async\bitget {
         $bookside->storeArray($bidAsk);
     }
 
-    public function handle_deltas(mixed $bookside, mixed $deltas) {
+    public function handle_deltas(mixed $bookside, array $deltas) {
         for ($i = 0; $i < count($deltas); $i++) {
             $this->handle_delta($bookside, $deltas[$i]);
         }

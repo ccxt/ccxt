@@ -79,7 +79,7 @@ class cex(ccxt.async_support.cex):
         subscribe = {
             'e': 'get-balance',
             'data': {},
-            'oid': self.request_id(),
+            'oid': messageHash,
         }
         request = self.deep_extend(subscribe, params)
         return await self.watch(url, messageHash, request, messageHash, request)
@@ -105,12 +105,17 @@ class cex(ccxt.async_support.cex):
         #         "ok": "ok"
         #     }
         #
+        # merge updates into the existing balance object instead of building a
+        # fresh one: a consumer awakened by an earlier message holds a reference
+        # to this.balance, and Client.resolve is a no-op while nobody is
+        # awaiting, so a replaced object would make responses landing in that
+        # window invisible to the consumer forever (same class as issue #26773)
         data = self.safe_dict(message, 'data', {})
         freeBalance = self.safe_dict(data, 'balance', {})
         usedBalance = self.safe_dict(data, 'obalance', {})
-        result = {
-            'info': data,
-        }
+        if self.balance is None:
+            self.balance = {}
+        self.balance['info'] = data
         currencyIds = list(freeBalance.keys())
         for i in range(0, len(currencyIds)):
             currencyId = currencyIds[i]
@@ -119,8 +124,8 @@ class cex(ccxt.async_support.cex):
             account['used'] = self.safe_string(usedBalance, currencyId)
             code = self.safe_currency_code(currencyId)
             if code is not None:
-                result[code] = account
-        self.balance = self.safe_balance(result)
+                self.balance[code] = account
+        self.balance = self.safe_balance(self.balance)
         messageHash = self.safe_string(message, 'oid')
         client.resolve(self.balance, messageHash)
 
@@ -968,14 +973,18 @@ class cex(ccxt.async_support.cex):
         messageHash = 'orderbook:' + symbol
         timestamp = self.safe_integer_2(data, 'timestamp_ms', 'timestamp')
         incrementalId = self.safe_integer(data, 'id')
-        orderbook = self.order_book({})
+        # reset the existing orderbook instead of replacing it: a consumer
+        # holds a reference to the old object and would never see updates
+        # after a re-subscription snapshot
+        if not (symbol in self.orderbooks):
+            self.orderbooks[symbol] = self.order_book({})
+        orderbook = self.orderbooks[symbol]
         snapshot = self.parse_order_book(data, symbol, timestamp, 'bids', 'asks')
         snapshot['nonce'] = incrementalId
         orderbook.reset(snapshot)
         self.options['orderbook'][symbol] = {
             'incrementalId': incrementalId,
         }
-        self.orderbooks[symbol] = orderbook
         client.resolve(orderbook, messageHash)
 
     def pair_to_symbol(self, pair: object) -> Str:
@@ -1100,14 +1109,20 @@ class cex(ccxt.async_support.cex):
         market = self.safe_market(symbol)
         messageHash = 'ohlcv:' + symbol
         data = self.safe_list(message, 'data', [])
-        limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
-        stored = ArrayCacheByTimestamp(limit)
-        sorted = self.sort_by(data, 0)
-        for i in range(0, len(sorted)):
-            stored.append(self.parse_ohlcv(sorted[i], market))
         if not (symbol in self.ohlcvs):
             self.ohlcvs[symbol] = {}
-        self.ohlcvs[symbol]['unknown'] = stored
+        # fill the existing cache when there is one: replacing it would orphan
+        # consumers holding a reference to the old cache (they would never see
+        # candles appended after a re-subscription)
+        stored = self.safe_value(self.ohlcvs[symbol], 'unknown')
+        if stored is None:
+            limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
+            stored = ArrayCacheByTimestamp(limit)
+            self.ohlcvs[symbol]['unknown'] = stored
+        sorted = self.sort_by(data, 0)
+        for i in range(0, len(sorted)):
+            parsed = self.parse_ohlcv(sorted[i], market)
+            stored.append(parsed)
         client.resolve(stored, messageHash)
 
     def handle_ohlcv24(self, client: Client, message: dict) -> dict:

@@ -894,6 +894,15 @@ public partial class poloniex : Exchange
         IList<object> requestUntilparamsUntilVariable = (IList<object>)this.handleUntilOption(keyEnd, request, paramsPaginate);
         Dictionary<string, object> requestUntil = (Dictionary<string, object>)requestUntilparamsUntilVariable[0];
         IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)requestUntilparamsUntilVariable[1]);
+        if (((since != null)) && ((limit != null)) && ((this.safeInteger(requestUntil, keyEnd) == null)))
+        {
+            // without an end time the exchange returns the latest candles, not the ones starting at since,
+            // so end the window at the start of the limit-th candle from the first one at or after since
+            Int64 duration = (this.parseTimeframe(timeframeVar) * 1000L);
+            Int64? firstCandle = (this.parseToInt(Math.Ceiling(Convert.ToDouble(((double?)since / duration)))) * duration);
+            object endTimeByLimit = this.sum(firstCandle, (duration * ((limit - 1))));
+            requestUntil[keyEnd] = mathMin(endTimeByLimit, this.milliseconds());
+        }
         if ((((market.ContainsKey("contract") ? market["contract"] : null) as bool?) == true))
         {
             Dictionary<string, object> responseRaw = await this.swapPublicGetV3MarketCandles(this.extend(requestUntil, paramsUntil));

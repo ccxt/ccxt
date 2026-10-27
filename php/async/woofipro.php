@@ -1264,7 +1264,7 @@ class woofipro extends Exchange {
         return $this->filter_by_array_tickers($result, 'symbol', $symbolsNormalized);
     }
 
-    public function parse_open_interest(mixed $interest, ?array $market = null): array {
+    public function parse_open_interest(?array $interest, ?array $market = null): array {
         //
         //     {
         //         "symbol": "PERP_BTC_USDC",
@@ -3676,7 +3676,7 @@ class woofipro extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign(string $path, array $section = array('public'), $method = 'GET', $params = array()): array {
+    public function sign(string $path, array $section = array('public'), string $method = 'GET', $params = array()): array {
         $version = $section[0];
         $access = $section[1];
         $pathWithParams = $this->implode_params($path, $params);

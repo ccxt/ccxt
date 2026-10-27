@@ -61,6 +61,7 @@ class latoken(Exchange, ImplicitAPI):
                 'fetchBorrowRateHistory': False,
                 'fetchBorrowRates': False,
                 'fetchBorrowRatesPerSymbol': False,
+                'fetchClosedOrders': 'emulated',
                 'fetchCrossBorrowRate': False,
                 'fetchCrossBorrowRates': False,
                 'fetchCurrencies': True,
@@ -292,6 +293,33 @@ class latoken(Exchange, ImplicitAPI):
                     'ACCOUNT_TYPE_WALLET': 'wallet',
                     'ACCOUNT_TYPE_SPOT': 'spot',
                 },
+                'networks': {
+                    # the venue names a token chain "<CHAIN>_TOKEN" and the native
+                    # chain by its own ticker, so only the former needs a mapping
+                    'BEP20': 'BSC_TOKEN',
+                    'TRC20': 'TRON',
+                    'ADA': 'ADA_TOKEN',
+                    'ALGO': 'ALGO_TOKEN',
+                    'ARBITRUM': 'ARB_TOKEN',
+                    'AVAXC': 'AVAXC_TOKEN',
+                    'BASE': 'BASE_TOKEN',
+                    'CELO': 'CELO_TOKEN',
+                    'EOS': 'EOS_TOKEN',
+                    'FTM': 'FTM_TOKEN',
+                    'MATIC': 'MATIC_TOKEN',
+                    'OP': 'OP_TOKEN',
+                    'QTUM': 'QTUM_TOKEN',
+                    'SOL': 'SOL_TOKEN',
+                    'TON': 'TON_TOKEN',
+                    'VET': 'VECHAIN_TOKEN',
+                    'WAVES': 'WAVES_TOKEN',
+                    'XDC': 'XDC_TOKEN',
+                    'XLM': 'XLM_TOKEN',
+                    'XRP': 'XRP_TOKEN',
+                },
+                'networksById': {
+                    'BSC': 'BEP20',  # second provider id for the same chain
+                },
                 'fetchTradingFee': {
                     'method': 'fetchPrivateTradingFee',  # or 'fetchPublicTradingFee'
                 },
@@ -319,7 +347,7 @@ class latoken(Exchange, ImplicitAPI):
                         'selfTradePrevention': False,
                         'trailing': False,
                         'leverage': False,
-                        'marketBuyByCost': True,
+                        'marketBuyByCost': False,
                         'marketBuyRequiresPrice': False,
                         'iceberg': False,
                     },
@@ -340,11 +368,19 @@ class latoken(Exchange, ImplicitAPI):
                     'fetchOpenOrders': {
                         'marginMode': False,
                         'limit': None,
-                        'trigger': False,
+                        'trigger': True,
                         'trailing': False,
                         'symbolRequired': True,
                     },
-                    'fetchOrders': None,
+                    'fetchOrders': {
+                        'marginMode': False,
+                        'limit': None,
+                        'daysBack': None,
+                        'untilDays': None,
+                        'trigger': True,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
                     'fetchClosedOrders': {
                         'marginMode': False,
                         'limit': 1000,
@@ -499,9 +535,15 @@ class latoken(Exchange, ImplicitAPI):
     def fetch_currencies(self, params: dict = {}) -> Currencies:
         """
         fetches all available currencies on an exchange
+
+        https://api.latoken.com/doc/v2/#tag/Currency/operation/getActiveCurrencies
+        https://api.latoken.com/doc/v2/#tag/Transaction/operation/getBindings
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
         """
+        # sequential on purpose - with Promise.all the static request harness records
+        # whichever call finished last, which differs between the sync and async ports
         response = self.publicGetCurrency(params)
         #
         #     [
@@ -535,7 +577,39 @@ class latoken(Exchange, ImplicitAPI):
         #         },
         #     ]
         #
-        return self.parse_currencies(response)
+        #     [
+        #         {
+        #             "id":"0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+        #             "tag":"USDT",
+        #             "bindings":[
+        #                 {
+        #                     "minAmount":"5.000000000000000000",
+        #                     "maxAmount":"0",
+        #                     "fee":"3.000000000000000000",
+        #                     "percentFee":"0.250000000000000000",
+        #                     "providerName":"ERC20",
+        #                     "id":"973d2079-1fae-4fa7-82e4-bae55eba8284",
+        #                     "currencyProvider":"4d26b9ec-4bed-4bec-ba2f-02aaca8e84a1",
+        #                     "deflation":"0"
+        #                 },
+        #             ]
+        #         },
+        #     ]
+        #
+        # no params on this one - they belong to the currency request, not to the bindings
+        bindingsResponse = self.publicGetTransactionBindings()
+        bindingsById = self.index_by(bindingsResponse, 'id')
+        rawCurrencies = self.to_array(response)
+        merged = []
+        for i in range(0, len(rawCurrencies)):
+            rawCurrency = rawCurrencies[i]
+            bindingEntry = self.safe_dict(bindingsById, self.safe_string(rawCurrency, 'id'))
+            bindings = self.safe_list(bindingEntry, 'bindings')
+            mergedCurrency = rawCurrency
+            if bindings is not None:
+                mergedCurrency = self.extend(rawCurrency, {'bindings': bindings})
+            merged.append(mergedCurrency)
+        return self.parse_currencies(merged)
 
     def parse_currency(self, currency: dict) -> CurrencyInterface:
         id = self.safe_string(currency, 'id')
@@ -543,6 +617,40 @@ class latoken(Exchange, ImplicitAPI):
         code = self.safe_currency_code(tag)
         currencyType = self.safe_string(currency, 'type')
         isCrypto = (currencyType == 'CURRENCY_TYPE_CRYPTO' or currencyType == 'CURRENCY_TYPE_IEO')
+        bindings = self.safe_list(currency, 'bindings', [])
+        networks = {}
+        for i in range(0, len(bindings)):
+            binding = bindings[i]
+            networkId = self.safe_string(binding, 'providerName')
+            networkCode = self.network_id_to_code(networkId, code)
+            # the venue lists one provider twice on a currency (MBS, SOL_TOKEN), and both
+            # entries would land on the same unified code - keep the first one for a
+            # deterministic binding id, since withdrawals resolve the chain through it
+            if (networkCode is not None) and not (networkCode in networks):
+                networks[networkCode] = {
+                    'info': binding,
+                    'id': self.safe_string(binding, 'id'),
+                    'network': networkCode,
+                    'active': None,
+                    # the public endpoint serves one entry per chain without saying
+                    # whether it is bound for deposits, withdrawals or both
+                    'deposit': None,
+                    'withdraw': None,
+                    'fee': self.safe_number(binding, 'fee'),
+                    'precision': None,
+                    'limits': {
+                        'deposit': {
+                            'min': None,
+                            'max': None,
+                        },
+                        'withdraw': {
+                            'min': self.safe_number(binding, 'minAmount'),
+                            # maxAmount is "0" on 1990 of the 1996 bindings and contradicts its
+                            # own minimum on the rest, so the venue does not keep it as a real cap
+                            'max': None,
+                        },
+                    },
+                }
         return self.safe_currency_structure({
             'id': id,
             'code': code,
@@ -552,7 +660,7 @@ class latoken(Exchange, ImplicitAPI):
             'active': self.safe_string(currency, 'status') == 'CURRENCY_STATUS_ACTIVE',
             'deposit': None,
             'withdraw': None,
-            'fee': self.safe_number(currency, 'fee'),
+            'fee': None,
             'precision': self.parse_number(self.parse_precision(self.safe_string(currency, 'decimals'))),
             'limits': {
                 'amount': {
@@ -564,7 +672,7 @@ class latoken(Exchange, ImplicitAPI):
                     'max': None,
                 },
             },
-            'networks': {},
+            'networks': networks,
         })
 
     def fetch_balance(self, params: dict = {}) -> Balances:

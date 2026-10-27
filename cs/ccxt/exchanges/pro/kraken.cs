@@ -1737,10 +1737,19 @@ public partial class kraken : ccxt.kraken
         //         "sequence": 1
         //     }
         //
+        // merge updates into the existing balance object instead of building a
+        // fresh one: a consumer awakened by an earlier message holds a reference
+        // to this.balance[type], and Client.resolve is a no-op while nobody is
+        // awaiting, so a replaced object would make updates landing in that
+        // window invisible to the consumer forever (issue #26773)
+        string type = "spot";
+        if ((this.balance == null))
+        {
+            this.balance = new Dictionary<string, object>() {};
+        }
+        this.balance[type] = this.safeDict(this.balance, type, new Dictionary<string, object>() {});
+        ((IDictionary<string,object>)(this.balance != null && this.balance.ContainsKey(type) ? this.balance[type] : null))["info"] = message;
         List<object> data = this.safeList(message, "data", new List<object>() {});
-        Dictionary<string, object> result = new Dictionary<string, object>() {
-            { "info", message },
-        };
         for (int i = 0; i < (data?.Count ?? 0); i++)
         {
             string? currencyId = this.safeString(data[i], "asset");
@@ -1748,13 +1757,9 @@ public partial class kraken : ccxt.kraken
             Dictionary<string, object> account = this.account();
             string? eq = this.safeString(data[i], "balance");
             account["total"] = eq;
-            result[(string)code] = account;
+            ((IDictionary<string,object>)(this.balance != null && this.balance.ContainsKey(type) ? this.balance[type] : null))[code] = account;
         }
-        string type = "spot";
-        Dictionary<string, object> balance = this.safeBalance(result);
-        IDictionary<string, object> oldBalance = this.safeDict(this.balance, type, new Dictionary<string, object>() {});
-        Dictionary<string, object> newBalance = this.deepExtend(oldBalance, balance);
-        this.balance[type] = this.safeBalance(newBalance);
+        this.balance[type] = this.safeBalance((this.balance != null && this.balance.ContainsKey(type) ? this.balance[type] : null));
         string? channel = this.safeString(message, "channel");
         client.resolve((this.balance != null && this.balance.ContainsKey(type) ? this.balance[type] : null), channel);
     }

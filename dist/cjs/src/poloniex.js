@@ -710,6 +710,14 @@ class poloniex extends poloniex$1["default"] {
             request['limit'] = limit;
         }
         const [requestUntil, paramsUntil] = this.handleUntilOption(keyEnd, request, paramsPaginate);
+        if ((since !== undefined) && (limit !== undefined) && (this.safeInteger(requestUntil, keyEnd) === undefined)) {
+            // without an end time the exchange returns the latest candles, not the ones starting at since,
+            // so end the window at the start of the limit-th candle from the first one at or after since
+            const duration = this.parseTimeframe(timeframe) * 1000;
+            const firstCandle = this.parseToInt(Math.ceil(since / duration)) * duration;
+            const endTimeByLimit = this.sum(firstCandle, duration * (limit - 1));
+            requestUntil[keyEnd] = Math.min(endTimeByLimit, this.milliseconds());
+        }
         if (market['contract'] === true) {
             const responseRaw = await this.swapPublicGetV3MarketCandles(this.extend(requestUntil, paramsUntil));
             //

@@ -2093,7 +2093,7 @@ public class Mexc extends MexcApi
         Object symbol = null;
         Map<String, Object> fee = null;
         List<String> type = null;
-        String side = null;
+        Object side = null;
         String takerOrMaker = null;
         String priceString = null;
         String amountString = null;
@@ -2184,7 +2184,7 @@ public class Mexc extends MexcApi
             {
                 timestamp = this.safeInteger(trade, "timestamp");
                 amountString = this.safeString(trade, "vol");
-                side = this.parseOrderSide(this.safeString(trade, "side"));
+                side = this.parseContractOrderSide(this.safeString(trade, "side"));
                 fee = new HashMap<String, Object>() {{
                     put( "cost", Mexc.this.safeString(trade, "fee") );
                     put( "currency", Mexc.this.safeCurrencyCode(Mexc.this.safeString(trade, "feeCurrency"), (Map<String, Object>) null) );
@@ -2226,7 +2226,7 @@ public class Mexc extends MexcApi
         }
         if (java.util.Objects.equals(id, null) && Boolean.TRUE.equals(this.safeBool(this.options, "useCcxtTradeId", true)))
         {
-            id = this.createCcxtTradeId(timestamp, side, amountString, priceString, takerOrMaker);
+            id = this.createCcxtTradeId(timestamp, java.util.Objects.toString(side, null), amountString, priceString, takerOrMaker);
         }
         HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
         mapLiteral2.put("id", id);
@@ -2826,6 +2826,7 @@ public class Mexc extends MexcApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginMode] only 'isolated' is supported for spot-margin trading
      * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+     * @param {string} [params.triggerDirection] *swap only* 'ascending' triggers when the price rises to triggerPrice, 'descending' when it falls to it, default is 'ascending'
      * @param {bool} [params.postOnly] if true, the order will only be posted if it will be a maker order
      * @param {bool} [params.reduceOnly] *contract only* indicates if this order is to reduce the size of a position
      * @param {bool} [params.hedged] *swap only* true for hedged mode, false for one way mode, default is false
@@ -3142,7 +3143,21 @@ public class Mexc extends MexcApi
             if ((!java.util.Objects.equals(triggerPrice, null)) && ((triggerPrice == null || triggerPrice != 0)))
             {
                 request.put("triggerPrice", this.priceToPrecision(symbol, triggerPrice));
-                request.put("triggerType", this.safeInteger(paramsOmitted, "triggerType", 1));
+                List<Object> triggerDirectionparamsTriggerDirectionVariable = (List<Object>) this.handleTriggerDirectionAndParams(paramsOmitted, "triggerType", true);
+                String triggerDirection = (String) ((List<Object>) triggerDirectionparamsTriggerDirectionVariable).get(0);
+                var paramsTriggerDirection = ((List<Object>) triggerDirectionparamsTriggerDirectionVariable).get(1);
+                Long triggerType = this.safeInteger(paramsTriggerDirection, "triggerType", 1);
+                if (java.util.Objects.equals(triggerDirection, "ascending"))
+                {
+                    triggerType = 1L;
+                } else if (java.util.Objects.equals(triggerDirection, "descending"))
+                {
+                    triggerType = 2L;
+                } else if (!java.util.Objects.equals(triggerDirection, null))
+                {
+                    throw new BadRequest((this.id + " createOrder() triggerDirection must be either \"ascending\" or \"descending\"")) ;
+                }
+                request.put("triggerType", triggerType);
                 request.put("executeCycle", this.safeInteger(paramsOmitted, "executeCycle", 1));
                 request.put("trend", this.safeInteger(paramsOmitted, "trend", 1));
                 Object planOrderType = orderType;
@@ -3151,7 +3166,7 @@ public class Mexc extends MexcApi
                     planOrderType = 5; // 6 (convert to current price) does not exist for trigger orders, 5 is their market type
                 }
                 request.put("orderType", this.safeInteger(paramsOmitted, "orderType", planOrderType));
-                response = (this.contractPrivatePostPlanorderPlace(this.extend(request, paramsOmitted))).join();
+                response = (this.contractPrivatePostPlanorderPlace(this.extend(request, paramsTriggerDirection))).join();
             } else
             {
                 response = (this.contractPrivatePostOrderCreate(this.extend(request, paramsOmitted))).join();
@@ -4331,6 +4346,9 @@ public class Mexc extends MexcApi
         }
         String marketId = this.safeString(order, "symbol");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
+        Boolean isContract = (Boolean) marketResolved.get("contract");
+        String sideRaw = this.safeString(order, "side");
+        Object side = (((java.util.Objects.equals(isContract, true)))) ? this.parseContractOrderSide(sideRaw) : this.parseOrderSide(sideRaw);
         Long timestamp = this.safeIntegerN(order, new ArrayList<Object>(Arrays.asList("time", "createTime", "transactTime")));
         Map<String, Object> fee = null;
         String feeCurrency = this.safeString(order, "feeCurrency");
@@ -4357,7 +4375,7 @@ public class Mexc extends MexcApi
         mapLiteral6.put("symbol", marketResolved.get("symbol"));
         mapLiteral6.put("type", this.parseOrderType(typeRaw));
         mapLiteral6.put("timeInForce", timeInForce);
-        mapLiteral6.put("side", this.parseOrderSide(this.safeString(order, "side")));
+        mapLiteral6.put("side", side);
         mapLiteral6.put("price", this.safeNumber(order, "price", (Object) null));
         mapLiteral6.put("triggerPrice", this.safeNumber2(order, "stopPrice", "triggerPrice", (Object) null));
         mapLiteral6.put("average", this.safeNumber(order, "dealAvgPrice", (Object) null));
@@ -4380,6 +4398,17 @@ public class Mexc extends MexcApi
             put( "2", "sell" );
         }};
         return this.safeString(statuses, status, status);
+    }
+
+    public String parseContractOrderSide(String side)
+    {
+        Map<String, Object> sides = new HashMap<String, Object>() {{
+            put( "1", "buy" );
+            put( "2", "buy" );
+            put( "3", "sell" );
+            put( "4", "sell" );
+        }};
+        return this.safeString(sides, side, side);
     }
 
     public String parseOrderType(String status)

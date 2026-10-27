@@ -1046,7 +1046,35 @@ public partial class bydfi : ccxt.bydfi
             { "type", "swap" },
         };
         Dictionary<string, object> response = ccxt.BaseExchange.FromBalances(await this.FetchBalance(parameters));
-        this.balance = this.extend(response, this.balance);
+        // merge the snapshot into the existing balance object per currency so
+        // the object keeps its identity and deltas that arrived while the
+        // snapshot was in flight are not overwritten; the free/used/total
+        // aggregates are rebuilt from the merged currencies by safeBalance
+        if ((this.balance == null))
+        {
+            this.balance = new Dictionary<string, object>() {};
+        }
+        List<object> reserved = new List<object>() {"info", "timestamp", "datetime", "free", "used", "total"};
+        List<object> keys = new List<object>(response.Keys);
+        for (int i = 0; i < keys.Count; i++)
+        {
+            string? key = ((string)keys[i]);
+            if (this.inArray(key, reserved))
+            {
+                continue;
+            }
+            if (!((this.balance != null && key != null && this.balance.ContainsKey(key))))
+            {
+                this.balance[(string)key] = (response != null && key != null && response.ContainsKey(key) ? response[key] : null);
+            }
+        }
+        if (!((this.balance != null && this.balance.ContainsKey("info"))))
+        {
+            this.balance["info"] = (response != null && response.ContainsKey("info") ? response["info"] : null);
+            this.balance["timestamp"] = (response != null && response.ContainsKey("timestamp") ? response["timestamp"] : null);
+            this.balance["datetime"] = (response != null && response.ContainsKey("datetime") ? response["datetime"] : null);
+        }
+        this.balance = this.safeBalance(this.balance);
         // don't remove the future from the .futures cache
         Future future = ((Future)getValue(client.futures, messageHash));
         (future as Future).resolve();
@@ -1095,34 +1123,37 @@ public partial class bydfi : ccxt.bydfi
         //         "e": "ACCOUNT_UPDATE"
         //     }
         //
-        string messageHash = "balance";
-        if ((client.futures != null && client.futures.ContainsKey(messageHash)))
+        // merge updates into the existing balance object instead of building a
+        // fresh one: a consumer awakened by an earlier message holds a reference
+        // to this.balance, and Client.resolve is a no-op while nobody is
+        // awaiting, so a replaced object would make updates landing in that
+        // window invisible to the consumer forever (issue #26773)
+        if ((this.balance == null))
         {
-            IDictionary<string, object> data = this.safeDict(message, "a", new Dictionary<string, object>() {});
-            List<object> balances = this.safeList(data, "B", new List<object>() {});
-            Int64? timestamp = this.safeInteger(message, "T");
-            Dictionary<string, object> result = new Dictionary<string, object>() {
-                { "info", message },
-                { "timestamp", timestamp },
-                { "datetime", this.iso8601(timestamp) },
-            };
-            for (int i = 0; i < balances.Count; i++)
-            {
-                IDictionary<string, object> balance = this.safeDict(balances, i);
-                string? currencyId = this.safeString(balance, "a");
-                string? code = this.safeCurrencyCode(currencyId);
-                Dictionary<string, object> account = this.account();
-                account["total"] = this.safeString(balance, "wb");
-                account["used"] = this.safeString(balance, "tfm");
-                if ((code != null))
-                {
-                    result[(string)code] = account;
-                }
-            }
-            Dictionary<string, object> parsedBalance = this.safeBalance(result);
-            this.balance = this.extend(this.balance, parsedBalance);
-            client.resolve(this.balance, messageHash);
+            this.balance = new Dictionary<string, object>() {};
         }
+        IDictionary<string, object> data = this.safeDict(message, "a", new Dictionary<string, object>() {});
+        List<object> balances = this.safeList(data, "B", new List<object>() {});
+        Int64? timestamp = this.safeInteger(message, "T");
+        this.balance["info"] = message;
+        this.balance["timestamp"] = timestamp;
+        this.balance["datetime"] = this.iso8601(timestamp);
+        for (int i = 0; i < balances.Count; i++)
+        {
+            IDictionary<string, object> balance = this.safeDict(balances, i);
+            string? currencyId = this.safeString(balance, "a");
+            string? code = this.safeCurrencyCode(currencyId);
+            Dictionary<string, object> account = this.account();
+            account["total"] = this.safeString(balance, "wb");
+            account["used"] = this.safeString(balance, "tfm");
+            if ((code != null))
+            {
+                this.balance[(string)code] = account;
+            }
+        }
+        this.balance = this.safeBalance(this.balance);
+        string messageHash = "balance";
+        client.resolve(this.balance, messageHash);
     }
 
     public virtual object handleSubscriptionStatus(WebSocketClient client, Dictionary<string, object> message)

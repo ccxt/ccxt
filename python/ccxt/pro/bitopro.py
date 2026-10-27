@@ -451,11 +451,17 @@ class bitopro(ccxt.async_support.bitopro):
         timestamp = self.safe_integer(message, 'timestamp')
         datetime = self.safe_string(message, 'datetime')
         currencies = list(data.keys())
-        result = {
-            'info': data,
-            'timestamp': timestamp,
-            'datetime': datetime,
-        }
+        # merge updates into the existing balance object instead of building a
+        # fresh one: a consumer awakened by an earlier message holds a
+        # reference to this.balance, and Client.resolve is a no-op while
+        # nobody is awaiting, so a replaced object would make updates landing
+        # in that window invisible to the consumer forever (same class as
+        # issue #26773)
+        if self.balance is None:
+            self.balance = {}
+        self.balance['info'] = data
+        self.balance['timestamp'] = timestamp
+        self.balance['datetime'] = datetime
         for i in range(0, len(currencies)):
             currency = self.safe_string(currencies, i)
             balance = self.safe_dict(data, currency, {})
@@ -465,8 +471,8 @@ class bitopro(ccxt.async_support.bitopro):
             account['free'] = self.safe_string(balance, 'available')
             account['total'] = self.safe_string(balance, 'amount')
             if code is not None:
-                result[code] = account
-        self.balance = self.safe_balance(result)
+                self.balance[code] = account
+        self.balance = self.safe_balance(self.balance)
         client.resolve(self.balance, event)
 
     def handle_message(self, client: Client, message: dict):

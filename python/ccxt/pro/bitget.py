@@ -932,6 +932,10 @@ class bitget(ccxt.async_support.bitget):
                 ob['symbol'] = symbol
                 self.orderbooks[symbol] = ob
             storedOrderBook = self.orderbooks[symbol]
+            isSnapshot = self.safe_string(message, 'action') == 'snapshot'  # snapshot does not have a checksum
+            if isSnapshot:
+                # a snapshot replaces the book, e.g. after a reconnect, levels absent from it must not survive
+                storedOrderBook.reset({'symbol': symbol})
             asks = self.safe_list_2(rawOrderBook, 'asks', 'a', [])
             bids = self.safe_list_2(rawOrderBook, 'bids', 'b', [])
             self.handle_deltas(storedOrderBook['asks'], asks)
@@ -939,7 +943,6 @@ class bitget(ccxt.async_support.bitget):
             storedOrderBook['timestamp'] = timestamp
             storedOrderBook['datetime'] = self.iso8601(timestamp)
             checksum = self.handle_option('watchOrderBook', 'checksum', True)
-            isSnapshot = self.safe_string(message, 'action') == 'snapshot'  # snapshot does not have a checksum
             # UTA order books do not provide a crc32 checksum (they rely on seq/pseq for integrity),
             # so only validate the checksum when the exchange actually sends one
             responseChecksum = self.safe_integer(rawOrderBook, 'checksum')
@@ -962,7 +965,13 @@ class bitget(ccxt.async_support.bitget):
                     self.spawn(self.handle_check_sum_error, client, symbol, messageHash)
                     return
         else:
-            orderbook = self.order_book({})
+            # reset the existing orderbook instead of replacing it: a consumer
+            # holds a reference to the old object and would never see updates
+            # after this snapshot (every frame of the non-incremental channels
+            # is a full snapshot)
+            if not (symbol in self.orderbooks):
+                self.orderbooks[symbol] = self.order_book({})
+            orderbook = self.orderbooks[symbol]
             bidsKey = 'bids'
             asksKey = 'asks'
             # bitget UTA has `a` and `b` instead of `asks` and `bids`
@@ -974,7 +983,6 @@ class bitget(ccxt.async_support.bitget):
                     bidsKey = 'b'
             parsedOrderbook = self.parse_order_book(rawOrderBook, symbol, timestamp, bidsKey, asksKey)
             orderbook.reset(parsedOrderbook)
-            self.orderbooks[symbol] = orderbook
         client.resolve(self.orderbooks[symbol], messageHash)
 
     async def handle_check_sum_error(self, client: Client, symbol: str, messageHash: str):

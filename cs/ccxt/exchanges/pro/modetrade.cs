@@ -206,10 +206,11 @@ public partial class modetrade : ccxt.modetrade
         //         "count": 3689
         //     }
         //
+        Int64? timestamp = this.safeInteger(ticker, "timestamp");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", this.safeSymbol(null, market) },
-            { "timestamp", null },
-            { "datetime", null },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
             { "high", this.safeString(ticker, "high") },
             { "low", this.safeString(ticker, "low") },
             { "bid", null },
@@ -253,8 +254,9 @@ public partial class modetrade : ccxt.modetrade
         string? marketId = this.safeString(data, "symbol");
         Dictionary<string, object> market = this.safeMarket(marketId);
         Int64? timestamp = this.safeInteger(message, "ts");
-        data["date"] = timestamp;
-        ccxt.Ticker ticker = this.parseWsTicker(data, market);
+        ccxt.Ticker ticker = this.parseWsTicker(this.extend(data, new Dictionary<string, object>() {
+            { "timestamp", timestamp },
+        }), market);
         ticker.symbol = ccxt.BaseExchange.StructString((market.ContainsKey("symbol") ? market["symbol"] : null));
         this.tickers[(string)(market.ContainsKey("symbol") ? market["symbol"] : null)] = ccxt.BaseExchange.FromTicker(ticker);
         client.resolve(ccxt.BaseExchange.FromTicker(ticker), topic);
@@ -319,7 +321,7 @@ public partial class modetrade : ccxt.modetrade
             string? marketId = this.safeString(data[i], "symbol");
             Dictionary<string, object> market = this.safeMarket(marketId);
             ccxt.Ticker ticker = this.parseWsTicker(this.extend(data[i], new Dictionary<string, object>() {
-                { "date", timestamp },
+                { "timestamp", timestamp },
             }), market);
             this.tickers[(string)(market.ContainsKey("symbol") ? market["symbol"] : null)] = ccxt.BaseExchange.FromTicker(ticker);
             result.Add(ccxt.BaseExchange.FromTicker(ticker));
@@ -1174,7 +1176,7 @@ public partial class modetrade : ccxt.modetrade
         return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(this.positions, symbolsNormalized, since, limit, true));
     }
 
-    public virtual void setPositionsCache(WebSocketClient client, object type, IList<object> symbols = null)
+    public virtual void setPositionsCache(WebSocketClient client, object symbols = null)
     {
         bool fetchPositionsSnapshot = ((bool)this.handleOption("watchPositions", "fetchPositionsSnapshot", false));
         if ((fetchPositionsSnapshot == true))

@@ -71,7 +71,7 @@ class cex extends cex$1["default"] {
         const subscribe = {
             'e': 'get-balance',
             'data': {},
-            'oid': this.requestId(),
+            'oid': messageHash,
         };
         const request = this.deepExtend(subscribe, params);
         return await this.watch(url, messageHash, request, messageHash, request);
@@ -97,12 +97,18 @@ class cex extends cex$1["default"] {
         //         "ok": "ok"
         //     }
         //
+        // merge updates into the existing balance object instead of building a
+        // fresh one: a consumer awakened by an earlier message holds a reference
+        // to this.balance, and Client.resolve is a no-op while nobody is
+        // awaiting, so a replaced object would make responses landing in that
+        // window invisible to the consumer forever (same class as issue #26773)
         const data = this.safeDict(message, 'data', {});
         const freeBalance = this.safeDict(data, 'balance', {});
         const usedBalance = this.safeDict(data, 'obalance', {});
-        const result = {
-            'info': data,
-        };
+        if (this.balance === undefined) {
+            this.balance = {};
+        }
+        this.balance['info'] = data;
         const currencyIds = Object.keys(freeBalance);
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
@@ -111,10 +117,10 @@ class cex extends cex$1["default"] {
             account['used'] = this.safeString(usedBalance, currencyId);
             const code = this.safeCurrencyCode(currencyId);
             if (code !== undefined) {
-                result[code] = account;
+                this.balance[code] = account;
             }
         }
-        this.balance = this.safeBalance(result);
+        this.balance = this.safeBalance(this.balance);
         const messageHash = this.safeString(message, 'oid');
         client.resolve(this.balance, messageHash);
     }
@@ -1018,14 +1024,19 @@ class cex extends cex$1["default"] {
         const messageHash = 'orderbook:' + symbol;
         const timestamp = this.safeInteger2(data, 'timestamp_ms', 'timestamp');
         const incrementalId = this.safeInteger(data, 'id');
-        const orderbook = this.orderBook({});
+        // reset the existing orderbook instead of replacing it: a consumer
+        // holds a reference to the old object and would never see updates
+        // after a re-subscription snapshot
+        if (!(symbol in this.orderbooks)) {
+            this.orderbooks[symbol] = this.orderBook({});
+        }
+        const orderbook = this.orderbooks[symbol];
         const snapshot = this.parseOrderBook(data, symbol, timestamp, 'bids', 'asks');
         snapshot['nonce'] = incrementalId;
         orderbook.reset(snapshot);
         this.options['orderbook'][symbol] = {
             'incrementalId': incrementalId,
         };
-        this.orderbooks[symbol] = orderbook;
         client.resolve(orderbook, messageHash);
     }
     pairToSymbol(pair) {
@@ -1158,16 +1169,23 @@ class cex extends cex$1["default"] {
         const market = this.safeMarket(symbol);
         const messageHash = 'ohlcv:' + symbol;
         const data = this.safeList(message, 'data', []);
-        const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
-        const stored = new Cache.ArrayCacheByTimestamp(limit);
-        const sorted = this.sortBy(data, 0);
-        for (let i = 0; i < sorted.length; i++) {
-            stored.append(this.parseOHLCV(sorted[i], market));
-        }
         if (!(symbol in this.ohlcvs)) {
             this.ohlcvs[symbol] = {};
         }
-        this.ohlcvs[symbol]['unknown'] = stored;
+        // fill the existing cache when there is one: replacing it would orphan
+        // consumers holding a reference to the old cache (they would never see
+        // candles appended after a re-subscription)
+        let stored = this.safeValue(this.ohlcvs[symbol], 'unknown');
+        if (stored === undefined) {
+            const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
+            stored = new Cache.ArrayCacheByTimestamp(limit);
+            this.ohlcvs[symbol]['unknown'] = stored;
+        }
+        const sorted = this.sortBy(data, 0);
+        for (let i = 0; i < sorted.length; i++) {
+            const parsed = this.parseOHLCV(sorted[i], market);
+            stored.append(parsed);
+        }
         client.resolve(stored, messageHash);
     }
     handleOHLCV24(client, message) {

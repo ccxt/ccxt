@@ -1264,7 +1264,7 @@ class bitbns extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign(string $path, array $api = array('www'), $method = 'GET', $params = array()): array {
+    public function sign(string $path, array $api = array('www'), string $method = 'GET', $params = array()): array {
         $urls = $this->urls;
         $apiName = $api[0];
         if (!(is_array($urls['api']) && array_key_exists($apiName ?? '', $urls['api']))) {

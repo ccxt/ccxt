@@ -1408,7 +1408,7 @@ class btse extends Exchange {
         return $this->parse_open_interests($rows, $symbolsNormalized);
     }
 
-    public function parse_open_interest(mixed $interest, ?array $market = null): array {
+    public function parse_open_interest(?array $interest, ?array $market = null): array {
         //
         // ticker/24hr contract rows, see parseFundingRate for the full shape
         //
@@ -3727,7 +3727,7 @@ class btse extends Exchange {
         return null;
     }
 
-    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()) {
+    public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()) {
         $apiName = $api[0];
         $requestBody = null;
         $requestHeaders = null;

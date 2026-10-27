@@ -6665,7 +6665,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 
 /*
  * @method
- * @name hyperliquid#createAccount
+ * @name hyperliquid#createSubAccount
  * @description creates a sub-account under the main account
  * @param {string} name the name of the sub-account
  * @param {object} [params] extra parameters specific to the exchange API endpoint

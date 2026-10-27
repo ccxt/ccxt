@@ -3381,7 +3381,7 @@ class coinbaseinternational extends Exchange {
         return $this->token;
     }
 
-    public function sign(string $path, mixed $api = 'public', $method = 'GET', $params = array()): array {
+    public function sign(string $path, mixed $api = 'public', string $method = 'GET', $params = array()): array {
         $access = (gettype($api) === 'array' && array_keys($api) === array_keys(array_keys($api))) ? $api[0] : $api;
         $rpcMethod = $access . '/' . $path;
         $requestParams = $this->handle_route_and_params('sign', $params);

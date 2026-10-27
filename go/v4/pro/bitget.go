@@ -1316,6 +1316,13 @@ func (this *Bitget) HandleOrderBook(client any, message any) {
 			ccxt.AddElementToObject(this.Orderbooks, symbol, ob)
 		}
 		var storedOrderBook ccxt.OrderBookInterface = ccxt.OrderBookTyped(ccxt.GetValue(this.Orderbooks, symbol))
+		var isSnapshot bool = (this.SafeString(message, "action") != nil && *this.SafeString(message, "action") == "snapshot") // snapshot does not have a checksum
+		if isSnapshot {
+			// a snapshot replaces the book, e.g. after a reconnect, levels absent from it must not survive
+			storedOrderBook.Reset(map[string]any{
+				"symbol": symbol,
+			})
+		}
 		var asks []any = ccxt.SafeList2Typed(rawOrderBook, "asks", "a", []any{})
 		var bids []any = ccxt.SafeList2Typed(rawOrderBook, "bids", "b", []any{})
 		this.HandleDeltas(storedOrderBook.GetAsks(), asks)
@@ -1323,7 +1330,6 @@ func (this *Bitget) HandleOrderBook(client any, message any) {
 		ccxt.AddElementToObject(storedOrderBook, "timestamp", timestamp)
 		ccxt.AddElementToObject(storedOrderBook, "datetime", this.Iso8601(timestamp))
 		var checksum any = this.HandleOption("watchOrderBook", "checksum", true)
-		var isSnapshot bool = (this.SafeString(message, "action") != nil && *this.SafeString(message, "action") == "snapshot") // snapshot does not have a checksum
 		// UTA order books do not provide a crc32 checksum (they rely on seq/pseq for integrity),
 		// so only validate the checksum when the exchange actually sends one
 		var responseChecksum *int64 = this.SafeInteger(rawOrderBook, "checksum")
@@ -1351,7 +1357,14 @@ func (this *Bitget) HandleOrderBook(client any, message any) {
 			}
 		}
 	} else {
-		var orderbook ccxt.OrderBookInterface = this.OrderBook(map[string]any{})
+		// reset the existing orderbook instead of replacing it: a consumer
+		// holds a reference to the old object and would never see updates
+		// after this snapshot (every frame of the non-incremental channels
+		// is a full snapshot)
+		if !(ccxt.InOp(this.Orderbooks, symbol)) {
+			ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}))
+		}
+		var orderbook ccxt.OrderBookInterface = ccxt.OrderBookTyped(ccxt.GetValue(this.Orderbooks, symbol))
 		var bidsKey string = "bids"
 		var asksKey string = "asks"
 		// bitget UTA has `a` and `b` instead of `asks` and `bids`
@@ -1367,7 +1380,6 @@ func (this *Bitget) HandleOrderBook(client any, message any) {
 		}
 		var parsedOrderbook map[string]any = this.ParseOrderBook(rawOrderBook, symbol, timestamp, bidsKey, asksKey)
 		orderbook.(ccxt.OrderBookInterface).Reset(parsedOrderbook)
-		ccxt.AddElementToObject(this.Orderbooks, symbol, orderbook)
 	}
 	client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Orderbooks, symbol), messageHash)
 }

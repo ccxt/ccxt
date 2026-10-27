@@ -143,9 +143,16 @@ func (this *Blockchaincom) HandleBalance(client any, message map[string]any) {
 	if event != nil && *event == "subscribed" {
 		return
 	}
-	var result map[string]any = map[string]any{
-		"info": message,
+	// merge updates into the existing balance object instead of building a
+	// fresh one: a consumer awakened by an earlier message holds a
+	// reference to this.balance, and ccxt.Client.resolve is a no-op while
+	// nobody is awaiting, so a replaced object would make updates landing
+	// in that window invisible to the consumer forever (same class as
+	// issue #26773)
+	if ccxt.IsEqual(this.Balance, nil) {
+		this.Balance = map[string]any{}
 	}
+	ccxt.AddElementToObject(this.Balance, "info", message)
 	var balances []any = ccxt.SafeListTyped(message, "balances")
 	for i := 0; i < len(balances); i++ {
 		var entry map[string]any = ccxt.SafeMapTyped(balances, i)
@@ -155,11 +162,11 @@ func (this *Blockchaincom) HandleBalance(client any, message map[string]any) {
 		account["free"] = this.SafeString(entry, "available")
 		account["total"] = this.SafeString(entry, "balance")
 		if code != nil {
-			result[*code] = account
+			ccxt.AddElementToObject(this.Balance, code, account)
 		}
 	}
 	var messageHash string = "balance"
-	this.Balance = this.SafeBalance(result)
+	this.Balance = this.SafeBalance(this.Balance)
 	client.(ccxt.ClientInterface).Resolve(this.Balance, messageHash)
 }
 

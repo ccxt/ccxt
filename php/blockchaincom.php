@@ -1270,7 +1270,7 @@ class blockchaincom extends Exchange {
         return $this->parse_order($response);
     }
 
-    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+    public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
         $requestPath = '/' . $this->implode_params($path, $params);
         $apiName = $api[0];
         $apiUrl = $this->safe_string($this->urls['api'], $apiName);

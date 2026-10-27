@@ -141,6 +141,8 @@ class bingx extends bingx$1["default"] {
                     'copyTrading': 'https://open-api.{hostname}/openApi',
                     'cswap': 'https://open-api.{hostname}/openApi',
                     'api': 'https://open-api.{hostname}/openApi',
+                    'agent': 'https://open-api.{hostname}/openApi',
+                    'wealth': 'https://open-api.{hostname}/openApi',
                 },
                 'test': {
                     'fund': 'https://open-api-vst.{hostname}/openApi',
@@ -154,6 +156,8 @@ class bingx extends bingx$1["default"] {
                     'copyTrading': 'https://open-api-vst.{hostname}/openApi',
                     'cswap': 'https://open-api-vst.{hostname}/openApi',
                     'api': 'https://open-api-vst.{hostname}/openApi',
+                    'agent': 'https://open-api-vst.{hostname}/openApi',
+                    'wealth': 'https://open-api-vst.{hostname}/openApi',
                 },
                 'www': 'https://bingx.com/',
                 'doc': 'https://bingx-api.github.io/docs/',
@@ -2491,8 +2495,15 @@ class bingx extends bingx$1["default"] {
         const high = this.safeString(ticker, 'highPrice');
         const low = this.safeString(ticker, 'lowPrice');
         const close = this.safeString(ticker, 'lastPrice');
-        const quoteVolume = this.safeString(ticker, 'quoteVolume');
-        const baseVolume = this.safeString(ticker, 'volume');
+        let quoteVolume = this.safeString(ticker, 'quoteVolume');
+        let baseVolume = this.safeString(ticker, 'volume');
+        if (marketResolved['inverse'] === true) {
+            // Coin-M volume is in contracts; quoteVolume is in the base currency.
+            // read the resolved market: parseTickers and fetchTickers reach here with no market argument
+            const contractSize = this.safeString(marketResolved, 'contractSize');
+            baseVolume = quoteVolume;
+            quoteVolume = Precise["default"].stringMul(this.safeString(ticker, 'volume'), contractSize);
+        }
         let percentage = this.safeString(ticker, 'priceChangePercent');
         if (percentage !== undefined) {
             percentage = percentage.replace('%', '');
@@ -2753,7 +2764,7 @@ class bingx extends bingx$1["default"] {
                 const account = this.account();
                 account['free'] = this.safeString2(balance, 'availableMargin', 'availableBalance');
                 account['used'] = this.safeString(balance, 'usedMargin');
-                account['total'] = this.safeString(balance, 'maxWithdrawAmount');
+                account['total'] = this.safeString2(balance, 'balance', 'maxWithdrawAmount');
                 if (code !== undefined) {
                     result[code] = account;
                 }
@@ -3127,7 +3138,13 @@ class bingx extends bingx$1["default"] {
                 collateralString = (unrealizedPnlString !== undefined) ? Precise["default"].stringAdd(initialMarginString, unrealizedPnlString) : initialMarginString;
             }
         }
-        const timestamp = this.safeInteger(position, 'openTime');
+        const timestamp = this.safeInteger2(position, 'openTime', 'createTime');
+        const positionSide = this.safeString(position, 'positionSide');
+        let hedged = undefined;
+        if (positionSide !== undefined) {
+            hedged = (positionSide !== 'BOTH');
+        }
+        const percentageString = this.safeString(position, 'pnlRatio');
         return this.safePosition({
             'info': position,
             'id': this.safeString(position, 'positionId'),
@@ -3138,13 +3155,13 @@ class bingx extends bingx$1["default"] {
             'entryPrice': this.safeNumber2(position, 'avgPrice', 'entryPrice'),
             'unrealizedPnl': this.parseNumber(unrealizedPnlString),
             'realizedPnl': this.safeNumber(position, 'realisedProfit'),
-            'percentage': undefined,
+            'percentage': this.parseNumber(Precise["default"].stringMul(percentageString, '100')),
             'contracts': this.safeNumber(position, 'positionAmt'),
             'contractSize': undefined,
             'markPrice': this.safeNumber(position, 'markPrice'),
             'lastPrice': undefined,
             'side': this.safeStringLower(position, 'positionSide'),
-            'hedged': undefined,
+            'hedged': hedged,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'lastUpdateTimestamp': this.safeInteger(position, 'updateTime'),
@@ -3243,7 +3260,7 @@ class bingx extends bingx$1["default"] {
         const isTriggerOrder = triggerPrice !== undefined;
         const isStopLossPriceOrder = stopLossPrice !== undefined;
         const isTakeProfitPriceOrder = takeProfitPrice !== undefined;
-        let exchangeClientOrderId = 'clientOrderID';
+        let exchangeClientOrderId = 'clientOrderId';
         if (isSpot) {
             exchangeClientOrderId = 'newClientOrderId';
         }
@@ -4242,15 +4259,19 @@ class bingx extends bingx$1["default"] {
                 'symbol': market['id'],
             };
             const clientOrderId = this.safeString2(paramsOmitted, 'clientOrderId', 'clientOrderID');
-            const paramsOmitted2 = this.omit(paramsOmitted, ['clientOrderId']);
+            const paramsOmitted2 = this.omit(paramsOmitted, ['clientOrderId', 'clientOrderID']);
+            const [type, paramsMarketType] = this.handleMarketTypeAndParams('cancelOrder', market, paramsOmitted2);
+            const [subType, paramsSubType] = this.handleSubTypeAndParams('cancelOrder', market, paramsMarketType);
             if (clientOrderId !== undefined) {
-                request['clientOrderID'] = clientOrderId;
+                let clientOrderIdRequest = 'clientOrderId';
+                if (type === 'spot') {
+                    clientOrderIdRequest = 'clientOrderID';
+                }
+                request[clientOrderIdRequest] = clientOrderId;
             }
             else {
                 request['orderId'] = id;
             }
-            const [type, paramsMarketType] = this.handleMarketTypeAndParams('cancelOrder', market, paramsOmitted2);
-            const [subType, paramsSubType] = this.handleSubTypeAndParams('cancelOrder', market, paramsMarketType);
             if (type === 'spot') {
                 response = await this.spotV1PrivatePostTradeCancel(this.extend(request, paramsSubType));
             }
@@ -4740,10 +4761,21 @@ class bingx extends bingx$1["default"] {
             market = this.market(symbol);
             const request = {
                 'symbol': market['id'],
-                'orderId': id,
             };
-            const [type, paramsMarketType] = this.handleMarketTypeAndParams('fetchOrder', market, paramsOmitted);
+            const clientOrderId = this.safeString2(paramsOmitted, 'clientOrderId', 'clientOrderID');
+            const paramsOmitted2 = this.omit(paramsOmitted, ['clientOrderId', 'clientOrderID']);
+            const [type, paramsMarketType] = this.handleMarketTypeAndParams('fetchOrder', market, paramsOmitted2);
             const [subType, paramsSubType] = this.handleSubTypeAndParams('fetchOrder', market, paramsMarketType);
+            if (clientOrderId !== undefined) {
+                let clientOrderIdRequest = 'clientOrderId';
+                if (type === 'spot') {
+                    clientOrderIdRequest = 'clientOrderID';
+                }
+                request[clientOrderIdRequest] = clientOrderId;
+            }
+            else {
+                request['orderId'] = id;
+            }
             if (type === 'spot') {
                 response = await this.spotV1PrivateGetTradeQuery(this.extend(request, paramsSubType));
                 //
@@ -4884,8 +4916,12 @@ class bingx extends bingx$1["default"] {
             request['symbol'] = market['id'];
         }
         const [type, paramsMarketType] = this.handleMarketTypeAndParams('fetchOrders', market, params);
+        const [subType, paramsSubType] = this.handleSubTypeAndParams('fetchOrders', market, paramsMarketType);
         if (type !== 'swap') {
             throw new errors.NotSupported(this.id + ' fetchOrders() is only supported for swap markets');
+        }
+        if ((subType === 'inverse') || ((market !== undefined) && (market['inverse'] === true))) {
+            throw new errors.NotSupported(this.id + ' fetchOrders() is not supported for inverse swap markets');
         }
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -4893,7 +4929,7 @@ class bingx extends bingx$1["default"] {
         if (since !== undefined) {
             request['startTime'] = since;
         }
-        const [requestUntil, paramsUntil] = this.handleUntilOption('endTime', request, paramsMarketType);
+        const [requestUntil, paramsUntil] = this.handleUntilOption('endTime', request, paramsSubType);
         const response = await this.swapV1PrivateGetTradeFullOrder(this.extend(requestUntil, paramsUntil));
         //
         //     {
@@ -6222,6 +6258,9 @@ class bingx extends bingx$1["default"] {
             if (orderId === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' fetchMyTrades() requires an orderId argument for inverse swap trades');
             }
+            if (limit !== undefined) {
+                request['pageSize'] = Math.min(limit, 1000); // api maximum 1000
+            }
             response = await this.cswapV1PrivateGetTradeAllFillOrders(this.extend(request, paramsSubType));
             fills = this.safeList(response, 'data', []);
             //
@@ -6701,7 +6740,7 @@ class bingx extends bingx$1["default"] {
     }
     /**
      * @method
-     * @name bitget#closePositions
+     * @name bingx#closeAllPositions
      * @description closes open positions for a market
      * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Close%20All%20Positions
      * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Close%20all%20positions%20in%20bulk
@@ -6861,6 +6900,7 @@ class bingx extends bingx$1["default"] {
      *
      * EXCHANGE SPECIFIC PARAMETERS
      * @param {string} [params.cancelClientOrderID] the user-defined id of the order to be canceled, 1-40 characters, different orders cannot use the same clientOrderID, only supports a query range of 2 hours
+     * @param {string} [params.cancelClientOrderId] the client order id of the order to cancel
      * @param {string} [params.cancelRestrictions] cancel orders with specified status, NEW: New order, PENDING: Pending order, PARTIALLY_FILLED: Partially filled
      * @param {string} [params.cancelReplaceMode] STOP_ON_FAILURE - if the cancel order fails, it will not continue to place a new order, ALLOW_FAILURE - regardless of whether the cancel order succeeds or fails, it will continue to place a new order
      * @param {float} [params.quoteOrderQty] order amount
@@ -6879,9 +6919,20 @@ class bingx extends bingx$1["default"] {
         if (market['inverse'] === true) {
             throw new errors.NotSupported(this.id + ' editOrder() is not supported for inverse swap markets');
         }
-        const request = this.createOrderRequest(symbol, type, side, amount, price, params);
-        request['cancelOrderId'] = id;
-        request['cancelReplaceMode'] = this.safeString(params, 'cancelReplaceMode', 'STOP_ON_FAILURE');
+        const cancelClientOrderId = this.safeString2(params, 'cancelClientOrderId', 'cancelClientOrderID');
+        const paramsOmitted = this.omit(params, ['cancelClientOrderId', 'cancelClientOrderID']);
+        const request = this.createOrderRequest(symbol, type, side, amount, price, paramsOmitted);
+        if (cancelClientOrderId !== undefined) {
+            let cancelClientOrderIdRequest = 'cancelClientOrderId';
+            if (market['spot'] === true) {
+                cancelClientOrderIdRequest = 'cancelClientOrderID';
+            }
+            request[cancelClientOrderIdRequest] = cancelClientOrderId;
+        }
+        else {
+            request['cancelOrderId'] = id;
+        }
+        request['cancelReplaceMode'] = this.safeString(paramsOmitted, 'cancelReplaceMode', 'STOP_ON_FAILURE');
         let response;
         if (market['swap'] === true) {
             response = await this.swapV1PrivatePostTradeCancelReplace(request);

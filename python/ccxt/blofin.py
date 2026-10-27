@@ -110,7 +110,7 @@ class blofin(Exchange, ImplicitAPI):
                 'fetchOpenInterestHistory': False,
                 'fetchOpenOrder': None,
                 'fetchOpenOrders': True,
-                'fetchOrder': None,
+                'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrderBooks': False,
                 'fetchOrders': False,
@@ -351,7 +351,12 @@ class blofin(Exchange, ImplicitAPI):
                         'untilDays': 100000,
                         'symbolRequired': False,
                     },
-                    'fetchOrder': None,
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': True,
+                    },
                     'fetchOpenOrders': {
                         'marginMode': False,
                         'limit': 100,
@@ -410,7 +415,9 @@ class blofin(Exchange, ImplicitAPI):
                     'linear': {
                         'extends': 'forDerivatives',
                     },
-                    'inverse': None,
+                    'inverse': {
+                        'extends': 'forDerivatives',
+                    },
                 },
                 'future': {
                     'linear': None,
@@ -1071,6 +1078,10 @@ class blofin(Exchange, ImplicitAPI):
             'bar': self.safe_string(self.timeframes, timeframe, timeframe),
             'limit': limitResolved,
         }
+        if since is not None:
+            durationInMilliseconds = self.parse_timeframe(timeframe) * 1000
+            request['before'] = max(since - 1, 0)
+            request['after'] = self.sum(since, durationInMilliseconds * limitResolved)
         until = self.safe_integer(query, 'until')
         if until is not None:
             request['after'] = until
@@ -1141,6 +1152,15 @@ class blofin(Exchange, ImplicitAPI):
         marketId = self.safe_string(contract, 'instId')
         symbol = self.safe_symbol(marketId, market)
         fundingTime = self.safe_integer(contract, 'fundingTime')
+        fundingInterval = self.safe_string(contract, 'fundingInterval')
+        intervalUnits = {
+            'hour': 'h',
+            'minute': 'm',
+        }
+        intervalUnit = self.safe_string(intervalUnits, self.safe_string(contract, 'fundingIntervalUnit'))
+        intervalString = None
+        if (fundingInterval is not None) and (intervalUnit is not None):
+            intervalString = fundingInterval + intervalUnit
         # > The current interest is 0.
         return {
             'info': contract,
@@ -1160,7 +1180,7 @@ class blofin(Exchange, ImplicitAPI):
             'previousFundingRate': None,
             'previousFundingTimestamp': None,
             'previousFundingDatetime': None,
-            'interval': None,
+            'interval': intervalString,
         }
 
     def fetch_funding_rate(self, symbol: str, params: dict = {}) -> FundingRate:
@@ -1702,6 +1722,47 @@ class blofin(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_orders(data)
 
+    def fetch_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
+        """
+        fetches information on an order made by the user
+
+        https://docs.blofin.com/index.html#get-order-detail
+        https://docs.blofin.com/index.html#get-tpsl-order-detail
+
+        :param str id: order id
+        :param str symbol: unified symbol of the market the order was made in
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.clientOrderId]: client order id, used instead of the id argument
+        :param boolean [params.tpsl]: True if fetching a tpsl order
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
+        """
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
+        if self.markets is None:
+            self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'instId': market['id'],
+        }
+        isTpsl = self.safe_bool_2(params, 'tpsl', 'TPSL', False)
+        clientOrderId = self.safe_string(params, 'clientOrderId')
+        if clientOrderId is not None:
+            request['clientOrderId'] = clientOrderId
+        elif isTpsl is True:
+            request['tpslId'] = id
+        else:
+            request['orderId'] = id
+        query = self.omit(params, ['clientOrderId', 'tpsl', 'TPSL'])
+        response: dict
+        if isTpsl is True:
+            response = self.privateGetTradeOrderTpslDetail(self.extend(request, query))
+        else:
+            response = self.privateGetTradeOrderDetail(self.extend(request, query))
+        data = self.safe_dict(response, 'data')
+        if data is None:
+            raise OrderNotFound(self.id + ' fetchOrder() could not find order ' + id)
+        return self.parse_order(data, market)
+
     def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         Fetch orders that are still open
@@ -1773,6 +1834,8 @@ class blofin(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
             request['instId'] = market['id']
+        if since is not None:
+            request['begin'] = since
         requestUntil, paramsUntil = self.handle_until_option('end', request, paramsPaginate)
         if limit is not None:
             requestUntil['limit'] = limit  # default 100, max 100

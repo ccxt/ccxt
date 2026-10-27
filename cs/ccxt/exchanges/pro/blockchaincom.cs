@@ -108,9 +108,17 @@ public partial class blockchaincom : ccxt.blockchaincom
         {
             return;
         }
-        Dictionary<string, object> result = new Dictionary<string, object>() {
-            { "info", message },
-        };
+        // merge updates into the existing balance object instead of building a
+        // fresh one: a consumer awakened by an earlier message holds a
+        // reference to this.balance, and Client.resolve is a no-op while
+        // nobody is awaiting, so a replaced object would make updates landing
+        // in that window invisible to the consumer forever (same class as
+        // issue #26773)
+        if ((this.balance == null))
+        {
+            this.balance = new Dictionary<string, object>() {};
+        }
+        this.balance["info"] = message;
         List<object> balances = this.safeList(message, "balances", new List<object>() {});
         for (int i = 0; i < balances.Count; i++)
         {
@@ -122,11 +130,11 @@ public partial class blockchaincom : ccxt.blockchaincom
             account["total"] = this.safeString(entry, "balance");
             if ((code != null))
             {
-                result[(string)code] = account;
+                this.balance[(string)code] = account;
             }
         }
         string messageHash = "balance";
-        this.balance = this.safeBalance(result);
+        this.balance = this.safeBalance(this.balance);
         client.resolve(this.balance, messageHash);
     }
 

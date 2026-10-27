@@ -2313,8 +2313,7 @@ class kalshi extends Exchange {
             $parsedEvent = $this->parse_event($rawEvents[$di]);
             $result[] = $parsedEvent;
             // register the parsed markets so populateOutcomes can index their outcomes
-            $parsedMarketsRaw = $parsedEvent['markets'];
-            $parsedMarkets = ($parsedMarketsRaw !== null) ? $parsedMarketsRaw : array();
+            $parsedMarkets = $parsedEvent['markets'];
             $parsedMarketsLength = count($parsedMarkets);
             for ($mi = 0; $mi < $parsedMarketsLength; $mi++) {
                 $m = $parsedMarkets[$mi];
@@ -2719,7 +2718,7 @@ class kalshi extends Exchange {
         ));
     }
 
-    public function sign(string $path, array $api = array('kalshi'), $method = 'GET', $params = array()) {
+    public function sign(string $path, array $api = array('kalshi'), string $method = 'GET', $params = array()) {
         /**
          * @ignore
          * builds the request URL and attaches RSA-PSS SHA-256 authentication headers for private endpoints

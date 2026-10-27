@@ -331,12 +331,7 @@ class bingx extends \ccxt\async\bingx {
         // Coin-M m is coin volume; v is contracts and q is already USD turnover.
         // prefer the caller's stream-derived flag so an unresolved market id on
         // the Coin-M endpoint does not silently fall back to the contract count
-        $inverse = false;
-        if ($isInverse === null) {
-            $inverse = $marketResolved['inverse'] === true;
-        } else {
-            $inverse = $isInverse;
-        }
+        $inverse = ($isInverse === true) || (($isInverse === null) && ($marketResolved['inverse'] === true));
         $baseVolumeKey = $inverse ? 'm' : 'v';
         return $this->safe_ticker(array(
             'symbol' => $marketResolved['symbol'],
@@ -918,7 +913,7 @@ class bingx extends \ccxt\async\bingx {
         $marketOptions = $this->safe_dict($this->options, $marketType);
         $timeframes = $this->safe_dict($marketOptions, 'timeframes', array());
         $unifiedTimeframe = $this->find_timeframe($rawTimeframe, $timeframes);
-        if ($this->safe_value($this->ohlcvs[$symbol], $rawTimeframe) === null) {
+        if ($this->safe_value($this->ohlcvs[$symbol], $unifiedTimeframe) === null) {
             $subscriptionHash = $dataType;
             $subscription = $this->safe_dict($client->subscriptions, $subscriptionHash);
             // subscription.limit is only set when watchOHLCV registers the subscription;

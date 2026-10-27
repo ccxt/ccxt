@@ -1242,7 +1242,7 @@ class polymarket extends Exchange {
         return $this->index_by($this->filter_by_array($result, 'symbol', $symbolsNormalized, false), 'symbol');
     }
 
-    public function parse_open_interest(mixed $interest, ?array $market = null) {
+    public function parse_open_interest(?array $interest, ?array $market = null) {
         //
         //     {
         //         "instrument_id": 1,
@@ -3003,7 +3003,7 @@ class polymarket extends Exchange {
         return $this->safe_value($config, 'cost', 1);
     }
 
-    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+    public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
         $apiType = $api[0];
         $url = $this->urls['api'][$apiType] . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));

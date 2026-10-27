@@ -707,6 +707,14 @@ class poloniex extends Exchange {
             $request['limit'] = $limit;
         }
         list($requestUntil, $paramsUntil) = $this->handle_until_option($keyEnd, $request, $paramsPaginate);
+        if (($since !== null) && ($limit !== null) && ($this->safe_integer($requestUntil, $keyEnd) === null)) {
+            // without an end time the exchange returns the latest candles, not the ones starting at since,
+            // so end the window at the start of the limit-th candle from the first one at or after since
+            $duration = $this->parse_timeframe($timeframe) * 1000;
+            $firstCandle = $this->parse_to_int((int) ceil($since / $duration)) * $duration;
+            $endTimeByLimit = $this->sum($firstCandle, $duration * ($limit - 1));
+            $requestUntil[$keyEnd] = min($endTimeByLimit, $this->milliseconds());
+        }
         if ($market['contract'] === true) {
             $responseRaw = $this->swapPublicGetV3MarketCandles($this->extend($requestUntil, $paramsUntil));
             //
@@ -3433,7 +3441,7 @@ class poloniex extends Exchange {
         return $depositWithdrawFees;
     }
 
-    public function parse_deposit_withdraw_fee(mixed $fee, ?array $currency = null): mixed {
+    public function parse_deposit_withdraw_fee(?array $fee, ?array $currency = null): mixed {
         $depositWithdrawFee = $this->deposit_withdraw_fee(array());
         $currencyCode = $this->safe_string($currency, 'code');
         $depositWithdrawFee['info'][$currencyCode] = $fee;
@@ -3979,7 +3987,7 @@ class poloniex extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+    public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
         $apiName = $api[0];
         $isArray = (gettype($params) === 'array' && array_keys($params) === array_keys(array_keys($params)));
         $url = $this->urls['api']['spot'];

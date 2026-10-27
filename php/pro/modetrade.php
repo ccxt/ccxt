@@ -215,10 +215,11 @@ class modetrade extends \ccxt\async\modetrade {
         //         "count": 3689
         //     }
         //
+        $timestamp = $this->safe_integer($ticker, 'timestamp');
         return $this->safe_ticker(array(
             'symbol' => $this->safe_symbol(null, $market),
-            'timestamp' => null,
-            'datetime' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_string($ticker, 'high'),
             'low' => $this->safe_string($ticker, 'low'),
             'bid' => null,
@@ -261,8 +262,7 @@ class modetrade extends \ccxt\async\modetrade {
         $marketId = $this->safe_string($data, 'symbol');
         $market = $this->safe_market($marketId);
         $timestamp = $this->safe_integer($message, 'ts');
-        $data['date'] = $timestamp;
-        $ticker = $this->parse_ws_ticker($data, $market);
+        $ticker = $this->parse_ws_ticker($this->extend($data, array( 'timestamp' => $timestamp )), $market);
         $ticker['symbol'] = $market['symbol'];
         $this->tickers[$market['symbol']] = $ticker;
         $client->resolve($ticker, $topic);
@@ -325,7 +325,7 @@ class modetrade extends \ccxt\async\modetrade {
         for ($i = 0; $i < count($data); $i++) {
             $marketId = $this->safe_string($data[$i], 'symbol');
             $market = $this->safe_market($marketId);
-            $ticker = $this->parse_ws_ticker($this->extend($data[$i], array( 'date' => $timestamp )), $market);
+            $ticker = $this->parse_ws_ticker($this->extend($data[$i], array( 'timestamp' => $timestamp )), $market);
             $this->tickers[$market['symbol']] = $ticker;
             $result[] = $ticker;
         }
@@ -1139,7 +1139,7 @@ class modetrade extends \ccxt\async\modetrade {
         return $this->filter_by_symbols_since_limit($this->positions, $symbolsNormalized, $since, $limit, true);
     }
 
-    public function set_positions_cache(Client $client, mixed $type, ?array $symbols = null) {
+    public function set_positions_cache(Client $client, ?array $symbols = null) {
         $fetchPositionsSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot', false);
         if ($fetchPositionsSnapshot === true) {
             $messageHash = 'fetchPositionsSnapshot';

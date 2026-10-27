@@ -831,7 +831,7 @@ class bingx(ccxt.async_support.bingx):
         marketOptions = self.safe_dict(self.options, marketType)
         timeframes = self.safe_dict(marketOptions, 'timeframes', {})
         unifiedTimeframe = self.find_timeframe(rawTimeframe, timeframes)
-        if self.safe_value(self.ohlcvs[symbol], rawTimeframe) is None:
+        if self.safe_value(self.ohlcvs[symbol], unifiedTimeframe) is None:
             subscriptionHash = dataType
             subscription = self.safe_dict(client.subscriptions, subscriptionHash)
             # subscription.limit is only set when watchOHLCV registers the subscription;

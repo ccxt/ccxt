@@ -1145,7 +1145,35 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
                 put( "type", "swap" );
             }};
             Balances response = (this.fetchBalance(parameters)).join();
-            this.balance = this.extend(response, this.balance);
+            // merge the snapshot into the existing balance object per currency so
+            // the object keeps its identity and deltas that arrived while the
+            // snapshot was in flight are not overwritten; the free/used/total
+            // aggregates are rebuilt from the merged currencies by safeBalance
+            if (java.util.Objects.equals(this.balance, null))
+            {
+                this.balance = new HashMap<String, Object>() {{}};
+            }
+            List<String> reserved = new ArrayList<String>(Arrays.asList("info", "timestamp", "datetime", "free", "used", "total"));
+            List<String> keys = new ArrayList<String>(((Map<String, Object>)response).keySet());
+            for (var i = 0; i < ((List<?>)keys).size(); i++)
+            {
+                String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
+                if (this.inArray(key, reserved))
+                {
+                    continue;
+                }
+                if (!(((Map<?, ?>)this.balance).containsKey(key)))
+                {
+                    Helpers.addElementToObject(this.balance, key, (response == null || key == null ? null : response.get(key)));
+                }
+            }
+            if (!(((Map<?, ?>)this.balance).containsKey("info")))
+            {
+                Helpers.addElementToObject(this.balance, "info", ((Map<String, Object>)response).get("info"));
+                Helpers.addElementToObject(this.balance, "timestamp", ((Map<String, Object>)response).get("timestamp"));
+                Helpers.addElementToObject(this.balance, "datetime", ((Map<String, Object>)response).get("datetime"));
+            }
+            this.balance = this.safeBalance(this.balance);
             // don't remove the future from the .futures cache
             io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)Helpers.GetValue(client.futures, messageHash);
             future.resolve();
@@ -1197,34 +1225,37 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         //         "e": "ACCOUNT_UPDATE"
         //     }
         //
-        String messageHash = "balance";
-        if (((Map<?, ?>)client.futures).containsKey(messageHash))
+        // merge updates into the existing balance object instead of building a
+        // fresh one: a consumer awakened by an earlier message holds a reference
+        // to this.balance, and Client.resolve is a no-op while nobody is
+        // awaiting, so a replaced object would make updates landing in that
+        // window invisible to the consumer forever (issue #26773)
+        if (java.util.Objects.equals(this.balance, null))
         {
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "a", new HashMap<String, Object>() {{}});
-            List<Object> balances = (List<Object>) this.safeList(data, "B", new ArrayList<Object>(Arrays.asList()));
-            Long timestamp = this.safeInteger(message, "T");
-            Map<String, Object> result = new HashMap<String, Object>() {{
-                put( "info", message );
-                put( "timestamp", timestamp );
-                put( "datetime", Bydfi.this.iso8601(timestamp) );
-            }};
-            for (var i = 0; i < ((List<?>)balances).size(); i++)
-            {
-                Map<String, Object> balance = (Map<String, Object>) this.safeDict(balances, i, (Object) null);
-                String currencyId = this.safeString(balance, "a");
-                String code = this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null);
-                Map<String, Object> account = this.account();
-                account.put("total", this.safeString(balance, "wb"));
-                account.put("used", this.safeString(balance, "tfm"));
-                if (!java.util.Objects.equals(code, null))
-                {
-                    result.put(code, account);
-                }
-            }
-            Balances parsedBalance = this.safeBalance(result);
-            this.balance = this.extend(this.balance, parsedBalance);
-            client.resolve(this.balance, messageHash);
+            this.balance = new HashMap<String, Object>() {{}};
         }
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "a", new HashMap<String, Object>() {{}});
+        List<Object> balances = (List<Object>) this.safeList(data, "B", new ArrayList<Object>(Arrays.asList()));
+        Long timestamp = this.safeInteger(message, "T");
+        Helpers.addElementToObject(this.balance, "info", message);
+        Helpers.addElementToObject(this.balance, "timestamp", timestamp);
+        Helpers.addElementToObject(this.balance, "datetime", this.iso8601(timestamp));
+        for (var i = 0; i < ((List<?>)balances).size(); i++)
+        {
+            Map<String, Object> balance = (Map<String, Object>) this.safeDict(balances, i, (Object) null);
+            String currencyId = this.safeString(balance, "a");
+            String code = this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null);
+            Map<String, Object> account = this.account();
+            account.put("total", this.safeString(balance, "wb"));
+            account.put("used", this.safeString(balance, "tfm"));
+            if (!java.util.Objects.equals(code, null))
+            {
+                Helpers.addElementToObject(this.balance, code, account);
+            }
+        }
+        this.balance = this.safeBalance(this.balance);
+        String messageHash = "balance";
+        client.resolve(this.balance, messageHash);
     }
 
     public Map<String, Object> handleSubscriptionStatus(Client client, Map<String, Object> message)

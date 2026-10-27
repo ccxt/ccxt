@@ -1553,10 +1553,6 @@ public class Pacifica extends PacificaApi
             {
                 throw new ArgumentsRequired((this.id + " fetchOHLCV() requires a \"since\" argument")) ;
             }
-            if (java.util.Objects.equals(symbol, null))
-            {
-                throw new ArgumentsRequired((this.id + " fetchOHLCV() requires a \"symbol\" argument")) ;
-            }
             Long defaultMaxLimit = 3950L; // 4000 by docs, but in fact >~3960 returns error
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -3802,25 +3798,36 @@ public class Pacifica extends PacificaApi
         //
         Long timestamp = this.safeInteger(item, "created_at");
         String type = this.safeString(item, "event_type");
-        String amount = this.safeString(item, "amount");
+        String change = this.safeString(item, "amount");
         String balance = this.safeString(item, "balance");
-        return this.safeLedgerEntry(new HashMap<String, Object>() {{
-            put( "info", item );
-            put( "id", null );
-            put( "direction", null );
-            put( "account", null );
-            put( "referenceAccount", null );
-            put( "referenceId", null );
-            put( "type", Pacifica.this.parseLedgerEntryType(type) );
-            put( "currency", null );
-            put( "amount", Pacifica.this.parseNumber(amount) );
-            put( "timestamp", timestamp );
-            put( "datetime", Pacifica.this.iso8601(timestamp) );
-            put( "before", null );
-            put( "after", Pacifica.this.parseNumber(balance) );
-            put( "status", null );
-            put( "fee", null );
-        }}, currency);
+        Map<String, Object> currencyResolved = this.safeCurrency("USDC", currency);
+        String direction = null;
+        String amount = change;
+        if (Precise.stringLt(amount, "0"))
+        {
+            direction = "out";
+            amount = Precise.stringAbs(amount);
+        } else
+        {
+            direction = "in";
+        }
+        HashMap<String, Object> mapLiteral13 = new HashMap<String, Object>();
+        mapLiteral13.put("info", item);
+        mapLiteral13.put("id", null);
+        mapLiteral13.put("direction", direction);
+        mapLiteral13.put("account", null);
+        mapLiteral13.put("referenceAccount", null);
+        mapLiteral13.put("referenceId", null);
+        mapLiteral13.put("type", this.parseLedgerEntryType(type));
+        mapLiteral13.put("currency", currencyResolved.get("code"));
+        mapLiteral13.put("amount", this.parseNumber(amount));
+        mapLiteral13.put("timestamp", timestamp);
+        mapLiteral13.put("datetime", this.iso8601(timestamp));
+        mapLiteral13.put("before", this.parseNumber(Precise.stringSub(balance, change)));
+        mapLiteral13.put("after", this.parseNumber(balance));
+        mapLiteral13.put("status", null);
+        mapLiteral13.put("fee", null);
+        return this.safeLedgerEntry(mapLiteral13, currencyResolved);
     }
 
     public String parseLedgerEntryType(String type)

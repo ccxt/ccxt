@@ -18,6 +18,7 @@
 * [createOrder](#createorder)
 * [cancelOrder](#cancelorder)
 * [createOrders](#createorders)
+* [fetchOrder](#fetchorder)
 * [fetchOpenOrders](#fetchopenorders)
 * [fetchMyTrades](#fetchmytrades)
 * [fetchDeposits](#fetchdeposits)
@@ -376,6 +377,34 @@ create a list of trade orders
 
 ```javascript
 blofin.createOrders (orders, params?)
+```
+
+
+<a name="fetchOrder" id="fetchorder"></a>
+
+### fetchOrder{docsify-ignore}
+fetches information on an order made by the user
+
+**Kind**: instance method of [<code>blofin</code>](#blofin)  
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
+
+**See**
+
+- https://docs.blofin.com/index.html#get-order-detail
+- https://docs.blofin.com/index.html#get-tpsl-order-detail
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| id | <code>string</code> | Yes | order id |
+| symbol | <code>string</code> | Yes | unified symbol of the market the order was made in |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.clientOrderId | <code>string</code> | No | client order id, used instead of the id argument |
+| params.tpsl | <code>boolean</code> | No | True if fetching a tpsl order |
+
+
+```javascript
+blofin.fetchOrder (id, symbol, params?)
 ```
 
 

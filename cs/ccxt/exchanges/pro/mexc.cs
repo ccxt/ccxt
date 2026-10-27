@@ -179,7 +179,6 @@ public partial class mexc : ccxt.mexc
         //         "s": "BTCUSDT"
         //     }
         //
-        this.handleBidAsk(client, message);
         IDictionary<string, object> rawTicker = this.safeDictN(message, new List<object>() {"d", "data", "publicAggreBookTicker"});
         string? marketId = this.safeString2(message, "s", "symbol");
         Int64? timestamp = this.safeInteger2(message, "t", "sendTime");
@@ -188,6 +187,7 @@ public partial class mexc : ccxt.mexc
         Dictionary<string, object> ticker = null;
         if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
         {
+            this.handleBidAsk(client, message); // the bids-asks channel is spot only
             ticker = ccxt.BaseExchange.FromTicker(this.parseWsTicker(rawTicker, market));
             ticker["timestamp"] = timestamp;
             ticker["datetime"] = this.iso8601(timestamp);
@@ -480,6 +480,22 @@ public partial class mexc : ccxt.mexc
     public virtual void handleBidAsk(WebSocketClient client, object message)
     {
         //
+        // protobuf
+        //
+        //    {
+        //        "channel": "spot@public.aggre.bookTicker.v3.api.pb@100ms@BTCUSDT",
+        //        "symbol": "BTCUSDT",
+        //        "sendTime": "1792779974344",
+        //        "publicAggreBookTicker": {
+        //            "bidPrice": "81577.79",
+        //            "bidQuantity": "0.11985594",
+        //            "askPrice": "81577.8",
+        //            "askQuantity": "0.12200121"
+        //        }
+        //    }
+        //
+        // retired json channel
+        //
         //    {
         //        "c": "spot@public.bookTicker.v3.api@BTCUSDT",
         //        "d": {
@@ -505,19 +521,19 @@ public partial class mexc : ccxt.mexc
 
     public virtual Dictionary<string, object> parseWsBidAsk(object ticker, IDictionary<string, object> market = null)
     {
-        IDictionary<string, object> data = this.safeDict(ticker, "d");
-        string? marketId = this.safeString(ticker, "s");
+        IDictionary<string, object> data = this.safeDictN(ticker, new List<object>() {"d", "data", "publicAggreBookTicker"});
+        string? marketId = this.safeString2(ticker, "s", "symbol");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         string? symbol = this.safeString(marketResolved, "symbol");
-        Int64? timestamp = this.safeInteger(ticker, "t");
+        Int64? timestamp = this.safeInteger2(ticker, "t", "sendTime");
         return ccxt.BaseExchange.FromTicker(this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "ask", this.safeNumber(data, "a") },
-            { "askVolume", this.safeNumber(data, "A") },
-            { "bid", this.safeNumber(data, "b") },
-            { "bidVolume", this.safeNumber(data, "B") },
+            { "ask", this.safeNumber2(data, "a", "askPrice") },
+            { "askVolume", this.safeNumber2(data, "A", "askQuantity") },
+            { "bid", this.safeNumber2(data, "b", "bidPrice") },
+            { "bidVolume", this.safeNumber2(data, "B", "bidQuantity") },
             { "info", ticker },
         }, marketResolved));
     }

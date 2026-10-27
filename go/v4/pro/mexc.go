@@ -231,7 +231,6 @@ func (this *Mexc) HandleTicker(client any, message any) {
 	//         "s": "BTCUSDT"
 	//     }
 	//
-	this.HandleBidAsk(client, message)
 	var rawTicker any = this.SafeDictN(message, []any{"d", "data", "publicAggreBookTicker"})
 	var marketId *string = this.SafeString2(message, "s", "symbol")
 	var timestamp *int64 = this.SafeInteger2(message, "t", "sendTime")
@@ -239,6 +238,7 @@ func (this *Mexc) HandleTicker(client any, message any) {
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var ticker any = nil
 	if market["spot"] == true {
+		this.HandleBidAsk(client, message) // the bids-asks channel is spot only
 		ticker = this.ParseWsTicker(rawTicker, market)
 		ccxt.AddElementToObject(ticker, "timestamp", timestamp)
 		ccxt.AddElementToObject(ticker, "datetime", this.Iso8601(timestamp))
@@ -582,6 +582,22 @@ func (this *Mexc) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccxt.Tic
 }
 func (this *Mexc) HandleBidAsk(client any, message any) {
 	//
+	// protobuf
+	//
+	//    {
+	//        "channel": "spot@public.aggre.bookTicker.v3.api.pb@100ms@BTCUSDT",
+	//        "symbol": "BTCUSDT",
+	//        "sendTime": "1792779974344",
+	//        "publicAggreBookTicker": {
+	//            "bidPrice": "81577.79",
+	//            "bidQuantity": "0.11985594",
+	//            "askPrice": "81577.8",
+	//            "askQuantity": "0.12200121"
+	//        }
+	//    }
+	//
+	// retired json channel
+	//
 	//    {
 	//        "c": "spot@public.bookTicker.v3.api@BTCUSDT",
 	//        "d": {
@@ -606,19 +622,19 @@ func (this *Mexc) HandleBidAsk(client any, message any) {
 func (this *Mexc) ParseWsBidAsk(ticker any, optionalArgs ...any) any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	var data map[string]any = ccxt.SafeMapTyped(ticker, "d")
-	var marketId *string = this.SafeString(ticker, "s")
+	var data any = this.SafeDictN(ticker, []any{"d", "data", "publicAggreBookTicker"})
+	var marketId *string = this.SafeString2(ticker, "s", "symbol")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
 	var symbol *string = this.SafeString(marketResolved, "symbol")
-	var timestamp *int64 = this.SafeInteger(ticker, "t")
+	var timestamp *int64 = this.SafeInteger2(ticker, "t", "sendTime")
 	return ccxt.TickerToMap(this.SafeTicker(map[string]any{
 		"symbol":    symbol,
 		"timestamp": timestamp,
 		"datetime":  this.Iso8601(timestamp),
-		"ask":       this.SafeNumber(data, "a"),
-		"askVolume": this.SafeNumber(data, "A"),
-		"bid":       this.SafeNumber(data, "b"),
-		"bidVolume": this.SafeNumber(data, "B"),
+		"ask":       this.SafeNumber2(data, "a", "askPrice"),
+		"askVolume": this.SafeNumber2(data, "A", "askQuantity"),
+		"bid":       this.SafeNumber2(data, "b", "bidPrice"),
+		"bidVolume": this.SafeNumber2(data, "B", "bidQuantity"),
 		"info":      ticker,
 	}, marketResolved))
 }

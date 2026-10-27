@@ -1415,7 +1415,30 @@ func (this *Bydfi) loadBalanceSnapshotBody(ch chan ccxt.AsyncResult[bool], clien
 	if !ccxt.StructAbsent(r.Value) {
 		response = ccxt.StructBox(r.Value, ccxt.BalancesToMap)
 	}
-	this.Balance = this.Extend(response, this.Balance)
+	// merge the snapshot into the existing balance object per currency so
+	// the object keeps its identity and deltas that arrived while the
+	// snapshot was in flight are not overwritten; the free/used/total
+	// aggregates are rebuilt from the merged currencies by safeBalance
+	if ccxt.IsEqual(this.Balance, nil) {
+		this.Balance = map[string]any{}
+	}
+	var reserved []any = []any{"info", "timestamp", "datetime", "free", "used", "total"}
+	var keys []string = ccxt.ObjectKeys(response)
+	for i := 0; i < len(keys); i++ {
+		var key string = keys[i]
+		if this.InArray(key, reserved) {
+			continue
+		}
+		if !(ccxt.InOp(this.Balance, key)) {
+			ccxt.AddElementToObject(this.Balance, key, ccxt.GetValue(response, key))
+		}
+	}
+	if !(ccxt.InOp(this.Balance, "info")) {
+		ccxt.AddElementToObject(this.Balance, "info", ccxt.GetValue(response, "info"))
+		ccxt.AddElementToObject(this.Balance, "timestamp", ccxt.GetValue(response, "timestamp"))
+		ccxt.AddElementToObject(this.Balance, "datetime", ccxt.GetValue(response, "datetime"))
+	}
+	this.Balance = this.SafeBalance(this.Balance)
 	// don't remove the future from the .futures cache
 	var future any = ccxt.GetValue(client.(ccxt.ClientInterface).GetFutures(), messageHash)
 	future.(*ccxt.Future).Resolve()
@@ -1463,31 +1486,34 @@ func (this *Bydfi) HandleBalance(client any, message any) {
 	//         "e": "ACCOUNT_UPDATE"
 	//     }
 	//
-	var messageHash string = "balance"
-	if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; ok {
-		var data map[string]any = ccxt.SafeMapTyped(message, "a")
-		var balances []any = ccxt.SafeListTyped(data, "B")
-		var timestamp *int64 = this.SafeInteger(message, "T")
-		var result map[string]any = map[string]any{
-			"info":      message,
-			"timestamp": timestamp,
-			"datetime":  this.Iso8601(timestamp),
-		}
-		for i := 0; i < len(balances); i++ {
-			var balance map[string]any = ccxt.SafeMapTyped(balances, i)
-			var currencyId *string = this.SafeString(balance, "a")
-			var code *string = this.SafeCurrencyCode(currencyId)
-			var account map[string]any = this.Account()
-			account["total"] = this.SafeString(balance, "wb")
-			account["used"] = this.SafeString(balance, "tfm")
-			if code != nil {
-				result[*code] = account
-			}
-		}
-		var parsedBalance map[string]any = ccxt.MapTyped(this.SafeBalance(result))
-		this.Balance = this.Extend(this.Balance, parsedBalance)
-		client.(ccxt.ClientInterface).Resolve(this.Balance, messageHash)
+	// merge updates into the existing balance object instead of building a
+	// fresh one: a consumer awakened by an earlier message holds a reference
+	// to this.balance, and ccxt.Client.resolve is a no-op while nobody is
+	// awaiting, so a replaced object would make updates landing in that
+	// window invisible to the consumer forever (issue #26773)
+	if ccxt.IsEqual(this.Balance, nil) {
+		this.Balance = map[string]any{}
 	}
+	var data map[string]any = ccxt.SafeMapTyped(message, "a")
+	var balances []any = ccxt.SafeListTyped(data, "B")
+	var timestamp *int64 = this.SafeInteger(message, "T")
+	ccxt.AddElementToObject(this.Balance, "info", message)
+	ccxt.AddElementToObject(this.Balance, "timestamp", timestamp)
+	ccxt.AddElementToObject(this.Balance, "datetime", this.Iso8601(timestamp))
+	for i := 0; i < len(balances); i++ {
+		var balance map[string]any = ccxt.SafeMapTyped(balances, i)
+		var currencyId *string = this.SafeString(balance, "a")
+		var code *string = this.SafeCurrencyCode(currencyId)
+		var account map[string]any = this.Account()
+		account["total"] = this.SafeString(balance, "wb")
+		account["used"] = this.SafeString(balance, "tfm")
+		if code != nil {
+			ccxt.AddElementToObject(this.Balance, code, account)
+		}
+	}
+	this.Balance = this.SafeBalance(this.Balance)
+	var messageHash string = "balance"
+	client.(ccxt.ClientInterface).Resolve(this.Balance, messageHash)
 }
 func (this *Bydfi) HandleSubscriptionStatus(client any, message any) any {
 	//

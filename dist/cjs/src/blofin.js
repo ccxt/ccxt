@@ -98,7 +98,7 @@ class blofin extends blofin$1["default"] {
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrder': undefined,
                 'fetchOpenOrders': true,
-                'fetchOrder': undefined,
+                'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': false,
                 'fetchOrders': false,
@@ -339,7 +339,12 @@ class blofin extends blofin$1["default"] {
                         'untilDays': 100000,
                         'symbolRequired': false,
                     },
-                    'fetchOrder': undefined,
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': true,
+                    },
                     'fetchOpenOrders': {
                         'marginMode': false,
                         'limit': 100,
@@ -398,7 +403,9 @@ class blofin extends blofin$1["default"] {
                     'linear': {
                         'extends': 'forDerivatives',
                     },
-                    'inverse': undefined,
+                    'inverse': {
+                        'extends': 'forDerivatives',
+                    },
                 },
                 'future': {
                     'linear': undefined,
@@ -1077,6 +1084,11 @@ class blofin extends blofin$1["default"] {
             'bar': this.safeString(this.timeframes, timeframe, timeframe),
             'limit': limitResolved,
         };
+        if (since !== undefined) {
+            const durationInMilliseconds = this.parseTimeframe(timeframe) * 1000;
+            request['before'] = Math.max(since - 1, 0);
+            request['after'] = this.sum(since, durationInMilliseconds * limitResolved);
+        }
         const until = this.safeInteger(query, 'until');
         if (until !== undefined) {
             request['after'] = until;
@@ -1155,6 +1167,16 @@ class blofin extends blofin$1["default"] {
         const marketId = this.safeString(contract, 'instId');
         const symbol = this.safeSymbol(marketId, market);
         const fundingTime = this.safeInteger(contract, 'fundingTime');
+        const fundingInterval = this.safeString(contract, 'fundingInterval');
+        const intervalUnits = {
+            'hour': 'h',
+            'minute': 'm',
+        };
+        const intervalUnit = this.safeString(intervalUnits, this.safeString(contract, 'fundingIntervalUnit'));
+        let intervalString = undefined;
+        if ((fundingInterval !== undefined) && (intervalUnit !== undefined)) {
+            intervalString = fundingInterval + intervalUnit;
+        }
         // > The current interest is 0.
         return {
             'info': contract,
@@ -1174,7 +1196,7 @@ class blofin extends blofin$1["default"] {
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
-            'interval': undefined,
+            'interval': intervalString,
         };
     }
     /**
@@ -1778,6 +1800,55 @@ class blofin extends blofin$1["default"] {
     }
     /**
      * @method
+     * @name blofin#fetchOrder
+     * @description fetches information on an order made by the user
+     * @see https://docs.blofin.com/index.html#get-order-detail
+     * @see https://docs.blofin.com/index.html#get-tpsl-order-detail
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] client order id, used instead of the id argument
+     * @param {boolean} [params.tpsl] True if fetching a tpsl order
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    async fetchOrder(id, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' fetchOrder() requires a symbol argument');
+        }
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const market = this.market(symbol);
+        const request = {
+            'instId': market['id'],
+        };
+        const isTpsl = this.safeBool2(params, 'tpsl', 'TPSL', false);
+        const clientOrderId = this.safeString(params, 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            request['clientOrderId'] = clientOrderId;
+        }
+        else if (isTpsl === true) {
+            request['tpslId'] = id;
+        }
+        else {
+            request['orderId'] = id;
+        }
+        const query = this.omit(params, ['clientOrderId', 'tpsl', 'TPSL']);
+        let response;
+        if (isTpsl === true) {
+            response = await this.privateGetTradeOrderTpslDetail(this.extend(request, query));
+        }
+        else {
+            response = await this.privateGetTradeOrderDetail(this.extend(request, query));
+        }
+        const data = this.safeDict(response, 'data');
+        if (data === undefined) {
+            throw new errors.OrderNotFound(this.id + ' fetchOrder() could not find order ' + id);
+        }
+        return this.parseOrder(data, market);
+    }
+    /**
+     * @method
      * @name blofin#fetchOpenOrders
      * @description Fetch orders that are still open
      * @see https://blofin.com/docs#get-active-orders
@@ -1854,6 +1925,9 @@ class blofin extends blofin$1["default"] {
         if (symbol !== undefined) {
             market = this.market(symbol);
             request['instId'] = market['id'];
+        }
+        if (since !== undefined) {
+            request['begin'] = since;
         }
         const [requestUntil, paramsUntil] = this.handleUntilOption('end', request, paramsPaginate);
         if (limit !== undefined) {

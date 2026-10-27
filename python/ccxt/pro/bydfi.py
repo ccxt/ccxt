@@ -861,7 +861,25 @@ class bydfi(ccxt.async_support.bydfi):
             'type': 'swap',
         }
         response = await self.fetch_balance(params)
-        self.balance = self.extend(response, self.balance)
+        # merge the snapshot into the existing balance object per currency so
+        # the object keeps its identity and deltas that arrived while the
+        # snapshot was in flight are not overwritten; the free/used/total
+        # aggregates are rebuilt from the merged currencies by safeBalance
+        if self.balance is None:
+            self.balance = {}
+        reserved = ['info', 'timestamp', 'datetime', 'free', 'used', 'total']
+        keys = list(response.keys())
+        for i in range(0, len(keys)):
+            key = keys[i]
+            if self.in_array(key, reserved):
+                continue
+            if not (key in self.balance):
+                self.balance[key] = response[key]
+        if not ('info' in self.balance):
+            self.balance['info'] = response['info']
+            self.balance['timestamp'] = response['timestamp']
+            self.balance['datetime'] = response['datetime']
+        self.balance = self.safe_balance(self.balance)
         # don't remove the future from the .futures cache
         future = client.futures[messageHash]
         future.resolve()
@@ -908,28 +926,31 @@ class bydfi(ccxt.async_support.bydfi):
         #         "e": "ACCOUNT_UPDATE"
         #     }
         #
+        # merge updates into the existing balance object instead of building a
+        # fresh one: a consumer awakened by an earlier message holds a reference
+        # to this.balance, and Client.resolve is a no-op while nobody is
+        # awaiting, so a replaced object would make updates landing in that
+        # window invisible to the consumer forever (issue #26773)
+        if self.balance is None:
+            self.balance = {}
+        data = self.safe_dict(message, 'a', {})
+        balances = self.safe_list(data, 'B', [])
+        timestamp = self.safe_integer(message, 'T')
+        self.balance['info'] = message
+        self.balance['timestamp'] = timestamp
+        self.balance['datetime'] = self.iso8601(timestamp)
+        for i in range(0, len(balances)):
+            balance = self.safe_dict(balances, i)
+            currencyId = self.safe_string(balance, 'a')
+            code = self.safe_currency_code(currencyId)
+            account = self.account()
+            account['total'] = self.safe_string(balance, 'wb')
+            account['used'] = self.safe_string(balance, 'tfm')
+            if code is not None:
+                self.balance[code] = account
+        self.balance = self.safe_balance(self.balance)
         messageHash = 'balance'
-        if messageHash in client.futures:
-            data = self.safe_dict(message, 'a', {})
-            balances = self.safe_list(data, 'B', [])
-            timestamp = self.safe_integer(message, 'T')
-            result = {
-                'info': message,
-                'timestamp': timestamp,
-                'datetime': self.iso8601(timestamp),
-            }
-            for i in range(0, len(balances)):
-                balance = self.safe_dict(balances, i)
-                currencyId = self.safe_string(balance, 'a')
-                code = self.safe_currency_code(currencyId)
-                account = self.account()
-                account['total'] = self.safe_string(balance, 'wb')
-                account['used'] = self.safe_string(balance, 'tfm')
-                if code is not None:
-                    result[code] = account
-            parsedBalance = self.safe_balance(result)
-            self.balance = self.extend(self.balance, parsedBalance)
-            client.resolve(self.balance, messageHash)
+        client.resolve(self.balance, messageHash)
 
     def handle_subscription_status(self, client: Client, message: dict) -> dict:
         #

@@ -8519,6 +8519,7 @@ public partial class okx : Exchange
      * @param {int} [since] the earliest time in ms to fetch funding history for
      * @param {int} [limit] the maximum number of funding history structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch funding history for
      * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
     public async override Task<List<ccxt.FundingHistory>> FetchFundingHistory(string? symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
@@ -8539,6 +8540,7 @@ public partial class okx : Exchange
         if ((symbol != null))
         {
             market = this.market(symbol);
+            request["instId"] = (market.ContainsKey("id") ? market["id"] : null);
             if ((((market.ContainsKey("contract") ? market["contract"] : null) as bool?) == true))
             {
                 if ((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true))
@@ -8552,16 +8554,23 @@ public partial class okx : Exchange
                 }
             }
         }
+        if ((since != null))
+        {
+            request["begin"] = since;
+        }
+        IList<object> requestUntilparamsUntilVariable = (IList<object>)this.handleUntilOption("end", request, parameters);
+        Dictionary<string, object> requestUntil = (Dictionary<string, object>)requestUntilparamsUntilVariable[0];
+        IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)requestUntilparamsUntilVariable[1]);
         object symbolResolved = ((market != null)) ? this.safeString(market, "symbol") : symbol;
-        IList<object> typequeryVariable = (IList<object>)this.handleMarketTypeAndParams("fetchFundingHistory", market, parameters);
+        IList<object> typequeryVariable = (IList<object>)this.handleMarketTypeAndParams("fetchFundingHistory", market, paramsUntil);
         string? type = (string)typequeryVariable[0];
         IDictionary<string, object> query = ((IDictionary<string, object>)typequeryVariable[1]);
         if ((type == "swap"))
         {
-            request["instType"] = this.convertToInstrumentType(type);
+            requestUntil["instType"] = this.convertToInstrumentType(type);
         }
         // AccountBillsArchive has the same cost as AccountBills but supports three months of data
-        Dictionary<string, object> response = await this.privateGetAccountBillsArchive(this.extend(request, query));
+        Dictionary<string, object> response = await this.privateGetAccountBillsArchive(this.extend(requestUntil, query));
         //
         //    {
         //        "bal": "0.0242946200998573",

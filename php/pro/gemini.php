@@ -1025,7 +1025,8 @@ class gemini extends \ccxt\async\gemini {
             return;
         }
         $this->check_required_credentials();
-        $startIndex = count($this->urls['api']['ws']);
+        $wsBaseUrl = $this->safe_string($this->urls['api'], 'ws', '');
+        $startIndex = count($wsBaseUrl);
         $urlParamsIndex = mb_strpos($url, '?');
         $urlLength = count($url);
         $endIndex = ($urlParamsIndex >= 0) ? $urlParamsIndex : $urlLength;

@@ -2796,7 +2796,7 @@ class cryptocom extends Exchange {
         return array( $marginMode, $paramsMarginMode );
     }
 
-    public function parse_deposit_withdraw_fee(mixed $fee, ?array $currency = null): mixed {
+    public function parse_deposit_withdraw_fee(?array $fee, ?array $currency = null): mixed {
         //
         //    {
         //        "full_name": "Alchemix",
@@ -3766,7 +3766,7 @@ class cryptocom extends Exchange {
         );
     }
 
-    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+    public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
         $requestHeaders = null;
         $requestBody = null;
         $type = $this->safe_string($api, 0);

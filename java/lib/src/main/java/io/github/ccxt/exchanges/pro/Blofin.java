@@ -641,7 +641,31 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         //     }
         //
         String marketType = "swap"; // for now
-        Helpers.addElementToObject(this.balance, marketType, this.parseWsBalance((Map<String, Object>) (message)));
+        // merge the parsed update into the existing balance object instead of
+        // replacing it: a consumer awakened by an earlier message holds a
+        // reference to this.balance[marketType], and Client.resolve is a no-op
+        // while nobody is awaiting, so a replaced object would make updates
+        // landing in that window invisible to the consumer forever (same class
+        // as issue #26773); the free/used/total aggregates are rebuilt from
+        // the merged currencies by safeBalance
+        if (java.util.Objects.equals(this.balance, null))
+        {
+            this.balance = new HashMap<String, Object>() {{}};
+        }
+        Helpers.addElementToObject(this.balance, marketType, this.safeDict(this.balance, marketType, new HashMap<String, Object>() {{}}));
+        Object parsed = this.parseWsBalance((Map<String, Object>) (message));
+        List<String> reserved = new ArrayList<String>(Arrays.asList("free", "used", "total"));
+        List<String> keys = new ArrayList<String>(((Map<String, Object>)parsed).keySet());
+        for (var i = 0; i < ((List<?>)keys).size(); i++)
+        {
+            String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
+            if (this.inArray(key, reserved))
+            {
+                continue;
+            }
+            Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(marketType)), key, Helpers.GetValue(parsed, key));
+        }
+        Helpers.addElementToObject(this.balance, marketType, this.safeBalance((this.balance == null ? null : ((Map<?, ?>)this.balance).get(marketType))));
         String messageHash = (marketType + ":balance");
         client.resolve((this.balance == null ? null : ((Map<?, ?>)this.balance).get(marketType)), messageHash);
     }

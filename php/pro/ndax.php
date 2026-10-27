@@ -545,12 +545,19 @@ class ndax extends \ccxt\async\ndax {
         //     ]
         //
         $symbol = $this->safe_string($subscription, 'symbol');
+        if ($symbol === null) {
+            return;
+        }
         $snapshot = $this->parse_order_book($payload, $symbol);
         $limit = $this->safe_integer($subscription, 'limit');
-        $orderbook = $this->order_book($snapshot, $limit);
-        if ($symbol !== null) {
-            $this->orderbooks[$symbol] = $orderbook;
+        // reset the existing orderbook instead of replacing it: a consumer
+        // holds a reference to the old object and would never see updates
+        // after a re-subscription snapshot
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
+            $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
         }
+        $orderbook = $this->orderbooks[$symbol];
+        $orderbook->reset($snapshot);
         $messageHash = $this->safe_string($subscription, 'messageHash');
         $client->resolve($orderbook, $messageHash);
     }

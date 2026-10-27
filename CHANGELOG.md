@@ -1,3 +1,39 @@
+<a id="v4.5.90"></a>
+# [v4.5.90](https://github.com/ccxt/ccxt/releases/tag/v4.5.90) - 2026-10-23
+
+## What's Changed
+* kucoin: fix private api issues found in live tests by [@carlotestor](https://github.com/carlotestor) in [#30922](https://github.com/ccxt/ccxt/pull/30922)
+* fix(base): stop cursor, incremental and dynamic pagination in go when a break fires by [@amayvs](https://github.com/amayvs) in [#30924](https://github.com/ccxt/ccxt/pull/30924)
+* fix(rust): pass response headers to handleErrors by [@carlosmiei](https://github.com/carlosmiei) in [#30941](https://github.com/ccxt/ccxt/pull/30941)
+* fix(bingx): map order rejection codes by [@AresArtemius](https://github.com/AresArtemius) in [#30947](https://github.com/ccxt/ccxt/pull/30947)
+* feat(lighter): add fetchTrades by [@rayBastard](https://github.com/rayBastard) in [#30939](https://github.com/ccxt/ccxt/pull/30939)
+* feat(polymarket): add Polymarket perps public REST API by [@rayBastard](https://github.com/rayBastard) in [#30268](https://github.com/ccxt/ccxt/pull/30268)
+* fix(cs): retire a replacement ws client detached by exchange Close by [@carlotestor](https://github.com/carlotestor) in [#30644](https://github.com/ccxt/ccxt/pull/30644)
+* fix(cs): reject futures created on a retired ws client by [@carlotestor](https://github.com/carlotestor) in [#30812](https://github.com/ccxt/ccxt/pull/30812)
+* fix(base): build markets_by_id locally in setMarkets and publish it in one swap by [@carlotestor](https://github.com/carlotestor) in [#30816](https://github.com/ccxt/ccxt/pull/30816)
+* feat(coinbaseinternational): update to global derivatives by [@Dan-krm](https://github.com/Dan-krm) in [#30343](https://github.com/ccxt/ccxt/pull/30343)
+* fix(rust): flaky ws prediction tests by [@carlosmiei](https://github.com/carlosmiei) in [#30954](https://github.com/ccxt/ccxt/pull/30954)
+* fix(blofin): send instId to the mark-price endpoint by [@AresArtemius](https://github.com/AresArtemius) in [#30951](https://github.com/ccxt/ccxt/pull/30951)
+* fix(base): keep paginated-call arithmetic numeric in php by [@amayvs](https://github.com/amayvs) in [#30946](https://github.com/ccxt/ccxt/pull/30946)
+* feat(bitget): stock support by [@Dan-krm](https://github.com/Dan-krm) in [#29958](https://github.com/ccxt/ccxt/pull/29958)
+* chore(eslint): drop strict-boolean-expressions; plain truthiness on boolean-typed checks by [@carlotestor](https://github.com/carlotestor) in [#30949](https://github.com/ccxt/ccxt/pull/30949)
+* test: snap low-signal base tests (sleep timing, constant literals, throttler wall-clock bench) by [@carlotestor](https://github.com/carlotestor) in [#30953](https://github.com/ccxt/ccxt/pull/30953)
+* ci(rust): raise cargo jobs to match 6-CPU runners by [@carlotestor](https://github.com/carlotestor) in [#30961](https://github.com/ccxt/ccxt/pull/30961)
+* feat(go): typed async return channels (AsyncResult[T]); Ticker/Order struct channels by [@carlotestor](https://github.com/carlotestor) in [#30902](https://github.com/ccxt/ccxt/pull/30902)
+* ci(rust): shared sccache across self-hosted rust runners by [@carlotestor](https://github.com/carlotestor) in [#30963](https://github.com/ccxt/ccxt/pull/30963)
+* build: emit native code instead of runtime helpers in Go/Java/C#/Rust (-67% Rust, -60% Java, -53% C#, -38% Go non-plumbing) by [@carlotestor](https://github.com/carlotestor) in [#30919](https://github.com/ccxt/ccxt/pull/30919)
+* build: emit concise native code or a plain helper call instead of inlined helper bodies by [@carlotestor](https://github.com/carlotestor) in [#30966](https://github.com/ccxt/ccxt/pull/30966)
+* refactor(go): drop ExchangeTyped, put base typed methods on Exchange (-54k lines) by [@carlotestor](https://github.com/carlotestor) in [#30964](https://github.com/ccxt/ccxt/pull/30964)
+* fix(blofin): send since as begin in fetchMyTrades by [@AresArtemius](https://github.com/AresArtemius) in [#30962](https://github.com/ccxt/ccxt/pull/30962)
+* fix(blofin): send the since window to the candles endpoint by [@AresArtemius](https://github.com/AresArtemius) in [#30960](https://github.com/ccxt/ccxt/pull/30960)
+* chore: try to mint new token by [@carlosmiei](https://github.com/carlosmiei) in [#30970](https://github.com/ccxt/ccxt/pull/30970)
+
+
+**Full Changelog**: https://github.com/ccxt/ccxt/compare/v4.5.89...v4.5.90
+
+[Changes][v4.5.90]
+
+
 <a id="v4.5.89"></a>
 # [v4.5.89](https://github.com/ccxt/ccxt/releases/tag/v4.5.89) - 2026-10-20
 
@@ -14632,6 +14668,7 @@
 [Changes][4.3.22]
 
 
+[v4.5.90]: https://github.com/ccxt/ccxt/compare/v4.5.89...v4.5.90
 [v4.5.89]: https://github.com/ccxt/ccxt/compare/v4.5.88...v4.5.89
 [v4.5.88]: https://github.com/ccxt/ccxt/compare/v4.5.87...v4.5.88
 [v4.5.87]: https://github.com/ccxt/ccxt/compare/v4.5.86...v4.5.87

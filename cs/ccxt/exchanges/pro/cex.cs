@@ -73,7 +73,7 @@ public partial class cex : ccxt.cex
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "e", "get-balance" },
             { "data", new Dictionary<string, object>() {} },
-            { "oid", this.requestId() },
+            { "oid", messageHash },
         };
         Dictionary<string, object> request = this.deepExtend(subscribe, parameters);
         return ccxt.BaseExchange.ToBalances(await this.watch(url, messageHash, request, messageHash, request));
@@ -101,12 +101,19 @@ public partial class cex : ccxt.cex
         //         "ok": "ok"
         //     }
         //
+        // merge updates into the existing balance object instead of building a
+        // fresh one: a consumer awakened by an earlier message holds a reference
+        // to this.balance, and Client.resolve is a no-op while nobody is
+        // awaiting, so a replaced object would make responses landing in that
+        // window invisible to the consumer forever (same class as issue #26773)
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         IDictionary<string, object> freeBalance = this.safeDict(data, "balance", new Dictionary<string, object>() {});
         IDictionary<string, object> usedBalance = this.safeDict(data, "obalance", new Dictionary<string, object>() {});
-        Dictionary<string, object> result = new Dictionary<string, object>() {
-            { "info", data },
-        };
+        if ((this.balance == null))
+        {
+            this.balance = new Dictionary<string, object>() {};
+        }
+        this.balance["info"] = data;
         List<object> currencyIds = new List<object>(freeBalance.Keys);
         for (int i = 0; i < currencyIds.Count; i++)
         {
@@ -117,10 +124,10 @@ public partial class cex : ccxt.cex
             string? code = this.safeCurrencyCode(currencyId);
             if ((code != null))
             {
-                result[(string)code] = account;
+                this.balance[(string)code] = account;
             }
         }
-        this.balance = this.safeBalance(result);
+        this.balance = this.safeBalance(this.balance);
         string? messageHash = this.safeString(message, "oid");
         client.resolve(this.balance, messageHash);
     }
@@ -1118,14 +1125,20 @@ public partial class cex : ccxt.cex
         string messageHash = ("orderbook:" + symbol);
         Int64? timestamp = this.safeInteger2(data, "timestamp_ms", "timestamp");
         Int64? incrementalId = this.safeInteger(data, "id");
-        ccxt.pro.OrderBook orderbook = this.orderBook(new Dictionary<string, object>() {});
+        // reset the existing orderbook instead of replacing it: a consumer
+        // holds a reference to the old object and would never see updates
+        // after a re-subscription snapshot
+        if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
+        {
+            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {});
+        }
+        ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
         ccxt.OrderBook snapshot = this.parseOrderBook(data, symbol, timestamp, "bids", "asks");
         snapshot.nonce = ccxt.BaseExchange.StructInt64(incrementalId);
         (orderbook as IOrderBook).reset(ccxt.BaseExchange.FromOrderBook(snapshot));
         ((IDictionary<string,object>)(this.options.ContainsKey("orderbook") ? this.options["orderbook"] : null))[(string)symbol] = new Dictionary<string, object>() {
             { "incrementalId", incrementalId },
         };
-        ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
         client.resolve(orderbook, messageHash);
     }
 
@@ -1279,18 +1292,26 @@ public partial class cex : ccxt.cex
         Dictionary<string, object> market = this.safeMarket(symbol);
         string messageHash = ("ohlcv:" + symbol);
         List<object> data = this.safeList(message, "data", new List<object>() {});
-        Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
-        var stored = new ArrayCacheByTimestamp(limit);
-        List<object> sorted = this.sortBy(data, 0);
-        for (int i = 0; i < (sorted?.Count ?? 0); i++)
-        {
-            ccxt.pro.BaseCache.appendTo(stored, this.parseOHLCV(sorted[i], market));
-        }
         if (!((this.ohlcvs != null && this.ohlcvs.ContainsKey(symbol))))
         {
             this.ohlcvs[symbol] = new Dictionary<string, object>() {};
         }
-        ((IDictionary<string,object>)(this.ohlcvs != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))["unknown"] = stored;
+        // fill the existing cache when there is one: replacing it would orphan
+        // consumers holding a reference to the old cache (they would never see
+        // candles appended after a re-subscription)
+        ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)this.safeValue((this.ohlcvs != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), "unknown"));
+        if ((stored == null))
+        {
+            Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
+            stored = new ArrayCacheByTimestamp(limit);
+            ((IDictionary<string,object>)(this.ohlcvs != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))["unknown"] = stored;
+        }
+        List<object> sorted = this.sortBy(data, 0);
+        for (int i = 0; i < (sorted?.Count ?? 0); i++)
+        {
+            IList<object> parsed = this.parseOHLCV(sorted[i], market);
+            stored.append(parsed);
+        }
         client.resolve(stored, messageHash);
     }
 

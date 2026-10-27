@@ -2161,7 +2161,7 @@ class foxbit extends Exchange {
         );
     }
 
-    public function sign(string $path, array $api = array(), $method = 'GET', $params = array()): array {
+    public function sign(string $path, array $api = array(), string $method = 'GET', $params = array()): array {
         $version = $api[0];
         $urlPath = $api[1];
         $fullPath = '/rest/' . $version . '/' . $this->implode_params($path, $params);
