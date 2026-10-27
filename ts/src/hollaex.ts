@@ -1933,14 +1933,13 @@ export default class hollaex extends Exchange {
         if (network === undefined) {
             throw new ArgumentsRequired (this.id + ' withdraw() requires a network parameter');
         }
-        const paramsOmitted: Dict = this.omit (paramsWithdrawTag, 'network');
         const request: Dict = {
             'currency': currency['id'],
             'amount': amount,
             'address': addressWithTag,
             'network': this.networkCodeToId (network, code),
         };
-        const response = await this.privatePostUserWithdrawal (this.extend (request, paramsOmitted));
+        const response = await this.privatePostUserWithdrawal (this.extend (request, this.omit (paramsWithdrawTag, 'network')));
         //
         //     {
         //         "message": "Withdrawal request is in the queue and will be processed.",
@@ -1995,8 +1994,8 @@ export default class hollaex extends Exchange {
                 'fee': undefined,
                 'percentage': undefined,
             },
-            'networks': {},
         };
+        const networks: Dict = {};
         const allowWithdrawal = this.safeBool (fee, 'allow_withdrawal');
         if (allowWithdrawal === true) {
             result['withdraw'] = { 'fee': this.safeNumber (fee, 'withdrawal_fee'), 'percentage': false };
@@ -2016,12 +2015,13 @@ export default class hollaex extends Exchange {
                 }
                 const networkCodeUpper = networkCode.toUpperCase (); // default to the upper case network code
                 const withdrawalFee = this.safeNumber (value, 'value');
-                result['networks'][networkCodeUpper] = {
+                networks[networkCodeUpper] = {
                     'deposit': undefined,
                     'withdraw': withdrawalFee,
                 };
             }
         }
+        result['networks'] = networks;
         return result;
     }
 
@@ -2095,7 +2095,7 @@ export default class hollaex extends Exchange {
             const timeoutMs = this.parseToInt (this.timeout);
             const defaultExpires = this.safeInteger2 (this.options, 'api-expires', 'expires', this.parseToInt (timeoutMs / 1000));
             const expires: number = this.sum (this.seconds (), defaultExpires);
-            const expiresString = expires.toString ();
+            const expiresString = this.numberToString (expires);
             let auth = method + requestPath + expiresString;
             requestHeaders = {
                 'api-key': this.apiKey,
