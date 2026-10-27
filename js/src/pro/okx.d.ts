@@ -4,7 +4,7 @@ import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
 export default class okx extends okxRest {
     describe(): any;
-    getUrl(channel: Str, access?: string): string;
+    getUrl(channel: string, access?: string): string;
     subscribeMultiple(access: string, channel: string, symbols?: Strings, params?: Dict): Promise<any>;
     subscribe(access: string, messageHash: string, channel: string, symbol: Str, params?: Dict): Promise<any>;
     /**

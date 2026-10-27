@@ -3016,7 +3016,7 @@ class bitget extends bitget$1["default"] {
         const tiers = [];
         let minNotional = 0;
         for (let i = 0; i < info.length; i++) {
-            const item = info[i];
+            const item = this.safeValue(info, i);
             const minimumNotional = this.safeNumber2(item, 'startUnit', 'minTierValue');
             if (minimumNotional !== undefined) {
                 minNotional = minimumNotional;
@@ -4294,7 +4294,7 @@ class bitget extends bitget$1["default"] {
         const posMode = this.safeString(trade, 'posMode');
         const category = this.safeString(trade, 'category');
         const isFeeStructure = (posMode !== undefined) || (category !== undefined);
-        const feeStructure = isFeeStructure ? feeDetail[0] : feeDetail;
+        const feeStructure = isFeeStructure ? this.safeValue(feeDetail, 0) : feeDetail;
         if (feeStructure !== undefined) {
             const currencyCode = this.safeCurrencyCode(this.safeString(feeStructure, 'feeCoin'));
             const feeCostString = this.safeString2(feeStructure, 'totalFee', 'fee');
@@ -12368,9 +12368,7 @@ class bitget extends bitget$1["default"] {
         let url = this.implodeHostname(apiUrl) + payload;
         const query = this.omit(params, this.extractParams(path));
         if (!signed && (method === 'GET')) {
-            const keys = Object.keys(query);
-            const keysLength = keys.length;
-            if (keysLength > 0) {
+            if (Object.keys(query).length > 0) {
                 url = url + '?' + this.urlencode(query);
             }
         }

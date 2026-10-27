@@ -874,14 +874,14 @@ class bitstamp extends bitstamp$1["default"] {
                 throw new errors.ExchangeError(this.id + ' parseCurrencies() missing description');
             }
             const descriptionParts = description.split(' / ');
-            const baseDescription = descriptionParts[0];
-            const quoteDescription = descriptionParts[1];
+            const baseDescription = this.safeString(descriptionParts, 0);
+            const quoteDescription = this.safeString(descriptionParts, 1);
             const minimumOrder = this.safeString(market, 'minimum_order_value');
             if (minimumOrder === undefined) {
                 throw new errors.ExchangeError(this.id + ' parseCurrencies() missing minimumOrder');
             }
             const parts = minimumOrder.split(' ');
-            const cost = parts[0];
+            const cost = this.safeString(parts, 0);
             if ((base !== undefined) && !(base in result)) {
                 const baseDecimals = this.safeInteger(market, 'base_decimals');
                 result[base] = this.constructCurrencyObject(baseId, base, baseDescription, baseDecimals, undefined, market);
@@ -1236,11 +1236,11 @@ class bitstamp extends bitstamp$1["default"] {
             }
         }
         else {
-            side = this.safeString(trade, 'type');
-            if (side === '1') {
+            const sideRaw = this.safeString(trade, 'type');
+            if (sideRaw === '1') {
                 side = 'sell';
             }
-            else if (side === '0') {
+            else if (sideRaw === '0') {
                 side = 'buy';
             }
             else {
@@ -2199,9 +2199,9 @@ class bitstamp extends bitstamp$1["default"] {
         if (addressRaw !== undefined) {
             // dt (destination tag) is embedded into the address field
             const addressParts = addressRaw.split('?dt=');
-            address = addressParts[0];
+            address = this.safeString(addressParts, 0);
             if (addressParts.length > 1) {
-                tag = addressParts[1];
+                tag = this.safeString(addressParts, 1);
             }
         }
         let fee = {
@@ -2855,7 +2855,7 @@ class bitstamp extends bitstamp$1["default"] {
             }
             const feedback = this.id + ' ' + body;
             for (let i = 0; i < errors$1.length; i++) {
-                const value = errors$1[i];
+                const value = this.safeString(errors$1, i);
                 this.throwExactlyMatchedException(this.exceptions['exact'], value, feedback);
                 this.throwBroadlyMatchedException(this.exceptions['broad'], value, feedback);
             }

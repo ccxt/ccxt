@@ -7768,11 +7768,8 @@ class htx extends htx$1["default"] {
         const pathString = path;
         let url = '/';
         const isArrayParams = Array.isArray(params);
-        let query = undefined;
-        if (isArrayParams) {
-            query = {};
-        }
-        else {
+        let query = {};
+        if (!isArrayParams) {
             query = this.omit(params, this.extractParams(path));
         }
         const apiLength = api.length;
@@ -7826,7 +7823,7 @@ class htx extends htx$1["default"] {
                 }
             }
             else {
-                if ((query !== undefined) && (Object.keys(query).length > 0)) {
+                if (Object.keys(query).length > 0) {
                     url += '?' + this.urlencode(query);
                 }
             }
@@ -7856,7 +7853,7 @@ class htx extends htx$1["default"] {
             hostname = hostnames;
             url += this.implodeParams(path, params);
             if (access === 'public') {
-                if ((query !== undefined) && (Object.keys(query).length > 0)) {
+                if (Object.keys(query).length > 0) {
                     url += '?' + this.urlencode(query);
                 }
             }

@@ -249,7 +249,7 @@ export default class blofin extends blofinRest {
         const market = this.market(symbol);
         const symbolValue = this.safeString(market, 'symbol', '');
         const result = await this.watchTickers([symbolValue], params);
-        return result[symbolValue];
+        return this.safeValue(result, symbolValue);
     }
     /**
      * @method
@@ -502,9 +502,6 @@ export default class blofin extends blofinRest {
         // landing in that window invisible to the consumer forever (same class
         // as issue #26773); the free/used/total aggregates are rebuilt from
         // the merged currencies by safeBalance
-        if (this.balance === undefined) {
-            this.balance = {};
-        }
         this.balance[marketType] = this.safeDict(this.balance, marketType, {});
         const parsed = this.parseWsBalance(message);
         const reserved = ['free', 'used', 'total'];
@@ -744,7 +741,7 @@ export default class blofin extends blofinRest {
                     'instId': market['id'],
                 };
                 rawSubscriptions.push(topic);
-                messageHashes.push(channel + ':' + market['symbol']);
+                messageHashes.push(channel + ':' + this.safeString(market, 'symbol', ''));
             }
         }
         else {
@@ -757,7 +754,7 @@ export default class blofin extends blofinRest {
         }
         const request = this.getSubscriptionRequest(rawSubscriptions);
         let privateOrPublic = 'private';
-        if (isPublic) {
+        if (isPublic === true) {
             privateOrPublic = 'public';
         }
         const typeUrls = this.safeDict(this.urls['api']['ws'], marketType, {});

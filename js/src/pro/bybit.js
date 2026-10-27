@@ -395,7 +395,7 @@ export default class bybit extends bybitRest {
         if ((market['spot'] !== true) && topic !== 'tickers') {
             throw new BadRequest(this.id + ' watchTicker() only supports name tickers for contract markets');
         }
-        const topics = [topic + '.' + market['id']];
+        const topics = [topic + '.' + this.safeString(market, 'id', '')];
         return await this.watchTopics(url, [messageHash], topics, paramsValue);
     }
     /**
@@ -423,7 +423,7 @@ export default class bybit extends bybitRest {
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             topics.push(topic + '.' + marketId);
-            messageHashes.push('ticker:' + symbolsValue[i]);
+            messageHashes.push('ticker:' + this.safeString(symbolsValue, i, ''));
         }
         const ticker = await this.watchTopics(url, messageHashes, topics, paramsValue);
         if (this.newUpdates) {
@@ -654,7 +654,7 @@ export default class bybit extends bybitRest {
             const marketId = marketIds[i];
             const topic = 'orderbook.1.' + marketId;
             topics.push(topic);
-            messageHashes.push('bidask:' + symbolsValue[i]);
+            messageHashes.push('bidask:' + this.safeString(symbolsValue, i, ''));
         }
         const ticker = await this.watchTopics(url, messageHashes, topics, paramsValue);
         if (this.newUpdates) {
@@ -921,7 +921,7 @@ export default class bybit extends bybitRest {
             };
             const selectedLimits = this.safeList2(limits, market['type'], 'default', []);
             if (!this.inArray(limit, selectedLimits)) {
-                throw new BadRequest(this.id + ' watchOrderBookForSymbols(): for ' + market['type'] + ' markets limit can be one of: ' + this.json(selectedLimits));
+                throw new BadRequest(this.id + ' watchOrderBookForSymbols(): for ' + this.safeString(market, 'type', '') + ' markets limit can be one of: ' + this.json(selectedLimits));
             }
         }
         const topics = [];

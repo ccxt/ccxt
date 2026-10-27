@@ -347,11 +347,6 @@ export default class hitbtc extends hitbtcRest {
         const amount = this.safeNumber(delta, 1);
         bookside.store(price, amount);
     }
-    handleDeltas(bookside, deltas) {
-        for (let i = 0; i < deltas.length; i++) {
-            this.handleDelta(bookside, deltas[i]);
-        }
-    }
     /**
      * @method
      * @name hitbtc#watchTicker

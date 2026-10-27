@@ -1234,7 +1234,7 @@ export default class hyperliquid extends hyperliquidRest {
         for (let i = 0; i < rawBalances.length; i++) {
             this.parseWsBalance(rawBalances[i], account);
         }
-        if (this.safeValue(this.balance, account) === undefined) {
+        if (!(account in this.balance)) {
             this.balance[account] = {};
         }
         this.balance[account]['info'] = info;
@@ -1450,7 +1450,7 @@ export default class hyperliquid extends hyperliquidRest {
         let messageHash = 'order';
         if (symbol !== undefined) {
             market = this.market(symbol);
-            messageHash = 'order:' + market['symbol'];
+            messageHash = 'order:' + this.safeString(market, 'symbol', '');
         }
         const symbolResolved = (market !== undefined) ? this.safeString(market, 'symbol') : symbol;
         const url = this.urls['api']['ws']['public'];

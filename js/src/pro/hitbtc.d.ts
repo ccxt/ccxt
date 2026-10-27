@@ -57,7 +57,6 @@ export default class hitbtc extends hitbtcRest {
     watchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
     handleOrderBook(client: Client, message: Dict): void;
     handleDelta(bookside: any, delta: any): void;
-    handleDeltas(bookside: any, deltas: any[]): void;
     /**
      * @method
      * @name hitbtc#watchTicker

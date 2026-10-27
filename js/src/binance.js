@@ -4199,13 +4199,12 @@ export default class binance extends Exchange {
             if (paramSymbols !== undefined) {
                 let symbols = '';
                 if (Array.isArray(paramSymbols)) {
-                    const mid = this.marketId(this.safeValue(paramSymbols, 0));
+                    const mid = this.marketId(this.safeString(paramSymbols, 0));
                     if (mid !== undefined) {
                         symbols = mid;
                     }
                     for (let i = 1; i < paramSymbols.length; i++) {
-                        const symbol = this.safeValue(paramSymbols, i);
-                        const id = this.marketId(symbol);
+                        const id = this.marketId(this.safeString(paramSymbols, i));
                         if (id !== undefined) {
                             symbols += ',' + id;
                         }
@@ -13656,7 +13655,7 @@ export default class binance extends Exchange {
                     const origclientorderidlist = this.safeList2(extendedParams, 'origclientorderidlist', 'origClientOrderIdList', []);
                     extendedParams = this.omit(extendedParams, ['orderidlist', 'origclientorderidlist', 'origClientOrderIdList']);
                     if ('symbol' in extendedParams) {
-                        extendedParams['symbol'] = this.encodeURIComponent(extendedParams['symbol']);
+                        extendedParams['symbol'] = this.encodeURIComponent(this.safeString(extendedParams, 'symbol', ''));
                     }
                     query = this.rawencode(extendedParams);
                     const orderidlistLength = orderidlist.length;
@@ -13668,7 +13667,7 @@ export default class binance extends Exchange {
                         // wrap clientOrderids around ""
                         const newClientOrderIds = [];
                         for (let i = 0; i < origclientorderidlistLength; i++) {
-                            newClientOrderIds.push('%22' + origclientorderidlist[i] + '%22');
+                            newClientOrderIds.push('%22' + this.safeString(origclientorderidlist, i, '') + '%22');
                         }
                         query = query + '&' + 'origclientorderidlist=%5B' + newClientOrderIds.join('%2C') + '%5D';
                     }

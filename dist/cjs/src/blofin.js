@@ -2741,7 +2741,7 @@ class blofin extends blofin$1["default"] {
             if (tpslIds !== undefined) {
                 for (let i = 0; i < tpslIds.length; i++) {
                     request.push({
-                        'tpslId': tpslIds[i],
+                        'tpslId': this.safeString(tpslIds, i),
                         'instId': market['id'],
                     });
                 }
@@ -2749,13 +2749,13 @@ class blofin extends blofin$1["default"] {
             for (let i = 0; i < orderIds.length; i++) {
                 if (trigger === true) {
                     request.push({
-                        'tpslId': orderIds[i],
+                        'tpslId': this.safeString(orderIds, i),
                         'instId': market['id'],
                     });
                 }
                 else {
                     request.push({
-                        'orderId': orderIds[i],
+                        'orderId': this.safeString(orderIds, i),
                         'instId': market['id'],
                     });
                 }
@@ -2765,7 +2765,7 @@ class blofin extends blofin$1["default"] {
             for (let i = 0; i < clientOrderIds.length; i++) {
                 request.push({
                     'instId': market['id'],
-                    'clientOrderId': clientOrderIds[i],
+                    'clientOrderId': this.safeString(clientOrderIds, i),
                 });
             }
         }
@@ -3428,7 +3428,7 @@ class blofin extends blofin$1["default"] {
      */
     async setPositionMode(hedged, symbol = undefined, params = {}) {
         const request = {
-            'positionMode': hedged ? 'long_short_mode' : 'net_mode',
+            'positionMode': (hedged === true) ? 'long_short_mode' : 'net_mode',
         };
         //
         //     {

@@ -256,9 +256,9 @@ class binance extends binance$1["default"] {
         if ((type === 'option') || (type === 'optionMarket') || (type === 'optionPrivate')) {
             // eOptions urls are stored as full public/market/private paths, no category rewrite needed,
             // see https://github.com/ccxt/ccxt/pull/27982 and https://github.com/ccxt/ccxt/issues/26333
-            return wsUrls[type];
+            return this.safeString(wsUrls, type, '');
         }
-        const baseUrl = wsUrls[type];
+        const baseUrl = this.safeString(wsUrls, type, '');
         if (type === 'linear') {
             // skip URL manipulation for proxied/bridge URLs (contain an embedded protocol)
             // const firstProtocol = baseUrl.indexOf ('://');
@@ -272,7 +272,7 @@ class binance extends binance$1["default"] {
             }
             // only rewrite when the URL ends with exactly "/ws"
             // this avoids matching "/wss", "/ws-api", "/ws-fapi/v1", etc.
-            if (baseUrl.endsWith('/ws')) {
+            if (baseUrl.endsWith('/ws') === true) {
                 const prefix = baseUrl.slice(0, baseUrl.length - 3);
                 return prefix + '/' + category + '/ws';
             }

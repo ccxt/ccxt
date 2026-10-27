@@ -104,9 +104,6 @@ class okx extends okx$1["default"] {
     }
     getUrl(channel, access = 'public') {
         // for context: https://www.okx.com/help-center/changes-to-v5-api-websocket-subscription-parameter-and-url
-        if (channel === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' getUrl() requires a channel argument');
-        }
         const isSandbox = this.options['sandboxMode'];
         let sandboxSuffix = '';
         if (isSandbox === true) {
@@ -2754,10 +2751,8 @@ class okx extends okx$1["default"] {
         const messageHash = 'unsubscribe:' + subMessageHash;
         this.cleanUnsubscription(client, subMessageHash, messageHash);
         // watchOHLCV subscribes through subscribe () under channel:marketId
-        if (symbol !== undefined) {
-            this.cleanUnsubscription(client, channel + ':' + this.marketId(symbol), undefined);
-        }
-        if ((symbol !== undefined) && (timeframe !== undefined) && (timeframe in this.ohlcvs[symbol])) {
+        this.cleanUnsubscription(client, channel + ':' + this.marketId(symbol), undefined);
+        if (timeframe in this.ohlcvs[symbol]) {
             delete this.ohlcvs[symbol][timeframe];
         }
     }
@@ -2781,9 +2776,15 @@ class okx extends okx$1["default"] {
         // }
         // arg might be an array or list
         const arg = this.safeDict(message, 'arg', {});
-        const channel = this.safeString(arg, 'channel', '');
+        const channel = this.safeString(arg, 'channel');
+        if (channel === undefined) {
+            return;
+        }
         const marketId = this.safeString(arg, 'instId');
         const symbol = this.safeSymbol(marketId);
+        if (symbol === undefined) {
+            return;
+        }
         if (channel === 'trades' || channel === 'trades-all') {
             this.handleUnSubscriptionTrades(client, symbol, channel);
         }

@@ -886,8 +886,8 @@ class digifinex extends digifinex$1["default"] {
         [marketType, paramsMarketType] = this.handleMarketTypeAndParams('fetchBalance', undefined, params);
         const [marginMode, query] = this.handleMarginModeAndParams('fetchBalance', paramsMarketType);
         let response = undefined;
-        if (marginMode !== undefined || marketType === 'margin') {
-            marketType = 'margin';
+        const isMargin = (marginMode !== undefined) || (marketType === 'margin');
+        if (isMargin) {
             response = await this.privateSpotGetMarginAssets(query);
         }
         else if (marketType === 'spot') {
@@ -936,7 +936,7 @@ class digifinex extends digifinex$1["default"] {
         //     }
         //
         let balanceRequest = 'list';
-        if (marketType === 'swap') {
+        if (!isMargin && marketType === 'swap') {
             balanceRequest = 'data';
         }
         const balances = this.safeList(response, balanceRequest, []);
@@ -1188,15 +1188,9 @@ class digifinex extends digifinex$1["default"] {
         const tickers = this.safeList(response, 'ticker', []);
         const data = this.safeDict(response, 'data', {});
         const firstTicker = this.safeDict(tickers, 0, {});
-        let result = undefined;
-        if (market['swap'] === true) {
-            result = data;
-        }
-        else {
+        let result = data;
+        if (market['swap'] !== true) {
             result = this.extend({ 'date': date }, firstTicker);
-        }
-        if (result === undefined) {
-            throw new errors.NullResponse(this.id + ' fetchTicker() returned empty response');
         }
         return this.parseTicker(result, market);
     }
@@ -2034,8 +2028,8 @@ class digifinex extends digifinex$1["default"] {
         }
         const [marginMode, query] = this.handleMarginModeAndParams('cancelOrder', paramsMarketType);
         let response = undefined;
-        if (marginMode !== undefined || marketType === 'margin') {
-            marketType = 'margin';
+        const isMargin = (marginMode !== undefined) || (marketType === 'margin');
+        if (isMargin) {
             response = await this.privateSpotPostMarginOrderCancel(this.extend(request, query));
         }
         else if (marketType === 'spot') {
@@ -2068,7 +2062,7 @@ class digifinex extends digifinex$1["default"] {
         //         "data": "1590923061186531328"
         //     }
         //
-        if ((marketType === 'spot') || (marketType === 'margin')) {
+        if (isMargin || (marketType === 'spot')) {
             const canceledOrders = this.safeList(response, 'success', []);
             const numCanceledOrders = canceledOrders.length;
             if (numCanceledOrders !== 1) {
@@ -2477,8 +2471,8 @@ class digifinex extends digifinex$1["default"] {
             request[marketIdRequest] = market['id'];
         }
         let response = undefined;
-        if (marginMode !== undefined || marketType === 'margin') {
-            marketType = 'margin';
+        const isMargin = (marginMode !== undefined) || (marketType === 'margin');
+        if (isMargin) {
             response = await this.privateSpotGetMarginOrderCurrent(this.extend(request, query));
         }
         else if (marketType === 'spot') {
@@ -2591,8 +2585,8 @@ class digifinex extends digifinex$1["default"] {
             request['limit'] = limit;
         }
         let response = undefined;
-        if (marginMode !== undefined || marketType === 'margin') {
-            marketType = 'margin';
+        const isMargin = (marginMode !== undefined) || (marketType === 'margin');
+        if (isMargin) {
             response = await this.privateSpotGetMarginOrderHistory(this.extend(request, query));
         }
         else if (marketType === 'spot') {
@@ -2694,8 +2688,8 @@ class digifinex extends digifinex$1["default"] {
             request['market'] = marketType;
         }
         let response = undefined;
-        if ((marginMode !== undefined) || (marketType === 'margin')) {
-            marketType = 'margin';
+        const isMargin = (marginMode !== undefined) || (marketType === 'margin');
+        if (isMargin) {
             response = await this.privateSpotGetMarginOrder(this.extend(request, query));
         }
         else if (marketType === 'spot') {
@@ -2756,7 +2750,7 @@ class digifinex extends digifinex$1["default"] {
         //     }
         //
         const data = this.safeValue(response, 'data');
-        const order = (marketType === 'swap') ? data : this.safeValue(data, 0);
+        const order = (!isMargin && (marketType === 'swap')) ? data : this.safeValue(data, 0);
         if (order === undefined) {
             throw new errors.OrderNotFound(this.id + ' fetchOrder() order ' + idValue + ' not found');
         }
@@ -2809,8 +2803,8 @@ class digifinex extends digifinex$1["default"] {
             request['limit'] = limit;
         }
         let response = undefined;
-        if (marginMode !== undefined || marketType === 'margin') {
-            marketType = 'margin';
+        const isMargin = (marginMode !== undefined) || (marketType === 'margin');
+        if (isMargin) {
             response = await this.privateSpotGetMarginMytrades(this.extend(request, query));
         }
         else if (marketType === 'spot') {
@@ -2868,7 +2862,7 @@ class digifinex extends digifinex$1["default"] {
         //     }
         //
         let responseRequest = 'list';
-        if (marketType === 'swap') {
+        if (!isMargin && (marketType === 'swap')) {
             responseRequest = 'data';
         }
         const data = this.safeList(response, responseRequest, []);
@@ -2972,8 +2966,8 @@ class digifinex extends digifinex$1["default"] {
             request['limit'] = limit;
         }
         let response = undefined;
-        if (marginMode !== undefined || marketType === 'margin') {
-            marketType = 'margin';
+        const isMargin = (marginMode !== undefined) || (marketType === 'margin');
+        if (isMargin) {
             response = await this.privateSpotGetMarginFinancelog(this.extend(request, query));
         }
         else if (marketType === 'spot') {
@@ -3019,7 +3013,7 @@ class digifinex extends digifinex$1["default"] {
         //     }
         //
         let ledger = undefined;
-        if (marketType === 'swap') {
+        if (!isMargin && (marketType === 'swap')) {
             ledger = this.safeList(response, 'data', []);
         }
         else {
@@ -4745,7 +4739,7 @@ class digifinex extends digifinex$1["default"] {
                 }
             }
             else {
-                nonce = this.nonce().toString();
+                nonce = this.seconds().toString();
                 auth = urlencoded;
             }
             const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha2_js.sha256);

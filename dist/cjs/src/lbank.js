@@ -535,8 +535,8 @@ class lbank extends lbank$1["default"] {
             this.fetchSwapMarkets(params),
         ];
         const resolvedMarkets = await Promise.all(marketsPromises);
-        const spotMarkets = resolvedMarkets[0];
-        const swapMarkets = resolvedMarkets[1];
+        const spotMarkets = this.safeValue(resolvedMarkets, 0);
+        const swapMarkets = this.safeValue(resolvedMarkets, 1);
         return this.arrayConcat(spotMarkets, swapMarkets);
     }
     async fetchSpotMarkets(params = {}) {
@@ -3096,8 +3096,7 @@ class lbank extends lbank$1["default"] {
                 'timestamp': timestamp,
             }, signedQuery)));
             const encoded = this.encode(auth);
-            const hash = this.hash(encoded, legacy_js.md5);
-            const uppercaseHash = hash.toUpperCase();
+            const uppercaseHash = this.hash(encoded, legacy_js.md5).toUpperCase();
             let sign = undefined;
             if (signatureMethod === 'RSA') {
                 const cacheSecretAsPem = this.safeBool(this.options, 'cacheSecretAsPem', true);
@@ -3133,7 +3132,7 @@ class lbank extends lbank$1["default"] {
         return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
     convertSecretToPem(secret) {
-        const secretLength = secret.length - 0;
+        const secretLength = secret.length;
         const fullLines = this.parseToInt(secretLength / 64);
         let pem = "-----BEGIN PRIVATE KEY-----\n"; // eslint-disable-line
         for (let i = 0; i <= fullLines; i++) {

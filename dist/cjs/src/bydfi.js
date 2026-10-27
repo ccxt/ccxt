@@ -2436,7 +2436,7 @@ class bydfi extends bydfi$1["default"] {
             await this.loadMarkets();
         }
         let positionType = 'ONEWAY';
-        if (hedged) {
+        if (hedged === true) {
             positionType = 'HEDGE';
         }
         const wallet = 'W001';

@@ -862,7 +862,7 @@ class gate extends gate$1["default"] {
         const market = this.market(symbolsNormalized[0]);
         const messageType = this.getTypeByMarket(market);
         const marketIds = this.marketIds(symbolsNormalized);
-        const [channelName, paramsMethod] = this.handleOptionStringAndParams(paramsCallerMethodName, callerMethodNameOption, 'method');
+        const [channelName, paramsMethod] = this.handleOptionStringAndParams(paramsCallerMethodName, callerMethodNameOption, 'method', '');
         const url = this.getUrlByMarket(market);
         const channel = messageType + '.' + channelName;
         if (callerMethodNameOption === undefined) {
@@ -2290,10 +2290,10 @@ class gate extends gate$1["default"] {
         if (market === undefined) {
             return undefined;
         }
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             return 'spot';
         }
-        else if (market['option'] === true) {
+        else if (this.safeBool(market, 'option', false)) {
             return 'options';
         }
         else {

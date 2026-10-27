@@ -895,12 +895,8 @@ class htx extends htx$1["default"] {
         const future = (type === 'future');
         const isV5Linear = (linear && (swap || future));
         if (type === 'spot') {
-            let mode = undefined;
-            if (mode === undefined) {
-                mode = this.safeString2(this.options, 'watchMyTrades', 'mode', '0');
-                mode = this.safeString(paramsRequest, 'mode', mode);
-                paramsRequest = this.omit(paramsRequest, 'mode');
-            }
+            const mode = this.safeString(paramsRequest, 'mode', this.safeString2(this.options, 'watchMyTrades', 'mode', '0'));
+            paramsRequest = this.omit(paramsRequest, 'mode');
             messageHash = 'trade.clearing' + '#' + marketId + '#' + mode;
             channel = messageHash;
         }

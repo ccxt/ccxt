@@ -887,8 +887,8 @@ export default class digifinex extends Exchange {
         [marketType, paramsMarketType] = this.handleMarketTypeAndParams('fetchBalance', undefined, params);
         const [marginMode, query] = this.handleMarginModeAndParams('fetchBalance', paramsMarketType);
         let response = undefined;
-        if (marginMode !== undefined || marketType === 'margin') {
-            marketType = 'margin';
+        const isMargin = (marginMode !== undefined) || (marketType === 'margin');
+        if (isMargin) {
             response = await this.privateSpotGetMarginAssets(query);
         }
         else if (marketType === 'spot') {
@@ -937,7 +937,7 @@ export default class digifinex extends Exchange {
         //     }
         //
         let balanceRequest = 'list';
-        if (marketType === 'swap') {
+        if (!isMargin && marketType === 'swap') {
             balanceRequest = 'data';
         }
         const balances = this.safeList(response, balanceRequest, []);
@@ -1189,15 +1189,9 @@ export default class digifinex extends Exchange {
         const tickers = this.safeList(response, 'ticker', []);
         const data = this.safeDict(response, 'data', {});
         const firstTicker = this.safeDict(tickers, 0, {});
-        let result = undefined;
-        if (market['swap'] === true) {
-            result = data;
-        }
-        else {
+        let result = data;
+        if (market['swap'] !== true) {
             result = this.extend({ 'date': date }, firstTicker);
-        }
-        if (result === undefined) {
-            throw new NullResponse(this.id + ' fetchTicker() returned empty response');
         }
         return this.parseTicker(result, market);
     }
@@ -2035,8 +2029,8 @@ export default class digifinex extends Exchange {
         }
         const [marginMode, query] = this.handleMarginModeAndParams('cancelOrder', paramsMarketType);
         let response = undefined;
-        if (marginMode !== undefined || marketType === 'margin') {
-            marketType = 'margin';
+        const isMargin = (marginMode !== undefined) || (marketType === 'margin');
+        if (isMargin) {
             response = await this.privateSpotPostMarginOrderCancel(this.extend(request, query));
         }
         else if (marketType === 'spot') {
@@ -2069,7 +2063,7 @@ export default class digifinex extends Exchange {
         //         "data": "1590923061186531328"
         //     }
         //
-        if ((marketType === 'spot') || (marketType === 'margin')) {
+        if (isMargin || (marketType === 'spot')) {
             const canceledOrders = this.safeList(response, 'success', []);
             const numCanceledOrders = canceledOrders.length;
             if (numCanceledOrders !== 1) {
@@ -2478,8 +2472,8 @@ export default class digifinex extends Exchange {
             request[marketIdRequest] = market['id'];
         }
         let response = undefined;
-        if (marginMode !== undefined || marketType === 'margin') {
-            marketType = 'margin';
+        const isMargin = (marginMode !== undefined) || (marketType === 'margin');
+        if (isMargin) {
             response = await this.privateSpotGetMarginOrderCurrent(this.extend(request, query));
         }
         else if (marketType === 'spot') {
@@ -2592,8 +2586,8 @@ export default class digifinex extends Exchange {
             request['limit'] = limit;
         }
         let response = undefined;
-        if (marginMode !== undefined || marketType === 'margin') {
-            marketType = 'margin';
+        const isMargin = (marginMode !== undefined) || (marketType === 'margin');
+        if (isMargin) {
             response = await this.privateSpotGetMarginOrderHistory(this.extend(request, query));
         }
         else if (marketType === 'spot') {
@@ -2695,8 +2689,8 @@ export default class digifinex extends Exchange {
             request['market'] = marketType;
         }
         let response = undefined;
-        if ((marginMode !== undefined) || (marketType === 'margin')) {
-            marketType = 'margin';
+        const isMargin = (marginMode !== undefined) || (marketType === 'margin');
+        if (isMargin) {
             response = await this.privateSpotGetMarginOrder(this.extend(request, query));
         }
         else if (marketType === 'spot') {
@@ -2757,7 +2751,7 @@ export default class digifinex extends Exchange {
         //     }
         //
         const data = this.safeValue(response, 'data');
-        const order = (marketType === 'swap') ? data : this.safeValue(data, 0);
+        const order = (!isMargin && (marketType === 'swap')) ? data : this.safeValue(data, 0);
         if (order === undefined) {
             throw new OrderNotFound(this.id + ' fetchOrder() order ' + idValue + ' not found');
         }
@@ -2810,8 +2804,8 @@ export default class digifinex extends Exchange {
             request['limit'] = limit;
         }
         let response = undefined;
-        if (marginMode !== undefined || marketType === 'margin') {
-            marketType = 'margin';
+        const isMargin = (marginMode !== undefined) || (marketType === 'margin');
+        if (isMargin) {
             response = await this.privateSpotGetMarginMytrades(this.extend(request, query));
         }
         else if (marketType === 'spot') {
@@ -2869,7 +2863,7 @@ export default class digifinex extends Exchange {
         //     }
         //
         let responseRequest = 'list';
-        if (marketType === 'swap') {
+        if (!isMargin && (marketType === 'swap')) {
             responseRequest = 'data';
         }
         const data = this.safeList(response, responseRequest, []);
@@ -2973,8 +2967,8 @@ export default class digifinex extends Exchange {
             request['limit'] = limit;
         }
         let response = undefined;
-        if (marginMode !== undefined || marketType === 'margin') {
-            marketType = 'margin';
+        const isMargin = (marginMode !== undefined) || (marketType === 'margin');
+        if (isMargin) {
             response = await this.privateSpotGetMarginFinancelog(this.extend(request, query));
         }
         else if (marketType === 'spot') {
@@ -3020,7 +3014,7 @@ export default class digifinex extends Exchange {
         //     }
         //
         let ledger = undefined;
-        if (marketType === 'swap') {
+        if (!isMargin && (marketType === 'swap')) {
             ledger = this.safeList(response, 'data', []);
         }
         else {
@@ -4746,7 +4740,7 @@ export default class digifinex extends Exchange {
                 }
             }
             else {
-                nonce = this.nonce().toString();
+                nonce = this.seconds().toString();
                 auth = urlencoded;
             }
             const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);

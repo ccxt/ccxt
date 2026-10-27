@@ -1514,12 +1514,9 @@ class okx extends okx$1["default"] {
         const quote = 'USD';
         const optionParts = symbol.split('-');
         const symbolBase = symbol.split('/');
-        let base;
+        let base = this.safeString(optionParts, 0, '');
         if (symbol.indexOf('/') > -1) {
             base = this.safeString(symbolBase, 0, '');
-        }
-        else {
-            base = this.safeString(optionParts, 0, '');
         }
         const expiry = this.safeString(optionParts, 2, '');
         const strike = this.safeString(optionParts, 3, '');
@@ -1862,23 +1859,25 @@ class okx extends okx$1["default"] {
         if ((base === undefined) || (quote === undefined)) {
             return undefined;
         }
-        let symbol = base + '/' + quote;
+        let baseSymbol = base + '/' + quote;
         // handle preopen empty markets
         if (base === '' || quote === '') {
-            symbol = id;
+            baseSymbol = id + '';
         }
+        let symbol = baseSymbol;
         let expiry = undefined;
         let strikePrice = undefined;
         let optionType = undefined;
         if (contract) {
+            let settledSymbol = baseSymbol;
             if (settle !== undefined) {
-                symbol = symbol + ':' + settle;
+                settledSymbol = baseSymbol + ':' + settle;
             }
+            symbol = settledSymbol;
             if (future) {
                 expiry = this.safeInteger(market, 'expTime');
                 if (expiry !== undefined) {
-                    const ymd = this.yymmdd(expiry);
-                    symbol = symbol + '-' + ymd;
+                    symbol = settledSymbol + '-' + this.yymmdd(expiry);
                 }
             }
             else if (option) {
@@ -1886,8 +1885,7 @@ class okx extends okx$1["default"] {
                 strikePrice = this.safeString(market, 'stk');
                 optionType = this.safeString(market, 'optType');
                 if (expiry !== undefined) {
-                    const ymd = this.yymmdd(expiry);
-                    symbol = symbol + '-' + ymd + '-' + strikePrice + '-' + optionType;
+                    symbol = settledSymbol + '-' + this.yymmdd(expiry) + '-' + strikePrice + '-' + optionType;
                     optionType = (optionType === 'P') ? 'put' : 'call';
                 }
             }

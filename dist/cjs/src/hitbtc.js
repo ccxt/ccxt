@@ -1892,10 +1892,10 @@ class hitbtc extends hitbtc$1["default"] {
         if (since !== undefined) {
             request['from'] = this.iso8601(since);
         }
-        const [requestUntil, paramsUntil] = this.handleUntilOption('until', request, paramsPaginate);
         if (limit !== undefined) {
-            requestUntil['limit'] = Math.min(limit, 1000);
+            request['limit'] = Math.min(limit, 1000);
         }
+        const [requestUntil, paramsUntil] = this.handleUntilOption('until', request, paramsPaginate);
         const price = this.safeString(paramsUntil, 'price');
         const paramsOmitted = this.omit(paramsUntil, 'price');
         let response = [];
@@ -3921,28 +3921,19 @@ class hitbtc extends hitbtc$1["default"] {
             }
         }
         const url = baseUrl + getRequest;
-        const bodyResolved = (method === 'GET') ? undefined : this.json(params);
+        let bodyString = '';
+        if (method !== 'GET') {
+            bodyString = this.json(params);
+        }
         if (apiName === 'private') {
             this.checkRequiredCredentials();
             const timestamp = this.numberToString(this.nonce());
-            const payload = [method, '/api/3/' + implodedPath];
-            if (method === 'GET') {
-                if (getRequest !== '') {
-                    payload.push(getRequest);
-                }
-            }
-            else {
-                if (bodyResolved !== undefined) {
-                    payload.push(bodyResolved);
-                }
-            }
-            payload.push(timestamp);
-            const payloadString = payload.join('');
+            const payloadString = method + '/api/3/' + implodedPath + getRequest + bodyString + timestamp;
             const signature = this.hmac(this.encode(payloadString), this.encode(this.secret), sha2_js.sha256, 'hex');
             const secondPayload = this.apiKey + ':' + signature + ':' + timestamp;
             headersValue['Authorization'] = 'HS256 ' + this.stringToBase64(secondPayload);
         }
-        return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersValue };
+        return { 'url': url, 'method': method, 'body': (method === 'GET') ? undefined : bodyString, 'headers': headersValue };
     }
 }
 

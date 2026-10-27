@@ -1479,13 +1479,7 @@ class woo extends woo$1["default"] {
         }
         else if (hasStopLoss || hasTakeProfit) {
             request['algoType'] = 'BRACKET';
-            const outterOrder = {
-                'symbol': market['id'],
-                'reduceOnly': false,
-                'algoType': 'POSITIONAL_TP_SL',
-                'childOrders': [],
-            };
-            const childOrders = outterOrder['childOrders'];
+            const childOrders = [];
             let closeSide = 'BUY';
             if (orderSide === 'BUY') {
                 closeSide = 'SELL';
@@ -1512,6 +1506,12 @@ class woo extends woo$1["default"] {
                 };
                 childOrders.push(takeProfitOrder);
             }
+            const outterOrder = {
+                'symbol': market['id'],
+                'reduceOnly': false,
+                'algoType': 'POSITIONAL_TP_SL',
+                'childOrders': childOrders,
+            };
             request['childOrders'] = [outterOrder];
         }
         const paramsRequest = this.omit(paramsCost, ['clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit', 'trailingPercent', 'trailingAmount', 'trailingTriggerPrice']);
@@ -1555,8 +1555,7 @@ class woo extends woo$1["default"] {
         }
         let data = this.safeDict(response, 'data', {});
         data = this.safeDict(this.safeList(data, 'rows'), 0, data);
-        data['timestamp'] = this.safeString(response, 'timestamp');
-        return this.parseOrder(data, market);
+        return this.parseOrder(this.extend(data, { 'timestamp': this.safeString(response, 'timestamp') }), market);
     }
     encodeMarginMode(mode) {
         const modes = {
@@ -4499,13 +4498,13 @@ class woo extends woo$1["default"] {
             await this.loadMarkets();
         }
         const request = {};
-        const [requestUntil, paramsUntil] = this.handleUntilOption('endTime', request, params);
         if (since !== undefined) {
-            requestUntil['startTime'] = since;
+            request['startTime'] = since;
         }
         if (limit !== undefined) {
-            requestUntil['size'] = limit;
+            request['size'] = limit;
         }
+        const [requestUntil, paramsUntil] = this.handleUntilOption('endTime', request, params);
         const response = await this.v3PrivateGetConvertTrades(this.extend(requestUntil, paramsUntil));
         //
         //     {

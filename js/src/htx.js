@@ -7769,11 +7769,8 @@ export default class htx extends Exchange {
         const pathString = path;
         let url = '/';
         const isArrayParams = Array.isArray(params);
-        let query = undefined;
-        if (isArrayParams) {
-            query = {};
-        }
-        else {
+        let query = {};
+        if (!isArrayParams) {
             query = this.omit(params, this.extractParams(path));
         }
         const apiLength = api.length;
@@ -7827,7 +7824,7 @@ export default class htx extends Exchange {
                 }
             }
             else {
-                if ((query !== undefined) && (Object.keys(query).length > 0)) {
+                if (Object.keys(query).length > 0) {
                     url += '?' + this.urlencode(query);
                 }
             }
@@ -7857,7 +7854,7 @@ export default class htx extends Exchange {
             hostname = hostnames;
             url += this.implodeParams(path, params);
             if (access === 'public') {
-                if ((query !== undefined) && (Object.keys(query).length > 0)) {
+                if (Object.keys(query).length > 0) {
                     url += '?' + this.urlencode(query);
                 }
             }
