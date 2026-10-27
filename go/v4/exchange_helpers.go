@@ -3017,7 +3017,19 @@ func CallInternalMethod(methods map[string]any, itf any, name2 string, args ...a
 				}
 				in = append(in, reflect.ValueOf(Int64Arg(arg)).Convert(paramType))
 			} else if k < len(args) && args[k] != nil {
-				in = append(in, reflect.ValueOf(args[k]))
+				argValue := reflect.ValueOf(args[k])
+				if paramType.Kind() == reflect.Slice && argValue.Kind() == reflect.Slice && argValue.Type() != paramType && argValue.Type().Elem().Kind() == reflect.Interface {
+					// decoded JSON lists arrive as []any: rebuild them as the typed slice the method declares
+					typed := reflect.MakeSlice(paramType, argValue.Len(), argValue.Len())
+					for j := 0; j < argValue.Len(); j++ {
+						item := argValue.Index(j).Elem()
+						if item.IsValid() && item.Type().ConvertibleTo(paramType.Elem()) {
+							typed.Index(j).Set(item.Convert(paramType.Elem()))
+						}
+					}
+					argValue = typed
+				}
+				in = append(in, argValue)
 			} else {
 				in = append(in, reflect.Zero(paramType))
 			}
