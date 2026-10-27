@@ -43,9 +43,9 @@ pub fn testOptionsNetworks(mut exchange: Value, mut skippedProperties: Value) {
         let mut collectedNetworkIds: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1549: bool = true;
-            while { if !__for_first_1549 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-                } __for_first_1549 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(networkCodes.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_1550: bool = true;
+            while { if !__for_first_1550 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
+                } __for_first_1550 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(networkCodes.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             let mut networkCode: Value = networkCodes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut networkId: Value = get_value(&get_value(&exchange, &Value::Str("options".into())).as_map().and_then(|__m| __m.get("networks")).cloned().unwrap_or(Value::Null), &networkCode);
             if !is_true(&exchange.in_array(networkCode.clone(), allowedUnifiedAliases.clone())) {
@@ -58,9 +58,9 @@ pub fn testOptionsNetworks(mut exchange: Value, mut skippedProperties: Value) {
         let mut collectedNetworkCodes: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1550: bool = true;
-            while { if !__for_first_1550 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-                } __for_first_1550 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(networkCodes.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_1551: bool = true;
+            while { if !__for_first_1551 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
+                } __for_first_1551 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(networkCodes.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             let mut networkCodeLower: Value = ((networkCodes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null))).as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
             assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&exchange.in_array(networkCodeLower.clone(), collectedNetworkCodes.clone()))))));
             append_to_array(&mut collectedNetworkCodes, networkCodeLower.clone());
@@ -68,9 +68,9 @@ pub fn testOptionsNetworks(mut exchange: Value, mut skippedProperties: Value) {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1551: bool = true;
-            while { if !__for_first_1551 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-                } __for_first_1551 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(networkCodes.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_1552: bool = true;
+            while { if !__for_first_1552 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
+                } __for_first_1552 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(networkCodes.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             let mut networkCode: Value = networkCodes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut networkId: Value = get_value(&get_value(&exchange, &Value::Str("options".into())).as_map().and_then(|__m| __m.get("networks")).cloned().unwrap_or(Value::Null), &networkCode);
             // check networkCodeToId

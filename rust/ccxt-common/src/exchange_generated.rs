@@ -4671,7 +4671,7 @@ pub trait ExchangeBase:
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_119: bool = true;
                 while { if !__for_first_119 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_119 = false; i.as_f64().unwrap_or(f64::NAN) < ((response.len() as i64) as f64) } {
-                let mut item: Value = response.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+                let mut item: Value = self.safe_value(response.clone(), i.clone(), &[]);
                 let mut id: Value = (if (marketIdKey == Value::Null) { Value::Null } else { self.safe_string(item.clone(), marketIdKey.clone(), &[]) });
                 let mut market: Value = self.safe_market(&[id, Value::Null, Value::Null, Value::Str("swap".into())]);
                 let mut symbol: Value = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]);
@@ -4688,8 +4688,7 @@ pub trait ExchangeBase:
                 let mut __for_first_120: bool = true;
                 while { if !__for_first_120 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_120 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
                 let mut marketId: Value = keys.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
-                let mut item: Value = get_value(&response, &marketId);
-                let mut item: Value = get_value(&response, &marketId);
+                let mut item: Value = self.safe_value(response.clone(), marketId.clone(), &[]);
                 let mut market: Value = self.safe_market(&[marketId, Value::Null, Value::Null, Value::Str("swap".into())]);
                 let mut symbol: Value = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]);
                 let mut contract: Value = self.safe_bool_k(market.clone(), "contract", &[Value::Bool(false)]);

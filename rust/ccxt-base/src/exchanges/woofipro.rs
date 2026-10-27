@@ -1671,8 +1671,8 @@ impl WoofiproCore {
         let mut indexedChains: Value = self.index_by(chainRows, Value::Str("chain_id".into()));
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1166: bool = true;
-            while { if !__for_first_1166 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1166 = false; i.as_f64().unwrap_or(f64::NAN) < ((tokenRows.len() as i64) as f64) } {
+            let mut __for_first_1167: bool = true;
+            while { if !__for_first_1167 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1167 = false; i.as_f64().unwrap_or(f64::NAN) < ((tokenRows.len() as i64) as f64) } {
             let mut token: Value = tokenRows.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
             let mut parsed: Value = self.parse_currency(Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -1711,8 +1711,8 @@ impl WoofiproCore {
         });
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_1167: bool = true;
-            while { if !__for_first_1167 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_1167 = false; j.as_f64().unwrap_or(f64::NAN) < ((networks.len() as i64) as f64) } {
+            let mut __for_first_1168: bool = true;
+            while { if !__for_first_1168 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_1168 = false; j.as_f64().unwrap_or(f64::NAN) < ((networks.len() as i64) as f64) } {
             let mut networkEntry: Value = networks.get(j.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
             let mut networkId: Option<String> = self.safe_string_k_opt(networkEntry.clone(), "chain_id", &[]);
             let mut networkRow: Value = self.safe_dict(indexedChains.clone(), networkId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
@@ -2268,8 +2268,8 @@ impl WoofiproCore {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1168: bool = true;
-            while { if !__for_first_1168 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1168 = false; i.as_f64().unwrap_or(f64::NAN) < ((rows.len() as i64) as f64) } {
+            let mut __for_first_1169: bool = true;
+            while { if !__for_first_1169 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1169 = false; i.as_f64().unwrap_or(f64::NAN) < ((rows.len() as i64) as f64) } {
             let mut row: Value = rows.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
             let mut marketId: Value = self.safe_string_k(row.clone(), "symbol", &[Value::Str("".into())]);
             if (self.safe_value(self.markets_by_id.clone(), marketId, &[]) == Value::Null) {
@@ -2416,8 +2416,8 @@ impl WoofiproCore {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1169: bool = true;
-            while { if !__for_first_1169 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1169 = false; i.as_f64().unwrap_or(f64::NAN) < ((rows.len() as i64) as f64) } {
+            let mut __for_first_1170: bool = true;
+            while { if !__for_first_1170 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1170 = false; i.as_f64().unwrap_or(f64::NAN) < ((rows.len() as i64) as f64) } {
             let mut row: Value = rows.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
             let mut marketId: Value = self.safe_string_k(row.clone(), "symbol", &[Value::Str("".into())]);
             if (self.safe_value(self.markets_by_id.clone(), marketId, &[]) == Value::Null) {
@@ -2511,8 +2511,8 @@ impl WoofiproCore {
         let mut rates: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1170: bool = true;
-            while { if !__for_first_1170 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1170 = false; i.as_f64().unwrap_or(f64::NAN) < ((result.len() as i64) as f64) } {
+            let mut __for_first_1171: bool = true;
+            while { if !__for_first_1171 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1171 = false; i.as_f64().unwrap_or(f64::NAN) < ((result.len() as i64) as f64) } {
             let mut entry: Value = result.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
             let mut marketId: Option<String> = self.safe_string_k_opt(entry.clone(), "symbol", &[]);
             let mut timestamp: Value = self.safe_integer_k(entry.clone(), "funding_rate_timestamp", &[]);
@@ -2712,8 +2712,8 @@ impl WoofiproCore {
         let mut symbols: Value = self.symbols.clone();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1171: bool = true;
-            while { if !__for_first_1171 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1171 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
+            let mut __for_first_1172: bool = true;
+            while { if !__for_first_1172 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1172 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
             let mut symbol: Value = symbols.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3228,8 +3228,8 @@ impl WoofiproCore {
         let mut ordersRequests: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1172: bool = true;
-            while { if !__for_first_1172 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1172 = false; i.as_f64().unwrap_or(f64::NAN) < ((orders.len() as i64) as f64) } {
+            let mut __for_first_1173: bool = true;
+            while { if !__for_first_1173 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1173 = false; i.as_f64().unwrap_or(f64::NAN) < ((orders.len() as i64) as f64) } {
             let mut rawOrder: Value = self.safe_dict(orders.clone(), i.clone(), &[]);
             let mut marketId: Option<String> = self.safe_string_k_opt(rawOrder.clone(), "symbol", &[]);
             let mut type_var: Option<String> = self.safe_string_k_opt(rawOrder.clone(), "type", &[]);
@@ -4029,8 +4029,8 @@ impl WoofiproCore {
         let mut balances: Value = self.safe_list_k(response, "holding", &[Value::from(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1173: bool = true;
-            while { if !__for_first_1173 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1173 = false; i.as_f64().unwrap_or(f64::NAN) < ((balances.len() as i64) as f64) } {
+            let mut __for_first_1174: bool = true;
+            while { if !__for_first_1174 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1174 = false; i.as_f64().unwrap_or(f64::NAN) < ((balances.len() as i64) as f64) } {
             let mut balance: Value = self.safe_dict(balances.clone(), i.clone(), &[]);
             let mut code: Value = self.safe_currency_code(self.safe_string_k(balance.clone(), "token", &[]), &[]);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
@@ -5144,8 +5144,8 @@ impl WoofiproCore {
                         let mut ordersList: Vec<Value> = self.safe_list_k(requestParams.clone(), "orders", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
                         {
                                                         let mut i: Value = Value::Int(0);
-                            let mut __for_first_1174: bool = true;
-                            while { if !__for_first_1174 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1174 = false; i.as_f64().unwrap_or(f64::NAN) < ((ordersList.len() as i64) as f64) } {
+                            let mut __for_first_1175: bool = true;
+                            while { if !__for_first_1175 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1175 = false; i.as_f64().unwrap_or(f64::NAN) < ((ordersList.len() as i64) as f64) } {
                             add_element_to_object(get_value_mut(get_value_mut(&mut requestParams, &Value::Str("orders".into())), &i), &Value::Str("order_tag".into()), brokerId.clone());
                         }
                         }

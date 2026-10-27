@@ -1500,7 +1500,7 @@ impl BitgetCore {
         }
         let mut marketId: Value = self.safe_string2(arg, Value::Str("instId".into()), Value::Str("symbol".into()), &[]);
         let mut market: Value = self.safe_market(&[marketId, Value::Null, Value::Null, marketType]);
-        let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+        let mut symbol: Value = self.safe_string_k(market, "symbol", &[Value::Str("".into())]);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook:".into()), symbol).into());
         let mut data: Value = (match message.get("data") { Some(__v) if !matches!(__v, Value::Null) && !matches!(__v, Value::Str(__s) if __s.is_empty()) => __v.clone(), _ => Value::Null });
         // tokenized stock snapshots arrive as a plain dict instead of a list
@@ -3331,7 +3331,7 @@ impl BitgetCore {
                     let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
                     let mut account: Value = self.account();
                     if (code != Value::Null) && (matches!((&self.balance, &code), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                        account = self.balance.as_map().and_then(|__m| code.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+                        account = self.safe_dict(self.balance.clone(), code.clone(), &[account.clone()]);
                     }
                     let mut borrow: Option<String> = self.safe_string_k_opt(entry.clone(), "borrow", &[]);
                     let mut debts: Option<String> = self.safe_string_k_opt(entry.clone(), "debts", &[]);
@@ -3351,7 +3351,7 @@ impl BitgetCore {
                 let mut code: Value = self.safe_currency_code(currencyId, &[]);
                 let mut account: Value = self.account();
                 if (code != Value::Null) && (matches!((&self.balance, &code), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                    account = self.balance.as_map().and_then(|__m| code.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+                    account = self.safe_dict(self.balance.clone(), code.clone(), &[account.clone()]);
                 }
                 let mut borrow: Option<String> = self.safe_string_k_opt(rawBalance.clone(), "borrow", &[]);
                 if (borrow.is_some()) {

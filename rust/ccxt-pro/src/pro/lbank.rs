@@ -839,8 +839,8 @@ impl LbankCore {
         let mut rawTrades: Vec<Value> = (match message.get("trades") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![rawTrade]) }).as_array().cloned().unwrap_or_default();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_474: bool = true;
-            while { if !__for_first_474 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_474 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawTrades.len() as i64) as f64) } {
+            let mut __for_first_475: bool = true;
+            while { if !__for_first_475 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_475 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawTrades.len() as i64) as f64) } {
             let mut trade: Value = self.parse_ws_trade(rawTrades.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null), &[market.clone()]);
             if let Value::Dict(__rda) = &mut trade { std::sync::Arc::make_mut(__rda).insert("symbol".to_string(), symbol.clone()); }
             stored.append(trade);

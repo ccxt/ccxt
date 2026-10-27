@@ -6686,9 +6686,9 @@ impl BinanceCore {
                     if isLegacyLinear {
                         settle = self.safe_string_k(market.clone(), "quote", &[Value::Str("".into())]);
                     }
-                    let mut futuresSymbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str(":".into())).into()), settle).into());
-                    if (self.markets.clone() != Value::Null) && (matches!((&self.markets, &futuresSymbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                        return self.markets.as_map().and_then(|__m| futuresSymbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+                    let mut legacySymbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]), Value::Str(":".into())).into()), settle).into());
+                    if (self.markets.clone() != Value::Null) && (matches!((&self.markets, &legacySymbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+                        return self.markets.as_map().and_then(|__m| legacySymbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
                     }
                 }  else {
                     return market;
@@ -9788,9 +9788,11 @@ impl BinanceCore {
         let mut validOrderTypes: Value = self.safe_list(market.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("orderTypes".into()), &[Value::from(vec![])]);
         if !(self.in_array(uppercaseType.clone(), validOrderTypes).as_bool() == Some(true)) {
             if (initialUppercaseType.as_str() != uppercaseType.as_str()) {
-                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" triggerPrice parameter is not allowed for ".into())).into()), symbol).into()), Value::Str(" ".into())).into()), type_var).into()), Value::Str(" orders".into()))));
+                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" triggerPrice parameter is not allowed for ".into())).into()), self.safe_string_k(market.clone(), "symbol",
+                    &[Value::Str("".into())])).into()), Value::Str(" ".into())).into()), type_var).into()), Value::Str(" orders".into()))));
             }  else {
-                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), type_var).into()), Value::Str(" is not a valid order type for the ".into())).into()), symbol).into()), Value::Str(" market".into()))));
+                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), type_var).into()), Value::Str(" is not a valid order type for the ".into())).into()),
+                    self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())])).into()), Value::Str(" market".into()))));
             }
         }
         if (clientOrderId == Value::Null) {
@@ -11342,7 +11344,7 @@ impl BinanceCore {
                     let mut stopLossOrTakeProfit: Option<String> = self.safe_string_k(paramsPapi.clone(), "stopLossOrTakeProfit", &[]).as_str().map(str::to_owned);
                     omitKeys.push(Value::Str("stopLossOrTakeProfit".into()));
                     if (stopLossOrTakeProfit.as_deref() != Some("stopLoss")) && (stopLossOrTakeProfit.as_deref() != Some("takeProfit")) {
-                        panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), symbol).into()), Value::Str(" trailingPercent orders require a stopLossOrTakeProfit parameter of either stopLoss or takeProfit".into()))));
+                        panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())])).into()), Value::Str(" trailingPercent orders require a stopLossOrTakeProfit parameter of either stopLoss or takeProfit".into()))));
                     }
                     if matches!(&isMarketOrder, Value::Bool(true)) {
                         if (stopLossOrTakeProfit.as_deref() == Some("stopLoss")) {
@@ -11386,7 +11388,8 @@ impl BinanceCore {
         }
         if (market.as_map().and_then(|__m| __m.get("option")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
             if (type_var.as_str() == Some("market")) {
-                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), type_var).into()), Value::Str(" is not a valid order type for the ".into())).into()), symbol).into()), Value::Str(" market".into()))));
+                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), type_var).into()), Value::Str(" is not a valid order type for the ".into())).into()),
+                    self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())])).into()), Value::Str(" market".into()))));
             }
         }  else {
             let mut validOrderTypes: Value = self.safe_list(market.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("orderTypes".into()), &[Value::from(vec![])]);
@@ -11395,9 +11398,11 @@ impl BinanceCore {
             }
             if !(self.in_array(uppercaseType.clone(), validOrderTypes).as_bool() == Some(true)) {
                 if (initialUppercaseType.as_str() != uppercaseType.as_str()) {
-                    panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" triggerPrice parameter is not allowed for ".into())).into()), symbol).into()), Value::Str(" ".into())).into()), type_var).into()), Value::Str(" orders".into()))));
+                    panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" triggerPrice parameter is not allowed for ".into())).into()), self.safe_string_k(market.clone(), "symbol",
+                        &[Value::Str("".into())])).into()), Value::Str(" ".into())).into()), type_var).into()), Value::Str(" orders".into()))));
                 }  else {
-                    panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), type_var).into()), Value::Str(" is not a valid order type for the ".into())).into()), symbol).into()), Value::Str(" market".into()))));
+                    panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), type_var).into()), Value::Str(" is not a valid order type for the ".into())).into()),
+                        self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())])).into()), Value::Str(" market".into()))));
                 }
             }
         }

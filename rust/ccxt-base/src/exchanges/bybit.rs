@@ -3713,14 +3713,13 @@ impl BybitCore {
     pub fn create_expired_option_market(&self, mut symbol: Value) -> Value {
         // support expired option contracts
         let mut quote: Value = Value::Null;
-        let mut settle: Value = Value::Null;
         let mut optionParts: Value = Value::Array(symbol.as_str().map(|__s| __s.split("-").map(Value::from).collect()).unwrap_or_default());
         let mut symbolBase: Value = Value::Array(symbol.as_str().map(|__s| __s.split("/").map(Value::from).collect()).unwrap_or_default());
         let mut expiry: Value = Value::Null;
         let mut hasSlash: bool = Value::Int(symbol.as_str().and_then(|__s| __s.find("/")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64);
-        let mut baseName: Value = self.safe_string(optionParts.clone(), Value::Int(0), &[]);
+        let mut baseName: Value = self.safe_string(optionParts.clone(), Value::Int(0), &[Value::Str("".into())]);
         if hasSlash {
-            baseName = self.safe_string(symbolBase.clone(), Value::Int(0), &[]);
+            baseName = self.safe_string(symbolBase.clone(), Value::Int(0), &[Value::Str("".into())]);
             expiry = self.safe_string(optionParts.clone(), Value::Int(1), &[]);
             let mut symbolQuoteAndSettle: Value = self.safe_string(symbolBase, Value::Int(1), &[]);
             if (symbolQuoteAndSettle == Value::Null) {
@@ -3728,16 +3727,13 @@ impl BybitCore {
             }
             let mut splitQuote: Value = Value::Array(symbolQuoteAndSettle.as_str().map(|__s| __s.split(":").map(Value::from).collect()).unwrap_or_default());
             let mut quoteAndSettle: Option<String> = self.safe_string_opt(splitQuote, Value::Int(0), &[]);
-            quote = quoteAndSettle.clone().map(Value::from).unwrap_or(Value::Null);
-            settle = quoteAndSettle.map(Value::from).unwrap_or(Value::Null);
+            quote = quoteAndSettle.map(Value::from).unwrap_or(Value::Null);
         }  else {
             expiry = self.convert_market_id_expire_date(self.safe_string(optionParts.clone(), Value::Int(1), &[]));
             if (symbol.as_str().unwrap_or("").ends_with("-USDT")) {
                 quote = Value::Str("USDT".into());
-                settle = Value::Str("USDT".into());
             }  else {
                 quote = Value::Str("USDC".into());
-                settle = Value::Str("USDC".into());
             }
         }
         let mut strike: Value = self.safe_string(optionParts.clone(), Value::Int(2), &[]);
@@ -3762,18 +3758,18 @@ impl BybitCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseName, Value::Str("-".into())).into()), convertedExpireDate).into()), Value::Str("-".into())).into()), strike).into()), Value::Str("-".into())).into()), optionType).into()));
         m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseName, Value::Str("/".into())).into()),
-            quote).into()), Value::Str(":".into())).into()), settle).into()), Value::Str("-".into())).into()), expiry).into()), Value::Str("-".into())).into()), strike).into()), Value::Str("-".into())).into()), optionType).into()));
+            quote).into()), Value::Str(":".into())).into()), quote).into()), Value::Str("-".into())).into()), expiry).into()), Value::Str("-".into())).into()), strike).into()), Value::Str("-".into())).into()), optionType).into()));
         m.insert("base".to_string(), baseName.clone());
         m.insert("quote".to_string(), quote.clone());
-        m.insert("settle".to_string(), settle.clone());
+        m.insert("settle".to_string(), quote.clone());
         m.insert("baseId".to_string(), baseName.clone());
-        m.insert("quoteId".to_string(), quote);
-        m.insert("settleId".to_string(), settle.clone());
+        m.insert("quoteId".to_string(), quote.clone());
+        m.insert("settleId".to_string(), quote.clone());
         m.insert("active".to_string(), Value::Bool(false));
         m.insert("type".to_string(), Value::Str("option".into()));
-        m.insert("subType".to_string(), (if (baseName.as_str() == settle.as_str()) { Value::Str("inverse".into()) } else { Value::Str("linear".into()) }));
-        m.insert("linear".to_string(), (Value::Bool(baseName.as_str() != settle.as_str())));
-        m.insert("inverse".to_string(), (Value::Bool(baseName.as_str() == settle.as_str())));
+        m.insert("subType".to_string(), (if (baseName.as_str() == quote.as_str()) { Value::Str("inverse".into()) } else { Value::Str("linear".into()) }));
+        m.insert("linear".to_string(), (Value::Bool(baseName.as_str() != quote.as_str())));
+        m.insert("inverse".to_string(), (Value::Bool(baseName.as_str() == quote.as_str())));
         m.insert("spot".to_string(), Value::Bool(false));
         m.insert("swap".to_string(), Value::Bool(false));
         m.insert("future".to_string(), Value::Bool(false));

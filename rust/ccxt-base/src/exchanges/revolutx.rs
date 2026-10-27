@@ -662,8 +662,8 @@ impl RevolutxCore {
         let mut result: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1105: bool = true;
-            while { if !__for_first_1105 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1105 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
+            let mut __for_first_1106: bool = true;
+            while { if !__for_first_1106 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1106 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
             let mut key: Value = keys.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.safe_dict(markets.clone(), key, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -788,8 +788,8 @@ impl RevolutxCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1106: bool = true;
-            while { if !__for_first_1106 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1106 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
+            let mut __for_first_1107: bool = true;
+            while { if !__for_first_1107 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1107 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
             let mut key: Value = keys.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
             let mut currency: Value = self.safe_dict(currencies.clone(), key.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -898,8 +898,8 @@ impl RevolutxCore {
             let mut marketIds: Vec<Value> = Vec::new();
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1107: bool = true;
-                while { if !__for_first_1107 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1107 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
+                let mut __for_first_1108: bool = true;
+                while { if !__for_first_1108 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1108 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
                 let mut symbol: Value = symbols.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 let mut market: indexmap::IndexMap<String, Value> = self.market(symbol.clone()).as_map().cloned().unwrap_or_default();
                 marketIds.push(market.get("id").cloned().unwrap_or(Value::Null));
@@ -935,8 +935,8 @@ impl RevolutxCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1108: bool = true;
-            while { if !__for_first_1108 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1108 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
+            let mut __for_first_1109: bool = true;
+            while { if !__for_first_1109 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1109 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             let mut tickerData: Value = self.safe_dict(data.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -957,8 +957,8 @@ impl RevolutxCore {
             });
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1109: bool = true;
-                while { if !__for_first_1109 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1109 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
+                let mut __for_first_1110: bool = true;
+                while { if !__for_first_1110 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1110 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
                 let mut s: Value = symbols.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 if (matches!((&result, &s), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                     if let Value::Dict(__d) = &mut filtered { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&s), result.as_map().and_then(|__m| s.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null)); }
@@ -1253,8 +1253,8 @@ impl RevolutxCore {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1110: bool = true;
-            while { if !__for_first_1110 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1110 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
+            let mut __for_first_1111: bool = true;
+            while { if !__for_first_1111 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1111 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             let mut trade: Value = self.safe_dict(data.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1306,8 +1306,8 @@ impl RevolutxCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1111: bool = true;
-            while { if !__for_first_1111 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1111 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
+            let mut __for_first_1112: bool = true;
+            while { if !__for_first_1112 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1112 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             let mut balance: Value = self.safe_dict(data.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1735,8 +1735,8 @@ impl RevolutxCore {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1112: bool = true;
-            while { if !__for_first_1112 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1112 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
+            let mut __for_first_1113: bool = true;
+            while { if !__for_first_1113 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1113 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             let mut order: Value = self.safe_dict(data.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1822,8 +1822,8 @@ impl RevolutxCore {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1113: bool = true;
-            while { if !__for_first_1113 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1113 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
+            let mut __for_first_1114: bool = true;
+            while { if !__for_first_1114 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1114 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             let mut order: Value = self.safe_dict(data.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1989,8 +1989,8 @@ impl RevolutxCore {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1114: bool = true;
-            while { if !__for_first_1114 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1114 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
+            let mut __for_first_1115: bool = true;
+            while { if !__for_first_1115 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1115 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             let mut trade: Value = self.safe_dict(data.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

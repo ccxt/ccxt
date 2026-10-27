@@ -703,8 +703,8 @@ impl PoloniexCore {
         let mut orders: Vec<Value> = vec![];
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_614: bool = true;
-            while { if !__for_first_614 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_614 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
+            let mut __for_first_617: bool = true;
+            while { if !__for_first_617 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_617 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             let mut order: Value = data.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
             let mut parsedOrder: Value = self.parse_ws_order(order, &[]);
             orders.push(parsedOrder);
@@ -867,8 +867,8 @@ impl PoloniexCore {
         if (symbolsNormalized != Value::Null) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_615: bool = true;
-                while { if !__for_first_615 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_615 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
+                let mut __for_first_618: bool = true;
+                while { if !__for_first_618 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_618 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
                 if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str("::".into())).into()), symbolsNormalized.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize),
                     Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null)).into())); }
             }
@@ -1052,8 +1052,8 @@ impl PoloniexCore {
         let mut keys: Vec<Value> = object_keys(&response).as_array().cloned().unwrap_or_default();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_616: bool = true;
-            while { if !__for_first_616 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_616 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
+            let mut __for_first_619: bool = true;
+            while { if !__for_first_619 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_619 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
             let mut key: Value = keys.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
             if self.in_array(key.clone(), reserved.clone()).as_bool() == Some(true) {
                 continue;
@@ -1168,8 +1168,8 @@ impl PoloniexCore {
         let mut data: Value = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_617: bool = true;
-            while { if !__for_first_617 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_617 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
+            let mut __for_first_620: bool = true;
+            while { if !__for_first_620 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_620 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             let mut item: Value = self.safe_dict(data.clone(), i.clone(), &[]);
             let mut marketId: Option<String> = self.safe_string_k(item.clone(), "symbol", &[]).as_str().map(str::to_owned);
             if (marketId.is_some()) {
@@ -1390,8 +1390,8 @@ impl PoloniexCore {
         let mut marketIds: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_619: bool = true;
-            while { if !__for_first_619 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_619 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
+            let mut __for_first_622: bool = true;
+            while { if !__for_first_622 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_622 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             let mut order: Value = self.safe_dict(data.clone(), i.clone(), &[]);
             let mut marketId: Option<String> = self.safe_string_k_opt(order.clone(), "symbol", &[]);
             let mut eventType: Option<String> = self.safe_string_k(order.clone(), "eventType", &[]).as_str().map(str::to_owned);
@@ -1427,8 +1427,8 @@ impl PoloniexCore {
                     let mut previousOrderTrades: Value = self.safe_list_k(previousOrder.clone(), "trades", &[Value::from(vec![])]);
                     {
                                                 let mut j: Value = Value::Int(0);
-                        let mut __for_first_618: bool = true;
-                        while { if !__for_first_618 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_618 = false; j.as_f64().unwrap_or(f64::NAN) < ((previousOrderTrades.len() as i64) as f64) } {
+                        let mut __for_first_621: bool = true;
+                        while { if !__for_first_621 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_621 = false; j.as_f64().unwrap_or(f64::NAN) < ((previousOrderTrades.len() as i64) as f64) } {
                         let mut previousOrderTrade: indexmap::IndexMap<String, Value> = self.safe_dict(previousOrderTrades.clone(), j.clone(), &[Value::Map({
                             let mut m = indexmap::IndexMap::new();
                             m
@@ -1479,8 +1479,8 @@ impl PoloniexCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_620: bool = true;
-            while { if !__for_first_620 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_620 = false; i.as_f64().unwrap_or(f64::NAN) < ((marketIds.len() as i64) as f64) } {
+            let mut __for_first_623: bool = true;
+            while { if !__for_first_623 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_623 = false; i.as_f64().unwrap_or(f64::NAN) < ((marketIds.len() as i64) as f64) } {
             let mut marketId: Value = marketIds.get((i).as_i64().map_or(usize::MAX, |__n| __n as usize)).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.market(marketId);
             let symbol: String = self.safe_string_k_opt(market, "symbol", &[Value::Str("".into())]).unwrap_or_default();
@@ -1604,8 +1604,8 @@ impl PoloniexCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_621: bool = true;
-            while { if !__for_first_621 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_621 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
+            let mut __for_first_624: bool = true;
+            while { if !__for_first_624 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_624 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             let mut item: Value = data.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
             let mut marketId: Option<String> = self.safe_string_k(item.clone(), "symbol", &[]).as_str().map(str::to_owned);
             if (marketId.is_some()) {
@@ -1623,8 +1623,8 @@ impl PoloniexCore {
         let mut messageHashes: Vec<Value> = self.find_message_hashes(client.clone(), Value::Str("ticker::".into())).as_array().cloned().unwrap_or_default();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_622: bool = true;
-            while { if !__for_first_622 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_622 = false; i.as_f64().unwrap_or(f64::NAN) < ((messageHashes.len() as i64) as f64) } {
+            let mut __for_first_625: bool = true;
+            while { if !__for_first_625 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_625 = false; i.as_f64().unwrap_or(f64::NAN) < ((messageHashes.len() as i64) as f64) } {
             let mut messageHash: Value = messageHashes.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
             let mut parts: Vec<Value> = Value::Array(messageHash.as_str().map(|__s| __s.split("::").map(Value::from).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
             let mut symbolsString: Value = parts.get(1).cloned().unwrap_or(Value::Null);
@@ -1698,8 +1698,8 @@ impl PoloniexCore {
         let mut update: bool = type_var.as_deref() == Some("update");
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_625: bool = true;
-            while { if !__for_first_625 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_625 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
+            let mut __for_first_628: bool = true;
+            while { if !__for_first_628 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_628 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             let mut item: Value = self.safe_dict(data.clone(), i.clone(), &[]);
             let mut marketId: Option<String> = self.safe_string_k_opt(item.clone(), "symbol", &[]);
             let mut market: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]);
@@ -1739,8 +1739,8 @@ impl PoloniexCore {
                 if (bids != Value::Null) {
                     {
                                                 let mut j: Value = Value::Int(0);
-                        let mut __for_first_623: bool = true;
-                        while { if !__for_first_623 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_623 = false; j.as_f64().unwrap_or(f64::NAN) < ((bids.len() as i64) as f64) } {
+                        let mut __for_first_626: bool = true;
+                        while { if !__for_first_626 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_626 = false; j.as_f64().unwrap_or(f64::NAN) < ((bids.len() as i64) as f64) } {
                         let mut bid: Value = self.safe_list(bids.clone(), j.clone(), &[]);
                         let mut price: Value = self.safe_number(bid.clone(), Value::Int(0), &[]);
                         let mut amount: Value = self.safe_number(bid, Value::Int(1), &[]);
@@ -1752,8 +1752,8 @@ impl PoloniexCore {
                 if (asks != Value::Null) {
                     {
                                                 let mut j: Value = Value::Int(0);
-                        let mut __for_first_624: bool = true;
-                        while { if !__for_first_624 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_624 = false; j.as_f64().unwrap_or(f64::NAN) < ((asks.len() as i64) as f64) } {
+                        let mut __for_first_627: bool = true;
+                        while { if !__for_first_627 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_627 = false; j.as_f64().unwrap_or(f64::NAN) < ((asks.len() as i64) as f64) } {
                         let mut ask: Value = self.safe_list(asks.clone(), j.clone(), &[]);
                         let mut price: Value = self.safe_number(ask.clone(), Value::Int(0), &[]);
                         let mut amount: Value = self.safe_number(ask, Value::Int(1), &[]);
@@ -1818,8 +1818,8 @@ impl PoloniexCore {
         { let __be_tmp = self.iso8601(timestamp); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("datetime".into(), __be_tmp); } }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_626: bool = true;
-            while { if !__for_first_626 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_626 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
+            let mut __for_first_629: bool = true;
+            while { if !__for_first_629 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_629 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             let mut balance: Value = self.safe_dict(data.clone(), i.clone(), &[]);
             let mut currencyId: Option<String> = self.safe_string_k_opt(balance.clone(), "currency", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
