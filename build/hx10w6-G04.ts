@@ -527,6 +527,30 @@ export function g04BookSides (content: string): string {
     return lines.join ('\n');
 }
 
+// hx11 w8: once the ws-cache pass has printed the cache read as a plain map index, the unbox of a
+// guarded book is Go's own type assertion on that index; `OrderBookTyped(this.Orderbooks[k])` was a
+// wrapper call around the same read. g04BookSides only unboxes where a guard proves the entry is a book.
+export function g04NativeBookReads (content: string): string {
+    if (content.indexOf ('OrderBookTyped(this.Orderbooks[') < 0) {
+        return content;
+    }
+    return content.replace (/^(\s*(?:var \w+ (?:ccxt\.)?OrderBookInterface = |\w+ = ))((?:ccxt\.)?)OrderBookTyped\((this\.Orderbooks\[\*?\w+\])\)$/gm,
+        (all: string, head: string, pkg: string, read: string) => head + read + '.(' + pkg + 'OrderBookInterface)');
+}
+
+export function g04NativeBookReadsCheck (): string[] {
+    const problems: string[] = [];
+    const src = 'package ccxtpro\n\nfunc (this *X) F() {\n\tvar orderbook ccxt.OrderBookInterface\n\tif symbol != nil {\n\t\torderbook = ccxt.OrderBookTyped(this.Orderbooks[*symbol])\n\t}\n\tvar b ccxt.OrderBookInterface = ccxt.OrderBookTyped(this.Orderbooks[symbol])\n\tvar c ccxt.OrderBookInterface = ccxt.OrderBookTyped(r1.Value)\n}\n';
+    const out = g04NativeBookReads (src);
+    if (!out.includes ('\t\torderbook = this.Orderbooks[*symbol].(ccxt.OrderBookInterface)\n') || !out.includes ('= this.Orderbooks[symbol].(ccxt.OrderBookInterface)\n')) {
+        problems.push ('hx11 w8: cache read not typed natively: ' + out);
+    }
+    if (!out.includes ('ccxt.OrderBookTyped(r1.Value)')) {
+        problems.push ('hx11 w8: a non-cache unbox must keep OrderBookTyped: ' + out);
+    }
+    return problems;
+}
+
 export function g04BookSidesCheck (): string[] {
     const problems: string[] = [];
     const ok = (condition: boolean, message: string) => { if (!condition) { problems.push ('hx10w6-G04: ' + message); } };
