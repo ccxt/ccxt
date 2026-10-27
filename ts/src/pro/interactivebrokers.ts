@@ -790,6 +790,10 @@ export default class interactivebrokers extends interactivebrokersRest {
 
     handleOrderBook (client: Client, message: Dict) {
         //
+        // the price ladder is a list of rows, the first message after subscribing is an empty placeholder ladder,
+        // then the full ladder is sent, then only the changed rows are sent, every row carries its full state
+        // (a row without "bid" or "ask" has no size on that side), when the price moves out of the ladder all the rows are re-sent
+        //
         //     {
         //         "topic": "sbd+U1234567+265598",
         //         "data": [
@@ -800,16 +804,45 @@ export default class interactivebrokers extends interactivebrokersRest {
         //         ]
         //     }
         //
+        //     { "topic": "sbd+U1234567+265598", "data": [ { "row": 14, "focus": 0, "price": "182.40", "bid": "22.2274" } ] }
+        //
         const topic = this.safeString (message, 'topic', '');
         const parts = topic.split ('+');
         const marketId = this.safeString (parts, 2);
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
+        const messageHash = 'orderbook::' + symbol;
+        const subscription = this.safeDict (client.subscriptions, messageHash);
+        if (subscription === undefined) {
+            return; // unsubscribed
+        }
+        // the ladder state, indexed by row
+        const ladder = this.safeDict (subscription, 'ladder', {});
         const data = this.safeList (message, 'data', []);
+        for (let i = 0; i < data.length; i++) {
+            const entry = data[i];
+            const rowId = this.safeString (entry, 'row');
+            if (rowId === undefined) {
+                continue;
+            }
+            let price = this.safeString (entry, 'price');
+            if (price === undefined) {
+                const previousRow = this.safeDict (ladder, rowId, {});
+                price = this.safeString (previousRow, 'price');
+            }
+            ladder[rowId] = {
+                'price': price,
+                'bid': this.safeString (entry, 'bid'),
+                'ask': this.safeString (entry, 'ask'),
+            };
+        }
+        subscription['ladder'] = ladder;
+        // the order book is rebuilt from all the rows of the ladder
         const bids = [];
         const asks = [];
-        for (let i = 0; i < data.length; i++) {
-            const row = data[i];
+        const rowIds = Object.keys (ladder);
+        for (let i = 0; i < rowIds.length; i++) {
+            const row = ladder[rowIds[i]];
             let price = this.safeString (row, 'price');
             if (price === undefined) {
                 continue;
@@ -822,6 +855,9 @@ export default class interactivebrokers extends interactivebrokersRest {
                 price = priceWords.join ('');
             }
             price = this.ibkrParseValue (price);
+            if (price === undefined) {
+                continue;
+            }
             const bid = this.ibkrParseValue (this.safeString (row, 'bid'));
             const ask = this.ibkrParseValue (this.safeString (row, 'ask'));
             if (bid !== undefined) {
@@ -831,6 +867,15 @@ export default class interactivebrokers extends interactivebrokersRest {
                 asks.push ([ price, ask ]);
             }
         }
+        // the placeholder ladder sent right after subscribing has no sizes, it is not emitted
+        const isEmpty = (bids.length === 0) && (asks.length === 0);
+        const emitted = this.safeBool (subscription, 'emitted', false);
+        if (isEmpty && !emitted) {
+            client.subscriptions[messageHash] = subscription;
+            return;
+        }
+        subscription['emitted'] = true;
+        client.subscriptions[messageHash] = subscription;
         const timestamp = this.milliseconds ();
         const snapshot = this.parseOrderBook ({ 'bids': bids, 'asks': asks }, symbol, timestamp);
         let orderbook = this.safeValue (this.orderbooks, symbol);
@@ -839,7 +884,7 @@ export default class interactivebrokers extends interactivebrokersRest {
             this.orderbooks[symbol] = orderbook;
         }
         orderbook.reset (snapshot);
-        client.resolve (orderbook, 'orderbook::' + symbol);
+        client.resolve (orderbook, messageHash);
     }
 
     /**
