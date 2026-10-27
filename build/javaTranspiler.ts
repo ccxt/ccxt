@@ -6753,7 +6753,7 @@ function nativeJavaH2kJ15 (content: string): string {
 export function j16Stats (): Record<string, number> { return (globalThis as any).__j16Stats ??= {}; }
 function j16Count (k: string) { const s = j16Stats (); s[k] = (s[k] || 0) + 1; }
 // base readers that write no state (BaseExchange.java / Exchange.java / java.util)
-function j16PureCall (n: string): boolean { return /^(?:this\.(?:safe(?:String|StringLower|StringUpper|Integer|IntegerProduct|Number|Float|Value|Bool|Dict|List|String2|Integer2|Number2|Value2|Bool2|Dict2|List2|StringN|IntegerN|NumberN|ValueN|Timestamp|Timestamp2|TimestampN)|iso8601|parseNumber|numberToString|omitZero)|java\.util\.Objects\.equals|java\.util\.Objects\.requireNonNullElse|Helpers\.newMap)$/.test (n); }
+function j16PureCall (n: string): boolean { return /^(?:this\.(?:safe(?:String|StringLower|StringUpper|Integer|IntegerProduct|Number|Float|Value|Bool|Dict|List|String2|Integer2|Number2|Value2|Bool2|Dict2|List2|StringN|IntegerN|NumberN|ValueN|Timestamp|Timestamp2|TimestampN)|iso8601|parseNumber|numberToString|omitZero)|java\.util\.Objects\.equals|java\.util\.Objects\.requireNonNullElse|Helpers\.newMap|Precise\.string(?:Abs|Mul|Add|Sub|Div))$/.test (n); }
 
 // blank string/char literals and comments (length-preserving) so brackets can be matched
 function j16Mask (s: string): string {
