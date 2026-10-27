@@ -503,6 +503,11 @@ impl ClientState {
     pub fn has_queued_messages(&self) -> bool {
         self.with(|c| !c.incoming.is_empty())
     }
+    /// Pop the oldest un-consumed inbound frame (static-WS harness: replay the
+    /// acks an unWatch* fixture holds beyond the one that resolved the call).
+    pub fn pop_queued_message(&self) -> Option<Value> {
+        self.with(|c| c.incoming.pop_front())
+    }
     pub fn mark_ws_test_completed(&self) { self.with(|c| c.ws_test_completed = true); }
     pub fn is_ws_test_completed(&self) -> bool { self.with(|c| c.ws_test_completed) }
     /// Reject every pending future so a fixture whose frames don't resolve the
@@ -953,6 +958,9 @@ pub fn mock_has_pending_futures(url: &str) -> bool {
 }
 pub fn mock_has_queued_messages(url: &str) -> bool {
     get_client(url).map(|c| c.has_queued_messages()).unwrap_or(false)
+}
+pub fn mock_pop_message(url: &str) -> Option<Value> {
+    get_client(url).and_then(|c| c.pop_queued_message())
 }
 pub fn mock_mark_completed(url: &str) {
     if let Some(c) = get_client(url) { c.mark_ws_test_completed(); }
