@@ -8679,7 +8679,6 @@ export class BaseExchange {
         const [ paginationDirection, paramsPaginationDirection ] = this.handleOptionAndParams (paramsMaxRetries, method, 'paginationDirection', 'backward');
         let paginationTimestamp: Int = undefined;
         const [ removeRepeatedOption, paramsRemoveRepeated ] = this.handleOptionAndParams (paramsPaginationDirection, method, 'removeRepeated', removeRepeated);
-        let calls = 0;
         let result: any[] = [];
         let errors = 0;
         const until = this.safeIntegerN (paramsRemoveRepeated, [ 'until', 'untill', 'till' ]); // do not omit it from params here
@@ -8691,8 +8690,7 @@ export class BaseExchange {
             paginationTimestamp = since;
         }
         let shouldBreak = false;
-        while ((calls < maxCallsPaginationCalls)) {
-            calls += 1;
+        for (let i = 0; i < maxCallsPaginationCalls; i++) {
             try {
                 if (paginationDirection === 'backward') {
                     // do it backwards, starting from the last
@@ -8703,7 +8701,7 @@ export class BaseExchange {
                     const response = await this[method] (symbol, undefined, maxEntriesPerRequestOption, paramsMaxEntriesPerRequest);
                     const responseLength: number = response.length;
                     if (this.verbose) {
-                        let backwardMessage = 'Dynamic pagination call ' + this.numberToString (calls) + ' method ' + method + ' response length ' + responseLength.toString ();
+                        let backwardMessage = 'Dynamic pagination call ' + this.numberToString (i + 1) + ' method ' + method + ' response length ' + responseLength.toString ();
                         if (paginationTimestamp !== undefined) {
                             backwardMessage += ' timestamp ' + this.numberToString (paginationTimestamp);
                         }
@@ -8730,7 +8728,7 @@ export class BaseExchange {
                     const response = await this[method] (symbol, paginationTimestamp, maxEntriesPerRequestOption, paramsMaxEntriesPerRequest);
                     const responseLength: number = response.length;
                     if (this.verbose) {
-                        let forwardMessage = 'Dynamic pagination call ' + this.numberToString (calls) + ' method ' + method + ' response length ' + responseLength.toString ();
+                        let forwardMessage = 'Dynamic pagination call ' + this.numberToString (i + 1) + ' method ' + method + ' response length ' + responseLength.toString ();
                         if (paginationTimestamp !== undefined) {
                             forwardMessage += ' timestamp ' + this.numberToString (paginationTimestamp);
                         }
@@ -8865,13 +8863,12 @@ export class BaseExchange {
         const [ maxRetriesOption, paramsMaxRetries ] = this.handleOptionIntegerAndParams (paramsPaginationCalls, method, 'maxRetries', maxRetries);
         const [ maxEntriesPerRequestOption, paramsMaxEntriesPerRequest ] = this.handleMaxEntriesPerRequestAndParams (method, maxEntriesPerRequest, paramsMaxRetries);
         let cursorValue: Int = undefined;
-        let i = 0;
         let errors = 0;
         let result: any[] = [];
         const timeframe = this.safeString (paramsMaxEntriesPerRequest, 'timeframe');
         const paramsOmitted: Dict = this.omit (paramsMaxEntriesPerRequest, 'timeframe'); // reading the timeframe from the method arguments to avoid changing the signature
         let shouldBreak = false;
-        while (i < maxCallsPaginationCalls) {
+        for (let i = 0; i < maxCallsPaginationCalls; i++) {
             try {
                 if (cursorValue !== undefined) {
                     if (cursorIncrement !== undefined) {
@@ -8945,7 +8942,6 @@ export class BaseExchange {
             if (shouldBreak) {
                 break; // go turns a break inside try into a panic that only ends the iteration
             }
-            i += 1;
         }
         const sorted = this.sortCursorPaginatedResult (result);
         const key = (method === 'fetchOHLCV') ? 0 : 'timestamp';
