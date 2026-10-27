@@ -1,0 +1,599 @@
+{
+    "exchange": "interactivebrokers",
+    "skipKeys": [],
+    "options": {},
+    "methods": {
+        "watchTickers": [
+            {
+                "description": "crypto spot single",
+                "input": [
+                    [
+                        "BTC/USD"
+                    ]
+                ],
+                "url": "wss://api.ibkr.com/v1/api/ws?oauth_token=84270d7070618c28432c",
+                "messages": [
+                    {
+                        "topic": "system",
+                        "success": "todua1991",
+                        "isFT": false,
+                        "isPaper": false
+                    },
+                    {
+                        "topic": "act",
+                        "args": {
+                            "accounts": [
+                                "U3448646"
+                            ],
+                            "acctProps": {
+                                "U3448646": {
+                                    "hasChildAccounts": false,
+                                    "supportsCashQty": true,
+                                    "liteUnderPro": false,
+                                    "noFXConv": false,
+                                    "isProp": false,
+                                    "supportsFractions": true,
+                                    "allowCustomerTime": false,
+                                    "autoFx": false
+                                }
+                            },
+                            "aliases": {
+                                "U3448646": "U3448646"
+                            },
+                            "allowFeatures": {
+                                "showGFIS": true,
+                                "showEUCostReport": false,
+                                "allowEventContract": true,
+                                "allowFXConv": true,
+                                "allowFinancialLens": false,
+                                "allowMTA": true,
+                                "allowTypeAhead": true,
+                                "allowEventTrading": true,
+                                "snapshotRefreshTimeout": 30,
+                                "liteUser": false,
+                                "showWebNews": true,
+                                "research": true,
+                                "debugPnl": true,
+                                "showTaxOpt": true,
+                                "showImpactDashboard": true,
+                                "allowDynAccount": false,
+                                "allowCrypto": false,
+                                "allowFA": false,
+                                "allowLiteUnderPro": false,
+                                "allowedAssetTypes": "STK,CFD,OPT,FOP,WAR,FUT,BAG,PDC,CASH,IND,BOND,BILL,FUND,SLB,News,CMDTY,IOPT,ICU,ICS,PHYSS,CRYPTO",
+                                "restrictTradeSubscription": false,
+                                "showUkUserLabels": true,
+                                "sideBySide": true
+                            },
+                            "chartPeriods": {
+                                "STK": [
+                                    "*"
+                                ],
+                                "CFD": [
+                                    "*"
+                                ],
+                                "OPT": [
+                                    "2h",
+                                    "1d",
+                                    "2d",
+                                    "1w",
+                                    "1m"
+                                ],
+                                "FOP": [
+                                    "2h",
+                                    "1d",
+                                    "2d",
+                                    "1w",
+                                    "1m"
+                                ],
+                                "WAR": [
+                                    "*"
+                                ],
+                                "IOPT": [
+                                    "*"
+                                ],
+                                "FUT": [
+                                    "*"
+                                ],
+                                "CASH": [
+                                    "*"
+                                ],
+                                "IND": [
+                                    "*"
+                                ],
+                                "BOND": [
+                                    "*"
+                                ],
+                                "FUND": [
+                                    "*"
+                                ],
+                                "CMDTY": [
+                                    "*"
+                                ],
+                                "PHYSS": [
+                                    "*"
+                                ],
+                                "CRYPTO": [
+                                    "*"
+                                ]
+                            },
+                            "groups": [],
+                            "profiles": [],
+                            "selectedAccount": "U3448646",
+                            "serverInfo": {
+                                "serverName": "JifZ32112",
+                                "serverVersion": "Build 10.50.1d, Oct 15, 2026 12:58:27 PM"
+                            },
+                            "sessionId": "6ae02512.00000435",
+                            "isFT": false,
+                            "isPaper": false
+                        }
+                    },
+                    {
+                        "topic": "sts",
+                        "args": {
+                            "connected": true,
+                            "authenticated": true,
+                            "established": true,
+                            "competing": false,
+                            "message": "",
+                            "fail": "",
+                            "serverName": "JifZ32112",
+                            "serverVersion": "Build 10.50.1d, Oct 15, 2026 12:58:27 PM",
+                            "username": "todua1991"
+                        }
+                    },
+                    {
+                        "31": "80687.50",
+                        "55": "BTC",
+                        "70": "80726.75",
+                        "71": "79326.50",
+                        "82": "+799.25",
+                        "83": 1,
+                        "84": "80685.00",
+                        "85": "0.00194251",
+                        "86": "80687.75",
+                        "88": "0.02478768",
+                        "6119": "q1",
+                        "6509": "R",
+                        "7059": "0.00000027",
+                        "7635": "80687.60",
+                        "7741": "79888.25",
+                        "7762": "693",
+                        "conidEx": "479624278",
+                        "_updated": 1793122461782,
+                        "server_id": "q1",
+                        "topic": "smd+479624278",
+                        "conid": 479624278
+                    },
+                    {
+                        "84": "80684.75",
+                        "88": "0.02478780",
+                        "6119": "q1",
+                        "server_id": "q1",
+                        "conidEx": "479624278",
+                        "conid": 479624278,
+                        "_updated": 1793122462535,
+                        "topic": "smd+479624278"
+                    },
+                    {
+                        "88": "0.02478779",
+                        "6119": "q1",
+                        "server_id": "q1",
+                        "conidEx": "479624278",
+                        "conid": 479624278,
+                        "_updated": 1793122463331,
+                        "topic": "smd+479624278"
+                    },
+                    {
+                        "88": "0.02478776",
+                        "6119": "q1",
+                        "server_id": "q1",
+                        "conidEx": "479624278",
+                        "conid": 479624278,
+                        "_updated": 1793122464042,
+                        "topic": "smd+479624278"
+                    },
+                    {
+                        "84": "80685.00",
+                        "88": "0.02478775",
+                        "6119": "q1",
+                        "server_id": "q1",
+                        "conidEx": "479624278",
+                        "conid": 479624278,
+                        "_updated": 1793122464795,
+                        "topic": "smd+479624278"
+                    },
+                    {
+                        "84": "80684.75",
+                        "88": "0.02478776",
+                        "6119": "q1",
+                        "server_id": "q1",
+                        "conidEx": "479624278",
+                        "conid": 479624278,
+                        "_updated": 1793122465798,
+                        "topic": "smd+479624278"
+                    },
+                    {
+                        "topic": "system",
+                        "hb": 1793122466355
+                    },
+                    {
+                        "84": "80683.50",
+                        "85": "0.01787114",
+                        "86": "80685.00",
+                        "88": "0.02478819",
+                        "6119": "q1",
+                        "server_id": "q1",
+                        "conidEx": "479624278",
+                        "conid": 479624278,
+                        "_updated": 1793122466551,
+                        "topic": "smd+479624278"
+                    }
+                ],
+                "httpResponse": {
+                    "session": "0e6dc29c550041f76448e320a48c5c5b",
+                    "hmds": {
+                        "error": "no bridge"
+                    },
+                    "iserver": {
+                        "authStatus": {
+                            "authenticated": true,
+                            "established": true,
+                            "competing": false,
+                            "connected": true,
+                            "message": "",
+                            "MAC": "06:61:A2:5D:8E:CE",
+                            "serverInfo": {
+                                "serverName": "JifZ32112",
+                                "serverVersion": "Build 10.50.1d, Oct 15, 2026 12:58:27 PM"
+                            },
+                            "hardware_info": "d6d1cd6f|06:61:A2:5D:8E:CE"
+                        }
+                    }
+                },
+                "sentMessages": [
+                    "smd+479624278+{\"fields\":[\"31\",\"55\",\"70\",\"71\",\"82\",\"83\",\"84\",\"85\",\"86\",\"88\",\"7059\",\"7295\",\"7635\",\"7741\",\"7762\"]}"
+                ],
+                "parsedResponses": [
+                    {
+                        "BTC/USD": {
+                            "symbol": "BTC/USD",
+                            "timestamp": 1793122461782,
+                            "datetime": "2026-10-27T17:34:21.782Z",
+                            "high": 80726.75,
+                            "low": 79326.5,
+                            "bid": 80685,
+                            "bidVolume": 0.02478768,
+                            "ask": 80687.75,
+                            "askVolume": 0.00194251,
+                            "vwap": null,
+                            "open": 79888.25,
+                            "close": 80687.5,
+                            "last": 80687.5,
+                            "previousClose": 79888.25,
+                            "change": 799.25,
+                            "percentage": 1,
+                            "average": 80287.87,
+                            "baseVolume": 693,
+                            "quoteVolume": null,
+                            "markPrice": 80687.6,
+                            "indexPrice": null,
+                            "info": {
+                                "31": "80687.50",
+                                "55": "BTC",
+                                "70": "80726.75",
+                                "71": "79326.50",
+                                "82": "+799.25",
+                                "83": 1,
+                                "84": "80685.00",
+                                "85": "0.00194251",
+                                "86": "80687.75",
+                                "88": "0.02478768",
+                                "6119": "q1",
+                                "6509": "R",
+                                "7059": "0.00000027",
+                                "7635": "80687.60",
+                                "7741": "79888.25",
+                                "7762": "693",
+                                "conidEx": "479624278",
+                                "_updated": 1793122461782,
+                                "server_id": "q1",
+                                "topic": "smd+479624278",
+                                "conid": 479624278
+                            }
+                        }
+                    },
+                    {
+                        "BTC/USD": {
+                            "symbol": "BTC/USD",
+                            "timestamp": 1793122462535,
+                            "datetime": "2026-10-27T17:34:22.535Z",
+                            "high": 80726.75,
+                            "low": 79326.5,
+                            "bid": 80684.75,
+                            "bidVolume": 0.0247878,
+                            "ask": 80687.75,
+                            "askVolume": 0.00194251,
+                            "vwap": null,
+                            "open": 79888.25,
+                            "close": 80687.5,
+                            "last": 80687.5,
+                            "previousClose": 79888.25,
+                            "change": 799.25,
+                            "percentage": 1,
+                            "average": 80287.87,
+                            "baseVolume": 693,
+                            "quoteVolume": null,
+                            "markPrice": 80687.6,
+                            "indexPrice": null,
+                            "info": {
+                                "31": "80687.50",
+                                "55": "BTC",
+                                "70": "80726.75",
+                                "71": "79326.50",
+                                "82": "+799.25",
+                                "83": 1,
+                                "84": "80684.75",
+                                "85": "0.00194251",
+                                "86": "80687.75",
+                                "88": "0.02478780",
+                                "6119": "q1",
+                                "6509": "R",
+                                "7059": "0.00000027",
+                                "7635": "80687.60",
+                                "7741": "79888.25",
+                                "7762": "693",
+                                "conidEx": "479624278",
+                                "_updated": 1793122462535,
+                                "server_id": "q1",
+                                "topic": "smd+479624278",
+                                "conid": 479624278
+                            }
+                        }
+                    },
+                    {
+                        "BTC/USD": {
+                            "symbol": "BTC/USD",
+                            "timestamp": 1793122463331,
+                            "datetime": "2026-10-27T17:34:23.331Z",
+                            "high": 80726.75,
+                            "low": 79326.5,
+                            "bid": 80684.75,
+                            "bidVolume": 0.02478779,
+                            "ask": 80687.75,
+                            "askVolume": 0.00194251,
+                            "vwap": null,
+                            "open": 79888.25,
+                            "close": 80687.5,
+                            "last": 80687.5,
+                            "previousClose": 79888.25,
+                            "change": 799.25,
+                            "percentage": 1,
+                            "average": 80287.87,
+                            "baseVolume": 693,
+                            "quoteVolume": null,
+                            "markPrice": 80687.6,
+                            "indexPrice": null,
+                            "info": {
+                                "31": "80687.50",
+                                "55": "BTC",
+                                "70": "80726.75",
+                                "71": "79326.50",
+                                "82": "+799.25",
+                                "83": 1,
+                                "84": "80684.75",
+                                "85": "0.00194251",
+                                "86": "80687.75",
+                                "88": "0.02478779",
+                                "6119": "q1",
+                                "6509": "R",
+                                "7059": "0.00000027",
+                                "7635": "80687.60",
+                                "7741": "79888.25",
+                                "7762": "693",
+                                "conidEx": "479624278",
+                                "_updated": 1793122463331,
+                                "server_id": "q1",
+                                "topic": "smd+479624278",
+                                "conid": 479624278
+                            }
+                        }
+                    },
+                    {
+                        "BTC/USD": {
+                            "symbol": "BTC/USD",
+                            "timestamp": 1793122464042,
+                            "datetime": "2026-10-27T17:34:24.042Z",
+                            "high": 80726.75,
+                            "low": 79326.5,
+                            "bid": 80684.75,
+                            "bidVolume": 0.02478776,
+                            "ask": 80687.75,
+                            "askVolume": 0.00194251,
+                            "vwap": null,
+                            "open": 79888.25,
+                            "close": 80687.5,
+                            "last": 80687.5,
+                            "previousClose": 79888.25,
+                            "change": 799.25,
+                            "percentage": 1,
+                            "average": 80287.87,
+                            "baseVolume": 693,
+                            "quoteVolume": null,
+                            "markPrice": 80687.6,
+                            "indexPrice": null,
+                            "info": {
+                                "31": "80687.50",
+                                "55": "BTC",
+                                "70": "80726.75",
+                                "71": "79326.50",
+                                "82": "+799.25",
+                                "83": 1,
+                                "84": "80684.75",
+                                "85": "0.00194251",
+                                "86": "80687.75",
+                                "88": "0.02478776",
+                                "6119": "q1",
+                                "6509": "R",
+                                "7059": "0.00000027",
+                                "7635": "80687.60",
+                                "7741": "79888.25",
+                                "7762": "693",
+                                "conidEx": "479624278",
+                                "_updated": 1793122464042,
+                                "server_id": "q1",
+                                "topic": "smd+479624278",
+                                "conid": 479624278
+                            }
+                        }
+                    },
+                    {
+                        "BTC/USD": {
+                            "symbol": "BTC/USD",
+                            "timestamp": 1793122464795,
+                            "datetime": "2026-10-27T17:34:24.795Z",
+                            "high": 80726.75,
+                            "low": 79326.5,
+                            "bid": 80685,
+                            "bidVolume": 0.02478775,
+                            "ask": 80687.75,
+                            "askVolume": 0.00194251,
+                            "vwap": null,
+                            "open": 79888.25,
+                            "close": 80687.5,
+                            "last": 80687.5,
+                            "previousClose": 79888.25,
+                            "change": 799.25,
+                            "percentage": 1,
+                            "average": 80287.87,
+                            "baseVolume": 693,
+                            "quoteVolume": null,
+                            "markPrice": 80687.6,
+                            "indexPrice": null,
+                            "info": {
+                                "31": "80687.50",
+                                "55": "BTC",
+                                "70": "80726.75",
+                                "71": "79326.50",
+                                "82": "+799.25",
+                                "83": 1,
+                                "84": "80685.00",
+                                "85": "0.00194251",
+                                "86": "80687.75",
+                                "88": "0.02478775",
+                                "6119": "q1",
+                                "6509": "R",
+                                "7059": "0.00000027",
+                                "7635": "80687.60",
+                                "7741": "79888.25",
+                                "7762": "693",
+                                "conidEx": "479624278",
+                                "_updated": 1793122464795,
+                                "server_id": "q1",
+                                "topic": "smd+479624278",
+                                "conid": 479624278
+                            }
+                        }
+                    },
+                    {
+                        "BTC/USD": {
+                            "symbol": "BTC/USD",
+                            "timestamp": 1793122465798,
+                            "datetime": "2026-10-27T17:34:25.798Z",
+                            "high": 80726.75,
+                            "low": 79326.5,
+                            "bid": 80684.75,
+                            "bidVolume": 0.02478776,
+                            "ask": 80687.75,
+                            "askVolume": 0.00194251,
+                            "vwap": null,
+                            "open": 79888.25,
+                            "close": 80687.5,
+                            "last": 80687.5,
+                            "previousClose": 79888.25,
+                            "change": 799.25,
+                            "percentage": 1,
+                            "average": 80287.87,
+                            "baseVolume": 693,
+                            "quoteVolume": null,
+                            "markPrice": 80687.6,
+                            "indexPrice": null,
+                            "info": {
+                                "31": "80687.50",
+                                "55": "BTC",
+                                "70": "80726.75",
+                                "71": "79326.50",
+                                "82": "+799.25",
+                                "83": 1,
+                                "84": "80684.75",
+                                "85": "0.00194251",
+                                "86": "80687.75",
+                                "88": "0.02478776",
+                                "6119": "q1",
+                                "6509": "R",
+                                "7059": "0.00000027",
+                                "7635": "80687.60",
+                                "7741": "79888.25",
+                                "7762": "693",
+                                "conidEx": "479624278",
+                                "_updated": 1793122465798,
+                                "server_id": "q1",
+                                "topic": "smd+479624278",
+                                "conid": 479624278
+                            }
+                        }
+                    },
+                    {
+                        "BTC/USD": {
+                            "symbol": "BTC/USD",
+                            "timestamp": 1793122466551,
+                            "datetime": "2026-10-27T17:34:26.551Z",
+                            "high": 80726.75,
+                            "low": 79326.5,
+                            "bid": 80683.5,
+                            "bidVolume": 0.02478819,
+                            "ask": 80685,
+                            "askVolume": 0.01787114,
+                            "vwap": null,
+                            "open": 79888.25,
+                            "close": 80687.5,
+                            "last": 80687.5,
+                            "previousClose": 79888.25,
+                            "change": 799.25,
+                            "percentage": 1,
+                            "average": 80287.87,
+                            "baseVolume": 693,
+                            "quoteVolume": null,
+                            "markPrice": 80687.6,
+                            "indexPrice": null,
+                            "info": {
+                                "31": "80687.50",
+                                "55": "BTC",
+                                "70": "80726.75",
+                                "71": "79326.50",
+                                "82": "+799.25",
+                                "83": 1,
+                                "84": "80683.50",
+                                "85": "0.01787114",
+                                "86": "80685.00",
+                                "88": "0.02478819",
+                                "6119": "q1",
+                                "6509": "R",
+                                "7059": "0.00000027",
+                                "7635": "80687.60",
+                                "7741": "79888.25",
+                                "7762": "693",
+                                "conidEx": "479624278",
+                                "_updated": 1793122466551,
+                                "server_id": "q1",
+                                "topic": "smd+479624278",
+                                "conid": 479624278
+                            }
+                        }
+                    }
+                ]
+            }
+        ]
+  }
+}
