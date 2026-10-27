@@ -335,8 +335,8 @@ export default class cryptomus extends Exchange {
             throw new ExchangeError (this.id + ' parseMarket() missing marketId');
         }
         const parts = marketId.split ('_');
-        const baseId = parts[0];
-        const quoteId = parts[1];
+        const baseId = this.safeString (parts, 0);
+        const quoteId = this.safeString (parts, 1);
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
         if ((base === undefined) || (quote === undefined)) {
@@ -434,12 +434,12 @@ export default class cryptomus extends Exchange {
         return this.parseCurrencies (groupedArray);
     }
 
-    override parseCurrency (rawCurrency: Dict): CurrencyInterface {
+    override parseCurrency (rawCurrency: List): CurrencyInterface {
         // currency here is array of networks
         let id: Str = undefined; // all entries have same id, as they were grouped by
         let code: Str = undefined;
         const networks: Dict = {};
-        for (let i = 0; i < (rawCurrency as List).length; i++) {
+        for (let i = 0; i < rawCurrency.length; i++) {
             const networkEntry = this.safeDict (rawCurrency, i);
             // set ID on first loop
             if (id === undefined) {
@@ -896,8 +896,7 @@ export default class cryptomus extends Exchange {
         const result: Dict[] = this.safeList (response, 'result', []);
         const orders: List = [];
         for (let i = 0; i < result.length; i++) {
-            const order = result[i];
-            orders.push (this.parseOrder (order, market));
+            orders.push (this.parseOrder (result[i], market));
         }
         return orders;
     }
