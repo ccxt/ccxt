@@ -3371,6 +3371,7 @@ export function formatGoSource (filePath: string, content: string): string {
     content = goChan3Pass (content);  // GO-CHAN3: AsyncResult[any] -> AsyncResult[T], after go-err
     content = gp18Pass (content);  // hx10 w9 GP18: EndpointResult[T] receive reads .Value, MapTyped(Raw) drops
     content = hx4G12TupleSlotReads (content, filePath);  // hx4 G12, again: async []any producers are received as rN.Value only after GOCHAN3
+    content = hx11w8PromiseAllSlotReads (content);  // hx11 w8 M40: promiseAll destructure slots, once the receive prints ListTyped(r.Value)
     content = goTickerCachePass (content);  // typed ws ticker caches, after goChan3's resolved switches
     content = g09Pass (content);  // hx10w2 G09: Options is a plain map
     content = hx10G10Pass (content);  // hx10 G10: plain ws cache maps on BaseExchange
@@ -9756,7 +9757,7 @@ async function runMain () {
         return;
     }
     if (process.argv.includes ('--self-test')) {
-        const problems = g10kArithSelfTest ().concat (hx4G17SelfTest ()).concat (goDerefWrapSelfTest ()).concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goTupleIndexSelfTest ()).concat (b02TupleSliceSlotSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (h2kG08SelfTest ()).concat (h2kG11SelfTest ()).concat (goEndpointListSelfTest ()).concat (goAsyncListSelfTest ()).concat (goG14SelfTest ()).concat (goDerefArgMapReadSelfTest ()).concat (goNativeStringAddSelfTest ()).concat (goChanSelfTest ()).concat (g10kDerefSelfTest ()).concat (g10kMaplistSelfTest ()).concat (g10kIsEqualSelfTest ()).concat (g10kGvMapSelfTest ()).concat (g10kStrSelfTest ()).concat (g10kLenSelfTest ()).concat (g10kTypepredSelfTest ()).concat (g10kInopSelfTest ()).concat (g10kArrSelfTest ()).concat (gvListSelfTest ()).concat (g10kMiscSelfTest ()).concat (goProvenParseSelfTest ()).concat (goErrSelfTest ()).concat (goStructReturnsSelfTest ()).concat (goChan3SelfTest ()).concat (goTickerCacheSelfTest ()).concat (hx4G05SelfTest ()).concat (hx4G07SelfTest ()).concat (hx4X01SelfTest ()).concat (hx4G10SelfTest ()).concat (g13AnnotatedSelfTest ()).concat (b02SafeBalanceSelfTest ()).concat (hx4G14MapWriteSelfTest ()).concat (g12SlotChecks ()).concat (g15StrReturnSelfTest ()).concat (hx4G16SelfTest ()).concat (hx4G18SelfTest ()).concat (hx4G19SelfTest ()).concat (hx4G20SelfTest ()).concat (hx4G21SelfTest ()).concat (hx4G22SelfTest ()).concat (hx4G23SelfTest ()).concat (hx4G24SelfTest ()).concat (hx4G25Check ()).concat (hx4G26SelfTest ()).concat (hx4G27SelfTest ()).concat (hx4G27Check ()).concat (hx4G28SelfTest ()).concat (hx4G29Check ()).concat (hx4G30SelfTest ()).concat (hx4G31Check ()).concat (hx4G32SelfTest ()).concat (hx4G33Check ()).concat (hx4G34Check ()).concat (hx4G35Check ()).concat (hx4G36Wired ()).concat (hx4G37Check ()).concat (hx4G38Check ()).concat (hx4G39Check ()).concat (hx4G40Check (hx4G36Aligner ())).concat (hx4G40Wired ()).concat (hx4G41Check ()).concat (hx4G42Check (hx4G36Aligner ())).concat (hx5X26Check ()).concat (hx4G43Wired ()).concat (hx5X27Check ()).concat (hx4G45Check (hx4G36Aligner ())).concat (hx4G45Wired ()).concat (hx5X29Check ()).concat (hx5X29Wired ()).concat (hx5X32StrParamSelfTest ()).concat (hx5P28Check ()).concat (hx10w2G01Check ()).concat (g02check ()).concat (hx10G03Check ()).concat (g04Check ()).concat (g04Wired ()).concat (hx10w2G05Check ()).concat (g06MapReadsSelfTest ()).concat (hx10w2G07SelfCheck ()).concat (hx10G08Check ()).concat (g09Check ()).concat (hx10G10SelfTest ()).concat (g01SubsCheck ()).concat (hx10w3G02SelfCheck ()).concat (g05Check (retypeGoProvenParseMethods)).concat (hx10G06Check ()).concat (hx10w3G07Check ()).concat (g08w3Check ()).concat (g09w3Check (formatGoSource)).concat (g10SelfCheck ()).concat (hx10w4OG01Check ()).concat (hx10OG02Check ()).concat (g10SelfCheck ()).concat (og03selfcheck ()).concat (g01Check ()).concat (g05check ()).concat (hx10G15Check ()).concat (og02IdBookCheck ()).concat (g21Check (formatGoSource)).concat (og03w6SelfCheck ()).concat (og05Check ()).concat (og03w6Wired (formatGoSource)).concat (hx10w6G01BalanceCheck ()).concat (g01BalanceWired (formatGoSource)).concat (hx10w9GB10Check ()).concat (hx10w9GB10Wired (formatGoSource)).concat (g04BookSidesCheck ()).concat (g04BookSidesWired ()).concat (hx10w6G11Check ()).concat (og06SelfCheck ()).concat (hx10w7G14SelfTest ()).concat (hx10w8GB01Check ()).concat (hx10w8GB05Check ()).concat (hx10w9GB11Check ()).concat (gb08Check ()).concat (gp19Check ()).concat (hx10w8Gp08SelfTest ()).concat (hx10w9Gp18SelfTest ()).concat (hx10w9Gp18Wired ()).concat (hx10w8GO04Check ()).concat (gp14SelfTest ()).concat (gb09Check ()).concat (hx10w9GO05Check ()).concat (hx11M43Check ()).concat (hx10w10GP27Check ()).concat (hx10w10Gp26Check ()).concat (hx10w10Gp28Check ()).concat (hx10w10Gp28Wired (formatGoSource)).concat (hx10w9Gp17SelfTest ()).concat (hx10w10GP24Check ()).concat (hx10w10GP24Wired ()).concat (nativeGuardedListElementReadsSelfTest ()).concat (goAnyObjectKeysLengthSelfTest ()).concat (goGofmtLayoutSelfTest ()).concat (w8ClientFuturesSelfTest ()).concat (g04NativeBookReadsCheck ()).concat (hx11IsEqualBoolMethodCheck ());
+        const problems = g10kArithSelfTest ().concat (hx4G17SelfTest ()).concat (goDerefWrapSelfTest ()).concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goTupleIndexSelfTest ()).concat (b02TupleSliceSlotSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (h2kG08SelfTest ()).concat (h2kG11SelfTest ()).concat (goEndpointListSelfTest ()).concat (goAsyncListSelfTest ()).concat (goG14SelfTest ()).concat (goDerefArgMapReadSelfTest ()).concat (goNativeStringAddSelfTest ()).concat (goChanSelfTest ()).concat (g10kDerefSelfTest ()).concat (g10kMaplistSelfTest ()).concat (g10kIsEqualSelfTest ()).concat (g10kGvMapSelfTest ()).concat (g10kStrSelfTest ()).concat (g10kLenSelfTest ()).concat (g10kTypepredSelfTest ()).concat (g10kInopSelfTest ()).concat (g10kArrSelfTest ()).concat (gvListSelfTest ()).concat (g10kMiscSelfTest ()).concat (goProvenParseSelfTest ()).concat (goErrSelfTest ()).concat (goStructReturnsSelfTest ()).concat (goChan3SelfTest ()).concat (goTickerCacheSelfTest ()).concat (hx4G05SelfTest ()).concat (hx4G07SelfTest ()).concat (hx4X01SelfTest ()).concat (hx4G10SelfTest ()).concat (g13AnnotatedSelfTest ()).concat (b02SafeBalanceSelfTest ()).concat (hx4G14MapWriteSelfTest ()).concat (g12SlotChecks ()).concat (g15StrReturnSelfTest ()).concat (hx4G16SelfTest ()).concat (hx4G18SelfTest ()).concat (hx4G19SelfTest ()).concat (hx4G20SelfTest ()).concat (hx4G21SelfTest ()).concat (hx4G22SelfTest ()).concat (hx4G23SelfTest ()).concat (hx4G24SelfTest ()).concat (hx4G25Check ()).concat (hx4G26SelfTest ()).concat (hx4G27SelfTest ()).concat (hx4G27Check ()).concat (hx4G28SelfTest ()).concat (hx4G29Check ()).concat (hx4G30SelfTest ()).concat (hx4G31Check ()).concat (hx4G32SelfTest ()).concat (hx4G33Check ()).concat (hx4G34Check ()).concat (hx4G35Check ()).concat (hx4G36Wired ()).concat (hx4G37Check ()).concat (hx4G38Check ()).concat (hx4G39Check ()).concat (hx4G40Check (hx4G36Aligner ())).concat (hx4G40Wired ()).concat (hx4G41Check ()).concat (hx4G42Check (hx4G36Aligner ())).concat (hx5X26Check ()).concat (hx4G43Wired ()).concat (hx5X27Check ()).concat (hx4G45Check (hx4G36Aligner ())).concat (hx4G45Wired ()).concat (hx5X29Check ()).concat (hx5X29Wired ()).concat (hx5X32StrParamSelfTest ()).concat (hx5P28Check ()).concat (hx10w2G01Check ()).concat (g02check ()).concat (hx10G03Check ()).concat (g04Check ()).concat (g04Wired ()).concat (hx10w2G05Check ()).concat (g06MapReadsSelfTest ()).concat (hx10w2G07SelfCheck ()).concat (hx10G08Check ()).concat (g09Check ()).concat (hx10G10SelfTest ()).concat (g01SubsCheck ()).concat (hx10w3G02SelfCheck ()).concat (g05Check (retypeGoProvenParseMethods)).concat (hx10G06Check ()).concat (hx10w3G07Check ()).concat (g08w3Check ()).concat (g09w3Check (formatGoSource)).concat (g10SelfCheck ()).concat (hx10w4OG01Check ()).concat (hx10OG02Check ()).concat (g10SelfCheck ()).concat (og03selfcheck ()).concat (g01Check ()).concat (g05check ()).concat (hx10G15Check ()).concat (og02IdBookCheck ()).concat (g21Check (formatGoSource)).concat (og03w6SelfCheck ()).concat (og05Check ()).concat (og03w6Wired (formatGoSource)).concat (hx10w6G01BalanceCheck ()).concat (g01BalanceWired (formatGoSource)).concat (hx10w9GB10Check ()).concat (hx10w9GB10Wired (formatGoSource)).concat (g04BookSidesCheck ()).concat (g04BookSidesWired ()).concat (hx10w6G11Check ()).concat (og06SelfCheck ()).concat (hx10w7G14SelfTest ()).concat (hx10w8GB01Check ()).concat (hx10w8GB05Check ()).concat (hx10w9GB11Check ()).concat (gb08Check ()).concat (gp19Check ()).concat (hx10w8Gp08SelfTest ()).concat (hx10w9Gp18SelfTest ()).concat (hx10w9Gp18Wired ()).concat (hx10w8GO04Check ()).concat (gp14SelfTest ()).concat (gb09Check ()).concat (hx10w9GO05Check ()).concat (hx11M43Check ()).concat (hx10w10GP27Check ()).concat (hx10w10Gp26Check ()).concat (hx10w10Gp28Check ()).concat (hx10w10Gp28Wired (formatGoSource)).concat (hx10w9Gp17SelfTest ()).concat (hx10w10GP24Check ()).concat (hx10w10GP24Wired ()).concat (nativeGuardedListElementReadsSelfTest ()).concat (goAnyObjectKeysLengthSelfTest ()).concat (goGofmtLayoutSelfTest ()).concat (w8ClientFuturesSelfTest ()).concat (g04NativeBookReadsCheck ()).concat (hx11IsEqualBoolMethodCheck ()).concat (hx11w8PromiseAllSlotSelfTest ());
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);
@@ -10119,6 +10120,129 @@ function nativeAsyncTupleHolderReads (content: string): string {
         });
     }
     return changed ? lines.join ('\n') : content;
+}
+
+// w8 M40: `var h []any = ListTyped(r.Value)` after `r := <-promiseAll(P)` where P is a `[]any{a, b}` literal (inline or a
+// single unwritten `var P []any = []any{..}`) holds exactly len(P) results (promiseAll returns `results` or panics on error),
+// so a bare `x := GetValue(h, N)` slot read with N < len(P) is `x := h[N]`. Any rewritten holder/task list keeps GetValue.
+function hx11w8PromiseAllSlotReads (content: string): string {
+    if (content.indexOf ('<-promiseAll(') < 0) {
+        return content;
+    }
+    const lines = content.split ('\n');
+    const masked = goTextMaskLiteralsAndComments (content).split ('\n');
+    if (lines.length !== masked.length) {
+        return content;
+    }
+    const { 'blocks': blocks } = goTextBlocks (masked);
+    const literalArity = (text: string): number => {
+        const lit = /^(?:ccxt\.)?\[\]any\{(.*)\}$/.exec (text.trim ());
+        if (lit === null) {
+            return -1;
+        }
+        let depth = 0;
+        let count = (lit[1].trim () === '') ? 0 : 1;
+        for (let i = 0; i < lit[1].length; i++) {
+            const c = lit[1][i];
+            if ((c === '(') || (c === '[') || (c === '{')) {
+                depth++;
+            } else if ((c === ')') || (c === ']') || (c === '}')) {
+                depth--;
+            } else if ((c === ',') && (depth === 0)) {
+                count++;
+            }
+        }
+        return ((depth === 0) && (lit[1].trim ().slice (-1) !== ',')) ? count : -1;
+    };
+    let changed = false;
+    for (let d = 0; d < lines.length; d++) {
+        const decl = /^\s*var (\w+) \[\]any = (?:ccxt\.)?ListTyped\((\w+)\.Value\)$/.exec (masked[d]);
+        if (decl === null) {
+            continue;
+        }
+        const holder = decl[1];
+        const res = decl[2];
+        const fn = blocks.find ((b: any) => (b.depth === 1) && (b.open < d) && (d <= b.close));
+        const declBlock = goTextEnclosingBlock (blocks, d);
+        if ((fn === undefined) || (declBlock === undefined)) {
+            continue;
+        }
+        let resLine = -1;
+        let arity = -1;
+        let ok = true;
+        for (let k = fn.open + 1; k < fn.close; k++) {
+            if (k === d) {
+                continue;
+            }
+            const take = new RegExp ('^\\s*' + res + ' := <-promiseAll\\((.+)\\)$').exec (masked[k]);
+            if (take !== null) {
+                if ((resLine >= 0) || (k > d)) {
+                    ok = false;
+                    break;
+                }
+                resLine = k;
+                const arg = take[1].trim ();
+                if (/^\w+$/.test (arg)) {
+                    let found = -1;
+                    for (let j = fn.open + 1; j < fn.close; j++) {
+                        const pd = new RegExp ('^\\s*var ' + arg + ' \\[\\]any = (.+)$').exec (masked[j]);
+                        if (pd !== null) {
+                            if ((found >= 0) || (j > k)) {
+                                found = -2;
+                                break;
+                            }
+                            found = j;
+                            arity = literalArity (pd[1]);
+                        } else if (goTextWritesName (masked[j], arg)) {
+                            found = -2;
+                            break;
+                        }
+                    }
+                    if (found < 0) {
+                        arity = -1;
+                    }
+                } else {
+                    arity = literalArity (arg);
+                }
+            } else if (goTextWritesName (masked[k], res) || goTextWritesName (masked[k], holder)) {
+                ok = false;
+                break;
+            }
+        }
+        if (!ok || (resLine < 0) || (arity < 0)) {
+            continue;
+        }
+        for (let k = d + 1; k < fn.close; k++) {
+            if (!((declBlock.open < k) && (k <= declBlock.close))) {
+                continue;
+            }
+            const read = new RegExp ('^(\\s*\\w+ := )(?:ccxt\\.)?GetValue\\(' + holder + ', (\\d+)\\)$').exec (lines[k]);
+            if ((read !== null) && (masked[k] === lines[k]) && (Number (read[2]) < arity)) {
+                lines[k] = read[1] + holder + '[' + read[2] + ']';
+                changed = true;
+            }
+        }
+    }
+    return changed ? lines.join ('\n') : content;
+}
+
+function hx11w8PromiseAllSlotSelfTest (): string[] {
+    const problems: string[] = [];
+    const ok = (c: boolean, msg: string) => { if (!c) { problems.push ('hx11 w8 promiseAll slots: ' + msg); } };
+    const fn = (b: string) => 'func (this *X) f(p any) any {\n' + b + '\treturn nil\n}\n';
+    const take = '\tr := <-promiseAll([]any{a, this.G(p)})\n\tif r.Err != nil {\n\t\tpanic(r.Err)\n\t}\n\tvar hVariable []any = ListTyped(r.Value)\n';
+    const reads = '\tx := GetValue(hVariable, 0)\n\ty := GetValue(hVariable, 1)\n';
+    const pos = hx11w8PromiseAllSlotReads (fn (take + reads));
+    ok (pos.includes ('x := hVariable[0]') && pos.includes ('y := hVariable[1]'), 'inline literal slots read natively');
+    ok (hx11w8PromiseAllSlotReads (pos) === pos, 'idempotent');
+    ok (hx11w8PromiseAllSlotReads (fn (take + '\tz := GetValue(hVariable, 2)\n')).includes ('GetValue(hVariable, 2)'), 'slot past the arity keeps GetValue');
+    const named = '\tvar promises []any = []any{a, b}\n' + take.replace ('[]any{a, this.G(p)}', 'promises');
+    ok (hx11w8PromiseAllSlotReads (fn (named + reads)).includes ('y := hVariable[1]'), 'named literal list reads natively');
+    ok (hx11w8PromiseAllSlotReads (fn (named + '\tpromises = append(promises, c)\n' + reads)).includes ('GetValue(hVariable, 1)'), 'appended task list keeps GetValue');
+    ok (hx11w8PromiseAllSlotReads (fn ('\tvar promises []any = []any{}\n\tif p != nil {\n\t\tpromises = append(promises, a)\n\t}\n' + take.replace ('[]any{a, this.G(p)}', 'promises') + reads)).includes ('GetValue(hVariable, 0)'), 'conditionally built list keeps GetValue');
+    ok (hx11w8PromiseAllSlotReads (fn (take + '\thVariable = nil\n' + reads)).includes ('GetValue(hVariable, 0)'), 'rewritten holder keeps GetValue');
+    ok (formatGoSource ('selftest.go', 'package ccxt\n\n' + fn (take + reads)).includes ('y := hVariable[1]'), 'wired into formatGoSource');
+    return problems;
 }
 
 function goAsyncTupleIndexSelfTest (): string[] {
