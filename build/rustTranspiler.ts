@@ -12296,6 +12296,7 @@ impl std::ops::DerefMut for ${coreName} {
         const e = this.stripOuterParens(raw.trim());
         if (depth > 6 || e === '') return false;
         if (/^[A-Za-z_][A-Za-z0-9_]*\.as_str\(\)\.is_some_and\(\|__s\| __s\.(?:starts_with|ends_with)\("(?:[^"\\]|\\.)*"\)\)$/.test(e)) return true;
+        if (/^[A-Za-z_][A-Za-z0-9_]*\.as_str\(\)\.unwrap_or\(""\)\.(?:starts_with|ends_with)\("(?:[^"\\]|\\.)+"\)$/.test(e)) return true;
         if (/^[A-Za-z_][A-Za-z0-9_]*\.as_bool\(\) == Some\((?:true|false)\)$/.test(e)) return true;
         const parts: string[] = [];
         let d = 0; let startAt = 0;
@@ -12832,6 +12833,7 @@ impl std::ops::DerefMut for ${coreName} {
     // `runtime::stringify_param` alias, other containers through `Display` exactly like the helper.
     r31Str(content: string): string {
         content = this.x39Affix(content); // hx5 X39
+        content = this.nativeLiteralAffixTest(content);
         // hx5 X41: pad_start/pad_end/to_fixed (and slice) are not r31 targets: no site has a proven `&str`/number
         // operand with in-range bounds, so the master `runtime::` helper call stays. Never print their bodies inline.
         const names = [ 'to_string_val', 'join', 'split', 'replace_str' ]; // hx5 X39: starts_with/ends_with via x39Affix
@@ -13220,6 +13222,15 @@ impl std::ops::DerefMut for ${coreName} {
             at = close + 1;
         }
         return out + content.slice(at);
+    }
+
+    // `X.as_str().is_some_and(|__s| __s.starts_with("lit"))` -> `X.as_str().unwrap_or("").starts_with("lit")`.
+    // Closure-free and exact for a NON-EMPTY literal: a non-`Str` receiver gives `""`, which starts/ends
+    // with no non-empty literal, so the result is `false` exactly like the `None` arm. Empty literals keep the closure.
+    nativeLiteralAffixTest(content: string): string {
+        if (!content.includes('is_some_and(|__s| __s.')) return content;
+        const re = /(?<![A-Za-z0-9_.:])([A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)*)\.as_str\(\)\.is_some_and\(\|__s\| __s\.(starts_with|ends_with)\(("(?:[^"\\]|\\.)+")\)\)/g;
+        return content.replace(re, '$1.as_str().unwrap_or("").$2($3)');
     }
 
     // hx5 X42 — `to_string_val(&X)`: plain native only when X is a literal `Value::Str(E)` box
