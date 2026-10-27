@@ -2622,10 +2622,10 @@ func (this *BaseExchange) SafeBalance(balance any) any {
 	var debtBalance map[string]any = map[string]any{}
 	for i := 0; i < len(codes); i++ {
 		var code string = codes[i]
-		var total *string = this.SafeString(GetValue(balance, code), "total")
-		var free *string = this.SafeString(GetValue(balance, code), "free")
-		var used *string = this.SafeString(GetValue(balance, code), "used")
-		var debt *string = this.SafeString(GetValue(balance, code), "debt")
+		var total *string = this.SafeString(balances[code], "total")
+		var free *string = this.SafeString(balances[code], "free")
+		var used *string = this.SafeString(balances[code], "used")
+		var debt *string = this.SafeString(balances[code], "debt")
 		if (total == nil) && (free != nil) && (used != nil) {
 			total = Precise.StringAdd(free, used)
 		}
@@ -2712,16 +2712,16 @@ func (this *BaseExchange) SafeOrder(order any, optionalArgs ...any) Order {
 		}
 		if isArray && (tradesLength > 0) {
 			// move properties that are defined in trades up into the order
-			if IsEqual(GetValue(orderDict, "symbol"), nil) {
+			if parseSymbol {
 				AddElementToObject(orderDict, "symbol", GetValue(GetValue(trades, 0), "symbol"))
 			}
-			if IsEqual(GetValue(orderDict, "side"), nil) {
+			if parseSide {
 				AddElementToObject(orderDict, "side", GetValue(GetValue(trades, 0), "side"))
 			}
-			if IsEqual(GetValue(orderDict, "type"), nil) {
+			if this.SafeString(orderDict, "type") == nil {
 				AddElementToObject(orderDict, "type", GetValue(GetValue(trades, 0), "type"))
 			}
-			if IsEqual(GetValue(orderDict, "id"), nil) {
+			if this.SafeString(orderDict, "id") == nil {
 				AddElementToObject(orderDict, "id", GetValue(GetValue(trades, 0), "order"))
 			}
 			if parseFilled {
@@ -2746,7 +2746,7 @@ func (this *BaseExchange) SafeOrder(order any, optionalArgs ...any) Order {
 				if parseSide {
 					side = this.SafeString(trade, "side")
 				}
-				var tradeTimestamp any = this.SafeValue(trade, "timestamp")
+				var tradeTimestamp *int64 = this.SafeInteger(trade, "timestamp")
 				if parseLastTradeTimeTimestamp && (tradeTimestamp != nil) {
 					if IsEqual(lastTradeTimeTimestamp, nil) {
 						lastTradeTimeTimestamp = tradeTimestamp
@@ -2863,9 +2863,9 @@ func (this *BaseExchange) SafeOrder(order any, optionalArgs ...any) Order {
 		}
 	}
 	// support for market orders
-	var orderType any = this.SafeValue(orderDict, "type")
+	var orderType *string = this.SafeString(orderDict, "type")
 	var emptyPrice bool = (IsEqual(price, nil)) || Precise.StringEquals(price, "0")
-	if emptyPrice && (orderType == "market") {
+	if emptyPrice && (orderType != nil && *orderType == "market") {
 		price = average
 	}
 	// we have trades with string values at this point so we will mutate them

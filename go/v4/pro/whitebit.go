@@ -1088,7 +1088,7 @@ func (this *Whitebit) HandleBalance(client any, message map[string]any) {
 			account["total"] = this.SafeString(balanceDict, "B")
 			account["debt"] = this.SafeString(balanceDict, "b")
 			if code != nil {
-				ccxt.AddElementToObject(this.Balance, code, account)
+				this.Balance[*code] = account
 			}
 		} else {
 			var keys []string = nil
@@ -1106,7 +1106,7 @@ func (this *Whitebit) HandleBalance(client any, message map[string]any) {
 				account["free"] = this.SafeString(rawBalance, "available")
 				account["used"] = this.SafeString(rawBalance, "freeze")
 				if code != nil {
-					ccxt.AddElementToObject(this.Balance, code, account)
+					this.Balance[*code] = account
 				}
 			}
 		}

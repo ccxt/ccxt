@@ -1976,7 +1976,7 @@ func (this *Bitrue) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], opt
 	// https://github.com/ccxt/ccxt/issues/13856
 	var tickers map[string]any = map[string]any{}
 	for i := 0; i < len(data); i++ {
-		var ticker any = this.SafeDict(data, i, map[string]any{})
+		var ticker map[string]any = this.SafeDictMap(data, i, map[string]any{})
 		// skip entries without a symbol: an undefined market id would become a null
 		// dictionary key here, which crashes fetchTickers in the C# build
 		var marketId *string = this.SafeString(ticker, "symbol")

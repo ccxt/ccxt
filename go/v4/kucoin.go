@@ -9517,7 +9517,7 @@ func (this *Kucoin) fetchMySpotTradesBody(ch chan AsyncResult[[]Trade], optional
 	//         ]
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 	// v1 (historical) returns the trade list directly under 'data', v2 nests it under 'items'
 	var trades any = nil
 	if parseResponseData {

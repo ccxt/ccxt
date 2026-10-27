@@ -711,7 +711,9 @@ func (this *Gemini) HandleBidsAsksForMultidata(client any, rawBidAskChanges []an
 	ccxt.AddElementToObject(currentBidAsk, "datetime", this.Iso8601(timestamp))
 	ccxt.AddElementToObject(currentBidAsk, "info", rawBidAskChanges)
 	var bidsAsksDict map[string]any = map[string]any{}
-	ccxt.AddElementToObject(bidsAsksDict, symbol, currentBidAsk)
+	if symbol != nil {
+		bidsAsksDict[*symbol] = currentBidAsk
+	}
 	this.Bidsasks.Store(symbol, currentBidAsk)
 	client.(ccxt.ClientInterface).Resolve(bidsAsksDict, messageHash)
 }

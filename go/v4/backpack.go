@@ -900,7 +900,7 @@ func (this *Backpack) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 	var markets []any = []any{}
 	var marketIds map[string]any = map[string]any{}
 	for i := 0; i < len(response); i++ {
-		var rawMarket any = this.SafeDict(response, i, map[string]any{})
+		var rawMarket map[string]any = this.SafeDictMap(response, i, map[string]any{})
 		var rawType *string = this.SafeString(rawMarket, "marketType", "")
 		if !this.InArray(rawType, marketTypes) {
 			continue
@@ -1845,7 +1845,7 @@ func (this *Backpack) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], o
 	}
 	var selection []any = this.HandleStockParams("fetchTickers", params)
 	var stockOnly *bool = this.SafeBool(selection, 0, false)
-	var query any = this.SafeDict(selection, 1, map[string]any{})
+	var query map[string]any = this.SafeDictMap(selection, 1, map[string]any{})
 	var source *string = this.SafeString(query, "source", "Venue")
 	var symbolsLength int = 0
 	if symbols != nil {

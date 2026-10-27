@@ -1921,7 +1921,7 @@ func (this *Polymarket) createOrdersBody(ch chan AsyncResult[[]Order], orders an
 	//
 	var results []any = []any{}
 	for i := 0; i < len(response); i++ {
-		var ack any = this.SafeDict(response, i, map[string]any{})
+		var ack map[string]any = this.SafeDictMap(response, i, map[string]any{})
 		var marketInner any = func() any {
 			if i >= 0 && i < len(ordersMarkets) {
 				return DerefScalar(ordersMarkets[i])
@@ -2071,7 +2071,7 @@ func (this *Polymarket) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any, 
 	//
 	var results []any = []any{}
 	for i := 0; i < len(response); i++ {
-		var ack any = this.SafeDict(response, i, map[string]any{})
+		var ack map[string]any = this.SafeDictMap(response, i, map[string]any{})
 		var status *string = this.SafeString(ack, "status")
 		var unified string = func() string {
 			if status != nil && *status == "err" {
@@ -2279,7 +2279,7 @@ func (this *Polymarket) editOrderBody(ch chan AsyncResult[Order], id string, sym
 	//         }
 	//     ]
 	//
-	var first any = this.SafeDict(response, 0, map[string]any{})
+	var first map[string]any = this.SafeDictMap(response, 0, map[string]any{})
 	var status *string = this.SafeString(first, "status")
 	if status != nil && *status == "err" {
 		var merged map[string]any = map[string]any{

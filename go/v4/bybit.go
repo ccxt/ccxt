@@ -12003,11 +12003,11 @@ func (this *Bybit) getLeverageTiersPaginatedBody(ch chan AsyncResult[[]LeverageT
 	var first map[string]any = SafeMapTyped(result, 0)
 	var total int = GetArrayLength(result)
 	var lastIndex int64 = int64(total) - 1
-	var last any = this.SafeDict(result, lastIndex, map[string]any{})
+	var last map[string]any = this.SafeDictMap(result, lastIndex, map[string]any{})
 	var cursorValue *string = this.SafeString(first, "nextPageCursor")
-	AddElementToObject(last, "info", map[string]any{
+	last["info"] = map[string]any{
 		"nextPageCursor": cursorValue,
-	})
+	}
 	AddElementToObject(result, lastIndex, last)
 
 	ch <- AsyncResult[[]LeverageTier]{Value: LeverageTiersFromList(this.ToArray(result))}

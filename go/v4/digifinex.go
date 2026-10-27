@@ -1570,7 +1570,7 @@ func (this *Digifinex) fetchTickerBody(ch chan AsyncResult[Ticker], symbol strin
 	//
 	var date *int64 = this.SafeInteger(response, "date")
 	var tickers []any = SafeListTyped(response, "ticker")
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 	var firstTicker map[string]any = this.SafeDictMap(tickers, 0, map[string]any{})
 	var result any = data
 	if market["swap"] != true {

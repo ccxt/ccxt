@@ -2830,7 +2830,7 @@ func (this *Nado) HandleUnsubscriptionCache(messageHash string) {
 	} else if messageHash == "ticker" {
 		var symbols []string = this.Tickers.Keys()
 		for i := 0; i < len(symbols); i++ {
-			var tickerSymbol string = ccxt.GetValue(symbols, i).(string)
+			var tickerSymbol string = symbols[i]
 			this.Tickers.Delete(tickerSymbol)
 		}
 	} else if strings.Index(messageHash, "bidask:") == 0 {
@@ -2841,7 +2841,7 @@ func (this *Nado) HandleUnsubscriptionCache(messageHash string) {
 	} else if messageHash == "bidask" {
 		var symbols []string = this.Bidsasks.Keys()
 		for i := 0; i < len(symbols); i++ {
-			var bidaskSymbol string = ccxt.GetValue(symbols, i).(string)
+			var bidaskSymbol string = symbols[i]
 			this.Bidsasks.Delete(bidaskSymbol)
 		}
 	} else if strings.Index(messageHash, "orders") == 0 {

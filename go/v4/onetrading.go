@@ -889,8 +889,8 @@ func (this *Onetrading) fetchPublicTradingFeesBody(ch chan AsyncResult[map[strin
 	var futuresFeeTiers []any = SafeListTypedDefault(futuresFees, "fee_tiers", []any{})
 	var spotTiers map[string]any = this.ParseFeeTiers(spotFeeTiers)
 	var futuresTiers map[string]any = this.ParseFeeTiers(futuresFeeTiers)
-	var firstSpotTier any = this.SafeDict(spotTiers, 0, map[string]any{})
-	var firstFuturesTier any = this.SafeDict(futuresTiers, 0, map[string]any{})
+	var firstSpotTier map[string]any = this.SafeDictMap(spotTiers, 0, map[string]any{})
+	var firstFuturesTier map[string]any = this.SafeDictMap(futuresTiers, 0, map[string]any{})
 	var result map[string]any = map[string]any{}
 	var symbols []string = this.Symbols
 	for i := 0; i < len(symbols); i++ {

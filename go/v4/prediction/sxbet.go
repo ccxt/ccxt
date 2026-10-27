@@ -2791,7 +2791,7 @@ func (this *Sxbet) fetchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Pre
 			var row any = ccxt.GetValue(rows, j)
 			var rowHash *string = this.SafeString(row, "marketHash")
 			if rowHash != nil {
-				ccxt.AddElementToObject(rowsByHash, rowHash, row)
+				rowsByHash[*rowHash] = row
 			}
 		}
 	}

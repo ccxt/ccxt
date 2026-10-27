@@ -890,7 +890,9 @@ func (this *Bullish) HandleBalance(client any, message any) {
 		return
 	}
 	if _, ok := this.Balance[*tradingAccountId]; !ok {
-		ccxt.AddElementToObject(this.Balance, tradingAccountId, map[string]any{})
+		if tradingAccountId != nil {
+			this.Balance[*tradingAccountId] = map[string]any{}
+		}
 	}
 	var messageType *string = this.SafeString(message, "type")
 	if messageType != nil && *messageType == "snapshot" {

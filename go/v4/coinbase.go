@@ -3364,7 +3364,7 @@ func (this *Coinbase) ParseCustomBalance(response any, optionalArgs ...any) map[
 					AddElementToObject(account, "total", Precise.StringAdd(this.SafeString(account, "total"), total))
 				}
 				if code != nil {
-					AddElementToObject(result, code, account)
+					result[*code] = account
 				}
 			}
 		} else if this.InArray(typeVar, v3Accounts) {
@@ -3389,7 +3389,7 @@ func (this *Coinbase) ParseCustomBalance(response any, optionalArgs ...any) map[
 					AddElementToObject(account, "total", Precise.StringAdd(this.SafeString(account, "total"), total))
 				}
 				if code != nil {
-					AddElementToObject(result, code, account)
+					result[*code] = account
 				}
 			}
 		}

@@ -4635,7 +4635,7 @@ func (this *Bingx) createOrderBody(ch chan AsyncResult[Order], symbol string, ty
 		var parsedResponse any = this.ParseJson(response)
 		response = parsedResponse
 	}
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 	var result any = map[string]any{}
 	if market["swap"] == true {
 		if market["inverse"] == true {

@@ -850,7 +850,7 @@ func (this *Delta) IndexByStringifiedNumericId(input any) any {
 		if numericIdString == nil {
 			continue
 		}
-		AddElementToObject(result, numericIdString, item)
+		result[*numericIdString] = item
 	}
 	return result
 }

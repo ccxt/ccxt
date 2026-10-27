@@ -1351,7 +1351,9 @@ func (this *Pacifica) ParseAccountSettings(settings any) map[string]any {
 		var marketId *string = this.SafeString(setting, "symbol")
 		var market map[string]any = this.SafeMarket(marketId)
 		var symbol *string = SafeStringPtr(market["symbol"])
-		AddElementToObject(settingsBySymbol, symbol, setting)
+		if symbol != nil {
+			settingsBySymbol[*symbol] = setting
+		}
 	}
 	return settingsBySymbol
 }

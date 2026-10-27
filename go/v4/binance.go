@@ -14332,7 +14332,7 @@ func (this *Binance) fetchTradingFeesBody(ch chan AsyncResult[map[string]Trading
 		var maker any = this.SafeValue(this.SafeValue(this.SafeValue(feeTiers, "maker"), feeTier), 1)
 		var taker any = this.SafeValue(this.SafeValue(this.SafeValue(feeTiers, "taker"), feeTier), 1)
 		for i := 0; i < len(symbols); i++ {
-			var symbol string = GetValue(symbols, i).(string)
+			var symbol string = symbols[i]
 			var market any = GetValue(markets, symbol)
 			if *this.SafeBool(market, "linear", false) {
 				linearFees[symbol] = map[string]any{
@@ -14369,7 +14369,7 @@ func (this *Binance) fetchTradingFeesBody(ch chan AsyncResult[map[string]Trading
 		var maker any = this.SafeValue(this.SafeValue(this.SafeValue(feeTiers, "maker"), feeTier), 1)
 		var taker any = this.SafeValue(this.SafeValue(this.SafeValue(feeTiers, "taker"), feeTier), 1)
 		for i := 0; i < len(symbols); i++ {
-			var symbol string = GetValue(symbols, i).(string)
+			var symbol string = symbols[i]
 			var market any = GetValue(markets, symbol)
 			if *this.SafeBool(market, "inverse", false) {
 				inverseFees[symbol] = map[string]any{

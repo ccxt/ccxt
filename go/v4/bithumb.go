@@ -699,7 +699,7 @@ func (this *Bithumb) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 			var quoteId any = quote
 			var response map[string]any = SafeMapTyped(results, i)
 			var data map[string]any = SafeMapTyped(response, "data")
-			var extension any = this.SafeDict(quoteCurrencies, quote, map[string]any{})
+			var extension map[string]any = this.SafeDictMap(quoteCurrencies, quote, map[string]any{})
 			var currencyIds []string = nil
 			if data != nil {
 				currencyIds = make([]string, 0, len(data))

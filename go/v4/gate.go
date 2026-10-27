@@ -2278,7 +2278,7 @@ func (this *Gate) fetchSpotMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 	//
 	var result []any = []any{}
 	for i := 0; i < GetArrayLength(spotMarketsResponse); i++ {
-		var spotMarket any = this.SafeDict(spotMarketsResponse, i, map[string]any{})
+		var spotMarket map[string]any = this.SafeDictMap(spotMarketsResponse, i, map[string]any{})
 		var id *string = this.SafeString(spotMarket, "id")
 		var marginMarket any = this.SafeDict(marginMarkets, id)
 		var market map[string]any = this.DeepExtend(marginMarket, spotMarket)

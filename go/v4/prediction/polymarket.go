@@ -1585,7 +1585,7 @@ func (this *Polymarket) fetchTickersBody(ch chan ccxt.AsyncResult[map[string]ccx
 			var lastTradeEntry any = ccxt.GetValue(lastTrades, li)
 			var lastTradeTokenId *string = this.SafeString(lastTradeEntry, "token_id")
 			if lastTradeTokenId != nil {
-				ccxt.AddElementToObject(lastTradesByTokenId, lastTradeTokenId, lastTradeEntry)
+				lastTradesByTokenId[*lastTradeTokenId] = lastTradeEntry
 			}
 		}
 		var booksLength int = ccxt.GetArrayLength(books)
@@ -4002,7 +4002,7 @@ func (this *Polymarket) Sign(path string, optionalArgs ...any) any {
 		var hasArrayParam bool = false
 		var queryKeys []string = ccxt.ObjectKeys(query)
 		for i := 0; i < len(queryKeys); i++ {
-			if ccxt.IsArray(ccxt.GetValue(query, ccxt.GetValue(queryKeys, i))) {
+			if ccxt.IsArray(ccxt.GetValue(query, queryKeys[i])) {
 				hasArrayParam = true
 			}
 		}

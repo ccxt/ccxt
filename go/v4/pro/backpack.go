@@ -441,7 +441,7 @@ func (this *Backpack) HandleUnsubscriptions(url any, messageHashes any, message 
 				if this.Orders != nil {
 					var keys []string = ccxt.ObjectKeys(cache)
 					for j := 0; j < len(keys); j++ {
-						var symbol string = ccxt.GetValue(keys, j).(string)
+						var symbol string = keys[j]
 						ccxt.Remove(cache, symbol)
 					}
 				}
@@ -456,7 +456,7 @@ func (this *Backpack) HandleUnsubscriptions(url any, messageHashes any, message 
 			if messageHash != nil && *messageHash == "unsubscribe:positions" {
 				var keys []string = ccxt.ObjectKeys(this.Positions)
 				for j := 0; j < len(keys); j++ {
-					var symbol string = ccxt.GetValue(keys, j).(string)
+					var symbol string = keys[j]
 					ccxt.Remove(this.Positions, symbol)
 				}
 			} else {
@@ -2150,7 +2150,7 @@ func (this *Backpack) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], 
 			}
 			var account any = this.SafeDict(balances, code)
 			if account != nil {
-				ccxt.AddElementToObject(result, code, account)
+				result[*code] = account
 			}
 		}
 

@@ -4657,7 +4657,7 @@ func (this *Derive) ParseBalance(response any) map[string]any {
 				AddElementToObject(account, "total", Precise.StringAdd(this.SafeString(account, "total"), this.SafeString(balance, "amount")))
 			}
 			if code != nil {
-				AddElementToObject(result, code, account)
+				result[*code] = account
 			}
 		}
 	}

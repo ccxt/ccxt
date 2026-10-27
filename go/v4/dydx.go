@@ -1684,11 +1684,11 @@ func (this *Dydx) fetchDydxAccountBody(ch chan AsyncResult[map[string]any]) any 
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var account any = this.SafeDict(response, "info", map[string]any{})
+	var account map[string]any = this.SafeDictMap(response, "info", map[string]any{})
 	var pubKey map[string]any = SafeMapTyped(account, "pub_key")
-	AddElementToObject(account, "pub_key", map[string]any{
+	account["pub_key"] = map[string]any{
 		"key": pubKey["key"],
-	})
+	}
 	this.Options["dydxAccount"] = account
 
 	ch <- AsyncResult[map[string]any]{Value: this.SafeDictMap(this.Options, "dydxAccount", map[string]any{})}

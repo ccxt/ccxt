@@ -1399,7 +1399,7 @@ func (this *Foxbit) createOrdersBody(ch chan AsyncResult[[]Order], orders any, o
 		var symbol *string = this.SafeString(order, "symbol")
 		var market map[string]any = this.Market(symbol)
 		var typeVar *string = this.SafeStringUpper(order, "type", "")
-		var orderParams any = this.SafeDict(order, "params", map[string]any{})
+		var orderParams map[string]any = this.SafeDictMap(order, "params", map[string]any{})
 		if (typeVar == nil || *typeVar != "LIMIT") && (typeVar == nil || *typeVar != "MARKET") && (typeVar == nil || *typeVar != "STOP_MARKET") && (typeVar == nil || *typeVar != "STOP_LIMIT") && (typeVar == nil || *typeVar != "INSTANT") {
 			panic(InvalidOrder("Invalid order type: " + *typeVar + ". Must be one of: limit, market, stop_market, stop_limit, instant."))
 		}
@@ -1422,15 +1422,15 @@ func (this *Foxbit) createOrdersBody(ch chan AsyncResult[[]Order], orders any, o
 			} else {
 				request["time_in_force"] = timeInForce
 			}
-			Remove(orderParams, "timeInForce")
+			delete(orderParams, "timeInForce")
 		}
 		if postOnly != nil && *postOnly {
 			request["post_only"] = true
-			Remove(orderParams, "postOnly")
+			delete(orderParams, "postOnly")
 		}
 		if triggerPrice != nil {
 			request["stop_price"] = this.PriceToPrecision(symbol, triggerPrice)
-			Remove(orderParams, "triggerPrice")
+			delete(orderParams, "triggerPrice")
 		}
 		if typeVar != nil && *typeVar == "INSTANT" {
 			request["amount"] = this.PriceToPrecision(symbol, this.SafeString(order, "amount"))

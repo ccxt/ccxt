@@ -9697,7 +9697,7 @@ func (this *Bitget) cancelOrderBody(ch chan AsyncResult[Order], id any, optional
 	//         "data": null
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 	var order any = map[string]any{}
 	if isContractTriggerEndpoint {
 		var orderInfo []any = SafeListTyped(data, "successList")

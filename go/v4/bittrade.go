@@ -1743,7 +1743,7 @@ func (this *Bittrade) ParseBalance(response any) map[string]any {
 			AddElementToObject(account, "used", this.SafeString(balance, "balance"))
 		}
 		if code != nil {
-			AddElementToObject(result, code, account)
+			result[*code] = account
 		}
 	}
 	return this.SafeBalance(result).(map[string]any)

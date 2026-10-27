@@ -955,7 +955,7 @@ func (this *Lbank) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	}
 	var marketId *string = this.SafeString(ticker, "symbol")
 	var symbol *string = this.SafeSymbol(marketId, market)
-	var tickerData any = this.SafeDict(ticker, "ticker", map[string]any{})
+	var tickerData map[string]any = this.SafeDictMap(ticker, "ticker", map[string]any{})
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
 	var data any = func() any {
 		if marketResolved["contract"] == true {

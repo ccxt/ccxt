@@ -2578,7 +2578,7 @@ func (this *Htx) HandleBalance(client any, message map[string]any) {
 		account["free"] = this.SafeString(data, "available")
 		account["total"] = this.SafeString(data, "balance")
 		if code != nil {
-			ccxt.AddElementToObject(this.Balance, code, account)
+			this.Balance[*code] = account
 		}
 		this.WsBalanceReplace(this.SafeBalance(this.Balance))
 		client.(ccxt.ClientInterface).Resolve(this.Balance, channel)
@@ -2602,7 +2602,9 @@ func (this *Htx) HandleBalance(client any, message map[string]any) {
 				var account map[string]any = this.Account()
 				account["free"] = this.SafeString(detail, "withdraw_available")
 				account["total"] = this.SafeString(detail, "equity")
-				ccxt.AddElementToObject(this.Balance, code, account)
+				if code != nil {
+					this.Balance[*code] = account
+				}
 			}
 			this.WsBalanceReplace(this.SafeBalance(this.Balance))
 			client.(ccxt.ClientInterface).Resolve(this.Balance, "account")
@@ -2654,7 +2656,7 @@ func (this *Htx) HandleBalance(client any, message map[string]any) {
 			unifiedAccount["free"] = this.SafeString(first, "withdraw_available")
 			unifiedAccount["used"] = marginFrozen
 			if code != nil {
-				ccxt.AddElementToObject(this.Balance, code, unifiedAccount)
+				this.Balance[*code] = unifiedAccount
 			}
 			this.WsBalanceReplace(this.SafeBalance(this.Balance))
 			client.(ccxt.ClientInterface).Resolve(this.Balance, "accounts_unify")
@@ -2669,7 +2671,9 @@ func (this *Htx) HandleBalance(client any, message map[string]any) {
 					account["free"] = this.SafeString2(first, "withdraw_available", "margin_available")
 					account["used"] = this.SafeString(first, "margin_frozen")
 					account["total"] = this.SafeString(first, "margin_balance")
-					ccxt.AddElementToObject(this.Balance, code, account)
+					if code != nil {
+						this.Balance[*code] = account
+					}
 					this.WsBalanceReplace(this.SafeBalance(this.Balance))
 				}
 			} else {
@@ -2682,7 +2686,7 @@ func (this *Htx) HandleBalance(client any, message map[string]any) {
 					var currencyId *string = this.SafeString2(isolatedBalance, "margin_asset", "symbol")
 					var code *string = this.SafeCurrencyCode(currencyId)
 					if code != nil {
-						ccxt.AddElementToObject(this.Balance, code, account)
+						this.Balance[*code] = account
 					}
 					this.WsBalanceReplace(this.SafeBalance(this.Balance))
 				}
@@ -2697,7 +2701,7 @@ func (this *Htx) HandleBalance(client any, message map[string]any) {
 				account["free"] = this.SafeString(balance, "margin_available")
 				account["used"] = this.SafeString(balance, "margin_frozen")
 				if code != nil {
-					ccxt.AddElementToObject(this.Balance, code, account)
+					this.Balance[*code] = account
 				}
 				this.WsBalanceReplace(this.SafeBalance(this.Balance))
 			}

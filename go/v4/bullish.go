@@ -3377,7 +3377,7 @@ func (this *Bullish) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress]
 		if network != nil {
 			// find the entry that matches the network or return first entry if not found and user did not specify a network
 			for i := 0; i < len(safeResponse); i++ {
-				var entry any = this.SafeDict(safeResponse, i, map[string]any{})
+				var entry map[string]any = this.SafeDictMap(safeResponse, i, map[string]any{})
 				var networkId *string = this.SafeString(entry, "network")
 				var networkCode *string = this.NetworkIdToCode(networkId, code)
 				if network == networkCode || (network != nil && networkCode != nil && *network == *networkCode) {

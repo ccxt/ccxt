@@ -1932,7 +1932,7 @@ func (this *Apex) transferBody(ch chan AsyncResult[TransferEntry], code string, 
 	}
 	var numAssets int = GetArrayLength(assets)
 	for i := 0; i < numAssets; i++ {
-		var asset any = this.SafeDict(assets, i, map[string]any{})
+		var asset map[string]any = this.SafeDictMap(assets, i, map[string]any{})
 		if this.SafeString(asset, "token", "") != nil && *this.SafeString(asset, "token", "") == code {
 			currency = asset
 		}
