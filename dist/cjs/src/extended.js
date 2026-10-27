@@ -1908,8 +1908,7 @@ class extended extends extended$1["default"] {
         const currency = this.currency(code);
         const account = await this.fetchExtendedAccount();
         const currentAccountId = this.safeString(account, 'accountId', '');
-        const fromAccountResolved = (fromAccount === undefined) ? currentAccountId : fromAccount;
-        if (fromAccountResolved !== currentAccountId) {
+        if ((fromAccount !== undefined) && (fromAccount !== currentAccountId)) {
             throw new errors.BadRequest(this.id + ' transfer() can only transfer from the authenticated account');
         }
         const toVault = this.safeString2(params, 'toVault', 'receiverPositionId');
@@ -1920,7 +1919,7 @@ class extended extends extended$1["default"] {
         const amountString = this.currencyToPrecision(code, amount);
         const settlement = this.createTransferSettlementData(amountString, currency, account, toVault, toL2Key, params);
         const request = {
-            'fromAccount': fromAccountResolved,
+            'fromAccount': currentAccountId,
             'toAccount': toAccount,
             'amount': amountString,
             'transferredAsset': currency['id'],
@@ -1951,7 +1950,7 @@ class extended extends extended$1["default"] {
             'datetime': this.iso8601(now),
             'currency': currency['code'],
             'amount': this.parseNumber(amountString),
-            'fromAccount': fromAccountResolved,
+            'fromAccount': currentAccountId,
             'toAccount': toAccount,
             'status': status,
         };

@@ -1068,8 +1068,7 @@ export default class zebpay extends Exchange {
         };
         let response = undefined;
         if (market['spot'] === true) {
-            const orderRequestResult = this.orderRequest(symbol, type, amount, request, price, query);
-            response = await this.privateSpotPostV2ExOrders(this.extend(orderRequestResult[0], orderRequestResult[1]));
+            response = await this.privateSpotPostV2ExOrders(this.spotOrderBody(symbol, type, amount, request, price, query));
         }
         else {
             const marginAsset = this.safeString(query, 'marginAsset', 'INR');
@@ -1109,7 +1108,7 @@ export default class zebpay extends Exchange {
         const data = this.safeDict(response, 'data', {});
         return this.parseOrder(data, market);
     }
-    orderRequest(symbol, type, amount, request, price = undefined, params = {}) {
+    spotOrderBody(symbol, type, amount, request, price = undefined, params = {}) {
         const upperCaseType = type.toUpperCase();
         const triggerPrice = this.safeString(params, 'stopLossPrice');
         const quoteOrderQty = this.safeString2(params, 'quoteOrderQty', 'cost', undefined);
@@ -1132,7 +1131,7 @@ export default class zebpay extends Exchange {
             request['amount'] = this.amountToPrecision(symbol, amount);
             request['price'] = this.priceToPrecision(symbol, price);
         }
-        return [request, paramsOmitted];
+        return this.extend(request, paramsOmitted);
     }
     /**
      * @method
@@ -1955,11 +1954,10 @@ export default class zebpay extends Exchange {
         const timestamp = this.milliseconds().toString();
         let signature = '';
         const query = this.omit(paramsOmitted, this.extractParams(path));
-        const queryLength = Object.keys(query).length;
         const access = api[0];
         if (access === 'public') {
             if (method === 'GET' || method === 'DELETE') {
-                if (queryLength !== 0) {
+                if (Object.keys(query).length !== 0) {
                     suffix = '?' + this.urlencode(query);
                 }
             }
@@ -1979,16 +1977,16 @@ export default class zebpay extends Exchange {
         else {
             this.checkRequiredCredentials();
             const isSpot = marketType === 'spot';
-            paramsOmitted['timestamp'] = timestamp;
+            const paramsSigned = this.extend(paramsOmitted, { 'timestamp': timestamp });
             if (method === 'GET' || (method === 'DELETE' && isSpot)) {
                 // For GET/DELETE: Append params to URL and sign the query string
-                const queryString = this.urlencode(paramsOmitted);
+                const queryString = this.urlencode(paramsSigned);
                 signature = this.hmac(this.encode(queryString), this.encode(this.secret), sha256, 'hex');
                 suffix = '?' + queryString;
             }
             else {
                 // For POST/PUT: Convert body to JSON and sign the stringified payload
-                bodySigned = this.json(paramsOmitted);
+                bodySigned = this.json(paramsSigned);
                 signature = this.hmac(this.encode(bodySigned), this.encode(this.secret), sha256, 'hex');
             }
             headersSigned = {

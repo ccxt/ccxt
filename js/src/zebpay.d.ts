@@ -186,7 +186,7 @@ export default class zebpay extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: Dict): Promise<Order>;
-    orderRequest(symbol: string, type: string, amount: Num, request: Dict, price?: Num, params?: Dict): Dict[];
+    spotOrderBody(symbol: string, type: string, amount: Num, request: Dict, price?: Num, params?: Dict): Dict;
     /**
      * @method
      * @name zebpay#cancelOrder

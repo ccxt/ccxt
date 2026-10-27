@@ -1068,7 +1068,7 @@ class binance extends binance$1["default"] {
             request['limit'] = limit;
         }
         const wallet = await this.fetchWallet('fetchOpenOrders', paramsMaxEntriesPerRequest);
-        request['walletAddress'] = wallet['walletAddress'];
+        request['walletAddress'] = this.safeString(wallet, 'walletAddress');
         const response = await this.sapiPrivateGetOrderList(this.extend(request, paramsMaxEntriesPerRequest));
         //
         // {
@@ -1156,7 +1156,7 @@ class binance extends binance$1["default"] {
             request['endDate'] = this.yyyymmdd(until);
         }
         const wallet = await this.fetchWallet('fetchOrders', paramsOmitted);
-        request['walletAddress'] = wallet['walletAddress'];
+        request['walletAddress'] = this.safeString(wallet, 'walletAddress');
         const response = await this.sapiPrivateGetOrderHistory(this.extend(request, paramsOmitted));
         //
         // {
@@ -1220,7 +1220,7 @@ class binance extends binance$1["default"] {
         }
         const wallet = await this.fetchWallet('fetchPositions', params);
         const request = {
-            'walletAddress': wallet['walletAddress'],
+            'walletAddress': this.safeString(wallet, 'walletAddress'),
         };
         const response = await this.sapiPrivateGetPositionList(this.extend(request, params));
         //
@@ -1307,7 +1307,7 @@ class binance extends binance$1["default"] {
             request['marketTopicId'] = market['info']['marketTopicId'];
         }
         const wallet = await this.fetchWallet('fetchOrders', params);
-        request['walletAddress'] = wallet['walletAddress'];
+        request['walletAddress'] = this.safeString(wallet, 'walletAddress');
         const response = await this.sapiPrivateGetPositionFilter(this.extend(request, params));
         //
         //
@@ -1420,7 +1420,7 @@ class binance extends binance$1["default"] {
             request['endDate'] = this.yyyymmdd(until);
         }
         const wallet = await this.fetchWallet('fetchMyTrades', paramsOmitted);
-        request['walletAddress'] = wallet['walletAddress'];
+        request['walletAddress'] = this.safeString(wallet, 'walletAddress');
         const response = await this.sapiPrivateGetOrderHistory(this.extend(request, paramsOmitted));
         //
         // {
@@ -1685,7 +1685,7 @@ class binance extends binance$1["default"] {
         const cost = this.safeString(params, 'cost');
         const slippageBps = this.parseToInt(Precise["default"].stringMul(slippage, '10000'));
         const commonRequest = {
-            'walletAddress': wallet['walletAddress'],
+            'walletAddress': this.safeString(wallet, 'walletAddress'),
             'orderType': typeUpper,
             'slippageBps': slippageBps,
         };
@@ -1812,7 +1812,7 @@ class binance extends binance$1["default"] {
         }
         const wallet = await this.fetchWallet('cancelOrders', params);
         const request = {
-            'walletAddress': wallet['walletAddress'],
+            'walletAddress': this.safeString(wallet, 'walletAddress'),
             'walletId': wallet['walletId'],
         };
         // flatten cancelInfoList to dot list, eg. cancelInfoList[o].orderId=1234

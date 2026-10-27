@@ -641,7 +641,7 @@ class paymium extends paymium$1["default"] {
                 'Api-Key': this.apiKey,
                 'Api-Nonce': nonce,
             };
-            let signedBody = undefined;
+            let signedBody = '';
             if (method === 'POST' && hasQuery) {
                 signedBody = this.json(query);
             }

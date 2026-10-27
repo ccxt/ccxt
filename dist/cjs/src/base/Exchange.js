@@ -3812,46 +3812,43 @@ class BaseExchange {
                 }
                 // limits
                 const limits = this.safeDict(network, 'limits');
-                const limitsMain = this.safeDict(currency, 'limits');
-                if (limitsMain === undefined) {
-                    currency['limits'] = {};
-                }
+                const limitsMain = this.safeDict(currency, 'limits', {});
                 // deposits
                 const limitsDeposit = this.safeDict(limits, 'deposit');
-                const limitsDepositMain = this.safeDict(limitsMain, 'deposit');
-                if (limitsDepositMain === undefined) {
-                    currency['limits']['deposit'] = {};
-                }
+                const limitsDepositMain = this.safeDict(limitsMain, 'deposit', {});
+                const limitsDepositNew = {};
                 const limitsDepositMin = this.safeString(limitsDeposit, 'min');
                 const limitsDepositMax = this.safeString(limitsDeposit, 'max');
                 const limitsDepositMinMain = this.safeString(limitsDepositMain, 'min');
                 const limitsDepositMaxMain = this.safeString(limitsDepositMain, 'max');
                 // find min
                 if (limitsDepositMinMain === undefined || Precise["default"].stringLt(limitsDepositMin, limitsDepositMinMain)) {
-                    currency['limits']['deposit']['min'] = this.parseNumber(limitsDepositMin);
+                    limitsDepositNew['min'] = this.parseNumber(limitsDepositMin);
                 }
                 // find max
                 if (limitsDepositMaxMain === undefined || Precise["default"].stringGt(limitsDepositMax, limitsDepositMaxMain)) {
-                    currency['limits']['deposit']['max'] = this.parseNumber(limitsDepositMax);
+                    limitsDepositNew['max'] = this.parseNumber(limitsDepositMax);
                 }
                 // withdrawals
                 const limitsWithdraw = this.safeDict(limits, 'withdraw');
-                const limitsWithdrawMain = this.safeDict(limitsMain, 'withdraw');
-                if (limitsWithdrawMain === undefined) {
-                    currency['limits']['withdraw'] = {};
-                }
+                const limitsWithdrawMain = this.safeDict(limitsMain, 'withdraw', {});
+                const limitsWithdrawNew = {};
                 const limitsWithdrawMin = this.safeString(limitsWithdraw, 'min');
                 const limitsWithdrawMax = this.safeString(limitsWithdraw, 'max');
                 const limitsWithdrawMinMain = this.safeString(limitsWithdrawMain, 'min');
                 const limitsWithdrawMaxMain = this.safeString(limitsWithdrawMain, 'max');
                 // find min
                 if (limitsWithdrawMinMain === undefined || Precise["default"].stringLt(limitsWithdrawMin, limitsWithdrawMinMain)) {
-                    currency['limits']['withdraw']['min'] = this.parseNumber(limitsWithdrawMin);
+                    limitsWithdrawNew['min'] = this.parseNumber(limitsWithdrawMin);
                 }
                 // find max
                 if (limitsWithdrawMaxMain === undefined || Precise["default"].stringGt(limitsWithdrawMax, limitsWithdrawMaxMain)) {
-                    currency['limits']['withdraw']['max'] = this.parseNumber(limitsWithdrawMax);
+                    limitsWithdrawNew['max'] = this.parseNumber(limitsWithdrawMax);
                 }
+                currency['limits'] = this.extend(limitsMain, {
+                    'deposit': this.extend(limitsDepositMain, limitsDepositNew),
+                    'withdraw': this.extend(limitsWithdrawMain, limitsWithdrawNew),
+                });
             }
         }
         return this.extend({
@@ -4128,9 +4125,9 @@ class BaseExchange {
     safeBalance(balance) {
         const balances = this.omit(balance, ['info', 'timestamp', 'datetime', 'free', 'used', 'total']);
         const codes = Object.keys(balances);
-        balance['free'] = {};
-        balance['used'] = {};
-        balance['total'] = {};
+        const freeBalance = {};
+        const usedBalance = {};
+        const totalBalance = {};
         const debtBalance = {};
         for (let i = 0; i < codes.length; i++) {
             const code = codes[i];
@@ -4150,14 +4147,17 @@ class BaseExchange {
             balance[code]['free'] = this.parseNumber(free);
             balance[code]['used'] = this.parseNumber(used);
             balance[code]['total'] = this.parseNumber(total);
-            balance['free'][code] = balance[code]['free'];
-            balance['used'][code] = balance[code]['used'];
-            balance['total'][code] = balance[code]['total'];
+            freeBalance[code] = balance[code]['free'];
+            usedBalance[code] = balance[code]['used'];
+            totalBalance[code] = balance[code]['total'];
             if (debt !== undefined) {
                 balance[code]['debt'] = this.parseNumber(debt);
                 debtBalance[code] = balance[code]['debt'];
             }
         }
+        balance['free'] = freeBalance;
+        balance['used'] = usedBalance;
+        balance['total'] = totalBalance;
         const debtBalanceArray = Object.keys(debtBalance);
         const length = debtBalanceArray.length;
         if (length !== 0) {
@@ -4787,13 +4787,14 @@ class BaseExchange {
                     reduced[feeCurrencyCode][rateKey]['cost'] = Precise["default"].stringAdd(reduced[feeCurrencyCode][rateKey]['cost'], cost);
                 }
                 else {
-                    reduced[feeCurrencyCode][rateKey] = {
+                    const newRateFee = {
                         'currency': code,
                         'cost': cost,
                     };
                     if (rate !== undefined) {
-                        reduced[feeCurrencyCode][rateKey]['rate'] = rate;
+                        newRateFee['rate'] = rate;
                     }
+                    reduced[feeCurrencyCode][rateKey] = newRateFee;
                 }
             }
         }
@@ -8673,7 +8674,7 @@ class BaseExchange {
                 if (timeframe === undefined) {
                     throw new errors.ArgumentsRequired(this.id + ' cleanCache() requires a timeframe argument');
                 }
-                if ((this.ohlcvs !== undefined) && (symbol in this.ohlcvs)) {
+                if (symbol in this.ohlcvs) {
                     if (timeframe in this.ohlcvs[symbol]) {
                         delete this.ohlcvs[symbol][timeframe];
                     }
@@ -8718,7 +8719,7 @@ class BaseExchange {
                 for (let i = 0; i < clients.length; i++) {
                     const client = clients[i];
                     const futures = client.futures;
-                    if ((futures !== undefined) && ('fetchPositionsSnapshot' in futures)) {
+                    if ('fetchPositionsSnapshot' in futures) {
                         delete futures['fetchPositionsSnapshot'];
                     }
                 }

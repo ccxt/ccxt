@@ -4352,8 +4352,10 @@ export default class bitget extends Exchange {
         const stockDefault = this.safeBool(market, 'stock', false);
         if (paginate) {
             // the recursive calls read 'stock' and 'uta' themselves, so only peek at the flag here
-            const stockForPagination = this.handleOptionBoolAndParams(paramsPaginate, 'fetchTrades', 'stock', stockDefault)[0];
-            if (stockForPagination === true) {
+            let stockForPagination = undefined;
+            let paramsPeek = undefined;
+            [stockForPagination, paramsPeek] = this.handleOptionBoolAndParams(paramsPaginate, 'fetchTrades', 'stock', stockDefault);
+            if (stockForPagination === true && paramsPeek !== undefined) {
                 throw new BadRequest(this.id + ' fetchTrades() does not support paginate for tokenized stock markets');
             }
             return await this.fetchPaginatedCallCursor('fetchTrades', symbol, since, limit, paramsPaginate, 'idLessThan', 'idLessThan');
@@ -7357,8 +7359,9 @@ export default class bitget extends Exchange {
             request['symbol'] = market['id'];
             const defaultType = this.safeString2(this.options, 'fetchOpenOrders', 'defaultType', 'spot');
             let marketType = defaultType;
-            if ('type' in market) {
-                marketType = market['type'];
+            const marketTypeValue = this.safeString(market, 'type');
+            if (marketTypeValue !== undefined) {
+                marketType = marketTypeValue;
             }
             type = this.safeString(paramsMarginMode, 'type', marketType);
         }
@@ -10401,7 +10404,7 @@ export default class bitget extends Exchange {
             await this.loadMarkets();
         }
         let posMode = 'one_way_mode';
-        if (hedged) {
+        if (hedged === true) {
             posMode = 'hedge_mode';
         }
         const request = {};

@@ -93,8 +93,7 @@ class bullish extends bullish$1["default"] {
         if (wsUrl === undefined) {
             throw new errors.ExchangeError(this.id + ' watchPublic() has no public websocket url');
         }
-        const fullUrl = wsUrl + url;
-        return await this.watch(fullUrl, messageHash, this.deepExtend(message, params), messageHash);
+        return await this.watch(wsUrl + url, messageHash, this.deepExtend(message, params), messageHash);
     }
     async watchPrivate(messageHash, subscribeHash, request = {}, params = {}) {
         const url = this.urls['api']['ws']['private'];
@@ -263,9 +262,7 @@ class bullish extends bullish$1["default"] {
         let parsed = this.parseTicker(data, market);
         if (updateType === 'update') {
             const ticker = this.safeDict(this.tickers, symbol, {});
-            const rawTicker = this.safeDict(ticker, 'info', {});
-            const merged = this.extend(rawTicker, data);
-            parsed = this.parseTicker(merged, market);
+            parsed = this.parseTicker(this.extend(this.safeDict(ticker, 'info', {}), data), market);
         }
         this.tickers[symbol] = parsed;
         const messageHash = 'ticker::' + symbol;
@@ -459,8 +456,7 @@ class bullish extends bullish$1["default"] {
             const orders = this.orders;
             const symbols = {};
             for (let i = 0; i < rawOrders.length; i++) {
-                const rawOrder = rawOrders[i];
-                const parsedOrder = this.parseOrder(rawOrder);
+                const parsedOrder = this.parseOrder(rawOrders[i]);
                 orders.append(parsedOrder);
                 const symbol = this.safeString(parsedOrder, 'symbol');
                 if (symbol !== undefined) {
@@ -571,8 +567,7 @@ class bullish extends bullish$1["default"] {
             const trades = this.myTrades;
             const symbols = {};
             for (let i = 0; i < rawTrades.length; i++) {
-                const rawTrade = rawTrades[i];
-                const parsedTrade = this.parseTrade(rawTrade);
+                const parsedTrade = this.parseTrade(rawTrades[i]);
                 trades.append(parsedTrade);
                 const symbol = this.safeString(parsedTrade, 'symbol');
                 if (symbol !== undefined) {
@@ -745,8 +740,7 @@ class bullish extends bullish$1["default"] {
         const positions = this.positions;
         const newPositions = [];
         for (let i = 0; i < rawPositions.length; i++) {
-            const rawPosition = rawPositions[i];
-            const position = this.parsePosition(rawPosition);
+            const position = this.parsePosition(rawPositions[i]);
             positions.append(position);
             newPositions.push(position);
         }

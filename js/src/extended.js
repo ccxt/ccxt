@@ -1909,8 +1909,7 @@ export default class extended extends Exchange {
         const currency = this.currency(code);
         const account = await this.fetchExtendedAccount();
         const currentAccountId = this.safeString(account, 'accountId', '');
-        const fromAccountResolved = (fromAccount === undefined) ? currentAccountId : fromAccount;
-        if (fromAccountResolved !== currentAccountId) {
+        if ((fromAccount !== undefined) && (fromAccount !== currentAccountId)) {
             throw new BadRequest(this.id + ' transfer() can only transfer from the authenticated account');
         }
         const toVault = this.safeString2(params, 'toVault', 'receiverPositionId');
@@ -1921,7 +1920,7 @@ export default class extended extends Exchange {
         const amountString = this.currencyToPrecision(code, amount);
         const settlement = this.createTransferSettlementData(amountString, currency, account, toVault, toL2Key, params);
         const request = {
-            'fromAccount': fromAccountResolved,
+            'fromAccount': currentAccountId,
             'toAccount': toAccount,
             'amount': amountString,
             'transferredAsset': currency['id'],
@@ -1952,7 +1951,7 @@ export default class extended extends Exchange {
             'datetime': this.iso8601(now),
             'currency': currency['code'],
             'amount': this.parseNumber(amountString),
-            'fromAccount': fromAccountResolved,
+            'fromAccount': currentAccountId,
             'toAccount': toAccount,
             'status': status,
         };

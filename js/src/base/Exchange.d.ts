@@ -775,7 +775,7 @@ export declare class BaseExchange {
     networkCodeToId(networkCode: Str, currencyCode?: Str): Str;
     networkIdToCode(networkId?: Str, currencyCode?: Str): Str;
     handleNetworkCodeAndParams(params: Dict): [Str, Dict];
-    selectNetworkKeyFromNetworks(currencyCode: string, networkCode: Str, indexedNetworkEntries: any, isIndexedByUnifiedNetworkCode?: boolean): Str;
+    selectNetworkKeyFromNetworks(currencyCode: string, networkCode: Str, indexedNetworkEntries: Dict, isIndexedByUnifiedNetworkCode?: boolean): Str;
     safeNumber2(dictionary: object | undefined, key1: NullableIndexType, key2: NullableIndexType, d?: Num): number;
     parseOrderBook(orderbook: object | undefined, symbol: Str, timestamp?: Int, bidsKey?: string, asksKey?: string, priceKey?: IndexType, amountKey?: IndexType, countOrIdKey?: IndexType): OrderBook;
     parseOrderBookL3(orderbook: object | undefined, symbol: Str, timestamp?: Int, bidsKey?: string, asksKey?: string, priceKey?: IndexType, amountKey?: IndexType, countOrIdKey?: IndexType): OrderBookL3;
