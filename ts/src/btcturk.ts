@@ -1143,13 +1143,13 @@ export default class btcturk extends Exchange {
     override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         const errorCode = this.safeString (response, 'code', '0');
         const message = this.safeString (response, 'message');
-        let output: Str = message;
-        if (message === undefined) {
-            output = body;
+        let feedback = this.id + ' ' + body;
+        if (message !== undefined) {
+            feedback = this.id + ' ' + message;
         }
-        this.throwExactlyMatchedException (this.exceptions['exact'], message, this.id + ' ' + output);
+        this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
         if ((errorCode !== '0') && (errorCode !== 'SUCCESS')) {
-            throw new ExchangeError (this.id + ' ' + output);
+            throw new ExchangeError (feedback);
         }
         return undefined;
     }
