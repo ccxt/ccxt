@@ -1834,9 +1834,9 @@ class hitbtc(Exchange, ImplicitAPI):
         }
         if since is not None:
             request['from'] = self.iso8601(since)
-        requestUntil, paramsUntil = self.handle_until_option('until', request, paramsPaginate)
         if limit is not None:
-            requestUntil['limit'] = min(limit, 1000)
+            request['limit'] = min(limit, 1000)
+        requestUntil, paramsUntil = self.handle_until_option('until', request, paramsPaginate)
         price = self.safe_string(paramsUntil, 'price')
         paramsOmitted = self.omit(paramsUntil, 'price')
         response = []
@@ -3684,20 +3684,14 @@ class hitbtc(Exchange, ImplicitAPI):
             if len(queryString) != 0:
                 getRequest = '?' + queryString
         url = baseUrl + getRequest
-        bodyResolved = None if (method == 'GET') else self.json(params)
+        bodyString = ''
+        if method != 'GET':
+            bodyString = self.json(params)
         if apiName == 'private':
             self.check_required_credentials()
             timestamp = self.number_to_string(self.nonce())
-            payload = [method, '/api/3/' + implodedPath]
-            if method == 'GET':
-                if getRequest != '':
-                    payload.append(getRequest)
-            else:
-                if bodyResolved is not None:
-                    payload.append(bodyResolved)
-            payload.append(timestamp)
-            payloadString = ''.join(payload)
+            payloadString = method + '/api/3/' + implodedPath + getRequest + bodyString + timestamp
             signature = self.hmac(self.encode(payloadString), self.encode(self.secret), hashlib.sha256, 'hex')
             secondPayload = self.apiKey + ':' + signature + ':' + timestamp
             headersValue['Authorization'] = 'HS256 ' + self.string_to_base64(secondPayload)
-        return {'url': url, 'method': method, 'body': bodyResolved, 'headers': headersValue}
+        return {'url': url, 'method': method, 'body': None if (method == 'GET') else bodyString, 'headers': headersValue}

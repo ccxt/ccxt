@@ -4821,8 +4821,8 @@ class hyperliquid(Exchange, ImplicitAPI):
         if coin is None:
             return None
         hi3TokensByname = self.safe_dict(self.options, 'hip3TokensByName', {})
-        if self.safe_dict(hi3TokensByname, coin) is not None:
-            hip3Dict = self.safe_dict(hi3TokensByname, coin)
+        hip3Dict = self.safe_dict(hi3TokensByname, coin)
+        if hip3Dict is not None:
             quote = self.safe_string(hip3Dict, 'quote', 'USDC')
             code = self.safe_string(hip3Dict, 'code', coin)
             return code + '/' + quote + ':' + quote

@@ -6722,7 +6722,7 @@ class gate(Exchange, ImplicitAPI):
         authentication = api[0]  # public, private
         type = api[1]  # spot, margin, future, delivery
         query = self.omit(params, self.extract_params(path))
-        pathImploded = None
+        pathImploded = ''
         bodyJson = None
         signedHeaders = None
         containsSettle = path.find('settle') > -1

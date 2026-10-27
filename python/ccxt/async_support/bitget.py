@@ -2966,7 +2966,7 @@ class bitget(Exchange, ImplicitAPI):
         tiers = []
         minNotional = 0
         for i in range(0, len(info)):
-            item = info[i]
+            item = self.safe_value(info, i)
             minimumNotional = self.safe_number_2(item, 'startUnit', 'minTierValue')
             if minimumNotional is not None:
                 minNotional = minimumNotional
@@ -4179,7 +4179,7 @@ class bitget(Exchange, ImplicitAPI):
         posMode = self.safe_string(trade, 'posMode')
         category = self.safe_string(trade, 'category')
         isFeeStructure = (posMode is not None) or (category is not None)
-        feeStructure = feeDetail[0] if isFeeStructure else feeDetail
+        feeStructure = self.safe_value(feeDetail, 0) if isFeeStructure else feeDetail
         if feeStructure is not None:
             currencyCode = self.safe_currency_code(self.safe_string(feeStructure, 'feeCoin'))
             feeCostString = self.safe_string_2(feeStructure, 'totalFee', 'fee')
@@ -11580,9 +11580,7 @@ class bitget(Exchange, ImplicitAPI):
         url = self.implode_hostname(apiUrl) + payload
         query = self.omit(params, self.extract_params(path))
         if not signed and (method == 'GET'):
-            keys = list(query.keys())
-            keysLength = len(keys)
-            if keysLength > 0:
+            if len(query) > 0:
                 url = url + '?' + self.urlencode(query)
         requestBody = None
         requestHeaders = None

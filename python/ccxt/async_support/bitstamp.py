@@ -876,13 +876,13 @@ class bitstamp(Exchange, ImplicitAPI):
             if description is None:
                 raise ExchangeError(self.id + ' parseCurrencies() missing description')
             descriptionParts = description.split(' / ')
-            baseDescription = descriptionParts[0]
-            quoteDescription = descriptionParts[1]
+            baseDescription = self.safe_string(descriptionParts, 0)
+            quoteDescription = self.safe_string(descriptionParts, 1)
             minimumOrder = self.safe_string(market, 'minimum_order_value')
             if minimumOrder is None:
                 raise ExchangeError(self.id + ' parseCurrencies() missing minimumOrder')
             parts = minimumOrder.split(' ')
-            cost = parts[0]
+            cost = self.safe_string(parts, 0)
             if (base is not None) and not (base in result):
                 baseDecimals = self.safe_integer(market, 'base_decimals')
                 result[base] = self.construct_currency_object(baseId, base, baseDescription, baseDecimals, None, market)
@@ -1206,10 +1206,10 @@ class bitstamp(Exchange, ImplicitAPI):
                 else:
                     side = 'buy'
         else:
-            side = self.safe_string(trade, 'type')
-            if side == '1':
+            sideRaw = self.safe_string(trade, 'type')
+            if sideRaw == '1':
                 side = 'sell'
-            elif side == '0':
+            elif sideRaw == '0':
                 side = 'buy'
             else:
                 side = None
@@ -2085,9 +2085,9 @@ class bitstamp(Exchange, ImplicitAPI):
         if addressRaw is not None:
             # dt (destination tag) is embedded into the address field
             addressParts = addressRaw.split('?dt=')
-            address = addressParts[0]
+            address = self.safe_string(addressParts, 0)
             if len(addressParts) > 1:
-                tag = addressParts[1]
+                tag = self.safe_string(addressParts, 1)
         fee = {
             'currency': None,
             'cost': None,
@@ -2691,7 +2691,7 @@ class bitstamp(Exchange, ImplicitAPI):
                 raise AuthenticationError(self.id + ' invalid signature, use the uid for the main account if you have subaccounts')
             feedback = self.id + ' ' + body
             for i in range(0, len(errors)):
-                value = errors[i]
+                value = self.safe_string(errors, i)
                 self.throw_exactly_matched_exception(self.exceptions['exact'], value, feedback)
                 self.throw_broadly_matched_exception(self.exceptions['broad'], value, feedback)
             raise ExchangeError(feedback)

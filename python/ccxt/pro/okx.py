@@ -109,10 +109,8 @@ class okx(ccxt.async_support.okx):
             },
         })
 
-    def get_url(self, channel: Str, access: str = 'public') -> str:
+    def get_url(self, channel: str, access: str = 'public') -> str:
         # for context: https://www.okx.com/help-center/changes-to-v5-api-websocket-subscription-parameter-and-url
-        if channel is None:
-            raise ArgumentsRequired(self.id + ' getUrl() requires a channel argument')
         isSandbox = self.options['sandboxMode']
         sandboxSuffix = ''
         if isSandbox is True:
@@ -2554,9 +2552,8 @@ class okx(ccxt.async_support.okx):
         messageHash = 'unsubscribe:' + subMessageHash
         self.clean_unsubscription(client, subMessageHash, messageHash)
         # watchOHLCV subscribes through subscribe () under channel:marketId
-        if symbol is not None:
-            self.clean_unsubscription(client, channel + ':' + self.market_id(symbol), None)
-        if (symbol is not None) and (timeframe is not None) and (timeframe in self.ohlcvs[symbol]):
+        self.clean_unsubscription(client, channel + ':' + self.market_id(symbol), None)
+        if timeframe in self.ohlcvs[symbol]:
             del self.ohlcvs[symbol][timeframe]
 
     def handle_unsubscription_ticker(self, client: Client, symbol: str, channel: str):
@@ -2578,9 +2575,13 @@ class okx(ccxt.async_support.okx):
         # }
         # arg might be an array or list
         arg = self.safe_dict(message, 'arg', {})
-        channel = self.safe_string(arg, 'channel', '')
+        channel = self.safe_string(arg, 'channel')
+        if channel is None:
+            return
         marketId = self.safe_string(arg, 'instId')
         symbol = self.safe_symbol(marketId)
+        if symbol is None:
+            return
         if channel == 'trades' or channel == 'trades-all':
             self.handle_un_subscription_trades(client, symbol, channel)
         elif channel.startswith('bbo') or channel.startswith('book'):

@@ -4084,12 +4084,11 @@ class binance(Exchange, ImplicitAPI):
             if paramSymbols is not None:
                 symbols = ''
                 if isinstance(paramSymbols, list):
-                    mid = self.market_id(self.safe_value(paramSymbols, 0))
+                    mid = self.market_id(self.safe_string(paramSymbols, 0))
                     if mid is not None:
                         symbols = mid
                     for i in range(1, len(paramSymbols)):
-                        symbol = self.safe_value(paramSymbols, i)
-                        id = self.market_id(symbol)
+                        id = self.market_id(self.safe_string(paramSymbols, i))
                         if id is not None:
                             symbols += ',' + id
                 else:
@@ -12542,7 +12541,7 @@ class binance(Exchange, ImplicitAPI):
                     origclientorderidlist = self.safe_list_2(extendedParams, 'origclientorderidlist', 'origClientOrderIdList', [])
                     extendedParams = self.omit(extendedParams, ['orderidlist', 'origclientorderidlist', 'origClientOrderIdList'])
                     if 'symbol' in extendedParams:
-                        extendedParams['symbol'] = self.encode_uri_component(extendedParams['symbol'])
+                        extendedParams['symbol'] = self.encode_uri_component(self.safe_string(extendedParams, 'symbol', ''))
                     query = self.rawencode(extendedParams)
                     orderidlistLength = len(orderidlist)
                     origclientorderidlistLength = len(origclientorderidlist)
@@ -12552,7 +12551,7 @@ class binance(Exchange, ImplicitAPI):
                         # wrap clientOrderids around ""
                         newClientOrderIds = []
                         for i in range(0, origclientorderidlistLength):
-                            newClientOrderIds.append('%22' + origclientorderidlist[i] + '%22')
+                            newClientOrderIds.append('%22' + self.safe_string(origclientorderidlist, i, '') + '%22')
                         query = query + '&' + 'origclientorderidlist=%5B' + '%2C'.join(newClientOrderIds) + '%5D'
                 else:
                     query = self.rawencode(extendedParams)

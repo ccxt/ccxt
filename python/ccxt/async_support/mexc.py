@@ -4634,16 +4634,14 @@ class mexc(Exchange, ImplicitAPI):
             ]
         while(Precise.string_lt(floor, maxVol)):
             cap = Precise.string_add(floor, riskIncrVol)
-            minNotional = self.parse_number(floor)
-            mainMarginRate = self.parse_number(maintenanceMarginRate)
             maxLev = self.parse_number(Precise.string_div('1', initialMarginRate))
             tiers.append({
                 'tier': self.parse_number(Precise.string_div(cap, riskIncrVol)),
                 'symbol': self.safe_symbol(marketId, market, None, 'contract'),
                 'currency': self.safe_currency_code(quoteId),
-                'minNotional': minNotional,
+                'minNotional': self.parse_number(floor),
                 'maxNotional': self.parse_number(cap),
-                'maintenanceMarginRate': mainMarginRate,
+                'maintenanceMarginRate': self.parse_number(maintenanceMarginRate),
                 'maxLeverage': maxLev,
                 'info': info,
             })
@@ -5564,9 +5562,8 @@ class mexc(Exchange, ImplicitAPI):
             #
             return self.parse_transaction(responseForInternal, currency)
         networks = self.safe_dict(self.options, 'networks', {})
-        network = self.safe_string_2(paramsWithdrawTag, 'network', 'netWork')  # this line allows the user to specify either ERC20 or ETH
-        network = self.safe_string(networks, network, network)  # handle ETH > ERC-20 alias
-        network = self.network_code_to_id(network, self.safe_string(currency, 'code'))
+        networkRaw = self.safe_string_2(paramsWithdrawTag, 'network', 'netWork')  # this line allows the user to specify either ERC20 or ETH
+        network = self.network_code_to_id(self.safe_string(networks, networkRaw, networkRaw), self.safe_string(currency, 'code'))  # handle ETH > ERC-20 alias
         self.check_address(address, code, tagResolved)
         request = {
             'coin': currency['id'],
@@ -6026,7 +6023,7 @@ class mexc(Exchange, ImplicitAPI):
         access = api[1]
         pathValue = self.implode_params(path, params)
         paramsValue = self.omit(params, self.extract_params(path))
-        url = None
+        url = ''
         if section == 'spot' or section == 'broker':
             if section == 'broker':
                 apiUrl = self.safe_string(self.urls['api'][section], access)
@@ -6052,11 +6049,11 @@ class mexc(Exchange, ImplicitAPI):
             paramsEncoded = ''
             if len(urlParams) > 0:
                 paramsEncoded = self.urlencode(urlParams)
-                url += '?' + paramsEncoded
+                url = url + '?' + paramsEncoded
             if access == 'private':
                 self.check_required_credentials()
                 signature = self.hmac(self.encode(paramsEncoded), self.encode(self.secret), hashlib.sha256)
-                url += '&' + 'signature=' + signature
+                url = url + '&signature=' + signature
                 requestHeaders = {
                     'X-MEXC-APIKEY': self.apiKey,
                     'source': self.safe_string(self.options, 'broker', 'CCXT'),

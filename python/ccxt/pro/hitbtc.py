@@ -332,10 +332,6 @@ class hitbtc(ccxt.async_support.hitbtc):
         amount = self.safe_number(delta, 1)
         bookside.store(price, amount)
 
-    def handle_deltas(self, bookside: object, deltas: list[object]):
-        for i in range(0, len(deltas)):
-            self.handle_delta(bookside, deltas[i])
-
     async def watch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market

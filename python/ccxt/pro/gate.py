@@ -810,7 +810,7 @@ class gate(ccxt.async_support.gate):
         market = self.market(symbolsNormalized[0])
         messageType = self.get_type_by_market(market)
         marketIds = self.market_ids(symbolsNormalized)
-        channelName, paramsMethod = self.handle_option_string_and_params(paramsCallerMethodName, callerMethodNameOption, 'method')
+        channelName, paramsMethod = self.handle_option_string_and_params(paramsCallerMethodName, callerMethodNameOption, 'method', '')
         url = self.get_url_by_market(market)
         channel = messageType + '.' + channelName
         if callerMethodNameOption is None:
@@ -2111,9 +2111,9 @@ class gate(ccxt.async_support.gate):
     def get_type_by_market(self, market: Market) -> Str:
         if market is None:
             return None
-        if market['spot'] is True:
+        if self.safe_bool(market, 'spot', False):
             return 'spot'
-        elif market['option'] is True:
+        elif self.safe_bool(market, 'option', False):
             return 'options'
         else:
             return 'futures'

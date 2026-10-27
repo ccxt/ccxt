@@ -1174,7 +1174,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             self.handle_positions(client, message)
         for i in range(0, len(rawBalances)):
             self.parse_ws_balance(rawBalances[i], account)
-        if self.safe_value(self.balance, account) is None:
+        if not (account in self.balance):
             self.balance[account] = {}
         self.balance[account]['info'] = info
         self.balance[account]['timestamp'] = timestamp
@@ -1367,7 +1367,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         messageHash = 'order'
         if symbol is not None:
             market = self.market(symbol)
-            messageHash = 'order:' + market['symbol']
+            messageHash = 'order:' + self.safe_string(market, 'symbol', '')
         symbolResolved = self.safe_string(market, 'symbol') if (market is not None) else symbol
         url = self.urls['api']['ws']['public']
         request = {

@@ -85,7 +85,9 @@ class woo(ccxt.async_support.woo):
         options = self.safe_dict(self.options, 'requestId', {})
         previousValue = self.safe_integer(options, url, 0)
         newValue = self.sum(previousValue, 1)
-        self.options['requestId'][url] = newValue
+        entry = {}
+        entry[url] = newValue
+        self.options['requestId'] = self.extend(self.safe_dict(self.options, 'requestId', {}), entry)
         return newValue
 
     async def watch_public(self, messageHash: str, message: dict):
@@ -571,7 +573,7 @@ class woo(ccxt.async_support.woo):
                 continue
             ticker['ts'] = timestamp
             parsedTicker = self.parse_ws_bid_ask(ticker)
-            symbol = parsedTicker['symbol']
+            symbol = self.safe_string(parsedTicker, 'symbol')
             if symbol is not None:
                 self.bidsasks[symbol] = parsedTicker
             if symbol is not None:
@@ -923,8 +925,9 @@ class woo(ccxt.async_support.woo):
             topic = 'algoexecutionreportv2'
         paramsOmitted = self.omit(params, ['stop', 'trigger'])
         messageHash = topic
-        symbolResolved = self.symbol(symbol) if (symbol is not None) else None
-        if symbolResolved is not None:
+        symbolResolved = None
+        if symbol is not None:
+            symbolResolved = self.symbol(symbol)
             messageHash = topic + ':' + symbolResolved
         request = {
             'event': 'subscribe',
@@ -959,8 +962,9 @@ class woo(ccxt.async_support.woo):
             topic = 'algoexecutionreportv2'
         paramsOmitted = self.omit(params, ['stop', 'trigger'])
         messageHash = 'myTrades'
-        symbolResolved = self.symbol(symbol) if (symbol is not None) else None
-        if symbolResolved is not None:
+        symbolResolved = None
+        if symbol is not None:
+            symbolResolved = self.symbol(symbol)
             messageHash = 'myTrades' + ':' + symbolResolved
         request = {
             'event': 'subscribe',
@@ -1381,15 +1385,13 @@ class woo(ccxt.async_support.woo):
             value = self.safe_dict(balances, key)
             code = self.safe_currency_code(key)
             account = self.account()
-            if (code is not None) and (code in self.balance):
-                account = self.balance[code]
             total = self.safe_string(value, 'holding')
             used = self.safe_string(value, 'frozen')
             account['total'] = total
             account['used'] = used
             account['free'] = Precise.string_sub(total, used)
             if code is not None:
-                self.balance[code] = account
+                self.balance[code] = self.extend(self.safe_dict(self.balance, code, {}), account)
         self.balance = self.safe_balance(self.balance)
         client.resolve(self.balance, 'balance')
 

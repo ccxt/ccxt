@@ -7102,10 +7102,8 @@ class htx(Exchange, ImplicitAPI):
         pathString = path
         url = '/'
         isArrayParams = isinstance(params, list)
-        query = None
-        if isArrayParams:
-            query = {}
-        else:
+        query = {}
+        if not isArrayParams:
             query = self.omit(params, self.extract_params(path))
         apiLength = len(api)
         if apiLength == 1:
@@ -7150,7 +7148,7 @@ class htx(Exchange, ImplicitAPI):
                         'Content-Type': 'application/x-www-form-urlencoded',
                     }
             else:
-                if (query is not None) and (len(query) > 0):
+                if len(query) > 0:
                     url += '?' + self.urlencode(query)
             baseApiUrl = self.safe_string(self.urls['api'], apiName)
             if baseApiUrl is None:
@@ -7174,7 +7172,7 @@ class htx(Exchange, ImplicitAPI):
             hostname = hostnames
             url += self.implode_params(path, params)
             if access == 'public':
-                if (query is not None) and (len(query) > 0):
+                if len(query) > 0:
                     url += '?' + self.urlencode(query)
             elif access == 'private':
                 self.check_required_credentials()

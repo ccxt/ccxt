@@ -2588,25 +2588,25 @@ class blofin(Exchange, ImplicitAPI):
             if tpslIds is not None:
                 for i in range(0, len(tpslIds)):
                     request.append({
-                        'tpslId': tpslIds[i],
+                        'tpslId': self.safe_string(tpslIds, i),
                         'instId': market['id'],
                     })
             for i in range(0, len(orderIds)):
                 if trigger is True:
                     request.append({
-                        'tpslId': orderIds[i],
+                        'tpslId': self.safe_string(orderIds, i),
                         'instId': market['id'],
                     })
                 else:
                     request.append({
-                        'orderId': orderIds[i],
+                        'orderId': self.safe_string(orderIds, i),
                         'instId': market['id'],
                     })
         else:
             for i in range(0, len(clientOrderIds)):
                 request.append({
                     'instId': market['id'],
-                    'clientOrderId': clientOrderIds[i],
+                    'clientOrderId': self.safe_string(clientOrderIds, i),
                 })
         response: dict
         if method == 'privatePostTradeCancelTpsl':
@@ -3220,7 +3220,7 @@ class blofin(Exchange, ImplicitAPI):
         :returns dict: response from the exchange
         """
         request = {
-            'positionMode': 'long_short_mode' if hedged else 'net_mode',
+            'positionMode': 'long_short_mode' if (hedged is True) else 'net_mode',
         }
         #
         #     {

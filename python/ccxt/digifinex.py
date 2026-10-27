@@ -889,8 +889,8 @@ class digifinex(Exchange, ImplicitAPI):
         marketType, paramsMarketType = self.handle_market_type_and_params('fetchBalance', None, params)
         marginMode, query = self.handle_margin_mode_and_params('fetchBalance', paramsMarketType)
         response = None
-        if marginMode is not None or marketType == 'margin':
-            marketType = 'margin'
+        isMargin = (marginMode is not None) or (marketType == 'margin')
+        if isMargin:
             response = self.privateSpotGetMarginAssets(query)
         elif marketType == 'spot':
             response = self.privateSpotGetSpotAssets(query)
@@ -935,7 +935,7 @@ class digifinex(Exchange, ImplicitAPI):
         #     }
         #
         balanceRequest = 'list'
-        if marketType == 'swap':
+        if not isMargin and marketType == 'swap':
             balanceRequest = 'data'
         balances = self.safe_list(response, balanceRequest, [])
         return self.parse_balance(balances)
@@ -1171,13 +1171,9 @@ class digifinex(Exchange, ImplicitAPI):
         tickers = self.safe_list(response, 'ticker', [])
         data = self.safe_dict(response, 'data', {})
         firstTicker = self.safe_dict(tickers, 0, {})
-        result = None
-        if market['swap'] is True:
-            result = data
-        else:
+        result = data
+        if market['swap'] is not True:
             result = self.extend({'date': date}, firstTicker)
-        if result is None:
-            raise NullResponse(self.id + ' fetchTicker() returned empty response')
         return self.parse_ticker(result, market)
 
     def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
@@ -1918,8 +1914,8 @@ class digifinex(Exchange, ImplicitAPI):
             request['market'] = marketType
         marginMode, query = self.handle_margin_mode_and_params('cancelOrder', paramsMarketType)
         response = None
-        if marginMode is not None or marketType == 'margin':
-            marketType = 'margin'
+        isMargin = (marginMode is not None) or (marketType == 'margin')
+        if isMargin:
             response = self.privateSpotPostMarginOrderCancel(self.extend(request, query))
         elif marketType == 'spot':
             response = self.privateSpotPostSpotOrderCancel(self.extend(request, query))
@@ -1948,7 +1944,7 @@ class digifinex(Exchange, ImplicitAPI):
         #         "data": "1590923061186531328"
         #     }
         #
-        if (marketType == 'spot') or (marketType == 'margin'):
+        if isMargin or (marketType == 'spot'):
             canceledOrders = self.safe_list(response, 'success', [])
             numCanceledOrders = len(canceledOrders)
             if numCanceledOrders != 1:
@@ -2314,8 +2310,8 @@ class digifinex(Exchange, ImplicitAPI):
                 marketIdRequest = 'instrument_id'
             request[marketIdRequest] = market['id']
         response = None
-        if marginMode is not None or marketType == 'margin':
-            marketType = 'margin'
+        isMargin = (marginMode is not None) or (marketType == 'margin')
+        if isMargin:
             response = self.privateSpotGetMarginOrderCurrent(self.extend(request, query))
         elif marketType == 'spot':
             response = self.privateSpotGetSpotOrderCurrent(self.extend(request, query))
@@ -2415,8 +2411,8 @@ class digifinex(Exchange, ImplicitAPI):
         if limit is not None:
             request['limit'] = limit
         response = None
-        if marginMode is not None or marketType == 'margin':
-            marketType = 'margin'
+        isMargin = (marginMode is not None) or (marketType == 'margin')
+        if isMargin:
             response = self.privateSpotGetMarginOrderHistory(self.extend(request, query))
         elif marketType == 'spot':
             response = self.privateSpotGetSpotOrderHistory(self.extend(request, query))
@@ -2509,8 +2505,8 @@ class digifinex(Exchange, ImplicitAPI):
         else:
             request['market'] = marketType
         response = None
-        if (marginMode is not None) or (marketType == 'margin'):
-            marketType = 'margin'
+        isMargin = (marginMode is not None) or (marketType == 'margin')
+        if isMargin:
             response = self.privateSpotGetMarginOrder(self.extend(request, query))
         elif marketType == 'spot':
             response = self.privateSpotGetSpotOrder(self.extend(request, query))
@@ -2567,7 +2563,7 @@ class digifinex(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_value(response, 'data')
-        order = data if (marketType == 'swap') else self.safe_value(data, 0)
+        order = data if (not isMargin and (marketType == 'swap')) else self.safe_value(data, 0)
         if order is None:
             raise OrderNotFound(self.id + ' fetchOrder() order ' + idValue + ' not found')
         return self.parse_order(order, market)
@@ -2610,8 +2606,8 @@ class digifinex(Exchange, ImplicitAPI):
         if limit is not None:
             request['limit'] = limit
         response = None
-        if marginMode is not None or marketType == 'margin':
-            marketType = 'margin'
+        isMargin = (marginMode is not None) or (marketType == 'margin')
+        if isMargin:
             response = self.privateSpotGetMarginMytrades(self.extend(request, query))
         elif marketType == 'spot':
             response = self.privateSpotGetSpotMytrades(self.extend(request, query))
@@ -2665,7 +2661,7 @@ class digifinex(Exchange, ImplicitAPI):
         #     }
         #
         responseRequest = 'list'
-        if marketType == 'swap':
+        if not isMargin and (marketType == 'swap'):
             responseRequest = 'data'
         data = self.safe_list(response, responseRequest, [])
         return self.parse_trades(data, market, since, limit)
@@ -2759,8 +2755,8 @@ class digifinex(Exchange, ImplicitAPI):
         if limit is not None:
             request['limit'] = limit
         response = None
-        if marginMode is not None or marketType == 'margin':
-            marketType = 'margin'
+        isMargin = (marginMode is not None) or (marketType == 'margin')
+        if isMargin:
             response = self.privateSpotGetMarginFinancelog(self.extend(request, query))
         elif marketType == 'spot':
             response = self.privateSpotGetSpotFinancelog(self.extend(request, query))
@@ -2802,7 +2798,7 @@ class digifinex(Exchange, ImplicitAPI):
         #     }
         #
         ledger = None
-        if marketType == 'swap':
+        if not isMargin and (marketType == 'swap'):
             ledger = self.safe_list(response, 'data', [])
         else:
             data = self.safe_dict(response, 'data', {})
@@ -4413,7 +4409,7 @@ class digifinex(Exchange, ImplicitAPI):
                 elif method == 'POST':
                     auth += urlencoded
             else:
-                nonce = str(self.nonce())
+                nonce = str(self.seconds())
                 auth = urlencoded
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
             if method == 'GET':

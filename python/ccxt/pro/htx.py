@@ -842,11 +842,8 @@ class htx(ccxt.async_support.htx):
         future = (type == 'future')
         isV5Linear = (linear and (swap or future))
         if type == 'spot':
-            mode = None
-            if mode is None:
-                mode = self.safe_string_2(self.options, 'watchMyTrades', 'mode', '0')
-                mode = self.safe_string(paramsRequest, 'mode', mode)
-                paramsRequest = self.omit(paramsRequest, 'mode')
+            mode = self.safe_string(paramsRequest, 'mode', self.safe_string_2(self.options, 'watchMyTrades', 'mode', '0'))
+            paramsRequest = self.omit(paramsRequest, 'mode')
             messageHash = 'trade.clearing' + '#' + marketId + '#' + mode
             channel = messageHash
         elif isV5Linear:

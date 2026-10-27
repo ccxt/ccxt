@@ -257,8 +257,8 @@ class binance(ccxt.async_support.binance):
         if (type == 'option') or (type == 'optionMarket') or (type == 'optionPrivate'):
             # eOptions urls are stored as full public/market/private paths, no category rewrite needed,
             # see https://github.com/ccxt/ccxt/pull/27982 and https://github.com/ccxt/ccxt/issues/26333
-            return wsUrls[type]
-        baseUrl = wsUrls[type]
+            return self.safe_string(wsUrls, type, '')
+        baseUrl = self.safe_string(wsUrls, type, '')
         if type == 'linear':
             # skip URL manipulation for proxied/bridge URLs (contain an embedded protocol)
             # const firstProtocol = baseUrl.indexOf ('://');
@@ -271,7 +271,7 @@ class binance(ccxt.async_support.binance):
                 return baseUrl
             # only rewrite when the URL ends with exactly "/ws"
             # this avoids matching "/wss", "/ws-api", "/ws-fapi/v1", etc.
-            if baseUrl.endswith('/ws'):
+            if baseUrl.endswith('/ws') is True:
                 prefix = baseUrl[0:len(baseUrl) - 3]
                 return prefix + '/' + category + '/ws'
             return baseUrl

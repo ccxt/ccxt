@@ -274,7 +274,7 @@ class bitstamp(ccxt.async_support.bitstamp):
         price = self.safe_string(trade, 'price')
         amount = self.safe_string(trade, 'amount')
         marketResolved = self.safe_market(None, market)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol', '')
         sideRaw = self.safe_integer(trade, 'type')
         side = 'sell'
         if sideRaw == 0:
@@ -322,7 +322,7 @@ class bitstamp(ccxt.async_support.bitstamp):
         parts = channel.split('_')
         marketId = self.safe_string(parts, 2)
         market = self.safe_market(marketId)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         messageHash = 'trades:' + symbol
         data = self.safe_dict(message, 'data')
         trade = self.parse_ws_trade(data, market)
@@ -380,7 +380,7 @@ class bitstamp(ccxt.async_support.bitstamp):
         parts = channel.split('_')
         marketId = self.safe_string(parts, 2)
         market = self.safe_market(marketId)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         data = self.safe_dict(message, 'data', {})
         fundingRate = self.parse_funding_rate(data, market)
         self.fundingRates[symbol] = fundingRate
@@ -400,7 +400,7 @@ class bitstamp(ccxt.async_support.bitstamp):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         channel = 'private-my_orders'
         subscription = {
             'symbol': symbolValue,
@@ -429,7 +429,7 @@ class bitstamp(ccxt.async_support.bitstamp):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         await self.authenticate()
         userId = self.safe_string(self.options, 'userId')
         if userId is None:
@@ -454,7 +454,7 @@ class bitstamp(ccxt.async_support.bitstamp):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         channel = 'private-my_trades'
         messageHash = channel + '_' + self.safe_string(market, 'id', '')
         subscription = {
@@ -484,7 +484,7 @@ class bitstamp(ccxt.async_support.bitstamp):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         await self.authenticate()
         userId = self.safe_string(self.options, 'userId')
         if userId is None:
@@ -548,7 +548,7 @@ class bitstamp(ccxt.async_support.bitstamp):
         microtimestamp = self.safe_integer(trade, 'microtimestamp', 0)
         timestamp = self.parse_to_int(microtimestamp / 1000)
         marketResolved = self.safe_market(None, market)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol', '')
         feeCost = self.safe_string(trade, 'fee')
         fee = None
         if feeCost is not None:
@@ -682,7 +682,7 @@ class bitstamp(ccxt.async_support.bitstamp):
         triggerPrice = self.safe_string(order, 'stop_price')
         timestamp = self.safe_timestamp(order, 'datetime')
         marketResolved = self.safe_market(None, market)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol', '')
         return self.safe_order({
             'info': order,
             'symbol': symbol,
@@ -969,7 +969,7 @@ class bitstamp(ccxt.async_support.bitstamp):
             'event': 'bts:subscribe',
             'data': {
                 'channel': messageHashValue,
-                'auth': self.options['wsSessionToken'],
+                'auth': self.safe_string(self.options, 'wsSessionToken'),
             },
         }
         subscription['messageHash'] = messageHashValue

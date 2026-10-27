@@ -386,7 +386,7 @@ class bybit(ccxt.async_support.bybit):
         topic = self.safe_string(options, 'name', 'tickers')
         if (market['spot'] is not True) and topic != 'tickers':
             raise BadRequest(self.id + ' watchTicker() only supports name tickers for contract markets')
-        topics = [topic + '.' + market['id']]
+        topics = [topic + '.' + self.safe_string(market, 'id', '')]
         return await self.watch_topics(url, [messageHash], topics, paramsValue)
 
     async def watch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
@@ -413,7 +413,7 @@ class bybit(ccxt.async_support.bybit):
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
             topics.append(topic + '.' + marketId)
-            messageHashes.append('ticker:' + symbolsValue[i])
+            messageHashes.append('ticker:' + self.safe_string(symbolsValue, i, ''))
         ticker = await self.watch_topics(url, messageHashes, topics, paramsValue)
         if self.newUpdates:
             result = {}
@@ -634,7 +634,7 @@ class bybit(ccxt.async_support.bybit):
             marketId = marketIds[i]
             topic = 'orderbook.1.' + marketId
             topics.append(topic)
-            messageHashes.append('bidask:' + symbolsValue[i])
+            messageHashes.append('bidask:' + self.safe_string(symbolsValue, i, ''))
         ticker = await self.watch_topics(url, messageHashes, topics, paramsValue)
         if self.newUpdates:
             return ticker
@@ -886,7 +886,7 @@ class bybit(ccxt.async_support.bybit):
             }
             selectedLimits = self.safe_list_2(limits, market['type'], 'default', [])
             if not self.in_array(limit, selectedLimits):
-                raise BadRequest(self.id + ' watchOrderBookForSymbols(): for ' + market['type'] + ' markets limit can be one of: ' + self.json(selectedLimits))
+                raise BadRequest(self.id + ' watchOrderBookForSymbols(): for ' + self.safe_string(market, 'type', '') + ' markets limit can be one of: ' + self.json(selectedLimits))
         topics = []
         messageHashes = []
         for i in range(0, len(symbolsNormalized)):

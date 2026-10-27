@@ -2327,7 +2327,7 @@ class bydfi(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         positionType = 'ONEWAY'
-        if hedged:
+        if hedged is True:
             positionType = 'HEDGE'
         wallet = 'W001'
         walletOption, paramsWallet = self.handle_option_string_and_params(params, 'setPositionMode', 'wallet', wallet)

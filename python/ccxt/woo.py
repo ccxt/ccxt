@@ -1439,13 +1439,7 @@ class woo(Exchange, ImplicitAPI):
                 request['algoType'] = 'STOP'
         elif hasStopLoss or hasTakeProfit:
             request['algoType'] = 'BRACKET'
-            outterOrder = {
-                'symbol': market['id'],
-                'reduceOnly': False,
-                'algoType': 'POSITIONAL_TP_SL',
-                'childOrders': [],
-            }
-            childOrders = outterOrder['childOrders']
+            childOrders = []
             closeSide = 'BUY'
             if orderSide == 'BUY':
                 closeSide = 'SELL'
@@ -1469,6 +1463,12 @@ class woo(Exchange, ImplicitAPI):
                     'reduceOnly': True,
                 }
                 childOrders.append(takeProfitOrder)
+            outterOrder = {
+                'symbol': market['id'],
+                'reduceOnly': False,
+                'algoType': 'POSITIONAL_TP_SL',
+                'childOrders': childOrders,
+            }
             request['childOrders'] = [outterOrder]
         paramsRequest = self.omit(paramsCost, ['clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit', 'trailingPercent', 'trailingAmount', 'trailingTriggerPrice'])
         response = None
@@ -1509,8 +1509,7 @@ class woo(Exchange, ImplicitAPI):
             #
         data = self.safe_dict(response, 'data', {})
         data = self.safe_dict(self.safe_list(data, 'rows'), 0, data)
-        data['timestamp'] = self.safe_string(response, 'timestamp')
-        return self.parse_order(data, market)
+        return self.parse_order(self.extend(data, {'timestamp': self.safe_string(response, 'timestamp')}), market)
 
     def encode_margin_mode(self, mode: Str) -> Str:
         modes = {
@@ -4273,11 +4272,11 @@ class woo(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         request = {}
-        requestUntil, paramsUntil = self.handle_until_option('endTime', request, params)
         if since is not None:
-            requestUntil['startTime'] = since
+            request['startTime'] = since
         if limit is not None:
-            requestUntil['size'] = limit
+            request['size'] = limit
+        requestUntil, paramsUntil = self.handle_until_option('endTime', request, params)
         response = self.v3PrivateGetConvertTrades(self.extend(requestUntil, paramsUntil))
         #
         #     {

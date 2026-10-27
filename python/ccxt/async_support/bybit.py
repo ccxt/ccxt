@@ -1597,7 +1597,7 @@ class bybit(Exchange, ImplicitAPI):
         symbolBase = symbol.split('/')
         expiry = None
         hasSlash = symbol.find('/') > -1
-        baseName = None
+        baseName = self.safe_string(optionParts, 0)
         if hasSlash:
             baseName = self.safe_string(symbolBase, 0)
             expiry = self.safe_string(optionParts, 1)
@@ -1609,7 +1609,6 @@ class bybit(Exchange, ImplicitAPI):
             quote = quoteAndSettle
             settle = quoteAndSettle
         else:
-            baseName = self.safe_string(optionParts, 0)
             expiry = self.convert_market_id_expire_date(self.safe_string(optionParts, 1))
             if symbol.endswith('-USDT'):
                 quote = 'USDT'
@@ -9515,13 +9514,13 @@ classic accounts only/ spot not supported*  fetches information on an order made
                     'Content-Type': 'application/json',
                     'X-BAPI-API-KEY': self.apiKey,
                     'X-BAPI-TIMESTAMP': timestamp,
-                    'X-BAPI-RECV-WINDOW': self.number_to_string(self.options['recvWindow']),
+                    'X-BAPI-RECV-WINDOW': self.safe_string(self.options, 'recvWindow', ''),
                 }
                 if isV3UnifiedMargin or isV3Contract:
                     requestHeaders['X-BAPI-SIGN-TYPE'] = '2'
                 query = self.extend({}, params)
                 queryEncoded = self.rawencode(query)
-                auth_base = str(timestamp) + self.apiKey + str(self.options['recvWindow'])
+                auth_base = timestamp + self.apiKey + self.safe_string(self.options, 'recvWindow', '')
                 authFull = None
                 if method == 'POST':
                     requestBody = self.json(query)
@@ -9605,11 +9604,9 @@ classic accounts only/ spot not supported*  fetches information on an order made
                 # POST https://api.bybit.com/v2/private/position/switch-isolated 200 OK
                 # {"ret_code":30084,"ret_msg":"Isolated not modified","ext_code":"","ext_info":"","result":null,"time_now":"1642005219.937988","rate_limit_status":73,"rate_limit_reset_ms":1642005219894,"rate_limit":75}
                 return None
-            feedback = None
+            feedback = self.id + ' ' + body
             if errorCode == '10005' and url.find('order') < 0:
                 feedback = self.id + ' private api uses /user/v3/private/query-api to check if you have a unified account. The API key of user id must own one of permissions: "Account Transfer", "Subaccount Transfer", "Withdrawal" ' + body
-            else:
-                feedback = self.id + ' ' + body
             if body.find('Withdraw address chain or destination tag are not equal') > -1:
                 feedback = feedback + '; You might also need to ensure the address is whitelisted'
             self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)

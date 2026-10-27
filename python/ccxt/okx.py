@@ -1537,11 +1537,9 @@ class okx(Exchange, ImplicitAPI):
         quote = 'USD'
         optionParts = symbol.split('-')
         symbolBase = symbol.split('/')
-        base: Str
+        base = self.safe_string(optionParts, 0, '')
         if symbol.find('/') > -1:
             base = self.safe_string(symbolBase, 0, '')
-        else:
-            base = self.safe_string(optionParts, 0, '')
         expiry = self.safe_string(optionParts, 2, '')
         strike = self.safe_string(optionParts, 3, '')
         optionType = self.safe_string(optionParts, 4, '')
@@ -1865,28 +1863,29 @@ class okx(Exchange, ImplicitAPI):
         quote = self.safe_currency_code(quoteId)
         if (base is None) or (quote is None):
             return None
-        symbol = base + '/' + quote
+        baseSymbol = base + '/' + quote
         # handle preopen empty markets
         if base == '' or quote == '':
-            symbol = id
+            baseSymbol = id + ''
+        symbol = baseSymbol
         expiry = None
         strikePrice = None
         optionType = None
         if contract:
+            settledSymbol = baseSymbol
             if settle is not None:
-                symbol = symbol + ':' + settle
+                settledSymbol = baseSymbol + ':' + settle
+            symbol = settledSymbol
             if future:
                 expiry = self.safe_integer(market, 'expTime')
                 if expiry is not None:
-                    ymd = self.yymmdd(expiry)
-                    symbol = symbol + '-' + ymd
+                    symbol = settledSymbol + '-' + self.yymmdd(expiry)
             elif option:
                 expiry = self.safe_integer(market, 'expTime')
                 strikePrice = self.safe_string(market, 'stk')
                 optionType = self.safe_string(market, 'optType')
                 if expiry is not None:
-                    ymd = self.yymmdd(expiry)
-                    symbol = symbol + '-' + ymd + '-' + strikePrice + '-' + optionType
+                    symbol = settledSymbol + '-' + self.yymmdd(expiry) + '-' + strikePrice + '-' + optionType
                     optionType = 'put' if (optionType == 'P') else 'call'
         feesType = '' if (type is None) else type
         fees = self.safe_dict_2(self.fees, feesType, 'trading', {})

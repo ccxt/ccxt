@@ -241,7 +241,7 @@ class blofin(ccxt.async_support.blofin):
         market = self.market(symbol)
         symbolValue = self.safe_string(market, 'symbol', '')
         result = await self.watch_tickers([symbolValue], params)
-        return result[symbolValue]
+        return self.safe_value(result, symbolValue)
 
     async def watch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
@@ -475,8 +475,6 @@ class blofin(ccxt.async_support.blofin):
         # landing in that window invisible to the consumer forever (same class
         # as issue #26773); the free/used/total aggregates are rebuilt from
         # the merged currencies by safeBalance
-        if self.balance is None:
-            self.balance = {}
         self.balance[marketType] = self.safe_dict(self.balance, marketType, {})
         parsed = self.parse_ws_balance(message)
         reserved = ['free', 'used', 'total']
@@ -697,7 +695,7 @@ class blofin(ccxt.async_support.blofin):
                     'instId': market['id'],
                 }
                 rawSubscriptions.append(topic)
-                messageHashes.append(channel + ':' + market['symbol'])
+                messageHashes.append(channel + ':' + self.safe_string(market, 'symbol', ''))
         else:
             rawSubscriptions.append({'channel': channelName})
             messageHashes.append(channelName)
@@ -706,7 +704,7 @@ class blofin(ccxt.async_support.blofin):
             rawSubscriptions = [{'channel': channelName}]
         request = self.get_subscription_request(rawSubscriptions)
         privateOrPublic = 'private'
-        if isPublic:
+        if isPublic is True:
             privateOrPublic = 'public'
         typeUrls = self.safe_dict(self.urls['api']['ws'], marketType, {})
         url = self.safe_string(typeUrls, privateOrPublic)
