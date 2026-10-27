@@ -1089,7 +1089,7 @@ export default class weex extends weexRest {
             return;
         }
         const ticker = this.parseWsBidAsk (message, market);
-        const symbol = ticker['symbol'];
+        const symbol = market['symbol'];
         if (symbol !== undefined) {
             this.bidsasks[symbol] = ticker;
         }
