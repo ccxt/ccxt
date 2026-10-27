@@ -8878,8 +8878,15 @@ export function nativeJavaJ34MapLocals (content: string): string {
                 const rhs = j26Strip (member.slice (start, end).replace (/^\s*\((?:java\.util\.)?Map<String, Object>\)\s*/, ''));
                 writes++;
                 const call = /^this\.(extend|keysort|account)\(/.exec (rhs);
+                // parseOrder/parseTrade (+ws) return the typed view (Order/Trade) over a safeOrder/safeTrade payload; TypedMap.put is a plain
+                // raw.put on that LinkedHashMap/HashMap (safeTrade already puts natively into it), never a ConcurrentHashMap, so the helper's null-remove arm cannot fire.
+                // Balances stays excluded: safeBalance(this.balance) wraps the shared ConcurrentHashMap
+                const typedCall = /^this\.(parseOrder|parseWsOrder|parseTrade|parseWsTrade)\(/.exec (rhs);
+                const typedView = typedCall !== null && j26Close (rhs, typedCall[0].length - 1) === rhs.length - 1
+                    && !new RegExp (`public (?!(?:Order|Trade)\\b)[\\w.<>, ?]+ ${typedCall[1]}\\(`).test (content);
                 const isFresh = /^new (?:java\.util\.)?(?:Linked)?HashMap<String, Object>\(\) \{\{/.test (rhs)
                     || /^Helpers\.newMap\(/.test (rhs)
+                    || typedView
                     || (call !== null && j26Close (rhs, call[0].length - 1) === rhs.length - 1
                         && (call[1] !== 'extend' || (j26Args (rhs, call[0].length - 1) ?? []).length === 2));
                 if (!isFresh) { ok = false; break; }
@@ -8952,6 +8959,11 @@ function j34MapLocalsSelfTest (): string[] {
         [ 'Object key read', 'Map<String, Object> p, Object k', '        return Helpers.GetValue(p, k);', undefined ],
         [ 'param keys', 'Map<String, Object> p', '        return Helpers.objectKeys(p);', undefined ],
         [ 'reassigned from safeDict', 'Object o, Object v', '        Map<String, Object> r = new HashMap<String, Object>() {{}};\n        r = (Map<String, Object>) this.safeDict(o, "x");\n        Helpers.addElementToObject(r, "a", v);', undefined ],
+        [ 'typed order view put', 'Object v', '        Map<String, Object> o = (Map<String, Object>) this.parseOrder(v, null);\n        Helpers.addElementToObject(o, \"type\", v);', '        o.put(\"type\", v);' ],
+        [ 'typed trade view put', 'Object v', '        Map<String, Object> t = this.parseWsTrade((Map<String, Object>) (v), null);\n        Helpers.addElementToObject(t, \"datetime\", v);', '        t.put(\"datetime\", v);' ],
+        [ 'typed balance view keeps helper', 'Object v', '        Map<String, Object> b = (Map<String, Object>) this.parseBalance(v);\n        Helpers.addElementToObject(b, \"timestamp\", v);', undefined ],
+        [ 'order view reassigned from safeDict', 'Object v', '        Map<String, Object> o = (Map<String, Object>) this.parseOrder(v, null);\n        o = (Map<String, Object>) this.safeDict(v, \"x\");\n        Helpers.addElementToObject(o, \"type\", v);', undefined ],
+        [ 'order view venue override returns Object', 'Object v', '        Map<String, Object> o = (Map<String, Object>) this.parseOrder(v, null);\n        Helpers.addElementToObject(o, \"type\", v);\n        return o;\n    }\n    public Object parseOrder(Object order, Map<String, Object> market)\n    {\n        return order;', undefined ],
         [ 'extend of 3', 'Object p, Object q, Object v', '        Map<String, Object> r = (Map<String, Object>) this.extend(p, q, new HashMap<String, Object>() {{}});\n        Helpers.addElementToObject(r, "a", v);', undefined ],
     ];
     for (const [ name, sig, body, expect ] of cases) {
