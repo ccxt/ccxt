@@ -3434,7 +3434,7 @@ export default class cryptocom extends Exchange {
             paramsKeys = this.sort (objectKeys);
         }
         for (let i = 0; i < (paramsKeys as string[]).length; i++) {
-            const key = (paramsKeys as string[])[i];
+            const key = this.safeString (paramsKeys, i, '');
             returnString += key;
             const value = object[key];
             if (value === 'undefined') {
