@@ -1453,7 +1453,7 @@ func (this *Binance) fetchOpenOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predict
 	if r2.Value != nil {
 		wallet = r2.Value
 	}
-	request["walletAddress"] = ccxt.GetValue(wallet, "walletAddress")
+	request["walletAddress"] = this.SafeString(wallet, "walletAddress")
 
 	r3 := <-this.SapiPrivateGetOrderList(this.Extend(request, paramsMaxEntriesPerRequest))
 	if r3.Err != nil {
@@ -1587,7 +1587,7 @@ func (this *Binance) fetchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionO
 	if r2.Value != nil {
 		wallet = r2.Value
 	}
-	request["walletAddress"] = ccxt.GetValue(wallet, "walletAddress")
+	request["walletAddress"] = this.SafeString(wallet, "walletAddress")
 
 	r3 := <-this.SapiPrivateGetOrderHistory(this.Extend(request, paramsOmitted))
 	if r3.Err != nil {
@@ -1684,7 +1684,7 @@ func (this *Binance) fetchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Predicti
 		wallet = r1.Value
 	}
 	var request map[string]any = map[string]any{
-		"walletAddress": ccxt.GetValue(wallet, "walletAddress"),
+		"walletAddress": this.SafeString(wallet, "walletAddress"),
 	}
 
 	r2 := <-this.SapiPrivateGetPositionList(this.Extend(request, params))
@@ -1804,7 +1804,7 @@ func (this *Binance) fetchPositionBody(ch chan ccxt.AsyncResult[ccxt.PredictionP
 	if r1.Value != nil {
 		wallet = r1.Value
 	}
-	request["walletAddress"] = ccxt.GetValue(wallet, "walletAddress")
+	request["walletAddress"] = this.SafeString(wallet, "walletAddress")
 
 	r2 := <-this.SapiPrivateGetPositionFilter(this.Extend(request, params))
 	if r2.Err != nil {
@@ -1969,7 +1969,7 @@ func (this *Binance) fetchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Predictio
 	if r2.Value != nil {
 		wallet = r2.Value
 	}
-	request["walletAddress"] = ccxt.GetValue(wallet, "walletAddress")
+	request["walletAddress"] = this.SafeString(wallet, "walletAddress")
 
 	r3 := <-this.SapiPrivateGetOrderHistory(this.Extend(request, paramsOmitted))
 	if r3.Err != nil {
@@ -2309,7 +2309,7 @@ func (this *Binance) createOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrd
 	var cost *string = this.SafeString(params, "cost")
 	var slippageBps int64 = this.ParseToInt(ccxt.Precise.StringMul(slippage, "10000"))
 	var commonRequest map[string]any = map[string]any{
-		"walletAddress": ccxt.GetValue(wallet, "walletAddress"),
+		"walletAddress": this.SafeString(wallet, "walletAddress"),
 		"orderType":     typeUpper,
 		"slippageBps":   slippageBps,
 	}
@@ -2513,7 +2513,7 @@ func (this *Binance) cancelOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Prediction
 		wallet = r1.Value
 	}
 	var request map[string]any = map[string]any{
-		"walletAddress": ccxt.GetValue(wallet, "walletAddress"),
+		"walletAddress": this.SafeString(wallet, "walletAddress"),
 		"walletId":      ccxt.GetValue(wallet, "walletId"),
 	}
 	// flatten cancelInfoList to dot list, eg. cancelInfoList[o].orderId=1234

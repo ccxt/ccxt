@@ -1796,7 +1796,7 @@ func (this *Woo) HandleMyTrade(client any, message any) {
 	//   }
 	//
 	var myTrades any = this.MyTrades
-	if ccxt.IsEqual(myTrades, nil) {
+	if myTrades == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		myTrades = ccxt.NewArrayCacheBySymbolById(limit)
 	}

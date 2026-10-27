@@ -1350,7 +1350,7 @@ func (this *Modetrade) HandleMyTrade(client any, message any) {
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var trade map[string]any = this.ParseWsTrade(message, market)
 	var trades any = this.MyTrades
-	if ccxt.IsEqual(trades, nil) {
+	if trades == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		trades = ccxt.NewArrayCacheBySymbolById(limit)
 		this.MyTrades = trades

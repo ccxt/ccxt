@@ -725,7 +725,7 @@ func (this *Deribit) HandleMyTrades(client any, message map[string]any) {
 	var channel *string = this.SafeString(params, "channel", "")
 	var trades []any = ccxt.SafeListTypedDefault(params, "data", []any{})
 	var cachedTrades any = this.MyTrades
-	if ccxt.IsEqual(cachedTrades, nil) {
+	if cachedTrades == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		cachedTrades = ccxt.NewArrayCacheBySymbolById(limit)
 	}

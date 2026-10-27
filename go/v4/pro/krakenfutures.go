@@ -1994,7 +1994,7 @@ func (this *Krakenfutures) HandleMyTrades(client any, message map[string]any) {
 	//
 	var trades []any = ccxt.SafeListTyped(message, "fills")
 	var stored any = this.MyTrades
-	if ccxt.IsEqual(stored, nil) {
+	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		stored = ccxt.NewArrayCacheBySymbolById(limit)
 		this.MyTrades = stored

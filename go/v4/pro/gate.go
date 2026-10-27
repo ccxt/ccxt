@@ -1918,7 +1918,7 @@ func (this *Gate) HandleMyTrades(client any, message map[string]any) {
 		return
 	}
 	var cachedTrades any = this.MyTrades
-	if ccxt.IsEqual(cachedTrades, nil) {
+	if cachedTrades == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		cachedTrades = ccxt.NewArrayCacheBySymbolById(limit)
 		this.MyTrades = cachedTrades

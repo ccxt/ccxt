@@ -116,9 +116,8 @@ func (this *Bullish) watchPublicBody(ch chan ccxt.AsyncResult[any], url string, 
 	if wsUrl == nil {
 		panic(ccxt.ExchangeError(this.Id + " watchPublic() has no public websocket url"))
 	}
-	var fullUrl string = *wsUrl + url
 
-	r := <-this.Watch(fullUrl, messageHash, this.DeepExtend(message, params), messageHash)
+	r := <-this.Watch(*wsUrl+url, messageHash, this.DeepExtend(message, params), messageHash)
 	if r.Err != nil {
 		panic(r.Err)
 	}
@@ -367,9 +366,7 @@ func (this *Bullish) HandleTicker(client any, message any) {
 	var parsed map[string]any = ccxt.TickerToMap(this.ParseTicker(data, market))
 	if updateType != nil && *updateType == "update" {
 		var ticker map[string]any = ccxt.MapTyped(this.Tickers.Get(symbol))
-		var rawTicker any = this.SafeDict(ticker, "info", map[string]any{})
-		var merged map[string]any = this.Extend(rawTicker, data)
-		parsed = ccxt.TickerToMap(this.ParseTicker(merged, market))
+		parsed = ccxt.TickerToMap(this.ParseTicker(this.Extend(this.SafeDict(ticker, "info", map[string]any{}), data), market))
 	}
 	this.Tickers.Store(symbol, parsed)
 	var messageHash string = "ticker::" + *symbol
@@ -620,8 +617,7 @@ func (this *Bullish) HandleOrders(client any, message any) {
 		var orders any = this.Orders
 		var symbols map[string]any = map[string]any{}
 		for i := 0; i < len(rawOrders); i++ {
-			var rawOrder any = rawOrders[i]
-			var parsedOrder map[string]any = ccxt.OrderToMap(this.ParseOrder(rawOrder))
+			var parsedOrder map[string]any = ccxt.OrderToMap(this.ParseOrder(rawOrders[i]))
 			orders.(ccxt.Appender).Append(parsedOrder)
 			var symbol *string = this.SafeString(parsedOrder, "symbol")
 			if symbol != nil {
@@ -769,8 +765,7 @@ func (this *Bullish) HandleMyTrades(client any, message any) {
 		var trades any = this.MyTrades
 		var symbols map[string]any = map[string]any{}
 		for i := 0; i < len(rawTrades); i++ {
-			var rawTrade any = rawTrades[i]
-			var parsedTrade map[string]any = ccxt.TradeToMap(this.ParseTrade(rawTrade))
+			var parsedTrade map[string]any = ccxt.TradeToMap(this.ParseTrade(rawTrades[i]))
 			trades.(ccxt.Appender).Append(parsedTrade)
 			var symbol *string = this.SafeString(parsedTrade, "symbol")
 			if symbol != nil {
@@ -1019,8 +1014,7 @@ func (this *Bullish) HandlePositions(client any, message map[string]any) {
 	var positions any = this.Positions
 	var newPositions []any = []any{}
 	for i := 0; i < len(rawPositions); i++ {
-		var rawPosition any = ccxt.DerefScalar(rawPositions[i])
-		var position map[string]any = ccxt.PositionToMap(this.ParsePosition(rawPosition))
+		var position map[string]any = ccxt.PositionToMap(this.ParsePosition(ccxt.DerefScalar(rawPositions[i])))
 		positions.(ccxt.Appender).Append(position)
 		newPositions = append(newPositions, position)
 	}

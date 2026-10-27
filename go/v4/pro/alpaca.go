@@ -730,7 +730,7 @@ func (this *Alpaca) HandleMyTrade(client any, message map[string]any) {
 	}
 	var rawOrder map[string]any = this.SafeDictMap(data, "order", map[string]any{})
 	var myTrades any = this.MyTrades
-	if ccxt.IsEqual(myTrades, nil) {
+	if myTrades == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		myTrades = ccxt.NewArrayCacheBySymbolById(limit)
 	}

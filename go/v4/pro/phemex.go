@@ -1204,7 +1204,7 @@ func (this *Phemex) HandleMyTrades(client any, message []any) {
 		return
 	}
 	var cachedTrades any = this.MyTrades
-	if ccxt.IsEqual(cachedTrades, nil) {
+	if cachedTrades == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		cachedTrades = ccxt.NewArrayCacheBySymbolById(limit)
 	}

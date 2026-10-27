@@ -1326,7 +1326,7 @@ func (this *Bingx) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], optio
 		return symbol
 	}()
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("watchOrders", market, params)
-	var subType *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.TupleSlice(this.HandleSubTypeAndParams("watchOrders", market, paramsMarketType, "linear")), 0))
+	subType, _ := this.HandleSubTypeAndParams("watchOrders", market, paramsMarketType, "linear")
 	var isSpot bool = (typeVar != nil && *typeVar == "spot")
 	var spotHash string = "spot:private"
 	var swapHash string = "swap:private"
@@ -1439,7 +1439,7 @@ func (this *Bingx) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], opt
 		return symbol
 	}()
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("watchMyTrades", market, params)
-	var subType *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.TupleSlice(this.HandleSubTypeAndParams("watchMyTrades", market, paramsMarketType, "linear")), 0))
+	subType, _ := this.HandleSubTypeAndParams("watchMyTrades", market, paramsMarketType, "linear")
 	var isSpot bool = (typeVar != nil && *typeVar == "spot")
 	var spotHash string = "spot:private"
 	var swapHash string = "swap:private"
@@ -1572,8 +1572,8 @@ func (this *Bingx) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], opt
 	var client ccxt.ClientInterface = this.Client(url)
 	this.SetBalanceCache(client, typeVar, subType, subscriptionHash, paramsSubType)
 	fetchBalanceSnapshot, paramsFetchBalanceSnapshot := this.HandleOptionBoolAndParams(paramsSubType, "watchBalance", "fetchBalanceSnapshot", true)
-	var awaitBalanceSnapshot *bool = ccxt.SafeBoolPtr(ccxt.GetValue(ccxt.TupleSlice(this.HandleOptionBoolAndParams(paramsFetchBalanceSnapshot, "watchBalance", "awaitBalanceSnapshot", false)), 0))
-	if fetchBalanceSnapshot && (awaitBalanceSnapshot != nil && *awaitBalanceSnapshot) {
+	awaitBalanceSnapshot, _ := this.HandleOptionBoolAndParams(paramsFetchBalanceSnapshot, "watchBalance", "awaitBalanceSnapshot", false)
+	if fetchBalanceSnapshot && awaitBalanceSnapshot {
 
 		r2 := <-client.(ccxt.ClientInterface).Future(ccxt.Add(typeVar, ":fetchBalanceSnapshot"))
 		if r2.Err != nil {
@@ -1596,8 +1596,8 @@ func (this *Bingx) SetBalanceCache(client any, typeVar any, subType any, subscri
 	if client.(ccxt.ClientInterface).SubscriptionHas(subscriptionHash) {
 		return
 	}
-	var fetchBalanceSnapshot *bool = ccxt.SafeBoolPtr(ccxt.GetValue(ccxt.TupleSlice(this.HandleOptionBoolAndParams(params, "watchBalance", "fetchBalanceSnapshot", true)), 0))
-	if fetchBalanceSnapshot != nil && *fetchBalanceSnapshot {
+	fetchBalanceSnapshot, _ := this.HandleOptionBoolAndParams(params, "watchBalance", "fetchBalanceSnapshot", true)
+	if fetchBalanceSnapshot {
 		var messageHash any = ccxt.Add(typeVar, ":fetchBalanceSnapshot")
 		if !(ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash)) {
 			client.(ccxt.ClientInterface).Future(messageHash)
@@ -1702,13 +1702,13 @@ func (this *Bingx) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position],
 	var client ccxt.ClientInterface = this.Client(url)
 	this.SetPositionsCache(client, typeVar, symbolsNormalized)
 	fetchPositionsSnapshot, paramsFetchPositionsSnapshot := this.HandleOptionBoolAndParams(paramsSubType, "watchPositions", "fetchPositionsSnapshot", true)
-	var awaitPositionsSnapshot *bool = ccxt.SafeBoolPtr(ccxt.GetValue(ccxt.TupleSlice(this.HandleOptionBoolAndParams(paramsFetchPositionsSnapshot, "watchPositions", "awaitPositionsSnapshot", false)), 0))
+	awaitPositionsSnapshot, _ := this.HandleOptionBoolAndParams(paramsFetchPositionsSnapshot, "watchPositions", "awaitPositionsSnapshot", false)
 	var uuid string = this.Uuid()
 	var subscription map[string]any = map[string]any{
 		"unsubscribe": false,
 		"id":          uuid,
 	}
-	if fetchPositionsSnapshot && (awaitPositionsSnapshot != nil && *awaitPositionsSnapshot) && (this.WsCacheObjGet("Positions") == nil) {
+	if fetchPositionsSnapshot && awaitPositionsSnapshot && (this.WsCacheObjGet("Positions") == nil) {
 
 		r2 := <-client.(ccxt.ClientInterface).Future(ccxt.Add(typeVar, ":fetchPositionsSnapshot"))
 		if r2.Err != nil {
@@ -2344,7 +2344,7 @@ func (this *Bingx) HandleMyTrades(client any, message any) {
 	var isSpot bool = (ccxt.InOp(message, "dataType"))
 	var result map[string]any = ccxt.SafeDict2Typed(message, "data", "o", map[string]any{})
 	var cachedTrades any = this.MyTrades
-	if ccxt.IsEqual(cachedTrades, nil) {
+	if cachedTrades == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		cachedTrades = ccxt.NewArrayCacheBySymbolById(limit)
 		this.MyTrades = cachedTrades

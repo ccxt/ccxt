@@ -2723,13 +2723,7 @@ func (this *Extended) transferBody(ch chan AsyncResult[TransferEntry], code stri
 		account = r1.Value
 	}
 	var currentAccountId *string = this.SafeString(account, "accountId", "")
-	var fromAccountResolved any = func() any {
-		if IsEqual(fromAccount, nil) {
-			return currentAccountId
-		}
-		return fromAccount
-	}()
-	if !IsEqual(fromAccountResolved, currentAccountId) {
+	if (!IsEqual(fromAccount, nil)) && (!IsEqual(fromAccount, currentAccountId)) {
 		panic(BadRequest(this.Id + " transfer() can only transfer from the authenticated account"))
 	}
 	var toVault *string = this.SafeString2(params, "toVault", "receiverPositionId")
@@ -2740,7 +2734,7 @@ func (this *Extended) transferBody(ch chan AsyncResult[TransferEntry], code stri
 	var amountString any = this.CurrencyToPrecision(code, amount)
 	var settlement map[string]any = this.CreateTransferSettlementData(amountString, currency, account, toVault, toL2Key, params)
 	var request map[string]any = map[string]any{
-		"fromAccount":      fromAccountResolved,
+		"fromAccount":      currentAccountId,
 		"toAccount":        toAccount,
 		"amount":           amountString,
 		"transferredAsset": currency["id"],
@@ -2782,7 +2776,7 @@ func (this *Extended) transferBody(ch chan AsyncResult[TransferEntry], code stri
 		"datetime":    this.Iso8601(now),
 		"currency":    currency["code"],
 		"amount":      this.ParseNumber(amountString),
-		"fromAccount": fromAccountResolved,
+		"fromAccount": currentAccountId,
 		"toAccount":   toAccount,
 		"status":      status,
 	})}
@@ -3344,11 +3338,11 @@ func (this *Extended) fetchPositionsHistoryBody(ch chan AsyncResult[[]Position],
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes237919 []any = r1.Value
-		if retRes237919 == nil {
+		var retRes237819 []any = r1.Value
+		if retRes237819 == nil {
 			ch <- AsyncResult[[]Position]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Position]{Value: PositionsFromList(retRes237919)}
+			ch <- AsyncResult[[]Position]{Value: PositionsFromList(retRes237819)}
 		}
 		return nil
 	}
@@ -4513,11 +4507,11 @@ func (this *Extended) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes322419 []any = r1.Value
-		if retRes322419 == nil {
+		var retRes322319 []any = r1.Value
+		if retRes322319 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes322419)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes322319)}
 		}
 		return nil
 	}

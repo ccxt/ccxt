@@ -926,18 +926,18 @@ func (this *Paymium) Sign(path string, optionalArgs ...any) any {
 		this.CheckRequiredCredentials()
 		// paymium requires an increasing nonce
 		var nonce string = ToString(this.IncrementingNonce())
-		var auth any = nonce + url
+		var auth string = nonce + url
 		var signedHeaders map[string]any = map[string]any{
 			"Api-Key":   this.ApiKey,
 			"Api-Nonce": nonce,
 		}
-		var signedBody any = nil
+		var signedBody string = ""
 		if (method == "POST") && hasQuery {
 			signedBody = this.Json(query)
 		}
 		if method == "POST" {
 			if hasQuery {
-				auth = Add(auth, signedBody)
+				auth += signedBody
 				signedHeaders["Content-Type"] = "application/json"
 			}
 		} else {

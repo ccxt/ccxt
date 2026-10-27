@@ -1882,6 +1882,7 @@ func (this *Bullish) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 		panic(listEp1790.Err)
 	}
 	var response []any = listEp1790.Value
+
 	//
 	//     [
 	//         {
@@ -1896,9 +1897,7 @@ func (this *Bullish) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 	//         }, ...
 	//     ]
 	//
-	var ohlcvs []any = this.ToArray(response)
-
-	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(ohlcvs, market, timeframe, since, limit))}
+	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(this.ToArray(response), market, timeframe, since, limit))}
 	return nil
 }
 func (this *Bullish) ParseOHLCV(ohlcv any, optionalArgs ...any) OHLCV {
@@ -1953,11 +1952,11 @@ func (this *Bullish) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRa
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes144919 []any = r1.Value
-		if retRes144919 == nil {
+		var retRes144819 []any = r1.Value
+		if retRes144819 == nil {
 			ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes144919)}
+			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes144819)}
 		}
 		return nil
 	}
@@ -1973,11 +1972,11 @@ func (this *Bullish) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRa
 	}
 	var paramsSinceAndUntil any = this.HandleSinceAndUntil(since, paramsPaginate, "updatedAtDatetime[gte]", "updatedAtDatetime[lte]")
 
-	listEp1875 := <-this.PublicGetV1HistoryMarketsSymbolFundingRate(this.Extend(request, paramsSinceAndUntil))
-	if listEp1875.Err != nil {
-		panic(listEp1875.Err)
+	listEp1874 := <-this.PublicGetV1HistoryMarketsSymbolFundingRate(this.Extend(request, paramsSinceAndUntil))
+	if listEp1874.Err != nil {
+		panic(listEp1874.Err)
 	}
-	var response []any = listEp1875.Value
+	var response []any = listEp1874.Value
 	//
 	//     [
 	//         {
@@ -2003,9 +2002,8 @@ func (this *Bullish) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRa
 			"datetime":    datetime,
 		})
 	}
-	var sorted []any = this.SortBy(rates, "timestamp")
 
-	ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(this.FilterBySymbolSinceLimit(sorted, this.SafeString(market, "symbol"), since, limit))}
+	ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(this.FilterBySymbolSinceLimit(this.SortBy(rates, "timestamp"), this.SafeString(market, "symbol"), since, limit))}
 	return nil
 }
 
@@ -2062,11 +2060,11 @@ func (this *Bullish) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs 
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes151619 []any = r2.Value
-		if retRes151619 == nil {
+		var retRes151419 []any = r2.Value
+		if retRes151419 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes151619)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes151419)}
 		}
 		return nil
 	}
@@ -2249,11 +2247,11 @@ func (this *Bullish) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalA
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes164715 []any = OrdersToList(r.Value)
-	if retRes164715 == nil {
+	var retRes164515 []any = OrdersToList(r.Value)
+	if retRes164515 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes164715)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes164515)}
 	}
 	return nil
 }
@@ -2295,11 +2293,11 @@ func (this *Bullish) fetchCanceledOrdersBody(ch chan AsyncResult[[]Order], optio
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes166715 []any = OrdersToList(r.Value)
-	if retRes166715 == nil {
+	var retRes166515 []any = OrdersToList(r.Value)
+	if retRes166515 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes166715)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes166515)}
 	}
 	return nil
 }
@@ -2341,11 +2339,11 @@ func (this *Bullish) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optiona
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes168715 []any = OrdersToList(r.Value)
-	if retRes168715 == nil {
+	var retRes168515 []any = OrdersToList(r.Value)
+	if retRes168515 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes168715)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes168515)}
 	}
 	return nil
 }
@@ -2387,11 +2385,11 @@ func (this *Bullish) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]Orde
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes170715 []any = OrdersToList(r.Value)
-	if retRes170715 == nil {
+	var retRes170515 []any = OrdersToList(r.Value)
+	if retRes170515 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes170715)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes170515)}
 	}
 	return nil
 }
@@ -3172,11 +3170,11 @@ func (this *Bullish) loadAccountBody(ch chan AsyncResult[*string], optionalArgs 
 	var tradingAccountId any = tradingAccountIdOption
 	if IsEqual(tradingAccountId, nil) {
 
-		listEp2976 := <-this.PrivateGetV1AccountsTradingAccounts(paramsTradingAccountId)
-		if listEp2976.Err != nil {
-			panic(listEp2976.Err)
+		listEp2974 := <-this.PrivateGetV1AccountsTradingAccounts(paramsTradingAccountId)
+		if listEp2974.Err != nil {
+			panic(listEp2974.Err)
 		}
-		var response []any = listEp2976.Value
+		var response []any = listEp2974.Value
 		var accounts []any = this.ToArray(response)
 		for i := 0; i < len(accounts); i++ {
 			var account map[string]any = SafeMapTyped(accounts, i)
@@ -3220,11 +3218,11 @@ func (this *Bullish) fetchAccountsBody(ch chan AsyncResult[[]Account], optionalA
 		panic(r.Err)
 	}
 
-	listEp3017 := <-this.PrivateGetV1AccountsTradingAccounts(params)
-	if listEp3017.Err != nil {
-		panic(listEp3017.Err)
+	listEp3015 := <-this.PrivateGetV1AccountsTradingAccounts(params)
+	if listEp3015.Err != nil {
+		panic(listEp3015.Err)
 	}
-	var response []any = listEp3017.Value
+	var response []any = listEp3015.Value
 
 	//
 	//     [
@@ -3347,11 +3345,11 @@ func (this *Bullish) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress]
 		"symbol": currency["id"],
 	}
 
-	listEp3137 := <-this.PrivateGetV1WalletsDepositInstructionsCryptoSymbol(this.Extend(request, params))
-	if listEp3137.Err != nil {
-		panic(listEp3137.Err)
+	listEp3135 := <-this.PrivateGetV1WalletsDepositInstructionsCryptoSymbol(this.Extend(request, params))
+	if listEp3135.Err != nil {
+		panic(listEp3135.Err)
 	}
-	var response []any = listEp3137.Value
+	var response []any = listEp3135.Value
 	//
 	//     [
 	//         {
@@ -3553,11 +3551,12 @@ func (this *Bullish) fetchPositionsBody(ch chan AsyncResult[[]Position], optiona
 		"tradingAccountId": tradingAccountId,
 	}
 
-	listEp3319 := <-this.PrivateGetV1DerivativesPositions(this.Extend(request, params))
-	if listEp3319.Err != nil {
-		panic(listEp3319.Err)
+	listEp3317 := <-this.PrivateGetV1DerivativesPositions(this.Extend(request, params))
+	if listEp3317.Err != nil {
+		panic(listEp3317.Err)
 	}
-	var response []any = listEp3319.Value
+	var response []any = listEp3317.Value
+
 	//
 	//     [
 	//         {
@@ -3579,9 +3578,7 @@ func (this *Bullish) fetchPositionsBody(ch chan AsyncResult[[]Position], optiona
 	//         }
 	//     ]
 	//
-	var results []any = this.ParsePositions(response, symbols)
-
-	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.FilterByArrayPositions(results, "symbol", symbols))}
+	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.FilterByArrayPositions(this.ParsePositions(response, symbols), "symbol", symbols))}
 	return nil
 }
 func (this *Bullish) ParsePosition(position any, optionalArgs ...any) Position {
@@ -3699,11 +3696,11 @@ func (this *Bullish) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], op
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes266819 []any = r2.Value
-		if retRes266819 == nil {
+		var retRes266519 []any = r2.Value
+		if retRes266519 == nil {
 			ch <- AsyncResult[[]TransferEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(retRes266819)}
+			ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(retRes266519)}
 		}
 		return nil
 	}
@@ -3729,11 +3726,11 @@ func (this *Bullish) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], op
 		request["_pageSize"] = this.GetClosestLimit(limit)
 	}
 
-	listEp3480 := <-this.PrivateGetV1HistoryTransfer(this.Extend(request, paramsSinceAndUntil))
-	if listEp3480.Err != nil {
-		panic(listEp3480.Err)
+	listEp3477 := <-this.PrivateGetV1HistoryTransfer(this.Extend(request, paramsSinceAndUntil))
+	if listEp3477.Err != nil {
+		panic(listEp3477.Err)
 	}
-	var response []any = listEp3480.Value
+	var response []any = listEp3477.Value
 
 	//
 	//     [
@@ -3928,11 +3925,11 @@ func (this *Bullish) fetchBorrowRateHistoryBody(ch chan AsyncResult[[]map[string
 	request["createdAtDatetime[gte]"] = this.Iso8601(startTimestamp)
 	request["createdAtDatetime[lte]"] = this.Iso8601(until)
 
-	listEp3658 := <-this.PrivateGetV1HistoryBorrowInterest(this.Extend(request, paramsUntil))
-	if listEp3658.Err != nil {
-		panic(listEp3658.Err)
+	listEp3655 := <-this.PrivateGetV1HistoryBorrowInterest(this.Extend(request, paramsUntil))
+	if listEp3655.Err != nil {
+		panic(listEp3655.Err)
 	}
-	var response []any = listEp3658.Value
+	var response []any = listEp3655.Value
 
 	//
 	//     [
@@ -4141,8 +4138,7 @@ func (this *Bullish) Sign(path string, optionalArgs ...any) any {
 		} else if method == "POST" {
 			requestBody = SafeStringPtr(this.Json(params))
 			var payload string = timestamp + nonce + method + "/trading-api/" + path + *requestBody
-			var digest any = this.Hash(this.Encode(payload), sha256, "hex")
-			var signature string = this.Hmac(this.Encode(digest), this.Encode(this.Secret), sha256, "hex")
+			var signature string = this.Hmac(this.Encode(this.Hash(this.Encode(payload), sha256, "hex")), this.Encode(this.Secret), sha256, "hex")
 			headers = map[string]any{
 				"BX-TIMESTAMP": timestamp,
 				"BX-NONCE":     nonce,
@@ -4211,8 +4207,7 @@ func (this *Bullish) signInBody(ch chan AsyncResult[any], optionalArgs ...any) a
 	//     }
 	//
 	var token *string = this.SafeString(response, "token")
-	var authorizer *string = this.SafeString(response, "authorizer")
-	this.Options["authorizer"] = DerefScalar(authorizer)
+	this.Options["authorizer"] = DerefScalar(this.SafeString(response, "authorizer"))
 	this.Token = token
 	this.Options["tokenExpires"] = this.Sum(this.Milliseconds(), (1000*60)*60*24) // token expires in 24 hours
 

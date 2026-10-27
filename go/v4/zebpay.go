@@ -1500,9 +1500,8 @@ func (this *Zebpay) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 	}
 	var response map[string]any = nil
 	if market["spot"] == true {
-		var orderRequestResult any = this.OrderRequest(symbol, typeVar, amount, request, price, query)
 
-		r1 := <-this.PrivateSpotPostV2ExOrders(this.Extend(GetValue(orderRequestResult, 0), GetValue(orderRequestResult, 1)))
+		r1 := <-this.PrivateSpotPostV2ExOrders(this.SpotOrderBody(symbol, typeVar, amount, request, price, query))
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
@@ -1556,7 +1555,7 @@ func (this *Zebpay) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(data, market)}
 	return nil
 }
-func (this *Zebpay) OrderRequest(symbol string, typeVar string, amount any, request map[string]any, optionalArgs ...any) []any {
+func (this *Zebpay) SpotOrderBody(symbol string, typeVar string, amount any, request map[string]any, optionalArgs ...any) map[string]any {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -1582,7 +1581,7 @@ func (this *Zebpay) OrderRequest(symbol string, typeVar string, amount any, requ
 		request["amount"] = this.AmountToPrecision(symbol, amount)
 		request["price"] = this.PriceToPrecision(symbol, price)
 	}
-	return []any{request, paramsOmitted}
+	return this.Extend(request, paramsOmitted)
 }
 
 /**
@@ -2718,12 +2717,10 @@ func (this *Zebpay) Sign(path string, optionalArgs ...any) any {
 	var timestamp string = strconv.FormatInt(this.Milliseconds(), 10)
 	var signature string = ""
 	var query any = this.Omit(paramsOmitted, this.ExtractParams(path))
-	queryMap, _ := query.(map[string]any)
-	var queryLength int = len(queryMap)
 	var access string = api[0]
 	if access == "public" {
 		if (method == "GET") || (method == "DELETE") {
-			if queryLength != 0 {
+			if queryMap, _ := query.(map[string]any); len(queryMap) != 0 {
 				suffix = "?" + this.Urlencode(query)
 			}
 		} else {
@@ -2743,15 +2740,17 @@ func (this *Zebpay) Sign(path string, optionalArgs ...any) any {
 	} else {
 		this.CheckRequiredCredentials()
 		var isSpot bool = (marketType == "spot")
-		AddElementToObject(paramsOmitted, "timestamp", timestamp)
+		var paramsSigned map[string]any = this.Extend(paramsOmitted, map[string]any{
+			"timestamp": timestamp,
+		})
 		if (method == "GET") || ((method == "DELETE") && isSpot) {
 			// For GET/DELETE: Append params to URL and sign the query string
-			var queryString string = this.Urlencode(paramsOmitted)
+			var queryString string = this.Urlencode(paramsSigned)
 			signature = this.Hmac(this.Encode(queryString), this.Encode(this.Secret), sha256, "hex")
 			suffix = "?" + queryString
 		} else {
 			// For POST/PUT: Convert body to JSON and sign the stringified payload
-			bodySigned = this.Json(paramsOmitted)
+			bodySigned = this.Json(paramsSigned)
 			signature = this.Hmac(this.Encode(bodySigned), this.Encode(this.Secret), sha256, "hex")
 		}
 		headersSigned = map[string]any{

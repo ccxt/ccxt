@@ -2279,46 +2279,43 @@ func (this *BaseExchange) SafeCurrencyStructure(currency any) map[string]any {
 			}
 			// limits
 			var limits map[string]any = SafeMapTyped(network, "limits")
-			var limitsMain map[string]any = SafeMapTyped(currency, "limits")
-			if limitsMain == nil {
-				AddElementToObject(currency, "limits", map[string]any{})
-			}
+			var limitsMain map[string]any = this.SafeDictMap(currency, "limits", map[string]any{})
 			// deposits
 			var limitsDeposit map[string]any = SafeMapTyped(limits, "deposit")
-			var limitsDepositMain map[string]any = SafeMapTyped(limitsMain, "deposit")
-			if limitsDepositMain == nil {
-				AddElementToObject(GetValue(currency, "limits"), "deposit", map[string]any{})
-			}
+			var limitsDepositMain map[string]any = this.SafeDictMap(limitsMain, "deposit", map[string]any{})
+			var limitsDepositNew map[string]any = map[string]any{}
 			var limitsDepositMin *string = this.SafeString(limitsDeposit, "min")
 			var limitsDepositMax *string = this.SafeString(limitsDeposit, "max")
 			var limitsDepositMinMain *string = this.SafeString(limitsDepositMain, "min")
 			var limitsDepositMaxMain *string = this.SafeString(limitsDepositMain, "max")
 			// find min
 			if (limitsDepositMinMain == nil) || Precise.StringLt(limitsDepositMin, limitsDepositMinMain) {
-				AddElementToObject(GetValue(GetValue(currency, "limits"), "deposit"), "min", this.ParseNumber(limitsDepositMin))
+				limitsDepositNew["min"] = this.ParseNumber(limitsDepositMin)
 			}
 			// find max
 			if (limitsDepositMaxMain == nil) || Precise.StringGt(limitsDepositMax, limitsDepositMaxMain) {
-				AddElementToObject(GetValue(GetValue(currency, "limits"), "deposit"), "max", this.ParseNumber(limitsDepositMax))
+				limitsDepositNew["max"] = this.ParseNumber(limitsDepositMax)
 			}
 			// withdrawals
 			var limitsWithdraw map[string]any = SafeMapTyped(limits, "withdraw")
-			var limitsWithdrawMain map[string]any = SafeMapTyped(limitsMain, "withdraw")
-			if limitsWithdrawMain == nil {
-				AddElementToObject(GetValue(currency, "limits"), "withdraw", map[string]any{})
-			}
+			var limitsWithdrawMain map[string]any = this.SafeDictMap(limitsMain, "withdraw", map[string]any{})
+			var limitsWithdrawNew map[string]any = map[string]any{}
 			var limitsWithdrawMin *string = this.SafeString(limitsWithdraw, "min")
 			var limitsWithdrawMax *string = this.SafeString(limitsWithdraw, "max")
 			var limitsWithdrawMinMain *string = this.SafeString(limitsWithdrawMain, "min")
 			var limitsWithdrawMaxMain *string = this.SafeString(limitsWithdrawMain, "max")
 			// find min
 			if (limitsWithdrawMinMain == nil) || Precise.StringLt(limitsWithdrawMin, limitsWithdrawMinMain) {
-				AddElementToObject(GetValue(GetValue(currency, "limits"), "withdraw"), "min", this.ParseNumber(limitsWithdrawMin))
+				limitsWithdrawNew["min"] = this.ParseNumber(limitsWithdrawMin)
 			}
 			// find max
 			if (limitsWithdrawMaxMain == nil) || Precise.StringGt(limitsWithdrawMax, limitsWithdrawMaxMain) {
-				AddElementToObject(GetValue(GetValue(currency, "limits"), "withdraw"), "max", this.ParseNumber(limitsWithdrawMax))
+				limitsWithdrawNew["max"] = this.ParseNumber(limitsWithdrawMax)
 			}
+			AddElementToObject(currency, "limits", this.Extend(limitsMain, map[string]any{
+				"deposit":  this.Extend(limitsDepositMain, limitsDepositNew),
+				"withdraw": this.Extend(limitsWithdrawMain, limitsWithdrawNew),
+			}))
 		}
 	}
 	return CurrencyTyped(this.Extend(map[string]any{
@@ -2616,9 +2613,9 @@ func (this *BaseExchange) SafeBalance(balance any) any {
 			codes = append(codes, objectKey)
 		}
 	}
-	AddElementToObject(balance, "free", map[string]any{})
-	AddElementToObject(balance, "used", map[string]any{})
-	AddElementToObject(balance, "total", map[string]any{})
+	var freeBalance map[string]any = map[string]any{}
+	var usedBalance map[string]any = map[string]any{}
+	var totalBalance map[string]any = map[string]any{}
 	var debtBalance map[string]any = map[string]any{}
 	for i := 0; i < len(codes); i++ {
 		var code string = codes[i]
@@ -2638,14 +2635,17 @@ func (this *BaseExchange) SafeBalance(balance any) any {
 		AddElementToObject(GetValue(balance, code), "free", this.ParseNumber(free))
 		AddElementToObject(GetValue(balance, code), "used", this.ParseNumber(used))
 		AddElementToObject(GetValue(balance, code), "total", this.ParseNumber(total))
-		AddElementToObject(GetValue(balance, "free"), code, GetValue(GetValue(balance, code), "free"))
-		AddElementToObject(GetValue(balance, "used"), code, GetValue(GetValue(balance, code), "used"))
-		AddElementToObject(GetValue(balance, "total"), code, GetValue(GetValue(balance, code), "total"))
+		freeBalance[code] = GetValue(GetValue(balance, code), "free")
+		usedBalance[code] = GetValue(GetValue(balance, code), "used")
+		totalBalance[code] = GetValue(GetValue(balance, code), "total")
 		if debt != nil {
 			AddElementToObject(GetValue(balance, code), "debt", this.ParseNumber(debt))
 			debtBalance[code] = GetValue(GetValue(balance, code), "debt")
 		}
 	}
+	AddElementToObject(balance, "free", freeBalance)
+	AddElementToObject(balance, "used", usedBalance)
+	AddElementToObject(balance, "total", totalBalance)
 	var debtBalanceArray []string = nil
 	if debtBalance != nil {
 		debtBalanceArray = make([]string, 0, len(debtBalance))
@@ -3326,13 +3326,14 @@ func (this *BaseExchange) ReduceFeesByCurrency(fees any) []any {
 			if InOp(GetValue(reduced, feeCurrencyCode), rateKey) {
 				AddElementToObject(GetValue(GetValue(reduced, feeCurrencyCode), rateKey), "cost", Precise.StringAdd(GetValue(GetValue(GetValue(reduced, feeCurrencyCode), rateKey), "cost"), cost))
 			} else {
-				AddElementToObject(GetValue(reduced, feeCurrencyCode), rateKey, map[string]any{
+				var newRateFee map[string]any = map[string]any{
 					"currency": code,
 					"cost":     cost,
-				})
-				if rate != nil {
-					AddElementToObject(GetValue(GetValue(reduced, feeCurrencyCode), rateKey), "rate", rate)
 				}
+				if rate != nil {
+					newRateFee["rate"] = rate
+				}
+				AddElementToObject(GetValue(reduced, feeCurrencyCode), rateKey, newRateFee)
 			}
 		}
 	}
@@ -5691,11 +5692,11 @@ func (this *BaseExchange) fetchTransactionFeeBody(ch chan AsyncResult[map[string
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes705715 map[string]any = r.Value
-	if retRes705715 == nil {
+	var retRes705815 map[string]any = r.Value
+	if retRes705815 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes705715}
+		ch <- AsyncResult[map[string]any]{Value: retRes705815}
 	}
 	return nil
 }
@@ -9255,7 +9256,7 @@ func (this *BaseExchange) CleanCache(subscription any) {
 			if timeframe == nil {
 				panic(ArgumentsRequired(this.Id + " cleanCache() requires a timeframe argument"))
 			}
-			if _, ok := this.Ohlcvs[*symbol]; (!IsEqual(this.Ohlcvs, nil)) && ok {
+			if _, ok := this.Ohlcvs[*symbol]; ok {
 				if InOp(this.Ohlcvs[*symbol], timeframe) {
 					Remove(this.Ohlcvs[*symbol], timeframe)
 				}
@@ -9293,7 +9294,7 @@ func (this *BaseExchange) CleanCache(subscription any) {
 			for i := 0; i < len(clients); i++ {
 				var client any = DerefScalar(clients[i])
 				var futures any = (client.(Client)).Futures
-				if (!IsEqual(futures, nil)) && (InOp(futures, "fetchPositionsSnapshot")) {
+				if InOp(futures, "fetchPositionsSnapshot") {
 					Remove(futures, "fetchPositionsSnapshot")
 				}
 			}
@@ -11580,12 +11581,12 @@ func (this *Exchange) cancelOrdersWithClientOrderIdsBody(ch chan AsyncResult[[]O
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listRecv11204, _ := OrdersToList(r.Value), r.Value != nil
-	var retRes1048615 []any = listRecv11204
-	if retRes1048615 == nil {
+	listRecv11205, _ := OrdersToList(r.Value), r.Value != nil
+	var retRes1048715 []any = listRecv11205
+	if retRes1048715 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes1048615)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes1048715)}
 	}
 	return nil
 }

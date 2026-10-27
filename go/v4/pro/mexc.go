@@ -1475,7 +1475,7 @@ func (this *Mexc) HandleMyTrade(client any, message any, optionalArgs ...any) {
 		return
 	}
 	var trades any = this.MyTrades
-	if ccxt.IsEqual(trades, nil) {
+	if trades == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		trades = ccxt.NewArrayCacheBySymbolById(limit)
 		this.MyTrades = trades
