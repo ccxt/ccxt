@@ -4773,15 +4773,15 @@ export class BaseExchange {
             if ((used === undefined) && (total !== undefined) && (free !== undefined)) {
                 used = Precise.stringSub (total, free);
             }
-            balance[code]['free'] = this.parseNumber (free);
-            balance[code]['used'] = this.parseNumber (used);
-            balance[code]['total'] = this.parseNumber (total);
-            freeBalance[code] = balance[code]['free'];
-            usedBalance[code] = balance[code]['used'];
-            totalBalance[code] = balance[code]['total'];
+            freeBalance[code] = this.parseNumber (free);
+            usedBalance[code] = this.parseNumber (used);
+            totalBalance[code] = this.parseNumber (total);
+            balance[code]['free'] = freeBalance[code];
+            balance[code]['used'] = usedBalance[code];
+            balance[code]['total'] = totalBalance[code];
             if (debt !== undefined) {
-                balance[code]['debt'] = this.parseNumber (debt);
-                debtBalance[code] = balance[code]['debt'];
+                debtBalance[code] = this.parseNumber (debt);
+                balance[code]['debt'] = debtBalance[code];
             }
         }
         balance['free'] = freeBalance;
