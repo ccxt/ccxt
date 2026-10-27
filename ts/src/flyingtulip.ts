@@ -773,7 +773,9 @@ export default class flyingtulip extends Exchange {
     }
 
     async quote (sellToken: string, buyToken: string, sellAmount: string, feeAmount: string, action: string, slippageBps: int): Promise<Dict> {
-        if ((slippageBps < 0) || (slippageBps >= 10000) || !this.isDigits (this.numberToString (slippageBps))) {
+        const slippageString = this.numberToString (slippageBps);
+        const slippageInput = this.safeString ({ 'slippageBps': slippageBps }, 'slippageBps', '');
+        if ((slippageBps < 0) || (slippageBps >= 10000) || !this.isDigits (slippageString) || !this.isDecimalString (slippageInput) || !Precise.stringEq (slippageString, slippageInput)) {
             throw new InvalidOrder (this.id + ' slippageBps must be an integer in [0, 10000)');
         }
         const response = await this.publicPostMmLeverageQuote ({
@@ -788,7 +790,9 @@ export default class flyingtulip extends Exchange {
     }
 
     async quoteExactOut (sellToken: string, buyToken: string, buyAmount: string, action: string, slippageBps: int): Promise<Dict> {
-        if ((slippageBps < 0) || (slippageBps >= 10000) || !this.isDigits (this.numberToString (slippageBps))) {
+        const slippageString = this.numberToString (slippageBps);
+        const slippageInput = this.safeString ({ 'slippageBps': slippageBps }, 'slippageBps', '');
+        if ((slippageBps < 0) || (slippageBps >= 10000) || !this.isDigits (slippageString) || !this.isDecimalString (slippageInput) || !Precise.stringEq (slippageString, slippageInput)) {
             throw new InvalidOrder (this.id + ' slippageBps must be an integer in [0, 10000)');
         }
         const response = await this.publicPostMmLeverageQuote ({
@@ -1086,7 +1090,7 @@ export default class flyingtulip extends Exchange {
         const explicitDebt = this.safeString (params, 'debtToken');
         let quoteCost = this.safeString (params, 'cost');
         // Unified clients with a nonnullable numeric amount use zero for a cost-only buy.
-        if ((type === 'market') && (side === 'buy') && (quoteCost !== undefined) && (amountString === '0')) {
+        if ((type === 'market') && (side === 'buy') && (quoteCost !== undefined) && (amountString === '0') && Precise.stringEq (this.safeString ({ 'amount': amount }, 'amount'), '0')) {
             amountString = undefined;
         }
         const exactOut = (side === 'buy') && (type === 'market') && (quoteCost === undefined);
