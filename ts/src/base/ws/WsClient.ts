@@ -23,9 +23,12 @@ export default class WsClient extends Client {
 
     connectionStarted: number | undefined;
 
-    protocols: any;
+    // 'declare' - these are assigned by the Client constructor (Object.assign), a plain field
+    // declaration would reset them to undefined after super () under useDefineForClassFields
+    // semantics (e.g. when run directly via tsx/esbuild), dropping the ws headers and agent
+    declare protocols: any;
 
-    options: any;
+    declare options: any;
 
     duplex: any;
 

@@ -108,10 +108,13 @@ export default class interactivebrokers extends interactivebrokersRest {
             };
             this.extendExchangeOptions (defaultOptions);
             const originalHeaders = this.options['ws']['options']['headers'];
-            const headers: Dict = {
-                'Cookie': 'api={"session":"' + session + '"}',
-                'User-Agent': 'ccxt',
-            };
+            // with oauth the cookie carries the raw session id (not the {"session":"..."} json used by the
+            // client portal gateway) and the upgrade is rejected with http 403 unless the user agent is ClientPortalGW
+            const userAgent = this.safeString (this.options, 'wsUserAgent', 'ClientPortalGW/1');
+            const headers: Dict = this.extend (originalHeaders, {
+                'Cookie': 'api=' + session,
+                'User-Agent': userAgent,
+            });
             this.options['ws']['options']['headers'] = headers;
             // instantiate client
             const newClient = this.client (url);
