@@ -900,8 +900,8 @@ export default class bittrade extends Exchange {
         const typeRaw = this.safeString (trade, 'type');
         if (typeRaw !== undefined) {
             const typeParts = typeRaw.split ('-');
-            side = typeParts[0];
-            type = typeParts[1];
+            side = this.safeString (typeParts, 0);
+            type = this.safeString (typeParts, 1);
         }
         const takerOrMaker = this.safeString (trade, 'role');
         const price = this.safeString (trade, 'price');
@@ -1499,8 +1499,8 @@ export default class bittrade extends Exchange {
         const orderTypeRaw = this.safeString (order, 'type');
         if (orderTypeRaw !== undefined) {
             const orderType = orderTypeRaw.split ('-');
-            side = orderType[0];
-            type = orderType[1];
+            side = this.safeString (orderType, 0);
+            type = this.safeString (orderType, 1);
             status = this.parseOrderStatus (this.safeString (order, 'state'));
         }
         const marketId = this.safeString (order, 'symbol');
