@@ -843,7 +843,9 @@ export default class derive extends Exchange {
             margin = false;
             settleId = 'USDC';
             settle = this.safeCurrencyCode (settleId);
-            symbol = base + '/' + quote + ':' + settle;
+            if (settle !== undefined) {
+                symbol = base + '/' + quote + ':' + settle;
+            }
             swap = true;
             linear = true;
             inverse = false;
@@ -868,7 +870,6 @@ export default class derive extends Exchange {
             inverse = false;
         }
         const contractSize = (spot) ? undefined : 1;
-        const isContract = (swap || option);
         return this.safeMarketStructure ({
             'id': marketId,
             'symbol': symbol,
@@ -885,7 +886,7 @@ export default class derive extends Exchange {
             'future': false,
             'option': option,
             'active': this.safeBool (market, 'is_active'),
-            'contract': isContract,
+            'contract': (swap || option),
             'linear': linear,
             'inverse': inverse,
             'contractSize': contractSize,
@@ -1029,12 +1030,11 @@ export default class derive extends Exchange {
         const timestamp = this.safeInteger (interest, 't');
         const stats = this.safeDict (interest, 'stats', {});
         const amount = this.safeString (stats, 'oi');
-        const markPrice = this.safeString (interest, 'M');
         let value: Str = undefined;
         const isOption = this.safeBool (market, 'option', false);
         // for options the mark is the premium, a notional derived from it would be misleading, so only the contract amount is reported there
         if ((market !== undefined) && (isOption !== true)) {
-            value = Precise.stringMul (amount, markPrice);
+            value = Precise.stringMul (amount, this.safeString (interest, 'M'));
         }
         return this.safeOpenInterest ({
             'symbol': this.safeSymbol (undefined, market),
@@ -1420,8 +1420,9 @@ export default class derive extends Exchange {
         const request: Dict = {};
         let market: Market = undefined;
         if (symbol !== undefined) {
-            market = this.market (symbol);
-            request['instrument_name'] = market['id'];
+            const symbolMarket = this.market (symbol);
+            market = symbolMarket;
+            request['instrument_name'] = symbolMarket['id'];
         }
         let limitResolved: Int = limit;
         if (limit !== undefined && limit > 1000) {
@@ -1929,7 +1930,7 @@ export default class derive extends Exchange {
 
     signOrder (order: any, privateKey: string): string {
         const hashOrder = this.hashOrderMessage (order);
-        return this.signHash (hashOrder.slice (-64), privateKey.slice (-64));
+        return this.signHash (hashOrder, privateKey);
     }
 
     /**
@@ -1969,7 +1970,7 @@ export default class derive extends Exchange {
     }
 
     signMessage (message: string, privateKey: string): string {
-        return this.signHash (this.hashMessage (message), privateKey.slice (-64));
+        return this.signHash (this.hashMessage (message), privateKey);
     }
 
     parseUnits (num: string, dec: string = '1000000000000000000'): Str {
@@ -2890,8 +2891,9 @@ export default class derive extends Exchange {
         };
         let market: Market = undefined;
         if (symbol !== undefined) {
-            market = this.market (symbol);
-            request['instrument_name'] = market['id'];
+            const symbolMarket = this.market (symbol);
+            market = symbolMarket;
+            request['instrument_name'] = symbolMarket['id'];
         }
         if (limit !== undefined) {
             request['page_size'] = limit;
@@ -2971,8 +2973,9 @@ export default class derive extends Exchange {
         };
         let market: Market = undefined;
         if (symbol !== undefined) {
-            market = this.market (symbol);
-            request['instrument_name'] = market['id'];
+            const symbolMarket = this.market (symbol);
+            market = symbolMarket;
+            request['instrument_name'] = symbolMarket['id'];
         }
         if (limit !== undefined) {
             request['page_size'] = limit;
@@ -3228,8 +3231,9 @@ export default class derive extends Exchange {
         };
         let market: Market = undefined;
         if (symbol !== undefined) {
-            market = this.market (symbol);
-            request['instrument_name'] = market['id'];
+            const symbolMarket = this.market (symbol);
+            market = symbolMarket;
+            request['instrument_name'] = symbolMarket['id'];
         }
         if (since !== undefined) {
             request['start_timestamp'] = since;
@@ -3601,11 +3605,10 @@ export default class derive extends Exchange {
         };
         // margin requirements come as negative subaccount-level contributions in usd terms (initial_margin = collaterals_initial_margin + positions_initial_margin, verified on live data), so they are attributed to the usdc settlement currency and clamped by the usdc cash below; other collaterals stay total-only because the shared margin pool cannot be split per currency
         let usedUsd: Str = '0';
-        for (let i = 0; i < response.length; i++) {
-            const subaccount = this.safeDict (response, i);
-            const positionsMargin = this.safeString (subaccount, 'positions_initial_margin', '0');
-            const ordersMargin = this.safeString (subaccount, 'open_orders_margin', '0');
-            usedUsd = Precise.stringSub (usedUsd, Precise.stringAdd (positionsMargin, ordersMargin));
+        const subaccounts = this.toArray (response);
+        for (let i = 0; i < subaccounts.length; i++) {
+            const subaccount = this.safeDict (subaccounts, i);
+            usedUsd = Precise.stringSub (usedUsd, Precise.stringAdd (this.safeString (subaccount, 'positions_initial_margin', '0'), this.safeString (subaccount, 'open_orders_margin', '0')));
             const collaterals: Dict[] = this.safeList (subaccount, 'collaterals', []);
             for (let j = 0; j < collaterals.length; j++) {
                 const balance = this.safeDict (collaterals, j);
@@ -3615,9 +3618,7 @@ export default class derive extends Exchange {
                     account = this.account ();
                     account['total'] = this.safeString (balance, 'amount');
                 } else {
-                    const amount = this.safeString (balance, 'amount');
-                    const previousTotal = this.safeString (account, 'total');
-                    account['total'] = Precise.stringAdd (previousTotal, amount);
+                    account['total'] = Precise.stringAdd (this.safeString (account, 'total'), this.safeString (balance, 'amount'));
                 }
                 if (code !== undefined) {
                     result[code] = account;
@@ -4260,7 +4261,7 @@ export default class derive extends Exchange {
         return this.safeString (statuses, (status as string), status);
     }
 
-    handleDeriveSubaccountId (methodName: string, params: Dict): [any, Dict] {
+    handleDeriveSubaccountId (methodName: string, params: Dict): [Int, Dict] {
         const [ derivesubAccountId, paramsSubaccountId ] = this.handleOptionAndParams (params, methodName, 'subaccount_id');
         if ((derivesubAccountId !== undefined) && (derivesubAccountId !== '')) {
             // the venue rejects a string subaccount_id ("expected i64"), so coerce early
@@ -4269,12 +4270,12 @@ export default class derive extends Exchange {
                 // remember the first explicitly used subaccount as the instance default, but never overwrite a configured default: a one-off param must not silently re-route later calls
                 this.options['subaccount_id'] = subaccountIdInt;
             }
-            return [ subaccountIdInt, paramsSubaccountId ];
+            return [ subaccountIdInt, this.extend (paramsSubaccountId) ];
         }
         const optionsWallet = this.safeInteger (this.options, 'subaccount_id');
         if (optionsWallet !== undefined) {
             // parsed, not returned raw: every arm of this tuple has to hand back a plain value so the statically typed ports read the slot natively instead of through a runtime helper
-            return [ this.parseToInt (optionsWallet), paramsSubaccountId ];
+            return [ this.parseToInt (optionsWallet), this.extend (paramsSubaccountId) ];
         }
         throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a subaccount_id parameter inside \'params\' or exchange.options[\'subaccount_id\']=ID.');
     }
@@ -4283,15 +4284,15 @@ export default class derive extends Exchange {
         const [ deriveWalletAddress, paramsDeriveWalletAddress ] = this.handleOptionStringAndParams (params, methodName, 'deriveWalletAddress');
         if ((deriveWalletAddress !== undefined) && (deriveWalletAddress !== '')) {
             this.options['deriveWalletAddress'] = deriveWalletAddress;
-            return [ deriveWalletAddress, paramsDeriveWalletAddress ];
+            return [ deriveWalletAddress, this.extend (paramsDeriveWalletAddress) ];
         }
         const optionsWallet = this.safeString (this.options, 'deriveWalletAddress');
         if ((optionsWallet !== undefined) && (optionsWallet !== '')) {
-            return [ optionsWallet, paramsDeriveWalletAddress ];
+            return [ optionsWallet, this.extend (paramsDeriveWalletAddress) ];
         }
         // v3 abolished the separate derive wallet: the owner wallet is the user's own EOA, so the walletAddress credential is the default; set deriveWalletAddress explicitly only when signing with a session key registered to another owner wallet
         if ((this.walletAddress !== undefined) && (this.walletAddress !== '')) {
-            return [ this.walletAddress, paramsDeriveWalletAddress ];
+            return [ this.walletAddress, this.extend (paramsDeriveWalletAddress) ];
         }
         throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires the walletAddress credential, a deriveWalletAddress parameter inside \'params\', or exchange.options[\'deriveWalletAddress\'] = ADDRESS.');
     }
