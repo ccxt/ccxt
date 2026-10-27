@@ -1453,7 +1453,9 @@ export default class gate extends Exchange {
             const id = this.safeString (spotMarket, 'id');
             const marginMarket = this.safeDict (marginMarkets, id);
             const market = this.deepExtend (marginMarket, spotMarket);
-            const [ baseId, quoteId ] = (id as string).split ('_');
+            const idParts = (id as string).split ('_');
+            const baseId = this.safeString (idParts, 0);
+            const quoteId = this.safeString (idParts, 1);
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             if ((base === undefined) || (quote === undefined)) {
@@ -1532,7 +1534,7 @@ export default class gate extends Exchange {
             swapSettlementCurrencies = [ 'usdt' ]; // gate sandbox only has usdt-margined swaps
         }
         for (let c = 0; c < swapSettlementCurrencies.length; c++) {
-            const settleId = swapSettlementCurrencies[c];
+            const settleId = this.safeString (swapSettlementCurrencies, c);
             const request: Dict = {
                 'settle': settleId,
             };
@@ -1555,7 +1557,7 @@ export default class gate extends Exchange {
         const result: List = [];
         const futureSettlementCurrencies = this.getSettlementCurrencies ('future', 'fetchMarkets');
         for (let c = 0; c < futureSettlementCurrencies.length; c++) {
-            const settleId = futureSettlementCurrencies[c];
+            const settleId = this.safeString (futureSettlementCurrencies, c);
             const request: Dict = {
                 'settle': settleId,
             };
@@ -6019,7 +6021,7 @@ export default class gate extends Exchange {
         if (isSpot) {
             const ordersRequests: CancellationRequest[] = [];
             for (let i = 0; i < ids.length; i++) {
-                const id = ids[i];
+                const id = this.safeString (ids, i, '');
                 const orderItem: CancellationRequest = {
                     'id': id,
                     'symbol': symbol as string,
@@ -6033,7 +6035,7 @@ export default class gate extends Exchange {
         };
         const finalList: List = [ request ]; // hacky but needs to be done here
         for (let i = 0; i < ids.length; i++) {
-            finalList.push (ids[i]);
+            finalList.push (this.safeString (ids, i, ''));
         }
         const response = await this.privateFuturesPostSettleBatchCancelOrders (finalList);
         return this.parseOrders (response);
