@@ -1087,6 +1087,9 @@ function goAnyLocalNilSelfTest (): string[] {
     ];
     keep.forEach ((body, index) => ok (f (body).indexOf ('IsEqual(v, nil)') >= 0, 'unproven write must keep the helper #' + index));
     ok (pass ('\nfunc (this *X) f(v any) any {\n\tif IsEqual(v, nil) {\n\t}\n}\n').indexOf ('IsEqual(v, nil)') >= 0, 'a parameter keeps the helper');
+        ok (inop ('\tvar s string = "a"\n\tif (this.Markets() != nil) && (InOp(this.Markets(), s)) {\n\t}\n').includes ('if _, ok := this.Markets()[s]; (this.Markets() != nil) && ok {'), 'this.Markets() reads natively');
+        ok (inop ('\tvar s any = nil\n\tif (this.Markets() != nil) && (InOp(this.Markets(), s)) {\n\t}\n').includes ('InOp(this.Markets(), s)'), 'this.Markets() with an any key keeps the helper');
+        ok (inop ('\tvar s string = "a"\n\tif (this.Markets_by_id() != nil) && (InOp(this.Markets_by_id(), s)) {\n\t}\n').includes ('InOp(this.Markets_by_id(), s)'), 'other getters keep the helper');
     const safe = [
         '\tvar v any = nil\n\tv = Slice(p, 0, 3)\n\tv = ToUpper(Replace(p, "a", "b"))\n\tv = MathMin(p, 2)\n\tv = Iso8601(p)\n',
         '\tvar v any = this.ParseNumber(this.SafeString(p, "a"))\n\tv = this.ParseNumber(p, 0)\n\tv = ParseFloat(p) // note\n',
@@ -2113,12 +2116,14 @@ function goNativeInOp (lines: string[], masked: string[], k: number, maskedFunc:
     const found: any[] = [];
     for (const c of calls) {
         const at = c.index;
-        const call = /^(?:ccxt\.)?InOp\((\w+), (\w+|"[^"\\\n]*")\)/.exec (lines[k].substring (at));
+        const call = /^(?:ccxt\.)?InOp\((\w+|this\.Markets\(\)), (\w+|"[^"\\\n]*")\)/.exec (lines[k].substring (at));
         if ((call === null) || (goMapWriteGroupEnd (masked[k], at + call[0].indexOf ('(')) !== at + call[0].length)) {
             continue;
         }
         const [ , name, key ] = call;
-        if ((typeAt (name, k) !== 'map[string]any') || !goInOpReadReceiver (maskedFunc, declOf (name), name, declOf)) {
+        // this.Markets() answers the published immutable snapshot (map[string]any, nil before load): a
+        // read of it is safe in any function, and a nil map reads ok=false like the helper
+        if (name !== 'this.Markets()' && ((typeAt (name, k) !== 'map[string]any') || !goInOpReadReceiver (maskedFunc, declOf (name), name, declOf))) {
             continue;
         }
         if (!key.startsWith ('"') && (typeAt (key, k) !== 'string')) {
