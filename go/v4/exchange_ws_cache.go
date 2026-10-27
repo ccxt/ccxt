@@ -583,3 +583,13 @@ func (this *BaseExchange) WsBalanceEntryForWrite(key any) map[string]any {
 	balance[name] = entry
 	return entry
 }
+
+// WsCacheTickerMap is the typed read of a ticker cache: the owner's snapshot as map[string]Ticker,
+// narrowed to the symbols in the optional first argument the way FilterByArray(.., "symbol", symbols) did.
+func (this *BaseExchange) WsCacheTickerMap(field string, optionalArgs ...any) map[string]Ticker {
+	snapshot := this.WsCacheSnapshot(field)
+	if len(optionalArgs) == 0 {
+		return TickerMapFromMap(snapshot)
+	}
+	return TickerMapFromMap(this.FilterByArray(snapshot, "symbol", optionalArgs[0]))
+}
