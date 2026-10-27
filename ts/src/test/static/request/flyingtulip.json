@@ -1,0 +1,42 @@
+{
+    "exchange": "flyingtulip",
+    "skipKeys": [],
+    "options": {},
+    "methods": {
+        "fetchPositions": [
+            {
+                "description": "Empty account positions null response",
+                "method": "fetchPositions",
+                "url": "https://api.flyingtulip.com/mm/spot/account/positions?chainId=146&address=0x0000000000000000000000000000000000000001",
+                "input": [
+                    null,
+                    {
+                        "address": "0x0000000000000000000000000000000000000001"
+                    }
+                ],
+                "output": null
+            }
+        ],
+        "fetchCurrencies": [
+            {
+                "description": "Sonic collateral registry",
+                "method": "fetchCurrencies",
+                "url": "https://api.flyingtulip.com/spot/leverage/assets?chainId=146",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "Sonic market ticker",
+                "method": "fetchTicker",
+                "url": "https://api.flyingtulip.com/mm/spot/markets-v2?chainId=146",
+                "input": [
+                    "FT/FTUSD"
+                ],
+                "output": null
+            }
+        ]
+    },
+    "outputType": "both"
+}

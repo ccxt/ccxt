@@ -1,0 +1,314 @@
+{
+    "FT": {
+        "info": {
+            "symbol": "FT",
+            "name": "FT",
+            "logoUrl": "/assets/icons/chains-tokens/ft.svg",
+            "contractAddress": "0x5DD1A7A369e8273371d2DBf9d83356057088082c",
+            "decimals": 18,
+            "collateralEnabled": true,
+            "ltvBps": 0,
+            "isStable": false,
+            "isMintable": false,
+            "userBalance": "0",
+            "userBalanceRaw": "0",
+            "userBalanceUsd": "0",
+            "priceUsd": "0"
+        },
+        "id": "0x5DD1A7A369e8273371d2DBf9d83356057088082c",
+        "numericId": null,
+        "code": "FT",
+        "precision": 1e-18,
+        "type": null,
+        "name": "FT",
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        }
+    },
+    "USDC": {
+        "info": {
+            "symbol": "USDC",
+            "name": "USDC",
+            "logoUrl": "/assets/icons/chains-tokens/usdc.svg",
+            "contractAddress": "0x29219dd400f2Bf60E5a23d13Be72B486D4038894",
+            "decimals": 6,
+            "collateralEnabled": true,
+            "ltvBps": 150,
+            "isStable": true,
+            "isMintable": true,
+            "userBalance": "0",
+            "userBalanceRaw": "0",
+            "userBalanceUsd": "0",
+            "priceUsd": "0.99975698"
+        },
+        "id": "0x29219dd400f2Bf60E5a23d13Be72B486D4038894",
+        "numericId": null,
+        "code": "USDC",
+        "precision": 0.000001,
+        "type": null,
+        "name": "USDC",
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        }
+    },
+    "USSD": {
+        "info": {
+            "symbol": "USSD",
+            "name": "US Sonic Dollar",
+            "logoUrl": "/assets/icons/chains-tokens/ussd.svg",
+            "contractAddress": "0x000000000eccff26b795f73fb0a70d48da657fef",
+            "decimals": 18,
+            "collateralEnabled": true,
+            "ltvBps": 2100,
+            "isStable": true,
+            "isMintable": true,
+            "userBalance": "0",
+            "userBalanceRaw": "0",
+            "userBalanceUsd": "0",
+            "priceUsd": "0.99975698"
+        },
+        "id": "0x000000000eccff26b795f73fb0a70d48da657fef",
+        "numericId": null,
+        "code": "USSD",
+        "precision": 1e-18,
+        "type": null,
+        "name": "US Sonic Dollar",
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        }
+    },
+    "WBTC": {
+        "info": {
+            "symbol": "WBTC",
+            "name": "Wrapped Bitcoin",
+            "logoUrl": "/assets/icons/chains-tokens/wbtc.svg",
+            "contractAddress": "0x0555e30da8f98308edb960aa94c0db47230d2b9c",
+            "decimals": 8,
+            "collateralEnabled": true,
+            "ltvBps": 2200,
+            "isStable": false,
+            "isMintable": false,
+            "userBalance": "0",
+            "userBalanceRaw": "0",
+            "userBalanceUsd": "0",
+            "priceUsd": "79926.02947202"
+        },
+        "id": "0x0555e30da8f98308edb960aa94c0db47230d2b9c",
+        "numericId": null,
+        "code": "WBTC",
+        "precision": 1e-8,
+        "type": null,
+        "name": "Wrapped Bitcoin",
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        }
+    },
+    "WETH": {
+        "info": {
+            "symbol": "WETH",
+            "name": "Wrapped Ether",
+            "logoUrl": "/assets/icons/chains-tokens/weth.svg",
+            "contractAddress": "0x50c42deacd8fc9773493ed674b675be577f2634b",
+            "decimals": 18,
+            "collateralEnabled": true,
+            "ltvBps": 1900,
+            "isStable": false,
+            "isMintable": false,
+            "userBalance": "0",
+            "userBalanceRaw": "0",
+            "userBalanceUsd": "0",
+            "priceUsd": "2315.01"
+        },
+        "id": "0x50c42deacd8fc9773493ed674b675be577f2634b",
+        "numericId": null,
+        "code": "WETH",
+        "precision": 1e-18,
+        "type": null,
+        "name": "Wrapped Ether",
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        }
+    },
+    "FTUSD": {
+        "info": {
+            "symbol": "ftUSD",
+            "name": "ftUSD",
+            "logoUrl": "/assets/icons/chains-tokens/ftusd.svg",
+            "contractAddress": "0xF7D85EC4E7710f71992752eac2111312e73E9C9C",
+            "decimals": 6,
+            "collateralEnabled": true,
+            "ltvBps": 150,
+            "isStable": true,
+            "isMintable": true,
+            "userBalance": "0",
+            "userBalanceRaw": "0",
+            "userBalanceUsd": "0",
+            "priceUsd": "0.9988142"
+        },
+        "id": "0xF7D85EC4E7710f71992752eac2111312e73E9C9C",
+        "numericId": null,
+        "code": "FTUSD",
+        "precision": 0.000001,
+        "type": null,
+        "name": "ftUSD",
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        }
+    },
+    "STS": {
+        "info": {
+            "symbol": "stS",
+            "name": "Staked Sonic",
+            "logoUrl": "/assets/icons/chains-tokens/sts.svg",
+            "contractAddress": "0xe5da20f15420ad15de0fa650600afc998bbe3955",
+            "decimals": 18,
+            "collateralEnabled": true,
+            "ltvBps": 2100,
+            "isStable": false,
+            "isMintable": false,
+            "userBalance": "0",
+            "userBalanceRaw": "0",
+            "userBalanceUsd": "0",
+            "priceUsd": "0.05174693"
+        },
+        "id": "0xe5da20f15420ad15de0fa650600afc998bbe3955",
+        "numericId": null,
+        "code": "STS",
+        "precision": 1e-18,
+        "type": null,
+        "name": "Staked Sonic",
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        }
+    },
+    "WS": {
+        "info": {
+            "symbol": "wS",
+            "name": "Wrapped Sonic",
+            "logoUrl": "/assets/icons/chains-tokens/wrapped-sonic.svg",
+            "contractAddress": "0x039e2fB66102314Ce7b64Ce5Ce3E5183bc94aD38",
+            "decimals": 18,
+            "collateralEnabled": true,
+            "ltvBps": 1700,
+            "isStable": false,
+            "isMintable": false,
+            "userBalance": "0",
+            "userBalanceRaw": "0",
+            "userBalanceUsd": "0",
+            "priceUsd": "0.04762625"
+        },
+        "id": "0x039e2fB66102314Ce7b64Ce5Ce3E5183bc94aD38",
+        "numericId": null,
+        "code": "WS",
+        "precision": 1e-18,
+        "type": null,
+        "name": "Wrapped Sonic",
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        }
+    }
+}

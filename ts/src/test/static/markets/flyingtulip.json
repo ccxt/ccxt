@@ -1,0 +1,437 @@
+{
+    "FT/FTUSD": {
+        "id": "FT-ftUSD",
+        "lowercaseId": null,
+        "symbol": "FT/FTUSD",
+        "base": "FT",
+        "quote": "FTUSD",
+        "settle": null,
+        "baseId": "0x5DD1A7A369e8273371d2DBf9d83356057088082c",
+        "quoteId": "0xF7D85EC4E7710f71992752eac2111312e73E9C9C",
+        "settleId": null,
+        "type": "spot",
+        "spot": true,
+        "margin": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "index": false,
+        "active": false,
+        "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
+        "taker": null,
+        "maker": null,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 1e-18,
+            "price": 1e-18
+        },
+        "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 10
+            },
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
+        "info": {
+            "symbol": "FT-ftUSD",
+            "marketType": "perps",
+            "chainId": 146,
+            "network": "Sonic",
+            "contractAddress": "0x93496075909f56d93b33302df5d1655568eb6e70",
+            "baseToken": "FT",
+            "baseTokenAddress": "0x5dd1a7a369e8273371d2dbf9d83356057088082c",
+            "baseTokenIconUrl": "/assets/icons/chains-tokens/ft.svg",
+            "quoteToken": "ftUSD",
+            "quoteTokenAddress": "0xf7d85ec4e7710f71992752eac2111312e73e9c9c",
+            "quoteTokenIconUrl": "/assets/icons/chains-tokens/ftusd.svg",
+            "lastPrice": "0.128602623604237748",
+            "markPrice": "0.128602623604237748",
+            "priceChange24h": "-0.001536617486045918",
+            "priceChangePct24h": "-1.18074876814434066500",
+            "volume24h": "0",
+            "high24h": "0.132451744564585878",
+            "low24h": "0.126400767441430714",
+            "openInterest": "80.3856",
+            "fundingRate": "6%",
+            "maxLeverage": 10,
+            "canOpenLong": false,
+            "canOpenShort": false,
+            "marginHfSafeBps": 15000,
+            "baseDecimals": 18,
+            "quoteDecimals": 6
+        },
+        "tierBased": null,
+        "percentage": null
+    },
+    "WBTC/FTUSD": {
+        "id": "WBTC-ftUSD",
+        "lowercaseId": null,
+        "symbol": "WBTC/FTUSD",
+        "base": "WBTC",
+        "quote": "FTUSD",
+        "settle": null,
+        "baseId": "0x0555e30da8f98308edb960aa94c0db47230d2b9c",
+        "quoteId": "0xF7D85EC4E7710f71992752eac2111312e73E9C9C",
+        "settleId": null,
+        "type": "spot",
+        "spot": true,
+        "margin": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "index": false,
+        "active": true,
+        "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
+        "taker": null,
+        "maker": null,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 1e-8,
+            "price": 1e-18
+        },
+        "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 10
+            },
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
+        "info": {
+            "symbol": "WBTC-ftUSD",
+            "marketType": "perps",
+            "chainId": 146,
+            "network": "Sonic",
+            "contractAddress": "0x93496075909f56d93b33302df5d1655568eb6e70",
+            "baseToken": "WBTC",
+            "baseTokenAddress": "0x0555e30da8f98308edb960aa94c0db47230d2b9c",
+            "baseTokenIconUrl": "/assets/icons/chains-tokens/wbtc.svg",
+            "quoteToken": "ftUSD",
+            "quoteTokenAddress": "0xf7d85ec4e7710f71992752eac2111312e73e9c9c",
+            "quoteTokenIconUrl": "/assets/icons/chains-tokens/ftusd.svg",
+            "lastPrice": "79963.619945510739280295",
+            "markPrice": "79963.619945510739280295",
+            "priceChange24h": "123.223447320274996933",
+            "priceChangePct24h": "0.15433721865730937900",
+            "volume24h": "0",
+            "high24h": "80490.780096501813920483",
+            "low24h": "79156.209253661747771422",
+            "openInterest": "413.0873",
+            "fundingRate": "1.3551%",
+            "maxLeverage": 10,
+            "canOpenLong": true,
+            "canOpenShort": true,
+            "marginHfSafeBps": 15000,
+            "baseDecimals": 8,
+            "quoteDecimals": 6
+        },
+        "tierBased": null,
+        "percentage": null
+    },
+    "WETH/FTUSD": {
+        "id": "WETH-ftUSD",
+        "lowercaseId": null,
+        "symbol": "WETH/FTUSD",
+        "base": "WETH",
+        "quote": "FTUSD",
+        "settle": null,
+        "baseId": "0x50c42deacd8fc9773493ed674b675be577f2634b",
+        "quoteId": "0xF7D85EC4E7710f71992752eac2111312e73E9C9C",
+        "settleId": null,
+        "type": "spot",
+        "spot": true,
+        "margin": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "index": false,
+        "active": true,
+        "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
+        "taker": null,
+        "maker": null,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 1e-18,
+            "price": 1e-18
+        },
+        "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 10
+            },
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
+        "info": {
+            "symbol": "WETH-ftUSD",
+            "marketType": "perps",
+            "chainId": 146,
+            "network": "Sonic",
+            "contractAddress": "0x93496075909f56d93b33302df5d1655568eb6e70",
+            "baseToken": "WETH",
+            "baseTokenAddress": "0x50c42deacd8fc9773493ed674b675be577f2634b",
+            "baseTokenIconUrl": "/assets/icons/chains-tokens/weth.svg",
+            "quoteToken": "ftUSD",
+            "quoteTokenAddress": "0xf7d85ec4e7710f71992752eac2111312e73e9c9c",
+            "quoteTokenIconUrl": "/assets/icons/chains-tokens/ftusd.svg",
+            "lastPrice": "2322.338665268453776343",
+            "markPrice": "2322.338665268453776343",
+            "priceChange24h": "-5.871828880296453095",
+            "priceChangePct24h": "-0.25220352262192405400",
+            "volume24h": "0",
+            "high24h": "2340.724884932751142007",
+            "low24h": "2296.778843700430832413",
+            "openInterest": "215.9531",
+            "fundingRate": "3.8148%",
+            "maxLeverage": 10,
+            "canOpenLong": true,
+            "canOpenShort": true,
+            "marginHfSafeBps": 15000,
+            "baseDecimals": 18,
+            "quoteDecimals": 6
+        },
+        "tierBased": null,
+        "percentage": null
+    },
+    "STS/FTUSD": {
+        "id": "stS-ftUSD",
+        "lowercaseId": null,
+        "symbol": "STS/FTUSD",
+        "base": "STS",
+        "quote": "FTUSD",
+        "settle": null,
+        "baseId": "0xe5da20f15420ad15de0fa650600afc998bbe3955",
+        "quoteId": "0xF7D85EC4E7710f71992752eac2111312e73E9C9C",
+        "settleId": null,
+        "type": "spot",
+        "spot": true,
+        "margin": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "index": false,
+        "active": true,
+        "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
+        "taker": null,
+        "maker": null,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 1e-18,
+            "price": 1e-18
+        },
+        "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 10
+            },
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
+        "info": {
+            "symbol": "stS-ftUSD",
+            "marketType": "perps",
+            "chainId": 146,
+            "network": "Sonic",
+            "contractAddress": "0x93496075909f56d93b33302df5d1655568eb6e70",
+            "baseToken": "stS",
+            "baseTokenAddress": "0xe5da20f15420ad15de0fa650600afc998bbe3955",
+            "baseTokenIconUrl": "/assets/icons/chains-tokens/sts.svg",
+            "quoteToken": "ftUSD",
+            "quoteTokenAddress": "0xf7d85ec4e7710f71992752eac2111312e73e9c9c",
+            "quoteTokenIconUrl": "/assets/icons/chains-tokens/ftusd.svg",
+            "lastPrice": "0.051808364358456257",
+            "markPrice": "0.051808364358456257",
+            "priceChange24h": "0.000677778824964552",
+            "priceChangePct24h": "1.32558392964342514900",
+            "volume24h": "0",
+            "high24h": "0.051808364358456257",
+            "low24h": "0.050068134408095305",
+            "openInterest": "4.4206",
+            "fundingRate": "1%",
+            "maxLeverage": 10,
+            "canOpenLong": true,
+            "canOpenShort": false,
+            "marginHfSafeBps": 15000,
+            "baseDecimals": 18,
+            "quoteDecimals": 6
+        },
+        "tierBased": null,
+        "percentage": null
+    },
+    "WS/FTUSD": {
+        "id": "wS-ftUSD",
+        "lowercaseId": null,
+        "symbol": "WS/FTUSD",
+        "base": "WS",
+        "quote": "FTUSD",
+        "settle": null,
+        "baseId": "0x039e2fB66102314Ce7b64Ce5Ce3E5183bc94aD38",
+        "quoteId": "0xF7D85EC4E7710f71992752eac2111312e73E9C9C",
+        "settleId": null,
+        "type": "spot",
+        "spot": true,
+        "margin": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "index": false,
+        "active": true,
+        "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
+        "taker": null,
+        "maker": null,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 1e-18,
+            "price": 1e-18
+        },
+        "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 10
+            },
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
+        "info": {
+            "symbol": "wS-ftUSD",
+            "marketType": "perps",
+            "chainId": 146,
+            "network": "Sonic",
+            "contractAddress": "0x93496075909f56d93b33302df5d1655568eb6e70",
+            "baseToken": "wS",
+            "baseTokenAddress": "0x039e2fb66102314ce7b64ce5ce3e5183bc94ad38",
+            "baseTokenIconUrl": "/assets/icons/chains-tokens/wrapped-sonic.svg",
+            "quoteToken": "ftUSD",
+            "quoteTokenAddress": "0xf7d85ec4e7710f71992752eac2111312e73e9c9c",
+            "quoteTokenIconUrl": "/assets/icons/chains-tokens/ftusd.svg",
+            "lastPrice": "0.047711804849460842",
+            "markPrice": "0.047711804849460842",
+            "priceChange24h": "0.000614670379453613",
+            "priceChangePct24h": "1.30511205484285306100",
+            "volume24h": "10.45253",
+            "high24h": "0.047711804849460842",
+            "low24h": "0.043042434765201302",
+            "openInterest": "1458337.5218",
+            "fundingRate": "3.2406%",
+            "maxLeverage": 10,
+            "canOpenLong": true,
+            "canOpenShort": true,
+            "marginHfSafeBps": 15000,
+            "baseDecimals": 18,
+            "quoteDecimals": 6
+        },
+        "tierBased": null,
+        "percentage": null
+    }
+}
