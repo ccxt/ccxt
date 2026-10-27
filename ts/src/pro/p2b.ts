@@ -158,14 +158,14 @@ export default class p2b extends p2bRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const symbolsNormalized: Strings = this.marketSymbols (symbols, undefined, false);
+        const symbolsNormalized: string[] = this.marketSymbols (symbols, undefined, false);
         const watchTickerOptions = this.safeDict (this.options, 'watchTicker');
         const name = this.safeString (watchTickerOptions, 'name', 'state');  // or price
         const [ nameOption, paramsName ] = this.handleOptionStringAndParams (params, 'watchTickers', 'name', name);
         const messageHashes: string[] = [];
         const args: List = [];
-        for (let i = 0; i < (symbolsNormalized as string[]).length; i++) {
-            const market = this.market ((symbolsNormalized as string[])[i]);
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const market = this.market (symbolsNormalized[i]);
             messageHashes.push (nameOption + '::' + this.safeString (market, 'symbol', ''));
             args.push (market['id']);
         }
