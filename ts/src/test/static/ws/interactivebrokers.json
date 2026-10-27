@@ -3,6 +3,501 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "watchBalance": [
+            {
+                "description": "default",
+                "input": [],
+                "url": "wss://api.ibkr.com/v1/api/ws?oauth_token=84270d7070618c28432c",
+                "messages": [
+                    {
+                        "topic": "system",
+                        "success": "todua1991",
+                        "isFT": false,
+                        "isPaper": false
+                    },
+                    {
+                        "topic": "act",
+                        "args": {
+                            "accounts": [
+                                "U3448646"
+                            ],
+                            "acctProps": {
+                                "U3448646": {
+                                    "hasChildAccounts": false,
+                                    "supportsCashQty": true,
+                                    "liteUnderPro": false,
+                                    "noFXConv": false,
+                                    "isProp": false,
+                                    "supportsFractions": true,
+                                    "allowCustomerTime": false,
+                                    "autoFx": false
+                                }
+                            },
+                            "aliases": {
+                                "U3448646": "U3448646"
+                            },
+                            "allowFeatures": {
+                                "showGFIS": true,
+                                "showEUCostReport": false,
+                                "allowEventContract": true,
+                                "allowFXConv": true,
+                                "allowFinancialLens": false,
+                                "allowMTA": true,
+                                "allowTypeAhead": true,
+                                "allowEventTrading": true,
+                                "snapshotRefreshTimeout": 30,
+                                "liteUser": false,
+                                "showWebNews": true,
+                                "research": true,
+                                "debugPnl": true,
+                                "showTaxOpt": true,
+                                "showImpactDashboard": true,
+                                "allowDynAccount": false,
+                                "allowCrypto": false,
+                                "allowFA": false,
+                                "allowLiteUnderPro": false,
+                                "allowedAssetTypes": "STK,CFD,OPT,FOP,WAR,FUT,BAG,PDC,CASH,IND,BOND,BILL,FUND,SLB,News,CMDTY,IOPT,ICU,ICS,PHYSS,CRYPTO",
+                                "restrictTradeSubscription": false,
+                                "showUkUserLabels": true,
+                                "sideBySide": true
+                            },
+                            "chartPeriods": {
+                                "STK": [
+                                    "*"
+                                ],
+                                "CFD": [
+                                    "*"
+                                ],
+                                "OPT": [
+                                    "2h",
+                                    "1d",
+                                    "2d",
+                                    "1w",
+                                    "1m"
+                                ],
+                                "FOP": [
+                                    "2h",
+                                    "1d",
+                                    "2d",
+                                    "1w",
+                                    "1m"
+                                ],
+                                "WAR": [
+                                    "*"
+                                ],
+                                "IOPT": [
+                                    "*"
+                                ],
+                                "FUT": [
+                                    "*"
+                                ],
+                                "CASH": [
+                                    "*"
+                                ],
+                                "IND": [
+                                    "*"
+                                ],
+                                "BOND": [
+                                    "*"
+                                ],
+                                "FUND": [
+                                    "*"
+                                ],
+                                "CMDTY": [
+                                    "*"
+                                ],
+                                "PHYSS": [
+                                    "*"
+                                ],
+                                "CRYPTO": [
+                                    "*"
+                                ]
+                            },
+                            "groups": [],
+                            "profiles": [],
+                            "selectedAccount": "U3448646",
+                            "serverInfo": {
+                                "serverName": "JifZ12001",
+                                "serverVersion": "Build 10.50.1d, Oct 15, 2026 12:58:27 PM"
+                            },
+                            "sessionId": "6ae02512.00000477",
+                            "isFT": false,
+                            "isPaper": false
+                        }
+                    },
+                    {
+                        "topic": "sts",
+                        "args": {
+                            "connected": true,
+                            "authenticated": true,
+                            "established": true,
+                            "competing": false,
+                            "message": "",
+                            "fail": "",
+                            "serverName": "JifZ12001",
+                            "serverVersion": "Build 10.50.1d, Oct 15, 2026 12:58:27 PM",
+                            "username": "todua1991"
+                        }
+                    },
+                    {
+                        "topic": "act",
+                        "args": {
+                            "accounts": [
+                                "U3448646"
+                            ],
+                            "acctProps": {
+                                "U3448646": {
+                                    "hasChildAccounts": false,
+                                    "supportsCashQty": true,
+                                    "liteUnderPro": false,
+                                    "noFXConv": false,
+                                    "isProp": false,
+                                    "supportsFractions": true,
+                                    "allowCustomerTime": false,
+                                    "autoFx": false
+                                }
+                            },
+                            "aliases": {
+                                "U3448646": "U3448646"
+                            },
+                            "allowFeatures": {
+                                "showGFIS": true,
+                                "showEUCostReport": false,
+                                "allowEventContract": true,
+                                "allowFXConv": true,
+                                "allowFinancialLens": false,
+                                "allowMTA": true,
+                                "allowTypeAhead": true,
+                                "allowEventTrading": true,
+                                "snapshotRefreshTimeout": 30,
+                                "liteUser": false,
+                                "showWebNews": true,
+                                "research": true,
+                                "debugPnl": true,
+                                "showTaxOpt": true,
+                                "showImpactDashboard": true,
+                                "allowDynAccount": false,
+                                "allowCrypto": false,
+                                "allowFA": false,
+                                "allowLiteUnderPro": false,
+                                "allowedAssetTypes": "STK,CFD,OPT,FOP,WAR,FUT,BAG,PDC,CASH,IND,BOND,BILL,FUND,SLB,News,CMDTY,IOPT,ICU,ICS,PHYSS,CRYPTO",
+                                "restrictTradeSubscription": false,
+                                "showUkUserLabels": true,
+                                "sideBySide": true
+                            },
+                            "chartPeriods": {
+                                "STK": [
+                                    "*"
+                                ],
+                                "CFD": [
+                                    "*"
+                                ],
+                                "OPT": [
+                                    "2h",
+                                    "1d",
+                                    "2d",
+                                    "1w",
+                                    "1m"
+                                ],
+                                "FOP": [
+                                    "2h",
+                                    "1d",
+                                    "2d",
+                                    "1w",
+                                    "1m"
+                                ],
+                                "WAR": [
+                                    "*"
+                                ],
+                                "IOPT": [
+                                    "*"
+                                ],
+                                "FUT": [
+                                    "*"
+                                ],
+                                "CASH": [
+                                    "*"
+                                ],
+                                "IND": [
+                                    "*"
+                                ],
+                                "BOND": [
+                                    "*"
+                                ],
+                                "FUND": [
+                                    "*"
+                                ],
+                                "CMDTY": [
+                                    "*"
+                                ],
+                                "PHYSS": [
+                                    "*"
+                                ],
+                                "CRYPTO": [
+                                    "*"
+                                ]
+                            },
+                            "groups": [],
+                            "profiles": [],
+                            "selectedAccount": "U3448646",
+                            "serverInfo": {
+                                "serverName": "JifZ12001",
+                                "serverVersion": "Build 10.50.1d, Oct 15, 2026 12:58:27 PM"
+                            },
+                            "sessionId": "6ae02512.00000477",
+                            "isFT": false,
+                            "isPaper": false
+                        }
+                    },
+                    {
+                        "result": [
+                            {
+                                "acctCode": "U3448646",
+                                "cashbalance": 650.8199999999999,
+                                "cashBalanceFXSegment": 0,
+                                "commodityMarketValue": 0,
+                                "corporateBondsMarketValue": 0,
+                                "key": "LedgerListBASE",
+                                "dividends": 0,
+                                "exchangeRate": 1,
+                                "funds": 0,
+                                "marketValue": 0,
+                                "optionMarketValue": 0,
+                                "interest": 0,
+                                "issueOptionsMarketValue": 0,
+                                "moneyFunds": 0,
+                                "netLiquidationValue": 676.347657797373,
+                                "realizedPnl": 0,
+                                "unrealizedPnl": -0.7668422026269539,
+                                "secondKey": "BASE",
+                                "settledCash": 650.8199999999999,
+                                "severity": 0,
+                                "stockMarketValue": 0,
+                                "tBillsMarketValue": 0,
+                                "tBondsMarketValue": 0,
+                                "timestamp": 1793122873,
+                                "warrantsMarketValue": 0
+                            },
+                            {
+                                "acctCode": "U3448646",
+                                "cashbalance": 650.8199999999999,
+                                "cashBalanceFXSegment": 0,
+                                "commodityMarketValue": 0,
+                                "corporateBondsMarketValue": 0,
+                                "key": "LedgerListUSD",
+                                "dividends": 0,
+                                "exchangeRate": 1,
+                                "funds": 0,
+                                "marketValue": 0,
+                                "optionMarketValue": 0,
+                                "interest": 0,
+                                "issueOptionsMarketValue": 0,
+                                "moneyFunds": 0,
+                                "netLiquidationValue": 676.347657797373,
+                                "realizedPnl": 0,
+                                "unrealizedPnl": -0.7668422026269539,
+                                "secondKey": "USD",
+                                "settledCash": 650.8199999999999,
+                                "severity": 0,
+                                "stockMarketValue": 0,
+                                "tBillsMarketValue": 0,
+                                "tBondsMarketValue": 0,
+                                "timestamp": 1793122873,
+                                "warrantsMarketValue": 0
+                            }
+                        ],
+                        "topic": "sld+U3448646"
+                    },
+                    {
+                        "topic": "system",
+                        "hb": 1793122876356
+                    },
+                    {
+                        "result": [
+                            {
+                                "key": "LedgerListBASE",
+                                "timestamp": 1793122881
+                            },
+                            {
+                                "key": "LedgerListUSD",
+                                "timestamp": 1793122881
+                            }
+                        ],
+                        "topic": "sld+U3448646"
+                    },
+                    {
+                        "topic": "system",
+                        "hb": 1793122886356
+                    },
+                    {
+                        "result": [
+                            {
+                                "key": "LedgerListBASE",
+                                "timestamp": 1793122891
+                            },
+                            {
+                                "key": "LedgerListUSD",
+                                "timestamp": 1793122891
+                            }
+                        ],
+                        "topic": "sld+U3448646"
+                    },
+                    {
+                        "topic": "system",
+                        "hb": 1793122896355
+                    },
+                    {
+                        "result": [
+                            {
+                                "key": "LedgerListBASE",
+                                "timestamp": 1793122901
+                            },
+                            {
+                                "key": "LedgerListUSD",
+                                "timestamp": 1793122901
+                            }
+                        ],
+                        "topic": "sld+U3448646"
+                    },
+                    {
+                        "topic": "tic",
+                        "alive": true,
+                        "id": "0e6dc29c550041f76448e320a48c5c5b",
+                        "lastAccessed": 1793122901870
+                    },
+                    {
+                        "topic": "tic",
+                        "alive": true,
+                        "id": "0e6dc29c550041f76448e320a48c5c5b",
+                        "lastAccessed": 1793122901870
+                    },
+                    {
+                        "topic": "tic",
+                        "alive": true,
+                        "id": "0e6dc29c550041f76448e320a48c5c5b",
+                        "lastAccessed": 1793122901870
+                    },
+                    {
+                        "topic": "tic",
+                        "alive": true,
+                        "id": "0e6dc29c550041f76448e320a48c5c5b",
+                        "lastAccessed": 1793122901870
+                    },
+                    {
+                        "topic": "system",
+                        "hb": 1793122906355
+                    },
+                    {
+                        "result": [
+                            {
+                                "key": "LedgerListBASE",
+                                "timestamp": 1793122911
+                            },
+                            {
+                                "key": "LedgerListUSD",
+                                "timestamp": 1793122911
+                            }
+                        ],
+                        "topic": "sld+U3448646"
+                    }
+                ],
+                "httpResponse": {
+                    "orders": [],
+                    "snapshot": true
+                },
+                "sentMessages": [
+                    "sld+U3448646+{}",
+                    "tic"
+                ],
+                "parsedResponses": [
+                    {
+                        "info": {
+                            "result": [
+                                {
+                                    "acctCode": "U3448646",
+                                    "cashbalance": 650.8199999999999,
+                                    "cashBalanceFXSegment": 0,
+                                    "commodityMarketValue": 0,
+                                    "corporateBondsMarketValue": 0,
+                                    "key": "LedgerListBASE",
+                                    "dividends": 0,
+                                    "exchangeRate": 1,
+                                    "funds": 0,
+                                    "marketValue": 0,
+                                    "optionMarketValue": 0,
+                                    "interest": 0,
+                                    "issueOptionsMarketValue": 0,
+                                    "moneyFunds": 0,
+                                    "netLiquidationValue": 676.347657797373,
+                                    "realizedPnl": 0,
+                                    "unrealizedPnl": -0.7668422026269539,
+                                    "secondKey": "BASE",
+                                    "settledCash": 650.8199999999999,
+                                    "severity": 0,
+                                    "stockMarketValue": 0,
+                                    "tBillsMarketValue": 0,
+                                    "tBondsMarketValue": 0,
+                                    "timestamp": 1793122873,
+                                    "warrantsMarketValue": 0
+                                },
+                                {
+                                    "acctCode": "U3448646",
+                                    "cashbalance": 650.8199999999999,
+                                    "cashBalanceFXSegment": 0,
+                                    "commodityMarketValue": 0,
+                                    "corporateBondsMarketValue": 0,
+                                    "key": "LedgerListUSD",
+                                    "dividends": 0,
+                                    "exchangeRate": 1,
+                                    "funds": 0,
+                                    "marketValue": 0,
+                                    "optionMarketValue": 0,
+                                    "interest": 0,
+                                    "issueOptionsMarketValue": 0,
+                                    "moneyFunds": 0,
+                                    "netLiquidationValue": 676.347657797373,
+                                    "realizedPnl": 0,
+                                    "unrealizedPnl": -0.7668422026269539,
+                                    "secondKey": "USD",
+                                    "settledCash": 650.8199999999999,
+                                    "severity": 0,
+                                    "stockMarketValue": 0,
+                                    "tBillsMarketValue": 0,
+                                    "tBondsMarketValue": 0,
+                                    "timestamp": 1793122873,
+                                    "warrantsMarketValue": 0
+                                }
+                            ],
+                            "topic": "sld+U3448646"
+                        },
+                        "USD": {
+                            "free": 650.8199999999999,
+                            "used": 0,
+                            "total": 650.8199999999999
+                        },
+                        "ETH": {
+                            "free": 0.01086533,
+                            "used": 0,
+                            "total": 0.01086533
+                        },
+                        "timestamp": 1793122873000,
+                        "datetime": "2026-10-27T17:41:13.000Z",
+                        "free": {
+                            "USD": 650.8199999999999,
+                            "ETH": 0.01086533
+                        },
+                        "used": {
+                            "USD": 0,
+                            "ETH": 0
+                        },
+                        "total": {
+                            "USD": 650.8199999999999,
+                            "ETH": 0.01086533
+                        }
+                    }
+                ]
+            }
+        ],
         "watchTickers": [
             {
                 "description": "crypto spot single",
