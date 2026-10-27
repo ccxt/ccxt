@@ -860,6 +860,11 @@ function goAnyNilSafeWrite (rhs: string, scalarLocals: Set<string>, safeLocal: (
     if (/^[\w.()*\[\]]+\.(?:SubscriptionGet|SubscriptionDict|SubscriptionsSnapshot)\(.*\)$/.test (text)) {
         return true;
     }
+    // Exchange.MyTrades only ever holds an ArrayCache* constructor result or an untyped nil (exchange.go, close()),
+    // never a typed-nil pointer, so a local seeded from it compares natively
+    if (text === 'this.MyTrades') {
+        return true;
+    }
     const call = /^((?:this\.)?\w+)\(/.exec (text);
     if (!call) {
         return false;
@@ -1097,6 +1102,7 @@ function goAnyLocalNilSelfTest (): string[] {
         '\tvar v any = func() any {\n\t\tif true {\n\t\t\treturn DerefScalar(this.SafeString(p, "a"))\n\t\t}\n\t\treturn map[string]any{}\n\t}()\n',
         '\tvar v any = func() int {\n\t\treturn 1\n\t}()\n',
         '\tvar w any = this.SafeDict(p, "w")\n\tvar v any = w\n',
+        '\tvar v any = this.MyTrades\n',
     ];
     safe.forEach ((body, index) => ok (f (body + '\tif IsEqual(v, nil) {\n\t}\n').indexOf ('if (v == nil) {') >= 0, 'proven write compares natively #' + index));
     ok (f ('\tvar v any = Slice(p, 0, 1)\n\tif ccxt.IsEqual(v, nil) {\n\t}\n').indexOf ('if (v == nil) {') >= 0, 'a qualified helper in an unqualified pass is rewritten');
