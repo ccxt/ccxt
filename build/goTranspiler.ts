@@ -10666,7 +10666,7 @@ function goG14DeclaredType (fn: string, name: string): string | undefined {
 }
 
 // every write of a `*string` local is a SafeString* call with a literal default in the default slot: never nil
-function goG14NonNilStringCall (rhs: string): boolean {
+function goG14NonNilStringCall (rhs: string, nonNilDefault?: (arg: string) => boolean): boolean {
     const m = rhs.match (/^this\.SafeString(?:Lower|Upper)?(2|N)?\(/);
     if (!m || !rhs.endsWith (')')) {
         return false;
@@ -10681,11 +10681,19 @@ function goG14NonNilStringCall (rhs: string): boolean {
     }
     args.push (cur.trim ());
     const slot = (m[1] === '2') ? 3 : 2;
-    return depth === 0 && !inStr && args.length === slot + 1 && /^(?:"(?:[^"\\]|\\.)*"|-?\d+(?:\.\d+)?)$/.test (args[slot]);
+    return depth === 0 && !inStr && args.length === slot + 1 && (/^(?:"(?:[^"\\]|\\.)*"|-?\d+(?:\.\d+)?)$/.test (args[slot]) || (nonNilDefault !== undefined && nonNilDefault (args[slot])));
 }
-function goG14NonNilStringPtr (fn: string, name: string): boolean {
+// the default slot keeps SafeString non-nil when it is a Go string field (this.Version/Id/Name/Hostname),
+// a string local, or a `*string` local that is itself never nil (SafeString derefs it into a string default)
+function goG14NonNilStringPtr (fn: string, name: string, seen: string[] = []): boolean {
     const writes = fn.match (new RegExp ('(?<![.\\w])(?:var ' + name + ' \\*string|' + name + ') = ([^\\n]*)', 'g')) || [];
-    return writes.length > 0 && writes.every ((w) => goG14NonNilStringCall (w.replace (/^.*? = /, '').replace (/\s*\/\/.*$/, '').trim ()));
+    const nonNilDefault = (arg: string): boolean => {
+        if (/^this\.(?:Id|Name|Version|Hostname)$/.test (arg)) { return true; }
+        if (!/^\w+$/.test (arg) || seen.includes (arg) || arg === name) { return false; }
+        const type = goG14DeclaredType (fn, arg);
+        return (type === 'string') || ((type === '*string') && goG14NonNilStringPtr (fn, arg, seen.concat ([ name ])));
+    };
+    return writes.length > 0 && writes.every ((w) => goG14NonNilStringCall (w.replace (/^.*? = /, '').replace (/\s*\/\/.*$/, '').trim (), nonNilDefault));
 }
 
 function goG14Text (fn: string, qual: string): string {
