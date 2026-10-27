@@ -1263,20 +1263,15 @@ export default class coinone extends Exchange {
             const currencyId = this.safeString (parts, 0);
             const secondPart = this.safeString (parts, 1);
             const code = this.safeCurrencyCode (currencyId);
-            let depositAddress = this.safeDict (result, code);
-            if (depositAddress === undefined) {
-                depositAddress = {
-                    'info': value,
-                    'currency': code,
-                    'network': undefined,
-                    'address': undefined,
-                    'tag': undefined,
-                };
-            }
-            const address = this.safeString (depositAddress, 'address', value);
+            const address = this.safeString (this.safeValue (result, code), 'address', value);
             this.checkAddress (address);
-            depositAddress['address'] = address;
-            depositAddress['info'] = address;
+            const depositAddress: Dict = {
+                'info': address,
+                'currency': code,
+                'network': undefined,
+                'address': address,
+                'tag': this.safeString (this.safeValue (result, code), 'tag'),
+            };
             if ((secondPart === 'tag' || secondPart === 'memo')) {
                 depositAddress['tag'] = value;
                 depositAddress['info'] = [ address, value ];
