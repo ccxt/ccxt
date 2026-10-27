@@ -13458,6 +13458,10 @@ function g12IdentPlain (ctx: any, fn: any, name: string, k: number, depth: numbe
         if (new RegExp ('^\\s*var ' + name + ' any\\s*$').test (m)) {
             return true;
         }
+        // hx11 w8: a fresh multi-line `map[string]any{` literal is a non-nil map, like the one-line literal below
+        if (new RegExp ('^\\s*(?:var ' + name + ' map\\[string\\]any|' + name + ') :?= map\\[string\\]any\\{\\s*$').test (m)) {
+            return true;
+        }
         const w = new RegExp ('^(\\s*(?:var ' + name + '(?: [^=,]+?)?|' + name + ') :?= )(.+?)\\s*$').exec (m);
         if (w === null) {
             return false;
@@ -13498,10 +13502,12 @@ function g12ExprPlain (ctx: any, fn: any, k: number, masked: string, raw: string
     if (/^GetArgMap\(optionalArgs, \d+, map\[string\]any\{\}\)$/.test (masked)) {
         return true;
     }
-    const slot = /^([A-Za-z_]\w*)\[(\d+)\]$/.exec (masked);
+    // hx11 w8: `MapTyped(h[i])` / `h[i].(map[string]any)` of a plain slot is that same map
+    const slot = /^(?:MapTyped\(([A-Za-z_]\w*)\[(\d+)\]\)|([A-Za-z_]\w*)\[(\d+)\](?:\.\(map\[string\]any\))?)$/.exec (masked);
     if (slot !== null) {
-        const method = g12HolderProducer (ctx, fn, slot[1], k);
-        return (method !== undefined) && g12SlotPlain (ctx, method, Number (slot[2]), depth + 1);
+        const holder = slot[1] ?? slot[3];
+        const method = g12HolderProducer (ctx, fn, holder, k);
+        return (method !== undefined) && g12SlotPlain (ctx, method, Number (slot[2] ?? slot[4]), depth + 1);
     }
     return false;
 }
