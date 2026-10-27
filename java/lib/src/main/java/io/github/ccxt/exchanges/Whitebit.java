@@ -48,7 +48,7 @@ public class Whitebit extends WhitebitApi
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "whitebit" );
@@ -1023,8 +1023,8 @@ public class Whitebit extends WhitebitApi
         List<Object> allNetworks = (List<Object>) this.arrayConcat(depositsNetworks, withdrawsNetworks);
         for (var j = 0; j < ((List<?>)allNetworks).size(); j++)
         {
-            Object networkId = (allNetworks == null || j < 0 || j >= allNetworks.size() ? null : allNetworks.get(j));
-            String networkCode = this.networkIdToCode(java.util.Objects.toString(networkId, null), code);
+            String networkId = this.safeString(allNetworks, j, "");
+            String networkCode = this.networkIdToCode(networkId, code);
             Map<String, Object> networkDepositLimits = (Map<String, Object>) this.safeDict(depositLimits, networkId, new HashMap<String, Object>() {{}});
             Map<String, Object> networkWithdrawLimits = (Map<String, Object>) this.safeDict(withdrawLimits, networkId, new HashMap<String, Object>() {{}});
             if (!java.util.Objects.equals(networkCode, null))
@@ -5140,7 +5140,7 @@ public class Whitebit extends WhitebitApi
     {
         Object query = this.omit(parameters, this.extractParams(path));
         String version = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
-        String accessibility = this.safeString(api, 1);
+        String accessibility = (String) (api == null || 1 >= ((List<?>)api).size() ? null : ((List<?>)api).get(1));
         Map<String, Object> publicHeaders = new HashMap<String, Object>() {{}};
         publicHeaders.put("User-Agent", ((("ccxt/" + this.id) + "-") + this.version));
         String pathWithParams = ("/" + this.implodeParams(path, parameters));
@@ -5240,10 +5240,9 @@ public class Whitebit extends WhitebitApi
                     Integer errorsLength = ((List<?>)errorKeys).size();
                     if ((errorsLength != null && errorsLength > 0))
                     {
-                        Object errorKey = (errorKeys == null || 0 >= ((List<?>)errorKeys).size() ? null : ((List<?>)errorKeys).get(0));
+                        String errorKey = this.safeString(errorKeys, 0, "");
                         List<Object> errorMessageArray = (List<Object>) this.safeList(errorObject, errorKey, new ArrayList<Object>(Arrays.asList()));
-                        Integer errorMessageLength = ((List<?>)errorMessageArray).size();
-                        errorInfo = ((((errorMessageLength != null && errorMessageLength > 0)))) ? (errorMessageArray == null || 0 >= ((List<?>)errorMessageArray).size() ? null : ((List<?>)errorMessageArray).get(0)) : body;
+                        errorInfo = this.safeString(errorMessageArray, 0, body);
                     }
                 }
                 this.throwExactlyMatchedException(this.exceptions.get("exact"), errorInfo, feedback);
@@ -5260,10 +5259,9 @@ public class Whitebit extends WhitebitApi
                 Object errorInfo = body;
                 if ((errKeysLength != null && errKeysLength > 0))
                 {
-                    Object errorKey = (errKeys == null || 0 >= ((List<?>)errKeys).size() ? null : ((List<?>)errKeys).get(0));
+                    String errorKey = this.safeString(errKeys, 0, "");
                     List<Object> errorMessageArray = (List<Object>) this.safeList(errMsg, errorKey, new ArrayList<Object>(Arrays.asList()));
-                    Integer errorMessageLength = ((List<?>)errorMessageArray).size();
-                    errorInfo = ((((errorMessageLength != null && errorMessageLength > 0)))) ? (errorMessageArray == null || 0 >= ((List<?>)errorMessageArray).size() ? null : ((List<?>)errorMessageArray).get(0)) : body;
+                    errorInfo = this.safeString(errorMessageArray, 0, body);
                 }
                 String feedback = ((this.id + " ") + body);
                 this.throwExactlyMatchedException(this.exceptions.get("exact"), errorInfo, feedback);

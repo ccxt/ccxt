@@ -33,7 +33,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "has", new HashMap<String, Object>() {{
@@ -486,18 +486,13 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
             }
             // Build subscription message with all requested private channels
             // Format: [{'ticket': uuid}, {'type': 'myOrder'}, {'type': 'myAsset'}, ...]
-            List<Object> requests = new ArrayList<Object>(Arrays.asList());
-            List<String> channelKeys = new ArrayList<String>(subscriptions.keySet());
-            for (var i = 0; i < ((List<?>)channelKeys).size(); i++)
-            {
-                ((List<Object>)requests).add(Helpers.GetValue(subscriptions, (channelKeys == null || i < 0 || i >= channelKeys.size() ? null : channelKeys.get(i))));
-            }
             List<Object> message = new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
         put( "ticket", Upbit.this.uuid() );
     }}));
-            for (var i = 0; i < ((List<?>)requests).size(); i++)
+            List<String> channelKeys = new ArrayList<String>(subscriptions.keySet());
+            for (var i = 0; i < ((List<?>)channelKeys).size(); i++)
             {
-                ((List<Object>)message).add((requests == null || i < 0 || i >= requests.size() ? null : requests.get(i)));
+                ((List<Object>)message).add(Helpers.GetValue(subscriptions, (channelKeys == null || i < 0 || i >= channelKeys.size() ? null : channelKeys.get(i))));
             }
             return (this.watch(url, messageHashResolved, message, messageHashResolved, null)).join();
         });

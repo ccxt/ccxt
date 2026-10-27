@@ -48,7 +48,7 @@ public class Mexc extends MexcApi
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "mexc" );
@@ -4775,10 +4775,7 @@ public class Mexc extends MexcApi
                     if (!java.util.Objects.equals(symbols, null))
                     {
                         List<String> symbolIds = this.marketIds(symbols);
-                        if (!java.util.Objects.equals(symbolIds, null))
-                        {
-                            parsedSymbols = String.join(",", (List<String>)symbolIds);
-                        }
+                        parsedSymbols = String.join(",", (List<String>)symbolIds);
                     }
                 } else
                 {
@@ -6016,8 +6013,8 @@ public class Mexc extends MexcApi
         String currencyWithNetwork = this.safeString(transaction, "coin");
         if (!java.util.Objects.equals(currencyWithNetwork, null))
         {
-            List<String> j05parts1 = Arrays.asList(((String)currencyWithNetwork).split(java.util.regex.Pattern.quote("-")));
-            currencyId = (0 >= j05parts1.size() ? null : j05parts1.get(0));
+            List<Object> currencyParts = new ArrayList<Object>(Arrays.asList(((String)currencyWithNetwork).split(java.util.regex.Pattern.quote("-"))));
+            currencyId = (currencyParts == null || 0 >= currencyParts.size() ? null : currencyParts.get(0));
         }
         String code = this.safeCurrencyCode((String) (currencyId), currency);
         Object network = null;

@@ -39,7 +39,7 @@ public class Polymarket extends PolymarketApi
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "polymarket" );
@@ -1382,7 +1382,7 @@ public class Polymarket extends PolymarketApi
         return BaseExchange.supplyAsync(() -> {
 
             Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
-            Object tokenId = outcomeObj.get("outcomeId");
+            String tokenId = this.safeString(outcomeObj, "outcomeId");
             List<Object> promises = new ArrayList<Object>(Arrays.asList(this.clobPublicGetMidpoint(new HashMap<String, Object>() {{
         put( "token_id", tokenId );
     }}), this.clobPublicGetBook(new HashMap<String, Object>() {{
@@ -1654,7 +1654,7 @@ public class Polymarket extends PolymarketApi
         return BaseExchange.supplyAsync(() -> {
 
             Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
-            Object tokenId = outcomeObj.get("outcomeId");
+            String tokenId = this.safeString(outcomeObj, "outcomeId");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "token_id", tokenId );
             }};
@@ -1710,7 +1710,7 @@ public class Polymarket extends PolymarketApi
                 throw new BadRequest(((((this.id + " fetchOHLCV() unsupported timeframe ") + java.util.Objects.requireNonNullElse(timeframe, "1m")) + ", supported timeframes are ") + String.join(", ", (List<String>)supportedKeys))) ;
             }
             Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
-            Object tokenId = outcomeObj.get("outcomeId");
+            String tokenId = this.safeString(outcomeObj, "outcomeId");
             Long fidelityMin = this.safeInteger(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), 1); // fidelity in minutes
             Long nowS = this.seconds();
             Object startS = null;
@@ -1994,7 +1994,7 @@ public class Polymarket extends PolymarketApi
         return BaseExchange.supplyAsync(() -> {
 
             Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
-            Object tokenId = outcomeObj.get("outcomeId");
+            String tokenId = this.safeString(outcomeObj, "outcomeId");
             Map<String, Object> outcomeInfo = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
             String conditionId = this.safeString(outcomeInfo, "conditionId");
             if (java.util.Objects.equals(conditionId, null))
@@ -2050,7 +2050,7 @@ public class Polymarket extends PolymarketApi
             if (!java.util.Objects.equals(outcome, null))
             {
                 outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
-                request.put("asset_id", outcomeObj.get("outcomeId"));
+                request.put("asset_id", this.safeString(outcomeObj, "outcomeId"));
             }
             Map<String, Object> response = (this.clobPrivateGetDataTrades(this.extend(request, parameters))).join();
             Object rawTrades = (((response instanceof List))) ? response : this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
@@ -2394,7 +2394,7 @@ public class Polymarket extends PolymarketApi
             if (!java.util.Objects.equals(outcome, null))
             {
                 outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
-                request.put("asset_id", outcomeObj.get("outcomeId"));
+                request.put("asset_id", this.safeString(outcomeObj, "outcomeId"));
             }
             Map<String, Object> response = (this.clobPrivateGetDataOrders(this.extend(request, parameters))).join();
             List<Object> orders = (List<Object>)(this.safeList(response, "data", new ArrayList<Object>(Arrays.asList())));
@@ -2641,7 +2641,7 @@ public class Polymarket extends PolymarketApi
         // dict, which throws a TypeError
         // outcome () validates the outcome against the loaded outcomes (built from events or markets)
         Map<String, Object> outcomeObj = this.outcome((String) (outcome));
-        Object tokenId = outcomeObj.get("outcomeId");
+        String tokenId = this.safeString(outcomeObj, "outcomeId");
         String sideStr = ((String)((String)side)).toUpperCase();
         Boolean isMarket = (java.util.Objects.equals(type, "market"));
         // CCXT type (limit/market) maps to a polymarket time-in-force: limit -> GTC, market -> FOK.
@@ -3002,7 +3002,7 @@ public class Polymarket extends PolymarketApi
             put( "Order", orderStruct );
         }}, innerValue);
         Map<String, Object> innerSigObj = this.signMessage(innerEncoded, (String) (this.privateKey));
-        Object innerSig = ((java.util.function.BinaryOperator<Object>) (hx4J40v6A, hx4J40v6B) -> { Object hx4J40v6P = hx4J40v6A instanceof Integer hx4J40v6i ? (Object) Long.valueOf(hx4J40v6i.longValue()) : hx4J40v6A; Object hx4J40v6Q = hx4J40v6B instanceof Integer hx4J40v6i ? (Object) Long.valueOf(hx4J40v6i.longValue()) : hx4J40v6B; if (hx4J40v6P instanceof Long hx4J40v6l && hx4J40v6Q instanceof Long hx4J40v6r) { return hx4J40v6l + hx4J40v6r; } if (hx4J40v6P instanceof Double || hx4J40v6Q instanceof Double) { java.util.function.ToDoubleFunction<Object> hx4J40v6D = hx4J40v6o -> { if (hx4J40v6o instanceof Double || hx4J40v6o instanceof Float || hx4J40v6o instanceof Long || hx4J40v6o instanceof Integer || hx4J40v6o instanceof java.math.BigDecimal) { return ((Number) hx4J40v6o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v6o)); } catch (NumberFormatException hx4J40v6e) { return 0.0; } }; return hx4J40v6D.applyAsDouble(hx4J40v6P) + hx4J40v6D.applyAsDouble(hx4J40v6Q); } if (hx4J40v6P instanceof String || hx4J40v6Q instanceof String) { return String.valueOf(hx4J40v6P) + String.valueOf(hx4J40v6Q); } return null; }).apply(((java.util.function.BinaryOperator<Object>) (hx4J40v5A, hx4J40v5B) -> { Object hx4J40v5P = hx4J40v5A instanceof Integer hx4J40v5i ? (Object) Long.valueOf(hx4J40v5i.longValue()) : hx4J40v5A; Object hx4J40v5Q = hx4J40v5B instanceof Integer hx4J40v5i ? (Object) Long.valueOf(hx4J40v5i.longValue()) : hx4J40v5B; if (hx4J40v5P instanceof Long hx4J40v5l && hx4J40v5Q instanceof Long hx4J40v5r) { return hx4J40v5l + hx4J40v5r; } if (hx4J40v5P instanceof Double || hx4J40v5Q instanceof Double) { java.util.function.ToDoubleFunction<Object> hx4J40v5D = hx4J40v5o -> { if (hx4J40v5o instanceof Double || hx4J40v5o instanceof Float || hx4J40v5o instanceof Long || hx4J40v5o instanceof Integer || hx4J40v5o instanceof java.math.BigDecimal) { return ((Number) hx4J40v5o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v5o)); } catch (NumberFormatException hx4J40v5e) { return 0.0; } }; return hx4J40v5D.applyAsDouble(hx4J40v5P) + hx4J40v5D.applyAsDouble(hx4J40v5Q); } if (hx4J40v5P instanceof String || hx4J40v5Q instanceof String) { return String.valueOf(hx4J40v5P) + String.valueOf(hx4J40v5Q); } return null; }).apply(this.remove0xPrefix(innerSigObj.get("r")), this.remove0xPrefix(innerSigObj.get("s"))), this.intToBase16(innerSigObj.get("v")));
+        Object innerSig = ((java.util.function.BinaryOperator<Object>) (hx4J40v6A, hx4J40v6B) -> { Object hx4J40v6P = hx4J40v6A instanceof Integer hx4J40v6i ? (Object) Long.valueOf(hx4J40v6i.longValue()) : hx4J40v6A; Object hx4J40v6Q = hx4J40v6B instanceof Integer hx4J40v6i ? (Object) Long.valueOf(hx4J40v6i.longValue()) : hx4J40v6B; if (hx4J40v6P instanceof Long hx4J40v6l && hx4J40v6Q instanceof Long hx4J40v6r) { return hx4J40v6l + hx4J40v6r; } if (hx4J40v6P instanceof Double || hx4J40v6Q instanceof Double) { java.util.function.ToDoubleFunction<Object> hx4J40v6D = hx4J40v6o -> { if (hx4J40v6o instanceof Double || hx4J40v6o instanceof Float || hx4J40v6o instanceof Long || hx4J40v6o instanceof Integer || hx4J40v6o instanceof java.math.BigDecimal) { return ((Number) hx4J40v6o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v6o)); } catch (NumberFormatException hx4J40v6e) { return 0.0; } }; return hx4J40v6D.applyAsDouble(hx4J40v6P) + hx4J40v6D.applyAsDouble(hx4J40v6Q); } if (hx4J40v6P instanceof String || hx4J40v6Q instanceof String) { return String.valueOf(hx4J40v6P) + String.valueOf(hx4J40v6Q); } return null; }).apply(((java.util.function.BinaryOperator<Object>) (hx4J40v5A, hx4J40v5B) -> { Object hx4J40v5P = hx4J40v5A instanceof Integer hx4J40v5i ? (Object) Long.valueOf(hx4J40v5i.longValue()) : hx4J40v5A; Object hx4J40v5Q = hx4J40v5B instanceof Integer hx4J40v5i ? (Object) Long.valueOf(hx4J40v5i.longValue()) : hx4J40v5B; if (hx4J40v5P instanceof Long hx4J40v5l && hx4J40v5Q instanceof Long hx4J40v5r) { return hx4J40v5l + hx4J40v5r; } if (hx4J40v5P instanceof Double || hx4J40v5Q instanceof Double) { java.util.function.ToDoubleFunction<Object> hx4J40v5D = hx4J40v5o -> { if (hx4J40v5o instanceof Double || hx4J40v5o instanceof Float || hx4J40v5o instanceof Long || hx4J40v5o instanceof Integer || hx4J40v5o instanceof java.math.BigDecimal) { return ((Number) hx4J40v5o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v5o)); } catch (NumberFormatException hx4J40v5e) { return 0.0; } }; return hx4J40v5D.applyAsDouble(hx4J40v5P) + hx4J40v5D.applyAsDouble(hx4J40v5Q); } if (hx4J40v5P instanceof String || hx4J40v5Q instanceof String) { return String.valueOf(hx4J40v5P) + String.valueOf(hx4J40v5Q); } return null; }).apply(this.remove0xPrefix(this.safeString(innerSigObj, "r")), this.remove0xPrefix(this.safeString(innerSigObj, "s"))), this.intToBase16(innerSigObj.get("v")));
         // innerSig(65) || appDomainSep(32) || contentsHash(32) || contentsType || uint16_BE(len)
         // orderTypeString.length is used inline (not via a `const n = str.length;` statement) so the
         // php transpiler emits strlen() — the standalone statement form wrongly becomes count() (array)
@@ -3111,7 +3111,7 @@ public class Polymarket extends PolymarketApi
                 // scope to a single outcome token via DELETE /cancel-market-orders { asset_id }
                 Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
                 Map<String, Object> request = new HashMap<String, Object>() {{
-                    put( "asset_id", outcomeObj.get("outcomeId") );
+                    put( "asset_id", Polymarket.this.safeString(outcomeObj, "outcomeId") );
                 }};
                 response = (this.clobPrivateDeleteCancelMarketOrders(this.extend(request, parameters))).join();
             } else
@@ -4015,8 +4015,8 @@ public class Polymarket extends PolymarketApi
         return BaseExchange.supplyAsync(() -> {
 
             Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
-            String tokenId = this.safeString(outcomeObj, "outcomeId");
-            String outcomeValue = this.safeString(outcomeObj, "outcome");
+            String tokenId = this.safeString(outcomeObj, "outcomeId", "");
+            String outcomeValue = this.safeString(outcomeObj, "outcome", "");
             String messageHash = ("orderbook::" + outcomeValue);
             String subscribeHash = ("subscribe::" + tokenId);
             Map<String, Object> subscribeMsg = new HashMap<String, Object>() {{
@@ -4046,8 +4046,8 @@ public class Polymarket extends PolymarketApi
         return BaseExchange.supplyAsync(() -> {
 
             Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
-            String tokenId = this.safeString(outcomeObj, "outcomeId");
-            String outcomeValue = this.safeString(outcomeObj, "outcome");
+            String tokenId = this.safeString(outcomeObj, "outcomeId", "");
+            String outcomeValue = this.safeString(outcomeObj, "outcome", "");
             String messageHash = ("trades::" + outcomeValue);
             String subscribeHash = ("subscribe::" + tokenId);
             Map<String, Object> subscribeMsg = new HashMap<String, Object>() {{
@@ -4075,18 +4075,18 @@ public class Polymarket extends PolymarketApi
         return BaseExchange.supplyAsync(() -> {
 
             Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
-            String tokenId = this.safeString(outcomeObj, "outcomeId");
+            String tokenId = this.safeString(outcomeObj, "outcomeId", "");
             String outcomeValue = this.safeString(outcomeObj, "outcome");
+            if (java.util.Objects.equals(outcomeValue, null))
+            {
+                throw new ExchangeError((this.id + " watchTicker() missing outcome")) ;
+            }
             String messageHash = ("ticker::" + outcomeValue);
             String subscribeHash = ("subscribe::" + tokenId);
             Map<String, Object> subscribeMsg = new HashMap<String, Object>() {{
                 put( "assets_ids", new ArrayList<Object>(Arrays.asList(tokenId)) );
                 put( "type", "market" );
             }};
-            if (java.util.Objects.equals(outcomeValue, null))
-            {
-                throw new ExchangeError((this.id + " watchTicker() missing outcome")) ;
-            }
             if (!(((Map<?, ?>)this.orderbooks).containsKey(outcomeValue)))
             {
                 io.github.ccxt.ws.WsOrderBook seededBook = this.orderBook(new HashMap<String, Object>() {{}});

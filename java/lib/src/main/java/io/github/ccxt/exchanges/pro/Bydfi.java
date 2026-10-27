@@ -34,7 +34,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "has", new HashMap<String, Object>() {{
@@ -546,6 +546,10 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         String interval = this.safeString(message, "i");
         Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(this.options, "timeframes", new HashMap<String, Object>() {{}});
         String timeframe = this.findTimeframe(interval, timeframes);
+        if (java.util.Objects.equals(timeframe, null))
+        {
+            return;
+        }
         String messageHash = ((("ohlcv::" + symbol) + "::") + timeframe);
         if (!(((Map<?, ?>)this.ohlcvs).containsKey(symbol)))
         {

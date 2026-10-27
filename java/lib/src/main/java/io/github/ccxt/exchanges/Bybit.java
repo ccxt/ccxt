@@ -62,7 +62,7 @@ public class Bybit extends BybitApi
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "bybit" );
@@ -5517,8 +5517,8 @@ public class Bybit extends BybitApi
         Boolean hedged = (Boolean) this.safeBool(parameters, "hedged", false);
         Boolean reduceOnly = (Boolean) this.safeBool(parameters, "reduceOnly", (Object) null);
         Object triggerPrice = this.safeValue2(parameters, "triggerPrice", "stopPrice");
-        Object stopLossTriggerPrice = this.safeValue(parameters, "stopLossPrice");
-        Object takeProfitTriggerPrice = this.safeValue(parameters, "takeProfitPrice");
+        String stopLossTriggerPrice = this.safeString(parameters, "stopLossPrice");
+        String takeProfitTriggerPrice = this.safeString(parameters, "takeProfitPrice");
         Object stopLoss = this.safeValue(parameters, "stopLoss");
         Object takeProfit = this.safeValue(parameters, "takeProfit");
         String trailingTriggerPrice = this.safeString2(parameters, "trailingTriggerPrice", "activePrice", this.numberToString(price));

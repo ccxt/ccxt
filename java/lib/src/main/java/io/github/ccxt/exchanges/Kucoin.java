@@ -59,7 +59,7 @@ public class Kucoin extends KucoinApi
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "kucoin" );
@@ -4365,13 +4365,12 @@ public class Kucoin extends KucoinApi
                     request.put("chain", ((String)_netIdTmp).toLowerCase());
                 }
             }
-            Map<String, Object> getVersions = (Map<String, Object>) this.safeDict(this.safeDict(this.safeDict(this.options, "versions", new HashMap<String, Object>() {{}}), "private", new HashMap<String, Object>() {{}}), "GET", new HashMap<String, Object>() {{}});
-            Object version = getVersions.get("deposit-addresses");
-            Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue((this.options == null ? null : ((Map<?, ?>)this.options).get("versions")), "private"), "GET"), "deposit-addresses", "v1");
+            String version = this.getDepositAddressesVersion();
+            this.setDepositAddressesVersion("v1");
             Map<String, Object> response = (this.privateGetDepositAddresses(this.extend(request, paramsRequest))).join();
             // BCH {"code":"200000","data":{"address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""}}
             // BTC {"code":"200000","data":{"address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""}}
-            Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue((this.options == null ? null : ((Map<?, ?>)this.options).get("versions")), "private"), "GET"), "deposit-addresses", version);
+            this.setDepositAddressesVersion(version);
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", (Object) null);
             if (java.util.Objects.equals(data, null))
             {
@@ -4529,9 +4528,8 @@ public class Kucoin extends KucoinApi
                 response = (this.utaPrivateGetAssetDepositAddress(this.extend(request, paramsRequest))).join();
             } else
             {
-                Map<String, Object> getVersions = (Map<String, Object>) this.safeDict(this.safeDict(this.safeDict(this.options, "versions", new HashMap<String, Object>() {{}}), "private", new HashMap<String, Object>() {{}}), "GET", new HashMap<String, Object>() {{}});
-                Object version = getVersions.get("deposit-addresses");
-                Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue((this.options == null ? null : ((Map<?, ?>)this.options).get("versions")), "private"), "GET"), "deposit-addresses", "v2");
+                String version = this.getDepositAddressesVersion();
+                this.setDepositAddressesVersion("v2");
                 response = (this.privateGetDepositAddresses(this.extend(request, paramsRequest))).join();
                 //
                 //     {
@@ -4548,7 +4546,7 @@ public class Kucoin extends KucoinApi
                 //         ]
                 //     }
                 //
-                Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue((this.options == null ? null : ((Map<?, ?>)this.options).get("versions")), "private"), "GET"), "deposit-addresses", version);
+                this.setDepositAddressesVersion(version);
             }
             List<Object> chains = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Object parsed = this.parseDepositAddresses(chains, new ArrayList<Object>(Arrays.asList(currency.get("code"))), false, new HashMap<String, Object>() {{
@@ -13855,6 +13853,17 @@ public class Kucoin extends KucoinApi
             return uta;
         }).thenApply(res -> (Boolean) res);
 
+    }
+
+    public String getDepositAddressesVersion()
+    {
+        Map<String, Object> getVersions = (Map<String, Object>) this.safeDict(this.safeDict(this.safeDict(this.options, "versions", new HashMap<String, Object>() {{}}), "private", new HashMap<String, Object>() {{}}), "GET", new HashMap<String, Object>() {{}});
+        return this.safeString(getVersions, "deposit-addresses", "v1");
+    }
+
+    public void setDepositAddressesVersion(String version)
+    {
+        Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue((this.options == null ? null : ((Map<?, ?>)this.options).get("versions")), "private"), "GET"), "deposit-addresses", version);
     }
 
     public Object sign(Object path, Object api, Object method, Object parameters)

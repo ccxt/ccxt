@@ -34,7 +34,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "has", new HashMap<String, Object>() {{
@@ -558,19 +558,19 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             // 150-levels/400-level incremental MBP feed is based on the gap
             // between two snapshots at 100ms interval.
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "watchOrderBook", new HashMap<String, Object>() {{}});
-            Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? this.safeInteger(options, "depth", 150) : limit;
+            Long limitResolved = this.parseToInt((((java.util.Objects.equals(limit, null)))) ? this.safeInteger(options, "depth", 150) : limit);
             if (!this.inArray(limitResolved, allowedLimits))
             {
                 throw new ExchangeError((this.id + " watchOrderBook market accepts limits of 5, 20, 150 or 400 only")) ;
             }
-            String messageHash = null;
+            String messageHash = "";
             String marketId = this.safeString(market, "id", "");
             if (java.util.Objects.equals(market.get("spot"), true))
             {
-                messageHash = ((("market." + marketId) + ".mbp.") + this.numberToString(limitResolved));
+                messageHash = ((("market." + marketId) + ".mbp.") + String.valueOf(limitResolved));
             } else
             {
-                messageHash = (((("market." + marketId) + ".depth.size_") + this.numberToString(limitResolved)) + ".high_freq");
+                messageHash = (((("market." + marketId) + ".depth.size_") + String.valueOf(limitResolved)) + ".high_freq");
             }
             String url = this.getUrlByMarketType(market.get("type"), market.get("linear"), false, true, false);
             Object method = "handleOrderBookSubscription";
@@ -615,21 +615,21 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             Map<String, Object> market = this.market(symbol);
             String topic = "orderbook";
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "watchOrderBook", new HashMap<String, Object>() {{}});
-            Long depth = this.safeInteger(options, "depth", 150);
+            Long depth = this.parseToInt(this.safeInteger(options, "depth", 150));
             String marketId = this.safeString(market, "id", "");
-            String subMessageHash = null;
+            String subMessageHash = "";
             if (java.util.Objects.equals(market.get("spot"), true))
             {
-                subMessageHash = ((("market." + marketId) + ".mbp.") + this.numberToString(depth));
+                subMessageHash = ((("market." + marketId) + ".mbp.") + String.valueOf(depth));
             } else
             {
-                subMessageHash = (((("market." + marketId) + ".depth.size_") + this.numberToString(depth)) + ".high_freq");
+                subMessageHash = (((("market." + marketId) + ".depth.size_") + String.valueOf(depth)) + ".high_freq");
             }
             if (!java.util.Objects.equals(market.get("spot"), true))
             {
                 parameters.put("data_type", "incremental");
             }
-            return (this.unsubscribePublic((Map<String, Object>) (market), (String) (subMessageHash), topic, parameters)).join();
+            return (this.unsubscribePublic((Map<String, Object>) (market), subMessageHash, topic, parameters)).join();
         });
 
     }
@@ -707,7 +707,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                     }
                 } else
                 {
-                    throw new InvalidNonce((((((this.id + " failed to synchronize WebSocket feed with the snapshot for symbol ") + symbol) + " in ") + String.valueOf(maxAttempts)) + " attempts")) ;
+                    throw new InvalidNonce((((((this.id + " failed to synchronize WebSocket feed with the snapshot for symbol ") + this.safeString(subscription, "symbol", "")) + " in ") + String.valueOf(maxAttempts)) + " attempts")) ;
                 }
             } else
             {

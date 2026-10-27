@@ -58,7 +58,7 @@ public class Gate extends GateApi
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "gate" );
@@ -2249,11 +2249,11 @@ public class Gate extends GateApi
                 String id = this.safeString(spotMarket, "id");
                 Map<String, Object> marginMarket = (Map<String, Object>) this.safeDict(marginMarkets, id, (Object) null);
                 Map<String,Object> market = this.deepExtend(marginMarket, spotMarket);
-                var baseIdquoteIdVariable = new ArrayList<Object>(Arrays.asList(((String)id).split(java.util.regex.Pattern.quote("_"))));
-                var baseId = ((List<Object>) baseIdquoteIdVariable).get(0);
-                var quoteId = ((List<Object>) baseIdquoteIdVariable).get(1);
-                String base = this.safeCurrencyCode((String) (baseId), (Map<String, Object>) null);
-                String quote = this.safeCurrencyCode((String) (quoteId), (Map<String, Object>) null);
+                List<Object> idParts = new ArrayList<Object>(Arrays.asList(((String)id).split(java.util.regex.Pattern.quote("_"))));
+                String baseId = this.safeString(idParts, 0);
+                String quoteId = this.safeString(idParts, 1);
+                String base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
+                String quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);
                 if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
                 {
                     continue;
@@ -2338,7 +2338,7 @@ public class Gate extends GateApi
             }
             for (var c = 0; c < ((List<?>)swapSettlementCurrencies).size(); c++)
             {
-                Object settleId = (swapSettlementCurrencies == null || c < 0 || c >= ((List<?>)swapSettlementCurrencies).size() ? null : ((List<?>)swapSettlementCurrencies).get(c));
+                String settleId = this.safeString(swapSettlementCurrencies, c);
                 Map<String, Object> request = new HashMap<String, Object>() {{
                     put( "settle", settleId );
                 }};
@@ -2346,7 +2346,7 @@ public class Gate extends GateApi
                 for (var i = 0; i < ((List<?>)response).size(); i++)
                 {
                     Map<String, Object> contract = (Map<String, Object>) this.safeDict(response, i, new HashMap<String, Object>() {{}});
-                    Map<String, Object> parsedMarket = this.parseContractMarket((Map<String, Object>) (contract), (String) (settleId));
+                    Map<String, Object> parsedMarket = this.parseContractMarket((Map<String, Object>) (contract), settleId);
                     if (!java.util.Objects.equals(parsedMarket, null))
                     {
                         ((List<Object>)result).add(parsedMarket);
@@ -2371,7 +2371,7 @@ public class Gate extends GateApi
             Object futureSettlementCurrencies = this.getSettlementCurrencies("future", "fetchMarkets");
             for (var c = 0; c < ((List<?>)futureSettlementCurrencies).size(); c++)
             {
-                Object settleId = (futureSettlementCurrencies == null || c < 0 || c >= ((List<?>)futureSettlementCurrencies).size() ? null : ((List<?>)futureSettlementCurrencies).get(c));
+                String settleId = this.safeString(futureSettlementCurrencies, c);
                 Map<String, Object> request = new HashMap<String, Object>() {{
                     put( "settle", settleId );
                 }};
@@ -2379,7 +2379,7 @@ public class Gate extends GateApi
                 for (var i = 0; i < ((List<?>)response).size(); i++)
                 {
                     Map<String, Object> contract = (Map<String, Object>) this.safeDict(response, i, new HashMap<String, Object>() {{}});
-                    Map<String, Object> parsedMarket = this.parseContractMarket((Map<String, Object>) (contract), (String) (settleId));
+                    Map<String, Object> parsedMarket = this.parseContractMarket((Map<String, Object>) (contract), settleId);
                     if (!java.util.Objects.equals(parsedMarket, null))
                     {
                         ((List<Object>)result).add(parsedMarket);
@@ -7550,7 +7550,7 @@ public class Gate extends GateApi
                 List<Object> ordersRequests = new ArrayList<Object>(Arrays.asList());
                 for (var i = 0; i < ((List<?>)ids).size(); i++)
                 {
-                    Object id = (ids == null || i < 0 || i >= ((List<?>)ids).size() ? null : ((List<?>)ids).get(i));
+                    String id = this.safeString(ids, i, "");
                     Map<String, Object> orderItem = new HashMap<String, Object>();
                     orderItem.put("id", id);
                     orderItem.put("symbol", ((String)symbol));
@@ -7564,7 +7564,7 @@ public class Gate extends GateApi
             List<Object> finalList = new ArrayList<Object>(Arrays.asList(request)); // hacky but needs to be done here
             for (var i = 0; i < ((List<?>)ids).size(); i++)
             {
-                ((List<Object>)finalList).add((ids == null || i < 0 || i >= ((List<?>)ids).size() ? null : ((List<?>)ids).get(i)));
+                ((List<Object>)finalList).add(this.safeString(ids, i, ""));
             }
             List<Object> response = (this.privateFuturesPostSettleBatchCancelOrders(finalList)).join();
             return this.parseOrders(response, (Map<String, Object>) null, (Long) null, (Long) null, new HashMap<String, Object>() {{}});

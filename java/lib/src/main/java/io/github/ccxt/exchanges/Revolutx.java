@@ -33,7 +33,7 @@ public class Revolutx extends RevolutxApi
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "revolutx" );
@@ -260,7 +260,6 @@ public class Revolutx extends RevolutxApi
     public Object sign(Object path, Object api, Object method, Object parameters)
     {
         Map<String, Object> requestHeaders = null;
-        String requestBody = null;
         String implodedPath = (String) this.implodeParams(path, parameters);
         Object query = this.omit(parameters, this.extractParams(path));
         String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
@@ -272,6 +271,7 @@ public class Revolutx extends RevolutxApi
         String baseUrl = baseApiUrl;
         String url = ((baseUrl + "/") + implodedPath);
         String queryString = "";
+        String bodyString = "";
         if (java.util.Objects.equals(apiName, "private"))
         {
             this.checkRequiredCredentials(true);
@@ -292,11 +292,9 @@ public class Revolutx extends RevolutxApi
                 }
             } else
             {
-                requestBody = this.json(query);
+                bodyString = this.json(query);
             }
             String requestPath = ("/api/" + implodedPath);
-            String bodyValue = requestBody;
-            String bodyString = (((!java.util.Objects.equals(bodyValue, null)))) ? bodyValue : "";
             String message = ((((timestamp + ((String)java.util.Objects.requireNonNullElse(method, "GET")).toUpperCase()) + requestPath) + queryString) + bodyString);
             Object signature = eddsa(this.encode(message), this.privateKey, ed25519());
             {
@@ -323,14 +321,14 @@ public class Revolutx extends RevolutxApi
                 }
             } else
             {
-                requestBody = this.json(query);
+                bodyString = this.json(query);
                 requestHeaders = new HashMap<String, Object>() {{
                     put( "Content-Type", "application/json" );
                 }};
             }
         }
         Map<String, Object> headersResult = requestHeaders;
-        String bodyResult = requestBody;
+        String bodyResult = (((!java.util.Objects.equals(bodyString, "")))) ? bodyString : null;
         {
             HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
             h2kMap0.put("url", url);

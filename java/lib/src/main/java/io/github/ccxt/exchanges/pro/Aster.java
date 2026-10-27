@@ -35,7 +35,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "has", new HashMap<String, Object>() {{
@@ -704,7 +704,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         {
             this.bidsasks.put(symbol, ticker);
         }
-        String messageHash = ("bidask:" + symbol);
+        String messageHash = ("bidask:" + this.safeString(ticker, "symbol", ""));
         client.resolve(ticker, messageHash);
     }
 
@@ -1189,15 +1189,18 @@ public class Aster extends io.github.ccxt.exchanges.Aster
                 put( "method", "SUBSCRIBE" );
                 put( "params", subscriptionArgs );
             }};
-            Object limitResolved = 20;
-            if ((limit != null && limit == 5) || (limit != null && limit == 10) || (limit != null && limit == 20))
+            String depthSuffix = "@depth20";
+            if ((limit != null && limit == 5))
             {
-                limitResolved = limit;
+                depthSuffix = "@depth5";
+            } else if ((limit != null && limit == 10))
+            {
+                depthSuffix = "@depth10";
             }
             for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
             {
                 Map<String, Object> market = this.market(this.safeString(symbolsNormalized, i, ""));
-                ((List<Object>)subscriptionArgs).add(((this.safeStringLower(market, "id", "") + "@depth") + this.numberToString(limitResolved)));
+                ((List<Object>)subscriptionArgs).add((this.safeStringLower(market, "id", "") + depthSuffix));
                 messageHashes.add(("orderbook:" + this.safeString(market, "symbol", "")));
             }
             io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watchMultiple((String) (url), messageHashes, this.extend(request, this.omit(paramsCallerMethodName, "callerMethodName")), messageHashes, null)).join();
@@ -1252,15 +1255,18 @@ public class Aster extends io.github.ccxt.exchanges.Aster
                 put( "params", subscriptionArgs );
             }};
             Double limit = this.safeNumber(paramsOmitted, "limit", (Object) null);
-            Object limitResolved = 20;
-            if ((limit != null && limit == 5) || (limit != null && limit == 10) || (limit != null && limit == 20))
+            String depthSuffix = "@depth20";
+            if ((limit != null && limit == 5))
             {
-                limitResolved = limit;
+                depthSuffix = "@depth5";
+            } else if ((limit != null && limit == 10))
+            {
+                depthSuffix = "@depth10";
             }
             for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
             {
                 Map<String, Object> market = this.market(this.safeString(symbolsNormalized, i, ""));
-                ((List<Object>)subscriptionArgs).add(((this.safeStringLower(market, "id", "") + "@depth") + this.numberToString(limitResolved)));
+                ((List<Object>)subscriptionArgs).add((this.safeStringLower(market, "id", "") + depthSuffix));
                 messageHashes.add(("unsubscribe:orderbook:" + this.safeString(market, "symbol", "")));
             }
             return (this.watchMultiple((String) (url), messageHashes, this.extend(request, this.omit(paramsOmitted, "limit")), messageHashes, null)).join();
@@ -2394,7 +2400,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         }
         io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) this.orders;
         Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (message), ((Map<String, Object>) (switch ((Object) (market)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); })));
-        String symbol = (String) ((Map<String, Object>)market).get("symbol");
+        String symbol = this.safeString(market, "symbol", "");
         cache.append(parsed);
         List<Object> messageHashes = (List<Object>) this.findMessageHashes(client, messageHash);
         if (!this.isEmpty(messageHashes))

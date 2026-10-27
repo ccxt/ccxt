@@ -38,7 +38,7 @@ public class Ndax extends NdaxApi
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "ndax" );
@@ -959,6 +959,8 @@ public class Ndax extends NdaxApi
             put( "datetime", null );
             put( "nonce", null );
         }};
+        List<Object> bids = new ArrayList<Object>(Arrays.asList());
+        List<Object> asks = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < (switch ((Object)(orderbook)) { case null -> 0; case List<?> j39v1 -> j39v1.size(); case String j39v2 -> j39v2.length(); case Object j39v3 -> j39v3.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v3) : 0; }); i++)
         {
             Object level = this.safeValue(orderbook, i);
@@ -974,11 +976,16 @@ public class Ndax extends NdaxApi
             }
             List<Object> bidask = (List<Object>) this.parseOrderBookBidAsk(level, java.util.Objects.requireNonNullElse(priceKey, 6), java.util.Objects.requireNonNullElse(amountKey, 8), 2);
             Long levelSide = this.safeInteger(level, 9);
-            Object side = (((!java.util.Objects.equals(levelSide, null) && (levelSide == null || levelSide != 0)))) ? java.util.Objects.requireNonNullElse(asksKey, "asks") : java.util.Objects.requireNonNullElse(bidsKey, "bids");
-            ((List<Object>)(result == null || side == null ? null : result.get(side))).add(bidask);
+            if (!java.util.Objects.equals(levelSide, null) && (levelSide == null || levelSide != 0))
+            {
+                ((List<Object>)asks).add(bidask);
+            } else
+            {
+                ((List<Object>)bids).add(bidask);
+            }
         }
-        result.put("bids", this.sortBy(result.get("bids"), 0, true));
-        result.put("asks", this.sortBy(result.get("asks"), 0));
+        result.put("bids", this.sortBy(bids, 0, true));
+        result.put("asks", this.sortBy(asks, 0));
         result.put("timestamp", latestTimestamp);
         result.put("datetime", this.iso8601(latestTimestamp));
         result.put("nonce", nonce);

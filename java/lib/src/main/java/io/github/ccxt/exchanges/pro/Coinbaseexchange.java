@@ -31,7 +31,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "has", new HashMap<String, Object>() {{
@@ -594,13 +594,12 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
             Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) (message), (Map<String, Object>) null);
             String type = "myTrades";
             String messageHash = ((type + ":") + marketId);
-            io.github.ccxt.ws.ArrayCache tradesArray = (io.github.ccxt.ws.ArrayCache) this.myTrades;
-            if (java.util.Objects.equals(tradesArray, null))
+            if (java.util.Objects.equals(this.myTrades, null))
             {
                 Long limit = this.safeInteger(this.options, "myTradesLimit", 1000);
-                tradesArray = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
-                this.myTrades = tradesArray;
+                this.myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
             }
+            io.github.ccxt.ws.ArrayCache tradesArray = (io.github.ccxt.ws.ArrayCache) this.myTrades;
             tradesArray.append(trade);
             client.resolve(tradesArray, messageHash);
         }
@@ -662,11 +661,12 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
         Object parsed = super.parseTrade((Object) (trade), (Map<String, Object>) null);
         String feeRate = null;
         Boolean isMaker = false;
-        if (trade.containsKey("maker_fee_rate"))
+        String makerFeeRate = this.safeString(trade, "maker_fee_rate");
+        if (!java.util.Objects.equals(makerFeeRate, null))
         {
             isMaker = true;
             Helpers.addElementToObject(parsed, "takerOrMaker", "maker");
-            feeRate = this.safeString(trade, "maker_fee_rate");
+            feeRate = makerFeeRate;
         } else
         {
             Helpers.addElementToObject(parsed, "takerOrMaker", "taker");
@@ -987,7 +987,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
             {
                 this.tickers.put(symbol, ticker);
             }
-            String messageHash = ("ticker:" + symbol);
+            String messageHash = ("ticker:" + this.safeString(ticker, "symbol", ""));
             String idMessageHash = ("ticker:" + marketId);
             client.resolve(ticker, messageHash);
             client.resolve(ticker, idMessageHash);

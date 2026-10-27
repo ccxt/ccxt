@@ -31,7 +31,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "has", new HashMap<String, Object>() {{
@@ -284,7 +284,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
             }
             for (var i = 0; i < ((List<?>)trades).size(); i++)
             {
-                Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) ((trades == null || i < 0 || i >= trades.size() ? null : trades.get(i))), market);
+                Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) (this.safeValue(trades, i)), market);
                 stored.append(trade);
             }
             String messageHash = ("trades:" + symbol);
@@ -668,7 +668,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
             Object marketIds = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
             {
-                String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
+                String symbol = this.safeString(symbolsNormalized, i, "");
                 String messageHash = ((itemHashName + ":") + symbol);
                 ((List<Object>)messageHashes).add(messageHash);
                 Map<String, Object> market = this.market(symbol);
@@ -1086,7 +1086,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
             Integer eventsLength = ((List<?>)events).size();
             for (var i = 0; i < ((List<?>)events).size(); i++)
             {
-                Object eventVar = (events == null || i < 0 || i >= events.size() ? null : events.get(i));
+                Object eventVar = this.safeValue(events, i);
                 String eventType = this.safeString(eventVar, "type");
                 String side = this.safeString(eventVar, "side");
                 Boolean isOrderBook = (java.util.Objects.equals(eventType, "change")) && (!java.util.Objects.equals(side, null)) && this.inArray(side, new ArrayList<Object>(Arrays.asList("ask", "bid")));
@@ -1100,7 +1100,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
                     ((List<Object>)orderBookItems).add(eventVar);
                 } else if (java.util.Objects.equals(eventType, "trade"))
                 {
-                    ((List<Object>)collectedEventsOfTrades).add((events == null || i < 0 || i >= events.size() ? null : events.get(i)));
+                    ((List<Object>)collectedEventsOfTrades).add(eventVar);
                 }
             }
             Integer lengthBa = ((List<?>)bidaskItems).size();

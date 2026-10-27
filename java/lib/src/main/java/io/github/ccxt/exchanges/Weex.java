@@ -50,7 +50,7 @@ public class Weex extends WeexApi
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "weex" );
@@ -1476,7 +1476,7 @@ public class Weex extends WeexApi
             List<Object> results = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)response).size(); i++)
             {
-                Object rawTicker = (response == null || i < 0 || i >= response.size() ? null : response.get(i));
+                Object rawTicker = this.safeValue(response, i);
                 // book tickers have no markPrice, so resolve the market from the endpoint type to disambiguate the spot/swap market id in parseTicker
                 String marketId = this.safeString(rawTicker, "symbol");
                 Map<String, Object> tickerMarket = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, marketType);
@@ -1939,27 +1939,27 @@ public class Weex extends WeexApi
                 Long now = this.milliseconds();
                 if ((java.util.Objects.equals(since, null)) || (java.util.Objects.equals(until, null)))
                 {
-                    Long duration = (((long) this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"))) * 1000L);
+                    Long duration = this.parseToInt((((long) this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"))) * 1000L));
                     // the history endpoint returns at most maxHistoricalLimit candles and serves the
                     // newest ones inside the window, so a wider window would silently drop the candles
                     // right after since, keep the window at what one call can return
-                    Object historyLimit = maxHistoricalLimit;
+                    Long historyLimit = this.parseToInt(maxHistoricalLimit);
                     if (!java.util.Objects.equals(limit, null) && !java.util.Objects.equals(limit, null) && (limit != 0))
                     {
-                        historyLimit = (limit == null || maxHistoricalLimit == null ? null : (((Number) limit).doubleValue() < ((Number) maxHistoricalLimit).doubleValue() ? (Object) (limit) : (Object) (maxHistoricalLimit)));
+                        historyLimit = this.parseToInt((limit == null || maxHistoricalLimit == null ? null : (((Number) limit).doubleValue() < ((Number) maxHistoricalLimit).doubleValue() ? (Object) (limit) : (Object) (maxHistoricalLimit))));
                     }
-                    Object timeDelta = ((((Number) historyLimit).longValue()) * duration);
+                    Long timeDelta = this.parseToInt((historyLimit * duration));
                     if ((java.util.Objects.equals(since, null)) && (java.util.Objects.equals(until, null)))
                     {
                         endTime = now;
-                        startTime = (now - (((Number) timeDelta).longValue()));
+                        startTime = (now - timeDelta);
                     } else if (java.util.Objects.equals(since, null))
                     {
                         if (java.util.Objects.equals(until, null))
                         {
                             throw new ArgumentsRequired((this.id + " fetchOHLCV() requires a since or until argument")) ;
                         }
-                        startTime = (until - (((Number) timeDelta).longValue()));
+                        startTime = (until - timeDelta);
                     } else
                     {
                         // this.sum, a bare + is string concatenation in the php port

@@ -35,7 +35,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "has", new HashMap<String, Object>() {{
@@ -2287,13 +2287,13 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             } else if (((String)messageHash).indexOf("candles") >= 0)
             {
                 List<Object> splitHashes = new ArrayList<Object>(Arrays.asList(((String)messageHash).split(java.util.regex.Pattern.quote(":"))));
-                String candlesSymbol = this.safeString(splitHashes, 2);
+                String candlesSymbol = this.safeString(splitHashes, 2, "");
                 Integer splitHashesLength = ((List<?>)splitHashes).size(); // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
                 if ((splitHashesLength != null && splitHashesLength > 4))
                 {
-                    candlesSymbol = (candlesSymbol + (":" + this.safeString(splitHashes, 3)));
+                    candlesSymbol = ((candlesSymbol + ":") + this.safeString(splitHashes, 3, ""));
                 }
-                if ((!java.util.Objects.equals(candlesSymbol, null)) && (((Map<?, ?>)this.ohlcvs).containsKey(candlesSymbol)))
+                if (((Map<?, ?>)this.ohlcvs).containsKey(candlesSymbol))
                 {
                     ((Map<String,Object>)this.ohlcvs).remove((String)candlesSymbol);
                 }

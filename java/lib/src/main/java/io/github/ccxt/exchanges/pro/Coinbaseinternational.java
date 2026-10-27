@@ -37,7 +37,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "has", new HashMap<String, Object>() {{
@@ -495,7 +495,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             Integer symbolsLength = ((List<?>)symbolsResolved).size();
             for (var i = 0; (symbolsLength != null && i < symbolsLength); i++)
             {
-                channels.add(((("user.orders." + this.safeString(this.market((symbolsResolved == null || i < 0 || i >= symbolsResolved.size() ? null : symbolsResolved.get(i))), "id", "")) + ".") + interval));
+                channels.add(((("user.orders." + this.safeString(this.market(this.safeString(symbolsResolved, i, "")), "id", "")) + ".") + interval));
             }
             List<Object> orders = (List<Object>) (this.subscribe(channels, channels, true, paramsInterval)).join();
             Long limitResolved = limit;
@@ -607,7 +607,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             {
                 for (var i = 0; (symbolsLength != null && i < symbolsLength); i++)
                 {
-                    channels.add(((("user.changes." + this.safeString(this.market((symbolsResolved == null || i < 0 || i >= symbolsResolved.size() ? null : symbolsResolved.get(i))), "id", "")) + ".") + interval));
+                    channels.add(((("user.changes." + this.safeString(this.market(this.safeString(symbolsResolved, i, "")), "id", "")) + ".") + interval));
                 }
             } else
             {
@@ -658,7 +658,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             {
                 for (var i = 0; (symbolsLength != null && i < symbolsLength); i++)
                 {
-                    channels.add(((("user.changes." + this.safeString(this.market((symbolsResolved == null || i < 0 || i >= symbolsResolved.size() ? null : symbolsResolved.get(i))), "id", "")) + ".") + interval));
+                    channels.add(((("user.changes." + this.safeString(this.market(this.safeString(symbolsResolved, i, "")), "id", "")) + ".") + interval));
                 }
             } else
             {
@@ -881,7 +881,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             Integer symbolsLength = ((List<?>)symbolsResolved).size();
             for (var i = 0; (symbolsLength != null && i < symbolsLength); i++)
             {
-                Map<String, Object> market = this.market((symbolsResolved == null || i < 0 || i >= symbolsResolved.size() ? null : symbolsResolved.get(i)));
+                Map<String, Object> market = this.market(this.safeString(symbolsResolved, i, ""));
                 channels.add(((("ticker." + this.safeString(market, "id", "")) + ".") + interval));
             }
             Object ticker = (this.subscribe(channels, channels, isPrivate, paramsInterval)).join();
@@ -929,7 +929,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             Integer symbolsLength = ((List<?>)symbolsResolved).size();
             for (var i = 0; (symbolsLength != null && i < symbolsLength); i++)
             {
-                channels.add(((("ticker." + this.safeString(this.market((symbolsResolved == null || i < 0 || i >= symbolsResolved.size() ? null : symbolsResolved.get(i))), "id", "")) + ".") + interval));
+                channels.add(((("ticker." + this.safeString(this.market(this.safeString(symbolsResolved, i, "")), "id", "")) + ".") + interval));
             }
             return (this.unSubscribe(channels, java.util.Objects.equals(interval, "raw"), paramsInterval)).join();
         });
@@ -1052,7 +1052,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             Integer symbolsLength = ((List<?>)symbolsResolved).size();
             for (var i = 0; (symbolsLength != null && i < symbolsLength); i++)
             {
-                Map<String, Object> market = this.market((symbolsResolved == null || i < 0 || i >= symbolsResolved.size() ? null : symbolsResolved.get(i)));
+                Map<String, Object> market = this.market(this.safeString(symbolsResolved, i, ""));
                 channels.add(("quote." + this.safeString(market, "id", "")));
             }
             Object ticker = (this.subscribe(channels, channels, false, paramsResolved)).join();
@@ -1093,7 +1093,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             Integer symbolsLength = ((List<?>)symbolsResolved).size();
             for (var i = 0; (symbolsLength != null && i < symbolsLength); i++)
             {
-                channels.add(("quote." + this.safeString(this.market((symbolsResolved == null || i < 0 || i >= symbolsResolved.size() ? null : symbolsResolved.get(i))), "id", "")));
+                channels.add(("quote." + this.safeString(this.market(this.safeString(symbolsResolved, i, "")), "id", "")));
             }
             return (this.unSubscribe(channels, false, paramsResolved)).join();
         });
@@ -1368,7 +1368,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             Integer symbolsLength = ((List<?>)symbolsResolved).size();
             for (var i = 0; (symbolsLength != null && i < symbolsLength); i++)
             {
-                Map<String, Object> market = this.market((symbolsResolved == null || i < 0 || i >= symbolsResolved.size() ? null : symbolsResolved.get(i)));
+                Map<String, Object> market = this.market(this.safeString(symbolsResolved, i, ""));
                 channels.add(((("trades." + this.safeString(market, "id", "")) + ".") + interval));
             }
             List<Object> trades = (List<Object>) (this.subscribe(channels, channels, isPrivate, paramsInterval)).join();
@@ -1435,7 +1435,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             Integer symbolsLength = ((List<?>)symbolsResolved).size();
             for (var i = 0; (symbolsLength != null && i < symbolsLength); i++)
             {
-                channels.add(((("trades." + this.safeString(this.market((symbolsResolved == null || i < 0 || i >= symbolsResolved.size() ? null : symbolsResolved.get(i))), "id", "")) + ".") + interval));
+                channels.add(((("trades." + this.safeString(this.market(this.safeString(symbolsResolved, i, "")), "id", "")) + ".") + interval));
             }
             return (this.unSubscribe(channels, java.util.Objects.equals(interval, "raw"), paramsInterval)).join();
         });
@@ -1540,7 +1540,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             Integer symbolsLength = ((List<?>)symbols).size();
             for (var i = 0; (symbolsLength != null && i < symbolsLength); i++)
             {
-                Map<String, Object> market = this.market((symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i)));
+                Map<String, Object> market = this.market(this.safeString(symbols, i, ""));
                 channels.add(((("book." + this.safeString(market, "id", "")) + ".") + descriptor));
             }
             Object orderbook = (this.subscribe(channels, channels, isPrivate, paramsChannel)).join();
@@ -1615,7 +1615,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             Integer symbolsLength = ((List<?>)symbols).size();
             for (var i = 0; (symbolsLength != null && i < symbolsLength); i++)
             {
-                channels.add(((("book." + this.safeString(this.market((symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i))), "id", "")) + ".") + descriptor));
+                channels.add(((("book." + this.safeString(this.market(this.safeString(symbols, i, "")), "id", "")) + ".") + descriptor));
             }
             return (this.unSubscribe(channels, java.util.Objects.equals(interval, "raw"), paramsChannel)).join();
         });

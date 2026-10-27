@@ -34,7 +34,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "has", new HashMap<String, Object>() {{
@@ -905,7 +905,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         if (java.util.Objects.equals(type, "snapshot"))
         {
             Map<String, Object> book = (Map<String, Object>) this.safeDict2(message, "book", "orderbook_p", new HashMap<String, Object>() {{}});
-            Map<String, Object> snapshot = this.customParseOrderBook((Map<String, Object>) (book), symbol, timestamp, "bids", "asks", 0, 1, market);
+            Map<String, Object> snapshot = (Map<String, Object>) this.customParseOrderBook((Map<String, Object>) (book), symbol, timestamp, "bids", "asks", 0, 1, market);
             Helpers.addElementToObject(snapshot, "nonce", nonce);
             // reset the existing orderbook instead of replacing it: a consumer
             // holds a reference to the old object and would never see updates
@@ -974,7 +974,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             Pair<String, Map<String, Object>> typeparamsTypeVariable = this.handleMarketTypeAndParams("watchMyTrades", market, this.extend(parameters, settleRequest), (String) null);
             var type = ((List<Object>) typeparamsTypeVariable).get(0);
             Map<String, Object> paramsType = typeparamsTypeVariable.second();
-            if (java.util.Objects.equals(symbolResolved, null))
+            if (java.util.Objects.equals(symbol, null))
             {
                 String settle = this.safeString(paramsType, "settle");
                 if (java.util.Objects.equals(settle, "USDT"))
@@ -1174,7 +1174,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             var type = ((List<Object>) typeparamsTypeVariable).get(0);
             Map<String, Object> paramsType = typeparamsTypeVariable.second();
             Boolean isUSDTSettled = java.util.Objects.equals(this.safeString(paramsType, "settle"), "USDT");
-            if (java.util.Objects.equals(symbolResolved, null))
+            if (java.util.Objects.equals(symbol, null))
             {
                 if (Boolean.TRUE.equals(isUSDTSettled))
                 {

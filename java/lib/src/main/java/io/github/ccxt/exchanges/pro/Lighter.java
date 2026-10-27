@@ -33,7 +33,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "has", new HashMap<String, Object>() {{
@@ -225,7 +225,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "order_book", new HashMap<String, Object>() {{}});
         String channel = this.safeString(message, "channel", "");
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)channel).split(java.util.regex.Pattern.quote(":"))));
-        String marketId = (String) (parts == null || 1 >= parts.size() ? null : parts.get(1));
+        String marketId = this.safeString(parts, 1);
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = (String) market.get("symbol");
         Long timestamp = this.safeInteger(message, "timestamp");
@@ -729,7 +729,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         List<Object> data = (List<Object>) this.safeList(message, "trades", new ArrayList<Object>(Arrays.asList()));
         String channel = this.safeString(message, "channel", "");
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)channel).split(java.util.regex.Pattern.quote(":"))));
-        String marketId = (String) (parts == null || 1 >= parts.size() ? null : parts.get(1));
+        String marketId = this.safeString(parts, 1);
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = (String) market.get("symbol");
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
@@ -946,7 +946,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         //
         String channel = this.safeString(message, "channel", "");
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)channel).split(java.util.regex.Pattern.quote(":"))));
-        String accountIndex = (String) (parts == null || 1 >= parts.size() ? null : parts.get(1));
+        String accountIndex = this.safeString(parts, 1);
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "trades", new HashMap<String, Object>() {{}});
         List<String> marketIds = new ArrayList<String>(data.keySet());
         Integer idsLength = ((List<?>)marketIds).size();
@@ -1164,7 +1164,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         List<Object> data = (List<Object>) this.safeList(message, "liquidation_trades", new ArrayList<Object>(Arrays.asList()));
         String channel = this.safeString(message, "channel", "");
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)channel).split(java.util.regex.Pattern.quote(":"))));
-        String marketId = (String) (parts == null || 1 >= parts.size() ? null : parts.get(1));
+        String marketId = this.safeString(parts, 1);
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = (String) market.get("symbol");
         Object stored = this.safeValue(this.liquidations, symbol);

@@ -36,7 +36,7 @@ public class Opinion extends OpinionApi
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "opinion" );
@@ -381,9 +381,9 @@ public class Opinion extends OpinionApi
         Object resolvedOutcome = null;
         for (var i = 0; i < ((List<?>)outcomeLabels).size(); i++)
         {
-            String label = (outcomeLabels == null || i < 0 || i >= outcomeLabels.size() ? null : outcomeLabels.get(i));
-            String tokenId = (outcomeTokenIds == null || i < 0 || i >= outcomeTokenIds.size() ? null : outcomeTokenIds.get(i));
-            Object outcomeHandle = this.slugToOutcomeSymbol(effectiveEventSlug, (String) (slug), label);
+            String label = this.safeString(outcomeLabels, i);
+            String tokenId = this.safeString(outcomeTokenIds, i);
+            Object outcomeHandle = this.slugToOutcomeSymbol(effectiveEventSlug, (String) (slug), (String) (label));
             Boolean winner = null;
             Object settleFraction = null;
             if (Boolean.TRUE.equals(hasResult))
@@ -901,8 +901,8 @@ public class Opinion extends OpinionApi
             {
                 Object outcomeObj = this.outcome((String) ((outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i))));
                 Long priceIndex = (((long) i) * 2L);
-                Object priceResponse = Helpers.GetValue(responses, priceIndex);
-                Object bookResponse = Helpers.GetValue(responses, this.sum(priceIndex, 1));
+                Object priceResponse = this.safeValue(responses, priceIndex);
+                Object bookResponse = this.safeValue(responses, this.sum(priceIndex, 1));
                 Map<String, Object> response = new HashMap<String, Object>() {{
                     put( "price", priceResponse );
                     put( "book", bookResponse );
@@ -1166,7 +1166,7 @@ public class Opinion extends OpinionApi
         }};
         Object encoded = this.ethEncodeStructuredData(domain, messageTypes, order);
         Map<String, Object> sig = this.signMessage(encoded, (String) (this.privateKey));
-        return ((("0x" + this.remove0xPrefix(sig.get("r"))) + this.remove0xPrefix(sig.get("s"))) + this.intToBase16(sig.get("v")));
+        return ((("0x" + this.remove0xPrefix(this.safeString(sig, "r"))) + this.remove0xPrefix(this.safeString(sig, "s"))) + this.intToBase16(this.safeInteger(sig, "v")));
     }
 
     public Map<String, Object> opinionOrderRawAmounts(Boolean isMarket, String side, Object amount, Object price, Object decimals)
@@ -1904,7 +1904,7 @@ public class Opinion extends OpinionApi
         }};
         Object encoded = this.ethEncodeStructuredData(domain, messageTypes, messageData);
         Map<String, Object> sig = this.signMessage(encoded, (String) (this.privateKey));
-        return ((("0x" + this.remove0xPrefix(sig.get("r"))) + this.remove0xPrefix(sig.get("s"))) + this.intToBase16(sig.get("v")));
+        return ((("0x" + this.remove0xPrefix(this.safeString(sig, "r"))) + this.remove0xPrefix(this.safeString(sig, "s"))) + this.intToBase16(this.safeInteger(sig, "v")));
     }
 
     /**

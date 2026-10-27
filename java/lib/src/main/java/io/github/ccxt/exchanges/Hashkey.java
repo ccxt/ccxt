@@ -50,7 +50,7 @@ public class Hashkey extends HashkeyApi
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "hashkey" );
@@ -1199,7 +1199,7 @@ public class Hashkey extends HashkeyApi
             isSpot = false;
             isSwap = true;
             baseId = this.safeString(market, "underlying");
-            suffix = (":" + settleId);
+            suffix = (":" + this.safeString(market, "marginToken", ""));
         }
         String base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
         if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
@@ -4564,14 +4564,13 @@ public class Hashkey extends HashkeyApi
             {
                 throw new BadSymbol((this.id + " modifyMarginHelper() supports swap markets only")) ;
             }
-            List<Object> sideParamparamsSideVariable = (List<Object>) this.handleParamString(parameters, "side", (String) null);
-            String sideParam = (String) ((List<Object>) sideParamparamsSideVariable).get(0);
-            Map<String, Object> paramsSide = (Map<String, Object>) ((List<Object>) sideParamparamsSideVariable).get(1);
+            String sideParam = this.safeString(parameters, "side");
+            Map<String, Object> paramsSide = this.omit(parameters, "side");
             if (java.util.Objects.equals(sideParam, null))
             {
                 throw new ArgumentsRequired((((this.id + " ") + type) + "Margin() requires a params[\"side\"] argument, either \"long\" or \"short\"")) ;
             }
-            String side = ((String)sideParam).toUpperCase();
+            String side = sideParam.toUpperCase();
             if ((!java.util.Objects.equals(side, "LONG")) && (!java.util.Objects.equals(side, "SHORT")))
             {
                 throw new ArgumentsRequired((((this.id + " ") + type) + "Margin() params[\"side\"] must be either long or short")) ;

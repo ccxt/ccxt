@@ -40,7 +40,7 @@ public class Lbank extends LbankApi
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "lbank" );
@@ -3482,8 +3482,10 @@ public class Lbank extends LbankApi
                             result.put(code, this.depositWithdrawFee(new ArrayList<Object>(Arrays.asList(fee))));
                         } else
                         {
-                            Object resultCodeInfo = Helpers.GetValue((result == null || code == null ? null : result.get(code)), "info");
-                            ((List<Object>)resultCodeInfo).add(fee);
+                            List<Object> infoList = (List<Object>) this.arrayConcat(resultValue.get("info"), new ArrayList<Object>(Arrays.asList(fee)));
+                            result.put(code, this.extend(resultValue, new HashMap<String, Object>() {{
+    put( "info", infoList );
+}}));
                         }
                         String networkCode = this.networkIdToCode(this.safeString(fee, "chain"), code);
                         if (!java.util.Objects.equals(networkCode, null))

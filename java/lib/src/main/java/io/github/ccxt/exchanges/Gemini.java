@@ -37,7 +37,7 @@ public class Gemini extends GeminiApi
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "gemini" );

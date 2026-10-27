@@ -32,7 +32,7 @@ public class Bit2c extends Bit2cApi
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "bit2c" );

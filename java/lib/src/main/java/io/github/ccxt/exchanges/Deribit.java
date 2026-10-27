@@ -49,7 +49,7 @@ public class Deribit extends DeribitApi
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "deribit" );
@@ -4023,13 +4023,21 @@ public class Deribit extends DeribitApi
             Long month = ((((30L * 24L) * 60L) * 60L) * 1000L);
             Long defaultSince = (now - month);
             Long sinceResolved = (((java.util.Objects.equals(since, null)))) ? defaultSince : since;
-            Long time = (((java.util.Objects.equals(since, null)))) ? now : this.parseToInt((since + month));
+            Long time = now;
+            if (!java.util.Objects.equals(since, null))
+            {
+                time = this.parseToInt((since + month));
+            }
             Map<String, Object> request = new HashMap<String, Object>();
             request.put("instrument_name", market.get("id"));
             request.put("start_timestamp", (sinceResolved - 1L));
             Long until = (Long) this.safeInteger2(paramsPaginate, "until", "end_timestamp");
             Map<String, Object> paramsUntil = (((!java.util.Objects.equals(until, null)))) ? this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("until"))) : paramsPaginate;
-            Long endTimestamp = (((!java.util.Objects.equals(until, null)))) ? until : time;
+            Long endTimestamp = time;
+            if (!java.util.Objects.equals(until, null))
+            {
+                endTimestamp = this.parseToInt(until);
+            }
             request.put("end_timestamp", endTimestamp);
             Boolean isPaginationCall = (Boolean) this.safeBool(paramsUntil, "isDeribitPaginationCall", false);
             Map<String, Object> paramsOmitted = paramsUntil;

@@ -38,7 +38,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "has", new HashMap<String, Object>() {{
@@ -1052,7 +1052,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         {
             Object rawLiquidation = (rawLiquidations == null || i < 0 || i >= rawLiquidations.size() ? null : rawLiquidations.get(i));
             Map<String, Object> liquidation = (Map<String, Object>) this.parseWsLiquidation((Map<String, Object>) (rawLiquidation), (Map<String, Object>) null);
-            String symbol = this.safeString(liquidation, "symbol");
+            String symbol = this.safeString(liquidation, "symbol", "");
             if (java.util.Objects.equals(this.liquidations, null))
             {
                 Long limit = this.safeInteger(this.options, "liquidationsLimit", 1000);
@@ -1173,7 +1173,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 return;
             }
             Map<String, Object> liquidation = (Map<String, Object>) this.parseWsMyLiquidation((Map<String, Object>) (rawLiquidation), (Map<String, Object>) null);
-            String symbol = this.safeString(liquidation, "symbol");
+            String symbol = this.safeString(liquidation, "symbol", "");
             if (java.util.Objects.equals(this.liquidations, null))
             {
                 Long limit = this.safeInteger(this.options, "liquidationsLimit", 1000);
@@ -1750,10 +1750,8 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         //
         List<Object> asks = (List<Object>) this.safeList(message, "asks", new ArrayList<Object>(Arrays.asList()));
         List<Object> bids = (List<Object>) this.safeList(message, "bids", new ArrayList<Object>(Arrays.asList()));
-        io.github.ccxt.ws.OrderBookSide storedAsks = (io.github.ccxt.ws.OrderBookSide) (orderbook == null ? null : orderbook.get("asks"));
-        io.github.ccxt.ws.OrderBookSide storedBids = (io.github.ccxt.ws.OrderBookSide) (orderbook == null ? null : orderbook.get("bids"));
-        this.handleDeltas(storedAsks, asks);
-        this.handleDeltas(storedBids, bids);
+        this.handleDeltas((orderbook == null ? null : orderbook.get("asks")), asks);
+        this.handleDeltas((orderbook == null ? null : orderbook.get("bids")), bids);
         String marketId = this.safeString(message, "instId");
         String symbol = this.safeSymbol(marketId, market, (String) null, (String) null);
         Long seqId = this.safeInteger(message, "seqId");
@@ -2391,7 +2389,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         {
             Object rawPosition = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
             Map<String, Object> position = (Map<String, Object>) this.parsePosition((Map<String, Object>) (rawPosition), (Map<String, Object>) null);
-            if (Helpers.isEqual(position.get("contracts"), 0) && java.util.Objects.equals(this.safeString(rawPosition, "posSide"), "net"))
+            if (Helpers.isEqual(this.safeNumber(position, "contracts", (Object) null), 0) && java.util.Objects.equals(this.safeString(rawPosition, "posSide"), "net"))
             {
                 position.put("side", "long");
                 Object shortPosition = this.clone(position);
@@ -2569,7 +2567,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             {
                 Object order = (parsed == null || i < 0 || i >= parsed.size() ? null : parsed.get(i));
                 stored.append(order);
-                String symbol = (String) ((Map<String, Object>)order).get("symbol");
+                String symbol = this.safeString(order, "symbol", "");
                 Map<String, Object> market = this.market(symbol);
                 ((List<Object>)marketIds).add(market.get("id"));
             }

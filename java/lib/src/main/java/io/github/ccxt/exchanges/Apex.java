@@ -39,7 +39,7 @@ public class Apex extends ApexApi
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "apex" );
@@ -1699,9 +1699,7 @@ public class Apex extends ApexApi
             Map<String, Object> configResponse = (this.publicGetV3Symbols(parameters)).join();
             Map<String, Object> configData = (Map<String, Object>) this.safeDict(configResponse, "data", new HashMap<String, Object>() {{}});
             Map<String, Object> contractConfig = (Map<String, Object>) this.safeDict(configData, "contractConfig", new HashMap<String, Object>() {{}});
-            List<Object> contractAssets = (List<Object>) this.safeList(contractConfig, "assets", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> spotConfig = (Map<String, Object>) this.safeDict(configData, "spotConfig", new HashMap<String, Object>() {{}});
-            List<Object> spotAssets = (List<Object>) this.safeList(spotConfig, "assets", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> globalConfig = (Map<String, Object>) this.safeDict(spotConfig, "global", new HashMap<String, Object>() {{}});
             String receiverAddress = this.safeString(globalConfig, "contractAssetPoolEthAddress", "");
             String receiverZkAccountId = this.safeString(globalConfig, "contractAssetPoolZkAccountId", "");
@@ -1723,16 +1721,18 @@ public class Apex extends ApexApi
             String accountId = this.safeString(accountData, "id", "");
             Map<String, Object> currency = new HashMap<String, Object>() {{}};
             Boolean isContract = java.util.Objects.equals(((String)fromAccount).toLowerCase(), "contract");
-            List<Object> assets = spotAssets;
+            List<Object> assets = (List<Object>) this.safeList(spotConfig, "assets", new ArrayList<Object>(Arrays.asList()));
             if (Boolean.TRUE.equals(isContract))
             {
-                assets = contractAssets;
+                assets = (List<Object>) this.safeList(contractConfig, "assets", new ArrayList<Object>(Arrays.asList()));
             }
-            for (var i = 0; i < ((List<?>)assets).size(); i++)
+            Integer numAssets = ((List<?>)assets).size();
+            for (var i = 0; (numAssets != null && i < numAssets); i++)
             {
-                if (java.util.Objects.equals(this.safeString(this.safeDict(assets, i, new HashMap<String, Object>() {{}}), "token", ""), code))
+                Map<String, Object> asset = (Map<String, Object>) this.safeDict(assets, i, new HashMap<String, Object>() {{}});
+                if (java.util.Objects.equals(this.safeString(asset, "token", ""), code))
                 {
-                    currency = (Map<String, Object>) this.safeDict(assets, i, new HashMap<String, Object>() {{}});
+                    currency = asset;
                 }
             }
             String tokenId = this.safeString(currency, "tokenId", "");

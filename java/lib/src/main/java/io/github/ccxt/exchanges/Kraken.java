@@ -40,7 +40,7 @@ public class Kraken extends KrakenApi
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "kraken" );
@@ -4407,7 +4407,7 @@ public class Kraken extends KrakenApi
         {
             return null;
         }
-        if (java.util.Objects.equals(Helpers.GetValue(body, 0), "{"))
+        if (java.util.Objects.equals(this.safeString(body, 0), "{"))
         {
             if (!(response instanceof String))
             {

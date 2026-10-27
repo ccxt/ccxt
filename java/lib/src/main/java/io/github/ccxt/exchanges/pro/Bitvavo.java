@@ -35,7 +35,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "has", new HashMap<String, Object>() {{
@@ -1904,7 +1904,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         //
         String messageHash = this.safeString(message, "requestId");
         Map<String, Object> response = (Map<String, Object>) this.safeDict(message, "response", (Object) null);
-        Map<String, Object> fees = this.parseTradingFees(response, (Map<String, Object>) null);
+        Map<String, Object> fees = (Map<String, Object>) this.parseTradingFees(response, (Map<String, Object>) null);
         client.resolve(fees, messageHash);
     }
 

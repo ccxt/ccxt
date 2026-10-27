@@ -50,7 +50,7 @@ public class Digifinex extends DigifinexApi
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "digifinex" );
@@ -2156,8 +2156,8 @@ public class Digifinex extends DigifinexApi
                 }
                 String type = this.safeString(rawOrder, "type");
                 String side = this.safeString(rawOrder, "side");
-                Object amount = this.safeValue(rawOrder, "amount");
-                Object price = this.safeValue(rawOrder, "price");
+                Double amount = this.safeNumber(rawOrder, "amount", (Object) null);
+                Double price = this.safeNumber(rawOrder, "price", (Object) null);
                 Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
                 Object marginResult = this.handleMarginModeAndParams("createOrders", orderParams, (String) null);
                 String currentMarginMode = (String) ((List<Object>)marginResult).get(0);
@@ -2224,7 +2224,7 @@ public class Digifinex extends DigifinexApi
             {
                 Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(orders, i, (Object) null);
                 Map<String, Object> individualOrder = new HashMap<String, Object>() {{}};
-                individualOrder.put("order_id", this.safeValue(data, i));
+                individualOrder.put("order_id", this.safeString(data, i));
                 individualOrder.put("instrument_id", market.get("id"));
                 individualOrder.put("amount", this.safeNumber(rawOrder, "amount", (Object) null));
                 individualOrder.put("price", this.safeNumber(rawOrder, "price", (Object) null));
@@ -5325,7 +5325,7 @@ public class Digifinex extends DigifinexApi
                 Object depositWithdrawInfo = ((Map<String, Object>)depositWithdrawFee).get("info");
                 ((List<Object>)depositWithdrawInfo).add(entry);
                 String networkId = this.safeString(entry, "chain");
-                Object withdrawFee = this.safeValue(entry, "min_withdraw_fee");
+                Double withdrawFee = this.safeNumber(entry, "min_withdraw_fee", (Object) null);
                 Map<String, Object> withdrawResult = new HashMap<String, Object>();
                 withdrawResult.put("fee", withdrawFee);
                 withdrawResult.put("percentage", (((!java.util.Objects.equals(withdrawFee, null)))) ? false : null);

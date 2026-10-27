@@ -36,7 +36,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         Object superDescribe = super.describe();
         return this.deepExtend(superDescribe, this.describeData());

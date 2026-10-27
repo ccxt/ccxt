@@ -34,7 +34,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), this.describeData());
     }
@@ -178,7 +178,8 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             {
                 for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
                 {
-                    ((List<Object>)messageHashes).add(((messageHashPrefix + "::") + (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i))));
+                    String symbolId = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
+                    ((List<Object>)messageHashes).add(((messageHashPrefix + "::") + symbolId));
                 }
             } else
             {

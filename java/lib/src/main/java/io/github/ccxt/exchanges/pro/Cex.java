@@ -33,7 +33,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "has", new HashMap<String, Object>() {{
@@ -94,7 +94,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
 
             (this.authenticate(parameters)).join();
             String messageHash = this.requestId();
-            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
+            String url = this.safeString(this.urls.get("api"), "ws", "");
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "e", "get-balance" );
                 put( "data", new HashMap<String, Object>() {{}} );
@@ -186,8 +186,8 @@ public class Cex extends io.github.ccxt.exchanges.Cex
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            String symbolValue = (String) market.get("symbol");
-            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
+            String symbolValue = this.safeString(market, "symbol", "");
+            String url = this.safeString(this.urls.get("api"), "ws", "");
             String messageHash = "trades";
             String subscriptionHash = ("old:" + symbolValue);
             Client client = (Client)this.safeValue(this.clients, url);
@@ -208,8 +208,8 @@ public class Cex extends io.github.ccxt.exchanges.Cex
                     }
                 }
             }
-            String baseId = (String) market.get("base");
-            String quoteId = (String) market.get("quote");
+            String baseId = this.safeString(market, "base", "");
+            String quoteId = this.safeString(market, "quote", "");
             Map<String, Object> message = new HashMap<String, Object>() {{
                 put( "e", "subscribe" );
                 put( "rooms", new ArrayList<Object>(Arrays.asList(((("pair-" + baseId) + "-") + quoteId))) );
@@ -334,8 +334,8 @@ public class Cex extends io.github.ccxt.exchanges.Cex
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            String symbolValue = (String) market.get("symbol");
-            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
+            String symbolValue = this.safeString(market, "symbol", "");
+            String url = this.safeString(this.urls.get("api"), "ws", "");
             String messageHash = ("ticker:" + symbolValue);
             String method = this.safeString(parameters, "method", "private"); // default to private because the specified ticker is received quicker
             Map<String, Object> message = new HashMap<String, Object>() {{
@@ -378,7 +378,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
-            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
+            String url = this.safeString(this.urls.get("api"), "ws", "");
             String messageHash = "tickers";
             Map<String, Object> message = new HashMap<String, Object>() {{
                 put( "e", "subscribe" );
@@ -424,7 +424,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
+            String url = this.safeString(this.urls.get("api"), "ws", "");
             String messageHash = this.requestId();
             Map<String, Object> request = this.extend(new HashMap<String, Object>() {{
                 put( "e", "ticker" );
@@ -554,7 +554,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             (this.authenticate(new HashMap<String, Object>() {{}})).join();
-            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
+            String url = this.safeString(this.urls.get("api"), "ws", "");
             String messageHash = this.requestId();
             Map<String, Object> request = this.extend(new HashMap<String, Object>() {{
                 put( "e", "get-balance" );
@@ -590,7 +590,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             (this.authenticate(parameters)).join();
-            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
+            String url = this.safeString(this.urls.get("api"), "ws", "");
             Map<String, Object> market = this.market(symbol);
             String symbolValue = (String) market.get("symbol");
             String messageHash = ("orders:" + symbolValue);
@@ -638,9 +638,9 @@ public class Cex extends io.github.ccxt.exchanges.Cex
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             (this.authenticate(parameters)).join();
-            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
+            String url = this.safeString(this.urls.get("api"), "ws", "");
             Map<String, Object> market = this.market(symbol);
-            String symbolValue = (String) market.get("symbol");
+            String symbolValue = this.safeString(market, "symbol", "");
             String messageHash = ("myTrades:" + symbolValue);
             String subscriptionHash = ("orders:" + symbolValue);
             Map<String, Object> message = new HashMap<String, Object>() {{
@@ -1133,8 +1133,8 @@ public class Cex extends io.github.ccxt.exchanges.Cex
             }
             (this.authenticate(new HashMap<String, Object>() {{}})).join();
             Map<String, Object> market = this.market(symbol);
-            String symbolValue = (String) market.get("symbol");
-            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
+            String symbolValue = this.safeString(market, "symbol", "");
+            String url = this.safeString(this.urls.get("api"), "ws", "");
             String messageHash = ("orderbook:" + symbolValue);
             Object depth = (((java.util.Objects.equals(limit, null)))) ? 0 : limit;
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
@@ -1300,9 +1300,9 @@ public class Cex extends io.github.ccxt.exchanges.Cex
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            String symbolValue = (String) market.get("symbol");
+            String symbolValue = this.safeString(market, "symbol", "");
             String messageHash = ("ohlcv:" + symbolValue);
-            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
+            String url = this.safeString(this.urls.get("api"), "ws", "");
             String baseId = this.safeString(market, "baseId", "");
             String quoteId = this.safeString(market, "quoteId", "");
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1485,7 +1485,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
             Map<String, Object> data = this.extend(new HashMap<String, Object>() {{
                 put( "order_id", String.valueOf(id) );
             }}, parameters);
-            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
+            String url = this.safeString(this.urls.get("api"), "ws", "");
             String messageHash = this.requestId();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "e", "get-order" );
@@ -1524,7 +1524,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
             }
             (this.authenticate(new HashMap<String, Object>() {{}})).join();
             Map<String, Object> market = this.market(symbol);
-            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
+            String url = this.safeString(this.urls.get("api"), "ws", "");
             String messageHash = this.requestId();
             Map<String, Object> data = this.extend(new HashMap<String, Object>() {{
                 put( "pair", new ArrayList<Object>(Arrays.asList(market.get("baseId"), market.get("quoteId"))) );
@@ -1569,7 +1569,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
             }
             (this.authenticate(new HashMap<String, Object>() {{}})).join();
             Map<String, Object> market = this.market(symbol);
-            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
+            String url = this.safeString(this.urls.get("api"), "ws", "");
             String messageHash = this.requestId();
             HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
             mapLiteral6.put("pair", new ArrayList<Object>(Arrays.asList(market.get("baseId"), market.get("quoteId"))));
@@ -1629,7 +1629,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
             mapLiteral7.put("order_id", id);
             Map<String, Object> data = this.extend(mapLiteral7, parameters);
             String messageHash = this.requestId();
-            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
+            String url = this.safeString(this.urls.get("api"), "ws", "");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "e", "cancel-replace-order" );
                 put( "oid", messageHash );
@@ -1670,7 +1670,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
                 put( "order_id", id );
             }}, parameters);
             String messageHash = this.requestId();
-            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
+            String url = this.safeString(this.urls.get("api"), "ws", "");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "e", "cancel-order" );
                 put( "oid", messageHash );
@@ -1710,7 +1710,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
             Map<String, Object> data = this.extend(new HashMap<String, Object>() {{
                 put( "cancel-orders", ids );
             }}, parameters);
-            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
+            String url = this.safeString(this.urls.get("api"), "ws", "");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "e", "mass-cancel-place-orders" );
                 put( "oid", messageHash );
@@ -1856,7 +1856,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
 
         return BaseExchange.supplyAsync(() -> {
 
-            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
+            String url = this.safeString(this.urls.get("api"), "ws", "");
             Client client = this.client(url);
             String messageHash = "authenticated";
             Object future = client.reusableFuture("authenticated");

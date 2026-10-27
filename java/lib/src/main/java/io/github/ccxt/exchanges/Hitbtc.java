@@ -49,7 +49,7 @@ public class Hitbtc extends HitbtcApi
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "hitbtc" );
@@ -954,7 +954,7 @@ public class Hitbtc extends HitbtcApi
                     symbol = ((((base + "/") + quote) + ":") + settle);
                     if (Boolean.TRUE.equals(future))
                     {
-                        symbol = ((((((base + "/") + quote) + ":") + settle) + "-") + this.numberToString(expiry));
+                        symbol = ((((((base + "/") + quote) + ":") + settle) + "-") + this.safeString(market, "expiry", ""));
                         type = "future";
                     } else
                     {

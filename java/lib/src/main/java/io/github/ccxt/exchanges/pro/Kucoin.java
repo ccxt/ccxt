@@ -36,7 +36,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "has", new HashMap<String, Object>() {{
@@ -325,7 +325,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             Long now = this.milliseconds();
             Boolean expired = (refreshInterval == null || ((now - lastUpdate)) >= refreshInterval);
             String messageHash = "utaToken";
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("private");
+            String url = this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), "private", "");
             Client client = this.client(url);
             if ((java.util.Objects.equals(utaToken, null)) || Boolean.TRUE.equals(expired))
             {
@@ -590,7 +590,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                     String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
                     messageHashes.add(("ticker:" + symbol));
                     Map<String, Object> market = this.market(symbol);
-                    ((List<Object>)topics).add(((method + ":") + market.get("id")));
+                    ((List<Object>)topics).add(((method + ":") + this.safeString(market, "id", "")));
                 }
             }
             Object url = (this.negotiate(false, isFuturesMethod, new HashMap<String, Object>() {{}})).join();

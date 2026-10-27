@@ -49,7 +49,7 @@ public class Paradex extends ParadexApi
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "paradex" );
@@ -955,7 +955,11 @@ public class Paradex extends ParadexApi
         if (Boolean.TRUE.equals(isOption))
         {
             String optionTypeSuffix = (((java.util.Objects.equals(optionType, "CALL")))) ? "C" : "P";
-            String deliveryValue = ((((expiry != null && expiry == 0)))) ? "" : (this.yymmdd(expiry) + "-");
+            String deliveryValue = "";
+            if ((expiry == null || expiry != 0))
+            {
+                deliveryValue = (this.yymmdd(expiry) + "-");
+            }
             symbol = (((((symbol + "-") + deliveryValue) + strikePrice) + "-") + optionTypeSuffix);
             makerFee = this.parseNumber("0.0003");
         } else
@@ -2156,7 +2160,7 @@ public class Paradex extends ParadexApi
         Map<String, Object> market = this.market(symbol);
         Boolean reduceOnly = (Boolean) this.safeBool2(parameters, "reduceOnly", "reduce_only", (Object) null);
         String orderType = ((String)type).toUpperCase();
-        String orderSide = ((String)((String)side)).toUpperCase();
+        String orderSide = ((String)side).toUpperCase();
         Map<String, Object> request = new HashMap<String, Object>();
         request.put("market", market.get("id"));
         request.put("side", orderSide);

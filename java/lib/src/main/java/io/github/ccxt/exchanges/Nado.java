@@ -41,7 +41,7 @@ public class Nado extends NadoApi
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "nado" );
@@ -1173,7 +1173,7 @@ public class Nado extends NadoApi
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
-                ((List<Object>)productIds).add(this.parseToInt(market.get("id")));
+                ((List<Object>)productIds).add(this.parseToInt(this.safeString(market, "id")));
             }
             Pair<String, Map<String, Object>> subaccountparamsSubaccountVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "fetchOrders", "subaccount", "default");
             String subaccount = subaccountparamsSubaccountVariable.first();
@@ -1190,7 +1190,7 @@ public class Nado extends NadoApi
             Map<String, Object> paramsRecvWindow = (Map<String, Object>) ((List<Object>) recvWindowparamsRecvWindowVariable).get(1);
             Map<String, Object> tx = new HashMap<String, Object>() {{
                 put( "sender", sender );
-                put( "recvTime", Nado.this.numberToString(((java.util.function.BinaryOperator<Object>) (hx4J40v0A, hx4J40v0B) -> { Object hx4J40v0P = hx4J40v0A instanceof Integer hx4J40v0i ? (Object) Long.valueOf(hx4J40v0i.longValue()) : hx4J40v0A; Object hx4J40v0Q = hx4J40v0B instanceof Integer hx4J40v0i ? (Object) Long.valueOf(hx4J40v0i.longValue()) : hx4J40v0B; if (hx4J40v0P instanceof Long hx4J40v0l && hx4J40v0Q instanceof Long hx4J40v0r) { return hx4J40v0l + hx4J40v0r; } if (hx4J40v0P instanceof Double || hx4J40v0Q instanceof Double) { java.util.function.ToDoubleFunction<Object> hx4J40v0D = hx4J40v0o -> { if (hx4J40v0o instanceof Double || hx4J40v0o instanceof Float || hx4J40v0o instanceof Long || hx4J40v0o instanceof Integer || hx4J40v0o instanceof java.math.BigDecimal) { return ((Number) hx4J40v0o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v0o)); } catch (NumberFormatException hx4J40v0e) { return 0.0; } }; return hx4J40v0D.applyAsDouble(hx4J40v0P) + hx4J40v0D.applyAsDouble(hx4J40v0Q); } if (hx4J40v0P instanceof String || hx4J40v0Q instanceof String) { return String.valueOf(hx4J40v0P) + String.valueOf(hx4J40v0Q); } return null; }).apply(Nado.this.milliseconds(), recvWindow)) );
+                put( "recvTime", Nado.this.numberToString(Nado.this.sum(Nado.this.milliseconds(), recvWindow)) );
             }};
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "tx", tx );
@@ -1371,7 +1371,7 @@ public class Nado extends NadoApi
             }};
             if (!java.util.Objects.equals(market, null))
             {
-                ordersRequest.put("product_ids", new ArrayList<Object>(Arrays.asList(this.parseToInt(market.get("id")))));
+                ordersRequest.put("product_ids", new ArrayList<Object>(Arrays.asList(this.parseToInt(this.safeString(market, "id")))));
             }
             if (!java.util.Objects.equals(limit, null))
             {
@@ -1504,7 +1504,7 @@ public class Nado extends NadoApi
             }};
             if (!java.util.Objects.equals(market, null))
             {
-                matchesRequest.put("product_ids", new ArrayList<Object>(Arrays.asList(this.parseToInt(market.get("id")))));
+                matchesRequest.put("product_ids", new ArrayList<Object>(Arrays.asList(this.parseToInt(this.safeString(market, "id")))));
             }
             if (!java.util.Objects.equals(limit, null))
             {

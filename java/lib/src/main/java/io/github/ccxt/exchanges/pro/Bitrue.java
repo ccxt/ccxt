@@ -32,7 +32,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "has", new HashMap<String, Object>() {{
@@ -781,6 +781,10 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         String wsInterval = this.safeString(parts, 4);
         Map<String, Object> futuresTimeframes = (Map<String, Object>) this.safeDict(this.options, "futuresTimeframes", new HashMap<String, Object>() {{}});
         String timeframe = this.findTimeframe(wsInterval, futuresTimeframes);
+        if (java.util.Objects.equals(timeframe, null))
+        {
+            return;
+        }
         Map<String, Object> tick = (Map<String, Object>) this.safeDict(message, "tick", (Object) null);
         if (java.util.Objects.equals(tick, null))
         {

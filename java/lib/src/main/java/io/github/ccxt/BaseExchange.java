@@ -4392,7 +4392,7 @@ public class BaseExchange {
     // ------------------------------------------------------------------------
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT
 
-public Object describe()
+public Map<String, Object> describe()
     {
         return new HashMap<String, Object>() {{
             put( "id", BaseExchange.this.id );
@@ -9043,7 +9043,11 @@ public Object describe()
     public Object handleParamString(Object parameters, Object paramName, String defaultValue)
     {
         String value = this.safeString(parameters, paramName, defaultValue);
-        Object paramsOmitted = (((!java.util.Objects.equals(value, null)))) ? this.omit(parameters, paramName) : parameters;
+        Object paramsOmitted = parameters;
+        if (!java.util.Objects.equals(value, null))
+        {
+            paramsOmitted = this.omit(parameters, paramName);
+        }
         return new ArrayList<Object>(Arrays.asList(value, paramsOmitted));
     }
 
@@ -9052,35 +9056,55 @@ public Object describe()
     public Object handleParamString2(Object parameters, Object paramName1, Object paramName2, String defaultValue)
     {
         String value = this.safeString2(parameters, paramName1, paramName2, defaultValue);
-        Object paramsOmitted = (((!java.util.Objects.equals(value, null)))) ? this.omit(parameters, new ArrayList<Object>(Arrays.asList(paramName1, paramName2))) : parameters;
+        Object paramsOmitted = parameters;
+        if (!java.util.Objects.equals(value, null))
+        {
+            paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList(paramName1, paramName2)));
+        }
         return new ArrayList<Object>(Arrays.asList(value, paramsOmitted));
     }
 
     public Object handleParamInteger(Object parameters, Object paramName, Long defaultValue)
     {
         Long value = this.safeInteger(parameters, paramName, defaultValue);
-        Object paramsOmitted = (((!java.util.Objects.equals(value, null)))) ? this.omit(parameters, paramName) : parameters;
+        Object paramsOmitted = parameters;
+        if (!java.util.Objects.equals(value, null))
+        {
+            paramsOmitted = this.omit(parameters, paramName);
+        }
         return new ArrayList<Object>(Arrays.asList(value, paramsOmitted));
     }
 
     public Object handleParamInteger2(Object parameters, Object paramName1, Object paramName2, Long defaultValue)
     {
         Long value = (Long) this.safeInteger2(parameters, paramName1, paramName2, defaultValue);
-        Object paramsOmitted = (((!java.util.Objects.equals(value, null)))) ? this.omit(parameters, new ArrayList<Object>(Arrays.asList(paramName1, paramName2))) : parameters;
+        Object paramsOmitted = parameters;
+        if (!java.util.Objects.equals(value, null))
+        {
+            paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList(paramName1, paramName2)));
+        }
         return new ArrayList<Object>(Arrays.asList(value, paramsOmitted));
     }
 
     public Object handleParamBool(Object parameters, Object paramName, Object defaultValue)
     {
         Object value = this.safeBool(parameters, paramName, defaultValue);
-        Object paramsOmitted = (((!java.util.Objects.equals(value, null)))) ? this.omit(parameters, paramName) : parameters;
+        Object paramsOmitted = parameters;
+        if (!java.util.Objects.equals(value, null))
+        {
+            paramsOmitted = this.omit(parameters, paramName);
+        }
         return new ArrayList<Object>(Arrays.asList(value, paramsOmitted));
     }
 
     public Object handleParamBool2(Object parameters, Object paramName1, Object paramName2, Object defaultValue)
     {
         Object value = this.safeBool2(parameters, paramName1, paramName2, defaultValue);
-        Object paramsOmitted = (((!java.util.Objects.equals(value, null)))) ? this.omit(parameters, new ArrayList<Object>(Arrays.asList(paramName1, paramName2))) : parameters;
+        Object paramsOmitted = parameters;
+        if (!java.util.Objects.equals(value, null))
+        {
+            paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList(paramName1, paramName2)));
+        }
         return new ArrayList<Object>(Arrays.asList(value, paramsOmitted));
     }
 
@@ -9832,7 +9856,10 @@ public Object describe()
                 value = this.safeValue2(this.options, optionName, defaultOptionName);
             }
             // if it's still undefined, use the default value
-            value = (((!java.util.Objects.equals(value, null)))) ? value : defaultValue;
+            if (java.util.Objects.equals(value, null))
+            {
+                value = defaultValue;
+            }
             return new ArrayList<Object>(Arrays.asList(value, paramsCallerMethodName));
         }
     }

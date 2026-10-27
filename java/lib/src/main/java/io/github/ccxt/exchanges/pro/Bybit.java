@@ -36,7 +36,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         Object superDescribe = super.describe();
         return this.deepExtend(superDescribe, this.describeData());
@@ -313,7 +313,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> orderRequest = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters, true);
-            String url = (String) this.implodeHostname(((Map<String, Object>)((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("private")).get("trade"));
+            String url = (String) this.implodeHostname(this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("private"), "trade", ""));
             (this.authenticate((String) (url), new HashMap<String, Object>() {{}})).join();
             String requestId = String.valueOf(this.requestId());
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -365,7 +365,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> orderRequest = this.editOrderRequest((String) (id), (String) (symbol), (String) (type), (String) (side), amount, price, parameters);
-            String url = (String) this.implodeHostname(((Map<String, Object>)((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("private")).get("trade"));
+            String url = (String) this.implodeHostname(this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("private"), "trade", ""));
             (this.authenticate((String) (url), new HashMap<String, Object>() {{}})).join();
             String requestId = String.valueOf(this.requestId());
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -409,7 +409,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                 throw new ArgumentsRequired((this.id + " cancelOrderWs() requires a symbol argument")) ;
             }
             Object orderRequest = this.cancelOrderRequest((String) (id), symbol, parameters);
-            String url = (String) this.implodeHostname(((Map<String, Object>)((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("private")).get("trade"));
+            String url = (String) this.implodeHostname(this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("private"), "trade", ""));
             (this.authenticate((String) (url), new HashMap<String, Object>() {{}})).join();
             String requestId = String.valueOf(this.requestId());
             if (((Map<?, ?>)orderRequest).containsKey("orderFilter"))
@@ -495,7 +495,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             List<Object> topics = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)marketIds).size(); i++)
             {
-                String marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
+                String marketId = this.safeString(marketIds, i, "");
                 ((List<Object>)topics).add(((topic + ".") + marketId));
                 messageHashes.add(("ticker:" + this.safeString(symbolsValue, i, "")));
             }
@@ -543,7 +543,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             List<Object> topics = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)marketIds).size(); i++)
             {
-                String marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
+                String marketId = this.safeString(marketIds, i, "");
                 String symbol = (symbolsValue == null || i < 0 || i >= symbolsValue.size() ? null : symbolsValue.get(i));
                 ((List<Object>)topics).add(((topic + ".") + marketId));
                 subMessageHashes.add(("ticker:" + symbol));
@@ -757,7 +757,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             List<Object> topics = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)marketIds).size(); i++)
             {
-                String marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
+                String marketId = this.safeString(marketIds, i, "");
                 String topic = ("orderbook.1." + marketId);
                 ((List<Object>)topics).add(topic);
                 messageHashes.add(("bidask:" + this.safeString(symbolsValue, i, "")));

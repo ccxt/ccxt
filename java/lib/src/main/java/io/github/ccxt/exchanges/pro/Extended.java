@@ -34,7 +34,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "has", new HashMap<String, Object>() {{

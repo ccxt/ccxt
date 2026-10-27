@@ -49,7 +49,7 @@ public class PredictionExchange extends BaseExchange implements PredictionTypedS
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT
 
-public Object describe()
+public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "has", new HashMap<String, Object>() {{
@@ -707,8 +707,7 @@ public Object describe()
         // removal so labels like "UP OR DOWN" survive intact) — venue labels with spaces or
         // currency symbols ("JD Vance", a dollar-sign price) yield clean handles (JD_VANCE, 120)
         // instead of leaking raw text into the outcome handle
-        String outcomeValue = (((java.util.Objects.equals(outcome, null)))) ? "" : outcome;
-        String upper = outcomeValue.toUpperCase();
+        String upper = (((java.util.Objects.equals(outcome, null)))) ? "" : ((String)outcome).toUpperCase();
         String allowed = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
         Object chars = this.stringToCharsArray(upper);
         Object label = "";
@@ -1694,12 +1693,7 @@ public Object describe()
         Integer feeListLength = ((List<?>)feeList).size();
         if ((java.util.Objects.equals(fee, null)) && ((feeListLength != null && feeListLength > 0)))
         {
-            Object reduced = this.reduceFeesByCurrency(feeList);
-            Integer reducedLength = ((List<?>)reduced).size();
-            if ((reducedLength != null && reducedLength > 0))
-            {
-                fee = (Map<String, Object>) this.safeDict(reduced, 0, (Object) null);
-            }
+            fee = (Map<String, Object>) this.safeDict(this.reduceFeesByCurrency(feeList), 0, (Object) null);
         }
         // derive timeInForce/postOnly the same way the crypto safeOrder does (prediction has no
         // trigger orders, so the isTriggerOrSLTp guard collapses): a market order defaults to IOC

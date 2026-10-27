@@ -40,7 +40,7 @@ public class Grvt extends GrvtApi
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         Integer rlOthers = 40;
         Integer rlOrders = 20;
@@ -1372,13 +1372,13 @@ public class Grvt extends GrvtApi
             {
                 request.put("limit", Math.min(limit, 1000));
             }
+            if (!java.util.Objects.equals(since, null))
+            {
+                request.put("start_time", this.numberToString((since * 1000000L)));
+            }
             List<Object> requestUntilOptionStringparamsUntilOptionStringVariable = (List<Object>) this.handleUntilOptionString("end_time", (Map<String, Object>) (request), parameters, 1000000);
             var requestUntilOptionString = ((List<Object>) requestUntilOptionStringparamsUntilOptionStringVariable).get(0);
             var paramsUntilOptionString = ((List<Object>) requestUntilOptionStringparamsUntilOptionStringVariable).get(1);
-            if (!java.util.Objects.equals(since, null))
-            {
-                ((Map<String, Object>)requestUntilOptionString).put("start_time", this.numberToString((since * 1000000L)));
-            }
             Map<String, Object> response = (this.publicMarketPostFullV1TradeHistory(this.extend(requestUntilOptionString, paramsUntilOptionString))).join();
             //
             //    {
@@ -1544,13 +1544,13 @@ public class Grvt extends GrvtApi
             {
                 request.put("limit", Math.min(limit, 1000));
             }
+            if (!java.util.Objects.equals(since, null))
+            {
+                request.put("start_time", this.numberToString((since * 1000000L)));
+            }
             List<Object> requestUntilOptionStringparamsUntilOptionStringVariable = (List<Object>) this.handleUntilOptionString("end_time", (Map<String, Object>) (request), paramsPaginate, 1000000);
             var requestUntilOptionString = ((List<Object>) requestUntilOptionStringparamsUntilOptionStringVariable).get(0);
             var paramsUntilOptionString = ((List<Object>) requestUntilOptionStringparamsUntilOptionStringVariable).get(1);
-            if (!java.util.Objects.equals(since, null))
-            {
-                ((Map<String, Object>)requestUntilOptionString).put("start_time", this.numberToString((since * 1000000L)));
-            }
             Map<String, Object> response = (this.publicMarketPostFullV1Kline(this.extend(requestUntilOptionString, paramsUntilOptionString))).join();
             //
             //    {
@@ -1637,13 +1637,13 @@ public class Grvt extends GrvtApi
             {
                 request.put("limit", Math.min(limit, 1000));
             }
+            if (!java.util.Objects.equals(since, null))
+            {
+                request.put("start_time", this.numberToString((since * 1000000L)));
+            }
             List<Object> requestUntilOptionStringparamsUntilOptionStringVariable = (List<Object>) this.handleUntilOptionString("end_time", (Map<String, Object>) (request), paramsPaginate, 1000000);
             var requestUntilOptionString = ((List<Object>) requestUntilOptionStringparamsUntilOptionStringVariable).get(0);
             var paramsUntilOptionString = ((List<Object>) requestUntilOptionStringparamsUntilOptionStringVariable).get(1);
-            if (!java.util.Objects.equals(since, null))
-            {
-                ((Map<String, Object>)requestUntilOptionString).put("start_time", this.numberToString((since * 1000000L)));
-            }
             Map<String, Object> response = (this.publicMarketPostFullV1Funding(this.extend(requestUntilOptionString, paramsUntilOptionString))).join();
             //
             //    {
@@ -1695,7 +1695,7 @@ public class Grvt extends GrvtApi
 
     public String getSubAccountId(Map<String, Object> parameters)
     {
-        Object subAccountId = ((List<Object>)this.handleOptionAndParams(parameters, "getSubAccountId", "accountId", (Object) null)).get(0);
+        String subAccountId = this.safeString(this.handleOptionAndParams(parameters, "getSubAccountId", "accountId", (Object) null), 0);
         if (java.util.Objects.equals(subAccountId, null))
         {
             throw new ArgumentsRequired((this.id + " you should set \"accountId\" in options or params, which can be found in the grvt dashboard, under Api-Keys page")) ;
@@ -1836,13 +1836,13 @@ public class Grvt extends GrvtApi
             {
                 request.put("limit", Math.min(limit, 1000));
             }
+            if (!java.util.Objects.equals(since, null))
+            {
+                request.put("start_time", this.numberToString((since * 1000000L)));
+            }
             List<Object> requestUntilOptionStringparamsUntilOptionStringVariable = (List<Object>) this.handleUntilOptionString("end_time", (Map<String, Object>) (request), parameters, 1000000);
             var requestUntilOptionString = ((List<Object>) requestUntilOptionStringparamsUntilOptionStringVariable).get(0);
             var paramsUntilOptionString = ((List<Object>) requestUntilOptionStringparamsUntilOptionStringVariable).get(1);
-            if (!java.util.Objects.equals(since, null))
-            {
-                ((Map<String, Object>)requestUntilOptionString).put("start_time", this.numberToString((since * 1000000L)));
-            }
             Boolean useTransfersEndpoint = (Boolean) this.safeBool(this.options, "useTransfersEndpointForDepositsWithdrawals", true);
             if (Boolean.TRUE.equals(useTransfersEndpoint))
             {
@@ -1906,13 +1906,13 @@ public class Grvt extends GrvtApi
             {
                 request.put("limit", Math.min(limit, 1000));
             }
+            if (!java.util.Objects.equals(since, null))
+            {
+                request.put("start_time", this.numberToString((since * 1000000L)));
+            }
             List<Object> requestUntilOptionStringparamsUntilOptionStringVariable = (List<Object>) this.handleUntilOptionString("end_time", (Map<String, Object>) (request), parameters, 1000000);
             var requestUntilOptionString = ((List<Object>) requestUntilOptionStringparamsUntilOptionStringVariable).get(0);
             var paramsUntilOptionString = ((List<Object>) requestUntilOptionStringparamsUntilOptionStringVariable).get(1);
-            if (!java.util.Objects.equals(since, null))
-            {
-                ((Map<String, Object>)requestUntilOptionString).put("start_time", this.numberToString((since * 1000000L)));
-            }
             Boolean useTransfersEndpoint = (Boolean) this.safeBool(this.options, "useTransfersEndpointForDepositsWithdrawals", true);
             if (Boolean.TRUE.equals(useTransfersEndpoint))
             {
@@ -2149,13 +2149,13 @@ public class Grvt extends GrvtApi
             {
                 request.put("limit", Math.min(limit, 1000));
             }
+            if (!java.util.Objects.equals(since, null))
+            {
+                request.put("start_time", this.numberToString((since * 1000000L)));
+            }
             List<Object> requestUntilOptionStringparamsUntilOptionStringVariable = (List<Object>) this.handleUntilOptionString("end_time", (Map<String, Object>) (request), paramsPaginate, 1000000);
             var requestUntilOptionString = ((List<Object>) requestUntilOptionStringparamsUntilOptionStringVariable).get(0);
             var paramsUntilOptionString = ((List<Object>) requestUntilOptionStringparamsUntilOptionStringVariable).get(1);
-            if (!java.util.Objects.equals(since, null))
-            {
-                ((Map<String, Object>)requestUntilOptionString).put("start_time", this.numberToString((since * 1000000L)));
-            }
             Map<String, Object> response = (this.privateTradingPostFullV1TransferHistory(this.extend(requestUntilOptionString, paramsUntilOptionString))).join();
             //
             //    {
@@ -2817,13 +2817,13 @@ public class Grvt extends GrvtApi
             {
                 request.put("limit", Math.min(limit, 1000));
             }
+            if (!java.util.Objects.equals(since, null))
+            {
+                request.put("start_time", this.numberToString((since * 1000000L)));
+            }
             List<Object> requestUntilOptionStringparamsUntilOptionStringVariable = (List<Object>) this.handleUntilOptionString("end_time", (Map<String, Object>) (request), paramsPaginate, 1000000);
             var requestUntilOptionString = ((List<Object>) requestUntilOptionStringparamsUntilOptionStringVariable).get(0);
             var paramsUntilOptionString = ((List<Object>) requestUntilOptionStringparamsUntilOptionStringVariable).get(1);
-            if (!java.util.Objects.equals(since, null))
-            {
-                ((Map<String, Object>)requestUntilOptionString).put("start_time", this.numberToString((since * 1000000L)));
-            }
             Map<String, Object> response = (this.privateTradingPostFullV1FillHistory(this.extend(requestUntilOptionString, paramsUntilOptionString))).join();
             //
             //    {
@@ -2883,8 +2883,8 @@ public class Grvt extends GrvtApi
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
             if (!java.util.Objects.equals(symbolsNormalized, null))
             {
-                request.put("base", new ArrayList<Object>(Arrays.asList()));
-                request.put("quote", new ArrayList<Object>(Arrays.asList()));
+                List<Object> baseIds = new ArrayList<Object>(Arrays.asList());
+                List<Object> quoteIds = new ArrayList<Object>(Arrays.asList());
                 for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
                 {
                     String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
@@ -2893,9 +2893,11 @@ public class Grvt extends GrvtApi
                     {
                         throw new BadRequest((this.id + " fetchPositions() supports contract markets only")) ;
                     }
-                    ((List<Object>)request.get("base")).add(market.get("baseId"));
-                    ((List<Object>)request.get("quote")).add(market.get("quoteId"));
+                    ((List<Object>)baseIds).add(market.get("baseId"));
+                    ((List<Object>)quoteIds).add(market.get("quoteId"));
                 }
+                request.put("base", baseIds);
+                request.put("quote", quoteIds);
             }
             Map<String, Object> response = (this.privateTradingPostFullV1Positions(this.extend(request, parameters))).join();
             //
@@ -3201,13 +3203,13 @@ public class Grvt extends GrvtApi
             {
                 request.put("limit", Math.min(limit, 1000));
             }
+            if (!java.util.Objects.equals(since, null))
+            {
+                request.put("start_time", this.numberToString((since * 1000000L)));
+            }
             List<Object> requestUntilOptionStringparamsUntilOptionStringVariable = (List<Object>) this.handleUntilOptionString("end_time", (Map<String, Object>) (request), paramsPaginate, 1000000);
             var requestUntilOptionString = ((List<Object>) requestUntilOptionStringparamsUntilOptionStringVariable).get(0);
             var paramsUntilOptionString = ((List<Object>) requestUntilOptionStringparamsUntilOptionStringVariable).get(1);
-            if (!java.util.Objects.equals(since, null))
-            {
-                ((Map<String, Object>)requestUntilOptionString).put("start_time", this.numberToString((since * 1000000L)));
-            }
             Map<String, Object> response = (this.privateTradingPostFullV1FundingPaymentHistory(this.extend(requestUntilOptionString, paramsUntilOptionString))).join();
             //
             //    {
@@ -3290,13 +3292,13 @@ public class Grvt extends GrvtApi
             {
                 request.put("limit", Math.min(limit, 1000));
             }
+            if (!java.util.Objects.equals(since, null))
+            {
+                request.put("start_time", this.numberToString((since * 1000000L)));
+            }
             List<Object> requestUntilOptionStringparamsUntilOptionStringVariable = (List<Object>) this.handleUntilOptionString("end_time", (Map<String, Object>) (request), parameters, 1000000);
             var requestUntilOptionString = ((List<Object>) requestUntilOptionStringparamsUntilOptionStringVariable).get(0);
             var paramsUntilOptionString = ((List<Object>) requestUntilOptionStringparamsUntilOptionStringVariable).get(1);
-            if (!java.util.Objects.equals(since, null))
-            {
-                ((Map<String, Object>)requestUntilOptionString).put("start_time", this.numberToString((since * 1000000L)));
-            }
             Map<String, Object> response = (this.privateTradingPostFullV1OrderHistory(this.extend(requestUntilOptionString, paramsUntilOptionString))).join();
             //
             //    {
@@ -3887,11 +3889,10 @@ public class Grvt extends GrvtApi
         Map<String, Object> domainData = this.eipDomainData();
         Map<String, Object> definitions = this.eipDefinitions();
         Object ethEncodedMessage = this.ethEncodeStructuredData(domainData, (definitions == null || structureType == null ? null : definitions.get(structureType)), messageData);
-        String ethEncodedMessageHashed = ("0x" + this.hash(ethEncodedMessage, keccak(), "hex"));
         Boolean usesPrivKey = this.usesPrivateKey(); // py transpiler needs this line separated
         Object secretOrPrivkey = ((Boolean.TRUE.equals(usesPrivKey))) ? this.privateKey : this.secret;
         String privateKeyWithoutZero = (String) this.remove0xPrefix(secretOrPrivkey);
-        Map<String,Object> signature = ecdsa(this.remove0xPrefix(ethEncodedMessageHashed), privateKeyWithoutZero, secp256k1(), null);
+        Map<String,Object> signature = ecdsa(this.hash(ethEncodedMessage, keccak(), "hex"), privateKeyWithoutZero, secp256k1(), null);
         HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
         mapLiteral6.put("signer", (((java.util.Objects.equals(signerAddress, null)))) ? this.ethGetAddressFromPrivateKey(("0x" + privateKeyWithoutZero)) : signerAddress);
         mapLiteral6.put("r", this.formatSignatureRS((String) (signature.get("r"))));
@@ -3995,12 +3996,12 @@ public class Grvt extends GrvtApi
             {
                 requestPath = ((path + "?") + queryString);
             }
-            requestHeaders = new HashMap<String, Object>() {{
-                put( "Content-Type", "application/json" );
-            }};
             if ((java.util.Objects.equals(((String)requestPath).endsWith("auth/api_key/login"), true)) || (java.util.Objects.equals(((String)requestPath).endsWith("auth/wallet/login"), true)))
             {
-                requestHeaders.put("Cookie", "rm=true;");
+                requestHeaders = new HashMap<String, Object>() {{
+                    put( "Content-Type", "application/json" );
+                    put( "Cookie", "rm=true;" );
+                }};
             } else
             {
                 String accountId = this.safeString(this.options, "AuthAccountId");
@@ -4009,8 +4010,13 @@ public class Grvt extends GrvtApi
                 {
                     throw new AuthenticationError((this.id + " : at first, you need to authenticate with exchange using signIn() method.")) ;
                 }
-                requestHeaders.put("Cookie", cookieValue);
-                requestHeaders.put("X-Grvt-Account-Id", accountId);
+                {
+                    HashMap<String, Object> hx4NewMap3 = new HashMap<String, Object>();
+                    hx4NewMap3.put("Content-Type", "application/json");
+                    hx4NewMap3.put("Cookie", cookieValue);
+                    hx4NewMap3.put("X-Grvt-Account-Id", accountId);
+                    requestHeaders = hx4NewMap3;
+                }
             }
         }
         {

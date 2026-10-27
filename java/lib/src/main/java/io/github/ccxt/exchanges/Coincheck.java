@@ -33,7 +33,7 @@ public class Coincheck extends CoincheckApi
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "coincheck" );
@@ -377,17 +377,18 @@ public class Coincheck extends CoincheckApi
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
-        List<Object> codes = ((List<Object>) switch ((Object)(this.currencies)) { case Map<?, ?> j39v3 -> { synchronized (j39v3) { yield new ArrayList<Object>(j39v3.keySet()); } } case null, default -> new ArrayList<Object>(); });
+        List<Object> codes = ((List<Object>) switch ((Object)(this.currencies)) { case Map<?, ?> j39v1 -> { synchronized (j39v1) { yield new ArrayList<Object>(j39v1.keySet()); } } case null, default -> new ArrayList<Object>(); });
         for (var i = 0; i < ((List<?>)codes).size(); i++)
         {
             Object code = (codes == null || i < 0 || i >= codes.size() ? null : codes.get(i));
             Map<String, Object> currency = this.currency((String) (code));
             String currencyId = (String) currency.get("id");
-            if ((switch ((Object)(response)) { case List<?> j39v2 -> ((Object)(currencyId)) != null && j39v2.contains(currencyId); case Map<?, ?> j39v1 -> ((Object)(currencyId)) instanceof String && j39v1.containsKey(currencyId); case null, default -> false; }))
+            String free = this.safeString(response, currencyId);
+            if (!java.util.Objects.equals(free, null))
             {
                 Map<String, Object> account = this.account();
                 String reserved = (currencyId + "_reserved");
-                account.put("free", this.safeString(response, currencyId));
+                account.put("free", free);
                 account.put("used", this.safeString(response, reserved));
                 result.put((String)code, account);
             }
@@ -726,12 +727,13 @@ public class Coincheck extends CoincheckApi
         String side = null;
         Map<String, Object> fee = null;
         String orderId = null;
-        if (((Map<?, ?>)trade).containsKey("liquidity"))
+        String liquidity = this.safeString(trade, "liquidity");
+        if (!java.util.Objects.equals(liquidity, null))
         {
-            if (java.util.Objects.equals(this.safeString(trade, "liquidity"), "T"))
+            if (java.util.Objects.equals(liquidity, "T"))
             {
                 takerOrMaker = "taker";
-            } else if (java.util.Objects.equals(this.safeString(trade, "liquidity"), "M"))
+            } else if (java.util.Objects.equals(liquidity, "M"))
             {
                 takerOrMaker = "maker";
             }
@@ -1242,7 +1244,7 @@ public class Coincheck extends CoincheckApi
         }
         String url = ((apiUrl + "/") + this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
-        Boolean hasQuery = ((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v4 -> { synchronized (j39v4) { yield new ArrayList<Object>(j39v4.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0;
+        Boolean hasQuery = ((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v2 -> { synchronized (j39v2) { yield new ArrayList<Object>(j39v2.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0;
         if (java.util.Objects.equals(apiName, "public"))
         {
             if (Boolean.TRUE.equals(hasQuery))

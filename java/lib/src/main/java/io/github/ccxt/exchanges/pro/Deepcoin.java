@@ -33,7 +33,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "has", new HashMap<String, Object>() {{
@@ -1038,10 +1038,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
             if (!java.util.Objects.equals(symbol, null))
             {
                 symbolResolved = this.symbol(symbol);
-            }
-            if (!java.util.Objects.equals(symbolResolved, null))
-            {
-                messageHash = (("myTrades" + "::") + symbolResolved);
+                messageHash = (("myTrades" + "::") + this.safeString(this.market(symbol), "symbol", ""));
             }
             List<Object> trades = (List<Object>) (this.watchPrivate(messageHash, parameters)).join();
             Long limitResolved = limit;
@@ -1134,10 +1131,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
             if (!java.util.Objects.equals(symbol, null))
             {
                 symbolResolved = this.symbol(symbol);
-            }
-            if (!java.util.Objects.equals(symbolResolved, null))
-            {
-                messageHash = (("orders" + "::") + symbolResolved);
+                messageHash = (("orders" + "::") + this.safeString(this.market(symbol), "symbol", ""));
             }
             List<Object> orders = (List<Object>) (this.watchPrivate(messageHash, parameters)).join();
             Long limitResolved = limit;

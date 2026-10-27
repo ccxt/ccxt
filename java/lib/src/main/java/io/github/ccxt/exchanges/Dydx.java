@@ -38,7 +38,7 @@ public class Dydx extends DydxApi
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "dydx" );
@@ -1758,10 +1758,10 @@ public class Dydx extends DydxApi
     public String createOrderIdFromParts(String address, Object subAccountNumber, Object clientOrderId, Object orderFlags, Object clobPairId)
     {
         String nameSp = this.safeString(this.options, "namespace", "0f9da948-a6fb-4c45-9edc-4685c3f3317d");
-        String prefixAddress = ((address + "-") + this.numberToString(subAccountNumber));
-        String prefix = this.uuid5(nameSp, prefixAddress);
-        String orderInfo = ((((((prefix + "-") + this.numberToString(clientOrderId)) + "-") + this.numberToString(clobPairId)) + "-") + this.numberToString(orderFlags));
-        return this.uuid5(nameSp, orderInfo);
+        String clientOrderIdString = this.numberToString(clientOrderId);
+        String clobPairIdString = this.numberToString(clobPairId);
+        String orderFlagsString = this.numberToString(orderFlags);
+        return this.uuid5(nameSp, ((((((this.uuid5(nameSp, ((address + "-") + this.numberToString(subAccountNumber))) + "-") + clientOrderIdString) + "-") + clobPairIdString) + "-") + orderFlagsString));
     }
 
     public CompletableFuture<Long> fetchLatestBlockHeight(Map<String, Object> parameters)

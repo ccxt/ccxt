@@ -43,7 +43,7 @@ public class Derive extends DeriveApi
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "derive" );
@@ -1191,7 +1191,10 @@ public class Derive extends DeriveApi
             expiry = this.safeTimestamp(optionDetails, "expiry");
             strike = this.safeNumber(optionDetails, "strike", (Object) null); // strikes can be fractional, e.g. XRP-20261225-0_5-P is a 0.5 strike
             optionLetter = this.safeString(optionDetails, "option_type");
-            symbol = ((((((((((base + "/") + quote) + ":") + settle) + "-") + this.yymmdd(expiry)) + "-") + this.numberToString(strike)) + "-") + optionLetter);
+            if (!java.util.Objects.equals(settle, null))
+            {
+                symbol = ((((((((((base + "/") + quote) + ":") + settle) + "-") + this.yymmdd(expiry)) + "-") + this.numberToString(strike)) + "-") + optionLetter);
+            }
             if (java.util.Objects.equals(optionLetter, "P"))
             {
                 optionType = "put";

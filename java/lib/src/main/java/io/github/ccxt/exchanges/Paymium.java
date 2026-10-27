@@ -32,7 +32,7 @@ public class Paymium extends PaymiumApi
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "paymium" );
@@ -237,17 +237,17 @@ public class Paymium extends PaymiumApi
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
-        List<Object> currencies = ((List<Object>) switch ((Object)(this.currencies)) { case Map<?, ?> j39v3 -> { synchronized (j39v3) { yield new ArrayList<Object>(j39v3.keySet()); } } case null, default -> new ArrayList<Object>(); });
+        List<Object> currencies = ((List<Object>) switch ((Object)(this.currencies)) { case Map<?, ?> j39v1 -> { synchronized (j39v1) { yield new ArrayList<Object>(j39v1.keySet()); } } case null, default -> new ArrayList<Object>(); });
         for (var i = 0; i < ((List<?>)currencies).size(); i++)
         {
             Object code = (currencies == null || i < 0 || i >= currencies.size() ? null : currencies.get(i));
             Map<String, Object> currency = this.currency((String) (code));
             String currencyId = (String) currency.get("id");
-            String free = ("balance_" + currencyId);
-            if ((switch ((Object)(response)) { case List<?> j39v2 -> ((Object)(free)) != null && j39v2.contains(free); case Map<?, ?> j39v1 -> ((Object)(free)) instanceof String && j39v1.containsKey(free); case null, default -> false; }))
+            String freeAmount = this.safeString(response, ("balance_" + currencyId));
+            if (!java.util.Objects.equals(freeAmount, null))
             {
                 Map<String, Object> account = this.account();
-                account.put("free", this.safeString(response, free));
+                account.put("free", freeAmount);
                 account.put("used", this.safeString(response, ("locked_" + currencyId)));
                 result.put((String)code, account);
             }
@@ -798,7 +798,7 @@ public class Paymium extends PaymiumApi
         String baseUrl = baseApiUrl;
         String url = ((((baseUrl + "/") + this.version) + "/") + this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
-        Boolean hasQuery = ((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v4 -> { synchronized (j39v4) { yield new ArrayList<Object>(j39v4.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0;
+        Boolean hasQuery = ((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v2 -> { synchronized (j39v2) { yield new ArrayList<Object>(j39v2.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0;
         if (java.util.Objects.equals((api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0)), "public"))
         {
             if (Boolean.TRUE.equals(hasQuery))

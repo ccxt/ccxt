@@ -36,7 +36,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         Object superDescribe = super.describe();
         return this.deepExtend(superDescribe, this.describeData());
@@ -1163,7 +1163,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = this.safeString(subscription, "symbol");
+            Object symbol = this.safeString(subscription, "symbol", "");
             String messageHash = ("orderbook::" + symbol);
             try
             {
@@ -5374,7 +5374,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
-                messageHash = (messageHash + (":" + symbolResolved));
+                messageHash = ("orders:" + this.symbol(symbol));
             }
             var typesubTypeparamsValueVariable = this.resolveAuthType("watchOrders", market, paramsStock);
             String type = (String) ((List<Object>) typesubTypeparamsValueVariable).get(0);
@@ -6743,8 +6743,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             io.github.ccxt.ws.ArrayCache myTrades = (io.github.ccxt.ws.ArrayCache) this.myTrades;
             myTrades.append(trade);
             client.resolve(this.myTrades, messageHash);
-            String messageHashSymbol = ((messageHash + ":") + symbol);
-            client.resolve(this.myTrades, messageHashSymbol);
+            client.resolve(this.myTrades, ("myTrades:" + symbol));
         }
     }
 

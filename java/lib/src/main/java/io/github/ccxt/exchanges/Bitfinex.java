@@ -46,7 +46,7 @@ public class Bitfinex extends BitfinexApi
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "bitfinex" );
@@ -2189,7 +2189,7 @@ public class Bitfinex extends BitfinexApi
         String timeInForce = this.safeString(parameters, "timeInForce");
         Boolean postOnlyParam = (Boolean) this.safeBool(parameters, "postOnly", false);
         Boolean reduceOnly = (Boolean) this.safeBool(parameters, "reduceOnly", false);
-        Object clientOrderId = this.safeValue2(parameters, "cid", "clientOrderId");
+        Long clientOrderId = (Long) this.safeInteger2(parameters, "cid", "clientOrderId");
         String orderType = ((String)type).toUpperCase();
         if (!java.util.Objects.equals(trailingAmount, null))
         {
@@ -2488,7 +2488,7 @@ public class Bitfinex extends BitfinexApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object cid = this.safeValue2(parameters, "cid", "clientOrderId"); // client order id
+            Long cid = (Long) this.safeInteger2(parameters, "cid", "clientOrderId"); // client order id
             Map<String, Object> request = null;
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))

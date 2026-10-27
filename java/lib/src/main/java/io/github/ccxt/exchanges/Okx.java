@@ -63,7 +63,7 @@ public class Okx extends OkxApi
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "okx" );
@@ -10123,7 +10123,11 @@ public class Okx extends OkxApi
     public List<Object> handleTradingStatisticsWindow(Map<String, Object> request, String period, Long since, Long limit, Map<String, Object> parameters)
     {
         Integer maxLimit = 100;
-        Long effectiveLimit = ((((java.util.Objects.equals(limit, null)) || ((limit > 100))))) ? 100L : limit;
+        Long effectiveLimit = this.parseToInt(100);
+        if ((!java.util.Objects.equals(limit, null)) && ((100 > limit)))
+        {
+            effectiveLimit = limit;
+        }
         if (!java.util.Objects.equals(limit, null))
         {
             request.put("limit", effectiveLimit);
@@ -10151,12 +10155,12 @@ public class Okx extends OkxApi
                 // calendar months last 28 to 31 days: the window spans limit of the longest months, but no more than 100 of the shortest,
                 // all entries in it are requested and the caller keeps the earliest limit of them
                 Long months = this.parseToInt((unitPeriod == null ? null : ((String)unitPeriod).substring(0, Math.max(((String)unitPeriod).length() - 1, 0))));
-                Long day = 86400000L;
-                windowDuration = ((java.util.function.BinaryOperator<Object>) (j38a, j38b) -> { if (j38a == null || j38b == null) return null; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; double j38u = j38d.applyAsDouble(j38a); double j38v = j38d.applyAsDouble(j38b); return (j38u < j38v) ? j38a : j38b; }).apply(Helpers.multiply(Helpers.multiply(((effectiveLimit == null || months == null) ? null : (effectiveLimit * months)), 31), day), (((((long) maxLimit) * months) * 28L) * ((long) day)));
+                Integer day = 86400000;
+                windowDuration = Math.min((((effectiveLimit * months) * 31L) * ((long) day)), (((((long) maxLimit) * months) * 28L) * ((long) day)));
                 request.put("limit", maxLimit);
             } else
             {
-                windowDuration = Helpers.multiply(Helpers.multiply(effectiveLimit, this.parseTimeframe(((String)unitPeriod).toLowerCase())), 1000);
+                windowDuration = ((effectiveLimit * ((long) this.parseTimeframe(((String)unitPeriod).toLowerCase()))) * 1000L);
             }
             Object windowEnd = this.sum(since, windowDuration);
             end = (((java.util.Objects.equals(end, null)))) ? windowEnd : (end == null ? null : (((Number) end).doubleValue() < ((Number) windowEnd).doubleValue() ? (Object) (end) : (Object) (windowEnd)));

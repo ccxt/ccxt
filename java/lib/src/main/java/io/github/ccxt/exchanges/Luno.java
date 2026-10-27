@@ -37,7 +37,7 @@ public class Luno extends LunoApi
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "luno" );
@@ -1976,8 +1976,10 @@ public class Luno extends LunoApi
             //     }
             //
             Map<String, Object> result = (Map<String, Object>) this.depositWithdrawFee(response);
-            Helpers.addElementToObject(result.get("withdraw"), "fee", this.safeNumber(response, "fee", (Object) null));
-            Helpers.addElementToObject(result.get("withdraw"), "percentage", false);
+            result.put("withdraw", new HashMap<String, Object>() {{
+        put( "fee", Luno.this.safeNumber(response, "fee", (Object) null) );
+        put( "percentage", false );
+    }});
             return this.assignDefaultDepositWithdrawFees((Map<String, Object>) (result), currency);
         }).thenApply(DepositWithdrawFee::new);
 

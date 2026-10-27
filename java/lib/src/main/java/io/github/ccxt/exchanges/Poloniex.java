@@ -43,7 +43,7 @@ public class Poloniex extends PoloniexApi
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "poloniex" );
@@ -2561,7 +2561,7 @@ public class Poloniex extends PoloniexApi
                     {
                         merged.put("mgnMode", "CROSS");
                     }
-                    if (!(merged.containsKey("posSide")))
+                    if (java.util.Objects.equals(this.safeString(merged, "posSide"), null))
                     {
                         merged.put("posSide", "BOTH");
                     }
@@ -2641,7 +2641,7 @@ public class Poloniex extends PoloniexApi
                 {
                     throw new ArgumentsRequired((this.id + " createOrder() requires a marginMode parameter \"cross\" or \"isolated\" for hedged orders")) ;
                 }
-                if (!(query.containsKey("posSide")))
+                if (java.util.Objects.equals(this.safeString(query, "posSide"), null))
                 {
                     throw new ArgumentsRequired((this.id + " createOrder() requires a posSide parameter \"LONG\" or \"SHORT\" for hedged orders")) ;
                 }
@@ -4465,7 +4465,7 @@ public class Poloniex extends PoloniexApi
         return BaseExchange.supplyAsync(() -> {
 
             String mode = "ONE_WAY";
-            if (Boolean.TRUE.equals(hedged))
+            if (java.util.Objects.equals(hedged, true))
             {
                 mode = "HEDGE";
             }

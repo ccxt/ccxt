@@ -35,7 +35,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "has", new HashMap<String, Object>() {{
@@ -1096,7 +1096,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             data = this.parseSbeTrade(frameHex, blockLength, frameLength);
             if (!java.util.Objects.equals(data, null))
             {
-                channel = ("trades." + this.safeString(data, "market"));
+                channel = ("trades." + this.safeString(data, "market", ""));
             }
         } else if ((templateId != null && templateId == 3))
         {
@@ -1118,14 +1118,14 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             data = this.parseSbeOrder(frameHex, blockLength, frameLength);
             if (!java.util.Objects.equals(data, null))
             {
-                channel = ("orders." + this.safeString(data, "market"));
+                channel = ("orders." + this.safeString(data, "market", ""));
             }
         } else if ((templateId != null && templateId == 21))
         {
             data = this.parseSbeFill(frameHex, blockLength, frameLength);
             if (!java.util.Objects.equals(data, null))
             {
-                channel = ("fills." + this.safeString(data, "market"));
+                channel = ("fills." + this.safeString(data, "market", ""));
             }
         } else if ((templateId != null && templateId == 22))
         {
@@ -1675,7 +1675,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             h2kMap3.put("cached_funding_index", this.sbeReadDecimal(frameHex, 145));
             h2kMap3.put("cost", this.sbeReadDecimal(frameHex, 129));
             h2kMap3.put("cost_usd", this.sbeReadDecimal(frameHex, 137));
-            h2kMap3.put("id", ((account + "-") + this.safeString(strings, 0)));
+            h2kMap3.put("id", ((account + "-") + this.safeString(strings, 0, "")));
             h2kMap3.put("last_fill_id", this.safeString(strings, 1));
             h2kMap3.put("last_updated_at", this.sbeReadTimestamp(frameHex, 81));
             h2kMap3.put("leverage", this.sbeReadDecimal(frameHex, 73));

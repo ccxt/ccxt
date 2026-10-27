@@ -49,7 +49,7 @@ public class Btse extends BtseApi
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "btse" );
@@ -2953,7 +2953,11 @@ public class Btse extends BtseApi
             if (java.util.Objects.equals(marketTypeOption, "spot"))
             {
                 // the literal ALL value cancels every open order across all pairs
-                request.put("symbol", (((!java.util.Objects.equals(symbol, null)))) ? this.safeString(market, "id") : "ALL");
+                request.put("symbol", "ALL");
+                if (!java.util.Objects.equals(symbol, null))
+                {
+                    request.put("symbol", this.safeString(market, "id"));
+                }
                 response = (this.privateDeleteSpotApiV4TradeOrdersAll(this.extend(request, paramsMarketType))).join();
             } else
             {
@@ -4375,8 +4379,7 @@ public class Btse extends BtseApi
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        String baseUrl = apiUrl;
-        String url = ((baseUrl + "/") + this.implodeParams(path, parameters));
+        String url = ((apiUrl + "/") + this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
         // the futures v3 trading api reads DELETE params from a signed json
         // body like its POST and PUT counterparts, while the spot v4 and the
@@ -4426,14 +4429,12 @@ public class Btse extends BtseApi
                 put( "BROKER-ID", "ccxt" );
             }};
         }
-        String bodyResolved = requestBody;
-        Map<String, Object> headersResolved = requestHeaders;
         {
             HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
             h2kMap2.put("url", url);
             h2kMap2.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
-            h2kMap2.put("body", bodyResolved);
-            h2kMap2.put("headers", headersResolved);
+            h2kMap2.put("body", requestBody);
+            h2kMap2.put("headers", requestHeaders);
             return h2kMap2;
         }
     }

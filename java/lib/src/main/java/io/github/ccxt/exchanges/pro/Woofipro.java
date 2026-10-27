@@ -34,7 +34,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "has", new HashMap<String, Object>() {{
@@ -1275,9 +1275,9 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
                 }
             }
             // don't remove the future from the .futures cache
-            if (client.futures.containsKey(messageHash))
+            io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)this.safeValue(client.futures, messageHash);
+            if (!java.util.Objects.equals(future, null))
             {
-                io.github.ccxt.ws.Future future = (client.futures == null || messageHash == null ? null : client.futures.get(messageHash));
                 future.resolve(cache);
                 client.resolve(cache, "positions");
             }

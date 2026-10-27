@@ -41,7 +41,7 @@ public class Kalshi extends KalshiApi
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "kalshi" );
@@ -455,7 +455,11 @@ public class Kalshi extends KalshiApi
                     List<Object> parsed = this.parseBinaryMarketToOutcomes((Map<String, Object>) (raw));
                     String eventTicker = this.safeString(raw, "event_ticker");
                     String eventTitle = this.safeString(raw, "title", eventTicker);
-                    String eventKey = (((!java.util.Objects.equals(eventTitle, null) && !java.util.Objects.equals(eventTitle, "")))) ? this.shortenSlug((String) (eventTitle)) : "";
+                    String eventKey = "";
+                    if (!java.util.Objects.equals(eventTitle, null) && !java.util.Objects.equals(eventTitle, ""))
+                    {
+                        eventKey = this.shortenSlug((String) (eventTitle));
+                    }
                     for (var j = 0; j < ((List<?>)parsed).size(); j++)
                     {
                         Object m = (parsed == null || j < 0 || j >= parsed.size() ? null : parsed.get(j));
@@ -2534,7 +2538,7 @@ public class Kalshi extends KalshiApi
             if (!java.util.Objects.equals(filledCount, null))
             {
                 Helpers.addElementToObject(order, "filled", filledCount);
-            } else if ((!java.util.Objects.equals(remainingCount, null)) && (!java.util.Objects.equals(amount, null)))
+            } else if (!java.util.Objects.equals(remainingCount, null))
             {
                 Helpers.addElementToObject(order, "filled", Helpers.subtract(amount, remainingCount));
             }

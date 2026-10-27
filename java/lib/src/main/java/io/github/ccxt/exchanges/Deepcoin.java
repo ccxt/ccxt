@@ -42,7 +42,7 @@ public class Deepcoin extends DeepcoinApi
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "deepcoin" );
@@ -594,7 +594,7 @@ public class Deepcoin extends DeepcoinApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)types).size(); i++)
             {
-                ((List<Object>)promises).add(this.fetchMarketsByType((String) ((types == null || i < 0 || i >= types.size() ? null : types.get(i))), parameters));
+                ((List<Object>)promises).add(this.fetchMarketsByType(this.safeString(types, i), parameters));
             }
             Object responses = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
             for (var i = 0; i < ((List<?>)responses).size(); i++)
@@ -2180,7 +2180,7 @@ public class Deepcoin extends DeepcoinApi
         String timeInForce = this.handleTimeInForce(paramsPostOnly);
         Map<String, Object> paramsOmitted = this.omit(paramsPostOnly, "timeInForce");
         String typeValue = typePostOnly;
-        if ((!java.util.Objects.equals(timeInForce, null)) && (java.util.Objects.equals(timeInForce, "IOC")))
+        if (java.util.Objects.equals(timeInForce, "IOC"))
         {
             typeValue = "ioc";
         }
@@ -2411,9 +2411,8 @@ public class Deepcoin extends DeepcoinApi
                 return (this.fetchPaginatedCallDynamic("fetchCanceledAndClosedOrders", symbol, since, limit, paramsPaginate, (Long) null, true)).join();
             }
             Boolean trigger = (Boolean) this.safeBool(paramsPaginate, "trigger", false);
-            List<Object> methodNameparamsMethodNameVariable = (List<Object>) this.handleParamString(paramsPaginate, "methodName", "fetchCanceledAndClosedOrders");
-            String methodName = (String) ((List<Object>) methodNameparamsMethodNameVariable).get(0);
-            Map<String, Object> paramsMethodName = (Map<String, Object>) ((List<Object>) methodNameparamsMethodNameVariable).get(1);
+            String methodName = this.safeString(paramsPaginate, "methodName", "fetchCanceledAndClosedOrders");
+            Map<String, Object> paramsMethodName = this.omit(paramsPaginate, "methodName");
             Map<String, Object> market = null;
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(symbol, null))
@@ -3768,9 +3767,10 @@ public class Deepcoin extends DeepcoinApi
             privateHeaders.put("DC-ACCESS-TIMESTAMP", dateTime);
             privateHeaders.put("DC-ACCESS-PASSPHRASE", this.password);
             privateHeaders.put("appid", "200103");
-            String requestBody = (((!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")))) ? this.json(parameters) : null;
+            String requestBody = null;
             if (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
             {
+                requestBody = this.json(parameters);
                 privateHeaders.put("Content-Type", "application/json");
                 payload = (payload + requestBody);
             }

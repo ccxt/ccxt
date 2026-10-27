@@ -34,7 +34,7 @@ public class Predictfun extends PredictfunApi
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "predictfun" );
@@ -1581,7 +1581,7 @@ public class Predictfun extends PredictfunApi
             // an unmatched indexSet would otherwise return a ticker whose every quote is
             // undefined, which reads as an empty book rather than as a market that never
             // carried this outcome
-            Object requested = this.safeOutcomeSymbol((String) (null), market);
+            String requested = this.safeString(market, "outcome", "");
             throw new BadSymbol((((this.id + " fetchTicker() did not find ") + requested) + " among the outcomes of its market")) ;
         }
         // the venue quotes each outcome on its own side of the book, so no complement is needed
@@ -3206,7 +3206,7 @@ public class Predictfun extends PredictfunApi
                 Integer operatorsLength = ((List<?>)operators).size();
                 for (var i = 0; (operatorsLength != null && i < operatorsLength); i++)
                 {
-                    Object operatorAddress = (operators == null || i < 0 || i >= operators.size() ? null : operators.get(i));
+                    String operatorAddress = this.safeString(operators, i);
                     if (java.util.Objects.equals(operatorAddress, null))
                     {
                         throw new ArgumentsRequired(((this.id + " approve() could not resolve the operator to approve for chain ") + chainKey)) ;

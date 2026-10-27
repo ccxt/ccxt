@@ -37,7 +37,7 @@ public class Myriad extends MyriadApi
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "myriad" );
@@ -777,10 +777,8 @@ public class Myriad extends MyriadApi
         String outcomeTitle = this.safeString(position, "outcomeTitle", "");
         Object outcome = this.slugToOutcomeSymbol((String) (marketSlug), (String) (marketSlug), (String) (outcomeTitle));
         Object marketSymbol = this.slugToMarketSymbol((String) (marketSlug), (String) (marketSlug));
-        String networkId = this.safeString(position, "networkId");
-        String marketId = this.safeString(position, "marketId");
         String outcomeId = this.safeString(position, "outcomeId");
-        String id = ((((networkId + ":") + marketId) + "/") + outcomeId);
+        String id = ((((this.safeString(position, "networkId", "") + ":") + this.safeString(position, "marketId", "")) + "/") + this.safeString(position, "outcomeId", ""));
         Double shares = this.safeNumber(position, "shares", (Object) null);
         Double value = this.safeNumber(position, "value", (Object) null);
         Double profit = this.safeNumber(position, "profit", (Object) null);
@@ -4084,7 +4082,7 @@ public class Myriad extends MyriadApi
     public String walletAddressOrUndefined()
     {
         // like walletAddressFromKeys but returns undefined instead of throwing when no wallet is configured
-        if ((!java.util.Objects.equals(this.walletAddress, null)) && (((String)this.walletAddress).length() > 0))
+        if ((!java.util.Objects.equals(this.walletAddress, null)) && (!java.util.Objects.equals(this.walletAddress, "")))
         {
             return ((String)this.walletAddress).toLowerCase();
         }
@@ -4597,17 +4595,15 @@ public class Myriad extends MyriadApi
         // the orders/positions channels are keyed by the lowercase trader address (Centrifugo channels
         // are case-sensitive); lowercase here so the channel matches regardless of the address checksum.
         // check length too: an unset walletAddress is an empty string (not undefined) in some languages
-        Object address = this.walletAddress;
-        Boolean hasWallet = (!java.util.Objects.equals(address, null)) && (((String)this.walletAddress).length() > 0);
-        if (!Boolean.TRUE.equals(hasWallet))
+        if ((!java.util.Objects.equals(this.walletAddress, null)) && (!java.util.Objects.equals(this.walletAddress, "")))
         {
-            if (java.util.Objects.equals(this.privateKey, null))
-            {
-                throw new ArgumentsRequired((this.id + " requires a walletAddress or privateKey to watch private channels")) ;
-            }
-            address = this.ethGetAddressFromPrivateKey(this.privateKey);
+            return ((String)this.walletAddress).toLowerCase();
         }
-        return ((String)address).toLowerCase();
+        if (java.util.Objects.equals(this.privateKey, null))
+        {
+            throw new ArgumentsRequired((this.id + " requires a walletAddress or privateKey to watch private channels")) ;
+        }
+        return ((String)this.ethGetAddressFromPrivateKey(this.privateKey)).toLowerCase();
     }
 
     public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

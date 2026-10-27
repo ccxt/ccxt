@@ -38,7 +38,7 @@ public class Limitless extends LimitlessApi
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "limitless" );
@@ -3582,8 +3582,7 @@ public class Limitless extends LimitlessApi
             Integer eventKeysLength = ((List<?>)eventKeys).size();
             for (var i = 0; (eventKeysLength != null && i < eventKeysLength); i++)
             {
-                Object g = this.safeValue(eventGroups, (eventKeys == null || i < 0 || i >= eventKeys.size() ? null : eventKeys.get(i)));
-                Map<String, Object> ev = (Map<String, Object>) this.parseEvent((Map<String, Object>) (g));
+                Map<String, Object> ev = (Map<String, Object>) this.parseEvent((Map<String, Object>) (this.safeDict(eventGroups, (eventKeys == null || i < 0 || i >= eventKeys.size() ? null : eventKeys.get(i)), new HashMap<String, Object>() {{}})));
                 ((List<Object>)result).add(ev);
             }
             // setEvents keys events by id/slug/handle; populateOutcomes rebuilds the outcome cache
@@ -3763,7 +3762,6 @@ public class Limitless extends LimitlessApi
     public Object sign(Object path, Object api, Object method, Object parameters)
     {
         String apiGroup = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
-        String access = (String) (api == null || 1 >= ((List<?>)api).size() ? null : ((List<?>)api).get(1));
         Object baseUrls = this.urls.get("api");
         String baseUrl = this.safeString(baseUrls, apiGroup, ((Map<String, Object>)baseUrls).get("limitless"));
         Object url = ("/" + this.implodeParams(path, parameters));
@@ -3775,7 +3773,7 @@ public class Limitless extends LimitlessApi
         }
         Map<String, Object> headersValue = null;
         String bodyValue = null;
-        if (java.util.Objects.equals(access, "private"))
+        if (java.util.Objects.equals((api == null || 1 >= ((List<?>)api).size() ? null : ((List<?>)api).get(1)), "private"))
         {
             String bodyString = "";
             headersValue = new HashMap<String, Object>() {{}};

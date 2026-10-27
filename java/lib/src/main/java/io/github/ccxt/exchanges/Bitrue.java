@@ -39,7 +39,7 @@ public class Bitrue extends BitrueApi
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "bitrue" );
@@ -3709,9 +3709,7 @@ public class Bitrue extends BitrueApi
                 String signMessage = ((timestamp + java.util.Objects.requireNonNullElse(method, "GET")) + (((((signPrefix + "/") + version) + "/") + path)));
                 if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
                 {
-                    List<String> keys = new ArrayList<String>(((Map<String, Object>)paramsOmitted).keySet());
-                    Integer keysLength = ((List<?>)keys).size();
-                    if ((keysLength != null && keysLength > 0))
+                    if (((Map<String, Object>)paramsOmitted).size() > 0)
                     {
                         signMessage = (signMessage + ("?" + this.urlencode(paramsOmitted)));
                     }
@@ -3799,14 +3797,7 @@ public class Bitrue extends BitrueApi
             String messageInner = this.safeString(response, "msg");
             if (!java.util.Objects.equals(messageInner, null))
             {
-                try
-                {
-                    parsedMessage = Helpers.parseJson(messageInner);
-                } catch(Exception e)
-                {
-                    // do nothing
-                    parsedMessage = null;
-                }
+                parsedMessage = this.parseJson(messageInner);
             }
         }
         Object errorResponse = (((!java.util.Objects.equals(parsedMessage, null)))) ? parsedMessage : response;

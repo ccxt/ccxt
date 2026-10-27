@@ -67,7 +67,7 @@ public class Binance extends BinanceApi
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "binance" );
@@ -4427,8 +4427,12 @@ public class Binance extends BinanceApi
                 // begin diff
                 if (Boolean.TRUE.equals(isLegacy) && Boolean.TRUE.equals((this.safeBool(market, "spot", false))))
                 {
-                    Object settle = ((Boolean.TRUE.equals(isLegacyLinear))) ? Helpers.GetValue(market, "quote") : Helpers.GetValue(market, "base");
-                    Object futuresSymbol = ((symbol + ":") + settle);
+                    Object settle = this.safeString(market, "base", "");
+                    if (Boolean.TRUE.equals(isLegacyLinear))
+                    {
+                        settle = this.safeString(market, "quote", "");
+                    }
+                    String futuresSymbol = ((symbol + ":") + settle);
                     if ((!java.util.Objects.equals(this.markets, null)) && (((Map<?, ?>)this.markets).containsKey(futuresSymbol)))
                     {
                         return (Map<String, Object>) ((this.markets == null ? null : ((Map<?, ?>)this.markets).get(futuresSymbol)));
@@ -7636,7 +7640,7 @@ public class Binance extends BinanceApi
             Map<String, Object> market = this.market(symbol);
             if (!java.util.Objects.equals(market.get("spot"), true))
             {
-                throw new NotSupported((((this.id + " editSpotOrder() does not support ") + market.get("type")) + " orders")) ;
+                throw new NotSupported((((this.id + " editSpotOrder() does not support ") + this.safeString(market, "type", "")) + " orders")) ;
             }
             Map<String, Object> payload = (Map<String, Object>) this.editSpotOrderRequest(id, (String) (symbol), (String) (type), (String) (side), amount, price, parameters);
             Map<String, Object> response = (this.privatePostOrderCancelReplace(payload)).join();
@@ -7864,7 +7868,7 @@ public class Binance extends BinanceApi
         Map<String, Object> market = this.market(symbol);
         if (!java.util.Objects.equals(market.get("contract"), true))
         {
-            throw new NotSupported((((this.id + " editContractOrder() does not support ") + market.get("type")) + " orders")) ;
+            throw new NotSupported((((this.id + " editContractOrder() does not support ") + this.safeString(market, "type", "")) + " orders")) ;
         }
         if (java.util.Objects.equals(side, null))
         {
@@ -8003,7 +8007,7 @@ public class Binance extends BinanceApi
             Map<String, Object> market = this.market(symbol);
             if (java.util.Objects.equals(market.get("option"), true))
             {
-                throw new NotSupported((((this.id + " editOrder() does not support ") + market.get("type")) + " orders")) ;
+                throw new NotSupported((((this.id + " editOrder() does not support ") + this.safeString(market, "type", "")) + " orders")) ;
             }
             if (java.util.Objects.equals(market.get("spot"), true))
             {
@@ -8063,7 +8067,7 @@ public class Binance extends BinanceApi
             Map<String, Object> market = this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
             if ((java.util.Objects.equals(market.get("spot"), true)) || (java.util.Objects.equals(market.get("option"), true)))
             {
-                throw new NotSupported((((this.id + " editOrders() does not support ") + market.get("type")) + " orders")) ;
+                throw new NotSupported((((this.id + " editOrders() does not support ") + this.safeString(market, "type", "")) + " orders")) ;
             }
             List<Object> response = null;
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -8917,7 +8921,7 @@ public class Binance extends BinanceApi
             Map<String, Object> market = this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
             if (java.util.Objects.equals(market.get("spot"), true))
             {
-                throw new NotSupported((((this.id + " createOrders() does not support ") + market.get("type")) + " orders")) ;
+                throw new NotSupported((((this.id + " createOrders() does not support ") + this.safeString(market, "type", "")) + " orders")) ;
             }
             List<Object> response = null;
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -16356,7 +16360,11 @@ public class Binance extends BinanceApi
     {
         // the only callers pass handleErrors' url, which is a non-nullable string everywhere
         String marketType = null;
-        String hostname = (((!java.util.Objects.equals(this.hostname, null)))) ? this.hostname : "binance.com";
+        String hostname = "binance.com";
+        if (!java.util.Objects.equals(this.hostname, null))
+        {
+            hostname = this.hostname;
+        }
         if (((String)url).startsWith((("https://api." + hostname) + "/")) || ((String)url).startsWith("https://demo-api") || ((String)url).startsWith("https://testnet.binance.vision"))
         {
             marketType = "spot";
@@ -17708,7 +17716,7 @@ public class Binance extends BinanceApi
                 }
             } else
             {
-                throw new NotSupported((((this.id + " fetchMyLiquidations() does not support ") + this.safeString(market, "type")) + " markets")) ;
+                throw new NotSupported((((this.id + " fetchMyLiquidations() does not support ") + this.safeString(market, "type", "")) + " markets")) ;
             }
             //
             // margin

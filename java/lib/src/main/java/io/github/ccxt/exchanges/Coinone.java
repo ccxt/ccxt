@@ -32,7 +32,7 @@ public class Coinone extends CoinoneApi
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "coinone" );
@@ -1537,23 +1537,14 @@ public class Coinone extends CoinoneApi
                 String currencyId = this.safeString(parts, 0);
                 String secondPart = this.safeString(parts, 1);
                 String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
-                Map<String, Object> depositAddress = (Map<String, Object>) this.safeDict(result, code, (Object) null);
-                if (java.util.Objects.equals(depositAddress, null))
-                {
-                    {
-                        HashMap<String, Object> hx4NewMap2 = new HashMap<String, Object>();
-                        hx4NewMap2.put("info", value);
-                        hx4NewMap2.put("currency", code);
-                        hx4NewMap2.put("network", null);
-                        hx4NewMap2.put("address", null);
-                        hx4NewMap2.put("tag", null);
-                        depositAddress = hx4NewMap2;
-                    }
-                }
-                String address = this.safeString(depositAddress, "address", value);
+                String address = this.safeString(this.safeValue(result, code), "address", value);
                 this.checkAddress(address, (String) null, (String) null);
-                depositAddress.put("address", address);
+                Map<String, Object> depositAddress = new HashMap<String, Object>();
                 depositAddress.put("info", address);
+                depositAddress.put("currency", code);
+                depositAddress.put("network", null);
+                depositAddress.put("address", address);
+                depositAddress.put("tag", this.safeString(this.safeValue(result, code), "tag"));
                 if ((java.util.Objects.equals(secondPart, "tag") || java.util.Objects.equals(secondPart, "memo")))
                 {
                     depositAddress.put("tag", value);

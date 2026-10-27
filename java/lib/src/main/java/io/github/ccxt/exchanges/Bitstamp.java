@@ -42,7 +42,7 @@ public class Bitstamp extends BitstampApi
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "bitstamp" );
@@ -3688,13 +3688,13 @@ public class Bitstamp extends BitstampApi
         Boolean isPrivatePost = (!java.util.Objects.equals(apiName, "public")) && (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST"));
         // an empty POST triggers an API0020 error, so empty requests send a dummy object
         // https://github.com/ccxt/ccxt/issues/6846
-        String emptyPostBody = this.urlencode(new HashMap<String, Object>() {{
+        String queryString = this.urlencode(query);
+        String postBody = this.urlencode(new HashMap<String, Object>() {{
             put( "foo", "bar" );
         }});
-        String postBody = emptyPostBody;
-        if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v3 -> { synchronized (j39v3) { yield new ArrayList<Object>(j39v3.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
+        if (!java.util.Objects.equals(queryString, ""))
         {
-            postBody = this.urlencode(query);
+            postBody = queryString;
         }
         String requestBody = null;
         if (Boolean.TRUE.equals(isPrivatePost))
@@ -3704,9 +3704,9 @@ public class Bitstamp extends BitstampApi
         Map<String, Object> privateHeaders = new HashMap<String, Object>() {{}};
         if (java.util.Objects.equals(apiName, "public"))
         {
-            if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v2 -> { synchronized (j39v2) { yield new ArrayList<Object>(j39v2.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
+            if (!java.util.Objects.equals(queryString, ""))
             {
-                url = (url + ("?" + this.urlencode(query)));
+                url = (url + ("?" + queryString));
             }
         } else
         {
@@ -3770,7 +3770,7 @@ public class Bitstamp extends BitstampApi
                 ((List<Object>)errors).add(error);
             } else if (!java.util.Objects.equals(error, null))
             {
-                List<Object> keys = ((List<Object>) switch ((Object)(error)) { case Map<?, ?> j39v4 -> { synchronized (j39v4) { yield new ArrayList<Object>(j39v4.keySet()); } } case null, default -> new ArrayList<Object>(); });
+                List<Object> keys = ((List<Object>) switch ((Object)(error)) { case Map<?, ?> j39v2 -> { synchronized (j39v2) { yield new ArrayList<Object>(j39v2.keySet()); } } case null, default -> new ArrayList<Object>(); });
                 for (var i = 0; i < ((List<?>)keys).size(); i++)
                 {
                     Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));

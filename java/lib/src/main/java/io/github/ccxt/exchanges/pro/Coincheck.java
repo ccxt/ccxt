@@ -28,7 +28,7 @@ public class Coincheck extends io.github.ccxt.exchanges.Coincheck
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "has", new HashMap<String, Object>() {{
@@ -120,7 +120,7 @@ public class Coincheck extends io.github.ccxt.exchanges.Coincheck
         //         }
         //     ]
         //
-        String symbol = this.symbol(this.safeString(message, 0));
+        String symbol = this.safeString(this.market(this.safeString(message, 0)), "symbol", "");
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, 1, new HashMap<String, Object>() {{}});
         Long timestamp = this.safeTimestamp(data, "last_update_at");
         Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(data, symbol, timestamp, "bids", "asks", 0, 1, 2);
@@ -193,7 +193,7 @@ public class Coincheck extends io.github.ccxt.exchanges.Coincheck
         //     ]
         //
         List<Object> first = (List<Object>) this.safeList(message, 0, new ArrayList<Object>(Arrays.asList()));
-        String symbol = this.symbol(this.safeString(first, 2));
+        String symbol = this.safeString(this.market(this.safeString(first, 2)), "symbol", "");
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
         if (java.util.Objects.equals(stored, null))
         {
