@@ -5058,10 +5058,10 @@ class BaseExchange {
         $debtBalance = array();
         for ($i = 0; $i < count($codes); $i++) {
             $code = $codes[$i];
-            $total = $this->safe_string($balance[$code], 'total');
-            $free = $this->safe_string($balance[$code], 'free');
-            $used = $this->safe_string($balance[$code], 'used');
-            $debt = $this->safe_string($balance[$code], 'debt');
+            $total = $this->safe_string($balances[$code], 'total');
+            $free = $this->safe_string($balances[$code], 'free');
+            $used = $this->safe_string($balances[$code], 'used');
+            $debt = $this->safe_string($balances[$code], 'debt');
             if (($total === null) && ($free !== null) && ($used !== null)) {
                 $total = Precise::string_add($free, $used);
             }
@@ -5141,16 +5141,16 @@ class BaseExchange {
             }
             if ($isArray && ($tradesLength > 0)) {
                 // move properties that are defined in trades up into the order
-                if ($orderDict['symbol'] === null) {
+                if ($parseSymbol) {
                     $orderDict['symbol'] = $trades[0]['symbol'];
                 }
-                if ($orderDict['side'] === null) {
+                if ($parseSide) {
                     $orderDict['side'] = $trades[0]['side'];
                 }
-                if ($orderDict['type'] === null) {
+                if ($this->safe_string($orderDict, 'type') === null) {
                     $orderDict['type'] = $trades[0]['type'];
                 }
-                if ($orderDict['id'] === null) {
+                if ($this->safe_string($orderDict, 'id') === null) {
                     $orderDict['id'] = $trades[0]['order'];
                 }
                 if ($parseFilled) {
@@ -5175,7 +5175,7 @@ class BaseExchange {
                     if ($parseSide) {
                         $side = $this->safe_string($trade, 'side');
                     }
-                    $tradeTimestamp = $this->safe_value($trade, 'timestamp');
+                    $tradeTimestamp = $this->safe_integer($trade, 'timestamp');
                     if ($parseLastTradeTimeTimestamp && ($tradeTimestamp !== null)) {
                         if ($lastTradeTimeTimestamp === null) {
                             $lastTradeTimeTimestamp = $tradeTimestamp;
@@ -5292,7 +5292,7 @@ class BaseExchange {
             }
         }
         // support for market orders
-        $orderType = $this->safe_value($orderDict, 'type');
+        $orderType = $this->safe_string($orderDict, 'type');
         $emptyPrice = ($price === null) || Precise::string_equals($price, '0');
         if ($emptyPrice && ($orderType === 'market')) {
             $price = $average;
