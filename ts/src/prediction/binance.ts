@@ -979,7 +979,11 @@ export default class binance extends Exchange {
             const marketId = this.safeString (order, 'marketId');
             const outcome = this.safeStringUpper (order, 'outcome');
             const market = this.safeMarket (marketId);
-            const outcomeName = this.safeString (market, 'market', marketId) + ':' + outcome;
+            let outcomeName = this.safeString (market, 'market');
+            if (outcomeName === undefined) {
+                outcomeName = marketId;
+            }
+            outcomeName += ':' + outcome;
             outcomeObjResolved = this.safeOutcome (outcomeName);
         }
         const side = this.safeStringLower (order, 'side');
@@ -1340,7 +1344,11 @@ export default class binance extends Exchange {
             const marketId = this.safeString (position, 'marketId');
             const outcome = this.safeStringUpper (position, 'outcomeName');
             const market = this.safeMarket (marketId);
-            const outcomeName = this.safeString (market, 'market', marketId) + ':' + outcome;
+            let outcomeName = this.safeString (market, 'market');
+            if (outcomeName === undefined) {
+                outcomeName = marketId;
+            }
+            outcomeName += ':' + outcome;
             outcomeObjResolved = this.safeOutcome (outcomeName);
         }
         const timestamp = this.safeInteger (position, 'createdTime');
@@ -1510,7 +1518,11 @@ export default class binance extends Exchange {
             const marketId = this.safeString (trade, 'marketId');
             const outcome = this.safeStringUpper (trade, 'outcome');
             const market = this.safeMarket (marketId);
-            const outcomeName = this.safeString (market, 'market', marketId) + ':' + outcome;
+            let outcomeName = this.safeString (market, 'market');
+            if (outcomeName === undefined) {
+                outcomeName = marketId;
+            }
+            outcomeName += ':' + outcome;
             outcomeObjResolved = this.safeOutcome (outcomeName);
         }
         const timestamp = this.safeInteger (trade, 'createTime');
