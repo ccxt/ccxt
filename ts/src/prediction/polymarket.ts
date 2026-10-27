@@ -982,7 +982,7 @@ export default class polymarket extends Exchange {
      */
     override async fetchTicker (outcome: string, params: Dict = {}): Promise<PredictionTicker> {
         const outcomeObj = await this.loadOutcome (outcome);
-        const tokenId = outcomeObj['outcomeId'];
+        const tokenId = this.safeString (outcomeObj, 'outcomeId');
         const promises = [
             this.clobPublicGetMidpoint ({ 'token_id': tokenId }),
             this.clobPublicGetBook ({ 'token_id': tokenId }),
@@ -1224,7 +1224,7 @@ export default class polymarket extends Exchange {
      */
     override async fetchOrderBook (outcome: string, limit: Int = undefined, params: Dict = {}): Promise<PredictionOrderBook> {
         const outcomeObj = await this.loadOutcome (outcome);
-        const tokenId = outcomeObj['outcomeId'];
+        const tokenId = this.safeString (outcomeObj, 'outcomeId');
         const request: Dict = {
             'token_id': tokenId,
         };
@@ -1273,7 +1273,7 @@ export default class polymarket extends Exchange {
             throw new BadRequest (this.id + ' fetchOHLCV() unsupported timeframe ' + timeframe + ', supported timeframes are ' + supportedKeys.join (', '));
         }
         const outcomeObj = await this.loadOutcome (outcome);
-        const tokenId = outcomeObj['outcomeId'];
+        const tokenId = this.safeString (outcomeObj, 'outcomeId');
         const fidelityMin = this.safeInteger (this.timeframes, timeframe, 1); // fidelity in minutes
         const nowS = this.seconds ();
         let startS: number;
@@ -1504,7 +1504,7 @@ export default class polymarket extends Exchange {
      */
     override async fetchTrades (outcome: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<PredictionTrade[]> {
         const outcomeObj = await this.loadOutcome (outcome);
-        const tokenId = outcomeObj['outcomeId'];
+        const tokenId = this.safeString (outcomeObj, 'outcomeId');
         const outcomeInfo = this.safeDict (outcomeObj, 'info', {});
         const conditionId = this.safeString (outcomeInfo, 'conditionId');
         if (conditionId === undefined) {
@@ -1549,7 +1549,7 @@ export default class polymarket extends Exchange {
         let outcomeObj: any = undefined;
         if (outcome !== undefined) {
             outcomeObj = await this.loadOutcome (outcome);
-            request['asset_id'] = outcomeObj['outcomeId'];
+            request['asset_id'] = this.safeString (outcomeObj, 'outcomeId');
         }
         const response = await this.clobPrivateGetDataTrades (this.extend (request, params));
         const rawTrades = Array.isArray (response) ? response : this.safeList (response, 'data', []);
@@ -1838,7 +1838,7 @@ export default class polymarket extends Exchange {
         let outcomeObj: any = undefined;
         if (outcome !== undefined) {
             outcomeObj = await this.loadOutcome (outcome);
-            request['asset_id'] = outcomeObj['outcomeId'];
+            request['asset_id'] = this.safeString (outcomeObj, 'outcomeId');
         }
         const response = await this.clobPrivateGetDataOrders (this.extend (request, params));
         const orders = this.safeList (response, 'data', []) as any[];
@@ -2050,7 +2050,7 @@ export default class polymarket extends Exchange {
         // dict, which throws a TypeError
         // outcome () validates the outcome against the loaded outcomes (built from events or markets)
         const outcomeObj = this.outcome (outcome);
-        const tokenId = outcomeObj['outcomeId'];
+        const tokenId = this.safeString (outcomeObj, 'outcomeId');
         const sideStr = (side as string).toUpperCase ();
         const isMarket = (type === 'market');
         // CCXT type (limit/market) maps to a polymarket time-in-force: limit -> GTC, market -> FOK.
@@ -2335,7 +2335,7 @@ export default class polymarket extends Exchange {
         };
         const innerEncoded = this.ethEncodeStructuredData (orderDomain, { 'TypedDataSign': typedDataSignStruct, 'Order': orderStruct }, innerValue);
         const innerSigObj = this.signMessage (innerEncoded, this.privateKey);
-        const innerSig = this.remove0xPrefix (innerSigObj['r']) + this.remove0xPrefix (innerSigObj['s']) + this.intToBase16 (innerSigObj['v']);
+        const innerSig = this.remove0xPrefix (this.safeString (innerSigObj, 'r')) + this.remove0xPrefix (this.safeString (innerSigObj, 's')) + this.intToBase16 (innerSigObj['v']);
         // innerSig(65) || appDomainSep(32) || contentsHash(32) || contentsType || uint16_BE(len)
         // orderTypeString.length is used inline (not via a `const n = str.length;` statement) so the
         // php transpiler emits strlen() — the standalone statement form wrongly becomes count() (array)
@@ -2414,7 +2414,7 @@ export default class polymarket extends Exchange {
         if (outcome !== undefined) {
             // scope to a single outcome token via DELETE /cancel-market-orders { asset_id }
             const outcomeObj = await this.loadOutcome (outcome);
-            const request: Dict = { 'asset_id': outcomeObj['outcomeId'] };
+            const request: Dict = { 'asset_id': this.safeString (outcomeObj, 'outcomeId') };
             response = await this.clobPrivateDeleteCancelMarketOrders (this.extend (request, params));
         } else {
             // cancel every open order via DELETE /cancel-all (no body, no market data needed)
@@ -3160,8 +3160,8 @@ export default class polymarket extends Exchange {
      */
     override async watchOrderBook (outcome: string, limit: Int = undefined, params: Dict = {}): Promise<PredictionOrderBook> {
         const outcomeObj = await this.loadOutcome (outcome);
-        const tokenId = this.safeString (outcomeObj, 'outcomeId');
-        const outcomeValue: Str = this.safeString (outcomeObj, 'outcome');
+        const tokenId = this.safeString (outcomeObj, 'outcomeId', '');
+        const outcomeValue = this.safeString (outcomeObj, 'outcome', '');
         const messageHash = 'orderbook::' + outcomeValue;
         const subscribeHash = 'subscribe::' + tokenId;
         const subscribeMsg = { 'assets_ids': [ tokenId ], 'type': 'market' };
@@ -3182,8 +3182,8 @@ export default class polymarket extends Exchange {
      */
     override async watchTrades (outcome: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<PredictionTrade[]> {
         const outcomeObj = await this.loadOutcome (outcome);
-        const tokenId = this.safeString (outcomeObj, 'outcomeId');
-        const outcomeValue: Str = this.safeString (outcomeObj, 'outcome');
+        const tokenId = this.safeString (outcomeObj, 'outcomeId', '');
+        const outcomeValue = this.safeString (outcomeObj, 'outcome', '');
         const messageHash = 'trades::' + outcomeValue;
         const subscribeHash = 'subscribe::' + tokenId;
         const subscribeMsg = { 'assets_ids': [ tokenId ], 'type': 'market' };
@@ -3202,14 +3202,14 @@ export default class polymarket extends Exchange {
      */
     override async watchTicker (outcome: string, params: Dict = {}): Promise<PredictionTicker> {
         const outcomeObj = await this.loadOutcome (outcome);
-        const tokenId = this.safeString (outcomeObj, 'outcomeId');
+        const tokenId = this.safeString (outcomeObj, 'outcomeId', '');
         const outcomeValue: Str = this.safeString (outcomeObj, 'outcome');
-        const messageHash = 'ticker::' + outcomeValue;
-        const subscribeHash = 'subscribe::' + tokenId;
-        const subscribeMsg = { 'assets_ids': [ tokenId ], 'type': 'market' };
         if (outcomeValue === undefined) {
             throw new ExchangeError (this.id + ' watchTicker() missing outcome');
         }
+        const messageHash = 'ticker::' + outcomeValue;
+        const subscribeHash = 'subscribe::' + tokenId;
+        const subscribeMsg = { 'assets_ids': [ tokenId ], 'type': 'market' };
         if (!(outcomeValue in this.orderbooks)) {
             const seededBook = this.orderBook ({});
             if (outcomeValue !== undefined) {
