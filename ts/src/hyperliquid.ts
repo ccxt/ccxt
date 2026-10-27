@@ -5250,8 +5250,8 @@ export default class hyperliquid extends Exchange {
             return undefined;
         }
         const hi3TokensByname = this.safeDict (this.options, 'hip3TokensByName', {});
-        if (this.safeDict (hi3TokensByname, coin) !== undefined) {
-            const hip3Dict = this.safeDict (hi3TokensByname, coin);
+        const hip3Dict = this.safeDict (hi3TokensByname, coin);
+        if (hip3Dict !== undefined) {
             const quote = this.safeString (hip3Dict, 'quote', 'USDC');
             const code = this.safeString (hip3Dict, 'code', coin);
             return code + '/' + quote + ':' + quote;
