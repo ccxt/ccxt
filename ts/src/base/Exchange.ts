@@ -8799,6 +8799,7 @@ export class BaseExchange {
     async fetchPaginatedCallDeterministic (method: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, timeframe: Str = undefined, params: Dict = {}, maxEntriesPerRequest: Int = undefined): Promise<any[]> {
         const maxCalls = 10;
         const [ maxCallsPaginationCalls, paramsPaginationCalls ] = this.handleOptionIntegerAndParams (params, method, 'paginationCalls', maxCalls);
+        const maxCallsLimit = this.parseToInt (maxCallsPaginationCalls);
         const [ maxEntriesPerRequestOption, paramsMaxEntriesPerRequest ] = this.handleMaxEntriesPerRequestAndParams (method, maxEntriesPerRequest, paramsPaginationCalls);
         // paginationDirection is only relevant to fetchPaginatedCallDynamic/Cursor; deterministic
         // pagination always walks forward internally, so strip it here to avoid leaking an
@@ -8810,7 +8811,7 @@ export class BaseExchange {
         const maxEntriesPerRequestValue: Int = this.requireValue (maxEntriesPerRequestOption, 'fetchPaginatedCallDeterministic() maxEntriesPerRequest is required');
         const step = time * this.parseToInt (maxEntriesPerRequestValue);
         const until = this.safeInteger2 (paramsOmitted, 'until', 'till'); // do not omit it here
-        let currentSince = current - (maxCallsPaginationCalls * step) - 1;
+        let currentSince = current - (maxCallsLimit * step) - 1;
         if (since !== undefined) {
             if (until !== undefined) {
                 // the recent-window floor below would jump past a fully-historical [ since, until ]
@@ -8829,11 +8830,11 @@ export class BaseExchange {
                 throw new ArgumentsRequired (this.id + ' fetchPaginatedCallDeterministic() requires a since argument when until is set');
             }
             const requiredCalls = Math.ceil ((until - since) / step);
-            if (requiredCalls > maxCallsPaginationCalls) {
-                throw new BadRequest (this.id + ' the number of required calls is greater than the max number of calls allowed, either increase the paginationCalls or decrease the since-until gap. Current paginationCalls limit is ' + maxCallsPaginationCalls.toString () + ' required calls is ' + requiredCalls.toString ());
+            if (requiredCalls > maxCallsLimit) {
+                throw new BadRequest (this.id + ' the number of required calls is greater than the max number of calls allowed, either increase the paginationCalls or decrease the since-until gap. Current paginationCalls limit is ' + maxCallsLimit.toString () + ' required calls is ' + requiredCalls.toString ());
             }
         }
-        for (let i = 0; i < maxCallsPaginationCalls; i++) {
+        for (let i = 0; i < maxCallsLimit; i++) {
             if ((until !== undefined) && (currentSince >= until)) {
                 break;
             }
@@ -8951,14 +8952,14 @@ export class BaseExchange {
     async fetchPaginatedCallIncremental (method: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}, pageKey: Str = undefined, maxEntriesPerRequest: Int = undefined): Promise<any[]> {
         const maxCalls = 10;
         const [ maxCallsPaginationCalls, paramsPaginationCalls ] = this.handleOptionIntegerAndParams (params, method, 'paginationCalls', maxCalls);
+        const maxCallsLimit = this.parseToInt (maxCallsPaginationCalls);
         const maxRetries = 3;
         const [ maxRetriesOption, paramsMaxRetries ] = this.handleOptionIntegerAndParams (paramsPaginationCalls, method, 'maxRetries', maxRetries);
         const [ maxEntriesPerRequestOption, paramsMaxEntriesPerRequest ] = this.handleMaxEntriesPerRequestAndParams (method, maxEntriesPerRequest, paramsMaxRetries);
-        let i = 0;
         let errors = 0;
         let result: any[] = [];
         let shouldBreak = false;
-        while (i < maxCallsPaginationCalls) {
+        for (let i = 0; i < maxCallsLimit; i++) {
             try {
                 paramsMaxEntriesPerRequest[pageKey as string] = i + 1;
                 const response = await this[method] (symbol, since, maxEntriesPerRequestOption, paramsMaxEntriesPerRequest);
@@ -8983,11 +8984,9 @@ export class BaseExchange {
             if (shouldBreak) {
                 break; // go turns a break inside try into a panic that only ends the iteration
             }
-            i += 1;
         }
-        const sorted = this.sortCursorPaginatedResult (result);
         const key = (method === 'fetchOHLCV') ? 0 : 'timestamp';
-        return this.filterBySinceLimit (sorted, since, limit, key);
+        return this.filterBySinceLimit (this.sortCursorPaginatedResult (result), since, limit, key);
     }
 
     sortCursorPaginatedResult (result: any) {
