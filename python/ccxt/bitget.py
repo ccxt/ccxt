@@ -4233,8 +4233,10 @@ class bitget(Exchange, ImplicitAPI):
         stockDefault = self.safe_bool(market, 'stock', False)
         if paginate:
             # the recursive calls read 'stock' and 'uta' themselves, so only peek at the flag here
-            stockForPagination = self.handle_option_bool_and_params(paramsPaginate, 'fetchTrades', 'stock', stockDefault)[0]
-            if stockForPagination is True:
+            stockForPagination = None
+            paramsPeek = None
+            stockForPagination, paramsPeek = self.handle_option_bool_and_params(paramsPaginate, 'fetchTrades', 'stock', stockDefault)
+            if stockForPagination is True and paramsPeek is not None:
                 raise BadRequest(self.id + ' fetchTrades() does not support paginate for tokenized stock markets')
             return self.fetch_paginated_call_cursor('fetchTrades', symbol, since, limit, paramsPaginate, 'idLessThan', 'idLessThan')
         request = {
@@ -6870,8 +6872,9 @@ class bitget(Exchange, ImplicitAPI):
             request['symbol'] = market['id']
             defaultType = self.safe_string_2(self.options, 'fetchOpenOrders', 'defaultType', 'spot')
             marketType = defaultType
-            if 'type' in market:
-                marketType = market['type']
+            marketTypeValue = self.safe_string(market, 'type')
+            if marketTypeValue is not None:
+                marketType = marketTypeValue
             type = self.safe_string(paramsMarginMode, 'type', marketType)
         else:
             defaultType = self.safe_string_2(self.options, 'fetchOpenOrders', 'defaultType', 'spot')
@@ -9704,7 +9707,7 @@ class bitget(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         posMode = 'one_way_mode'
-        if hedged:
+        if hedged is True:
             posMode = 'hedge_mode'
         request = {}
         market = None

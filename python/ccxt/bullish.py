@@ -1383,8 +1383,7 @@ class bullish(Exchange, ImplicitAPI):
         #         }, ...
         #     ]
         #
-        ohlcvs = self.to_array(response)
-        return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
+        return self.parse_ohlcvs(self.to_array(response), market, timeframe, since, limit)
 
     def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         return [
@@ -1451,8 +1450,7 @@ class bullish(Exchange, ImplicitAPI):
                 'timestamp': self.parse8601(datetime),
                 'datetime': datetime,
             })
-        sorted = self.sort_by(rates, 'timestamp')
-        return self.filter_by_symbol_since_limit(sorted, self.safe_string(market, 'symbol'), since, limit)
+        return self.filter_by_symbol_since_limit(self.sort_by(rates, 'timestamp'), self.safe_string(market, 'symbol'), since, limit)
 
     def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
@@ -2466,8 +2464,7 @@ class bullish(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        results = self.parse_positions(response, symbols)
-        return self.filter_by_array_positions(results, 'symbol', symbols)
+        return self.filter_by_array_positions(self.parse_positions(response, symbols), 'symbol', symbols)
 
     def parse_position(self, position: dict, market: Market = None) -> Position:
         #
@@ -2882,8 +2879,7 @@ class bullish(Exchange, ImplicitAPI):
             elif method == 'POST':
                 requestBody = self.json(params)
                 payload = timestamp + nonce + method + '/trading-api/' + path + requestBody
-                digest = self.hash(self.encode(payload), 'sha256', 'hex')
-                signature = self.hmac(self.encode(digest), self.encode(self.secret), hashlib.sha256, 'hex')
+                signature = self.hmac(self.encode(self.hash(self.encode(payload), 'sha256', 'hex')), self.encode(self.secret), 'sha256', 'hex')
                 headers = {
                     'BX-TIMESTAMP': timestamp,
                     'BX-NONCE': nonce,
@@ -2926,8 +2922,7 @@ class bullish(Exchange, ImplicitAPI):
         #     }
         #
         token = self.safe_string(response, 'token')
-        authorizer = self.safe_string(response, 'authorizer')
-        self.options['authorizer'] = authorizer
+        self.options['authorizer'] = self.safe_string(response, 'authorizer')
         self.token = token
         self.options['tokenExpires'] = self.sum(self.milliseconds(), 1000 * 60 * 60 * 24)  # token expires in 24 hours
         return token

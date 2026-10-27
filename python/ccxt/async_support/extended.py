@@ -1855,8 +1855,7 @@ class extended(Exchange, ImplicitAPI):
         currency = self.currency(code)
         account = await self.fetch_extended_account()
         currentAccountId = self.safe_string(account, 'accountId', '')
-        fromAccountResolved = currentAccountId if (fromAccount is None) else fromAccount
-        if fromAccountResolved != currentAccountId:
+        if (fromAccount is not None) and (fromAccount != currentAccountId):
             raise BadRequest(self.id + ' transfer() can only transfer from the authenticated account')
         toVault = self.safe_string_2(params, 'toVault', 'receiverPositionId')
         toL2Key = self.safe_string_2(params, 'toL2Key', 'receiverPublicKey')
@@ -1865,7 +1864,7 @@ class extended(Exchange, ImplicitAPI):
         amountString = self.currency_to_precision(code, amount)
         settlement = self.create_transfer_settlement_data(amountString, currency, account, toVault, toL2Key, params)
         request = {
-            'fromAccount': fromAccountResolved,
+            'fromAccount': currentAccountId,
             'toAccount': toAccount,
             'amount': amountString,
             'transferredAsset': currency['id'],
@@ -1895,7 +1894,7 @@ class extended(Exchange, ImplicitAPI):
             'datetime': self.iso8601(now),
             'currency': currency['code'],
             'amount': self.parse_number(amountString),
-            'fromAccount': fromAccountResolved,
+            'fromAccount': currentAccountId,
             'toAccount': toAccount,
             'status': status,
         }

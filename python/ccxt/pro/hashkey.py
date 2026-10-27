@@ -701,8 +701,8 @@ class hashkey(ccxt.async_support.hashkey):
         url = self.get_private_url(listenKey)
         client = self.client(url)
         self.set_balance_cache(client, typeMarketType, messageHash)
-        fetchBalanceSnapshot = self.handle_option_bool_and_params(self.options, 'watchBalance', 'fetchBalanceSnapshot', True)
-        awaitBalanceSnapshot = self.handle_option_bool_and_params(self.options, 'watchBalance', 'awaitBalanceSnapshot', False)
+        fetchBalanceSnapshot = self.handle_option_bool_and_params(self.options, 'watchBalance', 'fetchBalanceSnapshot', True)[0]
+        awaitBalanceSnapshot = self.handle_option_bool_and_params(self.options, 'watchBalance', 'awaitBalanceSnapshot', False)[0]
         if fetchBalanceSnapshot and awaitBalanceSnapshot:
             await client.future(typeMarketType + ':fetchBalanceSnapshot')
         return await self.watch(url, messageHash, None, messageHash)

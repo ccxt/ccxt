@@ -4115,39 +4115,39 @@ class BaseExchange(object):
                     currency['precision'] = self.parse_number(precision)
                 # limits
                 limits = self.safe_dict(network, 'limits')
-                limitsMain = self.safe_dict(currency, 'limits')
-                if limitsMain is None:
-                    currency['limits'] = {}
+                limitsMain = self.safe_dict(currency, 'limits', {})
                 # deposits
                 limitsDeposit = self.safe_dict(limits, 'deposit')
-                limitsDepositMain = self.safe_dict(limitsMain, 'deposit')
-                if limitsDepositMain is None:
-                    currency['limits']['deposit'] = {}
+                limitsDepositMain = self.safe_dict(limitsMain, 'deposit', {})
+                limitsDepositNew = {}
                 limitsDepositMin = self.safe_string(limitsDeposit, 'min')
                 limitsDepositMax = self.safe_string(limitsDeposit, 'max')
                 limitsDepositMinMain = self.safe_string(limitsDepositMain, 'min')
                 limitsDepositMaxMain = self.safe_string(limitsDepositMain, 'max')
                 # find min
                 if limitsDepositMinMain is None or Precise.string_lt(limitsDepositMin, limitsDepositMinMain):
-                    currency['limits']['deposit']['min'] = self.parse_number(limitsDepositMin)
+                    limitsDepositNew['min'] = self.parse_number(limitsDepositMin)
                 # find max
                 if limitsDepositMaxMain is None or Precise.string_gt(limitsDepositMax, limitsDepositMaxMain):
-                    currency['limits']['deposit']['max'] = self.parse_number(limitsDepositMax)
+                    limitsDepositNew['max'] = self.parse_number(limitsDepositMax)
                 # withdrawals
                 limitsWithdraw = self.safe_dict(limits, 'withdraw')
-                limitsWithdrawMain = self.safe_dict(limitsMain, 'withdraw')
-                if limitsWithdrawMain is None:
-                    currency['limits']['withdraw'] = {}
+                limitsWithdrawMain = self.safe_dict(limitsMain, 'withdraw', {})
+                limitsWithdrawNew = {}
                 limitsWithdrawMin = self.safe_string(limitsWithdraw, 'min')
                 limitsWithdrawMax = self.safe_string(limitsWithdraw, 'max')
                 limitsWithdrawMinMain = self.safe_string(limitsWithdrawMain, 'min')
                 limitsWithdrawMaxMain = self.safe_string(limitsWithdrawMain, 'max')
                 # find min
                 if limitsWithdrawMinMain is None or Precise.string_lt(limitsWithdrawMin, limitsWithdrawMinMain):
-                    currency['limits']['withdraw']['min'] = self.parse_number(limitsWithdrawMin)
+                    limitsWithdrawNew['min'] = self.parse_number(limitsWithdrawMin)
                 # find max
                 if limitsWithdrawMaxMain is None or Precise.string_gt(limitsWithdrawMax, limitsWithdrawMaxMain):
-                    currency['limits']['withdraw']['max'] = self.parse_number(limitsWithdrawMax)
+                    limitsWithdrawNew['max'] = self.parse_number(limitsWithdrawMax)
+                currency['limits'] = self.extend(limitsMain, {
+                    'deposit': self.extend(limitsDepositMain, limitsDepositNew),
+                    'withdraw': self.extend(limitsWithdrawMain, limitsWithdrawNew),
+                })
         return self.extend({
             'info': None,
             'id': None,
@@ -4390,9 +4390,9 @@ class BaseExchange(object):
     def safe_balance(self, balance: dict):
         balances = self.omit(balance, ['info', 'timestamp', 'datetime', 'free', 'used', 'total'])
         codes = list(balances.keys())
-        balance['free'] = {}
-        balance['used'] = {}
-        balance['total'] = {}
+        freeBalance = {}
+        usedBalance = {}
+        totalBalance = {}
         debtBalance = {}
         for i in range(0, len(codes)):
             code = codes[i]
@@ -4409,12 +4409,15 @@ class BaseExchange(object):
             balance[code]['free'] = self.parse_number(free)
             balance[code]['used'] = self.parse_number(used)
             balance[code]['total'] = self.parse_number(total)
-            balance['free'][code] = balance[code]['free']
-            balance['used'][code] = balance[code]['used']
-            balance['total'][code] = balance[code]['total']
+            freeBalance[code] = balance[code]['free']
+            usedBalance[code] = balance[code]['used']
+            totalBalance[code] = balance[code]['total']
             if debt is not None:
                 balance[code]['debt'] = self.parse_number(debt)
                 debtBalance[code] = balance[code]['debt']
+        balance['free'] = freeBalance
+        balance['used'] = usedBalance
+        balance['total'] = totalBalance
         debtBalanceArray = list(debtBalance.keys())
         length = len(debtBalanceArray)
         if length != 0:
@@ -4939,12 +4942,13 @@ class BaseExchange(object):
                 if rateKey in reduced[feeCurrencyCode]:
                     reduced[feeCurrencyCode][rateKey]['cost'] = Precise.string_add(reduced[feeCurrencyCode][rateKey]['cost'], cost)
                 else:
-                    reduced[feeCurrencyCode][rateKey] = {
+                    newRateFee = {
                         'currency': code,
                         'cost': cost,
                     }
                     if rate is not None:
-                        reduced[feeCurrencyCode][rateKey]['rate'] = rate
+                        newRateFee['rate'] = rate
+                    reduced[feeCurrencyCode][rateKey] = newRateFee
         result = []
         feeValues = list(reduced.values())
         for i in range(0, len(feeValues)):
@@ -5370,7 +5374,7 @@ class BaseExchange(object):
         # if it was not defined by user, we should not set it from 'defaultNetworks', because handleNetworkCodeAndParams is for only request-side and thus we do not fill it with anything. We can only use 'defaultNetworks' after parsing response-side
         return [networkCodeInParams, paramsOmitted]
 
-    def select_network_key_from_networks(self, currencyCode: str, networkCode: Str, indexedNetworkEntries: object, isIndexedByUnifiedNetworkCode=False):
+    def select_network_key_from_networks(self, currencyCode: str, networkCode: Str, indexedNetworkEntries: dict, isIndexedByUnifiedNetworkCode=False):
         # this method is used against raw & unparse network entries, which are just indexed by network id
         chosenNetworkId = None
         availableNetworkIds = list(indexedNetworkEntries.keys())
@@ -8158,7 +8162,7 @@ class BaseExchange(object):
                     raise ArgumentsRequired(self.id + ' cleanCache() requires a symbol argument')
                 if timeframe is None:
                     raise ArgumentsRequired(self.id + ' cleanCache() requires a timeframe argument')
-                if (self.ohlcvs is not None) and (symbol in self.ohlcvs):
+                if symbol in self.ohlcvs:
                     if timeframe in self.ohlcvs[symbol]:
                         del self.ohlcvs[symbol][timeframe]
         elif symbolsLength > 0:
@@ -8187,7 +8191,7 @@ class BaseExchange(object):
                 for i in range(0, len(clients)):
                     client = clients[i]
                     futures = client.futures
-                    if (futures is not None) and ('fetchPositionsSnapshot' in futures):
+                    if 'fetchPositionsSnapshot' in futures:
                         del futures['fetchPositionsSnapshot']
             elif (topic == 'ticker' or topic == 'markPrice') and (self.tickers is not None):
                 tickerSymbols = list(self.tickers.keys())

@@ -2999,7 +2999,7 @@ class hashkey(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
         marketType = 'spot'
-        marketTypeOption = self.handle_market_type_and_params(methodName, market, params, marketType)
+        marketTypeOption = self.handle_market_type_and_params(methodName, market, params, marketType)[0]
         response: dict
         if marketTypeOption == 'spot':
             response = self.privateDeleteApiV1SpotCancelOrderByIds(request)

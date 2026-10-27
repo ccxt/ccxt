@@ -1209,7 +1209,7 @@ class hitbtc(ccxt.async_support.hitbtc):
             market = self.market(symbol)
             request['symbol'] = market['id']
         marketType, paramsMarketType = self.handle_market_type_and_params('fetchOpenOrdersWs', market, params)
-        marginMode = self.handle_margin_mode_and_params('fetchOpenOrdersWs', paramsMarketType)
+        marginMode = self.handle_margin_mode_and_params('fetchOpenOrdersWs', paramsMarketType)[0]
         if marketType == 'swap':
             return await self.trade_request('futures_get_orders', request)
         elif (marketType == 'margin') or (marginMode is not None):

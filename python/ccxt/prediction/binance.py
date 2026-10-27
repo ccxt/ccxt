@@ -1001,7 +1001,7 @@ class binance(PredictionExchange, ImplicitAPI):
         if limit is not None:
             request['limit'] = limit
         wallet = await self.fetch_wallet('fetchOpenOrders', paramsMaxEntriesPerRequest)
-        request['walletAddress'] = wallet['walletAddress']
+        request['walletAddress'] = self.safe_string(wallet, 'walletAddress')
         response = await self.sapiPrivateGetOrderList(self.extend(request, paramsMaxEntriesPerRequest))
         #
         # {
@@ -1083,7 +1083,7 @@ class binance(PredictionExchange, ImplicitAPI):
         if until is not None:
             request['endDate'] = self.yyyymmdd(until)
         wallet = await self.fetch_wallet('fetchOrders', paramsOmitted)
-        request['walletAddress'] = wallet['walletAddress']
+        request['walletAddress'] = self.safe_string(wallet, 'walletAddress')
         response = await self.sapiPrivateGetOrderHistory(self.extend(request, paramsOmitted))
         #
         # {
@@ -1145,7 +1145,7 @@ class binance(PredictionExchange, ImplicitAPI):
                 requestedOutcomeSymbols[requestedOutcome] = True
         wallet = await self.fetch_wallet('fetchPositions', params)
         request = {
-            'walletAddress': wallet['walletAddress'],
+            'walletAddress': self.safe_string(wallet, 'walletAddress'),
         }
         response = await self.sapiPrivateGetPositionList(self.extend(request, params))
         #
@@ -1228,7 +1228,7 @@ class binance(PredictionExchange, ImplicitAPI):
             market = self.market(outcomeObj['market'])
             request['marketTopicId'] = market['info']['marketTopicId']
         wallet = await self.fetch_wallet('fetchOrders', params)
-        request['walletAddress'] = wallet['walletAddress']
+        request['walletAddress'] = self.safe_string(wallet, 'walletAddress')
         response = await self.sapiPrivateGetPositionFilter(self.extend(request, params))
         #
         #
@@ -1331,7 +1331,7 @@ class binance(PredictionExchange, ImplicitAPI):
         if until is not None:
             request['endDate'] = self.yyyymmdd(until)
         wallet = await self.fetch_wallet('fetchMyTrades', paramsOmitted)
-        request['walletAddress'] = wallet['walletAddress']
+        request['walletAddress'] = self.safe_string(wallet, 'walletAddress')
         response = await self.sapiPrivateGetOrderHistory(self.extend(request, paramsOmitted))
         #
         # {
@@ -1585,7 +1585,7 @@ class binance(PredictionExchange, ImplicitAPI):
         cost = self.safe_string(params, 'cost')
         slippageBps = self.parse_to_int(Precise.string_mul(slippage, '10000'))
         commonRequest = {
-            'walletAddress': wallet['walletAddress'],
+            'walletAddress': self.safe_string(wallet, 'walletAddress'),
             'orderType': typeUpper,
             'slippageBps': slippageBps,
         }
@@ -1702,7 +1702,7 @@ class binance(PredictionExchange, ImplicitAPI):
             outcomeObj = self.outcome(outcome)
         wallet = await self.fetch_wallet('cancelOrders', params)
         request = {
-            'walletAddress': wallet['walletAddress'],
+            'walletAddress': self.safe_string(wallet, 'walletAddress'),
             'walletId': wallet['walletId'],
         }
         # flatten cancelInfoList to dot list, eg. cancelInfoList[o].orderId=1234

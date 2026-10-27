@@ -3133,7 +3133,7 @@ class mexc(Exchange, ImplicitAPI):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        marketType = self.handle_market_type_and_params('fetchOrdersByState', market, params)
+        marketType = self.handle_market_type_and_params('fetchOrdersByState', market, params)[0]
         if marketType == 'spot':
             raise NotSupported(self.id + ' fetchOrdersByState() is not supported for ' + marketType)
         else:
@@ -3268,7 +3268,7 @@ class mexc(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol) if (symbol is not None) else None
-        marketType = self.handle_market_type_and_params('cancelOrders', market, params)
+        marketType = self.handle_market_type_and_params('cancelOrders', market, params)[0]
         if marketType == 'spot':
             raise NotSupported(self.id + ' cancelOrders() is not supported for ' + marketType)
         else:

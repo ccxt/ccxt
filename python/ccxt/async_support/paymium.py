@@ -623,7 +623,7 @@ class paymium(Exchange, ImplicitAPI):
                 'Api-Key': self.apiKey,
                 'Api-Nonce': nonce,
             }
-            signedBody = None
+            signedBody = ''
             if method == 'POST' and hasQuery:
                 signedBody = self.json(query)
             if method == 'POST':

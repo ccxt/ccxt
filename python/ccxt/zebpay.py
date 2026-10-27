@@ -1014,8 +1014,7 @@ class zebpay(Exchange, ImplicitAPI):
         }
         response = None
         if market['spot'] is True:
-            orderRequestResult = self.order_request(symbol, type, amount, request, price, query)
-            response = self.privateSpotPostV2ExOrders(self.extend(orderRequestResult[0], orderRequestResult[1]))
+            response = self.privateSpotPostV2ExOrders(self.spot_order_body(symbol, type, amount, request, price, query))
         else:
             marginAsset = self.safe_string(query, 'marginAsset', 'INR')
             formType = self.safe_string_upper(query, 'formType', 'ORDER_FORM')
@@ -1047,7 +1046,7 @@ class zebpay(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_order(data, market)
 
-    def order_request(self, symbol: str, type: str, amount: Num, request: dict, price: Num = None, params: dict = {}):
+    def spot_order_body(self, symbol: str, type: str, amount: Num, request: dict, price: Num = None, params: dict = {}) -> dict:
         upperCaseType = type.upper()
         triggerPrice = self.safe_string(params, 'stopLossPrice')
         quoteOrderQty = self.safe_string_2(params, 'quoteOrderQty', 'cost', None)
@@ -1066,7 +1065,7 @@ class zebpay(Exchange, ImplicitAPI):
                 request['stopLossPrice'] = self.price_to_precision(symbol, triggerPrice)
             request['amount'] = self.amount_to_precision(symbol, amount)
             request['price'] = self.price_to_precision(symbol, price)
-        return [request, paramsOmitted]
+        return self.extend(request, paramsOmitted)
 
     def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
@@ -1856,11 +1855,10 @@ class zebpay(Exchange, ImplicitAPI):
         timestamp = str(self.milliseconds())
         signature = ''
         query = self.omit(paramsOmitted, self.extract_params(path))
-        queryLength = len(query)
         access = api[0]
         if access == 'public':
             if method == 'GET' or method == 'DELETE':
-                if queryLength != 0:
+                if len(query) != 0:
                     suffix = '?' + self.urlencode(query)
             else:
                 priceType = self.safe_string(paramsOmitted, 'priceType')
@@ -1875,15 +1873,15 @@ class zebpay(Exchange, ImplicitAPI):
         else:
             self.check_required_credentials()
             isSpot = marketType == 'spot'
-            paramsOmitted['timestamp'] = timestamp
+            paramsSigned = self.extend(paramsOmitted, {'timestamp': timestamp})
             if method == 'GET' or (method == 'DELETE' and isSpot):
                 # For GET/DELETE: Append params to URL and sign the query string
-                queryString = self.urlencode(paramsOmitted)
+                queryString = self.urlencode(paramsSigned)
                 signature = self.hmac(self.encode(queryString), self.encode(self.secret), hashlib.sha256, 'hex')
                 suffix = '?' + queryString
             else:
                 # For POST/PUT: Convert body to JSON and sign the stringified payload
-                bodySigned = self.json(paramsOmitted)
+                bodySigned = self.json(paramsSigned)
                 signature = self.hmac(self.encode(bodySigned), self.encode(self.secret), hashlib.sha256, 'hex')
             headersSigned = {
                 'Referrer': 'ccxt',
