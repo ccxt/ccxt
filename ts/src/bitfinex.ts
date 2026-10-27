@@ -1790,7 +1790,7 @@ export default class bitfinex extends Exchange {
         const timeInForce = this.safeString (params, 'timeInForce');
         const postOnlyParam = this.safeBool (params, 'postOnly', false);
         const reduceOnly = this.safeBool (params, 'reduceOnly', false);
-        const clientOrderId = this.safeValue2 (params, 'cid', 'clientOrderId');
+        const clientOrderId = this.safeInteger2 (params, 'cid', 'clientOrderId');
         let orderType = type.toUpperCase ();
         if (trailingAmount !== undefined) {
             orderType = 'TRAILING STOP';
@@ -2036,7 +2036,7 @@ export default class bitfinex extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const cid = this.safeValue2 (params, 'cid', 'clientOrderId'); // client order id
+        const cid = this.safeInteger2 (params, 'cid', 'clientOrderId'); // client order id
         let request: Dict;
         let market: Market = undefined;
         if (symbol !== undefined) {
