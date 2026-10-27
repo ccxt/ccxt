@@ -2914,7 +2914,7 @@ export default class binance extends Exchange {
                     if (isLegacyLinear) {
                         settle = this.safeString (market, 'quote', '');
                     }
-                    const futuresSymbol = symbol + ':' + settle;
+                    const futuresSymbol = this.safeString (market, 'symbol', '') + ':' + settle;
                     if ((this.markets !== undefined) && (futuresSymbol in this.markets)) {
                         return this.markets[futuresSymbol];
                     }
@@ -5850,9 +5850,9 @@ export default class binance extends Exchange {
         const validOrderTypes = this.safeList (market['info'], 'orderTypes', []);
         if (!this.inArray (uppercaseType, validOrderTypes)) {
             if (initialUppercaseType !== uppercaseType) {
-                throw new InvalidOrder (this.id + ' triggerPrice parameter is not allowed for ' + symbol + ' ' + type + ' orders');
+                throw new InvalidOrder (this.id + ' triggerPrice parameter is not allowed for ' + this.safeString (market, 'symbol', '') + ' ' + type + ' orders');
             } else {
-                throw new InvalidOrder (this.id + ' ' + type + ' is not a valid order type for the ' + symbol + ' market');
+                throw new InvalidOrder (this.id + ' ' + type + ' is not a valid order type for the ' + this.safeString (market, 'symbol', '') + ' market');
             }
         }
         if (clientOrderId === undefined) {
@@ -7340,7 +7340,7 @@ export default class binance extends Exchange {
                     const stopLossOrTakeProfit = this.safeString (paramsPapi, 'stopLossOrTakeProfit');
                     omitKeys.push ('stopLossOrTakeProfit');
                     if ((stopLossOrTakeProfit !== 'stopLoss') && (stopLossOrTakeProfit !== 'takeProfit')) {
-                        throw new InvalidOrder (this.id + symbol + ' trailingPercent orders require a stopLossOrTakeProfit parameter of either stopLoss or takeProfit');
+                        throw new InvalidOrder (this.id + this.safeString (market, 'symbol', '') + ' trailingPercent orders require a stopLossOrTakeProfit parameter of either stopLoss or takeProfit');
                     }
                     if (isMarketOrder) {
                         if (stopLossOrTakeProfit === 'stopLoss') {
@@ -7384,7 +7384,7 @@ export default class binance extends Exchange {
         }
         if (market['option'] === true) {
             if (type === 'market') {
-                throw new InvalidOrder (this.id + ' ' + type + ' is not a valid order type for the ' + symbol + ' market');
+                throw new InvalidOrder (this.id + ' ' + type + ' is not a valid order type for the ' + this.safeString (market, 'symbol', '') + ' market');
             }
         } else {
             let validOrderTypes = this.safeList (market['info'], 'orderTypes', []);
@@ -7393,9 +7393,9 @@ export default class binance extends Exchange {
             }
             if (!this.inArray (uppercaseType, validOrderTypes)) {
                 if (initialUppercaseType !== uppercaseType) {
-                    throw new InvalidOrder (this.id + ' triggerPrice parameter is not allowed for ' + symbol + ' ' + type + ' orders');
+                    throw new InvalidOrder (this.id + ' triggerPrice parameter is not allowed for ' + this.safeString (market, 'symbol', '') + ' ' + type + ' orders');
                 } else {
-                    throw new InvalidOrder (this.id + ' ' + type + ' is not a valid order type for the ' + symbol + ' market');
+                    throw new InvalidOrder (this.id + ' ' + type + ' is not a valid order type for the ' + this.safeString (market, 'symbol', '') + ' market');
                 }
             }
         }
