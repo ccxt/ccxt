@@ -157,7 +157,8 @@ export default class hitbtc extends hitbtcRest {
         const messageHashes: string[] = [];
         if (symbolsNormalized !== undefined && resolvedPerSymbol) {
             for (let i = 0; i < symbolsNormalized.length; i++) {
-                messageHashes.push (messageHashPrefix + '::' + symbolsNormalized[i]);
+                const symbolId: string = symbolsNormalized[i];
+                messageHashes.push (messageHashPrefix + '::' + symbolId);
             }
         } else {
             messageHashes.push (messageHashPrefix);
