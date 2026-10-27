@@ -4432,10 +4432,10 @@ public class Binance extends BinanceApi
                     {
                         settle = this.safeString(market, "quote", "");
                     }
-                    String futuresSymbol = ((symbol + ":") + settle);
-                    if ((!java.util.Objects.equals(this.markets, null)) && (((Map<?, ?>)this.markets).containsKey(futuresSymbol)))
+                    String legacySymbol = ((this.safeString(market, "symbol", "") + ":") + settle);
+                    if ((!java.util.Objects.equals(this.markets, null)) && (((Map<?, ?>)this.markets).containsKey(legacySymbol)))
                     {
-                        return (Map<String, Object>) ((this.markets == null ? null : ((Map<?, ?>)this.markets).get(futuresSymbol)));
+                        return (Map<String, Object>) ((this.markets == null ? null : ((Map<?, ?>)this.markets).get(legacySymbol)));
                     }
                 } else
                 {
@@ -7747,10 +7747,10 @@ public class Binance extends BinanceApi
         {
             if (!java.util.Objects.equals(initialUppercaseType, uppercaseType))
             {
-                throw new InvalidOrder((((((this.id + " triggerPrice parameter is not allowed for ") + symbol) + " ") + type) + " orders")) ;
+                throw new InvalidOrder((((((this.id + " triggerPrice parameter is not allowed for ") + this.safeString(market, "symbol", "")) + " ") + type) + " orders")) ;
             } else
             {
-                throw new InvalidOrder((((((this.id + " ") + type) + " is not a valid order type for the ") + symbol) + " market")) ;
+                throw new InvalidOrder((((((this.id + " ") + type) + " is not a valid order type for the ") + this.safeString(market, "symbol", "")) + " market")) ;
             }
         }
         if (java.util.Objects.equals(clientOrderId, null))
@@ -9428,7 +9428,7 @@ public class Binance extends BinanceApi
                     ((List<Object>)omitKeys).add("stopLossOrTakeProfit");
                     if ((!java.util.Objects.equals(stopLossOrTakeProfit, "stopLoss")) && (!java.util.Objects.equals(stopLossOrTakeProfit, "takeProfit")))
                     {
-                        throw new InvalidOrder(((this.id + symbol) + " trailingPercent orders require a stopLossOrTakeProfit parameter of either stopLoss or takeProfit")) ;
+                        throw new InvalidOrder(((this.id + this.safeString(market, "symbol", "")) + " trailingPercent orders require a stopLossOrTakeProfit parameter of either stopLoss or takeProfit")) ;
                     }
                     if (Boolean.TRUE.equals(isMarketOrder))
                     {
@@ -9488,7 +9488,7 @@ public class Binance extends BinanceApi
         {
             if (java.util.Objects.equals(type, "market"))
             {
-                throw new InvalidOrder((((((this.id + " ") + type) + " is not a valid order type for the ") + symbol) + " market")) ;
+                throw new InvalidOrder((((((this.id + " ") + type) + " is not a valid order type for the ") + this.safeString(market, "symbol", "")) + " market")) ;
             }
         } else
         {
@@ -9501,10 +9501,10 @@ public class Binance extends BinanceApi
             {
                 if (!java.util.Objects.equals(initialUppercaseType, uppercaseType))
                 {
-                    throw new InvalidOrder((((((this.id + " triggerPrice parameter is not allowed for ") + symbol) + " ") + type) + " orders")) ;
+                    throw new InvalidOrder((((((this.id + " triggerPrice parameter is not allowed for ") + this.safeString(market, "symbol", "")) + " ") + type) + " orders")) ;
                 } else
                 {
-                    throw new InvalidOrder((((((this.id + " ") + type) + " is not a valid order type for the ") + symbol) + " market")) ;
+                    throw new InvalidOrder((((((this.id + " ") + type) + " is not a valid order type for the ") + this.safeString(market, "symbol", "")) + " market")) ;
                 }
             }
         }

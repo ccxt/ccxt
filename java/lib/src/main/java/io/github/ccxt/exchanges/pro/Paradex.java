@@ -98,6 +98,26 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         return requestId;
     }
 
+    /**
+     * @ignore
+     * @method
+     * @name paradex#subscribeRequest
+     * @description builds a json-rpc subscribe request, its id is kept in the subscription passed to watch, so an error reply reaches only the watchers of that request
+     * @param {string} channel the channel to subscribe to
+     * @returns {object} the subscribe request
+     */
+    public Map<String, Object> subscribeRequest(String channel)
+    {
+        return new HashMap<String, Object>() {{
+            put( "jsonrpc", "2.0" );
+            put( "id", Paradex.this.requestId() );
+            put( "method", "subscribe" );
+            put( "params", new HashMap<String, Object>() {{
+                put( "channel", channel );
+            }} );
+        }};
+    }
+
     public CompletableFuture<Object> authenticate(Map<String, Object> parameters)
     {
 
@@ -111,15 +131,19 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             if (java.util.Objects.equals(authenticated, null))
             {
                 String token = (this.authenticateRest(new HashMap<String, Object>() {{}})).join();
+                Long requestId = this.requestId();
                 Map<String, Object> request = new HashMap<String, Object>() {{
                     put( "jsonrpc", "2.0" );
-                    put( "id", Paradex.this.requestId() );
+                    put( "id", requestId );
                     put( "method", "auth" );
                     put( "params", new HashMap<String, Object>() {{
                         put( "bearer", token );
                     }} );
                 }};
-                this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash, null);
+                Map<String, Object> subscription = new HashMap<String, Object>() {{
+                    put( "id", requestId );
+                }};
+                this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash, subscription);
             }
             return ((io.github.ccxt.ws.Future)future).getFuture().join();
         });
@@ -135,15 +159,42 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         //         "result": { "node_id": "73cf456f7cb78d59" }
         //     }
         //
-        Map<String, Object> result = (Map<String, Object>) this.safeDict(message, "result", (Object) null);
-        if (!java.util.Objects.equals(result, null))
+        // the future stays resolved, so later private watches on this connection skip the auth request
+        io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)this.safeValue(client.futures, "authenticated");
+        if (!java.util.Objects.equals(future, null))
         {
-            // client.resolve (true, messageHash);
-            io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)this.safeValue(client.futures, "authenticated");
-            if (!java.util.Objects.equals(future, null))
-            {
-                future.resolve(true);
-            }
+            future.resolve(true);
+        }
+    }
+
+    public void handleRequestReply(Client client, Map<String, Object> message)
+    {
+        //
+        // auth
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "id": 1,
+        //         "result": { "node_id": "73cf456f7cb78d59" }
+        //     }
+        //
+        // subscribe
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "id": 2,
+        //         "result": { "channel": "orders.ALL" }
+        //     }
+        //
+        // only the reply to the auth request resolves the auth, a subscribe ack carries a channel instead of a node id
+        String requestId = this.safeString(message, "id");
+        Map<String, Object> authSubscription = (Map<String, Object>) this.safeDict(client.subscriptions, "authenticated", (Object) null);
+        String authRequestId = this.safeString(authSubscription, "id");
+        Map<String, Object> result = (Map<String, Object>) this.safeDict(message, "result", (Object) null);
+        Boolean isAuth = ((!java.util.Objects.equals(requestId, null)) && (java.util.Objects.equals(requestId, authRequestId))) || (!java.util.Objects.equals(this.safeString(result, "node_id"), null));
+        if (Boolean.TRUE.equals(isAuth))
+        {
+            this.handleAuthenticationMessage(client, (Map<String, Object>) (message));
         }
     }
 
@@ -174,13 +225,11 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
                 messageHash = ("trades." + market.get("id"));
             }
             String url = this.getWsUrl();
-            Map<String, Object> request = new HashMap<String, Object>();
-            request.put("jsonrpc", "2.0");
-            request.put("method", "subscribe");
-            HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
-            mapLiteral1.put("channel", messageHash);
-            request.put("params", mapLiteral1);
-            List<Object> trades = (this.<List<Object>>watch(url, messageHash, this.deepExtend(request, parameters), messageHash, null)).join();
+            Map<String, Object> request = this.subscribeRequest(messageHash);
+            Map<String, Object> subscription = new HashMap<String, Object>();
+            subscription.put("id", request.get("id"));
+            subscription.put("messageHashes", new ArrayList<Object>(Arrays.asList(messageHash)));
+            List<Object> trades = (this.<List<Object>>watch(url, messageHash, this.deepExtend(request, parameters), messageHash, subscription)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -256,14 +305,12 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             Map<String, Object> market = this.market(symbol);
             String messageHash = this.getOrderBookChannel((String) (market.get("id")));
             String url = this.getWsUrl();
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "jsonrpc", "2.0" );
-                put( "method", "subscribe" );
-                put( "params", new HashMap<String, Object>() {{
-                    put( "channel", messageHash );
-                }} );
+            Map<String, Object> request = this.subscribeRequest((String) (messageHash));
+            Map<String, Object> subscription = new HashMap<String, Object>() {{
+                put( "id", request.get("id") );
+                put( "messageHashes", new ArrayList<Object>(Arrays.asList(messageHash)) );
             }};
-            io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, messageHash, this.deepExtend(request, parameters), messageHash, null)).join();
+            io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, messageHash, this.deepExtend(request, parameters), messageHash, subscription)).join();
             return orderbook.limit();
         }).thenApply(OrderBook::new);
 
@@ -363,15 +410,13 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             // option too, thousands of messages a second, all decoded only to be filtered out
             String channel = ("markets_summary." + market.get("id"));
             String url = this.getWsUrl();
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "jsonrpc", "2.0" );
-                put( "method", "subscribe" );
-                put( "params", new HashMap<String, Object>() {{
-                    put( "channel", channel );
-                }} );
-            }};
             String messageHash = ("markets_summary." + market.get("symbol"));
-            return (this.watch(url, messageHash, this.deepExtend(request, parameters), channel, null)).join();
+            Map<String, Object> request = this.subscribeRequest(channel);
+            Map<String, Object> subscription = new HashMap<String, Object>() {{
+                put( "id", request.get("id") );
+                put( "messageHashes", new ArrayList<Object>(Arrays.asList(messageHash)) );
+            }};
+            return (this.watch(url, messageHash, this.deepExtend(request, parameters), channel, subscription)).join();
         }).thenApply(Ticker::new);
 
     }
@@ -397,12 +442,6 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
             String channel = "markets_summary";
             String url = this.getWsUrl();
-            Map<String, Object> request = new HashMap<String, Object>();
-            request.put("jsonrpc", "2.0");
-            request.put("method", "subscribe");
-            HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
-            mapLiteral2.put("channel", channel);
-            request.put("params", mapLiteral2);
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             if (!java.util.Objects.equals(symbolsNormalized, null) && (symbolsNormalized instanceof List))
             {
@@ -415,7 +454,11 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             {
                 ((List<Object>)messageHashes).add(channel);
             }
-            Object newTicker = (this.watchMultiple((String) (url), messageHashes, this.deepExtend(request, parameters), messageHashes, null)).join();
+            Map<String, Object> request = this.subscribeRequest(channel);
+            Map<String, Object> subscription = new HashMap<String, Object>() {{
+                put( "id", request.get("id") );
+            }};
+            Object newTicker = (this.watchMultiple((String) (url), messageHashes, this.deepExtend(request, parameters), messageHashes, subscription)).join();
             if (this.newUpdates)
             {
                 Map<String, Object> result = new HashMap<String, Object>() {{}};
@@ -462,13 +505,11 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
                 messageHash = ("orders:" + symbolResolved);
             }
             String url = this.getWsUrl();
-            Map<String, Object> request = new HashMap<String, Object>();
-            request.put("jsonrpc", "2.0");
-            request.put("method", "subscribe");
-            HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
-            mapLiteral3.put("channel", channel);
-            request.put("params", mapLiteral3);
-            List<Object> orders = (this.<List<Object>>watch(url, messageHash, this.deepExtend(request, parameters), channel, null)).join();
+            Map<String, Object> request = this.subscribeRequest(channel);
+            Map<String, Object> subscription = new HashMap<String, Object>();
+            subscription.put("id", request.get("id"));
+            subscription.put("messageHashes", new ArrayList<Object>(Arrays.asList(messageHash)));
+            List<Object> orders = (this.<List<Object>>watch(url, messageHash, this.deepExtend(request, parameters), channel, subscription)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -558,13 +599,11 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
                 messageHash = ("myTrades:" + symbolResolved);
             }
             String url = this.getWsUrl();
-            Map<String, Object> request = new HashMap<String, Object>();
-            request.put("jsonrpc", "2.0");
-            request.put("method", "subscribe");
-            HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
-            mapLiteral4.put("channel", channel);
-            request.put("params", mapLiteral4);
-            List<Object> trades = (this.<List<Object>>watch(url, messageHash, this.deepExtend(request, parameters), channel, null)).join();
+            Map<String, Object> request = this.subscribeRequest(channel);
+            Map<String, Object> subscription = new HashMap<String, Object>();
+            subscription.put("id", request.get("id"));
+            subscription.put("messageHashes", new ArrayList<Object>(Arrays.asList(messageHash)));
+            List<Object> trades = (this.<List<Object>>watch(url, messageHash, this.deepExtend(request, parameters), channel, subscription)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -645,12 +684,6 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             // one channel carries every market
             String channel = "positions";
             String url = this.getWsUrl();
-            Map<String, Object> request = new HashMap<String, Object>();
-            request.put("jsonrpc", "2.0");
-            request.put("method", "subscribe");
-            HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
-            mapLiteral5.put("channel", channel);
-            request.put("params", mapLiteral5);
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             Integer symbolsLength = 0;
             if (!java.util.Objects.equals(symbolsNormalized, null))
@@ -667,7 +700,12 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
                     ((List<Object>)messageHashes).add(((channel + ":") + Helpers.GetValue((List<String>)(symbolsNormalized), i)));
                 }
             }
-            List<Object> newPositions = (List<Object>) (this.watchMultiple((String) (url), messageHashes, this.deepExtend(request, parameters), new ArrayList<Object>(Arrays.asList(channel)), null)).join();
+            Map<String, Object> request = this.subscribeRequest(channel);
+            Map<String, Object> subscription = new HashMap<String, Object>() {{
+                put( "id", request.get("id") );
+                put( "messageHashes", messageHashes );
+            }};
+            List<Object> newPositions = (List<Object>) (this.watchMultiple((String) (url), messageHashes, this.deepExtend(request, parameters), new ArrayList<Object>(Arrays.asList(channel)), subscription)).join();
             if (this.newUpdates)
             {
                 return newPositions;
@@ -759,14 +797,13 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             (this.authenticate(new HashMap<String, Object>() {{}})).join();
             String channel = "account";
             String url = this.getWsUrl();
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "jsonrpc", "2.0" );
-                put( "method", "subscribe" );
-                put( "params", new HashMap<String, Object>() {{
-                    put( "channel", channel );
-                }} );
+            String messageHash = "balance";
+            Map<String, Object> request = this.subscribeRequest(channel);
+            Map<String, Object> subscription = new HashMap<String, Object>() {{
+                put( "id", request.get("id") );
+                put( "messageHashes", new ArrayList<Object>(Arrays.asList(messageHash)) );
             }};
-            return (this.watch(url, "balance", this.deepExtend(request, parameters), channel, null)).join();
+            return (this.watch(url, messageHash, this.deepExtend(request, parameters), channel, subscription)).join();
         }).thenApply(Balances::new);
 
     }
@@ -909,14 +946,13 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             String symbolValue = this.symbol(symbol);
             String channel = "funding_data";
             String url = this.getWsUrl();
-            Map<String, Object> request = new HashMap<String, Object>();
-            request.put("jsonrpc", "2.0");
-            request.put("method", "subscribe");
-            HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
-            mapLiteral6.put("channel", channel);
-            request.put("params", mapLiteral6);
             String messageHash = ((channel + ".") + symbolValue);
-            return (this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash, null)).join();
+            Map<String, Object> request = this.subscribeRequest(channel);
+            Map<String, Object> subscription = new HashMap<String, Object>() {{
+                put( "id", request.get("id") );
+                put( "messageHashes", new ArrayList<Object>(Arrays.asList(messageHash)) );
+            }};
+            return (this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash, subscription)).join();
         }).thenApply(FundingRate::new);
 
     }
@@ -942,12 +978,6 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
             String channel = "funding_data";
             String url = this.getWsUrl();
-            Map<String, Object> request = new HashMap<String, Object>();
-            request.put("jsonrpc", "2.0");
-            request.put("method", "subscribe");
-            HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
-            mapLiteral7.put("channel", channel);
-            request.put("params", mapLiteral7);
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             if (!java.util.Objects.equals(symbolsNormalized, null))
             {
@@ -967,7 +997,11 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             {
                 ((List<Object>)messageHashes).add(channel);
             }
-            Object newFundingRates = (this.watchMultiple((String) (url), messageHashes, this.deepExtend(request, parameters), messageHashes, null)).join();
+            Map<String, Object> request = this.subscribeRequest(channel);
+            Map<String, Object> subscription = new HashMap<String, Object>() {{
+                put( "id", request.get("id") );
+            }};
+            Object newFundingRates = (this.watchMultiple((String) (url), messageHashes, this.deepExtend(request, parameters), messageHashes, subscription)).join();
             if (this.newUpdates)
             {
                 Map<String, Object> result = new HashMap<String, Object>() {{}};
@@ -1143,10 +1177,10 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         {
             HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
             h2kMap1.put("sbe", true);
-            HashMap<String, Object> mapLiteral8 = new HashMap<String, Object>();
-            mapLiteral8.put("channel", channel);
-            mapLiteral8.put("data", data);
-            h2kMap1.put("params", mapLiteral8);
+            HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+            mapLiteral1.put("channel", channel);
+            mapLiteral1.put("data", data);
+            h2kMap1.put("params", mapLiteral1);
             return h2kMap1;
         }
     }
@@ -1757,21 +1791,59 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         if (java.util.Objects.equals(error, null))
         {
             return true;
-        } else
+        }
+        try
         {
+            String feedback = ((this.id + " ") + this.json(error));
             String errorCode = this.safeString(error, "code");
             if (!java.util.Objects.equals(errorCode, null))
             {
-                String feedback = ((this.id + " ") + this.json(error));
-                this.throwExactlyMatchedException(this.exceptions.get("exact"), "-32600", feedback);
-                String messageString = this.safeString(error, "message");
-                if (!java.util.Objects.equals(messageString, null))
+                this.throwExactlyMatchedException(this.exceptions.get("exact"), errorCode, feedback);
+            }
+            String messageString = this.safeString(error, "message");
+            if (!java.util.Objects.equals(messageString, null))
+            {
+                this.throwBroadlyMatchedException(this.exceptions.get("broad"), messageString, feedback);
+            }
+            throw new ExchangeError(feedback) ;
+        } catch(Exception e)
+        {
+            // the subscription of every request sent keeps its id, so the request this error answers is found
+            // by it. A failed subscribe or auth is forgotten, so that the next watch sends it again
+            String requestId = this.safeString(message, "id");
+            Boolean handled = false;
+            if (!java.util.Objects.equals(requestId, null))
+            {
+                List<Object> subscribeHashes = new ArrayList<Object>(client.subscriptions.keySet());
+                for (var i = 0; i < ((List<?>)subscribeHashes).size(); i++)
                 {
-                    this.throwBroadlyMatchedException(this.exceptions.get("broad"), messageString, feedback);
+                    Object subscribeHash = (subscribeHashes == null || i < 0 || i >= subscribeHashes.size() ? null : subscribeHashes.get(i));
+                    Map<String, Object> subscription = (Map<String, Object>) this.safeDict(client.subscriptions, subscribeHash, (Object) null);
+                    if (java.util.Objects.equals(this.safeString(subscription, "id"), requestId))
+                    {
+                        handled = true;
+                        client.subscriptions.remove((String)subscribeHash);
+                        // watchMultiple subscribes per message hash, so the subscribe hash is what its watcher waits on
+                        List<Object> messageHashes = (List<Object>) this.safeList(subscription, "messageHashes", new ArrayList<Object>(Arrays.asList(subscribeHash)));
+                        for (var j = 0; j < ((List<?>)messageHashes).size(); j++)
+                        {
+                            client.reject(e, (messageHashes == null || j < 0 || j >= messageHashes.size() ? null : messageHashes.get(j)));
+                        }
+                    }
                 }
             }
-            return false;
+            if (!Boolean.TRUE.equals(handled))
+            {
+                // not a reply to a known request, every watcher on the connection gets the error,
+                // and the next private watch authenticates again instead of waiting on a rejected future
+                if (client.subscriptions.containsKey("authenticated"))
+                {
+                    client.subscriptions.remove("authenticated");
+                }
+                client.reject(e);
+            }
         }
+        return false;
     }
 
     public void handleMessage(Client client, Object message)
@@ -1820,7 +1892,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         Map<String, Object> result = (Map<String, Object>) this.safeDict(parsedMessage, "result", (Object) null);
         if (!java.util.Objects.equals(result, null))
         {
-            this.handleAuthenticationMessage(client, (Map<String, Object>) (parsedMessage));
+            this.handleRequestReply(client, (Map<String, Object>) (parsedMessage));
             return;
         }
         Map<String, Object> data = (Map<String, Object>) this.safeDict(parsedMessage, "params", (Object) null);

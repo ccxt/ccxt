@@ -50,6 +50,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 put( "watchBalance", true );
                 put( "watchMyTrades", true );
                 put( "watchOHLCV", true );
+                put( "unWatchOHLCV", true );
                 put( "watchOHLCVForSymbols", false );
                 put( "watchOrderBook", true );
                 put( "watchOrderBookForSymbols", true );
@@ -58,6 +59,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 put( "watchTickers", true );
                 put( "watchBidsAsks", true );
                 put( "watchTrades", true );
+                put( "unWatchTrades", true );
                 put( "watchTradesForSymbols", true );
                 put( "watchPositions", true );
             }} );
@@ -1170,7 +1172,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         }
         String marketId = this.safeString2(arg, "instId", "symbol");
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, marketType);
-        String symbol = (String) market.get("symbol");
+        String symbol = this.safeString(market, "symbol", "");
         String messageHash = ("orderbook:" + symbol);
         Object data = this.safeValue(message, "data");
         // tokenized stock snapshots arrive as a plain dict instead of a list
@@ -1238,7 +1240,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 Object calculatedChecksum = this.crc32(payload, true);
                 if (!Helpers.isEqual(calculatedChecksum, responseChecksum))
                 {
-                    this.spawn(() -> { try { this.handleCheckSumError(client, symbol, messageHash); } catch(Exception _e) { throw new RuntimeException(_e); } });
+                    this.spawn(() -> { try { this.handleCheckSumError(client, (String) (symbol), messageHash); } catch(Exception _e) { throw new RuntimeException(_e); } });
                     return;
                 }
             }
@@ -3002,7 +3004,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                     Object account = this.account();
                     if ((!java.util.Objects.equals(code, null)) && (((Map<?, ?>)this.balance).containsKey(code)))
                     {
-                        account = (this.balance == null ? null : ((Map<?, ?>)this.balance).get(code));
+                        account = this.safeDict(this.balance, code, account);
                     }
                     String borrow = this.safeString(entry, "borrow");
                     String debts = this.safeString(entry, "debts");
@@ -3025,7 +3027,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 Object account = this.account();
                 if ((!java.util.Objects.equals(code, null)) && (((Map<?, ?>)this.balance).containsKey(code)))
                 {
-                    account = (this.balance == null ? null : ((Map<?, ?>)this.balance).get(code));
+                    account = this.safeDict(this.balance, code, account);
                 }
                 String borrow = this.safeString(rawBalance, "borrow");
                 if (!java.util.Objects.equals(borrow, null))

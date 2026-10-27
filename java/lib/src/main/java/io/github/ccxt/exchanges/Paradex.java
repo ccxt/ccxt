@@ -62,7 +62,7 @@ public class Paradex extends ParadexApi
             put( "dex", true );
             put( "has", new HashMap<String, Object>() {{
                 put( "CORS", null );
-                put( "spot", false );
+                put( "spot", true );
                 put( "margin", false );
                 put( "swap", true );
                 put( "future", false );
@@ -649,6 +649,10 @@ public class Paradex extends ParadexApi
                     put( "40110", AuthenticationError.class );
                     put( "40111", AuthenticationError.class );
                     put( "40112", PermissionDenied.class );
+                    put( "40300", PermissionDenied.class );
+                    put( "40301", NotSupported.class );
+                    put( "42900", OperationRejected.class );
+                    put( "42901", RateLimitExceeded.class );
                 }} );
                 put( "broad", new HashMap<String, Object>() {{
                     put( "missing or malformed jwt", AuthenticationError.class );
@@ -661,7 +665,15 @@ public class Paradex extends ParadexApi
                 put( "broker", "CCXT" );
             }} );
             put( "features", new HashMap<String, Object>() {{
-                put( "spot", null );
+                put( "spot", new HashMap<String, Object>() {{
+                    put( "extends", "forSwap" );
+                    put( "createOrder", new HashMap<String, Object>() {{
+                        put( "triggerPrice", false );
+                        put( "triggerDirection", false );
+                        put( "stopLossPrice", false );
+                        put( "takeProfitPrice", false );
+                    }} );
+                }} );
                 put( "forSwap", new HashMap<String, Object>() {{
                     put( "sandbox", true );
                     put( "createOrder", new HashMap<String, Object>() {{
@@ -925,12 +937,31 @@ public class Paradex extends ParadexApi
         //     ]
         //  }
         //
+        // spot
+        //
+        //     {
+        //         "symbol": "ETH-USD",
+        //         "base_currency": "ETH",
+        //         "quote_currency": "USD",
+        //         "settlement_currency": "USDC",
+        //         "order_size_increment": "0.0001",
+        //         "price_tick_size": "0.01",
+        //         "min_notional": "10",
+        //         "asset_kind": "SPOT",
+        //         "market_kind": "cross",
+        //         ...
+        //     }
+        //
         String assetKind = this.safeString(market, "asset_kind");
+        Boolean isSpot = (java.util.Objects.equals(assetKind, "SPOT"));
         Boolean isOptionPerpetual = (java.util.Objects.equals(assetKind, "PERP_OPTION"));
         Boolean isOptionDelivery = (java.util.Objects.equals(assetKind, "OPTION"));
         Boolean isOption = Boolean.TRUE.equals(isOptionPerpetual) || Boolean.TRUE.equals(isOptionDelivery);
         String type = "swap";
-        if (Boolean.TRUE.equals(isOption))
+        if (Boolean.TRUE.equals(isSpot))
+        {
+            type = "spot";
+        } else if (Boolean.TRUE.equals(isOption))
         {
             type = "option";
         }
@@ -938,15 +969,26 @@ public class Paradex extends ParadexApi
         String marketId = this.safeString(market, "symbol");
         String quoteId = this.safeString(market, "quote_currency");
         String baseId = this.safeString(market, "base_currency");
+        String settleId = this.safeString(market, "settlement_currency");
+        if (Boolean.TRUE.equals(isSpot))
+        {
+            // spot is quoted in "USD" but paid and received in the settlement token (USDC),
+            // a spot market has no settle, so the token it trades against is the quote
+            quoteId = settleId;
+            settleId = null;
+        }
         String quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);
         String base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
         if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
         {
             return null;
         }
-        String settleId = this.safeString(market, "settlement_currency");
         String settle = this.safeCurrencyCode(settleId, (Map<String, Object>) null);
-        String symbol = ((((base + "/") + quote) + ":") + settle);
+        String symbol = ((base + "/") + quote);
+        if (!Boolean.TRUE.equals(isSpot))
+        {
+            symbol = ((symbol + ":") + settle);
+        }
         Long expiry = this.safeInteger(market, "expiry_at");
         String optionType = this.safeString(market, "option_type");
         String strikePrice = this.safeString(market, "strike_price");
@@ -977,18 +1019,18 @@ public class Paradex extends ParadexApi
         mapLiteral1.put("quoteId", quoteId);
         mapLiteral1.put("settleId", settleId);
         mapLiteral1.put("type", type);
-        mapLiteral1.put("spot", false);
+        mapLiteral1.put("spot", isSpot);
         mapLiteral1.put("margin", null);
         mapLiteral1.put("swap", isSwap);
         mapLiteral1.put("future", false);
         mapLiteral1.put("option", isOption);
         mapLiteral1.put("active", this.safeBool(market, "enableTrading", (Object) null));
-        mapLiteral1.put("contract", true);
-        mapLiteral1.put("linear", true);
-        mapLiteral1.put("inverse", false);
+        mapLiteral1.put("contract", !Boolean.TRUE.equals(isSpot));
+        mapLiteral1.put("linear", ((Boolean.TRUE.equals(isSpot))) ? null : true);
+        mapLiteral1.put("inverse", ((Boolean.TRUE.equals(isSpot))) ? null : false);
         mapLiteral1.put("taker", takerFee);
         mapLiteral1.put("maker", makerFee);
-        mapLiteral1.put("contractSize", this.parseNumber("1"));
+        mapLiteral1.put("contractSize", ((Boolean.TRUE.equals(isSpot))) ? null : this.parseNumber("1"));
         mapLiteral1.put("expiry", expiry);
         mapLiteral1.put("expiryDatetime", expireDatetime);
         mapLiteral1.put("strike", this.parseNumber(strikePrice));
@@ -1171,7 +1213,7 @@ public class Paradex extends ParadexApi
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
-     * @param {string} [params.price] "last", "mark", "index", default is "last"
+     * @param {string} [params.price] "last", "mark", "index" (sent as "underlying"), default is "last"
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     public CompletableFuture<List<OHLCV>> fetchOHLCV(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
@@ -1192,7 +1234,8 @@ public class Paradex extends ParadexApi
             String price = this.safeString(parameters, "price");
             if (!java.util.Objects.equals(price, null))
             {
-                request.put("price_kind", price);
+                // the exchange names the index price "underlying" and rejects "index"
+                request.put("price_kind", (((java.util.Objects.equals(price, "index")))) ? "underlying" : price);
             }
             Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_at", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
@@ -2506,39 +2549,49 @@ public class Paradex extends ParadexApi
             }
             Map<String, Object> response = (this.privatePostOrdersBatch(ordersRequests)).join();
             //
-            // {
-            //     "errors": [
-            //         {
-            //             "error": "VALIDATION_ERROR",
-            //             "message": "Invalid order"
-            //         }
-            //     ],
-            //     "orders": [
-            //         {
-            //             "id": "123456",
-            //             "market": "BTC-USD-PERP",
-            //             "side": "BUY",
-            //             "type": "LIMIT",
-            //             "price": "26000",
-            //             "size": "0.05",
-            //             "status": "NEW"
-            //         }
-            //     ]
-            // }
+            // orders and errors are index-aligned with the request, null where the other array has the entry
+            //
+            //     {
+            //         "errors": [
+            //             null,
+            //             {
+            //                 "error": "DUPLICATED_CLIENT_ID",
+            //                 "message": "duplicated client order id"
+            //             }
+            //         ],
+            //         "orders": [
+            //             {
+            //                 "id": "123456",
+            //                 "market": "BTC-USD-PERP",
+            //                 "side": "BUY",
+            //                 "type": "LIMIT",
+            //                 "price": "26000",
+            //                 "size": "0.05",
+            //                 "status": "NEW"
+            //             },
+            //             null
+            //         ]
+            //     }
             //
             List<Object> responseOrders = (List<Object>) this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
-            List<Object> parsedOrders = this.parseOrders(responseOrders, (Map<String, Object>) null, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
             List<Object> errors = (List<Object>) this.safeList(response, "errors", new ArrayList<Object>(Arrays.asList()));
-            List<Object> rejected = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)errors).size(); i++)
+            List<Object> result = new ArrayList<Object>(Arrays.asList());
+            for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Object error = (errors == null || i < 0 || i >= errors.size() ? null : errors.get(i));
-                ((List<Object>)rejected).add(this.safeOrder(new HashMap<String, Object>() {{
-                    put( "info", error );
-                    put( "status", "rejected" );
-                }}, (Map<String, Object>) null));
+                Map<String, Object> responseOrder = (Map<String, Object>) this.safeDict(responseOrders, i, (Object) null);
+                if (!java.util.Objects.equals(responseOrder, null))
+                {
+                    ((List<Object>)result).add(this.parseOrder(responseOrder, (Map<String, Object>) null));
+                } else
+                {
+                    Map<String, Object> error = (Map<String, Object>) this.safeDict(errors, i, (Object) null);
+                    ((List<Object>)result).add(this.safeOrder(new HashMap<String, Object>() {{
+                        put( "info", error );
+                        put( "status", "rejected" );
+                    }}, (Map<String, Object>) null));
+                }
             }
-            return this.arrayConcat(parsedOrders, rejected);
+            return result;
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -4341,6 +4394,27 @@ public class Paradex extends ParadexApi
         //     }
         //
         String errorCode = this.safeString(response, "error");
+        if ((java.util.Objects.equals(errorCode, null)) && ((httpCode != null && ((Number) httpCode).doubleValue() == 400)))
+        {
+            //
+            // a batch where every order was rejected, errors are index-aligned with the request
+            //
+            //     {
+            //         "errors": [ { "error": "DUPLICATED_CLIENT_ID", "message": "..." } ],
+            //         "orders": [ null ]
+            //     }
+            //
+            List<Object> batchErrors = (List<Object>) this.safeList(response, "errors", new ArrayList<Object>(Arrays.asList()));
+            for (var i = 0; i < ((List<?>)batchErrors).size(); i++)
+            {
+                String batchErrorCode = this.safeString((batchErrors == null || i < 0 || i >= batchErrors.size() ? null : batchErrors.get(i)), "error");
+                if (!java.util.Objects.equals(batchErrorCode, null))
+                {
+                    errorCode = batchErrorCode;
+                    break;
+                }
+            }
+        }
         if (!java.util.Objects.equals(errorCode, null))
         {
             String feedback = ((this.id + " ") + body);

@@ -1429,7 +1429,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Object symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
             if (!((symbol != null && ((Map<?, ?>)this.orderbooks).containsKey(symbol))))
             {
-                Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
+                ((Map<Object, Object>) (Map<?, ?>) this.orderbooks).put(symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
             }
             io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (symbol == null ? null : ((Map<?, ?>)this.orderbooks).get(symbol));
             orderbook.put("nonce", null);
@@ -4016,7 +4016,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 parameters.put("portfolioMargin", true);
             }
             Balances response = (this.fetchBalance(parameters)).join();
-            Helpers.addElementToObject(this.balance, type, this.extend(response, this.safeDict(this.balance, type, new HashMap<String, Object>() {{}})));
+            this.balance.put(type, this.extend(response, this.safeDict(this.balance, type, new HashMap<String, Object>() {{}})));
             // don't remove the future from the .futures cache
             if (client.futures.containsKey(messageHash))
             {
@@ -4447,7 +4447,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         String messageHash = (accountType + ":balance");
         if (java.util.Objects.equals((this.balance == null ? null : ((Map<?, ?>)this.balance).get(accountType)), null))
         {
-            Helpers.addElementToObject(this.balance, accountType, new HashMap<String, Object>() {{}});
+            ((Map<Object, Object>) (Map<?, ?>) this.balance).put(accountType, new HashMap<String, Object>() {{}});
         }
         Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(accountType)), "info", message);
         String eventVar = this.safeString(message, "e");
@@ -4500,7 +4500,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         Long timestamp = this.safeInteger(balanceMessage, "E");
         Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(accountType)), "timestamp", timestamp);
         Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(accountType)), "datetime", this.iso8601(timestamp));
-        Helpers.addElementToObject(this.balance, accountType, this.safeBalance((this.balance == null ? null : ((Map<?, ?>)this.balance).get(accountType))));
+        ((Map<Object, Object>) (Map<?, ?>) this.balance).put(accountType, this.safeBalance((this.balance == null ? null : ((Map<?, ?>)this.balance).get(accountType))));
         client.resolve((this.balance == null ? null : ((Map<?, ?>)this.balance).get(accountType)), messageHash);
     }
 

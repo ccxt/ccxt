@@ -477,7 +477,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
                 throw new ArgumentsRequired((this.id + " watchBidsAsks required symbols argument")) ;
             }
             Object markets = this.requireValue(this.marketsForSymbols(symbolsNormalized), "watchBidsAsks() markets is required");
-            Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("watchBidsAsks", ((Map<String, Object>) (switch ((Object) ((markets == null || 0 >= ((List<?>)markets).size() ? null : ((List<?>)markets).get(0)))) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v3 -> (Map<String, Object>) hx4J40v3; case Object hx4J40v3 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v3.getClass().getName()); })), parameters, (String) null);
+            Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("watchBidsAsks", ((Map<String, Object>) (switch ((Object) ((markets == null || 0 >= ((List<?>)markets).size() ? null : ((List<?>)markets).get(0)))) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v2 -> (Map<String, Object>) hx4J40v2; case Object hx4J40v2 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v2.getClass().getName()); })), parameters, (String) null);
             String marketType = marketTypeparamsMarketTypeVariable.first();
             Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
             Boolean isSpot = java.util.Objects.equals(marketType, "spot");
@@ -1051,9 +1051,9 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         Boolean shouldReturn = false;
         if (java.util.Objects.equals(nonce, null))
         {
-            Object cacheLength = ((List<?>)((List<Object>)(storedOrderBook == null ? null : storedOrderBook.get("cache")))).size();
-            Object snapshotDelay = this.handleOption("watchOrderBook", "snapshotDelay", 25);
-            if (Helpers.isEqual(cacheLength, snapshotDelay))
+            Long cacheLength = this.parseToInt(((List<?>)((List<Object>)(storedOrderBook == null ? null : storedOrderBook.get("cache")))).size());
+            Long snapshotDelay = this.parseToInt(this.handleOption("watchOrderBook", "snapshotDelay", 25));
+            if (java.util.Objects.equals(cacheLength, snapshotDelay))
             {
                 this.spawn(() -> { try { this.loadOrderBook(client, messageHash, symbol, limit, new HashMap<String, Object>() {{}}); } catch(Exception _e) { throw new RuntimeException(_e); } });
             }

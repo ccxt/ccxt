@@ -2462,15 +2462,14 @@ public class Bybit extends BybitApi
     {
         // support expired option contracts
         String quote = null;
-        String settle = null;
         List<Object> optionParts = new ArrayList<Object>(Arrays.asList(((String)symbol).split(java.util.regex.Pattern.quote("-"))));
         List<Object> symbolBase = new ArrayList<Object>(Arrays.asList(((String)symbol).split(java.util.regex.Pattern.quote("/"))));
         Object expiry = null;
         Boolean hasSlash = ((String)symbol).indexOf("/") > -1;
-        String baseName = this.safeString(optionParts, 0);
+        String baseName = this.safeString(optionParts, 0, "");
         if (Boolean.TRUE.equals(hasSlash))
         {
-            baseName = this.safeString(symbolBase, 0);
+            baseName = this.safeString(symbolBase, 0, "");
             expiry = this.safeString(optionParts, 1);
             String symbolQuoteAndSettle = this.safeString(symbolBase, 1);
             if (java.util.Objects.equals(symbolQuoteAndSettle, null))
@@ -2480,18 +2479,15 @@ public class Bybit extends BybitApi
             List<Object> splitQuote = new ArrayList<Object>(Arrays.asList(((String)symbolQuoteAndSettle).split(java.util.regex.Pattern.quote(":"))));
             String quoteAndSettle = this.safeString(splitQuote, 0);
             quote = quoteAndSettle;
-            settle = quoteAndSettle;
         } else
         {
             expiry = this.convertMarketIdExpireDate(this.safeString(optionParts, 1));
             if (((String)symbol).endsWith("-USDT"))
             {
                 quote = "USDT";
-                settle = "USDT";
             } else
             {
                 quote = "USDC";
-                settle = "USDC";
             }
         }
         String strike = this.safeString(optionParts, 2);
@@ -2517,18 +2513,18 @@ public class Bybit extends BybitApi
         Object convertedExpireDate = this.convertExpireDateToMarketIdDate((String) (expiry));
         HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
         mapLiteral1.put("id", ((((((baseName + "-") + convertedExpireDate) + "-") + strike) + "-") + optionType));
-        mapLiteral1.put("symbol", ((((((((((baseName + "/") + quote) + ":") + settle) + "-") + expiry) + "-") + strike) + "-") + optionType));
+        mapLiteral1.put("symbol", ((((((((((baseName + "/") + quote) + ":") + quote) + "-") + expiry) + "-") + strike) + "-") + optionType));
         mapLiteral1.put("base", baseName);
         mapLiteral1.put("quote", quote);
-        mapLiteral1.put("settle", settle);
+        mapLiteral1.put("settle", quote);
         mapLiteral1.put("baseId", baseName);
         mapLiteral1.put("quoteId", quote);
-        mapLiteral1.put("settleId", settle);
+        mapLiteral1.put("settleId", quote);
         mapLiteral1.put("active", false);
         mapLiteral1.put("type", "option");
-        mapLiteral1.put("subType", (((java.util.Objects.equals(baseName, settle)))) ? "inverse" : "linear");
-        mapLiteral1.put("linear", (!java.util.Objects.equals(baseName, settle)));
-        mapLiteral1.put("inverse", (java.util.Objects.equals(baseName, settle)));
+        mapLiteral1.put("subType", (((java.util.Objects.equals(baseName, quote)))) ? "inverse" : "linear");
+        mapLiteral1.put("linear", (!java.util.Objects.equals(baseName, quote)));
+        mapLiteral1.put("inverse", (java.util.Objects.equals(baseName, quote)));
         mapLiteral1.put("spot", false);
         mapLiteral1.put("swap", false);
         mapLiteral1.put("future", false);

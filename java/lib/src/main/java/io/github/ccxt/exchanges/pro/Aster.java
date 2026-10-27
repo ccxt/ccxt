@@ -1767,7 +1767,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             Map<String, Object> parameters = new HashMap<String, Object>();
             parameters.put("type", type);
             Balances response = (this.fetchBalance(parameters)).join();
-            Helpers.addElementToObject(this.balance, type, this.extend(response, this.safeDict(this.balance, type, new HashMap<String, Object>() {{}})));
+            this.balance.put(type, this.extend(response, this.safeDict(this.balance, type, new HashMap<String, Object>() {{}})));
             // don't remove the future from the .futures cache
             if (client.futures.containsKey(messageHash))
             {

@@ -8367,7 +8367,7 @@ public Map<String, Object> describe()
         {
             for (var i = 0; i < ((List<?>)response).size(); i++)
             {
-                Object item = (response == null || i < 0 || i >= ((List<?>)response).size() ? null : ((List<?>)response).get(i));
+                Object item = this.safeValue(response, i);
                 String id = (((java.util.Objects.equals(marketIdKey, null)))) ? null : this.safeString(item, marketIdKey);
                 Map<String, Object> market = this.safeMarket(id, (Map<String, Object>) null, (String) null, "swap");
                 String symbol = this.safeString(market, "symbol", "");
@@ -8383,7 +8383,7 @@ public Map<String, Object> describe()
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
                 Object marketId = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-                Object item = Helpers.GetValue(response, marketId);
+                Object item = this.safeValue(response, marketId);
                 Map<String, Object> market = this.safeMarket(java.util.Objects.toString(marketId, null), (Map<String, Object>) null, (String) null, "swap");
                 String symbol = this.safeString(market, "symbol", "");
                 Boolean contract = (Boolean) this.safeBool(market, "contract", false);

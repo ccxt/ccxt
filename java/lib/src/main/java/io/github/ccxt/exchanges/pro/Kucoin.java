@@ -2213,7 +2213,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             // reuse the existing book so user-held references keep updating; rebuild only if depth changed
             if (!((symbol != null && ((Map<?, ?>)this.orderbooks).containsKey(symbol))) || (!java.util.Objects.equals(storedLimit, limit)))
             {
-                Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
+                ((Map<Object, Object>) (Map<?, ?>) this.orderbooks).put(symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
             } else
             {
                 io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (symbol == null ? null : ((Map<?, ?>)this.orderbooks).get(symbol));
@@ -3173,7 +3173,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             parameters.put("type", type);
             parameters.put("uta", uta);
             Balances response = (this.fetchBalance(parameters)).join();
-            Helpers.addElementToObject(this.balance, type, this.extend(response, this.safeDict(this.balance, type, new HashMap<String, Object>() {{}})));
+            this.balance.put(type, this.extend(response, this.safeDict(this.balance, type, new HashMap<String, Object>() {{}})));
             // don't remove the future from the .futures cache
             if (client.futures.containsKey(messageHash))
             {

@@ -49,6 +49,9 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
                 put( "watchBidsAsks", true );
                 put( "watchTrades", true );
                 put( "watchTradesForSymbols", true );
+                put( "unWatchOHLCV", true );
+                put( "unWatchTrades", true );
+                put( "unWatchTradesForSymbols", true );
                 put( "createOrderWs", true );
                 put( "editOrderWs", true );
                 put( "cancelOrderWs", true );
@@ -929,6 +932,62 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
 
     /**
      * @method
+     * @name kraken#unWatchTrades
+     * @description stop watching the list of most recent trades for a particular symbol
+     * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/trade
+     * @param {string} symbol unified symbol of the market to stop watching the trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    public CompletableFuture<Object> unWatchTrades(String symbol, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            return (this.unWatchTradesForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
+        });
+
+    }
+
+    /**
+     * @method
+     * @name kraken#unWatchTradesForSymbols
+     * @description stop watching the list of most recent trades for a list of symbols
+     * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/trade
+     * @param {string[]} symbols unified symbols of the markets to stop watching the trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    public CompletableFuture<Object> unWatchTradesForSymbols(Object symbols, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, true, false);
+            List<String> unsubMessageHashes = new ArrayList<String>(Arrays.asList());
+            for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
+            {
+                unsubMessageHashes.add(("unsubscribe:" + this.getMessageHash("trade", (String) null, (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i)))));
+            }
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "method", "unsubscribe" );
+                put( "params", new HashMap<String, Object>() {{
+                    put( "channel", "trade" );
+                    put( "symbol", symbolsNormalized );
+                }} );
+                put( "req_id", Kraken.this.requestId() );
+            }};
+            request.put("params", this.deepExtend(request.get("params"), parameters));
+            String url = (String)((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("publicV2");
+            // kraken acknowledges each symbol separately, see handleUnsubscriptionStatus
+            return (this.watchMultiple(url, unsubMessageHashes, request, unsubMessageHashes, null)).join();
+        });
+
+    }
+
+    /**
+     * @method
      * @name kraken#watchOrderBook
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/book
@@ -1021,6 +1080,42 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             }
             return this.filterBySinceLimit(ohlcv, since, limitResolved, "timestamp", true);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
+
+    }
+
+    /**
+     * @method
+     * @name kraken#unWatchOHLCV
+     * @description stop watching historical candlestick data for a market
+     * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/ohlc
+     * @param {string} symbol unified symbol of the market to stop watching the candles for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    public CompletableFuture<Object> unWatchOHLCV(String symbol, String timeframe, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            Map<String, Object> market = this.market(symbol);
+            String symbolValue = (String) market.get("symbol");
+            String interval = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
+            String unsubMessageHash = ("unsubscribe:" + this.getMessageHash("ohlcv", interval, symbolValue));
+            Map<String, Object> unsubscribe = new HashMap<String, Object>() {{
+                put( "method", "unsubscribe" );
+                put( "params", new HashMap<String, Object>() {{
+                    put( "channel", "ohlc" );
+                    put( "symbol", new ArrayList<Object>(Arrays.asList(symbolValue)) );
+                    put( "interval", Kraken.this.safeValue(Kraken.this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")) );
+                }} );
+                put( "req_id", Kraken.this.requestId() );
+            }};
+            Map<String,Object> request = this.deepExtend(unsubscribe, parameters);
+            String url = (String)((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("publicV2");
+            return (this.watch(url, unsubMessageHash, request, unsubMessageHash, null)).join();
+        });
 
     }
 
@@ -1937,6 +2032,46 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         }
     }
 
+    public Map<String, Object> handleUnsubscriptionStatus(Client client, Map<String, Object> message)
+    {
+        //
+        // one acknowledgement per symbol in the unsubscribe request
+        //
+        //     {
+        //         "method": "unsubscribe",
+        //         "req_id": 4,
+        //         "result": { "channel": "ohlc", "interval": 5, "symbol": "BTC/USD" },
+        //         "success": true,
+        //         "time_in": "2026-10-26T16:12:36.610481Z",
+        //         "time_out": "2026-10-26T16:12:36.610502Z"
+        //     }
+        //
+        Map<String, Object> result = (Map<String, Object>) this.safeDict(message, "result", new HashMap<String, Object>() {{}});
+        String channel = this.safeString(result, "channel");
+        String symbol = this.safeSymbol(this.safeString(result, "symbol"), (Map<String, Object>) null, (String) null, (String) null);
+        if (java.util.Objects.equals(channel, "trade"))
+        {
+            String subMessageHash = this.getMessageHash("trade", (String) null, symbol);
+            this.cleanCache(new HashMap<String, Object>() {{
+                put( "topic", "trades" );
+                put( "symbols", new ArrayList<Object>(Arrays.asList(symbol)) );
+            }});
+            this.cleanUnsubscription(client, (String) (subMessageHash), ("unsubscribe:" + subMessageHash), false);
+        } else if (java.util.Objects.equals(channel, "ohlc"))
+        {
+            Long interval = this.safeInteger(result, "interval");
+            String timeframe = this.findTimeframe(interval, (Object) null);
+            String subMessageHash = this.getMessageHash("ohlcv", (String) null, symbol);
+            String unsubMessageHash = ("unsubscribe:" + this.getMessageHash("ohlcv", this.numberToString(interval), symbol));
+            this.cleanCache(new HashMap<String, Object>() {{
+                put( "topic", "ohlcv" );
+                put( "symbolsAndTimeframes", new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbol, timeframe)))) );
+            }});
+            this.cleanUnsubscription(client, (String) (subMessageHash), unsubMessageHash, false);
+        }
+        return message;
+    }
+
     public Boolean handleErrorMessage(Client client, Object message)
     {
         //
@@ -2015,6 +2150,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
                 put( "heartbeat", "handleHeartbeat");
                 put( "systemStatus", "handleSystemStatus");
                 put( "subscriptionStatus", "handleSubscriptionStatus");
+                put( "unsubscribe", "handleUnsubscriptionStatus");
                 put( "add_order", "handleCreateEditOrder");
                 put( "amend_order", "handleCreateEditOrder");
                 put( "cancel_order", "handleCancelOrder");
