@@ -1784,7 +1784,7 @@ export default class bittrade extends Exchange {
         const failed = this.safeList2 (orders, 'errors', 'failed', []);
         const result: List = [];
         for (let i = 0; i < success.length; i++) {
-            const order = success[i];
+            const order = this.safeString (success, i);
             result.push (this.safeOrder ({
                 'info': order,
                 'id': order,
