@@ -1653,7 +1653,12 @@
     },
     "blofin": {
         "skipWs": "loadMarkets is geo-blocked from the test environment, ws tests can not bootstrap",
-        "until": "2026-08-31"
+        "until": "2026-08-31",
+        "skipMethods": {
+            "loadMarkets": {
+                "currencyIdAndCode": "asset/currencies lists deposit coins only, inverse USD quotes and tokenized stocks are missing"
+            }
+        }
     },
     "extended": {
         "skip": "loadMarkets is geo-blocked from the test environment (403)",
