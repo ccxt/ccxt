@@ -3,6 +3,171 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "quote": [
+            {
+                "description": "Aggregate exact-input route with explicit protocol fee",
+                "method": "quote",
+                "input": [
+                    "0x29219dd400f2Bf60E5a23d13Be72B486D4038894",
+                    "0x50c42dEAcD8Fc9773493ED674b675bE577f2634b",
+                    "1000000",
+                    "500",
+                    "open",
+                    100
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "bestOut": "432339871581296",
+                    "buyAmount": "428016472865483",
+                    "feeBps": 5,
+                    "bestSource": "kyber",
+                    "candidates": [
+                        {
+                            "out": "432339871581296",
+                            "source": "kyber",
+                            "target": ""
+                        },
+                        {
+                            "out": "431584649656532",
+                            "source": "0x",
+                            "target": "0x0000000000001fF3684f28c67538d4D072C22734"
+                        }
+                    ],
+                    "suggestedSessionFee": {
+                        "feeAmount": "5200",
+                        "feeAmountUSD": "0.005199",
+                        "nativeTokenPriceUSD": "0.0463",
+                        "gasEstimate": 1700000,
+                        "gasPrice": "55000000000",
+                        "marginBps": 2000
+                    },
+                    "engineVersion": 2
+                },
+                "parsedResponse": {
+                    "success": true,
+                    "bestOut": "432339871581296",
+                    "buyAmount": "428016472865483",
+                    "feeBps": 5,
+                    "bestSource": "kyber",
+                    "candidates": [
+                        {
+                            "out": "432339871581296",
+                            "source": "kyber",
+                            "target": ""
+                        },
+                        {
+                            "out": "431584649656532",
+                            "source": "0x",
+                            "target": "0x0000000000001fF3684f28c67538d4D072C22734"
+                        }
+                    ],
+                    "suggestedSessionFee": {
+                        "feeAmount": "5200",
+                        "feeAmountUSD": "0.005199",
+                        "nativeTokenPriceUSD": "0.0463",
+                        "gasEstimate": 1700000,
+                        "gasPrice": "55000000000",
+                        "marginBps": 2000
+                    },
+                    "engineVersion": 2
+                }
+            }
+        ],
+        "quoteExactOut": [
+            {
+                "description": "Aggregate exact-output precision above the safe integer range",
+                "method": "quoteExactOut",
+                "input": [
+                    "0x29219dd400f2Bf60E5a23d13Be72B486D4038894",
+                    "0x50c42dEAcD8Fc9773493ED674b675bE577f2634b",
+                    "10000000000000001",
+                    "open",
+                    100
+                ],
+                "httpResponse": {
+                    "slippage": {
+                        "buyAmount": "10000000000000001",
+                        "bestOut": "10101010118388636",
+                        "shortfallAmount": "0",
+                        "shortfallBps": 0,
+                        "shortfallPct": 0,
+                        "requiredSlippageBps": 0,
+                        "requiredSlippagePct": 0,
+                        "slippageBasis": "signedBuyAmount",
+                        "suggestedBuyAmount": "10101010118388636"
+                    },
+                    "success": true,
+                    "bestOut": "10101010118388636",
+                    "buyAmount": "10000000000000001",
+                    "sellAmount": "23345744",
+                    "feeAmount": "11672",
+                    "feeBps": 5,
+                    "bestSource": "0x",
+                    "candidates": [
+                        {
+                            "out": "10094460000186140",
+                            "source": "kyber",
+                            "target": ""
+                        },
+                        {
+                            "out": "10101010118388636",
+                            "source": "0x",
+                            "target": "0x0000000000001fF3684f28c67538d4D072C22734"
+                        }
+                    ],
+                    "suggestedSessionFee": {
+                        "feeAmount": "5200",
+                        "feeAmountUSD": "0.005199",
+                        "nativeTokenPriceUSD": "0.0463",
+                        "gasEstimate": 1700000,
+                        "gasPrice": "55000000000",
+                        "marginBps": 2000
+                    },
+                    "engineVersion": 2
+                },
+                "parsedResponse": {
+                    "slippage": {
+                        "buyAmount": "10000000000000001",
+                        "bestOut": "10101010118388636",
+                        "shortfallAmount": "0",
+                        "shortfallBps": 0,
+                        "shortfallPct": 0,
+                        "requiredSlippageBps": 0,
+                        "requiredSlippagePct": 0,
+                        "slippageBasis": "signedBuyAmount",
+                        "suggestedBuyAmount": "10101010118388636"
+                    },
+                    "success": true,
+                    "bestOut": "10101010118388636",
+                    "buyAmount": "10000000000000001",
+                    "sellAmount": "23345744",
+                    "feeAmount": "11672",
+                    "feeBps": 5,
+                    "bestSource": "0x",
+                    "candidates": [
+                        {
+                            "out": "10094460000186140",
+                            "source": "kyber",
+                            "target": ""
+                        },
+                        {
+                            "out": "10101010118388636",
+                            "source": "0x",
+                            "target": "0x0000000000001fF3684f28c67538d4D072C22734"
+                        }
+                    ],
+                    "suggestedSessionFee": {
+                        "feeAmount": "5200",
+                        "feeAmountUSD": "0.005199",
+                        "nativeTokenPriceUSD": "0.0463",
+                        "gasEstimate": 1700000,
+                        "gasPrice": "55000000000",
+                        "marginBps": 2000
+                    },
+                    "engineVersion": 2
+                }
+            }
+        ],
         "fetchPositions": [
             {
                 "description": "Empty account positions null response",

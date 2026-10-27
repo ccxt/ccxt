@@ -3,6 +3,37 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "quote": [
+            {
+                "description": "Aggregate exact-input route with explicit protocol fee",
+                "method": "quote",
+                "url": "https://api.flyingtulip.com/mm/leverage/quote",
+                "input": [
+                    "0x29219dd400f2Bf60E5a23d13Be72B486D4038894",
+                    "0x50c42dEAcD8Fc9773493ED674b675bE577f2634b",
+                    "1000000",
+                    "500",
+                    "open",
+                    100
+                ],
+                "output": "{\"chainId\":146,\"sellToken\":\"0x29219dd400f2Bf60E5a23d13Be72B486D4038894\",\"buyToken\":\"0x50c42dEAcD8Fc9773493ED674b675bE577f2634b\",\"sellAmount\":\"1000000\",\"feeAmount\":\"500\",\"action\":\"open\",\"slippageBps\":100,\"priceQuality\":\"optimal\"}"
+            }
+        ],
+        "quoteExactOut": [
+            {
+                "description": "Aggregate exact-output precision above the safe integer range",
+                "method": "quoteExactOut",
+                "url": "https://api.flyingtulip.com/mm/leverage/quote",
+                "input": [
+                    "0x29219dd400f2Bf60E5a23d13Be72B486D4038894",
+                    "0x50c42dEAcD8Fc9773493ED674b675bE577f2634b",
+                    "10000000000000001",
+                    "open",
+                    100
+                ],
+                "output": "{\"chainId\":146,\"mode\":\"exactOut\",\"sellToken\":\"0x29219dd400f2Bf60E5a23d13Be72B486D4038894\",\"buyToken\":\"0x50c42dEAcD8Fc9773493ED674b675bE577f2634b\",\"buyAmount\":\"10000000000000001\",\"action\":\"open\",\"slippageBps\":100,\"priceQuality\":\"optimal\"}"
+            }
+        ],
         "fetchPositions": [
             {
                 "description": "Empty account positions null response",
