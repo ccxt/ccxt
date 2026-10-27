@@ -20,7 +20,7 @@ from ccxt.base.precise import Precise
 
 class coinmate(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(coinmate, self).describe(), {
             'id': 'coinmate',
             'name': 'CoinMate',

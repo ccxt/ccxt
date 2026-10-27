@@ -12,7 +12,7 @@ from ccxt.base.errors import ExchangeError
 
 class bullish(ccxt.async_support.bullish):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(bullish, self).describe(), {
             'has': {
                 'ws': True,

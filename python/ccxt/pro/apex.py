@@ -18,7 +18,7 @@ from ccxt.base.errors import NetworkError
 
 class apex(ccxt.async_support.apex):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(apex, self).describe(), {
             'has': {
                 'ws': True,

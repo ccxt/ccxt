@@ -16,7 +16,7 @@ from ccxt.base.precise import Precise
 
 class krakenfutures(ccxt.async_support.krakenfutures):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(krakenfutures, self).describe(), {
             'has': {
                 'ws': True,

@@ -25,7 +25,7 @@ from ccxt.base.precise import Precise
 
 class pacifica(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(pacifica, self).describe(), {
             'id': 'pacifica',
             'name': 'Pacifica',

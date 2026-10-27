@@ -26,7 +26,7 @@ from ccxt.base.precise import Precise
 
 class predictfun(PredictionExchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(predictfun, self).describe(), {
             'id': 'predictfun',
             'name': 'predict.fun',
@@ -1372,7 +1372,7 @@ class predictfun(PredictionExchange, ImplicitAPI):
             # an unmatched indexSet would otherwise return a ticker whose every quote is
             # undefined, which reads as an empty book rather than as a market that never
             # carried this outcome
-            requested = self.safe_outcome_symbol(None, market)
+            requested = self.safe_string(market, 'outcome', '')
             raise BadSymbol(self.id + ' fetchTicker() did not find ' + requested + ' among the outcomes of its market')
         # the venue quotes each outcome on its own side of the book, so no complement is needed
         bestBid = self.safe_dict(rawOutcome, 'bestBid', {})
@@ -2678,7 +2678,7 @@ class predictfun(PredictionExchange, ImplicitAPI):
             receipts = []
             operatorsLength = len(operators)
             for i in range(0, operatorsLength):
-                operatorAddress = operators[i]
+                operatorAddress = self.safe_string(operators, i)
                 if operatorAddress is None:
                     raise ArgumentsRequired(self.id + ' approve() could not resolve the operator to approve for chain ' + chainKey)
                 # setApprovalForAll(operator, approved) -> selector 0xa22cb465

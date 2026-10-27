@@ -36,7 +36,7 @@ from ccxt.base.precise import Precise
 
 class tokocrypto(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(tokocrypto, self).describe(), {
             'id': 'tokocrypto',
             'name': 'Tokocrypto',

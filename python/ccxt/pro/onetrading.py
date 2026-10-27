@@ -15,7 +15,7 @@ from ccxt.base.precise import Precise
 
 class onetrading(ccxt.async_support.onetrading):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(onetrading, self).describe(), {
             'has': {
                 'ws': True,

@@ -26,7 +26,7 @@ from ccxt.base.precise import Precise
 
 class hyperliquid(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(hyperliquid, self).describe(), {
             'id': 'hyperliquid',
             'name': 'Hyperliquid',
@@ -581,7 +581,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             dex = self.safe_dict(fetchDexes, i, {})
             secondPart = i * 10000 - 10000
             offset = self.sum(110000, secondPart)
-            perpDexesOffset[dex['name']] = offset
+            perpDexesOffset[self.safe_string(dex, 'name', '')] = offset
         fetchDexesList = []
         options = self.safe_dict(self.options, 'fetchMarkets', {})
         hip3 = self.safe_dict(options, 'hip3', {})
@@ -4003,10 +4003,9 @@ class hyperliquid(Exchange, ImplicitAPI):
             if not self.in_array(toAccount, ['spot', 'swap', 'perp']):
                 raise NotSupported(self.id + ' transfer() only support spot <> swap transfer')
             strAmount = self.number_to_string(amount)
-            vaultAddress = self.safe_string_2(params, 'vaultAddress', 'subAccountAddress')
-            if vaultAddress is not None:
-                vaultAddress = self.format_vault_address(vaultAddress)
-                strAmount = strAmount + ' subaccount:' + vaultAddress
+            vaultAddressRaw = self.safe_string_2(params, 'vaultAddress', 'subAccountAddress')
+            if vaultAddressRaw is not None:
+                strAmount = strAmount + ' subaccount:' + self.format_vault_address(vaultAddressRaw)
             strAmountFinal = strAmount  # java req
             toPerp = (toAccount == 'perp') or (toAccount == 'swap')
             transferPayload = {

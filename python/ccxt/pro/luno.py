@@ -14,7 +14,7 @@ from ccxt.base.precise import Precise
 
 class luno(ccxt.async_support.luno):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(luno, self).describe(), {
             'has': {
                 'ws': True,

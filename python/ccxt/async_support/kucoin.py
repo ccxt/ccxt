@@ -33,7 +33,7 @@ from ccxt.base.precise import Precise
 
 class kucoin(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(kucoin, self).describe(), {
             'id': 'kucoin',
             'name': 'KuCoin',
@@ -3561,13 +3561,12 @@ class kucoin(Exchange, ImplicitAPI):
             _netIdTmp = self.network_code_to_id(networkCode, self.safe_string(currency, 'code'))
             if _netIdTmp is not None:
                 request['chain'] = _netIdTmp.lower()
-        getVersions = self.safe_dict(self.safe_dict(self.safe_dict(self.options, 'versions', {}), 'private', {}), 'GET', {})
-        version = getVersions['deposit-addresses']
-        self.options['versions']['private']['GET']['deposit-addresses'] = 'v1'
+        version = self.get_deposit_addresses_version()
+        self.set_deposit_addresses_version('v1')
         response = await self.privateGetDepositAddresses(self.extend(request, paramsRequest))
         # BCH {"code":"200000","data":{"address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""}}
         # BTC {"code":"200000","data":{"address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""}}
-        self.options['versions']['private']['GET']['deposit-addresses'] = version
+        self.set_deposit_addresses_version(version)
         data = self.safe_dict(response, 'data')
         if data is None:
             raise ExchangeError(self.id + ' fetchDepositAddress() returned an empty response, you might try to run createDepositAddress() first and try again')
@@ -3682,9 +3681,8 @@ class kucoin(Exchange, ImplicitAPI):
             #
             response = await self.utaPrivateGetAssetDepositAddress(self.extend(request, paramsRequest))
         else:
-            getVersions = self.safe_dict(self.safe_dict(self.safe_dict(self.options, 'versions', {}), 'private', {}), 'GET', {})
-            version = getVersions['deposit-addresses']
-            self.options['versions']['private']['GET']['deposit-addresses'] = 'v2'
+            version = self.get_deposit_addresses_version()
+            self.set_deposit_addresses_version('v2')
             response = await self.privateGetDepositAddresses(self.extend(request, paramsRequest))
             #
             #     {
@@ -3701,7 +3699,7 @@ class kucoin(Exchange, ImplicitAPI):
             #         ]
             #     }
             #
-            self.options['versions']['private']['GET']['deposit-addresses'] = version
+            self.set_deposit_addresses_version(version)
         chains = self.safe_list(response, 'data', [])
         parsed = self.parse_deposit_addresses(chains, [currency['code']], False, {
             'currency': currency['code'],
@@ -11047,6 +11045,13 @@ class kucoin(Exchange, ImplicitAPI):
             self.options['uta'] = (accountMode == 'UNIFIED')
         uta = self.safe_bool(self.options, 'uta') is True
         return uta
+
+    def get_deposit_addresses_version(self) -> str:
+        getVersions = self.safe_dict(self.safe_dict(self.safe_dict(self.options, 'versions', {}), 'private', {}), 'GET', {})
+        return self.safe_string(getVersions, 'deposit-addresses', 'v1')
+
+    def set_deposit_addresses_version(self, version: str):
+        self.options['versions']['private']['GET']['deposit-addresses'] = version
 
     def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
         apiName = api[0]

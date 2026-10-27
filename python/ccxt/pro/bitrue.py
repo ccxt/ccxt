@@ -14,7 +14,7 @@ from ccxt.base.errors import NotSupported
 
 class bitrue(ccxt.async_support.bitrue):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(bitrue, self).describe(), {
             'has': {
                 'ws': True,
@@ -622,6 +622,8 @@ class bitrue(ccxt.async_support.bitrue):
         wsInterval = self.safe_string(parts, 4)
         futuresTimeframes = self.safe_dict(self.options, 'futuresTimeframes', {})
         timeframe = self.find_timeframe(wsInterval, futuresTimeframes)
+        if timeframe is None:
+            return
         tick = self.safe_dict(message, 'tick')
         if tick is None:
             return

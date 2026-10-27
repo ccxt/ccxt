@@ -16,7 +16,7 @@ from ccxt.base.precise import Precise
 
 class weex(ccxt.async_support.weex):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(weex, self).describe(), {
             'has': {
                 'watchBalance': True,

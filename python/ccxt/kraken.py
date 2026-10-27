@@ -32,7 +32,7 @@ from ccxt.base.precise import Precise
 
 class kraken(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(kraken, self).describe(), {
             'id': 'kraken',
             'name': 'Kraken',
@@ -3519,7 +3519,7 @@ class kraken(Exchange, ImplicitAPI):
             raise ExchangeNotAvailable(self.id + ' ' + str(code) + ' ' + reason)
         if response is None:
             return None
-        if body[0] == '{':
+        if self.safe_string(body, 0) == '{':
             if not isinstance(response, str):
                 message = self.id + ' ' + body
                 errors = self.safe_list(response, 'error')

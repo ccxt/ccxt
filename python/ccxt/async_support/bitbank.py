@@ -19,7 +19,7 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 
 class bitbank(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(bitbank, self).describe(), {
             'id': 'bitbank',
             'name': 'bitbank',

@@ -16,7 +16,7 @@ from ccxt.base.precise import Precise
 
 class mercado(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(mercado, self).describe(), {
             'id': 'mercado',
             'name': 'Mercado Bitcoin',

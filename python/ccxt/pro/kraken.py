@@ -26,7 +26,7 @@ from ccxt.base.precise import Precise
 
 class kraken(ccxt.async_support.kraken):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(kraken, self).describe(), {
             'has': {
                 'ws': True,
@@ -965,11 +965,17 @@ class kraken(ccxt.async_support.kraken):
                 # const checkBids = bids.map ((elem) => [ elem['price'], elem['qty'] ]);
                 for i in range(0, 10):
                     currentAsk = self.safe_list(checkAsks, i, [])
-                    formattedAsk = self.format_number(currentAsk[0]) + self.format_number(currentAsk[1])
+                    currentAskLength = len(currentAsk)
+                    formattedAsk = ''
+                    if currentAskLength > 1:
+                        formattedAsk = self.format_number(currentAsk[0]) + self.format_number(currentAsk[1])
                     payloadArray.append(formattedAsk)
                 for i in range(0, 10):
                     currentBid = self.safe_list(checkBids, i, [])
-                    formattedBid = self.format_number(currentBid[0]) + self.format_number(currentBid[1])
+                    currentBidLength = len(currentBid)
+                    formattedBid = ''
+                    if currentBidLength > 1:
+                        formattedBid = self.format_number(currentBid[0]) + self.format_number(currentBid[1])
                     payloadArray.append(formattedBid)
             payload = ''.join(payloadArray)
             localChecksum = self.crc32(payload, False)

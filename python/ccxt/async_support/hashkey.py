@@ -37,7 +37,7 @@ from ccxt.base.precise import Precise
 
 class hashkey(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(hashkey, self).describe(), {
             'id': 'hashkey',
             'name': 'HashKey Global',
@@ -1055,7 +1055,7 @@ class hashkey(Exchange, ImplicitAPI):
             isSpot = False
             isSwap = True
             baseId = self.safe_string(market, 'underlying')
-            suffix = ':' + settleId
+            suffix = ':' + self.safe_string(market, 'marginToken', '')
         base = self.safe_currency_code(baseId)
         if (base is None) or (quote is None):
             return None
@@ -4014,7 +4014,8 @@ class hashkey(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if market['swap'] is not True:
             raise BadSymbol(self.id + ' modifyMarginHelper() supports swap markets only')
-        sideParam, paramsSide = self.handle_param_string(params, 'side')
+        sideParam = self.safe_string(params, 'side')
+        paramsSide = self.omit(params, 'side')
         if sideParam is None:
             raise ArgumentsRequired(self.id + ' ' + type + 'Margin() requires a params["side"] argument, either "long" or "short"')
         side = sideParam.upper()

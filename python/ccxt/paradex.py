@@ -20,7 +20,7 @@ from ccxt.base.precise import Precise
 
 class paradex(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(paradex, self).describe(), {
             'id': 'paradex',
             'name': 'Paradex',
@@ -644,7 +644,9 @@ class paradex(Exchange, ImplicitAPI):
         makerFee = self.parse_number('-0.00005')
         if isOption:
             optionTypeSuffix = 'C' if (optionType == 'CALL') else 'P'
-            deliveryValue = '' if (expiry == 0) else self.yymmdd(expiry) + '-'
+            deliveryValue = ''
+            if expiry != 0:
+                deliveryValue = self.yymmdd(expiry) + '-'
             symbol = symbol + '-' + deliveryValue + strikePrice + '-' + optionTypeSuffix
             makerFee = self.parse_number('0.0003')
         else:

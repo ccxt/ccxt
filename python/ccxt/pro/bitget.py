@@ -20,7 +20,7 @@ from ccxt.base.precise import Precise
 
 class bitget(ccxt.async_support.bitget):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(bitget, self).describe(), {
             'has': {
                 'ws': True,

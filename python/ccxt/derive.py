@@ -22,7 +22,7 @@ from ccxt.base.precise import Precise
 
 class derive(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(derive, self).describe(), {
             'id': 'derive',
             'name': 'Derive',
@@ -846,7 +846,8 @@ class derive(Exchange, ImplicitAPI):
             expiry = self.safe_timestamp(optionDetails, 'expiry')
             strike = self.safe_number(optionDetails, 'strike')  # strikes can be fractional, e.g. XRP-20261225-0_5-P is a 0.5 strike
             optionLetter = self.safe_string(optionDetails, 'option_type')
-            symbol = base + '/' + quote + ':' + settle + '-' + self.yymmdd(expiry) + '-' + self.number_to_string(strike) + '-' + optionLetter
+            if settle is not None:
+                symbol = base + '/' + quote + ':' + settle + '-' + self.yymmdd(expiry) + '-' + self.number_to_string(strike) + '-' + optionLetter
             if optionLetter == 'P':
                 optionType = 'put'
             else:

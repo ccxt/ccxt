@@ -24,7 +24,7 @@ from ccxt.base.precise import Precise
 
 class btse(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(btse, self).describe(), {
             'id': 'btse',
             'name': 'BTSE',
@@ -2372,7 +2372,9 @@ class btse(Exchange, ImplicitAPI):
         response = None
         if marketTypeOption == 'spot':
             # the literal ALL value cancels every open order across all pairs
-            request['symbol'] = self.safe_string(market, 'id') if (symbol is not None) else 'ALL'
+            request['symbol'] = 'ALL'
+            if symbol is not None:
+                request['symbol'] = self.safe_string(market, 'id')
             response = self.privateDeleteSpotApiV4TradeOrdersAll(self.extend(request, paramsMarketType))
         else:
             if symbol is None:
@@ -3517,8 +3519,7 @@ class btse(Exchange, ImplicitAPI):
         apiUrl = self.safe_string(self.urls['api'], apiName)
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
-        baseUrl = apiUrl
-        url = baseUrl + '/' + self.implode_params(path, params)
+        url = apiUrl + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         # the futures v3 trading api reads DELETE params from a signed json
         # body like its POST and PUT counterparts, while the spot v4 and the
@@ -3556,9 +3557,7 @@ class btse(Exchange, ImplicitAPI):
                 'Content-Type': 'application/json',
                 'BROKER-ID': 'ccxt',
             }
-        bodyResolved = requestBody
-        headersResolved = requestHeaders
-        return {'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved}
+        return {'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders}
 
     def futures_request_id(self, market: dict):
         # the futures v3 trading api identifies contracts by the short trade-currency

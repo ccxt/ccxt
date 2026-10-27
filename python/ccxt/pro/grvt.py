@@ -14,7 +14,7 @@ from ccxt.base.errors import ArgumentsRequired
 
 class grvt(ccxt.async_support.grvt):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(grvt, self).describe(), {
             'has': {
                 'ws': True,

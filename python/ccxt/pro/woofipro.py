@@ -15,7 +15,7 @@ from ccxt.base.precise import Precise
 
 class woofipro(ccxt.async_support.woofipro):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(woofipro, self).describe(), {
             'has': {
                 'ws': True,
@@ -1012,8 +1012,8 @@ class woofipro(ccxt.async_support.woofipro):
             if Precise.string_gt(contracts, '0'):
                 cache.append(position)
         # don't remove the future from the .futures cache
-        if messageHash in client.futures:
-            future = client.futures[messageHash]
+        future = self.safe_value(client.futures, messageHash)
+        if future is not None:
             future.resolve(cache)
             client.resolve(cache, 'positions')
 

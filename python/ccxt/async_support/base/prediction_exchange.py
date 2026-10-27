@@ -25,7 +25,7 @@ class PredictionExchange(BaseExchange):
 
     # METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(PredictionExchange, self).describe(), {
             'has': {
                 'prediction': True,
@@ -467,8 +467,7 @@ class PredictionExchange(BaseExchange):
         # removal so labels like "UP OR DOWN" survive intact) — venue labels with spaces or
         # currency symbols ("JD Vance", a dollar-sign price) yield clean handles (JD_VANCE, 120)
         # instead of leaking raw text into the outcome handle
-        outcomeValue = '' if (outcome is None) else outcome
-        upper = outcomeValue.upper()
+        upper = '' if (outcome is None) else outcome.upper()
         allowed = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
         chars = self.string_to_chars_array(upper)
         label = ''
@@ -1079,10 +1078,7 @@ class PredictionExchange(BaseExchange):
         # own-line length reads so the regex transpiler emits count() (array), not strlen()
         feeListLength = len(feeList)
         if (fee is None) and (feeListLength > 0):
-            reduced = self.reduce_fees_by_currency(feeList)
-            reducedLength = len(reduced)
-            if reducedLength > 0:
-                fee = self.safe_dict(reduced, 0)
+            fee = self.safe_dict(self.reduce_fees_by_currency(feeList), 0)
         # derive timeInForce/postOnly the same way the crypto safeOrder does (prediction has no
         # trigger orders, so the isTriggerOrSLTp guard collapses): a market order defaults to IOC
         orderType = self.safe_string(outcomeOrder, 'type')

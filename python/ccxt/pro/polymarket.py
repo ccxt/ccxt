@@ -14,7 +14,7 @@ from ccxt.base.errors import NotSupported
 
 class polymarket(ccxt.async_support.polymarket):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(polymarket, self).describe(), {
             'has': {
                 'ws': True,

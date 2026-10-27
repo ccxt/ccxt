@@ -14,7 +14,7 @@ from ccxt.base.errors import NotSupported
 
 class pacifica(ccxt.async_support.pacifica):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(pacifica, self).describe(), {
             'has': {
                 'ws': True,

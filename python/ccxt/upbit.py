@@ -21,7 +21,7 @@ from ccxt.base.precise import Precise
 
 class upbit(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(upbit, self).describe(), {
             'id': 'upbit',
             'name': 'Upbit',
@@ -1183,7 +1183,7 @@ class upbit(Exchange, ImplicitAPI):
         ohlcvs = self.to_array(response)
         return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limitResolved)
 
-    def calc_order_price(self, symbol: str, amount: Num, price: Num = None, params: dict = {}) -> Str:
+    def calc_order_price(self, symbol: str, amount: Num = None, price: Num = None, params: dict = {}) -> Str:
         quoteAmount = None
         createMarketBuyOrderRequiresPrice = self.safe_bool(self.options, 'createMarketBuyOrderRequiresPrice')
         cost = self.safe_string(params, 'cost')

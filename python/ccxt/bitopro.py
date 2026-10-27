@@ -20,7 +20,7 @@ from ccxt.base.precise import Precise
 
 class bitopro(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(bitopro, self).describe(), {
             'id': 'bitopro',
             'name': 'BitoPro',

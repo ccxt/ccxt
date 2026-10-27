@@ -25,7 +25,7 @@ from ccxt.base.precise import Precise
 
 class myriad(PredictionExchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(myriad, self).describe(), {
             'id': 'myriad',
             'name': 'Myriad',
@@ -554,10 +554,8 @@ class myriad(PredictionExchange, ImplicitAPI):
         outcomeTitle = self.safe_string(position, 'outcomeTitle', '')
         outcome = self.slug_to_outcome_symbol(marketSlug, marketSlug, outcomeTitle)
         marketSymbol = self.slug_to_market_symbol(marketSlug, marketSlug)
-        networkId = self.safe_string(position, 'networkId')
-        marketId = self.safe_string(position, 'marketId')
         outcomeId = self.safe_string(position, 'outcomeId')
-        id = networkId + ':' + marketId + '/' + outcomeId
+        id = self.safe_string(position, 'networkId', '') + ':' + self.safe_string(position, 'marketId', '') + '/' + self.safe_string(position, 'outcomeId', '')
         shares = self.safe_number(position, 'shares')
         value = self.safe_number(position, 'value')
         profit = self.safe_number(position, 'profit')
@@ -3105,7 +3103,7 @@ class myriad(PredictionExchange, ImplicitAPI):
 
     def wallet_address_or_undefined(self) -> Str:
         # like walletAddressFromKeys but returns undefined instead of throwing when no wallet is configured
-        if (self.walletAddress is not None) and (len(self.walletAddress) > 0):
+        if (self.walletAddress is not None) and (self.walletAddress != ''):
             return self.walletAddress.lower()
         if self.privateKey is not None:
             return self.eth_get_address_from_private_key(self.privateKey).lower()
@@ -3493,13 +3491,11 @@ class myriad(PredictionExchange, ImplicitAPI):
         # the orders/positions channels are keyed by the lowercase trader address (Centrifugo channels
         # are case-sensitive); lowercase here so the channel matches regardless of the address checksum.
         # check length too: an unset walletAddress is an empty string (not undefined) in some languages
-        address = self.walletAddress
-        hasWallet = (address is not None) and (len(self.walletAddress) > 0)
-        if not hasWallet:
-            if self.privateKey is None:
-                raise ArgumentsRequired(self.id + ' requires a walletAddress or privateKey to watch private channels')
-            address = self.eth_get_address_from_private_key(self.privateKey)
-        return address.lower()
+        if (self.walletAddress is not None) and (self.walletAddress != ''):
+            return self.walletAddress.lower()
+        if self.privateKey is None:
+            raise ArgumentsRequired(self.id + ' requires a walletAddress or privateKey to watch private channels')
+        return self.eth_get_address_from_private_key(self.privateKey).lower()
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         # Myriad error responses are { "error": "<message>", "details": [...] } with a 4xx status

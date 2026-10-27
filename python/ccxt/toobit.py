@@ -25,7 +25,7 @@ from ccxt.base.precise import Precise
 
 class toobit(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(toobit, self).describe(), {
             'id': 'toobit',
             'name': 'Toobit',

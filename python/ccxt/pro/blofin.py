@@ -15,7 +15,7 @@ from ccxt.base.errors import NotSupported
 
 class blofin(ccxt.async_support.blofin):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(blofin, self).describe(), {
             'has': {
                 'ws': True,
@@ -384,7 +384,7 @@ class blofin(ccxt.async_support.blofin):
         :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         symbolsLength = len(symbolsAndTimeframes)
-        if symbolsLength == 0 or not isinstance(symbolsAndTimeframes[0], list):
+        if symbolsLength == 0 or self.safe_list(symbolsAndTimeframes, 0) is None:
             raise ArgumentsRequired(self.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]")
         if self.markets is None:
             await self.load_markets()

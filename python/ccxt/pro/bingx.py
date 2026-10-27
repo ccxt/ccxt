@@ -16,7 +16,7 @@ from ccxt.base.precise import Precise
 
 class bingx(ccxt.async_support.bingx):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(bingx, self).describe(), {
             'has': {
                 'ws': True,

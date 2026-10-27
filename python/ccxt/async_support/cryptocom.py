@@ -30,7 +30,7 @@ from ccxt.base.precise import Precise
 
 class cryptocom(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(cryptocom, self).describe(), {
             'id': 'cryptocom',
             'name': 'Crypto.com',
@@ -3228,7 +3228,7 @@ class cryptocom(Exchange, ImplicitAPI):
             objectKeys = list(object.keys())
             paramsKeys = self.sort(objectKeys)
         for i in range(0, len((paramsKeys))):
-            key = (paramsKeys)[i]
+            key = self.safe_string(paramsKeys, i, '')
             returnString += key
             value = object[key]
             if value == 'None':

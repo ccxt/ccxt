@@ -18,7 +18,7 @@ from ccxt.base.precise import Precise
 
 class coinbaseexchange(ccxt.async_support.coinbaseexchange):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(coinbaseexchange, self).describe(), {
             'has': {
                 'ws': True,
@@ -408,11 +408,10 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
             trade = self.parse_ws_trade(message)
             type = 'myTrades'
             messageHash = type + ':' + marketId
-            tradesArray = self.myTrades
-            if tradesArray is None:
+            if self.myTrades is None:
                 limit = self.safe_integer(self.options, 'myTradesLimit', 1000)
-                tradesArray = ArrayCacheBySymbolById(limit)
-                self.myTrades = tradesArray
+                self.myTrades = ArrayCacheBySymbolById(limit)
+            tradesArray = self.myTrades
             tradesArray.append(trade)
             client.resolve(tradesArray, messageHash)
         return message
@@ -471,10 +470,11 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
         parsed = super(coinbaseexchange, self).parse_trade(trade)
         feeRate = None
         isMaker = False
-        if 'maker_fee_rate' in trade:
+        makerFeeRate = self.safe_string(trade, 'maker_fee_rate')
+        if makerFeeRate is not None:
             isMaker = True
             parsed['takerOrMaker'] = 'maker'
-            feeRate = self.safe_string(trade, 'maker_fee_rate')
+            feeRate = makerFeeRate
         else:
             parsed['takerOrMaker'] = 'taker'
             feeRate = self.safe_string(trade, 'taker_fee_rate')
@@ -737,7 +737,7 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
             symbol = ticker['symbol']
             if symbol is not None:
                 self.tickers[symbol] = ticker
-            messageHash = 'ticker:' + symbol
+            messageHash = 'ticker:' + self.safe_string(ticker, 'symbol', '')
             idMessageHash = 'ticker:' + marketId
             client.resolve(ticker, messageHash)
             client.resolve(ticker, idMessageHash)

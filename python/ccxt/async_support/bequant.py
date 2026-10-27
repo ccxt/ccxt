@@ -9,7 +9,7 @@ from ccxt.abstract.bequant import ImplicitAPI
 
 class bequant(hitbtc, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(bequant, self).describe(), {
             'id': 'bequant',
             'name': 'Bequant',

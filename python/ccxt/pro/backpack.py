@@ -16,7 +16,7 @@ from ccxt.base.errors import NotSupported
 
 class backpack(ccxt.async_support.backpack):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(backpack, self).describe(), {
             'has': {
                 'ws': True,
@@ -821,8 +821,9 @@ class backpack(ccxt.async_support.backpack):
         messageHashes = []
         for i in range(0, len(symbolsNormalized)):
             symbol = symbolsNormalized[i]
-            marketId = self.ws_venue_market_id('watchTradesForSymbols', self.market(symbol), query)
-            topics.append('trade.' + marketId)
+            market = self.market(symbol)
+            self.ws_venue_market_id('watchTradesForSymbols', market, query)
+            topics.append('trade.' + self.safe_string(market, 'id', ''))
             messageHashes.append('trades:' + symbol)
         trades = await self.watch_public(topics, messageHashes, self.omit(query, ['stock', 'source']))
         first = self.safe_dict(trades, 0)
@@ -856,8 +857,9 @@ class backpack(ccxt.async_support.backpack):
         messageHashes = []
         for i in range(0, len(symbolsNormalized)):
             symbol = symbolsNormalized[i]
-            marketId = self.ws_venue_market_id('watchTradesForSymbols', self.market(symbol), query)
-            topics.append('trade.' + marketId)
+            market = self.market(symbol)
+            self.ws_venue_market_id('watchTradesForSymbols', market, query)
+            topics.append('trade.' + self.safe_string(market, 'id', ''))
             messageHashes.append('unsubscribe:trades:' + symbol)
         return await self.watch_public(topics, messageHashes, self.omit(query, ['stock', 'source']), True)
 
@@ -988,9 +990,9 @@ class backpack(ccxt.async_support.backpack):
         for i in range(0, len(symbolsNormalized)):
             symbol = symbolsNormalized[i]
             messageHashes.append('orderbook:' + symbol)
-            marketId = self.ws_venue_market_id('watchOrderBookForSymbols', self.market(symbol), query)
-            topic = 'depth.' + marketId
-            topics.append(topic)
+            market = self.market(symbol)
+            self.ws_venue_market_id('watchOrderBookForSymbols', market, query)
+            topics.append('depth.' + self.safe_string(market, 'id', ''))
             if not (symbol in self.orderbooks):
                 self.orderbooks[symbol] = self.order_book({}, limit)
         orderbook = await self.watch_public(topics, messageHashes, self.omit(query, ['stock', 'source']))
@@ -1027,9 +1029,9 @@ class backpack(ccxt.async_support.backpack):
         for i in range(0, len(symbolsNormalized)):
             symbol = symbolsNormalized[i]
             messageHashes.append('unsubscribe:orderbook:' + symbol)
-            marketId = self.ws_venue_market_id('watchOrderBookForSymbols', self.market(symbol), query)
-            topic = 'depth.' + marketId
-            topics.append(topic)
+            market = self.market(symbol)
+            self.ws_venue_market_id('watchOrderBookForSymbols', market, query)
+            topics.append('depth.' + self.safe_string(market, 'id', ''))
         return await self.watch_public(topics, messageHashes, self.omit(query, ['stock', 'source']), True)
 
     def handle_order_book(self, client: Client, message: dict):
@@ -1176,14 +1178,13 @@ class backpack(ccxt.async_support.backpack):
         if symbol is not None:
             market = self.market(symbol)
             self.handleStockParams('watchOrders', query, market)
-        symbolResolved = market['symbol'] if (market is not None) else symbol
         topic = 'account.orderUpdate'
         messageHash = 'unsubscribe:orders'
         if market is not None:
             topic = 'account.orderUpdate.' + self.safe_string(market, 'id', '')
             if self.safe_string(market, 'executionModel') == 'rfq':
                 topic = 'account.rfqUpdate.' + self.safe_string(market, 'id', '')
-            messageHash = 'unsubscribe:orders:' + symbolResolved
+            messageHash = 'unsubscribe:orders:' + self.safe_string(market, 'symbol', '')
         topics = [topic]
         if market is None:
             topics.append('account.rfqUpdate')

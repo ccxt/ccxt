@@ -25,7 +25,7 @@ from ccxt.base.precise import Precise
 
 class grvt(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         rlOthers = 40
         rlOrders = 20
         return self.deep_extend(super(grvt, self).describe(), {
@@ -1010,9 +1010,9 @@ class grvt(Exchange, ImplicitAPI):
         }
         if limit is not None:
             request['limit'] = min(limit, 1000)
-        requestUntilOptionString, paramsUntilOptionString = self.handle_until_option_string('end_time', request, params, 1000000)
         if since is not None:
-            requestUntilOptionString['start_time'] = self.number_to_string(since * 1000000)
+            request['start_time'] = self.number_to_string(since * 1000000)
+        requestUntilOptionString, paramsUntilOptionString = self.handle_until_option_string('end_time', request, params, 1000000)
         response = self.publicMarketPostFullV1TradeHistory(self.extend(requestUntilOptionString, paramsUntilOptionString))
         #
         #    {
@@ -1155,9 +1155,9 @@ class grvt(Exchange, ImplicitAPI):
         request['type'] = self.safe_string(priceTypeMap, selectedPriceType)
         if limit is not None:
             request['limit'] = min(limit, 1000)
-        requestUntilOptionString, paramsUntilOptionString = self.handle_until_option_string('end_time', request, paramsPaginate, 1000000)
         if since is not None:
-            requestUntilOptionString['start_time'] = self.number_to_string(since * 1000000)
+            request['start_time'] = self.number_to_string(since * 1000000)
+        requestUntilOptionString, paramsUntilOptionString = self.handle_until_option_string('end_time', request, paramsPaginate, 1000000)
         response = self.publicMarketPostFullV1Kline(self.extend(requestUntilOptionString, paramsUntilOptionString))
         #
         #    {
@@ -1232,9 +1232,9 @@ class grvt(Exchange, ImplicitAPI):
         }
         if limit is not None:
             request['limit'] = min(limit, 1000)
-        requestUntilOptionString, paramsUntilOptionString = self.handle_until_option_string('end_time', request, paramsPaginate, 1000000)
         if since is not None:
-            requestUntilOptionString['start_time'] = self.number_to_string(since * 1000000)
+            request['start_time'] = self.number_to_string(since * 1000000)
+        requestUntilOptionString, paramsUntilOptionString = self.handle_until_option_string('end_time', request, paramsPaginate, 1000000)
         response = self.publicMarketPostFullV1Funding(self.extend(requestUntilOptionString, paramsUntilOptionString))
         #
         #    {
@@ -1280,7 +1280,7 @@ class grvt(Exchange, ImplicitAPI):
         }
 
     def get_sub_account_id(self, params: dict) -> str:
-        subAccountId = self.handle_option_and_params(params, 'getSubAccountId', 'accountId')[0]
+        subAccountId = self.safe_string(self.handle_option_and_params(params, 'getSubAccountId', 'accountId'), 0)
         if subAccountId is None:
             raise ArgumentsRequired(self.id + ' you should set "accountId" in options or params, which can be found in the grvt dashboard, under Api-Keys page')
         return str(subAccountId)
@@ -1397,9 +1397,9 @@ class grvt(Exchange, ImplicitAPI):
             request['currency'] = [currency['code']]
         if limit is not None:
             request['limit'] = min(limit, 1000)
-        requestUntilOptionString, paramsUntilOptionString = self.handle_until_option_string('end_time', request, params, 1000000)
         if since is not None:
-            requestUntilOptionString['start_time'] = self.number_to_string(since * 1000000)
+            request['start_time'] = self.number_to_string(since * 1000000)
+        requestUntilOptionString, paramsUntilOptionString = self.handle_until_option_string('end_time', request, params, 1000000)
         useTransfersEndpoint = self.safe_bool(self.options, 'useTransfersEndpointForDepositsWithdrawals', True)
         if useTransfersEndpoint:
             transfers = self.internal_fetch_transfers(self.extend(requestUntilOptionString, paramsUntilOptionString), currency, since, limit)
@@ -1448,9 +1448,9 @@ class grvt(Exchange, ImplicitAPI):
             request['currency'] = [currency['code']]
         if limit is not None:
             request['limit'] = min(limit, 1000)
-        requestUntilOptionString, paramsUntilOptionString = self.handle_until_option_string('end_time', request, params, 1000000)
         if since is not None:
-            requestUntilOptionString['start_time'] = self.number_to_string(since * 1000000)
+            request['start_time'] = self.number_to_string(since * 1000000)
+        requestUntilOptionString, paramsUntilOptionString = self.handle_until_option_string('end_time', request, params, 1000000)
         useTransfersEndpoint = self.safe_bool(self.options, 'useTransfersEndpointForDepositsWithdrawals', True)
         if useTransfersEndpoint:
             transfers = self.internal_fetch_transfers(self.extend(requestUntilOptionString, paramsUntilOptionString), currency, since, limit)
@@ -1653,9 +1653,9 @@ class grvt(Exchange, ImplicitAPI):
             return self.fetch_paginated_call_dynamic('fetchTransfers', None, since, limit, paramsPaginate, maxLimit)
         if limit is not None:
             request['limit'] = min(limit, 1000)
-        requestUntilOptionString, paramsUntilOptionString = self.handle_until_option_string('end_time', request, paramsPaginate, 1000000)
         if since is not None:
-            requestUntilOptionString['start_time'] = self.number_to_string(since * 1000000)
+            request['start_time'] = self.number_to_string(since * 1000000)
+        requestUntilOptionString, paramsUntilOptionString = self.handle_until_option_string('end_time', request, paramsPaginate, 1000000)
         response = self.privateTradingPostFullV1TransferHistory(self.extend(requestUntilOptionString, paramsUntilOptionString))
         #
         #    {
@@ -2183,9 +2183,9 @@ class grvt(Exchange, ImplicitAPI):
             request['quote'] = [market['quoteId']]
         if limit is not None:
             request['limit'] = min(limit, 1000)
-        requestUntilOptionString, paramsUntilOptionString = self.handle_until_option_string('end_time', request, paramsPaginate, 1000000)
         if since is not None:
-            requestUntilOptionString['start_time'] = self.number_to_string(since * 1000000)
+            request['start_time'] = self.number_to_string(since * 1000000)
+        requestUntilOptionString, paramsUntilOptionString = self.handle_until_option_string('end_time', request, paramsPaginate, 1000000)
         response = self.privateTradingPostFullV1FillHistory(self.extend(requestUntilOptionString, paramsUntilOptionString))
         #
         #    {
@@ -2237,15 +2237,17 @@ class grvt(Exchange, ImplicitAPI):
         }
         symbolsNormalized = self.market_symbols(symbols)
         if symbolsNormalized is not None:
-            request['base'] = []
-            request['quote'] = []
+            baseIds = []
+            quoteIds = []
             for i in range(0, len(symbolsNormalized)):
                 symbol = symbolsNormalized[i]
                 market = self.market(symbol)
                 if market['contract'] is not True:
                     raise BadRequest(self.id + ' fetchPositions() supports contract markets only')
-                request['base'].append(market['baseId'])
-                request['quote'].append(market['quoteId'])
+                baseIds.append(market['baseId'])
+                quoteIds.append(market['quoteId'])
+            request['base'] = baseIds
+            request['quote'] = quoteIds
         response = self.privateTradingPostFullV1Positions(self.extend(request, params))
         #
         #    {
@@ -2502,9 +2504,9 @@ class grvt(Exchange, ImplicitAPI):
             request['quote'] = [market['quoteId']]
         if limit is not None:
             request['limit'] = min(limit, 1000)
-        requestUntilOptionString, paramsUntilOptionString = self.handle_until_option_string('end_time', request, paramsPaginate, 1000000)
         if since is not None:
-            requestUntilOptionString['start_time'] = self.number_to_string(since * 1000000)
+            request['start_time'] = self.number_to_string(since * 1000000)
+        requestUntilOptionString, paramsUntilOptionString = self.handle_until_option_string('end_time', request, paramsPaginate, 1000000)
         response = self.privateTradingPostFullV1FundingPaymentHistory(self.extend(requestUntilOptionString, paramsUntilOptionString))
         #
         #    {
@@ -2574,9 +2576,9 @@ class grvt(Exchange, ImplicitAPI):
             request['quote'] = [market['quoteId']]
         if limit is not None:
             request['limit'] = min(limit, 1000)
-        requestUntilOptionString, paramsUntilOptionString = self.handle_until_option_string('end_time', request, params, 1000000)
         if since is not None:
-            requestUntilOptionString['start_time'] = self.number_to_string(since * 1000000)
+            request['start_time'] = self.number_to_string(since * 1000000)
+        requestUntilOptionString, paramsUntilOptionString = self.handle_until_option_string('end_time', request, params, 1000000)
         response = self.privateTradingPostFullV1OrderHistory(self.extend(requestUntilOptionString, paramsUntilOptionString))
         #
         #    {
@@ -3096,11 +3098,10 @@ class grvt(Exchange, ImplicitAPI):
         domainData = self.eip_domain_data()
         definitions = self.eip_definitions()
         ethEncodedMessage = self.eth_encode_structured_data(domainData, definitions[structureType], messageData)
-        ethEncodedMessageHashed = '0x' + self.hash(ethEncodedMessage, 'keccak', 'hex')
         usesPrivKey = self.uses_private_key()  # py transpiler needs this line separated
         secretOrPrivkey = self.privateKey if usesPrivKey else self.secret
         privateKeyWithoutZero = self.remove0x_prefix(secretOrPrivkey)
-        signature = self.ecdsa(self.remove0x_prefix(ethEncodedMessageHashed), privateKeyWithoutZero, 'secp256k1', None)
+        signature = self.ecdsa(self.hash(ethEncodedMessage, 'keccak', 'hex'), privateKeyWithoutZero, 'secp256k1', None)
         request['signature'] = {
             'signer': self.eth_get_address_from_private_key('0x' + privateKeyWithoutZero) if (signerAddress is None) else signerAddress,
             'r': self.format_signature_rs(signature['r']),
@@ -3176,18 +3177,21 @@ class grvt(Exchange, ImplicitAPI):
             self.check_required_credentials()
             if queryString != '':
                 requestPath = path + '?' + queryString
-            requestHeaders = {
-                'Content-Type': 'application/json',
-            }
             if (requestPath.endswith('auth/api_key/login') is True) or (requestPath.endswith('auth/wallet/login') is True):
-                requestHeaders['Cookie'] = 'rm=true;'
+                requestHeaders = {
+                    'Content-Type': 'application/json',
+                    'Cookie': 'rm=true;',
+                }
             else:
                 accountId = self.safe_string(self.options, 'AuthAccountId')
                 cookieValue = self.safe_string(self.options, 'AuthCookieValue')
                 if cookieValue is None or accountId is None:
                     raise AuthenticationError(self.id + ' : at first, you need to authenticate with exchange using signIn() method.')
-                requestHeaders['Cookie'] = cookieValue
-                requestHeaders['X-Grvt-Account-Id'] = accountId
+                requestHeaders = {
+                    'Content-Type': 'application/json',
+                    'Cookie': cookieValue,
+                    'X-Grvt-Account-Id': accountId,
+                }
         return {'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders}
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):

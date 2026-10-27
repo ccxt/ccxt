@@ -16,7 +16,7 @@ from ccxt.base.precise import Precise
 
 class nado(ccxt.async_support.nado):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(nado, self).describe(), {
             'has': {
                 'ws': True,

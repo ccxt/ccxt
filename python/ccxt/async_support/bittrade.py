@@ -28,7 +28,7 @@ from ccxt.base.precise import Precise
 
 class bittrade(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(bittrade, self).describe(), {
             'id': 'bittrade',
             'name': 'BitTrade',
@@ -1653,7 +1653,7 @@ class bittrade(Exchange, ImplicitAPI):
         failed = self.safe_list_2(orders, 'errors', 'failed', [])
         result = []
         for i in range(0, len(success)):
-            order = success[i]
+            order = self.safe_string(success, i)
             result.append(self.safe_order({
                 'info': order,
                 'id': order,

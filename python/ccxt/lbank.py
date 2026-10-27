@@ -27,7 +27,7 @@ from ccxt.base.precise import Precise
 
 class lbank(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(lbank, self).describe(), {
             'id': 'lbank',
             'name': 'LBank',
@@ -2815,8 +2815,8 @@ class lbank(Exchange, ImplicitAPI):
                         if resultValue is None:
                             result[code] = self.deposit_withdraw_fee([fee])
                         else:
-                            resultCodeInfo = result[code]['info']
-                            resultCodeInfo.append(fee)
+                            infoList = self.array_concat(resultValue['info'], [fee])
+                            result[code] = self.extend(resultValue, {'info': infoList})
                         networkCode = self.network_id_to_code(self.safe_string(fee, 'chain'), code)
                         if networkCode is not None:
                             networkFees = {}

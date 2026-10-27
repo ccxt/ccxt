@@ -14,7 +14,7 @@ from ccxt.base.errors import NotSupported
 
 class xt(ccxt.async_support.xt):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(xt, self).describe(), {
             'has': {
                 'ws': True,

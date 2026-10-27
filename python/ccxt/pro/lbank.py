@@ -13,7 +13,7 @@ from ccxt.base.errors import NotSupported
 
 class lbank(ccxt.async_support.lbank):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(lbank, self).describe(), {
             'has': {
                 'ws': True,

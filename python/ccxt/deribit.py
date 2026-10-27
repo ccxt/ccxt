@@ -26,7 +26,7 @@ from ccxt.base.precise import Precise
 
 class deribit(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(deribit, self).describe(), {
             'id': 'deribit',
             'name': 'Deribit',
@@ -3167,14 +3167,18 @@ class deribit(Exchange, ImplicitAPI):
         month = 30 * 24 * 60 * 60 * 1000
         defaultSince = now - month
         sinceResolved = defaultSince if (since is None) else since
-        time = now if (since is None) else self.parse_to_int(since + month)
+        time = now
+        if since is not None:
+            time = self.parse_to_int(since + month)
         request = {
             'instrument_name': market['id'],
             'start_timestamp': sinceResolved - 1,
         }
         until = self.safe_integer_2(paramsPaginate, 'until', 'end_timestamp')
         paramsUntil = self.omit(paramsPaginate, ['until']) if (until is not None) else paramsPaginate
-        endTimestamp = until if (until is not None) else time
+        endTimestamp = time
+        if until is not None:
+            endTimestamp = self.parse_to_int(until)
         request['end_timestamp'] = endTimestamp
         isPaginationCall = self.safe_bool(paramsUntil, 'isDeribitPaginationCall', False)
         paramsOmitted = paramsUntil

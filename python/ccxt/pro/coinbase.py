@@ -14,7 +14,7 @@ from ccxt.base.errors import ArgumentsRequired
 
 class coinbase(ccxt.async_support.coinbase):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(coinbase, self).describe(), {
             'has': {
                 'ws': True,

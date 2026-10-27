@@ -15,7 +15,7 @@ from ccxt.base.precise import Precise
 
 class bydfi(ccxt.async_support.bydfi):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(bydfi, self).describe(), {
             'has': {
                 'ws': True,
@@ -408,6 +408,8 @@ class bydfi(ccxt.async_support.bydfi):
         interval = self.safe_string(message, 'i')
         timeframes = self.safe_dict(self.options, 'timeframes', {})
         timeframe = self.find_timeframe(interval, timeframes)
+        if timeframe is None:
+            return
         messageHash = 'ohlcv::' + symbol + '::' + timeframe
         if not (symbol in self.ohlcvs):
             self.ohlcvs[symbol] = {}

@@ -15,7 +15,7 @@ from ccxt.base.precise import Precise
 
 class lighter(ccxt.async_support.lighter):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(lighter, self).describe(), {
             'has': {
                 'ws': True,
@@ -161,7 +161,7 @@ class lighter(ccxt.async_support.lighter):
         data = self.safe_dict(message, 'order_book', {})
         channel = self.safe_string(message, 'channel', '')
         parts = channel.split(':')
-        marketId = parts[1]
+        marketId = self.safe_string(parts, 1)
         market = self.safe_market(marketId)
         symbol = market['symbol']
         timestamp = self.safe_integer(message, 'timestamp')
@@ -544,7 +544,7 @@ class lighter(ccxt.async_support.lighter):
         data = self.safe_list(message, 'trades', [])
         channel = self.safe_string(message, 'channel', '')
         parts = channel.split(':')
-        marketId = parts[1]
+        marketId = self.safe_string(parts, 1)
         market = self.safe_market(marketId)
         symbol = market['symbol']
         stored = self.safe_value(self.trades, symbol)
@@ -723,7 +723,7 @@ class lighter(ccxt.async_support.lighter):
         #
         channel = self.safe_string(message, 'channel', '')
         parts = channel.split(':')
-        accountIndex = parts[1]
+        accountIndex = self.safe_string(parts, 1)
         data = self.safe_dict(message, 'trades', {})
         marketIds = list(data.keys())
         idsLength = len(marketIds)
@@ -897,7 +897,7 @@ class lighter(ccxt.async_support.lighter):
         data = self.safe_list(message, 'liquidation_trades', [])
         channel = self.safe_string(message, 'channel', '')
         parts = channel.split(':')
-        marketId = parts[1]
+        marketId = self.safe_string(parts, 1)
         market = self.safe_market(marketId)
         symbol = market['symbol']
         stored = self.safe_value(self.liquidations, symbol)

@@ -27,7 +27,7 @@ from ccxt.base.precise import Precise
 
 class blofin(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(blofin, self).describe(), {
             'id': 'blofin',
             'name': 'BloFin',
@@ -2239,7 +2239,7 @@ class blofin(Exchange, ImplicitAPI):
                 return self.parse_transaction(entry, currency)
         raise ExchangeError(self.id + ' fetchDeposit() could not find deposit ' + id)
 
-    async def fetch_withdrawal(self, id: str, code: Str = None, params: dict = {}) -> Transaction:
+    async def fetch_withdrawal(self, id: Str, code: Str = None, params: dict = {}) -> Transaction:
         """
         fetch data on a currency withdrawal via the withdrawal id
 

@@ -13,7 +13,7 @@ from ccxt.base.errors import InvalidNonce
 
 class extended(ccxt.async_support.extended):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(extended, self).describe(), {
             'has': {
                 'ws': True,

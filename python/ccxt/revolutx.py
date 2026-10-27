@@ -22,7 +22,7 @@ from ccxt.base.precise import Precise
 
 class revolutx(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(revolutx, self).describe(), {
             'id': 'revolutx',
             'name': 'Revolut X',
@@ -220,7 +220,6 @@ class revolutx(Exchange, ImplicitAPI):
 
     def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
         requestHeaders = None
-        requestBody = None
         implodedPath = self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         apiName = api[0]
@@ -230,6 +229,7 @@ class revolutx(Exchange, ImplicitAPI):
         baseUrl = baseApiUrl
         url = baseUrl + '/' + implodedPath
         queryString = ''
+        bodyString = ''
         if apiName == 'private':
             self.check_required_credentials()
             timestamp = str(self.milliseconds())
@@ -242,10 +242,8 @@ class revolutx(Exchange, ImplicitAPI):
                 if queryString != '':
                     url += '?' + queryString
             else:
-                requestBody = self.json(query)
+                bodyString = self.json(query)
             requestPath = '/api/' + implodedPath
-            bodyValue = requestBody
-            bodyString = bodyValue if (bodyValue is not None) else ''
             message = timestamp + method.upper() + requestPath + queryString + bodyString
             signature = self.eddsa(self.encode(message), self.privateKey, 'ed25519')
             requestHeaders = {
@@ -261,10 +259,10 @@ class revolutx(Exchange, ImplicitAPI):
                 if queryString != '':
                     url += '?' + queryString
             else:
-                requestBody = self.json(query)
+                bodyString = self.json(query)
                 requestHeaders = {'Content-Type': 'application/json'}
         headersResult = requestHeaders
-        bodyResult = requestBody
+        bodyResult = bodyString if (bodyString != '') else None
         return {'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult}
 
     def parse_market(self, market: dict) -> MarketInterface:

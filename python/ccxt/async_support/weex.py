@@ -25,7 +25,7 @@ from ccxt.base.precise import Precise
 
 class weex(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(weex, self).describe(), {
             'id': 'weex',
             'name': 'Weex',
@@ -1224,7 +1224,7 @@ class weex(Exchange, ImplicitAPI):
             response = [response]
         results = []
         for i in range(0, len(response)):
-            rawTicker = response[i]
+            rawTicker = self.safe_value(response, i)
             # book tickers have no markPrice, so resolve the market from the endpoint type to disambiguate the spot/swap market id in parseTicker
             marketId = self.safe_string(rawTicker, 'symbol')
             tickerMarket = self.safe_market(marketId, None, None, marketType)
@@ -1588,14 +1588,14 @@ class weex(Exchange, ImplicitAPI):
             endTime = until
             now = self.milliseconds()
             if (since is None) or (until is None):
-                duration = self.parse_timeframe(timeframe) * 1000
+                duration = self.parse_to_int(self.parse_timeframe(timeframe) * 1000)
                 # the history endpoint returns at most maxHistoricalLimit candles and serves the
                 # newest ones inside the window, so a wider window would silently drop the candles
                 # right after since, keep the window at what one call can return
-                historyLimit = maxHistoricalLimit
+                historyLimit = self.parse_to_int(maxHistoricalLimit)
                 if limit is not None and limit is not None and limit != 0:
-                    historyLimit = min(limit, maxHistoricalLimit)
-                timeDelta = historyLimit * duration
+                    historyLimit = self.parse_to_int(min(limit, maxHistoricalLimit))
+                timeDelta = self.parse_to_int(historyLimit * duration)
                 if (since is None) and (until is None):
                     endTime = now
                     startTime = now - timeDelta

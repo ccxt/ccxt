@@ -15,7 +15,7 @@ from ccxt.base.errors import NotSupported
 
 class deribit(ccxt.async_support.deribit):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(deribit, self).describe(), {
             'has': {
                 'ws': True,

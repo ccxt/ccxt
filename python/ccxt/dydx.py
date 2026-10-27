@@ -19,7 +19,7 @@ from ccxt.base.precise import Precise
 
 class dydx(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(dydx, self).describe(), {
             'id': 'dydx',
             'name': 'dYdX',
@@ -1399,10 +1399,10 @@ class dydx(Exchange, ImplicitAPI):
 
     def create_order_id_from_parts(self, address: str, subAccountNumber: float, clientOrderId: float, orderFlags: float, clobPairId: float) -> str:
         nameSp = self.safe_string(self.options, 'namespace', '0f9da948-a6fb-4c45-9edc-4685c3f3317d')
-        prefixAddress = address + '-' + self.number_to_string(subAccountNumber)
-        prefix = self.uuid5(nameSp, prefixAddress)
-        orderInfo = prefix + '-' + self.number_to_string(clientOrderId) + '-' + self.number_to_string(clobPairId) + '-' + self.number_to_string(orderFlags)
-        return self.uuid5(nameSp, orderInfo)
+        clientOrderIdString = self.number_to_string(clientOrderId)
+        clobPairIdString = self.number_to_string(clobPairId)
+        orderFlagsString = self.number_to_string(orderFlags)
+        return self.uuid5(nameSp, self.uuid5(nameSp, address + '-' + self.number_to_string(subAccountNumber)) + '-' + clientOrderIdString + '-' + clobPairIdString + '-' + orderFlagsString)
 
     def fetch_latest_block_height(self, params: dict = {}) -> int:
         response = self.nodeRpcGetAbciInfo(params)

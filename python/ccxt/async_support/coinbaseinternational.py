@@ -19,7 +19,7 @@ from ccxt.base.precise import Precise
 
 class coinbaseinternational(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(coinbaseinternational, self).describe(), {
             'id': 'coinbaseinternational',
             'name': 'Coinbase International',
@@ -1176,7 +1176,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
                     raise BadRequest(self.id + ' fetchOrderBook() limit must be between 1 and 10000')
                 for i in range(0, len(depths)):
                     if limit <= self.parse_to_int(depths[i]):
-                        request['depth'] = self.parse_to_int(depths[i])
+                        request['depth'] = self.safe_integer(depths, i, 0)
                         break
         response = await self.publicGetGetOrderBook(self.extend(request, paramsResolved))
         #

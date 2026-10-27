@@ -19,7 +19,7 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 
 class p2b(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(p2b, self).describe(), {
             'id': 'p2b',
             'name': 'p2b',

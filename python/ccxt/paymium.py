@@ -14,7 +14,7 @@ from ccxt.base.precise import Precise
 
 class paymium(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(paymium, self).describe(), {
             'id': 'paymium',
             'name': 'Paymium',
@@ -164,10 +164,10 @@ class paymium(Exchange, ImplicitAPI):
             code = currencies[i]
             currency = self.currency(code)
             currencyId = currency['id']
-            free = 'balance_' + currencyId
-            if free in response:
+            freeAmount = self.safe_string(response, 'balance_' + currencyId)
+            if freeAmount is not None:
                 account = self.account()
-                account['free'] = self.safe_string(response, free)
+                account['free'] = freeAmount
                 account['used'] = self.safe_string(response, 'locked_' + currencyId)
                 result[code] = account
         return self.safe_balance(result)

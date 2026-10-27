@@ -27,7 +27,7 @@ from ccxt.base.precise import Precise
 
 class gemini(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(gemini, self).describe(), {
             'id': 'gemini',
             'name': 'Gemini',

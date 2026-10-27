@@ -13,7 +13,7 @@ from ccxt.base.errors import BadRequest
 
 class p2b(ccxt.async_support.p2b):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(p2b, self).describe(), {
             'has': {
                 'ws': True,

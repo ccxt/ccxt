@@ -40,7 +40,7 @@ from ccxt.base.precise import Precise
 
 class okx(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(okx, self).describe(), {
             'id': 'okx',
             'name': 'OKX',
@@ -7851,7 +7851,9 @@ class okx(Exchange, ImplicitAPI):
         :returns dict[]: the request and the remaining params
         """
         maxLimit = 100
-        effectiveLimit = 100 if ((limit is None) or (limit > 100)) else limit
+        effectiveLimit = self.parse_to_int(100)
+        if (limit is not None) and (100 > limit):
+            effectiveLimit = limit
         if limit is not None:
             request['limit'] = effectiveLimit
         if since is not None:

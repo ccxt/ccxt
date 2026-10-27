@@ -25,7 +25,7 @@ from ccxt.base.precise import Precise
 
 class foxbit(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(foxbit, self).describe(), {
             'id': 'foxbit',
             'name': 'Foxbit',

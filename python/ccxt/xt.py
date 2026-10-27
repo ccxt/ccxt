@@ -28,7 +28,7 @@ from ccxt.base.precise import Precise
 
 class xt(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(xt, self).describe(), {
             'id': 'xt',
             'name': 'XT',

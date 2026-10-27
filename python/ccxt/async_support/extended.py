@@ -23,7 +23,7 @@ from ccxt.base.precise import Precise
 
 class extended(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(extended, self).describe(), {
             'id': 'extended',
             'name': 'Extended',

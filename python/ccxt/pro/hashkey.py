@@ -13,7 +13,7 @@ from ccxt.base.errors import AuthenticationError
 
 class hashkey(ccxt.async_support.hashkey):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(hashkey, self).describe(), {
             'has': {
                 'ws': True,
@@ -91,7 +91,7 @@ class hashkey(ccxt.async_support.hashkey):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         interval = self.safe_string(self.timeframes, timeframe, timeframe)
         topic = 'kline_' + interval
         messageHash = 'ohlcv:' + symbolValue + ':' + timeframe
@@ -184,7 +184,7 @@ class hashkey(ccxt.async_support.hashkey):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         topic = 'realtimes'
         messageHash = 'ticker:' + symbolValue
         return await self.wath_public(market, topic, messageHash, params)
@@ -241,7 +241,7 @@ class hashkey(ccxt.async_support.hashkey):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         topic = 'trade'
         messageHash = 'trades:' + symbolValue
         trades = await self.wath_public(market, topic, messageHash, params)
@@ -306,7 +306,7 @@ class hashkey(ccxt.async_support.hashkey):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         topic = 'depth'
         messageHash = 'orderbook:' + symbolValue
         orderbook = await self.wath_public(market, topic, messageHash, params)
@@ -701,8 +701,8 @@ class hashkey(ccxt.async_support.hashkey):
         url = self.get_private_url(listenKey)
         client = self.client(url)
         self.set_balance_cache(client, typeMarketType, messageHash)
-        fetchBalanceSnapshot = self.handle_option_bool_and_params(self.options, 'watchBalance', 'fetchBalanceSnapshot', True)[0]
-        awaitBalanceSnapshot = self.handle_option_bool_and_params(self.options, 'watchBalance', 'awaitBalanceSnapshot', False)[0]
+        fetchBalanceSnapshot = self.handle_option_bool_and_params(self.options, 'watchBalance', 'fetchBalanceSnapshot', True)
+        awaitBalanceSnapshot = self.handle_option_bool_and_params(self.options, 'watchBalance', 'awaitBalanceSnapshot', False)
         if fetchBalanceSnapshot and awaitBalanceSnapshot:
             await client.future(typeMarketType + ':fetchBalanceSnapshot')
         return await self.watch(url, messageHash, None, messageHash)

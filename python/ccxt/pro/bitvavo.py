@@ -15,7 +15,7 @@ from ccxt.base.errors import ArgumentsRequired
 
 class bitvavo(ccxt.async_support.bitvavo):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(bitvavo, self).describe(), {
             'has': {
                 'ws': True,

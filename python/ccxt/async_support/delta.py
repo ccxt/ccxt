@@ -22,7 +22,7 @@ from ccxt.base.precise import Precise
 
 class delta(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(delta, self).describe(), {
             'id': 'delta',
             'name': 'Delta Exchange',

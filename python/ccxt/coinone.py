@@ -19,7 +19,7 @@ from ccxt.base.precise import Precise
 
 class coinone(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(coinone, self).describe(), {
             'id': 'coinone',
             'name': 'CoinOne',
@@ -1198,19 +1198,15 @@ class coinone(Exchange, ImplicitAPI):
             currencyId = self.safe_string(parts, 0)
             secondPart = self.safe_string(parts, 1)
             code = self.safe_currency_code(currencyId)
-            depositAddress = self.safe_dict(result, code)
-            if depositAddress is None:
-                depositAddress = {
-                    'info': value,
-                    'currency': code,
-                    'network': None,
-                    'address': None,
-                    'tag': None,
-                }
-            address = self.safe_string(depositAddress, 'address', value)
+            address = self.safe_string(self.safe_value(result, code), 'address', value)
             self.check_address(address)
-            depositAddress['address'] = address
-            depositAddress['info'] = address
+            depositAddress = {
+                'info': address,
+                'currency': code,
+                'network': None,
+                'address': address,
+                'tag': self.safe_string(self.safe_value(result, code), 'tag'),
+            }
             if (secondPart == 'tag' or secondPart == 'memo'):
                 depositAddress['tag'] = value
                 depositAddress['info'] = [address, value]

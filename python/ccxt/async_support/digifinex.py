@@ -33,7 +33,7 @@ from ccxt.base.precise import Precise
 
 class digifinex(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(digifinex, self).describe(), {
             'id': 'digifinex',
             'name': 'DigiFinex',
@@ -1706,8 +1706,8 @@ class digifinex(Exchange, ImplicitAPI):
                     raise BadRequest(self.id + ' createOrders() requires all orders to have the same symbol')
             type = self.safe_string(rawOrder, 'type')
             side = self.safe_string(rawOrder, 'side')
-            amount = self.safe_value(rawOrder, 'amount')
-            price = self.safe_value(rawOrder, 'price')
+            amount = self.safe_number(rawOrder, 'amount')
+            price = self.safe_number(rawOrder, 'price')
             orderParams = self.safe_dict(rawOrder, 'params', {})
             marginResult = self.handle_margin_mode_and_params('createOrders', orderParams)
             currentMarginMode = marginResult[0]
@@ -1759,7 +1759,7 @@ class digifinex(Exchange, ImplicitAPI):
         for i in range(0, len(orders)):
             rawOrder = self.safe_dict(orders, i)
             individualOrder = {}
-            individualOrder['order_id'] = self.safe_value(data, i)
+            individualOrder['order_id'] = self.safe_string(data, i)
             individualOrder['instrument_id'] = market['id']
             individualOrder['amount'] = self.safe_number(rawOrder, 'amount')
             individualOrder['price'] = self.safe_number(rawOrder, 'price')
@@ -4178,7 +4178,7 @@ class digifinex(Exchange, ImplicitAPI):
                 depositWithdrawInfo = depositWithdrawFee['info']
                 depositWithdrawInfo.append(entry)
                 networkId = self.safe_string(entry, 'chain')
-                withdrawFee = self.safe_value(entry, 'min_withdraw_fee')
+                withdrawFee = self.safe_number(entry, 'min_withdraw_fee')
                 withdrawResult = {
                     'fee': withdrawFee,
                     'percentage': False if (withdrawFee is not None) else None,

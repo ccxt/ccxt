@@ -15,7 +15,7 @@ from ccxt.base.errors import BadSymbol
 
 class hollaex(ccxt.async_support.hollaex):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(hollaex, self).describe(), {
             'has': {
                 'ws': True,

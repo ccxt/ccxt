@@ -21,7 +21,7 @@ from ccxt.base.precise import Precise
 
 class bydfi(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(bydfi, self).describe(), {
             'id': 'bydfi',
             'name': 'BYDFi',
@@ -503,9 +503,9 @@ class bydfi(Exchange, ImplicitAPI):
         settleId = self.safe_string(market, 'marginAsset')
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
-        if (base is None) or (quote is None):
-            return None
         settle = self.safe_currency_code(settleId)
+        if (base is None) or (quote is None) or (settle is None):
+            return None
         symbol = base + '/' + quote + ':' + settle
         inverse = self.safe_bool(market, 'reverse')
         limitMaxQty = self.safe_string(market, 'limitMaxQty')

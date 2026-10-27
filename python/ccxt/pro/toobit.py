@@ -15,7 +15,7 @@ from ccxt.base.errors import NotSupported
 
 class toobit(ccxt.async_support.toobit):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(toobit, self).describe(), {
             'has': {
                 'ws': True,

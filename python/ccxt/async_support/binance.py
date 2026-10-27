@@ -40,7 +40,7 @@ from ccxt.base.precise import Precise
 
 class binance(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(binance, self).describe(), {
             'id': 'binance',
             'name': 'Binance',
@@ -2924,7 +2924,9 @@ class binance(Exchange, ImplicitAPI):
                 market = self.markets[symbol]
                 # begin diff
                 if isLegacy and (self.safe_bool(market, 'spot', False)):
-                    settle = market['quote'] if isLegacyLinear else market['base']
+                    settle = self.safe_string(market, 'base', '')
+                    if isLegacyLinear:
+                        settle = self.safe_string(market, 'quote', '')
                     futuresSymbol = symbol + ':' + settle
                     if (self.markets is not None) and (futuresSymbol in self.markets):
                         return self.markets[futuresSymbol]
@@ -5563,7 +5565,7 @@ class binance(Exchange, ImplicitAPI):
             await self.load_markets()
         market = self.market(symbol)
         if market['spot'] is not True:
-            raise NotSupported(self.id + ' editSpotOrder() does not support ' + market['type'] + ' orders')
+            raise NotSupported(self.id + ' editSpotOrder() does not support ' + self.safe_string(market, 'type', '') + ' orders')
         payload = self.edit_spot_order_request(id, symbol, type, side, amount, price, params)
         response = await self.privatePostOrderCancelReplace(payload)
         #
@@ -5726,7 +5728,7 @@ class binance(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' editOrder() and editOrderWs() require a price argument for swap orders')
         market = self.market(symbol)
         if market['contract'] is not True:
-            raise NotSupported(self.id + ' editContractOrder() does not support ' + market['type'] + ' orders')
+            raise NotSupported(self.id + ' editContractOrder() does not support ' + self.safe_string(market, 'type', '') + ' orders')
         if side is None:
             raise ArgumentsRequired(self.id + ' editContractOrder() requires a side argument')
         request = {
@@ -5829,7 +5831,7 @@ class binance(Exchange, ImplicitAPI):
             await self.load_markets()
         market = self.market(symbol)
         if market['option'] is True:
-            raise NotSupported(self.id + ' editOrder() does not support ' + market['type'] + ' orders')
+            raise NotSupported(self.id + ' editOrder() does not support ' + self.safe_string(market, 'type', '') + ' orders')
         if market['spot'] is True:
             return await self.edit_spot_order(id, symbol, type, side, amount, price, params)
         else:
@@ -5869,7 +5871,7 @@ class binance(Exchange, ImplicitAPI):
         symbols = self.market_symbols(orderSymbols, None, False, True, True)
         market = self.market(symbols[0])
         if (market['spot'] is True) or (market['option'] is True):
-            raise NotSupported(self.id + ' editOrders() does not support ' + market['type'] + ' orders')
+            raise NotSupported(self.id + ' editOrders() does not support ' + self.safe_string(market, 'type', '') + ' orders')
         response = None
         request = {
             'batchOrders': ordersRequests,
@@ -6672,7 +6674,7 @@ class binance(Exchange, ImplicitAPI):
         symbols = self.market_symbols(orderSymbols, None, False, True, True)
         market = self.market(symbols[0])
         if market['spot'] is True:
-            raise NotSupported(self.id + ' createOrders() does not support ' + market['type'] + ' orders')
+            raise NotSupported(self.id + ' createOrders() does not support ' + self.safe_string(market, 'type', '') + ' orders')
         response = None
         request = {
             'batchOrders': ordersRequests,
@@ -12585,7 +12587,9 @@ class binance(Exchange, ImplicitAPI):
     def get_exceptions_by_url(self, url: str, exactOrBroad: str) -> dict:
         # the only callers pass handleErrors' url, which is a non-nullable string everywhere
         marketType = None
-        hostname = self.hostname if (self.hostname is not None) else 'binance.com'
+        hostname = 'binance.com'
+        if self.hostname is not None:
+            hostname = self.hostname
         if url.startswith('https://api.' + hostname + '/') or url.startswith('https://demo-api') or url.startswith('https://testnet.binance.vision'):
             marketType = 'spot'
         elif url.startswith('https://dapi.' + hostname + '/') or url.startswith('https://demo-dapi') or url.startswith('https://testnet.binancefuture.com/dapi'):
@@ -13611,7 +13615,7 @@ class binance(Exchange, ImplicitAPI):
             else:
                 response = await self.dapiPrivateGetForceOrders(self.extend(requestUntil, paramsUntil))
         else:
-            raise NotSupported(self.id + ' fetchMyLiquidations() does not support ' + self.safe_string(market, 'type') + ' markets')
+            raise NotSupported(self.id + ' fetchMyLiquidations() does not support ' + self.safe_string(market, 'type', '') + ' markets')
         #
         # margin
         #

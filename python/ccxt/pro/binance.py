@@ -19,7 +19,7 @@ from ccxt.base.precise import Precise
 
 class binance(ccxt.async_support.binance):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         superDescribe = super(binance, self).describe()
         return self.deep_extend(superDescribe, self.describe_data())
 
@@ -940,7 +940,7 @@ class binance(ccxt.async_support.binance):
         client.resolve(orderbook, messageHash)
 
     async def fetch_order_book_snapshot(self, client: Client, message: object, subscription: object):
-        symbol = self.safe_string(subscription, 'symbol')
+        symbol = self.safe_string(subscription, 'symbol', '')
         messageHash = 'orderbook::' + symbol
         try:
             defaultLimit = self.safe_integer(self.options, 'watchOrderBookLimit', 1000)
@@ -4084,7 +4084,7 @@ class binance(ccxt.async_support.binance):
         symbolResolved = self.symbol(symbol) if (symbol is not None) else symbol
         if symbol is not None:
             market = self.market(symbol)
-            messageHash += ':' + symbolResolved
+            messageHash = 'orders:' + self.symbol(symbol)
         type, subType, paramsValue = self.resolve_auth_type('watchOrders', market, paramsStock)
         paramsExtended = self.extend(paramsValue, {'type': type, 'symbol': symbolResolved, 'subType': subType})  # needed inside authenticate for isolated margin
         await self.authenticate(paramsExtended)
@@ -5179,8 +5179,7 @@ class binance(ccxt.async_support.binance):
             myTrades = self.myTrades
             myTrades.append(trade)
             client.resolve(self.myTrades, messageHash)
-            messageHashSymbol = messageHash + ':' + symbol
-            client.resolve(self.myTrades, messageHashSymbol)
+            client.resolve(self.myTrades, 'myTrades:' + symbol)
 
     def handle_order(self, client: Client, message: dict):
         parsed = self.parse_ws_order(message)

@@ -20,7 +20,7 @@ from ccxt.base.precise import Precise
 
 class mudrex(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(mudrex, self).describe(), {
             'id': 'mudrex',
             'name': 'Mudrex',

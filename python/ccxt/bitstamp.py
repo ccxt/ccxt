@@ -26,7 +26,7 @@ from ccxt.base.precise import Precise
 
 class bitstamp(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(bitstamp, self).describe(), {
             'id': 'bitstamp',
             'name': 'Bitstamp',
@@ -2620,17 +2620,17 @@ class bitstamp(Exchange, ImplicitAPI):
         isPrivatePost = (apiName != 'public') and (method == 'POST')
         # an empty POST triggers an API0020 error, so empty requests send a dummy object
         # https://github.com/ccxt/ccxt/issues/6846
-        emptyPostBody = self.urlencode({'foo': 'bar'})
-        postBody = emptyPostBody
-        if len(query) > 0:
-            postBody = self.urlencode(query)
+        queryString = self.urlencode(query)
+        postBody = self.urlencode({'foo': 'bar'})
+        if queryString != '':
+            postBody = queryString
         requestBody = None
         if isPrivatePost:
             requestBody = postBody
         privateHeaders = {}
         if apiName == 'public':
-            if len(query) > 0:
-                url += '?' + self.urlencode(query)
+            if queryString != '':
+                url += '?' + queryString
         else:
             self.check_required_credentials()
             xAuth = 'BITSTAMP ' + self.apiKey

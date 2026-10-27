@@ -2757,7 +2757,7 @@ class BaseExchange(object):
 
     # METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return {
             'id': self.id,
             'name': self.name,
@@ -5878,32 +5878,44 @@ class BaseExchange(object):
 
     def handle_param_string(self, params: object, paramName: str, defaultValue: Str = None):
         value = self.safe_string(params, paramName, defaultValue)
-        paramsOmitted = self.omit(params, paramName) if (value is not None) else params
+        paramsOmitted = params
+        if value is not None:
+            paramsOmitted = self.omit(params, paramName)
         return [value, paramsOmitted]
 
     def handle_param_string_2(self, params: object, paramName1: str, paramName2: str, defaultValue: Str = None):
         value = self.safe_string_2(params, paramName1, paramName2, defaultValue)
-        paramsOmitted = self.omit(params, [paramName1, paramName2]) if (value is not None) else params
+        paramsOmitted = params
+        if value is not None:
+            paramsOmitted = self.omit(params, [paramName1, paramName2])
         return [value, paramsOmitted]
 
     def handle_param_integer(self, params: object, paramName: str, defaultValue: Int = None):
         value = self.safe_integer(params, paramName, defaultValue)
-        paramsOmitted = self.omit(params, paramName) if (value is not None) else params
+        paramsOmitted = params
+        if value is not None:
+            paramsOmitted = self.omit(params, paramName)
         return [value, paramsOmitted]
 
     def handle_param_integer_2(self, params: object, paramName1: str, paramName2: str, defaultValue: Int = None):
         value = self.safe_integer_2(params, paramName1, paramName2, defaultValue)
-        paramsOmitted = self.omit(params, [paramName1, paramName2]) if (value is not None) else params
+        paramsOmitted = params
+        if value is not None:
+            paramsOmitted = self.omit(params, [paramName1, paramName2])
         return [value, paramsOmitted]
 
     def handle_param_bool(self, params: object, paramName: str, defaultValue: Bool = None):
         value = self.safe_bool(params, paramName, defaultValue)
-        paramsOmitted = self.omit(params, paramName) if (value is not None) else params
+        paramsOmitted = params
+        if value is not None:
+            paramsOmitted = self.omit(params, paramName)
         return [value, paramsOmitted]
 
     def handle_param_bool_2(self, params: object, paramName1: str, paramName2: str, defaultValue: Bool = None):
         value = self.safe_bool_2(params, paramName1, paramName2, defaultValue)
-        paramsOmitted = self.omit(params, [paramName1, paramName2]) if (value is not None) else params
+        paramsOmitted = params
+        if value is not None:
+            paramsOmitted = self.omit(params, [paramName1, paramName2])
         return [value, paramsOmitted]
 
     def resolve_path(self, path: object, params: object):
@@ -6314,7 +6326,8 @@ class BaseExchange(object):
                 # if it's still undefined, check if global exchange-wide option exists
                 value = self.safe_value_2(self.options, optionName, defaultOptionName)
             # if it's still undefined, use the default value
-            value = value if (value is not None) else defaultValue
+            if value is None:
+                value = defaultValue
             return [value, paramsCallerMethodName]
 
     def handle_option_and_params_2(self, params: object, methodName1: str, optionName1: str, optionName2: str, defaultValue=None):

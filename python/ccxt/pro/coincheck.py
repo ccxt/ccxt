@@ -12,7 +12,7 @@ from ccxt.base.errors import AuthenticationError
 
 class coincheck(ccxt.async_support.coincheck):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(coincheck, self).describe(), {
             'has': {
                 'ws': True,
@@ -92,7 +92,7 @@ class coincheck(ccxt.async_support.coincheck):
         #         }
         #     ]
         #
-        symbol = self.symbol(self.safe_string(message, 0))
+        symbol = self.safe_string(self.market(self.safe_string(message, 0)), 'symbol', '')
         data = self.safe_dict(message, 1, {})
         timestamp = self.safe_timestamp(data, 'last_update_at')
         snapshot = self.parse_order_book(data, symbol, timestamp)
@@ -149,7 +149,7 @@ class coincheck(ccxt.async_support.coincheck):
         #     ]
         #
         first = self.safe_list(message, 0, [])
-        symbol = self.symbol(self.safe_string(first, 2))
+        symbol = self.safe_string(self.market(self.safe_string(first, 2)), 'symbol', '')
         stored = self.safe_value(self.trades, symbol)
         if stored is None:
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)

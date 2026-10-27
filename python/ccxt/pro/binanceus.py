@@ -10,7 +10,7 @@ import ccxt.async_support.binanceus as binanceusRest
 
 class binanceus(binance):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         # eslint-disable-next-line new-cap
         restInstance = binanceusRest()
         restDescribe = restInstance.describe()

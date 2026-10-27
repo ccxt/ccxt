@@ -21,7 +21,7 @@ from ccxt.base.precise import Precise
 
 class modetrade(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(modetrade, self).describe(), {
             'id': 'modetrade',
             'name': 'Mode Trade',

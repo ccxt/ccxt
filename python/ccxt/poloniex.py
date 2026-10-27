@@ -32,7 +32,7 @@ from ccxt.base.precise import Precise
 
 class poloniex(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(poloniex, self).describe(), {
             'id': 'poloniex',
             'name': 'Poloniex',
@@ -2110,7 +2110,7 @@ class poloniex(Exchange, ImplicitAPI):
                 # unlike the single-order endpoint, the batch endpoint refuses to apply server-side defaults: "Param error mgnMode and posSide must be present and not empty"
                 if not ('mgnMode' in merged):
                     merged['mgnMode'] = 'CROSS'
-                if not ('posSide' in merged):
+                if self.safe_string(merged, 'posSide') is None:
                     merged['posSide'] = 'BOTH'
             ordersRequests.append(merged)
             ordersMarkets.append(marketInner)
@@ -2165,7 +2165,7 @@ class poloniex(Exchange, ImplicitAPI):
             if (hedged is not None) and (hedged != ''):
                 if marginMode is None:
                     raise ArgumentsRequired(self.id + ' createOrder() requires a marginMode parameter "cross" or "isolated" for hedged orders')
-                if not ('posSide' in query):
+                if self.safe_string(query, 'posSide') is None:
                     raise ArgumentsRequired(self.id + ' createOrder() requires a posSide parameter "LONG" or "SHORT" for hedged orders')
         upperCaseType = type.upper()
         isMarket = upperCaseType == 'MARKET'
@@ -3585,7 +3585,7 @@ class poloniex(Exchange, ImplicitAPI):
         :returns dict: response from the exchange
         """
         mode = 'ONE_WAY'
-        if hedged:
+        if hedged is True:
             mode = 'HEDGE'
         request = {
             'posMode': mode,

@@ -15,7 +15,7 @@ from ccxt.base.precise import Precise
 
 class whitebit(ccxt.async_support.whitebit):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(whitebit, self).describe(), {
             'has': {
                 'ws': True,

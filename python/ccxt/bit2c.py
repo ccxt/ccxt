@@ -20,7 +20,7 @@ from ccxt.base.precise import Precise
 
 class bit2c(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(bit2c, self).describe(), {
             'id': 'bit2c',
             'name': 'Bit2C',

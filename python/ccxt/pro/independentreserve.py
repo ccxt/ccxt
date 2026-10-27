@@ -17,7 +17,7 @@ from ccxt.base.decimal_to_precision import PAD_WITH_ZERO
 
 class independentreserve(ccxt.async_support.independentreserve):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(independentreserve, self).describe(), {
             'has': {
                 'ws': True,

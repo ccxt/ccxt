@@ -31,7 +31,7 @@ from ccxt.base.precise import Precise
 
 class sxbet(PredictionExchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(sxbet, self).describe(), {
             'id': 'sxbet',
             'name': 'SX Bet',
@@ -1933,6 +1933,11 @@ class sxbet(PredictionExchange, ImplicitAPI):
             'asks': self.sort_by(asks, 0),
         }
 
+    def set_ws_option(self, group: str, key: str, value: Str | dict):
+        entry = {}
+        entry[key] = value
+        self.options[group] = self.extend(self.safe_dict(self.options, group, {}), entry)
+
     def request_id(self, url: Str) -> float:
         existing = self.safe_value(self.options, 'requestId')
         if existing is None:
@@ -1952,11 +1957,8 @@ class sxbet(PredictionExchange, ImplicitAPI):
         :param str messageHash: the future hash the caller awaits
         :param str subscription: the subscription hash registered by watch()('connect' or the channel name)
         """
-        existing = self.safe_dict(self.options, 'wsPendingRequests')
-        if existing is None:
-            self.options['wsPendingRequests'] = self.create_safe_dictionary()
         requestIdString = self.number_to_string(requestId)
-        self.options['wsPendingRequests'][requestIdString] = {'messageHash': messageHash, 'subscription': subscription}
+        self.set_ws_option('wsPendingRequests', requestIdString, {'messageHash': messageHash, 'subscription': subscription})
 
     async def fetch_sxbet_realtime_token(self) -> Str:
         """
@@ -2111,10 +2113,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
         isNewSubscription = self.safe_value(client.subscriptions, channel) is None
         if self.safe_value(self.orderbooks, sym) is None:
             # seed from the REST snapshot so the book is served before the first publication
-            watchedBooks = self.safe_dict(self.options, 'wsWatchedBooks')
-            if watchedBooks is None:
-                self.options['wsWatchedBooks'] = self.create_safe_dictionary()
-            self.options['wsWatchedBooks'][sym] = marketHash
+            self.set_ws_option('wsWatchedBooks', sym, marketHash)
             snapshot = await self.fetch_sxbet_book_snapshot(marketHash)
             self.apply_sxbet_ws_snapshot(snapshot)
             if self.safe_value(self.orderbooks, sym) is None:
@@ -2142,14 +2141,11 @@ class sxbet(PredictionExchange, ImplicitAPI):
         refreshed = []
         if marketHash is None:
             return refreshed
-        versionsAll = self.safe_dict(self.options, 'wsBookVersions')
-        if versionsAll is None:
-            self.options['wsBookVersions'] = self.create_safe_dictionary()
-        held = self.safe_string(self.options['wsBookVersions'], marketHash, '')
+        held = self.safe_string(self.safe_dict(self.options, 'wsBookVersions', {}), marketHash, '')
         # versions are fixed-width numeric strings - replace only on a strictly newer publication
         if (held != '') and (version <= held):
             return refreshed
-        self.options['wsBookVersions'][marketHash] = version
+        self.set_ws_option('wsBookVersions', marketHash, version)
         watchedBooks = self.safe_dict(self.options, 'wsWatchedBooks', {})
         watchedSyms = list(watchedBooks.keys())
         timestamp = self.milliseconds()
@@ -2209,10 +2205,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
         sym = self.safe_string(outcomeObj, 'outcome', '')
         marketHash = self.safe_string(outcomeObj['info'], 'marketHash')
         messageHash = 'ticker::' + sym
-        watchedTickers = self.safe_dict(self.options, 'wsWatchedTickers')
-        if watchedTickers is None:
-            self.options['wsWatchedTickers'] = self.create_safe_dictionary()
-        self.options['wsWatchedTickers'][sym] = marketHash
+        self.set_ws_option('wsWatchedTickers', sym, marketHash)
         url = self.safe_string(self.urls['api'], 'ws')
         await self.connect_sxbet_centrifugo(url)
         client = self.client(url)
@@ -2496,16 +2489,13 @@ class sxbet(PredictionExchange, ImplicitAPI):
         # /orders-v3/all and /orders-v3/event - take query parameters, like every GET
         sendAsQuery = (method == 'GET')
         if method == 'DELETE':
-            hasOrdersList = ('orders' in query)
-            sendAsQuery = not hasOrdersList
+            sendAsQuery = not ('orders' in query)
         bodyValue = None
         if sendAsQuery:
             querystring = self.urlencode(query)
             if querystring != '':
                 url += '?' + querystring
         else:
-            queryKeys = list(query.keys())
-            queryKeysLength = len(queryKeys)
-            if queryKeysLength > 0:
+            if len(query) > 0:
                 bodyValue = self.json(query)
         return {'url': url, 'method': method, 'body': bodyValue, 'headers': headersExtended}

@@ -18,7 +18,7 @@ from ccxt.base.precise import Precise
 
 class btcturk(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(btcturk, self).describe(), {
             'id': 'btcturk',
             'name': 'BTCTurk',

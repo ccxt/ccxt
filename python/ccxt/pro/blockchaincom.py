@@ -14,7 +14,7 @@ from ccxt.base.errors import NotSupported
 
 class blockchaincom(ccxt.async_support.blockchaincom):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(blockchaincom, self).describe(), {
             'has': {
                 'ws': True,

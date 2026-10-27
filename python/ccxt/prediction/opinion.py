@@ -25,7 +25,7 @@ from ccxt.base.precise import Precise
 
 class opinion(PredictionExchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(opinion, self).describe(), {
             'id': 'opinion',
             'name': 'Opinion',
@@ -299,8 +299,8 @@ class opinion(PredictionExchange, ImplicitAPI):
         outcomes = []
         resolvedOutcome = None
         for i in range(0, len(outcomeLabels)):
-            label = outcomeLabels[i]
-            tokenId = outcomeTokenIds[i]
+            label = self.safe_string(outcomeLabels, i)
+            tokenId = self.safe_string(outcomeTokenIds, i)
             outcomeHandle = self.slug_to_outcome_symbol(effectiveEventSlug, slug, label)
             winner = None
             settleFraction = None
@@ -711,8 +711,8 @@ class opinion(PredictionExchange, ImplicitAPI):
         for i in range(0, outcomesLength):
             outcomeObj = self.outcome(outcomes[i])
             priceIndex = i * 2
-            priceResponse = responses[priceIndex]
-            bookResponse = responses[self.sum(priceIndex, 1)]
+            priceResponse = self.safe_value(responses, priceIndex)
+            bookResponse = self.safe_value(responses, self.sum(priceIndex, 1))
             response = {'price': priceResponse, 'book': bookResponse}
             ticker = self.parse_prediction_ticker(response, outcomeObj)
             symbolKey = self.safe_string(ticker, 'outcome')
@@ -889,7 +889,7 @@ class opinion(PredictionExchange, ImplicitAPI):
         }
         encoded = self.eth_encode_structured_data(domain, messageTypes, order)
         sig = self.sign_message(encoded, self.privateKey)
-        return '0x' + self.remove0x_prefix(sig['r']) + self.remove0x_prefix(sig['s']) + self.int_to_base16(sig['v'])
+        return '0x' + self.remove0x_prefix(self.safe_string(sig, 'r')) + self.remove0x_prefix(self.safe_string(sig, 's')) + self.int_to_base16(self.safe_integer(sig, 'v'))
 
     def opinion_order_raw_amounts(self, isMarket: bool, side: str, amount: Num, price: Num, decimals: Int) -> dict:
         decimalsStr = '1'
@@ -1434,7 +1434,7 @@ class opinion(PredictionExchange, ImplicitAPI):
         }
         encoded = self.eth_encode_structured_data(domain, messageTypes, messageData)
         sig = self.sign_message(encoded, self.privateKey)
-        return '0x' + self.remove0x_prefix(sig['r']) + self.remove0x_prefix(sig['s']) + self.int_to_base16(sig['v'])
+        return '0x' + self.remove0x_prefix(self.safe_string(sig, 'r')) + self.remove0x_prefix(self.safe_string(sig, 's')) + self.int_to_base16(self.safe_integer(sig, 'v'))
 
     async def create_api_key(self, params: dict = {}) -> dict:
         """

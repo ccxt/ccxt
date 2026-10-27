@@ -30,7 +30,7 @@ from ccxt.base.precise import Precise
 
 class bitfinex(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(bitfinex, self).describe(), {
             'id': 'bitfinex',
             'name': 'Bitfinex',
@@ -1724,7 +1724,7 @@ class bitfinex(Exchange, ImplicitAPI):
         timeInForce = self.safe_string(params, 'timeInForce')
         postOnlyParam = self.safe_bool(params, 'postOnly', False)
         reduceOnly = self.safe_bool(params, 'reduceOnly', False)
-        clientOrderId = self.safe_value_2(params, 'cid', 'clientOrderId')
+        clientOrderId = self.safe_integer_2(params, 'cid', 'clientOrderId')
         orderType = type.upper()
         if trailingAmount is not None:
             orderType = 'TRAILING STOP'
@@ -1948,7 +1948,7 @@ class bitfinex(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        cid = self.safe_value_2(params, 'cid', 'clientOrderId')  # client order id
+        cid = self.safe_integer_2(params, 'cid', 'clientOrderId')  # client order id
         request: dict
         market = None
         if symbol is not None:

@@ -23,7 +23,7 @@ from ccxt.base.precise import Precise
 
 class bithumb(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(bithumb, self).describe(), {
             'id': 'bithumb',
             'name': 'Bithumb',

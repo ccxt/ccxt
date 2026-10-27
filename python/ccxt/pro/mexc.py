@@ -16,7 +16,7 @@ from ccxt.base.errors import NotSupported
 
 class mexc(ccxt.async_support.mexc):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(mexc, self).describe(), {
             'has': {
                 'ws': True,
@@ -1881,11 +1881,11 @@ class mexc(ccxt.async_support.mexc):
                     del self.bidsasks[symbol]
             elif messageHash.find('candles') >= 0:
                 splitHashes = messageHash.split(':')
-                candlesSymbol = self.safe_string(splitHashes, 2)
+                candlesSymbol = self.safe_string(splitHashes, 2, '')
                 splitHashesLength = len(splitHashes)  # hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
                 if splitHashesLength > 4:
-                    candlesSymbol += ':' + self.safe_string(splitHashes, 3)
-                if (candlesSymbol is not None) and (candlesSymbol in self.ohlcvs):
+                    candlesSymbol = candlesSymbol + ':' + self.safe_string(splitHashes, 3, '')
+                if candlesSymbol in self.ohlcvs:
                     del self.ohlcvs[candlesSymbol]
             elif messageHash.find('orderbook') >= 0:
                 symbol = messageHash.replace('unsubscribe:orderbook:', '')

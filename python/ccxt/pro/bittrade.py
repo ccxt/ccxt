@@ -12,7 +12,7 @@ from ccxt.base.errors import ExchangeError
 
 class bittrade(ccxt.async_support.bittrade):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(bittrade, self).describe(), {
             'has': {
                 'ws': True,

@@ -28,7 +28,7 @@ from ccxt.base.precise import Precise
 
 class polymarket(PredictionExchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(polymarket, self).describe(), {
             'id': 'polymarket',
             'name': 'Polymarket',
@@ -911,7 +911,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         :returns dict: a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
         """
         outcomeObj = await self.load_outcome(outcome)
-        tokenId = outcomeObj['outcomeId']
+        tokenId = self.safe_string(outcomeObj, 'outcomeId')
         promises = [
             self.clobPublicGetMidpoint({'token_id': tokenId}),
             self.clobPublicGetBook({'token_id': tokenId}),
@@ -1135,7 +1135,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         :returns dict: a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
         """
         outcomeObj = await self.load_outcome(outcome)
-        tokenId = outcomeObj['outcomeId']
+        tokenId = self.safe_string(outcomeObj, 'outcomeId')
         request = {
             'token_id': tokenId,
         }
@@ -1182,7 +1182,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
             supportedKeys = list(self.timeframes.keys())
             raise BadRequest(self.id + ' fetchOHLCV() unsupported timeframe ' + timeframe + ', supported timeframes are ' + ', '.join(supportedKeys))
         outcomeObj = await self.load_outcome(outcome)
-        tokenId = outcomeObj['outcomeId']
+        tokenId = self.safe_string(outcomeObj, 'outcomeId')
         fidelityMin = self.safe_integer(self.timeframes, timeframe, 1)  # fidelity in minutes
         nowS = self.seconds()
         startS: number
@@ -1394,7 +1394,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         :returns dict[]: a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
         """
         outcomeObj = await self.load_outcome(outcome)
-        tokenId = outcomeObj['outcomeId']
+        tokenId = self.safe_string(outcomeObj, 'outcomeId')
         outcomeInfo = self.safe_dict(outcomeObj, 'info', {})
         conditionId = self.safe_string(outcomeInfo, 'conditionId')
         if conditionId is None:
@@ -1435,7 +1435,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         outcomeObj = None
         if outcome is not None:
             outcomeObj = await self.load_outcome(outcome)
-            request['asset_id'] = outcomeObj['outcomeId']
+            request['asset_id'] = self.safe_string(outcomeObj, 'outcomeId')
         response = await self.clobPrivateGetDataTrades(self.extend(request, params))
         rawTrades = response if isinstance(response, list) else self.safe_list(response, 'data', [])
         return self.parse_prediction_trades(rawTrades, outcomeObj, since, limit)
@@ -1691,7 +1691,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         outcomeObj = None
         if outcome is not None:
             outcomeObj = await self.load_outcome(outcome)
-            request['asset_id'] = outcomeObj['outcomeId']
+            request['asset_id'] = self.safe_string(outcomeObj, 'outcomeId')
         response = await self.clobPrivateGetDataOrders(self.extend(request, params))
         orders = self.safe_list(response, 'data', [])
         return self.parse_prediction_orders(orders, outcomeObj, since, limit)
@@ -1884,7 +1884,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         # dict, which throws a TypeError
         # outcome () validates the outcome against the loaded outcomes (built from events or markets)
         outcomeObj = self.outcome(outcome)
-        tokenId = outcomeObj['outcomeId']
+        tokenId = self.safe_string(outcomeObj, 'outcomeId')
         sideStr = side.upper()
         isMarket = (type == 'market')
         # CCXT type (limit/market) maps to a polymarket time-in-force: limit -> GTC, market -> FOK.
@@ -2152,7 +2152,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         }
         innerEncoded = self.eth_encode_structured_data(orderDomain, {'TypedDataSign': typedDataSignStruct, 'Order': orderStruct}, innerValue)
         innerSigObj = self.sign_message(innerEncoded, self.privateKey)
-        innerSig = self.remove0x_prefix(innerSigObj['r']) + self.remove0x_prefix(innerSigObj['s']) + self.int_to_base16(innerSigObj['v'])
+        innerSig = self.remove0x_prefix(self.safe_string(innerSigObj, 'r')) + self.remove0x_prefix(self.safe_string(innerSigObj, 's')) + self.int_to_base16(innerSigObj['v'])
         # innerSig(65) || appDomainSep(32) || contentsHash(32) || contentsType || uint16_BE(len)
         # orderTypeString.length is used inline (not via a `const n = str.length;` statement) so the
         # php transpiler emits strlen() — the standalone statement form wrongly becomes count() (array)
@@ -2226,7 +2226,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         if outcome is not None:
             # scope to a single outcome token via DELETE /cancel-market-orders { asset_id }
             outcomeObj = await self.load_outcome(outcome)
-            request = {'asset_id': outcomeObj['outcomeId']}
+            request = {'asset_id': self.safe_string(outcomeObj, 'outcomeId')}
             response = await self.clobPrivateDeleteCancelMarketOrders(self.extend(request, params))
         else:
             # cancel every open order via DELETE /cancel-all (no body, no market data needed)
@@ -2884,8 +2884,8 @@ class polymarket(PredictionExchange, ImplicitAPI):
         :returns dict: a `prediction order book structure <https://docs.ccxt.com/#/?id=prediction-order-book-structure>`
         """
         outcomeObj = await self.load_outcome(outcome)
-        tokenId = self.safe_string(outcomeObj, 'outcomeId')
-        outcomeValue = self.safe_string(outcomeObj, 'outcome')
+        tokenId = self.safe_string(outcomeObj, 'outcomeId', '')
+        outcomeValue = self.safe_string(outcomeObj, 'outcome', '')
         messageHash = 'orderbook::' + outcomeValue
         subscribeHash = 'subscribe::' + tokenId
         subscribeMsg = {'assets_ids': [tokenId], 'type': 'market'}
@@ -2903,8 +2903,8 @@ class polymarket(PredictionExchange, ImplicitAPI):
         :returns dict[]: a list of `prediction trade structures <https://docs.ccxt.com/#/?id=prediction-trade-structure>`
         """
         outcomeObj = await self.load_outcome(outcome)
-        tokenId = self.safe_string(outcomeObj, 'outcomeId')
-        outcomeValue = self.safe_string(outcomeObj, 'outcome')
+        tokenId = self.safe_string(outcomeObj, 'outcomeId', '')
+        outcomeValue = self.safe_string(outcomeObj, 'outcome', '')
         messageHash = 'trades::' + outcomeValue
         subscribeHash = 'subscribe::' + tokenId
         subscribeMsg = {'assets_ids': [tokenId], 'type': 'market'}
@@ -2920,13 +2920,13 @@ class polymarket(PredictionExchange, ImplicitAPI):
         :returns dict: a `prediction ticker structure <https://docs.ccxt.com/#/?id=prediction-ticker-structure>`
         """
         outcomeObj = await self.load_outcome(outcome)
-        tokenId = self.safe_string(outcomeObj, 'outcomeId')
+        tokenId = self.safe_string(outcomeObj, 'outcomeId', '')
         outcomeValue = self.safe_string(outcomeObj, 'outcome')
+        if outcomeValue is None:
+            raise ExchangeError(self.id + ' watchTicker() missing outcome')
         messageHash = 'ticker::' + outcomeValue
         subscribeHash = 'subscribe::' + tokenId
         subscribeMsg = {'assets_ids': [tokenId], 'type': 'market'}
-        if outcomeValue is None:
-            raise ExchangeError(self.id + ' watchTicker() missing outcome')
         if not (outcomeValue in self.orderbooks):
             seededBook = self.order_book({})
             if outcomeValue is not None:

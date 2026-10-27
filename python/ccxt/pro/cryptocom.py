@@ -17,7 +17,7 @@ from ccxt.base.errors import ChecksumError
 
 class cryptocom(ccxt.async_support.cryptocom):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(cryptocom, self).describe(), {
             'has': {
                 'ws': True,

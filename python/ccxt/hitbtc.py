@@ -27,7 +27,7 @@ from ccxt.base.precise import Precise
 
 class hitbtc(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(hitbtc, self).describe(), {
             'id': 'hitbtc',
             'name': 'HitBTC',
@@ -869,7 +869,7 @@ class hitbtc(Exchange, ImplicitAPI):
                 inverse = not linear
                 symbol = base + '/' + quote + ':' + settle
                 if future:
-                    symbol = base + '/' + quote + ':' + settle + '-' + self.number_to_string(expiry)
+                    symbol = base + '/' + quote + ':' + settle + '-' + self.safe_string(market, 'expiry', '')
                     type = 'future'
                 else:
                     type = 'swap'

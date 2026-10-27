@@ -12,7 +12,7 @@ from ccxt.async_support.base.ws.client import Client
 
 class ndax(ccxt.async_support.ndax):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(ndax, self).describe(), {
             'has': {
                 'ws': True,

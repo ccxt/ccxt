@@ -19,7 +19,7 @@ from ccxt.base.precise import Precise
 
 class bitbns(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(bitbns, self).describe(), {
             'id': 'bitbns',
             'name': 'Bitbns',

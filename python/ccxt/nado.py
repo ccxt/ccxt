@@ -34,7 +34,7 @@ from ccxt.base.precise import Precise
 
 class nado(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(nado, self).describe(), {
             'id': 'nado',
             'name': 'Nado',
@@ -1014,7 +1014,7 @@ class nado(Exchange, ImplicitAPI):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-            productIds.append(self.parse_to_int(market['id']))
+            productIds.append(self.parse_to_int(self.safe_string(market, 'id')))
         subaccount, paramsSubaccount = self.handle_option_string_and_params(params, 'fetchOrders', 'subaccount', 'default')
         sender = self.create_subaccount(self.walletAddress, subaccount)
         trigger = self.safe_bool_2(paramsSubaccount, 'stop', 'trigger')
@@ -1024,7 +1024,7 @@ class nado(Exchange, ImplicitAPI):
         recvWindow, paramsRecvWindow = self.handle_option_integer_and_params(paramsOmitted, 'fetchOrders', 'recvWindow', 5000)
         tx = {
             'sender': sender,
-            'recvTime': self.number_to_string(self.milliseconds() + recvWindow),
+            'recvTime': self.number_to_string(self.sum(self.milliseconds(), recvWindow)),
         }
         request = {
             'tx': tx,
@@ -1176,7 +1176,7 @@ class nado(Exchange, ImplicitAPI):
             ],
         }
         if market is not None:
-            ordersRequest['product_ids'] = [self.parse_to_int(market['id'])]
+            ordersRequest['product_ids'] = [self.parse_to_int(self.safe_string(market, 'id'))]
         if limit is not None:
             ordersRequest['limit'] = min(limit, 500)
         ordersRequestUntil, paramsUntil = self.handle_until_option('max_time', ordersRequest, paramsSubaccount, 0.001)
@@ -1276,7 +1276,7 @@ class nado(Exchange, ImplicitAPI):
             ],
         }
         if market is not None:
-            matchesRequest['product_ids'] = [self.parse_to_int(market['id'])]
+            matchesRequest['product_ids'] = [self.parse_to_int(self.safe_string(market, 'id'))]
         if limit is not None:
             matchesRequest['limit'] = min(limit, 500)
         matchesRequestUntil, paramsUntil = self.handle_until_option('max_time', matchesRequest, paramsSubaccount, 0.001)

@@ -29,7 +29,7 @@ from ccxt.base.precise import Precise
 
 class gate(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(gate, self).describe(), {
             'id': 'gate',
             'name': 'Gate',
@@ -1454,7 +1454,9 @@ class gate(Exchange, ImplicitAPI):
             id = self.safe_string(spotMarket, 'id')
             marginMarket = self.safe_dict(marginMarkets, id)
             market = self.deep_extend(marginMarket, spotMarket)
-            baseId, quoteId = id.split('_')
+            idParts = id.split('_')
+            baseId = self.safe_string(idParts, 0)
+            quoteId = self.safe_string(idParts, 1)
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             if (base is None) or (quote is None):
@@ -1529,7 +1531,7 @@ class gate(Exchange, ImplicitAPI):
         if self.safe_bool(self.options, 'sandboxMode', False):
             swapSettlementCurrencies = ['usdt']  # gate sandbox only has usdt-margined swaps
         for c in range(0, len(swapSettlementCurrencies)):
-            settleId = swapSettlementCurrencies[c]
+            settleId = self.safe_string(swapSettlementCurrencies, c)
             request = {
                 'settle': settleId,
             }
@@ -1547,7 +1549,7 @@ class gate(Exchange, ImplicitAPI):
         result = []
         futureSettlementCurrencies = self.get_settlement_currencies('future', 'fetchMarkets')
         for c in range(0, len(futureSettlementCurrencies)):
-            settleId = futureSettlementCurrencies[c]
+            settleId = self.safe_string(futureSettlementCurrencies, c)
             request = {
                 'settle': settleId,
             }
@@ -5652,7 +5654,7 @@ class gate(Exchange, ImplicitAPI):
         if isSpot:
             ordersRequests = []
             for i in range(0, len(ids)):
-                id = ids[i]
+                id = self.safe_string(ids, i, '')
                 orderItem = {
                     'id': id,
                     'symbol': symbol,
@@ -5664,7 +5666,7 @@ class gate(Exchange, ImplicitAPI):
         }
         finalList = [request]  # hacky but needs to be done here
         for i in range(0, len(ids)):
-            finalList.append(ids[i])
+            finalList.append(self.safe_string(ids, i, ''))
         response = self.privateFuturesPostSettleBatchCancelOrders(finalList)
         return self.parse_orders(response)
 

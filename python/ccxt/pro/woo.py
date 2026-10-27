@@ -17,7 +17,7 @@ from ccxt.base.precise import Precise
 
 class woo(ccxt.async_support.woo):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(woo, self).describe(), {
             'has': {
                 'ws': True,

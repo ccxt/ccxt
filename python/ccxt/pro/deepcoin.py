@@ -14,7 +14,7 @@ from ccxt.base.errors import BadRequest
 
 class deepcoin(ccxt.async_support.deepcoin):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(deepcoin, self).describe(), {
             'has': {
                 'ws': True,
@@ -830,8 +830,7 @@ class deepcoin(ccxt.async_support.deepcoin):
         symbolResolved = None
         if symbol is not None:
             symbolResolved = self.symbol(symbol)
-        if symbolResolved is not None:
-            messageHash = 'myTrades' + '::' + symbolResolved
+            messageHash = 'myTrades' + '::' + self.safe_string(self.market(symbol), 'symbol', '')
         trades = await self.watch_private(messageHash, params)
         limitResolved = limit
         if self.newUpdates:
@@ -905,8 +904,7 @@ class deepcoin(ccxt.async_support.deepcoin):
         symbolResolved = None
         if symbol is not None:
             symbolResolved = self.symbol(symbol)
-        if symbolResolved is not None:
-            messageHash = 'orders' + '::' + symbolResolved
+            messageHash = 'orders' + '::' + self.safe_string(self.market(symbol), 'symbol', '')
         orders = await self.watch_private(messageHash, params)
         limitResolved = limit
         if self.newUpdates:

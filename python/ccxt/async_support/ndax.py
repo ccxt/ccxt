@@ -19,7 +19,7 @@ from ccxt.base.precise import Precise
 
 class ndax(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(ndax, self).describe(), {
             'id': 'ndax',
             'name': 'NDAX',
@@ -687,6 +687,8 @@ class ndax(Exchange, ImplicitAPI):
             'datetime': None,
             'nonce': None,
         }
+        bids = []
+        asks = []
         for i in range(0, len(orderbook)):
             level = self.safe_value(orderbook, i)
             newTimestamp = self.safe_integer(level, 2)
@@ -697,10 +699,12 @@ class ndax(Exchange, ImplicitAPI):
                 nonce = newNonce
             bidask = self.parse_order_book_bid_ask(level, priceKey, amountKey)
             levelSide = self.safe_integer(level, 9)
-            side = asksKey if (levelSide is not None and levelSide != 0) else bidsKey
-            result[side].append(bidask)
-        result['bids'] = self.sort_by(result['bids'], 0, True)
-        result['asks'] = self.sort_by(result['asks'], 0)
+            if levelSide is not None and levelSide != 0:
+                asks.append(bidask)
+            else:
+                bids.append(bidask)
+        result['bids'] = self.sort_by(bids, 0, True)
+        result['asks'] = self.sort_by(asks, 0)
         result['timestamp'] = latestTimestamp
         result['datetime'] = self.iso8601(latestTimestamp)
         result['nonce'] = nonce

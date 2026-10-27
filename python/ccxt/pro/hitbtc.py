@@ -15,7 +15,7 @@ from ccxt.base.errors import NotSupported
 
 class hitbtc(ccxt.async_support.hitbtc):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(hitbtc, self).describe(), self.describe_data())
 
     def describe_data(self) -> object:
@@ -153,7 +153,8 @@ class hitbtc(ccxt.async_support.hitbtc):
         messageHashes = []
         if symbolsNormalized is not None and resolvedPerSymbol:
             for i in range(0, len(symbolsNormalized)):
-                messageHashes.append(messageHashPrefix + '::' + symbolsNormalized[i])
+                symbolId = symbolsNormalized[i]
+                messageHashes.append(messageHashPrefix + '::' + symbolId)
         else:
             messageHashes.append(messageHashPrefix)
         requestId = self.incrementing_nonce()

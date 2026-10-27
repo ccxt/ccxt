@@ -15,7 +15,7 @@ from ccxt.base.precise import Precise
 
 class aster(ccxt.async_support.aster):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(aster, self).describe(), {
             'has': {
                 'ws': True,
@@ -521,7 +521,7 @@ class aster(ccxt.async_support.aster):
         symbol = self.safe_string(ticker, 'symbol')
         if symbol is not None:
             self.bidsasks[symbol] = ticker
-        messageHash = 'bidask:' + symbol
+        messageHash = 'bidask:' + self.safe_string(ticker, 'symbol', '')
         client.resolve(ticker, messageHash)
 
     def parse_ws_bid_ask(self, message: dict, market: Market) -> Ticker:
@@ -897,12 +897,14 @@ class aster(ccxt.async_support.aster):
             'method': 'SUBSCRIBE',
             'params': subscriptionArgs,
         }
-        limitResolved = 20
-        if limit == 5 or limit == 10 or limit == 20:
-            limitResolved = limit
+        depthSuffix = '@depth20'
+        if limit == 5:
+            depthSuffix = '@depth5'
+        elif limit == 10:
+            depthSuffix = '@depth10'
         for i in range(0, len(symbolsNormalized)):
             market = self.market(self.safe_string(symbolsNormalized, i, ''))
-            subscriptionArgs.append(self.safe_string_lower(market, 'id', '') + '@depth' + self.number_to_string(limitResolved))
+            subscriptionArgs.append(self.safe_string_lower(market, 'id', '') + depthSuffix)
             messageHashes.append('orderbook:' + self.safe_string(market, 'symbol', ''))
         orderbook = await self.watch_multiple(url, messageHashes, self.extend(request, self.omit(paramsCallerMethodName, 'callerMethodName')), messageHashes)
         return orderbook.limit()
@@ -941,12 +943,14 @@ class aster(ccxt.async_support.aster):
             'params': subscriptionArgs,
         }
         limit = self.safe_number(paramsOmitted, 'limit')
-        limitResolved = 20
-        if limit == 5 or limit == 10 or limit == 20:
-            limitResolved = limit
+        depthSuffix = '@depth20'
+        if limit == 5:
+            depthSuffix = '@depth5'
+        elif limit == 10:
+            depthSuffix = '@depth10'
         for i in range(0, len(symbolsNormalized)):
             market = self.market(self.safe_string(symbolsNormalized, i, ''))
-            subscriptionArgs.append(self.safe_string_lower(market, 'id', '') + '@depth' + self.number_to_string(limitResolved))
+            subscriptionArgs.append(self.safe_string_lower(market, 'id', '') + depthSuffix)
             messageHashes.append('unsubscribe:orderbook:' + self.safe_string(market, 'symbol', ''))
         return await self.watch_multiple(url, messageHashes, self.extend(request, self.omit(paramsOmitted, 'limit')), messageHashes)
 
@@ -1796,7 +1800,7 @@ class aster(ccxt.async_support.aster):
             self.orders = ArrayCacheBySymbolById(limit)
         cache = self.orders
         parsed = self.parse_ws_order(message, market)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         cache.append(parsed)
         messageHashes = self.find_message_hashes(client, messageHash)
         if not self.is_empty(messageHashes):

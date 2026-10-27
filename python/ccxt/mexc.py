@@ -29,7 +29,7 @@ from ccxt.base.precise import Precise
 
 class mexc(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(mexc, self).describe(), {
             'id': 'mexc',
             'name': 'MEXC Global',
@@ -3919,8 +3919,7 @@ class mexc(Exchange, ImplicitAPI):
                 symbols = self.safe_list(paramsOmitted2, 'symbols')
                 if symbols is not None:
                     symbolIds = self.market_ids(symbols)
-                    if symbolIds is not None:
-                        parsedSymbols = ','.join(symbolIds)
+                    parsedSymbols = ','.join(symbolIds)
             else:
                 market = self.market(symbol)
                 parsedSymbols = market['id']
@@ -4968,7 +4967,8 @@ class mexc(Exchange, ImplicitAPI):
         currencyId = None
         currencyWithNetwork = self.safe_string(transaction, 'coin')
         if currencyWithNetwork is not None:
-            currencyId = currencyWithNetwork.split('-')[0]
+            currencyParts = currencyWithNetwork.split('-')
+            currencyId = currencyParts[0]
         code = self.safe_currency_code(currencyId, currency)
         network = None
         rawNetwork = self.safe_string(transaction, 'network')

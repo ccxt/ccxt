@@ -15,7 +15,7 @@ from ccxt.base.precise import Precise
 
 class derive(ccxt.async_support.derive):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(derive, self).describe(), {
             'has': {
                 'ws': True,

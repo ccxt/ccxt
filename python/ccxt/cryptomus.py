@@ -16,7 +16,7 @@ from ccxt.base.precise import Precise
 
 class cryptomus(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(cryptomus, self).describe(), {
             'id': 'cryptomus',
             'name': 'Cryptomus',

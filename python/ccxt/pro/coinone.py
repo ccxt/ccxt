@@ -12,7 +12,7 @@ from ccxt.base.errors import AuthenticationError
 
 class coinone(ccxt.async_support.coinone):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(coinone, self).describe(), {
             'has': {
                 'ws': True,

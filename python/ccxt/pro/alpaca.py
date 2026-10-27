@@ -13,7 +13,7 @@ from ccxt.base.errors import AuthenticationError
 
 class alpaca(ccxt.async_support.alpaca):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(alpaca, self).describe(), {
             'has': {
                 'ws': True,

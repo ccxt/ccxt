@@ -30,7 +30,7 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 
 class bullish(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(bullish, self).describe(), {
             'id': 'bullish',
             'name': 'Bullish',

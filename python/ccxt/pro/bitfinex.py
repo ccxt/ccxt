@@ -16,7 +16,7 @@ from ccxt.base.precise import Precise
 
 class bitfinex(ccxt.async_support.bitfinex):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(bitfinex, self).describe(), {
             'has': {
                 'ws': True,

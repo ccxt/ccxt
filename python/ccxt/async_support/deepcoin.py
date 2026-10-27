@@ -22,7 +22,7 @@ from ccxt.base.precise import Precise
 
 class deepcoin(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(deepcoin, self).describe(), {
             'id': 'deepcoin',
             'name': 'DeepCoin',
@@ -419,7 +419,7 @@ class deepcoin(Exchange, ImplicitAPI):
         promises = []
         result = []
         for i in range(0, len(types)):
-            promises.append(self.fetch_markets_by_type(types[i], params))
+            promises.append(self.fetch_markets_by_type(self.safe_string(types, i), params))
         responses = await asyncio.gather(*promises)
         for i in range(0, len(responses)):
             result = self.array_concat(result, responses[i])
@@ -1672,7 +1672,7 @@ class deepcoin(Exchange, ImplicitAPI):
         timeInForce = self.handle_time_in_force(paramsPostOnly)
         paramsOmitted = self.omit(paramsPostOnly, 'timeInForce')
         typeValue = typePostOnly
-        if (timeInForce is not None) and (timeInForce == 'IOC'):
+        if timeInForce == 'IOC':
             typeValue = 'ioc'
         return [typeValue, paramsOmitted]
 
@@ -1833,7 +1833,8 @@ class deepcoin(Exchange, ImplicitAPI):
         if paginate:
             return await self.fetch_paginated_call_dynamic('fetchCanceledAndClosedOrders', symbol, since, limit, paramsPaginate)
         trigger = self.safe_bool(paramsPaginate, 'trigger', False)
-        methodName, paramsMethodName = self.handle_param_string(paramsPaginate, 'methodName', 'fetchCanceledAndClosedOrders')
+        methodName = self.safe_string(paramsPaginate, 'methodName', 'fetchCanceledAndClosedOrders')
+        paramsMethodName = self.omit(paramsPaginate, 'methodName')
         market = None
         request = {}
         if symbol is not None:
@@ -2892,8 +2893,9 @@ class deepcoin(Exchange, ImplicitAPI):
                 'DC-ACCESS-PASSPHRASE': self.password,
                 'appid': '200103',
             }
-            requestBody = self.json(params) if (method != 'GET') else None
+            requestBody = None
             if method != 'GET':
+                requestBody = self.json(params)
                 privateHeaders['Content-Type'] = 'application/json'
                 payload += requestBody
             signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256, 'base64')

@@ -16,7 +16,7 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 
 class coincheck(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(coincheck, self).describe(), {
             'id': 'coincheck',
             'name': 'Coincheck',
@@ -274,10 +274,11 @@ class coincheck(Exchange, ImplicitAPI):
             code = codes[i]
             currency = self.currency(code)
             currencyId = currency['id']
-            if currencyId in response:
+            free = self.safe_string(response, currencyId)
+            if free is not None:
                 account = self.account()
                 reserved = currencyId + '_reserved'
-                account['free'] = self.safe_string(response, currencyId)
+                account['free'] = free
                 account['used'] = self.safe_string(response, reserved)
                 result[code] = account
         return self.safe_balance(result)
@@ -549,10 +550,11 @@ class coincheck(Exchange, ImplicitAPI):
         side = None
         fee = None
         orderId = None
-        if 'liquidity' in trade:
-            if self.safe_string(trade, 'liquidity') == 'T':
+        liquidity = self.safe_string(trade, 'liquidity')
+        if liquidity is not None:
+            if liquidity == 'T':
                 takerOrMaker = 'taker'
-            elif self.safe_string(trade, 'liquidity') == 'M':
+            elif liquidity == 'M':
                 takerOrMaker = 'maker'
             funds = self.safe_dict(trade, 'funds', {})
             amountString = self.safe_string(funds, baseId)

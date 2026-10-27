@@ -20,7 +20,7 @@ from ccxt.base.errors import ChecksumError
 
 class htx(ccxt.async_support.htx):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(htx, self).describe(), {
             'has': {
                 'ws': True,
@@ -448,15 +448,15 @@ class htx(ccxt.async_support.htx):
         # 150-levels/400-level incremental MBP feed is based on the gap
         # between two snapshots at 100ms interval.
         options = self.safe_dict(self.options, 'watchOrderBook', {})
-        limitResolved = self.safe_integer(options, 'depth', 150) if (limit is None) else limit
+        limitResolved = self.parse_to_int(self.safe_integer(options, 'depth', 150) if (limit is None) else limit)
         if not self.in_array(limitResolved, allowedLimits):
             raise ExchangeError(self.id + ' watchOrderBook market accepts limits of 5, 20, 150 or 400 only')
-        messageHash = None
+        messageHash = ''
         marketId = self.safe_string(market, 'id', '')
         if market['spot'] is True:
-            messageHash = 'market.' + marketId + '.mbp.' + self.number_to_string(limitResolved)
+            messageHash = 'market.' + marketId + '.mbp.' + str(limitResolved)
         else:
-            messageHash = 'market.' + marketId + '.depth.size_' + self.number_to_string(limitResolved) + '.high_freq'
+            messageHash = 'market.' + marketId + '.depth.size_' + str(limitResolved) + '.high_freq'
         url = self.get_url_by_market_type(market['type'], market['linear'], False, True)
         method = self.handle_order_book_subscription
         paramsExtended = params
@@ -485,13 +485,13 @@ class htx(ccxt.async_support.htx):
         market = self.market(symbol)
         topic = 'orderbook'
         options = self.safe_dict(self.options, 'watchOrderBook', {})
-        depth = self.safe_integer(options, 'depth', 150)
+        depth = self.parse_to_int(self.safe_integer(options, 'depth', 150))
         marketId = self.safe_string(market, 'id', '')
-        subMessageHash = None
+        subMessageHash = ''
         if market['spot'] is True:
-            subMessageHash = 'market.' + marketId + '.mbp.' + self.number_to_string(depth)
+            subMessageHash = 'market.' + marketId + '.mbp.' + str(depth)
         else:
-            subMessageHash = 'market.' + marketId + '.depth.size_' + self.number_to_string(depth) + '.high_freq'
+            subMessageHash = 'market.' + marketId + '.depth.size_' + str(depth) + '.high_freq'
         if market['spot'] is not True:
             params['data_type'] = 'incremental'
         return await self.unsubscribe_public(market, subMessageHash, topic, params)
@@ -557,7 +557,7 @@ class htx(ccxt.async_support.htx):
                         self.delay(delayTime, self.watch_order_book_snapshot, client, message, subscription)
                 else:
                     # throw upon failing to synchronize in maxAttempts
-                    raise InvalidNonce(self.id + ' failed to synchronize WebSocket feed with the snapshot for symbol ' + symbol + ' in ' + str(maxAttempts) + ' attempts')
+                    raise InvalidNonce(self.id + ' failed to synchronize WebSocket feed with the snapshot for symbol ' + self.safe_string(subscription, 'symbol', '') + ' in ' + str(maxAttempts) + ' attempts')
             else:
                 orderbook.reset(snapshot)
                 # unroll the accumulated deltas

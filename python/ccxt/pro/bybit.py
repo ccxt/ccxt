@@ -19,7 +19,7 @@ from ccxt.base.precise import Precise
 
 class bybit(ccxt.async_support.bybit):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         superDescribe = super(bybit, self).describe()
         return self.deep_extend(superDescribe, self.describe_data())
 
@@ -266,7 +266,7 @@ class bybit(ccxt.async_support.bybit):
         if self.markets is None:
             await self.load_markets()
         orderRequest = self.create_order_request(symbol, type, side, amount, price, params, True)
-        url = self.implode_hostname(self.urls['api']['ws']['private']['trade'])
+        url = self.implode_hostname(self.safe_string(self.urls['api']['ws']['private'], 'trade', ''))
         await self.authenticate(url)
         requestId = str(self.request_id())
         request = {
@@ -311,7 +311,7 @@ class bybit(ccxt.async_support.bybit):
         if self.markets is None:
             await self.load_markets()
         orderRequest = self.edit_order_request(id, symbol, type, side, amount, price, params)
-        url = self.implode_hostname(self.urls['api']['ws']['private']['trade'])
+        url = self.implode_hostname(self.safe_string(self.urls['api']['ws']['private'], 'trade', ''))
         await self.authenticate(url)
         requestId = str(self.request_id())
         request = {
@@ -346,7 +346,7 @@ class bybit(ccxt.async_support.bybit):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrderWs() requires a symbol argument')
         orderRequest = self.cancel_order_request(id, symbol, params)
-        url = self.implode_hostname(self.urls['api']['ws']['private']['trade'])
+        url = self.implode_hostname(self.safe_string(self.urls['api']['ws']['private'], 'trade', ''))
         await self.authenticate(url)
         requestId = str(self.request_id())
         if 'orderFilter' in orderRequest:
@@ -411,7 +411,7 @@ class bybit(ccxt.async_support.bybit):
         marketIds = self.market_ids(symbolsValue)
         topics = []
         for i in range(0, len(marketIds)):
-            marketId = marketIds[i]
+            marketId = self.safe_string(marketIds, i, '')
             topics.append(topic + '.' + marketId)
             messageHashes.append('ticker:' + self.safe_string(symbolsValue, i, ''))
         ticker = await self.watch_topics(url, messageHashes, topics, paramsValue)
@@ -444,7 +444,7 @@ class bybit(ccxt.async_support.bybit):
         marketIds = self.market_ids(symbolsValue)
         topics = []
         for i in range(0, len(marketIds)):
-            marketId = marketIds[i]
+            marketId = self.safe_string(marketIds, i, '')
             symbol = symbolsValue[i]
             topics.append(topic + '.' + marketId)
             subMessageHashes.append('ticker:' + symbol)
@@ -631,7 +631,7 @@ class bybit(ccxt.async_support.bybit):
         marketIds = self.market_ids(symbolsValue)
         topics = []
         for i in range(0, len(marketIds)):
-            marketId = marketIds[i]
+            marketId = self.safe_string(marketIds, i, '')
             topic = 'orderbook.1.' + marketId
             topics.append(topic)
             messageHashes.append('bidask:' + self.safe_string(symbolsValue, i, ''))

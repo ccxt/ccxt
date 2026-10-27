@@ -7,7 +7,6 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bitrue import ImplicitAPI
 import asyncio
 import hashlib
-import json
 from ccxt.base.types import Balances, Currencies, Currency, CurrencyInterface, Int, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Status, Str, Strings, Ticker, Tickers, Trade, DepositWithdrawFees, Transaction, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -33,7 +32,7 @@ from ccxt.base.precise import Precise
 
 class bitrue(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(bitrue, self).describe(), {
             'id': 'bitrue',
             'name': 'Bitrue',
@@ -3141,9 +3140,7 @@ class bitrue(Exchange, ImplicitAPI):
                     signPrefix = '/dapi'
                 signMessage = timestamp + method + (signPrefix + '/' + version + '/' + path)
                 if method == 'GET':
-                    keys = list(paramsOmitted.keys())
-                    keysLength = len(keys)
-                    if keysLength > 0:
+                    if len(paramsOmitted) > 0:
                         signMessage += '?' + self.urlencode(paramsOmitted)
                     signature = self.hmac(self.encode(signMessage), self.encode(self.secret), hashlib.sha256)
                     requestHeaders = {
@@ -3195,11 +3192,7 @@ class bitrue(Exchange, ImplicitAPI):
         if not success:
             messageInner = self.safe_string(response, 'msg')
             if messageInner is not None:
-                try:
-                    parsedMessage = json.loads(messageInner)
-                except Exception as e:
-                    # do nothing
-                    parsedMessage = None
+                parsedMessage = self.parse_json(messageInner)
         errorResponse = parsedMessage if (parsedMessage is not None) else response
         message = self.safe_string(errorResponse, 'msg')
         if message is not None:

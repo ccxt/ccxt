@@ -12,7 +12,7 @@ from ccxt.base.errors import ExchangeError
 
 class dydx(ccxt.async_support.dydx):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(dydx, self).describe(), {
             'has': {
                 'ws': True,

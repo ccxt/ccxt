@@ -31,7 +31,7 @@ from ccxt.base.precise import Precise
 
 class luno(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(luno, self).describe(), {
             'id': 'luno',
             'name': 'Luno',
@@ -1630,8 +1630,10 @@ class luno(Exchange, ImplicitAPI):
         #     }
         #
         result = self.deposit_withdraw_fee(response)
-        result['withdraw']['fee'] = self.safe_number(response, 'fee')
-        result['withdraw']['percentage'] = False
+        result['withdraw'] = {
+            'fee': self.safe_number(response, 'fee'),
+            'percentage': False,
+        }
         return self.assign_default_deposit_withdraw_fees(result, currency)
 
     def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:

@@ -14,7 +14,7 @@ from ccxt.base.errors import NotSupported
 
 class coinbaseinternational(ccxt.async_support.coinbaseinternational):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(coinbaseinternational, self).describe(), {
             'has': {
                 'ws': True,
@@ -363,7 +363,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         channels = []
         symbolsLength = len(symbolsResolved)
         for i in range(0, symbolsLength):
-            channels.append('user.orders.' + self.safe_string(self.market(symbolsResolved[i]), 'id', '') + '.' + interval)
+            channels.append('user.orders.' + self.safe_string(self.market(self.safe_string(symbolsResolved, i, '')), 'id', '') + '.' + interval)
         orders = await self.subscribe(channels, channels, True, paramsInterval)
         limitResolved = limit
         if self.newUpdates:
@@ -435,7 +435,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
             symbolsLength = len(symbolsResolved)
         if (symbolsResolved is not None) and (symbolsLength > 0):
             for i in range(0, symbolsLength):
-                channels.append('user.changes.' + self.safe_string(self.market(symbolsResolved[i]), 'id', '') + '.' + interval)
+                channels.append('user.changes.' + self.safe_string(self.market(self.safe_string(symbolsResolved, i, '')), 'id', '') + '.' + interval)
         else:
             channels.append('user.changes.any.any.' + interval)
         positions = await self.subscribe(channels, channels, True, paramsInterval)
@@ -466,7 +466,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
             symbolsLength = len(symbolsResolved)
         if (symbolsResolved is not None) and (symbolsLength > 0):
             for i in range(0, symbolsLength):
-                channels.append('user.changes.' + self.safe_string(self.market(symbolsResolved[i]), 'id', '') + '.' + interval)
+                channels.append('user.changes.' + self.safe_string(self.market(self.safe_string(symbolsResolved, i, '')), 'id', '') + '.' + interval)
         else:
             channels.append('user.changes.any.any.' + interval)
         return await self.un_subscribe(channels, True, paramsInterval)
@@ -616,7 +616,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         channels = []
         symbolsLength = len(symbolsResolved)
         for i in range(0, symbolsLength):
-            market = self.market(symbolsResolved[i])
+            market = self.market(self.safe_string(symbolsResolved, i, ''))
             channels.append('ticker.' + self.safe_string(market, 'id', '') + '.' + interval)
         ticker = await self.subscribe(channels, channels, isPrivate, paramsInterval)
         if self.newUpdates:
@@ -647,7 +647,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         channels = []
         symbolsLength = len(symbolsResolved)
         for i in range(0, symbolsLength):
-            channels.append('ticker.' + self.safe_string(self.market(symbolsResolved[i]), 'id', '') + '.' + interval)
+            channels.append('ticker.' + self.safe_string(self.market(self.safe_string(symbolsResolved, i, '')), 'id', '') + '.' + interval)
         return await self.un_subscribe(channels, interval == 'raw', paramsInterval)
 
     async def watch_mark_price(self, symbol: str, params: dict = {}) -> Ticker:
@@ -731,7 +731,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         channels = []
         symbolsLength = len(symbolsResolved)
         for i in range(0, symbolsLength):
-            market = self.market(symbolsResolved[i])
+            market = self.market(self.safe_string(symbolsResolved, i, ''))
             channels.append('quote.' + self.safe_string(market, 'id', ''))
         ticker = await self.subscribe(channels, channels, False, paramsResolved)
         if self.newUpdates:
@@ -759,7 +759,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         channels = []
         symbolsLength = len(symbolsResolved)
         for i in range(0, symbolsLength):
-            channels.append('quote.' + self.safe_string(self.market(symbolsResolved[i]), 'id', ''))
+            channels.append('quote.' + self.safe_string(self.market(self.safe_string(symbolsResolved, i, '')), 'id', ''))
         return await self.un_subscribe(channels, False, paramsResolved)
 
     def handle_ticker(self, client: Client, message: dict):
@@ -967,7 +967,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         channels = []
         symbolsLength = len(symbolsResolved)
         for i in range(0, symbolsLength):
-            market = self.market(symbolsResolved[i])
+            market = self.market(self.safe_string(symbolsResolved, i, ''))
             channels.append('trades.' + self.safe_string(market, 'id', '') + '.' + interval)
         trades = await self.subscribe(channels, channels, isPrivate, paramsInterval)
         limitResolved = limit
@@ -1012,7 +1012,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         channels = []
         symbolsLength = len(symbolsResolved)
         for i in range(0, symbolsLength):
-            channels.append('trades.' + self.safe_string(self.market(symbolsResolved[i]), 'id', '') + '.' + interval)
+            channels.append('trades.' + self.safe_string(self.market(self.safe_string(symbolsResolved, i, '')), 'id', '') + '.' + interval)
         return await self.un_subscribe(channels, interval == 'raw', paramsInterval)
 
     def handle_trades(self, client: Client, message: dict):
@@ -1083,7 +1083,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         channels = []
         symbolsLength = len(symbols)
         for i in range(0, symbolsLength):
-            market = self.market(symbols[i])
+            market = self.market(self.safe_string(symbols, i, ''))
             channels.append('book.' + self.safe_string(market, 'id', '') + '.' + descriptor)
         orderbook = await self.subscribe(channels, channels, isPrivate, paramsChannel)
         return orderbook.limit()
@@ -1130,7 +1130,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         channels = []
         symbolsLength = len(symbols)
         for i in range(0, symbolsLength):
-            channels.append('book.' + self.safe_string(self.market(symbols[i]), 'id', '') + '.' + descriptor)
+            channels.append('book.' + self.safe_string(self.market(self.safe_string(symbols, i, '')), 'id', '') + '.' + descriptor)
         return await self.un_subscribe(channels, interval == 'raw', paramsChannel)
 
     def handle_order_book(self, client: Client, message: dict):

@@ -15,7 +15,7 @@ from ccxt.base.errors import RequestTimeout
 
 class hyperliquid(ccxt.async_support.hyperliquid):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(hyperliquid, self).describe(), {
             'has': {
                 'ws': True,

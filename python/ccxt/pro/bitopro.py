@@ -13,7 +13,7 @@ from ccxt.base.errors import ExchangeError
 
 class bitopro(ccxt.async_support.bitopro):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(bitopro, self).describe(), {
             'has': {
                 'ws': True,

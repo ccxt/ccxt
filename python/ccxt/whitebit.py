@@ -26,7 +26,7 @@ from ccxt.base.precise import Precise
 
 class whitebit(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(whitebit, self).describe(), {
             'id': 'whitebit',
             'name': 'WhiteBit',
@@ -699,7 +699,7 @@ class whitebit(Exchange, ImplicitAPI):
         withdrawLimits = self.safe_dict(networkLimits, 'withdraw', {})
         allNetworks = self.array_concat(depositsNetworks, withdrawsNetworks)
         for j in range(0, len(allNetworks)):
-            networkId = allNetworks[j]
+            networkId = self.safe_string(allNetworks, j, '')
             networkCode = self.network_id_to_code(networkId, code)
             networkDepositLimits = self.safe_dict(depositLimits, networkId, {})
             networkWithdrawLimits = self.safe_dict(withdrawLimits, networkId, {})
@@ -4007,7 +4007,7 @@ class whitebit(Exchange, ImplicitAPI):
     def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
         query = self.omit(params, self.extract_params(path))
         version = api[0]
-        accessibility = self.safe_string(api, 1)
+        accessibility = api[1]
         publicHeaders = {}
         publicHeaders['User-Agent'] = 'ccxt/' + self.id + '-' + self.version
         pathWithParams = '/' + self.implode_params(path, params)
@@ -4071,10 +4071,9 @@ class whitebit(Exchange, ImplicitAPI):
                     errorKeys = list(errorObject.keys())
                     errorsLength = len(errorKeys)
                     if errorsLength > 0:
-                        errorKey = errorKeys[0]
+                        errorKey = self.safe_string(errorKeys, 0, '')
                         errorMessageArray = self.safe_list(errorObject, errorKey, [])
-                        errorMessageLength = len(errorMessageArray)
-                        errorInfo = errorMessageArray[0] if (errorMessageLength > 0) else body
+                        errorInfo = self.safe_string(errorMessageArray, 0, body)
                 self.throw_exactly_matched_exception(self.exceptions['exact'], errorInfo, feedback)
                 self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)
                 raise ExchangeError(feedback)
@@ -4086,10 +4085,9 @@ class whitebit(Exchange, ImplicitAPI):
                 errKeysLength = len(errKeys)
                 errorInfo = body
                 if errKeysLength > 0:
-                    errorKey = errKeys[0]
+                    errorKey = self.safe_string(errKeys, 0, '')
                     errorMessageArray = self.safe_list(errMsg, errorKey, [])
-                    errorMessageLength = len(errorMessageArray)
-                    errorInfo = errorMessageArray[0] if (errorMessageLength > 0) else body
+                    errorInfo = self.safe_string(errorMessageArray, 0, body)
                 feedback = self.id + ' ' + body
                 self.throw_exactly_matched_exception(self.exceptions['exact'], errorInfo, feedback)
                 self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)

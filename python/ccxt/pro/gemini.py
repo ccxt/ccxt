@@ -16,7 +16,7 @@ from ccxt.base.precise import Precise
 
 class gemini(ccxt.async_support.gemini):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(gemini, self).describe(), {
             'has': {
                 'ws': True,
@@ -230,7 +230,7 @@ class gemini(ccxt.async_support.gemini):
                 stored = ArrayCache(tradesLimit)
                 self.trades[symbol] = stored
             for i in range(0, len(trades)):
-                trade = self.parse_ws_trade(trades[i], market)
+                trade = self.parse_ws_trade(self.safe_value(trades, i), market)
                 stored.append(trade)
             messageHash = 'trades:' + symbol
             client.resolve(stored, messageHash)
@@ -524,7 +524,7 @@ class gemini(ccxt.async_support.gemini):
         messageHashes = []
         marketIds = []
         for i in range(0, len(symbolsNormalized)):
-            symbol = symbolsNormalized[i]
+            symbol = self.safe_string(symbolsNormalized, i, '')
             messageHash = itemHashName + ':' + symbol
             messageHashes.append(messageHash)
             market = self.market(symbol)
@@ -877,7 +877,7 @@ class gemini(ccxt.async_support.gemini):
             collectedEventsOfTrades = []
             eventsLength = len(events)
             for i in range(0, len(events)):
-                event = events[i]
+                event = self.safe_value(events, i)
                 eventType = self.safe_string(event, 'type')
                 side = self.safe_string(event, 'side')
                 isOrderBook = (eventType == 'change') and (side is not None) and self.in_array(side, ['ask', 'bid'])
@@ -888,7 +888,7 @@ class gemini(ccxt.async_support.gemini):
                 elif isOrderBook:
                     orderBookItems.append(event)
                 elif eventType == 'trade':
-                    collectedEventsOfTrades.append(events[i])
+                    collectedEventsOfTrades.append(event)
             lengthBa = len(bidaskItems)
             if lengthBa > 0:
                 self.handle_bids_asks_for_multidata(client, bidaskItems, ts, eventId)

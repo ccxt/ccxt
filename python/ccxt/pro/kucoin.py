@@ -14,7 +14,7 @@ from ccxt.base.precise import Precise
 
 class kucoin(ccxt.async_support.kucoin):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(kucoin, self).describe(), {
             'has': {
                 'ws': True,
@@ -248,7 +248,7 @@ class kucoin(ccxt.async_support.kucoin):
         now = self.milliseconds()
         expired = (now - lastUpdate) >= refreshInterval
         messageHash = 'utaToken'
-        url = self.urls['api']['ws']['private']
+        url = self.safe_string(self.urls['api']['ws'], 'private', '')
         client = self.client(url)
         if (utaToken is None) or expired:
             if messageHash in client.futures:
@@ -421,7 +421,7 @@ class kucoin(ccxt.async_support.kucoin):
                 symbol = symbolsNormalized[i]
                 messageHashes.append('ticker:' + symbol)
                 market = self.market(symbol)
-                topics.append(method + ':' + market['id'])
+                topics.append(method + ':' + self.safe_string(market, 'id', ''))
         url = await self.negotiate(False, isFuturesMethod)
         tickers: Tickers
         if symbolsNormalized is None:

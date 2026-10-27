@@ -14,7 +14,7 @@ from ccxt.base.errors import RateLimitExceeded
 
 class mudrex(ccxt.async_support.mudrex):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(mudrex, self).describe(), {
             'has': {
                 'ws': True,

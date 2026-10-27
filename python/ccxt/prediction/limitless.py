@@ -20,7 +20,7 @@ from ccxt.base.precise import Precise
 
 class limitless(PredictionExchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(limitless, self).describe(), {
             'id': 'limitless',
             'name': 'Limitless',
@@ -2802,8 +2802,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         eventKeys = list(eventGroups.keys())
         eventKeysLength = len(eventKeys)
         for i in range(0, eventKeysLength):
-            g = self.safe_value(eventGroups, eventKeys[i])
-            ev = self.parse_event(g)
+            ev = self.parse_event(self.safe_dict(eventGroups, eventKeys[i], {}))
             result.append(ev)
         # setEvents keys events by id/slug/handle; populateOutcomes rebuilds the outcome cache
         self.set_events(result)
@@ -2854,7 +2853,7 @@ class limitless(PredictionExchange, ImplicitAPI):
                 break
         return allRaw
 
-    async def fetch_raw_markets_by_tags(self, tags: list[str], params: dict = {}) -> list[object]:
+    async def fetch_raw_markets_by_tags(self, tags: list[str], params: dict = {}) -> list[dict]:
         """
  @ignore
         resolves the requested tags to limitless categories via GET /categories, then pages only those categories' active listings server-side
@@ -2917,7 +2916,6 @@ class limitless(PredictionExchange, ImplicitAPI):
         :returns dict: a dictionary with url, method, body and headers
         """
         apiGroup = api[0]
-        access = api[1]
         baseUrls = self.urls['api']
         baseUrl = self.safe_string(baseUrls, apiGroup, baseUrls['limitless'])
         url = '/' + self.implode_params(path, params)
@@ -2927,7 +2925,7 @@ class limitless(PredictionExchange, ImplicitAPI):
             url += '?' + querystring
         headersValue = None
         bodyValue = None
-        if access == 'private':
+        if api[1] == 'private':
             bodyString = ''
             headersValue = {}
             if method == 'POST' and (querystring != ''):

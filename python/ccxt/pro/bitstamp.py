@@ -14,7 +14,7 @@ from ccxt.base.precise import Precise
 
 class bitstamp(ccxt.async_support.bitstamp):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(bitstamp, self).describe(), {
             'has': {
                 'ws': True,

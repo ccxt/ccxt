@@ -14,7 +14,7 @@ from ccxt.base.precise import Precise
 
 class phemex(ccxt.async_support.phemex):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(phemex, self).describe(), {
             'has': {
                 'ws': True,
@@ -792,7 +792,7 @@ class phemex(ccxt.async_support.phemex):
         if isUsdtMarket:
             settleRequest = {'settle': 'USDT'}
         type, paramsType = self.handle_market_type_and_params('watchMyTrades', market, self.extend(params, settleRequest))
-        if symbolResolved is None:
+        if symbol is None:
             settle = self.safe_string(paramsType, 'settle')
             if settle == 'USDT':
                 messageHash = 'trades:perpetual'
@@ -952,7 +952,7 @@ class phemex(ccxt.async_support.phemex):
             settleRequest = {'settle': 'USDT'}
         type, paramsType = self.handle_market_type_and_params('watchOrders', market, self.extend(params, settleRequest))
         isUSDTSettled = self.safe_string(paramsType, 'settle') == 'USDT'
-        if symbolResolved is None:
+        if symbol is None:
             if isUSDTSettled:
                 messageHash = 'orders:perpetual'
             else:

@@ -17,7 +17,7 @@ from ccxt.base.errors import InvalidNonce
 
 class okx(ccxt.async_support.okx):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(okx, self).describe(), {
             'has': {
                 'ws': True,
@@ -792,7 +792,7 @@ class okx(ccxt.async_support.okx):
         for i in range(0, len(rawLiquidations)):
             rawLiquidation = rawLiquidations[i]
             liquidation = self.parse_ws_liquidation(rawLiquidation)
-            symbol = self.safe_string(liquidation, 'symbol')
+            symbol = self.safe_string(liquidation, 'symbol', '')
             if self.liquidations is None:
                 limit = self.safe_integer(self.options, 'liquidationsLimit', 1000)
                 self.liquidations = ArrayCache(limit)
@@ -887,7 +887,7 @@ class okx(ccxt.async_support.okx):
             if eventType != 'liquidation':
                 return
             liquidation = self.parse_ws_my_liquidation(rawLiquidation)
-            symbol = self.safe_string(liquidation, 'symbol')
+            symbol = self.safe_string(liquidation, 'symbol', '')
             if self.liquidations is None:
                 limit = self.safe_integer(self.options, 'liquidationsLimit', 1000)
                 self.liquidations = ArrayCache(limit)
@@ -1328,10 +1328,8 @@ class okx(ccxt.async_support.okx):
         #
         asks = self.safe_list(message, 'asks', [])
         bids = self.safe_list(message, 'bids', [])
-        storedAsks = orderbook['asks']
-        storedBids = orderbook['bids']
-        self.handle_deltas(storedAsks, asks)
-        self.handle_deltas(storedBids, bids)
+        self.handle_deltas(orderbook['asks'], asks)
+        self.handle_deltas(orderbook['bids'], bids)
         marketId = self.safe_string(message, 'instId')
         symbol = self.safe_symbol(marketId, market)
         seqId = self.safe_integer(message, 'seqId')
@@ -1861,7 +1859,7 @@ class okx(ccxt.async_support.okx):
         for i in range(0, len(data)):
             rawPosition = data[i]
             position = self.parse_position(rawPosition)
-            if position['contracts'] == 0 and self.safe_string(rawPosition, 'posSide') == 'net':
+            if self.safe_number(position, 'contracts') == 0 and self.safe_string(rawPosition, 'posSide') == 'net':
                 position['side'] = 'long'
                 shortPosition = self.clone(position)
                 shortPosition['side'] = 'short'
@@ -1998,7 +1996,7 @@ class okx(ccxt.async_support.okx):
             for i in range(0, len(parsed)):
                 order = parsed[i]
                 stored.append(order)
-                symbol = order['symbol']
+                symbol = self.safe_string(order, 'symbol', '')
                 market = self.market(symbol)
                 marketIds.append(market['id'])
             client.resolve(stored, channel)

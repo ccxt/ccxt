@@ -18,7 +18,7 @@ from ccxt.base.precise import Precise
 
 class poloniex(ccxt.async_support.poloniex):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(poloniex, self).describe(), {
             'has': {
                 'ws': True,

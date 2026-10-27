@@ -17,7 +17,7 @@ from ccxt.base.precise import Precise
 
 class cex(ccxt.async_support.cex):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(cex, self).describe(), {
             'has': {
                 'ws': True,
@@ -75,7 +75,7 @@ class cex(ccxt.async_support.cex):
         """
         await self.authenticate(params)
         messageHash = self.request_id()
-        url = self.urls['api']['ws']
+        url = self.safe_string(self.urls['api'], 'ws', '')
         subscribe = {
             'e': 'get-balance',
             'data': {},
@@ -148,8 +148,8 @@ class cex(ccxt.async_support.cex):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
-        url = self.urls['api']['ws']
+        symbolValue = self.safe_string(market, 'symbol', '')
+        url = self.safe_string(self.urls['api'], 'ws', '')
         messageHash = 'trades'
         subscriptionHash = 'old:' + symbolValue
         client = self.safe_value(self.clients, url)
@@ -162,8 +162,8 @@ class cex(ccxt.async_support.cex):
                 subscriptionKey = subscriptionKey[0:3]
                 if subscriptionKey == 'old':
                     raise ExchangeError(self.id + ' watchTrades() only supports watching one symbol at a time.')
-        baseId = market['base']
-        quoteId = market['quote']
+        baseId = self.safe_string(market, 'base', '')
+        quoteId = self.safe_string(market, 'quote', '')
         message = {
             'e': 'subscribe',
             'rooms': ['pair-' + baseId + '-' + quoteId],
@@ -263,8 +263,8 @@ class cex(ccxt.async_support.cex):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
-        url = self.urls['api']['ws']
+        symbolValue = self.safe_string(market, 'symbol', '')
+        url = self.safe_string(self.urls['api'], 'ws', '')
         messageHash = 'ticker:' + symbolValue
         method = self.safe_string(params, 'method', 'private')  # default to private because the specified ticker is received quicker
         message = {
@@ -300,7 +300,7 @@ class cex(ccxt.async_support.cex):
         if self.markets is None:
             await self.load_markets()
         symbolsNormalized = self.market_symbols(symbols)
-        url = self.urls['api']['ws']
+        url = self.safe_string(self.urls['api'], 'ws', '')
         messageHash = 'tickers'
         message = {
             'e': 'subscribe',
@@ -333,7 +333,7 @@ class cex(ccxt.async_support.cex):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        url = self.urls['api']['ws']
+        url = self.safe_string(self.urls['api'], 'ws', '')
         messageHash = self.request_id()
         request = self.extend({
             'e': 'ticker',
@@ -440,7 +440,7 @@ class cex(ccxt.async_support.cex):
         if self.markets is None:
             await self.load_markets()
         await self.authenticate()
-        url = self.urls['api']['ws']
+        url = self.safe_string(self.urls['api'], 'ws', '')
         messageHash = self.request_id()
         request = self.extend({
             'e': 'get-balance',
@@ -465,7 +465,7 @@ class cex(ccxt.async_support.cex):
         if self.markets is None:
             await self.load_markets()
         await self.authenticate(params)
-        url = self.urls['api']['ws']
+        url = self.safe_string(self.urls['api'], 'ws', '')
         market = self.market(symbol)
         symbolValue = market['symbol']
         messageHash = 'orders:' + symbolValue
@@ -503,9 +503,9 @@ class cex(ccxt.async_support.cex):
         if self.markets is None:
             await self.load_markets()
         await self.authenticate(params)
-        url = self.urls['api']['ws']
+        url = self.safe_string(self.urls['api'], 'ws', '')
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         messageHash = 'myTrades:' + symbolValue
         subscriptionHash = 'orders:' + symbolValue
         message = {
@@ -925,8 +925,8 @@ class cex(ccxt.async_support.cex):
             await self.load_markets()
         await self.authenticate()
         market = self.market(symbol)
-        symbolValue = market['symbol']
-        url = self.urls['api']['ws']
+        symbolValue = self.safe_string(market, 'symbol', '')
+        url = self.safe_string(self.urls['api'], 'ws', '')
         messageHash = 'orderbook:' + symbolValue
         depth = 0 if (limit is None) else limit
         subscribe = {
@@ -1064,9 +1064,9 @@ class cex(ccxt.async_support.cex):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         messageHash = 'ohlcv:' + symbolValue
-        url = self.urls['api']['ws']
+        url = self.safe_string(self.urls['api'], 'ws', '')
         baseId = self.safe_string(market, 'baseId', '')
         quoteId = self.safe_string(market, 'quoteId', '')
         request = {
@@ -1226,7 +1226,7 @@ class cex(ccxt.async_support.cex):
         data = self.extend({
             'order_id': str(id),
         }, params)
-        url = self.urls['api']['ws']
+        url = self.safe_string(self.urls['api'], 'ws', '')
         messageHash = self.request_id()
         request = {
             'e': 'get-order',
@@ -1254,7 +1254,7 @@ class cex(ccxt.async_support.cex):
             await self.load_markets()
         await self.authenticate()
         market = self.market(symbol)
-        url = self.urls['api']['ws']
+        url = self.safe_string(self.urls['api'], 'ws', '')
         messageHash = self.request_id()
         data = self.extend({
             'pair': [market['baseId'], market['quoteId']],
@@ -1288,7 +1288,7 @@ class cex(ccxt.async_support.cex):
             await self.load_markets()
         await self.authenticate()
         market = self.market(symbol)
-        url = self.urls['api']['ws']
+        url = self.safe_string(self.urls['api'], 'ws', '')
         messageHash = self.request_id()
         data = self.extend({
             'pair': [market['baseId'], market['quoteId']],
@@ -1335,7 +1335,7 @@ class cex(ccxt.async_support.cex):
             'order_id': id,
         }, params)
         messageHash = self.request_id()
-        url = self.urls['api']['ws']
+        url = self.safe_string(self.urls['api'], 'ws', '')
         request = {
             'e': 'cancel-replace-order',
             'oid': messageHash,
@@ -1365,7 +1365,7 @@ class cex(ccxt.async_support.cex):
             'order_id': id,
         }, params)
         messageHash = self.request_id()
-        url = self.urls['api']['ws']
+        url = self.safe_string(self.urls['api'], 'ws', '')
         request = {
             'e': 'cancel-order',
             'oid': messageHash,
@@ -1394,7 +1394,7 @@ class cex(ccxt.async_support.cex):
         data = self.extend({
             'cancel-orders': ids,
         }, params)
-        url = self.urls['api']['ws']
+        url = self.safe_string(self.urls['api'], 'ws', '')
         request = {
             'e': 'mass-cancel-place-orders',
             'oid': messageHash,
@@ -1519,7 +1519,7 @@ class cex(ccxt.async_support.cex):
             future.resolve(True)
 
     async def authenticate(self, params: dict = {}):
-        url = self.urls['api']['ws']
+        url = self.safe_string(self.urls['api'], 'ws', '')
         client = self.client(url)
         messageHash = 'authenticated'
         future = client.reusableFuture('authenticated')

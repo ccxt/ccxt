@@ -27,7 +27,7 @@ from ccxt.base.precise import Precise
 
 class backpack(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(backpack, self).describe(), {
             'id': 'backpack',
             'name': 'Backpack',

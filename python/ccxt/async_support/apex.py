@@ -20,7 +20,7 @@ from ccxt.base.precise import Precise
 
 class apex(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(apex, self).describe(), {
             'id': 'apex',
             'name': 'Apex',
@@ -1402,9 +1402,7 @@ class apex(Exchange, ImplicitAPI):
         configResponse = await self.publicGetV3Symbols(params)
         configData = self.safe_dict(configResponse, 'data', {})
         contractConfig = self.safe_dict(configData, 'contractConfig', {})
-        contractAssets = self.safe_list(contractConfig, 'assets', [])
         spotConfig = self.safe_dict(configData, 'spotConfig', {})
-        spotAssets = self.safe_list(spotConfig, 'assets', [])
         globalConfig = self.safe_dict(spotConfig, 'global', {})
         receiverAddress = self.safe_string(globalConfig, 'contractAssetPoolEthAddress', '')
         receiverZkAccountId = self.safe_string(globalConfig, 'contractAssetPoolZkAccountId', '')
@@ -1424,12 +1422,14 @@ class apex(Exchange, ImplicitAPI):
         accountId = self.safe_string(accountData, 'id', '')
         currency = {}
         isContract = fromAccount.lower() == 'contract'
-        assets = spotAssets
+        assets = self.safe_list(spotConfig, 'assets', [])
         if isContract:
-            assets = contractAssets
-        for i in range(0, len(assets)):
-            if self.safe_string(self.safe_dict(assets, i, {}), 'token', '') == code:
-                currency = self.safe_dict(assets, i, {})
+            assets = self.safe_list(contractConfig, 'assets', [])
+        numAssets = len(assets)
+        for i in range(0, numAssets):
+            asset = self.safe_dict(assets, i, {})
+            if self.safe_string(asset, 'token', '') == code:
+                currency = asset
         tokenId = self.safe_string(currency, 'tokenId', '')
         decimalsNum = self.safe_number(currency, 'decimals', 0)
         decimalsNumber = 0 if (decimalsNum is None) else decimalsNum

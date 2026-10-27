@@ -14,7 +14,7 @@ from ccxt.base.errors import BadRequest
 
 class bithumb(ccxt.async_support.bithumb):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(bithumb, self).describe(), {
             'has': {
                 'ws': True,

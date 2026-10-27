@@ -13,7 +13,7 @@ from ccxt.base.precise import Precise
 
 class upbit(ccxt.async_support.upbit):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(upbit, self).describe(), {
             'has': {
                 'ws': True,
@@ -361,17 +361,14 @@ class upbit(ccxt.async_support.upbit):
             subscriptions[channelKey] = request
         # Build subscription message with all requested private channels
         # Format: [{'ticket': uuid}, {'type': 'myOrder'}, {'type': 'myAsset'}, ...]
-        requests = []
-        channelKeys = list(subscriptions.keys())
-        for i in range(0, len(channelKeys)):
-            requests.append(subscriptions[channelKeys[i]])
         message = [
             {
                 'ticket': self.uuid(),
             },
         ]
-        for i in range(0, len(requests)):
-            message.append(requests[i])
+        channelKeys = list(subscriptions.keys())
+        for i in range(0, len(channelKeys)):
+            message.append(subscriptions[channelKeys[i]])
         return await self.watch(url, messageHashResolved, message, messageHashResolved)
 
     async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:

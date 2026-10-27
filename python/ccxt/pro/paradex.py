@@ -12,7 +12,7 @@ from ccxt.base.precise import Precise
 
 class paradex(ccxt.async_support.paradex):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(paradex, self).describe(), {
             'has': {
                 'ws': True,
@@ -863,7 +863,7 @@ class paradex(ccxt.async_support.paradex):
         if templateId == 1:
             data = self.parse_sbe_trade(frameHex, blockLength, frameLength)
             if data is not None:
-                channel = 'trades.' + self.safe_string(data, 'market')
+                channel = 'trades.' + self.safe_string(data, 'market', '')
         elif templateId == 3:
             data = self.parse_sbe_order_book(frameHex, blockLength, frameLength)
             if data is not None:
@@ -877,11 +877,11 @@ class paradex(ccxt.async_support.paradex):
         elif templateId == 20:
             data = self.parse_sbe_order(frameHex, blockLength, frameLength)
             if data is not None:
-                channel = 'orders.' + self.safe_string(data, 'market')
+                channel = 'orders.' + self.safe_string(data, 'market', '')
         elif templateId == 21:
             data = self.parse_sbe_fill(frameHex, blockLength, frameLength)
             if data is not None:
-                channel = 'fills.' + self.safe_string(data, 'market')
+                channel = 'fills.' + self.safe_string(data, 'market', '')
         elif templateId == 22:
             data = self.parse_sbe_position(frameHex, blockLength, frameLength)
             channel = 'positions'
@@ -1263,7 +1263,7 @@ class paradex(ccxt.async_support.paradex):
             'cost': self.sbe_read_decimal(frameHex, 129),
             'cost_usd': self.sbe_read_decimal(frameHex, 137),
             # the JSON channel's id, one position per account and market
-            'id': account + '-' + self.safe_string(strings, 0),
+            'id': account + '-' + self.safe_string(strings, 0, ''),
             'last_fill_id': self.safe_string(strings, 1),
             'last_updated_at': self.sbe_read_timestamp(frameHex, 81),
             'leverage': self.sbe_read_decimal(frameHex, 73),

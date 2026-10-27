@@ -29,7 +29,7 @@ from ccxt.base.precise import Precise
 
 class bingx(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(bingx, self).describe(), {
             'id': 'bingx',
             'name': 'BingX',

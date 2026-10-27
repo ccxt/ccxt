@@ -17,7 +17,7 @@ from ccxt.base.precise import Precise
 
 class kalshi(PredictionExchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(kalshi, self).describe(), {
             'id': 'kalshi',
             'name': 'Kalshi',
@@ -270,7 +270,9 @@ class kalshi(PredictionExchange, ImplicitAPI):
                 parsed = self.parse_binary_market_to_outcomes(raw)
                 eventTicker = self.safe_string(raw, 'event_ticker')
                 eventTitle = self.safe_string(raw, 'title', eventTicker)
-                eventKey = self.shorten_slug(eventTitle) if (eventTitle is not None and eventTitle != '') else ''
+                eventKey = ''
+                if eventTitle is not None and eventTitle != '':
+                    eventKey = self.shorten_slug(eventTitle)
                 for j in range(0, len(parsed)):
                     m = parsed[j]
                     flatMarkets.append(m)
@@ -1866,7 +1868,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         filledCount = self.safe_number(response, 'fill_count')
         if filledCount is not None:
             order['filled'] = filledCount
-        elif (remainingCount is not None) and (amount is not None):
+        elif remainingCount is not None:
             order['filled'] = amount - remainingCount
         if remainingCount is not None:
             order['remaining'] = remainingCount
