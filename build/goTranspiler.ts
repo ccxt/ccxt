@@ -3400,6 +3400,7 @@ export function formatGoSource (filePath: string, content: string): string {
     content = nativeOrderBookSideReads (content);
     content = nativeEndpointListReceives (content);
     content = nativeAsyncListReceives (content);
+    content = hx11TernaryInt64Closure (content);  // hx11 printer-go-ternary-closure-int64
     content = hx4G18NativeCompare (hx4G30Arith (hx4G21UnboxDefaultedSafeInteger (content)));  // hx4 G18, G30
     content = hx4G23Comparisons (content);  // hx4 G23
     content = hx4G27Comparisons (content);  // hx4 G27
@@ -14519,6 +14520,49 @@ function hx4G21UnboxDefaultedSafeInteger (content: string): string {
         }
     }
     return lines.join ('\n');
+}
+
+// hx11 printer-go-ternary-closure-int64: `m[k] = cond ? p : a + b` over a `*int64` local `p` and int64 locals
+// printed `m[k] = func() any { if p != nil { return p }; return this.Sum(a, b) }()`. Prints the native
+// if/else instead: the nil guard proves `*p`, and Sum of two declared int64 locals is `a + b`.
+function hx11TernaryInt64Closure (content: string): string {
+    if (!/= func\(\) any \{\n\s+if \w+ != nil \{\n\s+return \w+\n/.test (content)) {
+        return content;
+    }
+    const lines = content.split ('\n');
+    const masked = goTextMaskLiteralsAndComments (content).split ('\n');
+    if (lines.length !== masked.length) {
+        return content;
+    }
+    const out: string[] = [];
+    let fnStart = 0;
+    for (let i = 0; i < lines.length; i++) {
+        if (/^func /.test (lines[i])) { fnStart = i; }
+        const head = /^(\t+)(\w+\[\"[^\"\\\n]*\"\]) = func\(\) any \{$/.exec (lines[i]);
+        if ((head !== null) && (i + 6 < lines.length)) {
+            const ind = head[1];
+            const guard = new RegExp ('^' + ind + '\\tif (\\w+) != nil \\{$').exec (masked[i + 1]);
+            const ret = guard === null ? null : new RegExp ('^' + ind + '\\t\\treturn ' + guard[1] + '$').exec (masked[i + 2]);
+            const sum = /^\t+return this\.Sum\((\w+), (\w+)\)$/.exec (masked[i + 4]);
+            if ((guard !== null) && (ret !== null) && (sum !== null) && (masked[i + 3] === ind + '\t}') && (masked[i + 5] === ind + '}()')) {
+                let fnEnd = i;
+                while ((fnEnd < lines.length) && (lines[fnEnd] !== '}')) { fnEnd++; }
+                const body = masked.slice (fnStart, fnEnd).join ('\n');
+                const declared = (n: string, t: string) => new RegExp ('\\bvar ' + n + ' ' + t.replace ('*', '\\*') + ' (?:=|\\n)').test (body);
+                if (declared (guard[1], '*int64') && declared (sum[1], 'int64') && declared (sum[2], 'int64')) {
+                    out.push (ind + 'if ' + guard[1] + ' != nil {');
+                    out.push (ind + '\t' + head[2] + ' = *' + guard[1]);
+                    out.push (ind + '} else {');
+                    out.push (ind + '\t' + head[2] + ' = ' + sum[1] + ' + ' + sum[2]);
+                    out.push (ind + '}');
+                    i += 5;
+                    continue;
+                }
+            }
+        }
+        out.push (lines[i]);
+    }
+    return out.join ('\n');
 }
 
 function hx4G21SelfTest (): string[] {
