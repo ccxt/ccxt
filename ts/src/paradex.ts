@@ -5,7 +5,7 @@ import { keccak_256 as keccak } from '@noble/hashes/sha3.js';
 import { secp256k1 } from '@noble/curves/secp256k1.js';
 import { Precise } from './base/Precise.js';
 import Exchange from './abstract/paradex.js';
-import { ExchangeError, PermissionDenied, AuthenticationError, BadRequest, ArgumentsRequired, BadSymbol, OperationRejected, InvalidOrder } from './base/errors.js';
+import { ExchangeError, PermissionDenied, AuthenticationError, BadRequest, ArgumentsRequired, BadSymbol, OperationRejected, InvalidOrder, NotSupported, RateLimitExceeded } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import type { NullableDict, Str, Num, Dict, Int, Market, OrderType, OrderSide, Order, OrderBook, Strings, Ticker, Tickers, Trade, Balances, Currency, Transaction, OHLCV, Position, int, MarginMode, Leverage, Greeks, FundingRate, FundingRates, FundingRateHistory, FundingHistory, Liquidation, TradingFeeInterface, TradingFees, TransferEntry, OrderRequest, Bool, List, Status, Endpoint, AllGreeks, OpenInterest } from './base/types.js';
 import { ecdsa } from './base/functions/crypto.js';
@@ -30,7 +30,7 @@ export default class paradex extends Exchange {
             'dex': true,
             'has': {
                 'CORS': undefined,
-                'spot': false,
+                'spot': true,
                 'margin': false,
                 'swap': true,
                 'future': false,
@@ -365,6 +365,10 @@ export default class paradex extends Exchange {
                     '40110': AuthenticationError, // Malformed Bearer Token
                     '40111': AuthenticationError, // Invalid Bearer Token
                     '40112': PermissionDenied, // Geo IP blocked
+                    '40300': PermissionDenied, // Permission denied
+                    '40301': NotSupported, // SBE encoding required
+                    '42900': OperationRejected, // Max subscriptions per connection, a retry does not help until a channel is unsubscribed
+                    '42901': RateLimitExceeded, // Rate limited
                 },
                 'broad': {
                     'missing or malformed jwt': AuthenticationError,
@@ -378,7 +382,16 @@ export default class paradex extends Exchange {
                 'broker': 'CCXT',
             },
             'features': {
-                'spot': undefined,
+                'spot': {
+                    'extends': 'forSwap',
+                    'createOrder': {
+                        // spot takes limit and market orders only, no trigger, stop loss or take profit types
+                        'triggerPrice': false,
+                        'triggerDirection': false,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                    },
+                },
                 'forSwap': {
                     'sandbox': true,
                     'createOrder': {
@@ -621,26 +634,53 @@ export default class paradex extends Exchange {
         //     ]
         //  }
         //
+        // spot
+        //
+        //     {
+        //         "symbol": "ETH-USD",
+        //         "base_currency": "ETH",
+        //         "quote_currency": "USD",
+        //         "settlement_currency": "USDC",
+        //         "order_size_increment": "0.0001",
+        //         "price_tick_size": "0.01",
+        //         "min_notional": "10",
+        //         "asset_kind": "SPOT",
+        //         "market_kind": "cross",
+        //         ...
+        //     }
+        //
         const assetKind = this.safeString (market, 'asset_kind');
+        const isSpot = (assetKind === 'SPOT');
         const isOptionPerpetual = (assetKind === 'PERP_OPTION');
         const isOptionDelivery = (assetKind === 'OPTION');
         const isOption = isOptionPerpetual || isOptionDelivery;
         let type: Str = 'swap';
-        if (isOption) {
+        if (isSpot) {
+            type = 'spot';
+        } else if (isOption) {
             type = 'option';
         }
         const isSwap = (type === 'swap');
         const marketId = this.safeString (market, 'symbol');
-        const quoteId = this.safeString (market, 'quote_currency');
+        let quoteId = this.safeString (market, 'quote_currency');
         const baseId = this.safeString (market, 'base_currency');
+        let settleId = this.safeString (market, 'settlement_currency');
+        if (isSpot) {
+            // spot is quoted in "USD" but paid and received in the settlement token (USDC),
+            // a spot market has no settle, so the token it trades against is the quote
+            quoteId = settleId;
+            settleId = undefined;
+        }
         const quote = this.safeCurrencyCode (quoteId);
         const base = this.safeCurrencyCode (baseId);
         if ((base === undefined) || (quote === undefined)) {
             return undefined;
         }
-        const settleId = this.safeString (market, 'settlement_currency');
         const settle = this.safeCurrencyCode (settleId);
-        let symbol = base + '/' + quote + ':' + settle;
+        let symbol = base + '/' + quote;
+        if (!isSpot) {
+            symbol = symbol + ':' + settle;
+        }
         let expiry = this.safeInteger (market, 'expiry_at');
         const optionType = this.safeString (market, 'option_type');
         const strikePrice = this.safeString (market, 'strike_price');
@@ -665,18 +705,18 @@ export default class paradex extends Exchange {
             'quoteId': quoteId,
             'settleId': settleId,
             'type': type,
-            'spot': false,
+            'spot': isSpot,
             'margin': undefined,
             'swap': isSwap,
             'future': false,
             'option': isOption,
             'active': this.safeBool (market, 'enableTrading'),
-            'contract': true,
-            'linear': true,
-            'inverse': false,
+            'contract': !isSpot,
+            'linear': (isSpot) ? undefined : true,
+            'inverse': (isSpot) ? undefined : false,
             'taker': takerFee,
             'maker': makerFee,
-            'contractSize': this.parseNumber ('1'),
+            'contractSize': (isSpot) ? undefined : this.parseNumber ('1'),
             'expiry': expiry,
             'expiryDatetime': expireDatetime,
             'strike': this.parseNumber (strikePrice),
@@ -842,7 +882,7 @@ export default class paradex extends Exchange {
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
-     * @param {string} [params.price] "last", "mark", "index", default is "last"
+     * @param {string} [params.price] "last", "mark", "index" (sent as "underlying"), default is "last"
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     override async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
@@ -857,7 +897,8 @@ export default class paradex extends Exchange {
         const duration = this.parseTimeframe (timeframe);
         const price = this.safeString (params, 'price');
         if (price !== undefined) {
-            request['price_kind'] = price;
+            // the exchange names the index price "underlying" and rejects "index"
+            request['price_kind'] = (price === 'index') ? 'underlying' : price;
         }
         const [ requestUntil, paramsUntil ] = this.handleUntilOption ('end_at', request, params);
         const hasEnd = ('end_at' in request);
@@ -1981,38 +2022,46 @@ export default class paradex extends Exchange {
         }
         const response = await this.privatePostOrdersBatch (ordersRequests);
         //
-        // {
-        //     "errors": [
-        //         {
-        //             "error": "VALIDATION_ERROR",
-        //             "message": "Invalid order"
-        //         }
-        //     ],
-        //     "orders": [
-        //         {
-        //             "id": "123456",
-        //             "market": "BTC-USD-PERP",
-        //             "side": "BUY",
-        //             "type": "LIMIT",
-        //             "price": "26000",
-        //             "size": "0.05",
-        //             "status": "NEW"
-        //         }
-        //     ]
-        // }
+        // orders and errors are index-aligned with the request, null where the other array has the entry
         //
-        const responseOrders: Dict[] = this.safeList (response, 'orders', []);
-        const parsedOrders = this.parseOrders (responseOrders);
+        //     {
+        //         "errors": [
+        //             null,
+        //             {
+        //                 "error": "DUPLICATED_CLIENT_ID",
+        //                 "message": "duplicated client order id"
+        //             }
+        //         ],
+        //         "orders": [
+        //             {
+        //                 "id": "123456",
+        //                 "market": "BTC-USD-PERP",
+        //                 "side": "BUY",
+        //                 "type": "LIMIT",
+        //                 "price": "26000",
+        //                 "size": "0.05",
+        //                 "status": "NEW"
+        //             },
+        //             null
+        //         ]
+        //     }
+        //
+        const responseOrders = this.safeList (response, 'orders', []) as List;
         const errors = this.safeList (response, 'errors', []) as List;
-        const rejected: Order[] = [];
-        for (let i = 0; i < errors.length; i++) {
-            const error = errors[i];
-            rejected.push (this.safeOrder ({
-                'info': error,
-                'status': 'rejected',
-            }));
+        const result: Order[] = [];
+        for (let i = 0; i < orders.length; i++) {
+            const responseOrder = this.safeDict (responseOrders, i);
+            if (responseOrder !== undefined) {
+                result.push (this.parseOrder (responseOrder));
+            } else {
+                const error = this.safeDict (errors, i);
+                result.push (this.safeOrder ({
+                    'info': error,
+                    'status': 'rejected',
+                }));
+            }
         }
-        return this.arrayConcat (parsedOrders, rejected);
+        return result;
     }
 
     /**
@@ -3525,7 +3574,25 @@ export default class paradex extends Exchange {
         //         "message": "User has never called /onboarding endpoint"
         //     }
         //
-        const errorCode = this.safeString (response, 'error');
+        let errorCode = this.safeString (response, 'error');
+        if ((errorCode === undefined) && (httpCode === 400)) {
+            //
+            // a batch where every order was rejected, errors are index-aligned with the request
+            //
+            //     {
+            //         "errors": [ { "error": "DUPLICATED_CLIENT_ID", "message": "..." } ],
+            //         "orders": [ null ]
+            //     }
+            //
+            const batchErrors = this.safeList (response, 'errors', []) as List;
+            for (let i = 0; i < batchErrors.length; i++) {
+                const batchErrorCode = this.safeString (batchErrors[i], 'error');
+                if (batchErrorCode !== undefined) {
+                    errorCode = batchErrorCode;
+                    break;
+                }
+            }
+        }
         if (errorCode !== undefined) {
             const feedback = this.id + ' ' + body;
             this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
