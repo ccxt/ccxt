@@ -789,7 +789,7 @@ export default class flyingtulip extends Exchange {
         return response;
     }
 
-    assertQuoteVersion (quote: Dict, config: Dict): void {
+    assertQuoteVersion (quote: Dict, config: Dict) {
         const engineVersion = this.safeInteger (config, 'engineVersion', 1);
         const quotedVersion = this.safeInteger (quote, 'engineVersion');
         if ((quotedVersion !== undefined) && (quotedVersion !== engineVersion)) {
@@ -907,7 +907,7 @@ export default class flyingtulip extends Exchange {
         return '0x' + signature['r'] + signature['s'] + this.intToBase16 (this.sum (signature['v'], 27));
     }
 
-    checkOrderOptions (type: string, side: string, params: Dict): void {
+    checkOrderOptions (type: string, side: string, params: Dict) {
         if ((type !== 'market') && (type !== 'limit')) {
             throw new NotSupported (this.id + ' supports market and limit orders');
         }
@@ -1301,7 +1301,7 @@ export default class flyingtulip extends Exchange {
         return this.safeOrder (result, (symbol === undefined) ? undefined : this.market (symbol));
     }
 
-    checkAccountRisk (chain: Dict, assets: any[], debt: Dict, bought: Dict, sellRaw: string, buyRaw: string, feeRaw: string, config: Dict, action: int = 0): void {
+    checkAccountRisk (chain: Dict, assets: any[], debt: Dict, bought: Dict, sellRaw: string, buyRaw: string, feeRaw: string, config: Dict, action: int = 0) {
         const user = this.safeDict (chain, 'userMetrics', {});
         const equity = this.safeString (user, 'equityUsd');
         const minEquity = this.safeString (chain, 'minEquityRequirementUsd');
