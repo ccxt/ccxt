@@ -1287,6 +1287,8 @@ function goSliceIndexSelfTest (): string[] {
     ok (f (sd, '\t\tvar a string = GetValue(s, i).(string)\n').indexOf ('var a string = s[i]\n') >= 0, 'asserted read goes native');
     ok (f (sd, '\t\tr = Add(r, GetValue(s, i))\n').indexOf ('Add(r, s[i])') >= 0, 'bare read goes native');
     const pl = '\tvar s []any = ListTyped(r1.Value)\n';
+    const pe = '\tvar s []any = ListTyped(PanicOnError((<-promiseAll(ps))))\n';
+    ok (f (pe, '\t\tr = this.ArrayConcat(r, GetValue(s, i))\n').indexOf ('this.ArrayConcat(r, s[i])') >= 0, 'unsplit promiseAll receive goes native');
     ok (f (pl, '\t\tr = this.ArrayConcat(r, GetValue(s, i))\n').indexOf ('this.ArrayConcat(r, s[i])') >= 0, 'promiseAll list as ArrayConcat operand goes native');
     ok (f (pl, '\t\tr = Add(r, GetValue(s, i))\n').indexOf ('GetValue(s, i)') >= 0, 'promiseAll list elsewhere keeps GetValue');
     ok (f (pl, '\t\tvar a any = GetValue(s, i)\n').indexOf ('GetValue(s, i)') >= 0, 'promiseAll list plain local keeps GetValue');
@@ -3002,7 +3004,7 @@ function goTextLoopBoundIsLen (maskedLines: string[], blocks: any[], depth: numb
 }
 
 // hx11 w8: a promiseAll result list; its elements may be scalar boxes, so only an ArrayConcat operand (which derefs) reads natively
-const GO_PROMISE_LIST = /^[ \t]*(?:var )?[A-Za-z_]\w* \[\]any = (?:ccxt\.)?ListTyped\(r\d*\.Value\)$/;
+const GO_PROMISE_LIST = /^[ \t]*(?:var )?[A-Za-z_]\w* \[\]any = (?:ccxt\.)?ListTyped\((?:r\d*\.Value|(?:ccxt\.)?PanicOnError\(\(<-(?:ccxt\.)?[pP]romiseAll\(.*\)\)\))\)$/;
 
 // `[ccxt.]GetValue(s, i)[.(string)]` -> `s[i]` anywhere in the body of `for i := 0; i < len(s); i++ {`
 // when `s` is declared once in the func as `[]string` and never written, `i` is not written in
