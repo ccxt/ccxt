@@ -420,7 +420,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             List<Object> markets = new ArrayList<Object>(Arrays.asList());
             List<String> messageHashes = new ArrayList<String>(Arrays.asList());
             List<Object> subscriptionParams = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)symbolsAndTimeframes).size(); i++)
+            for (var i = 0; (symbolsLength != null && i < symbolsLength); i++)
             {
                 List<Object> symbolAndTimeframe = (List<Object>) this.safeList(symbolsAndTimeframes, i, (Object) null);
                 String marketSymbol = this.safeString(symbolAndTimeframe, 0);
@@ -491,7 +491,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             List<Object> markets = new ArrayList<Object>(Arrays.asList());
             List<String> messageHashes = new ArrayList<String>(Arrays.asList());
             List<Object> subscriptionParams = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)symbolsAndTimeframes).size(); i++)
+            for (var i = 0; (symbolsLength != null && i < symbolsLength); i++)
             {
                 List<Object> symbolAndTimeframe = (List<Object>) this.safeList(symbolsAndTimeframes, i, (Object) null);
                 String marketSymbol = this.safeString(symbolAndTimeframe, 0);
