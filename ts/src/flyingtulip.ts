@@ -773,7 +773,7 @@ export default class flyingtulip extends Exchange {
     }
 
     async quote (sellToken: string, buyToken: string, sellAmount: string, feeAmount: string, action: string, slippageBps: int): Promise<Dict> {
-        if ((slippageBps < 0) || (slippageBps >= 10000) || (Math.floor (slippageBps) !== slippageBps)) {
+        if ((slippageBps < 0) || (slippageBps >= 10000) || !this.isDigits (this.numberToString (slippageBps))) {
             throw new InvalidOrder (this.id + ' slippageBps must be an integer in [0, 10000)');
         }
         const response = await this.publicPostMmLeverageQuote ({
@@ -788,8 +788,8 @@ export default class flyingtulip extends Exchange {
     }
 
     async quoteExactOut (sellToken: string, buyToken: string, buyAmount: string, action: string, slippageBps: int): Promise<Dict> {
-        if ((slippageBps < 0) || (slippageBps >= 10000)) {
-            throw new InvalidOrder (this.id + ' slippageBps must be in [0, 10000)');
+        if ((slippageBps < 0) || (slippageBps >= 10000) || !this.isDigits (this.numberToString (slippageBps))) {
+            throw new InvalidOrder (this.id + ' slippageBps must be an integer in [0, 10000)');
         }
         const response = await this.publicPostMmLeverageQuote ({
             'chainId': this.chainId (), 'mode': 'exactOut', 'sellToken': sellToken, 'buyToken': buyToken,
@@ -1025,7 +1025,7 @@ export default class flyingtulip extends Exchange {
      * @param {string} symbol unified market symbol
      * @param {string} type market or limit
      * @param {string} side buy or sell; a close must oppose the position side
-     * @param {float|string} amount base-token amount; omit for a market buy with params.cost
+     * @param {float|string} amount base-token amount; omit or pass zero for a market buy with params.cost
      * @param {float|string} [price] limit price in market quote units
      * @param {object} [params] extra exchange-specific parameters
      * @param {int} [params.chainId] must match options.chainId; use one instance per chain
@@ -1082,9 +1082,13 @@ export default class flyingtulip extends Exchange {
         if (!Precise.stringGt (marginRaw, '0')) {
             throw new InsufficientFunds (this.id + ' deposit collateral before opening exposure');
         }
-        const amountString = (amount === undefined) ? undefined : this.numberToString (amount);
+        let amountString = (amount === undefined) ? undefined : this.numberToString (amount);
         const explicitDebt = this.safeString (params, 'debtToken');
         let quoteCost = this.safeString (params, 'cost');
+        // Unified clients with a nonnullable numeric amount use zero for a cost-only buy.
+        if ((type === 'market') && (side === 'buy') && (quoteCost !== undefined) && (amountString === '0')) {
+            amountString = undefined;
+        }
         const exactOut = (side === 'buy') && (type === 'market') && (quoteCost === undefined);
         if ((side === 'buy') && (quoteCost === undefined)) {
             if (amountString === undefined) {
@@ -1230,7 +1234,7 @@ export default class flyingtulip extends Exchange {
      * @param {string} symbol unified market symbol
      * @param {string} type market or limit
      * @param {string} side buy or sell; a close must oppose the position side
-     * @param {float|string} amount base-token amount; omit for a market buy with params.cost
+     * @param {float|string} amount base-token amount; omit or pass zero for a market buy with params.cost
      * @param {float|string} [price] limit price in market quote units
      * @param {object} [params] extra exchange-specific parameters
      * @param {int} [params.chainId] must match options.chainId; use one instance per chain
