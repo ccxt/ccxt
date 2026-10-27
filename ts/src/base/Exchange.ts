@@ -3589,7 +3589,10 @@ export class BaseExchange {
                     }
                 }
                 if (fromStart) {
-                    const limitResolved: Int = (limit > arrayLength) ? arrayLength : limit;
+                    let limitResolved: Int = limit;
+                    if (limit > arrayLength) {
+                        limitResolved = arrayLength;
+                    }
                     if (ascending) {
                         return this.arraySlice (array, 0, limitResolved);
                     }
@@ -3643,10 +3646,10 @@ export class BaseExchange {
                 // safeValue (not entry[field]) so a missing field is a non-match, not a
                 // KeyError in python/php — prediction structures key on outcome, not symbol
                 const entryFiledEqualValue = this.safeValue (entry, field) === value;
-                const firstCondition: boolean = valueIsDefined ? entryFiledEqualValue : true;
+                const firstCondition: boolean = !valueIsDefined || entryFiledEqualValue;
                 const entryKeyValue = this.safeInteger (entry, key);
                 const entryKeyGESince = (entryKeyValue !== undefined) && (entryKeyValue !== 0) && (since !== undefined) && (entryKeyValue >= since);
-                const secondCondition: boolean = sinceIsDefined ? entryKeyGESince : true;
+                const secondCondition: boolean = !sinceIsDefined || entryKeyGESince;
                 if (firstCondition && secondCondition) {
                     result.push (entry);
                 }
