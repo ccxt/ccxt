@@ -307,8 +307,8 @@ export default class opinion extends Exchange {
         const outcomes: any[] = [];
         let resolvedOutcome: Str = undefined;
         for (let i = 0; i < outcomeLabels.length; i++) {
-            const label = outcomeLabels[i];
-            const tokenId = outcomeTokenIds[i];
+            const label = this.safeString (outcomeLabels, i);
+            const tokenId = this.safeString (outcomeTokenIds, i);
             const outcomeHandle = this.slugToOutcomeSymbol (effectiveEventSlug, slug, label);
             let winner: Bool = undefined;
             let settleFraction: Num = undefined;
@@ -749,8 +749,8 @@ export default class opinion extends Exchange {
         for (let i = 0; i < outcomesLength; i++) {
             const outcomeObj = this.outcome (outcomes[i]);
             const priceIndex = i * 2;
-            const priceResponse = responses[priceIndex];
-            const bookResponse = responses[this.sum (priceIndex, 1)];
+            const priceResponse = this.safeValue (responses, priceIndex);
+            const bookResponse = this.safeValue (responses, this.sum (priceIndex, 1));
             const response: Dict = { 'price': priceResponse, 'book': bookResponse };
             const ticker = this.parsePredictionTicker (response, outcomeObj as any);
             const symbolKey = this.safeString (ticker, 'outcome');
@@ -950,7 +950,7 @@ export default class opinion extends Exchange {
         };
         const encoded = this.ethEncodeStructuredData (domain, messageTypes, order);
         const sig = this.signMessage (encoded, this.privateKey);
-        return '0x' + this.remove0xPrefix (sig['r']) + this.remove0xPrefix (sig['s']) + this.intToBase16 (sig['v']);
+        return '0x' + this.remove0xPrefix (this.safeString (sig, 'r')) + this.remove0xPrefix (this.safeString (sig, 's')) + this.intToBase16 (this.safeInteger (sig, 'v'));
     }
 
     opinionOrderRawAmounts (isMarket: boolean, side: string, amount: Num, price: Num, decimals: Int): Dict {
@@ -1556,7 +1556,7 @@ export default class opinion extends Exchange {
         };
         const encoded = this.ethEncodeStructuredData (domain, messageTypes, messageData);
         const sig = this.signMessage (encoded, this.privateKey);
-        return '0x' + this.remove0xPrefix (sig['r']) + this.remove0xPrefix (sig['s']) + this.intToBase16 (sig['v']);
+        return '0x' + this.remove0xPrefix (this.safeString (sig, 'r')) + this.remove0xPrefix (this.safeString (sig, 's')) + this.intToBase16 (this.safeInteger (sig, 'v'));
     }
 
     /**
