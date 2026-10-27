@@ -72,7 +72,7 @@ export default class cex extends cexRest {
     override async watchBalance (params: Dict = {}): Promise<Balances> {
         await this.authenticate (params);
         const messageHash = this.requestId ();
-        const url = this.urls['api']['ws'];
+        const url = this.safeString (this.urls['api'], 'ws', '');
         const subscribe: Dict = {
             'e': 'get-balance',
             'data': {},
@@ -152,8 +152,8 @@ export default class cex extends cexRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const symbolValue: string = market['symbol'];
-        const url = this.urls['api']['ws'];
+        const symbolValue: string = this.safeString (market, 'symbol', '');
+        const url = this.safeString (this.urls['api'], 'ws', '');
         const messageHash = 'trades';
         const subscriptionHash = 'old:' + symbolValue;
         const client: Client = this.safeValue (this.clients, url);
@@ -170,8 +170,8 @@ export default class cex extends cexRest {
                 }
             }
         }
-        const baseId: string = market['base'];
-        const quoteId: string = market['quote'];
+        const baseId: string = this.safeString (market, 'base', '');
+        const quoteId: string = this.safeString (market, 'quote', '');
         const message: Dict = {
             'e': 'subscribe',
             'rooms': [ 'pair-' + baseId + '-' + quoteId ],
@@ -281,8 +281,8 @@ export default class cex extends cexRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const symbolValue: string = market['symbol'];
-        const url = this.urls['api']['ws'];
+        const symbolValue: string = this.safeString (market, 'symbol', '');
+        const url = this.safeString (this.urls['api'], 'ws', '');
         const messageHash = 'ticker:' + symbolValue;
         const method = this.safeString (params, 'method', 'private'); // default to private because the specified ticker is received quicker
         let message: Dict = {
@@ -321,7 +321,7 @@ export default class cex extends cexRest {
             await this.loadMarkets ();
         }
         const symbolsNormalized: Strings = this.marketSymbols (symbols);
-        const url = this.urls['api']['ws'];
+        const url = this.safeString (this.urls['api'], 'ws', '');
         const messageHash = 'tickers';
         const message: Dict = {
             'e': 'subscribe',
@@ -359,7 +359,7 @@ export default class cex extends cexRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const url = this.urls['api']['ws'];
+        const url = this.safeString (this.urls['api'], 'ws', '');
         const messageHash = this.requestId ();
         const request = this.extend ({
             'e': 'ticker',
@@ -475,7 +475,7 @@ export default class cex extends cexRest {
             await this.loadMarkets ();
         }
         await this.authenticate ();
-        const url = this.urls['api']['ws'];
+        const url = this.safeString (this.urls['api'], 'ws', '');
         const messageHash = this.requestId ();
         const request = this.extend ({
             'e': 'get-balance',
@@ -503,7 +503,7 @@ export default class cex extends cexRest {
             await this.loadMarkets ();
         }
         await this.authenticate (params);
-        const url = this.urls['api']['ws'];
+        const url = this.safeString (this.urls['api'], 'ws', '');
         const market = this.market (symbol);
         const symbolValue: Str = market['symbol'];
         const messageHash = 'orders:' + symbolValue;
@@ -545,9 +545,9 @@ export default class cex extends cexRest {
             await this.loadMarkets ();
         }
         await this.authenticate (params);
-        const url = this.urls['api']['ws'];
+        const url = this.safeString (this.urls['api'], 'ws', '');
         const market = this.market (symbol);
-        const symbolValue: string = market['symbol'];
+        const symbolValue: string = this.safeString (market, 'symbol', '');
         const messageHash = 'myTrades:' + symbolValue;
         const subscriptionHash = 'orders:' + symbolValue;
         const message: Dict = {
@@ -1003,8 +1003,8 @@ export default class cex extends cexRest {
         }
         await this.authenticate ();
         const market = this.market (symbol);
-        const symbolValue: string = market['symbol'];
-        const url = this.urls['api']['ws'];
+        const symbolValue: string = this.safeString (market, 'symbol', '');
+        const url = this.safeString (this.urls['api'], 'ws', '');
         const messageHash = 'orderbook:' + symbolValue;
         const depth = (limit === undefined) ? 0 : limit;
         const subscribe: Dict = {
@@ -1155,9 +1155,9 @@ export default class cex extends cexRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const symbolValue: string = market['symbol'];
+        const symbolValue: string = this.safeString (market, 'symbol', '');
         const messageHash = 'ohlcv:' + symbolValue;
-        const url = this.urls['api']['ws'];
+        const url = this.safeString (this.urls['api'], 'ws', '');
         const baseId = this.safeString (market, 'baseId', '');
         const quoteId = this.safeString (market, 'quoteId', '');
         const request: Dict = {
@@ -1334,7 +1334,7 @@ export default class cex extends cexRest {
         const data = this.extend ({
             'order_id': id.toString (),
         }, params);
-        const url = this.urls['api']['ws'];
+        const url = this.safeString (this.urls['api'], 'ws', '');
         const messageHash = this.requestId ();
         const request: Dict = {
             'e': 'get-order',
@@ -1365,7 +1365,7 @@ export default class cex extends cexRest {
         }
         await this.authenticate ();
         const market = this.market (symbol);
-        const url = this.urls['api']['ws'];
+        const url = this.safeString (this.urls['api'], 'ws', '');
         const messageHash = this.requestId ();
         const data = this.extend ({
             'pair': [ market['baseId'], market['quoteId'] ],
@@ -1402,7 +1402,7 @@ export default class cex extends cexRest {
         }
         await this.authenticate ();
         const market = this.market (symbol);
-        const url = this.urls['api']['ws'];
+        const url = this.safeString (this.urls['api'], 'ws', '');
         const messageHash = this.requestId ();
         const data = this.extend ({
             'pair': [ market['baseId'], market['quoteId'] ],
@@ -1453,7 +1453,7 @@ export default class cex extends cexRest {
             'order_id': id,
         }, params);
         const messageHash = this.requestId ();
-        const url = this.urls['api']['ws'];
+        const url = this.safeString (this.urls['api'], 'ws', '');
         const request: Dict = {
             'e': 'cancel-replace-order',
             'oid': messageHash,
@@ -1486,7 +1486,7 @@ export default class cex extends cexRest {
             'order_id': id,
         }, params);
         const messageHash = this.requestId ();
-        const url = this.urls['api']['ws'];
+        const url = this.safeString (this.urls['api'], 'ws', '');
         const request: Dict = {
             'e': 'cancel-order',
             'oid': messageHash,
@@ -1518,7 +1518,7 @@ export default class cex extends cexRest {
         const data = this.extend ({
             'cancel-orders': ids,
         }, params);
-        const url = this.urls['api']['ws'];
+        const url = this.safeString (this.urls['api'], 'ws', '');
         const request: Dict = {
             'e': 'mass-cancel-place-orders',
             'oid': messageHash,
@@ -1654,7 +1654,7 @@ export default class cex extends cexRest {
     }
 
     async authenticate (params: Dict = {}) {
-        const url = this.urls['api']['ws'];
+        const url = this.safeString (this.urls['api'], 'ws', '');
         const client = this.client (url);
         const messageHash = 'authenticated';
         const future = client.reusableFuture ('authenticated');
