@@ -5964,7 +5964,7 @@ export class BaseExchange {
         return [ networkCodeInParams, paramsOmitted ];
     }
 
-    selectNetworkKeyFromNetworks (currencyCode: string, networkCode: Str, indexedNetworkEntries: any, isIndexedByUnifiedNetworkCode = false): Str {
+    selectNetworkKeyFromNetworks (currencyCode: string, networkCode: Str, indexedNetworkEntries: Dict, isIndexedByUnifiedNetworkCode = false): Str {
         // this method is used against raw & unparse network entries, which are just indexed by network id
         let chosenNetworkId: Str = undefined;
         const availableNetworkIds = Object.keys (indexedNetworkEntries);
