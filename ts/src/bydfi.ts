@@ -2462,7 +2462,7 @@ export default class bydfi extends Exchange {
             await this.loadMarkets ();
         }
         let positionType: Str = 'ONEWAY';
-        if (hedged) {
+        if (hedged === true) {
             positionType = 'HEDGE';
         }
         const wallet = 'W001';
