@@ -4396,10 +4396,10 @@ class BaseExchange(object):
         debtBalance = {}
         for i in range(0, len(codes)):
             code = codes[i]
-            total = self.safe_string(balance[code], 'total')
-            free = self.safe_string(balance[code], 'free')
-            used = self.safe_string(balance[code], 'used')
-            debt = self.safe_string(balance[code], 'debt')
+            total = self.safe_string(balances[code], 'total')
+            free = self.safe_string(balances[code], 'free')
+            used = self.safe_string(balances[code], 'used')
+            debt = self.safe_string(balances[code], 'debt')
             if (total is None) and (free is not None) and (used is not None):
                 total = Precise.string_add(free, used)
             if (free is None) and (total is not None) and (used is not None):
@@ -4469,13 +4469,13 @@ class BaseExchange(object):
                 tradesLength = len(trades)
             if isArray and (tradesLength > 0):
                 # move properties that are defined in trades up into the order
-                if orderDict['symbol'] is None:
+                if parseSymbol:
                     orderDict['symbol'] = trades[0]['symbol']
-                if orderDict['side'] is None:
+                if parseSide:
                     orderDict['side'] = trades[0]['side']
-                if orderDict['type'] is None:
+                if self.safe_string(orderDict, 'type') is None:
                     orderDict['type'] = trades[0]['type']
-                if orderDict['id'] is None:
+                if self.safe_string(orderDict, 'id') is None:
                     orderDict['id'] = trades[0]['order']
                 if parseFilled:
                     filled = '0'
@@ -4493,7 +4493,7 @@ class BaseExchange(object):
                         symbol = self.safe_string(trade, 'symbol')
                     if parseSide:
                         side = self.safe_string(trade, 'side')
-                    tradeTimestamp = self.safe_value(trade, 'timestamp')
+                    tradeTimestamp = self.safe_integer(trade, 'timestamp')
                     if parseLastTradeTimeTimestamp and (tradeTimestamp is not None):
                         if lastTradeTimeTimestamp is None:
                             lastTradeTimeTimestamp = tradeTimestamp
@@ -4581,7 +4581,7 @@ class BaseExchange(object):
             else:
                 cost = Precise.string_mul(filledTimesContractSize, multiplyPrice)
         # support for market orders
-        orderType = self.safe_value(orderDict, 'type')
+        orderType = self.safe_string(orderDict, 'type')
         emptyPrice = (price is None) or Precise.string_equals(price, '0')
         if emptyPrice and (orderType == 'market'):
             price = average
