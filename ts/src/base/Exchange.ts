@@ -4757,7 +4757,7 @@ export class BaseExchange {
     }
 
     safeBalance (balance: Dict): Balances {
-        const balances = this.omit (balance, [ 'info', 'timestamp', 'datetime', 'free', 'used', 'total' ]);
+        const balances: Dict = this.omit (balance, [ 'info', 'timestamp', 'datetime', 'free', 'used', 'total' ]);
         const codes = Object.keys (balances);
         balance['free'] = {};
         balance['used'] = {};
@@ -4765,10 +4765,10 @@ export class BaseExchange {
         const debtBalance: Dict = {};
         for (let i = 0; i < codes.length; i++) {
             const code = codes[i];
-            let total = this.safeString (balance[code], 'total');
-            let free = this.safeString (balance[code], 'free');
-            let used = this.safeString (balance[code], 'used');
-            const debt = this.safeString (balance[code], 'debt');
+            let total = this.safeString (balances[code], 'total');
+            let free = this.safeString (balances[code], 'free');
+            let used = this.safeString (balances[code], 'used');
+            const debt = this.safeString (balances[code], 'debt');
             if ((total === undefined) && (free !== undefined) && (used !== undefined)) {
                 total = Precise.stringAdd (free, used);
             }
