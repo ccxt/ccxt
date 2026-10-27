@@ -311,7 +311,7 @@ export default class deribit extends deribitRest {
         const channels: List = [];
         for (let i = 0; i < (symbolsNormalized as string[]).length; i++) {
             const market = this.market ((symbolsNormalized as string[])[i]);
-            channels.push ('quote.' + market['id']);
+            channels.push ('quote.' + this.safeString (market, 'id', ''));
         }
         const message: Dict = {
             'jsonrpc': '2.0',
@@ -657,8 +657,7 @@ export default class deribit extends deribitRest {
             const interval = this.safeString (parts, 4, '');
             descriptor = this.safeString (parts, 2, '') + '.' + this.safeString (parts, 3, '') + '.' + interval;
         } else {
-            const interval = this.safeString (parts, 2, '');
-            descriptor = interval;
+            descriptor = this.safeString (parts, 2, '');
         }
         const marketId = this.safeString (data, 'instrument_name');
         const symbol = this.safeSymbol (marketId);
@@ -941,16 +940,15 @@ export default class deribit extends deribitRest {
             if (symbolsArray === undefined) {
                 throw new ArgumentsRequired (this.id + ' watchMultipleWrapper() symbolsArray is required');
             }
-            const current = symbolsArray[i];
             let market: Market = undefined;
             let currentDescriptor: Str = undefined;
             if (isOHLCV) {
                 const currentPair = this.safeList (symbolsArray, i, []);
-                market = this.market (currentPair[0]);
-                const unifiedTf = currentPair[1];
+                market = this.market (this.safeString (currentPair, 0));
+                const unifiedTf = this.safeString (currentPair, 1);
                 currentDescriptor = this.safeString (this.timeframes, unifiedTf, unifiedTf);
             } else {
-                market = this.market (current);
+                market = this.market (this.safeString (symbolsArray, i));
                 currentDescriptor = channelDescriptor;
             }
             const message = channelName + '.' + this.safeString (market, 'id', '') + '.' + currentDescriptor;

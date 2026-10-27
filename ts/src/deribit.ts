@@ -3343,7 +3343,7 @@ export default class deribit extends Exchange {
         const paramsUntil: Dict = (until !== undefined) ? this.omit (paramsPaginate, [ 'until' ]) : paramsPaginate;
         const endTimestamp: int = (until !== undefined) ? until : time;
         request['end_timestamp'] = endTimestamp;
-        const isPaginationCall = ('isDeribitPaginationCall' in paramsUntil);
+        const isPaginationCall = this.safeBool (paramsUntil, 'isDeribitPaginationCall', false);
         let paramsOmitted: Dict = paramsUntil;
         if (isPaginationCall) {
             paramsOmitted = this.omit (paramsUntil, 'isDeribitPaginationCall');
