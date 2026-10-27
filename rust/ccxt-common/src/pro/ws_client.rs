@@ -1036,6 +1036,27 @@ impl ClientHandle {
     pub fn as_map(&self) -> Option<&indexmap::IndexMap<String, Value>> {
         self.value.as_map()
     }
+
+    /// `delete client.subscriptions[key]`: drops the live client's entry and
+    /// the handle's snapshot entry (what `remove(&mut subscriptions, key)` did).
+    pub fn remove_subscription(&mut self, key: &Value) {
+        if let (Value::Dict(m), Value::Str(k)) = (&mut self.subscriptions, key) {
+            crate::value::try_ws_subs_remove(m, k);
+            Arc::make_mut(m).shift_remove(k.as_ref());
+        }
+    }
+
+    /// `client.subscriptions[key] = val`: writes the live client and the
+    /// handle's snapshot (what `add_element_to_object(&mut subscriptions, ..)` did).
+    pub fn add_subscription(&mut self, key: &Value, val: Value) {
+        match (&mut self.subscriptions, key) {
+            (Value::Dict(m), Value::Str(k)) => {
+                crate::value::try_ws_subs_write(m, k, &val);
+                Arc::make_mut(m).insert(k.to_string(), val);
+            }
+            (other, _) => crate::runtime::add_element_to_object(other, key, val),
+        }
+    }
     pub fn future(&self, args: &[Value]) -> Value {
         self.value.future(args)
     }
