@@ -3430,6 +3430,7 @@ export function formatGoSource (filePath: string, content: string): string {
     content = hx10w5G05Pass (content);  // hx10w5 G05: one ohlcv book per symbol, typed per timeframe
     content = hx10G15Pass (content);  // hx10 wave5 G15: option-dict field receivers
     content = og02IdBookPass (content);  // hx10w6 OG02: the id/nonce counter and last-response reads hand off to the request book owner
+    content = hx11m36MarketsByIdInOp (content);  // hx11 m36: after OG02 prints the Markets_by_id() accessor
     content = og06SyncMapArmsPass (content);  // hx10 w7 OG06: the resolved map coercion drops its *sync.Map arm where the producer cannot yield one
     content = gb08Pass (content, filePath);  // hx10 w8 GB08: prediction-tier element reads inside a len(list) loop
     content = gp19Pass (content, filePath);  // hx10 w9 GP19: venue + pro element reads inside a len(list) loop
@@ -9796,7 +9797,7 @@ async function runMain () {
         return;
     }
     if (process.argv.includes ('--self-test')) {
-        const problems = g10kArithSelfTest ().concat (hx4G17SelfTest ()).concat (goDerefWrapSelfTest ()).concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goTupleIndexSelfTest ()).concat (b02TupleSliceSlotSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (h2kG08SelfTest ()).concat (h2kG11SelfTest ()).concat (goEndpointListSelfTest ()).concat (goAsyncListSelfTest ()).concat (goG14SelfTest ()).concat (goDerefArgMapReadSelfTest ()).concat (goNativeStringAddSelfTest ()).concat (goChanSelfTest ()).concat (g10kDerefSelfTest ()).concat (g10kMaplistSelfTest ()).concat (g10kIsEqualSelfTest ()).concat (g10kGvMapSelfTest ()).concat (g10kStrSelfTest ()).concat (g10kLenSelfTest ()).concat (g10kTypepredSelfTest ()).concat (g10kInopSelfTest ()).concat (g10kArrSelfTest ()).concat (gvListSelfTest ()).concat (g10kMiscSelfTest ()).concat (goProvenParseSelfTest ()).concat (goErrSelfTest ()).concat (goStructReturnsSelfTest ()).concat (goChan3SelfTest ()).concat (goTickerCacheSelfTest ()).concat (hx4G05SelfTest ()).concat (hx4G07SelfTest ()).concat (hx4X01SelfTest ()).concat (hx4G10SelfTest ()).concat (g13AnnotatedSelfTest ()).concat (b02SafeBalanceSelfTest ()).concat (hx4G14MapWriteSelfTest ()).concat (g12SlotChecks ()).concat (g15StrReturnSelfTest ()).concat (hx4G16SelfTest ()).concat (hx4G18SelfTest ()).concat (hx4G19SelfTest ()).concat (hx4G20SelfTest ()).concat (hx4G21SelfTest ()).concat (hx4G22SelfTest ()).concat (hx4G23SelfTest ()).concat (hx4G24SelfTest ()).concat (hx4G25Check ()).concat (hx4G26SelfTest ()).concat (hx4G27SelfTest ()).concat (hx4G27Check ()).concat (hx4G28SelfTest ()).concat (hx4G29Check ()).concat (hx4G30SelfTest ()).concat (hx4G31Check ()).concat (hx4G32SelfTest ()).concat (hx4G33Check ()).concat (hx4G34Check ()).concat (hx4G35Check ()).concat (hx4G36Wired ()).concat (hx4G37Check ()).concat (hx4G38Check ()).concat (hx4G39Check ()).concat (hx4G40Check (hx4G36Aligner ())).concat (hx4G40Wired ()).concat (hx4G41Check ()).concat (hx4G42Check (hx4G36Aligner ())).concat (hx5X26Check ()).concat (hx4G43Wired ()).concat (hx5X27Check ()).concat (hx4G45Check (hx4G36Aligner ())).concat (hx4G45Wired ()).concat (hx5X29Check ()).concat (hx5X29Wired ()).concat (hx5X32StrParamSelfTest ()).concat (hx5P28Check ()).concat (hx10w2G01Check ()).concat (g02check ()).concat (hx10G03Check ()).concat (g04Check ()).concat (g04Wired ()).concat (hx10w2G05Check ()).concat (g06MapReadsSelfTest ()).concat (hx10w2G07SelfCheck ()).concat (hx10G08Check ()).concat (g09Check ()).concat (hx10G10SelfTest ()).concat (g01SubsCheck ()).concat (hx10w3G02SelfCheck ()).concat (g05Check (retypeGoProvenParseMethods)).concat (hx10G06Check ()).concat (hx10w3G07Check ()).concat (g08w3Check ()).concat (g09w3Check (formatGoSource)).concat (g10SelfCheck ()).concat (hx10w4OG01Check ()).concat (hx10OG02Check ()).concat (g10SelfCheck ()).concat (og03selfcheck ()).concat (g01Check ()).concat (g05check ()).concat (hx10G15Check ()).concat (og02IdBookCheck ()).concat (g21Check (formatGoSource)).concat (og03w6SelfCheck ()).concat (og05Check ()).concat (og03w6Wired (formatGoSource)).concat (hx10w6G01BalanceCheck ()).concat (g01BalanceWired (formatGoSource)).concat (hx10w9GB10Check ()).concat (hx10w9GB10Wired (formatGoSource)).concat (g04BookSidesCheck ()).concat (g04BookSidesWired ()).concat (hx10w6G11Check ()).concat (og06SelfCheck ()).concat (hx10w7G14SelfTest ()).concat (hx10w8GB01Check ()).concat (hx10w8GB05Check ()).concat (hx10w9GB11Check ()).concat (gb08Check ()).concat (gp19Check ()).concat (hx10w8Gp08SelfTest ()).concat (hx10w9Gp18SelfTest ()).concat (hx10w9Gp18Wired ()).concat (hx10w8GO04Check ()).concat (gp14SelfTest ()).concat (gb09Check ()).concat (hx10w9GO05Check ()).concat (hx11M43Check ()).concat (hx10w10GP27Check ()).concat (hx10w10Gp26Check ()).concat (hx10w10Gp28Check ()).concat (hx10w10Gp28Wired (formatGoSource)).concat (hx10w9Gp17SelfTest ()).concat (hx10w10GP24Check ()).concat (hx10w10GP24Wired ()).concat (nativeGuardedListElementReadsSelfTest ()).concat (goAnyObjectKeysLengthSelfTest ()).concat (goGofmtLayoutSelfTest ()).concat (w8ClientFuturesSelfTest ()).concat (g04NativeBookReadsCheck ()).concat (hx11IsEqualBoolMethodCheck ()).concat (hx11w8PromiseAllSlotSelfTest ());
+        const problems = g10kArithSelfTest ().concat (hx4G17SelfTest ()).concat (goDerefWrapSelfTest ()).concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goTupleIndexSelfTest ()).concat (b02TupleSliceSlotSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (h2kG08SelfTest ()).concat (h2kG11SelfTest ()).concat (goEndpointListSelfTest ()).concat (goAsyncListSelfTest ()).concat (goG14SelfTest ()).concat (goDerefArgMapReadSelfTest ()).concat (goNativeStringAddSelfTest ()).concat (goChanSelfTest ()).concat (g10kDerefSelfTest ()).concat (g10kMaplistSelfTest ()).concat (g10kIsEqualSelfTest ()).concat (g10kGvMapSelfTest ()).concat (g10kStrSelfTest ()).concat (g10kLenSelfTest ()).concat (g10kTypepredSelfTest ()).concat (g10kInopSelfTest ()).concat (g10kArrSelfTest ()).concat (gvListSelfTest ()).concat (g10kMiscSelfTest ()).concat (goProvenParseSelfTest ()).concat (goErrSelfTest ()).concat (goStructReturnsSelfTest ()).concat (goChan3SelfTest ()).concat (goTickerCacheSelfTest ()).concat (hx4G05SelfTest ()).concat (hx4G07SelfTest ()).concat (hx4X01SelfTest ()).concat (hx4G10SelfTest ()).concat (g13AnnotatedSelfTest ()).concat (b02SafeBalanceSelfTest ()).concat (hx4G14MapWriteSelfTest ()).concat (g12SlotChecks ()).concat (g15StrReturnSelfTest ()).concat (hx4G16SelfTest ()).concat (hx4G18SelfTest ()).concat (hx4G19SelfTest ()).concat (hx4G20SelfTest ()).concat (hx4G21SelfTest ()).concat (hx4G22SelfTest ()).concat (hx4G23SelfTest ()).concat (hx4G24SelfTest ()).concat (hx4G25Check ()).concat (hx4G26SelfTest ()).concat (hx4G27SelfTest ()).concat (hx4G27Check ()).concat (hx4G28SelfTest ()).concat (hx4G29Check ()).concat (hx4G30SelfTest ()).concat (hx4G31Check ()).concat (hx4G32SelfTest ()).concat (hx4G33Check ()).concat (hx4G34Check ()).concat (hx4G35Check ()).concat (hx4G36Wired ()).concat (hx4G37Check ()).concat (hx4G38Check ()).concat (hx4G39Check ()).concat (hx4G40Check (hx4G36Aligner ())).concat (hx4G40Wired ()).concat (hx4G41Check ()).concat (hx4G42Check (hx4G36Aligner ())).concat (hx5X26Check ()).concat (hx4G43Wired ()).concat (hx5X27Check ()).concat (hx4G45Check (hx4G36Aligner ())).concat (hx4G45Wired ()).concat (hx5X29Check ()).concat (hx5X29Wired ()).concat (hx5X32StrParamSelfTest ()).concat (hx5P28Check ()).concat (hx10w2G01Check ()).concat (g02check ()).concat (hx10G03Check ()).concat (g04Check ()).concat (g04Wired ()).concat (hx10w2G05Check ()).concat (g06MapReadsSelfTest ()).concat (hx10w2G07SelfCheck ()).concat (hx10G08Check ()).concat (g09Check ()).concat (hx10G10SelfTest ()).concat (g01SubsCheck ()).concat (hx10w3G02SelfCheck ()).concat (g05Check (retypeGoProvenParseMethods)).concat (hx10G06Check ()).concat (hx10w3G07Check ()).concat (g08w3Check ()).concat (g09w3Check (formatGoSource)).concat (g10SelfCheck ()).concat (hx10w4OG01Check ()).concat (hx10OG02Check ()).concat (g10SelfCheck ()).concat (og03selfcheck ()).concat (g01Check ()).concat (g05check ()).concat (hx10G15Check ()).concat (og02IdBookCheck ()).concat (g21Check (formatGoSource)).concat (og03w6SelfCheck ()).concat (og05Check ()).concat (og03w6Wired (formatGoSource)).concat (hx10w6G01BalanceCheck ()).concat (g01BalanceWired (formatGoSource)).concat (hx10w9GB10Check ()).concat (hx10w9GB10Wired (formatGoSource)).concat (g04BookSidesCheck ()).concat (g04BookSidesWired ()).concat (hx10w6G11Check ()).concat (og06SelfCheck ()).concat (hx10w7G14SelfTest ()).concat (hx10w8GB01Check ()).concat (hx10w8GB05Check ()).concat (hx10w9GB11Check ()).concat (gb08Check ()).concat (gp19Check ()).concat (hx10w8Gp08SelfTest ()).concat (hx10w9Gp18SelfTest ()).concat (hx10w9Gp18Wired ()).concat (hx10w8GO04Check ()).concat (gp14SelfTest ()).concat (gb09Check ()).concat (hx10w9GO05Check ()).concat (hx11M43Check ()).concat (hx10w10GP27Check ()).concat (hx10w10Gp26Check ()).concat (hx10w10Gp28Check ()).concat (hx10w10Gp28Wired (formatGoSource)).concat (hx10w9Gp17SelfTest ()).concat (hx10w10GP24Check ()).concat (hx10w10GP24Wired ()).concat (nativeGuardedListElementReadsSelfTest ()).concat (goAnyObjectKeysLengthSelfTest ()).concat (goGofmtLayoutSelfTest ()).concat (w8ClientFuturesSelfTest ()).concat (g04NativeBookReadsCheck ()).concat (hx11IsEqualBoolMethodCheck ()).concat (hx11w8PromiseAllSlotSelfTest ()).concat (hx11m36SelfTest ());
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);
@@ -13260,6 +13261,102 @@ function hx4G07FieldInOp (content: string): string {
     return lines.join ('\n');
 }
 
+// ===== hx11 M36: InOp(this.Markets_by_id(), k) -> `if _, ok := this.Markets_by_id()[k]; ...` =====
+// Markets_by_id() is statically map[string]any (nil before load: a nil map reads ok=false like the helper).
+// The lookup moves into the if-init, so the key must already be a non-nil string at the `if`: a `string`
+// declaration, or a `*string` (dereferenced) that is never nil there: every write is a SafeString* call
+// with a literal default, or an earlier `if <k> == nil ... {` block of the func ends in return/continue.
+// Lone call in an if header, `ok` unused in the func. Any other shape keeps the helper.
+function hx11m36MarketsByIdInOp (content: string): string {
+    if (!/InOp\(this\.Markets_by_id\(\), /.test (content)) {
+        return content;
+    }
+    const lines = content.split ('\n');
+    const masked = goTextMaskLiteralsAndComments (content).split ('\n');
+    if (lines.length !== masked.length) {
+        return content;
+    }
+    let start = -1;
+    let maskedFunc = '';
+    let offsets: number[] = [];
+    for (let k = 0; k < lines.length; k++) {
+        if (lines[k].startsWith ('func ')) {
+            start = lines[k].startsWith ('func (this *') ? k : -1;
+            let end = k;
+            while ((end < lines.length) && (lines[end] !== '}')) {
+                end++;
+            }
+            maskedFunc = masked.slice (k, end + 1).join ('\n');
+            offsets = [];
+            let o = 0;
+            for (let j = k; (j <= end) && (j < lines.length); j++) {
+                offsets.push (o);
+                o += masked[j].length + 1;
+            }
+            continue;
+        }
+        if (lines[k] === '}') {
+            start = -1;
+            continue;
+        }
+        if ((start < 0) || /\bok\b/.test (maskedFunc)) {
+            continue;
+        }
+        const cond = /^(\s*(?:\} else )?if )([^;{}]*) \{$/.exec (masked[k]);
+        const calls = [ ...masked[k].matchAll (/(?<![\w.])(?:ccxt\.)?InOp\(/g) ];
+        if ((cond === null) || (calls.length !== 1)) {
+            continue;
+        }
+        const at = calls[0].index;
+        const call = /^(?:ccxt\.)?InOp\((this\.Markets_by_id\(\)), (\w+)\)/.exec (lines[k].substring (at));
+        if ((call === null) || (goMapWriteGroupEnd (masked[k], at + call[0].indexOf ('(')) !== at + call[0].length)) {
+            continue;
+        }
+        const [ all, recv, key ] = call;
+        const decl = goAccessSingleDeclaration (maskedFunc, lines[start], key);
+        if ((decl === undefined) || ((decl.index !== undefined) && (decl.index >= offsets[k - start]))) {
+            continue;
+        }
+        let text = key;
+        if (decl.type === '*string') {
+            let nonNil = (decl.index !== undefined) && goG14NonNilStringPtr (lines.slice (start, k + 1).join ('\n'), key);
+            // an earlier `if <k> == nil {` block (alone or as an `||` operand) whose body is a lone return/continue
+            for (let j = k - 3; !nonNil && (j > start) && (j > k - 12); j--) {
+                const head = /^\s*if (.*) \{$/.exec (masked[j]);
+                nonNil = (head !== null) && /^\s*(?:return\b.*|continue)$/.test (masked[j + 1]) && /^\s*\}$/.test (masked[j + 2])
+                    && goMapWriteTopLevelParts (head[1], '||').some ((c) => new RegExp ('^\\(?\\s*' + key + ' == nil\\s*\\)?$').test (c.trim ()))
+                    && !masked.slice (j + 3, k).some ((l) => goTextWritesName (l, key));
+            }
+            if (!nonNil) {
+                continue;
+            }
+            text = '*' + key;
+        } else if (decl.type !== 'string') {
+            continue;
+        }
+        let rest = lines[k].substring (cond[1].length, at) + 'ok' + lines[k].substring (at + all.length);
+        rest = rest.replace (/(^|[^\w)\]])\(ok\)/g, '$1ok');
+        lines[k] = cond[1] + '_, ok := ' + recv + '[' + text + ']; ' + rest;
+        masked[k] = lines[k];
+    }
+    return lines.join ('\n');
+}
+
+function hx11m36SelfTest (): string[] {
+    const problems: string[] = [];
+    const ok = (condition: boolean, message: string) => { if (!condition) { problems.push ('hx11-m36: ' + message); } };
+    const f = (sig: string, body: string) => hx11m36MarketsByIdInOp ('func (this *X) H(' + sig + ') {\n' + body + '}\n');
+    const nativeStr = f ('', '\tvar s string = "a"\n\tif (this.Markets_by_id() == nil) || !(InOp(this.Markets_by_id(), s)) {\n\t}\n');
+    ok (nativeStr.includes ('if _, ok := this.Markets_by_id()[s]; (this.Markets_by_id() == nil) || !ok {'), 'string key');
+    ok (f ('', '\tvar s *string = this.SafeString(r, "a", "")\n\tif InOp(this.Markets_by_id(), s) {\n\t}\n').includes ('this.Markets_by_id()[*s]; ok {'), 'default-literal SafeString key');
+    ok (f ('', '\tvar s *string = this.SafeString(r, "a")\n\tif InOp(this.Markets_by_id(), s) {\n\t}\n').includes ('InOp('), 'nilable *string keeps the helper');
+    ok (f ('', '\tvar s *string = this.SafeString(r, "a")\n\tif s == nil {\n\t\tcontinue\n\t}\n\tif (this.Markets_by_id() == nil) || !(InOp(this.Markets_by_id(), s)) {\n\t}\n').includes ('[*s]; (this.Markets_by_id() == nil) || !ok {'), 'nil-exit above');
+    ok (f ('', '\tvar s *string = this.SafeString(r, "a")\n\tif (s != nil) && (InOp(this.Markets_by_id(), s)) {\n\t}\n').includes ('InOp('), 'guard inside the condition keeps the helper');
+    ok (f ('s any', '\tif InOp(this.Markets_by_id(), s) {\n\t}\n').includes ('InOp('), 'any key keeps the helper');
+    ok (f ('', '\tvar s string = "a"\n\tif InOp(this.Markets(), s) {\n\t}\n').includes ('InOp('), 'other receivers untouched');
+    return problems;
+}
+
 function hx4G07SelfTest (): string[] {
     const problems: string[] = [];
     const ok = (condition: boolean, message: string) => { if (!condition) { problems.push ('hx4-G07: ' + message); } };
@@ -14302,6 +14399,7 @@ function hx4G20BaseNativePasses (content: string): string {
     content = hx10OG05Pass (content);  // hx10 w7 OG05: base/quote currencies + transactions published
     content = g01UrlsViews (content);  // hx10w5 G01: typed urls views + the refreshes after each urls write
     content = og02IdBookPass (content);  // hx10w6 OG02: base cleanRestData + incrementingNonce hand off to the request book owner
+    content = hx11m36MarketsByIdInOp (content);  // hx11 m36
     content = g09Pass (content);  // hx10w2 G09
     content = nativeGuardedListElementReads (content);  // hx11 w4 P2: the guard literals in the base files too
     return gb09CredentialStrings (content);  // hx10 w9 GB09: the credential fields are plain strings
