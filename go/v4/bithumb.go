@@ -613,12 +613,7 @@ func (this *Bithumb) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 					}
 					return nil
 				}()
-				quoteId = func() any {
-					if 0 >= 0 && 0 < len(parts) {
-						return parts[0]
-					}
-					return nil
-				}()
+				quoteId = parts[0]
 				base = this.SafeCurrencyCode(baseId)
 				if derefPtr := this.SafeCurrencyCode(quoteId); derefPtr != nil {
 					quote = *derefPtr
@@ -1971,12 +1966,7 @@ func (this *Bithumb) createOrdersBody(ch chan AsyncResult[[]Order], orders any, 
 		ordersRequests = append(ordersRequests, orderRequest)
 	}
 	var symbols []string = this.MarketSymbols(orderSymbols, nil, false, true, true)
-	var market map[string]any = this.Market(func() any {
-		if 0 >= 0 && 0 < len(symbols) {
-			return symbols[0]
-		}
-		return nil
-	}())
+	var market map[string]any = this.Market(symbols[0])
 	var request map[string]any = map[string]any{
 		"batch_orders": ordersRequests,
 	}

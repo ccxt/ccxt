@@ -3704,12 +3704,7 @@ func (this *Htx) ParseTrade(trade any, optionalArgs ...any) Trade {
 	}
 	if (rawType != nil) && (strings.Index(*rawType, "-") >= 0) {
 		var typeParts []string = strings.Split(*rawType, "-")
-		side = func() any {
-			if 0 >= 0 && 0 < len(typeParts) {
-				return typeParts[0]
-			}
-			return nil
-		}()
+		side = typeParts[0]
 		typeVar = func() any {
 			if 1 >= 0 && 1 < len(typeParts) {
 				return typeParts[1]
@@ -10262,7 +10257,7 @@ func (this *Htx) Sign(path string, optionalArgs ...any) any {
 	} else {
 		// signing implementation for the new endpoints
 		// const [ type, access ] = api;
-		var typeVar *string = this.SafeString(api, 0)
+		var typeVar string = api[0]
 		var access *string = this.SafeString(api, 1)
 		var levelOneNestedPath *string = this.SafeString(api, 2)
 		var levelTwoNestedPath *string = this.SafeString(api, 3)

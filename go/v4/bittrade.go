@@ -1269,12 +1269,7 @@ func (this *Bittrade) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var typeRaw *string = this.SafeString(trade, "type")
 	if typeRaw != nil {
 		var typeParts []string = strings.Split(*typeRaw, "-")
-		side = func() any {
-			if 0 >= 0 && 0 < len(typeParts) {
-				return typeParts[0]
-			}
-			return nil
-		}()
+		side = typeParts[0]
 		typeVar = func() any {
 			if 1 >= 0 && 1 < len(typeParts) {
 				return typeParts[1]
@@ -2226,12 +2221,7 @@ func (this *Bittrade) ParseOrder(order any, optionalArgs ...any) Order {
 	var orderTypeRaw *string = this.SafeString(order, "type")
 	if orderTypeRaw != nil {
 		var orderType []string = strings.Split(*orderTypeRaw, "-")
-		side = func() any {
-			if 0 >= 0 && 0 < len(orderType) {
-				return orderType[0]
-			}
-			return nil
-		}()
+		side = orderType[0]
 		typeVar = func() any {
 			if 1 >= 0 && 1 < len(orderType) {
 				return orderType[1]

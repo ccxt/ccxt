@@ -1405,12 +1405,7 @@ func (this *Onetrading) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol stri
 		panic(ExchangeError(this.Id + " fetchOHLCV() missing periodUnit"))
 	}
 	var periodUnitParts []string = strings.Split(*periodUnit, "/")
-	var period *string = SafeStringPtr(func() any {
-		if 0 >= 0 && 0 < len(periodUnitParts) {
-			return periodUnitParts[0]
-		}
-		return nil
-	}())
+	var period *string = SafeStringPtr(periodUnitParts[0])
 	var unit *string = SafeStringPtr(func() any {
 		if 1 >= 0 && 1 < len(periodUnitParts) {
 			return periodUnitParts[1]

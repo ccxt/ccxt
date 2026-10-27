@@ -1271,12 +1271,7 @@ func (this *Gate) subscribeWatchTickersAndBidsAsksBody(ch chan ccxt.AsyncResult[
 		return nil
 	}()
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
-	var market map[string]any = this.Market(func() any {
-		if 0 >= 0 && 0 < len(symbolsNormalized) {
-			return symbolsNormalized[0]
-		}
-		return nil
-	}())
+	var market map[string]any = this.Market(symbolsNormalized[0])
 	var messageType any = this.GetTypeByMarket(market)
 	var marketIds any = this.MarketIds(symbolsNormalized)
 	channelName, paramsMethod := this.HandleOptionStringAndParams(paramsCallerMethodName, callerMethodNameOption, "method")
@@ -2904,20 +2899,10 @@ func (this *Gate) HandleErrorMessage(client any, message map[string]any) bool {
 								var payload []any = ccxt.SafeListTyped(message, "payload")
 								for i := 0; i < len(payload); i++ {
 									var marketType any = nil
-									if func() any {
-										if 0 >= 0 && 0 < len(parsedChannel) {
-											return parsedChannel[0]
-										}
-										return nil
-									}() == "futures" {
+									if parsedChannel[0] == "futures" {
 										marketType = "swap"
 									} else {
-										marketType = func() any {
-											if 0 >= 0 && 0 < len(parsedChannel) {
-												return parsedChannel[0]
-											}
-											return nil
-										}()
+										marketType = parsedChannel[0]
 									}
 									var symbol *string = this.SafeSymbol(payload[i], nil, "_", marketType)
 									var messageHashSymbol any = ccxt.Add(ccxt.Add(func() any {

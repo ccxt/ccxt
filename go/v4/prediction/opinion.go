@@ -3178,7 +3178,7 @@ func (this *Opinion) Sign(path string, optionalArgs ...any) any {
 	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
 	var apiGroup string = api[0]
-	var access *string = this.SafeString(api, 1, "public")
+	var access string = api[1]
 	var baseUrls any = this.Urls["api"]
 	var baseUrl *string = this.SafeString(baseUrls, apiGroup, ccxt.GetValue(baseUrls, "opinion"))
 	var url string = *baseUrl + "/" + this.ImplodeParams(path, params)
@@ -3188,7 +3188,7 @@ func (this *Opinion) Sign(path string, optionalArgs ...any) any {
 		"Accept":       "application/json",
 		"Content-Type": "application/json",
 	}, existingHeaders)
-	if access != nil && *access == "private" {
+	if access == "private" {
 		if path == "auth/api-key" {
 			// wallet-signature scheme: no apiKey involved, the signature itself is the credential
 			if (this.WalletAddress == "") || (this.PrivateKey == "") {

@@ -2817,12 +2817,7 @@ func (this *Cryptocom) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalA
 func (this *Cryptocom) ParseAddress(addressString *string) []any {
 	if (addressString != nil) && (strings.Index(*addressString, "?") > 0) {
 		var addressParts []string = strings.Split(*addressString, "?")
-		var address *string = SafeStringPtr(func() any {
-			if 0 >= 0 && 0 < len(addressParts) {
-				return addressParts[0]
-			}
-			return nil
-		}())
+		var address *string = SafeStringPtr(addressParts[0])
 		var rawTag *string = SafeStringPtr(func() any {
 			if 1 >= 0 && 1 < len(addressParts) {
 				return addressParts[1]
@@ -4843,15 +4838,15 @@ func (this *Cryptocom) Sign(path string, optionalArgs ...any) any {
 	_ = params
 	var requestHeaders map[string]any = nil
 	var requestBody any = nil
-	var typeVar *string = this.SafeString(api, 0)
-	var access *string = this.SafeString(api, 1)
+	var typeVar string = api[0]
+	var access string = api[1]
 	var apiUrl *string = this.SafeString(this.Urls["api"], typeVar)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var url string = *apiUrl + "/" + path
 	var query any = this.Omit(params, this.ExtractParams(path))
-	if access != nil && *access == "public" {
+	if access == "public" {
 		if len(ObjectKeys(query)) > 0 {
 			url += "?" + this.Urlencode(query)
 		}

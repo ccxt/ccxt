@@ -1801,7 +1801,7 @@ func (this *Paradex) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, o
 	//
 	var trades []any = SafeListTypedDefault(response, "results", []any{})
 	for i := 0; i < len(trades); i++ {
-		AddElementToObject(GetValue(trades, i), "next", this.SafeString(response, "next"))
+		AddElementToObject(trades[i], "next", this.SafeString(response, "next"))
 	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(trades, market, since, limit))}
@@ -3562,7 +3562,7 @@ func (this *Paradex) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArg
 	//
 	var trades []any = SafeListTypedDefault(response, "results", []any{})
 	for i := 0; i < len(trades); i++ {
-		AddElementToObject(GetValue(trades, i), "next", this.SafeString(response, "next"))
+		AddElementToObject(trades[i], "next", this.SafeString(response, "next"))
 	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(trades, market, since, limit))}

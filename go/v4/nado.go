@@ -4007,9 +4007,6 @@ func (this *Nado) OrderVerifyingContract(productId any) string {
 func (this *Nado) PadHex(value *string, length any, optionalArgs ...any) string {
 	var left bool = GetArgBool(optionalArgs, 0, true)
 	_ = left
-	if IsEqual(length, nil) {
-		panic(ArgumentsRequired(this.Id + " padHex() requires length"))
-	}
 	var zeros string = "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
 	if left == true {
 		var paddedLeft string = zeros + *value
@@ -4048,8 +4045,7 @@ func (this *Nado) SignOrder(order map[string]any, productId any, chainId *string
 		}},
 	}
 	var encoded any = this.EthEncodeStructuredData(domain, messageTypes, order)
-	var hash *string = SafeStringPtr(Add("0x", this.Hash(encoded, keccak, "hex")))
-	return this.SignHash(hash, this.PrivateKey)
+	return this.SignHash(this.Hash(encoded, keccak, "hex"), this.PrivateKey)
 }
 func (this *Nado) SignCancellation(cancellation map[string]any, chainId *string, endpointAddress string) string {
 	var domain map[string]any = map[string]any{
@@ -4074,8 +4070,7 @@ func (this *Nado) SignCancellation(cancellation map[string]any, chainId *string,
 		}},
 	}
 	var encoded any = this.EthEncodeStructuredData(domain, messageTypes, cancellation)
-	var hash *string = SafeStringPtr(Add("0x", this.Hash(encoded, keccak, "hex")))
-	return this.SignHash(hash, this.PrivateKey)
+	return this.SignHash(this.Hash(encoded, keccak, "hex"), this.PrivateKey)
 }
 func (this *Nado) SignCancellationProducts(cancellation map[string]any, chainId *string, endpointAddress string) string {
 	var domain map[string]any = map[string]any{
@@ -4097,8 +4092,7 @@ func (this *Nado) SignCancellationProducts(cancellation map[string]any, chainId 
 		}},
 	}
 	var encoded any = this.EthEncodeStructuredData(domain, messageTypes, cancellation)
-	var hash *string = SafeStringPtr(Add("0x", this.Hash(encoded, keccak, "hex")))
-	return this.SignHash(hash, this.PrivateKey)
+	return this.SignHash(this.Hash(encoded, keccak, "hex"), this.PrivateKey)
 }
 func (this *Nado) SignFetchTriggerOrders(tx map[string]any, chainId *string, endpointAddress *string) string {
 	var domain map[string]any = map[string]any{
@@ -4117,14 +4111,13 @@ func (this *Nado) SignFetchTriggerOrders(tx map[string]any, chainId *string, end
 		}},
 	}
 	var encoded any = this.EthEncodeStructuredData(domain, messageTypes, tx)
-	var hash *string = SafeStringPtr(Add("0x", this.Hash(encoded, keccak, "hex")))
-	return this.SignHash(hash, this.PrivateKey)
+	return this.SignHash(this.Hash(encoded, keccak, "hex"), this.PrivateKey)
 }
 func (this *Nado) SignHash(hash any, privateKey any) string {
 	if IsEqual(privateKey, nil) {
 		panic(ArgumentsRequired(this.Id + " signHash() requires privateKey"))
 	}
-	var signature map[string]any = Ecdsa(Slice(hash, int64(-64), nil), Slice(privateKey, int64(-64), nil), secp256k1, nil)
+	var signature map[string]any = Ecdsa(hash, Slice(privateKey, int64(-64), nil), secp256k1, nil)
 	var r *string = SafeStringPtr(signature["r"])
 	var s *string = SafeStringPtr(signature["s"])
 	var v string = strings.ToLower(this.IntToBase16(this.Sum(27, signature["v"])))

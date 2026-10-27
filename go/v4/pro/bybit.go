@@ -569,12 +569,7 @@ func (this *Bybit) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Tic
 	var symbolsValue []string = this.MarketSymbols(symbols, nil, false)
 	var messageHashes []any = []any{}
 
-	r1 := <-this.GetUrlByMarketTypeAsync(func() any {
-		if 0 >= 0 && 0 < len(symbolsValue) {
-			return symbolsValue[0]
-		}
-		return nil
-	}(), false, "watchTickers", params)
+	r1 := <-this.GetUrlByMarketTypeAsync(symbolsValue[0], false, "watchTickers", params)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -664,12 +659,7 @@ func (this *Bybit) unWatchTickersBody(ch chan ccxt.AsyncResult[bool], optionalAr
 		messageHashes = append(messageHashes, "unsubscribe:ticker:"+*symbol)
 	}
 
-	r1 := <-this.GetUrlByMarketTypeAsync(func() any {
-		if 0 >= 0 && 0 < len(symbolsValue) {
-			return symbolsValue[0]
-		}
-		return nil
-	}(), false, "watchTickers", params)
+	r1 := <-this.GetUrlByMarketTypeAsync(symbolsValue[0], false, "watchTickers", params)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -893,12 +883,7 @@ func (this *Bybit) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccxt.Ti
 	var symbolsValue []string = this.MarketSymbols(symbols, nil, false)
 	var messageHashes []any = []any{}
 
-	r1 := <-this.GetUrlByMarketTypeAsync(func() any {
-		if 0 >= 0 && 0 < len(symbolsValue) {
-			return symbolsValue[0]
-		}
-		return nil
-	}(), false, "watchBidsAsks", params)
+	r1 := <-this.GetUrlByMarketTypeAsync(symbolsValue[0], false, "watchBidsAsks", params)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -1038,12 +1023,7 @@ func (this *Bybit) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[string]
 	}
 	var symbols any = this.GetListFromObjectValues(symbolsAndTimeframes, 0)
 	var marketSymbols []string = this.MarketSymbols(symbols, nil, false, true, true)
-	var firstSymbol *string = ccxt.SafeStringPtr(func() any {
-		if 0 >= 0 && 0 < len(marketSymbols) {
-			return marketSymbols[0]
-		}
-		return nil
-	}())
+	var firstSymbol *string = ccxt.SafeStringPtr(marketSymbols[0])
 
 	r1 := <-this.GetUrlByMarketTypeAsync(firstSymbol, false, "watchOHLCVForSymbols", params)
 	if r1.Err != nil {
@@ -1119,12 +1099,7 @@ func (this *Bybit) unWatchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[bool], sy
 	}
 	var symbols any = this.GetListFromObjectValues(symbolsAndTimeframes, 0)
 	var marketSymbols []string = this.MarketSymbols(symbols, nil, false, true, true)
-	var firstSymbol *string = ccxt.SafeStringPtr(func() any {
-		if 0 >= 0 && 0 < len(marketSymbols) {
-			return marketSymbols[0]
-		}
-		return nil
-	}())
+	var firstSymbol *string = ccxt.SafeStringPtr(marketSymbols[0])
 
 	r1 := <-this.GetUrlByMarketTypeAsync(firstSymbol, false, "watchOHLCVForSymbols", params)
 	if r1.Err != nil {
@@ -1454,12 +1429,7 @@ func (this *Bybit) unWatchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[bool]
 	}()
 	var defaultLimit int = 500
 	if limitParam == nil {
-		var firstMarket map[string]any = this.Market(func() any {
-			if 0 >= 0 && 0 < len(symbolsNormalized) {
-				return symbolsNormalized[0]
-			}
-			return nil
-		}())
+		var firstMarket map[string]any = this.Market(symbolsNormalized[0])
 		defaultLimit = func() int {
 			if firstMarket["spot"] == true {
 				return 50
@@ -1487,12 +1457,7 @@ func (this *Bybit) unWatchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[bool]
 		topics = append(topics, topic)
 	}
 
-	r1 := <-this.GetUrlByMarketTypeAsync(func() any {
-		if 0 >= 0 && 0 < len(symbolsNormalized) {
-			return symbolsNormalized[0]
-		}
-		return nil
-	}(), false, "watchOrderBook", paramsOmitted)
+	r1 := <-this.GetUrlByMarketTypeAsync(symbolsNormalized[0], false, "watchOrderBook", paramsOmitted)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -1765,12 +1730,7 @@ func (this *Bybit) unWatchTradesForSymbolsBody(ch chan ccxt.AsyncResult[bool], s
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false, true)
 
-	r1 := <-this.GetUrlByMarketTypeAsync(func() any {
-		if 0 >= 0 && 0 < len(symbolsNormalized) {
-			return symbolsNormalized[0]
-		}
-		return nil
-	}(), false, "unWatchTradesForSymbols", params)
+	r1 := <-this.GetUrlByMarketTypeAsync(symbolsNormalized[0], false, "unWatchTradesForSymbols", params)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}

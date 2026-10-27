@@ -1153,7 +1153,7 @@ func (this *Poloniex) fetchSwapMarketsBody(ch chan AsyncResult[[]MarketInterface
 	return nil
 }
 func (this *Poloniex) ParseMarket(market any) map[string]any {
-	if InOp(market, "ctType") {
+	if this.SafeString(market, "ctType") != nil {
 		return this.ParseSwapMarket(market)
 	} else {
 		return this.ParseSpotMarket(market)
@@ -4749,7 +4749,7 @@ func (this *Poloniex) ParseTransaction(transaction any, optionalArgs ...any) Tra
 	status = this.ParseTransactionStatus(status)
 	var txid *string = this.SafeString(transactionValue, "txid")
 	var typeVar string = "deposit"
-	if InOp(transactionValue, "withdrawalRequestsId") {
+	if this.SafeString(transactionValue, "withdrawalRequestsId") != nil {
 		typeVar = "withdrawal"
 	}
 	var id *string = this.SafeString2(transactionValue, "withdrawalRequestsId", "depositNumber")
@@ -4827,7 +4827,7 @@ func (this *Poloniex) setLeverageBody(ch chan AsyncResult[map[string]any], lever
 	var hedged *bool = nil
 	hedged, paramsHedged := this.HandleParamBool(paramsMarginMode, "hedged", false)
 	if hedged != nil && *hedged == true {
-		if _, ok := paramsHedged["posSide"]; !ok {
+		if this.SafeString(paramsHedged, "posSide") == nil {
 			panic(ArgumentsRequired(this.Id + " setLeverage() requires a posSide parameter for hedged mode: \"LONG\" or \"SHORT\""))
 		}
 	}
@@ -5369,30 +5369,28 @@ func (this *Poloniex) Sign(path string, optionalArgs ...any) any {
 	_ = params
 	var apiName string = api[0]
 	var isArray bool = IsArray(params)
-	var url any = this.UrlsApi["spot"]
-	if this.InArray(apiName, []any{"swapPublic", "swapPrivate"}) {
-		url = this.UrlsApi["swap"]
-	}
 	if (method == "GET") && (InOp(params, "symbol")) {
 		AddElementToObject(params, "symbol", this.EncodeURIComponent(GetValue(params, "symbol"))) // handle symbols like 索拉拉/USDT'
 	}
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var implodedPath string = this.ImplodeParams(path, params)
+	var url string = *this.SafeString(this.Urls["api"], "spot", "") + "/" + implodedPath
+	if this.InArray(apiName, []any{"swapPublic", "swapPrivate"}) {
+		url = *this.SafeString(this.Urls["api"], "swap", "") + "/" + implodedPath
+	}
 	// keep `Object.keys (query).length` inline and evaluated lazily: PHP only rewrites that exact
 	// shape into count(x) (a hoisted key list becomes strlen() on an array) and the C#/Java key-list
 	// cast throws on a bare-list params (the batch endpoints pass one), so `isArray ||` guards it.
 	var bodyJson *string = nil
 	var signedHeaders any = nil
 	if (apiName == "public") || (apiName == "swapPublic") {
-		url = Add(url, "/"+implodedPath)
 		if len(ObjectKeys(query)) > 0 {
-			url = Add(url, "?"+this.Urlencode(query))
+			url = url + "?" + this.Urlencode(query)
 		}
 	} else {
 		this.CheckRequiredCredentials()
 		var timestamp *string = this.NumberToString(this.Nonce())
 		var auth string = method + "\n" // eslint-disable-line quotes
-		url = Add(url, "/"+implodedPath)
 		auth += "/" + implodedPath
 		if (method == "POST") || (method == "PUT") || (method == "DELETE") {
 			auth += "\n" // eslint-disable-line quotes
@@ -5408,7 +5406,7 @@ func (this *Poloniex) Sign(path string, optionalArgs ...any) any {
 			sortedQuery = this.Keysort(sortedQuery)
 			auth += "\n" + this.Urlencode(sortedQuery) // eslint-disable-line quotes
 			if len(ObjectKeys(query)) > 0 {
-				url = Add(url, "?"+this.Urlencode(query))
+				url = url + "?" + this.Urlencode(query)
 			}
 		}
 		signedHeaders = map[string]any{

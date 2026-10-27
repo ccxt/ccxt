@@ -842,15 +842,14 @@ func (this *Kalshi) ParseMarket(raw any) map[string]any {
 	var liquidity *float64 = this.SafeNumber2(raw, "liquidity_dollars", "liquidity")
 	var openInt *float64 = this.SafeNumber2(raw, "open_interest_fp", "open_interest")
 	// Derive series ticker: drop last hyphen-segment from event_ticker
-	var eventParts any = []any{}
-	if (eventTicker != nil) && (eventTicker == nil || *eventTicker != "") {
-		eventParts = strings.Split(*eventTicker, "-")
-	}
 	var seriesTicker *string = eventTicker
-	var eventPartsLength int = ccxt.GetArrayLength(eventParts)
-	if eventPartsLength > 1 {
-		var seriesParts []any = this.ArraySlice(eventParts, 0, eventPartsLength-1)
-		seriesTicker = ccxt.SafeStringPtr(ccxt.Join(seriesParts, "-"))
+	if (eventTicker != nil) && (eventTicker == nil || *eventTicker != "") {
+		var eventParts []string = strings.Split(*eventTicker, "-")
+		var eventPartsLength int = len(eventParts)
+		if eventPartsLength > 1 {
+			var seriesParts []any = this.ArraySlice(eventParts, 0, eventPartsLength-1)
+			seriesTicker = ccxt.SafeStringPtr(ccxt.Join(seriesParts, "-"))
+		}
 	}
 	// market symbol (no outcome suffix)
 	var subtitleOrTicker *string = ticker
@@ -2939,11 +2938,11 @@ func (this *Kalshi) editOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrder]
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	var retRes210115 map[string]any = ccxt.StructResultMap(r2.Value, ccxt.PredictionOrderToMap)
-	if retRes210115 == nil {
+	var retRes210015 map[string]any = ccxt.StructResultMap(r2.Value, ccxt.PredictionOrderToMap)
+	if retRes210015 == nil {
 		ch <- ccxt.AsyncResult[ccxt.PredictionOrder]{}
 	} else {
-		ch <- ccxt.AsyncResult[ccxt.PredictionOrder]{Value: ccxt.PredictionOrderFromMap(retRes210115)}
+		ch <- ccxt.AsyncResult[ccxt.PredictionOrder]{Value: ccxt.PredictionOrderFromMap(retRes210015)}
 	}
 	return nil
 }
@@ -3738,7 +3737,7 @@ func (this *Kalshi) Sign(path string, optionalArgs ...any) any {
 	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
 	var apiGroup string = api[0]
-	var access *string = this.SafeString(api, 1, "public")
+	var access string = api[1]
 	var baseUrls any = this.Urls["api"]
 	var baseUrl *string = this.SafeString(baseUrls, apiGroup, ccxt.GetValue(baseUrls, "kalshi"))
 	var implodedPath string = this.ImplodeParams(path, params)
@@ -3754,7 +3753,7 @@ func (this *Kalshi) Sign(path string, optionalArgs ...any) any {
 		"Content-Type": "application/json",
 	}, existingHeaders)
 	var bodyValue *string = nil
-	if access != nil && *access == "private" {
+	if access == "private" {
 		this.CheckRequiredCredentials()
 		var timestamp string = strconv.FormatInt(this.Milliseconds(), 10)
 		// Signing payload: {timestamp}{METHOD}{path}, where path is the full request path

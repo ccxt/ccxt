@@ -6466,12 +6466,7 @@ func (this *Gate) CreateOrdersRequest(orders any, optionalArgs ...any) []any {
 		ordersRequests = append(ordersRequests, orderRequest)
 	}
 	var symbols []string = this.MarketSymbols(orderSymbols, nil, false, true, true)
-	var market map[string]any = this.Market(func() any {
-		if 0 >= 0 && 0 < len(symbols) {
-			return symbols[0]
-		}
-		return nil
-	}())
+	var market map[string]any = this.Market(symbols[0])
 	if (market["future"] == true) || (market["option"] == true) {
 		panic(NotSupported(this.Id + " createOrders() does not support futures or options markets"))
 	}

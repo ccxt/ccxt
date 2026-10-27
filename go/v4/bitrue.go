@@ -4027,23 +4027,23 @@ func (this *Bitrue) Sign(path string, optionalArgs ...any) any {
 	_ = params
 	var requestBody any = nil
 	var requestHeaders any = nil
-	var typeVar *string = this.SafeString(api, 0)
-	var version *string = this.SafeString(api, 1, "")
-	var access *string = this.SafeString(api, 2)
+	var typeVar string = api[0]
+	var version string = api[1]
+	var access string = api[2]
 	var apiUrl *string = this.SafeString(this.Urls["api"], typeVar)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var endpointPath string = this.ImplodeParams(path, params)
 	var url string = *apiUrl + "/" + endpointPath
-	if !(((typeVar != nil && *typeVar == "api") && (version != nil && *version == "kline")) || ((typeVar != nil && *typeVar == "open") && (strings.Index(path, "listenKey") >= 0))) {
-		url = *apiUrl + "/" + *version + "/" + endpointPath
+	if !(((typeVar == "api") && (version == "kline")) || ((typeVar == "open") && (strings.Index(path, "listenKey") >= 0))) {
+		url = *apiUrl + "/" + version + "/" + endpointPath
 	}
 	var paramsOmitted any = this.Omit(params, this.ExtractParams(path))
-	if access != nil && *access == "private" {
+	if access == "private" {
 		this.CheckRequiredCredentials()
 		var recvWindow *int64 = this.SafeInteger(this.Options, "recvWindow", 5000)
-		if (typeVar != nil && *typeVar == "spot") || (typeVar != nil && *typeVar == "open") {
+		if (typeVar == "spot") || (typeVar == "open") {
 			var query string = this.Urlencode(this.Extend(map[string]any{
 				"timestamp":  this.Nonce(),
 				"recvWindow": recvWindow,
@@ -4065,12 +4065,12 @@ func (this *Bitrue) Sign(path string, optionalArgs ...any) any {
 		} else {
 			var timestamp string = ToString(this.Nonce())
 			var signPrefix string = ""
-			if typeVar != nil && *typeVar == "fapi" {
+			if typeVar == "fapi" {
 				signPrefix = "/fapi"
-			} else if typeVar != nil && *typeVar == "dapi" {
+			} else if typeVar == "dapi" {
 				signPrefix = "/dapi"
 			}
-			var signMessage any = timestamp + method + (signPrefix + "/" + *version + "/" + path)
+			var signMessage any = timestamp + method + (signPrefix + "/" + version + "/" + path)
 			if method == "GET" {
 				var keys []string = ObjectKeys(paramsOmitted)
 				var keysLength int = len(keys)

@@ -968,12 +968,7 @@ func (this *Phemex) ParseSwapMarket(market any) map[string]any {
 		// "1 USD"
 		// "0.005 ETH"
 		var parts []string = strings.Split(*contractSizeString, " ")
-		contractSize = this.ParseNumber(func() any {
-			if 0 >= 0 && 0 < len(parts) {
-				return parts[0]
-			}
-			return nil
-		}())
+		contractSize = this.ParseNumber(parts[0])
 	} else {
 		// "1.0"
 		contractSize = this.ParseNumber(contractSizeString)
@@ -1495,7 +1490,7 @@ func (this *Phemex) CustomParseBidAsk(bidask any, optionalArgs ...any) []any {
 	if derefPtr := this.SafeString(bidask, amountKey); derefPtr != nil {
 		amount = *derefPtr
 	}
-	if this.SafeBool(market, "spot") != nil && *this.SafeBool(market, "spot") == true {
+	if *this.SafeBool(market, "spot", false) {
 		amount = this.FromEv(amount, market)
 	}
 	return []any{this.ParseNumber(this.FromEp(this.SafeString(bidask, priceKey), market)), this.ParseNumber(amount)}
@@ -1569,7 +1564,7 @@ func (this *Phemex) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol st
 	var response map[string]any = nil
 	var marketSettle *string = this.SafeString(market, "settle")
 	var isStableSettled bool = (marketSettle != nil && *marketSettle == "USDT") || (marketSettle != nil && *marketSettle == "USDC")
-	if (market["linear"] == true) && isStableSettled {
+	if (*this.SafeBool(market, "linear", false)) && isStableSettled {
 
 		r1 := <-this.V2GetMdV2Orderbook(this.Extend(request, params))
 		if r1.Err != nil {
@@ -1657,7 +1652,7 @@ func (this *Phemex) ToEp(price any, optionalArgs ...any) any {
 	return this.ToEn(price, this.SafeInteger(market, "priceScale"))
 }
 func (this *Phemex) FromEn(en any, scale any) any {
-	if IsEqual(en, nil) || IsEqual(scale, nil) {
+	if (IsEqual(en, nil)) || IsEqual(scale, nil) {
 		return nil
 	}
 	precise := NewPrecise(en)
@@ -1706,7 +1701,7 @@ func (this *Phemex) ParseOHLCV(ohlcv any, optionalArgs ...any) OHLCV {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var baseVolume any = nil
-	if (market != nil) && (this.SafeBool(market, "spot") != nil && *this.SafeBool(market, "spot") == true) {
+	if (market != nil) && (*this.SafeBool(market, "spot", false)) {
 		baseVolume = this.ParseNumber(this.FromEv(this.SafeString(ohlcv, 7), market))
 	} else {
 		if derefPtr := this.SafeNumber(ohlcv, 7); derefPtr != nil {
@@ -1765,7 +1760,7 @@ func (this *Phemex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"until"})
 	var marketSettle *string = this.SafeString(market, "settle")
 	var isStableSettled bool = (marketSettle != nil && *marketSettle == "USDT") || (marketSettle != nil && *marketSettle == "USDC")
-	var usesSpecialFromToEndpoint bool = ((market["linear"] == true) || isStableSettled) && ((since != nil) || (until != nil))
+	var usesSpecialFromToEndpoint bool = ((*this.SafeBool(market, "linear", false)) || isStableSettled) && ((since != nil) || (until != nil))
 	var maxLimit int = 1000
 	if usesSpecialFromToEndpoint {
 		maxLimit = 2000
@@ -1779,7 +1774,7 @@ func (this *Phemex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 	request["limit"] = limitResolved
 	var sinceSeconds any = nil
 	var response map[string]any = nil
-	if (market["linear"] == true) || isStableSettled {
+	if (*this.SafeBool(market, "linear", false)) || isStableSettled {
 		if (until != nil) || (since != nil) {
 			var candleDuration int64 = this.ParseTimeframe(timeframe)
 			if since != nil {
@@ -1978,8 +1973,8 @@ func (this *Phemex) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, 
 		"symbol": market["id"],
 	}
 	var response map[string]any = nil
-	if market["swap"] == true {
-		if (market["inverse"] == true) || (market["settle"] == "USD") {
+	if *this.SafeBool(market, "swap", false) {
+		if (*this.SafeBool(market, "inverse", false)) || (market["settle"] == "USD") {
 
 			r1 := <-this.V1GetMdTicker24hr(this.Extend(request, params))
 			if r1.Err != nil {
@@ -2158,7 +2153,7 @@ func (this *Phemex) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, op
 	var response map[string]any = nil
 	var marketSettle *string = this.SafeString(market, "settle")
 	var isStableSettled bool = (marketSettle != nil && *marketSettle == "USDT") || (marketSettle != nil && *marketSettle == "USDC")
-	if (market["linear"] == true) && isStableSettled {
+	if (*this.SafeBool(market, "linear", false)) && isStableSettled {
 
 		r1 := <-this.V2GetMdV2Trade(this.Extend(request, params))
 		if r1.Err != nil {
@@ -2487,7 +2482,7 @@ func (this *Phemex) ParseTrade(trade any, optionalArgs ...any) Trade {
 			feeCostString = this.FromEr(this.OmitZero(this.SafeString(trade, "execFeeEv")), marketResolved)
 			if !IsEqual(feeCostString, nil) {
 				feeRateString = this.FromEr(this.SafeString(trade, "feeRateEr"), marketResolved)
-				if marketResolved["spot"] == true {
+				if *this.SafeBool(marketResolved, "spot", false) {
 					feeCurrencyCode = this.SafeCurrencyCode(this.SafeString(trade, "feeCurrency"))
 				} else {
 					var info map[string]any = SafeMapTyped(marketResolved, "info")
@@ -3309,7 +3304,7 @@ func (this *Phemex) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 		}
 	}
 	var orderParams any = this.Omit(paramsOmitted, []any{"stopPx", "stopPrice", "stopLoss", "takeProfit", "triggerPrice"})
-	if market["spot"] == true {
+	if *this.SafeBool(market, "spot", false) {
 		var qtyType *string = this.SafeString(orderParams, "qtyType", "ByBase")
 		if (typeValue == "Market") || (typeValue == "Stop") || (typeValue == "MarketIfTouched") {
 			if price != nil {
@@ -3350,7 +3345,7 @@ func (this *Phemex) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 			var amountString *string = this.AmountToPrecision(symbol, amount)
 			request["baseQtyEv"] = this.ToEv(amountString, market)
 		}
-	} else if market["swap"] == true {
+	} else if *this.SafeBool(market, "swap", false) {
 		var hedged *bool = this.SafeBool(orderParams, "hedged", false)
 		orderParams = this.Omit(orderParams, "hedged")
 		var posSide *string = this.SafeStringLower(orderParams, "posSide")
@@ -3507,7 +3502,7 @@ func (this *Phemex) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 			panic(r1.Err)
 		}
 		response = r1.Value
-	} else if market["contract"] == true {
+	} else if *this.SafeBool(market, "contract", false) {
 
 		r2 := <-this.PrivatePostOrders(this.Extend(request, orderParams))
 		if r2.Err != nil {
@@ -3693,7 +3688,7 @@ func (this *Phemex) editOrderBody(ch chan AsyncResult[Order], id string, symbol 
 			panic(r1.Err)
 		}
 		response = r1.Value
-	} else if market["swap"] == true {
+	} else if *this.SafeBool(market, "swap", false) {
 
 		r2 := <-this.PrivatePutOrdersReplace(this.Extend(request, paramsOmitted3))
 		if r2.Err != nil {
@@ -3771,7 +3766,7 @@ func (this *Phemex) cancelOrderBody(ch chan AsyncResult[Order], id any, optional
 			panic(r1.Err)
 		}
 		response = r1.Value
-	} else if market["swap"] == true {
+	} else if *this.SafeBool(market, "swap", false) {
 
 		r2 := <-this.PrivateDeleteOrdersCancel(this.Extend(request, paramsOmitted))
 		if r2.Err != nil {
@@ -3841,7 +3836,7 @@ func (this *Phemex) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 			panic(r1.Err)
 		}
 		response = r1.Value
-	} else if market["swap"] == true {
+	} else if *this.SafeBool(market, "swap", false) {
 
 		r2 := <-this.PrivateDeleteOrdersAll(this.Extend(request, paramsOmitted))
 		if r2.Err != nil {
@@ -3915,7 +3910,7 @@ func (this *Phemex) fetchOrderBody(ch chan AsyncResult[Order], id any, optionalA
 			panic(r1.Err)
 		}
 		response = r1.Value
-	} else if market["spot"] == true {
+	} else if *this.SafeBool(market, "spot", false) {
 
 		r2 := <-this.PrivateGetApiDataSpotsOrdersByOrderId(this.Extend(request, paramsOmitted))
 		if r2.Err != nil {
@@ -3942,7 +3937,7 @@ func (this *Phemex) fetchOrderBody(ch chan AsyncResult[Order], id any, optionalA
 			}
 		}
 		order = this.SafeDict(data, 0, map[string]any{})
-	} else if market["spot"] == true {
+	} else if *this.SafeBool(market, "spot", false) {
 		var rows []any = SafeListTyped(data, "rows")
 		var numRows int = len(rows)
 		if numRows < 1 {
@@ -4016,7 +4011,7 @@ func (this *Phemex) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs .
 			panic(r1.Err)
 		}
 		response = r1.Value
-	} else if market["swap"] == true {
+	} else if *this.SafeBool(market, "swap", false) {
 
 		r2 := <-this.PrivateGetExchangeOrderList(this.Extend(request, params))
 		if r2.Err != nil {
@@ -4121,7 +4116,7 @@ func (this *Phemex) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 					panic(r2.Err)
 				}
 				response = r2.Value
-			} else if market["swap"] == true {
+			} else if *this.SafeBool(market, "swap", false) {
 
 				r3 := <-this.PrivateGetOrdersActiveList(this.Extend(request, params))
 				if r3.Err != nil {
@@ -4217,7 +4212,7 @@ func (this *Phemex) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optional
 			panic(r1.Err)
 		}
 		response = r1.Value
-	} else if (market != nil) && (market["swap"] == true) {
+	} else if (market != nil) && (*this.SafeBool(market, "swap", false)) {
 
 		r2 := <-this.PrivateGetExchangeOrderList(this.Extend(request, params))
 		if r2.Err != nil {
@@ -5229,7 +5224,7 @@ func (this *Phemex) ParsePosition(position any, optionalArgs ...any) Position {
 	// Linear long contract:  unRealizedPnl = (posSize * contractSize) * markPrice - (posSize * contractSize) * avgEntryPrice
 	// Linear short contract:  unRealizedPnl = (posSize * contractSize) * avgEntryPrice - (posSize * contractSize) * markPrice
 	var priceDiff *string = nil
-	if marketResolved["linear"] == true {
+	if *this.SafeBool(marketResolved, "linear", false) {
 		if side != nil && *side == "long" {
 			priceDiff = Precise.StringSub(markPriceString, entryPriceString)
 		} else {
@@ -5443,14 +5438,14 @@ func (this *Phemex) fetchFundingRateBody(ch chan AsyncResult[FundingRate], symbo
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	if market["swap"] != true {
+	if !(*this.SafeBool(market, "swap", false)) {
 		panic(BadSymbol(this.Id + " fetchFundingRate() supports swap contracts only"))
 	}
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
 	var response any = map[string]any{}
-	if market["linear"] != true {
+	if !(*this.SafeBool(market, "linear", false)) {
 
 		r1 := <-this.V1GetMdTicker24hr(this.Extend(request, params))
 		if r1.Err != nil {
@@ -5684,7 +5679,7 @@ func (this *Phemex) setMarginModeBody(ch chan AsyncResult[map[string]any], margi
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	if market["swap"] != true {
+	if !(*this.SafeBool(market, "swap", false)) {
 		panic(BadSymbol(this.Id + " setMarginMode() supports swap contracts only"))
 	}
 	var marginModeValue string = strings.ToLower(marginMode)
@@ -5768,7 +5763,7 @@ func (this *Phemex) setPositionModeBody(ch chan AsyncResult[map[string]any], hed
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
-	if EvalTruthy(hedged) {
+	if hedged == true {
 		request["targetPosMode"] = "Hedged"
 	} else {
 		request["targetPosMode"] = "OneWay"
@@ -6410,7 +6405,7 @@ func (this *Phemex) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRat
 	var market map[string]any = this.Market(symbol)
 	var marketSettle *string = this.SafeString(market, "settle")
 	var isUsdtSettled bool = (marketSettle != nil && *marketSettle == "USDT") || (marketSettle != nil && *marketSettle == "USDC")
-	if market["swap"] != true {
+	if !(*this.SafeBool(market, "swap", false)) {
 		panic(BadRequest(this.Id + " fetchFundingRateHistory() supports swap contracts only"))
 	}
 	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchFundingRateHistory", "paginate", false)
@@ -6618,7 +6613,7 @@ func (this *Phemex) fetchOpenInterestBody(ch chan AsyncResult[OpenInterest], sym
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	if market["contract"] != true {
+	if !(*this.SafeBool(market, "contract", false)) {
 		panic(BadRequest(this.Id + " fetchOpenInterest is only supported for contract markets."))
 	}
 	var request map[string]any = map[string]any{

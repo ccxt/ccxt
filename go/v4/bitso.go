@@ -2646,15 +2646,8 @@ func (this *Bitso) HandleErrors(httpCode int64, reason any, url string, method a
 		//
 		//     {"success":false,"error":{"code":104,"message":"Cannot perform request - nonce must be higher than 1520307203724237"}}
 		//
-		var success any = this.SafeBool(response, "success", false)
-		if IsString(success) {
-			if (IsEqual(success, "true")) || (IsEqual(success, "1")) {
-				success = true
-			} else {
-				success = false
-			}
-		}
-		if !EvalTruthy(success) {
+		var success *bool = this.SafeBool(response, "success", false)
+		if !(success != nil && *success) {
 			var feedback string = this.Id + " " + this.Json(response)
 			var error map[string]any = SafeMapTyped(response, "error")
 			if error == nil {

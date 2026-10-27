@@ -2077,12 +2077,7 @@ func (this *testMainClass) RemoveHostnamefromUrl(url any) any {
 				// handle urls like this: /v1/account/accounts?AccessK
 				var currentParts []string = strings.Split(current, "?")
 				res = Add(res, "/")
-				res = Add(res, func() any {
-					if 0 >= 0 && 0 < len(currentParts) {
-						return currentParts[0]
-					}
-					return nil
-				}())
+				res = Add(res, currentParts[0])
 				break
 			}
 			res = Add(res, "/")
@@ -2101,12 +2096,7 @@ func (this *testMainClass) UrlencodedToDict(url any) any {
 		if keysLength != 2 {
 			continue
 		}
-		var key *string = SafeStringPtr(func() any {
-			if 0 >= 0 && 0 < len(keyValue) {
-				return keyValue[0]
-			}
-			return nil
-		}())
+		var key *string = SafeStringPtr(keyValue[0])
 		var value any = func() any {
 			if 1 >= 0 && 1 < len(keyValue) {
 				return keyValue[1]

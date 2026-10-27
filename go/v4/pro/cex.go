@@ -317,7 +317,7 @@ func (this *Cex) HandleTradesInner(client any, message map[string]any) {
 	if symbol != nil {
 		this.Trades[*symbol] = stored
 	}
-	client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Trades, symbol), messageHash)
+	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
 
 /**
@@ -1269,20 +1269,20 @@ func (this *Cex) HandleOrderBookSnapshot(client any, message map[string]any) {
 	//
 	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
 	var pair *string = this.SafeString(data, "pair")
-	var symbol any = this.PairToSymbol(pair)
-	if symbol == nil {
+	var symbol string = this.PairToSymbol(pair)
+	if symbol == "" {
 		return
 	}
-	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("orderbook:", symbol))
+	var messageHash string = "orderbook:" + symbol
 	var timestamp *int64 = this.SafeInteger2(data, "timestamp_ms", "timestamp")
 	var incrementalId *int64 = this.SafeInteger(data, "id")
 	// reset the existing orderbook instead of replacing it: a consumer
 	// holds a reference to the old object and would never see updates
 	// after a re-subscription snapshot
-	if !(ccxt.InOp(this.Orderbooks, symbol)) {
-		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}))
+	if _, ok := this.Orderbooks[symbol]; !ok {
+		this.Orderbooks[symbol] = this.OrderBook(map[string]any{})
 	}
-	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
+	var orderbook any = this.SafeValue(this.Orderbooks, symbol)
 	var snapshot map[string]any = this.ParseOrderBook(data, symbol, timestamp, "bids", "asks")
 	snapshot["nonce"] = incrementalId
 	orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
@@ -1291,14 +1291,14 @@ func (this *Cex) HandleOrderBookSnapshot(client any, message map[string]any) {
 	})
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
-func (this *Cex) PairToSymbol(pair any) any {
+func (this *Cex) PairToSymbol(pair any) string {
 	var parts []string = ccxt.Split(pair, ":")
 	var baseId *string = this.SafeString(parts, 0)
 	var quoteId *string = this.SafeString(parts, 1)
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
 	if (base == nil) || (quote == nil) {
-		return nil
+		return ""
 	}
 	var symbol string = *base + "/" + *quote
 	return symbol
@@ -1321,12 +1321,12 @@ func (this *Cex) HandleOrderBookUpdate(client any, message map[string]any) {
 	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	var incrementalId *int64 = this.SafeInteger(data, "id")
 	var pair *string = this.SafeString(data, "pair", "")
-	var symbol any = this.PairToSymbol(pair)
-	if symbol == nil {
+	var symbol string = this.PairToSymbol(pair)
+	if symbol == "" {
 		return
 	}
 	var storedOrderBook any = this.SafeValue(this.Orderbooks, symbol)
-	var messageHash any = ccxt.Add("orderbook:", symbol)
+	var messageHash string = "orderbook:" + symbol
 	var nonce *int64 = this.SafeInteger(storedOrderBook, "nonce")
 	if (nonce == nil) || (!ccxt.IsEqual(incrementalId, *nonce+1)) {
 		client.(ccxt.ClientInterface).SubscriptionDel(messageHash)
@@ -1497,13 +1497,13 @@ func (this *Cex) HandleOHLCV1m(client any, message map[string]any) {
 	//
 	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	var pair *string = this.SafeString(data, "pair")
-	var symbol any = this.PairToSymbol(pair)
-	if symbol == nil {
+	var symbol string = this.PairToSymbol(pair)
+	if symbol == "" {
 		return
 	}
-	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ohlcv:", symbol))
+	var messageHash string = "ohlcv:" + symbol
 	var ohlcv []any = []any{this.SafeTimestamp(data, "time"), this.SafeNumber(data, "o"), this.SafeNumber(data, "h"), this.SafeNumber(data, "l"), this.SafeNumber(data, "c"), this.SafeNumber(data, "v")}
-	var stored any = this.SafeValue(this.Ohlcvs, symbol)
+	var stored any = this.Ohlcvs[symbol]["unknown"]
 	stored.(ccxt.Appender).Append(ohlcv)
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
@@ -1519,13 +1519,13 @@ func (this *Cex) HandleOHLCV(client any, message map[string]any) {
 	//
 	var data []any = ccxt.SafeListTyped(message, "data")
 	var pair *string = this.SafeString(message, "pair")
-	var symbol any = this.PairToSymbol(pair)
-	if symbol == nil {
+	var symbol string = this.PairToSymbol(pair)
+	if symbol == "" {
 		return
 	}
-	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ohlcv:", symbol))
+	var messageHash string = "ohlcv:" + symbol
 	// const stored = this.safeValue (this.ohlcvs, symbol)
-	var stored any = ccxt.GetValue(ccxt.GetValue(this.Ohlcvs, symbol), "unknown")
+	var stored any = this.Ohlcvs[symbol]["unknown"]
 	for i := 0; i < len(data); i++ {
 		var ohlcv []any = []any{this.SafeTimestamp(ccxt.DerefScalar(data[i]), 0), this.SafeNumber(ccxt.DerefScalar(data[i]), 1), this.SafeNumber(ccxt.DerefScalar(data[i]), 2), this.SafeNumber(ccxt.DerefScalar(data[i]), 3), this.SafeNumber(ccxt.DerefScalar(data[i]), 4), this.SafeNumber(ccxt.DerefScalar(data[i]), 5)}
 		stored.(ccxt.Appender).Append(ohlcv)

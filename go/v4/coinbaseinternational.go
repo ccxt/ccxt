@@ -859,10 +859,10 @@ func (this *Coinbaseinternational) ParseMarket(market any) map[string]any {
 		typeVar = "option"
 	}
 	var symbol any = instrumentName
-	if !isComboMarket {
-		symbol = Add(Add(base, "/"), quote)
-		if !isSpot {
-			symbol = Add(Add(symbol, ":"), settle)
+	if !isComboMarket && (base != nil) && (quote != nil) {
+		symbol = *base + "/" + *quote
+		if !isSpot && (settle != nil) {
+			symbol = *base + "/" + *quote + ":" + *settle
 		}
 	}
 	var linear any = func() any {
@@ -4226,7 +4226,7 @@ func (this *Coinbaseinternational) authenticateV2Body(ch chan AsyncResult[any], 
 	var now int64 = this.Milliseconds()
 	var token any = this.GetV2AccessToken()
 	var tokenExpires *int64 = this.SafeInteger(this.Options, "v2TokenExpires")
-	if !(forceRefresh != nil && *forceRefresh) && (token != nil) && (!IsEqual(token, "")) && (tokenExpires != nil) && (now < *tokenExpires) {
+	if !(forceRefresh != nil && *forceRefresh) && (token != nil) && (tokenExpires != nil) && (now < *tokenExpires) {
 
 		ch <- AsyncResult[any]{Value: token}
 		return nil
@@ -4284,7 +4284,7 @@ func (this *Coinbaseinternational) GetV2AccessToken() any {
 	if (token != nil) && (token == nil || *token != "") {
 		return token
 	}
-	if (IsEqual(this.Token, nil)) || (this.Token == "") {
+	if this.Token == "" {
 		return nil
 	}
 	return this.Token
@@ -4326,17 +4326,17 @@ func (this *Coinbaseinternational) Sign(path string, optionalArgs ...any) any {
 	} else if (access == "private") && isNativeDeribit {
 		this.CheckRequiredCredentials()
 		var timestamp string = strconv.FormatInt(this.Milliseconds(), 10)
-		var nonce string = ToString(this.Nonce())
+		var nonce *string = this.NumberToString(this.Nonce())
 		var signedRequest string = "/" + "api/" + this.Version + "/" + access + "/" + path
 		if len(ObjectKeys(requestParams)) > 0 {
 			signedRequest += "?" + this.Urlencode(requestParams)
 		}
 		var requestData string = method + "\n" + signedRequest + "\n" + "\n" // eslint-disable-line quotes
-		var auth string = timestamp + "\n" + nonce + "\n" + requestData      // eslint-disable-line quotes
+		var auth string = timestamp + "\n" + *nonce + "\n" + requestData     // eslint-disable-line quotes
 		var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256)
 		requestHeaders = map[string]any{
 			"Content-Type":  "application/json",
-			"Authorization": "deri-hmac-sha256 id=" + this.ApiKey + ",ts=" + timestamp + ",sig=" + signature + ",nonce=" + nonce,
+			"Authorization": "deri-hmac-sha256 id=" + this.ApiKey + ",ts=" + timestamp + ",sig=" + signature + ",nonce=" + *nonce,
 		}
 	} else if access == "private" {
 		var accessToken any = this.GetV2AccessToken()

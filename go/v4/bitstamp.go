@@ -1468,12 +1468,7 @@ func (this *Bitstamp) ParseCurrencies(rawCurrencies any) map[string]any {
 			panic(ExchangeError(this.Id + " parseCurrencies() missing description"))
 		}
 		var descriptionParts []string = strings.Split(*description, " / ")
-		var baseDescription *string = SafeStringPtr(func() any {
-			if 0 >= 0 && 0 < len(descriptionParts) {
-				return descriptionParts[0]
-			}
-			return nil
-		}())
+		var baseDescription *string = SafeStringPtr(descriptionParts[0])
 		var quoteDescription *string = SafeStringPtr(func() any {
 			if 1 >= 0 && 1 < len(descriptionParts) {
 				return descriptionParts[1]
@@ -1485,12 +1480,7 @@ func (this *Bitstamp) ParseCurrencies(rawCurrencies any) map[string]any {
 			panic(ExchangeError(this.Id + " parseCurrencies() missing minimumOrder"))
 		}
 		var parts []string = strings.Split(*minimumOrder, " ")
-		var cost *string = SafeStringPtr(func() any {
-			if 0 >= 0 && 0 < len(parts) {
-				return parts[0]
-			}
-			return nil
-		}())
+		var cost *string = SafeStringPtr(parts[0])
 		if base != nil {
 			if _, ok := result[*base]; !ok {
 				var baseDecimals *int64 = this.SafeInteger(market, "base_decimals")
@@ -3362,12 +3352,7 @@ func (this *Bitstamp) ParseTransaction(transaction any, optionalArgs ...any) Tra
 	if addressRaw != nil {
 		// dt (destination tag) is embedded into the address field
 		var addressParts []string = strings.Split(*addressRaw, "?dt=")
-		address = func() any {
-			if 0 >= 0 && 0 < len(addressParts) {
-				return addressParts[0]
-			}
-			return nil
-		}()
+		address = addressParts[0]
 		if len(addressParts) > 1 {
 			tag = addressParts[1]
 		}

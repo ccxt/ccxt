@@ -3672,19 +3672,14 @@ func (this *Aster) createOrdersBody(ch chan AsyncResult[[]Order], orders any, op
 		orderSymbols = append(orderSymbols, currentMarket["symbol"])
 		var typeVar *string = this.SafeString(rawOrder, "type")
 		var side *string = this.SafeString(rawOrder, "side")
-		var amount any = this.SafeValue(rawOrder, "amount")
-		var price any = this.SafeValue(rawOrder, "price")
+		var amount *float64 = this.SafeNumber(rawOrder, "amount")
+		var price *float64 = this.SafeNumber(rawOrder, "price")
 		var orderParams map[string]any = this.SafeDictMap(rawOrder, "params", map[string]any{})
 		var orderRequest map[string]any = this.CreateOrderRequest(marketId, typeVar, side, amount, price, orderParams)
 		ordersRequests = append(ordersRequests, orderRequest)
 	}
 	var orderSymbolsResolved []string = this.MarketSymbols(orderSymbols, nil, false, true, true)
-	var market map[string]any = this.Market(func() any {
-		if 0 >= 0 && 0 < len(orderSymbolsResolved) {
-			return orderSymbolsResolved[0]
-		}
-		return nil
-	}())
+	var market map[string]any = this.Market(orderSymbolsResolved[0])
 	if market["spot"] == true {
 		panic(NotSupported(this.Id + " createOrders() does not support " + *this.SafeString(market, "type", "") + " orders"))
 	}
@@ -4662,13 +4657,13 @@ func (this *Aster) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory]
 		market = this.Market(symbol)
 		request["symbol"] = market["id"]
 	}
-	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, params)
 	if since != nil {
-		requestUntil["startTime"] = *since
+		request["startTime"] = since
 	}
 	if limit != nil {
-		AddElementToObject(requestUntil, "limit", mathMin(limit, 1000)) // max 1000
+		request["limit"] = mathMin(limit, 1000) // max 1000
 	}
+	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, params)
 
 	listEp4370 := <-this.FapiPrivateGetV3Income(this.Extend(requestUntil, paramsUntil))
 	if listEp4370.Err != nil {

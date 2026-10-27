@@ -948,12 +948,7 @@ func (this *Binance) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.
 		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false, true, true)
-	var firstMarket map[string]any = this.Market(func() any {
-		if 0 >= 0 && 0 < len(symbolsNormalized) {
-			return symbolsNormalized[0]
-		}
-		return nil
-	}())
+	var firstMarket map[string]any = this.Market(symbolsNormalized[0])
 	var typeVar *string = ccxt.SafeStringPtr(firstMarket["type"])
 	if firstMarket["option"] == true {
 		typeVar = ccxt.SafeStringPtr("option")
@@ -1058,12 +1053,7 @@ func (this *Binance) unWatchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[boo
 		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false, true, true)
-	var firstMarket map[string]any = this.Market(func() any {
-		if 0 >= 0 && 0 < len(symbolsNormalized) {
-			return symbolsNormalized[0]
-		}
-		return nil
-	}())
+	var firstMarket map[string]any = this.Market(symbolsNormalized[0])
 	var typeVar *string = ccxt.SafeStringPtr(firstMarket["type"])
 	if firstMarket["option"] == true {
 		typeVar = ccxt.SafeStringPtr("option")
@@ -1633,12 +1623,7 @@ func (this *Binance) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.T
 	}
 	name, paramsName := this.HandleOptionStringAndParams(params, "watchTradesForSymbols", "name", "trade")
 	var paramsOmitted map[string]any = this.OmitDict(paramsName, "callerMethodName")
-	var firstMarket map[string]any = this.Market(func() any {
-		if 0 >= 0 && 0 < len(symbolsNormalized) {
-			return symbolsNormalized[0]
-		}
-		return nil
-	}())
+	var firstMarket map[string]any = this.Market(symbolsNormalized[0])
 	var typeVar *string = ccxt.SafeStringPtr(firstMarket["type"])
 	var isOption *bool = ccxt.SafeBoolPtr(firstMarket["option"])
 	if isOption != nil && *isOption == true {
@@ -1750,12 +1735,7 @@ func (this *Binance) unWatchTradesForSymbolsBody(ch chan ccxt.AsyncResult[bool],
 	}
 	name, paramsName := this.HandleOptionStringAndParams(params, "watchTradesForSymbols", "name", "trade")
 	var paramsOmitted map[string]any = this.OmitDict(paramsName, "callerMethodName")
-	var firstMarket map[string]any = this.Market(func() any {
-		if 0 >= 0 && 0 < len(symbolsNormalized) {
-			return symbolsNormalized[0]
-		}
-		return nil
-	}())
+	var firstMarket map[string]any = this.Market(symbolsNormalized[0])
 	var typeVar *string = ccxt.SafeStringPtr(firstMarket["type"])
 	var isOption *bool = ccxt.SafeBoolPtr(firstMarket["option"])
 	if isOption != nil && *isOption == true {
@@ -2292,12 +2272,7 @@ func (this *Binance) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[strin
 	}()
 	var symbols any = this.GetListFromObjectValues(symbolsAndTimeframes, 0)
 	var marketSymbols []string = this.MarketSymbols(symbols, nil, false, false, true)
-	var firstMarket map[string]any = this.Market(func() any {
-		if 0 >= 0 && 0 < len(marketSymbols) {
-			return marketSymbols[0]
-		}
-		return nil
-	}())
+	var firstMarket map[string]any = this.Market(marketSymbols[0])
 	var typeVar *string = ccxt.SafeStringPtr(firstMarket["type"])
 	var wsUrlType *string = typeVar
 	if firstMarket["option"] == true {
@@ -2412,12 +2387,7 @@ func (this *Binance) unWatchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[bool], 
 	}()
 	var symbols any = this.GetListFromObjectValues(symbolsAndTimeframes, 0)
 	var marketSymbols []string = this.MarketSymbols(symbols, nil, false, false, true)
-	var firstMarket map[string]any = this.Market(func() any {
-		if 0 >= 0 && 0 < len(marketSymbols) {
-			return marketSymbols[0]
-		}
-		return nil
-	}())
+	var firstMarket map[string]any = this.Market(marketSymbols[0])
 	var typeVar *string = ccxt.SafeStringPtr(firstMarket["type"])
 	var wsUrlType *string = typeVar
 	if firstMarket["option"] == true {

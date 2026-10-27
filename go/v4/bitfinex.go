@@ -821,12 +821,12 @@ func (this *Bitfinex) AmountToPrecision(symbol any, amount any) *string {
 	// Anything exceeding this will be rounded to the 8th decimal.
 	var symbolValue *string = this.SafeSymbol(symbol)
 	var market map[string]any = this.Market(symbolValue)
-	return SafeStringPtr(this.DecimalToPrecision(amount, TRUNCATE, GetValue(market["precision"], "amount"), DECIMAL_PLACES))
+	return SafeStringPtr(this.DecimalToPrecision(amount, TRUNCATE, this.SafeValue(market["precision"], "amount"), DECIMAL_PLACES))
 }
 func (this *Bitfinex) PriceToPrecision(symbol any, price any) *string {
 	var symbolValue *string = this.SafeSymbol(symbol)
 	var market map[string]any = this.Market(symbolValue)
-	var priceValue string = this.DecimalToPrecision(price, ROUND, GetValue(market["precision"], "price"), this.PrecisionMode)
+	var priceValue string = this.DecimalToPrecision(price, ROUND, this.SafeValue(market["precision"], "price"), this.PrecisionMode)
 	// https://docs.bitfinex.com/docs/introduction#price-precision
 	// The precision level of all trading prices is based on significant figures.
 	// All pairs on Bitfinex use up to 5 significant digits and up to 8 decimals (e.g. 1.2345, 123.45, 1234.5, 0.00012345).
@@ -928,12 +928,7 @@ func (this *Bitfinex) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 		var quoteId any = nil
 		if strings.Index(*id, ":") >= 0 {
 			var parts []string = strings.Split(*id, ":")
-			baseId = func() any {
-				if 0 >= 0 && 0 < len(parts) {
-					return parts[0]
-				}
-				return nil
-			}()
+			baseId = parts[0]
 			quoteId = func() any {
 				if 1 >= 0 && 1 < len(parts) {
 					return parts[1]
@@ -2216,7 +2211,7 @@ func (this *Bitfinex) ParseOrderFlags(flags *string) any {
 		"4096": []any{"postOnly"},
 		"5120": []any{"reduceOnly", "postOnly"},
 	}
-	return this.SafeList(flagValues, flags, nil)
+	return this.SafeList(flagValues, flags, []any{})
 }
 func (this *Bitfinex) ParseTimeInForce(orderType *string) *string {
 	var orderTypes map[string]any = map[string]any{
@@ -2250,11 +2245,9 @@ func (this *Bitfinex) ParseOrder(order any, optionalArgs ...any) Order {
 	var rawFlags *string = this.SafeString(orderList, 12)
 	var flags any = this.ParseOrderFlags(rawFlags)
 	var postOnly bool = false
-	if !IsEqual(flags, nil) {
-		for i := 0; i < GetArrayLength(flags); i++ {
-			if this.SafeString(flags, i) != nil && *this.SafeString(flags, i) == "postOnly" {
-				postOnly = true
-			}
+	for i := 0; i < GetArrayLength(flags); i++ {
+		if this.SafeString(flags, i) != nil && *this.SafeString(flags, i) == "postOnly" {
+			postOnly = true
 		}
 	}
 	var price *string = this.SafeString(orderList, 16)
@@ -2452,11 +2445,11 @@ func (this *Bitfinex) createOrderBody(ch chan AsyncResult[Order], symbol string,
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = this.CreateOrderRequest(SafeStringPtr(symbol), SafeStringPtr(typeVar), SafeStringPtr(side), amount, price, params)
 
-	listEp2384 := <-this.PrivatePostAuthWOrderSubmit(request)
-	if listEp2384.Err != nil {
-		panic(listEp2384.Err)
+	listEp2382 := <-this.PrivatePostAuthWOrderSubmit(request)
+	if listEp2382.Err != nil {
+		panic(listEp2382.Err)
 	}
-	var response []any = listEp2384.Value
+	var response []any = listEp2382.Value
 	//
 	//      [
 	//          1653325121,   // Timestamp in milliseconds
@@ -2562,11 +2555,11 @@ func (this *Bitfinex) createOrdersBody(ch chan AsyncResult[[]Order], orders any,
 		"ops": ordersRequests,
 	}
 
-	listEp2487 := <-this.PrivatePostAuthWOrderMulti(request)
-	if listEp2487.Err != nil {
-		panic(listEp2487.Err)
+	listEp2485 := <-this.PrivatePostAuthWOrderMulti(request)
+	if listEp2485.Err != nil {
+		panic(listEp2485.Err)
 	}
-	var response []any = listEp2487.Value
+	var response []any = listEp2485.Value
 	//
 	//     [
 	//         1706762515553,
@@ -2636,11 +2629,11 @@ func (this *Bitfinex) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optional
 		"all": 1,
 	}
 
-	listEp2554 := <-this.PrivatePostAuthWOrderCancelMulti(this.Extend(request, params))
-	if listEp2554.Err != nil {
-		panic(listEp2554.Err)
+	listEp2552 := <-this.PrivatePostAuthWOrderCancelMulti(this.Extend(request, params))
+	if listEp2552.Err != nil {
+		panic(listEp2552.Err)
 	}
-	var response []any = listEp2554.Value
+	var response []any = listEp2552.Value
 	var orders []any = SafeListTyped(response, 4)
 	var ordersList []any = []any{}
 	for i := 0; i < len(orders); i++ {
@@ -2709,11 +2702,11 @@ func (this *Bitfinex) cancelOrderBody(ch chan AsyncResult[Order], id any, option
 		return params
 	}()
 
-	listEp2620 := <-this.PrivatePostAuthWOrderCancel(this.Extend(request, paramsOmitted))
-	if listEp2620.Err != nil {
-		panic(listEp2620.Err)
+	listEp2618 := <-this.PrivatePostAuthWOrderCancel(this.Extend(request, paramsOmitted))
+	if listEp2618.Err != nil {
+		panic(listEp2618.Err)
 	}
-	var response []any = listEp2620.Value
+	var response []any = listEp2618.Value
 	var order any = this.SafeValue(response, 4)
 	var newOrder map[string]any = map[string]any{
 		"result": order,
@@ -2765,11 +2758,11 @@ func (this *Bitfinex) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any, op
 		market = this.Market(symbol)
 	}
 
-	listEp2669 := <-this.PrivatePostAuthWOrderCancelMulti(this.Extend(request, params))
-	if listEp2669.Err != nil {
-		panic(listEp2669.Err)
+	listEp2667 := <-this.PrivatePostAuthWOrderCancelMulti(this.Extend(request, params))
+	if listEp2667.Err != nil {
+		panic(listEp2667.Err)
 	}
-	var response []any = listEp2669.Value
+	var response []any = listEp2667.Value
 	//
 	//     [
 	//         1706740198811,
@@ -2954,20 +2947,20 @@ func (this *Bitfinex) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optional
 	var response []any = nil
 	if symbol == nil {
 
-		listEp2843 := <-this.PrivatePostAuthROrders(this.Extend(request, params))
-		if listEp2843.Err != nil {
-			panic(listEp2843.Err)
+		listEp2841 := <-this.PrivatePostAuthROrders(this.Extend(request, params))
+		if listEp2841.Err != nil {
+			panic(listEp2841.Err)
 		}
-		response = listEp2843.Value
+		response = listEp2841.Value
 	} else {
 		market = this.Market(symbol)
 		request["symbol"] = market["id"]
 
-		listEp2848 := <-this.PrivatePostAuthROrdersSymbol(this.Extend(request, params))
-		if listEp2848.Err != nil {
-			panic(listEp2848.Err)
+		listEp2846 := <-this.PrivatePostAuthROrdersSymbol(this.Extend(request, params))
+		if listEp2846.Err != nil {
+			panic(listEp2846.Err)
 		}
-		response = listEp2848.Value
+		response = listEp2846.Value
 	}
 	//
 	//      [
@@ -3063,11 +3056,11 @@ func (this *Bitfinex) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], option
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes229019 []any = r1.Value
-		if retRes229019 == nil {
+		var retRes228819 []any = r1.Value
+		if retRes228819 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes229019)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes228819)}
 		}
 		return nil
 	}
@@ -3083,20 +3076,20 @@ func (this *Bitfinex) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], option
 	var response []any = nil
 	if symbol == nil {
 
-		listEp2957 := <-this.PrivatePostAuthROrdersHist(this.Extend(requestUntil, paramsUntil))
-		if listEp2957.Err != nil {
-			panic(listEp2957.Err)
+		listEp2955 := <-this.PrivatePostAuthROrdersHist(this.Extend(requestUntil, paramsUntil))
+		if listEp2955.Err != nil {
+			panic(listEp2955.Err)
 		}
-		response = listEp2957.Value
+		response = listEp2955.Value
 	} else {
 		market = this.Market(symbol)
 		requestUntil["symbol"] = market["id"]
 
-		listEp2962 := <-this.PrivatePostAuthROrdersSymbolHist(this.Extend(requestUntil, paramsUntil))
-		if listEp2962.Err != nil {
-			panic(listEp2962.Err)
+		listEp2960 := <-this.PrivatePostAuthROrdersSymbolHist(this.Extend(requestUntil, paramsUntil))
+		if listEp2960.Err != nil {
+			panic(listEp2960.Err)
 		}
-		response = listEp2962.Value
+		response = listEp2960.Value
 	}
 	//
 	//      [
@@ -3193,11 +3186,11 @@ func (this *Bitfinex) fetchOrderTradesBody(ch chan AsyncResult[[]Trade], id stri
 	}
 	// valid for trades up to 10 days old
 
-	listEp3056 := <-this.PrivatePostAuthROrderSymbolIdTrades(this.Extend(request, params))
-	if listEp3056.Err != nil {
-		panic(listEp3056.Err)
+	listEp3054 := <-this.PrivatePostAuthROrderSymbolIdTrades(this.Extend(request, params))
+	if listEp3054.Err != nil {
+		panic(listEp3054.Err)
 	}
-	var response []any = listEp3056.Value
+	var response []any = listEp3054.Value
 	var rawTrades []any = this.ToArray(response)
 	var tradesList []any = []any{}
 	for i := 0; i < len(rawTrades); i++ {
@@ -3260,18 +3253,18 @@ func (this *Bitfinex) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalAr
 		market = this.Market(symbol)
 		request["symbol"] = market["id"]
 
-		listEp3116 := <-this.PrivatePostAuthRTradesSymbolHist(this.Extend(request, params))
-		if listEp3116.Err != nil {
-			panic(listEp3116.Err)
+		listEp3114 := <-this.PrivatePostAuthRTradesSymbolHist(this.Extend(request, params))
+		if listEp3114.Err != nil {
+			panic(listEp3114.Err)
 		}
-		response = listEp3116.Value
+		response = listEp3114.Value
 	} else {
 
-		listEp3119 := <-this.PrivatePostAuthRTradesHist(this.Extend(request, params))
-		if listEp3119.Err != nil {
-			panic(listEp3119.Err)
+		listEp3117 := <-this.PrivatePostAuthRTradesHist(this.Extend(request, params))
+		if listEp3117.Err != nil {
+			panic(listEp3117.Err)
 		}
-		response = listEp3119.Value
+		response = listEp3117.Value
 	}
 	var tradesList []any = []any{}
 	for i := 0; i < len(response); i++ {
@@ -3318,11 +3311,11 @@ func (this *Bitfinex) createDepositAddressBody(ch chan AsyncResult[DepositAddres
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes244615 map[string]any = StructResultMap(r1.Value, DepositAddressToMap)
-	if retRes244615 == nil {
+	var retRes244415 map[string]any = StructResultMap(r1.Value, DepositAddressToMap)
+	if retRes244415 == nil {
 		ch <- AsyncResult[DepositAddress]{}
 	} else {
-		ch <- AsyncResult[DepositAddress]{Value: DepositAddressFromMap(retRes244615)}
+		ch <- AsyncResult[DepositAddress]{Value: DepositAddressFromMap(retRes244415)}
 	}
 	return nil
 }
@@ -3777,19 +3770,19 @@ func (this *Bitfinex) fetchDepositsWithdrawalsBody(ch chan AsyncResult[[]Transac
 		currency = this.Currency(code)
 		request["currency"] = currency["id"]
 
-		listEp3591 := <-this.PrivatePostAuthRMovementsCurrencyHist(this.Extend(request, params))
-		if listEp3591.Err != nil {
-			panic(listEp3591.Err)
+		listEp3589 := <-this.PrivatePostAuthRMovementsCurrencyHist(this.Extend(request, params))
+		if listEp3589.Err != nil {
+			panic(listEp3589.Err)
 		}
-		var currencyMovements []any = listEp3591.Value
+		var currencyMovements []any = listEp3589.Value
 		response = this.ToArray(currencyMovements)
 	} else {
 
-		listEp3595 := <-this.PrivatePostAuthRMovementsHist(this.Extend(request, params))
-		if listEp3595.Err != nil {
-			panic(listEp3595.Err)
+		listEp3593 := <-this.PrivatePostAuthRMovementsHist(this.Extend(request, params))
+		if listEp3593.Err != nil {
+			panic(listEp3593.Err)
 		}
-		var movements []any = listEp3595.Value
+		var movements []any = listEp3593.Value
 		response = this.ToArray(movements)
 	}
 
@@ -3967,11 +3960,11 @@ func (this *Bitfinex) fetchPositionsBody(ch chan AsyncResult[[]Position], option
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
-	listEp3766 := <-this.PrivatePostAuthRPositions(params)
-	if listEp3766.Err != nil {
-		panic(listEp3766.Err)
+	listEp3764 := <-this.PrivatePostAuthRPositions(params)
+	if listEp3764.Err != nil {
+		panic(listEp3764.Err)
 	}
-	var response []any = listEp3766.Value
+	var response []any = listEp3764.Value
 	//
 	//     [
 	//         [
@@ -4334,11 +4327,11 @@ func (this *Bitfinex) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], option
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes323419 []any = r1.Value
-		if retRes323419 == nil {
+		var retRes323219 []any = r1.Value
+		if retRes323219 == nil {
 			ch <- AsyncResult[[]LedgerEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes323419)}
+			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes323219)}
 		}
 		return nil
 	}
@@ -4356,18 +4349,18 @@ func (this *Bitfinex) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], option
 		currency = this.Currency(code)
 		requestUntil["currency"] = currency["id"]
 
-		listEp4144 := <-this.PrivatePostAuthRLedgersCurrencyHist(this.Extend(requestUntil, paramsUntil))
-		if listEp4144.Err != nil {
-			panic(listEp4144.Err)
+		listEp4142 := <-this.PrivatePostAuthRLedgersCurrencyHist(this.Extend(requestUntil, paramsUntil))
+		if listEp4142.Err != nil {
+			panic(listEp4142.Err)
 		}
-		response = listEp4144.Value
+		response = listEp4142.Value
 	} else {
 
-		listEp4147 := <-this.PrivatePostAuthRLedgersHist(this.Extend(requestUntil, paramsUntil))
-		if listEp4147.Err != nil {
-			panic(listEp4147.Err)
+		listEp4145 := <-this.PrivatePostAuthRLedgersHist(this.Extend(requestUntil, paramsUntil))
+		if listEp4145.Err != nil {
+			panic(listEp4145.Err)
 		}
-		response = listEp4147.Value
+		response = listEp4145.Value
 	}
 	//
 	//     [
@@ -4431,11 +4424,11 @@ func (this *Bitfinex) fetchFundingRatesBody(ch chan AsyncResult[map[string]Fundi
 		"keys": Join(marketIds, ","),
 	}
 
-	listEp4208 := <-this.PublicGetStatusDeriv(this.Extend(request, params))
-	if listEp4208.Err != nil {
-		panic(listEp4208.Err)
+	listEp4206 := <-this.PublicGetStatusDeriv(this.Extend(request, params))
+	if listEp4206.Err != nil {
+		panic(listEp4206.Err)
 	}
-	var response []any = listEp4208.Value
+	var response []any = listEp4206.Value
 
 	//
 	//   [
@@ -4517,11 +4510,11 @@ func (this *Bitfinex) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingR
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes335119 []any = r1.Value
-		if retRes335119 == nil {
+		var retRes334919 []any = r1.Value
+		if retRes334919 == nil {
 			ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes335119)}
+			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes334919)}
 		}
 		return nil
 	}
@@ -4534,11 +4527,11 @@ func (this *Bitfinex) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingR
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("end", request, paramsPaginate)
 
-	listEp4300 := <-this.PublicGetStatusDerivSymbolHist(this.Extend(requestUntil, paramsUntil))
-	if listEp4300.Err != nil {
-		panic(listEp4300.Err)
+	listEp4298 := <-this.PublicGetStatusDerivSymbolHist(this.Extend(requestUntil, paramsUntil))
+	if listEp4298.Err != nil {
+		panic(listEp4298.Err)
 	}
-	var response []any = listEp4300.Value
+	var response []any = listEp4298.Value
 	//
 	//   [
 	//       [
@@ -4720,11 +4713,11 @@ func (this *Bitfinex) fetchOpenInterestsBody(ch chan AsyncResult[map[string]Open
 		"keys": Join(marketIds, ","),
 	}
 
-	listEp4484 := <-this.PublicGetStatusDeriv(this.Extend(request, params))
-	if listEp4484.Err != nil {
-		panic(listEp4484.Err)
+	listEp4482 := <-this.PublicGetStatusDeriv(this.Extend(request, params))
+	if listEp4482.Err != nil {
+		panic(listEp4482.Err)
 	}
-	var response []any = listEp4484.Value
+	var response []any = listEp4482.Value
 
 	//
 	//     [
@@ -4791,11 +4784,11 @@ func (this *Bitfinex) fetchOpenInterestBody(ch chan AsyncResult[OpenInterest], s
 		"keys": market["id"],
 	}
 
-	listEp4548 := <-this.PublicGetStatusDeriv(this.Extend(request, params))
-	if listEp4548.Err != nil {
-		panic(listEp4548.Err)
+	listEp4546 := <-this.PublicGetStatusDeriv(this.Extend(request, params))
+	if listEp4546.Err != nil {
+		panic(listEp4546.Err)
 	}
-	var response []any = listEp4548.Value
+	var response []any = listEp4546.Value
 	//
 	//     [
 	//         [
@@ -4876,11 +4869,11 @@ func (this *Bitfinex) fetchOpenInterestHistoryBody(ch chan AsyncResult[[]OpenInt
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes362919 []any = r1.Value
-		if retRes362919 == nil {
+		var retRes362719 []any = r1.Value
+		if retRes362719 == nil {
 			ch <- AsyncResult[[]OpenInterest]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]OpenInterest]{Value: OpenInterestsFromList(retRes362919)}
+			ch <- AsyncResult[[]OpenInterest]{Value: OpenInterestsFromList(retRes362719)}
 		}
 		return nil
 	}
@@ -4896,11 +4889,11 @@ func (this *Bitfinex) fetchOpenInterestHistoryBody(ch chan AsyncResult[[]OpenInt
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("end", request, paramsPaginate)
 
-	listEp4642 := <-this.PublicGetStatusDerivSymbolHist(this.Extend(requestUntil, paramsUntil))
-	if listEp4642.Err != nil {
-		panic(listEp4642.Err)
+	listEp4640 := <-this.PublicGetStatusDerivSymbolHist(this.Extend(requestUntil, paramsUntil))
+	if listEp4640.Err != nil {
+		panic(listEp4640.Err)
 	}
-	var response []any = listEp4642.Value
+	var response []any = listEp4640.Value
 
 	//
 	//     [
@@ -5055,11 +5048,11 @@ func (this *Bitfinex) fetchLiquidationsBody(ch chan AsyncResult[[]Liquidation], 
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes376719 []any = r1.Value
-		if retRes376719 == nil {
+		var retRes376519 []any = r1.Value
+		if retRes376519 == nil {
 			ch <- AsyncResult[[]Liquidation]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Liquidation]{Value: LiquidationsFromList(retRes376719)}
+			ch <- AsyncResult[[]Liquidation]{Value: LiquidationsFromList(retRes376519)}
 		}
 		return nil
 	}
@@ -5073,11 +5066,11 @@ func (this *Bitfinex) fetchLiquidationsBody(ch chan AsyncResult[[]Liquidation], 
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("end", request, paramsPaginate)
 
-	listEp4808 := <-this.PublicGetLiquidationsHist(this.Extend(requestUntil, paramsUntil))
-	if listEp4808.Err != nil {
-		panic(listEp4808.Err)
+	listEp4806 := <-this.PublicGetLiquidationsHist(this.Extend(requestUntil, paramsUntil))
+	if listEp4806.Err != nil {
+		panic(listEp4806.Err)
 	}
-	var response []any = listEp4808.Value
+	var response []any = listEp4806.Value
 
 	//
 	//     [
@@ -5185,11 +5178,11 @@ func (this *Bitfinex) setMarginBody(ch chan AsyncResult[MarginModification], sym
 		"collateral": this.ParseToNumeric(amount),
 	}
 
-	listEp4913 := <-this.PrivatePostAuthWDerivCollateralSet(this.Extend(request, params))
-	if listEp4913.Err != nil {
-		panic(listEp4913.Err)
+	listEp4911 := <-this.PrivatePostAuthWDerivCollateralSet(this.Extend(request, params))
+	if listEp4911.Err != nil {
+		panic(listEp4911.Err)
 	}
-	var response []any = listEp4913.Value
+	var response []any = listEp4911.Value
 	//
 	//     [
 	//         [
@@ -5270,20 +5263,20 @@ func (this *Bitfinex) fetchOrderBody(ch chan AsyncResult[Order], id any, optiona
 	var response []any = nil
 	if symbol == nil {
 
-		listEp4991 := <-this.PrivatePostAuthROrders(this.Extend(request, params))
-		if listEp4991.Err != nil {
-			panic(listEp4991.Err)
+		listEp4989 := <-this.PrivatePostAuthROrders(this.Extend(request, params))
+		if listEp4989.Err != nil {
+			panic(listEp4989.Err)
 		}
-		response = listEp4991.Value
+		response = listEp4989.Value
 	} else {
 		market = this.Market(symbol)
 		request["symbol"] = market["id"]
 
-		listEp4996 := <-this.PrivatePostAuthROrdersSymbol(this.Extend(request, params))
-		if listEp4996.Err != nil {
-			panic(listEp4996.Err)
+		listEp4994 := <-this.PrivatePostAuthROrdersSymbol(this.Extend(request, params))
+		if listEp4994.Err != nil {
+			panic(listEp4994.Err)
 		}
-		response = listEp4996.Value
+		response = listEp4994.Value
 	}
 	//
 	//     [
@@ -5431,11 +5424,11 @@ func (this *Bitfinex) editOrderBody(ch chan AsyncResult[Order], id string, symbo
 	}
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"triggerPrice", "stopPrice", "timeInForce", "postOnly", "reduceOnly", "trailingAmount", "clientOrderId", "leverage"})
 
-	listEp5138 := <-this.PrivatePostAuthWOrderUpdate(this.Extend(request, paramsOmitted))
-	if listEp5138.Err != nil {
-		panic(listEp5138.Err)
+	listEp5136 := <-this.PrivatePostAuthWOrderUpdate(this.Extend(request, paramsOmitted))
+	if listEp5136.Err != nil {
+		panic(listEp5136.Err)
 	}
-	var response []any = listEp5138.Value
+	var response []any = listEp5136.Value
 	//
 	//     [
 	//         1706845376402,

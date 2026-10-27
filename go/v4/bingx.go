@@ -4707,12 +4707,7 @@ func (this *Bingx) createOrdersBody(ch chan AsyncResult[[]Order], orders any, op
 	}
 	var symbols []string = this.MarketSymbols(marketIds, nil, false, true, true)
 	var symbolsLength int = len(symbols)
-	var market map[string]any = this.Market(func() any {
-		if 0 >= 0 && 0 < len(symbols) {
-			return symbols[0]
-		}
-		return nil
-	}())
+	var market map[string]any = this.Market(symbols[0])
 	if market["inverse"] == true {
 		panic(NotSupported(this.Id + " createOrders() is not supported for inverse swap markets"))
 	}
@@ -8655,9 +8650,9 @@ func (this *Bingx) Sign(path string, optionalArgs ...any) any {
 	url += "/" + version + "/" + pathValue
 	var requestHeaders any = nil
 	var requestBody *string = nil
-	var paramsOmitted any = this.Omit(params, this.ExtractParams(pathValue))
-	AddElementToObject(paramsOmitted, "timestamp", this.Nonce())
-	var paramsSorted map[string]any = this.Keysort(paramsOmitted)
+	var paramsSorted map[string]any = this.Keysort(this.Extend(this.Omit(params, this.ExtractParams(pathValue)), map[string]any{
+		"timestamp": this.Nonce(),
+	}))
 	if access == "public" {
 		if len(paramsSorted) > 0 {
 			url += "?" + this.Urlencode(paramsSorted)
@@ -8685,7 +8680,9 @@ func (this *Bingx) Sign(path string, optionalArgs ...any) any {
 			"X-SOURCE-KEY": this.SafeString(this.Options, "broker", "CCXT"),
 		}
 		if isJsonContentType {
-			AddElementToObject(requestHeaders, "Content-Type", "application/json")
+			requestHeaders = this.Extend(requestHeaders, map[string]any{
+				"Content-Type": "application/json",
+			})
 			paramsSorted["signature"] = signature
 			requestBody = SafeStringPtr(this.Json(paramsSorted))
 		} else {

@@ -1991,26 +1991,19 @@ func (this *Delta) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, o
 		limitValue = limit // max 2000
 		windowSeconds = *limit * duration
 	}
-	var until any = this.SafeIntegerProduct(params, "until", 0.001)
-	var untilIsDefined bool = !IsEqual(until, nil)
-	if untilIsDefined {
-		until = this.ParseToInt(until)
-	}
+	var until *int64 = this.SafeIntegerProduct(params, "until", 0.001)
 	if since == nil {
 		var end int64 = this.Seconds()
-		if untilIsDefined {
+		if until != nil {
 			end = this.ParseToInt(until)
 		}
 		request["end"] = end
-		if IsEqual(end, nil) {
-			panic(ExchangeError(this.Id + " fetchOHLCV() missing end"))
-		}
 		request["start"] = end - windowSeconds
 	} else {
 		var start int64 = this.ParseToInt(float64(*since) / 1000)
 		request["start"] = start
 		request["end"] = func() any {
-			if untilIsDefined {
+			if until != nil {
 				return until
 			}
 			return this.Sum(start, windowSeconds)
@@ -2872,11 +2865,11 @@ func (this *Delta) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArg
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes233715 []any = OrdersToList(r.Value)
-	if retRes233715 == nil {
+	var retRes233015 []any = OrdersToList(r.Value)
+	if retRes233015 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes233715)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes233015)}
 	}
 	return nil
 }
@@ -2913,11 +2906,11 @@ func (this *Delta) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optionalA
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes235215 []any = OrdersToList(r.Value)
-	if retRes235215 == nil {
+	var retRes234515 []any = OrdersToList(r.Value)
+	if retRes234515 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes235215)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes234515)}
 	}
 	return nil
 }
@@ -2931,7 +2924,7 @@ func (this *Delta) fetchOrdersWithMethodBody(ch chan AsyncResult[[]Order], metho
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
@@ -2949,7 +2942,7 @@ func (this *Delta) fetchOrdersWithMethodBody(ch chan AsyncResult[[]Order], metho
 		request["product_ids"] = market["numericId"] // accepts a comma-separated list of ids
 	}
 	if since != nil {
-		request["start_time"] = ToString(since) + "000"
+		request["start_time"] = this.NumberToString(*since * 1000)
 	}
 	if limit != nil {
 		request["page_size"] = limit
@@ -3020,7 +3013,7 @@ func (this *Delta) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs 
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
@@ -3038,7 +3031,7 @@ func (this *Delta) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs 
 		request["product_ids"] = market["numericId"] // accepts a comma-separated list of ids
 	}
 	if since != nil {
-		request["start_time"] = ToString(since) + "000"
+		request["start_time"] = this.NumberToString(*since * 1000)
 	}
 	if limit != nil {
 		request["page_size"] = limit
@@ -3613,11 +3606,11 @@ func (this *Delta) addMarginBody(ch chan AsyncResult[MarginModification], symbol
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes290715 map[string]any = StructResultMap(r.Value, MarginModificationToMap)
-	if retRes290715 == nil {
+	var retRes290015 map[string]any = StructResultMap(r.Value, MarginModificationToMap)
+	if retRes290015 == nil {
 		ch <- AsyncResult[MarginModification]{}
 	} else {
-		ch <- AsyncResult[MarginModification]{Value: MarginModificationFromMap(retRes290715)}
+		ch <- AsyncResult[MarginModification]{Value: MarginModificationFromMap(retRes290015)}
 	}
 	return nil
 }
@@ -3647,11 +3640,11 @@ func (this *Delta) reduceMarginBody(ch chan AsyncResult[MarginModification], sym
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes292115 map[string]any = StructResultMap(r.Value, MarginModificationToMap)
-	if retRes292115 == nil {
+	var retRes291415 map[string]any = StructResultMap(r.Value, MarginModificationToMap)
+	if retRes291415 == nil {
 		ch <- AsyncResult[MarginModification]{}
 	} else {
-		ch <- AsyncResult[MarginModification]{Value: MarginModificationFromMap(retRes292115)}
+		ch <- AsyncResult[MarginModification]{Value: MarginModificationFromMap(retRes291415)}
 	}
 	return nil
 }
@@ -5172,7 +5165,7 @@ func (this *Delta) Sign(path string, optionalArgs ...any) any {
 	} else if apiName == "private" {
 		this.CheckRequiredCredentials()
 		var timestamp string = strconv.FormatInt(this.Seconds(), 10)
-		requestHeaders = map[string]any{
+		var privateHeaders map[string]any = map[string]any{
 			"api-key":   this.ApiKey,
 			"timestamp": timestamp,
 		}
@@ -5186,10 +5179,11 @@ func (this *Delta) Sign(path string, optionalArgs ...any) any {
 		} else {
 			requestBody = this.Json(query)
 			auth = Add(auth, requestBody)
-			AddElementToObject(requestHeaders, "Content-Type", "application/json")
+			privateHeaders["Content-Type"] = "application/json"
 		}
 		var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256)
-		AddElementToObject(requestHeaders, "signature", signature)
+		privateHeaders["signature"] = signature
+		requestHeaders = privateHeaders
 	}
 	var bodyResult any = requestBody
 	var headersResult any = requestHeaders

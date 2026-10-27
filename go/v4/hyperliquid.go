@@ -1997,12 +1997,7 @@ func (this *Hyperliquid) PriceToPrecision(symbol any, price any) *string {
 	var market map[string]any = this.Market(symbol)
 	var priceStr *string = this.NumberToString(price)
 	var priceStrParts []string = strings.Split(*priceStr, ".")
-	var integerPart *string = SafeStringPtr(func() any {
-		if 0 >= 0 && 0 < len(priceStrParts) {
-			return priceStrParts[0]
-		}
-		return nil
-	}())
+	var integerPart *string = SafeStringPtr(priceStrParts[0])
 	var significantDigits any = mathMax(5, len(*integerPart))
 	var result string = this.DecimalToPrecision(price, ROUND, significantDigits, SIGNIFICANT_DIGITS, this.PaddingMode)
 	var maxDecimals int = 6

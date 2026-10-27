@@ -1256,12 +1256,7 @@ func (this *Bit2c) ParseTrade(trade any, optionalArgs ...any) Trade {
 		var reference_parts []string = strings.Split(*reference, "|") // reference contains 'pair|orderId_by_taker|orderId_by_maker'
 		var marketId *string = this.SafeString(trade, "pair")
 		var marketByPair map[string]any = this.SafeMarket(marketId, market)
-		tradeMarket = this.SafeMarket(func() any {
-			if 0 >= 0 && 0 < len(reference_parts) {
-				return reference_parts[0]
-			}
-			return nil
-		}(), marketByPair)
+		tradeMarket = this.SafeMarket(reference_parts[0], marketByPair)
 		var isMaker *bool = this.SafeBool(trade, "isMaker")
 		makerOrTaker = SafeStringPtr(func() string {
 			if isMaker != nil && *isMaker == true {

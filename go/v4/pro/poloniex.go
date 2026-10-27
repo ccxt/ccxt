@@ -195,7 +195,7 @@ func (this *Poloniex) subscribeBody(ch chan ccxt.AsyncResult[any], name any, mes
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var publicOrPrivate string = "public"
-	if ccxt.EvalTruthy(isPrivate) {
+	if isPrivate == true {
 		publicOrPrivate = "private"
 	}
 	var url *string = this.SafeString(this.UrlsApi["ws"], publicOrPrivate)

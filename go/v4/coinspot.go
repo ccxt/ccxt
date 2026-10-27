@@ -1038,11 +1038,11 @@ func (this *Coinspot) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalAr
 	// }
 	var buyTrades []any = SafeListTypedDefault(response, "buyorders", []any{})
 	for i := 0; i < len(buyTrades); i++ {
-		AddElementToObject(GetValue(buyTrades, i), "side", "buy")
+		AddElementToObject(buyTrades[i], "side", "buy")
 	}
 	var sellTrades []any = SafeListTypedDefault(response, "sellorders", []any{})
 	for i := 0; i < len(sellTrades); i++ {
-		AddElementToObject(GetValue(sellTrades, i), "side", "sell")
+		AddElementToObject(sellTrades[i], "side", "sell")
 	}
 	var trades []any = this.ArrayConcat(buyTrades, sellTrades)
 

@@ -4570,7 +4570,7 @@ func (this *Woo) Sign(path string, optionalArgs ...any) any {
 	var requestHeaders map[string]any = nil
 	var requestBody *string = nil
 	var version string = section[0]
-	var access *string = this.SafeString(section, 1)
+	var access string = section[1]
 	var pathWithParams string = this.ImplodeParams(path, params)
 	var baseApiUrl *string = this.SafeString(this.Urls["api"], access)
 	if baseApiUrl == nil {
@@ -4579,13 +4579,13 @@ func (this *Woo) Sign(path string, optionalArgs ...any) any {
 	var urlPrefix string = this.ImplodeHostname(baseApiUrl) + "/" + version + "/"
 	var paramsSorted map[string]any = this.Keysort(this.Omit(params, this.ExtractParams(path)))
 	var url string = urlPrefix
-	if access != nil && *access == "public" {
+	if access == "public" {
 		var publicUrl string = urlPrefix + "public/" + pathWithParams
 		url = publicUrl
 		if len(paramsSorted) > 0 {
 			url = publicUrl + "?" + this.Urlencode(paramsSorted)
 		}
-	} else if access != nil && *access == "pub" {
+	} else if access == "pub" {
 		url = urlPrefix + pathWithParams
 		if len(paramsSorted) > 0 {
 			url = urlPrefix + pathWithParams + "?" + this.Urlencode(paramsSorted)

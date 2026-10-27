@@ -1302,12 +1302,7 @@ func (this *Whitebit) ParseDepositWithdrawFees(response any, optionalArgs ...any
 	for i := 0; i < len(currencyIds); i++ {
 		var entry string = currencyIds[i]
 		var splitEntry []string = strings.Split(entry, " ")
-		var currencyId *string = SafeStringPtr(func() any {
-			if 0 >= 0 && 0 < len(splitEntry) {
-				return splitEntry[0]
-			}
-			return nil
-		}())
+		var currencyId *string = SafeStringPtr(splitEntry[0])
 		var feeInfo any = this.SafeValue(response, entry)
 		var code *string = this.SafeCurrencyCode(currencyId)
 		if (code != nil) && ((IsEqual(codesValue, nil)) || (this.InArray(code, codesValue))) {
@@ -5908,7 +5903,7 @@ func (this *Whitebit) Sign(path string, optionalArgs ...any) any {
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
 	var query any = this.Omit(params, this.ExtractParams(path))
-	var version *string = this.SafeString(api, 0, "")
+	var version string = api[0]
 	var accessibility *string = this.SafeString(api, 1)
 	var publicHeaders map[string]any = map[string]any{}
 	publicHeaders["User-Agent"] = "ccxt/" + this.Id + "-" + this.Version
@@ -5930,7 +5925,7 @@ func (this *Whitebit) Sign(path string, optionalArgs ...any) any {
 		// whitebit requires each nonce to be greater than the previous one unless nonceWindow is enabled
 		var nonce string = ToString(this.IncrementingNonce())
 		var secret string = this.Encode(this.Secret)
-		var request string = "/" + "api" + "/" + *version + pathWithParams
+		var request string = "/" + "api" + "/" + version + pathWithParams
 		nonceWindow, requestParams := this.HandleOptionBoolAndParams(params, "sign", "nonceWindow", false)
 		privateBody = this.Json(this.Extend(map[string]any{
 			"request":     request,

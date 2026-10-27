@@ -516,7 +516,7 @@ func (this *BaseExchange) StoreByKey(dict any, key any, value any) {
 }
 func (this *BaseExchange) HandleDeltas(bookside any, deltas any) {
 	for i := 0; i < GetArrayLength(deltas); i++ {
-		this.DerivedExchange.HandleDelta(bookside, GetValue(deltas, i))
+		this.DerivedExchange.HandleDelta(bookside, this.SafeValue(deltas, i))
 	}
 }
 func (this *BaseExchange) HandleDelta(bookside any, delta any) {
@@ -524,7 +524,7 @@ func (this *BaseExchange) HandleDelta(bookside any, delta any) {
 }
 func (this *BaseExchange) HandleBookDeltas(orderbook any, deltas any) {
 	for i := 0; i < GetArrayLength(deltas); i++ {
-		this.HandleBookDelta(orderbook, GetValue(deltas, i))
+		this.HandleBookDelta(orderbook, this.SafeValue(deltas, i))
 	}
 }
 func (this *BaseExchange) HandleBookDelta(orderbook any, delta any) {
@@ -538,7 +538,7 @@ func (this *BaseExchange) HandleDeltasWithKeys(bookSide any, deltas any, optiona
 	countOrIdKey := GetArg(optionalArgs, 2, 2)
 	_ = countOrIdKey
 	for i := 0; i < GetArrayLength(deltas); i++ {
-		var bidAsk any = this.ParseOrderBookBidAsk(GetValue(deltas, i), priceKey, amountKey, countOrIdKey)
+		var bidAsk any = this.ParseOrderBookBidAsk(this.SafeValue(deltas, i), priceKey, amountKey, countOrIdKey)
 		(bookSide.(*OrderBookSide)).StoreArray(bidAsk)
 	}
 }
@@ -2184,7 +2184,7 @@ func (this *BaseExchange) OrderbookChecksumMessage(symbol any) any {
 	if IsEqual(symbol, nil) {
 		panic(ArgumentsRequired(this.Id + " orderbookChecksumMessage() requires a symbol argument"))
 	}
-	return Add(Add(symbol, " : "), "orderbook data checksum validation failed. You can reconnect by calling watchOrderBook again or you can mute the error by setting exchange.options[\"watchOrderBook\"][\"checksum\"] = false")
+	return Add(symbol, " : orderbook data checksum validation failed. You can reconnect by calling watchOrderBook again or you can mute the error by setting exchange.options[\"watchOrderBook\"][\"checksum\"] = false")
 }
 func (this *BaseExchange) GetDefaultOptions() any {
 	return map[string]any{
@@ -2414,7 +2414,7 @@ func (this *BaseExchange) SafeMarketStructure(optionalArgs ...any) map[string]an
 	if market != nil {
 		var result map[string]any = this.Extend(cleanStructure, market)
 		// set undefined swap/future/etc
-		if IsEqual(result["spot"], true) {
+		if this.SafeBool(result, "spot") != nil && *this.SafeBool(result, "spot") == true {
 			if IsEqual(result["contract"], nil) {
 				result["contract"] = false
 			}
@@ -2468,9 +2468,9 @@ func (this *BaseExchange) SetMarkets(markets any, optionalArgs ...any) any {
 			"precision": this.Precision,
 			"limits":    this.Limits,
 		}, this.Fees["trading"], valueDefined)
-		if IsEqual(market["linear"], true) {
+		if this.SafeBool(market, "linear") != nil && *this.SafeBool(market, "linear") == true {
 			market["subType"] = "linear"
-		} else if IsEqual(market["inverse"], true) {
+		} else if this.SafeBool(market, "inverse") != nil && *this.SafeBool(market, "inverse") == true {
 			market["subType"] = "inverse"
 		} else {
 			market["subType"] = nil
@@ -5447,7 +5447,7 @@ func (this *BaseExchange) SafeMarket(optionalArgs ...any) map[string]any {
 	_ = market
 	delimiter := GetArg(optionalArgs, 2, nil)
 	_ = delimiter
-	marketType := GetArg(optionalArgs, 3, nil)
+	var marketType *string = GetArgStringPtr(optionalArgs, 3, nil)
 	_ = marketType
 	if marketId != nil {
 		if (this.Markets_by_id() != nil) && (InOp(this.Markets_by_id(), marketId)) {
@@ -5459,7 +5459,7 @@ func (this *BaseExchange) SafeMarket(optionalArgs ...any) map[string]any {
 				if (marketType == nil) && (market == nil) {
 					panic(ArgumentsRequired(Add(Add(this.Id+" safeMarket() requires a fourth argument for ", marketId), " to disambiguate between different markets with the same market id")))
 				}
-				var marketTypeResolved any = func() any {
+				var marketTypeResolved *string = func() *string {
 					if marketType == nil {
 						return this.SafeString(market, "type", "")
 					}
@@ -5467,7 +5467,7 @@ func (this *BaseExchange) SafeMarket(optionalArgs ...any) map[string]any {
 				}()
 				for i := 0; i < len(markets); i++ {
 					var currentMarket any = markets[i]
-					if IsEqual(GetValue(currentMarket, marketTypeResolved), true) {
+					if this.SafeBool(currentMarket, marketTypeResolved) != nil && *this.SafeBool(currentMarket, marketTypeResolved) == true {
 						return MarketTyped(currentMarket)
 					}
 				}
@@ -6735,7 +6735,7 @@ func (this *BaseExchange) Market(symbol any) map[string]any {
 		var defaultType *string = this.SafeString2(this.Options, "defaultType", "defaultSubType", "spot")
 		for i := 0; i < GetArrayLength(marketsList); i++ {
 			var market any = GetValue(marketsList, i)
-			if IsEqual(GetValue(market, defaultType), true) {
+			if this.SafeBool(market, defaultType) != nil && *this.SafeBool(market, defaultType) == true {
 				return MarketTyped(market)
 			}
 		}
@@ -7928,7 +7928,7 @@ func (this *BaseExchange) ParseWsOHLCVs(ohlcvs any, optionalArgs ...any) any {
 	_ = limit
 	var results []any = []any{}
 	for i := 0; i < GetArrayLength(ohlcvs); i++ {
-		results = append(results, this.ParseWsOHLCV(GetValue(ohlcvs, i), market))
+		results = append(results, this.ParseWsOHLCV(this.SafeValue(ohlcvs, i), market))
 	}
 	return results
 }
@@ -8120,7 +8120,7 @@ func (this *BaseExchange) fetchPaginatedCallDynamicBody(ch chan AsyncResult[[]an
 					response := r.Value
 					var responseLength int = GetArrayLength(response)
 					if this.Verbose {
-						var backwardMessage any = Add(Add(Add(Add(Add("Dynamic pagination call ", this.NumberToString(calls)), " method "), method), " response length "), this.NumberToString(responseLength))
+						var backwardMessage any = Add(Add(Add(Add(Add("Dynamic pagination call ", this.NumberToString(calls)), " method "), method), " response length "), strconv.Itoa(responseLength))
 						if !IsEqual(paginationTimestamp, nil) {
 							backwardMessage = Add(backwardMessage, Add(" timestamp ", this.NumberToString(paginationTimestamp)))
 						}
@@ -8152,7 +8152,7 @@ func (this *BaseExchange) fetchPaginatedCallDynamicBody(ch chan AsyncResult[[]an
 					response := r1.Value
 					var responseLength int = GetArrayLength(response)
 					if this.Verbose {
-						var forwardMessage any = Add(Add(Add(Add(Add("Dynamic pagination call ", this.NumberToString(calls)), " method "), method), " response length "), this.NumberToString(responseLength))
+						var forwardMessage any = Add(Add(Add(Add(Add("Dynamic pagination call ", this.NumberToString(calls)), " method "), method), " response length "), strconv.Itoa(responseLength))
 						if !IsEqual(paginationTimestamp, nil) {
 							forwardMessage = Add(forwardMessage, Add(" timestamp ", this.NumberToString(paginationTimestamp)))
 						}
@@ -9225,28 +9225,30 @@ func (this *BaseExchange) CleanUnsubscription(client *Client, subHash any, unsub
 	if (!IsEqual(unsubHash, nil)) && (client.SubscriptionHas(unsubHash)) {
 		client.SubscriptionDel(unsubHash)
 	}
-	if !(subHashIsPrefix == true) {
-		if (!IsEqual(subHash, nil)) && (client.SubscriptionHas(subHash)) {
-			client.SubscriptionDel(subHash)
-		}
-		if (!IsEqual(subHash, nil)) && (InOp(client.Futures, subHash)) {
-			error := UnsubscribeError(Add(this.Id+" ", subHash))
-			client.Reject(error, subHash)
-		}
-	} else {
-		var clientSubscriptions []string = client.SubscriptionKeys()
-		for i := 0; i < len(clientSubscriptions); i++ {
-			var sub string = clientSubscriptions[i]
-			if (!IsEqual(sub, nil)) && (!IsEqual(subHash, nil)) && StartsWith(sub, subHash) {
-				client.SubscriptionDel(sub)
+	if !IsEqual(subHash, nil) {
+		if !(subHashIsPrefix == true) {
+			if client.SubscriptionHas(subHash) {
+				client.SubscriptionDel(subHash)
 			}
-		}
-		var clientFutures []string = ObjectKeys(client.Futures)
-		for i := 0; i < len(clientFutures); i++ {
-			var future string = clientFutures[i]
-			if (!IsEqual(future, nil)) && (!IsEqual(subHash, nil)) && StartsWith(future, subHash) {
-				error := UnsubscribeError(this.Id + " " + future)
-				client.Reject(error, future)
+			if InOp(client.Futures, subHash) {
+				error := UnsubscribeError(Add(this.Id+" ", subHash))
+				client.Reject(error, subHash)
+			}
+		} else {
+			var clientSubscriptions []string = client.SubscriptionKeys()
+			for i := 0; i < len(clientSubscriptions); i++ {
+				var sub string = clientSubscriptions[i]
+				if StartsWith(sub, subHash) {
+					client.SubscriptionDel(sub)
+				}
+			}
+			var clientFutures []string = ObjectKeys(client.Futures)
+			for i := 0; i < len(clientFutures); i++ {
+				var future string = clientFutures[i]
+				if StartsWith(future, subHash) {
+					error := UnsubscribeError(this.Id + " " + future)
+					client.Reject(error, future)
+				}
 			}
 		}
 	}
@@ -9276,7 +9278,7 @@ func (this *BaseExchange) CleanCache(subscription any) {
 		}
 	} else if symbolsLength > 0 {
 		for i := 0; i < len(symbols); i++ {
-			var symbol any = symbols[i]
+			var symbol *string = this.SafeString(symbols, i, "")
 			if topic != nil && *topic == "trades" {
 				if InOp(this.Trades, symbol) {
 					Remove(this.Trades, symbol)
@@ -9296,9 +9298,9 @@ func (this *BaseExchange) CleanCache(subscription any) {
 			}
 		}
 	} else {
-		if (topic != nil && *topic == "myTrades") && (!IsEqual(this.MyTrades, nil)) {
+		if topic != nil && *topic == "myTrades" {
 			this.MyTrades = nil
-		} else if (topic != nil && *topic == "orders") && (!IsEqual(this.Orders, nil)) {
+		} else if topic != nil && *topic == "orders" {
 			this.Orders = nil
 		} else if (topic != nil && *topic == "positions") && (!IsEqual(this.Positions, nil)) {
 			this.Positions = nil
@@ -11593,12 +11595,12 @@ func (this *Exchange) cancelOrdersWithClientOrderIdsBody(ch chan AsyncResult[[]O
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listRecv11217, _ := OrdersToList(r.Value), r.Value != nil
-	var retRes1046415 []any = listRecv11217
-	if retRes1046415 == nil {
+	listRecv11219, _ := OrdersToList(r.Value), r.Value != nil
+	var retRes1046615 []any = listRecv11219
+	if retRes1046615 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes1046415)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes1046615)}
 	}
 	return nil
 }

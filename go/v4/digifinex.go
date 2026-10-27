@@ -6253,10 +6253,10 @@ func (this *Digifinex) Sign(path string, optionalArgs ...any) any {
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	var signed bool = (this.SafeString(api, 0) != nil && *this.SafeString(api, 0) == "private")
-	var endpoint *string = this.SafeString(api, 1)
+	var signed bool = (api[0] == "private")
+	var endpoint string = api[1]
 	var pathPart string = "/swap/v2"
-	if endpoint != nil && *endpoint == "spot" {
+	if endpoint == "spot" {
 		pathPart = "/v3"
 	}
 	var request string = "/" + this.ImplodeParams(path, params)

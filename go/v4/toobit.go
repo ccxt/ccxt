@@ -1233,7 +1233,7 @@ func (this *Toobit) ParseMarket(market any) map[string]any {
 	var lotSizeFilter map[string]any = SafeMapTyped(filtersByType, "LOT_SIZE")
 	var minNotionalFilter map[string]any = SafeMapTyped(filtersByType, "MIN_NOTIONAL")
 	var symbol any = *base + "/" + *quote
-	var isContract bool = (InOp(market, "contractMultiplier"))
+	var isContract bool = (this.SafeString(market, "contractMultiplier") != nil)
 	var inverse *bool = this.SafeBool2(market, "isInverse", "inverse")
 	if isContract {
 		symbol = Add(*base+"/"+*quote+":", settle)
@@ -2419,7 +2419,7 @@ func (this *Toobit) CreateContractOrderRequest(symbol string, typeVar string, si
 		}
 	}
 	var paramsOmitted any = this.Omit(paramsTrigger, []any{"stopLoss", "takeProfit"})
-	if !(InOp(paramsOmitted, "newClientOrderId")) {
+	if this.SafeString(paramsOmitted, "newClientOrderId") == nil {
 		request["newClientOrderId"] = this.Uuid()
 	}
 	return []any{request, paramsOmitted}

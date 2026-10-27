@@ -1449,7 +1449,7 @@ func (this *Nado) createOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], symbol
 		panic(ccxt.NotSupported(this.Id + " createOrderWs() does not support trigger orders, use createOrder() instead"))
 	}
 
-	r2 := <-this.WatchExecuteRequestAsync(requestIdString, request)
+	r2 := <-this.WatchExecuteRequestAsync(*requestIdString, request)
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
@@ -1539,7 +1539,7 @@ func (this *Nado) editOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id strin
 		request = r1.Value
 	}
 
-	r2 := <-this.WatchExecuteRequestAsync(requestIdString, request)
+	r2 := <-this.WatchExecuteRequestAsync(*requestIdString, request)
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
@@ -1661,7 +1661,7 @@ func (this *Nado) cancelOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Order], ids
 		request = r1.Value
 	}
 
-	r2 := <-this.WatchExecuteRequestAsync(requestIdString, request)
+	r2 := <-this.WatchExecuteRequestAsync(*requestIdString, request)
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
@@ -1748,7 +1748,7 @@ func (this *Nado) cancelAllOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Order], 
 		request = r1.Value
 	}
 
-	r2 := <-this.WatchExecuteRequestAsync(requestIdString, request)
+	r2 := <-this.WatchExecuteRequestAsync(*requestIdString, request)
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
@@ -1768,22 +1768,19 @@ func (this *Nado) cancelAllOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Order], 
 	ch <- ccxt.AsyncResult[[]ccxt.Order]{Value: ccxt.OrdersFromList(result)}
 	return nil
 }
-func (this *Nado) WatchExecuteRequestAsync(requestIdString any, request any) <-chan ccxt.AsyncResult[map[string]any] {
+func (this *Nado) WatchExecuteRequestAsync(requestIdString string, request any) <-chan ccxt.AsyncResult[map[string]any] {
 	ch := make(chan ccxt.AsyncResult[map[string]any], 1)
 	go this.watchExecuteRequestBody(ch, requestIdString, request)
 	return ch
 }
-func (this *Nado) watchExecuteRequestBody(ch chan ccxt.AsyncResult[map[string]any], requestIdString any, request any) any {
+func (this *Nado) watchExecuteRequestBody(ch chan ccxt.AsyncResult[map[string]any], requestIdString string, request any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	// the v2 gateway dispatches requests concurrently, so responses arrive
 	// in completion order, not send order — every execute carries a unique
 	// request id and its response is correlated by the echoed id
-	if ccxt.IsEqual(requestIdString, nil) {
-		panic(ccxt.ArgumentsRequired(this.Id + " watchExecuteRequest() requires requestIdString"))
-	}
 	var url *string = this.SafeString(this.UrlsApi["ws"], "gateway")
-	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("execute:", requestIdString))
+	var messageHash string = "execute:" + requestIdString
 
 	r := <-this.WatchMap(url, messageHash, request, messageHash)
 	if r.Err != nil {
@@ -2036,8 +2033,7 @@ func (this *Nado) SignStreamAuthentication(tx map[string]any, chainId *string, e
 		}},
 	}
 	var encoded any = this.EthEncodeStructuredData(domain, messageTypes, tx)
-	var hash *string = ccxt.SafeStringPtr(ccxt.Add("0x", this.Hash(encoded, ccxt.Keccak, "hex")))
-	return this.SignHash(hash, this.PrivateKey)
+	return this.SignHash(this.Hash(encoded, ccxt.Keccak, "hex"), this.PrivateKey)
 }
 func (this *Nado) CreatePublicSubscriptionRequest(method string, streamType any, optionalArgs ...any) map[string]any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)

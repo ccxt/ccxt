@@ -525,18 +525,8 @@ func (this *Hyperliquid) ParseOutcomeMarket(outcomeInfo map[string]any, outcomeI
 		// e.g. "20260503-0600" → "2026-05-03T06:00:00Z"
 		var expParts []string = strings.Split(*expiry, "-")
 		var expPartsLength int = len(expParts)
-		if (expPartsLength >= 1) && (ccxt.GetLength(func() any {
-			if 0 >= 0 && 0 < len(expParts) {
-				return expParts[0]
-			}
-			return nil
-		}()) == 8) {
-			var ymd *string = ccxt.SafeStringPtr(func() any {
-				if 0 >= 0 && 0 < len(expParts) {
-					return expParts[0]
-				}
-				return nil
-			}())
+		if (expPartsLength >= 1) && (ccxt.GetLength(expParts[0]) == 8) {
+			var ymd *string = ccxt.SafeStringPtr(expParts[0])
 			var hm any = "0000"
 			if expPartsLength >= 2 {
 				hm = expParts[1]
@@ -693,12 +683,7 @@ func (this *Hyperliquid) CalculatePricePrecision(midPx any, szDecimals any) any 
 	}
 	var midStr *string = this.NumberToString(midPx)
 	var parts []string = strings.Split(*midStr, ".")
-	var intPart *string = ccxt.SafeStringPtr(func() any {
-		if 0 >= 0 && 0 < len(parts) {
-			return parts[0]
-		}
-		return nil
-	}())
+	var intPart *string = ccxt.SafeStringPtr(parts[0])
 	var intPartLength int = len(*intPart)
 	var szDecimalsInt int64 = this.ParseToInt(szDecimals)
 	var maxDecimals int64 = 8 - szDecimalsInt
@@ -2659,18 +2644,8 @@ func (this *Hyperliquid) ParseEvent(raw map[string]any) map[string]any {
 	if (expiryRaw != nil) && (expiryRaw == nil || *expiryRaw != "") {
 		var parts []string = strings.Split(*expiryRaw, "-")
 		var partsLength int = len(parts)
-		if (partsLength >= 1) && (ccxt.GetLength(func() any {
-			if 0 >= 0 && 0 < len(parts) {
-				return parts[0]
-			}
-			return nil
-		}()) == 8) {
-			var ymd *string = ccxt.SafeStringPtr(func() any {
-				if 0 >= 0 && 0 < len(parts) {
-					return parts[0]
-				}
-				return nil
-			}())
+		if (partsLength >= 1) && (ccxt.GetLength(parts[0]) == 8) {
+			var ymd *string = ccxt.SafeStringPtr(parts[0])
 			var hm any = "0000"
 			if partsLength >= 2 {
 				hm = parts[1]

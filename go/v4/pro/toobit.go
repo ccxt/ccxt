@@ -1647,8 +1647,10 @@ func (this *Toobit) authenticateBody(ch chan ccxt.AsyncResult[*string], optional
 				if listenKey == nil {
 					panic(ccxt.AuthenticationError(this.Id + " authenticate() received an empty listenKey"))
 				}
-				ccxt.AddElementToObject(this.Options["ws"], "listenKey", listenKey)
-				ccxt.AddElementToObject(this.Options["ws"], "lastAuthenticatedTime", time)
+				this.SetWsOptions(map[string]any{
+					"listenKey":             listenKey,
+					"lastAuthenticatedTime": time,
+				})
 				this.Delay(listenKeyRefreshRate, this.KeepAliveListenKeyAsync, params)
 				// settle the flight: client.resolve () removes the future from
 				// client.futures and wakes every waiter
@@ -1664,6 +1666,9 @@ func (this *Toobit) authenticateBody(ch chan ccxt.AsyncResult[*string], optional
 		}
 	}
 	return nil
+}
+func (this *Toobit) SetWsOptions(entry map[string]any) {
+	this.Options["ws"] = this.Extend(this.SafeDict(this.Options, "ws", map[string]any{}), entry)
 }
 func (this *Toobit) KeepAliveListenKeyAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
@@ -1698,8 +1703,10 @@ func (this *Toobit) keepAliveListenKeyBody(ch chan ccxt.AsyncResult[bool], optio
 							var messageHash string = messageHashes[i]
 							client.(ccxt.ClientInterface).Reject(error, messageHash)
 						}
-						ccxt.AddElementToObject(this.Options["ws"], "listenKey", nil)
-						ccxt.AddElementToObject(this.Options["ws"], "lastAuthenticatedTime", 0)
+						this.SetWsOptions(map[string]any{
+							"listenKey":             nil,
+							"lastAuthenticatedTime": 0,
+						})
 
 						return nil
 
@@ -1713,8 +1720,10 @@ func (this *Toobit) keepAliveListenKeyBody(ch chan ccxt.AsyncResult[bool], optio
 				panic(r.Err)
 			}
 			var response map[string]any = r.Value
-			ccxt.AddElementToObject(this.Options["ws"], "listenKey", this.SafeString(response, "listenKey"))
-			ccxt.AddElementToObject(this.Options["ws"], "lastAuthenticatedTime", this.Milliseconds())
+			this.SetWsOptions(map[string]any{
+				"listenKey":             this.SafeString(response, "listenKey"),
+				"lastAuthenticatedTime": this.Milliseconds(),
+			})
 			return nil
 		}(this)
 

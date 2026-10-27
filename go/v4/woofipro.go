@@ -1706,7 +1706,7 @@ func (this *Woofipro) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], o
 	for i := 0; i < len(rows); i++ {
 		var row any = DerefScalar(rows[i])
 		var marketId *string = this.SafeString(row, "symbol", "")
-		if (this.Markets_by_id() == nil) || !(InOp(this.Markets_by_id(), marketId)) {
+		if IsEqual(this.SafeValue(this.Markets_by_id(), marketId), nil) {
 			continue
 		}
 		var ticker map[string]any = this.Extend(map[string]any{
@@ -1864,7 +1864,7 @@ func (this *Woofipro) fetchOpenInterestsBody(ch chan AsyncResult[map[string]Open
 	for i := 0; i < len(rows); i++ {
 		var row any = DerefScalar(rows[i])
 		var marketId *string = this.SafeString(row, "symbol", "")
-		if (this.Markets_by_id() == nil) || !(InOp(this.Markets_by_id(), marketId)) {
+		if IsEqual(this.SafeValue(this.Markets_by_id(), marketId), nil) {
 			continue
 		}
 		var interest map[string]any = this.Extend(map[string]any{
@@ -5013,7 +5013,7 @@ func (this *Woofipro) Sign(path string, optionalArgs ...any) any {
 	var url string = *apiUrl + "/" + version + "/"
 	var requestParams map[string]any = this.Keysort(this.Omit(params, this.ExtractParams(path)))
 	var requestBody any = nil
-	var requestHeaders any = nil
+	var requestHeaders map[string]any = nil
 	if access == "public" {
 		url += pathWithParams
 		if len(requestParams) > 0 {
@@ -5043,7 +5043,7 @@ func (this *Woofipro) Sign(path string, optionalArgs ...any) any {
 		if strings.Index(this.ApiKey, "ed25519:") < 0 {
 			apiKey = "ed25519:" + this.ApiKey
 		}
-		requestHeaders = map[string]any{
+		var authHeaders map[string]any = map[string]any{
 			"orderly-account-id": this.AccountId,
 			"orderly-key":        apiKey,
 			"orderly-timestamp":  ts,
@@ -5052,13 +5052,13 @@ func (this *Woofipro) Sign(path string, optionalArgs ...any) any {
 		if (method == "POST") || (method == "PUT") {
 			requestBody = this.Json(requestParams)
 			auth = Add(auth, requestBody)
-			AddElementToObject(requestHeaders, "content-type", "application/json")
+			authHeaders["content-type"] = "application/json"
 		} else {
 			if len(requestParams) > 0 {
 				url += "?" + this.Urlencode(requestParams)
 				auth = Add(auth, "?"+this.Rawencode(requestParams))
 			}
-			AddElementToObject(requestHeaders, "content-type", "application/x-www-form-urlencoded")
+			authHeaders["content-type"] = "application/x-www-form-urlencoded"
 			if method == "DELETE" {
 				requestBody = ""
 			}
@@ -5074,15 +5074,14 @@ func (this *Woofipro) Sign(path string, optionalArgs ...any) any {
 			}()
 		}
 		var signature string = Eddsa(this.Encode(auth), this.Base58ToBinary(secret), ed25519)
-		AddElementToObject(requestHeaders, "orderly-signature", this.UrlencodeBase64(this.Base64ToBinary(signature)))
+		authHeaders["orderly-signature"] = this.UrlencodeBase64(this.Base64ToBinary(signature))
+		requestHeaders = authHeaders
 	}
-	var bodyResult any = requestBody
-	var headersResult any = requestHeaders
 	return map[string]any{
 		"url":     url,
 		"method":  method,
-		"body":    bodyResult,
-		"headers": headersResult,
+		"body":    requestBody,
+		"headers": requestHeaders,
 	}
 }
 func (this *Woofipro) HandleErrors(httpCode int64, reason any, url string, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {

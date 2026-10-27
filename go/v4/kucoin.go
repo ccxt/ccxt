@@ -2339,12 +2339,7 @@ func (this *Kucoin) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 			continue
 		}
 		var idParts []string = strings.Split(*id, "-")
-		var baseId *string = SafeStringPtr(func() any {
-			if 0 >= 0 && 0 < len(idParts) {
-				return idParts[0]
-			}
-			return nil
-		}())
+		var baseId *string = SafeStringPtr(idParts[0])
 		var quoteId *string = SafeStringPtr(func() any {
 			if 1 >= 0 && 1 < len(idParts) {
 				return idParts[1]
@@ -16075,7 +16070,7 @@ func (this *Kucoin) Sign(path string, optionalArgs ...any) any {
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	var apiName *string = this.SafeString(api, 0)
+	var apiName string = api[0]
 	//
 	// the v2 URL is https://openapi-v2.kucoin.com/api/v1/endpoint
 	//                                ↑                 ↑
@@ -16088,19 +16083,19 @@ func (this *Kucoin) Sign(path string, optionalArgs ...any) any {
 	var version *string = this.SafeString(params, "version", defaultVersion)
 	var paramsOmitted any = this.Omit(params, "version")
 	var endpoint any = "/api/" + *version + "/" + this.ImplodeParams(path, paramsOmitted)
-	if apiName != nil && *apiName == "utaV2" {
+	if apiName == "utaV2" {
 		endpoint = "/api/ua/v2/" + this.ImplodeParams(path, paramsOmitted)
 	}
-	if apiName != nil && *apiName == "webExchange" {
+	if apiName == "webExchange" {
 		endpoint = "/" + this.ImplodeParams(path, paramsOmitted)
 	}
-	if apiName != nil && *apiName == "earn" {
+	if apiName == "earn" {
 		endpoint = "/api/v1/" + this.ImplodeParams(path, paramsOmitted)
 	}
 	var isUtaPrivate bool = false
-	if (apiName != nil && *apiName == "uta") || (apiName != nil && *apiName == "utaPrivate") {
+	if (apiName == "uta") || (apiName == "utaPrivate") {
 		endpoint = "/api/ua/v1/" + this.ImplodeParams(path, paramsOmitted)
-		if apiName != nil && *apiName == "utaPrivate" {
+		if apiName == "utaPrivate" {
 			isUtaPrivate = true
 		}
 	}
@@ -16126,10 +16121,10 @@ func (this *Kucoin) Sign(path string, optionalArgs ...any) any {
 		}
 	}
 	var headersResult map[string]any = headersBase
-	var isFuturePrivate bool = (apiName != nil && *apiName == "futuresPrivate")
-	var isPrivate bool = (apiName != nil && *apiName == "private")
-	var isBroker bool = (apiName != nil && *apiName == "broker")
-	var isEarn bool = (apiName != nil && *apiName == "earn")
+	var isFuturePrivate bool = (apiName == "futuresPrivate")
+	var isPrivate bool = (apiName == "private")
+	var isBroker bool = (apiName == "broker")
+	var isEarn bool = (apiName == "earn")
 	if isPrivate || isFuturePrivate || isBroker || isEarn || isUtaPrivate {
 		this.CheckRequiredCredentials()
 		var timestamp string = ToString(this.Nonce())

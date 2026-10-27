@@ -213,7 +213,7 @@ func (this *Onetrading) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], s
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
+	var symbolValue *string = this.SafeString(market, "symbol", "")
 	var subscriptionHash string = "MARKET_TICKER"
 	var messageHash string = "ticker." + *symbolValue
 	var request map[string]any = map[string]any{
@@ -481,7 +481,7 @@ func (this *Onetrading) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBo
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
+	var symbolValue *string = this.SafeString(market, "symbol", "")
 	var messageHash string = "book:" + *symbolValue
 	var subscriptionHash string = "ORDER_BOOK"
 	var depth any = 0
@@ -1292,8 +1292,8 @@ func (this *Onetrading) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], s
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
-	var marketId *string = ccxt.SafeStringPtr(market["id"])
+	var symbolValue *string = this.SafeString(market, "symbol", "")
+	var marketId *string = this.SafeString(market, "id", "")
 	var url *string = this.SafeString(this.Urls["api"], "ws")
 	var timeframes map[string]any = ccxt.SafeMapTyped(this.Options, "timeframes")
 	var timeframeId map[string]any = ccxt.SafeMapTyped(timeframes, timeframe)

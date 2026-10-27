@@ -3978,7 +3978,7 @@ func (this *Polymarket) Sign(path string, optionalArgs ...any) any {
 	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
 	var apiGroup string = api[0]
-	var access *string = this.SafeString(api, 1, "public")
+	var access string = api[1]
 	var baseUrls any = this.Urls["api"]
 	var baseUrl *string = this.SafeString(baseUrls, apiGroup, ccxt.GetValue(baseUrls, "gamma"))
 	var url any = *baseUrl + "/" + this.ImplodeParams(path, params)
@@ -4029,7 +4029,7 @@ func (this *Polymarket) Sign(path string, optionalArgs ...any) any {
 		"Accept":       "application/json",
 		"Content-Type": "application/json",
 	}, headerDefaults)
-	if access != nil && *access == "private" {
+	if access == "private" {
 		// 'auth/derive-api-key' is built by concatenation so the substring "api" sits at a
 		// string-literal boundary: the php regex transpiler rewrites a bare "api" flanked by
 		// '-' into the local var '$api' (it only skips quote/slash-adjacent matches), which

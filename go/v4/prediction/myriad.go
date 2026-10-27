@@ -4441,8 +4441,7 @@ func (this *Myriad) connectCentrifugoBody(ch chan ccxt.AsyncResult[bool], url an
 	// connection and resolves when the connect reply arrives (see handleCentrifugoFrame). The base
 	// clears client.(*ccxt.WSClient).Subscriptions on reconnect, so an absent 'connect' marker means a fresh handshake.
 	var client any = this.Client(url)
-	var connectSent any = this.SafeValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), "connect")
-	if connectSent == nil {
+	if !(client.(ccxt.ClientInterface).SubscriptionHas("connect")) {
 		this.Options["wsConnected"] = false
 		var requestId int64 = this.RequestId(url)
 		// give the anonymous connect a name so the params object is non-empty (PHP serialises an
@@ -4650,7 +4649,7 @@ func (this *Myriad) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookIn
 		panic(r1.Err)
 	}
 	var client any = this.Client(url)
-	var isNewSubscription bool = ccxt.IsEqual(this.SafeValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), channel), nil)
+	var isNewSubscription bool = !(client.(ccxt.ClientInterface).SubscriptionHas(channel))
 	if isNewSubscription {
 		// the channel only streams deltas, so (re)seed the live book from the REST snapshot on a
 		// fresh subscription (first call or after a reconnect that cleared client.(*ccxt.WSClient).Subscriptions)
@@ -5369,7 +5368,7 @@ func (this *Myriad) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Predictio
 		panic(r1.Err)
 	}
 	var client any = this.Client(url)
-	var isNewSubscription bool = ccxt.IsEqual(this.SafeValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), channel), nil)
+	var isNewSubscription bool = !(client.(ccxt.ClientInterface).SubscriptionHas(channel))
 	if isNewSubscription {
 		// the channel pushes only signed deltas; seed absolute share balances from REST so
 		// handlePosition can maintain a running contracts figure
@@ -5590,9 +5589,7 @@ func (this *Myriad) Sign(path string, optionalArgs ...any) any {
 	// included — the previous logic only sent a body for authenticated requests)
 	var bodyValue *string = nil
 	if method != "GET" {
-		var queryKeys []string = ccxt.ObjectKeys(query)
-		var queryKeysLength int = len(queryKeys)
-		if queryKeysLength > 0 {
+		if len(ccxt.ObjectKeys(query)) > 0 {
 			bodyValue = ccxt.SafeStringPtr(this.Json(query))
 		}
 	}

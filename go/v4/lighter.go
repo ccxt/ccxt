@@ -1842,12 +1842,7 @@ func (this *Lighter) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 		var baseId any = marketSymbol
 		if (marketSymbol != nil) && (strings.Index(*marketSymbol, "/") != -1) {
 			var symbolParts []string = strings.Split(*marketSymbol, "/")
-			baseId = func() any {
-				if 0 >= 0 && 0 < len(symbolParts) {
-					return symbolParts[0]
-				}
-				return nil
-			}()
+			baseId = symbolParts[0]
 		}
 		var quoteId string = "USDC"
 		var settleId *string = func() *string {
@@ -4355,7 +4350,7 @@ func (this *Lighter) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArg
 	//
 	var data []any = SafeListTypedDefault(response, "trades", []any{})
 	for i := 0; i < len(data); i++ {
-		AddElementToObject(GetValue(data, i), "account_index", accountIndex)
+		AddElementToObject(data[i], "account_index", accountIndex)
 	}
 	var nextCursor *string = this.SafeString(response, "next_cursor")
 	var first map[string]any = SafeMapTyped(data, 0)

@@ -212,7 +212,7 @@ func (this *Backpack) subscribeWsTickersBody(ch chan ccxt.AsyncResult[any], meth
 		})
 		var request any = this.StockDataRequest(methodName, requestParams, market)
 		var tickerSymbol *string = this.SafeString(request, "symbol", "")
-		var topic any = "ticker." + *tickerSymbol
+		var topic string = "ticker." + *tickerSymbol
 		if channel != nil {
 			if (channel == nil || *channel != "stockPrice") && (channel == nil || *channel != "stockIndicativeQuote") {
 				panic(ccxt.BadRequest(this.Id + " " + methodName + "() channel must be stockPrice or stockIndicativeQuote"))
@@ -238,7 +238,8 @@ func (this *Backpack) subscribeWsTickersBody(ch chan ccxt.AsyncResult[any], meth
 				}()
 				topic = quoteChannel + "." + ticker
 			} else {
-				topic = ccxt.Add("bookTicker.", this.WsVenueMarketId(methodName, market, query))
+				this.WsVenueMarketId(methodName, market, query)
+				topic = "bookTicker." + *this.SafeString(market, "id", "")
 			}
 		} else if source != nil && *source == "External" {
 			var externalBaseId *string = this.SafeString(market, "baseId", "")
@@ -247,12 +248,12 @@ func (this *Backpack) subscribeWsTickersBody(ch chan ccxt.AsyncResult[any], meth
 			panic(ccxt.NotSupported(this.Id + " " + methodName + "() RFQ venue tickers are only mapped for stock data"))
 		}
 		var symbol *string = ccxt.SafeStringPtr(market["symbol"])
-		var messageHash any = ccxt.Add(kind+":"+*symbol+"@", topic)
-		var subscriptionKey any = ccxt.Add("marketData:", topic)
+		var messageHash string = kind + ":" + *symbol + "@" + topic
+		var subscriptionKey string = "marketData:" + topic
 		var subscriptions any = this.SafeDict(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), subscriptionKey, map[string]any{})
 		if unwatch == true {
 			subscriptions = this.Omit(subscriptions, messageHash)
-			this.CleanUnsubscription(ccxt.AsClient(client), messageHash, ccxt.Add("unsubscribe:", messageHash))
+			this.CleanUnsubscription(ccxt.AsClient(client), messageHash, "unsubscribe:"+messageHash)
 			if bidAsk == true {
 				this.WsCacheDelete("Bidsasks", symbol)
 			} else {
@@ -1054,7 +1055,8 @@ func (this *Backpack) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[stri
 		var market map[string]any = this.Market(marketId)
 		var tf *string = this.SafeString(symbolAndTimeframe, 1)
 		var interval *string = this.SafeString(this.Timeframes, tf, tf)
-		topics = append(topics, ccxt.Add(ccxt.Add(ccxt.Add("kline.", interval), "."), this.WsVenueMarketId("watchOHLCVForSymbols", market, query)))
+		this.WsVenueMarketId("watchOHLCVForSymbols", market, query)
+		topics = append(topics, ccxt.Add(ccxt.Add(ccxt.Add("kline.", interval), "."), this.SafeString(market, "id", "")))
 		messageHashes = append(messageHashes, ccxt.Add("candles:"+market["symbol"].(string)+":", interval))
 	}
 	r2 := <-this.WatchPublicAsync(topics, messageHashes, this.Omit(query, []any{"stock", "source"}))
@@ -1121,7 +1123,8 @@ func (this *Backpack) unWatchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[bool],
 		var market map[string]any = this.Market(marketId)
 		var tf *string = this.SafeString(symbolAndTimeframe, 1)
 		var interval *string = this.SafeString(this.Timeframes, tf, tf)
-		topics = append(topics, ccxt.Add(ccxt.Add(ccxt.Add("kline.", interval), "."), this.WsVenueMarketId("watchOHLCVForSymbols", market, query)))
+		this.WsVenueMarketId("watchOHLCVForSymbols", market, query)
+		topics = append(topics, ccxt.Add(ccxt.Add(ccxt.Add("kline.", interval), "."), this.SafeString(market, "id", "")))
 		messageHashes = append(messageHashes, ccxt.Add("unsubscribe:candles:"+market["symbol"].(string)+":", interval))
 	}
 
@@ -1883,20 +1886,20 @@ func (this *Backpack) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], op
 		market = this.Market(symbol)
 		this.HandleStockParams("watchOrders", query, market)
 	}
-	var symbolResolved any = func() any {
+	var symbolResolved *string = func() *string {
 		if market != nil {
 			return this.SafeString(market, "symbol")
 		}
 		return symbol
 	}()
 	var topic string = "account.orderUpdate"
-	var messageHash any = "orders"
+	var messageHash string = "orders"
 	if market != nil {
 		topic = "account.orderUpdate." + *this.SafeString(market, "id", "")
 		if this.SafeString(market, "executionModel") != nil && *this.SafeString(market, "executionModel") == "rfq" {
 			topic = "account.rfqUpdate." + *this.SafeString(market, "id", "")
 		}
-		messageHash = ccxt.Add("orders:", symbolResolved)
+		messageHash = "orders:" + *this.SafeString(market, "symbol", "")
 	}
 	var topics []any = []any{topic}
 	if market == nil {
@@ -2650,8 +2653,8 @@ func (this *Backpack) HandleErrorMessage(client any, message any) any {
 			}()
 			// try block:
 			if code != nil {
-				var msg *string = this.SafeString(error, "message")
-				panic(ccxt.ExchangeError(ccxt.Add(this.Id+" ", msg)))
+				var msg *string = this.SafeString(error, "message", "")
+				panic(ccxt.ExchangeError(this.Id + " " + *msg))
 			}
 			return true
 

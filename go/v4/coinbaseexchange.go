@@ -860,12 +860,7 @@ func (this *Coinbaseexchange) fetchMarketsBody(ch chan AsyncResult[[]MarketInter
 		var market any = DerefScalar(rawMarkets[i])
 		var id *string = this.SafeString(market, "id")
 		var parts []string = strings.Split(*id, "-")
-		var baseId *string = SafeStringPtr(func() any {
-			if 0 >= 0 && 0 < len(parts) {
-				return parts[0]
-			}
-			return nil
-		}())
+		var baseId *string = SafeStringPtr(parts[0])
 		var quoteId *string = SafeStringPtr(func() any {
 			if 1 >= 0 && 1 < len(parts) {
 				return parts[1]

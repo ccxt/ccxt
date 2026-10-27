@@ -2719,8 +2719,8 @@ func (this *Zebpay) Sign(path string, optionalArgs ...any) any {
 	var signature string = ""
 	var query any = this.Omit(paramsOmitted, this.ExtractParams(path))
 	var queryLength int = len(ObjectKeys(query))
-	var access *string = this.SafeString(api, 0, "public")
-	if access != nil && *access == "public" {
+	var access string = api[0]
+	if access == "public" {
 		if (method == "GET") || (method == "DELETE") {
 			if queryLength != 0 {
 				suffix = "?" + this.Urlencode(query)

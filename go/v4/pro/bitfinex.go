@@ -1095,12 +1095,7 @@ func (this *Bitfinex) HandleOrderBook(client any, message []any, subscription ma
 		if symbol != nil {
 			orderbook = this.Orderbooks[*symbol]
 		}
-		var deltas any = func() any {
-			if 1 >= 0 && 1 < len(message) {
-				return ccxt.DerefScalar(message[1])
-			}
-			return nil
-		}()
+		var deltas any = this.SafeValue(message, 1)
 		var orderbookItem any
 		if symbol != nil {
 			orderbookItem = this.Orderbooks[*symbol]

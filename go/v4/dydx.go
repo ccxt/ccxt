@@ -1629,8 +1629,10 @@ func (this *Dydx) RetrieveCredentials() any {
 		var signature any = this.SignOnboardingAction()
 		credentials = this.RetrieveDydxCredentials(this.HashMessage(this.Base16ToBinary(*this.SafeString(signature, "r", "") + *this.SafeString(signature, "s", ""))))
 	}
-	AddElementToObject(credentials, "privateKey", this.BinaryToBase16(GetValue(credentials, "privateKey")))
-	AddElementToObject(credentials, "publicKey", this.BinaryToBase16(GetValue(credentials, "publicKey")))
+	credentials = map[string]any{
+		"privateKey": this.BinaryToBase16(GetValue(credentials, "privateKey")),
+		"publicKey":  this.BinaryToBase16(GetValue(credentials, "publicKey")),
+	}
 	this.Options["dydxCredentials"] = credentials
 	return credentials
 }

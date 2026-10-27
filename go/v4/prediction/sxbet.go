@@ -3979,8 +3979,8 @@ func (this *Sxbet) Sign(path string, optionalArgs ...any) any {
 	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
 	var apiGroup string = api[0]
-	var accessLevel *string = this.SafeString(api, 1, "public")
-	if (accessLevel != nil && *accessLevel == "private") && (this.ApiKey == "") {
+	var accessLevel string = api[1]
+	if (accessLevel == "private") && (this.ApiKey == "") {
 		panic(ccxt.AuthenticationError(this.Id + " " + path + " is a private endpoint and requires the apiKey credential (the x-sx-api-key header)"))
 	}
 	var baseUrls any = this.Urls["api"]

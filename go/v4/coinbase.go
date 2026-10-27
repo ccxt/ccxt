@@ -7172,9 +7172,9 @@ func (this *Coinbase) Sign(path string, optionalArgs ...any) any {
 	_ = params
 	var requestBody *string = nil
 	var requestHeaders any = nil
-	var version *string = this.SafeString(api, 0)
-	var signed bool = (this.SafeString(api, 1) != nil && *this.SafeString(api, 1) == "private")
-	var isV3 bool = (version != nil && *version == "v3")
+	var version string = api[0]
+	var signed bool = (api[1] == "private")
+	var isV3 bool = (version == "v3")
 	var pathPart string = "v2"
 	if isV3 {
 		pathPart = "api/v3"

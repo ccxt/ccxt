@@ -867,10 +867,10 @@ func (this *Backpack) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 	var supportedTypes []any = []any{"SPOT", "PERP", "RFQ"}
 	var marketTypes []any = []any{}
 	for i := 0; i < GetArrayLength(requestedTypes); i++ {
-		var requestedType any = GetValue(requestedTypes, i)
+		var requestedType *string = this.SafeString(requestedTypes, i, "")
 		var normalizedType *string = this.SafeString(aliases, requestedType, requestedType)
 		if !this.InArray(normalizedType, supportedTypes) {
-			panic(BadRequest(Add(this.Id+" fetchMarkets() unsupported marketType ", requestedType)))
+			panic(BadRequest(this.Id + " fetchMarkets() unsupported marketType " + *requestedType))
 		}
 		if !this.InArray(normalizedType, marketTypes) {
 			marketTypes = append(marketTypes, normalizedType)
@@ -1871,7 +1871,7 @@ func (this *Backpack) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], o
 			}
 		}
 	}
-	var stockExplicitlyDisabled bool = IsEqual(this.SafeValue2(params, "stock", "defaultStock"), false)
+	var stockExplicitlyDisabled bool = !(*this.SafeBool2(params, "stock", "defaultStock", true))
 	var needsExternalRfqTickers bool = (source != nil && *source == "Venue") && (this.SafeString(query, "source") == nil) && hasRfqSymbol && !stockExplicitlyDisabled
 	var requestParams any = query
 	if (source != nil && *source == "External") && ((stockOnly != nil && *stockOnly) || hasStockSymbol) && !stockExplicitlyDisabled {
@@ -3625,7 +3625,6 @@ func (this *Backpack) createOrdersBody(ch chan AsyncResult[[]Order], orders any,
 		}
 	}
 	var ordersRequests []any = []any{}
-	var stockOption any = this.SafeValue2(params, "stock", "defaultStock")
 	var stock *bool = this.SafeBool(selection, 0, false)
 	for i := 0; i < GetArrayLength(orders); i++ {
 		var rawOrder map[string]any = SafeMapTyped(orders, i)
@@ -3636,7 +3635,7 @@ func (this *Backpack) createOrdersBody(ch chan AsyncResult[[]Order], orders any,
 		var price *float64 = this.SafeNumber(rawOrder, "price")
 		var orderParams map[string]any = this.SafeDictMap(rawOrder, "params", map[string]any{})
 		var baseParams map[string]any = map[string]any{}
-		if (stock != nil && *stock) || (stockOption == false) {
+		if (stock != nil && *stock) || !(*this.SafeBool2(params, "stock", "defaultStock", true)) {
 			baseParams["stock"] = stock
 		}
 		var baseQuery map[string]any = this.Extend(baseParams, query)
@@ -3645,11 +3644,11 @@ func (this *Backpack) createOrdersBody(ch chan AsyncResult[[]Order], orders any,
 		ordersRequests = append(ordersRequests, orderRequest)
 	}
 
-	listEp3453 := <-this.PrivatePostApiV1Orders(ordersRequests)
-	if listEp3453.Err != nil {
-		panic(listEp3453.Err)
+	listEp3452 := <-this.PrivatePostApiV1Orders(ordersRequests)
+	if listEp3452.Err != nil {
+		panic(listEp3452.Err)
 	}
-	var response []any = listEp3453.Value
+	var response []any = listEp3452.Value
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(response))}
 	return nil
@@ -4001,11 +4000,11 @@ func (this *Backpack) fetchOrderBody(ch chan AsyncResult[Order], id any, optiona
 	if r3.Err != nil {
 		panic(r3.Err)
 	}
-	var retRes292215 map[string]any = StructResultMap(r3.Value, OrderToMap)
-	if retRes292215 == nil {
+	var retRes292115 map[string]any = StructResultMap(r3.Value, OrderToMap)
+	if retRes292115 == nil {
 		ch <- AsyncResult[Order]{}
 	} else {
-		ch <- AsyncResult[Order]{Value: OrderFromMap(retRes292215)}
+		ch <- AsyncResult[Order]{Value: OrderFromMap(retRes292115)}
 	}
 	return nil
 }
@@ -4124,11 +4123,11 @@ func (this *Backpack) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optional
 		"symbol": market["id"],
 	}
 
-	listEp3879 := <-this.PrivateDeleteApiV1Orders(this.Extend(request, query))
-	if listEp3879.Err != nil {
-		panic(listEp3879.Err)
+	listEp3878 := <-this.PrivateDeleteApiV1Orders(this.Extend(request, query))
+	if listEp3878.Err != nil {
+		panic(listEp3878.Err)
 	}
-	var response []any = listEp3879.Value
+	var response []any = listEp3878.Value
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(response, market))}
 	return nil
@@ -4422,11 +4421,11 @@ func (this *Backpack) fetchPositionsBody(ch chan AsyncResult[[]Position], option
 		}
 	}
 
-	listEp4161 := <-this.PrivateGetApiV1Position(params)
-	if listEp4161.Err != nil {
-		panic(listEp4161.Err)
+	listEp4160 := <-this.PrivateGetApiV1Position(params)
+	if listEp4160.Err != nil {
+		panic(listEp4160.Err)
 	}
-	var response []any = listEp4161.Value
+	var response []any = listEp4160.Value
 	if this.IsEmpty(symbols) {
 
 		ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.ParsePositions(response))}
@@ -4569,11 +4568,11 @@ func (this *Backpack) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHisto
 		request["limit"] = limit
 	}
 
-	listEp4301 := <-this.PrivateGetWapiV1HistoryFunding(this.Extend(request, params))
-	if listEp4301.Err != nil {
-		panic(listEp4301.Err)
+	listEp4300 := <-this.PrivateGetWapiV1HistoryFunding(this.Extend(request, params))
+	if listEp4300.Err != nil {
+		panic(listEp4300.Err)
 	}
-	var response []any = listEp4301.Value
+	var response []any = listEp4300.Value
 
 	ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(this.ParseIncomes(response, market, since, limit))}
 	return nil
