@@ -913,8 +913,9 @@ export default class backpack extends backpackRest {
         const messageHashes: string[] = [];
         for (let i = 0; i < symbolsNormalized.length; i++) {
             const symbol = symbolsNormalized[i];
-            const marketId = this.wsVenueMarketId ('watchTradesForSymbols', this.market (symbol), query);
-            topics.push ('trade.' + marketId);
+            const market = this.market (symbol);
+            this.wsVenueMarketId ('watchTradesForSymbols', market, query);
+            topics.push ('trade.' + this.safeString (market, 'id', ''));
             messageHashes.push ('trades:' + symbol);
         }
         const trades = await this.watchPublic (topics, messageHashes, this.omit (query, [ 'stock', 'source' ]));
@@ -953,8 +954,9 @@ export default class backpack extends backpackRest {
         const messageHashes: string[] = [];
         for (let i = 0; i < symbolsNormalized.length; i++) {
             const symbol = symbolsNormalized[i];
-            const marketId = this.wsVenueMarketId ('watchTradesForSymbols', this.market (symbol), query);
-            topics.push ('trade.' + marketId);
+            const market = this.market (symbol);
+            this.wsVenueMarketId ('watchTradesForSymbols', market, query);
+            topics.push ('trade.' + this.safeString (market, 'id', ''));
             messageHashes.push ('unsubscribe:trades:' + symbol);
         }
         return await this.watchPublic (topics, messageHashes, this.omit (query, [ 'stock', 'source' ]), true);
@@ -1095,9 +1097,9 @@ export default class backpack extends backpackRest {
         for (let i = 0; i < symbolsNormalized.length; i++) {
             const symbol = symbolsNormalized[i];
             messageHashes.push ('orderbook:' + symbol);
-            const marketId = this.wsVenueMarketId ('watchOrderBookForSymbols', this.market (symbol), query);
-            const topic = 'depth.' + marketId;
-            topics.push (topic);
+            const market = this.market (symbol);
+            this.wsVenueMarketId ('watchOrderBookForSymbols', market, query);
+            topics.push ('depth.' + this.safeString (market, 'id', ''));
             if (!(symbol in this.orderbooks)) {
                 this.orderbooks[symbol] = this.orderBook ({}, limit);
             }
@@ -1143,9 +1145,9 @@ export default class backpack extends backpackRest {
         for (let i = 0; i < symbolsNormalized.length; i++) {
             const symbol = symbolsNormalized[i];
             messageHashes.push ('unsubscribe:orderbook:' + symbol);
-            const marketId = this.wsVenueMarketId ('watchOrderBookForSymbols', this.market (symbol), query);
-            const topic = 'depth.' + marketId;
-            topics.push (topic);
+            const market = this.market (symbol);
+            this.wsVenueMarketId ('watchOrderBookForSymbols', market, query);
+            topics.push ('depth.' + this.safeString (market, 'id', ''));
         }
         return await this.watchPublic (topics, messageHashes, this.omit (query, [ 'stock', 'source' ]), true);
     }
@@ -1318,7 +1320,6 @@ export default class backpack extends backpackRest {
             market = this.market (symbol);
             this.handleStockParams ('watchOrders', query, market);
         }
-        const symbolResolved: Str = (market !== undefined) ? market['symbol'] : symbol;
         let topic = 'account.orderUpdate';
         let messageHash = 'unsubscribe:orders';
         if (market !== undefined) {
@@ -1326,7 +1327,7 @@ export default class backpack extends backpackRest {
             if (this.safeString (market, 'executionModel') === 'rfq') {
                 topic = 'account.rfqUpdate.' + this.safeString (market, 'id', '');
             }
-            messageHash = 'unsubscribe:orders:' + symbolResolved;
+            messageHash = 'unsubscribe:orders:' + this.safeString (market, 'symbol', '');
         }
         const topics = [ topic ];
         if (market === undefined) {
