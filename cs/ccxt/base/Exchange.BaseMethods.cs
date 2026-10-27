@@ -590,7 +590,7 @@ public partial class BaseExchange
     {
         for (int i = 0; i < (deltas?.Count ?? 0); i++)
         {
-            this.handleDelta(bookside, (deltas != null && i < deltas.Count ? deltas[i] : null));
+            this.handleDelta(bookside, this.safeValue(deltas, i));
         }
     }
 
@@ -603,7 +603,7 @@ public partial class BaseExchange
     {
         for (int i = 0; i < getArrayLength(deltas); i++)
         {
-            this.handleBookDelta(orderbook, getValue(deltas, i));
+            this.handleBookDelta(orderbook, this.safeValue(deltas, i));
         }
     }
 
@@ -619,7 +619,7 @@ public partial class BaseExchange
         countOrIdKey ??= 2;
         for (int i = 0; i < (deltas?.Count ?? 0); i++)
         {
-            List<object> bidAsk = this.parseOrderBookBidAsk((deltas != null && i < deltas.Count ? deltas[i] : null), priceKey, amountKey, countOrIdKey);
+            List<object> bidAsk = this.parseOrderBookBidAsk(this.safeValue(deltas, i), priceKey, amountKey, countOrIdKey);
             (bookSide as ccxt.pro.IOrderBookSide).storeArray(bidAsk);
         }
     }
@@ -1875,7 +1875,7 @@ public partial class BaseExchange
         {
             throw new ArgumentsRequired ((this.id + " orderbookChecksumMessage() requires a symbol argument")) ;
         }
-        return ((string?)((object)(add(add(symbol, " : "), "orderbook data checksum validation failed. You can reconnect by calling watchOrderBook again or you can mute the error by setting exchange.options[\"watchOrderBook\"][\"checksum\"] = false"))));
+        return ((string?)((object)(add(symbol, " : orderbook data checksum validation failed. You can reconnect by calling watchOrderBook again or you can mute the error by setting exchange.options[\"watchOrderBook\"][\"checksum\"] = false"))));
     }
 
     public virtual Dictionary<string, object> getDefaultOptions()
@@ -2125,7 +2125,7 @@ public partial class BaseExchange
         {
             Dictionary<string, object> result = this.extend(cleanStructure, market);
             // set undefined swap/future/etc
-            if (((result != null && result.ContainsKey("spot") ? result["spot"] : null) is true))
+            if ((this.safeBool(result, "spot") == true))
             {
                 if (((result != null && result.ContainsKey("contract") ? result["contract"] : null) == null))
                 {
@@ -2164,7 +2164,7 @@ public partial class BaseExchange
         for (int i = 0; i < (marketValues?.Count ?? 0); i++)
         {
             IDictionary<string, object> value = this.safeDict(marketValues, i, new Dictionary<string, object>() {});
-            if ((marketsById != null && (value != null && value.ContainsKey("id") ? value["id"] : null) is string inOpKey15 && marketsById.ContainsKey(inOpKey15)))
+            if ((marketsById != null && (value != null && value.ContainsKey("id") ? value["id"] : null) is string inOpKey10 && marketsById.ContainsKey(inOpKey10)))
             {
                 object marketsByIdArray = ((object)getValue(marketsById, (value != null && value.ContainsKey("id") ? value["id"] : null)));
                 ((IList<object>)marketsByIdArray).Add(value);
@@ -2190,10 +2190,10 @@ public partial class BaseExchange
                 { "precision", this.precision },
                 { "limits", this.limits },
             }, (this.fees != null && this.fees.ContainsKey("trading") ? this.fees["trading"] : null), valueDefined);
-            if ((((object)((market.ContainsKey("linear") ? market["linear"] : null))) is true))
+            if ((this.safeBool(market, "linear") == true))
             {
                 market["subType"] = "linear";
-            } else if ((((object)((market.ContainsKey("inverse") ? market["inverse"] : null))) is true))
+            } else if ((this.safeBool(market, "inverse") == true))
             {
                 market["subType"] = "inverse";
             } else
@@ -3612,7 +3612,7 @@ public partial class BaseExchange
                 throw new BadRequest ((((this.id + " symbols must be of the same type ") + (type)) + ". If the type is incorrect you can change it in options or the params of the request")) ;
             }
             marketType = this.safeString(market, "type");
-            if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) != true))
+            if ((this.safeBool(market, "spot") != true))
             {
                 isLinearSubType = this.safeBool(market, "linear");
             }
@@ -5070,7 +5070,7 @@ public partial class BaseExchange
                     for (int i = 0; i < (markets?.Count ?? 0); i++)
                     {
                         object currentMarket = markets[i];
-                        if ((getValue(currentMarket, marketTypeResolved) is true))
+                        if ((this.safeBool(currentMarket, marketTypeResolved) == true))
                         {
                             return ((Dictionary<string, object>)((object)(currentMarket)));
                         }
@@ -5519,10 +5519,10 @@ public partial class BaseExchange
             // at first, check from market object
             if ((market != null))
             {
-                if (((market != null && market.ContainsKey("linear") ? market["linear"] : null) is true))
+                if ((this.safeBool(market, "linear") == true))
                 {
                     subType = "linear";
-                } else if (((market != null && market.ContainsKey("inverse") ? market["inverse"] : null) is true))
+                } else if ((this.safeBool(market, "inverse") == true))
                 {
                     subType = "inverse";
                 }
@@ -6034,7 +6034,7 @@ public partial class BaseExchange
             for (int i = 0; i < getArrayLength(marketsList); i++)
             {
                 object market = getValue(marketsList, i);
-                if ((getValue(market, defaultType) is true))
+                if ((this.safeBool(market, defaultType) == true))
                 {
                     return ccxt.BaseExchange.ToDict(market);
                 }
@@ -7142,7 +7142,7 @@ public partial class BaseExchange
         List<object> results = new List<object>() {};
         for (int i = 0; i < getArrayLength(ohlcvs); i++)
         {
-            results.Add(this.parseWsOHLCV(getValue(ohlcvs, i), market));
+            results.Add(this.parseWsOHLCV(this.safeValue(ohlcvs, i), market));
         }
         return results;
     }
@@ -7272,7 +7272,7 @@ public partial class BaseExchange
                     int responseLength = getArrayLength(response);
                     if (this.verbose)
                     {
-                        string backwardMessage = ((((("Dynamic pagination call " + this.numberToString(calls)) + " method ") + (method)) + " response length ") + this.numberToString(responseLength));
+                        string backwardMessage = ((((("Dynamic pagination call " + this.numberToString(calls)) + " method ") + (method)) + " response length ") + ((object)responseLength).ToString());
                         if (!(paginationTimestamp == null))
                         {
                             backwardMessage = backwardMessage + (" timestamp " + this.numberToString(paginationTimestamp));
@@ -7305,7 +7305,7 @@ public partial class BaseExchange
                     int responseLength = getArrayLength(response);
                     if (this.verbose)
                     {
-                        string forwardMessage = ((((("Dynamic pagination call " + this.numberToString(calls)) + " method ") + (method)) + " response length ") + this.numberToString(responseLength));
+                        string forwardMessage = ((((("Dynamic pagination call " + this.numberToString(calls)) + " method ") + (method)) + " response length ") + ((object)responseLength).ToString());
                         if (!(paginationTimestamp == null))
                         {
                             forwardMessage = forwardMessage + (" timestamp " + this.numberToString(paginationTimestamp));
@@ -8139,36 +8139,39 @@ public partial class BaseExchange
         {
             ((IDictionary<string,object>)client.subscriptions).Remove((string)unsubHash);
         }
-        if (subHashIsPrefix != true)
+        if ((subHash != null))
         {
-            if (((subHash != null)) && ((client.subscriptions != null && subHash is string inOpKey9 && client.subscriptions.ContainsKey(inOpKey9))))
+            if (subHashIsPrefix != true)
             {
-                ((IDictionary<string,object>)client.subscriptions).Remove((string)subHash);
-            }
-            if (((subHash != null)) && ((client.futures != null && subHash != null && client.futures.ContainsKey((string)subHash))))
-            {
-                var error = new UnsubscribeError(((this.id + " ") + (subHash)));
-                client.reject(error, subHash);
-            }
-        } else
-        {
-            List<object> clientSubscriptions = new List<object>(((IDictionary<string,object>)client.subscriptions).Keys);
-            for (int i = 0; i < clientSubscriptions.Count; i++)
-            {
-                string? sub = ((string)clientSubscriptions[i]);
-                if (((sub != null)) && ((subHash != null)) && sub.StartsWith(((string)subHash)))
+                if ((client.subscriptions != null && subHash is string inOpKey9 && client.subscriptions.ContainsKey(inOpKey9)))
                 {
-                    ((IDictionary<string,object>)client.subscriptions).Remove(sub);
+                    ((IDictionary<string,object>)client.subscriptions).Remove((string)subHash);
                 }
-            }
-            List<object> clientFutures = new List<object>(((IDictionary<string, ccxt.Exchange.Future>)client.futures).Keys);
-            for (int i = 0; i < clientFutures.Count; i++)
-            {
-                string? future = ((string)clientFutures[i]);
-                if (((future != null)) && ((subHash != null)) && future.StartsWith(((string)subHash)))
+                if ((client.futures != null && subHash != null && client.futures.ContainsKey((string)subHash)))
                 {
-                    var error = new UnsubscribeError(((this.id + " ") + future));
-                    client.reject(error, future);
+                    var error = new UnsubscribeError(((this.id + " ") + (subHash)));
+                    client.reject(error, subHash);
+                }
+            } else
+            {
+                List<object> clientSubscriptions = new List<object>(((IDictionary<string,object>)client.subscriptions).Keys);
+                for (int i = 0; i < clientSubscriptions.Count; i++)
+                {
+                    string? sub = ((string)clientSubscriptions[i]);
+                    if (sub.StartsWith(((string)subHash)))
+                    {
+                        ((IDictionary<string,object>)client.subscriptions).Remove(sub);
+                    }
+                }
+                List<object> clientFutures = new List<object>(((IDictionary<string, ccxt.Exchange.Future>)client.futures).Keys);
+                for (int i = 0; i < clientFutures.Count; i++)
+                {
+                    string? future = ((string)clientFutures[i]);
+                    if (future.StartsWith(((string)subHash)))
+                    {
+                        var error = new UnsubscribeError(((this.id + " ") + future));
+                        client.reject(error, future);
+                    }
                 }
             }
         }
@@ -8208,39 +8211,39 @@ public partial class BaseExchange
         {
             for (int i = 0; i < (symbols?.Count ?? 0); i++)
             {
-                object symbol = symbols[i];
+                string? symbol = this.safeString(symbols, i, "");
                 if (topic == "trades")
                 {
-                    if ((this.trades != null && symbol is string inOpKey11 && this.trades.ContainsKey(inOpKey11)))
+                    if (((symbol != null) && ((IDictionary<string, object>)this.trades).ContainsKey(symbol)))
                     {
-                        this.trades.Remove((string)symbol);
+                        this.trades.Remove(symbol);
                     }
                 } else if (topic == "orderbook")
                 {
-                    if ((this.orderbooks != null && symbol is string inOpKey12 && this.orderbooks.ContainsKey(inOpKey12)))
+                    if (((symbol != null) && ((IDictionary<string, object>)this.orderbooks).ContainsKey(symbol)))
                     {
-                        ((IDictionary<string,object>)this.orderbooks).Remove((string)symbol);
+                        ((IDictionary<string,object>)this.orderbooks).Remove(symbol);
                     }
                 } else if (topic == "ticker")
                 {
-                    if ((this.tickers != null && symbol is string inOpKey13 && this.tickers.ContainsKey(inOpKey13)))
+                    if (((symbol != null) && ((IDictionary<string, object>)this.tickers).ContainsKey(symbol)))
                     {
-                        this.tickers.Remove((string)symbol);
+                        this.tickers.Remove(symbol);
                     }
                 } else if (topic == "bidsasks")
                 {
-                    if ((this.bidsasks != null && symbol is string inOpKey14 && this.bidsasks.ContainsKey(inOpKey14)))
+                    if (((symbol != null) && ((IDictionary<string, object>)this.bidsasks).ContainsKey(symbol)))
                     {
-                        this.bidsasks.Remove((string)symbol);
+                        this.bidsasks.Remove(symbol);
                     }
                 }
             }
         } else
         {
-            if (topic == "myTrades" && ((this.myTrades != null)))
+            if (topic == "myTrades")
             {
                 this.myTrades = null;
-            } else if (topic == "orders" && ((this.orders != null)))
+            } else if (topic == "orders")
             {
                 this.orders = null;
             } else if (topic == "positions" && ((this.positions != null)))

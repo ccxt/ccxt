@@ -1785,29 +1785,20 @@ public partial class delta : Exchange
             windowSeconds = (limit * duration);
         }
         Int64? until = this.safeIntegerProduct(parameters, "until", 0.001);
-        bool untilIsDefined = (until != null);
-        if (untilIsDefined)
-        {
-            until = this.parseToInt(until);
-        }
         if ((since == null))
         {
             Int64? end = this.seconds();
-            if (untilIsDefined)
+            if ((until != null))
             {
                 end = this.parseToInt(until);
             }
             request["end"] = end;
-            if ((end == null))
-            {
-                throw new ExchangeError ((this.id + " fetchOHLCV() missing end")) ;
-            }
             request["start"] = ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? (hx4x.GetType() == typeof(Int64) ? (object)((Int64)hx4x - (Int64)hx4y) : hx4x.GetType() == typeof(double) ? (object)((double)hx4x - Convert.ToDouble(hx4y)) : null) : null))(end, windowSeconds);
         } else
         {
             Int64? start = this.parseToInt(((double?)since / 1000));
             request["start"] = start;
-            request["end"] = untilIsDefined ? until : this.sum(start, windowSeconds);
+            request["end"] = ((until != null)) ? until : this.sum(start, windowSeconds);
         }
         string? price = this.safeString(parameters, "price");
         string? marketId = this.safeString(market, "id", "");
@@ -2533,7 +2524,7 @@ public partial class delta : Exchange
         }
         if ((since != null))
         {
-            request["start_time"] = (((object)since).ToString() + "000");
+            request["start_time"] = this.numberToString((since * 1000));
         }
         if ((limit != null))
         {
@@ -2598,7 +2589,7 @@ public partial class delta : Exchange
         }
         if ((since != null))
         {
-            request["start_time"] = (((object)since).ToString() + "000");
+            request["start_time"] = this.numberToString((since * 1000));
         }
         if ((limit != null))
         {
@@ -4417,7 +4408,7 @@ public partial class delta : Exchange
         {
             this.checkRequiredCredentials();
             string timestamp = this.seconds().ToString();
-            requestHeaders = new Dictionary<string, object>() {
+            Dictionary<string, object> privateHeaders = new Dictionary<string, object>() {
                 { "api-key", this.apiKey },
                 { "timestamp", timestamp },
             };
@@ -4434,10 +4425,11 @@ public partial class delta : Exchange
             {
                 requestBody = this.json(query);
                 auth = auth + requestBody;
-                requestHeaders["Content-Type"] = "application/json";
+                privateHeaders["Content-Type"] = "application/json";
             }
             string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
-            requestHeaders["signature"] = signature;
+            privateHeaders["signature"] = signature;
+            requestHeaders = privateHeaders;
         }
         string? bodyResult = requestBody;
         Dictionary<string, object> headersResult = requestHeaders;

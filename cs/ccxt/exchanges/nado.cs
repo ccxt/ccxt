@@ -3333,10 +3333,6 @@ public partial class nado : Exchange
     public virtual string? padHex(object value, object length, bool? left = null)
     {
         left ??= true;
-        if ((length == null))
-        {
-            throw new ArgumentsRequired ((this.id + " padHex() requires length")) ;
-        }
         string zeros = "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
         if (left == true)
         {
@@ -3378,8 +3374,7 @@ public partial class nado : Exchange
 }} },
         };
         byte[] encoded = this.ethEncodeStructuredData(domain, messageTypes, order);
-        string hash = ("0x" + (this.hash(encoded, keccak, "hex")));
-        return ((string?)((object)(this.signHash(hash, this.privateKey))));
+        return ((string?)((object)(this.signHash(this.hash(encoded, keccak, "hex"), this.privateKey))));
     }
 
     public virtual string? signCancellation(IDictionary<string, object> cancellation, string? chainId, string? endpointAddress)
@@ -3406,8 +3401,7 @@ public partial class nado : Exchange
 }} },
         };
         byte[] encoded = this.ethEncodeStructuredData(domain, messageTypes, cancellation);
-        string hash = ("0x" + (this.hash(encoded, keccak, "hex")));
-        return this.signHash(hash, this.privateKey);
+        return this.signHash(this.hash(encoded, keccak, "hex"), this.privateKey);
     }
 
     public virtual string? signCancellationProducts(IDictionary<string, object> cancellation, string? chainId, string? endpointAddress)
@@ -3431,8 +3425,7 @@ public partial class nado : Exchange
 }} },
         };
         byte[] encoded = this.ethEncodeStructuredData(domain, messageTypes, cancellation);
-        string hash = ("0x" + (this.hash(encoded, keccak, "hex")));
-        return this.signHash(hash, this.privateKey);
+        return this.signHash(this.hash(encoded, keccak, "hex"), this.privateKey);
     }
 
     public virtual string? signFetchTriggerOrders(IDictionary<string, object> tx, string? chainId, string? endpointAddress)
@@ -3453,8 +3446,7 @@ public partial class nado : Exchange
 }} },
         };
         byte[] encoded = this.ethEncodeStructuredData(domain, messageTypes, tx);
-        string hash = ("0x" + (this.hash(encoded, keccak, "hex")));
-        return this.signHash(hash, this.privateKey);
+        return this.signHash(this.hash(encoded, keccak, "hex"), this.privateKey);
     }
 
     public virtual string? signHash(object hash, object privateKey)
@@ -3463,7 +3455,7 @@ public partial class nado : Exchange
         {
             throw new ArgumentsRequired ((this.id + " signHash() requires privateKey")) ;
         }
-        Dictionary<string, object> signature = ecdsa(((hash == null) ? null : ((string)hash).Substring(Math.Max(((string)hash).Length - 64, 0))), ((privateKey == null) ? null : ((string)privateKey).Substring(Math.Max(((string)privateKey).Length - 64, 0))), secp256k1, null);
+        Dictionary<string, object> signature = ecdsa(hash, ((privateKey == null) ? null : ((string)privateKey).Substring(Math.Max(((string)privateKey).Length - 64, 0))), secp256k1, null);
         string? r = ((string)(signature != null && signature.ContainsKey("r") ? signature["r"] : null));
         string? s = ((string)(signature != null && signature.ContainsKey("s") ? signature["s"] : null));
         string v = this.intToBase16(this.sum(27, (signature != null && signature.ContainsKey("v") ? signature["v"] : null))).ToLower();

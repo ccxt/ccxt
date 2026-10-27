@@ -280,7 +280,7 @@ public partial class cex : ccxt.cex
         }
         string messageHash = "trades";
         this.trades[(string)symbol] = stored;
-        client.resolve((this.trades != null && symbol != null && this.trades.ContainsKey(symbol) ? this.trades[symbol] : null), messageHash);
+        client.resolve(stored, messageHash);
     }
 
     /**
@@ -1123,7 +1123,7 @@ public partial class cex : ccxt.cex
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         string? pair = this.safeString(data, "pair");
         string? symbol = this.pairToSymbol(pair);
-        if ((symbol == null))
+        if (symbol == "")
         {
             return;
         }
@@ -1137,7 +1137,7 @@ public partial class cex : ccxt.cex
         {
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {});
         }
-        ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
+        ccxt.pro.IOrderBook orderbook = this.safeOrderBook(this.orderbooks, symbol);
         ccxt.OrderBook snapshot = this.parseOrderBook(data, symbol, timestamp, "bids", "asks");
         snapshot.nonce = ccxt.BaseExchange.StructInt64(incrementalId);
         (orderbook as IOrderBook).reset(ccxt.BaseExchange.FromOrderBook(snapshot));
@@ -1156,7 +1156,7 @@ public partial class cex : ccxt.cex
         string? quote = this.safeCurrencyCode(quoteId);
         if (((bs == null)) || ((quote == null)))
         {
-            return null;
+            return "";
         }
         string symbol = ((bs + "/") + quote);
         return symbol;
@@ -1182,7 +1182,7 @@ public partial class cex : ccxt.cex
         Int64? incrementalId = this.safeInteger(data, "id");
         string? pair = this.safeString(data, "pair", "");
         string? symbol = this.pairToSymbol(pair);
-        if ((symbol == null))
+        if (symbol == "")
         {
             return;
         }
@@ -1354,14 +1354,14 @@ public partial class cex : ccxt.cex
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         string? pair = this.safeString(data, "pair");
         string? symbol = this.pairToSymbol(pair);
-        if ((symbol == null))
+        if (symbol == "")
         {
             return;
         }
         string messageHash = ("ohlcv:" + symbol);
         List<object> ohlcv = new List<object> {this.safeTimestamp(data, "time"), this.safeNumber(data, "o"), this.safeNumber(data, "h"), this.safeNumber(data, "l"), this.safeNumber(data, "c"), this.safeNumber(data, "v")};
-        IDictionary<string, object> stored = ((IDictionary<string, object>)this.safeValue(this.ohlcvs, symbol));
-        ccxt.pro.BaseCache.appendTo(stored, ohlcv);
+        ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)this.safeValue((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), "unknown"));
+        stored.append(ohlcv);
         client.resolve(stored, messageHash);
     }
 
@@ -1379,7 +1379,7 @@ public partial class cex : ccxt.cex
         List<object> data = this.safeList(message, "data", new List<object>() {});
         string? pair = this.safeString(message, "pair");
         string? symbol = this.pairToSymbol(pair);
-        if ((symbol == null))
+        if (symbol == "")
         {
             return;
         }

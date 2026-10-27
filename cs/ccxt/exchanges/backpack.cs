@@ -827,11 +827,11 @@ public partial class backpack : Exchange
         List<object> marketTypes = new List<object>() {};
         for (int i = 0; i < requestedTypes.Count; i++)
         {
-            object requestedType = requestedTypes[i];
+            string? requestedType = this.safeString(requestedTypes, i, "");
             string? normalizedType = this.safeString(aliases, requestedType, requestedType);
             if (!this.inArray(normalizedType, supportedTypes))
             {
-                throw new BadRequest ((string)((this.id + " fetchMarkets() unsupported marketType ") + (requestedType))) ;
+                throw new BadRequest (((this.id + " fetchMarkets() unsupported marketType ") + requestedType)) ;
             }
             if (!this.inArray(normalizedType, marketTypes))
             {
@@ -1697,7 +1697,7 @@ public partial class backpack : Exchange
                 }
             }
         }
-        bool stockExplicitlyDisabled = (this.safeValue2(parameters, "stock", "defaultStock") is false);
+        bool stockExplicitlyDisabled = !(this.safeBool2(parameters, "stock", "defaultStock", true) == true);
         bool needsExternalRfqTickers = (source == "Venue") && ((this.safeString(query, "source") == null)) && hasRfqSymbol && !stockExplicitlyDisabled;
         IDictionary<string, object> requestParams = query;
         if ((source == "External") && ((stockOnly == true) || hasStockSymbol) && !stockExplicitlyDisabled)
@@ -3102,7 +3102,6 @@ public partial class backpack : Exchange
             await this.loadMarkets();
         }
         List<object> ordersRequests = new List<object>() {};
-        object stockOption = this.safeValue2(parameters, "stock", "defaultStock");
         bool? stock = this.safeBool(selection, 0, false);
         for (int i = 0; i < (orders?.Count ?? 0); i++)
         {
@@ -3114,7 +3113,7 @@ public partial class backpack : Exchange
             double? price = this.safeNumber(rawOrder, "price");
             IDictionary<string, object> orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
             Dictionary<string, object> baseParams = new Dictionary<string, object>() {};
-            if ((stock == true) || ((stockOption is false)))
+            if ((stock == true) || !(this.safeBool2(parameters, "stock", "defaultStock", true) == true))
             {
                 baseParams["stock"] = stock;
             }

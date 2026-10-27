@@ -13336,7 +13336,7 @@ public partial class kucoin : Exchange
         api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        string? apiName = this.safeString(api, 0);
+        string? apiName = ((string)(api != null && 0 < api.Count ? api[0] : null));
         //
         // the v2 URL is https://openapi-v2.kucoin.com/api/v1/endpoint
         //                                ↑                 ↑

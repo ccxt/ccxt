@@ -3608,8 +3608,7 @@ public partial class myriad : PredictionExchange
         // connection and resolves when the connect reply arrives (see handleCentrifugoFrame). The base
         // clears ((WebSocketClient)client).subscriptions on reconnect, so an absent 'connect' marker means a fresh handshake.
         var client = this.client(url);
-        object connectSent = this.safeValue(client.subscriptions, "connect");
-        if ((connectSent == null))
+        if (!((client.subscriptions != null && client.subscriptions.ContainsKey("connect"))))
         {
             this.options["wsConnected"] = false;
             Int64 requestId = this.requestId(url);
@@ -3749,7 +3748,7 @@ public partial class myriad : PredictionExchange
         // finish the connect handshake first so the client exists and the subscribe follows the connect reply
         await this.connectCentrifugo(url);
         var client = this.client(url);
-        bool isNewSubscription = (this.safeValue(client.subscriptions, channel) == null);
+        bool isNewSubscription = !((client.subscriptions != null && client.subscriptions.ContainsKey(channel)));
         if (isNewSubscription)
         {
             // the channel only streams deltas, so (re)seed the live book from the REST snapshot on a
@@ -4266,7 +4265,7 @@ public partial class myriad : PredictionExchange
         string? url = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws");
         await this.connectCentrifugo(url);
         var client = this.client(url);
-        bool isNewSubscription = (this.safeValue(client.subscriptions, channel) == null);
+        bool isNewSubscription = !((client.subscriptions != null && client.subscriptions.ContainsKey(channel)));
         if (isNewSubscription)
         {
             // the channel pushes only signed deltas; seed absolute share balances from REST so
@@ -4439,9 +4438,7 @@ public partial class myriad : PredictionExchange
         string? bodyValue = null;
         if ((method != "GET"))
         {
-            List<object> queryKeys = new List<object>(((IDictionary<string,object>)query).Keys);
-            int queryKeysLength = queryKeys.Count;
-            if (queryKeysLength > 0)
+            if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
                 bodyValue = this.json(query);
             }

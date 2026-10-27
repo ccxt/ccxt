@@ -1540,7 +1540,7 @@ public partial class woofipro : Exchange
         {
             object row = rows[i];
             string? marketId = this.safeString(row, "symbol", "");
-            if (((this.markets_by_id == null)) || !(((marketId != null) && this.markets_by_id.ContainsKey(marketId))))
+            if ((this.safeValue(this.markets_by_id, marketId) == null))
             {
                 continue;
             }
@@ -1664,7 +1664,7 @@ public partial class woofipro : Exchange
         {
             object row = rows[i];
             string? marketId = this.safeString(row, "symbol", "");
-            if (((this.markets_by_id == null)) || !(((marketId != null) && this.markets_by_id.ContainsKey(marketId))))
+            if ((this.safeValue(this.markets_by_id, marketId) == null))
             {
                 continue;
             }
@@ -4103,7 +4103,7 @@ public partial class woofipro : Exchange
             {
                 apiKey = ("ed25519:" + this.apiKey);
             }
-            requestHeaders = new Dictionary<string, object>() {
+            Dictionary<string, object> authHeaders = new Dictionary<string, object>() {
                 { "orderly-account-id", this.accountId },
                 { "orderly-key", apiKey },
                 { "orderly-timestamp", ts },
@@ -4113,7 +4113,7 @@ public partial class woofipro : Exchange
             {
                 requestBody = this.json(requestParams);
                 auth = auth + requestBody;
-                requestHeaders["content-type"] = "application/json";
+                authHeaders["content-type"] = "application/json";
             } else
             {
                 if ((new List<object>(requestParams.Keys)).Count > 0)
@@ -4121,7 +4121,7 @@ public partial class woofipro : Exchange
                     url = url + ("?" + this.urlencode(requestParams));
                     auth = auth + ("?" + this.rawencode(requestParams));
                 }
-                requestHeaders["content-type"] = "application/x-www-form-urlencoded";
+                authHeaders["content-type"] = "application/x-www-form-urlencoded";
                 if ((method == "DELETE"))
                 {
                     requestBody = "";
@@ -4134,15 +4134,14 @@ public partial class woofipro : Exchange
                 secret = (parts != null && 1 < parts.Count ? parts[1] : null);
             }
             string signature = eddsa(this.encode(auth), this.base58ToBinary(secret), ed25519);
-            requestHeaders["orderly-signature"] = this.urlencodeBase64(this.base64ToBinary(signature));
+            authHeaders["orderly-signature"] = this.urlencodeBase64(this.base64ToBinary(signature));
+            requestHeaders = authHeaders;
         }
-        string? bodyResult = requestBody;
-        Dictionary<string, object> headersResult = requestHeaders;
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
-            { "body", bodyResult },
-            { "headers", headersResult },
+            { "body", requestBody },
+            { "headers", requestHeaders },
         };
     }
 

@@ -5899,8 +5899,8 @@ public partial class coinbase : Exchange
         parameters ??= new Dictionary<string, object>();
         string? requestBody = null;
         Dictionary<string, object> requestHeaders = null;
-        string? version = this.safeString(api, 0);
-        bool signed = (this.safeString(api, 1) == "private");
+        string? version = ((string)(api != null && 0 < api.Count ? api[0] : null));
+        bool signed = ((api != null && 1 < api.Count ? api[1] : null) is "private");
         bool isV3 = version == "v3";
         string pathPart = "v2";
         if (isV3)

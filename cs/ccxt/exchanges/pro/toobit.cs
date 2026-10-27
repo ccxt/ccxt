@@ -1361,8 +1361,10 @@ public partial class toobit : ccxt.toobit
                 {
                     throw new AuthenticationError ((this.id + " authenticate() received an empty listenKey")) ;
                 }
-                ((IDictionary<string,object>)(this.options.ContainsKey("ws") ? this.options["ws"] : null))["listenKey"] = listenKey;
-                ((IDictionary<string,object>)(this.options.ContainsKey("ws") ? this.options["ws"] : null))["lastAuthenticatedTime"] = time;
+                this.setWsOptions(new Dictionary<string, object>() {
+                    { "listenKey", listenKey },
+                    { "lastAuthenticatedTime", time },
+                });
                 this.delay(listenKeyRefreshRate,  this.keepAliveListenKey, new object[] { parameters});
                 // settle the flight: client.resolve () removes the future from
                 // client.futures and wakes every waiter
@@ -1379,6 +1381,11 @@ public partial class toobit : ccxt.toobit
         }
     }
 
+    public virtual void setWsOptions(IDictionary<string, object> entry)
+    {
+        this.options["ws"] = this.extend(this.safeDict(this.options, "ws", new Dictionary<string, object>() {}), entry);
+    }
+
     public async virtual Task keepAliveListenKey(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
@@ -1392,8 +1399,10 @@ public partial class toobit : ccxt.toobit
         try
         {
             Dictionary<string, object> response = await this.privatePostApiV1UserDataStream(parameters);
-            ((IDictionary<string,object>)(this.options.ContainsKey("ws") ? this.options["ws"] : null))["listenKey"] = this.safeString(response, "listenKey");
-            ((IDictionary<string,object>)(this.options.ContainsKey("ws") ? this.options["ws"] : null))["lastAuthenticatedTime"] = this.milliseconds();
+            this.setWsOptions(new Dictionary<string, object>() {
+                { "listenKey", this.safeString(response, "listenKey") },
+                { "lastAuthenticatedTime", this.milliseconds() },
+            });
         } catch(Exception error)
         {
             string? url = this.getUserStreamUrl();
@@ -1404,8 +1413,10 @@ public partial class toobit : ccxt.toobit
                 string? messageHash = ((string)messageHashes[i]);
                 client.reject(error, messageHash);
             }
-            ((IDictionary<string,object>)(this.options.ContainsKey("ws") ? this.options["ws"] : null))["listenKey"] = null;
-            ((IDictionary<string,object>)(this.options.ContainsKey("ws") ? this.options["ws"] : null))["lastAuthenticatedTime"] = 0;
+            this.setWsOptions(new Dictionary<string, object>() {
+                { "listenKey", null },
+                { "lastAuthenticatedTime", 0 },
+            });
             return;
         }
         // whether or not to schedule another listenKey keepAlive request

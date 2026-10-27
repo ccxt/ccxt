@@ -1445,8 +1445,10 @@ public partial class dydx : Exchange
             Dictionary<string, object> signature = this.signOnboardingAction();
             credentials = this.retrieveDydxCredentials(this.hashMessage(this.base16ToBinary((this.safeString(signature, "r", "") + this.safeString(signature, "s", "")))));
         }
-        credentials["privateKey"] = this.binaryToBase16((credentials != null && credentials.ContainsKey("privateKey") ? credentials["privateKey"] : null));
-        credentials["publicKey"] = this.binaryToBase16((credentials != null && credentials.ContainsKey("publicKey") ? credentials["publicKey"] : null));
+        credentials = new Dictionary<string, object>() {
+            { "privateKey", this.binaryToBase16((credentials != null && credentials.ContainsKey("privateKey") ? credentials["privateKey"] : null)) },
+            { "publicKey", this.binaryToBase16((credentials != null && credentials.ContainsKey("publicKey") ? credentials["publicKey"] : null)) },
+        };
         this.options["dydxCredentials"] = credentials;
         return credentials;
     }

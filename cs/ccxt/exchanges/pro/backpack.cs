@@ -192,7 +192,8 @@ public partial class backpack : ccxt.backpack
                     topic = ((quoteChannel + ".") + ticker);
                 } else
                 {
-                    topic = ("bookTicker." + (this.wsVenueMarketId(methodName, market, query)));
+                    this.wsVenueMarketId(methodName, market, query);
+                    topic = ("bookTicker." + this.safeString(market, "id", ""));
                 }
             } else if (source == "External")
             {
@@ -852,7 +853,8 @@ public partial class backpack : ccxt.backpack
             Dictionary<string, object> market = this.market(marketId);
             string? tf = this.safeString(symbolAndTimeframe, 1);
             string? interval = this.safeString(this.timeframes, tf, tf);
-            topics.Add(((("kline." + interval) + ".") + (this.wsVenueMarketId("watchOHLCVForSymbols", market, query))));
+            this.wsVenueMarketId("watchOHLCVForSymbols", market, query);
+            topics.Add(((("kline." + interval) + ".") + this.safeString(market, "id", "")));
             messageHashes.Add(((("candles:" + ((market.ContainsKey("symbol") ? market["symbol"] : null))) + ":") + interval));
         }
         var symboltimeframecandlesVariable = await this.watchPublic(topics, messageHashes, this.omit(query, new List<object>() {"stock", "source"}));
@@ -901,7 +903,8 @@ public partial class backpack : ccxt.backpack
             Dictionary<string, object> market = this.market(marketId);
             string? tf = this.safeString(symbolAndTimeframe, 1);
             string? interval = this.safeString(this.timeframes, tf, tf);
-            topics.Add(((("kline." + interval) + ".") + (this.wsVenueMarketId("watchOHLCVForSymbols", market, query))));
+            this.wsVenueMarketId("watchOHLCVForSymbols", market, query);
+            topics.Add(((("kline." + interval) + ".") + this.safeString(market, "id", "")));
             messageHashes.Add(((("unsubscribe:candles:" + ((market.ContainsKey("symbol") ? market["symbol"] : null))) + ":") + interval));
         }
         return await this.watchPublic(topics, messageHashes, this.omit(query, new List<object>() {"stock", "source"}), true);
@@ -1458,7 +1461,7 @@ public partial class backpack : ccxt.backpack
             {
                 topic = ("account.rfqUpdate." + this.safeString(market, "id", ""));
             }
-            messageHash = ("orders:" + (symbolResolved));
+            messageHash = ("orders:" + this.safeString(market, "symbol", ""));
         }
         List<object> topics = new List<object>() {topic};
         if ((market == null))
@@ -2081,7 +2084,7 @@ public partial class backpack : ccxt.backpack
         {
             if ((code != null))
             {
-                string? msg = this.safeString(error, "message");
+                string? msg = this.safeString(error, "message", "");
                 throw new ExchangeError (((this.id + " ") + msg)) ;
             }
             return ((bool?)((object)(true)));

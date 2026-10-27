@@ -175,7 +175,7 @@ public partial class onetrading : ccxt.onetrading
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbolValue = this.safeString(market, "symbol", "");
         string subscriptionHash = "MARKET_TICKER";
         string messageHash = ("ticker." + symbolValue);
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -364,7 +364,7 @@ public partial class onetrading : ccxt.onetrading
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbolValue = this.safeString(market, "symbol", "");
         string messageHash = ("book:" + symbolValue);
         string subscriptionHash = "ORDER_BOOK";
         object depth = 0;
@@ -1156,8 +1156,8 @@ public partial class onetrading : ccxt.onetrading
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-        string? marketId = ((string)(market.ContainsKey("id") ? market["id"] : null));
+        string? symbolValue = this.safeString(market, "symbol", "");
+        string? marketId = this.safeString(market, "id", "");
         string? url = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws");
         IDictionary<string, object> timeframes = this.safeDict(this.options, "timeframes", new Dictionary<string, object>() {});
         IDictionary<string, object> timeframeId = this.safeDict(timeframes, timeframeVar);

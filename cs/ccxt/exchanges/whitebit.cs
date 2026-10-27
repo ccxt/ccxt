@@ -4880,7 +4880,7 @@ public partial class whitebit : Exchange
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         object query = this.omit(parameters, this.extractParams(path));
-        string? version = this.safeString(api, 0, "");
+        string? version = ((string)(api != null && 0 < api.Count ? api[0] : null));
         string? accessibility = this.safeString(api, 1);
         Dictionary<string, object> publicHeaders = new Dictionary<string, object>() {};
         publicHeaders["User-Agent"] = ((("ccxt/" + this.id) + "-") + this.version);

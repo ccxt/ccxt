@@ -54,7 +54,7 @@ public partial class gemini : ccxt.gemini
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string messageHash = ("trades:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
+        string messageHash = ("trades:" + this.safeString(market, "symbol", ""));
         string? marketId = ((string)(market.ContainsKey("id") ? market["id"] : null));
         if ((marketId == null))
         {
@@ -67,7 +67,7 @@ public partial class gemini : ccxt.gemini
     { "symbols", new List<object> {marketId.ToUpper()} },
 }} },
         };
-        string subscribeHash = ("l2:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
+        string subscribeHash = ("l2:" + this.safeString(market, "symbol", ""));
         string? wsUrl = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws");
         if ((wsUrl == null))
         {
@@ -243,7 +243,7 @@ public partial class gemini : ccxt.gemini
         List<object> trades = this.safeList(message, "trades");
         if ((trades != null))
         {
-            string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+            string? symbol = this.safeString(market, "symbol", "");
             Int64? tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
             ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
             if ((stored == null))
@@ -270,7 +270,7 @@ public partial class gemini : ccxt.gemini
             object rawTrade = this.safeValue(trades, i);
             string marketId = this.safeString(rawTrade, "symbol", "").ToLower();
             Dictionary<string, object> market = this.safeMarket(marketId);
-            string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+            string? symbol = this.safeString(market, "symbol", "");
             ccxt.Trade trade = this.parseWsTrade(rawTrade, market);
             trade.timestamp = ccxt.BaseExchange.StructInt64(timestamp);
             trade.datetime = ccxt.BaseExchange.StructString(this.iso8601(timestamp));
@@ -323,7 +323,7 @@ public partial class gemini : ccxt.gemini
     { "symbols", new List<object> {this.safeStringUpper(market, "id")} },
 }} },
         };
-        string messageHash = ((("ohlcv:" + ((market.ContainsKey("symbol") ? market["symbol"] : null))) + ":") + timeframeId);
+        string messageHash = ((("ohlcv:" + this.safeString(market, "symbol", "")) + ":") + timeframeId);
         string? wsUrl = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws");
         if ((wsUrl == null))
         {
@@ -421,7 +421,7 @@ public partial class gemini : ccxt.gemini
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string messageHash = ("orderbook:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
+        string messageHash = ("orderbook:" + this.safeString(market, "symbol", ""));
         string? marketId = ((string)(market.ContainsKey("id") ? market["id"] : null));
         if ((marketId == null))
         {
@@ -434,7 +434,7 @@ public partial class gemini : ccxt.gemini
     { "symbols", new List<object> {marketId.ToUpper()} },
 }} },
         };
-        string subscribeHash = ("l2:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
+        string subscribeHash = ("l2:" + this.safeString(market, "symbol", ""));
         string? wsUrl = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws");
         if ((wsUrl == null))
         {
@@ -451,9 +451,9 @@ public partial class gemini : ccxt.gemini
         List<object> changes = this.safeList(message, "changes", new List<object>() {});
         string? marketId = this.safeStringLower(message, "symbol");
         Dictionary<string, object> market = this.safeMarket(marketId);
-        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbol = this.safeString(market, "symbol", "");
         string messageHash = ("orderbook:" + symbol);
-        if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
+        if (!(((symbol != null) && ((IDictionary<string, object>)this.orderbooks).ContainsKey(symbol))))
         {
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook();
         }
@@ -562,8 +562,8 @@ public partial class gemini : ccxt.gemini
         object firstBidAsk = (rawBidAskChanges != null && 0 < rawBidAskChanges.Count ? rawBidAskChanges[0] : null);
         string marketId = this.safeString(firstBidAsk, "symbol", "").ToLower();
         Dictionary<string, object> market = this.safeMarket(marketId);
-        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-        if (!((this.bidsasks != null && symbol != null && this.bidsasks.ContainsKey(symbol))))
+        string? symbol = this.safeString(market, "symbol", "");
+        if (!(((symbol != null) && ((IDictionary<string, object>)this.bidsasks).ContainsKey(symbol))))
         {
             this.bidsasks[(string)symbol] = ccxt.BaseExchange.FromTicker(this.parseTicker(new Dictionary<string, object>() {}));
             ((IDictionary<string,object>)(this.bidsasks != null && symbol != null && this.bidsasks.ContainsKey(symbol) ? this.bidsasks[symbol] : null))["symbol"] = symbol;
@@ -668,9 +668,9 @@ public partial class gemini : ccxt.gemini
         object firstChange = (rawOrderBookChanges != null && 0 < rawOrderBookChanges.Count ? rawOrderBookChanges[0] : null);
         string marketId = this.safeString(firstChange, "symbol", "").ToLower();
         Dictionary<string, object> market = this.safeMarket(marketId);
-        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbol = this.safeString(market, "symbol", "");
         string messageHash = ("orderbook:" + symbol);
-        if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
+        if (!(((symbol != null) && ((IDictionary<string, object>)this.orderbooks).ContainsKey(symbol))))
         {
             ccxt.pro.OrderBook ob = this.orderBook();
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = ob;

@@ -767,7 +767,7 @@ public partial class woofipro : ccxt.woofipro
         string? symbolResolved = ((market != null)) ? this.safeString(market, "symbol") : null;
         if ((symbol != null))
         {
-            messageHash = messageHash + (":" + symbolResolved);
+            messageHash = messageHash + (":" + this.safeString(this.market(symbol), "symbol", ""));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "event", "subscribe" },
@@ -819,7 +819,7 @@ public partial class woofipro : ccxt.woofipro
         string? symbolResolved = ((market != null)) ? this.safeString(market, "symbol") : null;
         if ((symbol != null))
         {
-            messageHash = messageHash + (":" + symbolResolved);
+            messageHash = messageHash + (":" + this.safeString(this.market(symbol), "symbol", ""));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "event", "subscribe" },

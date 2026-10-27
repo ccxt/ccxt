@@ -812,7 +812,7 @@ public partial class coinbaseinternational : Exchange
         bool isOption = ((kind?.IndexOf("option", StringComparison.Ordinal) ?? -1) >= 0);
         int comboPosition = (kind?.IndexOf("combo", StringComparison.Ordinal) ?? -1);
         bool isComboMarket = comboPosition >= 0;
-        object bs = this.safeCurrencyCode(baseId);
+        string? bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
         string? settle = this.safeCurrencyCode(settleId);
         string type = "swap";
@@ -827,12 +827,12 @@ public partial class coinbaseinternational : Exchange
             type = "option";
         }
         object symbol = instrumentName;
-        if (!isComboMarket)
+        if (!isComboMarket && ((bs != null)) && ((quote != null)))
         {
-            symbol = add(add(bs, "/"), quote);
-            if (!isSpot)
+            symbol = ((bs + "/") + quote);
+            if (!isSpot && ((settle != null)))
             {
-                symbol = add(add(symbol, ":"), settle);
+                symbol = ((((bs + "/") + quote) + ":") + settle);
             }
         }
         bool? linear = isSpot ? null : ((settle == quote));
@@ -849,7 +849,7 @@ public partial class coinbaseinternational : Exchange
         if (!isComboMarket && (isOption || isFuture))
         {
             string? expiryString = this.yymmdd(expiry, "");
-            symbol = add(add(symbol, "-"), expiryString);
+            symbol = add(((object)(symbol == null ? null : symbol + "-")), expiryString);
         }
         if (!isComboMarket && isOption)
         {
@@ -3692,7 +3692,7 @@ public partial class coinbaseinternational : Exchange
         Int64 now = this.milliseconds();
         object token = this.getV2AccessToken();
         Int64? tokenExpires = this.safeInteger(this.options, "v2TokenExpires");
-        if (forceRefresh != true && ((token != null)) && (!(token is "")) && ((tokenExpires != null)) && ((now < tokenExpires)))
+        if (forceRefresh != true && ((token != null)) && ((tokenExpires != null)) && ((now < tokenExpires)))
         {
             return token;
         }
@@ -3741,7 +3741,7 @@ public partial class coinbaseinternational : Exchange
         {
             return token;
         }
-        if (((this.token == null)) || ((this.token is "")))
+        if ((this.token is ""))
         {
             return null;
         }
@@ -3789,7 +3789,7 @@ public partial class coinbaseinternational : Exchange
         {
             this.checkRequiredCredentials();
             string timestamp = this.milliseconds().ToString();
-            string nonce = this.nonce().ToString();
+            string? nonce = this.numberToString(this.nonce());
             string signedRequest = (((((("/" + "api/") + this.version) + "/") + access) + "/") + path);
             if ((new List<object>(((IDictionary<string,object>)requestParams).Keys)).Count > 0)
             {

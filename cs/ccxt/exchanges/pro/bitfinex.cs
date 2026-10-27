@@ -834,7 +834,7 @@ public partial class bitfinex : ccxt.bitfinex
         } else
         {
             ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
-            object deltas = getValue(message, 1);
+            object deltas = this.safeValue(message, 1);
             ccxt.pro.IOrderBook orderbookItem = this.getOrderBook(this.orderbooks, symbol);
             if (isRaw)
             {

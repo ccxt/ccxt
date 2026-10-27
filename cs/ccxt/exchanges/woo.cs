@@ -3865,7 +3865,7 @@ public partial class woo : Exchange
         Dictionary<string, object> requestHeaders = null;
         string? requestBody = null;
         string? version = ((string)(section != null && 0 < section.Count ? section[0] : null));
-        string? access = this.safeString(section, 1);
+        string? access = ((string)(section != null && 1 < section.Count ? section[1] : null));
         string? pathWithParams = this.implodeParams(path, parameters);
         string? baseApiUrl = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), access);
         if ((baseApiUrl == null))

@@ -1161,10 +1161,6 @@ public partial class nado : ccxt.nado
         // the v2 gateway dispatches requests concurrently, so responses arrive
         // in completion order, not send order — every execute carries a unique
         // request id and its response is correlated by the echoed id
-        if ((requestIdString == null))
-        {
-            throw new ArgumentsRequired ((this.id + " watchExecuteRequest() requires requestIdString")) ;
-        }
         string? url = this.safeString((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "gateway");
         string messageHash = ("execute:" + requestIdString);
         return await this.watch(url, messageHash, request, messageHash);
@@ -1319,8 +1315,7 @@ public partial class nado : ccxt.nado
 }} },
         };
         byte[] encoded = this.ethEncodeStructuredData(domain, messageTypes, tx);
-        string hash = ("0x" + (this.hash(encoded, keccak, "hex")));
-        return ((string?)((object)(this.signHash(hash, this.privateKey))));
+        return ((string?)((object)(this.signHash(this.hash(encoded, keccak, "hex"), this.privateKey))));
     }
 
     public virtual Dictionary<string, object> createPublicSubscriptionRequest(string method, object streamType, object market = null, object id = null, object parameters = null)

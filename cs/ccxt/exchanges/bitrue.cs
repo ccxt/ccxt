@@ -3506,9 +3506,9 @@ public partial class bitrue : Exchange
         parameters ??= new Dictionary<string, object>();
         string? requestBody = null;
         Dictionary<string, object> requestHeaders = null;
-        string? type = this.safeString(api, 0);
-        string? version = this.safeString(api, 1, "");
-        string? access = this.safeString(api, 2);
+        string? type = ((string)(api != null && 0 < api.Count ? api[0] : null));
+        string? version = ((string)(api != null && 1 < api.Count ? api[1] : null));
+        string? access = ((string)(api != null && 2 < api.Count ? api[2] : null));
         string? apiUrl = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), type);
         if ((apiUrl == null))
         {

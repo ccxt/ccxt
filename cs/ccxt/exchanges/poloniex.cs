@@ -1064,7 +1064,7 @@ public partial class poloniex : Exchange
 
     public override Dictionary<string, object> parseMarket(object market)
     {
-        if ((market != null && ((IDictionary<string, object>)market).ContainsKey("ctType")))
+        if ((this.safeString(market, "ctType") != null))
         {
             return this.parseSwapMarket(market);
         } else
@@ -4023,7 +4023,7 @@ public partial class poloniex : Exchange
         status = this.parseTransactionStatus(status);
         string? txid = this.safeString(transactionValue, "txid");
         string type = "deposit";
-        if (inOp(transactionValue, "withdrawalRequestsId"))
+        if ((this.safeString(transactionValue, "withdrawalRequestsId") != null))
         {
             type = "withdrawal";
         }
@@ -4096,7 +4096,7 @@ public partial class poloniex : Exchange
         IDictionary<string, object> paramsHedged = ((IDictionary<string, object>)hedgedparamsHedgedVariable[1]);
         if ((hedged == true))
         {
-            if (!((paramsHedged != null && paramsHedged.ContainsKey("posSide"))))
+            if ((this.safeString(paramsHedged, "posSide") == null))
             {
                 throw new ArgumentsRequired ((this.id + " setLeverage() requires a posSide parameter for hedged mode: \"LONG\" or \"SHORT\"")) ;
             }
@@ -4508,17 +4508,17 @@ public partial class poloniex : Exchange
         parameters ??= new Dictionary<string, object>();
         string? apiName = ((string)(api != null && 0 < api.Count ? api[0] : null));
         bool isArray = ((parameters is IList<object>) || (parameters.GetType().IsGenericType && parameters.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
-        object url = (this.urlsApi != null && this.urlsApi.ContainsKey("spot") ? this.urlsApi["spot"] : null);
-        if (this.inArray(apiName, new List<object>() {"swapPublic", "swapPrivate"}))
-        {
-            url = (this.urlsApi != null && this.urlsApi.ContainsKey("swap") ? this.urlsApi["swap"] : null);
-        }
         if ((method == "GET") && (((IDictionary<string, object>)parameters).ContainsKey("symbol")))
         {
             ((IDictionary<string,object>)parameters)["symbol"] = this.encodeURIComponent(((IDictionary<string,object>)parameters)["symbol"]); // handle symbols like 索拉拉/USDT'
         }
         object query = this.omit(parameters, this.extractParams(path));
         string? implodedPath = this.implodeParams(path, parameters);
+        string url = ((this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "spot", "") + "/") + implodedPath);
+        if (this.inArray(apiName, new List<object>() {"swapPublic", "swapPrivate"}))
+        {
+            url = ((this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "swap", "") + "/") + implodedPath);
+        }
         // keep `Object.keys (query).length` inline and evaluated lazily: PHP only rewrites that exact
         // shape into count(x) (a hoisted key list becomes strlen() on an array) and the C#/Java key-list
         // cast throws on a bare-list params (the batch endpoints pass one), so `isArray ||` guards it.
@@ -4526,17 +4526,15 @@ public partial class poloniex : Exchange
         Dictionary<string, object> signedHeaders = null;
         if (apiName == "public" || apiName == "swapPublic")
         {
-            url = add(url, ("/" + implodedPath));
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
-                url = add(url, ("?" + this.urlencode(query)));
+                url = ((url + "?") + this.urlencode(query));
             }
         } else
         {
             this.checkRequiredCredentials();
             string? timestamp = this.numberToString(this.nonce());
             string auth = (method + "\n"); // eslint-disable-line quotes
-            url = add(url, ("/" + implodedPath));
             auth = auth + ("/" + implodedPath);
             if (((method == "POST")) || ((method == "PUT")) || ((method == "DELETE")))
             {
@@ -4556,7 +4554,7 @@ public partial class poloniex : Exchange
                 auth = auth + ("\n" + this.urlencode(sortedQuery)); // eslint-disable-line quotes
                 if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
                 {
-                    url = add(url, ("?" + this.urlencode(query)));
+                    url = ((url + "?") + this.urlencode(query));
                 }
             }
             signedHeaders = new Dictionary<string, object>() {

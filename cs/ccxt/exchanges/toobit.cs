@@ -1172,7 +1172,7 @@ public partial class toobit : Exchange
         IDictionary<string, object> lotSizeFilter = this.safeDict(filtersByType, "LOT_SIZE", new Dictionary<string, object>() {});
         IDictionary<string, object> minNotionalFilter = this.safeDict(filtersByType, "MIN_NOTIONAL", new Dictionary<string, object>() {});
         string symbol = ((bs + "/") + quote);
-        bool isContract = ((market != null && ((IDictionary<string, object>)market).ContainsKey("contractMultiplier")));
+        bool isContract = ((this.safeString(market, "contractMultiplier") != null));
         bool? inverse = this.safeBool2(market, "isInverse", "inverse");
         if (isContract)
         {
@@ -2153,7 +2153,7 @@ public partial class toobit : Exchange
             }
         }
         object paramsOmitted = this.omit(paramsTrigger, new List<object>() {"stopLoss", "takeProfit"});
-        if (!(inOp(paramsOmitted, "newClientOrderId")))
+        if ((this.safeString(paramsOmitted, "newClientOrderId") == null))
         {
             request["newClientOrderId"] = this.uuid();
         }

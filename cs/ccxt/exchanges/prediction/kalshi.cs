@@ -755,17 +755,16 @@ public partial class kalshi : PredictionExchange
         double? liquidity = this.safeNumber2(raw, "liquidity_dollars", "liquidity");
         double? openInt = this.safeNumber2(raw, "open_interest_fp", "open_interest");
         // Derive series ticker: drop last hyphen-segment from event_ticker
-        List<object> eventParts = new List<object>() {};
+        string? seriesTicker = eventTicker;
         if (((eventTicker != null)) && (eventTicker != ""))
         {
-            eventParts = eventTicker.Split(new [] {"-"}, StringSplitOptions.None).ToList<object>();
-        }
-        string? seriesTicker = eventTicker;
-        int eventPartsLength = (eventParts?.Count ?? 0);
-        if (eventPartsLength > 1)
-        {
-            List<object> seriesParts = ((List<object>)this.arraySlice(eventParts, 0, (eventPartsLength - 1)));
-            seriesTicker = String.Join("-", seriesParts.ToArray());
+            List<object> eventParts = eventTicker.Split(new [] {"-"}, StringSplitOptions.None).ToList<object>();
+            int eventPartsLength = eventParts.Count;
+            if (eventPartsLength > 1)
+            {
+                List<object> seriesParts = ((List<object>)this.arraySlice(eventParts, 0, (eventPartsLength - 1)));
+                seriesTicker = String.Join("-", seriesParts.ToArray());
+            }
         }
         // market symbol (no outcome suffix)
         object subtitleOrTicker = ticker;
@@ -3113,7 +3112,7 @@ public partial class kalshi : PredictionExchange
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         string? apiGroup = ((string)(api != null && 0 < api.Count ? api[0] : null));
-        string? access = this.safeString(api, 1, "public");
+        string? access = ((string)(api != null && 1 < api.Count ? api[1] : null));
         object baseUrls = (this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null);
         object baseUrl = this.safeString(baseUrls, apiGroup, getValue(baseUrls, "kalshi"));
         string? implodedPath = this.implodeParams(path, parameters);

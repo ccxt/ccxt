@@ -152,7 +152,7 @@ public partial class poloniex : ccxt.poloniex
     {
         parameters ??= new Dictionary<string, object>();
         string publicOrPrivate = "public";
-        if (isPrivate == true)
+        if ((isPrivate == true))
         {
             publicOrPrivate = "private";
         }

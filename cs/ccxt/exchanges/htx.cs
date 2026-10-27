@@ -9081,7 +9081,7 @@ public partial class htx : Exchange
         {
             // signing implementation for the new endpoints
             // const [ type, access ] = api;
-            string? type = this.safeString(api, 0);
+            string? type = ((string)(api != null && 0 < api.Count ? api[0] : null));
             string? access = this.safeString(api, 1);
             string? levelOneNestedPath = this.safeString(api, 2);
             string? levelTwoNestedPath = this.safeString(api, 3);

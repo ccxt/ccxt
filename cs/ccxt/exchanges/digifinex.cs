@@ -5356,8 +5356,8 @@ public partial class digifinex : Exchange
         api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        bool signed = (this.safeString(api, 0) == "private");
-        string? endpoint = this.safeString(api, 1);
+        bool signed = ((api != null && 0 < api.Count ? api[0] : null) is "private");
+        string? endpoint = ((string)(api != null && 1 < api.Count ? api[1] : null));
         string pathPart = "/swap/v2";
         if (endpoint == "spot")
         {

@@ -2238,7 +2238,7 @@ public partial class zebpay : Exchange
         string signature = "";
         object query = this.omit(paramsOmitted, this.extractParams(path));
         int queryLength = (new List<object>(((IDictionary<string,object>)query).Keys)).Count;
-        string? access = this.safeString(api, 0, "public");
+        string? access = ((string)(api != null && 0 < api.Count ? api[0] : null));
         if (access == "public")
         {
             if ((method == "GET") || (method == "DELETE"))

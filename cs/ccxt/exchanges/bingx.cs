@@ -7423,9 +7423,9 @@ public partial class bingx : Exchange
         url = add(url, ((("/" + (version)) + "/") + pathValue));
         Dictionary<string, object> requestHeaders = null;
         string? requestBody = null;
-        object paramsOmitted = this.omit(parameters, this.extractParams(pathValue));
-        ((IDictionary<string,object>)paramsOmitted)["timestamp"] = this.nonce();
-        Dictionary<string, object> paramsSorted = this.keysort(paramsOmitted);
+        Dictionary<string, object> paramsSorted = this.keysort(this.extend(this.omit(parameters, this.extractParams(pathValue)), new Dictionary<string, object>() {
+            { "timestamp", this.nonce() },
+        }));
         if ((access is "public"))
         {
             if ((new List<object>(paramsSorted.Keys)).Count > 0)
@@ -7454,7 +7454,9 @@ public partial class bingx : Exchange
             };
             if (isJsonContentType)
             {
-                requestHeaders["Content-Type"] = "application/json";
+                requestHeaders = this.extend(requestHeaders, new Dictionary<string, object>() {
+                    { "Content-Type", "application/json" },
+                });
                 paramsSorted["signature"] = signature;
                 requestBody = this.json(paramsSorted);
             } else
