@@ -3589,10 +3589,7 @@ export class BaseExchange {
                     }
                 }
                 if (fromStart) {
-                    let limitResolved: Int = limit;
-                    if (limit > arrayLength) {
-                        limitResolved = arrayLength;
-                    }
+                    const limitResolved: Int = (limit > arrayLength) ? arrayLength : limit;
                     if (ascending) {
                         return this.arraySlice (array, 0, limitResolved);
                     }
