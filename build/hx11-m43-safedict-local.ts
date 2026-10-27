@@ -7,7 +7,8 @@
 // passes then fold its GetValue / InOp / AddElementToObject uses. The local is left alone when it
 // is rebound (any `x =`, `x, y =`, `:=`, range), its address is taken, it is type-asserted, indexed,
 // used as a selector, compared with anything but nil, or declared more than once in the function.
-// ws (pro) and prediction files keep the box: their containers can be cache/orderbook types.
+// ws (pro) files only type receivers that are plain decoded values (no client/cache/orderbook
+// expression, no type assertion); prediction files keep the box.
 
 const M43_DECL = /^(\s*)var (\w+) any = this\.(SafeDict2?)\((.*)\)$/;
 
@@ -90,7 +91,7 @@ function m43UseKeepsMap (s: string, col: number, name: string): boolean {
     return true;
 }
 
-function m43Func (lines: string[], masked: string[], start: number, end: number): void {
+function m43Func (lines: string[], masked: string[], start: number, end: number, ws: boolean): void {
     const maskedFunc = masked.slice (start, end + 1).join ('\n');
     for (let k = start + 1; k < end; k++) {
         const decl = M43_DECL.exec (lines[k]);
@@ -105,7 +106,8 @@ function m43Func (lines: string[], masked: string[], start: number, end: number)
         const args = m43SplitArgs (decl[4], maskedDecl[4]);
         const wanted = (decl[3] === 'SafeDict2') ? 4 : 3;
         if ((args === undefined) || (args.length !== wanted) || (args[wanted - 1] !== 'map[string]any{}')
-            || args.slice (0, wanted - 1).some ((a) => a === '') || args[0].indexOf ('this.') >= 0) {
+            || args.slice (0, wanted - 1).some ((a) => a === '') || args[0].indexOf ('this.') >= 0
+            || (ws && /\.\(|Client|Cache|Snapshot|[Oo]rderbook/.test (args[0]))) {
             continue;
         }
         if (m43Declarations (maskedFunc, lines[start], name) !== 1) {
@@ -131,10 +133,11 @@ function m43Func (lines: string[], masked: string[], start: number, end: number)
 }
 
 export function hx11M43SafeDictLocals (content: string, filePath: string): string {
-    if (!/var \w+ any = this\.SafeDict2?\(/.test (content) || /[\\/](?:pro|prediction)[\\/]/.test (filePath)
+    if (!/var \w+ any = this\.SafeDict2?\(/.test (content) || /[\\/]prediction[\\/]/.test (filePath)
         || /^exchange/.test (filePath.replace (/^.*[\\/]/, ''))) {
         return content;
     }
+    const ws = /[\\/]pro[\\/]/.test (filePath);  // ws containers can be cache/orderbook types: only plain decoded-message receivers
     const lines = content.split ('\n');
     const masked = m43Mask (content).split ('\n');
     if (lines.length !== masked.length) {
@@ -145,7 +148,7 @@ export function hx11M43SafeDictLocals (content: string, filePath: string): strin
         if (lines[k].startsWith ('func ')) {
             start = k;
         } else if ((start >= 0) && (lines[k] === '}')) {
-            m43Func (lines, masked, start, k);
+            m43Func (lines, masked, start, k, ws);
             start = -1;
         }
     }
@@ -174,7 +177,9 @@ export function hx11M43Check (): string[] {
     ok (!run ('\tvar d any = this.SafeDict(p, "data")\n').includes ('SafeDictMap'), 'no literal default keeps the box');
     ok (!run ('\tvar d any = this.SafeDict(this.Options, "data", map[string]any{})\n').includes ('SafeDictMap'), 'a field receiver (may hold a sync.Map) keeps the box');
     ok (!run ('\tvar d any = this.SafeDict(p, "data", this.Fees)\n').includes ('SafeDictMap'), 'a computed default keeps the box');
-    ok (!run (decl, 'go/v4/pro/x.go').includes ('SafeDictMap'), 'ws files keep the box');
+    ok (run (decl, 'go/v4/pro/x.go').includes (typed), 'ws files type a plain decoded-message receiver');
+    ok (!run ('\tvar d any = this.SafeDict(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), \"k\", map[string]any{})\n', 'go/v4/pro/x.go').includes ('SafeDictMap'), 'ws client/cache receivers keep the box');
+    ok (!run ('\tvar d any = this.SafeDict(cached.(*ccxt.ArrayCache).Hashmap, \"k\", map[string]any{})\n', 'go/v4/pro/x.go').includes ('SafeDictMap'), 'ws cache receivers keep the box');
     ok (!run (decl, 'go/v4/prediction/x.go').includes ('SafeDictMap'), 'prediction files keep the box');
     ok (!run (decl, 'go/v4/exchange_generated.go').includes ('SafeDictMap'), 'base files keep the box');
     const once = run (decl);
