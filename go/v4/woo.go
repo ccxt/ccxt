@@ -2027,13 +2027,7 @@ func (this *Woo) createOrderBody(ch chan AsyncResult[Order], symbol string, type
 		}
 	} else if hasStopLoss || hasTakeProfit {
 		request["algoType"] = "BRACKET"
-		var outterOrder map[string]any = map[string]any{
-			"symbol":      market["id"],
-			"reduceOnly":  false,
-			"algoType":    "POSITIONAL_TP_SL",
-			"childOrders": []any{},
-		}
-		var childOrders any = outterOrder["childOrders"]
+		var childOrders []any = []any{}
 		var closeSide string = "BUY"
 		if orderSide == "BUY" {
 			closeSide = "SELL"
@@ -2047,7 +2041,7 @@ func (this *Woo) createOrderBody(ch chan AsyncResult[Order], symbol string, type
 				"type":         "CLOSE_POSITION",
 				"reduceOnly":   true,
 			}
-			AppendToArray(&childOrders, stopLossOrder)
+			childOrders = append(childOrders, stopLossOrder)
 		}
 		if hasTakeProfit {
 			var takeProfitPrice *string = this.SafeString(takeProfit, "triggerPrice", takeProfit)
@@ -2058,7 +2052,13 @@ func (this *Woo) createOrderBody(ch chan AsyncResult[Order], symbol string, type
 				"type":         "CLOSE_POSITION",
 				"reduceOnly":   true,
 			}
-			AppendToArray(&childOrders, takeProfitOrder)
+			childOrders = append(childOrders, takeProfitOrder)
+		}
+		var outterOrder map[string]any = map[string]any{
+			"symbol":      market["id"],
+			"reduceOnly":  false,
+			"algoType":    "POSITIONAL_TP_SL",
+			"childOrders": childOrders,
 		}
 		request["childOrders"] = []any{outterOrder}
 	}
@@ -2081,9 +2081,10 @@ func (this *Woo) createOrderBody(ch chan AsyncResult[Order], symbol string, type
 	}
 	var data any = this.SafeDict(response, "data", map[string]any{})
 	data = this.SafeDict(this.SafeList(data, "rows"), 0, data)
-	AddElementToObject(data, "timestamp", this.SafeString(response, "timestamp"))
 
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(data, market)}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.Extend(data, map[string]any{
+		"timestamp": this.SafeString(response, "timestamp"),
+	}), market)}
 	return nil
 }
 func (this *Woo) EncodeMarginMode(mode any) *string {
@@ -2559,11 +2560,11 @@ func (this *Woo) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ...a
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes194819 []any = r1.Value
-		if retRes194819 == nil {
+		var retRes194719 []any = r1.Value
+		if retRes194719 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes194819)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes194719)}
 		}
 		return nil
 	}
@@ -2657,11 +2658,11 @@ func (this *Woo) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArgs 
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes208715 []any = OrdersToList(r1.Value)
-	if retRes208715 == nil {
+	var retRes208615 []any = OrdersToList(r1.Value)
+	if retRes208615 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes208715)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes208615)}
 	}
 	return nil
 }
@@ -2714,11 +2715,11 @@ func (this *Woo) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optionalArg
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes211215 []any = OrdersToList(r1.Value)
-	if retRes211215 == nil {
+	var retRes211115 []any = OrdersToList(r1.Value)
+	if retRes211115 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes211215)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes211115)}
 	}
 	return nil
 }
@@ -3390,11 +3391,11 @@ func (this *Woo) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs ..
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes264519 []any = r1.Value
-		if retRes264519 == nil {
+		var retRes264419 []any = r1.Value
+		if retRes264419 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes264519)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes264419)}
 		}
 		return nil
 	}
@@ -3886,8 +3887,8 @@ func (this *Woo) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalArg
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listRecv3660, _ := r.Value, r.Value != nil
-	var currencyRows []any = listRecv3660
+	listRecv3661, _ := r.Value, r.Value != nil
+	var currencyRows []any = listRecv3661
 	var currency any = this.SafeValue(currencyRows, 0)
 	var rows []any = SafeListTyped(currencyRows, 1)
 
@@ -4008,11 +4009,11 @@ func (this *Woo) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optionalA
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes309915 []any = TransactionsToList(r.Value)
-	if retRes309915 == nil {
+	var retRes309815 []any = TransactionsToList(r.Value)
+	if retRes309815 == nil {
 		ch <- AsyncResult[[]Transaction]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes309915)}
+		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes309815)}
 	}
 	return nil
 }
@@ -4052,11 +4053,11 @@ func (this *Woo) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], option
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes311715 []any = TransactionsToList(r.Value)
-	if retRes311715 == nil {
+	var retRes311615 []any = TransactionsToList(r.Value)
+	if retRes311615 == nil {
 		ch <- AsyncResult[[]Transaction]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes311715)}
+		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes311615)}
 	}
 	return nil
 }
@@ -4096,8 +4097,8 @@ func (this *Woo) fetchDepositsWithdrawalsBody(ch chan AsyncResult[[]Transaction]
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listRecv3854, _ := r.Value, r.Value != nil
-	var currencyRows []any = listRecv3854
+	listRecv3855, _ := r.Value, r.Value != nil
+	var currencyRows []any = listRecv3855
 	var currency any = this.SafeValue(currencyRows, 0)
 	var rows []any = SafeListTypedDefault(currencyRows, 1, []any{})
 
@@ -4756,11 +4757,11 @@ func (this *Woo) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory], 
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes364819 []any = r1.Value
-		if retRes364819 == nil {
+		var retRes364719 []any = r1.Value
+		if retRes364719 == nil {
 			ch <- AsyncResult[[]FundingHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes364819)}
+			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes364719)}
 		}
 		return nil
 	}
@@ -4899,11 +4900,11 @@ func (this *Woo) fetchFundingIntervalBody(ch chan AsyncResult[FundingRate], symb
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes376315 map[string]any = StructResultMap(r.Value, FundingRateToMap)
-	if retRes376315 == nil {
+	var retRes376215 map[string]any = StructResultMap(r.Value, FundingRateToMap)
+	if retRes376215 == nil {
 		ch <- AsyncResult[FundingRate]{}
 	} else {
-		ch <- AsyncResult[FundingRate]{Value: FundingRateFromMap(retRes376315)}
+		ch <- AsyncResult[FundingRate]{Value: FundingRateFromMap(retRes376215)}
 	}
 	return nil
 }
@@ -5077,11 +5078,11 @@ func (this *Woo) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRateHi
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes386919 []any = r1.Value
-		if retRes386919 == nil {
+		var retRes386819 []any = r1.Value
+		if retRes386819 == nil {
 			ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes386919)}
+			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes386819)}
 		}
 		return nil
 	}
@@ -5378,11 +5379,11 @@ func (this *Woo) addMarginBody(ch chan AsyncResult[map[string]any], symbol strin
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes414115 map[string]any = r.Value
-	if retRes414115 == nil {
+	var retRes414015 map[string]any = r.Value
+	if retRes414015 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes414115}
+		ch <- AsyncResult[map[string]any]{Value: retRes414015}
 	}
 	return nil
 }
@@ -5413,11 +5414,11 @@ func (this *Woo) reduceMarginBody(ch chan AsyncResult[map[string]any], symbol st
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes415615 map[string]any = r.Value
-	if retRes415615 == nil {
+	var retRes415515 map[string]any = r.Value
+	if retRes415515 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes415615}
+		ch <- AsyncResult[map[string]any]{Value: retRes415515}
 	}
 	return nil
 }
@@ -5950,13 +5951,13 @@ func (this *Woo) fetchConvertTradeHistoryBody(ch chan AsyncResult[[]Conversion],
 		}
 	}
 	var request map[string]any = map[string]any{}
-	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, params)
 	if since != nil {
-		requestUntil["startTime"] = *since
+		request["startTime"] = since
 	}
 	if limit != nil {
-		requestUntil["size"] = *limit
+		request["size"] = limit
 	}
+	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, params)
 
 	r1 := <-this.V3PrivateGetConvertTrades(this.Extend(requestUntil, paramsUntil))
 	if r1.Err != nil {

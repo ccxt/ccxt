@@ -6236,14 +6236,6 @@ func (this *Mexc) ParseMarketLeverageTiers(info any, optionalArgs ...any) []any 
 	}
 	for Precise.StringLt(floor, maxVol) {
 		var cap *string = Precise.StringAdd(floor, riskIncrVol)
-		var minNotional *float64
-		if derefNum, isNum := this.ParseNumber(floor).(float64); isNum {
-			minNotional = &derefNum
-		}
-		var mainMarginRate *float64
-		if derefNum, isNum := this.ParseNumber(maintenanceMarginRate).(float64); isNum {
-			mainMarginRate = &derefNum
-		}
 		var maxLev *float64
 		if derefNum, isNum := this.ParseNumber(Precise.StringDiv("1", initialMarginRate)).(float64); isNum {
 			maxLev = &derefNum
@@ -6252,9 +6244,9 @@ func (this *Mexc) ParseMarketLeverageTiers(info any, optionalArgs ...any) []any 
 			"tier":                  this.ParseNumber(Precise.StringDiv(cap, riskIncrVol)),
 			"symbol":                this.SafeSymbol(marketId, market, nil, "contract"),
 			"currency":              this.SafeCurrencyCode(quoteId),
-			"minNotional":           minNotional,
+			"minNotional":           this.ParseNumber(floor),
 			"maxNotional":           this.ParseNumber(cap),
-			"maintenanceMarginRate": mainMarginRate,
+			"maintenanceMarginRate": this.ParseNumber(maintenanceMarginRate),
 			"maxLeverage":           maxLev,
 			"info":                  info,
 		})
@@ -6353,11 +6345,11 @@ func (this *Mexc) fetchDepositAddressesByNetworkBody(ch chan AsyncResult[map[str
 	}
 	var paramsOmitted map[string]any = this.OmitDict(params, "network")
 
-	listEp5982 := <-this.SpotPrivateGetCapitalDepositAddress(this.Extend(request, paramsOmitted))
-	if listEp5982.Err != nil {
-		panic(listEp5982.Err)
+	listEp5980 := <-this.SpotPrivateGetCapitalDepositAddress(this.Extend(request, paramsOmitted))
+	if listEp5980.Err != nil {
+		panic(listEp5980.Err)
 	}
-	var response []any = listEp5982.Value
+	var response []any = listEp5980.Value
 	//
 	//    [
 	//        {
@@ -6575,11 +6567,11 @@ func (this *Mexc) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optional
 		return params
 	}()
 
-	listEp6180 := <-this.SpotPrivateGetCapitalDepositHisrec(this.Extend(request, paramsOmitted))
-	if listEp6180.Err != nil {
-		panic(listEp6180.Err)
+	listEp6178 := <-this.SpotPrivateGetCapitalDepositHisrec(this.Extend(request, paramsOmitted))
+	if listEp6178.Err != nil {
+		panic(listEp6178.Err)
 	}
-	var response []any = listEp6180.Value
+	var response []any = listEp6178.Value
 
 	//
 	// [
@@ -6654,11 +6646,11 @@ func (this *Mexc) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], optio
 		request["limit"] = limit
 	}
 
-	listEp6252 := <-this.SpotPrivateGetCapitalWithdrawHistory(this.Extend(request, params))
-	if listEp6252.Err != nil {
-		panic(listEp6252.Err)
+	listEp6250 := <-this.SpotPrivateGetCapitalWithdrawHistory(this.Extend(request, params))
+	if listEp6250.Err != nil {
+		panic(listEp6250.Err)
 	}
-	var response []any = listEp6252.Value
+	var response []any = listEp6250.Value
 
 	//
 	// [
@@ -7570,9 +7562,8 @@ func (this *Mexc) withdrawBody(ch chan AsyncResult[Transaction], code string, am
 		return nil
 	}
 	var networks map[string]any = SafeMapTyped(this.Options, "networks")
-	var network any = DerefScalar(this.SafeString2(paramsWithdrawTag, "network", "netWork")) // this line allows the user to specify either ERC20 or ETH
-	network = DerefScalar(this.SafeString(networks, network, network))                       // handle ETH > ERC-20 alias
-	network = this.NetworkCodeToId(network, this.SafeString(currency, "code"))
+	var networkRaw *string = this.SafeString2(paramsWithdrawTag, "network", "netWork")                                           // this line allows the user to specify either ERC20 or ETH
+	var network any = this.NetworkCodeToId(this.SafeString(networks, networkRaw, networkRaw), this.SafeString(currency, "code")) // handle ETH > ERC-20 alias
 	this.CheckAddress(address, code, tagResolved)
 	var request map[string]any = map[string]any{
 		"coin":    currency["id"],
@@ -7582,11 +7573,11 @@ func (this *Mexc) withdrawBody(ch chan AsyncResult[Transaction], code string, am
 	if tagResolved != nil {
 		request["memo"] = *tagResolved
 	}
-	if !IsEqual(network, nil) {
+	if network != nil {
 		request["netWork"] = network
 	}
 	var paramsOmitted map[string]any = func() map[string]any {
-		if !IsEqual(network, nil) {
+		if network != nil {
 			return MapTyped(this.Omit(paramsWithdrawTag, []any{"network", "netWork"}))
 		}
 		return paramsWithdrawTag
@@ -7726,11 +7717,11 @@ func (this *Mexc) fetchTransactionFeesBody(ch chan AsyncResult[map[string]any], 
 		}
 	}
 
-	listEp7246 := <-this.SpotPrivateGetCapitalConfigGetall(params)
-	if listEp7246.Err != nil {
-		panic(listEp7246.Err)
+	listEp7243 := <-this.SpotPrivateGetCapitalConfigGetall(params)
+	if listEp7243.Err != nil {
+		panic(listEp7243.Err)
 	}
-	var response []any = listEp7246.Value
+	var response []any = listEp7243.Value
 
 	//
 	//    [
@@ -7853,11 +7844,11 @@ func (this *Mexc) fetchDepositWithdrawFeesBody(ch chan AsyncResult[map[string]De
 		}
 	}
 
-	listEp7366 := <-this.SpotPrivateGetCapitalConfigGetall(params)
-	if listEp7366.Err != nil {
-		panic(listEp7366.Err)
+	listEp7363 := <-this.SpotPrivateGetCapitalConfigGetall(params)
+	if listEp7363.Err != nil {
+		panic(listEp7363.Err)
 	}
-	var response []any = listEp7366.Value
+	var response []any = listEp7363.Value
 
 	//
 	//    [
@@ -8261,7 +8252,7 @@ func (this *Mexc) Sign(path string, optionalArgs ...any) any {
 	var access string = api[1]
 	var pathValue string = this.ImplodeParams(path, params)
 	var paramsValue any = this.Omit(params, this.ExtractParams(path))
-	var url any = nil
+	var url string = ""
 	if (section == "spot") || (section == "broker") {
 		if section == "broker" {
 			var apiUrl *string = this.SafeString(this.UrlsApi[section], access)
@@ -8292,12 +8283,12 @@ func (this *Mexc) Sign(path string, optionalArgs ...any) any {
 		var paramsEncoded string = ""
 		if len(urlParams) > 0 {
 			paramsEncoded = this.Urlencode(urlParams)
-			url = Add(url, "?"+paramsEncoded)
+			url = url + "?" + paramsEncoded
 		}
 		if access == "private" {
 			this.CheckRequiredCredentials()
 			var signature string = this.Hmac(this.Encode(paramsEncoded), this.Encode(this.Secret), sha256)
-			url = Add(url, "&"+"signature="+signature)
+			url = url + "&signature=" + signature
 			requestHeaders = map[string]any{
 				"X-MEXC-APIKEY": this.ApiKey,
 				"source":        this.SafeString(this.Options, "broker", "CCXT"),
@@ -8318,7 +8309,7 @@ func (this *Mexc) Sign(path string, optionalArgs ...any) any {
 		var paramsOmitted any = this.Omit(paramsValue, this.ExtractParams(pathValue))
 		if access == "public" {
 			if len(ObjectKeys(paramsOmitted)) > 0 {
-				url = Add(url, "?"+this.Urlencode(paramsOmitted))
+				url += "?" + this.Urlencode(paramsOmitted)
 			}
 		} else {
 			this.CheckRequiredCredentials()
@@ -8337,7 +8328,7 @@ func (this *Mexc) Sign(path string, optionalArgs ...any) any {
 				var paramsSorted map[string]any = this.Keysort(paramsOmitted)
 				if len(paramsSorted) > 0 {
 					auth += this.Urlencode(paramsSorted)
-					url = Add(url, "?"+auth)
+					url += "?" + auth
 				}
 			}
 			auth = this.ApiKey + timestamp + auth

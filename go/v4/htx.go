@@ -10188,10 +10188,8 @@ func (this *Htx) Sign(path string, optionalArgs ...any) any {
 	var pathString string = path
 	var url string = "/"
 	var isArrayParams bool = IsArray(params)
-	var query any = nil
-	if isArrayParams {
-		query = map[string]any{}
-	} else {
+	var query any = map[string]any{}
+	if !isArrayParams {
 		query = this.Omit(params, this.ExtractParams(path))
 	}
 	var apiLength int = len(api)
@@ -10243,7 +10241,7 @@ func (this *Htx) Sign(path string, optionalArgs ...any) any {
 				}
 			}
 		} else {
-			if (!IsEqual(query, nil)) && (len(ObjectKeys(query)) > 0) {
+			if len(ObjectKeys(query)) > 0 {
 				url += "?" + this.Urlencode(query)
 			}
 		}
@@ -10272,7 +10270,7 @@ func (this *Htx) Sign(path string, optionalArgs ...any) any {
 		hostname = hostnames
 		url += this.ImplodeParams(path, params)
 		if access != nil && *access == "public" {
-			if (!IsEqual(query, nil)) && (len(ObjectKeys(query)) > 0) {
+			if len(ObjectKeys(query)) > 0 {
 				url += "?" + this.Urlencode(query)
 			}
 		} else if access != nil && *access == "private" {
@@ -11076,11 +11074,11 @@ func (this *Htx) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalArg
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes856019 []any = r1.Value
-		if retRes856019 == nil {
+		var retRes855819 []any = r1.Value
+		if retRes855819 == nil {
 			ch <- AsyncResult[[]LedgerEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes856019)}
+			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes855819)}
 		}
 		return nil
 	}

@@ -1951,7 +1951,7 @@ func (this *Hyperliquid) HandleBalance(client any, message map[string]any) {
 	for i := 0; i < len(rawBalances); i++ {
 		this.ParseWsBalance(ccxt.DerefScalar(rawBalances[i]), account)
 	}
-	if ccxt.IsEqual(this.SafeValue(this.Balance, account), nil) {
+	if _, ok := this.Balance[account]; !ok {
 		this.Balance[account] = map[string]any{}
 	}
 	ccxt.AddElementToObject(this.Balance[account], "info", info)
@@ -2263,10 +2263,10 @@ func (this *Hyperliquid) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order],
 	var userAddress *string = this.SafeString(this.HandlePublicAddress("watchOrders", params), 0)
 	var paramsValue any = this.SafeDict(this.HandlePublicAddress("watchOrders", params), 1, params)
 	var market map[string]any = nil
-	var messageHash any = "order"
+	var messageHash string = "order"
 	if symbol != nil {
 		market = this.Market(symbol)
-		messageHash = ccxt.Add("order:", market["symbol"])
+		messageHash = "order:" + *this.SafeString(market, "symbol", "")
 	}
 	var symbolResolved *string = func() *string {
 		if market != nil {

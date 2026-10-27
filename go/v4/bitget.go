@@ -4810,7 +4810,7 @@ func (this *Bitget) ParseMarketLeverageTiers(info any, optionalArgs ...any) []an
 	var tiers []any = []any{}
 	var minNotional any = 0
 	for i := 0; i < GetArrayLength(info); i++ {
-		var item any = GetValue(info, i)
+		var item any = this.SafeValue(info, i)
 		var minimumNotional *float64 = this.SafeNumber2(item, "startUnit", "minTierValue")
 		if minimumNotional != nil {
 			minNotional = minimumNotional
@@ -6516,7 +6516,7 @@ func (this *Bitget) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var isFeeStructure bool = (posMode != nil) || (category != nil)
 	var feeStructure any = func() any {
 		if isFeeStructure {
-			return GetValue(feeDetail, 0)
+			return this.SafeValue(feeDetail, 0)
 		}
 		return feeDetail
 	}()
@@ -16610,9 +16610,7 @@ func (this *Bitget) Sign(path string, optionalArgs ...any) any {
 	var url string = this.ImplodeHostname(apiUrl) + payload
 	var query any = this.Omit(params, this.ExtractParams(path))
 	if !signed && (method == "GET") {
-		var keys []string = ObjectKeys(query)
-		var keysLength int = len(keys)
-		if keysLength > 0 {
+		if len(ObjectKeys(query)) > 0 {
 			url = url + "?" + this.Urlencode(query)
 		}
 	}

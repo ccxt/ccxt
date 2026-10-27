@@ -3745,7 +3745,7 @@ func (this *Blofin) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any, opti
 		if !IsEqual(tpslIds, nil) {
 			for i := 0; i < GetArrayLength(tpslIds); i++ {
 				request = append(request, map[string]any{
-					"tpslId": GetValue(tpslIds, i),
+					"tpslId": this.SafeString(tpslIds, i),
 					"instId": market["id"],
 				})
 			}
@@ -3753,12 +3753,12 @@ func (this *Blofin) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any, opti
 		for i := 0; i < GetArrayLength(orderIds); i++ {
 			if trigger != nil && *trigger == true {
 				request = append(request, map[string]any{
-					"tpslId": GetValue(orderIds, i),
+					"tpslId": this.SafeString(orderIds, i),
 					"instId": market["id"],
 				})
 			} else {
 				request = append(request, map[string]any{
-					"orderId": GetValue(orderIds, i),
+					"orderId": this.SafeString(orderIds, i),
 					"instId":  market["id"],
 				})
 			}
@@ -3767,7 +3767,7 @@ func (this *Blofin) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any, opti
 		for i := 0; i < GetArrayLength(clientOrderIds); i++ {
 			request = append(request, map[string]any{
 				"instId":        market["id"],
-				"clientOrderId": GetValue(clientOrderIds, i),
+				"clientOrderId": this.SafeString(clientOrderIds, i),
 			})
 		}
 	}
@@ -4804,7 +4804,7 @@ func (this *Blofin) setPositionModeBody(ch chan AsyncResult[map[string]any], hed
 	_ = params
 	var request map[string]any = map[string]any{
 		"positionMode": func() string {
-			if EvalTruthy(hedged) {
+			if hedged == true {
 				return "long_short_mode"
 			}
 			return "net_mode"

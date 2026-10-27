@@ -1019,11 +1019,9 @@ func (this *Coinbaseexchange) HandleOrder(client any, message map[string]any) {
 							"currency": this.SafeString(trade["fee"], "currency"),
 						})
 					}
-					var previousOrderFee any = this.SafeDict(previousOrder, "fee", map[string]any{})
-					if (!ccxt.IsEqual(ccxt.GetValue(previousOrderFee, "cost"), nil)) && (this.SafeNumber(trade["fee"], "cost") != nil) {
-						ccxt.AddElementToObject(ccxt.GetValue(previousOrder, "fee"), "cost", this.Sum(ccxt.GetValue(previousOrderFee, "cost"), this.SafeNumber(trade["fee"], "cost")))
-						var tradeFee map[string]any = ccxt.SafeMapTyped(trade, "fee")
-						ccxt.AddElementToObject(ccxt.GetValue(previousOrder, "fee"), "cost", this.ParseNumber(ccxt.Precise.StringAdd(this.SafeString(previousOrderFee, "cost"), this.SafeString(tradeFee, "cost"))))
+					var previousOrderFee map[string]any = ccxt.SafeMapTyped(previousOrder, "fee")
+					if (this.SafeNumber(previousOrderFee, "cost") != nil) && (this.SafeNumber(trade["fee"], "cost") != nil) {
+						ccxt.AddElementToObject(ccxt.GetValue(previousOrder, "fee"), "cost", this.ParseNumber(ccxt.Precise.StringAdd(this.SafeString(previousOrderFee, "cost"), this.SafeString(trade["fee"], "cost"))))
 					}
 					// update the newUpdates count
 					orders.(ccxt.Appender).Append(previousOrder)

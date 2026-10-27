@@ -3258,7 +3258,7 @@ func (this *Bydfi) setPositionModeBody(ch chan AsyncResult[map[string]any], hedg
 		}
 	}
 	var positionType string = "ONEWAY"
-	if EvalTruthy(hedged) {
+	if hedged == true {
 		positionType = "HEDGE"
 	}
 	var wallet string = "W001"

@@ -417,7 +417,7 @@ func (this *Bitstamp) ParseWsTrade(trade any, optionalArgs ...any) map[string]an
 	var price *string = this.SafeString(trade, "price")
 	var amount *string = this.SafeString(trade, "amount")
 	var marketResolved map[string]any = this.SafeMarket(nil, market)
-	var symbol *string = ccxt.SafeStringPtr(marketResolved["symbol"])
+	var symbol *string = this.SafeString(marketResolved, "symbol", "")
 	var sideRaw *int64 = this.SafeInteger(trade, "type")
 	var side string = "sell"
 	if sideRaw != nil && *sideRaw == 0 {
@@ -467,7 +467,7 @@ func (this *Bitstamp) HandleTrade(client any, message map[string]any) {
 	var parts []string = strings.Split(*channel, "_")
 	var marketId *string = this.SafeString(parts, 2)
 	var market map[string]any = this.SafeMarket(marketId)
-	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
+	var symbol *string = this.SafeString(market, "symbol", "")
 	var messageHash string = "trades:" + *symbol
 	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	var trade map[string]any = this.ParseWsTrade(data, market)
@@ -550,7 +550,7 @@ func (this *Bitstamp) HandleFundingRate(client any, message map[string]any) {
 	var parts []string = strings.Split(*channel, "_")
 	var marketId *string = this.SafeString(parts, 2)
 	var market map[string]any = this.SafeMarket(marketId)
-	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
+	var symbol *string = this.SafeString(market, "symbol", "")
 	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
 	var fundingRate map[string]any = ccxt.FundingRateToMap(this.ParseFundingRate(data, market))
 	if symbol != nil {
@@ -596,7 +596,7 @@ func (this *Bitstamp) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], op
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
+	var symbolValue *string = this.SafeString(market, "symbol", "")
 	var channel string = "private-my_orders"
 	var subscription map[string]any = map[string]any{
 		"symbol": symbolValue,
@@ -651,7 +651,7 @@ func (this *Bitstamp) unWatchOrdersBody(ch chan ccxt.AsyncResult[bool], optional
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
+	var symbolValue *string = this.SafeString(market, "symbol", "")
 
 	r1 := <-this.AuthenticateAsync()
 	if r1.Err != nil {
@@ -709,7 +709,7 @@ func (this *Bitstamp) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], 
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
+	var symbolValue *string = this.SafeString(market, "symbol", "")
 	var channel string = "private-my_trades"
 	var messageHash string = channel + "_" + *this.SafeString(market, "id", "")
 	var subscription map[string]any = map[string]any{
@@ -765,7 +765,7 @@ func (this *Bitstamp) unWatchMyTradesBody(ch chan ccxt.AsyncResult[bool], option
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
+	var symbolValue *string = this.SafeString(market, "symbol", "")
 
 	r1 := <-this.AuthenticateAsync()
 	if r1.Err != nil {
@@ -849,7 +849,7 @@ func (this *Bitstamp) ParseWsMyTrade(trade map[string]any, optionalArgs ...any) 
 	var microtimestamp int64 = *this.SafeInteger(trade, "microtimestamp", 0)
 	var timestamp int64 = this.ParseToInt(float64(microtimestamp) / 1000)
 	var marketResolved map[string]any = this.SafeMarket(nil, market)
-	var symbol *string = ccxt.SafeStringPtr(marketResolved["symbol"])
+	var symbol *string = this.SafeString(marketResolved, "symbol", "")
 	var feeCost *string = this.SafeString(trade, "fee")
 	var fee map[string]any = nil
 	if feeCost != nil {
@@ -997,7 +997,7 @@ func (this *Bitstamp) ParseWsOrder(order any, optionalArgs ...any) map[string]an
 	var triggerPrice *string = this.SafeString(order, "stop_price")
 	var timestamp *int64 = this.SafeTimestamp(order, "datetime")
 	var marketResolved map[string]any = this.SafeMarket(nil, market)
-	var symbol *string = ccxt.SafeStringPtr(marketResolved["symbol"])
+	var symbol *string = this.SafeString(marketResolved, "symbol", "")
 	return ccxt.OrderToMap(this.SafeOrder(map[string]any{
 		"info":               order,
 		"symbol":             symbol,
@@ -1366,7 +1366,7 @@ func (this *Bitstamp) subscribePrivateBody(ch chan ccxt.AsyncResult[ccxt.ArrayCa
 		"event": "bts:subscribe",
 		"data": map[string]any{
 			"channel": messageHashValue,
-			"auth":    this.Options["wsSessionToken"],
+			"auth":    this.SafeString(this.Options, "wsSessionToken"),
 		},
 	}
 	subscription["messageHash"] = messageHashValue

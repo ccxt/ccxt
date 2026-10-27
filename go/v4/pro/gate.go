@@ -1274,7 +1274,7 @@ func (this *Gate) subscribeWatchTickersAndBidsAsksBody(ch chan ccxt.AsyncResult[
 	var market map[string]any = this.Market(symbolsNormalized[0])
 	var messageType any = this.GetTypeByMarket(market)
 	var marketIds any = this.MarketIds(symbolsNormalized)
-	channelName, paramsMethod := this.HandleOptionStringAndParams(paramsCallerMethodName, callerMethodNameOption, "method")
+	channelName, paramsMethod := this.HandleOptionStringAndParams(paramsCallerMethodName, callerMethodNameOption, "method", "")
 	var url any = this.GetUrlByMarket(market)
 	var channel any = ccxt.Add(ccxt.Add(messageType, "."), channelName)
 	if callerMethodNameOption == nil {
@@ -3185,9 +3185,9 @@ func (this *Gate) GetTypeByMarket(market any) any {
 	if ccxt.IsEqual(market, nil) {
 		return nil
 	}
-	if ccxt.GetValue(market, "spot") == true {
+	if *this.SafeBool(market, "spot", false) {
 		return "spot"
-	} else if ccxt.GetValue(market, "option") == true {
+	} else if *this.SafeBool(market, "option", false) {
 		return "options"
 	} else {
 		return "futures"

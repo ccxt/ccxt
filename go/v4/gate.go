@@ -9946,7 +9946,7 @@ func (this *Gate) Sign(path string, optionalArgs ...any) any {
 	var authentication string = api[0] // public, private
 	var typeVar string = api[1]        // spot, margin, future, delivery
 	var query any = this.Omit(params, this.ExtractParams(path))
-	var pathImploded string
+	var pathImploded string = ""
 	var bodyJson any = nil
 	var signedHeaders any = nil
 	var containsSettle bool = (strings.Index(path, "settle") > -1)
@@ -9971,11 +9971,11 @@ func (this *Gate) Sign(path string, optionalArgs ...any) any {
 	} else {
 		pathImploded = this.ImplodeParams(path, params)
 	}
-	var endPart any = ""
+	var endPart string = ""
 	if pathImploded != "" {
 		endPart = "/" + pathImploded
 	}
-	var entirePath any = Add("/"+typeVar, endPart)
+	var entirePath string = "/" + typeVar + endPart
 	if (typeVar == "subAccounts") || (typeVar == "withdrawals") {
 		entirePath = endPart
 	}
@@ -9983,10 +9983,10 @@ func (this *Gate) Sign(path string, optionalArgs ...any) any {
 	if baseUrl == nil {
 		panic(NotSupported(this.Id + " does not have a testnet for the " + typeVar + " market type."))
 	}
-	var url any = Add(baseUrl, entirePath)
+	var url string = *baseUrl + entirePath
 	if authentication == "public" {
 		if len(ObjectKeys(query)) > 0 {
-			url = Add(url, "?"+this.Urlencode(query))
+			url += "?" + this.Urlencode(query)
 		}
 	} else {
 		this.CheckRequiredCredentials()
@@ -10009,7 +10009,7 @@ func (this *Gate) Sign(path string, optionalArgs ...any) any {
 				if (strings.Index(queryString, "currencies=") >= 0) && (strings.Index(queryString, "%2C") >= 0) {
 					queryString = strings.ReplaceAll(queryString, "%2C", ",")
 				}
-				url = Add(url, "?"+queryString)
+				url += "?" + queryString
 			}
 			if method == "PATCH" {
 				bodyJson = this.Json(query)
@@ -10018,7 +10018,7 @@ func (this *Gate) Sign(path string, optionalArgs ...any) any {
 			var urlQueryParams map[string]any = this.SafeDictMap(query, "query", map[string]any{})
 			if len(urlQueryParams) > 0 {
 				queryString = this.Urlencode(urlQueryParams)
-				url = Add(url, "?"+queryString)
+				url += "?" + queryString
 			}
 			query = this.Omit(query, "query")
 			bodyJson = this.Json(query)
@@ -10033,7 +10033,7 @@ func (this *Gate) Sign(path string, optionalArgs ...any) any {
 		var nonce any = this.Nonce()
 		var timestamp int64 = this.ParseToInt(Divide(nonce, 1000))
 		var timestampString string = strconv.FormatInt(timestamp, 10)
-		var signaturePath *string = SafeStringPtr(Add("/api/"+this.Version, entirePath))
+		var signaturePath string = "/api/" + this.Version + entirePath
 		var payloadArray []any = []any{strings.ToUpper(method), signaturePath, rawQueryString, bodySignature, timestampString}
 		// eslint-disable-next-line quotes
 		var payload string = Join(payloadArray, "\n")

@@ -89,7 +89,9 @@ func (this *Woo) RequestId(url string) int64 {
 	var options map[string]any = ccxt.SafeMapTyped(this.Options, "requestId")
 	var previousValue *int64 = this.SafeInteger(options, url, 0)
 	var newValue int64 = this.Sum(previousValue, 1).(int64)
-	ccxt.AddElementToObject(this.Options["requestId"], url, newValue)
+	var entry map[string]any = map[string]any{}
+	entry[url] = newValue
+	this.Options["requestId"] = this.Extend(this.SafeDict(this.Options, "requestId", map[string]any{}), entry)
 	return newValue
 }
 func (this *Woo) WatchPublicAsync(messageHash string, message map[string]any) <-chan ccxt.AsyncResult[any] {
@@ -903,7 +905,7 @@ func (this *Woo) HandleBidAsk(client any, message map[string]any) {
 		}
 		ccxt.AddElementToObject(ticker, "ts", timestamp)
 		var parsedTicker any = this.ParseWsBidAsk(ticker)
-		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(parsedTicker, "symbol"))
+		var symbol *string = this.SafeString(parsedTicker, "symbol")
 		if symbol != nil {
 			this.Bidsasks.Store(symbol, parsedTicker)
 		}
@@ -1468,13 +1470,9 @@ func (this *Woo) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], optiona
 	}
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"stop", "trigger"})
 	var messageHash any = topic
-	var symbolResolved any = func() any {
-		if symbol != nil {
-			return this.Symbol(symbol)
-		}
-		return nil
-	}()
-	if symbolResolved != nil {
+	var symbolResolved any = nil
+	if symbol != nil {
+		symbolResolved = this.Symbol(symbol)
 		messageHash = ccxt.Add(topic+":", symbolResolved)
 	}
 	var request map[string]any = map[string]any{
@@ -1540,13 +1538,9 @@ func (this *Woo) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], optio
 	}
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"stop", "trigger"})
 	var messageHash any = "myTrades"
-	var symbolResolved any = func() any {
-		if symbol != nil {
-			return this.Symbol(symbol)
-		}
-		return nil
-	}()
-	if symbolResolved != nil {
+	var symbolResolved any = nil
+	if symbol != nil {
+		symbolResolved = this.Symbol(symbol)
 		messageHash = ccxt.Add("myTrades"+":", symbolResolved)
 	}
 	var request map[string]any = map[string]any{
@@ -2089,19 +2083,14 @@ func (this *Woo) HandleBalance(client any, message map[string]any) {
 		var key string = keys[i]
 		var value map[string]any = ccxt.SafeMapTyped(balances, key)
 		var code *string = this.SafeCurrencyCode(key)
-		var account any = this.Account()
-		if code != nil {
-			if _, ok := this.Balance[*code]; ok {
-				account = this.Balance[*code]
-			}
-		}
+		var account map[string]any = this.Account()
 		var total *string = this.SafeString(value, "holding")
 		var used *string = this.SafeString(value, "frozen")
-		ccxt.AddElementToObject(account, "total", total)
-		ccxt.AddElementToObject(account, "used", used)
-		ccxt.AddElementToObject(account, "free", ccxt.Precise.StringSub(total, used))
+		account["total"] = total
+		account["used"] = used
+		account["free"] = ccxt.Precise.StringSub(total, used)
 		if code != nil {
-			ccxt.AddElementToObject(this.Balance, code, account)
+			this.Balance[*code] = this.Extend(this.SafeDict(this.Balance, code, map[string]any{}), account)
 		}
 	}
 	this.WsBalanceReplace(this.SafeBalance(this.Balance))

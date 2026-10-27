@@ -6954,8 +6954,8 @@ func (this *Hyperliquid) CoinToMarketId(coin any) any {
 		return nil
 	}
 	var hi3TokensByname map[string]any = SafeMapTyped(this.Options, "hip3TokensByName")
-	if !IsEqual(this.SafeDict(hi3TokensByname, coin), nil) {
-		var hip3Dict map[string]any = SafeMapTyped(hi3TokensByname, coin)
+	var hip3Dict map[string]any = SafeMapTyped(hi3TokensByname, coin)
+	if hip3Dict != nil {
 		var quote *string = this.SafeString(hip3Dict, "quote", "USDC")
 		var code *string = this.SafeString(hip3Dict, "code", coin)
 		return *code + "/" + *quote + ":" + *quote

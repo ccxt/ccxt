@@ -527,7 +527,7 @@ func (this *Bybit) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbol
 	if (market["spot"] != true) && (topic == nil || *topic != "tickers") {
 		panic(ccxt.BadRequest(this.Id + " watchTicker() only supports name tickers for contract markets"))
 	}
-	var topics []any = []any{ccxt.Add(*topic+".", market["id"])}
+	var topics []any = []any{*topic + "." + *this.SafeString(market, "id", "")}
 
 	r2 := <-this.WatchTopicsAsync(url, []any{messageHash}, topics, paramsValue)
 	if r2.Err != nil {
@@ -582,12 +582,7 @@ func (this *Bybit) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Tic
 	for i := 0; i < ccxt.GetArrayLength(marketIds); i++ {
 		var marketId *string = ccxt.SafeStringPtr(ccxt.GetValue(marketIds, i))
 		topics = append(topics, *topic+"."+*marketId)
-		messageHashes = append(messageHashes, ccxt.Add("ticker:", func() any {
-			if i >= 0 && i < len(symbolsValue) {
-				return symbolsValue[i]
-			}
-			return nil
-		}()))
+		messageHashes = append(messageHashes, "ticker:"+*this.SafeString(symbolsValue, i, ""))
 	}
 
 	r2 := <-this.WatchTopicsAsync(url, messageHashes, topics, paramsValue)
@@ -895,12 +890,7 @@ func (this *Bybit) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccxt.Ti
 		var marketId *string = ccxt.SafeStringPtr(ccxt.GetValue(marketIds, i))
 		var topic string = "orderbook.1." + *marketId
 		topics = append(topics, topic)
-		messageHashes = append(messageHashes, ccxt.Add("bidask:", func() any {
-			if i >= 0 && i < len(symbolsValue) {
-				return symbolsValue[i]
-			}
-			return nil
-		}()))
+		messageHashes = append(messageHashes, "bidask:"+*this.SafeString(symbolsValue, i, ""))
 	}
 
 	r2 := <-this.WatchTopicsAsync(url, messageHashes, topics, paramsValue)
@@ -1367,7 +1357,7 @@ func (this *Bybit) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.Or
 		}
 		var selectedLimits any = this.SafeList2(limits, market["type"], "default", []any{})
 		if !this.InArray(limit, selectedLimits) {
-			panic(ccxt.BadRequest(ccxt.Add(ccxt.Add(ccxt.Add(this.Id+" watchOrderBookForSymbols(): for ", market["type"]), " markets limit can be one of: "), this.Json(selectedLimits))))
+			panic(ccxt.BadRequest(this.Id + " watchOrderBookForSymbols(): for " + *this.SafeString(market, "type", "") + " markets limit can be one of: " + this.Json(selectedLimits)))
 		}
 	}
 	var topics []any = []any{}

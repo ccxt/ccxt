@@ -1197,12 +1197,8 @@ func (this *Htx) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], optio
 	var future bool = (typeVar == "future")
 	var isV5Linear bool = (linear && (swap || future))
 	if typeVar == "spot" {
-		var mode any = nil
-		if mode == nil {
-			mode = (*this.SafeString2(this.Options, "watchMyTrades", "mode", "0"))
-			mode = ccxt.DerefScalar(this.SafeString(paramsRequest, "mode", mode))
-			paramsRequest = this.Omit(paramsRequest, "mode")
-		}
+		var mode *string = this.SafeString(paramsRequest, "mode", this.SafeString2(this.Options, "watchMyTrades", "mode", "0"))
+		paramsRequest = this.Omit(paramsRequest, "mode")
 		messageHash = ccxt.Add(ccxt.Add(ccxt.Add("trade.clearing"+"#", marketId), "#"), mode)
 		channel = messageHash
 	} else if isV5Linear {
@@ -2273,13 +2269,13 @@ func (this *Htx) HandlePositions(client any, message map[string]any) {
 		}
 		newPositions = append(newPositions, position)
 		ccxt.AddElementToObject(positionsByMarginMode, marginMode, this.SafeList(positionsByMarginMode, marginMode, []any{}))
-		retRes181812 := func() any {
+		retRes181412 := func() any {
 			if marginMode == nil {
 				return nil
 			}
 			return positionsByMarginMode[*marginMode]
 		}()
-		ccxt.AppendToArray(&retRes181812, position)
+		ccxt.AppendToArray(&retRes181412, position)
 		cache.(ccxt.Appender).Append(position)
 	}
 	var marginModes []string = nil

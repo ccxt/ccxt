@@ -2453,10 +2453,10 @@ func (this *Hitbtc) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 	if since != nil {
 		request["from"] = this.Iso8601(since)
 	}
-	requestUntil, paramsUntil := this.HandleUntilOption("until", request, paramsPaginate)
 	if limit != nil {
-		AddElementToObject(requestUntil, "limit", mathMin(limit, 1000))
+		request["limit"] = mathMin(limit, 1000)
 	}
+	requestUntil, paramsUntil := this.HandleUntilOption("until", request, paramsPaginate)
 	var price *string = this.SafeString(paramsUntil, "price")
 	var paramsOmitted map[string]any = this.OmitDict(paramsUntil, "price")
 	var response any = []any{}
@@ -5297,35 +5297,27 @@ func (this *Hitbtc) Sign(path string, optionalArgs ...any) any {
 		}
 	}
 	var url string = baseUrl + getRequest
-	var bodyResolved any = func() any {
-		if method == "GET" {
-			return nil
-		}
-		return this.Json(params)
-	}()
+	var bodyString string = ""
+	if method != "GET" {
+		bodyString = this.Json(params)
+	}
 	if apiName == "private" {
 		this.CheckRequiredCredentials()
 		var timestamp *string = this.NumberToString(this.Nonce())
-		var payload []any = []any{method, "/api/3/" + implodedPath}
-		if method == "GET" {
-			if getRequest != "" {
-				payload = append(payload, getRequest)
-			}
-		} else {
-			if bodyResolved != nil {
-				payload = append(payload, bodyResolved)
-			}
-		}
-		payload = append(payload, timestamp)
-		var payloadString string = Join(payload, "")
+		var payloadString string = method + "/api/3/" + implodedPath + getRequest + bodyString + *timestamp
 		var signature string = this.Hmac(this.Encode(payloadString), this.Encode(this.Secret), sha256, "hex")
 		var secondPayload string = this.ApiKey + ":" + signature + ":" + *timestamp
 		headersValue["Authorization"] = "HS256 " + this.StringToBase64(secondPayload)
 	}
 	return map[string]any{
-		"url":     url,
-		"method":  method,
-		"body":    bodyResolved,
+		"url":    url,
+		"method": method,
+		"body": func() any {
+			if method == "GET" {
+				return nil
+			}
+			return bodyString
+		}(),
 		"headers": headersValue,
 	}
 }

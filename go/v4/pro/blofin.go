@@ -375,7 +375,7 @@ func (this *Blofin) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbo
 	}
 	var result map[string]any = ccxt.StructResultMap(r.Value, ccxt.TickerMapToMap)
 
-	ch <- ccxt.AsyncResult[ccxt.Ticker]{Value: ccxt.TickerFromMap(ccxt.GetValue(result, symbolValue))}
+	ch <- ccxt.AsyncResult[ccxt.Ticker]{Value: ccxt.TickerFromMap(this.SafeValue(result, symbolValue))}
 	return nil
 }
 
@@ -777,9 +777,6 @@ func (this *Blofin) HandleBalance(client any, message map[string]any) {
 	// landing in that window invisible to the consumer forever (same class
 	// as issue #26773); the free/used/total aggregates are rebuilt from
 	// the merged currencies by safeBalance
-	if ccxt.IsEqual(this.Balance, nil) {
-		this.Balance = map[string]any{}
-	}
 	this.Balance[marketType] = this.SafeDict(this.Balance, marketType, map[string]any{})
 	var parsed map[string]any = ccxt.MapTyped(this.ParseWsBalance(message))
 	var reserved []any = []any{"free", "used", "total"}
@@ -1176,7 +1173,7 @@ func (this *Blofin) watchMultipleWrapperBody(ch chan ccxt.AsyncResult[any], isPu
 				"instId":  market["id"],
 			}
 			rawSubscriptions = append(rawSubscriptions, topic)
-			messageHashes = append(messageHashes, ccxt.Add(ccxt.Add(channel, ":"), market["symbol"]))
+			messageHashes = append(messageHashes, ccxt.Add(ccxt.Add(channel, ":"), this.SafeString(market, "symbol", "")))
 		}
 	} else {
 		rawSubscriptions = append(rawSubscriptions, map[string]any{
@@ -1192,7 +1189,7 @@ func (this *Blofin) watchMultipleWrapperBody(ch chan ccxt.AsyncResult[any], isPu
 	}
 	var request map[string]any = this.GetSubscriptionRequest(rawSubscriptions)
 	var privateOrPublic string = "private"
-	if ccxt.EvalTruthy(isPublic) {
+	if isPublic == true {
 		privateOrPublic = "public"
 	}
 	var typeUrls map[string]any = ccxt.SafeMapTyped(this.UrlsApi["ws"], marketType)

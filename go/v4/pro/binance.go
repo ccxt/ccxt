@@ -262,24 +262,24 @@ func (this *Binance) GetWsUrl(typeVar any, category string) any {
 	if (ccxt.IsEqual(typeVar, "option")) || (ccxt.IsEqual(typeVar, "optionMarket")) || (ccxt.IsEqual(typeVar, "optionPrivate")) {
 		// eOptions urls are stored as full public/market/private paths, no category rewrite needed,
 		// see https://github.com/ccxt/ccxt/pull/27982 and https://github.com/ccxt/ccxt/issues/26333
-		return ccxt.GetValue(wsUrls, typeVar)
+		return this.SafeString(wsUrls, typeVar, "")
 	}
-	var baseUrl any = ccxt.GetValue(wsUrls, typeVar)
+	var baseUrl *string = this.SafeString(wsUrls, typeVar, "")
 	if ccxt.IsEqual(typeVar, "linear") {
 		// skip URL manipulation for proxied/bridge URLs (contain an embedded protocol)
 		// const firstProtocol = baseUrl.indexOf ('://')
 		// if (firstProtocol !== -1 && baseUrl.indexOf ('://', firstProtocol + 3) !== -1) {
 		//     return baseUrl
 		// }
-		var baseUrlSplit []string = ccxt.Split(baseUrl, "://")
+		var baseUrlSplit []string = strings.Split(*baseUrl, "://")
 		var baseUrlSplitLength int = len(baseUrlSplit)
 		if baseUrlSplitLength > 2 {
 			return baseUrl
 		}
 		// only rewrite when the URL ends with exactly "/ws"
 		// this avoids matching "/wss", "/ws-api", "/ws-fapi/v1", etc.
-		if ccxt.EndsWith(baseUrl, "/ws") {
-			var prefix string = ccxt.Slice(baseUrl, 0, ccxt.GetLength(baseUrl)-3)
+		if strings.HasSuffix(*baseUrl, "/ws") == true {
+			var prefix string = ccxt.Slice(baseUrl, 0, len(*baseUrl)-3)
 			return prefix + "/" + category + "/ws"
 		}
 		return baseUrl

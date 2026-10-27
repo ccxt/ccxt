@@ -109,9 +109,6 @@ func (this *Okx) GetUrl(channel any, optionalArgs ...any) string {
 	// for context: https://www.okx.com/help-center/changes-to-v5-api-websocket-subscription-parameter-and-url
 	var access string = ccxt.GetArgString(optionalArgs, 0, "public")
 	_ = access
-	if ccxt.IsEqual(channel, nil) {
-		panic(ccxt.ArgumentsRequired(this.Id + " getUrl() requires a channel argument"))
-	}
 	var isSandbox any = this.Options["sandboxMode"]
 	var sandboxSuffix string = ""
 	if isSandbox == true {
@@ -3753,42 +3750,40 @@ func (this *Okx) HandleMessage(client any, message any) {
 		}
 	}
 }
-func (this *Okx) HandleUnSubscriptionTrades(client any, symbol any, channel any) {
-	var subMessageHash any = ccxt.Add(ccxt.Add(channel, ":"), symbol)
-	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("unsubscribe:", subMessageHash))
+func (this *Okx) HandleUnSubscriptionTrades(client any, symbol string, channel string) {
+	var subMessageHash string = channel + ":" + symbol
+	var messageHash string = "unsubscribe:" + subMessageHash
 	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
-	if ccxt.InOp(this.Trades, symbol) {
-		ccxt.Remove(this.Trades, symbol)
+	if _, ok := this.Trades[symbol]; ok {
+		delete(this.Trades, symbol)
 	}
 }
-func (this *Okx) HandleUnsubscriptionOrderBook(client any, symbol any, channel any) {
-	var subMessageHash any = ccxt.Add(ccxt.Add(channel, ":"), symbol)
-	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("unsubscribe:orderbook:", symbol))
+func (this *Okx) HandleUnsubscriptionOrderBook(client any, symbol string, channel string) {
+	var subMessageHash string = channel + ":" + symbol
+	var messageHash string = "unsubscribe:orderbook:" + symbol
 	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
-	if ccxt.InOp(this.Orderbooks, symbol) {
-		ccxt.Remove(this.Orderbooks, symbol)
+	if _, ok := this.Orderbooks[symbol]; ok {
+		delete(this.Orderbooks, symbol)
 	}
 }
-func (this *Okx) HandleUnsubscriptionOHLCV(client any, symbol *string, channel any) {
-	var tf string = ccxt.Replace(channel, "candle", "")
+func (this *Okx) HandleUnsubscriptionOHLCV(client any, symbol string, channel string) {
+	var tf string = strings.Replace(channel, "candle", "", 1)
 	var timeframe *string = this.FindTimeframe(tf)
 	if timeframe == nil {
 		return
 	}
-	var subMessageHash any = ccxt.Add(ccxt.Add(ccxt.Add("multi:", channel), ":"), symbol)
-	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("unsubscribe:", subMessageHash))
+	var subMessageHash string = "multi:" + channel + ":" + symbol
+	var messageHash string = "unsubscribe:" + subMessageHash
 	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
 	// watchOHLCV subscribes through subscribe () under channel:marketId
-	if symbol != nil {
-		this.CleanUnsubscription(ccxt.AsClient(client), ccxt.Add(ccxt.Add(channel, ":"), this.MarketId(symbol)), nil)
-	}
-	if (symbol != nil) && (timeframe != nil) && (ccxt.InOp(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)) {
-		ccxt.Remove(this.Ohlcvs[*symbol], timeframe)
+	this.CleanUnsubscription(ccxt.AsClient(client), ccxt.Add(channel+":", this.MarketId(symbol)), nil)
+	if ccxt.InOp(this.Ohlcvs[symbol], timeframe) {
+		ccxt.Remove(this.Ohlcvs[symbol], timeframe)
 	}
 }
-func (this *Okx) HandleUnsubscriptionTicker(client any, symbol any, channel any) {
-	var subMessageHash any = ccxt.Add(ccxt.Add(channel, "::"), symbol)
-	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("unsubscribe:ticker:", symbol))
+func (this *Okx) HandleUnsubscriptionTicker(client any, symbol string, channel string) {
+	var subMessageHash string = channel + "::" + symbol
+	var messageHash string = "unsubscribe:ticker:" + symbol
 	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
 	if this.Tickers.Has(symbol) {
 		this.Tickers.Delete(symbol)
@@ -3806,17 +3801,23 @@ func (this *Okx) HandleUnsubscription(client any, message map[string]any) {
 	// }
 	// arg might be an array or list
 	var arg map[string]any = ccxt.SafeMapTyped(message, "arg")
-	var channel *string = this.SafeString(arg, "channel", "")
+	var channel *string = this.SafeString(arg, "channel")
+	if channel == nil {
+		return
+	}
 	var marketId *string = this.SafeString(arg, "instId")
 	var symbol *string = this.SafeSymbol(marketId)
+	if symbol == nil {
+		return
+	}
 	if (channel != nil && *channel == "trades") || (channel != nil && *channel == "trades-all") {
-		this.HandleUnSubscriptionTrades(client, symbol, channel)
+		this.HandleUnSubscriptionTrades(client, *symbol, *channel)
 	} else if strings.HasPrefix(*channel, "bbo") || strings.HasPrefix(*channel, "book") {
-		this.HandleUnsubscriptionOrderBook(client, symbol, channel)
+		this.HandleUnsubscriptionOrderBook(client, *symbol, *channel)
 	} else if strings.Index(*channel, "tickers") > -1 {
-		this.HandleUnsubscriptionTicker(client, symbol, channel)
+		this.HandleUnsubscriptionTicker(client, *symbol, *channel)
 	} else if strings.HasPrefix(*channel, "candle") {
-		this.HandleUnsubscriptionOHLCV(client, symbol, channel)
+		this.HandleUnsubscriptionOHLCV(client, *symbol, *channel)
 	}
 }
 
