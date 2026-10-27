@@ -7182,7 +7182,7 @@ export default class gate extends Exchange {
         const authentication = api[0]; // public, private
         const type = api[1]; // spot, margin, future, delivery
         let query = this.omit (params, this.extractParams (path));
-        let pathImploded: Str = undefined;
+        let pathImploded: string = '';
         let bodyJson: Str = undefined;
         let signedHeaders: NullableDict = undefined;
         const containsSettle = path.indexOf ('settle') > -1;
