@@ -640,7 +640,7 @@ export default class paradex extends Exchange {
         }
         const settleId = this.safeString (market, 'settlement_currency');
         const settle = this.safeCurrencyCode (settleId);
-        let symbol = base + '/' + quote + ':' + settle;
+        let symbol: string = base + '/' + quote + ':' + settle;
         let expiry = this.safeInteger (market, 'expiry_at');
         const optionType = this.safeString (market, 'option_type');
         const strikePrice = this.safeString (market, 'strike_price');
@@ -648,7 +648,10 @@ export default class paradex extends Exchange {
         let makerFee = this.parseNumber ('-0.00005');
         if (isOption) {
             const optionTypeSuffix = (optionType === 'CALL') ? 'C' : 'P';
-            const deliveryValue = (expiry === 0) ? '' : this.yymmdd (expiry) + '-';
+            let deliveryValue = '';
+            if (expiry !== 0) {
+                deliveryValue = this.yymmdd (expiry) + '-';
+            }
             symbol = symbol + '-' + deliveryValue + strikePrice + '-' + optionTypeSuffix;
             makerFee = this.parseNumber ('0.0003');
         } else {
@@ -1693,7 +1696,7 @@ export default class paradex extends Exchange {
         const market = this.market (symbol);
         let reduceOnly = this.safeBool2 (params, 'reduceOnly', 'reduce_only');
         const orderType = type.toUpperCase ();
-        const orderSide = (side as string).toUpperCase ();
+        const orderSide = side.toUpperCase ();
         const request: Dict = {
             'market': market['id'],
             'side': orderSide,
