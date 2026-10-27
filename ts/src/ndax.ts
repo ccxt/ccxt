@@ -697,6 +697,8 @@ export default class ndax extends Exchange {
             'datetime': undefined,
             'nonce': undefined,
         };
+        const bids = [];
+        const asks = [];
         for (let i = 0; i < orderbook.length; i++) {
             const level = this.safeValue (orderbook, i);
             const newTimestamp = this.safeInteger (level, 2);
@@ -709,11 +711,14 @@ export default class ndax extends Exchange {
             }
             const bidask = this.parseOrderBookBidAsk (level, priceKey, amountKey);
             const levelSide = this.safeInteger (level, 9);
-            const side = (levelSide !== undefined && levelSide !== 0) ? asksKey : bidsKey;
-            result[side].push (bidask);
+            if (levelSide !== undefined && levelSide !== 0) {
+                asks.push (bidask);
+            } else {
+                bids.push (bidask);
+            }
         }
-        result['bids'] = this.sortBy (result['bids'], 0, true);
-        result['asks'] = this.sortBy (result['asks'], 0);
+        result['bids'] = this.sortBy (bids, 0, true);
+        result['asks'] = this.sortBy (asks, 0);
         result['timestamp'] = latestTimestamp;
         result['datetime'] = this.iso8601 (latestTimestamp);
         result['nonce'] = nonce;
