@@ -1967,19 +1967,20 @@ export default class grvt extends Exchange {
         await this.loadMarketsAndSignIn ();
         const defaultFromAccountId = this.safeString (this.options, 'userMainAccountId');
         const currency = this.currency (code);
-        const request: Dict = {
-            'to_eth_address': address,
-            'from_account_id': defaultFromAccountId,
-            'currency': currency['id'],
-            'num_tokens': this.currencyToPrecision (code, amount),
-            'signature': this.defaultSignature (),
-        };
         const [ networkCode, query ] = this.handleNetworkCodeAndParams (params);
         const networkId = this.networkCodeToId (networkCode, code);
         if (networkId === undefined) {
             throw new BadRequest (this.id + ' withdraw() requires a network parameter');
         }
-        request['signature']['chain_id'] = networkId;
+        const withdrawSignature: Dict = this.defaultSignature ();
+        withdrawSignature['chain_id'] = networkId;
+        const request: Dict = {
+            'to_eth_address': address,
+            'from_account_id': defaultFromAccountId,
+            'currency': currency['id'],
+            'num_tokens': this.currencyToPrecision (code, amount),
+            'signature': withdrawSignature,
+        };
         const response = await this.privateTradingPostFullV1Withdrawal (this.extend (this.createSignedRequest (request, 'EIP712_WITHDRAWAL_TYPE', currency), query));
         //
         // {
@@ -3331,9 +3332,7 @@ export default class grvt extends Exchange {
             };
             // an empty params dict must serialize as an empty json object, not an empty json array,
             // php json_encode would produce [] here which the venue rejects with the same 1003 error
-            const paramsKeys = Object.keys (params);
-            const paramsKeysLength = paramsKeys.length;
-            if (paramsKeysLength === 0) {
+            if (Object.keys (params).length === 0) {
                 requestBody = '{}';
             } else {
                 requestBody = this.json (params);
