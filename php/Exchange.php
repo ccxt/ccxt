@@ -4584,24 +4584,24 @@ class BaseExchange {
         if (!(is_array($this->features) && array_key_exists($marketType ?? '', $this->features))) {
             return $defaultValue; // unsupported marketType, check "exchange.features" for details
         }
+        $methodsContainer = $this->features[$marketType];
         // if marketType dict undefined
-        if ($this->features[$marketType] === null) {
+        if ($methodsContainer === null) {
             return $defaultValue;
         }
-        $methodsContainer = $this->features[$marketType];
         if ($subType === null) {
             if ($marketType !== 'spot') {
                 return $defaultValue; // subType is required for non-spot markets
             }
         } else {
-            if (!(is_array($this->features[$marketType]) && array_key_exists($subType ?? '', $this->features[$marketType]))) {
+            if (!(is_array($methodsContainer) && array_key_exists($subType ?? '', $methodsContainer))) {
                 return $defaultValue; // unsupported subType, check "exchange.features" for details
             }
+            $methodsContainer = $methodsContainer[$subType];
             // if subType dict undefined
-            if ($this->features[$marketType][$subType] === null) {
+            if ($methodsContainer === null) {
                 return $defaultValue;
             }
-            $methodsContainer = $this->features[$marketType][$subType];
         }
         // if user wanted only marketType and didn't provide methodName, eg: featureIsSupported('spot')
         if ($methodName === null) {
@@ -7146,15 +7146,14 @@ class BaseExchange {
                 );
             } else {
                 // still processing the same timeframe -> update opening trade
-                $prevHigh = $ohlcvs[$candle][$i_high];
-                $prevLow = $ohlcvs[$candle][$i_low];
-                $prevHighValue = ($prevHigh === null) ? $price : $prevHigh;
-                $prevLowValue = ($prevLow === null) ? $price : $prevLow;
-                $ohlcvs[$candle][$i_high] = max($prevHighValue, $price);
-                $ohlcvs[$candle][$i_low] = min($prevLowValue, $price);
+                $prevCandle = $this->safe_value($ohlcvs, $candle);
+                $prevHigh = $this->safe_value($prevCandle, $i_high);
+                $prevLow = $this->safe_value($prevCandle, $i_low);
+                $ohlcvs[$candle][$i_high] = max(($prevHigh === null) ? $price : $prevHigh, $price);
+                $ohlcvs[$candle][$i_low] = min(($prevLow === null) ? $price : $prevLow, $price);
                 $ohlcvs[$candle][$i_close] = $price;
-                $ohlcvs[$candle][$i_volume] = $this->sum($ohlcvs[$candle][$i_volume], $trade['amount']);
-                $ohlcvs[$candle][$i_count] = $this->sum($ohlcvs[$candle][$i_count], 1);
+                $ohlcvs[$candle][$i_volume] = $this->sum($this->safe_value($prevCandle, $i_volume), $trade['amount']);
+                $ohlcvs[$candle][$i_count] = $this->sum($this->safe_value($prevCandle, $i_count), 1);
             }
         }
         return $ohlcvs;
@@ -8198,20 +8197,17 @@ class BaseExchange {
         $results = array();
         if ((gettype($pricesData) === 'array' && array_keys($pricesData) === array_keys(array_keys($pricesData)))) {
             for ($i = 0; $i < count($pricesData); $i++) {
-                $priceData = $this->extend($this->parse_last_price($pricesData[$i]), $params);
-                $results[] = $priceData;
+                $results[] = $this->extend($this->parse_last_price($pricesData[$i]), $params);
             }
         } else {
             $marketIds = is_array($pricesData) ? array_keys($pricesData) : array();
             for ($i = 0; $i < count($marketIds); $i++) {
                 $marketId = $marketIds[$i];
                 $market = $this->safe_market($marketId);
-                $priceData = $this->extend($this->parse_last_price($pricesData[$marketId], $market), $params);
-                $results[] = $priceData;
+                $results[] = $this->extend($this->parse_last_price($pricesData[$marketId], $market), $params);
             }
         }
-        $symbolsNormalized = $this->market_symbols($symbols);
-        return $this->index_by($this->filter_by_array($results, 'symbol', $symbolsNormalized, false), 'symbol');
+        return $this->index_by($this->filter_by_array($results, 'symbol', $this->market_symbols($symbols), false), 'symbol');
     }
 
     public function parse_tickers(mixed $tickers, ?array $symbols = null, $params = array()) {
@@ -8240,22 +8236,17 @@ class BaseExchange {
         $results = array();
         if ((gettype($tickers) === 'array' && array_keys($tickers) === array_keys(array_keys($tickers)))) {
             for ($i = 0; $i < count($tickers); $i++) {
-                $parsedTicker = $this->parse_ticker($tickers[$i]);
-                $ticker = $this->extend($parsedTicker, $params);
-                $results[] = $ticker;
+                $results[] = $this->extend($this->parse_ticker($tickers[$i]), $params);
             }
         } else {
             $marketIds = is_array($tickers) ? array_keys($tickers) : array();
             for ($i = 0; $i < count($marketIds); $i++) {
                 $marketId = $marketIds[$i];
                 $market = $this->safe_market($marketId);
-                $parsed = $this->parse_ticker($tickers[$marketId], $market);
-                $ticker = $this->extend($parsed, $params);
-                $results[] = $ticker;
+                $results[] = $this->extend($this->parse_ticker($tickers[$marketId], $market), $params);
             }
         }
-        $symbolsNormalized = $this->market_symbols($symbols);
-        return $this->filter_by_array_tickers($results, 'symbol', $symbolsNormalized);
+        return $this->filter_by_array_tickers($results, 'symbol', $this->market_symbols($symbols));
     }
 
     public function parse_deposit_addresses(mixed $addresses, ?array $codes = null, $indexed = true, $params = array()) {
@@ -9333,22 +9324,17 @@ class BaseExchange {
         $results = array();
         if ((gettype($greeks) === 'array' && array_keys($greeks) === array_keys(array_keys($greeks)))) {
             for ($i = 0; $i < count($greeks); $i++) {
-                $parsedTicker = $this->parse_greeks($greeks[$i]);
-                $greek = $this->extend($parsedTicker, $params);
-                $results[] = $greek;
+                $results[] = $this->extend($this->parse_greeks($greeks[$i]), $params);
             }
         } else {
             $marketIds = is_array($greeks) ? array_keys($greeks) : array();
             for ($i = 0; $i < count($marketIds); $i++) {
                 $marketId = $marketIds[$i];
                 $market = $this->safe_market($marketId);
-                $parsed = $this->parse_greeks($greeks[$marketId], $market);
-                $greek = $this->extend($parsed, $params);
-                $results[] = $greek;
+                $results[] = $this->extend($this->parse_greeks($greeks[$marketId], $market), $params);
             }
         }
-        $symbolsNormalized = $this->market_symbols($symbols);
-        return $this->index_by($this->filter_by_array($results, 'symbol', $symbolsNormalized, false), 'symbol');
+        return $this->index_by($this->filter_by_array($results, 'symbol', $this->market_symbols($symbols), false), 'symbol');
     }
 
     public function parse_option(array $chain, ?array $currency = null, ?array $market = null) {
