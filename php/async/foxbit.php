@@ -2233,7 +2233,7 @@ class foxbit extends Exchange {
         $detailsString = '';
         if ($details !== null) {
             for ($i = 0; $i < count($details); $i++) {
-                $detailsString = $detailsString . $details[$i] . ' ';
+                $detailsString = $detailsString . $this->safe_string($details, $i, '') . ' ';
             }
         }
         if ($error !== null) {

@@ -445,12 +445,6 @@ class bittrade extends \ccxt\async\bittrade {
         $bookside->store($price, $amount);
     }
 
-    public function handle_deltas(mixed $bookside, array $deltas) {
-        for ($i = 0; $i < count($deltas); $i++) {
-            $this->handle_delta($bookside, $deltas[$i]);
-        }
-    }
-
     public function handle_order_book_message(Client $client, array $message, mixed $orderbook) {
         //
         //     {

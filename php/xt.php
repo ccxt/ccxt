@@ -5872,7 +5872,7 @@ class xt extends Exchange {
         $signedBody = null;
         if ($signed) {
             $this->check_required_credentials();
-            $defaultRecvWindow = $this->safe_string($this->options, 'recvWindow');
+            $defaultRecvWindow = $this->safe_string($this->options, 'recvWindow', '5000');
             $recvWindow = $this->safe_string($query, 'recvWindow', $defaultRecvWindow);
             $timestamp = $this->number_to_string($this->nonce());
             if (($payload === '/v4/order') || ($payload === '/future/trade/v1/order/create') || ($payload === '/future/trade/v1/entrust/create-plan') || ($payload === '/future/trade/v1/entrust/create-profit') || ($payload === '/future/trade/v1/order/create-batch')) {
@@ -5888,7 +5888,7 @@ class xt extends Exchange {
                 $isUndefinedBody = false;
             }
             $signedBody = $isUndefinedBody ? null : $this->json($query);
-            $payloadString = null;
+            $payloadString = '';
             if (($endpoint === 'spot') || ($endpoint === 'user')) {
                 $payloadString = 'xt-validate-algorithms=HmacSHA256&xt-validate-appkey=' . $this->apiKey . '&xt-validate-recvwindow=' . $recvWindow . '&xt-validate-t' . 'imestamp=' . $timestamp;
                 if ($isUndefinedBody) {

@@ -1927,14 +1927,13 @@ class hollaex extends Exchange {
         if ($network === null) {
             throw new ArgumentsRequired($this->id . ' withdraw() requires a network parameter');
         }
-        $paramsOmitted = $this->omit($paramsWithdrawTag, 'network');
         $request = array(
             'currency' => $currency['id'],
             'amount' => $amount,
             'address' => $addressWithTag,
             'network' => $this->network_code_to_id($network, $code),
         );
-        $response = $this->privatePostUserWithdrawal($this->extend($request, $paramsOmitted));
+        $response = $this->privatePostUserWithdrawal($this->extend($request, $this->omit($paramsWithdrawTag, 'network')));
         //
         //     {
         //         "message": "Withdrawal request is in the queue and will be processed.",
@@ -1989,8 +1988,8 @@ class hollaex extends Exchange {
                 'fee' => null,
                 'percentage' => null,
             ),
-            'networks' => array(),
         );
+        $networks = array();
         $allowWithdrawal = $this->safe_bool($fee, 'allow_withdrawal');
         if ($allowWithdrawal === true) {
             $result['withdraw'] = array( 'fee' => $this->safe_number($fee, 'withdrawal_fee'), 'percentage' => false );
@@ -2010,12 +2009,13 @@ class hollaex extends Exchange {
                 }
                 $networkCodeUpper = strtoupper($networkCode); // default to the upper case network code
                 $withdrawalFee = $this->safe_number($value, 'value');
-                $result['networks'][$networkCodeUpper] = array(
+                $networks[$networkCodeUpper] = array(
                     'deposit' => null,
                     'withdraw' => $withdrawalFee,
                 );
             }
         }
+        $result['networks'] = $networks;
         return $result;
     }
 
@@ -2089,7 +2089,7 @@ class hollaex extends Exchange {
             $timeoutMs = $this->parse_to_int($this->timeout);
             $defaultExpires = $this->safe_integer_2($this->options, 'api-expires', 'expires', $this->parse_to_int($timeoutMs / 1000));
             $expires = $this->sum($this->seconds(), $defaultExpires);
-            $expiresString = (string) $expires;
+            $expiresString = $this->number_to_string($expires);
             $auth = $method . $requestPath . $expiresString;
             $requestHeaders = array(
                 'api-key' => $this->apiKey,

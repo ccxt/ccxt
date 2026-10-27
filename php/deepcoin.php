@@ -696,7 +696,7 @@ class deepcoin extends Exchange {
                 // we calculate until (after) for correct pagination
                 $duration = $this->parse_timeframe($timeframe);
                 $numberOfCandles = ($limit === null) ? $maxLimit : $limit;
-                $endTime = $since . ($duration * $numberOfCandles) * 1000;
+                $endTime = $this->parse_to_int($since . ($duration * $numberOfCandles) * 1000);
                 if ($until !== null) {
                     $endTime = min($endTime, $until);
                 }

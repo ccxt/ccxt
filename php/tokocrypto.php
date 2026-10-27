@@ -1772,7 +1772,7 @@ class tokocrypto extends Exchange {
             'type' => $type,
             'timeInForce' => $timeInForce,
             'postOnly' => $postOnly,
-            'reduceOnly' => $this->safe_value($order, 'reduceOnly'),
+            'reduceOnly' => $this->safe_bool($order, 'reduceOnly'),
             'side' => $side,
             'price' => $price,
             'triggerPrice' => $this->parse_number($this->omit_zero($this->safe_string($order, 'stopPrice'))),
@@ -2764,19 +2764,18 @@ class tokocrypto extends Exchange {
         // check success value for wapi endpoints
         // response in format {'msg': 'The coin does not exist.', 'success': true/false}
         $success = $this->safe_bool($response, 'success', true);
-        $parsedMessage = null;
+        $responseParsed = $response;
         if (!$success) {
             $messageInner = $this->safe_string($response, 'msg');
             if ($messageInner !== null) {
                 try {
-                    $parsedMessage = json_decode($messageInner, $as_associative_array = true);
+                    $responseParsed = json_decode($messageInner, $as_associative_array = true);
                 } catch (Exception $e) {
                     // do nothing
-                    $parsedMessage = null;
+                    $responseParsed = $response;
                 }
             }
         }
-        $responseParsed = ($parsedMessage !== null) ? $parsedMessage : $response;
         $message = $this->safe_string($responseParsed, 'msg');
         if ($message !== null) {
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $this->id . ' ' . $message);
@@ -2816,15 +2815,15 @@ class tokocrypto extends Exchange {
 
     public function calculate_rate_limiter_cost(array $api, string $method, string $path, mixed $params, array $config = array()) {
         $paramsDict = $this->extend(array(), $params);
+        $byLimit = $this->safe_list($config, 'byLimit', array());
         if ((is_array($paramsDict) && array_key_exists('noCoin' ?? '', $paramsDict)) && !(is_array($paramsDict) && array_key_exists('coin' ?? '', $paramsDict))) {
             return $this->safe_integer($config, 'noCoin');
         } elseif ((is_array($paramsDict) && array_key_exists('noSymbol' ?? '', $paramsDict)) && !(is_array($paramsDict) && array_key_exists('symbol' ?? '', $paramsDict))) {
             return $this->safe_integer($config, 'noSymbol');
         } elseif ((is_array($paramsDict) && array_key_exists('noPoolId' ?? '', $paramsDict)) && !(is_array($paramsDict) && array_key_exists('poolId' ?? '', $paramsDict))) {
             return $this->safe_integer($config, 'noPoolId');
-        } elseif ((is_array($config) && array_key_exists('byLimit' ?? '', $config)) && (is_array($paramsDict) && array_key_exists('limit' ?? '', $paramsDict))) {
+        } elseif (is_array($paramsDict) && array_key_exists('limit' ?? '', $paramsDict)) {
             $limit = $this->safe_integer($paramsDict, 'limit');
-            $byLimit = $this->safe_list($config, 'byLimit', array());
             for ($i = 0; $i < count($byLimit); $i++) {
                 $entry = $byLimit[$i];
                 $entryLimit = $this->safe_integer($entry, 0);

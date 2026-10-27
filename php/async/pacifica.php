@@ -3906,11 +3906,10 @@ class pacifica extends Exchange {
         $host = $this->implode_hostname($baseApiUrl);
         $url = $host . '/api/' . $this->version . '/' . $this->implode_params($path, $params);
         $paramsOmitted = $this->omit($params, $this->extract_params($path));
-        $paramsLen = count($paramsOmitted);
         $headersValue = array(
             'Content-Type' => 'application/json',
         );
-        if (($method === 'GET') && ($paramsLen > 0)) {
+        if (($method === 'GET') && (count($paramsOmitted) > 0)) {
             $url .= '?' . $this->urlencode($paramsOmitted);
             $headersValue['Accept'] = '*/*';
         }

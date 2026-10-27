@@ -803,7 +803,8 @@ class modetrade extends Exchange {
         //         "is_maker": "1"
         //     }
         //
-        $isFromFetchOrder = (is_array($trade) && array_key_exists('id' ?? '', $trade));
+        $id = $this->safe_string($trade, 'id');
+        $isFromFetchOrder = $id !== null;
         $timestamp = $this->safe_integer($trade, 'executed_timestamp');
         $marketId = $this->safe_string($trade, 'symbol');
         $marketResolved = $this->safe_market($marketId, $market);
@@ -814,7 +815,6 @@ class modetrade extends Exchange {
         $fee = $this->parse_token_and_fee_temp($trade, 'fee_asset', 'fee');
         $cost = Precise::string_mul($price, $amount);
         $side = $this->safe_string_lower($trade, 'side');
-        $id = $this->safe_string($trade, 'id');
         $takerOrMaker = null;
         if ($isFromFetchOrder) {
             $isMaker = $this->safe_string($trade, 'is_maker') === '1';

@@ -556,10 +556,7 @@ class p2b extends Exchange {
         //    }
         //
         $timestamp = $this->safe_integer_product($ticker, 'at', 1000);
-        $tickerInner = $ticker;
-        if (is_array($ticker) && array_key_exists('ticker' ?? '', $ticker)) {
-            $tickerInner = $this->safe_dict($ticker, 'ticker');
-        }
+        $tickerInner = $this->safe_dict($ticker, 'ticker', $ticker);
         $last = $this->safe_string($tickerInner, 'last');
         return $this->safe_ticker(array(
             'symbol' => $this->safe_string($market, 'symbol'),

@@ -47,12 +47,8 @@ class upbit extends \ccxt\async\upbit {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbolsRequested = $symbols;
-        if ($symbols === null) {
-            $symbolsRequested = $this->symbols;
-        }
-        $symbolsMarket = $this->market_symbols($symbolsRequested);
-        $symbolsNormalized = ($symbolsMarket === null) ? array() : $symbolsMarket;
+        $symbolsRequested = ($symbols === null) ? $this->symbols : $symbols;
+        $symbolsNormalized = $this->market_symbols($symbolsRequested);
         $marketIds = $this->market_ids($symbolsNormalized);
         $url = $this->implode_params($this->safe_string($this->urls['api'], 'ws'), array(
             'hostname' => $this->hostname,

@@ -887,10 +887,9 @@ class upbit extends Exchange {
         } else {
             $ids = $this->market_ids($symbolsNormalized);
             $promises = array();
-            $queries = $this->ids_query_strings($ids, 4000); // the url is limited to about 8000 characters once the commas are percent-encoded
+            $queries = $this->ids_query_strings($ids); // the url is limited to about 8000 characters once the commas are percent-encoded
             for ($i = 0; $i < count($queries); $i++) {
-                $idsQuery = $queries[$i];
-                $promises[] = $this->publicGetTicker($this->extend(array( 'markets' => $idsQuery ), $params));
+                $promises[] = $this->publicGetTicker($this->extend(array( 'markets' => $this->safe_string($queries, $i, '') ), $params));
             }
             $responses = Async\await(Promise\all($promises));
             $tickers = $this->arrays_concat($responses);
@@ -926,10 +925,7 @@ class upbit extends Exchange {
         return $this->parse_tickers($tickers, $symbolsNormalized);
     }
 
-    public function ids_query_strings(?array $ids, int $maxQueryLength): array {
-        if ($ids === null) {
-            return array();
-        }
+    public function ids_query_strings(array $ids): array {
         $idsString = '';
         $queries = array();
         for ($i = 0; $i < count($ids); $i++) {
@@ -937,7 +933,7 @@ class upbit extends Exchange {
                 $idsString = $idsString . ',';
             }
             $idsString = $idsString . $this->safe_string($ids, $i, '');
-            if (strlen($idsString) >= $maxQueryLength) {
+            if (strlen($idsString) >= 4000) {
                 $queries[] = $idsString;
                 $idsString = '';
             }
@@ -2025,8 +2021,7 @@ class upbit extends Exchange {
         $feeCost = $this->safe_string($order, 'paid_fee');
         $marketId = $this->safe_string($order, 'market');
         $marketResolved = $this->safe_market($marketId, $market);
-        $trades = $this->safe_list($order, 'trades', array());
-        $trades = $this->parse_trades($trades, $marketResolved, null, null, array(
+        $trades = $this->parse_trades($this->safe_list($order, 'trades', array()), $marketResolved, null, null, array(
             'order' => $id,
             'type' => $type,
         ));

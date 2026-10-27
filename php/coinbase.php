@@ -1283,7 +1283,9 @@ class coinbase extends Exchange {
             if (($baseId !== null) && ($quoteId !== null)) {
                 $base = $this->safe_currency_code($baseId);
                 $quote = $this->safe_currency_code($quoteId);
-                $symbol = $base . '/' . $quote;
+                if (($base !== null) && ($quote !== null)) {
+                    $symbol = $base . '/' . $quote;
+                }
             }
         }
         $sizeInQuote = $this->safe_bool($trade, 'size_in_quote');
@@ -1390,7 +1392,7 @@ class coinbase extends Exchange {
                     $quoteCurrency = $data[$j];
                     $quoteId = $this->safe_string($quoteCurrency, 'id');
                     $quote = $this->safe_currency_code($quoteId);
-                    if ($quote === null) {
+                    if (($quote === null) || ($quoteId === null)) {
                         continue;
                     }
                     $result[] = $this->safe_market_structure(array(

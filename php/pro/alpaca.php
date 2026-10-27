@@ -308,12 +308,6 @@ class alpaca extends \ccxt\async\alpaca {
         $bookside->storeArray($bidAsk);
     }
 
-    public function handle_deltas(mixed $bookside, array $deltas) {
-        for ($i = 0; $i < count($deltas); $i++) {
-            $this->handle_delta($bookside, $deltas[$i]);
-        }
-    }
-
     public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_watch_trades(...))($symbol, $since, $limit, $params);
     }

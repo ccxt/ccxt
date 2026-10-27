@@ -638,7 +638,7 @@ class predictfun extends Exchange {
         $orphanSlugs = array();
         for ($i = 0; $i < $queriesLength; $i++) {
             $request = array(
-                'query' => $queries[$i],
+                'query' => $this->safe_string($queries, $i, ''),
                 'limit' => $limit,
                 'includeResolved' => $includeResolved,
             );
@@ -1736,7 +1736,7 @@ class predictfun extends Exchange {
          */
         // read before the flag is overwritten: only an actual switch touches the token, so calling
         // this twice with the same value is a no-op rather than a forced re-authentication
-        $wasSandbox = $this->safe_bool($this->options, 'sandboxMode', false);
+        $wasSandbox = ($this->safe_bool($this->options, 'sandboxMode', false) === true);
         parent::set_sandbox_mode($enable);
         // the testnet is a different chain, so the EIP-712 chainId and every verifying contract
         // change with it - and the venue serves the testnet without an api key
@@ -2175,7 +2175,7 @@ class predictfun extends Exchange {
         $wanted = array();
         $wantedOutcomes = $this->to_array($outcomes);
         for ($i = 0; $i < $outcomesLength; $i++) {
-            $outcomeObj = $this->outcome($wantedOutcomes[$i]);
+            $outcomeObj = $this->outcome($this->safe_string($wantedOutcomes, $i));
             $wantedId = $this->safe_string($outcomeObj, 'outcomeId', '');
             $wanted[$wantedId] = true;
         }
@@ -2824,13 +2824,7 @@ class predictfun extends Exchange {
         $rHex = $this->pad_hex_to_even($rHex);
         $sHex = $this->pad_hex_to_even($sHex);
         $yParity = $this->safe_integer($signature, 'v');
-        $signedFields = array();
-        for ($i = 0; $i < count($fields); $i++) {
-            $signedFields[] = $fields[$i];
-        }
-        $signedFields[] = $this->rlp_encode_bytes($this->int_to_rlp_hex($yParity));
-        $signedFields[] = $this->rlp_encode_bytes($rHex);
-        $signedFields[] = $this->rlp_encode_bytes($sHex);
+        $signedFields = $this->array_concat($fields, array( $this->rlp_encode_bytes($this->int_to_rlp_hex($yParity)), $this->rlp_encode_bytes($rHex), $this->rlp_encode_bytes($sHex) ));
         return '0x02' . $this->rlp_encode_list($signedFields);
     }
 
@@ -3107,7 +3101,7 @@ class predictfun extends Exchange {
             throw $error;
         }
         for ($i = 0; $i < $messageHashesLength; $i++) {
-            $client->reject($error, $messageHashes[$i]);
+            $client->reject($error, $this->safe_string($messageHashes, $i, ''));
         }
     }
 
@@ -3437,10 +3431,10 @@ class predictfun extends Exchange {
          * @return {array[]} the outcome objects
          */
         $result = array();
-        $cached = $this->outcomes;
-        if (($marketId === null) || ($cached === null)) {
+        if (($marketId === null) || ($this->outcomes === null)) {
             return $result;
         }
+        $cached = $this->outcomes;
         $handles = is_array($cached) ? array_keys($cached) : array();
         $handlesLength = count($handles);
         for ($i = 0; $i < $handlesLength; $i++) {

@@ -744,7 +744,7 @@ class pacifica extends \ccxt\async\pacifica {
         $symbolResolved = null;
         if ($symbol !== null) {
             $symbolResolved = $this->symbol($symbol);
-            $messageHash .= ':' . $symbolResolved;
+            $messageHash = 'myTrades:' . $symbolResolved;
         }
         $isTestnet = $this->isSandboxModeEnabled;
         $urlKey = 'api';

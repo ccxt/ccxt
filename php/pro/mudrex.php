@@ -200,7 +200,7 @@ class mudrex extends \ccxt\async\mudrex {
     public function handle_error_message(Client $client, array $message) {
         $error = $this->safe_dict($message, 'error', array());
         $code = $this->safe_string($error, 'code');
-        $msg = $this->safe_string($error, 'msg');
+        $msg = $this->safe_string($error, 'msg', '');
         $feedback = $this->id . ' ' . $msg;
         if ($code === '429') {
             throw new RateLimitExceeded($feedback);

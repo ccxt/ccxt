@@ -789,7 +789,7 @@ class deepcoin extends \ccxt\async\deepcoin {
         // 120 spot markets, 52 of 120 swaps in a live probe); the tick size
         // itself was accepted on 116 and 117 of them, and the handful whose
         // tick was rejected accepted the next coarser level
-        $symbol = $this->safe_string($market, 'symbol');
+        $symbol = $this->safe_string($market, 'symbol', '');
         $aggregation = null;
         $paramsAggregation = null;
         list($aggregation, $paramsAggregation) = $this->handle_option_string_and_params($params, $methodName, 'aggregation');
@@ -950,7 +950,10 @@ class deepcoin extends \ccxt\async\deepcoin {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbolResolved = ($symbol !== null) ? $this->symbol($symbol) : null;
+        $symbolResolved = null;
+        if ($symbol !== null) {
+            $symbolResolved = $this->symbol($symbol);
+        }
         if ($symbolResolved !== null) {
             $messageHash = 'myTrades' . '::' . $symbolResolved;
         }
@@ -1034,7 +1037,10 @@ class deepcoin extends \ccxt\async\deepcoin {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbolResolved = ($symbol !== null) ? $this->symbol($symbol) : null;
+        $symbolResolved = null;
+        if ($symbol !== null) {
+            $symbolResolved = $this->symbol($symbol);
+        }
         if ($symbolResolved !== null) {
             $messageHash = 'orders' . '::' . $symbolResolved;
         }

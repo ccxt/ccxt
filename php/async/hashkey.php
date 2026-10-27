@@ -2070,7 +2070,7 @@ class hashkey extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        list($until, $paramsUntil) = $this->handle_option_and_params($params, $methodName, 'until');
+        list($until, $paramsUntil) = $this->handle_option_integer_and_params($params, $methodName, 'until');
         if ($until !== null) {
             $request['endTime'] = $until;
         }
@@ -2125,7 +2125,7 @@ class hashkey extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        list($until, $paramsUntil) = $this->handle_option_and_params($params, $methodName, 'until');
+        list($until, $paramsUntil) = $this->handle_option_integer_and_params($params, $methodName, 'until');
         if ($until !== null) {
             $request['endTime'] = $until;
         }
@@ -2478,7 +2478,7 @@ class hashkey extends Exchange {
         if ($since === null) {
             throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a since argument');
         }
-        list($until, $paramsUntil) = $this->handle_option_and_params($params, $methodName, 'until');
+        list($until, $paramsUntil) = $this->handle_option_integer_and_params($params, $methodName, 'until');
         if ($until === null) {
             throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires an until argument');
         }
@@ -3136,7 +3136,7 @@ class hashkey extends Exchange {
             //     }
             //
         } elseif ($marketType === 'swap') {
-            list($isTrigger, $paramsTrigger) = $this->handle_trigger_option_and_params($paramsMarketType, $methodName, false);
+            list($isTrigger, $paramsTrigger) = $this->handle_option_bool_and_params_2($paramsMarketType, $methodName, 'stop', 'trigger', false);
             if ($isTrigger === true) {
                 $request['type'] = 'STOP';
             } else {
@@ -3346,7 +3346,7 @@ class hashkey extends Exchange {
             //     }
             //
         } elseif ($marketType === 'swap') {
-            list($isTrigger, $paramsTrigger) = $this->handle_trigger_option_and_params($paramsMarketType, $methodName, false);
+            list($isTrigger, $paramsTrigger) = $this->handle_option_bool_and_params_2($paramsMarketType, $methodName, 'stop', 'trigger', false);
             if ($isTrigger === true) {
                 $request['type'] = 'STOP';
             }
@@ -3533,7 +3533,7 @@ class hashkey extends Exchange {
             'symbol' => $market['id'],
         );
         $isTrigger = false;
-        list($isTriggerTrigger, $paramsTrigger) = $this->handle_trigger_option_and_params($paramsMethodName, $methodNameOption, $isTrigger);
+        list($isTriggerTrigger, $paramsTrigger) = $this->handle_option_bool_and_params_2($paramsMethodName, $methodNameOption, 'stop', 'trigger', $isTrigger);
         if ($isTriggerTrigger === true) {
             $request['type'] = 'STOP';
         } else {
@@ -3634,7 +3634,7 @@ class hashkey extends Exchange {
         if ($since !== null) {
             $request['startTime'] = $since;
         }
-        list($until, $paramsUntil) = $this->handle_option_and_params($params, $methodName, 'until');
+        list($until, $paramsUntil) = $this->handle_option_integer_and_params($params, $methodName, 'until');
         if ($until !== null) {
             $request['endTime'] = $until;
         }
@@ -3687,7 +3687,7 @@ class hashkey extends Exchange {
                 throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a symbol argument for swap markets');
             }
             $request['symbol'] = $this->safe_string($market, 'id');
-            list($isTrigger, $paramsTrigger) = $this->handle_trigger_option_and_params($paramsMarketType, $methodName, false);
+            list($isTrigger, $paramsTrigger) = $this->handle_option_bool_and_params_2($paramsMarketType, $methodName, 'stop', 'trigger', false);
             if ($isTrigger === true) {
                 $request['type'] = 'STOP';
             } else {

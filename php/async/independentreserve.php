@@ -1217,7 +1217,7 @@ class independentreserve extends Exchange {
             $keys = is_array($paramsDict) ? array_keys($paramsDict) : array();
             for ($i = 0; $i < count($keys); $i++) {
                 $key = $keys[$i];
-                $value = (string) $paramsDict[$key];
+                $value = $this->safe_string($paramsDict, $key, '');
                 $auth[] = $key . '=' . $value;
             }
             $message = implode(',', $auth);

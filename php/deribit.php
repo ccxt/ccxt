@@ -3337,7 +3337,7 @@ class deribit extends Exchange {
         $paramsUntil = ($until !== null) ? $this->omit($paramsPaginate, array( 'until' )) : $paramsPaginate;
         $endTimestamp = ($until !== null) ? $until : $time;
         $request['end_timestamp'] = $endTimestamp;
-        $isPaginationCall = (is_array($paramsUntil) && array_key_exists('isDeribitPaginationCall' ?? '', $paramsUntil));
+        $isPaginationCall = $this->safe_bool($paramsUntil, 'isDeribitPaginationCall', false);
         $paramsOmitted = $paramsUntil;
         if ($isPaginationCall) {
             $paramsOmitted = $this->omit($paramsUntil, 'isDeribitPaginationCall');

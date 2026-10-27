@@ -782,7 +782,7 @@ class modetrade extends \ccxt\async\modetrade {
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $symbolResolved = $this->safe_string($market, 'symbol');
-            $messageHash = $topic . ':' . $symbolResolved;
+            $messageHash = $topic . ':' . $this->safe_string($market, 'symbol', '');
         }
         $request = array(
             'event' => 'subscribe',
@@ -829,7 +829,7 @@ class modetrade extends \ccxt\async\modetrade {
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $symbolResolved = $this->safe_string($market, 'symbol');
-            $messageHash = 'myTrades' . ':' . $symbolResolved;
+            $messageHash = 'myTrades' . ':' . $this->safe_string($market, 'symbol', '');
         }
         $request = array(
             'event' => 'subscribe',

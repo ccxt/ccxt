@@ -7,7 +7,6 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use ccxt\AuthenticationError;
-use ccxt\ArgumentsRequired;
 use React\Async;
 use React\Promise\PromiseInterface;
 use ccxt\pro\ArrayCache;
@@ -514,15 +513,11 @@ class hollaex extends \ccxt\async\hollaex {
 
     private function do_watch_private(string $messageHash, $params = array()) {
         $this->check_required_credentials();
-        $expires = $this->safe_string($this->options, 'ws-expires');
-        if ($expires === null) {
+        $expires = $this->safe_string($this->options, 'ws-expires', '');
+        if ($expires === '') {
             $timeoutMs = $this->parse_to_int($this->timeout);
             $timeout = $this->parse_to_int($timeoutMs / 1000);
-            $expires = $this->sum($this->seconds(), $timeout);
-            if ($expires === null) {
-                throw new ArgumentsRequired($this->id . ' watchPrivate() expires is required');
-            }
-            $expires = (string) $expires;
+            $expires = $this->number_to_string($this->parse_to_int($this->sum($this->seconds(), $timeout)));
             // we need to memoize these values to avoid generating a new url on each method execution
             // that would trigger a new connection on each received message
             $this->options['ws-expires'] = $expires;

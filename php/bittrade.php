@@ -884,8 +884,8 @@ class bittrade extends Exchange {
         $typeRaw = $this->safe_string($trade, 'type');
         if ($typeRaw !== null) {
             $typeParts = explode('-', $typeRaw);
-            $side = $typeParts[0];
-            $type = $typeParts[1];
+            $side = $this->safe_string($typeParts, 0);
+            $type = $this->safe_string($typeParts, 1);
         }
         $takerOrMaker = $this->safe_string($trade, 'role');
         $price = $this->safe_string($trade, 'price');
@@ -1461,8 +1461,8 @@ class bittrade extends Exchange {
         $orderTypeRaw = $this->safe_string($order, 'type');
         if ($orderTypeRaw !== null) {
             $orderType = explode('-', $orderTypeRaw);
-            $side = $orderType[0];
-            $type = $orderType[1];
+            $side = $this->safe_string($orderType, 0);
+            $type = $this->safe_string($orderType, 1);
             $status = $this->parse_order_status($this->safe_string($order, 'state'));
         }
         $marketId = $this->safe_string($order, 'symbol');

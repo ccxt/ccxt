@@ -1869,8 +1869,9 @@ class alpaca extends Exchange {
         }
         $currency = $this->currency($code);
         $addressValue = $address;
-        if (($tagWithdrawTag !== null) && ($tagWithdrawTag !== '')) {
-            $addressValue = $address . ':' . $tagWithdrawTag;
+        $tagSuffix = $this->safe_string($params, 'tag', '');
+        if ($tagSuffix !== '') {
+            $addressValue = $address . ':' . $tagSuffix;
         }
         $request = array(
             'asset' => $currency['id'],

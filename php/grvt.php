@@ -1959,19 +1959,20 @@ class grvt extends Exchange {
         $this->load_markets_and_sign_in();
         $defaultFromAccountId = $this->safe_string($this->options, 'userMainAccountId');
         $currency = $this->currency($code);
-        $request = array(
-            'to_eth_address' => $address,
-            'from_account_id' => $defaultFromAccountId,
-            'currency' => $currency['id'],
-            'num_tokens' => $this->currency_to_precision($code, $amount),
-            'signature' => $this->default_signature(),
-        );
         list($networkCode, $query) = $this->handle_network_code_and_params($params);
         $networkId = $this->network_code_to_id($networkCode, $code);
         if ($networkId === null) {
             throw new BadRequest($this->id . ' withdraw() requires a network parameter');
         }
-        $request['signature']['chain_id'] = $networkId;
+        $withdrawSignature = $this->default_signature();
+        $withdrawSignature['chain_id'] = $networkId;
+        $request = array(
+            'to_eth_address' => $address,
+            'from_account_id' => $defaultFromAccountId,
+            'currency' => $currency['id'],
+            'num_tokens' => $this->currency_to_precision($code, $amount),
+            'signature' => $withdrawSignature,
+        );
         $response = $this->privateTradingPostFullV1Withdrawal($this->extend($this->create_signed_request($request, 'EIP712_WITHDRAWAL_TYPE', $currency), $query));
         //
         // {
@@ -3323,9 +3324,7 @@ class grvt extends Exchange {
             );
             // an empty params dict must serialize as an empty json object, not an empty json array,
             // php json_encode would produce [] here which the venue rejects with the same 1003 error
-            $paramsKeys = is_array($params) ? array_keys($params) : array();
-            $paramsKeysLength = count($paramsKeys);
-            if ($paramsKeysLength === 0) {
+            if (count($params) === 0) {
                 $requestBody = '{}';
             } else {
                 $requestBody = $this->json($params);

@@ -1161,7 +1161,7 @@ class weex extends \ccxt\async\weex {
             return;
         }
         $ticker = $this->parse_ws_bid_ask($message, $market);
-        $symbol = $ticker['symbol'];
+        $symbol = $market['symbol'];
         if ($symbol !== null) {
             $this->bidsasks[$symbol] = $ticker;
         }

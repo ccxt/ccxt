@@ -1344,7 +1344,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         $ts = (string) $this->milliseconds();
         $randomNumber = $this->rand_number(4);
         $randomPart = (string) $randomNumber;
-        return intval($ts . $randomPart);
+        return $this->parse_to_int($ts . $randomPart);
     }
 
     public function watch_request(string $action, array $request) {

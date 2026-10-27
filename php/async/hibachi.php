@@ -857,12 +857,6 @@ class hibachi extends Exchange {
     }
 
     public function order_message(array $market, float $nonce, float $feeRate, ?string $type, ?string $side, ?float $amount, ?float $price = null) {
-        if ($type === null) {
-            throw new ArgumentsRequired($this->id . ' requires a type argument');
-        }
-        if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' requires a side argument');
-        }
         $sideInternal = 0;
         if ($side === 'sell') {
             $sideInternal = 0;
@@ -1617,11 +1611,11 @@ class hibachi extends Exchange {
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
-    public function fetch_orders_by_status(mixed $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+    public function fetch_orders_by_status(?string $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_orders_by_status(...))($status, $symbol, $since, $limit, $params);
     }
 
-    private function do_fetch_orders_by_status(mixed $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    private function do_fetch_orders_by_status(?string $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * @ignore
          * fetch $orders filtered by terminal $status

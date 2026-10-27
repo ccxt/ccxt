@@ -332,7 +332,7 @@ class deribit extends \ccxt\async\deribit {
         $channels = array();
         for ($i = 0; $i < count(($symbolsNormalized)); $i++) {
             $market = $this->market(($symbolsNormalized)[$i]);
-            $channels[] = 'quote.' . $market['id'];
+            $channels[] = 'quote.' . $this->safe_string($market, 'id', '');
         }
         $message = array(
             'jsonrpc' => '2.0',
@@ -698,8 +698,7 @@ class deribit extends \ccxt\async\deribit {
             $interval = $this->safe_string($parts, 4, '');
             $descriptor = $this->safe_string($parts, 2, '') . '.' . $this->safe_string($parts, 3, '') . '.' . $interval;
         } else {
-            $interval = $this->safe_string($parts, 2, '');
-            $descriptor = $interval;
+            $descriptor = $this->safe_string($parts, 2, '');
         }
         $marketId = $this->safe_string($data, 'instrument_name');
         $symbol = $this->safe_symbol($marketId);
@@ -998,16 +997,15 @@ class deribit extends \ccxt\async\deribit {
             if ($symbolsArray === null) {
                 throw new ArgumentsRequired($this->id . ' watchMultipleWrapper() symbolsArray is required');
             }
-            $current = $symbolsArray[$i];
             $market = null;
             $currentDescriptor = null;
             if ($isOHLCV) {
                 $currentPair = $this->safe_list($symbolsArray, $i, array());
-                $market = $this->market($currentPair[0]);
-                $unifiedTf = $currentPair[1];
+                $market = $this->market($this->safe_string($currentPair, 0));
+                $unifiedTf = $this->safe_string($currentPair, 1);
                 $currentDescriptor = $this->safe_string($this->timeframes, $unifiedTf, $unifiedTf);
             } else {
-                $market = $this->market($current);
+                $market = $this->market($this->safe_string($symbolsArray, $i));
                 $currentDescriptor = $channelDescriptor;
             }
             $message = $channelName . '.' . $this->safe_string($market, 'id', '') . '.' . $currentDescriptor;
