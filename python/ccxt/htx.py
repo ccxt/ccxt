@@ -7160,7 +7160,7 @@ class htx(Exchange, ImplicitAPI):
         else:
             # signing implementation for the new endpoints
             # const [ type, access ] = api;
-            type = self.safe_string(api, 0)
+            type = api[0]
             access = self.safe_string(api, 1)
             levelOneNestedPath = self.safe_string(api, 2)
             levelTwoNestedPath = self.safe_string(api, 3)

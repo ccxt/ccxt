@@ -593,12 +593,12 @@ class bitfinex(Exchange, ImplicitAPI):
         # Anything exceeding this will be rounded to the 8th decimal.
         symbolValue = self.safe_symbol(symbol)
         market = self.market(symbolValue)
-        return self.decimal_to_precision(amount, TRUNCATE, market['precision']['amount'], DECIMAL_PLACES)
+        return self.decimal_to_precision(amount, TRUNCATE, self.safe_value(market['precision'], 'amount'), DECIMAL_PLACES)
 
     def price_to_precision(self, symbol: Str, price: object) -> str:
         symbolValue = self.safe_symbol(symbol)
         market = self.market(symbolValue)
-        priceValue = self.decimal_to_precision(price, ROUND, market['precision']['price'], self.precisionMode)
+        priceValue = self.decimal_to_precision(price, ROUND, self.safe_value(market['precision'], 'price'), self.precisionMode)
         # https://docs.bitfinex.com/docs/introduction#price-precision
         # The precision level of all trading prices is based on significant figures.
         # All pairs on Bitfinex use up to 5 significant digits and up to 8 decimals (e.g. 1.2345, 123.45, 1234.5, 0.00012345).
@@ -1604,7 +1604,7 @@ class bitfinex(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, state, status)
 
-    def parse_order_flags(self, flags: Str) -> Strings:
+    def parse_order_flags(self, flags: Str) -> list[str]:
         # flags can be added to each other...
         flagValues = {
             '1024': ['reduceOnly'],
@@ -1615,7 +1615,7 @@ class bitfinex(Exchange, ImplicitAPI):
             # '16384': 'OCO', // The one cancels other order option allows you to place a pair of orders stipulating that if one order is executed fully or partially, then the other is automatically canceled.
             # '524288': 'No Var Rates' // Excludes variable rate funding offers from matching against this order, if on margin
         }
-        return self.safe_list(flagValues, flags, None)
+        return self.safe_list(flagValues, flags, [])
 
     def parse_time_in_force(self, orderType: Str) -> str:
         orderTypes = {
@@ -1646,10 +1646,9 @@ class bitfinex(Exchange, ImplicitAPI):
         rawFlags = self.safe_string(orderList, 12)
         flags = self.parse_order_flags(rawFlags)
         postOnly = False
-        if flags is not None:
-            for i in range(0, len(flags)):
-                if self.safe_string(flags, i) == 'postOnly':
-                    postOnly = True
+        for i in range(0, len(flags)):
+            if self.safe_string(flags, i) == 'postOnly':
+                postOnly = True
         price = self.safe_string(orderList, 16)
         triggerPrice = None
         if (orderType == 'EXCHANGE STOP') or (orderType == 'EXCHANGE STOP LIMIT'):

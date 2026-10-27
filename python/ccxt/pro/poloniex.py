@@ -154,7 +154,7 @@ class poloniex(ccxt.async_support.poloniex):
         :returns dict: data from the websocket stream
         """
         publicOrPrivate = 'public'
-        if isPrivate:
+        if isPrivate is True:
             publicOrPrivate = 'private'
         url = self.safe_string(self.urls['api']['ws'], publicOrPrivate)
         if url is None:

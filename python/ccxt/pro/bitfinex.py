@@ -688,7 +688,7 @@ class bitfinex(ccxt.async_support.bitfinex):
             client.resolve(orderbook, messageHash)
         else:
             orderbook = self.orderbooks[symbol]
-            deltas = message[1]
+            deltas = self.safe_value(message, 1)
             orderbookItem = self.orderbooks[symbol]
             if isRaw:
                 price = self.safe_string(deltas, 1)

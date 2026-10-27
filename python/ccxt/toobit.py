@@ -979,7 +979,7 @@ class toobit(Exchange, ImplicitAPI):
         lotSizeFilter = self.safe_dict(filtersByType, 'LOT_SIZE', {})
         minNotionalFilter = self.safe_dict(filtersByType, 'MIN_NOTIONAL', {})
         symbol = base + '/' + quote
-        isContract = ('contractMultiplier' in market)
+        isContract = (self.safe_string(market, 'contractMultiplier') is not None)
         inverse = self.safe_bool_2(market, 'isInverse', 'inverse')
         if isContract:
             symbol = base + '/' + quote + ':' + settle
@@ -1838,7 +1838,7 @@ class toobit(Exchange, ImplicitAPI):
             if triggerPriceType is not None:
                 request['tpTriggerBy'] = self.safe_string(triggerPriceTypes, triggerPriceType, triggerPriceType)
         paramsOmitted = self.omit(paramsTrigger, ['stopLoss', 'takeProfit'])
-        if not ('newClientOrderId' in paramsOmitted):
+        if self.safe_string(paramsOmitted, 'newClientOrderId') is None:
             request['newClientOrderId'] = self.uuid()
         return [request, paramsOmitted]
 

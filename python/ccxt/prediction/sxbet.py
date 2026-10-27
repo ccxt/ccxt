@@ -2478,7 +2478,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
         :returns dict: a dict with url, method, body and headers
         """
         apiGroup = api[0]
-        accessLevel = self.safe_string(api, 1, 'public')
+        accessLevel = api[1]
         if (accessLevel == 'private') and (self.apiKey is None):
             raise AuthenticationError(self.id + ' ' + path + ' is a private endpoint and requires the apiKey credential (the x-sx-api-key header)')
         baseUrls = self.urls['api']

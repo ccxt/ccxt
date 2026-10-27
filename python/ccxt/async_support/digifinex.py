@@ -4385,8 +4385,8 @@ class digifinex(Exchange, ImplicitAPI):
         return await self.privateSwapPostAccountPositionMode(self.extend(request, params))
 
     def sign(self, path: str, api: list[str] = [], method: str = 'GET', params: dict = {}) -> dict:
-        signed = self.safe_string(api, 0) == 'private'
-        endpoint = self.safe_string(api, 1)
+        signed = api[0] == 'private'
+        endpoint = api[1]
         pathPart = '/swap/v2'
         if endpoint == 'spot':
             pathPart = '/v3'

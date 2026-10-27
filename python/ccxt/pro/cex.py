@@ -247,7 +247,7 @@ class cex(ccxt.async_support.cex):
             stored.append(parsed)
         messageHash = 'trades'
         self.trades[symbol] = stored
-        client.resolve(self.trades[symbol], messageHash)
+        client.resolve(stored, messageHash)
 
     async def watch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
@@ -971,7 +971,7 @@ class cex(ccxt.async_support.cex):
         data = self.safe_dict(message, 'data', {})
         pair = self.safe_string(data, 'pair')
         symbol = self.pair_to_symbol(pair)
-        if symbol is None:
+        if symbol == '':
             return
         messageHash = 'orderbook:' + symbol
         timestamp = self.safe_integer_2(data, 'timestamp_ms', 'timestamp')
@@ -981,7 +981,7 @@ class cex(ccxt.async_support.cex):
         # after a re-subscription snapshot
         if not (symbol in self.orderbooks):
             self.orderbooks[symbol] = self.order_book({})
-        orderbook = self.orderbooks[symbol]
+        orderbook = self.safe_value(self.orderbooks, symbol)
         snapshot = self.parse_order_book(data, symbol, timestamp, 'bids', 'asks')
         snapshot['nonce'] = incrementalId
         orderbook.reset(snapshot)
@@ -990,14 +990,14 @@ class cex(ccxt.async_support.cex):
         }
         client.resolve(orderbook, messageHash)
 
-    def pair_to_symbol(self, pair: object) -> Str:
+    def pair_to_symbol(self, pair: object) -> str:
         parts = pair.split(':')
         baseId = self.safe_string(parts, 0)
         quoteId = self.safe_string(parts, 1)
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
         if (base is None) or (quote is None):
-            return None
+            return ''
         symbol = base + '/' + quote
         return symbol
 
@@ -1020,7 +1020,7 @@ class cex(ccxt.async_support.cex):
         incrementalId = self.safe_integer(data, 'id')
         pair = self.safe_string(data, 'pair', '')
         symbol = self.pair_to_symbol(pair)
-        if symbol is None:
+        if symbol == '':
             return
         storedOrderBook = self.safe_value(self.orderbooks, symbol)
         messageHash = 'orderbook:' + symbol
@@ -1159,7 +1159,7 @@ class cex(ccxt.async_support.cex):
         data = self.safe_dict(message, 'data', {})
         pair = self.safe_string(data, 'pair')
         symbol = self.pair_to_symbol(pair)
-        if symbol is None:
+        if symbol == '':
             return
         messageHash = 'ohlcv:' + symbol
         ohlcv = [
@@ -1170,7 +1170,7 @@ class cex(ccxt.async_support.cex):
             self.safe_number(data, 'c'),
             self.safe_number(data, 'v'),
         ]
-        stored = self.safe_value(self.ohlcvs, symbol)
+        stored = self.safe_value(self.ohlcvs[symbol], 'unknown')
         stored.append(ohlcv)
         client.resolve(stored, messageHash)
 
@@ -1187,7 +1187,7 @@ class cex(ccxt.async_support.cex):
         data = self.safe_list(message, 'data', [])
         pair = self.safe_string(message, 'pair')
         symbol = self.pair_to_symbol(pair)
-        if symbol is None:
+        if symbol == '':
             return
         messageHash = 'ohlcv:' + symbol
         # const stored = this.safeValue (this.ohlcvs, symbol);

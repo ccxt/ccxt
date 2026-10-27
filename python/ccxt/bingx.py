@@ -6881,9 +6881,7 @@ class bingx(Exchange, ImplicitAPI):
         url += '/' + version + '/' + pathValue
         requestHeaders = None
         requestBody = None
-        paramsOmitted = self.omit(params, self.extract_params(pathValue))
-        paramsOmitted['timestamp'] = self.nonce()
-        paramsSorted = self.keysort(paramsOmitted)
+        paramsSorted = self.keysort(self.extend(self.omit(params, self.extract_params(pathValue)), {'timestamp': self.nonce()}))
         if access == 'public':
             if len(paramsSorted) > 0:
                 url += '?' + self.urlencode(paramsSorted)
@@ -6904,7 +6902,7 @@ class bingx(Exchange, ImplicitAPI):
                 'X-SOURCE-KEY': self.safe_string(self.options, 'broker', 'CCXT'),
             }
             if isJsonContentType:
-                requestHeaders['Content-Type'] = 'application/json'
+                requestHeaders = self.extend(requestHeaders, {'Content-Type': 'application/json'})
                 paramsSorted['signature'] = signature
                 requestBody = self.json(paramsSorted)
             else:

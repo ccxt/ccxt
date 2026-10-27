@@ -523,14 +523,13 @@ class kalshi(PredictionExchange, ImplicitAPI):
         liquidity = self.safe_number_2(raw, 'liquidity_dollars', 'liquidity')
         openInt = self.safe_number_2(raw, 'open_interest_fp', 'open_interest')
         # Derive series ticker: drop last hyphen-segment from event_ticker
-        eventParts = []
+        seriesTicker = eventTicker
         if (eventTicker is not None) and (eventTicker != ''):
             eventParts = eventTicker.split('-')
-        seriesTicker = eventTicker
-        eventPartsLength = len(eventParts)
-        if eventPartsLength > 1:
-            seriesParts = self.array_slice(eventParts, 0, eventPartsLength - 1)
-            seriesTicker = '-'.join(seriesParts)
+            eventPartsLength = len(eventParts)
+            if eventPartsLength > 1:
+                seriesParts = self.array_slice(eventParts, 0, eventPartsLength - 1)
+                seriesTicker = '-'.join(seriesParts)
         # market symbol (no outcome suffix)
         subtitleOrTicker = ticker
         if subtitle is not None:
@@ -2378,7 +2377,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         :returns dict: a dictionary with url, method, body and headers
         """
         apiGroup = api[0]
-        access = self.safe_string(api, 1, 'public')
+        access = api[1]
         baseUrls = self.urls['api']
         baseUrl = self.safe_string(baseUrls, apiGroup, baseUrls['kalshi'])
         implodedPath = self.implode_params(path, params)

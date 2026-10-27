@@ -1183,7 +1183,7 @@ class woofipro(Exchange, ImplicitAPI):
         for i in range(0, len(rows)):
             row = rows[i]
             marketId = self.safe_string(row, 'symbol', '')
-            if (self.markets_by_id is None) or not (marketId in self.markets_by_id):
+            if self.safe_value(self.markets_by_id, marketId) is None:
                 continue  # the endpoint returns entries for markets missing from public/info, e.g. pre-TGE symbols
             ticker = self.extend({'timestamp': timestamp}, row)
             result.append(self.parse_ticker(ticker))
@@ -1289,7 +1289,7 @@ class woofipro(Exchange, ImplicitAPI):
         for i in range(0, len(rows)):
             row = rows[i]
             marketId = self.safe_string(row, 'symbol', '')
-            if (self.markets_by_id is None) or not (marketId in self.markets_by_id):
+            if self.safe_value(self.markets_by_id, marketId) is None:
                 continue  # the endpoint returns entries for markets missing from public/info, e.g. pre-TGE symbols
             interest = self.extend({'timestamp': timestamp}, row)
             result.append(self.parse_open_interest(interest))
@@ -3324,7 +3324,7 @@ class woofipro(Exchange, ImplicitAPI):
             apiKey = self.apiKey
             if self.apiKey.find('ed25519:') < 0:
                 apiKey = 'ed25519:' + self.apiKey
-            requestHeaders = {
+            authHeaders = {
                 'orderly-account-id': self.accountId,
                 'orderly-key': apiKey,
                 'orderly-timestamp': ts,
@@ -3333,12 +3333,12 @@ class woofipro(Exchange, ImplicitAPI):
             if method == 'POST' or method == 'PUT':
                 requestBody = self.json(requestParams)
                 auth += requestBody
-                requestHeaders['content-type'] = 'application/json'
+                authHeaders['content-type'] = 'application/json'
             else:
                 if len(requestParams) > 0:
                     url += '?' + self.urlencode(requestParams)
                     auth += '?' + self.rawencode(requestParams)
-                requestHeaders['content-type'] = 'application/x-www-form-urlencoded'
+                authHeaders['content-type'] = 'application/x-www-form-urlencoded'
                 if method == 'DELETE':
                     requestBody = ''
             secret = self.secret
@@ -3346,10 +3346,9 @@ class woofipro(Exchange, ImplicitAPI):
                 parts = self.secret.split('ed25519:')
                 secret = parts[1]
             signature = self.eddsa(self.encode(auth), self.base58_to_binary(secret), 'ed25519')
-            requestHeaders['orderly-signature'] = self.urlencode_base64(self.base64_to_binary(signature))
-        bodyResult = requestBody
-        headersResult = requestHeaders
-        return {'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult}
+            authHeaders['orderly-signature'] = self.urlencode_base64(self.base64_to_binary(signature))
+            requestHeaders = authHeaders
+        return {'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders}
 
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:

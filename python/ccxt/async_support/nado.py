@@ -2910,9 +2910,7 @@ class nado(Exchange, ImplicitAPI):
     def order_verifying_contract(self, productId: Int) -> str:
         return '0x' + self.pad_hex(self.int_to_base16(productId), 40)
 
-    def pad_hex(self, value: str, length: Int, left: bool = True) -> str:
-        if length is None:
-            raise ArgumentsRequired(self.id + ' padHex() requires length')
+    def pad_hex(self, value: str, length: float, left: bool = True) -> str:
         zeros = '00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
         if left:
             paddedLeft = zeros + value
@@ -2939,8 +2937,7 @@ class nado(Exchange, ImplicitAPI):
             ],
         }
         encoded = self.eth_encode_structured_data(domain, messageTypes, order)
-        hash = '0x' + self.hash(encoded, 'keccak', 'hex')
-        return self.sign_hash(hash, self.privateKey)
+        return self.sign_hash(self.hash(encoded, 'keccak', 'hex'), self.privateKey)
 
     def sign_cancellation(self, cancellation: dict, chainId: Str, endpointAddress: Str) -> str:
         domain = {
@@ -2958,8 +2955,7 @@ class nado(Exchange, ImplicitAPI):
             ],
         }
         encoded = self.eth_encode_structured_data(domain, messageTypes, cancellation)
-        hash = '0x' + self.hash(encoded, 'keccak', 'hex')
-        return self.sign_hash(hash, self.privateKey)
+        return self.sign_hash(self.hash(encoded, 'keccak', 'hex'), self.privateKey)
 
     def sign_cancellation_products(self, cancellation: dict, chainId: Str, endpointAddress: Str) -> str:
         domain = {
@@ -2976,8 +2972,7 @@ class nado(Exchange, ImplicitAPI):
             ],
         }
         encoded = self.eth_encode_structured_data(domain, messageTypes, cancellation)
-        hash = '0x' + self.hash(encoded, 'keccak', 'hex')
-        return self.sign_hash(hash, self.privateKey)
+        return self.sign_hash(self.hash(encoded, 'keccak', 'hex'), self.privateKey)
 
     def sign_fetch_trigger_orders(self, tx: dict, chainId: Str, endpointAddress: Str) -> str:
         domain = {
@@ -2993,13 +2988,12 @@ class nado(Exchange, ImplicitAPI):
             ],
         }
         encoded = self.eth_encode_structured_data(domain, messageTypes, tx)
-        hash = '0x' + self.hash(encoded, 'keccak', 'hex')
-        return self.sign_hash(hash, self.privateKey)
+        return self.sign_hash(self.hash(encoded, 'keccak', 'hex'), self.privateKey)
 
     def sign_hash(self, hash: str, privateKey: Str) -> str:
         if privateKey is None:
             raise ArgumentsRequired(self.id + ' signHash() requires privateKey')
-        signature = self.ecdsa(hash[-64:], privateKey[-64:], 'secp256k1', None)
+        signature = self.ecdsa(hash, privateKey[-64:], 'secp256k1', None)
         r = signature['r']
         s = signature['s']
         v = self.int_to_base16(self.sum(27, signature['v'])).lower()

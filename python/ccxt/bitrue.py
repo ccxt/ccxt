@@ -3099,9 +3099,9 @@ class bitrue(Exchange, ImplicitAPI):
     def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
         requestBody = None
         requestHeaders = None
-        type = self.safe_string(api, 0)
-        version = self.safe_string(api, 1, '')
-        access = self.safe_string(api, 2)
+        type = api[0]
+        version = api[1]
+        access = api[2]
         apiUrl = self.safe_string(self.urls['api'], type)
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')

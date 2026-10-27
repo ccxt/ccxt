@@ -1857,7 +1857,7 @@ class zebpay(Exchange, ImplicitAPI):
         signature = ''
         query = self.omit(paramsOmitted, self.extract_params(path))
         queryLength = len(query)
-        access = self.safe_string(api, 0, 'public')
+        access = api[0]
         if access == 'public':
             if method == 'GET' or method == 'DELETE':
                 if queryLength != 0:

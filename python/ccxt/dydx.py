@@ -1222,8 +1222,10 @@ class dydx(Exchange, ImplicitAPI):
         else:
             signature = self.sign_onboarding_action()
             credentials = self.retrieve_dydx_credentials(self.hash_message(self.base16_to_binary(self.safe_string(signature, 'r', '') + self.safe_string(signature, 's', ''))))
-        credentials['privateKey'] = self.binary_to_base16(credentials['privateKey'])
-        credentials['publicKey'] = self.binary_to_base16(credentials['publicKey'])
+        credentials = {
+            'privateKey': self.binary_to_base16(credentials['privateKey']),
+            'publicKey': self.binary_to_base16(credentials['publicKey']),
+        }
         self.options['dydxCredentials'] = credentials
         return credentials
 

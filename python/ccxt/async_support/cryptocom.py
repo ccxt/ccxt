@@ -3404,8 +3404,8 @@ class cryptocom(Exchange, ImplicitAPI):
     def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
         requestHeaders = None
         requestBody = None
-        type = self.safe_string(api, 0)
-        access = self.safe_string(api, 1)
+        type = api[0]
+        access = api[1]
         apiUrl = self.safe_string(self.urls['api'], type)
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')

@@ -1621,21 +1621,16 @@ class delta(Exchange, ImplicitAPI):
             limitValue = limit  # max 2000
             windowSeconds = limit * duration
         until = self.safe_integer_product(params, 'until', 0.001)
-        untilIsDefined = until is not None
-        if untilIsDefined:
-            until = self.parse_to_int(until)
         if since is None:
             end = self.seconds()
-            if untilIsDefined:
+            if until is not None:
                 end = self.parse_to_int(until)
             request['end'] = end
-            if end is None:
-                raise ExchangeError(self.id + ' fetchOHLCV() missing end')
             request['start'] = end - windowSeconds
         else:
             start = self.parse_to_int(since / 1000)
             request['start'] = start
-            request['end'] = until if untilIsDefined else self.sum(start, windowSeconds)
+            request['end'] = until if (until is not None) else self.sum(start, windowSeconds)
         price = self.safe_string(params, 'price')
         marketId = self.safe_string(market, 'id', '')
         if price == 'mark':
@@ -2290,7 +2285,7 @@ class delta(Exchange, ImplicitAPI):
             market = self.market(symbol)
             request['product_ids'] = market['numericId']  # accepts a comma-separated list of ids
         if since is not None:
-            request['start_time'] = str(since) + '000'
+            request['start_time'] = self.number_to_string(since * 1000)
         if limit is not None:
             request['page_size'] = limit
         response = None
@@ -2351,7 +2346,7 @@ class delta(Exchange, ImplicitAPI):
             market = self.market(symbol)
             request['product_ids'] = market['numericId']  # accepts a comma-separated list of ids
         if since is not None:
-            request['start_time'] = str(since) + '000'
+            request['start_time'] = self.number_to_string(since * 1000)
         if limit is not None:
             request['page_size'] = limit
         response = await self.privateGetFills(self.extend(request, params))
@@ -4062,7 +4057,7 @@ class delta(Exchange, ImplicitAPI):
         elif apiName == 'private':
             self.check_required_credentials()
             timestamp = str(self.seconds())
-            requestHeaders = {
+            privateHeaders = {
                 'api-key': self.apiKey,
                 'timestamp': timestamp,
             }
@@ -4075,9 +4070,10 @@ class delta(Exchange, ImplicitAPI):
             else:
                 requestBody = self.json(query)
                 auth += requestBody
-                requestHeaders['Content-Type'] = 'application/json'
+                privateHeaders['Content-Type'] = 'application/json'
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
-            requestHeaders['signature'] = signature
+            privateHeaders['signature'] = signature
+            requestHeaders = privateHeaders
         bodyResult = requestBody
         headersResult = requestHeaders
         return {'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult}

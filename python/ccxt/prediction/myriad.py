@@ -2911,8 +2911,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         # connection and resolves when the connect reply arrives (see handleCentrifugoFrame). The base
         # clears client.subscriptions on reconnect, so an absent 'connect' marker means a fresh handshake.
         client = self.client(url)
-        connectSent = self.safe_value(client.subscriptions, 'connect')
-        if connectSent is None:
+        if not ('connect' in client.subscriptions):
             self.options['wsConnected'] = False
             requestId = self.request_id(url)
             # give the anonymous connect a name so the params object is non-empty (PHP serialises an
@@ -3006,7 +3005,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         # finish the connect handshake first so the client exists and the subscribe follows the connect reply
         await self.connect_centrifugo(url)
         client = self.client(url)
-        isNewSubscription = self.safe_value(client.subscriptions, channel) is None
+        isNewSubscription = not (channel in client.subscriptions)
         if isNewSubscription:
             # the channel only streams deltas, so (re)seed the live book from the REST snapshot on a
             # fresh subscription (first call or after a reconnect that cleared client.subscriptions)
@@ -3418,7 +3417,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         url = self.safe_string(self.urls['api'], 'ws')
         await self.connect_centrifugo(url)
         client = self.client(url)
-        isNewSubscription = self.safe_value(client.subscriptions, channel) is None
+        isNewSubscription = not (channel in client.subscriptions)
         if isNewSubscription:
             # the channel pushes only signed deltas; seed absolute share balances from REST so
             # handlePosition can maintain a running contracts figure
@@ -3542,9 +3541,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         # included — the previous logic only sent a body for authenticated requests)
         bodyValue = None
         if method != 'GET':
-            queryKeys = list(query.keys())
-            queryKeysLength = len(queryKeys)
-            if queryKeysLength > 0:
+            if len(query) > 0:
                 bodyValue = self.json(query)
         if (self.apiKey is not None) and (self.apiKey != ''):
             # keep this literal split. the php transpiler prefixes every occurrence of a local or

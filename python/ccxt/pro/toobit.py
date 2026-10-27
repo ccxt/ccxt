@@ -1113,8 +1113,7 @@ class toobit(ccxt.async_support.toobit):
                     # reject instead of caching an empty credential, so waiters
                     # retry rather than dial .../ws/undefined for 20 minutes
                     raise AuthenticationError(self.id + ' authenticate() received an empty listenKey')
-                self.options['ws']['listenKey'] = listenKey
-                self.options['ws']['lastAuthenticatedTime'] = time
+                self.set_ws_options({'listenKey': listenKey, 'lastAuthenticatedTime': time})
                 self.delay(listenKeyRefreshRate, self.keep_alive_listen_key, params)
                 # settle the flight: client.resolve () removes the future from
                 # client.futures and wakes every waiter
@@ -1127,6 +1126,9 @@ class toobit(ccxt.async_support.toobit):
                 client.reject(err, messageHash)
             await future
 
+    def set_ws_options(self, entry: dict):
+        self.options['ws'] = self.extend(self.safe_dict(self.options, 'ws', {}), entry)
+
     async def keep_alive_listen_key(self, params: dict = {}):
         options = self.safe_dict(self.options, 'ws', {})
         listenKey = self.safe_string(options, 'listenKey')
@@ -1135,8 +1137,7 @@ class toobit(ccxt.async_support.toobit):
             return
         try:
             response = await self.privatePostApiV1UserDataStream(params)
-            self.options['ws']['listenKey'] = self.safe_string(response, 'listenKey')
-            self.options['ws']['lastAuthenticatedTime'] = self.milliseconds()
+            self.set_ws_options({'listenKey': self.safe_string(response, 'listenKey'), 'lastAuthenticatedTime': self.milliseconds()})
         except Exception as error:
             url = self.get_user_stream_url()
             client = self.client(url)
@@ -1144,8 +1145,7 @@ class toobit(ccxt.async_support.toobit):
             for i in range(0, len(messageHashes)):
                 messageHash = messageHashes[i]
                 client.reject(error, messageHash)
-            self.options['ws']['listenKey'] = None
-            self.options['ws']['lastAuthenticatedTime'] = 0
+            self.set_ws_options({'listenKey': None, 'lastAuthenticatedTime': 0})
             return
         # whether or not to schedule another listenKey keepAlive request
         listenKeyRefreshRate = self.safe_integer(self.options['ws'], 'listenKeyRefreshRate', 1200000)

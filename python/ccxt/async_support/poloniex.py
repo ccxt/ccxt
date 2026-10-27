@@ -870,7 +870,7 @@ class poloniex(Exchange, ImplicitAPI):
         return self.parse_markets(markets)
 
     def parse_market(self, market: dict) -> Market:
-        if 'ctType' in market:
+        if self.safe_string(market, 'ctType') is not None:
             return self.parse_swap_market(market)
         else:
             return self.parse_spot_market(market)
@@ -3391,7 +3391,7 @@ class poloniex(Exchange, ImplicitAPI):
         status = self.parse_transaction_status(status)
         txid = self.safe_string(transactionValue, 'txid')
         type = 'deposit'
-        if 'withdrawalRequestsId' in transactionValue:
+        if self.safe_string(transactionValue, 'withdrawalRequestsId') is not None:
             type = 'withdrawal'
         id = self.safe_string_2(transactionValue, 'withdrawalRequestsId', 'depositNumber')
         address = self.safe_string(transactionValue, 'address')
@@ -3448,7 +3448,7 @@ class poloniex(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' setLeverage() requires a marginMode parameter "cross" or "isolated"')
         hedged, paramsHedged = self.handle_param_bool(paramsMarginMode, 'hedged', False)
         if hedged is True:
-            if not ('posSide' in paramsHedged):
+            if self.safe_string(paramsHedged, 'posSide') is None:
                 raise ArgumentsRequired(self.id + ' setLeverage() requires a posSide parameter for hedged mode: "LONG" or "SHORT"')
         request = {
             'lever': leverage,
@@ -3804,27 +3804,25 @@ class poloniex(Exchange, ImplicitAPI):
     def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
         apiName = api[0]
         isArray = isinstance(params, list)
-        url = self.urls['api']['spot']
-        if self.in_array(apiName, ['swapPublic', 'swapPrivate']):
-            url = self.urls['api']['swap']
         if method == 'GET' and ('symbol' in params):
             params['symbol'] = self.encode_uri_component(params['symbol'])  # handle symbols like 索拉拉/USDT'
         query = self.omit(params, self.extract_params(path))
         implodedPath = self.implode_params(path, params)
+        url = self.safe_string(self.urls['api'], 'spot', '') + '/' + implodedPath
+        if self.in_array(apiName, ['swapPublic', 'swapPrivate']):
+            url = self.safe_string(self.urls['api'], 'swap', '') + '/' + implodedPath
         # keep `Object.keys (query).length` inline and evaluated lazily: PHP only rewrites that exact
         # shape into count(x) (a hoisted key list becomes strlen() on an array) and the C#/Java key-list
         # cast throws on a bare-list params (the batch endpoints pass one), so `isArray ||` guards it.
         bodyJson = None
         signedHeaders = None
         if apiName == 'public' or apiName == 'swapPublic':
-            url += '/' + implodedPath
             if len(query) > 0:
-                url += '?' + self.urlencode(query)
+                url = url + '?' + self.urlencode(query)
         else:
             self.check_required_credentials()
             timestamp = self.number_to_string(self.nonce())
             auth = method + "\n"  # eslint-disable-line quotes
-            url += '/' + implodedPath
             auth += '/' + implodedPath
             if (method == 'POST') or (method == 'PUT') or (method == 'DELETE'):
                 auth += "\n"  # eslint-disable-line quotes
@@ -3837,7 +3835,7 @@ class poloniex(Exchange, ImplicitAPI):
                 sortedQuery = self.keysort(sortedQuery)
                 auth += "\n" + self.urlencode(sortedQuery)  # eslint-disable-line quotes
                 if len(query) > 0:
-                    url += '?' + self.urlencode(query)
+                    url = url + '?' + self.urlencode(query)
             signedHeaders = {
                 'Content-Type': 'application/json',
                 'key': self.apiKey,

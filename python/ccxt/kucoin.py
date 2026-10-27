@@ -11048,7 +11048,7 @@ class kucoin(Exchange, ImplicitAPI):
         return uta
 
     def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
-        apiName = self.safe_string(api, 0)
+        apiName = api[0]
         #
         # the v2 URL is https://openapi-v2.kucoin.com/api/v1/endpoint
         #                                ↑                 ↑

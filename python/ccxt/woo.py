@@ -3305,7 +3305,7 @@ class woo(Exchange, ImplicitAPI):
         requestHeaders = None
         requestBody = None
         version = section[0]
-        access = self.safe_string(section, 1)
+        access = section[1]
         pathWithParams = self.implode_params(path, params)
         baseApiUrl = self.safe_string(self.urls['api'], access)
         if baseApiUrl is None:

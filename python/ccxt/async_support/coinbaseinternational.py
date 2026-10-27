@@ -597,10 +597,10 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         elif isOption:
             type = 'option'
         symbol = instrumentName
-        if not isComboMarket:
+        if not isComboMarket and (base is not None) and (quote is not None):
             symbol = base + '/' + quote
-            if not isSpot:
-                symbol = symbol + ':' + settle
+            if not isSpot and (settle is not None):
+                symbol = base + '/' + quote + ':' + settle
         linear = None if isSpot else (settle == quote)
         inverse = None if isSpot else (settle != quote)
         marketSettle = None if isSpot else settle
@@ -3048,7 +3048,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         now = self.milliseconds()
         token = self.get_v2_access_token()
         tokenExpires = self.safe_integer(self.options, 'v2TokenExpires')
-        if not forceRefresh and (token is not None) and (token != '') and (tokenExpires is not None) and (now < tokenExpires):
+        if not forceRefresh and (token is not None) and (tokenExpires is not None) and (now < tokenExpires):
             return token
         response = await self.publicPostAuth(paramsOmitted)
         #
@@ -3086,7 +3086,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         token = self.safe_string(self.options, 'v2AccessToken')
         if (token is not None) and (token != ''):
             return token
-        if (self.token is None) or (self.token == ''):
+        if self.token == '':
             return None
         return self.token
 
@@ -3118,7 +3118,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         elif (access == 'private') and isNativeDeribit:
             self.check_required_credentials()
             timestamp = str(self.milliseconds())
-            nonce = str(self.nonce())
+            nonce = self.number_to_string(self.nonce())
             signedRequest = '/' + 'api/' + self.version + '/' + access + '/' + path
             if len(requestParams) > 0:
                 signedRequest += '?' + self.urlencode(requestParams)

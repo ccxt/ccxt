@@ -923,12 +923,10 @@ class nado(ccxt.async_support.nado):
             result.append(self.parse_order(self.extend({'status': 'canceled'}, cancelledOrders[i]), market))
         return result
 
-    async def watch_execute_request(self, requestIdString: Str, request: dict):
+    async def watch_execute_request(self, requestIdString: str, request: dict):
         # the v2 gateway dispatches requests concurrently, so responses arrive
         # in completion order, not send order — every execute carries a unique
         # request id and its response is correlated by the echoed id
-        if requestIdString is None:
-            raise ArgumentsRequired(self.id + ' watchExecuteRequest() requires requestIdString')
         url = self.safe_string(self.urls['api']['ws'], 'gateway')
         messageHash = 'execute:' + requestIdString
         return await self.watch(url, messageHash, request, messageHash)
@@ -1050,8 +1048,7 @@ class nado(ccxt.async_support.nado):
             ],
         }
         encoded = self.eth_encode_structured_data(domain, messageTypes, tx)
-        hash = '0x' + self.hash(encoded, 'keccak', 'hex')
-        return self.signHash(hash, self.privateKey)
+        return self.signHash(self.hash(encoded, 'keccak', 'hex'), self.privateKey)
 
     def create_public_subscription_request(self, method: str, streamType: Str, market: Market = None, id: Int = None, params: dict = {}) -> dict:
         stream = {

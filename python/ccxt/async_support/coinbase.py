@@ -4955,8 +4955,8 @@ class coinbase(Exchange, ImplicitAPI):
     def sign(self, path: str, api: list[str] = [], method: str = 'GET', params: dict = {}) -> dict:
         requestBody = None
         requestHeaders = None
-        version = self.safe_string(api, 0)
-        signed = self.safe_string(api, 1) == 'private'
+        version = api[0]
+        signed = api[1] == 'private'
         isV3 = version == 'v3'
         pathPart = 'v2'
         if isV3:

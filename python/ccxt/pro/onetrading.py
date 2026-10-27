@@ -170,7 +170,7 @@ class onetrading(ccxt.async_support.onetrading):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         subscriptionHash = 'MARKET_TICKER'
         messageHash = 'ticker.' + symbolValue
         request = {
@@ -338,7 +338,7 @@ class onetrading(ccxt.async_support.onetrading):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         messageHash = 'book:' + symbolValue
         subscriptionHash = 'ORDER_BOOK'
         depth = 0
@@ -1053,8 +1053,8 @@ class onetrading(ccxt.async_support.onetrading):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
-        marketId = market['id']
+        symbolValue = self.safe_string(market, 'symbol', '')
+        marketId = self.safe_string(market, 'id', '')
         url = self.safe_string(self.urls['api'], 'ws')
         timeframes = self.safe_dict(self.options, 'timeframes', {})
         timeframeId = self.safe_dict(timeframes, timeframe)

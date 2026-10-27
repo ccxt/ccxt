@@ -665,7 +665,7 @@ class woofipro(ccxt.async_support.woofipro):
             market = self.market(symbol)
         symbolResolved = self.safe_string(market, 'symbol') if (market is not None) else None
         if symbol is not None:
-            messageHash += ':' + symbolResolved
+            messageHash += ':' + self.safe_string(self.market(symbol), 'symbol', '')
         request = {
             'event': 'subscribe',
             'topic': topic,
@@ -704,7 +704,7 @@ class woofipro(ccxt.async_support.woofipro):
             market = self.market(symbol)
         symbolResolved = self.safe_string(market, 'symbol') if (market is not None) else None
         if symbol is not None:
-            messageHash += ':' + symbolResolved
+            messageHash += ':' + self.safe_string(self.market(symbol), 'symbol', '')
         request = {
             'event': 'subscribe',
             'topic': topic,

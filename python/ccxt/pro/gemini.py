@@ -57,7 +57,7 @@ class gemini(ccxt.async_support.gemini):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        messageHash = 'trades:' + market['symbol']
+        messageHash = 'trades:' + self.safe_string(market, 'symbol', '')
         marketId = market['id']
         if marketId is None:
             raise ArgumentsRequired(self.id + ' watchTrades() marketId is required')
@@ -72,7 +72,7 @@ class gemini(ccxt.async_support.gemini):
                 },
             ],
         }
-        subscribeHash = 'l2:' + market['symbol']
+        subscribeHash = 'l2:' + self.safe_string(market, 'symbol', '')
         wsUrl = self.safe_string(self.urls['api'], 'ws')
         if wsUrl is None:
             raise ExchangeError(self.id + ' watchTrades() has no websocket url')
@@ -223,7 +223,7 @@ class gemini(ccxt.async_support.gemini):
         market = self.safe_market(marketId)
         trades = self.safe_list(message, 'trades')
         if trades is not None:
-            symbol = market['symbol']
+            symbol = self.safe_string(market, 'symbol', '')
             tradesLimit = self.safe_integer(self.options, 'tradesLimit', 1000)
             stored = self.safe_value(self.trades, symbol)
             if stored is None:
@@ -242,7 +242,7 @@ class gemini(ccxt.async_support.gemini):
             rawTrade = self.safe_value(trades, i)
             marketId = self.safe_string(rawTrade, 'symbol', '').lower()
             market = self.safe_market(marketId)
-            symbol = market['symbol']
+            symbol = self.safe_string(market, 'symbol', '')
             trade = self.parse_ws_trade(rawTrade, market)
             trade['timestamp'] = timestamp
             trade['datetime'] = self.iso8601(timestamp)
@@ -287,7 +287,7 @@ class gemini(ccxt.async_support.gemini):
                 },
             ],
         }
-        messageHash = 'ohlcv:' + market['symbol'] + ':' + timeframeId
+        messageHash = 'ohlcv:' + self.safe_string(market, 'symbol', '') + ':' + timeframeId
         wsUrl = self.safe_string(self.urls['api'], 'ws')
         if wsUrl is None:
             raise ExchangeError(self.id + ' watchOHLCV() has no websocket url')
@@ -366,7 +366,7 @@ class gemini(ccxt.async_support.gemini):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        messageHash = 'orderbook:' + market['symbol']
+        messageHash = 'orderbook:' + self.safe_string(market, 'symbol', '')
         marketId = market['id']
         if marketId is None:
             raise ArgumentsRequired(self.id + ' watchOrderBook() marketId is required')
@@ -381,7 +381,7 @@ class gemini(ccxt.async_support.gemini):
                 },
             ],
         }
-        subscribeHash = 'l2:' + market['symbol']
+        subscribeHash = 'l2:' + self.safe_string(market, 'symbol', '')
         wsUrl = self.safe_string(self.urls['api'], 'ws')
         if wsUrl is None:
             raise ExchangeError(self.id + ' watchOrderBook() has no websocket url')
@@ -394,7 +394,7 @@ class gemini(ccxt.async_support.gemini):
         changes = self.safe_list(message, 'changes', [])
         marketId = self.safe_string_lower(message, 'symbol')
         market = self.safe_market(marketId)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         messageHash = 'orderbook:' + symbol
         if not (symbol in self.orderbooks):
             self.orderbooks[symbol] = self.order_book()
@@ -483,7 +483,7 @@ class gemini(ccxt.async_support.gemini):
         firstBidAsk = rawBidAskChanges[0]
         marketId = self.safe_string(firstBidAsk, 'symbol', '').lower()
         market = self.safe_market(marketId)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         if not (symbol in self.bidsasks):
             self.bidsasks[symbol] = self.parse_ticker({})
             self.bidsasks[symbol]['symbol'] = symbol
@@ -561,7 +561,7 @@ class gemini(ccxt.async_support.gemini):
         firstChange = rawOrderBookChanges[0]
         marketId = self.safe_string(firstChange, 'symbol', '').lower()
         market = self.safe_market(marketId)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         messageHash = 'orderbook:' + symbol
         if not (symbol in self.orderbooks):
             ob = self.order_book()

@@ -4006,7 +4006,7 @@ class whitebit(Exchange, ImplicitAPI):
 
     def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
         query = self.omit(params, self.extract_params(path))
-        version = self.safe_string(api, 0, '')
+        version = api[0]
         accessibility = self.safe_string(api, 1)
         publicHeaders = {}
         publicHeaders['User-Agent'] = 'ccxt/' + self.id + '-' + self.version

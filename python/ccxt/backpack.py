@@ -677,7 +677,7 @@ class backpack(Exchange, ImplicitAPI):
         supportedTypes = ['SPOT', 'PERP', 'RFQ']
         marketTypes = []
         for i in range(0, len(requestedTypes)):
-            requestedType = requestedTypes[i]
+            requestedType = self.safe_string(requestedTypes, i, '')
             normalizedType = self.safe_string(aliases, requestedType, requestedType)
             if not self.in_array(normalizedType, supportedTypes):
                 raise BadRequest(self.id + ' fetchMarkets() unsupported marketType ' + requestedType)
@@ -1332,7 +1332,7 @@ class backpack(Exchange, ImplicitAPI):
                     hasStockSymbol = True
                 if self.safe_string(market['info'], 'marketType') == 'RFQ':
                     hasRfqSymbol = True
-        stockExplicitlyDisabled = self.safe_value_2(params, 'stock', 'defaultStock') is False
+        stockExplicitlyDisabled = not self.safe_bool_2(params, 'stock', 'defaultStock', True)
         needsExternalRfqTickers = (source == 'Venue') and (self.safe_string(query, 'source') is None) and hasRfqSymbol and not stockExplicitlyDisabled
         requestParams = query
         if (source == 'External') and (stockOnly or hasStockSymbol) and not stockExplicitlyDisabled:
@@ -2431,7 +2431,6 @@ class backpack(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         ordersRequests = []
-        stockOption = self.safe_value_2(params, 'stock', 'defaultStock')
         stock = self.safe_bool(selection, 0, False)
         for i in range(0, len(orders)):
             rawOrder = self.safe_dict(orders, i)
@@ -2442,7 +2441,7 @@ class backpack(Exchange, ImplicitAPI):
             price = self.safe_number(rawOrder, 'price')
             orderParams = self.safe_dict(rawOrder, 'params', {})
             baseParams = {}
-            if stock or (stockOption is False):
+            if stock or not self.safe_bool_2(params, 'stock', 'defaultStock', True):
                 baseParams['stock'] = stock
             baseQuery = self.extend(baseParams, query)
             extendedParams = self.extend(baseQuery, orderParams)

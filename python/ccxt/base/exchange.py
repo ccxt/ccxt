@@ -3257,21 +3257,21 @@ class BaseExchange(object):
 
     def handle_deltas(self, bookside: object, deltas: list[object]):
         for i in range(0, len(deltas)):
-            self.handle_delta(bookside, deltas[i])
+            self.handle_delta(bookside, self.safe_value(deltas, i))
 
     def handle_delta(self, bookside: object, delta: object):
         raise NotSupported(self.id + ' handleDelta not supported yet')
 
     def handle_book_deltas(self, orderbook: object, deltas: object):
         for i in range(0, len(deltas)):
-            self.handle_book_delta(orderbook, deltas[i])
+            self.handle_book_delta(orderbook, self.safe_value(deltas, i))
 
     def handle_book_delta(self, orderbook: object, delta: object):
         raise NotSupported(self.id + ' handleBookDelta not supported yet')
 
     def handle_deltas_with_keys(self, bookSide: object, deltas: list[object], priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2):
         for i in range(0, len(deltas)):
-            bidAsk = self.parse_order_book_bid_ask(deltas[i], priceKey, amountKey, countOrIdKey)
+            bidAsk = self.parse_order_book_bid_ask(self.safe_value(deltas, i), priceKey, amountKey, countOrIdKey)
             bookSide.storeArray(bidAsk)
 
     def get_cache_index(self, orderbook: object, deltas: object):
@@ -4038,7 +4038,7 @@ class BaseExchange(object):
     def orderbook_checksum_message(self, symbol: Str):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' orderbookChecksumMessage() requires a symbol argument')
-        return symbol + ' : ' + 'orderbook data checksum validation failed. You can reconnect by calling watchOrderBook again or you can mute the error by setting exchange.options["watchOrderBook"]["checksum"] = False'
+        return symbol + ' : orderbook data checksum validation failed. You can reconnect by calling watchOrderBook again or you can mute the error by setting exchange.options["watchOrderBook"]["checksum"] = False'
 
     def get_default_options(self):
         return {
@@ -4239,7 +4239,7 @@ class BaseExchange(object):
         if market is not None:
             result = self.extend(cleanStructure, market)
             # set undefined swap/future/etc
-            if result['spot'] is True:
+            if self.safe_bool(result, 'spot') is True:
                 if result['contract'] is None:
                     result['contract'] = False
                 if result['swap'] is None:
@@ -4281,9 +4281,9 @@ class BaseExchange(object):
                 'precision': self.precision,
                 'limits': self.limits,
             }, self.fees['trading'], valueDefined)
-            if market['linear'] is True:
+            if self.safe_bool(market, 'linear') is True:
                 market['subType'] = 'linear'
-            elif market['inverse'] is True:
+            elif self.safe_bool(market, 'inverse') is True:
                 market['subType'] = 'inverse'
             else:
                 market['subType'] = None
@@ -5231,7 +5231,7 @@ class BaseExchange(object):
             if type is not None and market['type'] != type:
                 raise BadRequest(self.id + ' symbols must be of the same type ' + type + '. If the type is incorrect you can change it in options or the params of the request')
             marketType = self.safe_string(market, 'type')
-            if market['spot'] is not True:
+            if self.safe_bool(market, 'spot') is not True:
                 isLinearSubType = self.safe_bool(market, 'linear')
             symbol = self.safe_string(market, 'symbol', symbols[i])
             result.append(symbol)
@@ -6150,7 +6150,7 @@ class BaseExchange(object):
                     marketTypeResolved = self.safe_string(market, 'type', '') if (marketType is None) else marketType
                     for i in range(0, len(markets)):
                         currentMarket = markets[i]
-                        if currentMarket[marketTypeResolved] is True:
+                        if self.safe_bool(currentMarket, marketTypeResolved) is True:
                             return currentMarket
             elif delimiter is not None and delimiter != '':
                 parts = marketId.split(delimiter)
@@ -6403,9 +6403,9 @@ class BaseExchange(object):
         else:
             # at first, check from market object
             if market is not None:
-                if market['linear'] is True:
+                if self.safe_bool(market, 'linear') is True:
                     subType = 'linear'
-                elif market['inverse'] is True:
+                elif self.safe_bool(market, 'inverse') is True:
                     subType = 'inverse'
             # if it was not defined in market object
             if subType is None:
@@ -6703,7 +6703,7 @@ class BaseExchange(object):
             defaultType = self.safe_string_2(self.options, 'defaultType', 'defaultSubType', 'spot')
             for i in range(0, len(marketsList)):
                 market = marketsList[i]
-                if market[defaultType] is True:
+                if self.safe_bool(market, defaultType) is True:
                     return market
             return marketsList[0]
         elif (symbol.endswith('-C')) or (symbol.endswith('-P')) or (symbol.startswith('C-')) or (symbol.startswith('P-')):
@@ -7430,7 +7430,7 @@ class BaseExchange(object):
     def parse_ws_ohlcvs(self, ohlcvs: list[object], market: Market = None, timeframe: str = '1m', since: Int = None, limit: Int = None):
         results = []
         for i in range(0, len(ohlcvs)):
-            results.append(self.parse_ws_ohlcv(ohlcvs[i], market))
+            results.append(self.parse_ws_ohlcv(self.safe_value(ohlcvs, i), market))
         return results
 
     def fetch_transactions(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}):
@@ -7510,7 +7510,7 @@ class BaseExchange(object):
                     response = getattr(self, method)(symbol, None, maxEntriesPerRequestOption, paramsMaxEntriesPerRequest)
                     responseLength = len(response)
                     if self.verbose:
-                        backwardMessage = 'Dynamic pagination call ' + self.number_to_string(calls) + ' method ' + method + ' response length ' + self.number_to_string(responseLength)
+                        backwardMessage = 'Dynamic pagination call ' + self.number_to_string(calls) + ' method ' + method + ' response length ' + str(responseLength)
                         if paginationTimestamp is not None:
                             backwardMessage += ' timestamp ' + self.number_to_string(paginationTimestamp)
                         self.log(backwardMessage)
@@ -7532,7 +7532,7 @@ class BaseExchange(object):
                     response = getattr(self, method)(symbol, paginationTimestamp, maxEntriesPerRequestOption, paramsMaxEntriesPerRequest)
                     responseLength = len(response)
                     if self.verbose:
-                        forwardMessage = 'Dynamic pagination call ' + self.number_to_string(calls) + ' method ' + method + ' response length ' + self.number_to_string(responseLength)
+                        forwardMessage = 'Dynamic pagination call ' + self.number_to_string(calls) + ' method ' + method + ' response length ' + str(responseLength)
                         if paginationTimestamp is not None:
                             forwardMessage += ' timestamp ' + self.number_to_string(paginationTimestamp)
                         self.log(forwardMessage)
@@ -8110,24 +8110,25 @@ class BaseExchange(object):
     def clean_unsubscription(self, client: object, subHash: Str, unsubHash: Str, subHashIsPrefix=False):
         if (unsubHash is not None) and (unsubHash in client.subscriptions):
             del client.subscriptions[unsubHash]
-        if not subHashIsPrefix:
-            if (subHash is not None) and (subHash in client.subscriptions):
-                del client.subscriptions[subHash]
-            if (subHash is not None) and (subHash in client.futures):
-                error = UnsubscribeError(self.id + ' ' + subHash)
-                client.reject(error, subHash)
-        else:
-            clientSubscriptions = list(client.subscriptions.keys())
-            for i in range(0, len(clientSubscriptions)):
-                sub = clientSubscriptions[i]
-                if (sub is not None) and (subHash is not None) and sub.startswith(subHash):
-                    del client.subscriptions[sub]
-            clientFutures = list(client.futures.keys())
-            for i in range(0, len(clientFutures)):
-                future = clientFutures[i]
-                if (future is not None) and (subHash is not None) and future.startswith(subHash):
-                    error = UnsubscribeError(self.id + ' ' + future)
-                    client.reject(error, future)
+        if subHash is not None:
+            if not subHashIsPrefix:
+                if subHash in client.subscriptions:
+                    del client.subscriptions[subHash]
+                if subHash in client.futures:
+                    error = UnsubscribeError(self.id + ' ' + subHash)
+                    client.reject(error, subHash)
+            else:
+                clientSubscriptions = list(client.subscriptions.keys())
+                for i in range(0, len(clientSubscriptions)):
+                    sub = clientSubscriptions[i]
+                    if sub.startswith(subHash):
+                        del client.subscriptions[sub]
+                clientFutures = list(client.futures.keys())
+                for i in range(0, len(clientFutures)):
+                    future = clientFutures[i]
+                    if future.startswith(subHash):
+                        error = UnsubscribeError(self.id + ' ' + future)
+                        client.reject(error, future)
         client.resolve(True, unsubHash)
 
     def clean_cache(self, subscription: dict | None):
@@ -8149,7 +8150,7 @@ class BaseExchange(object):
                         del self.ohlcvs[symbol][timeframe]
         elif symbolsLength > 0:
             for i in range(0, len(symbols)):
-                symbol = symbols[i]
+                symbol = self.safe_string(symbols, i, '')
                 if topic == 'trades':
                     if symbol in self.trades:
                         del self.trades[symbol]
@@ -8163,9 +8164,9 @@ class BaseExchange(object):
                     if symbol in self.bidsasks:
                         del self.bidsasks[symbol]
         else:
-            if topic == 'myTrades' and (self.myTrades is not None):
+            if topic == 'myTrades':
                 self.myTrades = None
-            elif topic == 'orders' and (self.orders is not None):
+            elif topic == 'orders':
                 self.orders = None
             elif topic == 'positions' and (self.positions is not None):
                 self.positions = None

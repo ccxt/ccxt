@@ -154,7 +154,8 @@ class backpack(ccxt.async_support.backpack):
                     quoteChannel = 'stockPrice' if (source == 'External') else 'stockIndicativeQuote'
                     topic = quoteChannel + '.' + ticker
                 else:
-                    topic = 'bookTicker.' + self.ws_venue_market_id(methodName, market, query)
+                    self.ws_venue_market_id(methodName, market, query)
+                    topic = 'bookTicker.' + self.safe_string(market, 'id', '')
             elif source == 'External':
                 externalBaseId = self.safe_string(market, 'baseId', '')
                 topic = 'externalTicker.' + externalBaseId + '_USDC'
@@ -657,7 +658,8 @@ class backpack(ccxt.async_support.backpack):
             market = self.market(marketId)
             tf = self.safe_string(symbolAndTimeframe, 1)
             interval = self.safe_string(self.timeframes, tf, tf)
-            topics.append('kline.' + interval + '.' + self.ws_venue_market_id('watchOHLCVForSymbols', market, query))
+            self.ws_venue_market_id('watchOHLCVForSymbols', market, query)
+            topics.append('kline.' + interval + '.' + self.safe_string(market, 'id', ''))
             messageHashes.append('candles:' + market['symbol'] + ':' + interval)
         symbol, timeframe, candles = await self.watch_public(topics, messageHashes, self.omit(query, ['stock', 'source']))
         limitResolved = limit
@@ -692,7 +694,8 @@ class backpack(ccxt.async_support.backpack):
             market = self.market(marketId)
             tf = self.safe_string(symbolAndTimeframe, 1)
             interval = self.safe_string(self.timeframes, tf, tf)
-            topics.append('kline.' + interval + '.' + self.ws_venue_market_id('watchOHLCVForSymbols', market, query))
+            self.ws_venue_market_id('watchOHLCVForSymbols', market, query)
+            topics.append('kline.' + interval + '.' + self.safe_string(market, 'id', ''))
             messageHashes.append('unsubscribe:candles:' + market['symbol'] + ':' + interval)
         return await self.watch_public(topics, messageHashes, self.omit(query, ['stock', 'source']), True)
 
@@ -1142,7 +1145,7 @@ class backpack(ccxt.async_support.backpack):
             topic = 'account.orderUpdate.' + self.safe_string(market, 'id', '')
             if self.safe_string(market, 'executionModel') == 'rfq':
                 topic = 'account.rfqUpdate.' + self.safe_string(market, 'id', '')
-            messageHash = 'orders:' + symbolResolved
+            messageHash = 'orders:' + self.safe_string(market, 'symbol', '')
         topics = [topic]
         if market is None:
             topics.append('account.rfqUpdate')
@@ -1636,7 +1639,7 @@ class backpack(ccxt.async_support.backpack):
         code = self.safe_integer(error, 'code')
         try:
             if code is not None:
-                msg = self.safe_string(error, 'message')
+                msg = self.safe_string(error, 'message', '')
                 raise ExchangeError(self.id + ' ' + msg)
             return True
         except Exception as e:
