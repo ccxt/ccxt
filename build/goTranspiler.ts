@@ -1943,6 +1943,75 @@ function goNativeObjectKeysLength (line: string, masked: string, typeAt: (name: 
         (((masked.substr (at, all.length) === all) && (typeAt (name, k) === 'map[string]any')) ? 'len(' + name + ')' : all));
 }
 
+// len(ObjectKeys(x)) on an `any` local -> the comma-ok map assertion's len: ObjectKeys answers the keys of a map and
+// nil for anything else, and a failed comma-ok assertion yields a nil map, so len() agrees in every case.
+// `if` / `else if` conditions bind the map in the if-init; a plain statement gets one `xMap, _ :=` line above it.
+function goAnyObjectKeysLength (lines: string[], masked: string[], start: number, end: number, k: number,
+    typeAt: (name: string, k: number) => string | undefined): string {
+    const line = lines[k];
+    const m = masked[k];
+    const call = /(?<![\w.])len\((?:ccxt\.)?ObjectKeys\((\w+)\)\)/g;
+    const names = new Set<string> ();
+    for (let hit = call.exec (m); hit !== null; hit = call.exec (m)) {
+        names.add (hit[1]);
+    }
+    if (names.size !== 1) {
+        return line;
+    }
+    const name = [ ...names ][0];
+    const nameRx = goAccessEscape (name);
+    const before = masked.slice (start, k).join ('\n');
+    const isAny = (typeAt (name, k) === 'any')
+        || new RegExp ('^\\s*' + nameRx + ' := (?:GetArg\\(optionalArgs, \\d+, [^\\n]*\\)|this\\.Omit\\([^\\n]*\\))\\s*$', 'm').test (before);
+    const alone = masked.slice (start, end + 1).join ('\n').match (new RegExp ('(?:^|[^\\w.])' + nameRx + '\\s*(?:,\\s*\\w+\\s*)*:=', 'gm')) ?? [];
+    const decls = masked.slice (start, end + 1).join ('\n').match (new RegExp ('\\bvar\\s+' + nameRx + '\\s', 'g')) ?? [];
+    if (!isAny || ((alone.length + decls.length) !== 1)) {
+        return line;
+    }
+    const mapName = name + 'Map';
+    const bound = mapName + ', _ := ' + name + '.(map[string]any)';
+    const replaced = line.replace (call, 'len(' + mapName + ')');
+    const head = /^(\s*(?:\} else )?if )(.*) \{$/.exec (replaced);
+    // an if-init binding is scoped to its own chain, so earlier ones of the same name never collide
+    const taken = lines.slice (start, end + 1).filter ((l) => !l.includes ('if ' + bound + ';')).join ('\n');
+    if (new RegExp ('\\b' + mapName + '\\b').test (taken)) {
+        return line;
+    }
+    if ((head !== null) && ((m.match (/\{/g) ?? []).length === 1)) {
+        return head[1] + bound + '; ' + head[2] + ' {';
+    }
+    if (!/^\s*(?:var \w+ \w+ = |\w+ := )/.test (line) || /[{}]/.test (m)) {
+        return line;
+    }
+    return /^\s*/.exec (line)[0] + bound + '\n' + replaced;
+}
+
+function goAnyObjectKeysLengthSelfTest (): string[] {
+    const problems: string[] = [];
+    const run = (body: string) => nativeTypedContainerAccess ('func (this *X) f(optionalArgs ...any) any {\n' + body + '\treturn nil\n}');
+    const ifForm = run ('\tquery := this.Omit(optionalArgs, "a")\n\tif len(ObjectKeys(query)) > 0 {\n\t\tthis.Urlencode(query)\n\t}\n');
+    if (!ifForm.includes ('if queryMap, _ := query.(map[string]any); len(queryMap) > 0 {') || ifForm.includes ('ObjectKeys')) {
+        problems.push ('goAnyObjectKeysLength: if form: ' + ifForm);
+    }
+    const stmt = run ('\tvar query any = this.Omit(optionalArgs, "a")\n\tvar n int = len(ObjectKeys(query))\n');
+    if (!stmt.includes ('\tqueryMap, _ := query.(map[string]any)\n\tvar n int = len(queryMap)\n')) {
+        problems.push ('goAnyObjectKeysLength: statement form: ' + stmt);
+    }
+    const reused = run ('\tvar query any = nil\n\tquery = 1\n\tvar n int = len(ObjectKeys(query))\n');
+    if (!reused.includes ('queryMap, _ := query.(map[string]any)\n\tvar n int = len(queryMap)')) {
+        problems.push ('goAnyObjectKeysLength: a re-assigned any local binds at the use site: ' + reused);
+    }
+    const twice = run ('\tquery := this.Omit(optionalArgs, \"a\")\n\tif len(ObjectKeys(query)) > 0 {\n\t\tx()\n\t} else if len(ObjectKeys(query)) > 1 {\n\t\ty()\n\t}\n');
+    if (twice.includes ('ObjectKeys') || (twice.match (/queryMap, _ :=/g) ?? []).length !== 2) {
+        problems.push ('goAnyObjectKeysLength: if / else-if chain: ' + twice);
+    }
+    const typed = run ('\tvar query map[string]any = map[string]any{}\n\tvar n int = len(ObjectKeys(query))\n');
+    if (!typed.includes ('len(query)')) {
+        problems.push ('goAnyObjectKeysLength: typed map regressed: ' + typed);
+    }
+    return problems;
+}
+
 function rewriteTypedContainerFunc (lines: string[], masked: string[], start: number, end: number) {
     retypeSliceProducerLocals (lines, masked, start, end);
     const maskedFunc = masked.slice (start, end + 1).join ('\n');
@@ -1995,6 +2064,9 @@ function rewriteTypedContainerFunc (lines: string[], masked: string[], start: nu
         }
         if ((lines[k] === original) && /\bObjectKeys\(/.test (m)) {
             lines[k] = goNativeObjectKeysLength (lines[k], m, typeAt, k);
+            if (lines[k] === original) {
+                lines[k] = goAnyObjectKeysLength (lines, masked, start, end, k, typeAt);
+            }
         }
     }
 }
@@ -9671,7 +9743,7 @@ async function runMain () {
         return;
     }
     if (process.argv.includes ('--self-test')) {
-        const problems = g10kArithSelfTest ().concat (hx4G17SelfTest ()).concat (goDerefWrapSelfTest ()).concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goTupleIndexSelfTest ()).concat (b02TupleSliceSlotSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (h2kG08SelfTest ()).concat (h2kG11SelfTest ()).concat (goEndpointListSelfTest ()).concat (goAsyncListSelfTest ()).concat (goG14SelfTest ()).concat (goDerefArgMapReadSelfTest ()).concat (goNativeStringAddSelfTest ()).concat (goChanSelfTest ()).concat (g10kDerefSelfTest ()).concat (g10kMaplistSelfTest ()).concat (g10kIsEqualSelfTest ()).concat (g10kGvMapSelfTest ()).concat (g10kStrSelfTest ()).concat (g10kLenSelfTest ()).concat (g10kTypepredSelfTest ()).concat (g10kInopSelfTest ()).concat (g10kArrSelfTest ()).concat (gvListSelfTest ()).concat (g10kMiscSelfTest ()).concat (goProvenParseSelfTest ()).concat (goErrSelfTest ()).concat (goStructReturnsSelfTest ()).concat (goChan3SelfTest ()).concat (goTickerCacheSelfTest ()).concat (hx4G05SelfTest ()).concat (hx4G07SelfTest ()).concat (hx4X01SelfTest ()).concat (hx4G10SelfTest ()).concat (g13AnnotatedSelfTest ()).concat (b02SafeBalanceSelfTest ()).concat (hx4G14MapWriteSelfTest ()).concat (g12SlotChecks ()).concat (g15StrReturnSelfTest ()).concat (hx4G16SelfTest ()).concat (hx4G18SelfTest ()).concat (hx4G19SelfTest ()).concat (hx4G20SelfTest ()).concat (hx4G21SelfTest ()).concat (hx4G22SelfTest ()).concat (hx4G23SelfTest ()).concat (hx4G24SelfTest ()).concat (hx4G25Check ()).concat (hx4G26SelfTest ()).concat (hx4G27SelfTest ()).concat (hx4G27Check ()).concat (hx4G28SelfTest ()).concat (hx4G29Check ()).concat (hx4G30SelfTest ()).concat (hx4G31Check ()).concat (hx4G32SelfTest ()).concat (hx4G33Check ()).concat (hx4G34Check ()).concat (hx4G35Check ()).concat (hx4G36Wired ()).concat (hx4G37Check ()).concat (hx4G38Check ()).concat (hx4G39Check ()).concat (hx4G40Check (hx4G36Aligner ())).concat (hx4G40Wired ()).concat (hx4G41Check ()).concat (hx4G42Check (hx4G36Aligner ())).concat (hx5X26Check ()).concat (hx4G43Wired ()).concat (hx5X27Check ()).concat (hx4G45Check (hx4G36Aligner ())).concat (hx4G45Wired ()).concat (hx5X29Check ()).concat (hx5X29Wired ()).concat (hx5X32StrParamSelfTest ()).concat (hx5P28Check ()).concat (hx10w2G01Check ()).concat (g02check ()).concat (hx10G03Check ()).concat (g04Check ()).concat (g04Wired ()).concat (hx10w2G05Check ()).concat (g06MapReadsSelfTest ()).concat (hx10w2G07SelfCheck ()).concat (hx10G08Check ()).concat (g09Check ()).concat (hx10G10SelfTest ()).concat (g01SubsCheck ()).concat (hx10w3G02SelfCheck ()).concat (g05Check (retypeGoProvenParseMethods)).concat (hx10G06Check ()).concat (hx10w3G07Check ()).concat (g08w3Check ()).concat (g09w3Check (formatGoSource)).concat (g10SelfCheck ()).concat (hx10w4OG01Check ()).concat (hx10OG02Check ()).concat (g10SelfCheck ()).concat (og03selfcheck ()).concat (g01Check ()).concat (g05check ()).concat (hx10G15Check ()).concat (og02IdBookCheck ()).concat (g21Check (formatGoSource)).concat (og03w6SelfCheck ()).concat (og05Check ()).concat (og03w6Wired (formatGoSource)).concat (hx10w6G01BalanceCheck ()).concat (g01BalanceWired (formatGoSource)).concat (hx10w9GB10Check ()).concat (hx10w9GB10Wired (formatGoSource)).concat (g04BookSidesCheck ()).concat (g04BookSidesWired ()).concat (hx10w6G11Check ()).concat (og06SelfCheck ()).concat (hx10w7G14SelfTest ()).concat (hx10w8GB01Check ()).concat (hx10w8GB05Check ()).concat (hx10w9GB11Check ()).concat (gb08Check ()).concat (gp19Check ()).concat (hx10w8Gp08SelfTest ()).concat (hx10w9Gp18SelfTest ()).concat (hx10w9Gp18Wired ()).concat (hx10w8GO04Check ()).concat (gp14SelfTest ()).concat (gb09Check ()).concat (hx10w9GO05Check ()).concat (hx11M43Check ()).concat (hx10w10GP27Check ()).concat (hx10w10Gp26Check ()).concat (hx10w10Gp28Check ()).concat (hx10w10Gp28Wired (formatGoSource)).concat (hx10w9Gp17SelfTest ()).concat (hx10w10GP24Check ()).concat (hx10w10GP24Wired ()).concat (nativeGuardedListElementReadsSelfTest ()).concat (goGofmtLayoutSelfTest ());
+        const problems = g10kArithSelfTest ().concat (hx4G17SelfTest ()).concat (goDerefWrapSelfTest ()).concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goTupleIndexSelfTest ()).concat (b02TupleSliceSlotSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (h2kG08SelfTest ()).concat (h2kG11SelfTest ()).concat (goEndpointListSelfTest ()).concat (goAsyncListSelfTest ()).concat (goG14SelfTest ()).concat (goDerefArgMapReadSelfTest ()).concat (goNativeStringAddSelfTest ()).concat (goChanSelfTest ()).concat (g10kDerefSelfTest ()).concat (g10kMaplistSelfTest ()).concat (g10kIsEqualSelfTest ()).concat (g10kGvMapSelfTest ()).concat (g10kStrSelfTest ()).concat (g10kLenSelfTest ()).concat (g10kTypepredSelfTest ()).concat (g10kInopSelfTest ()).concat (g10kArrSelfTest ()).concat (gvListSelfTest ()).concat (g10kMiscSelfTest ()).concat (goProvenParseSelfTest ()).concat (goErrSelfTest ()).concat (goStructReturnsSelfTest ()).concat (goChan3SelfTest ()).concat (goTickerCacheSelfTest ()).concat (hx4G05SelfTest ()).concat (hx4G07SelfTest ()).concat (hx4X01SelfTest ()).concat (hx4G10SelfTest ()).concat (g13AnnotatedSelfTest ()).concat (b02SafeBalanceSelfTest ()).concat (hx4G14MapWriteSelfTest ()).concat (g12SlotChecks ()).concat (g15StrReturnSelfTest ()).concat (hx4G16SelfTest ()).concat (hx4G18SelfTest ()).concat (hx4G19SelfTest ()).concat (hx4G20SelfTest ()).concat (hx4G21SelfTest ()).concat (hx4G22SelfTest ()).concat (hx4G23SelfTest ()).concat (hx4G24SelfTest ()).concat (hx4G25Check ()).concat (hx4G26SelfTest ()).concat (hx4G27SelfTest ()).concat (hx4G27Check ()).concat (hx4G28SelfTest ()).concat (hx4G29Check ()).concat (hx4G30SelfTest ()).concat (hx4G31Check ()).concat (hx4G32SelfTest ()).concat (hx4G33Check ()).concat (hx4G34Check ()).concat (hx4G35Check ()).concat (hx4G36Wired ()).concat (hx4G37Check ()).concat (hx4G38Check ()).concat (hx4G39Check ()).concat (hx4G40Check (hx4G36Aligner ())).concat (hx4G40Wired ()).concat (hx4G41Check ()).concat (hx4G42Check (hx4G36Aligner ())).concat (hx5X26Check ()).concat (hx4G43Wired ()).concat (hx5X27Check ()).concat (hx4G45Check (hx4G36Aligner ())).concat (hx4G45Wired ()).concat (hx5X29Check ()).concat (hx5X29Wired ()).concat (hx5X32StrParamSelfTest ()).concat (hx5P28Check ()).concat (hx10w2G01Check ()).concat (g02check ()).concat (hx10G03Check ()).concat (g04Check ()).concat (g04Wired ()).concat (hx10w2G05Check ()).concat (g06MapReadsSelfTest ()).concat (hx10w2G07SelfCheck ()).concat (hx10G08Check ()).concat (g09Check ()).concat (hx10G10SelfTest ()).concat (g01SubsCheck ()).concat (hx10w3G02SelfCheck ()).concat (g05Check (retypeGoProvenParseMethods)).concat (hx10G06Check ()).concat (hx10w3G07Check ()).concat (g08w3Check ()).concat (g09w3Check (formatGoSource)).concat (g10SelfCheck ()).concat (hx10w4OG01Check ()).concat (hx10OG02Check ()).concat (g10SelfCheck ()).concat (og03selfcheck ()).concat (g01Check ()).concat (g05check ()).concat (hx10G15Check ()).concat (og02IdBookCheck ()).concat (g21Check (formatGoSource)).concat (og03w6SelfCheck ()).concat (og05Check ()).concat (og03w6Wired (formatGoSource)).concat (hx10w6G01BalanceCheck ()).concat (g01BalanceWired (formatGoSource)).concat (hx10w9GB10Check ()).concat (hx10w9GB10Wired (formatGoSource)).concat (g04BookSidesCheck ()).concat (g04BookSidesWired ()).concat (hx10w6G11Check ()).concat (og06SelfCheck ()).concat (hx10w7G14SelfTest ()).concat (hx10w8GB01Check ()).concat (hx10w8GB05Check ()).concat (hx10w9GB11Check ()).concat (gb08Check ()).concat (gp19Check ()).concat (hx10w8Gp08SelfTest ()).concat (hx10w9Gp18SelfTest ()).concat (hx10w9Gp18Wired ()).concat (hx10w8GO04Check ()).concat (gp14SelfTest ()).concat (gb09Check ()).concat (hx10w9GO05Check ()).concat (hx11M43Check ()).concat (hx10w10GP27Check ()).concat (hx10w10Gp26Check ()).concat (hx10w10Gp28Check ()).concat (hx10w10Gp28Wired (formatGoSource)).concat (hx10w9Gp17SelfTest ()).concat (hx10w10GP24Check ()).concat (hx10w10GP24Wired ()).concat (nativeGuardedListElementReadsSelfTest ()).concat (.concat (goAnyObjectKeysLengthSelfTest ())goGofmtLayoutSelfTest ());
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);
