@@ -702,7 +702,7 @@ export default class deepcoin extends Exchange {
                 // we calculate until (after) for correct pagination
                 const duration = this.parseTimeframe (timeframe);
                 const numberOfCandles = (limit === undefined) ? maxLimit : limit;
-                let endTime = since + (duration * numberOfCandles) * 1000;
+                let endTime = this.parseToInt (since + (duration * numberOfCandles) * 1000);
                 if (until !== undefined) {
                     endTime = Math.min (endTime, until);
                 }
