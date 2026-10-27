@@ -867,7 +867,7 @@ export default class okx extends okxRest {
         for (let i = 0; i < rawLiquidations.length; i++) {
             const rawLiquidation = rawLiquidations[i];
             const liquidation = this.parseWsLiquidation (rawLiquidation);
-            const symbol = this.safeString (liquidation, 'symbol');
+            const symbol = this.safeString (liquidation, 'symbol', '');
             if (this.liquidations === undefined) {
                 const limit = this.safeInteger (this.options, 'liquidationsLimit', 1000);
                 this.liquidations = new ArrayCache (limit);
@@ -972,7 +972,7 @@ export default class okx extends okxRest {
                 return;
             }
             const liquidation = this.parseWsMyLiquidation (rawLiquidation);
-            const symbol = this.safeString (liquidation, 'symbol');
+            const symbol = this.safeString (liquidation, 'symbol', '');
             if (this.liquidations === undefined) {
                 const limit = this.safeInteger (this.options, 'liquidationsLimit', 1000);
                 this.liquidations = new ArrayCache (limit);
