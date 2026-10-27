@@ -1060,7 +1060,7 @@ class bingx extends \ccxt\async\bingx {
         }
         $symbolResolved = ($market !== null) ? $this->safe_string($market, 'symbol') : $symbol;
         list($type, $paramsMarketType) = $this->handle_market_type_and_params('watchOrders', $market, $params);
-        $subType = $this->handle_sub_type_and_params('watchOrders', $market, $paramsMarketType, 'linear')[0];
+        list($subType) = $this->handle_sub_type_and_params('watchOrders', $market, $paramsMarketType, 'linear');
         $isSpot = ($type === 'spot');
         $spotHash = 'spot:private';
         $swapHash = 'swap:private';
@@ -1142,7 +1142,7 @@ class bingx extends \ccxt\async\bingx {
         }
         $symbolResolved = ($market !== null) ? $this->safe_string($market, 'symbol') : $symbol;
         list($type, $paramsMarketType) = $this->handle_market_type_and_params('watchMyTrades', $market, $params);
-        $subType = $this->handle_sub_type_and_params('watchMyTrades', $market, $paramsMarketType, 'linear')[0];
+        list($subType) = $this->handle_sub_type_and_params('watchMyTrades', $market, $paramsMarketType, 'linear');
         $isSpot = ($type === 'spot');
         $spotHash = 'spot:private';
         $swapHash = 'swap:private';
@@ -1255,7 +1255,7 @@ class bingx extends \ccxt\async\bingx {
         $client = $this->client($url);
         $this->set_balance_cache($client, $type, $subType, $subscriptionHash, $paramsSubType);
         list($fetchBalanceSnapshot, $paramsFetchBalanceSnapshot) = $this->handle_option_bool_and_params($paramsSubType, 'watchBalance', 'fetchBalanceSnapshot', true);
-        $awaitBalanceSnapshot = $this->handle_option_bool_and_params($paramsFetchBalanceSnapshot, 'watchBalance', 'awaitBalanceSnapshot', false)[0];
+        list($awaitBalanceSnapshot) = $this->handle_option_bool_and_params($paramsFetchBalanceSnapshot, 'watchBalance', 'awaitBalanceSnapshot', false);
         if ($fetchBalanceSnapshot && $awaitBalanceSnapshot) {
             Async\await($client->future($type . ':fetchBalanceSnapshot'));
         }
@@ -1270,7 +1270,7 @@ class bingx extends \ccxt\async\bingx {
         if (is_array($client->subscriptions) && array_key_exists($subscriptionHash ?? '', $client->subscriptions)) {
             return;
         }
-        $fetchBalanceSnapshot = $this->handle_option_bool_and_params($params, 'watchBalance', 'fetchBalanceSnapshot', true)[0];
+        list($fetchBalanceSnapshot) = $this->handle_option_bool_and_params($params, 'watchBalance', 'fetchBalanceSnapshot', true);
         if ($fetchBalanceSnapshot) {
             $messageHash = $type . ':fetchBalanceSnapshot';
             if (!(is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures))) {
@@ -1343,7 +1343,7 @@ class bingx extends \ccxt\async\bingx {
         $client = $this->client($url);
         $this->set_positions_cache($client, $type, $symbolsNormalized);
         list($fetchPositionsSnapshot, $paramsFetchPositionsSnapshot) = $this->handle_option_bool_and_params($paramsSubType, 'watchPositions', 'fetchPositionsSnapshot', true);
-        $awaitPositionsSnapshot = $this->handle_option_bool_and_params($paramsFetchPositionsSnapshot, 'watchPositions', 'awaitPositionsSnapshot', false)[0];
+        list($awaitPositionsSnapshot) = $this->handle_option_bool_and_params($paramsFetchPositionsSnapshot, 'watchPositions', 'awaitPositionsSnapshot', false);
         $uuid = $this->uuid();
         $subscription = array(
             'unsubscribe' => false,

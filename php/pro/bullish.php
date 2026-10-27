@@ -106,8 +106,7 @@ class bullish extends \ccxt\async\bullish {
         if ($wsUrl === null) {
             throw new ExchangeError($this->id . ' watchPublic() has no public websocket url');
         }
-        $fullUrl = $wsUrl . $url;
-        return Async\await($this->watch($fullUrl, $messageHash, $this->deep_extend($message, $params), $messageHash));
+        return Async\await($this->watch($wsUrl . $url, $messageHash, $this->deep_extend($message, $params), $messageHash));
     }
 
     public function watch_private(string $messageHash, string $subscribeHash, $request = array(), $params = array()): PromiseInterface {
@@ -293,9 +292,7 @@ class bullish extends \ccxt\async\bullish {
         $parsed = $this->parse_ticker($data, $market);
         if ($updateType === 'update') {
             $ticker = $this->safe_dict($this->tickers, $symbol, array());
-            $rawTicker = $this->safe_dict($ticker, 'info', array());
-            $merged = $this->extend($rawTicker, $data);
-            $parsed = $this->parse_ticker($merged, $market);
+            $parsed = $this->parse_ticker($this->extend($this->safe_dict($ticker, 'info', array()), $data), $market);
         }
         $this->tickers[$symbol] = $parsed;
         $messageHash = 'ticker::' . $symbol;
@@ -501,8 +498,7 @@ class bullish extends \ccxt\async\bullish {
             $orders = $this->orders;
             $symbols = array();
             for ($i = 0; $i < count($rawOrders); $i++) {
-                $rawOrder = $rawOrders[$i];
-                $parsedOrder = $this->parse_order($rawOrder);
+                $parsedOrder = $this->parse_order($rawOrders[$i]);
                 $orders->append($parsedOrder);
                 $symbol = $this->safe_string($parsedOrder, 'symbol');
                 if ($symbol !== null) {
@@ -618,8 +614,7 @@ class bullish extends \ccxt\async\bullish {
             $trades = $this->myTrades;
             $symbols = array();
             for ($i = 0; $i < count($rawTrades); $i++) {
-                $rawTrade = $rawTrades[$i];
-                $parsedTrade = $this->parse_trade($rawTrade);
+                $parsedTrade = $this->parse_trade($rawTrades[$i]);
                 $trades->append($parsedTrade);
                 $symbol = $this->safe_string($parsedTrade, 'symbol');
                 if ($symbol !== null) {
@@ -802,8 +797,7 @@ class bullish extends \ccxt\async\bullish {
         $positions = $this->positions;
         $newPositions = array();
         for ($i = 0; $i < count($rawPositions); $i++) {
-            $rawPosition = $rawPositions[$i];
-            $position = $this->parse_position($rawPosition);
+            $position = $this->parse_position($rawPositions[$i]);
             $positions->append($position);
             $newPositions[] = $position;
         }

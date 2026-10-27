@@ -1118,7 +1118,7 @@ class binance extends Exchange {
             $request['limit'] = $limit;
         }
         $wallet = Async\await($this->fetch_wallet('fetchOpenOrders', $paramsMaxEntriesPerRequest));
-        $request['walletAddress'] = $wallet['walletAddress'];
+        $request['walletAddress'] = $this->safe_string($wallet, 'walletAddress');
         $response = Async\await($this->sapiPrivateGetOrderList($this->extend($request, $paramsMaxEntriesPerRequest)));
         //
         // {
@@ -1211,7 +1211,7 @@ class binance extends Exchange {
             $request['endDate'] = $this->yyyymmdd($until);
         }
         $wallet = Async\await($this->fetch_wallet('fetchOrders', $paramsOmitted));
-        $request['walletAddress'] = $wallet['walletAddress'];
+        $request['walletAddress'] = $this->safe_string($wallet, 'walletAddress');
         $response = Async\await($this->sapiPrivateGetOrderHistory($this->extend($request, $paramsOmitted)));
         //
         // {
@@ -1280,7 +1280,7 @@ class binance extends Exchange {
         }
         $wallet = Async\await($this->fetch_wallet('fetchPositions', $params));
         $request = array(
-            'walletAddress' => $wallet['walletAddress'],
+            'walletAddress' => $this->safe_string($wallet, 'walletAddress'),
         );
         $response = Async\await($this->sapiPrivateGetPositionList($this->extend($request, $params)));
         //
@@ -1372,7 +1372,7 @@ class binance extends Exchange {
             $request['marketTopicId'] = $market['info']['marketTopicId'];
         }
         $wallet = Async\await($this->fetch_wallet('fetchOrders', $params));
-        $request['walletAddress'] = $wallet['walletAddress'];
+        $request['walletAddress'] = $this->safe_string($wallet, 'walletAddress');
         $response = Async\await($this->sapiPrivateGetPositionFilter($this->extend($request, $params)));
         //
         //
@@ -1489,7 +1489,7 @@ class binance extends Exchange {
             $request['endDate'] = $this->yyyymmdd($until);
         }
         $wallet = Async\await($this->fetch_wallet('fetchMyTrades', $paramsOmitted));
-        $request['walletAddress'] = $wallet['walletAddress'];
+        $request['walletAddress'] = $this->safe_string($wallet, 'walletAddress');
         $response = Async\await($this->sapiPrivateGetOrderHistory($this->extend($request, $paramsOmitted)));
         //
         // {
@@ -1770,7 +1770,7 @@ class binance extends Exchange {
         $cost = $this->safe_string($params, 'cost');
         $slippageBps = $this->parse_to_int(Precise::string_mul($slippage, '10000'));
         $commonRequest = array(
-            'walletAddress' => $wallet['walletAddress'],
+            'walletAddress' => $this->safe_string($wallet, 'walletAddress'),
             'orderType' => $typeUpper,
             'slippageBps' => $slippageBps,
         );
@@ -1910,7 +1910,7 @@ class binance extends Exchange {
         }
         $wallet = Async\await($this->fetch_wallet('cancelOrders', $params));
         $request = array(
-            'walletAddress' => $wallet['walletAddress'],
+            'walletAddress' => $this->safe_string($wallet, 'walletAddress'),
             'walletId' => $wallet['walletId'],
         );
         // flatten cancelInfoList to dot list, eg. cancelInfoList[o].orderId=1234

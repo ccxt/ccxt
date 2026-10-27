@@ -2062,46 +2062,43 @@ class BaseExchange extends \ccxt\BaseExchange {
                 }
                 // limits
                 $limits = $this->safe_dict($network, 'limits');
-                $limitsMain = $this->safe_dict($currency, 'limits');
-                if ($limitsMain === null) {
-                    $currency['limits'] = array();
-                }
+                $limitsMain = $this->safe_dict($currency, 'limits', array());
                 // deposits
                 $limitsDeposit = $this->safe_dict($limits, 'deposit');
-                $limitsDepositMain = $this->safe_dict($limitsMain, 'deposit');
-                if ($limitsDepositMain === null) {
-                    $currency['limits']['deposit'] = array();
-                }
+                $limitsDepositMain = $this->safe_dict($limitsMain, 'deposit', array());
+                $limitsDepositNew = array();
                 $limitsDepositMin = $this->safe_string($limitsDeposit, 'min');
                 $limitsDepositMax = $this->safe_string($limitsDeposit, 'max');
                 $limitsDepositMinMain = $this->safe_string($limitsDepositMain, 'min');
                 $limitsDepositMaxMain = $this->safe_string($limitsDepositMain, 'max');
                 // find min
                 if ($limitsDepositMinMain === null || Precise::string_lt($limitsDepositMin, $limitsDepositMinMain)) {
-                    $currency['limits']['deposit']['min'] = $this->parse_number($limitsDepositMin);
+                    $limitsDepositNew['min'] = $this->parse_number($limitsDepositMin);
                 }
                 // find max
                 if ($limitsDepositMaxMain === null || Precise::string_gt($limitsDepositMax, $limitsDepositMaxMain)) {
-                    $currency['limits']['deposit']['max'] = $this->parse_number($limitsDepositMax);
+                    $limitsDepositNew['max'] = $this->parse_number($limitsDepositMax);
                 }
                 // withdrawals
                 $limitsWithdraw = $this->safe_dict($limits, 'withdraw');
-                $limitsWithdrawMain = $this->safe_dict($limitsMain, 'withdraw');
-                if ($limitsWithdrawMain === null) {
-                    $currency['limits']['withdraw'] = array();
-                }
+                $limitsWithdrawMain = $this->safe_dict($limitsMain, 'withdraw', array());
+                $limitsWithdrawNew = array();
                 $limitsWithdrawMin = $this->safe_string($limitsWithdraw, 'min');
                 $limitsWithdrawMax = $this->safe_string($limitsWithdraw, 'max');
                 $limitsWithdrawMinMain = $this->safe_string($limitsWithdrawMain, 'min');
                 $limitsWithdrawMaxMain = $this->safe_string($limitsWithdrawMain, 'max');
                 // find min
                 if ($limitsWithdrawMinMain === null || Precise::string_lt($limitsWithdrawMin, $limitsWithdrawMinMain)) {
-                    $currency['limits']['withdraw']['min'] = $this->parse_number($limitsWithdrawMin);
+                    $limitsWithdrawNew['min'] = $this->parse_number($limitsWithdrawMin);
                 }
                 // find max
                 if ($limitsWithdrawMaxMain === null || Precise::string_gt($limitsWithdrawMax, $limitsWithdrawMaxMain)) {
-                    $currency['limits']['withdraw']['max'] = $this->parse_number($limitsWithdrawMax);
+                    $limitsWithdrawNew['max'] = $this->parse_number($limitsWithdrawMax);
                 }
+                $currency['limits'] = $this->extend($limitsMain, array(
+                    'deposit' => $this->extend($limitsDepositMain, $limitsDepositNew),
+                    'withdraw' => $this->extend($limitsWithdrawMain, $limitsWithdrawNew),
+                ));
             }
         }
         return $this->extend(array(
@@ -2378,9 +2375,9 @@ class BaseExchange extends \ccxt\BaseExchange {
     public function safe_balance(array $balance) {
         $balances = $this->omit($balance, array( 'info', 'timestamp', 'datetime', 'free', 'used', 'total' ));
         $codes = is_array($balances) ? array_keys($balances) : array();
-        $balance['free'] = array();
-        $balance['used'] = array();
-        $balance['total'] = array();
+        $freeBalance = array();
+        $usedBalance = array();
+        $totalBalance = array();
         $debtBalance = array();
         for ($i = 0; $i < count($codes); $i++) {
             $code = $codes[$i];
@@ -2400,14 +2397,17 @@ class BaseExchange extends \ccxt\BaseExchange {
             $balance[$code]['free'] = $this->parse_number($free);
             $balance[$code]['used'] = $this->parse_number($used);
             $balance[$code]['total'] = $this->parse_number($total);
-            $balance['free'][$code] = $balance[$code]['free'];
-            $balance['used'][$code] = $balance[$code]['used'];
-            $balance['total'][$code] = $balance[$code]['total'];
+            $freeBalance[$code] = $balance[$code]['free'];
+            $usedBalance[$code] = $balance[$code]['used'];
+            $totalBalance[$code] = $balance[$code]['total'];
             if ($debt !== null) {
                 $balance[$code]['debt'] = $this->parse_number($debt);
                 $debtBalance[$code] = $balance[$code]['debt'];
             }
         }
+        $balance['free'] = $freeBalance;
+        $balance['used'] = $usedBalance;
+        $balance['total'] = $totalBalance;
         $debtBalanceArray = is_array($debtBalance) ? array_keys($debtBalance) : array();
         $length = count($debtBalanceArray);
         if ($length !== 0) {
@@ -3034,13 +3034,14 @@ class BaseExchange extends \ccxt\BaseExchange {
                 if (is_array($reduced[$feeCurrencyCode]) && array_key_exists($rateKey ?? '', $reduced[$feeCurrencyCode])) {
                     $reduced[$feeCurrencyCode][$rateKey]['cost'] = Precise::string_add($reduced[$feeCurrencyCode][$rateKey]['cost'], $cost);
                 } else {
-                    $reduced[$feeCurrencyCode][$rateKey] = array(
+                    $newRateFee = array(
                         'currency' => $code,
                         'cost' => $cost,
                     );
                     if ($rate !== null) {
-                        $reduced[$feeCurrencyCode][$rateKey]['rate'] = $rate;
+                        $newRateFee['rate'] = $rate;
                     }
+                    $reduced[$feeCurrencyCode][$rateKey] = $newRateFee;
                 }
             }
         }
@@ -3573,7 +3574,7 @@ class BaseExchange extends \ccxt\BaseExchange {
         return array( $networkCodeInParams, $paramsOmitted );
     }
 
-    public function select_network_key_from_networks(string $currencyCode, ?string $networkCode, mixed $indexedNetworkEntries, $isIndexedByUnifiedNetworkCode = false) {
+    public function select_network_key_from_networks(string $currencyCode, ?string $networkCode, array $indexedNetworkEntries, $isIndexedByUnifiedNetworkCode = false) {
         // this method is used against raw & unparse network entries, which are just indexed by network id
         $chosenNetworkId = null;
         $availableNetworkIds = is_array($indexedNetworkEntries) ? array_keys($indexedNetworkEntries) : array();
@@ -7130,7 +7131,7 @@ class BaseExchange extends \ccxt\BaseExchange {
                 if ($timeframe === null) {
                     throw new ArgumentsRequired($this->id . ' cleanCache() requires a timeframe argument');
                 }
-                if (($this->ohlcvs !== null) && (is_array($this->ohlcvs) && array_key_exists($symbol ?? '', $this->ohlcvs))) {
+                if (is_array($this->ohlcvs) && array_key_exists($symbol ?? '', $this->ohlcvs)) {
                     if (is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe ?? '', $this->ohlcvs[$symbol])) {
                         unset($this->ohlcvs[$symbol][$timeframe]);
                     }
@@ -7168,7 +7169,7 @@ class BaseExchange extends \ccxt\BaseExchange {
                 for ($i = 0; $i < count($clients); $i++) {
                     $client = $clients[$i];
                     $futures = $client->futures;
-                    if (($futures !== null) && (is_array($futures) && array_key_exists('fetchPositionsSnapshot' ?? '', $futures))) {
+                    if (is_array($futures) && array_key_exists('fetchPositionsSnapshot' ?? '', $futures)) {
                         unset($futures['fetchPositionsSnapshot']);
                     }
                 }

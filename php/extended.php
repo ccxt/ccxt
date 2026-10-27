@@ -1936,8 +1936,7 @@ class extended extends Exchange {
         $currency = $this->currency($code);
         $account = $this->fetch_extended_account();
         $currentAccountId = $this->safe_string($account, 'accountId', '');
-        $fromAccountResolved = ($fromAccount === null) ? $currentAccountId : $fromAccount;
-        if ($fromAccountResolved !== $currentAccountId) {
+        if (($fromAccount !== null) && ($fromAccount !== $currentAccountId)) {
             throw new BadRequest($this->id . ' transfer() can only transfer from the authenticated account');
         }
         $toVault = $this->safe_string_2($params, 'toVault', 'receiverPositionId');
@@ -1948,7 +1947,7 @@ class extended extends Exchange {
         $amountString = $this->currency_to_precision($code, $amount);
         $settlement = $this->create_transfer_settlement_data($amountString, $currency, $account, $toVault, $toL2Key, $params);
         $request = array(
-            'fromAccount' => $fromAccountResolved,
+            'fromAccount' => $currentAccountId,
             'toAccount' => $toAccount,
             'amount' => $amountString,
             'transferredAsset' => $currency['id'],
@@ -1979,7 +1978,7 @@ class extended extends Exchange {
             'datetime' => $this->iso8601($now),
             'currency' => $currency['code'],
             'amount' => $this->parse_number($amountString),
-            'fromAccount' => $fromAccountResolved,
+            'fromAccount' => $currentAccountId,
             'toAccount' => $toAccount,
             'status' => $status,
         );

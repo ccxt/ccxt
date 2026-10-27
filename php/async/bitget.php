@@ -4419,8 +4419,10 @@ class bitget extends Exchange {
         $stockDefault = $this->safe_bool($market, 'stock', false);
         if ($paginate) {
             // the recursive calls read 'stock' and 'uta' themselves, so only peek at the flag here
-            $stockForPagination = $this->handle_option_bool_and_params($paramsPaginate, 'fetchTrades', 'stock', $stockDefault)[0];
-            if ($stockForPagination === true) {
+            $stockForPagination = null;
+            $paramsPeek = null;
+            list($stockForPagination, $paramsPeek) = $this->handle_option_bool_and_params($paramsPaginate, 'fetchTrades', 'stock', $stockDefault);
+            if ($stockForPagination === true && $paramsPeek !== null) {
                 throw new BadRequest($this->id . ' fetchTrades() does not support paginate for tokenized stock markets');
             }
             return Async\await($this->fetch_paginated_call_cursor('fetchTrades', $symbol, $since, $limit, $paramsPaginate, 'idLessThan', 'idLessThan'));
@@ -7380,8 +7382,9 @@ class bitget extends Exchange {
             $request['symbol'] = $market['id'];
             $defaultType = $this->safe_string_2($this->options, 'fetchOpenOrders', 'defaultType', 'spot');
             $marketType = $defaultType;
-            if (is_array($market) && array_key_exists('type' ?? '', $market)) {
-                $marketType = $market['type'];
+            $marketTypeValue = $this->safe_string($market, 'type');
+            if ($marketTypeValue !== null) {
+                $marketType = $marketTypeValue;
             }
             $type = $this->safe_string($paramsMarginMode, 'type', $marketType);
         } else {
@@ -10475,7 +10478,7 @@ class bitget extends Exchange {
             Async\await($this->load_markets());
         }
         $posMode = 'one_way_mode';
-        if ($hedged) {
+        if ($hedged === true) {
             $posMode = 'hedge_mode';
         }
         $request = array();

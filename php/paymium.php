@@ -652,7 +652,7 @@ class paymium extends Exchange {
                 'Api-Key' => $this->apiKey,
                 'Api-Nonce' => $nonce,
             );
-            $signedBody = null;
+            $signedBody = '';
             if ($method === 'POST' && $hasQuery) {
                 $signedBody = $this->json($query);
             }

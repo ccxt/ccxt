@@ -1457,8 +1457,7 @@ class bullish extends Exchange {
         //         }, ...
         //     ]
         //
-        $ohlcvs = $this->to_array($response);
-        return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
+        return $this->parse_ohlcvs($this->to_array($response), $market, $timeframe, $since, $limit);
     }
 
     public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
@@ -1537,8 +1536,7 @@ class bullish extends Exchange {
                 'datetime' => $datetime,
             );
         }
-        $sorted = $this->sort_by($rates, 'timestamp');
-        return $this->filter_by_symbol_since_limit($sorted, $this->safe_string($market, 'symbol'), $since, $limit);
+        return $this->filter_by_symbol_since_limit($this->sort_by($rates, 'timestamp'), $this->safe_string($market, 'symbol'), $since, $limit);
     }
 
     public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -2696,8 +2694,7 @@ class bullish extends Exchange {
         //         }
         //     ]
         //
-        $results = $this->parse_positions($response, $symbols);
-        return $this->filter_by_array_positions($results, 'symbol', $symbols);
+        return $this->filter_by_array_positions($this->parse_positions($response, $symbols), 'symbol', $symbols);
     }
 
     public function parse_position(array $position, ?array $market = null): array {
@@ -3150,8 +3147,7 @@ class bullish extends Exchange {
             } elseif ($method === 'POST') {
                 $requestBody = $this->json($params);
                 $payload = $timestamp . $nonce . $method . '/trading-api/' . $path . $requestBody;
-                $digest = $this->hash($this->encode($payload), 'sha256', 'hex');
-                $signature = $this->hmac($this->encode($digest), $this->encode($this->secret), 'sha256', 'hex');
+                $signature = $this->hmac($this->encode($this->hash($this->encode($payload), 'sha256', 'hex')), $this->encode($this->secret), 'sha256', 'hex');
                 $headers = array(
                     'BX-TIMESTAMP' => $timestamp,
                     'BX-NONCE' => $nonce,
@@ -3206,8 +3202,7 @@ class bullish extends Exchange {
         //     }
         //
         $token = $this->safe_string($response, 'token');
-        $authorizer = $this->safe_string($response, 'authorizer');
-        $this->options['authorizer'] = $authorizer;
+        $this->options['authorizer'] = $this->safe_string($response, 'authorizer');
         $this->token = $token;
         $this->options['tokenExpires'] = $this->sum($this->milliseconds(), 1000 * 60 * 60 * 24); // token expires in 24 hours
         return $token;

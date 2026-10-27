@@ -1064,8 +1064,7 @@ class zebpay extends Exchange {
         );
         $response = null;
         if ($market['spot'] === true) {
-            $orderRequestResult = $this->order_request($symbol, $type, $amount, $request, $price, $query);
-            $response = $this->privateSpotPostV2ExOrders($this->extend($orderRequestResult[0], $orderRequestResult[1]));
+            $response = $this->privateSpotPostV2ExOrders($this->spot_order_body($symbol, $type, $amount, $request, $price, $query));
         } else {
             $marginAsset = $this->safe_string($query, 'marginAsset', 'INR');
             $formType = $this->safe_string_upper($query, 'formType', 'ORDER_FORM');
@@ -1104,7 +1103,7 @@ class zebpay extends Exchange {
         return $this->parse_order($data, $market);
     }
 
-    public function order_request(string $symbol, string $type, ?float $amount, array $request, ?float $price = null, $params = array()) {
+    public function spot_order_body(string $symbol, string $type, ?float $amount, array $request, ?float $price = null, $params = array()): array {
         $upperCaseType = strtoupper($type);
         $triggerPrice = $this->safe_string($params, 'stopLossPrice');
         $quoteOrderQty = $this->safe_string_2($params, 'quoteOrderQty', 'cost', null);
@@ -1126,7 +1125,7 @@ class zebpay extends Exchange {
             $request['amount'] = $this->amount_to_precision($symbol, $amount);
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
-        return array( $request, $paramsOmitted );
+        return $this->extend($request, $paramsOmitted);
     }
 
     public function cancel_order(string $id, ?string $symbol = null, $params = array()): array {
@@ -1967,11 +1966,10 @@ class zebpay extends Exchange {
         $timestamp = (string) $this->milliseconds();
         $signature = '';
         $query = $this->omit($paramsOmitted, $this->extract_params($path));
-        $queryLength = count($query);
         $access = $api[0];
         if ($access === 'public') {
             if ($method === 'GET' || $method === 'DELETE') {
-                if ($queryLength !== 0) {
+                if (count($query) !== 0) {
                     $suffix = '?' . $this->urlencode($query);
                 }
             } else {
@@ -1989,15 +1987,15 @@ class zebpay extends Exchange {
         } else {
             $this->check_required_credentials();
             $isSpot = $marketType === 'spot';
-            $paramsOmitted['timestamp'] = $timestamp;
+            $paramsSigned = $this->extend($paramsOmitted, array( 'timestamp' => $timestamp ));
             if ($method === 'GET' || ($method === 'DELETE' && $isSpot)) {
                 // For GET/DELETE: Append params to URL and sign the query string
-                $queryString = $this->urlencode($paramsOmitted);
+                $queryString = $this->urlencode($paramsSigned);
                 $signature = $this->hmac($this->encode($queryString), $this->encode($this->secret), 'sha256', 'hex');
                 $suffix = '?' . $queryString;
             } else {
                 // For POST/PUT: Convert body to JSON and sign the stringified payload
-                $bodySigned = $this->json($paramsOmitted);
+                $bodySigned = $this->json($paramsSigned);
                 $signature = $this->hmac($this->encode($bodySigned), $this->encode($this->secret), 'sha256', 'hex');
             }
             $headersSigned = array(
