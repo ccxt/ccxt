@@ -2374,12 +2374,7 @@ func (this *Deepcoin) createMarketOrderWithCostBody(ch chan AsyncResult[Order], 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes181415 map[string]any = StructResultMap(r.Value, OrderToMap)
-	if retRes181415 == nil {
-		ch <- AsyncResult[Order]{}
-	} else {
-		ch <- AsyncResult[Order]{Value: OrderFromMap(retRes181415)}
-	}
+	ch <- AsyncResult[Order]{Value: r.Value}
 	return nil
 }
 
@@ -2410,12 +2405,7 @@ func (this *Deepcoin) createMarketBuyOrderWithCostBody(ch chan AsyncResult[Order
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes182815 map[string]any = StructResultMap(r.Value, OrderToMap)
-	if retRes182815 == nil {
-		ch <- AsyncResult[Order]{}
-	} else {
-		ch <- AsyncResult[Order]{Value: OrderFromMap(retRes182815)}
-	}
+	ch <- AsyncResult[Order]{Value: r.Value}
 	return nil
 }
 
@@ -2446,12 +2436,7 @@ func (this *Deepcoin) createMarketSellOrderWithCostBody(ch chan AsyncResult[Orde
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes184215 map[string]any = StructResultMap(r.Value, OrderToMap)
-	if retRes184215 == nil {
-		ch <- AsyncResult[Order]{}
-	} else {
-		ch <- AsyncResult[Order]{Value: OrderFromMap(retRes184215)}
-	}
+	ch <- AsyncResult[Order]{Value: r.Value}
 	return nil
 }
 

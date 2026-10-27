@@ -833,7 +833,7 @@ func (this *Woo) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccxt.Tick
 		return nil
 	}
 
-	ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: ccxt.TickerMapFromMap(this.FilterByArray(this.WsCacheSnapshot("Bidsasks"), "symbol", symbolsNormalized))}
+	ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: this.WsCacheTickerMap("Bidsasks", symbolsNormalized)}
 	return nil
 }
 

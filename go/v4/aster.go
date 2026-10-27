@@ -4543,12 +4543,7 @@ func (this *Aster) reduceMarginBody(ch chan AsyncResult[MarginModification], sym
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes338015 map[string]any = StructResultMap(r.Value, MarginModificationToMap)
-	if retRes338015 == nil {
-		ch <- AsyncResult[MarginModification]{}
-	} else {
-		ch <- AsyncResult[MarginModification]{Value: MarginModificationFromMap(retRes338015)}
-	}
+	ch <- AsyncResult[MarginModification]{Value: r.Value}
 	return nil
 }
 
@@ -4577,12 +4572,7 @@ func (this *Aster) addMarginBody(ch chan AsyncResult[MarginModification], symbol
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes339415 map[string]any = StructResultMap(r.Value, MarginModificationToMap)
-	if retRes339415 == nil {
-		ch <- AsyncResult[MarginModification]{}
-	} else {
-		ch <- AsyncResult[MarginModification]{Value: MarginModificationFromMap(retRes339415)}
-	}
+	ch <- AsyncResult[MarginModification]{Value: r.Value}
 	return nil
 }
 func (this *Aster) ParseIncome(income any, optionalArgs ...any) any {

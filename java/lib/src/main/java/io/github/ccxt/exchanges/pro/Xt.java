@@ -472,10 +472,13 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             {
                 market = this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
             }
-            Object tickers = (this.subscribe((String) (name), "public", "watchTickers", market, symbols, parameters)).join();
-            if (this.newUpdates)
+            if (!java.util.Objects.equals(name, null))
             {
-                return tickers;
+                Object tickers = (this.subscribe((String) (name), "public", "watchTickers", market, symbols, parameters)).join();
+                if (this.newUpdates)
+                {
+                    return tickers;
+                }
             }
             return this.filterByArray(this.tickers, "symbol", symbols, true);
         }).thenApply(Tickers::new);
@@ -509,8 +512,12 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             {
                 throw new NotSupported((this.id + " unWatchTickers() does not support symbols argument, unsubscribtion is for all tickers at once only")) ;
             }
-            String messageHash = ("unsubscribe::" + name);
-            return (this.unSubscribe(messageHash, (String) (name), "public", "unWatchTickers", "ticker", (Map<String, Object>) null, symbols, parameters, new HashMap<String, Object>() {{}})).join();
+            if (!java.util.Objects.equals(name, null))
+            {
+                String messageHash = ("unsubscribe::" + name);
+                return (this.unSubscribe(messageHash, (String) (name), "public", "unWatchTickers", "ticker", (Map<String, Object>) null, symbols, parameters, new HashMap<String, Object>() {{}})).join();
+            }
+            return null;
         });
 
     }

@@ -1408,12 +1408,7 @@ func (this *Latoken) fetchTradingFeeBody(ch chan AsyncResult[TradingFeeInterface
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		var retRes110719 map[string]any = StructResultMap(r.Value, TradingFeeInterfaceToMap)
-		if retRes110719 == nil {
-			ch <- AsyncResult[TradingFeeInterface]{}
-		} else {
-			ch <- AsyncResult[TradingFeeInterface]{Value: TradingFeeInterfaceFromMap(retRes110719)}
-		}
+		ch <- AsyncResult[TradingFeeInterface]{Value: r.Value}
 		return nil
 	} else if method != nil && *method == "fetchPublicTradingFee" {
 
@@ -1421,12 +1416,7 @@ func (this *Latoken) fetchTradingFeeBody(ch chan AsyncResult[TradingFeeInterface
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes110919 map[string]any = StructResultMap(r1.Value, TradingFeeInterfaceToMap)
-		if retRes110919 == nil {
-			ch <- AsyncResult[TradingFeeInterface]{}
-		} else {
-			ch <- AsyncResult[TradingFeeInterface]{Value: TradingFeeInterfaceFromMap(retRes110919)}
-		}
+		ch <- AsyncResult[TradingFeeInterface]{Value: r1.Value}
 		return nil
 	} else {
 		panic(NotSupported(this.Id + " not support this method"))

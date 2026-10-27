@@ -1724,12 +1724,7 @@ func (this *Woo) createMarketBuyOrderWithCostBody(ch chan AsyncResult[Order], sy
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes128115 map[string]any = StructResultMap(r1.Value, OrderToMap)
-	if retRes128115 == nil {
-		ch <- AsyncResult[Order]{}
-	} else {
-		ch <- AsyncResult[Order]{Value: OrderFromMap(retRes128115)}
-	}
+	ch <- AsyncResult[Order]{Value: r1.Value}
 	return nil
 }
 
@@ -1769,12 +1764,7 @@ func (this *Woo) createMarketSellOrderWithCostBody(ch chan AsyncResult[Order], s
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes130215 map[string]any = StructResultMap(r1.Value, OrderToMap)
-	if retRes130215 == nil {
-		ch <- AsyncResult[Order]{}
-	} else {
-		ch <- AsyncResult[Order]{Value: OrderFromMap(retRes130215)}
-	}
+	ch <- AsyncResult[Order]{Value: r1.Value}
 	return nil
 }
 
@@ -1822,12 +1812,7 @@ func (this *Woo) createTrailingAmountOrderBody(ch chan AsyncResult[Order], symbo
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes132915 map[string]any = StructResultMap(r.Value, OrderToMap)
-	if retRes132915 == nil {
-		ch <- AsyncResult[Order]{}
-	} else {
-		ch <- AsyncResult[Order]{Value: OrderFromMap(retRes132915)}
-	}
+	ch <- AsyncResult[Order]{Value: r.Value}
 	return nil
 }
 
@@ -1875,12 +1860,7 @@ func (this *Woo) createTrailingPercentOrderBody(ch chan AsyncResult[Order], symb
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes135615 map[string]any = StructResultMap(r.Value, OrderToMap)
-	if retRes135615 == nil {
-		ch <- AsyncResult[Order]{}
-	} else {
-		ch <- AsyncResult[Order]{Value: OrderFromMap(retRes135615)}
-	}
+	ch <- AsyncResult[Order]{Value: r.Value}
 	return nil
 }
 
@@ -3172,7 +3152,7 @@ func (this *Woo) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], option
 		if marketId == nil {
 			continue
 		}
-		if (this.Markets_by_id() == nil) || !(InOp(this.Markets_by_id(), marketId)) {
+		if _, ok := this.Markets_by_id()[*marketId]; (this.Markets_by_id() == nil) || !ok {
 			continue
 		}
 		var ticker map[string]any = this.Extend(map[string]any{
@@ -4900,12 +4880,7 @@ func (this *Woo) fetchFundingIntervalBody(ch chan AsyncResult[FundingRate], symb
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes376215 map[string]any = StructResultMap(r.Value, FundingRateToMap)
-	if retRes376215 == nil {
-		ch <- AsyncResult[FundingRate]{}
-	} else {
-		ch <- AsyncResult[FundingRate]{Value: FundingRateFromMap(retRes376215)}
-	}
+	ch <- AsyncResult[FundingRate]{Value: r.Value}
 	return nil
 }
 

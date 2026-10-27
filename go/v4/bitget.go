@@ -8283,12 +8283,7 @@ func (this *Bitget) createMarketBuyOrderWithCostBody(ch chan AsyncResult[Order],
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes568715 map[string]any = StructResultMap(r1.Value, OrderToMap)
-	if retRes568715 == nil {
-		ch <- AsyncResult[Order]{}
-	} else {
-		ch <- AsyncResult[Order]{Value: OrderFromMap(retRes568715)}
-	}
+	ch <- AsyncResult[Order]{Value: r1.Value}
 	return nil
 }
 
@@ -13411,12 +13406,7 @@ func (this *Bitget) fetchFundingIntervalsBody(ch chan AsyncResult[map[string]Fun
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes969415 map[string]any = StructResultMap(r1.Value, FundingRateMapToMap)
-	if retRes969415 == nil {
-		ch <- AsyncResult[map[string]FundingRate]{}
-	} else {
-		ch <- AsyncResult[map[string]FundingRate]{Value: FundingRateMapFromMap(retRes969415)}
-	}
+	ch <- AsyncResult[map[string]FundingRate]{Value: r1.Value}
 	return nil
 }
 func (this *Bitget) ParseFundingRate(contract any, optionalArgs ...any) FundingRate {
@@ -13822,12 +13812,7 @@ func (this *Bitget) reduceMarginBody(ch chan AsyncResult[MarginModification], sy
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes1002915 map[string]any = StructResultMap(r.Value, MarginModificationToMap)
-	if retRes1002915 == nil {
-		ch <- AsyncResult[MarginModification]{}
-	} else {
-		ch <- AsyncResult[MarginModification]{Value: MarginModificationFromMap(retRes1002915)}
-	}
+	ch <- AsyncResult[MarginModification]{Value: r.Value}
 	return nil
 }
 
@@ -13860,12 +13845,7 @@ func (this *Bitget) addMarginBody(ch chan AsyncResult[MarginModification], symbo
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes1004715 map[string]any = StructResultMap(r.Value, MarginModificationToMap)
-	if retRes1004715 == nil {
-		ch <- AsyncResult[MarginModification]{}
-	} else {
-		ch <- AsyncResult[MarginModification]{Value: MarginModificationFromMap(retRes1004715)}
-	}
+	ch <- AsyncResult[MarginModification]{Value: r.Value}
 	return nil
 }
 

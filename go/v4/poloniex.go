@@ -5316,12 +5316,7 @@ func (this *Poloniex) reduceMarginBody(ch chan AsyncResult[MarginModification], 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes398515 map[string]any = StructResultMap(r.Value, MarginModificationToMap)
-	if retRes398515 == nil {
-		ch <- AsyncResult[MarginModification]{}
-	} else {
-		ch <- AsyncResult[MarginModification]{Value: MarginModificationFromMap(retRes398515)}
-	}
+	ch <- AsyncResult[MarginModification]{Value: r.Value}
 	return nil
 }
 
@@ -5349,12 +5344,7 @@ func (this *Poloniex) addMarginBody(ch chan AsyncResult[MarginModification], sym
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes399815 map[string]any = StructResultMap(r.Value, MarginModificationToMap)
-	if retRes399815 == nil {
-		ch <- AsyncResult[MarginModification]{}
-	} else {
-		ch <- AsyncResult[MarginModification]{Value: MarginModificationFromMap(retRes399815)}
-	}
+	ch <- AsyncResult[MarginModification]{Value: r.Value}
 	return nil
 }
 func (this *Poloniex) Nonce() any {

@@ -2807,12 +2807,7 @@ func (this *Coinbase) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], o
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		var retRes212919 map[string]any = StructResultMap(r.Value, TickerMapToMap)
-		if retRes212919 == nil {
-			ch <- AsyncResult[map[string]Ticker]{}
-		} else {
-			ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(retRes212919)}
-		}
+		ch <- AsyncResult[map[string]Ticker]{Value: r.Value}
 		return nil
 	}
 
@@ -2820,12 +2815,7 @@ func (this *Coinbase) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], o
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes213115 map[string]any = StructResultMap(r1.Value, TickerMapToMap)
-	if retRes213115 == nil {
-		ch <- AsyncResult[map[string]Ticker]{}
-	} else {
-		ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(retRes213115)}
-	}
+	ch <- AsyncResult[map[string]Ticker]{Value: r1.Value}
 	return nil
 }
 func (this *Coinbase) FetchTickersV2Async(optionalArgs ...any) <-chan AsyncResult[map[string]Ticker] {
@@ -3024,12 +3014,7 @@ func (this *Coinbase) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		var retRes225519 map[string]any = StructResultMap(r.Value, TickerToMap)
-		if retRes225519 == nil {
-			ch <- AsyncResult[Ticker]{}
-		} else {
-			ch <- AsyncResult[Ticker]{Value: TickerFromMap(retRes225519)}
-		}
+		ch <- AsyncResult[Ticker]{Value: r.Value}
 		return nil
 	}
 
@@ -3037,12 +3022,7 @@ func (this *Coinbase) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes225715 map[string]any = StructResultMap(r1.Value, TickerToMap)
-	if retRes225715 == nil {
-		ch <- AsyncResult[Ticker]{}
-	} else {
-		ch <- AsyncResult[Ticker]{Value: TickerFromMap(retRes225715)}
-	}
+	ch <- AsyncResult[Ticker]{Value: r1.Value}
 	return nil
 }
 func (this *Coinbase) FetchTickerV2Async(symbol string, optionalArgs ...any) <-chan AsyncResult[Ticker] {
@@ -4113,12 +4093,7 @@ func (this *Coinbase) createMarketBuyOrderWithCostBody(ch chan AsyncResult[Order
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes311215 map[string]any = StructResultMap(r1.Value, OrderToMap)
-	if retRes311215 == nil {
-		ch <- AsyncResult[Order]{}
-	} else {
-		ch <- AsyncResult[Order]{Value: OrderFromMap(retRes311215)}
-	}
+	ch <- AsyncResult[Order]{Value: r1.Value}
 	return nil
 }
 
@@ -4186,12 +4161,7 @@ func (this *Coinbase) createOrderBody(ch chan AsyncResult[Order], symbol string,
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes315719 map[string]any = StructResultMap(r1.Value, OrderToMap)
-		if retRes315719 == nil {
-			ch <- AsyncResult[Order]{}
-		} else {
-			ch <- AsyncResult[Order]{Value: OrderFromMap(retRes315719)}
-		}
+		ch <- AsyncResult[Order]{Value: r1.Value}
 		return nil
 	}
 	var paramsMarketBuy any = nil

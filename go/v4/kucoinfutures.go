@@ -73,12 +73,7 @@ func (this *Kucoinfutures) fetchBidsAsksBody(ch chan AsyncResult[map[string]Tick
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes5815 map[string]any = StructResultMap(r.Value, TickerMapToMap)
-	if retRes5815 == nil {
-		ch <- AsyncResult[map[string]Ticker]{}
-	} else {
-		ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(retRes5815)}
-	}
+	ch <- AsyncResult[map[string]Ticker]{Value: r.Value}
 	return nil
 }
 

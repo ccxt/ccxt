@@ -3876,12 +3876,7 @@ func (this *Bybit) fetchBidsAsksBody(ch chan AsyncResult[map[string]Ticker], opt
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes278815 map[string]any = StructResultMap(r.Value, TickerMapToMap)
-	if retRes278815 == nil {
-		ch <- AsyncResult[map[string]Ticker]{}
-	} else {
-		ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(retRes278815)}
-	}
+	ch <- AsyncResult[map[string]Ticker]{Value: r.Value}
 	return nil
 }
 func (this *Bybit) ParseOHLCV(ohlcv any, optionalArgs ...any) OHLCV {
@@ -5538,12 +5533,7 @@ func (this *Bybit) createMarketBuyOrderWithCostBody(ch chan AsyncResult[Order], 
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes417415 map[string]any = StructResultMap(r1.Value, OrderToMap)
-	if retRes417415 == nil {
-		ch <- AsyncResult[Order]{}
-	} else {
-		ch <- AsyncResult[Order]{Value: OrderFromMap(retRes417415)}
-	}
+	ch <- AsyncResult[Order]{Value: r1.Value}
 	return nil
 }
 
@@ -5602,12 +5592,7 @@ func (this *Bybit) createMarketSellOrderWithCostBody(ch chan AsyncResult[Order],
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	var retRes420315 map[string]any = StructResultMap(r2.Value, OrderToMap)
-	if retRes420315 == nil {
-		ch <- AsyncResult[Order]{}
-	} else {
-		ch <- AsyncResult[Order]{Value: OrderFromMap(retRes420315)}
-	}
+	ch <- AsyncResult[Order]{Value: r2.Value}
 	return nil
 }
 
@@ -7090,12 +7075,7 @@ func (this *Bybit) fetchOrderBody(ch chan AsyncResult[Order], id any, optionalAr
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes532619 map[string]any = StructResultMap(r2.Value, OrderToMap)
-		if retRes532619 == nil {
-			ch <- AsyncResult[Order]{}
-		} else {
-			ch <- AsyncResult[Order]{Value: OrderFromMap(retRes532619)}
-		}
+		ch <- AsyncResult[Order]{Value: r2.Value}
 		return nil
 	}
 	acknowledge, paramsAcknowledged := this.HandleOptionBoolAndParams(params, "fetchOrder", "acknowledged", false)

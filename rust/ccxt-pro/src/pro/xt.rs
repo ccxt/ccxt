@@ -523,23 +523,23 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut paramsMarketType: Value = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut isContract: bool = type_var.as_str() != Some("spot");
         let mut id: Value = Value::Str(format!("{}{}", Value::Str(format!("{}", self.milliseconds()).into()), name).into()); // call back ID
-        let mut subscribe: Value = Value::Map({
+        let mut subscribe: indexmap::IndexMap<String, Value> = {
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), (if isContract { Value::Str("SUBSCRIBE".into()) } else { Value::Str("subscribe".into()) }));
                 m.insert("id".to_string(), id.clone());
             m
-        });
+        };
         if privateAccess {
             if !isContract {
-                if let Value::Dict(__d) = &mut subscribe { std::sync::Arc::make_mut(__d).insert("params".into(), Value::from(vec![name.clone()])); }
-                if let Value::Dict(__d) = &mut subscribe { std::sync::Arc::make_mut(__d).insert("listenKey".into(), self.get_listen_key(isContract.clone()).await); }
+                subscribe.insert("params".into(), Value::from(vec![name.clone()]));
+                subscribe.insert("listenKey".into(), self.get_listen_key(isContract.clone()).await);
             }  else {
                 let mut listenKey: Value = self.get_listen_key(isContract.clone()).await;
                 let mut param: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str("@".into())).into()), listenKey).into());
-                if let Value::Dict(__d) = &mut subscribe { std::sync::Arc::make_mut(__d).insert("params".into(), Value::from(vec![param])); }
+                subscribe.insert("params".into(), Value::from(vec![param]));
             }
         }  else {
-            if let Value::Dict(__d) = &mut subscribe { std::sync::Arc::make_mut(__d).insert("params".into(), Value::from(vec![name.clone()])); }
+            subscribe.insert("params".into(), Value::from(vec![name.clone()]));
         }
         let mut tradeType: Value = Value::Str("spot".into());
         if isContract {
@@ -549,7 +549,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (symbols != Value::Null) {
             messageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str("::".into())).into()), Value::Str(symbols.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into())).into());
         }
-        let mut request: Value = self.extend(subscribe, &[paramsMarketType]);
+        let mut request: Value = self.extend(Value::Map(subscribe), &[paramsMarketType]);
         let mut tail: Value = access;
         if isContract {
             tail = (if privateAccess { Value::Str("user".into()) } else { Value::Str("market".into()) });
@@ -743,9 +743,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (symbols != Value::Null) {
             market = self.market(symbols.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null));
         }
-        let mut tickers: Value = self.subscribe(name, Value::Str("public".into()), Value::Str("watchTickers".into()), &[market, symbols.clone(), params]).await;
-        if self.newUpdates.as_bool() == Some(true) {
-            return tickers;
+        if (name != Value::Null) {
+            let mut tickers: Value = self.subscribe(name, Value::Str("public".into()), Value::Str("watchTickers".into()), &[market, symbols.clone(), params]).await;
+            if self.newUpdates.as_bool() == Some(true) {
+                return tickers;
+            }
         }
         return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &[symbols]);
 
@@ -778,8 +780,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (symbols != Value::Null) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" unWatchTickers() does not support symbols argument, unsubscribtion is for all tickers at once only".into()))));
         }
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe::".into()), name).into());
-        return self.un_subscribe(messageHash, name, Value::Str("public".into()), Value::Str("unWatchTickers".into()), Value::Str("ticker".into()), &[Value::Null, symbols, params]).await;
+        if (name != Value::Null) {
+            let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe::".into()), name).into());
+            return self.un_subscribe(messageHash, name, Value::Str("public".into()), Value::Str("unWatchTickers".into()), Value::Str("ticker".into()), &[Value::Null, symbols, params]).await;
+        }
+        return Value::Null;
 
     Value::Null
 }

@@ -1752,7 +1752,7 @@ class bitteam extends bitteam$1["default"] {
         let bestAskVolume = undefined;
         const bids = this.safeList(ticker, 'bids');
         const asks = this.safeList(ticker, 'asks');
-        if ((bids !== undefined) && (Array.isArray(bids)) && (asks !== undefined) && (Array.isArray(asks))) {
+        if ((bids !== undefined) && (asks !== undefined)) {
             const bestBid = this.safeDict(bids, 0, {});
             bestBidPrice = this.safeString(bestBid, 'price');
             bestBidVolume = this.safeString(bestBid, 'quantity');

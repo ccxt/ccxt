@@ -4169,13 +4169,13 @@ impl BithumbCore {
                         m.insert("OPEN-API-PARTNER".to_string(), Value::Str("CCXT".into()));
                     m
                 });
-                let mut request: Value = Value::Map({
+                let mut request: indexmap::IndexMap<String, Value> = {
                     let mut m = indexmap::IndexMap::new();
                         m.insert("access_key".to_string(), self.apiKey.clone());
                         m.insert("nonce".to_string(), self.uuid(&[]));
                         m.insert("timestamp".to_string(), self.milliseconds());
                     m
-                });
+                };
                 let mut auth: Value = Value::Str("".into());
                 if (method.as_str() != Some("GET")) && (method.as_str() != Some("DELETE")) {
                     if let Value::Dict(__d) = &mut requestHeaders { std::sync::Arc::make_mut(__d).insert("Content-Type".into(), Value::Str("application/json".into())); }
@@ -4188,10 +4188,10 @@ impl BithumbCore {
                     url = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.implode_hostname(apiUrl.map(Value::from).unwrap_or(Value::Null)), endpoint).into()), Value::Str("?".into())).into()), auth).into());
                 }
                 if hasQuery {
-                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("query_hash".into(), self.hash(self.encode(auth), Value::Str("sha512".into()), &[])); }
-                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("query_hash_alg".into(), Value::Str("SHA512".into())); }
+                    request.insert("query_hash".into(), self.hash(self.encode(auth), Value::Str("sha512".into()), &[]));
+                    request.insert("query_hash_alg".into(), Value::Str("SHA512".into()));
                 }
-                let mut token: Value = jwt(request, self.encode(self.secret.clone()), Value::Str("sha256".into()), Value::Bool(false), Value::Null);
+                let mut token: Value = jwt(Value::Map(request), self.encode(self.secret.clone()), Value::Str("sha256".into()), Value::Bool(false), Value::Null);
                 if let Value::Dict(__d) = &mut requestHeaders { std::sync::Arc::make_mut(__d).insert("Authorization".into(), Value::Str(format!("{}{}", Value::Str("Bearer ".into()), token).into())); }
             }  else {
                 let __ws_arg_49 = self.extend(Value::Map({

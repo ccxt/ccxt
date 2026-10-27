@@ -7645,13 +7645,13 @@ impl BybitCore {
             if (clientOrderId != Value::Null) {
                 idKey = Value::Str("orderLinkId".into());
             }
-            let mut orderItem: Value = Value::Map({
+            let mut orderItem: indexmap::IndexMap<String, Value> = {
                 let mut m = indexmap::IndexMap::new();
                     m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                 m
-            });
-            if let Value::Dict(__d) = &mut orderItem { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&idKey), (if (idKey.as_str() == Some("orderId")) { id } else { clientOrderId })); }
-            ordersRequests.push(orderItem);
+            };
+            orderItem.insert(crate::runtime::stringify_param(&idKey), (if (idKey.as_str() == Some("orderId")) { id } else { clientOrderId }));
+            ordersRequests.push(Value::Map(orderItem));
         }
         }
         let mut request: indexmap::IndexMap<String, Value> = ({

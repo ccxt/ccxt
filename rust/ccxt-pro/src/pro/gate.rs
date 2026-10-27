@@ -3216,9 +3216,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         });
         if (subscription != Value::Null) {
             let mut client: Value = self.client(&[url.clone()]);
-            if !(matches!((&get_value(&client, &Value::Str("subscriptions".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+            let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
+            if !(matches!((&__ch.subscriptions.clone(), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 let mut tempSubscriptionHash: Value = Value::Str(format!("{}", requestId).into());
-                add_element_to_object(&mut get_value(&client, &Value::Str("subscriptions".into())), &tempSubscriptionHash, messageHash.clone());
+                add_element_to_object(&mut __ch.subscriptions, &tempSubscriptionHash, messageHash.clone());
             }
         }
         let mut message: Value = self.extend(Value::Map(request), &[params]);

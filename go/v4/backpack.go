@@ -4000,12 +4000,7 @@ func (this *Backpack) fetchOrderBody(ch chan AsyncResult[Order], id any, optiona
 	if r3.Err != nil {
 		panic(r3.Err)
 	}
-	var retRes292115 map[string]any = StructResultMap(r3.Value, OrderToMap)
-	if retRes292115 == nil {
-		ch <- AsyncResult[Order]{}
-	} else {
-		ch <- AsyncResult[Order]{Value: OrderFromMap(retRes292115)}
-	}
+	ch <- AsyncResult[Order]{Value: r3.Value}
 	return nil
 }
 

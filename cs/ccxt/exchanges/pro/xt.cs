@@ -421,10 +421,13 @@ public partial class xt : ccxt.xt
         {
             market = this.market(getValue(symbols, 0));
         }
-        object tickers = await this.subscribe(name, "public", "watchTickers", market, symbols, parameters);
-        if (this.newUpdates)
+        if ((name != null))
         {
-            return ccxt.BaseExchange.ToTickers(tickers);
+            object tickers = await this.subscribe(name, "public", "watchTickers", market, symbols, parameters);
+            if (this.newUpdates)
+            {
+                return ccxt.BaseExchange.ToTickers(tickers);
+            }
         }
         return ccxt.BaseExchange.ToTickers(this.filterByArray(this.tickers, "symbol", symbols));
     }
@@ -454,8 +457,12 @@ public partial class xt : ccxt.xt
         {
             throw new NotSupported ((this.id + " unWatchTickers() does not support symbols argument, unsubscribtion is for all tickers at once only")) ;
         }
-        string messageHash = ("unsubscribe::" + name);
-        return await this.unSubscribe(messageHash, name, "public", "unWatchTickers", "ticker", null, symbols, parameters);
+        if ((name != null))
+        {
+            string messageHash = ("unsubscribe::" + name);
+            return await this.unSubscribe(messageHash, name, "public", "unWatchTickers", "ticker", null, symbols, parameters);
+        }
+        return null;
     }
 
     /**

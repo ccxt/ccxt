@@ -266762,7 +266762,7 @@ class bitteam extends _abstract_bitteam_js__rspack_import_0/* ["default"] */.A {
         let bestAskVolume = undefined;
         const bids = this.safeList(ticker, 'bids');
         const asks = this.safeList(ticker, 'asks');
-        if (bids !== undefined && Array.isArray(bids) && asks !== undefined && Array.isArray(asks)) {
+        if (bids !== undefined && asks !== undefined) {
             const bestBid = this.safeDict(bids, 0, {});
             bestBidPrice = this.safeString(bestBid, 'price');
             bestBidVolume = this.safeString(bestBid, 'quantity');
@@ -620104,9 +620104,11 @@ class xt extends _xt_js__rspack_import_0/* ["default"] */.A {
         if (symbols !== undefined) {
             market = this.market(symbols[0]);
         }
-        const tickers = await this.subscribe(name, 'public', 'watchTickers', market, symbols, params);
-        if (this.newUpdates) {
-            return tickers;
+        if (name !== undefined) {
+            const tickers = await this.subscribe(name, 'public', 'watchTickers', market, symbols, params);
+            if (this.newUpdates) {
+                return tickers;
+            }
         }
         return this.filterByArray(this.tickers, 'symbol', symbols);
     }
@@ -620130,8 +620132,11 @@ class xt extends _xt_js__rspack_import_0/* ["default"] */.A {
         if (symbols !== undefined) {
             throw new _base_errors_js__rspack_import_1.NotSupported(this.id + ' unWatchTickers() does not support symbols argument, unsubscribtion is for all tickers at once only');
         }
-        const messageHash = 'unsubscribe::' + name;
-        return await this.unSubscribe(messageHash, name, 'public', 'unWatchTickers', 'ticker', undefined, symbols, params);
+        if (name !== undefined) {
+            const messageHash = 'unsubscribe::' + name;
+            return await this.unSubscribe(messageHash, name, 'public', 'unWatchTickers', 'ticker', undefined, symbols, params);
+        }
+        return undefined;
     }
     /**
      * @method

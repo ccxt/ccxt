@@ -2129,12 +2129,7 @@ func (this *Lbank) createMarketBuyOrderWithCostBody(ch chan AsyncResult[Order], 
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes165215 map[string]any = StructResultMap(r1.Value, OrderToMap)
-	if retRes165215 == nil {
-		ch <- AsyncResult[Order]{}
-	} else {
-		ch <- AsyncResult[Order]{Value: OrderFromMap(retRes165215)}
-	}
+	ch <- AsyncResult[Order]{Value: r1.Value}
 	return nil
 }
 
@@ -2467,12 +2462,7 @@ func (this *Lbank) fetchOrderBody(ch chan AsyncResult[Order], id any, optionalAr
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes193719 map[string]any = StructResultMap(r1.Value, OrderToMap)
-		if retRes193719 == nil {
-			ch <- AsyncResult[Order]{}
-		} else {
-			ch <- AsyncResult[Order]{Value: OrderFromMap(retRes193719)}
-		}
+		ch <- AsyncResult[Order]{Value: r1.Value}
 		return nil
 	}
 
@@ -2480,12 +2470,7 @@ func (this *Lbank) fetchOrderBody(ch chan AsyncResult[Order], id any, optionalAr
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	var retRes193915 map[string]any = StructResultMap(r2.Value, OrderToMap)
-	if retRes193915 == nil {
-		ch <- AsyncResult[Order]{}
-	} else {
-		ch <- AsyncResult[Order]{Value: OrderFromMap(retRes193915)}
-	}
+	ch <- AsyncResult[Order]{Value: r2.Value}
 	return nil
 }
 func (this *Lbank) FetchOrderSupplementAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {

@@ -2429,12 +2429,7 @@ func (this *Binance) createMarketOrderWithCostBody(ch chan ccxt.AsyncResult[ccxt
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes179815 map[string]any = ccxt.StructResultMap(r.Value, ccxt.PredictionOrderToMap)
-	if retRes179815 == nil {
-		ch <- ccxt.AsyncResult[ccxt.PredictionOrder]{}
-	} else {
-		ch <- ccxt.AsyncResult[ccxt.PredictionOrder]{Value: ccxt.PredictionOrderFromMap(retRes179815)}
-	}
+	ch <- ccxt.AsyncResult[ccxt.PredictionOrder]{Value: r.Value}
 	return nil
 }
 

@@ -3246,12 +3246,7 @@ func (this *Polymarket) createMarketBuyOrderWithCostBody(ch chan ccxt.AsyncResul
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes222315 map[string]any = ccxt.StructResultMap(r.Value, ccxt.PredictionOrderToMap)
-	if retRes222315 == nil {
-		ch <- ccxt.AsyncResult[ccxt.PredictionOrder]{}
-	} else {
-		ch <- ccxt.AsyncResult[ccxt.PredictionOrder]{Value: ccxt.PredictionOrderFromMap(retRes222315)}
-	}
+	ch <- ccxt.AsyncResult[ccxt.PredictionOrder]{Value: r.Value}
 	return nil
 }
 func (this *Polymarket) PolymarketOrderRawAmounts(side string, size any, price any, tickSize *string, optionalArgs ...any) map[string]any {

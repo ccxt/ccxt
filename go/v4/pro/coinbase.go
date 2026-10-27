@@ -511,7 +511,7 @@ func (this *Coinbase) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.
 		return nil
 	}
 
-	ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: ccxt.TickerMapFromMap(any(this.WsCacheSnapshot("Tickers")))}
+	ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: this.WsCacheTickerMap("Tickers")}
 	return nil
 }
 

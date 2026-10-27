@@ -362,7 +362,7 @@ func (this *Derive) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccxt.T
 		return nil
 	}
 
-	ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: ccxt.TickerMapFromMap(this.FilterByArray(this.WsCacheSnapshot("Bidsasks"), "symbol", symbolsResolved))}
+	ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: this.WsCacheTickerMap("Bidsasks", symbolsResolved)}
 	return nil
 }
 func (this *Derive) HandleTicker(client any, message map[string]any) any {

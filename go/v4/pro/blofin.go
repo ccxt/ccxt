@@ -420,7 +420,7 @@ func (this *Blofin) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Ti
 		return nil
 	}
 
-	ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: ccxt.TickerMapFromMap(this.FilterByArray(this.WsCacheSnapshot("Tickers"), "symbol", symbols))}
+	ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: this.WsCacheTickerMap("Tickers", symbols)}
 	return nil
 }
 func (this *Blofin) HandleTicker(client any, message map[string]any) {
@@ -525,7 +525,7 @@ func (this *Blofin) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccxt.T
 		return nil
 	}
 
-	ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: ccxt.TickerMapFromMap(this.FilterByArray(this.WsCacheSnapshot("Bidsasks"), "symbol", symbolsNormalized))}
+	ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: this.WsCacheTickerMap("Bidsasks", symbolsNormalized)}
 	return nil
 }
 func (this *Blofin) HandleBidAsk(client any, message map[string]any) {

@@ -1401,12 +1401,7 @@ func (this *Woofipro) fetchFundingIntervalBody(ch chan AsyncResult[FundingRate],
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes99815 map[string]any = StructResultMap(r.Value, FundingRateToMap)
-	if retRes99815 == nil {
-		ch <- AsyncResult[FundingRate]{}
-	} else {
-		ch <- AsyncResult[FundingRate]{Value: FundingRateFromMap(retRes99815)}
-	}
+	ch <- AsyncResult[FundingRate]{Value: r.Value}
 	return nil
 }
 
@@ -4611,12 +4606,7 @@ func (this *Woofipro) addMarginBody(ch chan AsyncResult[MarginModification], sym
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes321815 map[string]any = StructResultMap(r.Value, MarginModificationToMap)
-	if retRes321815 == nil {
-		ch <- AsyncResult[MarginModification]{}
-	} else {
-		ch <- AsyncResult[MarginModification]{Value: MarginModificationFromMap(retRes321815)}
-	}
+	ch <- AsyncResult[MarginModification]{Value: r.Value}
 	return nil
 }
 
@@ -4645,12 +4635,7 @@ func (this *Woofipro) reduceMarginBody(ch chan AsyncResult[MarginModification], 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes323215 map[string]any = StructResultMap(r.Value, MarginModificationToMap)
-	if retRes323215 == nil {
-		ch <- AsyncResult[MarginModification]{}
-	} else {
-		ch <- AsyncResult[MarginModification]{Value: MarginModificationFromMap(retRes323215)}
-	}
+	ch <- AsyncResult[MarginModification]{Value: r.Value}
 	return nil
 }
 func (this *Woofipro) ParseLeverage(leverage any, optionalArgs ...any) Leverage {

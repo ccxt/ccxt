@@ -3061,21 +3061,21 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
 }));
         self.load_markets_and_sign_in().await;
         let mut market: Value = self.market(symbol.clone());
-        let mut orderLeg: Value = Value::Map({
+        let mut orderLeg: indexmap::IndexMap<String, Value> = {
             let mut m = indexmap::IndexMap::new();
                 m.insert("instrument".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                 m.insert("size".to_string(), self.amount_to_precision(symbol.clone(), amount));
             m
-        });
+        };
         if (price != Value::Null) {
-            if let Value::Dict(__d) = &mut orderLeg { std::sync::Arc::make_mut(__d).insert("limit_price".into(), self.price_to_precision(symbol.clone(), price)); }
+            orderLeg.insert("limit_price".into(), self.price_to_precision(symbol.clone(), price));
         }  else {
-            if let Value::Dict(__d) = &mut orderLeg { std::sync::Arc::make_mut(__d).insert("limit_price".into(), Value::Null); }
+            orderLeg.insert("limit_price".into(), Value::Null);
         }
         if (side.as_str() == Some("sell")) {
-            if let Value::Dict(__d) = &mut orderLeg { std::sync::Arc::make_mut(__d).insert("is_buying_asset".into(), Value::Bool(false)); }
+            orderLeg.insert("is_buying_asset".into(), Value::Bool(false));
         }  else if (side.as_str() == Some("buy")) {
-            if let Value::Dict(__d) = &mut orderLeg { std::sync::Arc::make_mut(__d).insert("is_buying_asset".into(), Value::Bool(true)); }
+            orderLeg.insert("is_buying_asset".into(), Value::Bool(true));
         }  else {
             panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder(): order side must be either \"buy\" or \"sell\"".into()))));
         }
@@ -3091,7 +3091,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             let mut m = indexmap::IndexMap::new();
                 m.insert("sub_account_id".to_string(), subAccountId);
                 m.insert("time_in_force".to_string(), Value::Null);
-                m.insert("legs".to_string(), Value::from(vec![orderLeg]));
+                m.insert("legs".to_string(), Value::from(vec![Value::Map(orderLeg)]));
                 m.insert("signature".to_string(), self.default_signature());
                 m.insert("metadata".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3301,13 +3301,13 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             let mut denominator: Value = crate::runtime::Math::pow(&Value::Int(10), &sizeDecLength);
             let mut sizeInteger: Value = (match (((match (&(sizeDigits), &(sizeMultiplier)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y),
                 _ => Value::Null })).as_f64(), (denominator).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null });
-            let mut legOrder: Value = Value::Map({
+            let mut legOrder: indexmap::IndexMap<String, Value> = {
                 let mut m = indexmap::IndexMap::new();
                     m.insert("assetID".to_string(), self.safe_string_k(market.get("info").cloned().unwrap_or(Value::Null), "instrument_hash", &[]));
                     m.insert("contractSize".to_string(), self.parse_to_int(sizeInteger));
                     m.insert("isBuyingContract".to_string(), leg.as_map().and_then(|__m| __m.get("is_buying_asset")).cloned().unwrap_or(Value::Null));
                 m
-            });
+            };
             let mut limitPrice: Option<String> = self.safe_string_k_opt(leg, "limit_price", &[]);
             if (limitPrice.is_some()) && (self.omit_zero(limitPrice.clone().map(Value::from).unwrap_or(Value::Null)) != Value::Null) {
                 let mut price: Value = limitPrice.map(Value::from).unwrap_or(Value::Null);
@@ -3318,11 +3318,11 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                 denominator = crate::runtime::Math::pow(&Value::Int(10), &limitDecLength);
                 let mut priceInteger: Value = (match (((match (&(priceDigits), &(priceMultiplier)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y),
                     _ => Value::Null })).as_f64(), (denominator).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null });
-                if let Value::Dict(__d) = &mut legOrder { std::sync::Arc::make_mut(__d).insert("limitPrice".into(), self.parse_to_int(priceInteger)); }
+                legOrder.insert("limitPrice".into(), self.parse_to_int(priceInteger));
             }  else {
-                if let Value::Dict(__d) = &mut legOrder { std::sync::Arc::make_mut(__d).insert("limitPrice".into(), Value::Int(0)); }; // should be zero to validate type-check
+                legOrder.insert("limitPrice".into(), Value::Int(0));; // should be zero to validate type-check
             }
-            legs.push(legOrder);
+            legs.push(Value::Map(legOrder));
         }
         }
         let mut orderSignature: indexmap::IndexMap<String, Value> = (match order.get("signature") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({

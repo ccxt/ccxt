@@ -2304,14 +2304,14 @@ impl BitteamCore {
         let mut bestAskVolume: Value = Value::Null;
         let mut bids: Value = self.safe_list_k(ticker.clone(), "bids", &[]);
         let mut asks: Value = self.safe_list_k(ticker.clone(), "asks", &[]);
-        if (bids != Value::Null) && (matches!(&bids, Value::Arr(_))) && (asks != Value::Null) && (matches!(&asks, Value::Arr(_))) {
-            let mut bestBid: Value = self.safe_dict(bids.clone(), Value::Int(0), &[Value::Map({
+        if (bids != Value::Null) && (asks != Value::Null) {
+            let mut bestBid: Value = self.safe_dict(bids, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
             bestBidPrice = self.safe_string_k(bestBid.clone(), "price", &[]);
             bestBidVolume = self.safe_string_k(bestBid, "quantity", &[]);
-            let mut bestAsk: Value = self.safe_dict(asks.clone(), Value::Int(0), &[Value::Map({
+            let mut bestAsk: Value = self.safe_dict(asks, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);

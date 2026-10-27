@@ -794,12 +794,7 @@ func (this *Onetrading) fetchTradingFeesBody(ch chan AsyncResult[map[string]Trad
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		var retRes66319 map[string]any = StructResultMap(r.Value, TradingFeeInterfaceMapToMap)
-		if retRes66319 == nil {
-			ch <- AsyncResult[map[string]TradingFeeInterface]{}
-		} else {
-			ch <- AsyncResult[map[string]TradingFeeInterface]{Value: TradingFeeInterfaceMapFromMap(retRes66319)}
-		}
+		ch <- AsyncResult[map[string]TradingFeeInterface]{Value: r.Value}
 		return nil
 	} else if method != nil && *method == "fetchPublicTradingFees" {
 
@@ -807,12 +802,7 @@ func (this *Onetrading) fetchTradingFeesBody(ch chan AsyncResult[map[string]Trad
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes66519 map[string]any = StructResultMap(r1.Value, TradingFeeInterfaceMapToMap)
-		if retRes66519 == nil {
-			ch <- AsyncResult[map[string]TradingFeeInterface]{}
-		} else {
-			ch <- AsyncResult[map[string]TradingFeeInterface]{Value: TradingFeeInterfaceMapFromMap(retRes66519)}
-		}
+		ch <- AsyncResult[map[string]TradingFeeInterface]{Value: r1.Value}
 		return nil
 	} else {
 		panic(NotSupported(this.Id + " fetchTradingFees() does not support " + *method + ", fetchPrivateTradingFees and fetchPublicTradingFees are supported"))

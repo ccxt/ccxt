@@ -1890,10 +1890,10 @@ impl HyperliquidCore {
             response = self.fetch_markets(&[paramsHip3]).await;
         }
         // same response as under "fetchMarkets"
-        let mut result: Value = Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = {
             let mut m = indexmap::IndexMap::new();
             m
-        });
+        };
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_804: bool = true;
@@ -1905,10 +1905,10 @@ impl HyperliquidCore {
 })]);
             let mut ticker: Value = self.parse_ticker(info, &[market]);
             let mut symbol: Option<String> = self.safe_string_k_opt(ticker.clone(), "symbol", &[]);
-            if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), ticker); }
+            result.insert(symbol.as_deref().unwrap_or("null").to_string(), ticker);
         }
         }
-        return self.filter_by_array_tickers(result, Value::Str("symbol".into()), &[symbolsNormalized]);
+        return self.filter_by_array_tickers(Value::Map(result), Value::Str("symbol".into()), &[symbolsNormalized]);
 
     Value::Null
 }
@@ -3799,7 +3799,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("nonce".to_string(), nonce.clone());
             m
         });
-        let mut cancelReq: Vec<Value> = vec![];
+        let mut cancelReq: Value = Value::from(vec![]);
         let mut cancelAction: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("".into()));
@@ -3833,11 +3833,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             });
             if let Value::Dict(__d) = &mut cancelObj { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&assetKey), self.parse_to_numeric(market.get("baseId").cloned().unwrap_or(Value::Null))); }
             if let Value::Dict(__d) = &mut cancelObj { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&idKey), (if cancelByCloid { clientOrderId } else { self.parse_to_numeric(id.map(Value::from).unwrap_or(Value::Null)) })); }
-            cancelReq.push(cancelObj);
+            if let Value::Arr(__a) = &mut cancelReq { std::sync::Arc::make_mut(__a).push(cancelObj); }
         }
         }
         cancelAction.insert("type".into(), (if cancelByCloid { Value::Str("cancelByCloid".into()) } else { Value::Str("cancel".into()) }));
-        cancelAction.insert("cancels".into(), Value::Array(cancelReq));
+        cancelAction.insert("cancels".into(), cancelReq);
         let mut vaultAddressOption: Value = self.handle_option_string_and_params2(params, Value::Str("cancelOrdersForSymbols".into()), Value::Str("vaultAddress".into()), Value::Str("subAccountAddress".into()), &[]).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut vaultAddress: Value = self.format_vault_address(&[vaultAddressOption]).map(Value::from).unwrap_or(Value::Null);
         let mut signature: Value = self.sign_l1_action(Value::Map(cancelAction.clone()), nonce, &[vaultAddress.clone()]);
@@ -6989,7 +6989,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut params2: Value = vaultAddressOptionparams2Variable.get(1).cloned().unwrap_or(Value::Null);
         let mut vaultAddress: Value = self.format_vault_address(&[vaultAddressOption]).map(Value::from).unwrap_or(Value::Null);
         let mut symbolValue: Value = self.safe_string_k(market, "symbol", &[Value::Str("".into())]);
-        let mut order: Value = Value::Map({
+        let mut order: indexmap::IndexMap<String, Value> = {
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), symbolValue);
                 m.insert("type".to_string(), type_var);
@@ -6998,18 +6998,18 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("price".to_string(), price);
                 m.insert("params".to_string(), params2);
             m
-        });
-        let mut globalParams: Value = Value::Map({
+        };
+        let mut globalParams: indexmap::IndexMap<String, Value> = {
             let mut m = indexmap::IndexMap::new();
             m
-        });
+        };
         if (vaultAddress != Value::Null) {
-            if let Value::Dict(__d) = &mut globalParams { std::sync::Arc::make_mut(__d).insert("vaultAddress".into(), vaultAddress); }
+            globalParams.insert("vaultAddress".into(), vaultAddress);
         }
         if (id != Value::Null) {
-            if let Value::Dict(__d) = &mut order { std::sync::Arc::make_mut(__d).insert("id".into(), id); }
+            order.insert("id".into(), id);
         }
-        return Value::from(vec![order, globalParams]);
+        return Value::from(vec![Value::Map(order), Value::Map(globalParams)]);
 
     Value::Null
 }

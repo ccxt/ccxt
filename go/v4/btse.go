@@ -2441,12 +2441,7 @@ func (this *Btse) createOrderBody(ch chan AsyncResult[Order], symbol string, typ
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes188819 map[string]any = StructResultMap(r1.Value, OrderToMap)
-		if retRes188819 == nil {
-			ch <- AsyncResult[Order]{}
-		} else {
-			ch <- AsyncResult[Order]{Value: OrderFromMap(retRes188819)}
-		}
+		ch <- AsyncResult[Order]{Value: r1.Value}
 		return nil
 	} else {
 
@@ -2454,12 +2449,7 @@ func (this *Btse) createOrderBody(ch chan AsyncResult[Order], symbol string, typ
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes189019 map[string]any = StructResultMap(r2.Value, OrderToMap)
-		if retRes189019 == nil {
-			ch <- AsyncResult[Order]{}
-		} else {
-			ch <- AsyncResult[Order]{Value: OrderFromMap(retRes189019)}
-		}
+		ch <- AsyncResult[Order]{Value: r2.Value}
 		return nil
 	}
 }

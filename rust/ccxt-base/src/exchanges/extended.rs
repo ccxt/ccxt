@@ -1414,10 +1414,10 @@ impl ExtendedCore {
         //     }
         //
         let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
-        let mut tickers: Value = Value::Map({
+        let mut tickers: indexmap::IndexMap<String, Value> = {
             let mut m = indexmap::IndexMap::new();
             m
-        });
+        };
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_660: bool = true;
@@ -1432,11 +1432,11 @@ impl ExtendedCore {
             let mut ticker: indexmap::IndexMap<String, Value> = self.parse_ticker(stats, &[market]).as_map().cloned().unwrap_or_default();
             let mut symbol: Value = ticker.get("symbol").cloned().unwrap_or(Value::Null);
             if (symbol != Value::Null) {
-                if let Value::Dict(__d) = &mut tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map(ticker)); }
+                tickers.insert(crate::runtime::stringify_param(&symbol), Value::Map(ticker));
             }
         }
         }
-        return self.filter_by_array_tickers(tickers, Value::Str("symbol".into()), &[symbolsNormalized]);
+        return self.filter_by_array_tickers(Value::Map(tickers), Value::Str("symbol".into()), &[symbolsNormalized]);
 
     Value::Null
 }
@@ -3991,32 +3991,32 @@ impl ExtendedCore {
                 if (triggerDirection.is_none()) {
                     panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires triggerDirection for trigger order".into()))));
                 }
-                let mut trigger: Value = Value::Map({
+                let mut trigger: indexmap::IndexMap<String, Value> = {
                     let mut m = indexmap::IndexMap::new();
                         m.insert("triggerPrice".to_string(), self.price_to_precision(symbol.clone(), triggerPriceStr.clone()));
                     m
-                });
-                if let Value::Dict(__d) = &mut trigger { std::sync::Arc::make_mut(__d).insert("direction".into(), triggerDirection.map(Value::from).unwrap_or(Value::Null)); }
+                };
+                trigger.insert("direction".into(), triggerDirection.map(Value::from).unwrap_or(Value::Null));
                 request.insert("type".into(), Value::Str("CONDITIONAL".into()));
-                request.insert("trigger".into(), trigger.clone());
+                request.insert("trigger".into(), Value::Map(trigger));
             }  else if isStopLossOrder || isTakeProfitOrder {
                 if isStopLossOrder {
                     triggerPriceStr = stopLossTriggerPrice.map(Value::from).unwrap_or(Value::Null);
                 }  else {
                     triggerPriceStr = takeProfitTriggerPrice.map(Value::from).unwrap_or(Value::Null);
                 }
-                let mut trigger: Value = Value::Map({
+                let mut trigger: indexmap::IndexMap<String, Value> = {
                     let mut m = indexmap::IndexMap::new();
                         m.insert("triggerPrice".to_string(), self.price_to_precision(symbol, triggerPriceStr));
                     m
-                });
+                };
                 if matches!(&isBuy, Value::Bool(true)) {
-                    if let Value::Dict(__d) = &mut trigger { std::sync::Arc::make_mut(__d).insert("direction".into(), (if isStopLossOrder { Value::Str("UP".into()) } else { Value::Str("DOWN".into()) })); }
+                    trigger.insert("direction".into(), (if isStopLossOrder { Value::Str("UP".into()) } else { Value::Str("DOWN".into()) }));
                 }  else {
-                    if let Value::Dict(__d) = &mut trigger { std::sync::Arc::make_mut(__d).insert("direction".into(), (if isStopLossOrder { Value::Str("DOWN".into()) } else { Value::Str("UP".into()) })); }
+                    trigger.insert("direction".into(), (if isStopLossOrder { Value::Str("DOWN".into()) } else { Value::Str("UP".into()) }));
                 }
                 request.insert("type".into(), Value::Str("CONDITIONAL".into()));
-                request.insert("trigger".into(), trigger);
+                request.insert("trigger".into(), Value::Map(trigger));
             }
         }
         let mut paramsOmitted: Value = self.omit(paramsBuilder, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("client_id".into()), Value::Str("timeInForce".into()), Value::Str("postOnly".into()), Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), Value::Str("fee".into()), Value::Str("nonce".into()),

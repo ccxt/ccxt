@@ -1494,7 +1494,7 @@ impl SxbetCore {
         let mut encoded: Value = self.eth_encode_structured_data(domain, Value::Map(messageTypes), Value::Map(messageData));
         let mut digest: Value = self.hash_eip712_digest(encoded).map(Value::from).unwrap_or(Value::Null);
         let mut orderSignature: Value = self.sign_digest(digest, self.privateKey.clone()).map(Value::from).unwrap_or(Value::Null);
-        let mut orderItem: Value = Value::Map({
+        let mut orderItem: indexmap::IndexMap<String, Value> = {
             let mut m = indexmap::IndexMap::new();
                 m.insert("marketHash".to_string(), marketHash);
                 m.insert("maker".to_string(), maker);
@@ -1507,26 +1507,26 @@ impl SxbetCore {
                 m.insert("timeInForce".to_string(), timeInForce.clone());
                 m.insert("orderSignature".to_string(), orderSignature);
             m
-        });
+        };
         let mut clientOrderId: Option<String> = self.safe_string_k_opt(paramsTimeInForce.clone(), "clientOrderId", &[]);
         if (clientOrderId.is_some()) {
-            if let Value::Dict(__d) = &mut orderItem { std::sync::Arc::make_mut(__d).insert("clientOrderId".into(), clientOrderId.clone().map(Value::from).unwrap_or(Value::Null)); }
+            orderItem.insert("clientOrderId".into(), clientOrderId.clone().map(Value::from).unwrap_or(Value::Null));
         }
         // useBetCredits and externalUserId are per-order fields - route them into the order item,
         // not the top-level body, where the venue would silently ignore them
         let mut useBetCredits: Value = self.safe_bool_k(paramsTimeInForce.clone(), "useBetCredits", &[]);
         if (useBetCredits != Value::Null) {
-            if let Value::Dict(__d) = &mut orderItem { std::sync::Arc::make_mut(__d).insert("useBetCredits".into(), useBetCredits); }
+            orderItem.insert("useBetCredits".into(), useBetCredits);
         }
         let mut externalUserId: Option<String> = self.safe_string_k_opt(paramsTimeInForce.clone(), "externalUserId", &[]);
         if (externalUserId.is_some()) {
-            if let Value::Dict(__d) = &mut orderItem { std::sync::Arc::make_mut(__d).insert("externalUserId".into(), externalUserId.map(Value::from).unwrap_or(Value::Null)); }
+            orderItem.insert("externalUserId".into(), externalUserId.map(Value::from).unwrap_or(Value::Null));
         }
         let mut waitForOutcome: Value = self.safe_bool_k(paramsTimeInForce.clone(), "waitForOutcome", &[Value::Bool(true)]);
         let mut rest: Value = self.omit(paramsTimeInForce, Value::from(vec![Value::Str("salt".into()), Value::Str("expiry".into()), Value::Str("clientOrderId".into()), Value::Str("waitForOutcome".into()), Value::Str("useBetCredits".into()), Value::Str("externalUserId".into())]), &[]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("orders".to_string(), Value::from(vec![orderItem]));
+                m.insert("orders".to_string(), Value::from(vec![Value::Map(orderItem)]));
                 m.insert("waitForOutcome".to_string(), waitForOutcome);
             m
         });

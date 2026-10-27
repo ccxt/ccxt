@@ -2588,12 +2588,7 @@ func (this *Digifinex) createMarketBuyOrderWithCostBody(ch chan AsyncResult[Orde
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes197415 map[string]any = StructResultMap(r1.Value, OrderToMap)
-	if retRes197415 == nil {
-		ch <- AsyncResult[Order]{}
-	} else {
-		ch <- AsyncResult[Order]{Value: OrderFromMap(retRes197415)}
-	}
+	ch <- AsyncResult[Order]{Value: r1.Value}
 	return nil
 }
 
@@ -4777,12 +4772,7 @@ func (this *Digifinex) fetchFundingIntervalBody(ch chan AsyncResult[FundingRate]
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes360215 map[string]any = StructResultMap(r.Value, FundingRateToMap)
-	if retRes360215 == nil {
-		ch <- AsyncResult[FundingRate]{}
-	} else {
-		ch <- AsyncResult[FundingRate]{Value: FundingRateFromMap(retRes360215)}
-	}
+	ch <- AsyncResult[FundingRate]{Value: r.Value}
 	return nil
 }
 func (this *Digifinex) ParseFundingRate(contract any, optionalArgs ...any) FundingRate {
@@ -5961,12 +5951,7 @@ func (this *Digifinex) addMarginBody(ch chan AsyncResult[MarginModification], sy
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes451615 map[string]any = StructResultMap(r.Value, MarginModificationToMap)
-	if retRes451615 == nil {
-		ch <- AsyncResult[MarginModification]{}
-	} else {
-		ch <- AsyncResult[MarginModification]{Value: MarginModificationFromMap(retRes451615)}
-	}
+	ch <- AsyncResult[MarginModification]{Value: r.Value}
 	return nil
 }
 
@@ -5998,12 +5983,7 @@ func (this *Digifinex) reduceMarginBody(ch chan AsyncResult[MarginModification],
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes453315 map[string]any = StructResultMap(r.Value, MarginModificationToMap)
-	if retRes453315 == nil {
-		ch <- AsyncResult[MarginModification]{}
-	} else {
-		ch <- AsyncResult[MarginModification]{Value: MarginModificationFromMap(retRes453315)}
-	}
+	ch <- AsyncResult[MarginModification]{Value: r.Value}
 	return nil
 }
 func (this *Digifinex) ModifyMarginHelperAsync(symbol string, amount any, typeVar any, optionalArgs ...any) <-chan AsyncResult[MarginModification] {

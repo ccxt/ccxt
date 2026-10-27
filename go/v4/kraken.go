@@ -2158,12 +2158,7 @@ func (this *Kraken) createMarketOrderWithCostBody(ch chan AsyncResult[Order], sy
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes169415 map[string]any = StructResultMap(r1.Value, OrderToMap)
-	if retRes169415 == nil {
-		ch <- AsyncResult[Order]{}
-	} else {
-		ch <- AsyncResult[Order]{Value: OrderFromMap(retRes169415)}
-	}
+	ch <- AsyncResult[Order]{Value: r1.Value}
 	return nil
 }
 
@@ -2199,12 +2194,7 @@ func (this *Kraken) createMarketBuyOrderWithCostBody(ch chan AsyncResult[Order],
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes171115 map[string]any = StructResultMap(r1.Value, OrderToMap)
-	if retRes171115 == nil {
-		ch <- AsyncResult[Order]{}
-	} else {
-		ch <- AsyncResult[Order]{Value: OrderFromMap(retRes171115)}
-	}
+	ch <- AsyncResult[Order]{Value: r1.Value}
 	return nil
 }
 
@@ -4335,12 +4325,7 @@ func (this *Kraken) createDepositAddressBody(ch chan AsyncResult[DepositAddress]
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes330915 map[string]any = StructResultMap(r.Value, DepositAddressToMap)
-	if retRes330915 == nil {
-		ch <- AsyncResult[DepositAddress]{}
-	} else {
-		ch <- AsyncResult[DepositAddress]{Value: DepositAddressFromMap(retRes330915)}
-	}
+	ch <- AsyncResult[DepositAddress]{Value: r.Value}
 	return nil
 }
 
@@ -4766,12 +4751,7 @@ func (this *Kraken) transferOutBody(ch chan AsyncResult[TransferEntry], code any
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes363315 map[string]any = StructResultMap(r.Value, TransferEntryToMap)
-	if retRes363315 == nil {
-		ch <- AsyncResult[TransferEntry]{}
-	} else {
-		ch <- AsyncResult[TransferEntry]{Value: TransferEntryFromMap(retRes363315)}
-	}
+	ch <- AsyncResult[TransferEntry]{Value: r.Value}
 	return nil
 }
 

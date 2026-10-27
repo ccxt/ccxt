@@ -612,7 +612,7 @@ impl LimitlessCore {
         // scope the listing: without a search query loadMarkets would otherwise page through
         // every active limitless market. Cap the total number of markets collected.
         let mut maxMarkets: Value = self.safe_integer_k(params.clone(), "limit", &[self.safe_integer(self.options.clone(), Value::Str("fetchMarketsLimit".into()), &[Value::Int(1000)])]);
-        let mut allRaw: Value = Value::from(vec![]);
+        let mut allRaw: Vec<Value> = vec![];
         let mut queriesLength: f64 = ((queries.len() as i64) as f64);
         if queriesLength > ((0i64) as f64) {
             let mut requestedLimit: Value = self.safe_integer_k(params, "limit", &[Value::Int(50)]);
@@ -648,7 +648,7 @@ impl LimitlessCore {
                     let mut slug: Option<String> = self.safe_string_k_opt(raw.clone(), "slug", &[]);
                     if ((slug.is_some()) && (slug.as_deref() != Some(""))) && !(matches!((&seen, &slug.clone().map(Value::from).unwrap_or(Value::Null)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                         if let Value::Dict(__d) = &mut seen { std::sync::Arc::make_mut(__d).insert(slug.as_deref().unwrap_or("null").to_string(), Value::Bool(true)); }
-                        if let Value::Arr(__a) = &mut allRaw { std::sync::Arc::make_mut(__a).push(raw.clone()); }
+                        allRaw.push(raw.clone());
                     }
                 }
                 }
@@ -666,7 +666,7 @@ impl LimitlessCore {
             let __ws_arg_1 = self.extend(Value::Map(request.clone()), &[rest.clone()]);
             let mut firstPageResponse: Value = self.limitless_public_get_markets_active(&[__ws_arg_1]).await;
             let mut firstData: Value = self.safe_list_k(firstPageResponse.clone(), "data", &[Value::from(vec![])]);
-            allRaw = self.array_concat(allRaw.clone(), firstData);
+            match &firstData { Value::Arr(__b) => allRaw.extend(__b.iter().cloned()), _ => allRaw.clear() };
             let mut promises: Vec<Value> = Vec::new();
             let mut cappedPages: Value = ((match ((maxMarkets).as_f64(), (pageSize).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64().map(|__x| Value::Float(__x.ceil())).unwrap_or(Value::Null);
             let mut knownTotal: Value = self.safe_integer_k(firstPageResponse, "totalMarketsCount", &[Value::Int(0)]);
@@ -692,7 +692,7 @@ impl LimitlessCore {
                 while { if !__for_first_1290 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_1290 = false; j.as_f64().unwrap_or(f64::NAN) < length.as_f64().unwrap_or(f64::NAN) } {
                 let mut response: Value = self.safe_dict(responses.clone(), j.clone(), &[]);
                 let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
-                allRaw = self.array_concat(allRaw.clone(), data);
+                match &data { Value::Arr(__b) => allRaw.extend(__b.iter().cloned()), _ => allRaw.clear() };
             }
             }
             let mut lastPageResponse: Value = self.safe_dict(responses, (match (&(length), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[]);
@@ -719,7 +719,7 @@ impl LimitlessCore {
                         let mut __for_first_1291: bool = true;
                         while { if !__for_first_1291 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1291 = false; i.as_f64().unwrap_or(f64::NAN) < pageMarketsLength } {
                         let mut raw: Value = self.safe_value(page_markets.clone(), i.clone(), &[]);
-                        if let Value::Arr(__a) = &mut allRaw { std::sync::Arc::make_mut(__a).push(raw.clone()); }
+                        allRaw.push(raw.clone());
                     }
                     }
                     let mut allRawCount: f64 = ((allRaw.len() as i64) as f64);
@@ -736,7 +736,7 @@ impl LimitlessCore {
         });
         // group rows carry their tradeable children in a nested `markets` list — expand them
         // into regular rows before parsing (a group row itself has no tokens)
-        let mut expandedRaw: Vec<Value> = self.expand_group_rows(allRaw).as_array().cloned().unwrap_or_default();
+        let mut expandedRaw: Vec<Value> = self.expand_group_rows(Value::Array(allRaw)).as_array().cloned().unwrap_or_default();
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1292: bool = true;

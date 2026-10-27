@@ -6896,12 +6896,7 @@ func (this *Gate) createMarketBuyOrderWithCostBody(ch chan AsyncResult[Order], s
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	var retRes496615 map[string]any = StructResultMap(r2.Value, OrderToMap)
-	if retRes496615 == nil {
-		ch <- AsyncResult[Order]{}
-	} else {
-		ch <- AsyncResult[Order]{Value: OrderFromMap(retRes496615)}
-	}
+	ch <- AsyncResult[Order]{Value: r2.Value}
 	return nil
 }
 func (this *Gate) EditOrderRequest(id *string, symbol any, typeVar any, side any, optionalArgs ...any) map[string]any {
@@ -10182,12 +10177,7 @@ func (this *Gate) reduceMarginBody(ch chan AsyncResult[MarginModification], symb
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes736615 map[string]any = StructResultMap(r.Value, MarginModificationToMap)
-	if retRes736615 == nil {
-		ch <- AsyncResult[MarginModification]{}
-	} else {
-		ch <- AsyncResult[MarginModification]{Value: MarginModificationFromMap(retRes736615)}
-	}
+	ch <- AsyncResult[MarginModification]{Value: r.Value}
 	return nil
 }
 
@@ -10217,12 +10207,7 @@ func (this *Gate) addMarginBody(ch chan AsyncResult[MarginModification], symbol 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes738115 map[string]any = StructResultMap(r.Value, MarginModificationToMap)
-	if retRes738115 == nil {
-		ch <- AsyncResult[MarginModification]{}
-	} else {
-		ch <- AsyncResult[MarginModification]{Value: MarginModificationFromMap(retRes738115)}
-	}
+	ch <- AsyncResult[MarginModification]{Value: r.Value}
 	return nil
 }
 
@@ -11499,12 +11484,7 @@ func (this *Gate) closePositionBody(ch chan AsyncResult[Order], symbol string, o
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes834615 map[string]any = StructResultMap(r.Value, OrderToMap)
-	if retRes834615 == nil {
-		ch <- AsyncResult[Order]{}
-	} else {
-		ch <- AsyncResult[Order]{Value: OrderFromMap(retRes834615)}
-	}
+	ch <- AsyncResult[Order]{Value: r.Value}
 	return nil
 }
 

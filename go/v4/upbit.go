@@ -432,12 +432,7 @@ func (this *Upbit) fetchCurrencyBody(ch chan AsyncResult[Currency], code any, op
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes29915 map[string]any = StructResultMap(r1.Value, CurrencyToMap)
-	if retRes29915 == nil {
-		ch <- AsyncResult[Currency]{}
-	} else {
-		ch <- AsyncResult[Currency]{Value: CurrencyFromMap(retRes29915)}
-	}
+	ch <- AsyncResult[Currency]{Value: r1.Value}
 	return nil
 }
 func (this *Upbit) FetchCurrencyByIdAsync(id any, optionalArgs ...any) <-chan AsyncResult[Currency] {
@@ -570,12 +565,7 @@ func (this *Upbit) fetchMarketBody(ch chan AsyncResult[MarketInterface], symbol 
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes39915 map[string]any = StructResultMap(r1.Value, MarketInterfaceToMap)
-	if retRes39915 == nil {
-		ch <- AsyncResult[MarketInterface]{}
-	} else {
-		ch <- AsyncResult[MarketInterface]{Value: MarketInterfaceFromMap(retRes39915)}
-	}
+	ch <- AsyncResult[MarketInterface]{Value: r1.Value}
 	return nil
 }
 func (this *Upbit) FetchMarketByIdAsync(id any, optionalArgs ...any) <-chan AsyncResult[MarketInterface] {

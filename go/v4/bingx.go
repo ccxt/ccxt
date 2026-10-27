@@ -4097,12 +4097,7 @@ func (this *Bingx) createMarketOrderWithCostBody(ch chan AsyncResult[Order], sym
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes319515 map[string]any = StructResultMap(r.Value, OrderToMap)
-	if retRes319515 == nil {
-		ch <- AsyncResult[Order]{}
-	} else {
-		ch <- AsyncResult[Order]{Value: OrderFromMap(retRes319515)}
-	}
+	ch <- AsyncResult[Order]{Value: r.Value}
 	return nil
 }
 
@@ -4131,12 +4126,7 @@ func (this *Bingx) createMarketBuyOrderWithCostBody(ch chan AsyncResult[Order], 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes320915 map[string]any = StructResultMap(r.Value, OrderToMap)
-	if retRes320915 == nil {
-		ch <- AsyncResult[Order]{}
-	} else {
-		ch <- AsyncResult[Order]{Value: OrderFromMap(retRes320915)}
-	}
+	ch <- AsyncResult[Order]{Value: r.Value}
 	return nil
 }
 
@@ -4165,12 +4155,7 @@ func (this *Bingx) createMarketSellOrderWithCostBody(ch chan AsyncResult[Order],
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes322315 map[string]any = StructResultMap(r.Value, OrderToMap)
-	if retRes322315 == nil {
-		ch <- AsyncResult[Order]{}
-	} else {
-		ch <- AsyncResult[Order]{Value: OrderFromMap(retRes322315)}
-	}
+	ch <- AsyncResult[Order]{Value: r.Value}
 	return nil
 }
 func (this *Bingx) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) map[string]any {
@@ -7131,12 +7116,7 @@ func (this *Bingx) addMarginBody(ch chan AsyncResult[MarginModification], symbol
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes596115 map[string]any = StructResultMap(r.Value, MarginModificationToMap)
-	if retRes596115 == nil {
-		ch <- AsyncResult[MarginModification]{}
-	} else {
-		ch <- AsyncResult[MarginModification]{Value: MarginModificationFromMap(retRes596115)}
-	}
+	ch <- AsyncResult[MarginModification]{Value: r.Value}
 	return nil
 }
 func (this *Bingx) ReduceMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan AsyncResult[MarginModification] {
@@ -7157,12 +7137,7 @@ func (this *Bingx) reduceMarginBody(ch chan AsyncResult[MarginModification], sym
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes596815 map[string]any = StructResultMap(r.Value, MarginModificationToMap)
-	if retRes596815 == nil {
-		ch <- AsyncResult[MarginModification]{}
-	} else {
-		ch <- AsyncResult[MarginModification]{Value: MarginModificationFromMap(retRes596815)}
-	}
+	ch <- AsyncResult[MarginModification]{Value: r.Value}
 	return nil
 }
 

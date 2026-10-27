@@ -1488,12 +1488,7 @@ func (this *Gemini) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, 
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		var retRes106119 map[string]any = StructResultMap(r.Value, TickerToMap)
-		if retRes106119 == nil {
-			ch <- AsyncResult[Ticker]{}
-		} else {
-			ch <- AsyncResult[Ticker]{Value: TickerFromMap(retRes106119)}
-		}
+		ch <- AsyncResult[Ticker]{Value: r.Value}
 		return nil
 	}
 	if method != nil && *method == "fetchTickerV2" {
@@ -1502,12 +1497,7 @@ func (this *Gemini) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, 
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes106419 map[string]any = StructResultMap(r1.Value, TickerToMap)
-		if retRes106419 == nil {
-			ch <- AsyncResult[Ticker]{}
-		} else {
-			ch <- AsyncResult[Ticker]{Value: TickerFromMap(retRes106419)}
-		}
+		ch <- AsyncResult[Ticker]{Value: r1.Value}
 		return nil
 	}
 
@@ -1515,12 +1505,7 @@ func (this *Gemini) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, 
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	var retRes106615 map[string]any = StructResultMap(r2.Value, TickerToMap)
-	if retRes106615 == nil {
-		ch <- AsyncResult[Ticker]{}
-	} else {
-		ch <- AsyncResult[Ticker]{Value: TickerFromMap(retRes106615)}
-	}
+	ch <- AsyncResult[Ticker]{Value: r2.Value}
 	return nil
 }
 func (this *Gemini) ParseTicker(ticker any, optionalArgs ...any) Ticker {

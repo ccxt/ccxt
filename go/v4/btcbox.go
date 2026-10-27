@@ -282,8 +282,8 @@ func (this *Btcbox) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 		panic(r.Err)
 	}
 	var response1response2Variable []any = ListTyped(r.Value)
-	response1 := GetValue(response1response2Variable, 0)
-	response2 := GetValue(response1response2Variable, 1)
+	response1 := response1response2Variable[0]
+	response2 := response1response2Variable[1]
 	//
 	var result2Data map[string]any = SafeMapTyped(response2, "data")
 	var marketIds []string = ObjectKeys(response1)

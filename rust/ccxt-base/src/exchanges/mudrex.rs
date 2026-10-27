@@ -761,10 +761,10 @@ impl MudrexCore {
         }  else {
             rows = self.safe_list_k(data, "items", &[Value::from(vec![])]);
         }
-        let mut resultTickers: Value = Value::Map({
+        let mut resultTickers: indexmap::IndexMap<String, Value> = {
             let mut m = indexmap::IndexMap::new();
             m
-        });
+        };
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_964: bool = true;
@@ -779,10 +779,10 @@ impl MudrexCore {
             if (symbols != Value::Null) && !(self.in_array(symbol.clone(), symbols.clone()).as_bool() == Some(true)) {
                 continue;
             }
-            if let Value::Dict(__d) = &mut resultTickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), self.parse_ticker(t, &[m])); }
+            resultTickers.insert(crate::runtime::stringify_param(&symbol), self.parse_ticker(t, &[m]));
         }
         }
-        return self.filter_by_array_tickers(resultTickers, Value::Str("symbol".into()), &[symbols]);
+        return self.filter_by_array_tickers(Value::Map(resultTickers), Value::Str("symbol".into()), &[symbols]);
 
     Value::Null
 }

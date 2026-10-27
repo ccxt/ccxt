@@ -901,10 +901,10 @@ impl ToobitCore {
         if (data == Value::Null) {
             return;
         }
-        let mut newTickers: Value = Value::Map({
+        let mut newTickers: indexmap::IndexMap<String, Value> = {
             let mut m = indexmap::IndexMap::new();
             m
-        });
+        };
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_647: bool = true;
@@ -919,12 +919,12 @@ impl ToobitCore {
                 if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), parsed.clone()); }
             }
             if (symbol != Value::Null) {
-                if let Value::Dict(__d) = &mut newTickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), parsed.clone()); }
+                newTickers.insert(crate::runtime::stringify_param(&symbol), parsed.clone());
             }
             client.resolve(&[parsed.clone(), Value::Str(format!("{}{}", Value::Str("ticker::".into()), self.safe_string_k(parsed, "symbol", &[Value::Str("".into())])).into())]);
         }
         }
-        client.resolve(&[newTickers, Value::Str("tickers".into())]);
+        client.resolve(&[Value::Map(newTickers), Value::Str("tickers".into())]);
 }
 
     pub fn parse_ws_ticker(&self, mut ticker: Value, optional_args: &[Value]) -> Value {
@@ -1772,7 +1772,8 @@ impl ToobitCore {
             // client.resolve () / client.reject () settle and remove the entry under the same lock in every port
             let mut messageHash: Value = Value::Str("authenticate".into());
             let mut client: Value = self.client(&[Value::Str("authenticationFlights".into())]);
-            if (matches!((&get_value(&client, &Value::Str("futures".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+            let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
+            if (matches!((&__ch.futures.clone(), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 // a flight is already in progress - wake when the leader
                 // settles it: the listenKey is then in the bucket
                 crate::exchange_stubs::ws_await_flight(&client.future(&[messageHash.clone()])).await;
@@ -1845,7 +1846,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err);
             let mut url: Value = self.get_user_stream_url().map(Value::from).unwrap_or(Value::Null);
             let mut client: Value = self.client(&[url]);
-            let mut messageHashes: Vec<Value> = Value::Array(get_value(&client, &Value::Str("futures".into())).as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+            let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
+            let mut messageHashes: Vec<Value> = Value::Array(__ch.futures.clone().as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_655: bool = true;

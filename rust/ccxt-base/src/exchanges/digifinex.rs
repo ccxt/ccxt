@@ -1891,10 +1891,10 @@ impl DigifinexCore {
         //         ]
         //     }
         //
-        let mut result: Value = Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = {
             let mut m = indexmap::IndexMap::new();
             m
-        });
+        };
         let mut tickers: Value = self.safe_list2(response.clone(), Value::Str("ticker".into()), Value::Str("data".into()), &[Value::from(vec![])]);
         let mut date: Value = self.safe_integer_k(response, "date", &[]);
         {
@@ -1910,11 +1910,11 @@ impl DigifinexCore {
             let mut ticker: indexmap::IndexMap<String, Value> = self.parse_ticker(rawTicker, &[]).as_map().cloned().unwrap_or_default();
             let mut symbol: Value = ticker.get("symbol").cloned().unwrap_or(Value::Null);
             if (symbol != Value::Null) {
-                if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map(ticker)); }
+                result.insert(crate::runtime::stringify_param(&symbol), Value::Map(ticker));
             }
         }
         }
-        return self.filter_by_array_tickers(result, Value::Str("symbol".into()), &[symbolsNormalized]);
+        return self.filter_by_array_tickers(Value::Map(result), Value::Str("symbol".into()), &[symbolsNormalized]);
 
     Value::Null
 }
@@ -2718,15 +2718,15 @@ impl DigifinexCore {
             let mut __for_first_641: bool = true;
             while { if !__for_first_641 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_641 = false; i.as_f64().unwrap_or(f64::NAN) < ((orders.len() as i64) as f64) } {
             let mut rawOrder: Value = self.safe_dict(orders.clone(), i.clone(), &[]);
-            let mut individualOrder: Value = Value::Map({
+            let mut individualOrder: indexmap::IndexMap<String, Value> = {
                 let mut m = indexmap::IndexMap::new();
                 m
-            });
-            if let Value::Dict(__d) = &mut individualOrder { std::sync::Arc::make_mut(__d).insert("order_id".into(), self.safe_string(data.clone(), i.clone(), &[])); }
-            if let Value::Dict(__d) = &mut individualOrder { std::sync::Arc::make_mut(__d).insert("instrument_id".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
-            if let Value::Dict(__d) = &mut individualOrder { std::sync::Arc::make_mut(__d).insert("amount".into(), self.safe_number_k(rawOrder.clone(), "amount", &[])); }
-            if let Value::Dict(__d) = &mut individualOrder { std::sync::Arc::make_mut(__d).insert("price".into(), self.safe_number_k(rawOrder, "price", &[])); }
-            result.push(individualOrder);
+            };
+            individualOrder.insert("order_id".into(), self.safe_string(data.clone(), i.clone(), &[]));
+            individualOrder.insert("instrument_id".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            individualOrder.insert("amount".into(), self.safe_number_k(rawOrder.clone(), "amount", &[]));
+            individualOrder.insert("price".into(), self.safe_number_k(rawOrder, "price", &[]));
+            result.push(Value::Map(individualOrder));
         }
         }
         return self.parse_orders(Value::from(result), &[market]);

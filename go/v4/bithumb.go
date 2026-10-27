@@ -2241,12 +2241,7 @@ func (this *Bithumb) createMarketBuyOrderWithCostBody(ch chan AsyncResult[Order]
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes185015 map[string]any = StructResultMap(r1.Value, OrderToMap)
-	if retRes185015 == nil {
-		ch <- AsyncResult[Order]{}
-	} else {
-		ch <- AsyncResult[Order]{Value: OrderFromMap(retRes185015)}
-	}
+	ch <- AsyncResult[Order]{Value: r1.Value}
 	return nil
 }
 
@@ -3272,12 +3267,7 @@ func (this *Bithumb) cancelUnifiedOrderBody(ch chan AsyncResult[Order], order an
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes264315 map[string]any = StructResultMap(r.Value, OrderToMap)
-	if retRes264315 == nil {
-		ch <- AsyncResult[Order]{}
-	} else {
-		ch <- AsyncResult[Order]{Value: OrderFromMap(retRes264315)}
-	}
+	ch <- AsyncResult[Order]{Value: r.Value}
 	return nil
 }
 

@@ -8822,14 +8822,14 @@ impl BinanceCore {
                 response = self.public_get_ticker(&[__ws_arg_25]).await;
                 return self.parse_tickers_for_rolling(response.clone(), symbolsNormalized.clone());
             }  else {
-                let mut request: Value = Value::Map({
+                let mut request: indexmap::IndexMap<String, Value> = {
                     let mut m = indexmap::IndexMap::new();
                     m
-                });
+                };
                 if (symbolsNormalized != Value::Null) {
-                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("symbols".into(), self.json(self.market_ids(&[symbolsNormalized.clone()]))); }
+                    request.insert("symbols".into(), self.json(self.market_ids(&[symbolsNormalized.clone()])));
                 }
-                let __ws_arg_26 = self.extend(request, &[paramsMarketType.clone()]);
+                let __ws_arg_26 = self.extend(Value::Map(request), &[paramsMarketType.clone()]);
                 response = self.public_get_ticker24hr(&[__ws_arg_26]).await;
             }
         }  else if (type_var.as_str() == Some("option")) {

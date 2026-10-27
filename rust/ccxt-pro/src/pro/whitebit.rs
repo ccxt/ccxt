@@ -1350,14 +1350,14 @@ impl WhitebitCore {
         let mut request: Value = Value::Null;
         let mut marketIds: Value = Value::from(vec![]);
         if (client == Value::Null) {
-            let mut subscription: Value = Value::Map({
+            let mut subscription: indexmap::IndexMap<String, Value> = {
                 let mut m = indexmap::IndexMap::new();
                 m
-            });
+            };
             let mut market: Value = self.market(symbol.clone());
             let mut marketId: Value = market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null);
             if (marketId != Value::Null) {
-                if let Value::Dict(__d) = &mut subscription { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&marketId), Value::Bool(true)); }
+                subscription.insert(crate::runtime::stringify_param(&marketId), Value::Bool(true));
             }
             marketIds = Value::from(vec![marketId.clone()]);
             if isNested {
@@ -1371,7 +1371,7 @@ impl WhitebitCore {
                 m
             });
             let mut message: Value = self.extend(request.clone(), &[params]);
-            return self.watch(url.clone().map(Value::from).unwrap_or(Value::Null), messageHash.clone(), &[message, method.clone(), subscription.clone()]).await;
+            return self.watch(url.clone().map(Value::from).unwrap_or(Value::Null), messageHash.clone(), &[message, method.clone(), Value::Map(subscription)]).await;
         }  else {
             let mut subscription: Value = self.safe_dict(__ch.subscriptions.clone(), method.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();

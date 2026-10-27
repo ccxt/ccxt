@@ -375,9 +375,11 @@ class xt extends xt$1["default"] {
         if (symbols !== undefined) {
             market = this.market(symbols[0]);
         }
-        const tickers = await this.subscribe(name, 'public', 'watchTickers', market, symbols, params);
-        if (this.newUpdates) {
-            return tickers;
+        if (name !== undefined) {
+            const tickers = await this.subscribe(name, 'public', 'watchTickers', market, symbols, params);
+            if (this.newUpdates) {
+                return tickers;
+            }
         }
         return this.filterByArray(this.tickers, 'symbol', symbols);
     }
@@ -402,8 +404,11 @@ class xt extends xt$1["default"] {
         if (symbols !== undefined) {
             throw new errors.NotSupported(this.id + ' unWatchTickers() does not support symbols argument, unsubscribtion is for all tickers at once only');
         }
-        const messageHash = 'unsubscribe::' + name;
-        return await this.unSubscribe(messageHash, name, 'public', 'unWatchTickers', 'ticker', undefined, symbols, params);
+        if (name !== undefined) {
+            const messageHash = 'unsubscribe::' + name;
+            return await this.unSubscribe(messageHash, name, 'public', 'unWatchTickers', 'ticker', undefined, symbols, params);
+        }
+        return undefined;
     }
     /**
      * @method

@@ -1161,8 +1161,7 @@ func (this *Gate) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Tick
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	retRes80815 := ccxt.StructResultMap(r.Value, ccxt.TickerMapToMap)
-	ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: ccxt.TickerMapFromMap(retRes80815)}
+	ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: r.Value}
 	return nil
 }
 func (this *Gate) HandleTicker(client any, message map[string]any) {
@@ -1217,8 +1216,7 @@ func (this *Gate) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccxt.Tic
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	retRes84515 := ccxt.StructResultMap(r.Value, ccxt.TickerMapToMap)
-	ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: ccxt.TickerMapFromMap(retRes84515)}
+	ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: r.Value}
 	return nil
 }
 func (this *Gate) HandleBidAsk(client any, message map[string]any) {

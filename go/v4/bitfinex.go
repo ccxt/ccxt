@@ -3311,12 +3311,7 @@ func (this *Bitfinex) createDepositAddressBody(ch chan AsyncResult[DepositAddres
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes244415 map[string]any = StructResultMap(r1.Value, DepositAddressToMap)
-	if retRes244415 == nil {
-		ch <- AsyncResult[DepositAddress]{}
-	} else {
-		ch <- AsyncResult[DepositAddress]{Value: DepositAddressFromMap(retRes244415)}
-	}
+	ch <- AsyncResult[DepositAddress]{Value: r1.Value}
 	return nil
 }
 

@@ -6736,13 +6736,13 @@ impl OkxCore {
             }  else if (clientOrderId != Value::Null) {
                 idKey = Value::Str("clOrdId".into());
             }
-            let mut requestItem: Value = Value::Map({
+            let mut requestItem: indexmap::IndexMap<String, Value> = {
                 let mut m = indexmap::IndexMap::new();
                     m.insert("instId".to_string(), market.get("id").cloned().unwrap_or(Value::Null));
                 m
-            });
-            if let Value::Dict(__d) = &mut requestItem { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&idKey), (if (clientOrderId != Value::Null) { clientOrderId } else { id })); }
-            request.push(requestItem);
+            };
+            requestItem.insert(crate::runtime::stringify_param(&idKey), (if (clientOrderId != Value::Null) { clientOrderId } else { id }));
+            request.push(Value::Map(requestItem));
         }
         }
         let mut response: Value = Value::Null;

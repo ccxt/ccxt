@@ -1347,12 +1347,7 @@ func (this *Modetrade) fetchFundingIntervalBody(ch chan AsyncResult[FundingRate]
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes95515 map[string]any = StructResultMap(r.Value, FundingRateToMap)
-	if retRes95515 == nil {
-		ch <- AsyncResult[FundingRate]{}
-	} else {
-		ch <- AsyncResult[FundingRate]{Value: FundingRateFromMap(retRes95515)}
-	}
+	ch <- AsyncResult[FundingRate]{Value: r.Value}
 	return nil
 }
 
@@ -1748,7 +1743,7 @@ func (this *Modetrade) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], 
 	for i := 0; i < len(rows); i++ {
 		var row any = DerefScalar(rows[i])
 		var marketId *string = this.SafeString(row, "symbol", "")
-		if (this.Markets_by_id() == nil) || !(InOp(this.Markets_by_id(), marketId)) {
+		if _, ok := this.Markets_by_id()[*marketId]; (this.Markets_by_id() == nil) || !ok {
 			continue
 		}
 		var ticker map[string]any = this.Extend(map[string]any{

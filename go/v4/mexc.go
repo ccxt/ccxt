@@ -2946,12 +2946,7 @@ func (this *Mexc) createMarketBuyOrderWithCostBody(ch chan AsyncResult[Order], s
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes234815 map[string]any = StructResultMap(r1.Value, OrderToMap)
-	if retRes234815 == nil {
-		ch <- AsyncResult[Order]{}
-	} else {
-		ch <- AsyncResult[Order]{Value: OrderFromMap(retRes234815)}
-	}
+	ch <- AsyncResult[Order]{Value: r1.Value}
 	return nil
 }
 
@@ -2994,12 +2989,7 @@ func (this *Mexc) createMarketSellOrderWithCostBody(ch chan AsyncResult[Order], 
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes237215 map[string]any = StructResultMap(r1.Value, OrderToMap)
-	if retRes237215 == nil {
-		ch <- AsyncResult[Order]{}
-	} else {
-		ch <- AsyncResult[Order]{Value: OrderFromMap(retRes237215)}
-	}
+	ch <- AsyncResult[Order]{Value: r1.Value}
 	return nil
 }
 
@@ -3058,12 +3048,7 @@ func (this *Mexc) createOrderBody(ch chan AsyncResult[Order], symbol string, typ
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes241019 map[string]any = StructResultMap(r1.Value, OrderToMap)
-		if retRes241019 == nil {
-			ch <- AsyncResult[Order]{}
-		} else {
-			ch <- AsyncResult[Order]{Value: OrderFromMap(retRes241019)}
-		}
+		ch <- AsyncResult[Order]{Value: r1.Value}
 		return nil
 	} else {
 
@@ -3071,12 +3056,7 @@ func (this *Mexc) createOrderBody(ch chan AsyncResult[Order], symbol string, typ
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes241219 map[string]any = StructResultMap(r2.Value, OrderToMap)
-		if retRes241219 == nil {
-			ch <- AsyncResult[Order]{}
-		} else {
-			ch <- AsyncResult[Order]{Value: OrderFromMap(retRes241219)}
-		}
+		ch <- AsyncResult[Order]{Value: r2.Value}
 		return nil
 	}
 }
@@ -5922,12 +5902,7 @@ func (this *Mexc) fetchFundingIntervalBody(ch chan AsyncResult[FundingRate], sym
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes465415 map[string]any = StructResultMap(r.Value, FundingRateToMap)
-	if retRes465415 == nil {
-		ch <- AsyncResult[FundingRate]{}
-	} else {
-		ch <- AsyncResult[FundingRate]{Value: FundingRateFromMap(retRes465415)}
-	}
+	ch <- AsyncResult[FundingRate]{Value: r.Value}
 	return nil
 }
 

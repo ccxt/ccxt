@@ -351,9 +351,10 @@ class xt(ccxt.async_support.xt):
         market = None
         if symbols is not None:
             market = self.market(symbols[0])
-        tickers = await self.subscribe(name, 'public', 'watchTickers', market, symbols, params)
-        if self.newUpdates:
-            return tickers
+        if name is not None:
+            tickers = await self.subscribe(name, 'public', 'watchTickers', market, symbols, params)
+            if self.newUpdates:
+                return tickers
         return self.filter_by_array(self.tickers, 'symbol', symbols)
 
     async def un_watch_tickers(self, symbols: Strings = None, params: dict = {}):
@@ -375,8 +376,10 @@ class xt(ccxt.async_support.xt):
         name = self.safe_string(params, 'method', defaultMethod)
         if symbols is not None:
             raise NotSupported(self.id + ' unWatchTickers() does not support symbols argument, unsubscribtion is for all tickers at once only')
-        messageHash = 'unsubscribe::' + name
-        return await self.un_subscribe(messageHash, name, 'public', 'unWatchTickers', 'ticker', None, symbols, params)
+        if name is not None:
+            messageHash = 'unsubscribe::' + name
+            return await self.un_subscribe(messageHash, name, 'public', 'unWatchTickers', 'ticker', None, symbols, params)
+        return None
 
     async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """

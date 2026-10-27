@@ -1724,7 +1724,7 @@ class bitteam(Exchange, ImplicitAPI):
         bestAskVolume = None
         bids = self.safe_list(ticker, 'bids')
         asks = self.safe_list(ticker, 'asks')
-        if (bids is not None) and (isinstance(bids, list)) and (asks is not None) and (isinstance(asks, list)):
+        if (bids is not None) and (asks is not None):
             bestBid = self.safe_dict(bids, 0, {})
             bestBidPrice = self.safe_string(bestBid, 'price')
             bestBidVolume = self.safe_string(bestBid, 'quantity')

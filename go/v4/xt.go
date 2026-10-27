@@ -1287,8 +1287,8 @@ func (this *Xt) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], optiona
 		panic(r.Err)
 	}
 	var chainsResponsecurrenciesResponseVariable []any = ListTyped(r.Value)
-	chainsResponse := GetValue(chainsResponsecurrenciesResponseVariable, 0)
-	currenciesResponse := GetValue(chainsResponsecurrenciesResponseVariable, 1)
+	chainsResponse := chainsResponsecurrenciesResponseVariable[0]
+	currenciesResponse := chainsResponsecurrenciesResponseVariable[1]
 	//
 	// currencies
 	//
@@ -3356,12 +3356,7 @@ func (this *Xt) createMarketBuyOrderWithCostBody(ch chan AsyncResult[Order], sym
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes258015 map[string]any = StructResultMap(r1.Value, OrderToMap)
-	if retRes258015 == nil {
-		ch <- AsyncResult[Order]{}
-	} else {
-		ch <- AsyncResult[Order]{Value: OrderFromMap(retRes258015)}
-	}
+	ch <- AsyncResult[Order]{Value: r1.Value}
 	return nil
 }
 
@@ -3425,12 +3420,7 @@ func (this *Xt) createOrderBody(ch chan AsyncResult[Order], symbol string, typeV
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes262419 map[string]any = StructResultMap(r1.Value, OrderToMap)
-		if retRes262419 == nil {
-			ch <- AsyncResult[Order]{}
-		} else {
-			ch <- AsyncResult[Order]{Value: OrderFromMap(retRes262419)}
-		}
+		ch <- AsyncResult[Order]{Value: r1.Value}
 		return nil
 	} else {
 
@@ -3438,12 +3428,7 @@ func (this *Xt) createOrderBody(ch chan AsyncResult[Order], symbol string, typeV
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes262619 map[string]any = StructResultMap(r2.Value, OrderToMap)
-		if retRes262619 == nil {
-			ch <- AsyncResult[Order]{}
-		} else {
-			ch <- AsyncResult[Order]{Value: OrderFromMap(retRes262619)}
-		}
+		ch <- AsyncResult[Order]{Value: r2.Value}
 		return nil
 	}
 }
@@ -6060,12 +6045,7 @@ func (this *Xt) addMarginBody(ch chan AsyncResult[MarginModification], symbol st
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes453115 map[string]any = StructResultMap(r.Value, MarginModificationToMap)
-	if retRes453115 == nil {
-		ch <- AsyncResult[MarginModification]{}
-	} else {
-		ch <- AsyncResult[MarginModification]{Value: MarginModificationFromMap(retRes453115)}
-	}
+	ch <- AsyncResult[MarginModification]{Value: r.Value}
 	return nil
 }
 
@@ -6095,12 +6075,7 @@ func (this *Xt) reduceMarginBody(ch chan AsyncResult[MarginModification], symbol
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes454615 map[string]any = StructResultMap(r.Value, MarginModificationToMap)
-	if retRes454615 == nil {
-		ch <- AsyncResult[MarginModification]{}
-	} else {
-		ch <- AsyncResult[MarginModification]{Value: MarginModificationFromMap(retRes454615)}
-	}
+	ch <- AsyncResult[MarginModification]{Value: r.Value}
 	return nil
 }
 func (this *Xt) ModifyMarginHelperAsync(symbol string, amount any, addOrReduce string, optionalArgs ...any) <-chan AsyncResult[MarginModification] {
@@ -6561,12 +6536,7 @@ func (this *Xt) fetchFundingIntervalBody(ch chan AsyncResult[FundingRate], symbo
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes486515 map[string]any = StructResultMap(r.Value, FundingRateToMap)
-	if retRes486515 == nil {
-		ch <- AsyncResult[FundingRate]{}
-	} else {
-		ch <- AsyncResult[FundingRate]{Value: FundingRateFromMap(retRes486515)}
-	}
+	ch <- AsyncResult[FundingRate]{Value: r.Value}
 	return nil
 }
 

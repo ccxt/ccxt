@@ -1181,8 +1181,8 @@ func (this *Weex) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], optio
 		panic(r1.Err)
 	}
 	var spotResponsecontractResponseVariable []any = ListTyped(r1.Value)
-	spotResponse := GetValue(spotResponsecontractResponseVariable, 0)
-	contractResponse := GetValue(spotResponsecontractResponseVariable, 1)
+	spotResponse := spotResponsecontractResponseVariable[0]
+	contractResponse := spotResponsecontractResponseVariable[1]
 	var spotArray []any = SafeListTypedDefault(spotResponse, "symbols", []any{})
 	var contractArray []any = SafeListTypedDefault(contractResponse, "symbols", []any{})
 	var result []any = this.ArrayConcat(spotArray, contractArray)
@@ -2913,12 +2913,7 @@ func (this *Weex) createOrderBody(ch chan AsyncResult[Order], symbol string, typ
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes221219 map[string]any = StructResultMap(r1.Value, OrderToMap)
-		if retRes221219 == nil {
-			ch <- AsyncResult[Order]{}
-		} else {
-			ch <- AsyncResult[Order]{Value: OrderFromMap(retRes221219)}
-		}
+		ch <- AsyncResult[Order]{Value: r1.Value}
 		return nil
 	} else {
 		var sandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
@@ -2930,12 +2925,7 @@ func (this *Weex) createOrderBody(ch chan AsyncResult[Order], symbol string, typ
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes221819 map[string]any = StructResultMap(r2.Value, OrderToMap)
-		if retRes221819 == nil {
-			ch <- AsyncResult[Order]{}
-		} else {
-			ch <- AsyncResult[Order]{Value: OrderFromMap(retRes221819)}
-		}
+		ch <- AsyncResult[Order]{Value: r2.Value}
 		return nil
 	}
 }
@@ -5942,12 +5932,7 @@ func (this *Weex) reduceMarginBody(ch chan AsyncResult[MarginModification], symb
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes432115 map[string]any = StructResultMap(r.Value, MarginModificationToMap)
-	if retRes432115 == nil {
-		ch <- AsyncResult[MarginModification]{}
-	} else {
-		ch <- AsyncResult[MarginModification]{Value: MarginModificationFromMap(retRes432115)}
-	}
+	ch <- AsyncResult[MarginModification]{Value: r.Value}
 	return nil
 }
 
@@ -5977,12 +5962,7 @@ func (this *Weex) addMarginBody(ch chan AsyncResult[MarginModification], symbol 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes433615 map[string]any = StructResultMap(r.Value, MarginModificationToMap)
-	if retRes433615 == nil {
-		ch <- AsyncResult[MarginModification]{}
-	} else {
-		ch <- AsyncResult[MarginModification]{Value: MarginModificationFromMap(retRes433615)}
-	}
+	ch <- AsyncResult[MarginModification]{Value: r.Value}
 	return nil
 }
 
@@ -6017,7 +5997,7 @@ func (this *Weex) FromSandboxMarketId(marketId *string) any {
 	if (!(sandboxMode != nil && *sandboxMode)) || (marketId == nil) {
 		return marketId
 	}
-	if (this.Markets_by_id() != nil) && (InOp(this.Markets_by_id(), marketId)) {
+	if _, ok := this.Markets_by_id()[*marketId]; (this.Markets_by_id() != nil) && ok {
 		return marketId // a live market id, not a demo one
 	}
 	if strings.HasSuffix(*marketId, "SUSDT") {

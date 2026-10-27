@@ -1146,12 +1146,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ticker.clone()); }
             client.resolve(&[ticker.clone(), Value::Str(format!("{}{}", Value::Str("ticker:".into()), symbol).into())]);
             // watchTickers
-            let mut allTickers: Value = Value::Map({
+            let mut allTickers: indexmap::IndexMap<String, Value> = {
                 let mut m = indexmap::IndexMap::new();
                 m
-            });
-            if let Value::Dict(__d) = &mut allTickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ticker); }
-            client.resolve(&[allTickers, Value::Str("tickers".into())]);
+            };
+            allTickers.insert(crate::runtime::stringify_param(&symbol), ticker);
+            client.resolve(&[Value::Map(allTickers), Value::Str("tickers".into())]);
         }  else {
             self.handle_contract_ticker(client, message);
         }

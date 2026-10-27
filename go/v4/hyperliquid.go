@@ -3239,12 +3239,7 @@ func (this *Hyperliquid) cancelOrderBody(ch chan AsyncResult[Order], id any, opt
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		var retRes253219 map[string]any = StructResultMap(r.Value, OrderToMap)
-		if retRes253219 == nil {
-			ch <- AsyncResult[Order]{}
-		} else {
-			ch <- AsyncResult[Order]{Value: OrderFromMap(retRes253219)}
-		}
+		ch <- AsyncResult[Order]{Value: r.Value}
 		return nil
 	}
 
@@ -5555,12 +5550,7 @@ func (this *Hyperliquid) addMarginBody(ch chan AsyncResult[MarginModification], 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes423115 map[string]any = StructResultMap(r.Value, MarginModificationToMap)
-	if retRes423115 == nil {
-		ch <- AsyncResult[MarginModification]{}
-	} else {
-		ch <- AsyncResult[MarginModification]{Value: MarginModificationFromMap(retRes423115)}
-	}
+	ch <- AsyncResult[MarginModification]{Value: r.Value}
 	return nil
 }
 
@@ -5591,12 +5581,7 @@ func (this *Hyperliquid) reduceMarginBody(ch chan AsyncResult[MarginModification
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes424715 map[string]any = StructResultMap(r.Value, MarginModificationToMap)
-	if retRes424715 == nil {
-		ch <- AsyncResult[MarginModification]{}
-	} else {
-		ch <- AsyncResult[MarginModification]{Value: MarginModificationFromMap(retRes424715)}
-	}
+	ch <- AsyncResult[MarginModification]{Value: r.Value}
 	return nil
 }
 func (this *Hyperliquid) ModifyMarginHelperAsync(symbol string, amount any, typeVar string, optionalArgs ...any) <-chan AsyncResult[MarginModification] {

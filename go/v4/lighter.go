@@ -4959,12 +4959,7 @@ func (this *Lighter) addMarginBody(ch chan AsyncResult[MarginModification], symb
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes337915 map[string]any = StructResultMap(r.Value, MarginModificationToMap)
-	if retRes337915 == nil {
-		ch <- AsyncResult[MarginModification]{}
-	} else {
-		ch <- AsyncResult[MarginModification]{Value: MarginModificationFromMap(retRes337915)}
-	}
+	ch <- AsyncResult[MarginModification]{Value: r.Value}
 	return nil
 }
 
@@ -4995,12 +4990,7 @@ func (this *Lighter) reduceMarginBody(ch chan AsyncResult[MarginModification], s
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes339515 map[string]any = StructResultMap(r.Value, MarginModificationToMap)
-	if retRes339515 == nil {
-		ch <- AsyncResult[MarginModification]{}
-	} else {
-		ch <- AsyncResult[MarginModification]{Value: MarginModificationFromMap(retRes339515)}
-	}
+	ch <- AsyncResult[MarginModification]{Value: r.Value}
 	return nil
 }
 

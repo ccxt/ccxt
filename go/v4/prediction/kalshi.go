@@ -2936,12 +2936,7 @@ func (this *Kalshi) editOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrder]
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	var retRes210315 map[string]any = ccxt.StructResultMap(r2.Value, ccxt.PredictionOrderToMap)
-	if retRes210315 == nil {
-		ch <- ccxt.AsyncResult[ccxt.PredictionOrder]{}
-	} else {
-		ch <- ccxt.AsyncResult[ccxt.PredictionOrder]{Value: ccxt.PredictionOrderFromMap(retRes210315)}
-	}
+	ch <- ccxt.AsyncResult[ccxt.PredictionOrder]{Value: r2.Value}
 	return nil
 }
 

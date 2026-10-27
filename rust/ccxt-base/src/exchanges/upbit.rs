@@ -3013,12 +3013,12 @@ impl UpbitCore {
         if (apiName.as_str() == Some("private")) {
             self.check_required_credentials(&[]);
             let mut nonce: Value = self.uuid(&[]);
-            let mut request: Value = Value::Map({
+            let mut request: indexmap::IndexMap<String, Value> = {
                 let mut m = indexmap::IndexMap::new();
                     m.insert("access_key".to_string(), self.apiKey.clone());
                     m.insert("nonce".to_string(), nonce);
                 m
-            });
+            };
             let mut auth: Value = Value::Null;
             if hasBody {
                 if let Value::Dict(__d) = &mut headers { std::sync::Arc::make_mut(__d).insert("Content-Type".into(), Value::Str("application/json".into())); }
@@ -3028,10 +3028,10 @@ impl UpbitCore {
             }
             if (auth != Value::Null) {
                 let mut hash: Value = self.hash(self.encode(auth), Value::Str("sha512".into()), &[]);
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("query_hash".into(), hash); }
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("query_hash_alg".into(), Value::Str("SHA512".into())); }
+                request.insert("query_hash".into(), hash);
+                request.insert("query_hash_alg".into(), Value::Str("SHA512".into()));
             }
-            let mut token: Value = jwt(request, self.encode(self.secret.clone()), Value::Str("sha256".into()), Value::Bool(false), Value::Null);
+            let mut token: Value = jwt(Value::Map(request), self.encode(self.secret.clone()), Value::Str("sha256".into()), Value::Bool(false), Value::Null);
             if let Value::Dict(__d) = &mut headers { std::sync::Arc::make_mut(__d).insert("Authorization".into(), Value::Str(format!("{}{}", Value::Str("Bearer ".into()), token).into())); }
         }
         let mut requestHeaders: Value = (if (apiName.as_str() == Some("private")) { headers } else { Value::Null });

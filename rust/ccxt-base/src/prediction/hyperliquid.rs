@@ -1842,7 +1842,7 @@ impl HyperliquidCore {
 }));
             m
         });
-        let mut orderObj: Value = Value::Map({
+        let mut orderObj: indexmap::IndexMap<String, Value> = {
             let mut m = indexmap::IndexMap::new();
                 m.insert("a".to_string(), assetId);
                 m.insert("b".to_string(), isBuy);
@@ -1851,16 +1851,16 @@ impl HyperliquidCore {
                 m.insert("r".to_string(), reduceOnly);
                 m.insert("t".to_string(), Value::Map(orderType));
             m
-        });
+        };
         if (clientOrderId != Value::Null) {
-            if let Value::Dict(__d) = &mut orderObj { std::sync::Arc::make_mut(__d).insert("c".into(), clientOrderId.clone()); }
+            orderObj.insert("c".into(), clientOrderId.clone());
         }
         let mut vaultAddressOption: Value = self.handle_option_string_and_params(params, Value::Str("createOrder".into()), Value::Str("vaultAddress".into()), &[]).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut vaultAddress: Value = self.format_vault_address(&[vaultAddressOption]).map(Value::from).unwrap_or(Value::Null);
         let mut orderAction: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("order".into()));
-                m.insert("orders".to_string(), Value::from(vec![orderObj]));
+                m.insert("orders".to_string(), Value::from(vec![Value::Map(orderObj)]));
                 m.insert("grouping".to_string(), Value::Str("na".into()));
             m
         });

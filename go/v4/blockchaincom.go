@@ -496,12 +496,7 @@ func (this *Blockchaincom) fetchOrderBookBody(ch chan AsyncResult[OrderBook], sy
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes43815 map[string]any = StructResultMap(r.Value, OrderBookToMap)
-	if retRes43815 == nil {
-		ch <- AsyncResult[OrderBook]{}
-	} else {
-		ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(retRes43815)}
-	}
+	ch <- AsyncResult[OrderBook]{Value: r.Value}
 	return nil
 }
 

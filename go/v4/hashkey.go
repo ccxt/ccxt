@@ -3092,12 +3092,7 @@ func (this *Hashkey) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes253419 map[string]any = StructResultMap(r1.Value, OrderToMap)
-		if retRes253419 == nil {
-			ch <- AsyncResult[Order]{}
-		} else {
-			ch <- AsyncResult[Order]{Value: OrderFromMap(retRes253419)}
-		}
+		ch <- AsyncResult[Order]{Value: r1.Value}
 		return nil
 	} else if market["swap"] == true {
 
@@ -3105,12 +3100,7 @@ func (this *Hashkey) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes253619 map[string]any = StructResultMap(r2.Value, OrderToMap)
-		if retRes253619 == nil {
-			ch <- AsyncResult[Order]{}
-		} else {
-			ch <- AsyncResult[Order]{Value: OrderFromMap(retRes253619)}
-		}
+		ch <- AsyncResult[Order]{Value: r2.Value}
 		return nil
 	} else {
 		var marketTypeValue *string = this.SafeString(market, "type", "")
@@ -3156,12 +3146,7 @@ func (this *Hashkey) createMarketBuyOrderWithCostBody(ch chan AsyncResult[Order]
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes256315 map[string]any = StructResultMap(r1.Value, OrderToMap)
-	if retRes256315 == nil {
-		ch <- AsyncResult[Order]{}
-	} else {
-		ch <- AsyncResult[Order]{Value: OrderFromMap(retRes256315)}
-	}
+	ch <- AsyncResult[Order]{Value: r1.Value}
 	return nil
 }
 
@@ -5049,12 +5034,7 @@ func (this *Hashkey) addMarginBody(ch chan AsyncResult[MarginModification], symb
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes422615 map[string]any = StructResultMap(r.Value, MarginModificationToMap)
-	if retRes422615 == nil {
-		ch <- AsyncResult[MarginModification]{}
-	} else {
-		ch <- AsyncResult[MarginModification]{Value: MarginModificationFromMap(retRes422615)}
-	}
+	ch <- AsyncResult[MarginModification]{Value: r.Value}
 	return nil
 }
 
@@ -5084,12 +5064,7 @@ func (this *Hashkey) reduceMarginBody(ch chan AsyncResult[MarginModification], s
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes424115 map[string]any = StructResultMap(r.Value, MarginModificationToMap)
-	if retRes424115 == nil {
-		ch <- AsyncResult[MarginModification]{}
-	} else {
-		ch <- AsyncResult[MarginModification]{Value: MarginModificationFromMap(retRes424115)}
-	}
+	ch <- AsyncResult[MarginModification]{Value: r.Value}
 	return nil
 }
 func (this *Hashkey) ModifyMarginHelperAsync(symbol string, amount any, typeVar string, optionalArgs ...any) <-chan AsyncResult[MarginModification] {

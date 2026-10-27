@@ -1654,13 +1654,13 @@ impl BybitCore {
         client.resolve(&[orderbook, messageHash]);
         if (limit.as_deref() == Some("1")) {
             let mut bidask: indexmap::IndexMap<String, Value> = self.parse_ws_bid_ask(self.orderbooks.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), &[market]).as_map().cloned().unwrap_or_default();
-            let mut newBidsAsks: Value = Value::Map({
+            let mut newBidsAsks: indexmap::IndexMap<String, Value> = {
                 let mut m = indexmap::IndexMap::new();
                 m
-            });
-            if let Value::Dict(__d) = &mut newBidsAsks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map(bidask.clone())); }
+            };
+            newBidsAsks.insert(crate::runtime::stringify_param(&symbol), Value::Map(bidask.clone()));
             if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map(bidask)); }
-            client.resolve(&[newBidsAsks, Value::Str(format!("{}{}", Value::Str("bidask:".into()), symbol).into())]);
+            client.resolve(&[Value::Map(newBidsAsks), Value::Str(format!("{}{}", Value::Str("bidask:".into()), symbol).into())]);
         }
 }
 

@@ -2843,14 +2843,14 @@ impl ModetradeCore {
             request.insert("algo_type".into(), Value::Str("STOP".into()));
         }  else if hasStopLoss || hasTakeProfit {
             request.insert("algo_type".into(), Value::Str("TP_SL".into()));
-            let mut outterOrder: Value = Value::Map({
+            let mut outterOrder: indexmap::IndexMap<String, Value> = {
                 let mut m = indexmap::IndexMap::new();
                     m.insert("symbol".to_string(), market.get("id").cloned().unwrap_or(Value::Null));
                     m.insert("reduce_only".to_string(), Value::Bool(false));
                     m.insert("algo_type".to_string(), Value::Str("POSITIONAL_TP_SL".into()));
                     m.insert("child_orders".to_string(), Value::from(vec![]));
                 m
-            });
+            };
             let mut childOrders: Value = Value::from(vec![]);
             let mut closeSide: Value = Value::Str("BUY".into());
             if (orderSide.as_str() == Some("BUY")) {
@@ -2882,8 +2882,8 @@ impl ModetradeCore {
                 });
                 if let Value::Arr(__a) = &mut childOrders { std::sync::Arc::make_mut(__a).push(takeProfitOrder); }
             }
-            if let Value::Dict(__d) = &mut outterOrder { std::sync::Arc::make_mut(__d).insert("child_orders".into(), childOrders); }
-            request.insert("child_orders".into(), Value::from(vec![outterOrder]));
+            outterOrder.insert("child_orders".into(), childOrders);
+            request.insert("child_orders".into(), Value::from(vec![Value::Map(outterOrder)]));
         }
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), Value::Str("clOrdID".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into()), Value::Str("postOnly".into()), Value::Str("timeInForce".into()), Value::Str("stopPrice".into()),
             Value::Str("triggerPrice".into()), Value::Str("stopLoss".into()), Value::Str("takeProfit".into())]), &[]);

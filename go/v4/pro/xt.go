@@ -377,12 +377,12 @@ func (this *Xt) subscribeBody(ch chan ccxt.AsyncResult[any], name any, access st
  * @param {object} subscriptionParams extra parameters specific to the subscription
  * @returns {object} data from the websocket stream
  */
-func (this *Xt) UnSubscribeAsync(messageHash string, name any, access string, methodName string, topic any, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+func (this *Xt) UnSubscribeAsync(messageHash string, name string, access string, methodName string, topic any, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.unSubscribeBody(ch, messageHash, name, access, methodName, topic, optionalArgs...)
 	return ch
 }
-func (this *Xt) unSubscribeBody(ch chan ccxt.AsyncResult[bool], messageHash string, name any, access string, methodName string, topic any, optionalArgs ...any) any {
+func (this *Xt) unSubscribeBody(ch chan ccxt.AsyncResult[bool], messageHash string, name string, access string, methodName string, topic any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
@@ -396,7 +396,7 @@ func (this *Xt) unSubscribeBody(ch chan ccxt.AsyncResult[bool], messageHash stri
 	var privateAccess bool = (access == "private")
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams(methodName, market, params)
 	var isContract bool = (typeVar == nil || *typeVar != "spot")
-	var id *string = ccxt.SafeStringPtr(ccxt.Add(strconv.FormatInt(this.Milliseconds(), 10), name)) // call back ID
+	var id string = strconv.FormatInt(this.Milliseconds(), 10) + name // call back ID
 	var unsubscribe map[string]any = map[string]any{
 		"method": func() string {
 			if isContract {
@@ -421,7 +421,7 @@ func (this *Xt) unSubscribeBody(ch chan ccxt.AsyncResult[bool], messageHash stri
 				panic(r1.Err)
 			}
 			listenKey := r1.Value
-			var param any = ccxt.Add(ccxt.Add(name, "@"), listenKey)
+			var param *string = ccxt.SafeStringPtr(ccxt.Add(name+"@", listenKey))
 			unsubscribe["params"] = []any{param}
 		}
 	} else {
@@ -431,7 +431,7 @@ func (this *Xt) unSubscribeBody(ch chan ccxt.AsyncResult[bool], messageHash stri
 	if isContract {
 		tradeType = "contract"
 	}
-	var subMessageHash any = ccxt.Add(ccxt.Add(name, "::"), tradeType)
+	var subMessageHash string = name + "::" + tradeType
 	var request map[string]any = this.Extend(unsubscribe, paramsMarketType)
 	var tail string = access
 	if isContract {
@@ -604,19 +604,21 @@ func (this *Xt) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Ticker
 			return nil
 		}())
 	}
+	if name != nil {
 
-	r1 := <-this.SubscribeAsync(name, "public", "watchTickers", market, symbols, params)
-	if r1.Err != nil {
-		panic(r1.Err)
+		r1 := <-this.SubscribeAsync(name, "public", "watchTickers", market, symbols, params)
+		if r1.Err != nil {
+			panic(r1.Err)
+		}
+		tickers := r1.Value
+		if this.NewUpdates {
+
+			ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: ccxt.TickerMapFromMap(tickers)}
+			return nil
+		}
 	}
-	tickers := r1.Value
-	if this.NewUpdates {
 
-		ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: ccxt.TickerMapFromMap(tickers)}
-		return nil
-	}
-
-	ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: ccxt.TickerMapFromMap(this.FilterByArray(this.WsCacheSnapshot("Tickers"), "symbol", symbols))}
+	ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: this.WsCacheTickerMap("Tickers", symbols)}
 	return nil
 }
 
@@ -656,13 +658,17 @@ func (this *Xt) unWatchTickersBody(ch chan ccxt.AsyncResult[bool], optionalArgs 
 	if symbols != nil {
 		panic(ccxt.NotSupported(this.Id + " unWatchTickers() does not support symbols argument, unsubscribtion is for all tickers at once only"))
 	}
-	var messageHash string = "unsubscribe::" + *name
+	if name != nil {
+		var messageHash string = "unsubscribe::" + *name
 
-	r1 := <-this.UnSubscribeAsync(messageHash, name, "public", "unWatchTickers", "ticker", nil, symbols, params)
-	if r1.Err != nil {
-		panic(r1.Err)
+		r1 := <-this.UnSubscribeAsync(messageHash, *name, "public", "unWatchTickers", "ticker", nil, symbols, params)
+		if r1.Err != nil {
+			panic(r1.Err)
+		}
+		ch <- ccxt.AsyncResult[bool]{Value: r1.Value}
+		return nil
 	}
-	ch <- ccxt.AsyncResult[bool]{Value: r1.Value}
+
 	return nil
 }
 
@@ -759,8 +765,8 @@ func (this *Xt) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol string, 
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	retRes45715 := r1.Value
-	ch <- ccxt.AsyncResult[bool]{Value: retRes45715}
+	retRes46215 := r1.Value
+	ch <- ccxt.AsyncResult[bool]{Value: retRes46215}
 	return nil
 }
 

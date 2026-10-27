@@ -3078,12 +3078,7 @@ func (this *Ndax) createDepositAddressBody(ch chan AsyncResult[DepositAddress], 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes233315 map[string]any = StructResultMap(r.Value, DepositAddressToMap)
-	if retRes233315 == nil {
-		ch <- AsyncResult[DepositAddress]{}
-	} else {
-		ch <- AsyncResult[DepositAddress]{Value: DepositAddressFromMap(retRes233315)}
-	}
+	ch <- AsyncResult[DepositAddress]{Value: r.Value}
 	return nil
 }
 

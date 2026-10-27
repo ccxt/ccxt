@@ -2907,7 +2907,7 @@ func (this *Binance) watchMarkPricesBody(ch chan ccxt.AsyncResult[map[string]ccx
 		return nil
 	}
 
-	ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: ccxt.TickerMapFromMap(this.FilterByArray(this.WsCacheSnapshot("Tickers"), "symbol", symbols))}
+	ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: this.WsCacheTickerMap("Tickers", symbols)}
 	return nil
 }
 
@@ -2960,7 +2960,7 @@ func (this *Binance) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.T
 			return nil
 		}
 
-		ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: ccxt.TickerMapFromMap(this.FilterByArray(this.WsCacheSnapshot("Tickers"), "symbol", symbolsNormalized))}
+		ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: this.WsCacheTickerMap("Tickers", symbolsNormalized)}
 		return nil
 	}
 	channelName, paramsName := this.HandleOptionStringAndParams(paramsStock, "watchTickers", "name", "miniTicker")
@@ -2979,7 +2979,7 @@ func (this *Binance) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.T
 		return nil
 	}
 
-	ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: ccxt.TickerMapFromMap(this.FilterByArray(this.WsCacheSnapshot("Tickers"), "symbol", symbolsNormalized))}
+	ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: this.WsCacheTickerMap("Tickers", symbolsNormalized)}
 	return nil
 }
 
@@ -3252,7 +3252,7 @@ func (this *Binance) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccxt.
 			return nil
 		}
 
-		ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: ccxt.TickerMapFromMap(this.FilterByArray(this.WsCacheSnapshot("Bidsasks"), "symbol", stockSymbols))}
+		ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: this.WsCacheTickerMap("Bidsasks", stockSymbols)}
 		return nil
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true, false, true)
@@ -3268,7 +3268,7 @@ func (this *Binance) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccxt.
 		return nil
 	}
 
-	ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: ccxt.TickerMapFromMap(this.FilterByArray(this.WsCacheSnapshot("Bidsasks"), "symbol", symbolsNormalized))}
+	ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: this.WsCacheTickerMap("Bidsasks", symbolsNormalized)}
 	return nil
 }
 func (this *Binance) WatchMultiTickerHelperAsync(methodName string, channelName any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {

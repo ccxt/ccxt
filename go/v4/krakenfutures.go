@@ -4522,12 +4522,7 @@ func (this *Krakenfutures) transferOutBody(ch chan AsyncResult[TransferEntry], c
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes364215 map[string]any = StructResultMap(r.Value, TransferEntryToMap)
-	if retRes364215 == nil {
-		ch <- AsyncResult[TransferEntry]{}
-	} else {
-		ch <- AsyncResult[TransferEntry]{Value: TransferEntryFromMap(retRes364215)}
-	}
+	ch <- AsyncResult[TransferEntry]{Value: r.Value}
 	return nil
 }
 

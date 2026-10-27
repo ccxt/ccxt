@@ -1664,12 +1664,7 @@ func (this *Myriad) createMarketBuyOrderWithCostBody(ch chan ccxt.AsyncResult[cc
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes111415 map[string]any = ccxt.StructResultMap(r.Value, ccxt.PredictionOrderToMap)
-	if retRes111415 == nil {
-		ch <- ccxt.AsyncResult[ccxt.PredictionOrder]{}
-	} else {
-		ch <- ccxt.AsyncResult[ccxt.PredictionOrder]{Value: ccxt.PredictionOrderFromMap(retRes111415)}
-	}
+	ch <- ccxt.AsyncResult[ccxt.PredictionOrder]{Value: r.Value}
 	return nil
 }
 

@@ -1874,7 +1874,7 @@ public partial class bitteam : Exchange
         string? bestAskVolume = null;
         List<object> bids = this.safeList(ticker, "bids");
         List<object> asks = this.safeList(ticker, "asks");
-        if (((bids != null)) && (((bids is IList<object>) || (bids.GetType().IsGenericType && bids.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))) && ((asks != null)) && (((asks is IList<object>) || (asks.GetType().IsGenericType && asks.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        if (((bids != null)) && ((asks != null)))
         {
             IDictionary<string, object> bestBid = this.safeDict(bids, 0, new Dictionary<string, object>() {});
             bestBidPrice = this.safeString(bestBid, "price");

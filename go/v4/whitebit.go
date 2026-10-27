@@ -2788,12 +2788,7 @@ func (this *Whitebit) createMarketBuyOrderWithCostBody(ch chan AsyncResult[Order
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes202015 map[string]any = StructResultMap(r.Value, OrderToMap)
-	if retRes202015 == nil {
-		ch <- AsyncResult[Order]{}
-	} else {
-		ch <- AsyncResult[Order]{Value: OrderFromMap(retRes202015)}
-	}
+	ch <- AsyncResult[Order]{Value: r.Value}
 	return nil
 }
 

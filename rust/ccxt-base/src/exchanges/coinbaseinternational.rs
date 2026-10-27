@@ -1902,10 +1902,10 @@ impl CoinbaseinternationalCore {
         if (symbolsResolved == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchTickers() requires a symbols argument".into()))));
         }
-        let mut tickers: Value = Value::Map({
+        let mut tickers: indexmap::IndexMap<String, Value> = {
             let mut m = indexmap::IndexMap::new();
             m
-        });
+        };
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_556: bool = true;
@@ -1915,10 +1915,10 @@ impl CoinbaseinternationalCore {
                 continue;
             }
             let mut ticker: Value = self.fetch_ticker(symbol.clone().map(Value::from).unwrap_or(Value::Null), &[paramsResolved.clone()]).await;
-            if let Value::Dict(__d) = &mut tickers { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), ticker); }
+            tickers.insert(symbol.as_deref().unwrap_or("null").to_string(), ticker);
         }
         }
-        return self.filter_by_array_tickers(tickers, Value::Str("symbol".into()), &[symbolsResolved]);
+        return self.filter_by_array_tickers(Value::Map(tickers), Value::Str("symbol".into()), &[symbolsResolved]);
 
     Value::Null
 }

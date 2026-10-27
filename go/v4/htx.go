@@ -6932,12 +6932,7 @@ func (this *Htx) createMarketBuyOrderWithCostBody(ch chan AsyncResult[Order], sy
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes506715 map[string]any = StructResultMap(r1.Value, OrderToMap)
-	if retRes506715 == nil {
-		ch <- AsyncResult[Order]{}
-	} else {
-		ch <- AsyncResult[Order]{Value: OrderFromMap(retRes506715)}
-	}
+	ch <- AsyncResult[Order]{Value: r1.Value}
 	return nil
 }
 
@@ -6984,12 +6979,7 @@ func (this *Htx) createTrailingPercentOrderBody(ch chan AsyncResult[Order], symb
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes509315 map[string]any = StructResultMap(r.Value, OrderToMap)
-	if retRes509315 == nil {
-		ch <- AsyncResult[Order]{}
-	} else {
-		ch <- AsyncResult[Order]{Value: OrderFromMap(retRes509315)}
-	}
+	ch <- AsyncResult[Order]{Value: r.Value}
 	return nil
 }
 

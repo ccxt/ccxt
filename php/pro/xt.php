@@ -412,9 +412,11 @@ class xt extends \ccxt\async\xt {
         if ($symbols !== null) {
             $market = $this->market($symbols[0]);
         }
-        $tickers = Async\await($this->subscribe($name, 'public', 'watchTickers', $market, $symbols, $params));
-        if ($this->newUpdates) {
-            return $tickers;
+        if ($name !== null) {
+            $tickers = Async\await($this->subscribe($name, 'public', 'watchTickers', $market, $symbols, $params));
+            if ($this->newUpdates) {
+                return $tickers;
+            }
         }
         return $this->filter_by_array($this->tickers, 'symbol', $symbols);
     }
@@ -444,8 +446,11 @@ class xt extends \ccxt\async\xt {
         if ($symbols !== null) {
             throw new NotSupported($this->id . ' unWatchTickers() does not support symbols argument, unsubscribtion is for all tickers at once only');
         }
-        $messageHash = 'unsubscribe::' . $name;
-        return Async\await($this->un_subscribe($messageHash, $name, 'public', 'unWatchTickers', 'ticker', null, $symbols, $params));
+        if ($name !== null) {
+            $messageHash = 'unsubscribe::' . $name;
+            return Async\await($this->un_subscribe($messageHash, $name, 'public', 'unWatchTickers', 'ticker', null, $symbols, $params));
+        }
+        return null;
     }
 
     public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {

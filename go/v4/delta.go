@@ -2002,12 +2002,11 @@ func (this *Delta) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, o
 	} else {
 		var start int64 = this.ParseToInt(float64(*since) / 1000)
 		request["start"] = start
-		request["end"] = func() any {
-			if until != nil {
-				return until
-			}
-			return this.Sum(start, windowSeconds)
-		}()
+		if until != nil {
+			request["end"] = *until
+		} else {
+			request["end"] = start + windowSeconds
+		}
 	}
 	var price *string = this.SafeString(params, "price")
 	var marketId *string = this.SafeString(market, "id", "")
@@ -3606,12 +3605,7 @@ func (this *Delta) addMarginBody(ch chan AsyncResult[MarginModification], symbol
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes290015 map[string]any = StructResultMap(r.Value, MarginModificationToMap)
-	if retRes290015 == nil {
-		ch <- AsyncResult[MarginModification]{}
-	} else {
-		ch <- AsyncResult[MarginModification]{Value: MarginModificationFromMap(retRes290015)}
-	}
+	ch <- AsyncResult[MarginModification]{Value: r.Value}
 	return nil
 }
 
@@ -3640,12 +3634,7 @@ func (this *Delta) reduceMarginBody(ch chan AsyncResult[MarginModification], sym
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes291415 map[string]any = StructResultMap(r.Value, MarginModificationToMap)
-	if retRes291415 == nil {
-		ch <- AsyncResult[MarginModification]{}
-	} else {
-		ch <- AsyncResult[MarginModification]{Value: MarginModificationFromMap(retRes291415)}
-	}
+	ch <- AsyncResult[MarginModification]{Value: r.Value}
 	return nil
 }
 func (this *Delta) ModifyMarginHelperAsync(symbol string, amount any, typeVar string, optionalArgs ...any) <-chan AsyncResult[MarginModification] {

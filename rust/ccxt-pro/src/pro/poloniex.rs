@@ -454,12 +454,12 @@ impl PoloniexCore {
         if (url.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" has no websocket url for this endpoint".into()))));
         }
-        let mut subscribe: Value = Value::Map({
+        let mut subscribe: indexmap::IndexMap<String, Value> = {
             let mut m = indexmap::IndexMap::new();
                 m.insert("event".to_string(), Value::Str("subscribe".into()));
                 m.insert("channel".to_string(), Value::from(vec![name.clone()]));
             m
-        });
+        };
         let mut marketIds: Value = Value::from(vec![]);
         if self.is_empty(symbols.clone()).as_bool() == Some(true) {
             append_to_array(&mut marketIds, Value::Str("all".into()));
@@ -477,9 +477,9 @@ impl PoloniexCore {
             symbolsHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str("::".into())).into()), symbolsSuffix).into());
         }
         if (name.as_str() != Some("balances")) {
-            if let Value::Dict(__d) = &mut subscribe { std::sync::Arc::make_mut(__d).insert("symbols".into(), marketIds); }
+            subscribe.insert("symbols".into(), marketIds);
         }
-        let mut request: Value = self.extend(subscribe, &[params]);
+        let mut request: Value = self.extend(Value::Map(subscribe), &[params]);
         return self.watch(url.map(Value::from).unwrap_or(Value::Null), symbolsHash.clone(), &[request, symbolsHash.clone()]).await;
 
     Value::Null
