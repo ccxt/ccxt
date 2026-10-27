@@ -688,7 +688,7 @@ public partial class alpaca : ccxt.alpaca
                 { "key", this.apiKey },
                 { "secret", this.secret },
             };
-            if (isEqual(url, this.safeString(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "trading")))
+            if ((url == this.safeString(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "trading")))
             {
                 // this auth request is being deprecated in test environment
                 request = ((object)new Dictionary<string, object>() {

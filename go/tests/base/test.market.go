@@ -172,7 +172,7 @@ func TestMarket(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 		Assert((contract == nil || *contract != true) && (linear == nil) && (inverse == nil) && (option == nil || *option != true) && (swap == nil || *swap != true) && (future == nil || *future != true), Add("for spot market, none of contract/linear/inverse/option/swap/future should be set", logText))
 	} else {
 		// if not spot, any of the below should be true
-		Assert((contract != nil && *contract == true) && ((future != nil && *future == true) || (swap != nil && *swap == true) || (option != nil && *option == true) || (isIndex == true)), Add("for non-spot markets, any of (future/swap/option/index) should be set", logText))
+		Assert((contract != nil && *contract == true) && ((future != nil && *future == true) || (swap != nil && *swap == true) || (option != nil && *option == true) || (isIndex)), Add("for non-spot markets, any of (future/swap/option/index) should be set", logText))
 	}
 	var contractSize any = ccxt.DerefScalar(exchange.SafeString(market, "contractSize"))
 	// contract fields
@@ -202,7 +202,7 @@ func TestMarket(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 	}
 	// future, swap and option should be mutually exclusive
 	if GetValue(market, "future") == true {
-		Assert((GetValue(market, "swap") != true) && (GetValue(market, "option") != true) && (isIndex != true), Add("market swap and option must be false when \"future\" is true", logText))
+		Assert((GetValue(market, "swap") != true) && (GetValue(market, "option") != true) && (!isIndex), Add("market swap and option must be false when \"future\" is true", logText))
 	} else if GetValue(market, "swap") == true {
 		Assert((future == nil || *future != true) && (option == nil || *option != true), Add("market future and option must be false when \"swap\" is true", logText))
 	} else if GetValue(market, "option") == true {

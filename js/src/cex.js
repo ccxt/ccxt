@@ -265,7 +265,7 @@ export default class cex extends Exchange {
                 'networks': {
                     'BTC': 'bitcoin',
                     'ERC20': 'ERC20',
-                    'BSC20': 'binancesmartchain',
+                    'BEP20': 'binancesmartchain',
                     'DOGE': 'dogecoin',
                     'ALGO': 'algorand',
                     'XLM': 'stellar',
@@ -277,7 +277,7 @@ export default class cex extends Exchange {
                     'THETA': 'theta',
                     'XTZ': 'tezos',
                     'TIA': 'celestia',
-                    'CRONOS': 'cronos', // CRC20
+                    'CRC20': 'cronos',
                     'MATIC': 'polygon',
                     'TON': 'ton',
                     'TRC20': 'tron',
@@ -1141,7 +1141,8 @@ export default class cex extends Exchange {
             'orderId': parseInt(id),
         };
         const result = await this.fetchOpenOrders(symbol, undefined, undefined, this.extend(request, params));
-        return result[0];
+        const order = this.safeDict(result, 0);
+        return order;
     }
     /**
      * @method
@@ -1161,7 +1162,8 @@ export default class cex extends Exchange {
             'orderId': parseInt(id),
         };
         const result = await this.fetchClosedOrders(symbol, undefined, undefined, this.extend(request, params));
-        return result[0];
+        const order = this.safeDict(result, 0);
+        return order;
     }
     parseOrderStatus(status) {
         const statuses = {
@@ -1782,14 +1784,15 @@ export default class cex extends Exchange {
             'tag': undefined,
         };
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const apiUrl = this.safeString(this.urls['api'], api);
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
+        const apiUrl = this.safeString(this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
         let url = apiUrl + '/' + this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
-        if (api === 'public') {
+        if (apiName === 'public') {
             if (method === 'GET') {
                 if (Object.keys(query).length > 0) {
                     url += '?' + this.urlencode(query);
@@ -1817,7 +1820,7 @@ export default class cex extends Exchange {
             };
             return { 'url': url, 'method': method, 'body': bodySigned, 'headers': headersSigned };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         // in some cases, like from createOrder, exchange returns nested escaped JSON string:

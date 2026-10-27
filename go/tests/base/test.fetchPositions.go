@@ -21,7 +21,10 @@ func testFetchPositionsBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICoreEx
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	positions := r.Value
+	var positions any = nil
+	if r.Value != nil {
+		positions = ccxt.PositionsToList(r.Value)
+	}
 	AssertNonEmtpyArray(exchange, skippedProperties, method, positions, symbol)
 	for i := 0; i < GetArrayLength(positions); i++ {
 		TestPosition(exchange, skippedProperties, method, GetValue(positions, i), nil, now)
@@ -33,7 +36,10 @@ func testFetchPositionsBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICoreEx
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	positionsForSymbol := r1.Value
+	var positionsForSymbol any = nil
+	if r1.Value != nil {
+		positionsForSymbol = ccxt.PositionsToList(r1.Value)
+	}
 	Assert(IsArray(positionsForSymbol), Add(Add(Add(Add(exchange.GetId(), " "), method), " must return an array, returned "), exchange.Json(positionsForSymbol)))
 	var positionsForSymbolLength int = GetArrayLength(positionsForSymbol)
 	Assert((positionsForSymbolLength <= 4), Add(Add(Add(Add(exchange.GetId(), " "), method), " positions length for particular symbol should be less than 4, returned "), exchange.Json(positionsForSymbol)))

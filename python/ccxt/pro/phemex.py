@@ -274,10 +274,10 @@ class phemex(ccxt.async_support.phemex):
         #
         tickers = []
         if 'market24h' in message:
-            ticker = self.safe_value(message, 'market24h')
+            ticker = self.safe_dict(message, 'market24h', {})
             tickers.append(self.parse_swap_ticker(ticker))
         elif 'spot_market24h' in message:
-            ticker = self.safe_value(message, 'spot_market24h')
+            ticker = self.safe_dict(message, 'spot_market24h', {})
             tickers.append(self.parse_ticker(ticker))
         elif 'data' in message:
             data = self.safe_list(message, 'data', [])
@@ -747,8 +747,13 @@ class phemex(ccxt.async_support.phemex):
             book = self.safe_dict_2(message, 'book', 'orderbook_p', {})
             snapshot = self.custom_parse_order_book(book, symbol, timestamp, 'bids', 'asks', 0, 1, market)
             snapshot['nonce'] = nonce
-            orderbook = self.order_book(snapshot, depth)
-            self.orderbooks[symbol] = orderbook
+            # reset the existing orderbook instead of replacing it: a consumer
+            # holds a reference to the old object and would never see updates
+            # after a re-subscription snapshot
+            if not (symbol in self.orderbooks):
+                self.orderbooks[symbol] = self.order_book({}, depth)
+            orderbook = self.orderbooks[symbol]
+            orderbook.reset(snapshot)
             client.resolve(orderbook, messageHash)
         else:
             if symbol in self.orderbooks:
@@ -907,7 +912,8 @@ class phemex(ccxt.async_support.phemex):
             cachedTrades.append(parsed)
             symbol = parsed['symbol']
             if type is None:
-                type = 'perpetual' if (market['settle'] == 'USDT') else market['type']
+                marketSettle = self.safe_string(market, 'settle')
+                type = 'perpetual' if (marketSettle == 'USDT') else market['type']
             if symbol is not None:
                 marketIds[symbol] = True
         keys = list(marketIds.keys())

@@ -244,9 +244,9 @@ class deepcoin extends \ccxt\async\deepcoin {
                     // and the next caller re-leads
                     throw new AuthenticationError($this->id . ' authenticate() received an empty listenKey');
                 }
-                $listenKeyExpiryTimestamp = $this->safe_timestamp($data, 'expire_time');
+                $newExpiryTimestamp = $this->safe_timestamp($data, 'expire_time');
                 $this->options['listenKey'] = $listenKey;
-                $this->options['listenKeyExpiryTimestamp'] = $listenKeyExpiryTimestamp;
+                $this->options['listenKeyExpiryTimestamp'] = $newExpiryTimestamp;
             }
             // settle the flight: client.resolve wakes every waiter and drops
             // the future from the registry under the client's own lock, so the

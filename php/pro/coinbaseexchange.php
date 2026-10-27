@@ -52,7 +52,7 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
         ));
     }
 
-    public function authenticate() {
+    public function authenticate(): array {
         $this->check_required_credentials();
         $path = '/users/self/verify';
         $nonce = $this->nonce();
@@ -939,7 +939,7 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
         $bookside->store($price, $amount);
     }
 
-    public function handle_deltas(mixed $bookside, mixed $deltas) {
+    public function handle_deltas(mixed $bookside, array $deltas) {
         for ($i = 0; $i < count($deltas); $i++) {
             $this->handle_delta($bookside, $deltas[$i]);
         }
@@ -980,13 +980,12 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
         $subscription = $this->safe_dict($client->subscriptions, $messageHash, array());
         $limit = $this->safe_integer($subscription, 'limit');
         if ($type === 'snapshot') {
-            $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
+            if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
+                $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
+            }
             $orderbook = $this->orderbooks[$symbol];
-            $this->handle_deltas($orderbook['asks'], $this->safe_list($message, 'asks', array()));
-            $this->handle_deltas($orderbook['bids'], $this->safe_list($message, 'bids', array()));
-            $orderbook['timestamp'] = null;
-            $orderbook['datetime'] = null;
-            $orderbook['symbol'] = $symbol;
+            $snapshot = $this->parse_order_book($message, $symbol);
+            $orderbook->reset($snapshot);
             $client->resolve($orderbook, $messageHash);
         } elseif ($type === 'l2update') {
             $orderbook = $this->orderbooks[$symbol];
@@ -1069,8 +1068,7 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
             'done' => array($this, 'handle_order'),
             'error' => array($this, 'handle_error_message'),
         );
-        $length = strlen($client->url) - 0;
-        $authenticated = $client->url[$length - 1] === '?';
+        $authenticated = str_ends_with($client->url, '?');
         $method = $this->safe_value($methods, $type);
         if ($method === null) {
             if ($type === 'match') {

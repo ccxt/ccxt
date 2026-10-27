@@ -34,7 +34,7 @@ type BaseExchange struct {
 	loadMu                 sync.Mutex
 	marketsLoading         bool
 	marketsLoaded          bool
-	loadMarketsSubscribers []chan AsyncResult[any]
+	loadMarketsSubscribers []chan AsyncResult[*sync.Map]
 	Itf                    any
 	DerivedExchange        IDerivedExchange
 	methodCache            sync.Map
@@ -187,6 +187,7 @@ type BaseExchange struct {
 	Pro       bool
 
 	MinFundingAddressLength int
+	NetworkAliases          map[string]any
 	MaxEntriesPerRequest    int
 
 	// tests only
@@ -292,7 +293,7 @@ func (this *BaseExchange) InitParent(userConfig map[string]any, exchangeConfig m
 	this.Accounts = make([]any, 0)
 
 	this.initializeProperties(extendedProperties)
-	this.AfterConstruct()
+	this.AfterConstruct(userConfig)
 
 	this.streaming = this.SafeDict(extendedProperties, "streaming", map[string]any{}).(map[string]any)
 	this.transformApiNew(this.Api)
@@ -411,24 +412,28 @@ func (this *BaseExchange) InitThrottler() {
   - @param {object} params - Additional exchange-specific parameters for the request.
   - @throws An error if the markets cannot be loaded or prepared.
 */
-func (this *BaseExchange) LoadMarketsAsync(params ...any) <-chan AsyncResult[any] {
+func (this *BaseExchange) LoadMarketsAsync(params ...any) <-chan AsyncResult[*sync.Map] {
 	reload := GetArg(params, 0, false).(bool)
 	this.loadMu.Lock()
 
 	if this.marketsLoaded && !reload {
-		out := make(chan AsyncResult[any], 1)
-		out <- AsyncResult[any]{Value: this.Markets}
+		out := make(chan AsyncResult[*sync.Map], 1)
+		out <- AsyncResult[*sync.Map]{Value: this.Markets}
 		close(out)
 		this.loadMu.Unlock()
 		return out
 	}
 
-	ch := make(chan AsyncResult[any], 1)
+	ch := make(chan AsyncResult[*sync.Map], 1)
 	this.loadMarketsSubscribers = append(this.loadMarketsSubscribers, ch)
 
 	if !this.marketsLoading || reload {
 		this.marketsLoading = true
-		markets := <-this.LoadMarketsHelperAsync(params...)
+		loaded := <-this.LoadMarketsHelperAsync(params...)
+		markets := AsyncResult[*sync.Map]{Err: loaded.Err}
+		if loaded.Err == nil && loaded.Value != nil {
+			markets.Value = loaded.Value
+		}
 		this.marketsLoaded = true
 		this.marketsLoading = false
 		for _, ch := range this.loadMarketsSubscribers {
@@ -442,14 +447,14 @@ func (this *BaseExchange) LoadMarketsAsync(params ...any) <-chan AsyncResult[any
 	return ch
 }
 
-func (this *BaseExchange) LoadMarketsHelperAsync(params ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any])
+func (this *BaseExchange) LoadMarketsHelperAsync(params ...any) <-chan AsyncResult[*sync.Map] {
+	ch := make(chan AsyncResult[*sync.Map])
 
 	go func() {
 		defer close(ch)
 		defer func() {
 			if r := recover(); r != nil {
-				ch <- AsyncResult[any]{Err: RecoveredError(r)}
+				ch <- AsyncResult[*sync.Map]{Err: RecoveredError(r)}
 			}
 		}()
 		reload := GetArg(params, 0, false).(bool)
@@ -459,12 +464,12 @@ func (this *BaseExchange) LoadMarketsHelperAsync(params ...any) <-chan AsyncResu
 				if this.Markets_by_id == nil {
 					// Only lock when writing
 					this.MarketsMutex.Lock()
-					result := this.SetMarkets(this.Markets, nil)
+					this.SetMarkets(this.Markets, nil) // returns this.Markets
 					this.MarketsMutex.Unlock()
-					ch <- AsyncResult[any]{Value: result}
+					ch <- AsyncResult[*sync.Map]{Value: this.Markets}
 					return
 				}
-				ch <- AsyncResult[any]{Value: this.Markets}
+				ch <- AsyncResult[*sync.Map]{Value: this.Markets}
 				return
 			}
 		}
@@ -472,7 +477,10 @@ func (this *BaseExchange) LoadMarketsHelperAsync(params ...any) <-chan AsyncResu
 		var currencies any = nil
 		hasFetchCurrencies := this.Has["fetchCurrencies"]
 		if IsBool(hasFetchCurrencies) && IsTrue(hasFetchCurrencies) {
-			currencies = (<-this.DerivedExchange.FetchCurrenciesAsync(params)).Value
+			// a nil currencies map stays untyped nil: SetMarkets reads it as "not fetched"
+			if fetchedCurrencies := (<-this.DerivedExchange.FetchCurrenciesAsync(params)).Value; fetchedCurrencies != nil {
+				currencies = fetchedCurrencies
+			}
 			// this.cachedCurrenciesMutex.Lock()
 			// this.Options["cachedCurrencies"] = currencies
 			this.Options.Store("cachedCurrencies", currencies)
@@ -483,7 +491,7 @@ func (this *BaseExchange) LoadMarketsHelperAsync(params ...any) <-chan AsyncResu
 		if fetched.Err != nil {
 			panic(fetched.Err)
 		}
-		markets := fetched.Value
+		markets := MarketInterfacesToList(fetched.Value)
 
 		// this.cachedCurrenciesMutex.Lock()
 		// delete(this.Options, "cachedCurrencies")
@@ -493,7 +501,7 @@ func (this *BaseExchange) LoadMarketsHelperAsync(params ...any) <-chan AsyncResu
 
 		// Lock only for writing
 		this.MarketsMutex.Lock()
-		result := this.SetMarkets(markets, currencies)
+		this.SetMarkets(markets, currencies) // returns this.Markets (panics when unset)
 		// prediction exchanges build an outcome lookup from the loaded markets via the
 		// PredictionExchange.SetMarkets override. Go has no virtual dispatch, so the base
 		// SetMarkets above bypasses it — invoke setOutcomesFromMarkets on the concrete
@@ -504,7 +512,7 @@ func (this *BaseExchange) LoadMarketsHelperAsync(params ...any) <-chan AsyncResu
 		}
 		this.MarketsMutex.Unlock()
 
-		ch <- AsyncResult[any]{Value: result}
+		ch <- AsyncResult[*sync.Map]{Value: this.Markets}
 	}()
 	return ch
 }
@@ -520,24 +528,26 @@ func (this *BaseExchange) Throttle(cost any) <-chan bool {
 	return ch
 }
 
-func (this *BaseExchange) FetchMarketsAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any])
-	go func() any {
-		// defer close(ch)
-		// markets := <-this.callInternal("fetchMarkets", optionalArgs)
-		// return markets
-		return this.Markets
+// base fetchMarkets (ts/src/base/Exchange.ts): the loaded markets as a list, [] before loadMarkets
+func (this *BaseExchange) FetchMarketsAsync(optionalArgs ...any) <-chan AsyncResult[[]MarketInterface] {
+	ch := make(chan AsyncResult[[]MarketInterface], 1)
+	go func() {
+		defer close(ch)
+		defer ReturnPanicError(ch)
+		if this.Markets == nil {
+			ch <- AsyncResult[[]MarketInterface]{Value: []MarketInterface{}}
+			return
+		}
+		ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(this.ToArray(this.Markets))}
 	}()
 	return ch
 }
 
-func (this *BaseExchange) FetchCurrenciesAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any])
-	go func() any {
+func (this *BaseExchange) FetchCurrenciesAsync(optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
+	go func() {
 		defer close(ch)
-		// markets := <-this.callInternal("fetchCurrencies", optionalArgs)
-		// return markets
-		return this.Currencies
+		// as before the retype: no value is sent, the receiver reads the zero (nil) result
 	}()
 	return ch
 }
@@ -593,7 +603,7 @@ func (this *BaseExchange) callEndpoint(endpoint2 any, parameters any) <-chan Asy
 					cost = parsed
 				}
 			}
-			ch <- <-this.Fetch2Async(path, api, method, parameters, map[string]any{}, nil, map[string]any{"cost": cost})
+			ch <- <-this.Fetch2Async(path, api, method, parameters, map[string]any{"cost": cost})
 		} else {
 			ch <- AsyncResult[any]{}
 		}
@@ -763,8 +773,22 @@ func (this *BaseExchange) CheckOptionBool(methodName any, optionName any, value 
 	if value = derefScalar(value); value == nil {
 		return nil
 	}
-	if b, ok := value.(bool); ok {
-		return &b
+	t, f := true, false
+	switch v := value.(type) {
+	case bool:
+		return &v
+	case string:
+		if v == "true" {
+			return &t
+		} else if v == "false" {
+			return &f
+		}
+	case int, int64, float64:
+		if n := ToFloat64(v); n == 1 {
+			return &t
+		} else if n == 0 {
+			return &f
+		}
 	}
 	panic(BadRequest(this.Id + " " + optionMethodLabel(methodName) + " option " + ToString(optionName) + " must be a boolean"))
 }
@@ -1029,10 +1053,7 @@ func (this *BaseExchange) transformApiNew(api Dict, paths ...string) {
 					path = strings.ToLower(string(path[0])) + path[1:]
 				}
 
-				apiObj := any(paths)
-				if len(paths) == 1 {
-					apiObj = paths[0]
-				}
+				apiObj := append([]string{}, paths...)
 
 				this.TransformedApi[path] = map[string]any{
 					"method": strings.ToUpper(key),
@@ -1479,38 +1500,38 @@ func parseStarknetBigInt(value any) *big.Int {
 	return nil
 }
 
-func (this *BaseExchange) GetZKContractSignatureObjAsync(seed any, params any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any])
+func (this *BaseExchange) GetZKContractSignatureObjAsync(seed any, params any) <-chan AsyncResult[string] {
+	ch := make(chan AsyncResult[string])
 
 	go func() {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 
-		ch <- AsyncResult[any]{Err: Exception("Apex currently does not support create order in Go language")}
+		ch <- AsyncResult[string]{Err: Exception("Apex currently does not support create order in Go language")}
 	}()
 	return ch
 }
 
-func (this *BaseExchange) GetZKTransferSignatureObjAsync(seed any, params any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any])
+func (this *BaseExchange) GetZKTransferSignatureObjAsync(seed any, params any) <-chan AsyncResult[string] {
+	ch := make(chan AsyncResult[string])
 
 	go func() {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 
-		ch <- AsyncResult[any]{Err: Exception("Apex currently does not support transfer asset in Go language")}
+		ch <- AsyncResult[string]{Err: Exception("Apex currently does not support transfer asset in Go language")}
 	}()
 	return ch
 }
 
-func (this *BaseExchange) LoadDydxProtosAsync() <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any])
+func (this *BaseExchange) LoadDydxProtosAsync() <-chan AsyncResult[bool] {
+	ch := make(chan AsyncResult[bool])
 
 	go func() {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 
-		ch <- AsyncResult[any]{Err: Exception("Dydx currently does not support transfer asset in Go language")}
+		ch <- AsyncResult[bool]{Err: Exception("Dydx currently does not support transfer asset in Go language")}
 	}()
 	return ch
 }
@@ -2116,17 +2137,18 @@ func (this *BaseExchange) Spawn(method any, args ...any) *Future {
 				response, failure = r.Value, r.Err
 			}
 		default:
-			// typed cores (<-chan EndpointResult[T]) yield their boxed payload and failure
+			// typed cores (<-chan EndpointResult[T]) yield their untyped payload and failure
 			if v := reflect.ValueOf(awaited); v.Kind() == reflect.Chan && !v.IsNil() {
 				if val, ok := v.Recv(); ok {
 					response = val.Interface()
-					if outcome, isOutcome := response.(AsyncOutcome); isOutcome {
-						response, failure = outcome.Boxed(), outcome.Failure()
+					if outcome, isOutcome := response.(UntypedOutcome); isOutcome {
+						response, failure = outcome.Untyped(), outcome.Failure()
 					}
 				}
-			} else {
+			} else if v.Kind() != reflect.Chan {
 				response = awaited
 			}
+			// a typed-nil channel (e.g. LoadOrderBookAsync) is nothing to await: resolve nil
 		}
 		if failure != nil {
 			future.Reject(failure)
@@ -2160,7 +2182,8 @@ func (this *BaseExchange) Delay(timeout any, method any, args ...any) {
 // LoadOrderBook lives on *Exchange (not *BaseExchange): it calls FetchRestOrderBookSafe, one of the
 // 62 symbol-based methods that hang off *Exchange. Only regular WS venues (whose core embeds Exchange)
 // use it; prediction venues embed BaseExchange and never call it.
-func (this *Exchange) LoadOrderBookAsync(client any, messageHash any, symbol any, optionalArgs ...any) <-chan AsyncResult[any] {
+// synchronous: it returns a nil channel (nothing to await, Spawn resolves nil); failures panic into Spawn
+func (this *Exchange) LoadOrderBookAsync(client any, messageHash any, symbol any, optionalArgs ...any) <-chan AsyncResult[bool] {
 	// generated callers pass typed pointer locals (*string symbol, *int64 limit); the
 	// `.(string)` assertions below need the plain values, and a panic here would be
 	// swallowed by Spawn and leave the watch future unresolved
@@ -2177,7 +2200,7 @@ func (this *Exchange) LoadOrderBookAsync(client any, messageHash any, symbol any
 			if fetched.Err != nil {
 				panic(fetched.Err)
 			}
-			orderBook := fetched.Value
+			orderBook := StructBox(fetched.Value, OrderBookToMap)
 			cache := (*orderBookInterface.GetCache()).([]any)
 			index := ToFloat64(this.DerivedExchange.GetCacheIndex(orderBook, cache))
 			if index >= 0 {
@@ -2326,8 +2349,8 @@ func (this *BaseExchange) UnlockLastNonce() bool {
 
 // FetchOutcome is a default stub so every exchange satisfies IDerivedExchange.
 // Prediction exchanges override it (kalshi resolves a single outcome on demand).
-func (this *BaseExchange) FetchOutcomeAsync(outcomeSymbol any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any])
+func (this *BaseExchange) FetchOutcomeAsync(outcomeSymbol any) <-chan AsyncResult[PredictionOutcome] {
+	ch := make(chan AsyncResult[PredictionOutcome])
 	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
@@ -2340,8 +2363,8 @@ func (this *BaseExchange) FetchOutcomeAsync(outcomeSymbol any) <-chan AsyncResul
 // FetchOutcomes is a default stub so every exchange satisfies IDerivedExchange.
 // The prediction base provides the real fallback (a per-outcome fetchOutcome loop) and
 // kalshi/polymarket override it with batched by-id requests.
-func (this *BaseExchange) FetchOutcomesAsync(outcomeSymbols any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any])
+func (this *BaseExchange) FetchOutcomesAsync(outcomeSymbols any) <-chan AsyncResult[map[string]PredictionOutcome] {
+	ch := make(chan AsyncResult[map[string]PredictionOutcome])
 	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
@@ -2361,8 +2384,8 @@ func (this *BaseExchange) SignEvmTransaction(tx any, privateKey any) any {
 
 // FetchEvents is a default stub so every exchange satisfies IDerivedExchange.
 // Prediction exchanges (PredictionExchange and its derivatives) override it.
-func (this *BaseExchange) FetchEventsAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any])
+func (this *BaseExchange) FetchEventsAsync(optionalArgs ...any) <-chan AsyncResult[[]PredictionEvent] {
+	ch := make(chan AsyncResult[[]PredictionEvent])
 	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)

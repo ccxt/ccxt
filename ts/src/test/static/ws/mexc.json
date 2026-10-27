@@ -1,0 +1,80 @@
+{
+    "exchange": "mexc",
+    "skipKeys": [],
+    "options": {},
+    "methods": {
+        "watchBidsAsks": [
+            {
+                "description": "spot protobuf bookTicker",
+                "input": [
+                    [
+                        "BTC/USDT"
+                    ]
+                ],
+                "url": "wss://wbs-api.mexc.com/ws",
+                "messages": [
+                    {
+                        "id": 0,
+                        "code": 0,
+                        "msg": "spot@public.aggre.bookTicker.v3.api.pb@100ms@BTCUSDT"
+                    },
+                    {
+                        "binary": "0a3473706f74407075626c69632e61676772652e626f6f6b5469636b65722e76332e6170692e7062403130306d7340425443555344541a074254435553445430bc87b8d39634da133c0a0838313333362e36391209342e393331363039341a0738313333362e372208322e3336373632352a0b383434333939353039353130f386b8d39634"
+                    },
+                    {
+                        "binary": "0a3473706f74407075626c69632e61676772652e626f6f6b5469636b65722e76332e6170692e7062403130306d7340425443555344541a074254435553445430a088b8d39634da133c0a0838313333362e36391209342e393331363039341a0738313333362e372208322e3336373632352a0b3834343339393530393839308688b8d39634"
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "method": "SUBSCRIPTION",
+                        "params": [
+                            "spot@public.aggre.bookTicker.v3.api.pb@100ms@BTCUSDT"
+                        ]
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "BTC/USDT": {
+                            "symbol": "BTC/USDT",
+                            "timestamp": 1792786957244,
+                            "datetime": "2026-10-23T20:22:37.244Z",
+                            "ask": 81336.7,
+                            "askVolume": 2.367625,
+                            "bid": 81336.69,
+                            "bidVolume": 4.9316094,
+                            "info": {
+                                "channel": "spot@public.aggre.bookTicker.v3.api.pb@100ms@BTCUSDT",
+                                "symbol": "BTCUSDT",
+                                "sendTime": "1792786957244",
+                                "publicAggreBookTicker": {
+                                    "bidPrice": "81336.69",
+                                    "bidQuantity": "4.9316094",
+                                    "askPrice": "81336.7",
+                                    "askQuantity": "2.367625"
+                                }
+                            },
+                            "high": null,
+                            "low": null,
+                            "open": null,
+                            "close": null,
+                            "last": null,
+                            "change": null,
+                            "percentage": null,
+                            "average": null,
+                            "vwap": null,
+                            "baseVolume": null,
+                            "quoteVolume": null,
+                            "previousClose": null,
+                            "indexPrice": null,
+                            "markPrice": null
+                        }
+                    }
+                ],
+                "disabledPHP": "the static-tests job sets up php without ext-protobuf, only the live job loads it",
+                "disabledJava": "same protobuf gap the exchange-level skipJava entry already records",
+                "disabledRS": "the rust base has no protobuf decoder"
+            }
+        ]
+    }
+}

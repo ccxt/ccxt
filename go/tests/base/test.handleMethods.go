@@ -11,7 +11,7 @@ func HelperTestHandleMarketTypeAndParams() {
 	exchange.InitParent(map[string]any{
 		"id": "sampleexchange",
 		"options": map[string]any{
-			"defaultType": "valueFromOptions",
+			"defaultType": "option",
 			"fetchX": map[string]any{
 				"defaultType": "valueFromMethodOptions",
 			},
@@ -50,7 +50,7 @@ func HelperTestHandleMarketTypeAndParams() {
 	// case #5, should prevail: options
 	//
 	marketType5, params5 := exchange.HandleMarketTypeAndParams("fetchY", nil, map[string]any{}, nil)
-	Assert((marketType5 != nil && *marketType5 == "valueFromOptions"))
+	Assert((marketType5 != nil && *marketType5 == "option"))
 	//
 	// case #6, should prevail: spot (because hardcoded in base)
 	//
@@ -60,29 +60,6 @@ func HelperTestHandleMarketTypeAndParams() {
 	// fake assertion to avoid unused vars
 	Assert(!ccxt.IsEqual(params1, nil) || !ccxt.IsEqual(params2, nil) || !ccxt.IsEqual(params3, nil) || !ccxt.IsEqual(params4, nil) || !ccxt.IsEqual(params5, nil) || !ccxt.IsEqual(params6, nil))
 }
-func HelperTestHandleNetworkRequest() {
-	exchange := ccxt.NewExchange().(*ccxt.Exchange)
-	exchange.DerivedExchange = exchange
-	exchange.InitParent(map[string]any{
-		"id": "sampleexchange",
-		"options": map[string]any{
-			"networks": map[string]any{
-				"XYZ": "Xyz",
-			},
-		},
-	}, map[string]any{}, exchange)
-	exchange.Currencies = exchange.CreateSafeDictionary() // todo: initialize in C# base files
-	var currencyCode string = "ETH"                       // todo: in future with complex cases
-	// no-case
-	request1params1Variable := exchange.HandleRequestNetwork(map[string]any{
-		"network": "XYZ",
-	}, map[string]any{}, "chain_id", currencyCode, false)
-	request1 := ccxt.GetValue(request1params1Variable, 0)
-	params1 := ccxt.GetValue(request1params1Variable, 1)
-	Assert(!(ccxt.InOp(params1, "network")))
-	Assert(ccxt.InOp(request1, "chain_id"))
-	Assert(ccxt.IsEqual(ccxt.GetValue(request1, "chain_id"), "Xyz"))
-}
 func HelperTestHandleTypedOptions() {
 	exchange := ccxt.NewExchange().(*ccxt.Exchange)
 	exchange.DerivedExchange = exchange
@@ -91,7 +68,9 @@ func HelperTestHandleTypedOptions() {
 		"options": map[string]any{
 			"marginMode": "isolated",
 			"fetchX": map[string]any{
-				"uta": true,
+				"uta":        true,
+				"boolString": "false",
+				"boolNumber": 1,
 			},
 		},
 	}, map[string]any{}, exchange)
@@ -100,7 +79,7 @@ func HelperTestHandleTypedOptions() {
 	utaparams2Variable := ccxt.TupleSlice(exchange.HandleOptionBoolAndParams(map[string]any{}, "fetchX", "uta", false))
 	uta := ccxt.GetValue(utaparams2Variable, 0)
 	params2 := ccxt.GetValue(utaparams2Variable, 1)
-	Assert(ccxt.IsEqual(uta, true))
+	Assert(uta)
 	absent, params3 := exchange.HandleOptionStringAndParams(map[string]any{}, "fetchX", "absentKey", "fallback")
 	Assert((absent != nil && *absent == "fallback"))
 	fromParamsparams4Variable := ccxt.TupleSlice(exchange.HandleOptionStringAndParams(map[string]any{
@@ -110,11 +89,45 @@ func HelperTestHandleTypedOptions() {
 	params4 := ccxt.GetValue(fromParamsparams4Variable, 1)
 	Assert((fromParams != nil && *fromParams == "p"))
 	Assert(!(ccxt.InOp(params4, "absentKey")))
-	// a wrong-typed option is covered per language in language_specific (it throws only in C#, Java and Go)
-	Assert(!ccxt.IsEqual(params1, nil) || !ccxt.IsEqual(params2, nil) || !ccxt.IsEqual(params3, nil))
+	// "true"/"false" strings and 1/0 numbers read as booleans; any other present non-boolean throws
+	boolStringparams5Variable := ccxt.TupleSlice(exchange.HandleOptionBoolAndParams(map[string]any{}, "fetchX", "boolString", true))
+	boolString := ccxt.GetValue(boolStringparams5Variable, 0)
+	params5 := ccxt.GetValue(boolStringparams5Variable, 1)
+	Assert(boolString == false)
+	boolNumberparams6Variable := ccxt.TupleSlice(exchange.HandleOptionBoolAndParams(map[string]any{
+		"boolNumber": 1,
+	}, "fetchX", "boolNumber", false))
+	boolNumber := ccxt.GetValue(boolNumberparams6Variable, 0)
+	params6 := ccxt.GetValue(boolNumberparams6Variable, 1)
+	Assert(boolNumber == true)
+	Assert(!(ccxt.InOp(params6, "boolNumber")))
+	var caught bool = false
+
+	{
+		func() (ret_ any) {
+			defer func() {
+				if error := recover(); error != nil {
+					if error == "break" {
+						return
+					}
+					ret_ = func() any {
+						// catch block:
+						caught = true
+						return nil
+					}()
+				}
+			}()
+			// try block:
+			exchange.CheckOptionBool("fetchX", "wrongBool", "yes")
+			return nil
+		}()
+
+	}
+	assert(caught, "a non-boolean option should have thrown")
+	Assert(params5 != nil)
+	Assert(!ccxt.IsEqual(params1, nil) || (params2 != nil) || !ccxt.IsEqual(params3, nil))
 }
 func TestHandleMethods() {
 	HelperTestHandleMarketTypeAndParams()
-	HelperTestHandleNetworkRequest()
 	HelperTestHandleTypedOptions()
 }

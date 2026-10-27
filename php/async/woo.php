@@ -27,7 +27,7 @@ class woo extends Exchange {
             'countries' => array( 'KY' ), // Cayman Islands
             'rateLimit' => 100,
             'version' => 'v1',
-            'certified' => true,
+            'certified' => false,
             'pro' => true,
             'hostname' => 'woox.io',
             'has' => array(
@@ -351,7 +351,6 @@ class woo extends Exchange {
                 'sandboxMode' => false,
                 'createMarketBuyOrderRequiresPrice' => true,
                 'networks' => array(
-                    'TRX' => 'TRX', // WOO X renamed the network id from TRON to TRX
                     'TRC20' => 'TRX',
                     'ERC20' => 'ETH',
                     'BEP20' => 'BSC',
@@ -1699,7 +1698,7 @@ class woo extends Exchange {
         }
         $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop', false);
         $paramsOmitted = $this->omit($params, array( 'clOrdID', 'clientOrderId', 'client_order_id', 'stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice', 'trailingTriggerPrice', 'trailingAmount', 'trailingPercent', 'trigger', 'stop' ));
-        $isConditional = ($isTrigger === true) || $isTrailing || ($triggerPrice !== null) || ($this->safe_value($paramsOmitted, 'childOrders') !== null);
+        $isConditional = ($isTrigger) || $isTrailing || ($triggerPrice !== null) || ($this->safe_value($paramsOmitted, 'childOrders') !== null);
         $response = null;
         if ($isConditional) {
             if ($isByClientOrder) {
@@ -1754,7 +1753,7 @@ class woo extends Exchange {
          */
         $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop', false);
         $paramsOmitted = $this->omit($params, array( 'trigger', 'stop' ));
-        if (($isTrigger !== true) && ($symbol === null)) {
+        if ((!$isTrigger) && ($symbol === null)) {
             throw new ArgumentsRequired($this->id . ' cancelOrder() requires a symbol argument');
         }
         if ($this->markets === null) {
@@ -1770,7 +1769,7 @@ class woo extends Exchange {
         $paramsOmitted2 = $this->omit($paramsOmitted, array( 'clOrdID', 'clientOrderId', 'client_order_id' ));
         $isByClientOrder = $clientOrderIdExchangeSpecific !== null;
         $response = null;
-        if ($isTrigger === true) {
+        if ($isTrigger) {
             if ($isByClientOrder) {
                 $request['clientAlgoOrderId'] = $clientOrderIdExchangeSpecific;
             } else {
@@ -1868,8 +1867,12 @@ class woo extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
+        $triggerAfter = 0;
+        if (($timeout !== null) && ($timeout > 0)) {
+            $triggerAfter = ($timeout > 900000) ? 900000 : $timeout;
+        }
         $request = array(
-            'triggerAfter' => ($timeout > 0) ? min($timeout, 900000) : 0,
+            'triggerAfter' => $triggerAfter,
         );
         $response = Async\await($this->v3PrivatePostTradeCancelAllAfter($this->extend($request, $params)));
         //
@@ -2200,7 +2203,7 @@ class woo extends Exchange {
         return Async\await($this->fetch_orders($symbol, $since, $limit, $extendedParams));
     }
 
-    public function parse_time_in_force(?string $timeInForce) {
+    public function parse_time_in_force(?string $timeInForce): ?string {
         $timeInForces = array(
             'ioc' => 'IOC',
             'fok' => 'FOK',
@@ -2365,7 +2368,7 @@ class woo extends Exchange {
         ), $marketResolved);
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         if ($status !== null) {
             $statuses = array(
                 'NEW' => 'open',
@@ -3019,7 +3022,7 @@ class woo extends Exchange {
         return $this->parse_deposit_address($this->extend($data, array( 'network' => $this->safe_string($request, 'network') )), $currency);
     }
 
-    public function get_dedicated_network_id(mixed $currency, array $params): mixed {
+    public function get_dedicated_network_id(mixed $currency, array $params): array {
         list($networkCodeRaw, $paramsNetworkCode) = $this->handle_network_code_and_params($params);
         $networkCode = $this->network_id_to_code($networkCodeRaw, $currency['code']);
         $networkEntry = ($networkCode === null) ? null : $this->safe_dict($currency['networks'], $networkCode);
@@ -3196,7 +3199,7 @@ class woo extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function get_currency_from_chaincode(mixed $networkizedCode, mixed $currency) {
+    public function get_currency_from_chaincode(mixed $networkizedCode, mixed $currency): array {
         if ($currency !== null) {
             return $currency;
         } else {
@@ -3394,7 +3397,7 @@ class woo extends Exchange {
         $transfer = $this->parse_transfer($data, $currency);
         $transferOptions = $this->safe_dict($this->options, 'transfer', array());
         $fillResponseFromRequest = $this->safe_bool($transferOptions, 'fillResponseFromRequest', true);
-        if ($fillResponseFromRequest === true) {
+        if ($fillResponseFromRequest) {
             $transfer['amount'] = $amount;
             $transfer['fromAccount'] = $fromAccount;
             $transfer['toAccount'] = $toAccount;
@@ -3532,11 +3535,11 @@ class woo extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): PromiseInterface {
-        return Async\async(self::do_withdraw(...))($code, $amount, $address, $tag, $params);
+    public function withdraw(string $code, float $amount, string $address, $params = array()): PromiseInterface {
+        return Async\async(self::do_withdraw(...))($code, $amount, $address, $params);
     }
 
-    private function do_withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()) {
+    private function do_withdraw(string $code, float $amount, string $address, $params = array()) {
         /**
          * make a withdrawal
          *
@@ -3545,15 +3548,15 @@ class woo extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
-         * @param {string} $tag
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
-        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_withdraw_tag_and_params($tag, $params);
+        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_param_string($params, 'tag');
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $this->check_address($address);
+        $this->check_address($address, $code, $tagWithdrawTag);
         $currency = $this->currency($code);
         $request = array(
             'amount' => $amount,
@@ -3584,7 +3587,7 @@ class woo extends Exchange {
             'amount' => $amount,
             'addressTo' => $address,
             'tag' => $tagWithdrawTag,
-            'network' => $network,
+            'network' => $this->safe_string($this->networkAliases, $network, $network),
             'type' => 'withdrawal',
             'status' => 'pending',
         ));
@@ -3650,7 +3653,7 @@ class woo extends Exchange {
         return $this->milliseconds() - $this->safe_integer($this->options, 'timeDifference', 0);
     }
 
-    public function sign(string $path, $section = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $section = array('public'), string $method = 'GET', $params = array()): array {
         $requestHeaders = null;
         $requestBody = null;
         $version = $this->safe_string($section, 0);
@@ -3677,7 +3680,7 @@ class woo extends Exchange {
             $this->check_required_credentials();
             if ($method === 'POST' && ($path === 'trade/algoOrder' || $path === 'trade/order')) {
                 $isSandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
-                if ($isSandboxMode !== true) {
+                if (!$isSandboxMode) {
                     $applicationId = 'bc830de7-50f3-460b-9ee0-f430f83f9dad';
                     $brokerId = $this->safe_string($this->options, 'brokerId', $applicationId);
                     $isTrigger = mb_strpos($path, 'algo') > -1;
@@ -3723,8 +3726,8 @@ class woo extends Exchange {
             }
             $requestHeaders['x-api-signature'] = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
         }
-        $headersResult = ($requestHeaders !== null) ? $requestHeaders : $headers;
-        $bodyResult = ($requestBody !== null) ? $requestBody : $body;
+        $headersResult = $requestHeaders;
+        $bodyResult = $requestBody;
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResult, 'headers' => $headersResult );
     }
 
@@ -4564,6 +4567,11 @@ class woo extends Exchange {
         $size = Precise::string_abs($size);
         $notional = Precise::string_mul($size, $markPrice);
         $positionSide = $this->safe_string($position, 'positionSide'); // 'SHORT' or 'LONG' for hedged, 'BOTH' for non-hedged
+        $marginMode = $this->safe_string_lower_2($position, 'marginMode', 'margin_mode');
+        $positionMargin = null;
+        if ($marginMode === 'isolated') {
+            $positionMargin = $this->safe_number_2($position, 'isolatedMarginAmount', 'isolated_margin_amount');
+        }
         return $this->safe_position(array(
             'info' => $position,
             'id' => null,
@@ -4585,8 +4593,9 @@ class woo extends Exchange {
             'liquidationPrice' => $this->safe_number_2($position, 'estLiqPrice', 'est_liq_price'),
             'markPrice' => $this->parse_number($markPrice),
             'lastPrice' => null,
+            'positionMargin' => $positionMargin,
             'collateral' => null,
-            'marginMode' => $this->safe_string_lower_2($position, 'marginMode', 'margin_mode'),
+            'marginMode' => $marginMode,
             'side' => $side,
             'percentage' => null,
             'hedged' => $positionSide !== 'BOTH',
@@ -5019,7 +5028,7 @@ class woo extends Exchange {
         $networkKeys = is_array($networks) ? array_keys($networks) : array();
         for ($i = 0; $i < count($networkKeys); $i++) {
             $network = $networkKeys[$i];
-            if ($network === 'ETH') {
+            if ($network === 'ERC20') {
                 return $network;
             }
         }

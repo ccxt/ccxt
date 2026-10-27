@@ -98,6 +98,7 @@ public partial class BaseExchange
     public string twofa { get; set; }
 
     public int minFundingAddressLength { get; set; } = 1;
+    public Dictionary<string, object> networkAliases { get; set; } = new Dictionary<string, object>() { { "ETH", "ERC20" }, { "TRX", "TRC20" }, { "BSC", "BEP20" }, { "BSC20", "BEP20" }, { "CRONOS", "CRC20" }, { "ARB", "ARBITRUM" }, { "ARBONE", "ARBITRUM" }, { "ARBNOVA", "ARBITRUM_NOVA" } };
 
     public Dictionary<string, object> userAgents { get; set; } = new dict(){
         {"chrome", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36"},
@@ -188,7 +189,9 @@ public partial class BaseExchange
     public ccxt.pro.ArrayCache myTrades;
     public ccxt.pro.ArrayCache orders;
     public object triggerOrders;
-    public IDictionary<string, object> balance = new ccxt.pro.CustomConcurrentDictionary<string, object>();
+    // a plain dict: safeBalance hands the merged balance back by reference and every
+    // ws balance handler stores that return value, so a concurrent map type is not kept
+    public IDictionary<string, object> balance = new Dictionary<string, object>() {};
 
     public bool newUpdates;
 

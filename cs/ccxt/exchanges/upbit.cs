@@ -465,16 +465,16 @@ public partial class upbit : Exchange
         bool? walletLocked = this.safeBool(memberInfo, "wallet_locked");
         bool? locked = this.safeBool(memberInfo, "locked");
         bool active = true;
-        if (((canWithdraw != null)) && ((canWithdraw != true)))
+        if (((canWithdraw != null)) && (canWithdraw != true))
         {
             active = false;
         } else if (walletState != "working")
         {
             active = false;
-        } else if (((walletLocked != null)) && ((walletLocked == true)))
+        } else if (((walletLocked != null)) && (walletLocked == true))
         {
             active = false;
-        } else if (((locked != null)) && ((locked == true)))
+        } else if (((locked != null)) && (locked == true))
         {
             active = false;
         }
@@ -923,7 +923,7 @@ public partial class upbit : Exchange
             {
                 if (!(quoteCurrencies is ""))
                 {
-                    quoteCurrencies = add(quoteCurrencies, ",");
+                    quoteCurrencies = (quoteCurrencies + ",");
                 }
                 quoteCurrencies = add(quoteCurrencies, (sortedQuoteIds != null && i < sortedQuoteIds.Count ? sortedQuoteIds[i] : null));
             }
@@ -1441,7 +1441,7 @@ public partial class upbit : Exchange
         };
         if ((type == "limit"))
         {
-            if ((price == null) || isEqual(amount, null))
+            if ((price == null) || (((object)(amount)) == null))
             {
                 throw new ArgumentsRequired ((this.id + " the limit type order in createOrder() is required price and amount.")) ;
             }
@@ -1457,7 +1457,7 @@ public partial class upbit : Exchange
                 request["price"] = orderPrice;
             } else
             {
-                if (isEqual(amount, null))
+                if ((((object)(amount)) == null))
                 {
                     throw new ArgumentsRequired ((this.id + " the market sell type order in createOrder() is required amount.")) ;
                 }
@@ -1478,7 +1478,7 @@ public partial class upbit : Exchange
                 request["price"] = orderPrice;
             } else
             {
-                if (isEqual(amount, null))
+                if ((((object)(amount)) == null))
                 {
                     throw new ArgumentsRequired ((this.id + " the best sell type order in createOrder() is required amount.")) ;
                 }
@@ -1623,7 +1623,7 @@ public partial class upbit : Exchange
         {
             throw new ExchangeError ((this.id + " editOrder() does not support post_only and selfTradePrevention simultaneously.")) ;
         }
-        object paramsOmitted = this.omit(parameters, "clientOrderId");
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "clientOrderId"));
         if ((id != null))
         {
             request["prev_order_uuid"] = id;
@@ -1800,7 +1800,7 @@ public partial class upbit : Exchange
      * @param {string} [params.txid] withdrawal transaction id, the id argument is reserved for uuid
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async virtual Task<ccxt.Transaction> FetchDeposit(string id, string code = null, object parameters = null)
+    public async virtual Task<ccxt.Transaction> FetchDeposit(string id, string code = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1898,7 +1898,7 @@ public partial class upbit : Exchange
      * @param {string} [params.txid] withdrawal transaction id, the id argument is reserved for uuid
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async virtual Task<ccxt.Transaction> FetchWithdrawal(string id, string code = null, object parameters = null)
+    public async virtual Task<ccxt.Transaction> FetchWithdrawal(string id, string code = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -2142,7 +2142,7 @@ public partial class upbit : Exchange
         if (numTrades > 0)
         {
             // the timestamp in fetchOrder trades is missing
-            lastTradeTimestamp = getValue(getValue(trades, (numTrades - 1)), "timestamp");
+            lastTradeTimestamp = getValue((trades != null && (numTrades - 1) < trades.Count ? trades[(numTrades - 1)] : null), "timestamp");
             bool getFeesFromTrades = false;
             if ((feeCost == null))
             {
@@ -2618,15 +2618,15 @@ public partial class upbit : Exchange
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, string tag = null, object parameters = null)
+    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        IList<object> tagResolvedparamsTagVariable = (IList<object>)this.handleWithdrawTagAndParams(tag, parameters);
-        var tagResolved = tagResolvedparamsTagVariable[0];
+        IList<object> tagResolvedparamsTagVariable = (IList<object>)this.handleParamString(parameters, "tag");
+        string? tagResolved = (string)tagResolvedparamsTagVariable[0];
         IDictionary<string, object> paramsTag = ((IDictionary<string, object>)tagResolvedparamsTagVariable[1]);
         if ((this.markets == null))
         {
@@ -2639,7 +2639,7 @@ public partial class upbit : Exchange
         Dictionary<string, object> response = null;
         if ((code != "KRW"))
         {
-            this.checkAddress(address);
+            this.checkAddress(address, code, tagResolved);
             // 2023-05-23 Change to required parameters for digital assets
             string? network = this.safeStringUpper2(paramsTag, "network", "net_type");
             if ((network == null))
@@ -2681,12 +2681,13 @@ public partial class upbit : Exchange
         return this.milliseconds();
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        string? baseApiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+        object apiName = getValue(api, 0);
+        string? baseApiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), apiName);
         if ((baseApiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
@@ -2703,14 +2704,14 @@ public partial class upbit : Exchange
                 url = url + ("?" + this.urlencode(query));
             }
         }
-        bool hasBody = ((api is "private")) && ((method != "GET")) && ((method != "DELETE"));
-        object requestBody = body;
+        bool hasBody = ((apiName is "private")) && ((method != "GET")) && ((method != "DELETE"));
+        string? requestBody = null;
         if (hasBody)
         {
             requestBody = this.json(parameters);
         }
         Dictionary<string, object> privateHeaders = null;
-        if ((api is "private"))
+        if ((apiName is "private"))
         {
             this.checkRequiredCredentials();
             privateHeaders = new Dictionary<string, object>() {};
@@ -2738,7 +2739,7 @@ public partial class upbit : Exchange
             string token = jwt(request, this.encode(this.secret), sha256);
             privateHeaders["Authorization"] = ("Bearer " + token);
         }
-        object requestHeaders = ((api is "private")) ? privateHeaders : headers;
+        Dictionary<string, object> requestHeaders = ((apiName is "private")) ? privateHeaders : null;
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },

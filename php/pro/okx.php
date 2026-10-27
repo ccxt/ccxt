@@ -63,10 +63,10 @@ class okx extends \ccxt\async\okx {
             ),
             'urls' => array(
                 'api' => array(
-                    'ws' => 'wss://ws.okx.com:8443/ws/v5',
+                    'ws' => 'wss://ws.okx.com:443/ws/v5',
                 ),
                 'test' => array(
-                    'ws' => 'wss://wspap.okx.com:8443/ws/v5',
+                    'ws' => 'wss://wspap.okx.com:443/ws/v5',
                 ),
             ),
             'options' => array(
@@ -396,6 +396,9 @@ class okx extends \ccxt\async\okx {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structure~
          */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
         $symbolValue = $this->symbol($symbol);
         $fr = Async\await($this->watch_funding_rates(array( $symbolValue ), $params));
         return $fr[$symbolValue];
@@ -499,6 +502,9 @@ class okx extends \ccxt\async\okx {
          * @param {string} [$params->channel] the $channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
          * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
          */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
         list($channel, $paramsChannel) = $this->handle_option_string_and_params($params, 'watchTicker', 'channel', 'tickers');
         $paramsChannel['channel'] = $channel;
         $market = $this->market($symbol);
@@ -563,6 +569,9 @@ class okx extends \ccxt\async\okx {
          * @param {string} [$params->channel] the $channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
          * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
          */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
         list($channel, $paramsChannel) = $this->handle_option_string_and_params($params, 'watchMarkPrice', 'channel', 'mark-price');
         $paramsChannel['channel'] = $channel;
         $market = $this->market($symbol);
@@ -950,7 +959,7 @@ class okx extends \ccxt\async\okx {
         $isTrigger = $this->safe_bool_2($params, 'stop', 'trigger', false);
         $paramsOmitted = $this->omit($params, array( 'stop', 'trigger' ));
         $accessType = 'private';
-        if ($isTrigger === true) {
+        if ($isTrigger) {
             $accessType = 'business';
         }
         Async\await($this->authenticate(array( 'access' => $accessType )));
@@ -1393,6 +1402,25 @@ class okx extends \ccxt\async\okx {
             'args' => $topics,
         );
         $url = $this->get_url($depth, 'public');
+        $client = $this->client($url);
+        $resyncTopics = array();
+        $resyncHashes = array();
+        $resyncNeeded = false;
+        for ($i = 0; $i < count($messageHashes); $i++) {
+            if ($this->safe_string($client->subscriptions, $messageHashes[$i]) === 'resync') {
+                // okx sends a snapshot only in reply to a subscribe, so a channel left without a book is unsubscribed first
+                $resyncTopics[] = $topics[$i];
+                $resyncHashes[] = 'unsubscribe:orderbook:' . $symbolsNormalized[$i];
+                $resyncNeeded = true;
+            }
+        }
+        if ($resyncNeeded) {
+            $unsubscribeRequest = array(
+                'op' => 'unsubscribe',
+                'args' => $resyncTopics,
+            );
+            Async\await($this->watch_multiple($url, $resyncHashes, $unsubscribeRequest, $resyncHashes));
+        }
         $orderbook = Async\await($this->watch_multiple($url, $messageHashes, $request, $messageHashes));
         return $orderbook->limit();
     }
@@ -1483,7 +1511,7 @@ class okx extends \ccxt\async\okx {
         $bookside->store($price, $amount);
     }
 
-    public function handle_deltas(mixed $bookside, mixed $deltas) {
+    public function handle_deltas(mixed $bookside, array $deltas) {
         for ($i = 0; $i < count($deltas); $i++) {
             $this->handle_delta($bookside, $deltas[$i]);
         }
@@ -1520,11 +1548,8 @@ class okx extends \ccxt\async\okx {
         $seqId = $this->safe_integer($message, 'seqId');
         $prevSeqId = $this->safe_integer($message, 'prevSeqId');
         $nonce = $orderbook['nonce'];
-        $error = null;
         if ($prevSeqId !== null && $prevSeqId !== -1 && $nonce !== $prevSeqId) {
             $error = new InvalidNonce($this->id . ' watchOrderBook received invalid nonce');
-        }
-        if ($error !== null) {
             unset($client->subscriptions[$messageHash]);
             if ($symbol !== null) {
                 unset($this->orderbooks[$symbol]);
@@ -1645,10 +1670,20 @@ class okx extends \ccxt\async\okx {
         if ($action === 'snapshot') {
             for ($i = 0; $i < count($data); $i++) {
                 $update = $data[$i];
-                $orderbook = $this->order_book(array(), $limit);
-                $this->orderbooks[$symbol] = $orderbook;
-                $orderbook['symbol'] = $symbol;
-                $this->handle_order_book_message($client, $update, $orderbook, $messageHash, $market);
+                // reset the existing orderbook instead of replacing it: a consumer
+                // holds a reference to the old object and would never see updates
+                // after a re-subscription snapshot
+                if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
+                    $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
+                }
+                $orderbook = $this->orderbooks[$symbol];
+                $timestamp = $this->safe_integer($update, 'ts');
+                // rows are [ price, amount, liquidatedOrders, numOrders ] - store
+                // price and amount only, matching handleDelta, so countOrIdKey
+                // points past the row on purpose
+                $snapshot = $this->parse_order_book($update, $symbol, $timestamp, 'bids', 'asks', 0, 1, 4);
+                $snapshot['nonce'] = $this->safe_integer($update, 'seqId');
+                $orderbook->reset($snapshot);
                 if (!(is_array($client->subscriptions) && array_key_exists($messageHash ?? '', $client->subscriptions))) {
                     break;
                 }
@@ -1661,8 +1696,8 @@ class okx extends \ccxt\async\okx {
                     $update = $data[$i];
                     $this->handle_order_book_message($client, $update, $orderbook, $messageHash, $market);
                     if (!(is_array($client->subscriptions) && array_key_exists($messageHash ?? '', $client->subscriptions))) {
-                        // a nonce gap rejected the future and always cleared the subscription entry, while the book
-                        // removal alone is skipped for a frame lacking an instrument id - stop replaying leftover rows
+                        // a nonce gap rejected the future; the channel stays subscribed without a book until the next watch resyncs it
+                        $client->subscriptions[$messageHash] = 'resync';
                         break;
                     }
                     $client->resolve($orderbook, $messageHash);
@@ -1848,9 +1883,27 @@ class okx extends \ccxt\async\okx {
         //
         $arg = $this->safe_dict($message, 'arg', array());
         $channel = $this->safe_string($arg, 'channel');
+        // merge the parsed update into the existing balance object instead of
+        // replacing it: a consumer awakened by an earlier message holds a
+        // reference to this.balance, and Client.resolve is a no-op while
+        // nobody is awaiting, so a replaced object would make updates landing
+        // in that window invisible to the consumer forever (same class as
+        // issue #26773); the free/used/total aggregates are rebuilt from the
+        // merged currencies by safeBalance
         $balance = $this->parseTradingBalance($message);
-        $newBalance = $this->deep_extend($this->balance, $balance);
-        $this->balance = $this->safe_balance($newBalance);
+        if ($this->balance === null) {
+            $this->balance = array();
+        }
+        $reserved = array( 'free', 'used', 'total' );
+        $keys = is_array($balance) ? array_keys($balance) : array();
+        for ($i = 0; $i < count($keys); $i++) {
+            $key = $keys[$i];
+            if ($this->in_array($key, $reserved)) {
+                continue;
+            }
+            $this->balance[$key] = $balance[$key];
+        }
+        $this->balance = $this->safe_balance($this->balance);
         $client->resolve($this->balance, $channel);
     }
 
@@ -1906,12 +1959,12 @@ class okx extends \ccxt\async\okx {
             Async\await($this->load_markets());
         }
         $access = 'private';
-        if ($isTrigger === true) {
+        if ($isTrigger) {
             $access = 'business';
         }
         Async\await($this->authenticate(array( 'access' => $access )));
         $channel = 'orders';
-        if ($isTrigger === true) {
+        if ($isTrigger) {
             $channel = 'orders-algo';
         }
         $messageHash = $channel . '::myTrades';
@@ -2120,7 +2173,7 @@ class okx extends \ccxt\async\okx {
             Async\await($this->load_markets());
         }
         $accessType = 'private';
-        if ($isTrigger === true) {
+        if ($isTrigger) {
             $accessType = 'business';
         }
         Async\await($this->authenticate(array( 'access' => $accessType )));
@@ -2149,7 +2202,7 @@ class okx extends \ccxt\async\okx {
             'instType' => $uppercaseType,
         );
         $channel = 'orders';
-        if ($isTrigger === true) {
+        if ($isTrigger) {
             $channel = 'orders-algo';
         }
         $orders = Async\await($this->subscribe('private', $channel, $channel, $symbolResolved, $this->extend($request, $paramsMarginMode)));
@@ -2606,6 +2659,35 @@ class okx extends \ccxt\async\okx {
         return Async\await($this->watch($url, $messageHash, $request, $messageHash));
     }
 
+    public function handle_cancel_orders(Client $client, array $message) {
+        //
+        //    {
+        //        "id": "1512",
+        //        "op": "batch-cancel-orders",
+        //        "data": [
+        //            {
+        //                "clOrdId": "",
+        //                "ordId": "2510789768709120",
+        //                "sCode": "0",
+        //                "sMsg": ""
+        //            }
+        //        ],
+        //        "code": "0",
+        //        "msg": ""
+        //    }
+        //
+        $messageHash = $this->safe_string($message, 'id');
+        $args = $this->safe_list($message, 'data', array());
+        $args = $this->filter_by($args, 'sCode', '0');
+        if ($this->is_empty($args)) {
+            $method = $this->safe_string($message, 'op');
+            $stringMsg = $this->json($message);
+            $this->handle_errors(1, '', $client->url, $method, array(), $stringMsg, $message, array(), array());
+        }
+        $orders = $this->parse_orders($args, null, null, null);
+        $client->resolve($orders, $messageHash);
+    }
+
     public function handle_cancel_all_orders(Client $client, array $message) {
         //
         //    {
@@ -2772,6 +2854,7 @@ class okx extends \ccxt\async\okx {
                 'amend-order' => array($this, 'handle_place_orders'),
                 'batch-amend-orders' => array($this, 'handle_place_orders'),
                 'cancel-order' => array($this, 'handle_place_orders'),
+                'batch-cancel-orders' => array($this, 'handle_cancel_orders'),
                 'mass-cancel' => array($this, 'handle_cancel_all_orders'),
             );
             $method = $this->safe_value($methods, $event);
@@ -2845,6 +2928,10 @@ class okx extends \ccxt\async\okx {
         $subMessageHash = 'multi:' . $channel . ':' . $symbol;
         $messageHash = 'unsubscribe:' . $subMessageHash;
         $this->clean_unsubscription($client, $subMessageHash, $messageHash);
+        // watchOHLCV subscribes through subscribe () under channel:marketId
+        if ($symbol !== null) {
+            $this->clean_unsubscription($client, $channel . ':' . $this->market_id($symbol), null);
+        }
         if (($symbol !== null) && ($timeframe !== null) && (is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe ?? '', $this->ohlcvs[$symbol]))) {
             unset($this->ohlcvs[$symbol][$timeframe]);
         }

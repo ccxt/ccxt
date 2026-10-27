@@ -31,7 +31,9 @@ impl LighterCore {
     pub fn init(&mut self) {
         let described = LighterCore::describe(self);
         self.initialize_properties(described);
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self);
+        // compatibility for sandbox/testnet options in userConfig
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -158,6 +160,9 @@ impl crate::exchange::DerivedExchange for LighterCore {
     }
     fn create_expired_option_market(&self, symbol: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::create_expired_option_market(&self.parent, symbol)
+    }
+    fn market(&self, symbol: crate::Value) -> crate::Value {
+        crate::exchange::DerivedExchange::market(&self.parent, symbol)
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::sign(&self.parent, path, api, method, params, headers, body)
@@ -460,9 +465,9 @@ impl LighterCore {
     pub fn handle_deltas(&self, mut bookside: Value, mut deltas: Value) {
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_458: bool = true;
-            while { if !__for_first_458 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_458 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&deltas).as_f64().unwrap_or(f64::NAN) } {
-            self.handle_delta(bookside.clone(), get_value(&deltas, &i));
+            let mut __for_first_479: bool = true;
+            while { if !__for_first_479 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_479 = false; i.as_f64().unwrap_or(f64::NAN) < ((deltas.len() as i64) as f64) } {
+            self.handle_delta(bookside.clone(), deltas.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
         }
         }
 }
@@ -518,15 +523,15 @@ impl LighterCore {
     m
 }) });
         let mut channel: Value = (match __pro_message.get("channel").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) });
-        let mut parts: Value = split(&channel, &Value::Str(":".into()));
+        let mut parts: Value = Value::Array(channel.as_str().map(|__s| __s.split(":").map(|__p| Value::Str(__p.to_string().into())).collect()).unwrap_or_default());
         let mut marketId: Value = parts.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut market: Value = self.safe_market(&[marketId]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut timestamp: Value = self.safe_integer_k(message.clone(), "timestamp", &[]);
-        if !(in_op(&self.orderbooks, &symbol)) {
+        if !(matches!((&self.orderbooks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             { let __be_tmp = self.order_book(&[]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
         }
-        let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
+        let mut orderbook: Value = self.orderbooks.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
         let mut type_var: Option<String> = (match __pro_message.get("type").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().map(str::to_owned);
         if (type_var.as_deref() == Some("subscribed/order_book")) {
             let mut parsed: Value = self.parse_order_book(data.clone(), symbol.clone(), &[timestamp, Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("size".into())]);
@@ -668,8 +673,8 @@ impl LighterCore {
             let mut marketIds: Value = object_keys(&data);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_459: bool = true;
-                while { if !__for_first_459 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_459 = false; i.as_f64().unwrap_or(f64::NAN) < ((marketIds.len() as i64) as f64) } {
+                let mut __for_first_480: bool = true;
+                while { if !__for_first_480 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_480 = false; i.as_f64().unwrap_or(f64::NAN) < ((marketIds.len() as i64) as f64) } {
                 let mut marketId: Value = marketIds.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 let mut market: Value = self.safe_market(&[marketId.clone()]);
                 let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
@@ -786,26 +791,26 @@ impl LighterCore {
                 m.insert("channel".to_string(), Value::Str("market_stats/all".into()));
             m
         });
-        let mut messageHashes: Value = Value::from(vec![]);
+        let mut messageHashes: Vec<Value> = Vec::new();
         let mut symbolsLength: Value = Value::Int(0);
         if (symbolsNormalized != Value::Null) {
             symbolsLength = Value::Int(symbolsNormalized.len() as i64);
         }
         if (symbolsNormalized == Value::Null) || (symbolsLength.as_f64() == Some(0.0)) {
-            append_to_array(&mut messageHashes, self.get_message_hash(Value::Str("ticker".into()), &[]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
+            messageHashes.push(self.get_message_hash(Value::Str("ticker".into()), &[]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
         }  else {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_460: bool = true;
-                while { if !__for_first_460 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_460 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
+                let mut __for_first_481: bool = true;
+                while { if !__for_first_481 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_481 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
                 let mut symbol: Value = symbolsNormalized.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-                append_to_array(&mut messageHashes, self.get_message_hash(Value::Str("ticker".into()), &[symbol]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
+                messageHashes.push(self.get_message_hash(Value::Str("ticker".into()), &[symbol]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
             }
             }
         }
         let __ws_arg_7 = self.extend(request, &[params]);
-        let mut newTicker: Value = self.subscribe_public_multiple(messageHashes, &[__ws_arg_7]).await;
-        if is_true(&self.newUpdates) {
+        let mut newTicker: Value = self.subscribe_public_multiple(Value::from(messageHashes), &[__ws_arg_7]).await;
+        if self.newUpdates.as_bool() == Some(true) {
             let mut result: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -1041,7 +1046,7 @@ impl LighterCore {
         }
         let mut data: Value = (match __pro_message.get("trades").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
         let mut channel: Value = (match __pro_message.get("channel").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) });
-        let mut parts: Value = split(&channel, &Value::Str(":".into()));
+        let mut parts: Value = Value::Array(channel.as_str().map(|__s| __s.split(":").map(|__p| Value::Str(__p.to_string().into())).collect()).unwrap_or_default());
         let mut marketId: Value = parts.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut market: Value = self.safe_market(&[marketId]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
@@ -1054,8 +1059,8 @@ impl LighterCore {
         let mut dataLength: Value = Value::Int(data.len() as i64);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_461: bool = true;
-            while { if !__for_first_461 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_461 = false; i.as_f64().unwrap_or(f64::NAN) < dataLength.as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_482: bool = true;
+            while { if !__for_first_482 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_482 = false; i.as_f64().unwrap_or(f64::NAN) < dataLength.as_f64().unwrap_or(f64::NAN) } {
             let mut iReversed: Value = (match (&((match (&(dataLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })), &(i)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
             let mut trade: Value = self.parse_ws_trade(get_value(&data, &iReversed), &[market.clone()]);
             stored.append(trade);
@@ -1266,7 +1271,7 @@ impl LighterCore {
         //     }
         //
         let mut channel: Value = (match message.get("channel") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) });
-        let mut parts: Value = split(&channel, &Value::Str(":".into()));
+        let mut parts: Value = Value::Array(channel.as_str().map(|__s| __s.split(":").map(|__p| Value::Str(__p.to_string().into())).collect()).unwrap_or_default());
         let mut accountIndex: Value = parts.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut data: Value = (match message.get("trades") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1285,16 +1290,16 @@ impl LighterCore {
         let mut messageHash: Value = self.get_message_hash(Value::Str("myTrades".into()), &[]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_463: bool = true;
-            while { if !__for_first_463 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_463 = false; i.as_f64().unwrap_or(f64::NAN) < ((marketIds.len() as i64) as f64) } {
+            let mut __for_first_484: bool = true;
+            while { if !__for_first_484 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_484 = false; i.as_f64().unwrap_or(f64::NAN) < ((marketIds.len() as i64) as f64) } {
             let mut marketId: Value = marketIds.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.safe_market(&[marketId.clone()]);
             let mut trades: Value = self.safe_list(data.clone(), marketId, &[Value::from(vec![])]);
             let mut tradesLength: Value = Value::Int(trades.len() as i64);
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_462: bool = true;
-                while { if !__for_first_462 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_462 = false; j.as_f64().unwrap_or(f64::NAN) < tradesLength.as_f64().unwrap_or(f64::NAN) } {
+                let mut __for_first_483: bool = true;
+                while { if !__for_first_483 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_483 = false; j.as_f64().unwrap_or(f64::NAN) < tradesLength.as_f64().unwrap_or(f64::NAN) } {
                 let mut jReversed: Value = (match (&((match (&(tradesLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })), &(j)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
                 let mut tradeRaw: Value = get_value(&trades, &jReversed);
                 add_element_to_object(&mut tradeRaw, &Value::Str("accountIndex".into()), accountIndex.clone());
@@ -1356,7 +1361,7 @@ impl LighterCore {
         let __ws_arg_11 = self.extend(request, &[paramsAccountIndex]);
         let mut trades: Value = self.subscribe_public(messageHash, &[__ws_arg_11]).await;
         let mut limitResolved: Value = limit.clone();
-        if is_true(&self.newUpdates) {
+        if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolResolved.clone(), limit);
         }
         return self.filter_by_symbol_since_limit(trades, &[symbolResolved, since, limitResolved, Value::Bool(true)]);
@@ -1502,7 +1507,7 @@ impl LighterCore {
         //
         let mut data: Value = (match message.get("liquidation_trades") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
         let mut channel: Value = (match message.get("channel") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) });
-        let mut parts: Value = split(&channel, &Value::Str(":".into()));
+        let mut parts: Value = Value::Array(channel.as_str().map(|__s| __s.split(":").map(|__p| Value::Str(__p.to_string().into())).collect()).unwrap_or_default());
         let mut marketId: Value = parts.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut market: Value = self.safe_market(&[marketId]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
@@ -1515,8 +1520,8 @@ impl LighterCore {
         let mut dataLength: Value = Value::Int(data.len() as i64);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_464: bool = true;
-            while { if !__for_first_464 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_464 = false; i.as_f64().unwrap_or(f64::NAN) < dataLength.as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_485: bool = true;
+            while { if !__for_first_485 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_485 = false; i.as_f64().unwrap_or(f64::NAN) < dataLength.as_f64().unwrap_or(f64::NAN) } {
             let mut iReversed: Value = (match (&((match (&(dataLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })), &(i)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
             let mut liquidation: Value = self.parse_ws_liquidation(get_value(&data, &iReversed), &[market.clone()]);
             stored.append(liquidation);
@@ -1676,15 +1681,15 @@ impl LighterCore {
             let mut assetIds: Value = object_keys(&assets);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_465: bool = true;
-                while { if !__for_first_465 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_465 = false; i.as_f64().unwrap_or(f64::NAN) < ((assetIds.len() as i64) as f64) } {
+                let mut __for_first_486: bool = true;
+                while { if !__for_first_486 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_486 = false; i.as_f64().unwrap_or(f64::NAN) < ((assetIds.len() as i64) as f64) } {
                 let mut assetId: Value = assetIds.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 let mut asset: Value = self.safe_dict(assets.clone(), assetId, &[]);
                 let mut codeId: Value = self.safe_string_k(asset.clone(), "symbol", &[]);
                 let mut code: Value = self.safe_currency_code(codeId, &[]);
                 let mut account: Value = self.account();
-                add_element_to_object(&mut account, &Value::Str("used".into()), self.safe_string_k(asset.clone(), "locked_balance", &[]));
-                add_element_to_object(&mut account, &Value::Str("total".into()), self.safe_string_k(asset, "balance", &[]));
+                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".into(), self.safe_string_k(asset.clone(), "locked_balance", &[])); }
+                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".into(), self.safe_string_k(asset, "balance", &[])); }
                 if (code != Value::Null) {
                     if let Value::Dict(__d) = &mut balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), account.clone()); }
                 }
@@ -1696,9 +1701,9 @@ impl LighterCore {
     m
 }) });
             let mut account: Value = self.account();
-            add_element_to_object(&mut account, &Value::Str("free".into()), self.safe_string_k(stats.clone(), "available_balance", &[]));
-            add_element_to_object(&mut account, &Value::Str("total".into()), self.safe_string_k(stats.clone(), "collateral", &[]));
-            add_element_to_object(&mut account, &Value::Str("info".into()), stats);
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".into(), self.safe_string_k(stats.clone(), "available_balance", &[])); }
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".into(), self.safe_string_k(stats.clone(), "collateral", &[])); }
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("info".into(), stats); }
             if let Value::Dict(__d) = &mut balance { std::sync::Arc::make_mut(__d).insert("USDC".into(), account); }
         }
         let mut timestamp: Value = self.safe_integer_k(message, "timestamp", &[]);
@@ -1706,7 +1711,7 @@ impl LighterCore {
         add_element_to_object(&mut balance, &Value::Str("datetime".into()), self.iso8601(timestamp));
         { let __be_tmp = self.safe_balance(balance.clone()); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&type_var), __be_tmp); } }
         let mut messageHash: Value = self.get_message_hash(Value::Str("balances".into()), &[Value::Null, type_var.clone()]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
-        client.resolve(&[get_value(&self.balance, &type_var), messageHash]);
+        client.resolve(&[self.balance.as_map().and_then(|__m| type_var.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), messageHash]);
         return Value::Bool(true);
 
     Value::Null
@@ -1752,7 +1757,7 @@ impl LighterCore {
         let __ws_arg_16 = self.extend(request, &[paramsAccountIndex]);
         let mut orders: Value = self.subscribe_private(messageHash, &[__ws_arg_16]).await;
         let mut limitResolved: Value = limit.clone();
-        if is_true(&self.newUpdates) {
+        if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbol.clone(), limit);
         }
         return self.filter_by_symbol_since_limit(orders, &[symbol, since, limitResolved, Value::Bool(true)]);
@@ -2015,15 +2020,15 @@ impl LighterCore {
         let mut messageHash: Value = self.get_message_hash(Value::Str("orders".into()), &[]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_467: bool = true;
-            while { if !__for_first_467 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_467 = false; i.as_f64().unwrap_or(f64::NAN) < ((marketIds.len() as i64) as f64) } {
+            let mut __for_first_488: bool = true;
+            while { if !__for_first_488 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_488 = false; i.as_f64().unwrap_or(f64::NAN) < ((marketIds.len() as i64) as f64) } {
             let mut marketId: Value = marketIds.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.safe_market(&[marketId.clone()]);
             let mut orders: Value = self.safe_list(data.clone(), marketId, &[Value::from(vec![])]);
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_466: bool = true;
-                while { if !__for_first_466 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_466 = false; j.as_f64().unwrap_or(f64::NAN) < ((orders.len() as i64) as f64) } {
+                let mut __for_first_487: bool = true;
+                while { if !__for_first_487 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_487 = false; j.as_f64().unwrap_or(f64::NAN) < ((orders.len() as i64) as f64) } {
                 let mut order: Value = self.parse_order(orders.as_array().and_then(|__arr| match &j { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), &[market.clone()]);
                 stored.append(order.clone());
                 let mut symbol: Value = order.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
@@ -2077,7 +2082,7 @@ impl LighterCore {
             // its own channel gets cleaned up. The channel is available solely inside the
             // message text, a changed text format falls through to the generic reject below
             let mut notSubscribedMessage: Value = self.safe_string_k(error.clone(), "message", &[Value::Str("".into())]);
-            let mut messageParts: Value = split(&notSubscribedMessage, &Value::Str(" : ".into()));
+            let mut messageParts: Value = Value::Array(notSubscribedMessage.as_str().map(|__s| __s.split(" : ").map(|__p| Value::Str(__p.to_string().into())).collect()).unwrap_or_default());
             let mut notSubscribedChannel: Value = self.safe_string(messageParts, Value::Int(1), &[]);
             if (notSubscribedChannel != Value::Null) {
                 let mut unsubscribed: Value = Value::Map({
@@ -2106,12 +2111,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut subscriptionKeys: Value = object_keys(&get_value(&client, &Value::Str("subscriptions".into())));
                 {
                                         let mut i: Value = Value::Int(0);
-                    let mut __for_first_468: bool = true;
-                    while { if !__for_first_468 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_468 = false; i.as_f64().unwrap_or(f64::NAN) < ((subscriptionKeys.len() as i64) as f64) } {
+                    let mut __for_first_489: bool = true;
+                    while { if !__for_first_489 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_489 = false; i.as_f64().unwrap_or(f64::NAN) < ((subscriptionKeys.len() as i64) as f64) } {
                     let mut subscriptionHash: Value = subscriptionKeys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                     let mut subscriptionId: Value = self.safe_string(get_value(&get_value(&client, &Value::Str("subscriptions".into())), &subscriptionHash), Value::Str("id".into()), &[]);
                     let mut subscription: Value = self.safe_string(get_value(&get_value(&client, &Value::Str("subscriptions".into())), &subscriptionHash), Value::Str("subscription".into()), &[]);
-                    if (id.as_str() == subscriptionId.as_str()) {
+                    if (id == subscriptionId) {
                         client.reject(&[e.clone(), subscriptionHash]);
                         handled = true;
                         if (subscription != Value::Null) {
@@ -2207,7 +2212,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // "account_orders:{marketId}", so parts[1] is the market id on every family below
         //
         let mut channel: Value = (match message.get("channel") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) });
-        let mut parts: Value = split(&channel, &Value::Str(":".into()));
+        let mut parts: Value = Value::Array(channel.as_str().map(|__s| __s.split(":").map(|__p| Value::Str(__p.to_string().into())).collect()).unwrap_or_default());
         let mut name: Option<String> = self.safe_string(parts.clone(), Value::Int(0), &[Value::Str("".into())]).as_str().map(str::to_owned);
         let mut channelId: Value = self.safe_string(parts, Value::Int(1), &[]);
         if (name.as_deref() == Some("order_book")) {
@@ -2230,8 +2235,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut subMessageHash: Value = self.get_message_hash(Value::Str("orderbook".into()), &[symbol.clone()]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash).into());
         self.clean_unsubscription(client, subMessageHash, messageHash, &[]);
-        if (in_op(&self.orderbooks, &symbol)) {
-            remove(&mut self.orderbooks, &symbol);
+        if (matches!((&self.orderbooks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+            if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.orderbooks, &symbol) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
         }
 }
 
@@ -2246,10 +2251,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut subscriptionHashes: Value = object_keys(&get_value(&client, &Value::Str("subscriptions".into())));
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_469: bool = true;
-                while { if !__for_first_469 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_469 = false; i.as_f64().unwrap_or(f64::NAN) < ((subscriptionHashes.len() as i64) as f64) } {
+                let mut __for_first_490: bool = true;
+                while { if !__for_first_490 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_490 = false; i.as_f64().unwrap_or(f64::NAN) < ((subscriptionHashes.len() as i64) as f64) } {
                 let mut subscriptionHash: Value = subscriptionHashes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-                if (starts_with(&subscriptionHash, &Value::Str("ticker".into()))) {
+                if (subscriptionHash.as_str().is_some_and(|__s| __s.starts_with("ticker"))) {
                     let mut subscription: Value = self.safe_dict(get_value(&client, &Value::Str("subscriptions".into())), subscriptionHash.clone(), &[]);
                     let mut subscriptionParams: Value = self.safe_dict_k(subscription, "params", &[]);
                     let mut subscribedChannel: Option<String> = self.safe_string_k(subscriptionParams, "channel", &[]).as_str().map(str::to_owned);
@@ -2280,8 +2285,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut subMessageHash: Value = self.get_message_hash(Value::Str("ticker".into()), &[symbol.clone()]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash).into());
         self.clean_unsubscription(client, subMessageHash, messageHash, &[]);
-        if (in_op(&self.tickers, &symbol)) {
-            remove(&mut self.tickers, &symbol);
+        if (matches!((&self.tickers, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+            if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.tickers, &symbol) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
         }
 }
 
@@ -2290,8 +2295,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut subMessageHash: Value = self.get_message_hash(Value::Str("trade".into()), &[symbol.clone()]).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash).into());
         self.clean_unsubscription(client, subMessageHash, messageHash, &[]);
-        if (in_op(&self.trades, &symbol)) {
-            remove(&mut self.trades, &symbol);
+        if (matches!((&self.trades, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+            if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.trades, &symbol) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
         }
 }
 

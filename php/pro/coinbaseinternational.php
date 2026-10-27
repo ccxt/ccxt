@@ -12,6 +12,8 @@ use ccxt\NotSupported;
 use React\Async;
 use React\Promise\PromiseInterface;
 use ccxt\pro\ArrayCache;
+use ccxt\pro\ArrayCacheBySymbolById;
+use ccxt\pro\ArrayCacheBySymbolBySide;
 use ccxt\pro\ArrayCacheByTimestamp;
 
 class coinbaseinternational extends \ccxt\async\coinbaseinternational {
@@ -24,184 +26,582 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
                 'watchOrderBook' => true,
                 'watchOrderBookForSymbols' => true,
                 'watchTicker' => true,
-                'watchBalance' => false,
-                'watchMyTrades' => false,
+                'watchBidsAsks' => true,
+                'watchBalance' => true,
+                'watchFundingRate' => true,
+                'watchFundingRates' => true,
+                'watchMyTrades' => true,
                 'watchOHLCV' => true,
-                'watchOHLCVForSymbols' => false,
-                'watchOrders' => false,
-                'watchOrdersForSymbols' => false,
-                'watchPositions' => false,
+                'watchOHLCVForSymbols' => true,
+                'watchOrders' => true,
+                'watchOrdersForSymbols' => true,
+                'watchPositions' => true,
                 'watchTickers' => true,
-                'createOrderWs' => false,
-                'editOrderWs' => false,
-                'cancelOrderWs' => false,
+                'watchMarkPrice' => true,
+                'watchMarkPrices' => true,
+                'unWatchMarkPrice' => true,
+                'unWatchMarkPrices' => true,
+                'unWatchTrades' => true,
+                'unWatchTradesForSymbols' => true,
+                'unWatchOHLCV' => true,
+                'unWatchOHLCVForSymbols' => true,
+                'unWatchOrderBook' => true,
+                'unWatchOrderBookForSymbols' => true,
+                'unWatchPositions' => true,
+                'unWatchTickers' => true,
+                'unWatchBidsAsks' => true,
+                'unWatchFundingRate' => true,
+                'unWatchFundingRates' => true,
+                'unWatchMyTrades' => true,
+                'unWatchTicker' => true,
+                'createOrderWs' => true,
+                'editOrderWs' => true,
+                'cancelOrderWs' => true,
                 'cancelOrdersWs' => false,
-                'cancelAllOrdersWs' => false,
-                'fetchOrderWs' => false,
-                'fetchOrdersWs' => false,
-                'fetchBalanceWs' => false,
-                'fetchMyTradesWs' => false,
+                'cancelAllOrdersWs' => true,
+                'fetchOrderWs' => true,
+                'fetchOpenOrdersWs' => true,
+                'fetchOrdersWs' => true,
+                'fetchBalanceWs' => true,
+                'fetchMyTradesWs' => true,
+                'fetchPositionsWs' => true,
             ),
             'urls' => array(
                 'api' => array(
-                    'ws' => 'wss://ws-md.international.coinbase.com',
-                ),
-                'test' => array(
-                    'ws' => 'wss://ws-md.n5e2.coinbase.com',
+                    'ws' => 'wss://streams.drb.coinbase.com/ws/api/v2',
+                    'wsPrivate' => 'wss://drb.coinbase.com/ws/api/v2',
                 ),
             ),
+            'streaming' => array(
+                'keepAlive' => 15000, // idle sockets are closed (1011) after ~30s without client messages, see ping()
+            ),
             'options' => array(
-                'watchTicker' => array(
-                    'channel' => 'LEVEL1',  // 'INSTRUMENTS' or 'RISK'
+                'wsAuthRefreshRatio' => 0.8, // re-authenticate the private socket after 80% of the session lifetime
+                'ws' => array(
+                    'timeframes' => array(
+                        '1m' => '1',
+                        '5m' => '5',
+                        '15m' => '15',
+                        '30m' => '30',
+                        '1h' => '60',
+                        '2h' => '120',
+                        '6h' => '360',
+                        '1d' => '1D',
+                    ),
+                    'watchTradesForSymbols' => array(
+                        'interval' => '100ms',
+                    ),
+                    'watchOrderBookForSymbols' => array(
+                        'interval' => '100ms',
+                        'useDepthEndpoint' => false,
+                        'depth' => '20',
+                        'group' => 'none',
+                    ),
                 ),
+                'currencies' => array( 'BTC', 'ETH', 'SOL', 'USDC', 'USDT' ),
                 'tradesLimit' => 1000,
                 'ordersLimit' => 1000,
                 'myTradesLimit' => 1000,
-                'timeframes' => array(
-                    '1m' => 'CANDLES_ONE_MINUTE',
-                    '5m' => 'CANDLES_FIVE_MINUTES',
-                    '30m' => 'CANDLES_THIRTY_MINUTES',
-                    '1h' => 'CANDLES_ONE_HOUR',
-                    '2h' => 'CANDLES_TWO_HOURS',
-                    '1d' => 'CANDLES_ONE_DAY',
-                ),
-            ),
-            'exceptions' => array(
-                'exact' => array(
-                    'Unable to authenticate' => '\\ccxt\\AuthenticationError',
-                ),
             ),
         ));
     }
 
-    public function subscribe(string $name, ?array $symbols = null, $params = array()) {
-        return Async\async(self::do_subscribe(...))($name, $symbols, $params);
+    public function request_id() {
+        $requestId = $this->sum($this->safe_integer($this->options, 'requestId', 0), 1);
+        $this->options['requestId'] = $requestId;
+        return $requestId;
     }
 
-    private function do_subscribe(string $name, ?array $symbols = null, $params = array()) {
-        /**
-         * @ignore
-         * subscribes to a websocket channel
-         *
-         * @see https://docs.cloud.coinbase.com/intx/docs/websocket-overview#$subscribe
-         *
-         * @param {string} $name the $name of the channel
-         * @param {string[]} [$symbols] unified $market symbol
-         * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} subscription to a websocket channel
-         */
-        if ($this->markets === null) {
-            Async\await($this->load_markets());
+    public function get_ws_url($isPrivate = false): string {
+        if ($this->isNativeDeribitCredentials()) {
+            return 'wss://www.deribit.com/ws/api/v2';
         }
-        $this->check_required_credentials();
-        $market = null;
-        $messageHash = $name;
-        $productIds = null;
-        $symbolsResolved = ($symbols === null) ? $this->get_active_symbols() : $symbols;
-        $symbolsLength = count($symbolsResolved);
-        $messageHashes = array();
-        if ($symbolsLength > 1) {
-            $parsedSymbols = $this->market_symbols($symbolsResolved);
-            $marketIds = $this->market_ids($parsedSymbols);
-            $productIds = $marketIds;
-            for ($i = 0; $i < count($parsedSymbols); $i++) {
-                $messageHashes[] = $name . '::' . $parsedSymbols[$i];
+        if ($isPrivate) {
+            return $this->urls['api']['wsPrivate'];
+        }
+        return $this->urls['api']['ws'];
+    }
+
+    public function ping(Client $client): Dict | Str {
+        $refreshAt = $this->safe_integer($this->options, 'wsAuthRefreshAt');
+        $isPrivateClient = ($client->url === $this->get_ws_url(true));
+        if ($isPrivateClient && ($refreshAt !== null) && ($this->milliseconds() >= $refreshAt)) {
+            // re-authenticate in-band before the session expires, also while no watch call is pending
+            // retry in 60s if this attempt fails; a successful reply reschedules via handleAuthenticationMessage
+            $this->options['wsAuthRefreshAt'] = $this->sum($this->milliseconds(), 60000);
+            $requestId = $this->request_id();
+            $this->options['wsAuthRequestId'] = $requestId;
+            $params = array(
+                'grant_type' => 'client_credentials',
+                'client_id' => $this->apiKey,
+                'client_secret' => $this->secret,
+            );
+            if (!$this->isNativeDeribitCredentials()) {
+                $params = array(
+                    'grant_type' => 'coinbase_cdp',
+                    'token' => $this->create_auth_token($this->seconds(), null, null, $this->isEddsaSecret()),
+                );
             }
-            // messageHash = messageHash + '::' + parsedSymbols.join (',');
-        } elseif ($symbolsLength === 1) {
-            $market = $this->market($symbolsResolved[0]);
-            $messageHash = $name . '::' . $market['symbol'];
-            $productIds = array( ($market['id']) );
+            return array(
+                'jsonrpc' => '2.0',
+                'id' => $requestId,
+                'method' => 'public/auth',
+                'params' => $params,
+            );
         }
-        $url = $this->safe_string($this->urls['api'], 'ws');
-        if ($url === null) {
-            throw new NotSupported($this->id . ' is not supported in sandbox environment');
-        }
-        $timestamp = (string) $this->nonce();
-        $auth = $timestamp . $this->apiKey . 'CBINTLMD' . $this->password;
-        $signature = $this->hmac($this->encode($auth), base64_decode($this->secret), 'sha256', 'base64');
-        $subscribe = array(
-            'type' => 'SUBSCRIBE',
-            // 'product_ids': productIds,
-            'channels' => array( $name ),
-            'time' => $timestamp,
-            'key' => $this->apiKey,
-            'passphrase' => $this->password,
-            'signature' => $signature,
+        // the gateway closes a socket after ~30s without client messages; protocol-level pings do not count
+        return array(
+            'jsonrpc' => '2.0',
+            'id' => $this->request_id(),
+            'method' => 'public/test',
+            'params' => array(),
         );
-        if ($productIds !== null) {
-            $subscribe['product_ids'] = $productIds;
-        }
-        if ($symbolsLength > 1) {
-            return Async\await($this->watch_multiple($url, $messageHashes, $this->extend($subscribe, $params), $messageHashes));
-        }
-        return Async\await($this->watch($url, $messageHash, $this->extend($subscribe, $params), $messageHash));
     }
 
-    public function subscribe_multiple(string $name, ?array $symbols = null, $params = array()) {
-        return Async\async(self::do_subscribe_multiple(...))($name, $symbols, $params);
+    public function subscribe(array $channels, array $messageHashes, $isPrivate = false, $params = array()) {
+        return Async\async(self::do_subscribe(...))($channels, $messageHashes, $isPrivate, $params);
     }
 
-    private function do_subscribe_multiple(string $name, ?array $symbols = null, $params = array()) {
+    private function do_subscribe(array $channels, array $messageHashes, $isPrivate = false, $params = array()) {
         /**
          * @ignore
-         * subscribes to a websocket channel using watchMultiple
+         * subscribes to websocket $channels
          *
-         * @see https://docs.cloud.coinbase.com/intx/docs/websocket-overview#$subscribe
+         * @see https://docs.deribit.com/api-reference/subscription-management/public-subscribe
+         * @see https://docs.deribit.com/api-reference/subscription-management/private-subscribe
          *
-         * @param {string} $name the $name of the channel
-         * @param {string|string[]} [$symbols] unified market $symbol
+         * @param {string[]} $channels exchange channel names
+         * @param {string[]} $messageHashes message hashes to resolve
+         * @param {boolean} [$isPrivate] whether to authenticate and subscribe privately
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} subscription to a websocket channel
+         * @param {string} [$params->route] auto (default), deribit, or coinbase; overrides options.route
+         * @return {array} the subscription result
          */
+        $paramsResolved = $this->handleRouteAndParams('subscribe', $params);
+        $url = $this->get_ws_url(false);
+        $method = 'public/subscribe';
+        if ($isPrivate) {
+            $url = $this->get_ws_url(true);
+            $method = 'private/subscribe';
+            Async\await($this->authenticate());
+        }
+        if ($url === null) {
+            throw new NotSupported($this->id . ' websocket is not supported');
+        }
+        $request = array(
+            'jsonrpc' => '2.0',
+            'method' => $method,
+            'params' => array(
+                'channels' => $channels,
+            ),
+            'id' => $this->request_id(),
+        );
+        $extendedRequest = $this->deep_extend($request, $paramsResolved);
+        $channelsLength = count($channels);
+        if ($channelsLength === 1) {
+            return Async\await($this->watch($url, $messageHashes[0], $extendedRequest, $channels[0], $extendedRequest));
+        }
+        return Async\await($this->watch_multiple($url, $messageHashes, $extendedRequest, $channels, $extendedRequest));
+    }
+
+    public function un_subscribe(array $channels, $isPrivate = false, $params = array()) {
+        return Async\async(self::do_un_subscribe(...))($channels, $isPrivate, $params);
+    }
+
+    private function do_un_subscribe(array $channels, $isPrivate = false, $params = array()) {
+        /**
+         * @ignore
+         * unsubscribes from websocket $channels
+         *
+         * @see https://docs.deribit.com/api-reference/subscription-management/public-unsubscribe
+         * @see https://docs.deribit.com/api-reference/subscription-management/private-unsubscribe
+         *
+         * @param {string[]} $channels exchange channel names
+         * @param {boolean} [$isPrivate] whether to authenticate and unsubscribe privately
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->route] auto (default), deribit, or coinbase; overrides options.route
+         * @return {boolean} true when unsubscription has been requested
+         */
+        $paramsResolved = $this->handleRouteAndParams('unSubscribe', $params);
+        $url = $this->get_ws_url(false);
+        $method = 'public/unsubscribe';
+        if ($isPrivate) {
+            $url = $this->get_ws_url(true);
+            $method = 'private/unsubscribe';
+            Async\await($this->authenticate());
+        }
+        $unWatchMessageHashes = array();
+        $channelsLength = count($channels);
+        for ($i = 0; $i < $channelsLength; $i++) {
+            $unWatchMessageHashes[] = 'unsubscribe:' . $channels[$i];
+        }
+        $request = array(
+            'jsonrpc' => '2.0',
+            'method' => $method,
+            'params' => array(
+                'channels' => $channels,
+            ),
+            'id' => $this->request_id(),
+        );
+        $client = $this->client($url);
+        $this->watch_multiple($url, $unWatchMessageHashes, $this->deep_extend($request, $paramsResolved), $unWatchMessageHashes);
+        for ($i = 0; $i < $channelsLength; $i++) {
+            $this->clean_unsubscription($client, $channels[$i], $unWatchMessageHashes[$i]);
+        }
+        return true;
+    }
+
+    public function watch_balance($params = array()): PromiseInterface {
+        return Async\async(self::do_watch_balance(...))($params);
+    }
+
+    private function do_watch_balance($params = array()) {
+        /**
+         * watch balance and get the amount of funds available for trading or funds locked in orders
+         *
+         * @see https://docs.cdp.coinbase.com/api-reference/coinbase-deribit-app-api/websocket/user/userportfoliocurrency
+         * @see https://docs.deribit.com/subscriptions/user/userportfoliocurrency
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->route] auto (default), deribit, or coinbase; overrides options.route
+         * @param {string} [$params->currency] $currency code to watch, default is any
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
+         */
+        $paramsResolved = $this->handleRouteAndParams('watchBalance', $params);
+        list($currency, $paramsCurrency) = $this->handle_option_and_params($paramsResolved, 'watchBalance', 'currency', 'any');
+        $channel = 'user.portfolio.' . $currency;
+        return Async\await($this->subscribe(array( $channel ), array( 'balance' ), true, $paramsCurrency));
+    }
+
+    public function handle_balance(Client $client, array $message) {
+        $params = $this->safe_dict($message, 'params', array());
+        $data = $this->safe_dict($params, 'data', array());
+        $parsed = $this->parse_balance($data);
+        $this->balance = $this->deep_extend($this->balance, $parsed);
+        $client->resolve($this->balance, 'balance');
+    }
+
+    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_my_trades(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * watches $trades associated with the user
+         *
+         * @see https://docs.cdp.coinbase.com/api-reference/coinbase-deribit-app-api/websocket/user/usertradesinstrument_nameinterval
+         * @see https://docs.deribit.com/subscriptions/trades/tradesinstrument_nameinterval
+         *
+         * @param {string} [$symbol] unified $market $symbol
+         * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [$limit] the maximum amount of $trades to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->route] auto (default), deribit, or coinbase; overrides options.route
+         * @param {string} [$params->interval] notification $interval, default raw
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+         */
+        $paramsResolved = $this->handleRouteAndParams('watchMyTrades', $params);
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $this->check_required_credentials();
-        $symbolsResolved = null;
-        if ($this->is_empty($symbols)) {
-            $symbolsResolved = $this->symbols;
+        list($interval, $paramsInterval) = $this->handle_option_and_params($paramsResolved, 'watchMyTrades', 'interval', 'raw');
+        $channel = 'user.trades.any.any.' . $interval;
+        $symbolResolved = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $symbolResolved = $market['symbol'];
+            $channel = 'user.trades.' . $market['id'] . '.' . $interval;
+        }
+        $trades = Async\await($this->subscribe(array( $channel ), array( $channel ), true, $paramsInterval));
+        return $this->filter_by_symbol_since_limit($trades, $symbolResolved, $since, $limit, true);
+    }
+
+    public function un_watch_my_trades(?string $symbol = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_my_trades(...))($symbol, $params);
+    }
+
+    private function do_un_watch_my_trades(?string $symbol = null, $params = array()) {
+        /**
+         * stops watching user trades
+         *
+         * @see https://docs.cdp.coinbase.com/api-reference/subscription-management/private-unsubscribe
+         * @see https://docs.deribit.com/api-reference/subscription-management/private-unsubscribe
+         *
+         * @param {string} [$symbol] unified market $symbol
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->route] auto (default), deribit, or coinbase; overrides options.route
+         * @return {array} the exchange response
+         */
+        $paramsResolved = $this->handleRouteAndParams('unWatchMyTrades', $params);
+        list($interval, $paramsInterval) = $this->handle_option_and_params($paramsResolved, 'watchMyTrades', 'interval', 'raw');
+        $channel = 'user.trades.any.any.' . $interval;
+        if ($symbol !== null) {
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
+            $channel = 'user.trades.' . $this->market_id($symbol) . '.' . $interval;
+        }
+        return Async\await($this->un_subscribe(array( $channel ), true, $paramsInterval));
+    }
+
+    public function handle_my_trades(Client $client, array $message) {
+        $params = $this->safe_dict($message, 'params', array());
+        $channel = $this->safe_string($params, 'channel');
+        $data = $this->safe_list($params, 'data', array());
+        if ($this->myTrades === null) {
+            $limit = $this->safe_integer($this->options, 'myTradesLimit', 1000);
+            $this->myTrades = new ArrayCacheBySymbolById($limit);
+        }
+        $trades = $this->parse_trades($data);
+        $tradesLength = count($trades);
+        for ($i = 0; $i < $tradesLength; $i++) {
+            $this->myTrades->append($trades[$i]);
+        }
+        $client->resolve($this->myTrades, $channel);
+    }
+
+    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_orders(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * watches information on $orders made by the user
+         *
+         * @see https://docs.cdp.coinbase.com/api-reference/coinbase-deribit-app-api/websocket/user/userordersinstrument_nameinterval
+         * @see https://docs.deribit.com/subscriptions/user/userordersinstrument_nameinterval
+         *
+         * @param {string} [$symbol] unified $market $symbol
+         * @param {int} [$since] timestamp in ms of the earliest order to fetch
+         * @param {int} [$limit] the maximum number of $orders to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->route] auto (default), deribit, or coinbase; overrides options.route
+         * @param {string} [$params->interval] notification $interval, default raw
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         */
+        $paramsResolved = $this->handleRouteAndParams('watchOrders', $params);
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        list($interval, $paramsInterval) = $this->handle_option_and_params($paramsResolved, 'watchOrders', 'interval', 'raw');
+        $channel = 'user.orders.any.any.' . $interval;
+        $symbolResolved = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $symbolResolved = $market['symbol'];
+            $channel = 'user.orders.' . $market['id'] . '.' . $interval;
+        }
+        $orders = Async\await($this->subscribe(array( $channel ), array( $channel ), true, $paramsInterval));
+        $limitResolved = $limit;
+        if ($this->newUpdates) {
+            $limitResolved = $orders->getLimit($symbolResolved, $limit);
+        }
+        return $this->filter_by_symbol_since_limit($orders, $symbolResolved, $since, $limitResolved, true);
+    }
+
+    public function watch_orders_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_orders_for_symbols(...))($symbols, $since, $limit, $params);
+    }
+
+    private function do_watch_orders_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * watches information on $orders made by the user for multiple $symbols
+         *
+         * @see https://docs.cdp.coinbase.com/api-reference/coinbase-deribit-app-api/websocket/user/userordersinstrument_nameinterval
+         * @see https://docs.deribit.com/subscriptions/user/userordersinstrument_nameinterval
+         *
+         * @param {string[]} $symbols unified market $symbols
+         * @param {int} [$since] timestamp in ms of the earliest order to fetch
+         * @param {int} [$limit] the maximum number of $orders to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->route] auto (default), deribit, or coinbase; overrides options.route
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         */
+        $paramsResolved = $this->handleRouteAndParams('watchOrdersForSymbols', $params);
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $symbolsResolved = $this->market_symbols($symbols, null, false);
+        list($interval, $paramsInterval) = $this->handle_option_and_params($paramsResolved, 'watchOrders', 'interval', 'raw');
+        $channels = array();
+        $symbolsLength = count($symbolsResolved);
+        for ($i = 0; $i < $symbolsLength; $i++) {
+            $channels[] = 'user.orders.' . $this->market_id($symbolsResolved[$i]) . '.' . $interval;
+        }
+        $orders = Async\await($this->subscribe($channels, $channels, true, $paramsInterval));
+        $limitResolved = $limit;
+        if ($this->newUpdates) {
+            $limitResolved = $orders->getLimit(null, $limit);
+        }
+        $ordersForSymbols = $this->filter_by_array($orders, 'symbol', $symbolsResolved, false);
+        return $this->filter_by_since_limit($ordersForSymbols, $since, $limitResolved, 'timestamp', true);
+    }
+
+    public function un_watch_orders(?string $symbol = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_orders(...))($symbol, $params);
+    }
+
+    private function do_un_watch_orders(?string $symbol = null, $params = array()) {
+        /**
+         * stops watching user orders
+         *
+         * @see https://docs.cdp.coinbase.com/api-reference/subscription-management/private-unsubscribe
+         * @see https://docs.deribit.com/api-reference/subscription-management/private-unsubscribe
+         *
+         * @param {string} [$symbol] unified market $symbol
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->route] auto (default), deribit, or coinbase; overrides options.route
+         * @return {array} the exchange response
+         */
+        $paramsResolved = $this->handleRouteAndParams('unWatchOrders', $params);
+        list($interval, $paramsInterval) = $this->handle_option_and_params($paramsResolved, 'watchOrders', 'interval', 'raw');
+        $channel = 'user.orders.any.any.' . $interval;
+        if ($symbol !== null) {
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
+            $channel = 'user.orders.' . $this->market_id($symbol) . '.' . $interval;
+        }
+        return Async\await($this->un_subscribe(array( $channel ), true, $paramsInterval));
+    }
+
+    public function handle_orders(Client $client, array $message) {
+        if ($this->orders === null) {
+            $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
+            $this->orders = new ArrayCacheBySymbolById($limit);
+        }
+        $params = $this->safe_dict($message, 'params', array());
+        $channel = $this->safe_string($params, 'channel');
+        $data = $this->safe_value($params, 'data', array());
+        $orders = array();
+        if ((gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data)))) {
+            $orders = $this->parse_orders($data);
         } else {
-            $symbolsResolved = $this->market_symbols($symbols);
+            $orders = array( $this->parse_order($data) );
         }
-        $messageHashes = array();
-        $productIds = array();
-        for ($i = 0; $i < count(($symbolsResolved)); $i++) {
-            $marketId = $this->market_id(($symbolsResolved)[$i]);
-            $symbol = $this->symbol($marketId);
-            $productIds[] = $marketId;
-            $messageHashes[] = $name . '::' . $symbol;
+        $ordersLength = count($orders);
+        for ($i = 0; $i < $ordersLength; $i++) {
+            $this->orders->append($orders[$i]);
         }
-        $url = $this->safe_string($this->urls['api'], 'ws');
-        if ($url === null) {
-            throw new NotSupported($this->id . ' is not supported in sandbox environment');
+        $client->resolve($this->orders, $channel);
+    }
+
+    public function watch_positions(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_positions(...))($symbols, $since, $limit, $params);
+    }
+
+    private function do_watch_positions(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * watches all open $positions
+         *
+         * @see https://docs.cdp.coinbase.com/api-reference/coinbase-deribit-app-api/websocket/user/userchangesinstrument_nameinterval
+         * @see https://docs.deribit.com/subscriptions/user/userchangesinstrument_nameinterval
+         *
+         * @param {string[]} [$symbols] list of unified market $symbols
+         * @param {int} [$since] timestamp in ms of the earliest position to fetch
+         * @param {int} [$limit] the maximum number of $positions to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->route] auto (default), deribit, or coinbase; overrides options.route
+         * @param {string} [$params->interval] notification $interval, default raw
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structures~
+         */
+        $paramsResolved = $this->handleRouteAndParams('watchPositions', $params);
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
         }
-        $timestamp = $this->number_to_string($this->seconds());
-        $auth = $timestamp . $this->apiKey . 'CBINTLMD' . $this->password;
-        $signature = $this->hmac($this->encode($auth), base64_decode($this->secret), 'sha256', 'base64');
-        $subscribe = array(
-            'type' => 'SUBSCRIBE',
-            'time' => $timestamp,
-            'product_ids' => $productIds,
-            'channels' => array( $name ),
-            'key' => $this->apiKey,
-            'passphrase' => $this->password,
-            'signature' => $signature,
-        );
-        return Async\await($this->watch_multiple($url, $messageHashes, $this->extend($subscribe, $params), $messageHashes));
+        $symbolsResolved = $this->market_symbols($symbols);
+        list($interval, $paramsInterval) = $this->handle_option_and_params($paramsResolved, 'watchPositions', 'interval', 'raw');
+        $channels = array();
+        $symbolsLength = 0;
+        if ($symbolsResolved !== null) {
+            $symbolsLength = count($symbolsResolved);
+        }
+        if (($symbolsResolved !== null) && ($symbolsLength > 0)) {
+            for ($i = 0; $i < $symbolsLength; $i++) {
+                $channels[] = 'user.changes.' . $this->market_id($symbolsResolved[$i]) . '.' . $interval;
+            }
+        } else {
+            $channels[] = 'user.changes.any.any.' . $interval;
+        }
+        $positions = Async\await($this->subscribe($channels, $channels, true, $paramsInterval));
+        if ($this->newUpdates) {
+            return $positions;
+        }
+        return $this->filter_by_symbols_since_limit($this->positions, $symbolsResolved, $since, $limit, true);
+    }
+
+    public function un_watch_positions(?array $symbols = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_positions(...))($symbols, $params);
+    }
+
+    private function do_un_watch_positions(?array $symbols = null, $params = array()) {
+        /**
+         * stops watching open positions
+         *
+         * @see https://docs.cdp.coinbase.com/api-reference/subscription-management/private-unsubscribe
+         * @see https://docs.deribit.com/api-reference/subscription-management/private-unsubscribe
+         *
+         * @param {string[]} [$symbols] unified market $symbols
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->route] auto (default), deribit, or coinbase; overrides options.route
+         * @return {array} the exchange response
+         */
+        $paramsResolved = $this->handleRouteAndParams('unWatchPositions', $params);
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $symbolsResolved = $this->market_symbols($symbols);
+        list($interval, $paramsInterval) = $this->handle_option_and_params($paramsResolved, 'watchPositions', 'interval', 'raw');
+        $channels = array();
+        $symbolsLength = 0;
+        if ($symbolsResolved !== null) {
+            $symbolsLength = count($symbolsResolved);
+        }
+        if (($symbolsResolved !== null) && ($symbolsLength > 0)) {
+            for ($i = 0; $i < $symbolsLength; $i++) {
+                $channels[] = 'user.changes.' . $this->market_id($symbolsResolved[$i]) . '.' . $interval;
+            }
+        } else {
+            $channels[] = 'user.changes.any.any.' . $interval;
+        }
+        return Async\await($this->un_subscribe($channels, true, $paramsInterval));
+    }
+
+    public function handle_positions(Client $client, array $message) {
+        if ($this->positions === null) {
+            $this->positions = new ArrayCacheBySymbolBySide();
+        }
+        $params = $this->safe_dict($message, 'params', array());
+        $channel = $this->safe_string($params, 'channel');
+        $data = $this->safe_dict($params, 'data', array());
+        $rawPositions = $this->safe_list($data, 'positions', array());
+        $positions = $this->parse_positions($rawPositions);
+        $positionsLength = count($positions);
+        for ($i = 0; $i < $positionsLength; $i++) {
+            $this->positions->append($positions[$i]);
+        }
+        $client->resolve($this->positions, $channel);
     }
 
     public function watch_funding_rate(string $symbol, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_funding_rate(...))($symbol, $params);
+    }
+
+    private function do_watch_funding_rate(string $symbol, $params = array()) {
         /**
          * watch the current funding rate
          *
-         * @see https://docs.cloud.coinbase.com/intx/docs/websocket-channels#funding-channel
+         * @see https://docs.cdp.coinbase.com/api-reference/coinbase-deribit-app-api/websocket/market-data/tickerinstrument_nameinterval
+         * @see https://docs.deribit.com/subscriptions/market-data/tickerinstrument_nameinterval
          *
          * @param {string} $symbol unified market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->route] auto (default), deribit, or coinbase; overrides options.route
          * @return {array} a ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structure~
          */
-        return $this->subscribe('RISK', array( $symbol ), $params);
+        $paramsResolved = $this->handleRouteAndParams('watchFundingRate', $params);
+        $ticker = Async\await($this->watch_ticker($symbol, $paramsResolved));
+        return $this->parse_funding_rate($ticker['info'], $this->market($symbol));
     }
 
     public function watch_funding_rates(?array $symbols = null, $params = array()): PromiseInterface {
@@ -212,26 +612,71 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         /**
          * watch the funding rate for multiple markets
          *
-         * @see https://docs.cloud.coinbase.com/intx/docs/websocket-channels#funding-channel
+         * @see https://docs.cdp.coinbase.com/api-reference/coinbase-deribit-app-api/websocket/market-data/tickerinstrument_nameinterval
+         * @see https://docs.deribit.com/subscriptions/market-data/tickerinstrument_nameinterval
          *
          * @param {string[]} $symbols a list of unified market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->route] auto (default), deribit, or coinbase; overrides options.route
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=funding-rates-structure funding rates structures~, indexe by market $symbols
          */
+        $paramsResolved = $this->handleRouteAndParams('watchFundingRates', $params);
         if ($symbols === null) {
             throw new ArgumentsRequired($this->id . ' watchFundingRates() requires an array of symbols');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $fundingRate = Async\await($this->subscribe_multiple('RISK', $symbols, $params));
-        $symbol = $this->safe_string($fundingRate, 'symbol');
-        if ($this->newUpdates) {
-            $result = array();
-            $result[$symbol] = $fundingRate;
-            return $result;
+        $tickers = Async\await($this->watch_tickers($symbols, $paramsResolved));
+        $result = array();
+        $tickerSymbols = is_array($tickers) ? array_keys($tickers) : array();
+        $tickerSymbolsLength = count($tickerSymbols);
+        for ($i = 0; $i < $tickerSymbolsLength; $i++) {
+            $symbol = $tickerSymbols[$i];
+            $ticker = $tickers[$symbol];
+            $result[$symbol] = $this->parse_funding_rate($ticker['info'], $this->market($symbol));
         }
-        return $this->filter_by_array($this->fundingRates, 'symbol', $symbols);
+        return $result;
+    }
+
+    public function un_watch_funding_rate(string $symbol, $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_funding_rate(...))($symbol, $params);
+    }
+
+    private function do_un_watch_funding_rate(string $symbol, $params = array()) {
+        /**
+         * stops watching the funding rate for a $symbol
+         *
+         * @see https://docs.cdp.coinbase.com/api-reference/subscription-management/public-unsubscribe
+         * @see https://docs.deribit.com/api-reference/subscription-management/public-unsubscribe
+         *
+         * @param {string} $symbol unified market $symbol
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->route] auto (default), deribit, or coinbase; overrides options.route
+         * @return {array} the exchange response
+         */
+        $paramsResolved = $this->handleRouteAndParams('unWatchFundingRate', $params);
+        return Async\await($this->un_watch_ticker($symbol, $paramsResolved));
+    }
+
+    public function un_watch_funding_rates(?array $symbols = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_funding_rates(...))($symbols, $params);
+    }
+
+    private function do_un_watch_funding_rates(?array $symbols = null, $params = array()) {
+        /**
+         * stops watching funding rates for multiple $symbols
+         *
+         * @see https://docs.cdp.coinbase.com/api-reference/subscription-management/public-unsubscribe
+         * @see https://docs.deribit.com/api-reference/subscription-management/public-unsubscribe
+         *
+         * @param {string[]} [$symbols] unified market $symbols
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->route] auto (default), deribit, or coinbase; overrides options.route
+         * @return {array} the exchange response
+         */
+        $paramsResolved = $this->handleRouteAndParams('unWatchFundingRates', $params);
+        return Async\await($this->un_watch_tickers($symbols, $paramsResolved));
     }
 
     public function watch_ticker(string $symbol, $params = array()): PromiseInterface {
@@ -240,33 +685,46 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
 
     private function do_watch_ticker(string $symbol, $params = array()) {
         /**
-         * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          *
-         * @see https://docs.cloud.coinbase.com/intx/docs/websocket-channels#instruments-$channel
+         * @see https://docs.cdp.coinbase.com/api-reference/coinbase-deribit-app-api/websocket/market-data/tickerinstrument_nameinterval
+         * @see https://docs.deribit.com/subscriptions/market-data/tickerinstrument_nameinterval
          *
-         * @param {string} [$symbol] unified $symbol of the market to fetch the ticker for
+         * @param {string} [$symbol] unified $symbol of the $market to fetch the ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {string} [$params->channel] the $channel to watch, 'LEVEL1' or 'INSTRUMENTS', default is 'LEVEL1'
+         * @param {string} [$params->route] auto (default), deribit, or coinbase; overrides options.route
+         * @param {string} [$params->interval] notification $interval, default 100ms
          * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
          */
+        $paramsResolved = $this->handleRouteAndParams('watchTicker', $params);
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        list($channel, $paramsChannel) = $this->handle_option_string_and_params($params, 'watchTicker', 'channel', 'LEVEL1');
-        return Async\await($this->subscribe($channel, array( $symbol ), $paramsChannel));
+        $market = $this->market($symbol);
+        list($interval, $paramsInterval) = $this->handle_option_and_params($paramsResolved, 'watchTicker', 'interval', '100ms');
+        $isPrivate = $interval === 'raw';
+        $channel = 'ticker.' . $market['id'] . '.' . $interval;
+        return Async\await($this->subscribe(array( $channel ), array( $channel ), $isPrivate, $paramsInterval));
     }
 
-    public function get_active_symbols(): array {
-        $symbols = $this->symbols;
-        $output = array();
-        for ($i = 0; $i < count($symbols); $i++) {
-            $symbol = $symbols[$i];
-            $market = $this->market($symbol);
-            if ($market['active'] === true) {
-                $output[] = $symbol;
-            }
-        }
-        return $output;
+    public function un_watch_ticker(string $symbol, $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_ticker(...))($symbol, $params);
+    }
+
+    private function do_un_watch_ticker(string $symbol, $params = array()) {
+        /**
+         * stops watching a ticker
+         *
+         * @see https://docs.cdp.coinbase.com/api-reference/subscription-management/public-unsubscribe
+         * @see https://docs.deribit.com/api-reference/subscription-management/public-unsubscribe
+         *
+         * @param {string} $symbol unified market $symbol
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->route] auto (default), deribit, or coinbase; overrides options.route
+         * @return {array} the exchange response
+         */
+        $paramsResolved = $this->handleRouteAndParams('unWatchTicker', $params);
+        return Async\await($this->un_watch_tickers(array( $symbol ), $paramsResolved));
     }
 
     public function watch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
@@ -275,20 +733,31 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
 
     private function do_watch_tickers(?array $symbols = null, $params = array()) {
         /**
-         * watches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * watches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          *
-         * @see https://docs.cloud.coinbase.com/intx/docs/websocket-channels#instruments-$channel
+         * @see https://docs.cdp.coinbase.com/api-reference/coinbase-deribit-app-api/websocket/market-data/tickerinstrument_nameinterval
+         * @see https://docs.deribit.com/subscriptions/market-data/tickerinstrument_nameinterval
          *
-         * @param {string[]} [$symbols] unified symbol of the market to fetch the $ticker for
+         * @param {string[]} [$symbols] unified symbol of the $market to fetch the $ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {string} [$params->channel] the $channel to watch, 'LEVEL1' or 'INSTRUMENTS', default is 'INSTLEVEL1UMENTS'
+         * @param {string} [$params->route] auto (default), deribit, or coinbase; overrides options.route
+         * @param {string} [$params->interval] notification $interval, default 100ms
          * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
          */
+        $paramsResolved = $this->handleRouteAndParams('watchTickers', $params);
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        list($channel, $paramsChannel) = $this->handle_option_string_and_params($params, 'watchTickers', 'channel', 'LEVEL1');
-        $ticker = Async\await($this->subscribe($channel, $symbols, $paramsChannel));
+        $symbolsResolved = $this->market_symbols($symbols, null, false);
+        list($interval, $paramsInterval) = $this->handle_option_and_params($paramsResolved, 'watchTickers', 'interval', '100ms');
+        $isPrivate = $interval === 'raw';
+        $channels = array();
+        $symbolsLength = count($symbolsResolved);
+        for ($i = 0; $i < $symbolsLength; $i++) {
+            $market = $this->market($symbolsResolved[$i]);
+            $channels[] = 'ticker.' . $market['id'] . '.' . $interval;
+        }
+        $ticker = Async\await($this->subscribe($channels, $channels, $isPrivate, $paramsInterval));
         if ($this->newUpdates) {
             $result = array();
             $tickerSymbol = $this->safe_string($ticker, 'symbol');
@@ -297,194 +766,220 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
             }
             return $result;
         }
-        return $this->filter_by_array($this->tickers, 'symbol', $symbols);
+        return $this->filter_by_array($this->tickers, 'symbol', $symbolsResolved);
     }
 
-    public function handle_instrument(Client $client, array $message) {
-        //
-        //    {
-        //        "sequence": 1,
-        //        "product_id": "ETH-PERP",
-        //        "instrument_type": "PERP",
-        //        "base_asset_name": "ETH",
-        //        "quote_asset_name": "USDC",
-        //        "base_increment": "0.0001",
-        //        "quote_increment": "0.01",
-        //        "avg_daily_quantity": "43.0",
-        //        "avg_daily_volume": "80245.2",
-        //        "total_30_day_quantity":"1443.0",
-        //        "total_30_day_volume":"3040449.0",
-        //        "total_24_hour_quantity":"48.1",
-        //        "total_24_hour_volume":"101348.3",
-        //        "base_imf": "0.2",
-        //        "min_quantity": "0.0001",
-        //        "position_size_limit": "500",
-        //        "funding_interval": "60000000000",
-        //        "trading_state": "trading",
-        //        "last_update_time": "2023-05-04T11:16:33.016Z",
-        //        "time": "2023-05-10T14:58:47.000Z",
-        //        "channel":"INSTRUMENTS",
-        //        "type":"SNAPSHOT"
-        //    }
-        $ticker = $this->parse_ws_instrument($message);
-        $channel = $this->safe_string($message, 'channel');
-        $client->resolve($ticker, $channel);
-        if ($channel !== null) {
-            $client->resolve($ticker, $channel . '::' . $ticker['symbol']);
+    public function un_watch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_tickers(...))($symbols, $params);
+    }
+
+    private function do_un_watch_tickers(?array $symbols = null, $params = array()) {
+        /**
+         * stops watching tickers
+         *
+         * @see https://docs.cdp.coinbase.com/api-reference/subscription-management/public-unsubscribe
+         * @see https://docs.deribit.com/api-reference/subscription-management/public-unsubscribe
+         *
+         * @param {string[]} [$symbols] unified market $symbols
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->route] auto (default), deribit, or coinbase; overrides options.route
+         * @return {array} the exchange response
+         */
+        $paramsResolved = $this->handleRouteAndParams('unWatchTickers', $params);
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
         }
+        $symbolsResolved = $this->market_symbols($symbols, null, false);
+        list($interval, $paramsInterval) = $this->handle_option_and_params($paramsResolved, 'watchTickers', 'interval', '100ms');
+        $channels = array();
+        $symbolsLength = count($symbolsResolved);
+        for ($i = 0; $i < $symbolsLength; $i++) {
+            $channels[] = 'ticker.' . $this->market_id($symbolsResolved[$i]) . '.' . $interval;
+        }
+        return Async\await($this->un_subscribe($channels, $interval === 'raw', $paramsInterval));
     }
 
-    public function parse_ws_instrument(array $ticker, ?array $market = null): array {
-        //
-        //    {
-        //        "sequence": 1,
-        //        "product_id": "ETH-PERP",
-        //        "instrument_type": "PERP",
-        //        "base_asset_name": "ETH",
-        //        "quote_asset_name": "USDC",
-        //        "base_increment": "0.0001",
-        //        "quote_increment": "0.01",
-        //        "avg_daily_quantity": "43.0",
-        //        "avg_daily_volume": "80245.2",
-        //        "total_30_day_quantity":"1443.0",
-        //        "total_30_day_volume":"3040449.0",
-        //        "total_24_hour_quantity":"48.1",
-        //        "total_24_hour_volume":"101348.3",
-        //        "base_imf": "0.2",
-        //        "min_quantity": "0.0001",
-        //        "position_size_limit": "500",
-        //        "funding_interval": "60000000000",
-        //        "trading_state": "trading",
-        //        "last_update_time": "2023-05-04T11:16:33.016Z",
-        //        "time": "2023-05-10T14:58:47.000Z",
-        //        "channel":"INSTRUMENTS",
-        //        "type":"SNAPSHOT"
-        //    }
-        // instruments
-        //   {
-        //       sequence: 0,
-        //       instrument_type: 'PERP',
-        //       instrument_mode: 'standard',
-        //       base_asset_name: 'BTC',
-        //       quote_asset_name: 'USDC',
-        //       base_increment: '0.0001',
-        //       quote_increment: '0.1',
-        //       avg_daily_quantity: '502.8845',
-        //       avg_daily_volume: '3.1495242961566668E7',
-        //       total30_day_quantity: '15086.535',
-        //       total30_day_volume: '9.44857288847E8',
-        //       total24_hour_quantity: '5.0',
-        //       total24_hour_volume: '337016.5',
-        //       base_imf: '0.1',
-        //       min_quantity: '0.0001',
-        //       position_size_limit: '800',
-        //       funding_interval: '3600000000000',
-        //       trading_state: 'trading',
-        //       last_updated_time: '2024-07-30T15:00:00Z',
-        //       default_initial_margin: '0.2',
-        //       base_asset_multiplier: '1.0',
-        //       channel: 'INSTRUMENTS',
-        //       type: 'SNAPSHOT',
-        //       time: '2024-07-30T15:26:56.766Z',
-        //   }
-        //
-        $marketId = $this->safe_string($ticker, 'product_id');
-        $datetime = $this->safe_string($ticker, 'time');
-        return $this->safe_ticker(array(
-            'info' => $ticker,
-            'symbol' => $this->safe_symbol($marketId, $market, '-'),
-            'timestamp' => $this->parse8601($datetime),
-            'datetime' => $datetime,
-            'high' => null,
-            'low' => null,
-            'bid' => null,
-            'bidVolume' => null,
-            'ask' => null,
-            'askVolume' => null,
-            'vwap' => null,
-            'open' => null,
-            'close' => null,
-            'last' => null,
-            'previousClose' => null,
-            'change' => null,
-            'percentage' => null,
-            'average' => null,
-            'baseVolume' => $this->safe_string_2($ticker, 'total_24_hour_quantity', 'total24_hour_quantity'),
-            'quoteVolume' => $this->safe_string_2($ticker, 'total_24_hour_volume', 'total24_hour_volume'),
-        ));
+    public function watch_mark_price(string $symbol, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_mark_price(...))($symbol, $params);
+    }
+
+    private function do_watch_mark_price(string $symbol, $params = array()) {
+        /**
+         * watches a mark price for a specific market
+         *
+         * @see https://docs.cdp.coinbase.com/api-reference/coinbase-deribit-app-api/websocket/market-data/tickerinstrument_nameinterval
+         * @see https://docs.deribit.com/subscriptions/market-data/tickerinstrument_nameinterval
+         *
+         * @param {string} $symbol unified $symbol of the market to fetch the ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->route] auto (default), deribit, or coinbase; overrides options.route
+         * @param {string} [$params->interval] notification interval, default 100ms
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+         */
+        $paramsResolved = $this->handleRouteAndParams('watchMarkPrice', $params);
+        return Async\await($this->watch_ticker($symbol, $paramsResolved));
+    }
+
+    public function watch_mark_prices(?array $symbols = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_mark_prices(...))($symbols, $params);
+    }
+
+    private function do_watch_mark_prices(?array $symbols = null, $params = array()) {
+        /**
+         * watches the mark price for multiple markets
+         *
+         * @see https://docs.cdp.coinbase.com/api-reference/coinbase-deribit-app-api/websocket/market-data/tickerinstrument_nameinterval
+         * @see https://docs.deribit.com/subscriptions/market-data/tickerinstrument_nameinterval
+         *
+         * @param {string[]} $symbols unified $symbols of the markets to watch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->route] auto (default), deribit, or coinbase; overrides options.route
+         * @param {string} [$params->interval] notification interval, default 100ms
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
+         */
+        $paramsResolved = $this->handleRouteAndParams('watchMarkPrices', $params);
+        return Async\await($this->watch_tickers($symbols, $paramsResolved));
+    }
+
+    public function un_watch_mark_price(string $symbol, $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_mark_price(...))($symbol, $params);
+    }
+
+    private function do_un_watch_mark_price(string $symbol, $params = array()) {
+        /**
+         * stops watching the mark price for a $symbol
+         *
+         * @see https://docs.cdp.coinbase.com/api-reference/subscription-management/public-unsubscribe
+         * @see https://docs.deribit.com/api-reference/subscription-management/public-unsubscribe
+         *
+         * @param {string} $symbol unified market $symbol
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->route] auto (default), deribit, or coinbase; overrides options.route
+         * @return {array} the exchange response
+         */
+        $paramsResolved = $this->handleRouteAndParams('unWatchMarkPrice', $params);
+        return Async\await($this->un_watch_ticker($symbol, $paramsResolved));
+    }
+
+    public function un_watch_mark_prices(?array $symbols = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_mark_prices(...))($symbols, $params);
+    }
+
+    private function do_un_watch_mark_prices(?array $symbols = null, $params = array()) {
+        /**
+         * stops watching mark prices for multiple $symbols
+         *
+         * @see https://docs.cdp.coinbase.com/api-reference/subscription-management/public-unsubscribe
+         * @see https://docs.deribit.com/api-reference/subscription-management/public-unsubscribe
+         *
+         * @param {string[]} [$symbols] unified market $symbols
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->route] auto (default), deribit, or coinbase; overrides options.route
+         * @return {array} the exchange response
+         */
+        $paramsResolved = $this->handleRouteAndParams('unWatchMarkPrices', $params);
+        return Async\await($this->un_watch_tickers($symbols, $paramsResolved));
+    }
+
+    public function watch_bids_asks(?array $symbols = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_bids_asks(...))($symbols, $params);
+    }
+
+    private function do_watch_bids_asks(?array $symbols = null, $params = array()) {
+        /**
+         * watches best bid & ask for $symbols
+         *
+         * @see https://docs.cdp.coinbase.com/api-reference/coinbase-deribit-app-api/websocket/market-data/quoteinstrument_name
+         * @see https://docs.deribit.com/subscriptions/market-data/quoteinstrument_name
+         *
+         * @param {string[]} [$symbols] unified $symbols of the markets to watch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->route] auto (default), deribit, or coinbase; overrides options.route
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structures~
+         */
+        $paramsResolved = $this->handleRouteAndParams('watchBidsAsks', $params);
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $symbolsResolved = $this->market_symbols($symbols, null, false);
+        $channels = array();
+        $symbolsLength = count($symbolsResolved);
+        for ($i = 0; $i < $symbolsLength; $i++) {
+            $market = $this->market($symbolsResolved[$i]);
+            $channels[] = 'quote.' . $market['id'];
+        }
+        $ticker = Async\await($this->subscribe($channels, $channels, false, $paramsResolved));
+        if ($this->newUpdates) {
+            $result = array();
+            $result[$ticker['symbol']] = $ticker;
+            return $result;
+        }
+        return $this->filter_by_array($this->bidsasks, 'symbol', $symbolsResolved);
+    }
+
+    public function un_watch_bids_asks(?array $symbols = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_bids_asks(...))($symbols, $params);
+    }
+
+    private function do_un_watch_bids_asks(?array $symbols = null, $params = array()) {
+        /**
+         * stops watching best bid & ask for $symbols
+         *
+         * @see https://docs.cdp.coinbase.com/api-reference/subscription-management/public-unsubscribe
+         * @see https://docs.deribit.com/api-reference/subscription-management/public-unsubscribe
+         *
+         * @param {string[]} [$symbols] unified market $symbols
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->route] auto (default), deribit, or coinbase; overrides options.route
+         * @return {array} the exchange response
+         */
+        $paramsResolved = $this->handleRouteAndParams('unWatchBidsAsks', $params);
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $symbolsResolved = $this->market_symbols($symbols, null, false);
+        $channels = array();
+        $symbolsLength = count($symbolsResolved);
+        for ($i = 0; $i < $symbolsLength; $i++) {
+            $channels[] = 'quote.' . $this->market_id($symbolsResolved[$i]);
+        }
+        return Async\await($this->un_subscribe($channels, false, $paramsResolved));
     }
 
     public function handle_ticker(Client $client, array $message) {
-        //
-        // snapshot
-        //    {
-        //        "sequence": 0,
-        //        "product_id": "BTC-PERP",
-        //        "time": "2023-05-10T14:58:47.000Z",
-        //        "bid_price": "28787.8",
-        //        "bid_qty": "0.466", // One side book
-        //        "channel": "LEVEL1",
-        //        "type": "SNAPSHOT"
-        //    }
-        // update
-        //    {
-        //       "sequence": 1,
-        //       "product_id": "BTC-PERP",
-        //       "time": "2023-05-10T14:58:47.547Z",
-        //       "bid_price": "28787.8",
-        //       "bid_qty": "0.466",
-        //       "ask_price": "28788.8",
-        //       "ask_qty": "1.566",
-        //       "channel": "LEVEL1",
-        //       "type": "UPDATE"
-        //    }
-        //
-        $ticker = $this->parse_ws_ticker($message);
-        $channel = $this->safe_string($message, 'channel');
+        $params = $this->safe_dict($message, 'params', array());
+        $data = $this->safe_dict($params, 'data', array());
+        $ticker = $this->parse_ticker($data);
+        $channel = $this->safe_string($params, 'channel');
+        $symbol = $ticker['symbol'];
+        $this->tickers[$symbol] = $ticker;
         $client->resolve($ticker, $channel);
-        if ($channel !== null) {
-            $client->resolve($ticker, $channel . '::' . $ticker['symbol']);
-        }
     }
 
-    public function parse_ws_ticker(array $ticker, ?array $market = null): array {
-        //
-        //    {
-        //       "sequence": 1,
-        //       "product_id": "BTC-PERP",
-        //       "time": "2023-05-10T14:58:47.547Z",
-        //       "bid_price": "28787.8",
-        //       "bid_qty": "0.466",
-        //       "ask_price": "28788.8",
-        //       "ask_qty": "1.566",
-        //       "channel": "LEVEL1",
-        //       "type": "UPDATE"
-        //    }
-        //
-        $datetime = $this->safe_string($ticker, 'time');
-        $marketId = $this->safe_string($ticker, 'product_id');
+    public function handle_bid_ask(Client $client, array $message) {
+        $params = $this->safe_dict($message, 'params', array());
+        $data = $this->safe_dict($params, 'data', array());
+        $ticker = $this->parse_ws_bid_ask($data);
+        $symbol = $ticker['symbol'];
+        $this->bidsasks[$symbol] = $ticker;
+        $channel = $this->safe_string($params, 'channel');
+        $client->resolve($ticker, $channel);
+    }
+
+    public function parse_ws_bid_ask(mixed $ticker, ?array $market = null): array {
+        $marketId = $this->safe_string($ticker, 'instrument_name');
+        $marketResolved = $this->safe_market($marketId, $market);
+        $timestamp = $this->safe_integer($ticker, 'timestamp');
         return $this->safe_ticker(array(
             'info' => $ticker,
-            'symbol' => $this->safe_symbol($marketId, $market),
-            'timestamp' => $this->parse8601($datetime),
-            'datetime' => $datetime,
-            'bid' => $this->safe_number($ticker, 'bid_price'),
-            'bidVolume' => $this->safe_number($ticker, 'bid_qty'),
-            'ask' => $this->safe_number($ticker, 'ask_price'),
-            'askVolume' => $this->safe_number($ticker, 'ask_qty'),
-            'high' => null,
-            'low' => null,
-            'open' => null,
-            'close' => null,
-            'last' => null,
-            'change' => null,
-            'percentage' => null,
-            'average' => null,
-            'vwap' => null,
-            'baseVolume' => null,
-            'quoteVolume' => null,
-            'previousClose' => null,
-        ));
+            'symbol' => $marketResolved['symbol'],
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'bid' => $this->safe_string($ticker, 'best_bid_price'),
+            'bidVolume' => $this->safe_string($ticker, 'best_bid_amount'),
+            'ask' => $this->safe_string($ticker, 'best_ask_price'),
+            'askVolume' => $this->safe_string($ticker, 'best_ask_amount'),
+        ), $marketResolved);
     }
 
     public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -493,86 +988,182 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
 
     private function do_watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()) {
         /**
-         * watches historical candlestick data containing the open, high, low, close price, and the volume of a $market
+         * watches historical candlestick data containing the open, high, low, close price, and the volume of a market
          *
-         * @see https://docs.cdp.coinbase.com/intx/docs/websocket-channels#candles-channel
+         * @see https://docs.cdp.coinbase.com/api-reference/coinbase-deribit-app-api/websocket/market-data/charttradesinstrument_nameresolution
+         * @see https://docs.deribit.com/subscriptions/market-data/charttradesinstrument_nameresolution
          *
-         * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
+         * @param {string} $symbol unified $symbol of the market to fetch OHLCV data for
          * @param {string} $timeframe the length of time each candle represents
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->route] auto (default), deribit, or coinbase; overrides options.route
          * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
+        $paramsResolved = $this->handleRouteAndParams('watchOHLCV', $params);
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
-        $options = $this->safe_dict($this->options, 'timeframes', array());
-        $interval = $this->safe_string($options, $timeframe, $timeframe);
-        $ohlcv = Async\await($this->subscribe($interval, array( $symbolValue ), $params));
+        $symbolResolved = $this->symbol($symbol);
+        $ohlcvs = Async\await($this->watch_ohlcv_for_symbols(array( array( $symbolResolved, $timeframe ) ), $since, $limit, $paramsResolved));
+        return $ohlcvs[$symbolResolved][$timeframe];
+    }
+
+    public function watch_ohlcv_for_symbols(array $symbolsAndTimeframes, ?int $since = null, ?int $limit = null, $params = array()) {
+        return Async\async(self::do_watch_ohlcv_for_symbols(...))($symbolsAndTimeframes, $since, $limit, $params);
+    }
+
+    private function do_watch_ohlcv_for_symbols(array $symbolsAndTimeframes, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * watches historical candlestick data for multiple markets and timeframes
+         *
+         * @see https://docs.cdp.coinbase.com/api-reference/coinbase-deribit-app-api/websocket/market-data/charttradesinstrument_nameresolution
+         * @see https://docs.deribit.com/subscriptions/market-data/charttradesinstrument_nameresolution
+         *
+         * @param {string[][]} $symbolsAndTimeframes array of arrays containing unified symbols and timeframes
+         * @param {int} [$since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [$limit] the maximum amount of candles to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->route] auto (default), deribit, or coinbase; overrides options.route
+         * @return {array} a dictionary of OHLCV arrays indexed by $symbol and $timeframe
+         */
+        $paramsResolved = $this->handleRouteAndParams('watchOHLCVForSymbols', $params);
+        $symbolsAndTimeframesLength = count($symbolsAndTimeframes);
+        if ($symbolsAndTimeframesLength === 0 || (gettype($symbolsAndTimeframes[0]) !== 'array' || array_keys($symbolsAndTimeframes[0]) !== array_keys(array_keys($symbolsAndTimeframes[0])))) {
+            throw new ArgumentsRequired($this->id . " watchOHLCVForSymbols() requires an array of symbols and timeframes, like [['BTC/USDC', '1m']]");
+        }
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $channels = array();
+        for ($i = 0; $i < $symbolsAndTimeframesLength; $i++) {
+            $current = $symbolsAndTimeframes[$i];
+            $market = $this->market($current[0]);
+            $currentTimeframe = $current[1];
+            $resolution = $this->safe_string($this->timeframes, $currentTimeframe, $currentTimeframe);
+            $channels[] = 'chart.trades.' . $market['id'] . '.' . $resolution;
+        }
+        $resolved = Async\await($this->subscribe($channels, $channels, false, $paramsResolved));
+        $symbol = $this->safe_string($resolved, 0);
+        $timeframe = $this->safe_string($resolved, 1);
+        $ohlcv = $this->safe_value($resolved, 2);
         $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limitResolved = $ohlcv->getLimit($symbolValue, $limit);
+            $limitResolved = $ohlcv->getLimit($symbol, $limit);
         }
-        return $this->filter_by_since_limit($ohlcv, $since, $limitResolved, 0, true);
+        $filtered = $this->filter_by_since_limit($ohlcv, $since, $limitResolved, 0, true);
+        return $this->create_ohlcv_object($symbol, $timeframe, $filtered);
+    }
+
+    public function un_watch_ohlcv(string $symbol, string $timeframe = '1m', $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_ohlcv(...))($symbol, $timeframe, $params);
+    }
+
+    private function do_un_watch_ohlcv(string $symbol, string $timeframe = '1m', $params = array()) {
+        /**
+         * stops watching OHLCV data for a $symbol
+         *
+         * @see https://docs.cdp.coinbase.com/api-reference/subscription-management/public-unsubscribe
+         * @see https://docs.deribit.com/api-reference/subscription-management/public-unsubscribe
+         *
+         * @param {string} $symbol unified market $symbol
+         * @param {string} $timeframe the length of time each candle represents
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->route] auto (default), deribit, or coinbase; overrides options.route
+         * @return {array} the exchange response
+         */
+        $paramsResolved = $this->handleRouteAndParams('unWatchOHLCV', $params);
+        return Async\await($this->un_watch_ohlcv_for_symbols(array( array( $symbol, $timeframe ) ), $paramsResolved));
+    }
+
+    public function un_watch_ohlcv_for_symbols(array $symbolsAndTimeframes, $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_ohlcv_for_symbols(...))($symbolsAndTimeframes, $params);
+    }
+
+    private function do_un_watch_ohlcv_for_symbols(array $symbolsAndTimeframes, $params = array()) {
+        /**
+         * stops watching OHLCV data for multiple symbols and timeframes
+         *
+         * @see https://docs.cdp.coinbase.com/api-reference/subscription-management/public-unsubscribe
+         * @see https://docs.deribit.com/api-reference/subscription-management/public-unsubscribe
+         *
+         * @param {string[][]} $symbolsAndTimeframes array of arrays containing unified symbols and timeframes
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->route] auto (default), deribit, or coinbase; overrides options.route
+         * @return {array} the exchange response
+         */
+        $paramsResolved = $this->handleRouteAndParams('unWatchOHLCVForSymbols', $params);
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $channels = array();
+        $symbolsAndTimeframesLength = count($symbolsAndTimeframes);
+        for ($i = 0; $i < $symbolsAndTimeframesLength; $i++) {
+            $current = $symbolsAndTimeframes[$i];
+            $market = $this->market($current[0]);
+            $timeframe = $current[1];
+            $resolution = $this->safe_string($this->timeframes, $timeframe, $timeframe);
+            $channels[] = 'chart.trades.' . $market['id'] . '.' . $resolution;
+        }
+        return Async\await($this->un_subscribe($channels, false, $paramsResolved));
     }
 
     public function handle_ohlcv(Client $client, array $message) {
-        //
-        // {
-        //     "sequence": 0,
-        //     "product_id": "BTC-PERP",
-        //     "channel": "CANDLES_ONE_MINUTE",
-        //     "type": "SNAPSHOT",
-        //     "candles": [
-        //       {
-        //           "time": "2023-05-10T14:58:47.000Z",
-        //           "low": "28787.8",
-        //           "high": "28788.8",
-        //           "open": "28788.8",
-        //           "close": "28787.8",
-        //           "volume": "0.466"
-        //        },
-        //     ]
-        //  }
-        //
-        $messageHash = $this->safe_string($message, 'channel');
-        $marketId = $this->safe_string($message, 'product_id');
+        $params = $this->safe_dict($message, 'params', array());
+        $messageHash = $this->safe_string($params, 'channel', '');
+        $parts = explode('.', $messageHash);
+        $marketId = $this->safe_string($parts, 2);
         $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
-        $timeframe = $this->find_timeframe($messageHash);
+        $resolution = $this->safe_string($parts, 3);
+        $wsOptions = $this->safe_dict($this->options, 'ws', array());
+        $timeframes = $this->safe_dict($wsOptions, 'timeframes', array());
+        $timeframe = $this->find_timeframe($resolution, $timeframes);
         $this->ohlcvs[$symbol] = $this->safe_dict($this->ohlcvs, $symbol, array());
-        if ($this->safe_dict($this->ohlcvs[$symbol], $timeframe) === null) {
+        if ($this->safe_value($this->ohlcvs[$symbol], $timeframe) === null) {
             $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
             $this->ohlcvs[$symbol][$timeframe] = new ArrayCacheByTimestamp($limit);
         }
         $stored = $this->ohlcvs[$symbol][$timeframe];
-        $data = $this->safe_list($message, 'candles', array());
-        for ($i = 0; $i < count($data); $i++) {
-            $tick = $this->safe_dict($data, $i);
-            $parsed = $this->parse_ohlcv($tick, $market);
-            $stored->append($parsed);
-        }
-        if ($messageHash !== null) {
-            $client->resolve($stored, $messageHash . '::' . $symbol);
-        }
+        $data = $this->safe_dict($params, 'data', array());
+        $parsed = $this->parse_ws_ohlcv($data, $market);
+        $stored->append($parsed);
+        $resolved = array( $symbol, $timeframe, $stored );
+        $client->resolve($resolved, $messageHash);
+    }
+
+    public function parse_ws_ohlcv(mixed $ohlcv, ?array $market = null): array {
+        return array(
+            $this->safe_integer($ohlcv, 'tick'),
+            $this->safe_number($ohlcv, 'open'),
+            $this->safe_number($ohlcv, 'high'),
+            $this->safe_number($ohlcv, 'low'),
+            $this->safe_number($ohlcv, 'close'),
+            $this->safe_number($ohlcv, 'volume'),
+        );
     }
 
     public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_trades(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * get the list of most recent trades for a particular $symbol
          *
-         * @see https://docs.cloud.coinbase.com/intx/docs/websocket-channels#match-channel
+         * @see https://docs.cdp.coinbase.com/api-reference/coinbase-deribit-app-api/websocket/trades/tradesinstrument_nameinterval
+         * @see https://docs.deribit.com/subscriptions/trades/tradesinstrument_nameinterval
          *
          * @param {string} $symbol unified $symbol of the market to fetch trades for
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
          * @param {int} [$limit] the maximum amount of trades to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
+         * @param {string} [$params->route] auto (default), deribit, or coinbase; overrides options.route
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
          */
-        return $this->watch_trades_for_symbols(array( $symbol ), $since, $limit, $params);
+        $paramsResolved = $this->handleRouteAndParams('watchTrades', $params);
+        return Async\await($this->watch_trades_for_symbols(array( $symbol ), $since, $limit, $paramsResolved));
     }
 
     public function watch_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -582,17 +1173,31 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
     private function do_watch_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * get the list of most recent $trades for a list of $symbols
-         * @param {string[]} $symbols unified symbol of the market to fetch $trades for
+         *
+         * @see https://docs.cdp.coinbase.com/api-reference/coinbase-deribit-app-api/websocket/trades/tradesinstrument_nameinterval
+         * @see https://docs.deribit.com/subscriptions/trades/tradesinstrument_nameinterval
+         *
+         * @param {string[]} $symbols unified symbol of the $market to fetch $trades for
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
          * @param {int} [$limit] the maximum amount of $trades to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
+         * @param {string} [$params->route] auto (default), deribit, or coinbase; overrides options.route
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
          */
+        $paramsResolved = $this->handleRouteAndParams('watchTradesForSymbols', $params);
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbolsNormalized = $this->market_symbols($symbols, null, false, true, true);
-        $trades = Async\await($this->subscribe_multiple('MATCH', $symbolsNormalized, $params));
+        $symbolsResolved = $this->market_symbols($symbols, null, false);
+        list($interval, $paramsInterval) = $this->handle_option_and_params($paramsResolved, 'watchTradesForSymbols', 'interval', '100ms');
+        $isPrivate = $interval === 'raw';
+        $channels = array();
+        $symbolsLength = count($symbolsResolved);
+        for ($i = 0; $i < $symbolsLength; $i++) {
+            $market = $this->market($symbolsResolved[$i]);
+            $channels[] = 'trades.' . $market['id'] . '.' . $interval;
+        }
+        $trades = Async\await($this->subscribe($channels, $channels, $isPrivate, $paramsInterval));
         $limitResolved = $limit;
         if ($this->newUpdates) {
             $first = $this->safe_dict($trades, 0);
@@ -602,289 +1207,1015 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         return $this->filter_by_since_limit($trades, $since, $limitResolved, 'timestamp', true);
     }
 
-    public function handle_trade(Client $client, array $message): array {
-        //
-        //    {
-        //       "sequence": 0,
-        //       "product_id": "BTC-PERP",
-        //       "time": "2023-05-10T14:58:47.002Z",
-        //       "match_id": "177101110052388865",
-        //       "trade_qty": "0.006",
-        //       "aggressor_side": "BUY",
-        //       "trade_price": "28833.1",
-        //       "channel": "MATCH",
-        //       "type": "UPDATE"
-        //    }
-        //
-        $trade = $this->parse_ws_trade($message);
-        $symbol = $trade['symbol'];
-        $channel = $this->safe_string($message, 'channel');
+    public function un_watch_trades(string $symbol, $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_trades(...))($symbol, $params);
+    }
+
+    private function do_un_watch_trades(string $symbol, $params = array()) {
+        /**
+         * stops watching trades for a $symbol
+         *
+         * @see https://docs.cdp.coinbase.com/api-reference/subscription-management/public-unsubscribe
+         * @see https://docs.deribit.com/api-reference/subscription-management/public-unsubscribe
+         *
+         * @param {string} $symbol unified market $symbol
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->route] auto (default), deribit, or coinbase; overrides options.route
+         * @return {array} the exchange response
+         */
+        $paramsResolved = $this->handleRouteAndParams('unWatchTrades', $params);
+        return Async\await($this->un_watch_trades_for_symbols(array( $symbol ), $paramsResolved));
+    }
+
+    public function un_watch_trades_for_symbols(array $symbols, $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_trades_for_symbols(...))($symbols, $params);
+    }
+
+    private function do_un_watch_trades_for_symbols(array $symbols, $params = array()) {
+        /**
+         * stops watching trades for multiple $symbols
+         *
+         * @see https://docs.cdp.coinbase.com/api-reference/subscription-management/public-unsubscribe
+         * @see https://docs.deribit.com/api-reference/subscription-management/public-unsubscribe
+         *
+         * @param {string[]} $symbols unified market $symbols
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->route] auto (default), deribit, or coinbase; overrides options.route
+         * @return {array} the exchange response
+         */
+        $paramsResolved = $this->handleRouteAndParams('unWatchTradesForSymbols', $params);
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $symbolsResolved = $this->market_symbols($symbols, null, false);
+        list($interval, $paramsInterval) = $this->handle_option_and_params($paramsResolved, 'watchTradesForSymbols', 'interval', '100ms');
+        $channels = array();
+        $symbolsLength = count($symbolsResolved);
+        for ($i = 0; $i < $symbolsLength; $i++) {
+            $channels[] = 'trades.' . $this->market_id($symbolsResolved[$i]) . '.' . $interval;
+        }
+        return Async\await($this->un_subscribe($channels, $interval === 'raw', $paramsInterval));
+    }
+
+    public function handle_trades(Client $client, array $message) {
+        $params = $this->safe_dict($message, 'params', array());
+        $channel = $this->safe_string($params, 'channel', '');
+        $data = $this->safe_list($params, 'data', array());
+        $parts = explode('.', $channel);
+        $marketId = $this->safe_string($parts, 1);
+        $market = $this->safe_market($marketId);
+        $symbol = $market['symbol'];
         if (!(is_array($this->trades) && array_key_exists($symbol ?? '', $this->trades))) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
             $tradesArrayCache = new ArrayCache($limit);
             $this->trades[$symbol] = $tradesArrayCache;
         }
         $tradesArray = $this->trades[$symbol];
-        $tradesArray->append($trade);
+        $dataLength = count($data);
+        for ($i = 0; $i < $dataLength; $i++) {
+            $trade = $this->parse_trade($data[$i], $market);
+            $tradesArray->append($trade);
+        }
         $this->trades[$symbol] = $tradesArray;
         $client->resolve($tradesArray, $channel);
-        if ($channel !== null) {
-            $client->resolve($tradesArray, $channel . '::' . $trade['symbol']);
-        }
         return $message;
     }
 
-    public function parse_ws_trade(array $trade, ?array $market = null): array {
-        //
-        //    {
-        //       "sequence": 0,
-        //       "product_id": "BTC-PERP",
-        //       "time": "2023-05-10T14:58:47.002Z",
-        //       "match_id": "177101110052388865",
-        //       "trade_qty": "0.006",
-        //       "aggressor_side": "BUY",
-        //       "trade_price": "28833.1",
-        //       "channel": "MATCH",
-        //       "type": "UPDATE"
-        //    }
-        $marketId = $this->safe_string_2($trade, 'symbol', 'product_id');
-        $datetime = $this->safe_string($trade, 'time');
-        return $this->safe_trade(array(
-            'info' => $trade,
-            'id' => $this->safe_string($trade, 'match_id'),
-            'order' => null,
-            'timestamp' => $this->parse8601($datetime),
-            'datetime' => $datetime,
-            'symbol' => $this->safe_symbol($marketId, $market),
-            'type' => null,
-            'side' => $this->safe_string_lower($trade, 'agressor_side'),
-            'takerOrMaker' => null,
-            'price' => $this->safe_string($trade, 'trade_price'),
-            'amount' => $this->safe_string($trade, 'trade_qty'),
-            'cost' => null,
-            'fee' => null,
-        ));
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_order_book(...))($symbol, $limit, $params);
     }
 
-    public function watch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
+    private function do_watch_order_book(string $symbol, ?int $limit = null, $params = array()) {
         /**
          * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          *
-         * @see https://docs.cloud.coinbase.com/intx/docs/websocket-channels#level2-channel
+         * @see https://docs.cdp.coinbase.com/api-reference/coinbase-deribit-app-api/websocket/orderbook/bookinstrument_nameinterval
+         * @see https://docs.deribit.com/subscriptions/orderbook/bookinstrument_nameinterval
+         * @see https://docs.deribit.com/subscriptions/orderbook/bookinstrument_namegroupdepthinterval
          *
          * @param {string} $symbol unified $symbol of the market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->route] auto (default), deribit, or coinbase; overrides options.route
          * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
          */
-        return $this->watch_order_book_for_symbols(array( $symbol ), $limit, $params);
+        $paramsResolved = $this->handleRouteAndParams('watchOrderBook', $params);
+        return Async\await($this->watch_order_book_for_symbols(array( $symbol ), $limit, $paramsResolved));
     }
 
     public function watch_order_book_for_symbols(array $symbols, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_order_book_for_symbols(...))($symbols, $limit, $params);
+    }
+
+    private function do_watch_order_book_for_symbols(array $symbols, ?int $limit = null, $params = array()) {
         /**
          * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          *
-         * @see https://docs.cloud.coinbase.com/intx/docs/websocket-channels#level2-channel
+         * @see https://docs.cdp.coinbase.com/api-reference/coinbase-deribit-app-api/websocket/orderbook/bookinstrument_nameinterval
+         * @see https://docs.deribit.com/subscriptions/orderbook/bookinstrument_nameinterval
+         * @see https://docs.deribit.com/subscriptions/orderbook/bookinstrument_namegroupdepthinterval
          *
          * @param {string[]} $symbols
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->route] auto (default), deribit, or coinbase; overrides options.route
          * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
          */
-        return $this->subscribe_multiple('LEVEL2', $symbols, $params);
+        $paramsResolved = $this->handleRouteAndParams('watchOrderBookForSymbols', $params);
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        list($interval, $paramsInterval) = $this->handle_option_and_params($paramsResolved, 'watchOrderBookForSymbols', 'interval', '100ms');
+        $isPrivate = $interval === 'raw';
+        list($useDepthEndpoint, $paramsDepthEndpoint) = $this->handle_option_and_params($paramsInterval, 'watchOrderBookForSymbols', 'useDepthEndpoint', false);
+        $paramsChannel = $paramsDepthEndpoint;
+        $descriptor = $interval;
+        if ($useDepthEndpoint) {
+            list($depth, $paramsDepth) = $this->handle_option_and_params($paramsDepthEndpoint, 'watchOrderBookForSymbols', 'depth', '20');
+            list($group, $paramsGroup) = $this->handle_option_and_params($paramsDepth, 'watchOrderBookForSymbols', 'group', 'none');
+            $paramsChannel = $paramsGroup;
+            $descriptor = $group . '.' . $depth . '.' . $interval;
+        }
+        $channels = array();
+        $symbolsLength = count($symbols);
+        for ($i = 0; $i < $symbolsLength; $i++) {
+            $market = $this->market($symbols[$i]);
+            $channels[] = 'book.' . $market['id'] . '.' . $descriptor;
+        }
+        $orderbook = Async\await($this->subscribe($channels, $channels, $isPrivate, $paramsChannel));
+        return $orderbook->limit();
+    }
+
+    public function un_watch_order_book(string $symbol, $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_order_book(...))($symbol, $params);
+    }
+
+    private function do_un_watch_order_book(string $symbol, $params = array()) {
+        /**
+         * stops watching an order book
+         *
+         * @see https://docs.cdp.coinbase.com/api-reference/subscription-management/public-unsubscribe
+         * @see https://docs.deribit.com/api-reference/subscription-management/public-unsubscribe
+         *
+         * @param {string} $symbol unified market $symbol
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->route] auto (default), deribit, or coinbase; overrides options.route
+         * @return {array} the exchange response
+         */
+        $paramsResolved = $this->handleRouteAndParams('unWatchOrderBook', $params);
+        return Async\await($this->un_watch_order_book_for_symbols(array( $symbol ), $paramsResolved));
+    }
+
+    public function un_watch_order_book_for_symbols(array $symbols, $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_order_book_for_symbols(...))($symbols, $params);
+    }
+
+    private function do_un_watch_order_book_for_symbols(array $symbols, $params = array()) {
+        /**
+         * stops watching order books for multiple $symbols
+         *
+         * @see https://docs.cdp.coinbase.com/api-reference/subscription-management/public-unsubscribe
+         * @see https://docs.deribit.com/api-reference/subscription-management/public-unsubscribe
+         *
+         * @param {string[]} $symbols unified market $symbols
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->route] auto (default), deribit, or coinbase; overrides options.route
+         * @return {array} the exchange response
+         */
+        $paramsResolved = $this->handleRouteAndParams('unWatchOrderBookForSymbols', $params);
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        list($interval, $paramsInterval) = $this->handle_option_and_params($paramsResolved, 'watchOrderBookForSymbols', 'interval', '100ms');
+        list($useDepthEndpoint, $paramsDepthEndpoint) = $this->handle_option_and_params($paramsInterval, 'watchOrderBookForSymbols', 'useDepthEndpoint', false);
+        $paramsChannel = $paramsDepthEndpoint;
+        $descriptor = $interval;
+        if ($useDepthEndpoint) {
+            list($depth, $paramsDepth) = $this->handle_option_and_params($paramsDepthEndpoint, 'watchOrderBookForSymbols', 'depth', '20');
+            list($group, $paramsGroup) = $this->handle_option_and_params($paramsDepth, 'watchOrderBookForSymbols', 'group', 'none');
+            $paramsChannel = $paramsGroup;
+            $descriptor = $group . '.' . $depth . '.' . $interval;
+        }
+        $channels = array();
+        $symbolsLength = count($symbols);
+        for ($i = 0; $i < $symbolsLength; $i++) {
+            $channels[] = 'book.' . $this->market_id($symbols[$i]) . '.' . $descriptor;
+        }
+        return Async\await($this->un_subscribe($channels, $interval === 'raw', $paramsChannel));
     }
 
     public function handle_order_book(Client $client, array $message) {
-        //
-        // snapshot
-        //    {
-        //       "sequence": 0,
-        //       "product_id": "BTC-PERP",
-        //       "time": "2023-05-10T14:58:47.000Z",
-        //       "bids": [
-        //           ["29100", "0.02"],
-        //           ["28950", "0.01"],
-        //           ["28900", "0.01"]
-        //       ],
-        //       "asks": [
-        //           ["29267.8", "18"],
-        //           ["29747.6", "18"],
-        //           ["30227.4", "9"]
-        //       ],
-        //       "channel": "LEVEL2",
-        //       "type": "SNAPSHOT",
-        //    }
-        // update
-        //    {
-        //       "sequence": 1,
-        //       "product_id": "BTC-PERP",
-        //       "time": "2023-05-10T14:58:47.375Z",
-        //       "changes": [
-        //           [
-        //               "BUY",
-        //               "28787.7",
-        //               "6"
-        //           ]
-        //       ],
-        //       "channel": "LEVEL2",
-        //       "type": "UPDATE"
-        //    }
-        //
-        $type = $this->safe_string($message, 'type');
-        $marketId = $this->safe_string($message, 'product_id');
+        $params = $this->safe_dict($message, 'params', array());
+        $data = $this->safe_dict($params, 'data', array());
+        $type = $this->safe_string($data, 'type', 'snapshot');
+        $marketId = $this->safe_string($data, 'instrument_name');
         $symbol = $this->safe_symbol($marketId);
-        $datetime = $this->safe_string($message, 'time');
-        $channel = $this->safe_string($message, 'channel');
+        $timestamp = $this->safe_integer($data, 'timestamp');
+        $channel = $this->safe_string($params, 'channel');
+        $channelParts = explode('.', $channel);
+        $channelPartsLength = count($channelParts);
+        $isGrouped = $channelPartsLength === 5;
         if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $limit = $this->safe_integer($this->options, 'watchOrderBookLimit', 1000);
-            $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
+            $this->orderbooks[$symbol] = $isGrouped ? $this->order_book(array(), $limit) : $this->counted_order_book(array(), $limit);
         }
         $orderbook = $this->orderbooks[$symbol];
-        if ($type === 'SNAPSHOT') {
-            $parsedSnapshot = $this->parse_order_book($message, $symbol, null, 'bids', 'asks');
-            $orderbook->reset($parsedSnapshot);
-            $orderbook['symbol'] = $symbol;
-        } else {
-            $changes = $this->safe_list($message, 'changes', array());
-            $this->handle_book_deltas($orderbook, $changes);
+        if (!$isGrouped && ($type !== 'snapshot') && ($orderbook['nonce'] === null)) {
+            return;
         }
-        $orderbook['nonce'] = $this->safe_integer($message, 'sequence');
-        $orderbook['datetime'] = $datetime;
-        $orderbook['timestamp'] = $this->parse8601($datetime);
+        if ($isGrouped) {
+            $parsedSnapshot = $this->parse_order_book($data, $symbol, $timestamp, 'bids', 'asks');
+            $orderbook->reset($parsedSnapshot);
+        } else {
+            $previousChangeId = $this->safe_integer($data, 'prev_change_id');
+            if (($type !== 'snapshot') && ($orderbook['nonce'] !== null) && ($previousChangeId !== $orderbook['nonce'])) {
+                // drop the stale book and reject only this channels future
+                unset($this->orderbooks[$symbol]);
+                if (is_array($client->subscriptions) && array_key_exists($channel ?? '', $client->subscriptions)) {
+                    unset($client->subscriptions[$channel]);
+                }
+                $client->reject(new ExchangeError($this->id . ' order book update has a nonce mismatch'), $channel);
+                $this->spawn(array($this, 'resubscribe_order_book'), $channel);
+                return;
+            }
+            $this->handle_deltas($orderbook['asks'], $this->safe_list($data, 'asks', array()));
+            $this->handle_deltas($orderbook['bids'], $this->safe_list($data, 'bids', array()));
+        }
+        $orderbook['symbol'] = $symbol;
+        $orderbook['nonce'] = $this->safe_integer($data, 'change_id');
+        $orderbook['timestamp'] = $timestamp;
+        $orderbook['datetime'] = $this->iso8601($timestamp);
         $this->orderbooks[$symbol] = $orderbook;
         if ($channel !== null) {
-            $client->resolve($orderbook, $channel . '::' . $symbol);
+            $client->resolve($orderbook, $channel);
         }
     }
 
-    public function handle_book_delta(mixed $orderbook, mixed $delta) {
-        $rawSide = $this->safe_string_lower($delta, 0);
-        $side = 'asks';
-        if ($rawSide === 'buy') {
-            $side = 'bids';
+    public function resubscribe_order_book(string $channel) {
+        return Async\async(self::do_resubscribe_order_book(...))($channel);
+    }
+
+    private function do_resubscribe_order_book(string $channel) {
+        $channelParts = explode('.', $channel);
+        $channelPartsLength = count($channelParts);
+        $isPrivate = $this->safe_string($channelParts, $channelPartsLength - 1) === 'raw';
+        $url = $this->get_ws_url($isPrivate);
+        if ($isPrivate) {
+            Async\await($this->authenticate());
         }
-        $price = $this->safe_float($delta, 1);
-        $amount = $this->safe_float($delta, 2);
-        $bookside = $orderbook[$side];
-        $bookside->store($price, $amount);
-    }
-
-    public function handle_book_deltas(mixed $orderbook, mixed $deltas) {
-        for ($i = 0; $i < count($deltas); $i++) {
-            $this->handle_book_delta($orderbook, $deltas[$i]);
+        $request = array(
+            'jsonrpc' => '2.0',
+            'method' => $isPrivate ? 'private/unsubscribe' : 'public/unsubscribe',
+            'params' => array(
+                'channels' => array( $channel ),
+            ),
+            'id' => $this->request_id(),
+        );
+        $client = $this->client($url);
+        Async\await($client->send($request));
+        if (is_array($client->subscriptions) && array_key_exists($channel ?? '', $client->subscriptions)) {
+            unset($client->subscriptions[$channel]);
         }
+        Async\await($this->subscribe(array( $channel ), array( $channel ), $isPrivate, array()));
     }
 
-    public function handle_subscription_status(Client $client, array $message): array {
-        //
-        //    {
-        //       "channels": [
-        //           {
-        //               "name": "MATCH",
-        //               "product_ids": [
-        //                   "BTC-PERP",
-        //                   "ETH-PERP"
-        //               ]
-        //           },
-        //           {
-        //               "name": "INSTRUMENTS",
-        //               "product_ids": [
-        //                   "BTC-PERP",
-        //                   "ETH-PERP"
-        //               ]
-        //           }
-        //       ],
-        //       "authenticated": true,
-        //       "channel": "SUBSCRIPTIONS",
-        //       "type": "SNAPSHOT",
-        //       "time": "2023-05-30T16:53:46.847Z"
-        //    }
-        //
-        return $message;
-    }
-
-    public function handle_funding_rate(Client $client, array $message) {
-        //
-        // snapshot
-        //    {
-        //       "sequence": 0,
-        //       "product_id": "BTC-PERP",
-        //       "time": "2023-05-10T14:58:47.000Z",
-        //       "funding_rate": "0.001387",
-        //       "is_final": true,
-        //       "channel": "FUNDING",
-        //       "type": "SNAPSHOT"
-        //    }
-        // update
-        //    {
-        //       "sequence": 1,
-        //       "product_id": "BTC-PERP",
-        //       "time": "2023-05-10T15:00:00.000Z",
-        //       "funding_rate": "0.001487",
-        //       "is_final": false,
-        //       "channel": "FUNDING",
-        //       "type": "UPDATE"
-        //    }
-        //
-        $channel = $this->safe_string($message, 'channel');
-        $fundingRate = $this->parse_funding_rate($message);
-        $this->fundingRates[$fundingRate['symbol']] = $fundingRate;
-        if ($channel !== null) {
-            $client->resolve($fundingRate, $channel . '::' . $fundingRate['symbol']);
+    public function handle_delta(mixed $bookside, mixed $delta) {
+        $action = $this->safe_string($delta, 0);
+        $price = $this->safe_number($delta, 1);
+        $amount = $this->safe_number($delta, 2);
+        if (($action === 'new') || ($action === 'change')) {
+            $bookside->storeArray(array( $price, $amount, 1 ));
+        } elseif ($action === 'delete') {
+            $bookside->storeArray(array( $price, $amount, 0 ));
         }
     }
 
-    public function handle_error_message(Client $client, array $message): ?bool {
-        //
-        //    {
-        //        message: 'Failed to subscribe',
-        //        reason: 'Unable to authenticate',
-        //        channel: 'SUBSCRIPTIONS',
-        //        type: 'REJECT'
-        //    }
-        //
-        $type = $this->safe_string($message, 'type');
-        if ($type !== 'REJECT') {
+    public function handle_deltas(mixed $bookside, array $deltas) {
+        $deltasLength = count($deltas);
+        for ($i = 0; $i < $deltasLength; $i++) {
+            $this->handle_delta($bookside, $deltas[$i]);
+        }
+    }
+
+    public function handle_error_message(Client $client, mixed $message): ?bool {
+        $error = $this->safe_dict($message, 'error');
+        if ($error === null) {
             return false;
         }
-        $reason = $this->safe_string($message, 'reason');
-        $errMsg = $this->safe_string($message, 'message');
+        $errorCode = $this->safe_string($error, 'code');
+        $errorMessage = $this->safe_string($error, 'message');
+        $feedback = $this->id . ' ' . $this->json($message);
         try {
-            $feedback = $this->id . ' ' . $errMsg . $reason;
-            $this->throw_exactly_matched_exception($this->exceptions['exact'], $reason, $feedback);
-            $this->throw_broadly_matched_exception($this->exceptions['broad'], $reason, $feedback);
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
+            $this->throw_broadly_matched_exception($this->exceptions['broad'], $errorMessage, $feedback);
             throw new ExchangeError($feedback);
         } catch (Exception $e) {
-            $client->reject($e);
+            $requestId = $this->safe_string($message, 'id');
+            $authRequestId = $this->safe_string($this->options, 'wsAuthRequestId');
+            $messageHash = ($requestId === $authRequestId) ? 'authenticated' : $requestId;
+            if (($messageHash === 'authenticated') && (is_array($client->subscriptions) && array_key_exists($messageHash ?? '', $client->subscriptions))) {
+                // allow the next authenticate () call to retry
+                unset($client->subscriptions[$messageHash]);
+            }
+            $client->reject($e, $messageHash);
         }
         return true;
     }
 
-    public function handle_message(Client $client, array $message) {
+    public function handle_heartbeat(Client $client, array $message) {
+        return Async\async(self::do_handle_heartbeat(...))($client, $message);
+    }
+
+    private function do_handle_heartbeat(Client $client, array $message) {
+        $params = $this->safe_dict($message, 'params', array());
+        $data = $this->safe_string($params, 'data');
+        if ($data === 'test_request') {
+            Async\await($client->send(array(
+                'jsonrpc' => '2.0',
+                'id' => $this->request_id(),
+                'method' => 'public/test',
+                'params' => array(),
+            )));
+        }
+    }
+
+    public function handle_message(Client $client, mixed $message) {
         if ($this->handle_error_message($client, $message) === true) {
             return;
         }
-        $channel = $this->safe_string($message, 'channel', '');
-        $methods = array(
-            'SUBSCRIPTIONS' => array($this, 'handle_subscription_status'),
-            'INSTRUMENTS' => array($this, 'handle_instrument'),
-            'LEVEL1' => array($this, 'handle_ticker'),
-            'MATCH' => array($this, 'handle_trade'),
-            'LEVEL2' => array($this, 'handle_order_book'),
-            'FUNDING' => array($this, 'handle_funding_rate'),
-            'RISK' => array($this, 'handle_ticker'),
+        $method = $this->safe_string($message, 'method');
+        if ($method === 'heartbeat') {
+            $this->spawn(array($this, 'handle_heartbeat'), $client, $message);
+            return;
+        }
+        $params = $this->safe_dict($message, 'params');
+        $channel = $this->safe_string($params, 'channel');
+        if ($channel !== null) {
+            $parts = explode('.', $channel);
+            $channelId = $this->safe_string($parts, 0);
+            $userChannel = $this->safe_string($parts, 1);
+            $userHandlers = array(
+                'portfolio' => array($this, 'handle_balance'),
+                'trades' => array($this, 'handle_my_trades'),
+                'orders' => array($this, 'handle_orders'),
+                'changes' => array($this, 'handle_positions'),
+            );
+            $handlers = array(
+                'ticker' => array($this, 'handle_ticker'),
+                'incremental_ticker' => array($this, 'handle_ticker'),
+                'quote' => array($this, 'handle_bid_ask'),
+                'book' => array($this, 'handle_order_book'),
+                'trades' => array($this, 'handle_trades'),
+                'chart' => array($this, 'handle_ohlcv'),
+                'user' => $this->safe_value($userHandlers, $userChannel),
+            );
+            $handler = $this->safe_value($handlers, $channelId);
+            if ($handler === null) {
+                throw new NotSupported($this->id . ' no handler found for websocket channel ' . $channel);
+            }
+            $handler($client, $message);
+            return;
+        }
+        $requestId = $this->safe_string($message, 'id');
+        if ($requestId !== null) {
+            $result = $this->safe_dict($message, 'result');
+            if ($this->safe_string($result, 'version') !== null) {
+                $client->lastPong = $this->milliseconds();
+            }
+            $authRequestId = $this->safe_string($this->options, 'wsAuthRequestId');
+            if ($requestId === $authRequestId) {
+                $this->handle_authentication_message($client, $message);
+                return;
+            }
+            $client->resolve($this->safe_value($message, 'result', $message), $requestId);
+        }
+    }
+
+    public function handle_authentication_message(Client $client, array $message) {
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "id": 1,
+        //         "result": {
+        //             "expires_in": 3000,
+        //             "scope": "...",
+        //             "sid": "...",
+        //             "token_type": "bearer"
+        //         }
+        //     }
+        //
+        $result = $this->safe_dict($message, 'result', array());
+        $expiresIn = $this->safe_integer($result, 'expires_in', 900);
+        $ratio = $this->safe_number($this->options, 'wsAuthRefreshRatio');
+        $refreshRatio = ($ratio === null) ? 0.8 : $ratio;
+        $now = $this->milliseconds();
+        $this->options['wsAuthRefreshAt'] = $this->sum($now, $this->parse_to_int($expiresIn * 1000 * $refreshRatio));
+        $client->lastPong = $now;
+        $client->resolve($result, 'authenticated');
+    }
+
+    public function authenticate($params = array()) {
+        return Async\async(self::do_authenticate(...))($params);
+    }
+
+    private function do_authenticate($params = array()) {
+        /**
+         * @ignore
+         * authenticates the private websocket session
+         *
+         * @see https://docs.cdp.coinbase.com/api-reference/authentication/public-auth
+         * @see https://docs.deribit.com/api-reference/authentication/public-auth
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->route] auto (default), deribit, or coinbase; overrides options.route
+         * @return {array} the authentication response
+         */
+        $paramsResolved = $this->handleRouteAndParams('authenticate', $params);
+        $url = $this->get_ws_url(true);
+        $client = $this->client($url);
+        $messageHash = 'authenticated';
+        $future = $this->safe_value($client->subscriptions, $messageHash);
+        if ($future !== null) {
+            $refreshAt = $this->safe_integer($this->options, 'wsAuthRefreshAt');
+            if (($refreshAt !== null) && ($this->milliseconds() >= $refreshAt) && !(is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures))) {
+                unset($client->subscriptions[$messageHash]);
+                $future = null;
+            }
+        }
+        if ($future === null) {
+            $this->check_required_credentials();
+            $requestId = $this->request_id();
+            $this->options['wsAuthRequestId'] = $requestId;
+            $paramsAuth = array(
+                'grant_type' => 'client_credentials',
+                'client_id' => $this->apiKey,
+                'client_secret' => $this->secret,
+            );
+            if (!$this->isNativeDeribitCredentials()) {
+                $paramsAuth = array(
+                    'grant_type' => 'coinbase_cdp',
+                    'token' => $this->create_auth_token($this->seconds(), null, null, $this->isEddsaSecret()),
+                );
+            }
+            $request = array(
+                'jsonrpc' => '2.0',
+                'id' => $requestId,
+                'method' => 'public/auth',
+                'params' => $paramsAuth,
+            );
+            $future = $client->reusableFuture($messageHash);
+            $this->watch($url, $messageHash, $this->extend($request, $paramsResolved), $messageHash);
+            $client->subscriptions[$messageHash] = $future;
+        }
+        return Async\await($future);
+    }
+
+    public function request_ws(string $method, $params = array(), $isPrivate = false) {
+        return Async\async(self::do_request_ws(...))($method, $params, $isPrivate);
+    }
+
+    private function do_request_ws(string $method, $params = array(), $isPrivate = false) {
+        /**
+         * @ignore
+         * sends a websocket JSON-RPC $request
+         * @param {string} $method exchange JSON-RPC $method name
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->route] auto (default), deribit, or coinbase; overrides options.route
+         * @param {boolean} [$isPrivate] whether to authenticate before sending the $request
+         * @return {array} the exchange response
+         */
+        $paramsResolved = $this->handleRouteAndParams('requestWs', $params);
+        $url = $this->get_ws_url(true);
+        if ($isPrivate) {
+            Async\await($this->authenticate());
+        }
+        $requestId = $this->request_id();
+        $messageHash = (string) $requestId;
+        $request = array(
+            'jsonrpc' => '2.0',
+            'id' => $requestId,
+            'method' => $method,
+            'params' => $paramsResolved,
         );
-        $type = $this->safe_string($message, 'type');
-        if ($type === 'error') {
-            $errorMessage = $this->safe_string($message, 'message');
-            throw new ExchangeError($errorMessage);
+        return Async\await($this->watch($url, $messageHash, $request, $messageHash));
+    }
+
+    public function create_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_create_order_ws(...))($symbol, $type, $side, $amount, $price, $params);
+    }
+
+    private function do_create_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+        /**
+         * create a trade $order over websocket
+         *
+         * @see https://docs.cdp.coinbase.com/api-reference/trading/private-buy
+         * @see https://docs.cdp.coinbase.com/api-reference/trading/private-sell
+         * @see https://docs.deribit.com/api-reference/trading/private-buy
+         * @see https://docs.deribit.com/api-reference/trading/private-sell
+         *
+         * @param {string} $symbol unified $symbol of the $market to create an $order in
+         * @param {string} $type 'market' or 'limit'
+         * @param {string} $side 'buy' or 'sell'
+         * @param {float} $amount number of contracts for native Deribit derivatives, otherwise the exchange $order $amount (base currency for spot)
+         * @param {float} [$price] the $price at which the $order is to be fulfilled
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->route] auto (default), deribit, or coinbase; overrides options.route
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
+         */
+        $paramsResolved = $this->handleRouteAndParams('createOrderWs', $params);
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
         }
-        if (mb_strpos($channel, 'CANDLES') > -1) {
-            $this->handle_ohlcv($client, $message);
+        $market = $this->market($symbol);
+        $request = array(
+            'instrument_name' => $market['id'],
+            'amount' => $this->parse_number($this->getOrderAmount($market, $amount)),
+            'type' => $type,
+        );
+        $triggerPrice = $this->safe_number_n($paramsResolved, array( 'triggerPrice', 'stopPrice', 'stop_price' ));
+        if ($triggerPrice !== null) {
+            $request['type'] = ($type === 'limit') ? 'stop_limit' : 'stop_market';
+            $request['trigger_price'] = $triggerPrice;
         }
-        $method = $this->safe_value($methods, $channel);
-        if ($method !== null) {
-            $method($client, $message);
+        if ($type === 'limit') {
+            if ($price === null) {
+                throw new ArgumentsRequired($this->id . ' createOrderWs() requires a price argument for limit orders');
+            }
+            $request['price'] = $this->parse_number($this->price_to_precision($symbol, $price));
         }
+        $postOnly = $this->safe_bool_2($paramsResolved, 'postOnly', 'post_only');
+        if ($this->isNativeDeribitCredentials()) {
+            $reduceOnly = $this->safe_bool_2($paramsResolved, 'reduceOnly', 'reduce_only');
+            if ($reduceOnly !== null) {
+                $request['reduce_only'] = $reduceOnly;
+            }
+        }
+        if ($postOnly !== null) {
+            $request['post_only'] = $postOnly;
+            $request['reject_post_only'] = $postOnly;
+        }
+        $timeInForce = $this->safe_string_2($paramsResolved, 'timeInForce', 'tif');
+        if ($timeInForce !== null) {
+            $timeInForces = array(
+                'GTC' => 'good_til_cancelled',
+                'IOC' => 'immediate_or_cancel',
+                'FOK' => 'fill_or_kill',
+                'GTD' => 'good_til_day',
+            );
+            $request['time_in_force'] = $this->safe_string($timeInForces, $timeInForce, $timeInForce);
+        }
+        $clientOrderId = $this->safe_string_2($paramsResolved, 'clientOrderId', 'client_order_id');
+        if ($clientOrderId !== null) {
+            $request['label'] = $clientOrderId;
+        } else {
+            $brokerId = $this->safe_string($this->options, 'brokerId');
+            if ($brokerId !== null) {
+                $request['label'] = $brokerId . '-' . $this->uuid22();
+            }
+        }
+        $paramsRequest = $this->omit($paramsResolved, array( 'clientOrderId', 'client_order_id', 'postOnly', 'post_only', 'timeInForce', 'tif', 'triggerPrice', 'stopPrice', 'stop_price' ));
+        if ($this->isNativeDeribitCredentials()) {
+            $paramsRequest = $this->omit($paramsRequest, array( 'reduceOnly', 'reduce_only' ));
+        }
+        $result = Async\await($this->request_ws('private/' . $side, $this->extend($request, $paramsRequest), true));
+        $order = $this->safe_dict($result, 'order', array());
+        $order['trades'] = $this->safe_list($result, 'trades', array());
+        return $this->parse_order($order, $market);
+    }
+
+    public function edit_order_ws(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_edit_order_ws(...))($id, $symbol, $type, $side, $amount, $price, $params);
+    }
+
+    private function do_edit_order_ws(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()) {
+        /**
+         * edit a trade $order over websocket
+         *
+         * @see https://docs.cdp.coinbase.com/api-reference/trading/private-edit
+         * @see https://docs.deribit.com/api-reference/trading/private-edit
+         *
+         * @param {string} $id $order $id
+         * @param {string} $symbol unified $market $symbol
+         * @param {string} $type not used by coinbaseinternational editOrderWs
+         * @param {string} $side not used by coinbaseinternational editOrderWs
+         * @param {float} [$amount] new $order $amount, in contracts for native Deribit derivatives
+         * @param {float} [$price] new $order $price
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->route] auto (default), deribit, or coinbase; overrides options.route
+         * @return {array} an ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
+         */
+        $paramsResolved = $this->handleRouteAndParams('editOrderWs', $params);
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $request = array( 'order_id' => $id );
+        if ($amount !== null) {
+            $request['amount'] = $this->parse_number($this->getOrderAmount($market, $amount));
+        }
+        if ($price !== null) {
+            $request['price'] = $this->parse_number($this->price_to_precision($symbol, $price));
+        }
+        $triggerPrice = $this->safe_number_n($paramsResolved, array( 'triggerPrice', 'stopPrice', 'stop_price' ));
+        if ($triggerPrice !== null) {
+            $request['trigger_price'] = $triggerPrice;
+        }
+        $paramsRequest = $this->omit($paramsResolved, array( 'triggerPrice', 'stopPrice', 'stop_price' ));
+        $result = Async\await($this->request_ws('private/edit', $this->extend($request, $paramsRequest), true));
+        $order = $this->safe_dict($result, 'order', array());
+        $order['trades'] = $this->safe_list($result, 'trades', array());
+        return $this->parse_order($order, $market);
+    }
+
+    public function cancel_order_ws(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_cancel_order_ws(...))($id, $symbol, $params);
+    }
+
+    private function do_cancel_order_ws(string $id, ?string $symbol = null, $params = array()) {
+        /**
+         * cancels an open order over websocket
+         *
+         * @see https://docs.cdp.coinbase.com/api-reference/trading/private-cancel
+         * @see https://docs.deribit.com/api-reference/trading/private-cancel
+         *
+         * @param {string} $id order $id
+         * @param {string} [$symbol] unified $market $symbol
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->route] auto (default), deribit, or coinbase; overrides options.route
+         * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+         */
+        $paramsResolved = $this->handleRouteAndParams('cancelOrderWs', $params);
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
+        $result = Async\await($this->request_ws('private/cancel', $this->extend(array( 'order_id' => $id ), $paramsResolved), true));
+        return $this->parse_order($result, $market);
+    }
+
+    public function cancel_all_orders_ws(?string $symbol = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_cancel_all_orders_ws(...))($symbol, $params);
+    }
+
+    private function do_cancel_all_orders_ws(?string $symbol = null, $params = array()) {
+        /**
+         * cancels all open orders over websocket
+         *
+         * @see https://docs.cdp.coinbase.com/api-reference/trading/private-cancel_all
+         * @see https://docs.cdp.coinbase.com/api-reference/trading/private-cancel_all_by_instrument
+         * @see https://docs.deribit.com/api-reference/trading/private-cancel_all
+         * @see https://docs.deribit.com/api-reference/trading/private-cancel_all_by_instrument
+         *
+         * @param {string} [$symbol] unified $market $symbol
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->route] auto (default), deribit, or coinbase; overrides options.route
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         */
+        $paramsResolved = $this->handleRouteAndParams('cancelAllOrdersWs', $params);
+        $method = 'private/cancel_all';
+        $paramsRequest = $paramsResolved;
+        if ($symbol !== null) {
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
+            $market = $this->market($symbol);
+            $paramsRequest = $this->extend(array( 'instrument_name' => $market['id'] ), $paramsResolved);
+            $method = 'private/cancel_all_by_instrument';
+        }
+        $result = Async\await($this->request_ws($method, $paramsRequest, true));
+        return array( $this->safe_order(array( 'info' => $result )) );
+    }
+
+    public function fetch_order_ws(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_fetch_order_ws(...))($id, $symbol, $params);
+    }
+
+    private function do_fetch_order_ws(string $id, ?string $symbol = null, $params = array()) {
+        /**
+         * fetches an order over websocket
+         *
+         * @see https://docs.cdp.coinbase.com/api-reference/trading/private-get_order_state
+         * @see https://docs.deribit.com/api-reference/trading/private-get_order_state
+         *
+         * @param {string} $id order $id
+         * @param {string} [$symbol] unified $market $symbol
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->route] auto (default), deribit, or coinbase; overrides options.route
+         * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+         */
+        $paramsResolved = $this->handleRouteAndParams('fetchOrderWs', $params);
+        $market = null;
+        if ($symbol !== null) {
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
+            $market = $this->market($symbol);
+        }
+        $result = Async\await($this->request_ws('private/get_order_state', $this->extend(array( 'order_id' => $id ), $paramsResolved), true));
+        return $this->parse_order($result, $market);
+    }
+
+    public function fetch_open_orders_ws(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_fetch_open_orders_ws(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_open_orders_ws(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetches open orders over websocket
+         *
+         * @see https://docs.cdp.coinbase.com/api-reference/trading/private-get_open_orders_by_instrument
+         * @see https://docs.deribit.com/api-reference/trading/private-get_open_orders_by_instrument
+         *
+         * @param {string} $symbol unified $market $symbol
+         * @param {int} [$since] timestamp in ms of the earliest order
+         * @param {int} [$limit] the maximum number of orders to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->route] auto (default), deribit, or coinbase; overrides options.route
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         */
+        $paramsResolved = $this->handleRouteAndParams('fetchOpenOrdersWs', $params);
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchOpenOrdersWs() requires a symbol argument');
+        }
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $request = array( 'instrument_name' => $market['id'] );
+        if ($limit !== null) {
+            $request['count'] = $limit;
+        }
+        $result = Async\await($this->request_ws('private/get_open_orders_by_instrument', $this->extend($request, $paramsResolved), true));
+        return $this->parse_orders($result, $market, $since, $limit);
+    }
+
+    public function fetch_orders_ws(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_fetch_orders_ws(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_orders_ws(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetches order history over websocket
+         *
+         * @see https://docs.cdp.coinbase.com/api-reference/trading/private-get_order_history_by_instrument
+         * @see https://docs.deribit.com/api-reference/trading/private-get_order_history_by_instrument
+         *
+         * @param {string} $symbol unified $market $symbol
+         * @param {int} [$since] timestamp in ms of the earliest order
+         * @param {int} [$limit] the maximum number of $orders to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->route] auto (default), deribit, or coinbase; overrides options.route
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         */
+        $paramsResolved = $this->handleRouteAndParams('fetchOrdersWs', $params);
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchOrdersWs() requires a symbol argument');
+        }
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $request = array( 'instrument_name' => $market['id'] );
+        if ($limit !== null) {
+            $request['count'] = $limit;
+        }
+        $result = Async\await($this->request_ws('private/get_order_history_by_instrument', $this->extend($request, $paramsResolved), true));
+        $orders = $this->safe_list($result, 'orders', $result);
+        return $this->parse_orders($orders, $market, $since, $limit);
+    }
+
+    public function fetch_balance_ws($params = array()): PromiseInterface {
+        return Async\async(self::do_fetch_balance_ws(...))($params);
+    }
+
+    private function do_fetch_balance_ws($params = array()) {
+        /**
+         * fetches the $balance over websocket
+         *
+         * @see https://docs.cdp.coinbase.com/api-reference/account-management/private-get_account_summaries
+         * @see https://docs.deribit.com/api-reference/account-management/private-get_account_summaries
+         * @see https://docs.deribit.com/api-reference/account-management/private-get_account_summary
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->route] auto (default), deribit, or coinbase; overrides options.route
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=$balance-structure $balance structure~
+         */
+        $paramsResolved = $this->handleRouteAndParams('fetchBalanceWs', $params);
+        $result = Async\await($this->request_ws('private/get_account_summaries', $paramsResolved, true));
+        $summaries = $this->safe_list($result, 'summaries', array());
+        $balance = array( 'info' => $result );
+        $summariesLength = count($summaries);
+        for ($i = 0; $i < $summariesLength; $i++) {
+            $balance = $this->deep_extend($balance, $this->parse_balance($summaries[$i]));
+        }
+        return $this->safe_balance($balance);
+    }
+
+    public function fetch_my_trades_ws(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_fetch_my_trades_ws(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_my_trades_ws(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetches user $trades over websocket
+         *
+         * @see https://docs.cdp.coinbase.com/api-reference/trading/private-get_user_trades_by_instrument
+         * @see https://docs.deribit.com/api-reference/trading/private-get_user_trades_by_instrument
+         * @see https://docs.deribit.com/api-reference/trading/private-get_user_trades_by_instrument_and_time
+         *
+         * @param {string} $symbol unified $market $symbol
+         * @param {int} [$since] timestamp in ms of the earliest trade
+         * @param {int} [$limit] the maximum number of $trades to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->route] auto (default), deribit, or coinbase; overrides options.route
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+         */
+        $paramsResolved = $this->handleRouteAndParams('fetchMyTradesWs', $params);
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchMyTradesWs() requires a symbol argument');
+        }
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $request = array( 'instrument_name' => $market['id'], 'include_old' => true );
+        if ($limit !== null) {
+            $request['count'] = $limit;
+        }
+        $result = Async\await($this->request_ws('private/get_user_trades_by_instrument', $this->extend($request, $paramsResolved), true));
+        $trades = $this->safe_list($result, 'trades', array());
+        return $this->parse_trades($trades, $market, $since, $limit);
+    }
+
+    public function fetch_positions_ws(?array $symbols = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_fetch_positions_ws(...))($symbols, $params);
+    }
+
+    private function do_fetch_positions_ws(?array $symbols = null, $params = array()) {
+        /**
+         * fetches open $positions over websocket
+         *
+         * @see https://docs.cdp.coinbase.com/api-reference/account-management/private-get_positions
+         * @see https://docs.deribit.com/api-reference/account-management/private-get_positions
+         *
+         * @param {string[]} [$symbols] list of unified market $symbols
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->route] auto (default), deribit, or coinbase; overrides options.route
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structures~
+         */
+        $paramsResolved = $this->handleRouteAndParams('fetchPositionsWs', $params);
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $symbolsResolved = $this->market_symbols($symbols);
+        $result = Async\await($this->request_ws('private/get_positions', $paramsResolved, true));
+        $positions = $this->parse_positions($result);
+        return $this->filter_by_array_positions($positions, 'symbol', $symbolsResolved);
+    }
+
+    public function set_heartbeat(?int $interval = 30, $params = array()) {
+        return Async\async(self::do_set_heartbeat(...))($interval, $params);
+    }
+
+    private function do_set_heartbeat(?int $interval = 30, $params = array()) {
+        /**
+         * @ignore
+         * enables heartbeat messages for the private websocket connection
+         *
+         * @see https://docs.cdp.coinbase.com/api-reference/session-management/public-set_heartbeat
+         * @see https://docs.deribit.com/api-reference/session-management/public-set_heartbeat
+         *
+         * @param {int} [$interval] heartbeat $interval in seconds, minimum 10
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->route] auto (default), deribit, or coinbase; overrides options.route
+         * @return {array} the exchange response
+         */
+        $paramsResolved = $this->handleRouteAndParams('setHeartbeat', $params);
+        $request = $this->extend(array( 'interval' => $interval ), $paramsResolved);
+        return Async\await($this->request_ws('public/set_heartbeat', $request));
+    }
+
+    public function disable_heartbeat($params = array()) {
+        return Async\async(self::do_disable_heartbeat(...))($params);
+    }
+
+    private function do_disable_heartbeat($params = array()) {
+        /**
+         * @ignore
+         * disables heartbeat messages for the private websocket connection
+         *
+         * @see https://docs.cdp.coinbase.com/api-reference/session-management/public-disable_heartbeat
+         * @see https://docs.deribit.com/api-reference/session-management/public-disable_heartbeat
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->route] auto (default), deribit, or coinbase; overrides options.route
+         * @return {array} the exchange response
+         */
+        $paramsResolved = $this->handleRouteAndParams('disableHeartbeat', $params);
+        return Async\await($this->request_ws('public/disable_heartbeat', $paramsResolved));
+    }
+
+    public function set_cancel_on_disconnect(?bool $enabled, $params = array()) {
+        return Async\async(self::do_set_cancel_on_disconnect(...))($enabled, $params);
+    }
+
+    private function do_set_cancel_on_disconnect(?bool $enabled, $params = array()) {
+        /**
+         * @ignore
+         * enables or disables cancel on disconnect
+         *
+         * @see https://docs.cdp.coinbase.com/api-reference/session-management/private-enable_cancel_on_disconnect
+         * @see https://docs.cdp.coinbase.com/api-reference/session-management/private-disable_cancel_on_disconnect
+         * @see https://docs.deribit.com/api-reference/session-management/private-enable_cancel_on_disconnect
+         * @see https://docs.deribit.com/api-reference/session-management/private-disable_cancel_on_disconnect
+         *
+         * @param {bool} $enabled whether cancel on disconnect should be $enabled
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->route] auto (default), deribit, or coinbase; overrides options.route
+         * @param {string} [$params->scope] connection or account, default connection
+         * @return {array} the exchange response
+         */
+        $paramsResolved = $this->handleRouteAndParams('setCancelOnDisconnect', $params);
+        $method = ($enabled === true) ? 'private/enable_cancel_on_disconnect' : 'private/disable_cancel_on_disconnect';
+        return Async\await($this->request_ws($method, $paramsResolved, true));
+    }
+
+    public function get_cancel_on_disconnect($params = array()) {
+        return Async\async(self::do_get_cancel_on_disconnect(...))($params);
+    }
+
+    private function do_get_cancel_on_disconnect($params = array()) {
+        /**
+         * @ignore
+         * gets the cancel on disconnect configuration
+         *
+         * @see https://docs.cdp.coinbase.com/api-reference/session-management/private-get_cancel_on_disconnect
+         * @see https://docs.deribit.com/api-reference/session-management/private-get_cancel_on_disconnect
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->route] auto (default), deribit, or coinbase; overrides options.route
+         * @param {string} [$params->scope] connection or account, default connection
+         * @return {array} the exchange response
+         */
+        $paramsResolved = $this->handleRouteAndParams('getCancelOnDisconnect', $params);
+        return Async\await($this->request_ws('private/get_cancel_on_disconnect', $paramsResolved, true));
+    }
+
+    public function unsubscribe_all_ws($isPrivate = false, $params = array()) {
+        return Async\async(self::do_unsubscribe_all_ws(...))($isPrivate, $params);
+    }
+
+    private function do_unsubscribe_all_ws($isPrivate = false, $params = array()) {
+        /**
+         * @ignore
+         * unsubscribes from all websocket channels
+         *
+         * @see https://docs.cdp.coinbase.com/api-reference/subscription-management/public-unsubscribe_all
+         * @see https://docs.cdp.coinbase.com/api-reference/subscription-management/private-unsubscribe_all
+         * @see https://docs.deribit.com/api-reference/subscription-management/private-unsubscribe_all
+         * @see https://docs.deribit.com/api-reference/subscription-management/public-unsubscribe_all
+         *
+         * @param {bool} [$isPrivate] whether to unsubscribe from private channels
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->route] auto (default), deribit, or coinbase; overrides options.route
+         * @return {array} the exchange response
+         */
+        $paramsResolved = $this->handleRouteAndParams('unsubscribeAllWs', $params);
+        $method = $isPrivate ? 'private/unsubscribe_all' : 'public/unsubscribe_all';
+        return Async\await($this->request_ws($method, $paramsResolved, $isPrivate));
+    }
+
+    public function logout_ws($params = array()) {
+        return Async\async(self::do_logout_ws(...))($params);
+    }
+
+    private function do_logout_ws($params = array()) {
+        /**
+         * @ignore
+         * gracefully logs out of the private websocket session
+         *
+         * @see https://docs.cdp.coinbase.com/api-reference/authentication/private-logout
+         * @see https://docs.deribit.com/api-reference/authentication/private-logout
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->route] auto (default), deribit, or coinbase; overrides options.route
+         * @param {bool} [$params->invalidate_token] whether to invalidate session tokens, default true
+         * @return {array} the exchange response
+         */
+        $paramsResolved = $this->handleRouteAndParams('logoutWs', $params);
+        Async\await($this->authenticate());
+        $url = $this->get_ws_url(true);
+        $client = $this->client($url);
+        $request = array(
+            'jsonrpc' => '2.0',
+            'id' => $this->request_id(),
+            'method' => 'private/logout',
+            'params' => $paramsResolved,
+        );
+        Async\await($client->send($request));
+        return null;
     }
 }

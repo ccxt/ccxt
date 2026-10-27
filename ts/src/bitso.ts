@@ -863,10 +863,12 @@ export default class bitso extends Exchange {
                 const duration = this.parseTimeframe (timeframe);
                 request['end'] = this.sum (since, duration * limit * 1000);
             }
-        } else if (limit !== undefined) {
-            const now = this.milliseconds ();
-            request['end'] = now;
-            request['start'] = now - this.parseTimeframe (timeframe) * 1000 * limit;
+        } else {
+            if (limit !== undefined) {
+                const now = this.milliseconds ();
+                request['end'] = now;
+                request['start'] = now - this.parseTimeframe (timeframe) * 1000 * limit;
+            }
         }
         const response = await this.publicGetOhlc (this.extend (request, params));
         //
@@ -1298,7 +1300,7 @@ export default class bitso extends Exchange {
         return canceledOrders;
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             'partial-fill': 'open', // this is a common substitution in ccxt
             'partially filled': 'open',
@@ -1393,8 +1395,7 @@ export default class bitso extends Exchange {
         };
         const response = await this.privateGetOpenOrders (this.extend (request, paramsMarker));
         const payload: Dict[] = this.safeList (response, 'payload', []);
-        const orders = this.parseOrders (payload, market, since, limit);
-        return orders;
+        return this.parseOrders (payload, market, since, limit);
     }
 
     /**
@@ -1666,7 +1667,7 @@ export default class bitso extends Exchange {
             }
             if (code !== undefined) {
                 result[code] = {
-                    'deposit': this.safeValue (this.safeDict (result, code), 'deposit'),
+                    'deposit': this.safeNumber (this.safeDict (result, code), 'deposit'),
                     'withdraw': this.safeNumber (withdrawalFees, currencyId),
                     'info': {
                         'deposit': this.safeValue (this.safeDict (this.safeDict (result, code), 'info'), 'deposit'),
@@ -1828,13 +1829,13 @@ export default class bitso extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
-        const [ tagWithdrawTag, paramsWithdrawTag ] = this.handleWithdrawTagAndParams (tag, params);
-        this.checkAddress (address);
+    override async withdraw (code: string, amount: number, address: string, params: Dict = {}): Promise<Transaction> {
+        const [ tagWithdrawTag, paramsWithdrawTag ] = this.handleParamString (params, 'tag');
+        this.checkAddress (address, code, tagWithdrawTag);
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1953,7 +1954,7 @@ export default class bitso extends Exchange {
         } as Transaction;
     }
 
-    parseTransactionStatus (status: Str) {
+    parseTransactionStatus (status: Str): Str {
         const statuses: Dict = {
             'pending': 'pending',
             'in_progress': 'pending',
@@ -1967,9 +1968,9 @@ export default class bitso extends Exchange {
         return this.milliseconds ();
     }
 
-    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
-        let requestHeaders: NullableDict = headers;
-        let requestBody: Str = body;
+    override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
+        let requestHeaders: NullableDict = undefined;
+        let requestBody: Str = undefined;
         let endpoint = '/' + this.version + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         if (method === 'GET' || method === 'DELETE') {
@@ -1982,17 +1983,18 @@ export default class bitso extends Exchange {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
         const url = apiUrl + endpoint;
-        if (api === 'private') {
+        if (api[0] === 'private') {
             this.checkRequiredCredentials ();
             // bitso rejects a nonce that is not higher than the previous one (error 104)
             const nonce = this.incrementingNonce ().toString ();
             endpoint = '/api' + endpoint;
             const content = [ nonce, method, endpoint ];
-            let request = content.join ('');
+            let request: string = content.join ('');
             if (method !== 'GET' && method !== 'DELETE') {
                 if (Object.keys (query).length > 0) {
-                    requestBody = this.json (query);
-                    request += requestBody;
+                    const jsonBody = this.json (query);
+                    requestBody = jsonBody;
+                    request += jsonBody;
                 }
             }
             const signature = this.hmac (this.encode (request), this.encode (this.secret), sha256);
@@ -2021,7 +2023,7 @@ export default class bitso extends Exchange {
                     success = false;
                 }
             }
-            if (success !== true) {
+            if (!success) {
                 const feedback = this.id + ' ' + this.json (response);
                 const error = this.safeDict (response, 'error');
                 if (error === undefined) {

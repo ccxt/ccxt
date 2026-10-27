@@ -7,7 +7,6 @@ import "strings"
 
 type Tokocrypto struct {
 	Exchange
-	exchangeTyped *ExchangeTyped
 }
 
 func newTokocrypto() *Tokocrypto {
@@ -336,7 +335,7 @@ func (this *Tokocrypto) Describe() any {
 			"reverseNetworks": map[string]any{
 				"tronscan.org":                   "TRC20",
 				"etherscan.io":                   "ERC20",
-				"bscscan.com":                    "BSC",
+				"bscscan.com":                    "BEP20",
 				"explorer.binance.org":           "BEP2",
 				"bithomp.com":                    "XRP",
 				"bloks.io":                       "EOS",
@@ -825,12 +824,12 @@ func (this *Tokocrypto) fetchTimeBody(ch chan AsyncResult[*int64], optionalArgs 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
-func (this *Tokocrypto) FetchMarketsAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Tokocrypto) FetchMarketsAsync(optionalArgs ...any) <-chan AsyncResult[[]MarketInterface] {
+	ch := make(chan AsyncResult[[]MarketInterface], 1)
 	go this.fetchMarketsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Tokocrypto) fetchMarketsBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Tokocrypto) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1005,7 +1004,7 @@ func (this *Tokocrypto) fetchMarketsBody(ch chan AsyncResult[any], optionalArgs 
 		result = append(result, entry)
 	}
 
-	ch <- AsyncResult[any]{Value: result}
+	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(result)}
 	return nil
 }
 
@@ -1019,12 +1018,12 @@ func (this *Tokocrypto) fetchMarketsBody(ch chan AsyncResult[any], optionalArgs 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Tokocrypto) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
-	ch := make(chan AsyncResult[map[string]any], 1)
+func (this *Tokocrypto) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[OrderBook] {
+	ch := make(chan AsyncResult[OrderBook], 1)
 	go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Tokocrypto) fetchOrderBookBody(ch chan AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
+func (this *Tokocrypto) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1095,7 +1094,7 @@ func (this *Tokocrypto) fetchOrderBookBody(ch chan AsyncResult[map[string]any], 
 	var orderbook map[string]any = this.ParseOrderBook(data, symbol, timestamp)
 	orderbook["nonce"] = this.SafeInteger(data, "lastUpdateId")
 
-	ch <- AsyncResult[map[string]any]{Value: orderbook}
+	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(orderbook)}
 	return nil
 }
 func (this *Tokocrypto) ParseTrade(trade any, optionalArgs ...any) Trade {
@@ -1208,7 +1207,7 @@ func (this *Tokocrypto) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var takerOrMaker *string = nil
 	if buyerMaker != nil {
 		side = SafeStringPtr(func() string {
-			if buyerMaker != nil && *buyerMaker == true {
+			if buyerMaker != nil && *buyerMaker {
 				return "sell"
 			}
 			return "buy"
@@ -1278,12 +1277,12 @@ func (this *Tokocrypto) ParseTrade(trade any, optionalArgs ...any) Trade {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Tokocrypto) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Tokocrypto) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Tokocrypto) fetchTradesBody(ch chan AsyncResult[any], symbol any, optionalArgs ...any) any {
+func (this *Tokocrypto) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1340,7 +1339,7 @@ func (this *Tokocrypto) fetchTradesBody(ch chan AsyncResult[any], symbol any, op
 		var data map[string]any = SafeMapTyped(responseInner, "data")
 		var list []any = SafeListTypedDefault(data, "list", []any{})
 
-		ch <- AsyncResult[any]{Value: this.ParseTrades(list, market, since, limit)}
+		ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(list, market, since, limit))}
 		return nil
 	}
 	if limit != nil {
@@ -1355,18 +1354,18 @@ func (this *Tokocrypto) fetchTradesBody(ch chan AsyncResult[any], symbol any, op
 		// https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
 		request["endTime"] = this.Sum(since, 3600000)
 
-		listEp1328 := <-this.BinanceGetAggTrades(this.Extend(request, params))
-		if listEp1328.Err != nil {
-			panic(listEp1328.Err)
+		listEp1327 := <-this.BinanceGetAggTrades(this.Extend(request, params))
+		if listEp1327.Err != nil {
+			panic(listEp1327.Err)
 		}
-		response = listEp1328.Value
+		response = listEp1327.Value
 	} else {
 
-		listEp1331 := <-this.BinanceGetTrades(this.Extend(request, params))
-		if listEp1331.Err != nil {
-			panic(listEp1331.Err)
+		listEp1330 := <-this.BinanceGetTrades(this.Extend(request, params))
+		if listEp1330.Err != nil {
+			panic(listEp1330.Err)
 		}
-		response = listEp1331.Value
+		response = listEp1330.Value
 	}
 	//
 	// Caveats:
@@ -1408,7 +1407,7 @@ func (this *Tokocrypto) fetchTradesBody(ch chan AsyncResult[any], symbol any, op
 	//
 	var responseList []any = this.ToArray(response)
 
-	ch <- AsyncResult[any]{Value: this.ParseTrades(responseList, market, since, limit)}
+	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(responseList, market, since, limit))}
 	return nil
 }
 func (this *Tokocrypto) ParseTicker(ticker any, optionalArgs ...any) Ticker {
@@ -1507,12 +1506,12 @@ func (this *Tokocrypto) ParseTicker(ticker any, optionalArgs ...any) Ticker {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Tokocrypto) FetchTickersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Tokocrypto) FetchTickersAsync(optionalArgs ...any) <-chan AsyncResult[map[string]Ticker] {
+	ch := make(chan AsyncResult[map[string]Ticker], 1)
 	go this.fetchTickersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Tokocrypto) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Tokocrypto) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
@@ -1540,11 +1539,11 @@ func (this *Tokocrypto) fetchTickersBody(ch chan AsyncResult[any], optionalArgs 
 		// a user-supplied symbol param makes the endpoint answer a single
 		// ticker object, the unified fetchTickers contract returns a
 		// symbol-keyed dict either way
-		ch <- AsyncResult[any]{Value: this.ParseTickers([]any{response}, symbols)}
+		ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.ParseTickers([]any{response}, symbols))}
 		return nil
 	}
 
-	ch <- AsyncResult[any]{Value: this.ParseTickers(response, symbols)}
+	ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.ParseTickers(response, symbols))}
 	return nil
 }
 
@@ -1556,7 +1555,7 @@ func (this *Tokocrypto) fetchTickersBody(ch chan AsyncResult[any], optionalArgs 
  * @param {object} market a unified market structure
  * @returns {boolean} true when the symbol type of the market is known and is not 1
  */
-func (this *Tokocrypto) IsNativeMarket(market any) bool {
+func (this *Tokocrypto) IsNativeMarket(market map[string]any) bool {
 	var marketInfo map[string]any = SafeMapTyped(market, "info")
 	var symbolType *string = this.SafeString(marketInfo, "type")
 	// a market with an unknown symbol type falls back to the binance backed
@@ -1574,7 +1573,7 @@ func (this *Tokocrypto) IsNativeMarket(market any) bool {
  * @param {object} market a unified market structure
  * @returns {string} the raw market id for native markets, the id without the underscore separator otherwise
  */
-func (this *Tokocrypto) GetMarketIdByType(market any) any {
+func (this *Tokocrypto) GetMarketIdByType(market map[string]any) any {
 	if this.IsNativeMarket(market) {
 		return this.SafeString(market, "id")
 	}
@@ -1590,12 +1589,12 @@ func (this *Tokocrypto) GetMarketIdByType(market any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Tokocrypto) FetchTickerAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
-	ch := make(chan AsyncResult[map[string]any], 1)
+func (this *Tokocrypto) FetchTickerAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[Ticker] {
+	ch := make(chan AsyncResult[Ticker], 1)
 	go this.fetchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Tokocrypto) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
+func (this *Tokocrypto) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1623,11 +1622,11 @@ func (this *Tokocrypto) fetchTickerBody(ch chan AsyncResult[map[string]any], sym
 	if IsArray(response) {
 		var firstTicker map[string]any = this.SafeDictMap(response, 0, map[string]any{})
 
-		ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(firstTicker, market))}
+		ch <- AsyncResult[Ticker]{Value: this.ParseTicker(firstTicker, market)}
 		return nil
 	}
 
-	ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(response, market))}
+	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(response, market)}
 	return nil
 }
 
@@ -1640,12 +1639,12 @@ func (this *Tokocrypto) fetchTickerBody(ch chan AsyncResult[map[string]any], sym
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Tokocrypto) FetchBidsAsksAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Tokocrypto) FetchBidsAsksAsync(optionalArgs ...any) <-chan AsyncResult[map[string]Ticker] {
+	ch := make(chan AsyncResult[map[string]Ticker], 1)
 	go this.fetchBidsAsksBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Tokocrypto) fetchBidsAsksBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Tokocrypto) fetchBidsAsksBody(ch chan AsyncResult[map[string]Ticker], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
@@ -1660,13 +1659,13 @@ func (this *Tokocrypto) fetchBidsAsksBody(ch chan AsyncResult[any], optionalArgs
 		}
 	}
 
-	listEp1610 := <-this.BinanceGetTickerBookTicker(params)
-	if listEp1610.Err != nil {
-		panic(listEp1610.Err)
+	listEp1609 := <-this.BinanceGetTickerBookTicker(params)
+	if listEp1609.Err != nil {
+		panic(listEp1609.Err)
 	}
-	var response []any = listEp1610.Value
+	var response []any = listEp1609.Value
 
-	ch <- AsyncResult[any]{Value: this.ParseTickers(response, symbols)}
+	ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.ParseTickers(response, symbols))}
 	return nil
 }
 func (this *Tokocrypto) ParseOHLCV(ohlcv any, optionalArgs ...any) OHLCV {
@@ -1723,12 +1722,12 @@ func (this *Tokocrypto) ParseOHLCV(ohlcv any, optionalArgs ...any) OHLCV {
  * @param {int} [params.until] timestamp in ms of the latest candle to fetch
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Tokocrypto) FetchOHLCVAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Tokocrypto) FetchOHLCVAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]OHLCV] {
+	ch := make(chan AsyncResult[[]OHLCV], 1)
 	go this.fetchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Tokocrypto) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Tokocrypto) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var timeframe string = GetArgString(optionalArgs, 0, "1m")
@@ -1838,7 +1837,7 @@ func (this *Tokocrypto) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, 
 		}
 	}
 
-	ch <- AsyncResult[any]{Value: this.ParseOHLCVs(data, market, timeframe, since, limitValue)}
+	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(data, market, timeframe, since, limitValue))}
 	return nil
 }
 
@@ -1848,17 +1847,17 @@ func (this *Tokocrypto) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, 
  * @see https://www.tokocrypto.com/apidocs/#account-information-signed
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [params.type] 'future', 'delivery', 'savings', 'funding', or 'spot'
+ * @param {string} [params.type] 'spot', 'margin', 'swap', 'future', 'savings' or 'funding'
  * @param {string} [params.marginMode] 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
  * @param {string[]|undefined} [params.symbols] unified market symbols, only used in isolated margin mode
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
-func (this *Tokocrypto) FetchBalanceAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Tokocrypto) FetchBalanceAsync(optionalArgs ...any) <-chan AsyncResult[Balances] {
+	ch := make(chan AsyncResult[Balances], 1)
 	go this.fetchBalanceBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Tokocrypto) fetchBalanceBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Tokocrypto) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1906,10 +1905,10 @@ func (this *Tokocrypto) fetchBalanceBody(ch chan AsyncResult[any], optionalArgs 
 	//         "timestamp":1659666786943
 	//     }
 	//
-	ch <- AsyncResult[any]{Value: this.ParseBalanceCustom(response, typeVar, marginMode)}
+	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalanceCustom(response, typeVar, marginMode))}
 	return nil
 }
-func (this *Tokocrypto) ParseBalanceCustom(response any, optionalArgs ...any) any {
+func (this *Tokocrypto) ParseBalanceCustom(response any, optionalArgs ...any) map[string]any {
 	var typeVar *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = typeVar
 	var marginMode *string = GetArgStringPtr(optionalArgs, 1, nil)
@@ -1933,7 +1932,7 @@ func (this *Tokocrypto) ParseBalanceCustom(response any, optionalArgs ...any) an
 			result[*code] = account
 		}
 	}
-	return this.SafeBalance(result)
+	return this.SafeBalance(result).(map[string]any)
 }
 func (this *Tokocrypto) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
@@ -2068,7 +2067,8 @@ func (this *Tokocrypto) ParseOrder(order any, optionalArgs ...any) Order {
 	//   Note this is not the actual cost, since Binance futures uses leverage to calculate margins.
 	var cost *string = this.SafeStringN(order, []any{"cummulativeQuoteQty", "cumQuote", "executedQuoteQty", "cumBase"})
 	var id *string = this.SafeString(order, "orderId")
-	var typeVar *string = this.ParseOrderType(this.SafeStringLower(order, "type"))
+	var rawOrderType *string = this.SafeStringLower(order, "type")
+	var typeVar *string = this.ParseOrderType(rawOrderType)
 	var side *string = this.SafeStringLower(order, "side")
 	if side != nil && *side == "0" {
 		side = SafeStringPtr("buy")
@@ -2077,12 +2077,12 @@ func (this *Tokocrypto) ParseOrder(order any, optionalArgs ...any) Order {
 	}
 	var fills []any = SafeListTypedDefault(order, "fills", []any{})
 	var clientOrderId *string = this.SafeString2(order, "clientOrderId", "clientId")
-	var timeInForce *string = this.SafeString(order, "timeInForce")
-	if timeInForce != nil && *timeInForce == "GTX" {
-		// GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
-		timeInForce = SafeStringPtr("PO")
-	}
-	var postOnly bool = (typeVar != nil && *typeVar == "limit_maker") || (timeInForce != nil && *timeInForce == "PO")
+	var timeInForce *string = this.ParseTimeInForce(this.SafeString(order, "timeInForce"))
+	// the order type carries the post only flag on its own, 7 on the open/v1
+	// payloads and LIMIT_MAKER on the binance shaped ones, so the time force
+	// echoed back by the venue is only the third witness
+	var isLimitMaker bool = (rawOrderType != nil && *rawOrderType == "7") || (rawOrderType != nil && *rawOrderType == "limit_maker")
+	var postOnly bool = isLimitMaker || (timeInForce != nil && *timeInForce == "PO")
 	return this.SafeOrder(map[string]any{
 		"info":               order,
 		"id":                 id,
@@ -2108,6 +2108,16 @@ func (this *Tokocrypto) ParseOrder(order any, optionalArgs ...any) Order {
 		"trades":             fills,
 	}, market)
 }
+func (this *Tokocrypto) ParseTimeInForce(timeInForce *string) *string {
+	var timeInForces map[string]any = map[string]any{
+		"1":   "GTC",
+		"2":   "IOC",
+		"3":   "FOK",
+		"4":   "PO",
+		"GTX": "PO",
+	}
+	return this.SafeString(timeInForces, timeInForce, timeInForce)
+}
 func (this *Tokocrypto) ParseOrderType(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"2": "market",
@@ -2131,14 +2141,16 @@ func (this *Tokocrypto) ParseOrderType(status *string) *string {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {float} [params.triggerPrice] the price at which a trigger order would be triggered
  * @param {float} [params.cost] for spot market buy orders, the quote quantity that can be used as an alternative for the amount
+ * @param {string} [params.timeInForce] 'GTC', 'IOC' or 'FOK', defaults to the defaultTimeInForce option on the order types that rest on the book, market orders accept 'IOC' as a no-op and reject the rest
+ * @param {bool} [params.postOnly] true for a post only order, the 'PO' and 'GTX' timeInForce spellings do the same
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Tokocrypto) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
-	ch := make(chan AsyncResult[map[string]any], 1)
+func (this *Tokocrypto) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[Order] {
+	ch := make(chan AsyncResult[Order], 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Tokocrypto) createOrderBody(ch chan AsyncResult[map[string]any], symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Tokocrypto) createOrderBody(ch chan AsyncResult[Order], symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -2154,25 +2166,40 @@ func (this *Tokocrypto) createOrderBody(ch chan AsyncResult[map[string]any], sym
 	}
 	var market map[string]any = this.Market(symbol)
 	var clientOrderId *string = this.SafeString2(params, "clientOrderId", "clientId")
-	var postOnly *bool = this.SafeBool(params, "postOnly", false)
+	var requestedType string = strings.ToUpper(typeVar)
+	var requestedTimeInForce *string = this.SafeStringUpper(params, "timeInForce")
+	var isMarketOrder bool = (requestedType == "MARKET")
+	// GTX is the venue spelling of post only, on top of the two unified spellings
+	var isPostOnlyTimeInForce bool = (requestedTimeInForce != nil && *requestedTimeInForce == "GTX")
+	var postOnlyparamsPostOnlyVariable []any = this.HandlePostOnly(isMarketOrder, isPostOnlyTimeInForce, params)
+	var postOnly bool = GetValueBool(postOnlyparamsPostOnlyVariable, 0, false)
+	var paramsPostOnly map[string]any = MapTyped(postOnlyparamsPostOnlyVariable[1])
 	// only supported for spot/margin api
 	var typeResolved any = func() any {
-		if postOnly != nil && *postOnly == true {
+		if postOnly {
 			return "LIMIT_MAKER"
 		}
 		return typeVar
 	}()
+	// post only is expressed by the order type here, not by a time force
+	var timeInForceResolved *string = requestedTimeInForce
+	if postOnly {
+		timeInForceResolved = nil
+	}
 	var initialUppercaseType string = ToUpper(typeResolved)
 	var uppercaseType string = initialUppercaseType
 	var triggerPrice any = this.SafeValue2(params, "triggerPrice", "stopPrice")
 	var triggerKeys any = func() any {
-		if !IsEqual(triggerPrice, nil) {
+		if triggerPrice != nil {
 			return []any{"triggerPrice", "stopPrice"}
 		}
 		return []any{}
 	}()
-	var paramsRequest any = this.Omit(params, this.ArrayConcat([]any{"clientId", "clientOrderId"}, triggerKeys))
-	if !IsEqual(triggerPrice, nil) {
+	var paramsRequest any = this.Omit(paramsPostOnly, this.ArrayConcat([]any{"clientId", "clientOrderId", "timeInForce"}, triggerKeys))
+	if triggerPrice != nil {
+		if postOnly {
+			panic(InvalidOrder(this.Id + " createOrder() does not support post only trigger orders, the venue has no post only trigger order type"))
+		}
 		if uppercaseType == "MARKET" {
 			uppercaseType = "STOP_LOSS"
 		} else if uppercaseType == "LIMIT" {
@@ -2220,6 +2247,7 @@ func (this *Tokocrypto) createOrderBody(ch chan AsyncResult[map[string]any], sym
 	var priceIsRequired bool = false
 	var triggerPriceIsRequired bool = false
 	var quantityIsRequired bool = false
+	var timeInForceIsRequired bool = false
 	//
 	// spot/margin
 	//
@@ -2259,6 +2287,7 @@ func (this *Tokocrypto) createOrderBody(ch chan AsyncResult[map[string]any], sym
 	} else if uppercaseType == "LIMIT" {
 		priceIsRequired = true
 		quantityIsRequired = true
+		timeInForceIsRequired = true
 	} else if (uppercaseType == "STOP_LOSS") || (uppercaseType == "TAKE_PROFIT") {
 		triggerPriceIsRequired = true
 		quantityIsRequired = true
@@ -2269,6 +2298,7 @@ func (this *Tokocrypto) createOrderBody(ch chan AsyncResult[map[string]any], sym
 		quantityIsRequired = true
 		triggerPriceIsRequired = true
 		priceIsRequired = true
+		timeInForceIsRequired = true
 	} else if uppercaseType == "LIMIT_MAKER" {
 		priceIsRequired = true
 		quantityIsRequired = true
@@ -2283,10 +2313,39 @@ func (this *Tokocrypto) createOrderBody(ch chan AsyncResult[map[string]any], sym
 		request["price"] = this.PriceToPrecision(symbol, price)
 	}
 	if triggerPriceIsRequired {
-		if IsEqual(triggerPrice, nil) {
+		if triggerPrice == nil {
 			panic(InvalidOrder(Add(Add(this.Id+" createOrder() requires a triggerPrice extra param for a ", typeResolved), " order")))
 		} else {
 			request["stopPrice"] = this.PriceToPrecision(symbol, triggerPrice)
+		}
+	}
+	if timeInForceIsRequired {
+		var defaultTimeInForce *string = this.SafeString(this.Options, "defaultTimeInForce", "GTC")
+		var timeInForce any = func() any {
+			if timeInForceResolved == nil {
+				return defaultTimeInForce
+			}
+			return timeInForceResolved
+		}()
+		// the endpoint takes the time force as a numeric code, post only is
+		// placed as a LIMIT_MAKER order rather than as the GTX code
+		var timeInForceCodes map[string]any = map[string]any{
+			"GTC": "1",
+			"IOC": "2",
+			"FOK": "3",
+		}
+		var timeInForceCode *string = this.SafeString(timeInForceCodes, timeInForce)
+		if timeInForceCode == nil {
+			panic(InvalidOrder(Add(Add(this.Id+" createOrder() does not support the ", timeInForce), " timeInForce, use GTC, IOC, FOK or the postOnly parameter")))
+		}
+		request["timeInForce"] = timeInForceCode
+	} else if timeInForceResolved != nil {
+		// a market order fills immediately or not at all, so an IOC asks for
+		// what the order type already does and gets accepted as a no-op, while
+		// any other time force would be a promise the venue cannot keep here
+		var isRedundantImmediateOrCancel bool = isMarketOrder && (timeInForceResolved != nil && *timeInForceResolved == "IOC")
+		if !isRedundantImmediateOrCancel {
+			panic(NotSupported(this.Id + " createOrder() does not support the " + *timeInForceResolved + " timeInForce for " + typeVar + " orders"))
 		}
 	}
 
@@ -2325,7 +2384,7 @@ func (this *Tokocrypto) createOrderBody(ch chan AsyncResult[map[string]any], sym
 	//
 	var rawOrder map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(rawOrder, market))}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(rawOrder, market)}
 	return nil
 }
 
@@ -2339,12 +2398,12 @@ func (this *Tokocrypto) createOrderBody(ch chan AsyncResult[map[string]any], sym
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Tokocrypto) FetchOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
-	ch := make(chan AsyncResult[map[string]any], 1)
+func (this *Tokocrypto) FetchOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+	ch := make(chan AsyncResult[Order], 1)
 	go this.fetchOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Tokocrypto) fetchOrderBody(ch chan AsyncResult[map[string]any], id any, optionalArgs ...any) any {
+func (this *Tokocrypto) fetchOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2394,7 +2453,7 @@ func (this *Tokocrypto) fetchOrderBody(ch chan AsyncResult[map[string]any], id a
 	var list []any = SafeListTyped(data, "list")
 	var rawOrder map[string]any = this.SafeDictMap(list, 0, map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(rawOrder))}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(rawOrder)}
 	return nil
 }
 
@@ -2409,12 +2468,12 @@ func (this *Tokocrypto) fetchOrderBody(ch chan AsyncResult[map[string]any], id a
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Tokocrypto) FetchOrdersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Tokocrypto) FetchOrdersAsync(optionalArgs ...any) <-chan AsyncResult[[]Order] {
+	ch := make(chan AsyncResult[[]Order], 1)
 	go this.fetchOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Tokocrypto) fetchOrdersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Tokocrypto) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2487,7 +2546,7 @@ func (this *Tokocrypto) fetchOrdersBody(ch chan AsyncResult[any], optionalArgs .
 	var data map[string]any = SafeMapTyped(response, "data")
 	var orders []any = SafeListTypedDefault(data, "list", []any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseOrders(orders, market, since, limit)}
+	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(orders, market, since, limit))}
 	return nil
 }
 
@@ -2502,12 +2561,12 @@ func (this *Tokocrypto) fetchOrdersBody(ch chan AsyncResult[any], optionalArgs .
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Tokocrypto) FetchOpenOrdersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Tokocrypto) FetchOpenOrdersAsync(optionalArgs ...any) <-chan AsyncResult[[]Order] {
+	ch := make(chan AsyncResult[[]Order], 1)
 	go this.fetchOpenOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Tokocrypto) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Tokocrypto) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2526,11 +2585,11 @@ func (this *Tokocrypto) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalAr
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes212315 []any = ListTyped(r.Value)
-	if retRes212315 == nil {
-		ch <- AsyncResult[any]{Value: nil}
+	var retRes217715 []any = OrdersToList(r.Value)
+	if retRes217715 == nil {
+		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes212315}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes217715)}
 	}
 	return nil
 }
@@ -2546,12 +2605,12 @@ func (this *Tokocrypto) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalAr
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Tokocrypto) FetchClosedOrdersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Tokocrypto) FetchClosedOrdersAsync(optionalArgs ...any) <-chan AsyncResult[[]Order] {
+	ch := make(chan AsyncResult[[]Order], 1)
 	go this.fetchClosedOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Tokocrypto) fetchClosedOrdersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Tokocrypto) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2570,11 +2629,11 @@ func (this *Tokocrypto) fetchClosedOrdersBody(ch chan AsyncResult[any], optional
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes213915 []any = ListTyped(r.Value)
-	if retRes213915 == nil {
-		ch <- AsyncResult[any]{Value: nil}
+	var retRes219315 []any = OrdersToList(r.Value)
+	if retRes219315 == nil {
+		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes213915}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes219315)}
 	}
 	return nil
 }
@@ -2589,12 +2648,12 @@ func (this *Tokocrypto) fetchClosedOrdersBody(ch chan AsyncResult[any], optional
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Tokocrypto) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
-	ch := make(chan AsyncResult[map[string]any], 1)
+func (this *Tokocrypto) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+	ch := make(chan AsyncResult[Order], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Tokocrypto) cancelOrderBody(ch chan AsyncResult[map[string]any], id any, optionalArgs ...any) any {
+func (this *Tokocrypto) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2639,7 +2698,7 @@ func (this *Tokocrypto) cancelOrderBody(ch chan AsyncResult[map[string]any], id 
 	//
 	var rawOrder map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(rawOrder))}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(rawOrder)}
 	return nil
 }
 
@@ -2654,12 +2713,12 @@ func (this *Tokocrypto) cancelOrderBody(ch chan AsyncResult[map[string]any], id 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func (this *Tokocrypto) FetchMyTradesAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Tokocrypto) FetchMyTradesAsync(optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchMyTradesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Tokocrypto) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Tokocrypto) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2734,7 +2793,7 @@ func (this *Tokocrypto) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs
 	var data map[string]any = SafeMapTyped(response, "data")
 	var trades []any = SafeListTypedDefault(data, "list", []any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseTrades(trades, market, since, limit)}
+	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(trades, market, since, limit))}
 	return nil
 }
 
@@ -2747,12 +2806,12 @@ func (this *Tokocrypto) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
-func (this *Tokocrypto) FetchDepositAddressAsync(code string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Tokocrypto) FetchDepositAddressAsync(code string, optionalArgs ...any) <-chan AsyncResult[DepositAddress] {
+	ch := make(chan AsyncResult[DepositAddress], 1)
 	go this.fetchDepositAddressBody(ch, code, optionalArgs...)
 	return ch
 }
-func (this *Tokocrypto) fetchDepositAddressBody(ch chan AsyncResult[any], code string, optionalArgs ...any) any {
+func (this *Tokocrypto) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress], code string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2806,18 +2865,18 @@ func (this *Tokocrypto) fetchDepositAddressBody(ch chan AsyncResult[any], code s
 	var data map[string]any = SafeMapTyped(response, "data")
 	var address *string = this.SafeString(data, "address")
 	var tag *string = this.SafeString(data, "addressTag", "")
-	if GetLength(tag) == 0 {
+	if len(*tag) == 0 {
 		tag = nil
 	}
 	this.CheckAddress(address)
 
-	ch <- AsyncResult[any]{Value: map[string]any{
+	ch <- AsyncResult[DepositAddress]{Value: DepositAddressFromMap(map[string]any{
 		"info":     response,
 		"currency": code,
-		"network":  this.SafeString(data, "network"),
+		"network":  this.NetworkIdToCode(this.SafeString(data, "network"), code),
 		"address":  address,
 		"tag":      tag,
-	}}
+	})}
 	return nil
 }
 
@@ -2833,12 +2892,12 @@ func (this *Tokocrypto) fetchDepositAddressBody(ch chan AsyncResult[any], code s
  * @param {int} [params.until] the latest time in ms to fetch deposits for
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Tokocrypto) FetchDepositsAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Tokocrypto) FetchDepositsAsync(optionalArgs ...any) <-chan AsyncResult[[]Transaction] {
+	ch := make(chan AsyncResult[[]Transaction], 1)
 	go this.fetchDepositsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Tokocrypto) fetchDepositsBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Tokocrypto) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2861,7 +2920,7 @@ func (this *Tokocrypto) fetchDepositsBody(ch chan AsyncResult[any], optionalArgs
 	var until *int64 = this.SafeInteger(params, "until")
 	if code != nil {
 		currency = this.Currency(code)
-		request["coin"] = GetValue(currency, "id")
+		request["coin"] = currency["id"]
 	}
 	if since != nil {
 		request["startTime"] = since
@@ -2907,7 +2966,7 @@ func (this *Tokocrypto) fetchDepositsBody(ch chan AsyncResult[any], optionalArgs
 	var data map[string]any = SafeMapTyped(response, "data")
 	var deposits []any = SafeListTypedDefault(data, "list", []any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseTransactions(deposits, currency, since, limit)}
+	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(deposits, currency, since, limit))}
 	return nil
 }
 
@@ -2922,12 +2981,12 @@ func (this *Tokocrypto) fetchDepositsBody(ch chan AsyncResult[any], optionalArgs
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Tokocrypto) FetchWithdrawalsAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Tokocrypto) FetchWithdrawalsAsync(optionalArgs ...any) <-chan AsyncResult[[]Transaction] {
+	ch := make(chan AsyncResult[[]Transaction], 1)
 	go this.fetchWithdrawalsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Tokocrypto) fetchWithdrawalsBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Tokocrypto) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2949,7 +3008,7 @@ func (this *Tokocrypto) fetchWithdrawalsBody(ch chan AsyncResult[any], optionalA
 	var currency map[string]any = nil
 	if code != nil {
 		currency = this.Currency(code)
-		request["coin"] = GetValue(currency, "id")
+		request["coin"] = currency["id"]
 	}
 	if since != nil {
 		request["startTime"] = since
@@ -2993,7 +3052,7 @@ func (this *Tokocrypto) fetchWithdrawalsBody(ch chan AsyncResult[any], optionalA
 	var data map[string]any = SafeMapTyped(response, "data")
 	var withdrawals []any = SafeListTypedDefault(data, "list", []any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseTransactions(withdrawals, currency, since, limit)}
+	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(withdrawals, currency, since, limit))}
 	return nil
 }
 func (this *Tokocrypto) ParseTransactionStatusByType(status *string, optionalArgs ...any) *string {
@@ -3017,7 +3076,7 @@ func (this *Tokocrypto) ParseTransactionStatusByType(status *string, optionalArg
 	var statuses map[string]any = SafeMapTyped(statusesByType, typeVar)
 	return this.SafeString(statuses, status, status)
 }
-func (this *Tokocrypto) ParseTransaction(transaction any, optionalArgs ...any) map[string]any {
+func (this *Tokocrypto) ParseTransaction(transaction any, optionalArgs ...any) Transaction {
 	//
 	// fetchDeposits
 	//
@@ -3067,17 +3126,12 @@ func (this *Tokocrypto) ParseTransaction(transaction any, optionalArgs ...any) m
 	var address *string = this.SafeString(transaction, "address")
 	var tag *string = this.SafeString(transaction, "addressTag") // set but unused
 	if tag != nil {
-		if GetLength(tag) < 1 {
+		if len(*tag) < 1 {
 			tag = nil
 		}
 	}
 	var txid *string = this.SafeString(transaction, "txId")
-	if (txid != nil) && (func() int {
-		if txid == nil {
-			return -1
-		}
-		return strings.Index(*txid, "Internal transfer ")
-	}() >= 0) {
+	if (txid != nil) && (strings.Index(*txid, "Internal transfer ") >= 0) {
 		txid = SafeStringPtr(func() string {
 			if txid == nil {
 				return ""
@@ -3122,13 +3176,13 @@ func (this *Tokocrypto) ParseTransaction(transaction any, optionalArgs ...any) m
 		id = this.SafeString(data, "withdrawId")
 		typeVar = SafeStringPtr("withdrawal")
 	}
-	return map[string]any{
+	return TransactionFromMap(map[string]any{
 		"info":        transaction,
 		"id":          id,
 		"txid":        txid,
 		"type":        typeVar,
 		"currency":    code,
-		"network":     this.SafeString(transaction, "network"),
+		"network":     this.NetworkIdToCode(this.SafeString(transaction, "network"), code),
 		"amount":      this.SafeNumber(transaction, "amount"),
 		"status":      this.ParseTransactionStatusByType(this.SafeString(transaction, "status"), typeVar),
 		"timestamp":   timestamp,
@@ -3143,7 +3197,7 @@ func (this *Tokocrypto) ParseTransaction(transaction any, optionalArgs ...any) m
 		"comment":     nil,
 		"internal":    internal,
 		"fee":         fee,
-	}
+	})
 }
 
 /**
@@ -3154,24 +3208,27 @@ func (this *Tokocrypto) ParseTransaction(transaction any, optionalArgs ...any) m
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
- * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Tokocrypto) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
-	ch := make(chan EndpointResult[map[string]any], 1)
+func (this *Tokocrypto) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan AsyncResult[Transaction] {
+	ch := make(chan AsyncResult[Transaction], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Tokocrypto) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
+func (this *Tokocrypto) withdrawBody(ch chan AsyncResult[Transaction], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicErrorT(ch)
-	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
-	_ = tag
-	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
+	defer ReturnPanicError(ch)
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleWithdrawTagAndParams(tag, params)
-	var tagWithdrawTag *string = SafeStringPtr(tagWithdrawTagparamsWithdrawTagVariable[0])
+	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleParamString(params, "tag")
+	tagWithdrawTag := func() any {
+		if p, _ := tagWithdrawTagparamsWithdrawTagVariable[0].(*string); p != nil {
+			return *p
+		}
+		return nil
+	}()
 	var paramsWithdrawTag map[string]any = MapTyped(tagWithdrawTagparamsWithdrawTagVariable[1])
 	if this.Markets == nil {
 
@@ -3180,7 +3237,7 @@ func (this *Tokocrypto) withdrawBody(ch chan EndpointResult[map[string]any], cod
 			panic(r.Err)
 		}
 	}
-	this.CheckAddress(address)
+	this.CheckAddress(address, code, tagWithdrawTag)
 	var currency map[string]any = this.Currency(code)
 	var request map[string]any = map[string]any{
 		"asset":   currency["id"],
@@ -3214,36 +3271,32 @@ func (this *Tokocrypto) withdrawBody(ch chan EndpointResult[map[string]any], cod
 	//         "timestamp": 1571745049095
 	//     }
 	//
-	chValue := this.ParseTransaction(response, currency)
-	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
+	ch <- AsyncResult[Transaction]{Value: this.ParseTransaction(response, currency)}
 	return nil
 }
 func (this *Tokocrypto) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
-	_ = body
-	if !(InOp(GetValue(this.Urls["api"], "rest"), api)) {
-		panic(NotSupported(Add(Add(this.Id+" does not have a testnet/sandbox URL for ", api), " endpoints")))
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
+	if !(InOp(GetValue(this.Urls["api"], "rest"), apiName)) {
+		panic(NotSupported(this.Id + " does not have a testnet/sandbox URL for " + *apiName + " endpoints"))
 	}
-	var baseApiUrl *string = this.SafeString(GetValue(this.Urls["api"], "rest"), api)
+	var baseApiUrl *string = this.SafeString(GetValue(this.Urls["api"], "rest"), apiName)
 	if baseApiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var url any = baseApiUrl
 	url = Add(url, "/"+path)
-	if api == "wapi" {
+	if apiName != nil && *apiName == "wapi" {
 		url = Add(url, ".html")
 	}
 	var userDataStream bool = (path == "userDataStream") || (path == "listenKey")
 	if userDataStream {
-		if (!IsEqual(this.ApiKey, nil)) && (this.ApiKey != "") {
+		if (this.ApiKey != nil) && (this.ApiKey != "") {
 			// v1 special case for userDataStream
 			var headersStream map[string]any = map[string]any{
 				"X-MBX-APIKEY": this.ApiKey,
@@ -3253,7 +3306,7 @@ func (this *Tokocrypto) Sign(path string, optionalArgs ...any) any {
 				if method != "GET" {
 					return SafeStringPtr(this.Urlencode(params))
 				}
-				return body
+				return nil
 			}()
 			return map[string]any{
 				"url":     url,
@@ -3264,7 +3317,7 @@ func (this *Tokocrypto) Sign(path string, optionalArgs ...any) any {
 		} else {
 			panic(AuthenticationError(this.Id + " userDataStream endpoint requires `apiKey` credential"))
 		}
-	} else if (api == "private") || ((api == "sapi") && (path != "system/status")) || (api == "sapiV3") || ((api == "wapi") && (path != "systemStatus")) || (api == "dapiPrivate") || (api == "dapiPrivateV2") || (api == "fapiPrivate") || (api == "fapiPrivateV2") {
+	} else if (apiName != nil && *apiName == "private") || ((apiName != nil && *apiName == "sapi") && (path != "system/status")) || (apiName != nil && *apiName == "sapiV3") || ((apiName != nil && *apiName == "wapi") && (path != "systemStatus")) || (apiName != nil && *apiName == "dapiPrivate") || (apiName != nil && *apiName == "dapiPrivateV2") || (apiName != nil && *apiName == "fapiPrivate") || (apiName != nil && *apiName == "fapiPrivateV2") {
 		this.CheckRequiredCredentials()
 		var query any = nil
 		var defaultRecvWindow *int64 = this.SafeInteger(this.Options, "recvWindow")
@@ -3278,7 +3331,7 @@ func (this *Tokocrypto) Sign(path string, optionalArgs ...any) any {
 		if recvWindow != nil {
 			extendedParams["recvWindow"] = recvWindow
 		}
-		if (api == "sapi") && (path == "asset/dust") {
+		if (apiName != nil && *apiName == "sapi") && (path == "asset/dust") {
 			query = this.UrlencodeWithArrayRepeat(extendedParams)
 		} else if (path == "batchOrders") || (strings.Index(path, "sub-account") >= 0) || (path == "capital/withdraw/apply") || (strings.Index(path, "staking") >= 0) {
 			query = this.Rawencode(extendedParams)
@@ -3290,10 +3343,10 @@ func (this *Tokocrypto) Sign(path string, optionalArgs ...any) any {
 		var headersSigned map[string]any = map[string]any{
 			"X-MBX-APIKEY": this.ApiKey,
 		}
-		var queryInUrl bool = (method == "GET") || (method == "DELETE") || (api == "wapi")
+		var queryInUrl bool = (method == "GET") || (method == "DELETE") || (apiName != nil && *apiName == "wapi")
 		var bodySigned any = query
 		if queryInUrl {
-			bodySigned = body
+			bodySigned = nil
 		}
 		if queryInUrl {
 			url = Add(url, Add("?", query))
@@ -3314,8 +3367,8 @@ func (this *Tokocrypto) Sign(path string, optionalArgs ...any) any {
 	return map[string]any{
 		"url":     url,
 		"method":  method,
-		"body":    body,
-		"headers": headers,
+		"body":    nil,
+		"headers": nil,
 	}
 }
 func (this *Tokocrypto) HandleErrors(code any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
@@ -3343,7 +3396,7 @@ func (this *Tokocrypto) HandleErrors(code any, reason any, url any, method any, 
 	// response in format {'msg': 'The coin does not exist.', 'success': true/false}
 	var success *bool = this.SafeBool(response, "success", true)
 	var parsedMessage any = nil
-	if success == nil || *success != true {
+	if !(success != nil && *success) {
 		var messageInner *string = this.SafeString(response, "msg")
 		if messageInner != nil {
 
@@ -3402,7 +3455,7 @@ func (this *Tokocrypto) HandleErrors(code any, reason any, url any, method any, 
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], error, feedback)
 		panic(ExchangeError(feedback))
 	}
-	if success == nil || *success != true {
+	if !(success != nil && *success) {
 		panic(ExchangeError(this.Id + " " + body))
 	}
 	return nil
@@ -3417,7 +3470,7 @@ func (this *Tokocrypto) CalculateRateLimiterCost(api any, method any, path any, 
 	} else if (func() bool { _, ok := config["noPoolId"]; return ok }()) && !(InOp(params, "poolId")) {
 		return GetValue(config, "noPoolId")
 	} else if (func() bool { _, ok := config["byLimit"]; return ok }()) && (InOp(params, "limit")) {
-		var limit any = GetValue(params, "limit")
+		var limit *int64 = this.SafeInteger(params, "limit")
 		var byLimit []any = SafeListTyped(config, "byLimit")
 		for i := 0; i < len(byLimit); i++ {
 			var entry any = func() any {
@@ -3426,7 +3479,8 @@ func (this *Tokocrypto) CalculateRateLimiterCost(api any, method any, path any, 
 				}
 				return nil
 			}()
-			if IsLessThanOrEqual(limit, GetValue(entry, 0)) {
+			var entryLimit *int64 = this.SafeInteger(entry, 0)
+			if (limit != nil) && (entryLimit != nil) && (*limit <= *entryLimit) {
 				return GetValue(entry, 1)
 			}
 		}
@@ -3444,7 +3498,6 @@ func (this *Tokocrypto) Init(userConfig map[string]any) {
 	this.Exchange = Exchange{}
 	this.Exchange.DerivedExchange = this
 	this.Exchange.InitParent(userConfig, this.Describe().(map[string]any), this)
-	this.exchangeTyped = NewExchangeTyped(&this.Exchange)
 }
 
 // typed methods
@@ -3479,7 +3532,7 @@ func (this *Tokocrypto) FetchMarkets(params ...any) ([]MarketInterface, error) {
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []MarketInterface = NewMarketInterfaceArray(r.Value)
+	var res []MarketInterface = r.Value
 	return res, nil
 }
 
@@ -3504,7 +3557,7 @@ func (this *Tokocrypto) FetchOrderBook(symbol string, options ...FetchOrderBookO
 	if r.Err != nil {
 		return OrderBook{}, r.Err
 	}
-	var res OrderBook = NewOrderBook(r.Value)
+	var res OrderBook = r.Value
 	return res, nil
 }
 
@@ -3531,7 +3584,7 @@ func (this *Tokocrypto) FetchTrades(symbol string, options ...FetchTradesOptions
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Trade = NewTradeArray(r.Value)
+	var res []Trade = r.Value
 	return res, nil
 }
 
@@ -3555,7 +3608,7 @@ func (this *Tokocrypto) FetchTickers(options ...FetchTickersOptions) (Tickers, e
 	if r.Err != nil {
 		return Tickers{}, r.Err
 	}
-	var res Tickers = NewTickers(r.Value)
+	var res Tickers = Tickers{Tickers: r.Value}
 	return res, nil
 }
 
@@ -3579,7 +3632,7 @@ func (this *Tokocrypto) FetchTicker(symbol string, options ...FetchTickerOptions
 	if r.Err != nil {
 		return Ticker{}, r.Err
 	}
-	var res Ticker = NewTicker(r.Value)
+	var res Ticker = r.Value
 	return res, nil
 }
 
@@ -3603,7 +3656,7 @@ func (this *Tokocrypto) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers,
 	if r.Err != nil {
 		return Tickers{}, r.Err
 	}
-	var res Tickers = NewTickers(r.Value)
+	var res Tickers = Tickers{Tickers: r.Value}
 	return res, nil
 }
 
@@ -3632,7 +3685,7 @@ func (this *Tokocrypto) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) 
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []OHLCV = NewOHLCVArray(r.Value)
+	var res []OHLCV = r.Value
 	return res, nil
 }
 
@@ -3642,7 +3695,7 @@ func (this *Tokocrypto) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) 
  * @see https://www.tokocrypto.com/apidocs/#account-information-signed
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [params.type] 'future', 'delivery', 'savings', 'funding', or 'spot'
+ * @param {string} [params.type] 'spot', 'margin', 'swap', 'future', 'savings' or 'funding'
  * @param {string} [params.marginMode] 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
  * @param {string[]|undefined} [params.symbols] unified market symbols, only used in isolated margin mode
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
@@ -3652,7 +3705,7 @@ func (this *Tokocrypto) FetchBalance(params ...any) (Balances, error) {
 	if r.Err != nil {
 		return Balances{}, r.Err
 	}
-	var res Balances = NewBalances(r.Value)
+	var res Balances = r.Value
 	return res, nil
 }
 
@@ -3669,6 +3722,8 @@ func (this *Tokocrypto) FetchBalance(params ...any) (Balances, error) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {float} [params.triggerPrice] the price at which a trigger order would be triggered
  * @param {float} [params.cost] for spot market buy orders, the quote quantity that can be used as an alternative for the amount
+ * @param {string} [params.timeInForce] 'GTC', 'IOC' or 'FOK', defaults to the defaultTimeInForce option on the order types that rest on the book, market orders accept 'IOC' as a no-op and reject the rest
+ * @param {bool} [params.postOnly] true for a post only order, the 'PO' and 'GTX' timeInForce spellings do the same
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Tokocrypto) CreateOrder(symbol string, typeVar string, side string, amount float64, options ...CreateOrderOptions) (Order, error) {
@@ -3682,7 +3737,7 @@ func (this *Tokocrypto) CreateOrder(symbol string, typeVar string, side string, 
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 
@@ -3707,7 +3762,7 @@ func (this *Tokocrypto) FetchOrder(id string, options ...FetchOrderOptions) (Ord
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 
@@ -3733,7 +3788,7 @@ func (this *Tokocrypto) FetchOrders(options ...FetchOrdersOptions) ([]Order, err
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(r.Value)
+	var res []Order = r.Value
 	return res, nil
 }
 
@@ -3759,7 +3814,7 @@ func (this *Tokocrypto) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Or
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(r.Value)
+	var res []Order = r.Value
 	return res, nil
 }
 
@@ -3785,7 +3840,7 @@ func (this *Tokocrypto) FetchClosedOrders(options ...FetchClosedOrdersOptions) (
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(r.Value)
+	var res []Order = r.Value
 	return res, nil
 }
 
@@ -3810,7 +3865,7 @@ func (this *Tokocrypto) CancelOrder(id string, options ...CancelOrderOptions) (O
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 
@@ -3836,7 +3891,7 @@ func (this *Tokocrypto) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade,
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Trade = NewTradeArray(r.Value)
+	var res []Trade = r.Value
 	return res, nil
 }
 
@@ -3860,7 +3915,7 @@ func (this *Tokocrypto) FetchDepositAddress(code string, options ...FetchDeposit
 	if r.Err != nil {
 		return DepositAddress{}, r.Err
 	}
-	var res DepositAddress = NewDepositAddress(r.Value)
+	var res DepositAddress = r.Value
 	return res, nil
 }
 
@@ -3887,7 +3942,7 @@ func (this *Tokocrypto) FetchDeposits(options ...FetchDepositsOptions) ([]Transa
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Transaction = NewTransactionArray(r.Value)
+	var res []Transaction = r.Value
 	return res, nil
 }
 
@@ -3913,7 +3968,7 @@ func (this *Tokocrypto) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Transaction = NewTransactionArray(r.Value)
+	var res []Transaction = r.Value
 	return res, nil
 }
 
@@ -3925,8 +3980,8 @@ func (this *Tokocrypto) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
- * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Tokocrypto) Withdraw(code string, amount float64, address string, options ...WithdrawOptions) (Transaction, error) {
@@ -3936,571 +3991,10 @@ func (this *Tokocrypto) Withdraw(code string, amount float64, address string, op
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
+	r := <-this.WithdrawAsync(code, amount, address, opts.Params)
 	if r.Err != nil {
 		return Transaction{}, r.Err
 	}
-	var res Transaction = NewTransaction(r.Raw)
+	var res Transaction = r.Value
 	return res, nil
-}
-
-// missing typed methods from base
-// nolint
-func (this *Tokocrypto) LoadMarkets(params ...any) (map[string]MarketInterface, error) {
-	return this.exchangeTyped.LoadMarkets(params...)
-}
-func (this *Tokocrypto) CancelOrders(ids []string, options ...CancelOrdersOptions) ([]Order, error) {
-	return this.exchangeTyped.CancelOrders(ids, options...)
-}
-func (this *Tokocrypto) CancelOrdersWithClientOrderIds(clientOrderIds []string, options ...CancelOrdersWithClientOrderIdsOptions) ([]Order, error) {
-	return this.exchangeTyped.CancelOrdersWithClientOrderIds(clientOrderIds, options...)
-}
-func (this *Tokocrypto) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, error) {
-	return this.exchangeTyped.CancelAllOrders(options...)
-}
-func (this *Tokocrypto) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersAfterOptions) (map[string]any, error) {
-	return this.exchangeTyped.CancelAllOrdersAfter(timeout, options...)
-}
-func (this *Tokocrypto) CancelOrderWithClientOrderId(clientOrderId string, options ...CancelOrderWithClientOrderIdOptions) (Order, error) {
-	return this.exchangeTyped.CancelOrderWithClientOrderId(clientOrderId, options...)
-}
-func (this *Tokocrypto) CancelOrdersForSymbols(orders []CancellationRequest, options ...CancelOrdersForSymbolsOptions) ([]Order, error) {
-	return this.exchangeTyped.CancelOrdersForSymbols(orders, options...)
-}
-func (this *Tokocrypto) CreateConvertTrade(id string, fromCode string, toCode string, options ...CreateConvertTradeOptions) (Conversion, error) {
-	return this.exchangeTyped.CreateConvertTrade(id, fromCode, toCode, options...)
-}
-func (this *Tokocrypto) CreateDepositAddress(code string, options ...CreateDepositAddressOptions) (DepositAddress, error) {
-	return this.exchangeTyped.CreateDepositAddress(code, options...)
-}
-func (this *Tokocrypto) CreateLimitBuyOrder(symbol string, amount float64, price float64, options ...CreateLimitBuyOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateLimitBuyOrder(symbol, amount, price, options...)
-}
-func (this *Tokocrypto) CreateLimitOrder(symbol string, side string, amount float64, price float64, options ...CreateLimitOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateLimitOrder(symbol, side, amount, price, options...)
-}
-func (this *Tokocrypto) CreateLimitSellOrder(symbol string, amount float64, price float64, options ...CreateLimitSellOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateLimitSellOrder(symbol, amount, price, options...)
-}
-func (this *Tokocrypto) CreateMarketBuyOrder(symbol string, amount float64, options ...CreateMarketBuyOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketBuyOrder(symbol, amount, options...)
-}
-func (this *Tokocrypto) CreateMarketBuyOrderWithCost(symbol string, cost float64, options ...CreateMarketBuyOrderWithCostOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketBuyOrderWithCost(symbol, cost, options...)
-}
-func (this *Tokocrypto) CreateMarketOrder(symbol string, side string, amount float64, options ...CreateMarketOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketOrder(symbol, side, amount, options...)
-}
-func (this *Tokocrypto) CreateMarketOrderWithCost(symbol string, side string, cost float64, options ...CreateMarketOrderWithCostOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketOrderWithCost(symbol, side, cost, options...)
-}
-func (this *Tokocrypto) CreateMarketSellOrder(symbol string, amount float64, options ...CreateMarketSellOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketSellOrder(symbol, amount, options...)
-}
-func (this *Tokocrypto) CreateMarketSellOrderWithCost(symbol string, cost float64, options ...CreateMarketSellOrderWithCostOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketSellOrderWithCost(symbol, cost, options...)
-}
-func (this *Tokocrypto) CreateOrders(orders []OrderRequest, options ...CreateOrdersOptions) ([]Order, error) {
-	return this.exchangeTyped.CreateOrders(orders, options...)
-}
-func (this *Tokocrypto) CreateOrderWithTakeProfitAndStopLoss(symbol string, typeVar string, side string, amount float64, options ...CreateOrderWithTakeProfitAndStopLossOptions) (Order, error) {
-	return this.exchangeTyped.CreateOrderWithTakeProfitAndStopLoss(symbol, typeVar, side, amount, options...)
-}
-func (this *Tokocrypto) CreatePostOnlyOrder(symbol string, typeVar string, side string, amount float64, options ...CreatePostOnlyOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreatePostOnlyOrder(symbol, typeVar, side, amount, options...)
-}
-func (this *Tokocrypto) CreateReduceOnlyOrder(symbol string, typeVar string, side string, amount float64, options ...CreateReduceOnlyOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateReduceOnlyOrder(symbol, typeVar, side, amount, options...)
-}
-func (this *Tokocrypto) CreateStopLimitOrder(symbol string, side string, amount float64, price float64, triggerPrice float64, options ...CreateStopLimitOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateStopLimitOrder(symbol, side, amount, price, triggerPrice, options...)
-}
-func (this *Tokocrypto) CreateStopLossOrder(symbol string, typeVar string, side string, amount float64, options ...CreateStopLossOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateStopLossOrder(symbol, typeVar, side, amount, options...)
-}
-func (this *Tokocrypto) CreateStopMarketOrder(symbol string, side string, amount float64, triggerPrice float64, options ...CreateStopMarketOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateStopMarketOrder(symbol, side, amount, triggerPrice, options...)
-}
-func (this *Tokocrypto) CreateStopOrder(symbol string, typeVar string, side string, amount float64, options ...CreateStopOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateStopOrder(symbol, typeVar, side, amount, options...)
-}
-func (this *Tokocrypto) CreateTakeProfitOrder(symbol string, typeVar string, side string, amount float64, options ...CreateTakeProfitOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateTakeProfitOrder(symbol, typeVar, side, amount, options...)
-}
-func (this *Tokocrypto) CreateTrailingAmountOrder(symbol string, typeVar string, side string, amount float64, options ...CreateTrailingAmountOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateTrailingAmountOrder(symbol, typeVar, side, amount, options...)
-}
-func (this *Tokocrypto) CreateTrailingPercentOrder(symbol string, typeVar string, side string, amount float64, options ...CreateTrailingPercentOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateTrailingPercentOrder(symbol, typeVar, side, amount, options...)
-}
-func (this *Tokocrypto) CreateTriggerOrder(symbol string, typeVar string, side string, amount float64, options ...CreateTriggerOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateTriggerOrder(symbol, typeVar, side, amount, options...)
-}
-func (this *Tokocrypto) EditLimitBuyOrder(id string, symbol string, amount float64, options ...EditLimitBuyOrderOptions) (Order, error) {
-	return this.exchangeTyped.EditLimitBuyOrder(id, symbol, amount, options...)
-}
-func (this *Tokocrypto) EditLimitOrder(id string, symbol string, side string, amount float64, options ...EditLimitOrderOptions) (Order, error) {
-	return this.exchangeTyped.EditLimitOrder(id, symbol, side, amount, options...)
-}
-func (this *Tokocrypto) EditLimitSellOrder(id string, symbol string, amount float64, options ...EditLimitSellOrderOptions) (Order, error) {
-	return this.exchangeTyped.EditLimitSellOrder(id, symbol, amount, options...)
-}
-func (this *Tokocrypto) EditOrder(id string, symbol string, typeVar string, side string, options ...EditOrderOptions) (Order, error) {
-	return this.exchangeTyped.EditOrder(id, symbol, typeVar, side, options...)
-}
-func (this *Tokocrypto) EditOrderWithClientOrderId(clientOrderId string, symbol string, typeVar string, side string, options ...EditOrderWithClientOrderIdOptions) (Order, error) {
-	return this.exchangeTyped.EditOrderWithClientOrderId(clientOrderId, symbol, typeVar, side, options...)
-}
-func (this *Tokocrypto) EditOrders(orders []OrderRequest, options ...EditOrdersOptions) ([]Order, error) {
-	return this.exchangeTyped.EditOrders(orders, options...)
-}
-func (this *Tokocrypto) FetchAccounts(params ...any) ([]Account, error) {
-	return this.exchangeTyped.FetchAccounts(params...)
-}
-func (this *Tokocrypto) FetchAllGreeks(options ...FetchAllGreeksOptions) (AllGreeks, error) {
-	return this.exchangeTyped.FetchAllGreeks(options...)
-}
-func (this *Tokocrypto) FetchBorrowInterest(options ...FetchBorrowInterestOptions) ([]BorrowInterest, error) {
-	return this.exchangeTyped.FetchBorrowInterest(options...)
-}
-func (this *Tokocrypto) FetchBorrowRate(code string, amount float64, options ...FetchBorrowRateOptions) (map[string]any, error) {
-	return this.exchangeTyped.FetchBorrowRate(code, amount, options...)
-}
-func (this *Tokocrypto) FetchCanceledAndClosedOrders(options ...FetchCanceledAndClosedOrdersOptions) ([]Order, error) {
-	return this.exchangeTyped.FetchCanceledAndClosedOrders(options...)
-}
-func (this *Tokocrypto) FetchConvertCurrencies(params ...any) (Currencies, error) {
-	return this.exchangeTyped.FetchConvertCurrencies(params...)
-}
-func (this *Tokocrypto) FetchConvertQuote(fromCode string, toCode string, options ...FetchConvertQuoteOptions) (Conversion, error) {
-	return this.exchangeTyped.FetchConvertQuote(fromCode, toCode, options...)
-}
-func (this *Tokocrypto) FetchConvertTrade(id string, options ...FetchConvertTradeOptions) (Conversion, error) {
-	return this.exchangeTyped.FetchConvertTrade(id, options...)
-}
-func (this *Tokocrypto) FetchConvertTradeHistory(options ...FetchConvertTradeHistoryOptions) ([]Conversion, error) {
-	return this.exchangeTyped.FetchConvertTradeHistory(options...)
-}
-func (this *Tokocrypto) FetchCrossBorrowRate(code string, options ...FetchCrossBorrowRateOptions) (CrossBorrowRate, error) {
-	return this.exchangeTyped.FetchCrossBorrowRate(code, options...)
-}
-func (this *Tokocrypto) FetchCrossBorrowRates(params ...any) (CrossBorrowRates, error) {
-	return this.exchangeTyped.FetchCrossBorrowRates(params...)
-}
-func (this *Tokocrypto) FetchCurrencies(params ...any) (Currencies, error) {
-	return this.exchangeTyped.FetchCurrencies(params...)
-}
-func (this *Tokocrypto) FetchDepositAddresses(options ...FetchDepositAddressesOptions) ([]DepositAddress, error) {
-	return this.exchangeTyped.FetchDepositAddresses(options...)
-}
-func (this *Tokocrypto) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) (DepositAddresses, error) {
-	return this.exchangeTyped.FetchDepositAddressesByNetwork(code, options...)
-}
-func (this *Tokocrypto) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawalsOptions) ([]Transaction, error) {
-	return this.exchangeTyped.FetchDepositsWithdrawals(options...)
-}
-func (this *Tokocrypto) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (DepositWithdrawFee, error) {
-	return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)
-}
-func (this *Tokocrypto) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (DepositWithdrawFees, error) {
-	return this.exchangeTyped.FetchDepositWithdrawFees(options...)
-}
-func (this *Tokocrypto) FetchFreeBalance(params ...any) (Balance, error) {
-	return this.exchangeTyped.FetchFreeBalance(params...)
-}
-func (this *Tokocrypto) FetchFundingHistory(options ...FetchFundingHistoryOptions) ([]FundingHistory, error) {
-	return this.exchangeTyped.FetchFundingHistory(options...)
-}
-func (this *Tokocrypto) FetchFundingInterval(symbol string, options ...FetchFundingIntervalOptions) (FundingRate, error) {
-	return this.exchangeTyped.FetchFundingInterval(symbol, options...)
-}
-func (this *Tokocrypto) FetchFundingIntervals(options ...FetchFundingIntervalsOptions) (FundingRates, error) {
-	return this.exchangeTyped.FetchFundingIntervals(options...)
-}
-func (this *Tokocrypto) FetchFundingRate(symbol string, options ...FetchFundingRateOptions) (FundingRate, error) {
-	return this.exchangeTyped.FetchFundingRate(symbol, options...)
-}
-func (this *Tokocrypto) FetchFundingRateHistory(options ...FetchFundingRateHistoryOptions) ([]FundingRateHistory, error) {
-	return this.exchangeTyped.FetchFundingRateHistory(options...)
-}
-func (this *Tokocrypto) FetchFundingRates(options ...FetchFundingRatesOptions) (FundingRates, error) {
-	return this.exchangeTyped.FetchFundingRates(options...)
-}
-func (this *Tokocrypto) FetchGreeks(symbol string, options ...FetchGreeksOptions) (Greeks, error) {
-	return this.exchangeTyped.FetchGreeks(symbol, options...)
-}
-func (this *Tokocrypto) FetchIndexOHLCV(symbol string, options ...FetchIndexOHLCVOptions) ([]OHLCV, error) {
-	return this.exchangeTyped.FetchIndexOHLCV(symbol, options...)
-}
-func (this *Tokocrypto) FetchIsolatedBorrowRate(symbol string, options ...FetchIsolatedBorrowRateOptions) (IsolatedBorrowRate, error) {
-	return this.exchangeTyped.FetchIsolatedBorrowRate(symbol, options...)
-}
-func (this *Tokocrypto) FetchIsolatedBorrowRates(params ...any) (IsolatedBorrowRates, error) {
-	return this.exchangeTyped.FetchIsolatedBorrowRates(params...)
-}
-func (this *Tokocrypto) FetchLastPrices(options ...FetchLastPricesOptions) (LastPrices, error) {
-	return this.exchangeTyped.FetchLastPrices(options...)
-}
-func (this *Tokocrypto) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry, error) {
-	return this.exchangeTyped.FetchLedger(options...)
-}
-func (this *Tokocrypto) FetchLedgerEntry(id string, options ...FetchLedgerEntryOptions) (LedgerEntry, error) {
-	return this.exchangeTyped.FetchLedgerEntry(id, options...)
-}
-func (this *Tokocrypto) FetchLeverage(symbol string, options ...FetchLeverageOptions) (Leverage, error) {
-	return this.exchangeTyped.FetchLeverage(symbol, options...)
-}
-func (this *Tokocrypto) FetchLeverages(options ...FetchLeveragesOptions) (Leverages, error) {
-	return this.exchangeTyped.FetchLeverages(options...)
-}
-func (this *Tokocrypto) FetchLeverageTiers(options ...FetchLeverageTiersOptions) (LeverageTiers, error) {
-	return this.exchangeTyped.FetchLeverageTiers(options...)
-}
-func (this *Tokocrypto) FetchLiquidations(symbol string, options ...FetchLiquidationsOptions) ([]Liquidation, error) {
-	return this.exchangeTyped.FetchLiquidations(symbol, options...)
-}
-func (this *Tokocrypto) FetchLongShortRatio(symbol string, options ...FetchLongShortRatioOptions) (LongShortRatio, error) {
-	return this.exchangeTyped.FetchLongShortRatio(symbol, options...)
-}
-func (this *Tokocrypto) FetchLongShortRatioHistory(options ...FetchLongShortRatioHistoryOptions) ([]LongShortRatio, error) {
-	return this.exchangeTyped.FetchLongShortRatioHistory(options...)
-}
-func (this *Tokocrypto) FetchMarginAdjustmentHistory(options ...FetchMarginAdjustmentHistoryOptions) ([]MarginModification, error) {
-	return this.exchangeTyped.FetchMarginAdjustmentHistory(options...)
-}
-func (this *Tokocrypto) FetchMarginMode(symbol string, options ...FetchMarginModeOptions) (MarginMode, error) {
-	return this.exchangeTyped.FetchMarginMode(symbol, options...)
-}
-func (this *Tokocrypto) FetchMarginModes(options ...FetchMarginModesOptions) (MarginModes, error) {
-	return this.exchangeTyped.FetchMarginModes(options...)
-}
-func (this *Tokocrypto) FetchMarketLeverageTiers(symbol string, options ...FetchMarketLeverageTiersOptions) ([]LeverageTier, error) {
-	return this.exchangeTyped.FetchMarketLeverageTiers(symbol, options...)
-}
-func (this *Tokocrypto) FetchMarkOHLCV(symbol string, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
-	return this.exchangeTyped.FetchMarkOHLCV(symbol, options...)
-}
-func (this *Tokocrypto) FetchMarkPrice(symbol string, options ...FetchMarkPriceOptions) (Ticker, error) {
-	return this.exchangeTyped.FetchMarkPrice(symbol, options...)
-}
-func (this *Tokocrypto) FetchMarkPrices(options ...FetchMarkPricesOptions) (Tickers, error) {
-	return this.exchangeTyped.FetchMarkPrices(options...)
-}
-func (this *Tokocrypto) FetchMyLiquidations(options ...FetchMyLiquidationsOptions) ([]Liquidation, error) {
-	return this.exchangeTyped.FetchMyLiquidations(options...)
-}
-func (this *Tokocrypto) FetchOpenInterest(symbol string, options ...FetchOpenInterestOptions) (OpenInterest, error) {
-	return this.exchangeTyped.FetchOpenInterest(symbol, options...)
-}
-func (this *Tokocrypto) FetchOpenInterestHistory(symbol string, options ...FetchOpenInterestHistoryOptions) ([]OpenInterest, error) {
-	return this.exchangeTyped.FetchOpenInterestHistory(symbol, options...)
-}
-func (this *Tokocrypto) FetchOpenInterests(options ...FetchOpenInterestsOptions) (OpenInterests, error) {
-	return this.exchangeTyped.FetchOpenInterests(options...)
-}
-func (this *Tokocrypto) FetchOption(symbol string, options ...FetchOptionOptions) (Option, error) {
-	return this.exchangeTyped.FetchOption(symbol, options...)
-}
-func (this *Tokocrypto) FetchOptionChain(code string, options ...FetchOptionChainOptions) (OptionChain, error) {
-	return this.exchangeTyped.FetchOptionChain(code, options...)
-}
-func (this *Tokocrypto) FetchOrderWithClientOrderId(clientOrderId string, options ...FetchOrderWithClientOrderIdOptions) (Order, error) {
-	return this.exchangeTyped.FetchOrderWithClientOrderId(clientOrderId, options...)
-}
-func (this *Tokocrypto) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBooks, error) {
-	return this.exchangeTyped.FetchOrderBooks(options...)
-}
-func (this *Tokocrypto) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
-	return this.exchangeTyped.FetchOrderStatus(id, options...)
-}
-func (this *Tokocrypto) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
-	return this.exchangeTyped.FetchOrderTrades(id, options...)
-}
-func (this *Tokocrypto) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
-	return this.exchangeTyped.FetchPaymentMethods(params...)
-}
-func (this *Tokocrypto) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {
-	return this.exchangeTyped.FetchPosition(symbol, options...)
-}
-func (this *Tokocrypto) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
-	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
-}
-func (this *Tokocrypto) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
-	return this.exchangeTyped.FetchPositionMode(options...)
-}
-func (this *Tokocrypto) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
-	return this.exchangeTyped.FetchPositions(options...)
-}
-func (this *Tokocrypto) FetchPositionsForSymbol(symbol string, options ...FetchPositionsForSymbolOptions) ([]Position, error) {
-	return this.exchangeTyped.FetchPositionsForSymbol(symbol, options...)
-}
-func (this *Tokocrypto) FetchPositionsHistory(options ...FetchPositionsHistoryOptions) ([]Position, error) {
-	return this.exchangeTyped.FetchPositionsHistory(options...)
-}
-func (this *Tokocrypto) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([]Position, error) {
-	return this.exchangeTyped.FetchPositionsRisk(options...)
-}
-func (this *Tokocrypto) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
-	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
-}
-func (this *Tokocrypto) FetchStatus(params ...any) (Status, error) {
-	return this.exchangeTyped.FetchStatus(params...)
-}
-func (this *Tokocrypto) FetchTradingFee(symbol string, options ...FetchTradingFeeOptions) (TradingFeeInterface, error) {
-	return this.exchangeTyped.FetchTradingFee(symbol, options...)
-}
-func (this *Tokocrypto) FetchTradingFees(params ...any) (TradingFees, error) {
-	return this.exchangeTyped.FetchTradingFees(params...)
-}
-func (this *Tokocrypto) FetchTradingLimits(options ...FetchTradingLimitsOptions) (map[string]any, error) {
-	return this.exchangeTyped.FetchTradingLimits(options...)
-}
-func (this *Tokocrypto) FetchTransactionFee(code string, options ...FetchTransactionFeeOptions) (map[string]any, error) {
-	return this.exchangeTyped.FetchTransactionFee(code, options...)
-}
-func (this *Tokocrypto) FetchTransactionFees(options ...FetchTransactionFeesOptions) (map[string]any, error) {
-	return this.exchangeTyped.FetchTransactionFees(options...)
-}
-func (this *Tokocrypto) FetchTransactions(options ...FetchTransactionsOptions) ([]Transaction, error) {
-	return this.exchangeTyped.FetchTransactions(options...)
-}
-func (this *Tokocrypto) FetchTransfer(id string, options ...FetchTransferOptions) (TransferEntry, error) {
-	return this.exchangeTyped.FetchTransfer(id, options...)
-}
-func (this *Tokocrypto) FetchTransfers(options ...FetchTransfersOptions) ([]TransferEntry, error) {
-	return this.exchangeTyped.FetchTransfers(options...)
-}
-func (this *Tokocrypto) SetMargin(symbol string, amount float64, options ...SetMarginOptions) (MarginModification, error) {
-	return this.exchangeTyped.SetMargin(symbol, amount, options...)
-}
-func (this *Tokocrypto) SetMarginMode(marginMode string, options ...SetMarginModeOptions) (map[string]any, error) {
-	return this.exchangeTyped.SetMarginMode(marginMode, options...)
-}
-func (this *Tokocrypto) SetPositionMode(hedged bool, options ...SetPositionModeOptions) (map[string]any, error) {
-	return this.exchangeTyped.SetPositionMode(hedged, options...)
-}
-func (this *Tokocrypto) Transfer(code string, amount float64, fromAccount string, toAccount string, options ...TransferOptions) (TransferEntry, error) {
-	return this.exchangeTyped.Transfer(code, amount, fromAccount, toAccount, options...)
-}
-func (this *Tokocrypto) CancelAllOrdersWs(options ...CancelAllOrdersWsOptions) ([]Order, error) {
-	return this.exchangeTyped.CancelAllOrdersWs(options...)
-}
-func (this *Tokocrypto) CancelOrdersWs(ids []string, options ...CancelOrdersWsOptions) ([]Order, error) {
-	return this.exchangeTyped.CancelOrdersWs(ids, options...)
-}
-func (this *Tokocrypto) CancelOrderWs(id string, options ...CancelOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CancelOrderWs(id, options...)
-}
-func (this *Tokocrypto) CreateLimitBuyOrderWs(symbol string, amount float64, price float64, options ...CreateLimitBuyOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateLimitBuyOrderWs(symbol, amount, price, options...)
-}
-func (this *Tokocrypto) CreateLimitOrderWs(symbol string, side string, amount float64, price float64, options ...CreateLimitOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateLimitOrderWs(symbol, side, amount, price, options...)
-}
-func (this *Tokocrypto) CreateLimitSellOrderWs(symbol string, amount float64, price float64, options ...CreateLimitSellOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateLimitSellOrderWs(symbol, amount, price, options...)
-}
-func (this *Tokocrypto) CreateMarketBuyOrderWs(symbol string, amount float64, options ...CreateMarketBuyOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketBuyOrderWs(symbol, amount, options...)
-}
-func (this *Tokocrypto) CreateMarketOrderWithCostWs(symbol string, side string, cost float64, options ...CreateMarketOrderWithCostWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketOrderWithCostWs(symbol, side, cost, options...)
-}
-func (this *Tokocrypto) CreateMarketOrderWs(symbol string, side string, amount float64, options ...CreateMarketOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketOrderWs(symbol, side, amount, options...)
-}
-func (this *Tokocrypto) CreateMarketSellOrderWs(symbol string, amount float64, options ...CreateMarketSellOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketSellOrderWs(symbol, amount, options...)
-}
-func (this *Tokocrypto) CreateOrdersWs(orders []OrderRequest, options ...CreateOrdersWsOptions) ([]Order, error) {
-	return this.exchangeTyped.CreateOrdersWs(orders, options...)
-}
-func (this *Tokocrypto) CreateOrderWithTakeProfitAndStopLossWs(symbol string, typeVar string, side string, amount float64, options ...CreateOrderWithTakeProfitAndStopLossWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateOrderWithTakeProfitAndStopLossWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Tokocrypto) CreateOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Tokocrypto) CreatePostOnlyOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreatePostOnlyOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreatePostOnlyOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Tokocrypto) CreateReduceOnlyOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateReduceOnlyOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateReduceOnlyOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Tokocrypto) CreateStopLimitOrderWs(symbol string, side string, amount float64, price float64, triggerPrice float64, options ...CreateStopLimitOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateStopLimitOrderWs(symbol, side, amount, price, triggerPrice, options...)
-}
-func (this *Tokocrypto) CreateStopLossOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateStopLossOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateStopLossOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Tokocrypto) CreateStopMarketOrderWs(symbol string, side string, amount float64, triggerPrice float64, options ...CreateStopMarketOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateStopMarketOrderWs(symbol, side, amount, triggerPrice, options...)
-}
-func (this *Tokocrypto) CreateStopOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateStopOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateStopOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Tokocrypto) CreateTakeProfitOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTakeProfitOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateTakeProfitOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Tokocrypto) CreateTrailingAmountOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTrailingAmountOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateTrailingAmountOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Tokocrypto) CreateTrailingPercentOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTrailingPercentOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateTrailingPercentOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Tokocrypto) CreateTriggerOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTriggerOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateTriggerOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Tokocrypto) EditOrderWs(id string, symbol string, typeVar string, side string, options ...EditOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.EditOrderWs(id, symbol, typeVar, side, options...)
-}
-func (this *Tokocrypto) FetchBalanceWs(params ...any) (Balances, error) {
-	return this.exchangeTyped.FetchBalanceWs(params...)
-}
-func (this *Tokocrypto) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
-	return this.exchangeTyped.FetchClosedOrdersWs(options...)
-}
-func (this *Tokocrypto) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
-	return this.exchangeTyped.FetchDepositsWs(options...)
-}
-func (this *Tokocrypto) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
-	return this.exchangeTyped.FetchMyTradesWs(options...)
-}
-func (this *Tokocrypto) FetchOHLCVWs(symbol string, options ...FetchOHLCVWsOptions) ([]OHLCV, error) {
-	return this.exchangeTyped.FetchOHLCVWs(symbol, options...)
-}
-func (this *Tokocrypto) FetchOpenOrdersWs(options ...FetchOpenOrdersWsOptions) ([]Order, error) {
-	return this.exchangeTyped.FetchOpenOrdersWs(options...)
-}
-func (this *Tokocrypto) FetchOrderBookWs(symbol string, options ...FetchOrderBookWsOptions) (OrderBook, error) {
-	return this.exchangeTyped.FetchOrderBookWs(symbol, options...)
-}
-func (this *Tokocrypto) FetchOrdersByStatusWs(status string, options ...FetchOrdersByStatusWsOptions) ([]Order, error) {
-	return this.exchangeTyped.FetchOrdersByStatusWs(status, options...)
-}
-func (this *Tokocrypto) FetchOrdersWs(options ...FetchOrdersWsOptions) ([]Order, error) {
-	return this.exchangeTyped.FetchOrdersWs(options...)
-}
-func (this *Tokocrypto) FetchOrderWs(id string, options ...FetchOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.FetchOrderWs(id, options...)
-}
-func (this *Tokocrypto) FetchPositionsForSymbolWs(symbol string, options ...FetchPositionsForSymbolWsOptions) ([]Position, error) {
-	return this.exchangeTyped.FetchPositionsForSymbolWs(symbol, options...)
-}
-func (this *Tokocrypto) FetchPositionsWs(options ...FetchPositionsWsOptions) ([]Position, error) {
-	return this.exchangeTyped.FetchPositionsWs(options...)
-}
-func (this *Tokocrypto) FetchPositionWs(symbol string, options ...FetchPositionWsOptions) ([]Position, error) {
-	return this.exchangeTyped.FetchPositionWs(symbol, options...)
-}
-func (this *Tokocrypto) FetchTickersWs(options ...FetchTickersWsOptions) (Tickers, error) {
-	return this.exchangeTyped.FetchTickersWs(options...)
-}
-func (this *Tokocrypto) FetchTickerWs(symbol string, options ...FetchTickerWsOptions) (Ticker, error) {
-	return this.exchangeTyped.FetchTickerWs(symbol, options...)
-}
-func (this *Tokocrypto) FetchTradesWs(symbol string, options ...FetchTradesWsOptions) ([]Trade, error) {
-	return this.exchangeTyped.FetchTradesWs(symbol, options...)
-}
-func (this *Tokocrypto) FetchTradingFeesWs(params ...any) (TradingFees, error) {
-	return this.exchangeTyped.FetchTradingFeesWs(params...)
-}
-func (this *Tokocrypto) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
-	return this.exchangeTyped.FetchWithdrawalsWs(options...)
-}
-func (this *Tokocrypto) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {
-	return this.exchangeTyped.UnWatchBidsAsks(options...)
-}
-func (this *Tokocrypto) UnWatchMyTrades(options ...UnWatchMyTradesOptions) (any, error) {
-	return this.exchangeTyped.UnWatchMyTrades(options...)
-}
-func (this *Tokocrypto) UnWatchOHLCV(symbol string, options ...UnWatchOHLCVOptions) (any, error) {
-	return this.exchangeTyped.UnWatchOHLCV(symbol, options...)
-}
-func (this *Tokocrypto) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...UnWatchOHLCVForSymbolsOptions) (any, error) {
-	return this.exchangeTyped.UnWatchOHLCVForSymbols(symbolsAndTimeframes, options...)
-}
-func (this *Tokocrypto) UnWatchOrderBook(symbol string, options ...UnWatchOrderBookOptions) (any, error) {
-	return this.exchangeTyped.UnWatchOrderBook(symbol, options...)
-}
-func (this *Tokocrypto) UnWatchOrderBookForSymbols(symbols []string, options ...UnWatchOrderBookForSymbolsOptions) (any, error) {
-	return this.exchangeTyped.UnWatchOrderBookForSymbols(symbols, options...)
-}
-func (this *Tokocrypto) UnWatchOrders(options ...UnWatchOrdersOptions) (any, error) {
-	return this.exchangeTyped.UnWatchOrders(options...)
-}
-func (this *Tokocrypto) UnWatchTicker(symbol string, options ...UnWatchTickerOptions) (any, error) {
-	return this.exchangeTyped.UnWatchTicker(symbol, options...)
-}
-func (this *Tokocrypto) UnWatchTickers(options ...UnWatchTickersOptions) (any, error) {
-	return this.exchangeTyped.UnWatchTickers(options...)
-}
-func (this *Tokocrypto) UnWatchTrades(symbol string, options ...UnWatchTradesOptions) (any, error) {
-	return this.exchangeTyped.UnWatchTrades(symbol, options...)
-}
-func (this *Tokocrypto) UnWatchTradesForSymbols(symbols []string, options ...UnWatchTradesForSymbolsOptions) (any, error) {
-	return this.exchangeTyped.UnWatchTradesForSymbols(symbols, options...)
-}
-func (this *Tokocrypto) WatchBalance(params ...any) (Balances, error) {
-	return this.exchangeTyped.WatchBalance(params...)
-}
-func (this *Tokocrypto) WatchBidsAsks(options ...WatchBidsAsksOptions) (Tickers, error) {
-	return this.exchangeTyped.WatchBidsAsks(options...)
-}
-func (this *Tokocrypto) WatchLiquidations(symbol string, options ...WatchLiquidationsOptions) ([]Liquidation, error) {
-	return this.exchangeTyped.WatchLiquidations(symbol, options...)
-}
-func (this *Tokocrypto) WatchMarkPrice(symbol string, options ...WatchMarkPriceOptions) (Ticker, error) {
-	return this.exchangeTyped.WatchMarkPrice(symbol, options...)
-}
-func (this *Tokocrypto) WatchMarkPrices(options ...WatchMarkPricesOptions) (Tickers, error) {
-	return this.exchangeTyped.WatchMarkPrices(options...)
-}
-func (this *Tokocrypto) WatchMyLiquidations(symbol string, options ...WatchMyLiquidationsOptions) ([]Liquidation, error) {
-	return this.exchangeTyped.WatchMyLiquidations(symbol, options...)
-}
-func (this *Tokocrypto) WatchMyLiquidationsForSymbols(symbols []string, options ...WatchMyLiquidationsForSymbolsOptions) ([]Liquidation, error) {
-	return this.exchangeTyped.WatchMyLiquidationsForSymbols(symbols, options...)
-}
-func (this *Tokocrypto) WatchMyTrades(options ...WatchMyTradesOptions) ([]Trade, error) {
-	return this.exchangeTyped.WatchMyTrades(options...)
-}
-func (this *Tokocrypto) WatchOHLCV(symbol string, options ...WatchOHLCVOptions) ([]OHLCV, error) {
-	return this.exchangeTyped.WatchOHLCV(symbol, options...)
-}
-func (this *Tokocrypto) WatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...WatchOHLCVForSymbolsOptions) (map[string]map[string][]OHLCV, error) {
-	return this.exchangeTyped.WatchOHLCVForSymbols(symbolsAndTimeframes, options...)
-}
-func (this *Tokocrypto) WatchOrderBook(symbol string, options ...WatchOrderBookOptions) (OrderBook, error) {
-	return this.exchangeTyped.WatchOrderBook(symbol, options...)
-}
-func (this *Tokocrypto) WatchOrderBookForSymbols(symbols []string, options ...WatchOrderBookForSymbolsOptions) (OrderBook, error) {
-	return this.exchangeTyped.WatchOrderBookForSymbols(symbols, options...)
-}
-func (this *Tokocrypto) WatchOrders(options ...WatchOrdersOptions) ([]Order, error) {
-	return this.exchangeTyped.WatchOrders(options...)
-}
-func (this *Tokocrypto) WatchOrdersForSymbols(symbols []string, options ...WatchOrdersForSymbolsOptions) ([]Order, error) {
-	return this.exchangeTyped.WatchOrdersForSymbols(symbols, options...)
-}
-func (this *Tokocrypto) WatchPosition(options ...WatchPositionOptions) (Position, error) {
-	return this.exchangeTyped.WatchPosition(options...)
-}
-func (this *Tokocrypto) WatchPositions(options ...WatchPositionsOptions) ([]Position, error) {
-	return this.exchangeTyped.WatchPositions(options...)
-}
-func (this *Tokocrypto) WatchTicker(symbol string, options ...WatchTickerOptions) (Ticker, error) {
-	return this.exchangeTyped.WatchTicker(symbol, options...)
-}
-func (this *Tokocrypto) WatchTickers(options ...WatchTickersOptions) (Tickers, error) {
-	return this.exchangeTyped.WatchTickers(options...)
-}
-func (this *Tokocrypto) WatchTrades(symbol string, options ...WatchTradesOptions) ([]Trade, error) {
-	return this.exchangeTyped.WatchTrades(symbol, options...)
-}
-func (this *Tokocrypto) WatchTradesForSymbols(symbols []string, options ...WatchTradesForSymbolsOptions) ([]Trade, error) {
-	return this.exchangeTyped.WatchTradesForSymbols(symbols, options...)
-}
-func (this *Tokocrypto) WithdrawWs(code string, amount float64, address string, options ...WithdrawWsOptions) (Transaction, error) {
-	return this.exchangeTyped.WithdrawWs(code, amount, address, options...)
 }

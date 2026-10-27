@@ -814,11 +814,10 @@ export default class bitflyer extends Exchange {
             'count': limit,
         };
         const response = await this.privateGetGetchildorders(this.extend(request, params));
-        let orders = this.parseOrders(response, market, since, limit);
         if (symbol !== undefined) {
-            orders = this.filterBy(orders, 'symbol', symbol);
+            return this.filterBy(this.parseOrders(response, market, since, limit), 'symbol', symbol);
         }
-        return orders;
+        return this.parseOrders(response, market, since, limit);
     }
     /**
      * @method
@@ -966,11 +965,11 @@ export default class bitflyer extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw(code, amount, address, tag = undefined, params = {}) {
+    async withdraw(code, amount, address, params = {}) {
         this.checkAddress(address);
         if (this.markets === undefined) {
             await this.loadMarkets();
@@ -1225,11 +1224,12 @@ export default class bitflyer extends Exchange {
             'interval': undefined,
         };
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
         let bodySigned = undefined;
         let headersSigned = undefined;
         let request = '/' + this.version + '/';
-        if (api === 'private') {
+        if (apiName === 'private') {
             request += 'me/';
         }
         request += path;
@@ -1244,15 +1244,16 @@ export default class bitflyer extends Exchange {
         }
         const baseUrl = this.implodeHostname(apiUrl);
         const url = baseUrl + request;
-        if (api === 'private') {
+        if (apiName === 'private') {
             this.checkRequiredCredentials();
             const nonce = this.nonce().toString();
             const content = [nonce, method, request];
             let auth = content.join('');
             if (Object.keys(params).length > 0) {
                 if (method !== 'GET') {
-                    bodySigned = this.json(params);
-                    auth += bodySigned;
+                    const body = this.json(params);
+                    bodySigned = body;
+                    auth += body;
                 }
             }
             headersSigned = {
@@ -1262,8 +1263,8 @@ export default class bitflyer extends Exchange {
                 'Content-Type': 'application/json',
             };
         }
-        const headersResolved = (headersSigned === undefined) ? headers : headersSigned;
-        const bodyResolved = (bodySigned === undefined) ? body : bodySigned;
+        const headersResolved = headersSigned;
+        const bodyResolved = bodySigned;
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {

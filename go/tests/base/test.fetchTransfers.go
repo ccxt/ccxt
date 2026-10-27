@@ -19,7 +19,10 @@ func testFetchTransfersBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICoreEx
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	transfers := r.Value
+	var transfers any = nil
+	if r.Value != nil {
+		transfers = ccxt.TransferEntriesToList(r.Value)
+	}
 	AssertNonEmtpyArray(exchange, skippedProperties, method, transfers, code)
 	for i := 0; i < GetArrayLength(transfers); i++ {
 		TestTransfer(exchange, skippedProperties, method, GetValue(transfers, i), code)

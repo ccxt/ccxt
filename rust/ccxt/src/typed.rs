@@ -148,8 +148,8 @@ pub trait TypedExchangeExt: TypedExchange {
         }
     }
     /// Typed `withdraw`.
-    fn withdraw<'a>(&'a mut self, code: &str, amount: f64, address: &str, tag: Option<&str>, params: impl Into<Params>) -> impl ::std::future::Future<Output = crate::Result<Transaction>> + Send + 'a {
-        let __args: Vec<Value> = vec![Value::from(code), Value::Float(amount), Value::from(address), tag.map(Value::from).unwrap_or(Value::Null), params.into().into_value()];
+    fn withdraw<'a>(&'a mut self, code: &str, amount: f64, address: &str, params: impl Into<Params>) -> impl ::std::future::Future<Output = crate::Result<Transaction>> + Send + 'a {
+        let __args: Vec<Value> = vec![Value::from(code), Value::Float(amount), Value::from(address), params.into().into_value()];
         async move {
             let v = self.call_raw("withdraw", __args).await?;
             Ok(Transaction::from_value(v))
@@ -868,11 +868,11 @@ pub trait TypedExchangeExt: TypedExchange {
         }
     }
     /// Typed `fetchL3OrderBook`.
-    fn fetch_l3_order_book<'a>(&'a mut self, symbol: &str, limit: Option<i64>, params: impl Into<Params>) -> impl ::std::future::Future<Output = crate::Result<OrderBook>> + Send + 'a {
+    fn fetch_l3_order_book<'a>(&'a mut self, symbol: &str, limit: Option<i64>, params: impl Into<Params>) -> impl ::std::future::Future<Output = crate::Result<OrderBookL3>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), limit.map(Value::Int).unwrap_or(Value::Null), params.into().into_value()];
         async move {
             let v = self.call_raw("fetch_l3_order_book", __args).await?;
-            Ok(OrderBook::from_value(v))
+            Ok(OrderBookL3::from_value(v))
         }
     }
     /// Typed `fetchTrades`.
@@ -1368,8 +1368,6 @@ pub use crate::exchanges::coinbaseexchange_typed::Coinbaseexchange;
 pub use crate::exchanges::coinbaseinternational_typed::Coinbaseinternational;
 #[cfg(feature = "coincheck")]
 pub use crate::exchanges::coincheck_typed::Coincheck;
-#[cfg(feature = "coinex")]
-pub use crate::exchanges::coinex_typed::Coinex;
 #[cfg(feature = "coinmate")]
 pub use crate::exchanges::coinmate_typed::Coinmate;
 #[cfg(feature = "coinone")]
@@ -1472,6 +1470,8 @@ pub use crate::exchanges::paymium_typed::Paymium;
 pub use crate::exchanges::phemex_typed::Phemex;
 #[cfg(feature = "poloniex")]
 pub use crate::exchanges::poloniex_typed::Poloniex;
+#[cfg(feature = "polymarket")]
+pub use crate::exchanges::polymarket_typed::Polymarket;
 #[cfg(feature = "revolutx")]
 pub use crate::exchanges::revolutx_typed::Revolutx;
 #[cfg(feature = "tokocrypto")]
@@ -1583,8 +1583,6 @@ pub fn from_id(id: &str, config: Option<crate::Value>) -> Option<Box<dyn TypedEx
         "coinbaseinternational" => Some(Box::new(Coinbaseinternational::new(config))),
         #[cfg(feature = "coincheck")]
         "coincheck" => Some(Box::new(Coincheck::new(config))),
-        #[cfg(feature = "coinex")]
-        "coinex" => Some(Box::new(Coinex::new(config))),
         #[cfg(feature = "coinmate")]
         "coinmate" => Some(Box::new(Coinmate::new(config))),
         #[cfg(feature = "coinone")]
@@ -1687,6 +1685,8 @@ pub fn from_id(id: &str, config: Option<crate::Value>) -> Option<Box<dyn TypedEx
         "phemex" => Some(Box::new(Phemex::new(config))),
         #[cfg(feature = "poloniex")]
         "poloniex" => Some(Box::new(Poloniex::new(config))),
+        #[cfg(feature = "polymarket")]
+        "polymarket" => Some(Box::new(Polymarket::new(config))),
         #[cfg(feature = "revolutx")]
         "revolutx" => Some(Box::new(Revolutx::new(config))),
         #[cfg(feature = "tokocrypto")]

@@ -15,11 +15,14 @@ func testFetchStatusBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICoreExcha
 	defer ReturnPanicError(ch)
 	var method string = "fetchStatus"
 
-	r := <-exchange.FetchStatusAsync()
+	r := <-exchange.(ccxt.IFetchStatus).FetchStatusAsync()
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	status := r.Raw
+	var status any = nil
+	if !ccxt.StructAbsent(r.Value) {
+		status = ccxt.StructBox(r.Value, ccxt.StatusToMap)
+	}
 	TestStatus(exchange, skippedProperties, method, status, exchange.Milliseconds())
 
 	ch <- ccxt.AsyncResult[any]{Value: true}

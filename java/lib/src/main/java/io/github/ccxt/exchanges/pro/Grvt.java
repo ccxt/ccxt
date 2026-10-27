@@ -11,6 +11,7 @@ import io.github.ccxt.Client;
 import io.github.ccxt.types.OHLCV;
 import io.github.ccxt.types.Order;
 import io.github.ccxt.types.OrderBook;
+import io.github.ccxt.types.Pair;
 import io.github.ccxt.types.Position;
 import io.github.ccxt.types.Ticker;
 import io.github.ccxt.types.Tickers;
@@ -139,7 +140,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
         }
     }
 
-    public CompletableFuture<Object> subscribeMultiple(Object messageHashes, Map<String, Object> request, Object rawHashes, Object publicOrPrivate)
+    public CompletableFuture<Object> subscribeMultiple(Object messageHashes, Map<String, Object> request, Object rawHashes, Boolean publicOrPrivate)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -151,7 +152,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
                 put( "id", Grvt.this.requestId() );
             }};
             String apiPart = "privateTrading";
-            if (Helpers.isTrue(java.util.Objects.requireNonNullElse(publicOrPrivate, true)))
+            if (java.util.Objects.requireNonNullElse(publicOrPrivate, true))
             {
                 apiPart = "publicMarket";
             }
@@ -162,12 +163,12 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
 
     public Long requestId()
     {
-        Object newValue;
+        Long newValue;
         synchronized (this) {
-        newValue = this.sum(this.safeInteger(this.options, "requestId", 0), 1);
+        newValue = (Long) this.sum(this.safeInteger(this.options, "requestId", 0), 1);
         Helpers.addElementToObject(this.options, "requestId", newValue);
         }
-        return Helpers.toLongOrNull(newValue);
+        return newValue;
     }
 
     /**
@@ -215,7 +216,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
             {
                 throw new ArgumentsRequired((this.id + " watchTickers requires a symbols argument")) ;
             }
-            io.github.ccxt.base.Pair<String, Map<String, Object>> channelparamsChannelVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchTickers", "channel", "v1.ticker.s");
+            Pair<String, Map<String, Object>> channelparamsChannelVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchTickers", "channel", "v1.ticker.s");
             String channel = channelparamsChannelVariable.first();
             Map<String, Object> paramsChannel = channelparamsChannelVariable.second();
             Long interval = 500L;
@@ -459,7 +460,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
             Helpers.addElementToObject(this.trades, symbol, new ArrayCache(((Number)limit).intValue()));
         }
         Map<String, Object> parsed = this.parseWsTrade((Map<String, Object>) (data), (Map<String, Object>) null);
-        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(this.trades, symbol);
+        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) (symbol == null || this.trades == null ? null : ((Map<?, ?>)this.trades).get(symbol));
         stored.append(parsed);
         client.resolve(stored, ("trade::" + symbol));
     }
@@ -648,7 +649,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            io.github.ccxt.base.Pair<String, Map<String, Object>> channelparamsChannelVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchOrderBook", "channel", "v1.book.d");
+            Pair<String, Map<String, Object>> channelparamsChannelVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchOrderBook", "channel", "v1.book.d");
             String channel = channelparamsChannelVariable.first();
             Map<String, Object> paramsChannel = channelparamsChannelVariable.second();
             Boolean isSnapshot = java.util.Objects.equals(channel, "v1.book.s");

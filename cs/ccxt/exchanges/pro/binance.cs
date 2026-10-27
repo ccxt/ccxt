@@ -79,12 +79,12 @@ public partial class binance : ccxt.binance
                     { "ws", new Dictionary<string, object>() {
                         { "spot", "wss://stream.testnet.binance.vision/ws" },
                         { "margin", "wss://stream.testnet.binance.vision/ws" },
-                        { "future", "wss://fstream.binancefuture.com/ws" },
-                        { "delivery", "wss://dstream.binancefuture.com/ws" },
+                        { "linear", "wss://fstream.binancefuture.com/ws" },
+                        { "inverse", "wss://dstream.binancefuture.com/ws" },
                         { "ws-api", new Dictionary<string, object>() {
                             { "spot", "wss://ws-api.testnet.binance.vision/ws-api/v3" },
-                            { "future", "wss://testnet.binancefuture.com/ws-fapi/v1" },
-                            { "delivery", "wss://testnet.binancefuture.com/ws-dapi/v1" },
+                            { "linear", "wss://testnet.binancefuture.com/ws-fapi/v1" },
+                            { "inverse", "wss://testnet.binancefuture.com/ws-dapi/v1" },
                         } },
                     } },
                 } },
@@ -92,12 +92,12 @@ public partial class binance : ccxt.binance
                     { "ws", new Dictionary<string, object>() {
                         { "spot", "wss://demo-stream.binance.com/ws" },
                         { "margin", "wss://demo-stream.binance.com/ws" },
-                        { "future", "wss://fstream.binancefuture.com/ws" },
-                        { "delivery", "wss://dstream.binancefuture.com/ws" },
+                        { "linear", "wss://fstream.binancefuture.com/ws" },
+                        { "inverse", "wss://dstream.binancefuture.com/ws" },
                         { "ws-api", new Dictionary<string, object>() {
                             { "spot", "wss://demo-ws-api.binance.com/ws-api/v3" },
-                            { "future", "wss://testnet.binancefuture.com/ws-fapi/v1" },
-                            { "delivery", "wss://testnet.binancefuture.com/ws-dapi/v1" },
+                            { "linear", "wss://testnet.binancefuture.com/ws-fapi/v1" },
+                            { "inverse", "wss://testnet.binancefuture.com/ws-dapi/v1" },
                         } },
                     } },
                 } },
@@ -105,16 +105,16 @@ public partial class binance : ccxt.binance
                     { "ws", new Dictionary<string, object>() {
                         { "spot", "wss://stream.binance.com:9443/ws" },
                         { "margin", "wss://stream.binance.com:9443/ws" },
-                        { "future", "wss://fstream.binance.com/ws" },
-                        { "delivery", "wss://dstream.binance.com/ws" },
+                        { "linear", "wss://fstream.binance.com/ws" },
+                        { "inverse", "wss://dstream.binance.com/ws" },
                         { "stock", "wss://nbstream.binance.com/equity/ws" },
                         { "option", "wss://fstream.binance.com/public/ws" },
                         { "optionMarket", "wss://fstream.binance.com/market/ws" },
                         { "optionPrivate", "wss://fstream.binance.com/private/ws" },
                         { "ws-api", new Dictionary<string, object>() {
                             { "spot", "wss://ws-api.binance.com:443/ws-api/v3" },
-                            { "future", "wss://ws-fapi.binance.com/ws-fapi/v1" },
-                            { "delivery", "wss://ws-dapi.binance.com/ws-dapi/v1" },
+                            { "linear", "wss://ws-fapi.binance.com/ws-fapi/v1" },
+                            { "inverse", "wss://ws-dapi.binance.com/ws-dapi/v1" },
                         } },
                         { "papi", "wss://fstream.binance.com/pm/ws" },
                     } },
@@ -129,8 +129,8 @@ public partial class binance : ccxt.binance
                 { "streamLimits", new Dictionary<string, object>() {
                     { "spot", 50 },
                     { "margin", 50 },
-                    { "future", 50 },
-                    { "delivery", 50 },
+                    { "linear", 50 },
+                    { "inverse", 50 },
                     { "stock", 50 },
                     { "option", 50 },
                     { "optionMarket", 50 },
@@ -138,8 +138,8 @@ public partial class binance : ccxt.binance
                 { "subscriptionLimitByStream", new Dictionary<string, object>() {
                     { "spot", 200 },
                     { "margin", 200 },
-                    { "future", 200 },
-                    { "delivery", 200 },
+                    { "linear", 200 },
+                    { "inverse", 200 },
                     { "stock", 200 },
                     { "option", 200 },
                     { "optionMarket", 200 },
@@ -228,11 +228,11 @@ public partial class binance : ccxt.binance
         string? stream = this.safeString(streamBySubscriptionsHash, subscriptionHash);
         if ((stream == null))
         {
-            object streamIndex = this.safeInteger(this.options, "streamIndex", -1);
+            Int64? previousStreamIndex = this.safeInteger(this.options, "streamIndex", -1);
             IDictionary<string, object> streamLimits = this.safeDict(this.options, "streamLimits");
             Int64? streamLimit = this.safeInteger(streamLimits, type);
-            streamIndex = add(streamIndex, 1);
-            object normalizedIndex = mod(streamIndex, streamLimit);
+            Int64? streamIndex = (previousStreamIndex + 1);
+            Int64? normalizedIndex = mod(streamIndex, streamLimit);
             this.options["streamIndex"] = streamIndex;
             stream = this.numberToString(normalizedIndex);
             if ((subscriptionHash != null))
@@ -251,7 +251,7 @@ public partial class binance : ccxt.binance
             {
                 throw new BadRequest ((this.id + " reached the limit of subscriptions by stream. Increase the number of streams, or increase the stream limit or subscription limit by stream if the exchange allows.")) ;
             }
-            ((IDictionary<string,object>)(this.options.ContainsKey("numSubscriptionsByStream") ? this.options["numSubscriptionsByStream"] : null))[(string)stream] = add(subscriptionsByStream, numSubscriptions);
+            ((IDictionary<string,object>)(this.options.ContainsKey("numSubscriptionsByStream") ? this.options["numSubscriptionsByStream"] : null))[(string)stream] = newNumSubscriptions;
         }
         return stream;
     }
@@ -265,7 +265,7 @@ public partial class binance : ccxt.binance
             return getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), type);
         }
         object baseUrl = getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), type);
-        if ((type is "future"))
+        if ((type is "linear"))
         {
             // skip URL manipulation for proxied/bridge URLs (contain an embedded protocol)
             // const firstProtocol = baseUrl.indexOf ('://');
@@ -305,7 +305,7 @@ public partial class binance : ccxt.binance
         {
             throw new AuthenticationError ((this.id + " getPrivateWsUrl() requires a listenKey from authenticate()")) ;
         }
-        if ((type is "future"))
+        if ((type is "linear"))
         {
             return ((string?)((object)(add(add(this.getWsUrl(type, "private"), "?listenKey="), listenKey))));
         }
@@ -317,15 +317,15 @@ public partial class binance : ccxt.binance
         return ((wsUrl + "/") + (listenKey));
     }
 
-    public virtual object getStockWsUrl(string? streamType = null)
+    public virtual string? getStockWsUrl(string? streamType = null)
     {
         streamType ??= "market";
         string? baseUrl = ((string)getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "stock"));
         if ((streamType == "combined"))
         {
-            return baseUrl.Replace("/ws", (string)"/stream");
+            return ((string?)((object)(baseUrl.Replace("/ws", (string)"/stream"))));
         }
-        return baseUrl;
+        return ((string?)((object)(baseUrl)));
     }
 
     public virtual string? getStockTickerFromSymbol(object symbol)
@@ -367,9 +367,9 @@ public partial class binance : ccxt.binance
     public async virtual Task<object> watchStockMarketStream(object streams, IList<object> messageHashes, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object url = this.getStockWsUrl("market");
+        string? url = this.getStockWsUrl("market");
         Int64 requestId = this.requestId(url);
-        object query = this.omit(parameters, new List<object>() {"stock", "name", "callerMethodName", "type", "subType", "symbol", "timeframe"});
+        IDictionary<string, object> query = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"stock", "name", "callerMethodName", "type", "subType", "symbol", "timeframe"}));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "SUBSCRIBE" },
             { "params", streams },
@@ -385,8 +385,10 @@ public partial class binance : ccxt.binance
      * @method
      * @name binance#watchLiquidations
      * @description watch the public liquidations of a trading pair
-     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Liquidation-Order-Streams
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Liquidation-Order-Streams
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Liquidation-Order-Streams // deprecated
+     * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/ws-streams/market#liquidation-order-streams
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Liquidation-Order-Streams // deprecated
+     * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/ws-streams/~#market-liquidation-order-streams
      * @param {string} symbol unified CCXT market symbol
      * @param {int} [since] the earliest time in ms to fetch liquidations for
      * @param {int} [limit] the maximum number of liquidation structures to retrieve
@@ -629,8 +631,10 @@ public partial class binance : ccxt.binance
      * @method
      * @name binance#watchMyLiquidations
      * @description watch the private liquidations of a trading pair
-     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/user-data-streams/Event-Order-Update
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/user-data-streams/Event-Order-Update
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/user-data-streams/Event-Order-Update // deprecated
+     * @see https://developers.binance.com/en/docs/products/derivatives-trading-usds-futures/user-data-streams#event-order-update
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/user-data-streams/Event-Order-Update // deprecated
+     * @see https://developers.binance.com/en/docs/products/derivatives-trading-coin-futures/user-data-streams#event-order-update
      * @param {string} symbol unified CCXT market symbol
      * @param {int} [since] the earliest time in ms to fetch liquidations for
      * @param {int} [limit] the maximum number of liquidation structures to retrieve
@@ -647,8 +651,10 @@ public partial class binance : ccxt.binance
      * @method
      * @name binance#watchMyLiquidationsForSymbols
      * @description watch the private liquidations of a trading pair
-     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/user-data-streams/Event-Order-Update
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/user-data-streams/Event-Order-Update
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/user-data-streams/Event-Order-Update // deprecated
+     * @see https://developers.binance.com/en/docs/products/derivatives-trading-usds-futures/user-data-streams#event-order-update
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/user-data-streams/Event-Order-Update // deprecated
+     * @see https://developers.binance.com/en/docs/products/derivatives-trading-coin-futures/user-data-streams#event-order-update
      * @param {string[]} symbols list of unified market symbols
      * @param {int} [since] the earliest time in ms to fetch liquidations for
      * @param {int} [limit] the maximum number of liquidation structures to retrieve
@@ -685,7 +691,7 @@ public partial class binance : ccxt.binance
             { "type", type },
             { "subType", subType },
         }, paramsValue));
-        object listenKey = getValue(getValue(this.options, type), "listenKey");
+        object listenKey = getValue((this.options != null && type != null && this.options.ContainsKey(type) ? this.options[type] : null), "listenKey");
         string? url = this.getPrivateWsUrl(type, listenKey);
         object message = null;
         object newLiquidations = await this.watchMultiple(url, messageHashes, message, new List<object>() {type});
@@ -769,11 +775,16 @@ public partial class binance : ccxt.binance
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#partial-book-depth-streams
      * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#diff-depth-stream
-     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Partial-Book-Depth-Streams
-     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams
-     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams-RPI
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Partial-Book-Depth-Streams
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Partial-Book-Depth-Streams // deprecated
+     * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/ws-streams/public#partial-book-depth-streams
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams // deprecated
+     * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/ws-streams/public#diff-book-depth-streams
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams-RPI // deprecated
+     * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/ws-streams/public#rpi-diff-book-depth-streams
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Partial-Book-Depth-Streams // deprecated
+     * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/ws-streams/~#partial-book-depth-streams
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams // deprecated
+     * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/ws-streams/~#diff-book-depth-streams
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -796,11 +807,16 @@ public partial class binance : ccxt.binance
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#partial-book-depth-streams
      * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#diff-depth-stream
-     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Partial-Book-Depth-Streams
-     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams
-     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams-RPI
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Partial-Book-Depth-Streams
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Partial-Book-Depth-Streams // deprecated
+     * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/ws-streams/public#partial-book-depth-streams
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams // deprecated
+     * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/ws-streams/public#diff-book-depth-streams
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams-RPI // deprecated
+     * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/ws-streams/public#rpi-diff-book-depth-streams
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Partial-Book-Depth-Streams // deprecated
+     * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/ws-streams/~#partial-book-depth-streams
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams // deprecated
+     * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/ws-streams/~#diff-book-depth-streams
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -822,7 +838,7 @@ public partial class binance : ccxt.binance
             type = "option";
         } else if ((((firstMarket != null && firstMarket.ContainsKey("contract") ? firstMarket["contract"] : null) as bool?) == true))
         {
-            type = ((((firstMarket != null && firstMarket.ContainsKey("linear") ? firstMarket["linear"] : null) as bool?) == true)) ? "future" : "delivery";
+            type = ((((firstMarket != null && firstMarket.ContainsKey("linear") ? firstMarket["linear"] : null) as bool?) == true)) ? "linear" : "inverse";
         }
         string name = "depth";
         string streamHash = "multipleOrderbook";
@@ -842,7 +858,7 @@ public partial class binance : ccxt.binance
         (bool?, object) rpiparamsRpiVariable = this.handleOptionBoolAndParams(paramsRate, "watchOrderBookForSymbols", "rpi", false);
         bool? rpi = rpiparamsRpiVariable.Item1;
         IDictionary<string, object> paramsRpi = ((IDictionary<string, object>)rpiparamsRpiVariable.Item2);
-        if ((rpi == true) && type == "future")
+        if ((rpi == true) && type == "linear")
         {
             name = "rpiDepth";
             watchOrderBookRate = "500";
@@ -889,10 +905,14 @@ public partial class binance : ccxt.binance
      * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#partial-book-depth-streams
      * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#diff-depth-stream
-     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Partial-Book-Depth-Streams
-     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Partial-Book-Depth-Streams
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Partial-Book-Depth-Streams // deprecated
+     * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/ws-streams/public#partial-book-depth-streams
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams // deprecated
+     * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/ws-streams/public#diff-book-depth-streams
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Partial-Book-Depth-Streams // deprecated
+     * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/ws-streams/~#partial-book-depth-streams
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams // deprecated
+     * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/ws-streams/~#diff-book-depth-streams
      * @param {string[]} symbols unified array of symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
@@ -912,7 +932,7 @@ public partial class binance : ccxt.binance
             type = "option";
         } else if ((((firstMarket != null && firstMarket.ContainsKey("contract") ? firstMarket["contract"] : null) as bool?) == true))
         {
-            type = ((((firstMarket != null && firstMarket.ContainsKey("linear") ? firstMarket["linear"] : null) as bool?) == true)) ? "future" : "delivery";
+            type = ((((firstMarket != null && firstMarket.ContainsKey("linear") ? firstMarket["linear"] : null) as bool?) == true)) ? "linear" : "inverse";
         }
         string name = "depth";
         string streamHash = "multipleOrderbook";
@@ -960,10 +980,14 @@ public partial class binance : ccxt.binance
      * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#partial-book-depth-streams
      * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#diff-depth-stream
-     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Partial-Book-Depth-Streams
-     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Partial-Book-Depth-Streams
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Partial-Book-Depth-Streams // deprecated
+     * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/ws-streams/public#partial-book-depth-streams
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams // deprecated
+     * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/ws-streams/public#diff-book-depth-streams
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Partial-Book-Depth-Streams // deprecated
+     * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/ws-streams/~#partial-book-depth-streams
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams // deprecated
+     * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/ws-streams/~#diff-book-depth-streams
      * @param {string} symbol unified array of symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
@@ -1001,7 +1025,7 @@ public partial class binance : ccxt.binance
             payload["limit"] = limit;
         }
         string? marketType = this.getMarketType("fetchOrderBookWs", market, parameters);
-        if (marketType != "future")
+        if (marketType != "linear")
         {
             throw new BadRequest ((this.id + " fetchOrderBookWs only supports swap markets")) ;
         }
@@ -1025,8 +1049,9 @@ public partial class binance : ccxt.binance
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "method", this.handleFetchOrderBook },
         };
-        object orderbook = await this.watch(url, messageHash, message, messageHash, subscription);
-        ((IDictionary<string,object>)orderbook)["symbol"] = (market.ContainsKey("symbol") ? market["symbol"] : null);
+        object snapshot = await this.watch(url, messageHash, message, messageHash, subscription);
+        ((IDictionary<string,object>)snapshot)["symbol"] = (market.ContainsKey("symbol") ? market["symbol"] : null);
+        ccxt.pro.OrderBook orderbook = this.orderBook(snapshot);
         return ccxt.BaseExchange.ToOrderBook(orderbook);
     }
 
@@ -1077,7 +1102,7 @@ public partial class binance : ccxt.binance
             // todo: this is a synch blocking call - make it async
             // default 100, max 1000, valid limits 5, 10, 20, 50, 100, 500, 1000
             Dictionary<string, object> snapshot = ccxt.BaseExchange.FromOrderBook(await this.FetchRestOrderBookSafe(symbol, limit, parameters));
-            if (isEqual(this.safeOrderBook(this.orderbooks, symbol), null))
+            if ((this.safeOrderBook(this.orderbooks, symbol) == null))
             {
                 // if the orderbook is dropped before the snapshot is received
                 return;
@@ -1097,27 +1122,37 @@ public partial class binance : ccxt.binance
                     continue;
                 }
                 Int64? pu = this.safeInteger(messageItem, "pu");
-                if (type == "future")
+                Int64? snapshotNonce = this.safeInteger(orderbook, "nonce");
+                if ((snapshotNonce == null))
+                {
+                    // every comparison against an undefined nonce is false, only pu === undefined matches
+                    if ((type == "linear") && ((pu == null)))
+                    {
+                        this.handleOrderBookMessage(client, messageItem, orderbook);
+                    }
+                    continue;
+                }
+                if (type == "linear")
                 {
                     // 4. Drop any event where u is < lastUpdateId in the snapshot
-                    if (isLessThan(u, getValue(orderbook, "nonce")))
+                    if ((u < snapshotNonce))
                     {
                         continue;
                     }
                     // 5. The first processed event should have U <= lastUpdateId AND u >= lastUpdateId
-                    if ((isLessThanOrEqual(U, getValue(orderbook, "nonce"))) && (isGreaterThanOrEqual(u, getValue(orderbook, "nonce"))) || (isEqual(pu, getValue(orderbook, "nonce"))))
+                    if (((U == null || U <= snapshotNonce)) && ((snapshotNonce == null || u >= snapshotNonce)) || ((pu == snapshotNonce)))
                     {
                         this.handleOrderBookMessage(client, messageItem, orderbook);
                     }
                 } else
                 {
                     // 4. Drop any event where u is <= lastUpdateId in the snapshot
-                    if (isLessThanOrEqual(u, getValue(orderbook, "nonce")))
+                    if ((u == null || u <= snapshotNonce))
                     {
                         continue;
                     }
                     // 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1
-                    if ((isLessThanOrEqual(((U - 1)), getValue(orderbook, "nonce"))) && (isGreaterThanOrEqual(((u - 1)), getValue(orderbook, "nonce"))))
+                    if ((((U - 1) == null || (U - 1) <= snapshotNonce)) && ((snapshotNonce == null || (u - 1) >= snapshotNonce)))
                     {
                         this.handleOrderBookMessage(client, messageItem, orderbook);
                     }
@@ -1241,7 +1276,7 @@ public partial class binance : ccxt.binance
                         if ((timestamp == null))
                         {
                             // 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1
-                            conditional = (isLessThanOrEqual(((U - 1)), nonce)) && (isGreaterThanOrEqual(((u - 1)), nonce));
+                            conditional = (((U - 1) == null || (U - 1) <= nonce)) && ((nonce == null || (u - 1) >= nonce));
                         } else
                         {
                             // 6. While listening to the stream, each new event's U should be equal to the previous event's u+1.
@@ -1250,7 +1285,8 @@ public partial class binance : ccxt.binance
                         if ((conditional == true))
                         {
                             this.handleOrderBookMessage(client, message, orderbook);
-                            if (isLessThan(nonce, this.safeInteger(orderbook, "nonce", 0)))
+                            Int64? newNonce = this.safeInteger(orderbook, "nonce", 0);
+                            if ((nonce < newNonce))
                             {
                                 client.resolve(orderbook, messageHash);
                             }
@@ -1274,7 +1310,8 @@ public partial class binance : ccxt.binance
                         if (((U == null || U <= nonce)) || ((pu == nonce)))
                         {
                             this.handleOrderBookMessage(client, message, orderbook);
-                            if (isLessThanOrEqual(nonce, this.safeInteger(orderbook, "nonce", 0)))
+                            Int64? newNonce = this.safeInteger(orderbook, "nonce", 0);
+                            if ((nonce == null || nonce <= newNonce))
                             {
                                 client.resolve(orderbook, messageHash);
                             }
@@ -1314,11 +1351,13 @@ public partial class binance : ccxt.binance
         for (int i = 0; i < symbols.Count; i++)
         {
             object symbol = symbols[i];
-            if ((this.orderbooks != null && symbol is string inOpKey0 && this.orderbooks.ContainsKey(inOpKey0)))
+            if (!((this.orderbooks != null && symbol is string inOpKey0 && this.orderbooks.ContainsKey(inOpKey0))))
             {
-                ((IDictionary<string,object>)this.orderbooks).Remove((string)symbol);
+                ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
             }
-            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
+            ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
+            orderbook["nonce"] = null;
+            (orderbook as ccxt.pro.OrderBook).cache = new List<object>() {};
             Dictionary<string, object> symbolSubscription = this.extend(subscription, new Dictionary<string, object>() {
                 { "symbol", symbol },
             });
@@ -1370,8 +1409,10 @@ public partial class binance : ccxt.binance
      * @description get the list of most recent trades for a list of symbols
      * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#aggregate-trades
      * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#recent-trades
-     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Aggregate-Trade-Streams
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Aggregate-Trade-Streams
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Aggregate-Trade-Streams // deprecated
+     * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/ws-streams/market#aggregate-trade-streams
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Aggregate-Trade-Streams // deprecated
+     * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/ws-streams/~#aggregate-trade-streams
      * @param {string[]} symbols unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
@@ -1409,7 +1450,7 @@ public partial class binance : ccxt.binance
             type = "option";
         } else if ((((firstMarket != null && firstMarket.ContainsKey("contract") ? firstMarket["contract"] : null) as bool?) == true))
         {
-            type = ((((firstMarket != null && firstMarket.ContainsKey("linear") ? firstMarket["linear"] : null) as bool?) == true)) ? "future" : "delivery";
+            type = ((((firstMarket != null && firstMarket.ContainsKey("linear") ? firstMarket["linear"] : null) as bool?) == true)) ? "linear" : "inverse";
         }
         List<object> messageHashes = new List<object>() {};
         List<object> subParams = new List<object>() {};
@@ -1472,8 +1513,10 @@ public partial class binance : ccxt.binance
      * @description unsubscribes from the trades channel
      * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#aggregate-trades
      * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#recent-trades
-     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Aggregate-Trade-Streams
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Aggregate-Trade-Streams
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Aggregate-Trade-Streams // deprecated
+     * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/ws-streams/market#aggregate-trade-streams
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Aggregate-Trade-Streams // deprecated
+     * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/ws-streams/~#aggregate-trade-streams
      * @param {string[]} symbols unified symbol of the market to fetch trades for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.name] the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
@@ -1509,7 +1552,7 @@ public partial class binance : ccxt.binance
             type = "option";
         } else if ((((firstMarket != null && firstMarket.ContainsKey("contract") ? firstMarket["contract"] : null) as bool?) == true))
         {
-            type = ((((firstMarket != null && firstMarket.ContainsKey("linear") ? firstMarket["linear"] : null) as bool?) == true)) ? "future" : "delivery";
+            type = ((((firstMarket != null && firstMarket.ContainsKey("linear") ? firstMarket["linear"] : null) as bool?) == true)) ? "linear" : "inverse";
         }
         List<object> subMessageHashes = new List<object>() {};
         List<object> subParams = new List<object>() {};
@@ -1572,8 +1615,10 @@ public partial class binance : ccxt.binance
      * @description unsubscribes from the trades channel
      * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#aggregate-trades
      * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#recent-trades
-     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Aggregate-Trade-Streams
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Aggregate-Trade-Streams
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Aggregate-Trade-Streams // deprecated
+     * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/ws-streams/market#aggregate-trade-streams
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Aggregate-Trade-Streams // deprecated
+     * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/ws-streams/~#aggregate-trade-streams
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.name] the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
@@ -1591,8 +1636,10 @@ public partial class binance : ccxt.binance
      * @description get the list of most recent trades for a particular symbol
      * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#aggregate-trades
      * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#recent-trades
-     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Aggregate-Trade-Streams
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Aggregate-Trade-Streams
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Aggregate-Trade-Streams // deprecated
+     * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/ws-streams/market#aggregate-trade-streams
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Aggregate-Trade-Streams // deprecated
+     * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/ws-streams/~#aggregate-trade-streams
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
@@ -1677,7 +1724,7 @@ public partial class binance : ccxt.binance
         //         "Q": "0.00000000"
         //     }
         //
-        // private watchMyTrades future/delivery
+        // private watchMyTrades linear/inverse
         //
         //     {
         //         "s": "BTCUSDT",
@@ -1820,8 +1867,10 @@ public partial class binance : ccxt.binance
      * @name binance#watchOHLCV
      * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
      * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#klines
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Kline-Candlestick-Streams
-     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Kline-Candlestick-Streams
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Kline-Candlestick-Streams // deprecated
+     * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/ws-streams/~#kline-candlestick-streams
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Kline-Candlestick-Streams // deprecated
+     * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/ws-streams/market#kline-candlestick-streams
      * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/ws-streams/market-streams#kline-stream
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
@@ -1864,8 +1913,10 @@ public partial class binance : ccxt.binance
      * @name binance#watchOHLCVForSymbols
      * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
      * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#klines
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Kline-Candlestick-Streams
-     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Kline-Candlestick-Streams
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Kline-Candlestick-Streams // deprecated
+     * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/ws-streams/~#kline-candlestick-streams
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Kline-Candlestick-Streams // deprecated
+     * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/ws-streams/market#kline-candlestick-streams
      * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/ws-streams/market-streams#kline-stream
      * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -1932,7 +1983,7 @@ public partial class binance : ccxt.binance
             wsUrlType = "optionMarket"; // eOptions klines are served from /market/ws
         } else if ((((firstMarket != null && firstMarket.ContainsKey("contract") ? firstMarket["contract"] : null) as bool?) == true))
         {
-            type = ((((firstMarket != null && firstMarket.ContainsKey("linear") ? firstMarket["linear"] : null) as bool?) == true)) ? "future" : "delivery";
+            type = ((((firstMarket != null && firstMarket.ContainsKey("linear") ? firstMarket["linear"] : null) as bool?) == true)) ? "linear" : "inverse";
             wsUrlType = type;
         }
         bool isSpot = (type == "spot");
@@ -1999,8 +2050,10 @@ public partial class binance : ccxt.binance
      * @name binance#unWatchOHLCVForSymbols
      * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
      * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#klines
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Kline-Candlestick-Streams
-     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Kline-Candlestick-Streams
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Kline-Candlestick-Streams // deprecated
+     * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/ws-streams/~#kline-candlestick-streams
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Kline-Candlestick-Streams // deprecated
+     * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/ws-streams/market#kline-candlestick-streams
      * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {object} [params.timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
@@ -2027,7 +2080,7 @@ public partial class binance : ccxt.binance
             wsUrlType = "optionMarket"; // eOptions klines are served from /market/ws
         } else if ((((firstMarket != null && firstMarket.ContainsKey("contract") ? firstMarket["contract"] : null) as bool?) == true))
         {
-            type = ((((firstMarket != null && firstMarket.ContainsKey("linear") ? firstMarket["linear"] : null) as bool?) == true)) ? "future" : "delivery";
+            type = ((((firstMarket != null && firstMarket.ContainsKey("linear") ? firstMarket["linear"] : null) as bool?) == true)) ? "linear" : "inverse";
             wsUrlType = type;
         }
         bool isSpot = (type == "spot");
@@ -2091,8 +2144,10 @@ public partial class binance : ccxt.binance
      * @name binance#unWatchOHLCV
      * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
      * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#klines
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Kline-Candlestick-Streams
-     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Kline-Candlestick-Streams
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Kline-Candlestick-Streams // deprecated
+     * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/ws-streams/~#kline-candlestick-streams
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Kline-Candlestick-Streams // deprecated
+     * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/ws-streams/market#kline-candlestick-streams
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2207,7 +2262,7 @@ public partial class binance : ccxt.binance
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         string? type = this.getMarketType("fetchTickerWs", market, parameters);
-        if (type != "future")
+        if (type != "linear")
         {
             throw new BadRequest ((this.id + " fetchTickerWs only supports swap markets")) ;
         }
@@ -2265,7 +2320,7 @@ public partial class binance : ccxt.binance
         }
         Dictionary<string, object> market = this.market(symbol);
         string? marketType = this.getMarketType("fetchOHLCVWs", market, parameters);
-        if (marketType != "spot" && marketType != "future")
+        if (marketType != "spot" && marketType != "linear")
         {
             throw new BadRequest ((this.id + " fetchOHLCVWs only supports spot or swap markets")) ;
         }
@@ -2282,7 +2337,7 @@ public partial class binance : ccxt.binance
         Dictionary<string, object> payload = new Dictionary<string, object>() {
             { "symbol", this.marketId(symbol) },
             { "returnRateLimits", returnRateLimits },
-            { "interval", getValue(this.timeframes, timeframeVar) },
+            { "interval", (this.timeframes != null && timeframeVar != null && this.timeframes.ContainsKey(timeframeVar) ? this.timeframes[timeframeVar] : null) },
         };
         Int64? until = this.safeInteger(paramsReturnRateLimits, "until");
         Dictionary<string, object> paramsOmitted = this.omit(paramsReturnRateLimits, "until");
@@ -2355,10 +2410,12 @@ public partial class binance : ccxt.binance
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#individual-symbol-mini-ticker-stream
      * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#all-market-mini-tickers-stream
-     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Individual-Symbol-Ticker-Streams
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Individual-Symbol-Ticker-Streams // deprecated
+     * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/ws-streams/market#individual-symbol-ticker-streams
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/All-Market-Mini-Tickers-Stream
      * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/All-Market-Mini-Tickers-Stream
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Individual-Symbol-Ticker-Streams
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Individual-Symbol-Ticker-Streams // deprecated
+     * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/ws-streams/~#individual-symbol-ticker-streams
      * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/ws-streams/market-streams#price-stream
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2382,7 +2439,8 @@ public partial class binance : ccxt.binance
      * @method
      * @name binance#watchMarkPrice
      * @description watches a mark price for a specific market
-     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Mark-Price-Stream
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Mark-Price-Stream // deprecated
+     * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/ws-streams/market#mark-price-stream
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.use1sFreq] *default is true* if set to true, the mark price will be updated every second, otherwise every 3 seconds
@@ -2404,7 +2462,8 @@ public partial class binance : ccxt.binance
      * @method
      * @name binance#watchMarkPrices
      * @description watches the mark price for all markets
-     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Mark-Price-Stream-for-All-market
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Mark-Price-Stream-for-All-market // deprecated
+     * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/ws-streams/market#mark-price-stream-for-all-market
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.use1sFreq] *default is true* if set to true, the mark price will be updated every second, otherwise every 3 seconds
@@ -2433,10 +2492,12 @@ public partial class binance : ccxt.binance
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
      * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#individual-symbol-mini-ticker-stream
      * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#all-market-mini-tickers-stream
-     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Individual-Symbol-Ticker-Streams
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Individual-Symbol-Ticker-Streams // deprecated
+     * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/ws-streams/market#individual-symbol-ticker-streams
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/All-Market-Mini-Tickers-Stream
      * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/All-Market-Mini-Tickers-Stream
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Individual-Symbol-Ticker-Streams
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Individual-Symbol-Ticker-Streams // deprecated
+     * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/ws-streams/~#individual-symbol-ticker-streams
      * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/ws-streams/market-streams#price-stream
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2485,10 +2546,12 @@ public partial class binance : ccxt.binance
      * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
      * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#individual-symbol-mini-ticker-stream
      * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#all-market-mini-tickers-stream
-     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Individual-Symbol-Ticker-Streams
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Individual-Symbol-Ticker-Streams // deprecated
+     * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/ws-streams/market#individual-symbol-ticker-streams
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/All-Market-Mini-Tickers-Stream
      * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/All-Market-Mini-Tickers-Stream
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Individual-Symbol-Ticker-Streams
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Individual-Symbol-Ticker-Streams // deprecated
+     * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/ws-streams/~#individual-symbol-ticker-streams
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -2510,7 +2573,8 @@ public partial class binance : ccxt.binance
      * @method
      * @name binance#unWatchMarkPrices
      * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Mark-Price-Stream
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Mark-Price-Stream // deprecated
+     * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/ws-streams/market#mark-price-stream
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -2532,7 +2596,8 @@ public partial class binance : ccxt.binance
      * @method
      * @name binance#unWatchMarkPrice
      * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Mark-Price-Stream
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Mark-Price-Stream // deprecated
+     * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/ws-streams/market#mark-price-stream
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -2548,7 +2613,8 @@ public partial class binance : ccxt.binance
      * @name binance#unWatchBidsAsks
      * @description unWatches best bid & ask for symbols
      * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#individual-book-ticker-streams
-     * @see https://developers.binance.com/docs/derivatives/options-trading/websocket-market-streams/Bookticker
+     * @see https://developers.binance.com/docs/derivatives/options-trading/websocket-market-streams/Bookticker // deprecated
+     * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/ws-streams/public#individual-symbol-book-ticker-streams
      * @param {string[]} [symbols] unified symbols
      * @param {object} [params] extra parameters
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -2565,10 +2631,12 @@ public partial class binance : ccxt.binance
      * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
      * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#individual-symbol-mini-ticker-stream
      * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#all-market-mini-tickers-stream
-     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Individual-Symbol-Ticker-Streams
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Individual-Symbol-Ticker-Streams // deprecated
+     * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/ws-streams/market#individual-symbol-ticker-streams
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/All-Market-Mini-Tickers-Stream
      * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/All-Market-Mini-Tickers-Stream
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Individual-Symbol-Ticker-Streams
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Individual-Symbol-Ticker-Streams // deprecated
+     * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/ws-streams/~#individual-symbol-ticker-streams
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -2673,10 +2741,10 @@ public partial class binance : ccxt.binance
             rawMarketType = isOptionMarkPrice ? "optionMarket" : "option";
         } else if (this.isLinear(marketType, subType))
         {
-            rawMarketType = "future";
+            rawMarketType = "linear";
         } else if (this.isInverse(marketType, subType))
         {
-            rawMarketType = "delivery";
+            rawMarketType = "inverse";
         } else if ((marketType == "spot"))
         {
             rawMarketType = marketType;
@@ -2697,7 +2765,7 @@ public partial class binance : ccxt.binance
         string suffix = "";
         if (isMarkPrice && !isOptionMarkPrice)
         {
-            suffix = ((use1sFreq == true)) ? "@1s" : "";
+            suffix = use1sFreq == true ? "@1s" : "";
         }
         string? unifiedPrefix = null;
         if (isBidAsk)
@@ -2731,7 +2799,7 @@ public partial class binance : ccxt.binance
                     if (!((underlying is string inOpKey1 && seenUnderlyings.ContainsKey(inOpKey1))))
                     {
                         seenUnderlyings[(string)underlying] = true;
-                        subscriptionArgs.Add(add(underlying, "@optionMarkPrice"));
+                        subscriptionArgs.Add((underlying + "@optionMarkPrice"));
                     }
                 } else if (isOptionTicker)
                 {
@@ -2743,7 +2811,7 @@ public partial class binance : ccxt.binance
                     string baseIdLower = this.safeStringLower(market, "baseId", "");
                     string? quoteIdLower = this.safeStringLower(market, "quoteId", "");
                     object underlying = ((baseIdLower + "") + quoteIdLower);
-                    object subscriptionArg = add(add(underlying, "@optionTicker@"), expiryDate);
+                    object subscriptionArg = ((underlying + "@optionTicker@") + expiryDate);
                     if (!((subscriptionArg is string inOpKey2 && seenUnderlyings.ContainsKey(inOpKey2))))
                     {
                         seenUnderlyings[(string)subscriptionArg] = true;
@@ -3034,7 +3102,7 @@ public partial class binance : ccxt.binance
         //
         string? messageHash = this.safeString(message, "id");
         IDictionary<string, object> result = this.safeDict(message, "result", new Dictionary<string, object>() {});
-        ccxt.Ticker ticker = this.parseWsTicker(result, "future");
+        ccxt.Ticker ticker = this.parseWsTicker(result, "contract");
         client.resolve(ccxt.BaseExchange.FromTicker(ticker), messageHash);
     }
 
@@ -3146,7 +3214,7 @@ public partial class binance : ccxt.binance
             {
                 tickerFallbackType = "spot";
             }
-            object tickerMarketType = ((tickerMarketById != null)) ? GetValue(tickerMarketById, "type") : tickerFallbackType;
+            object tickerMarketType = ((tickerMarketById != null)) ? (tickerMarketById != null && tickerMarketById.ContainsKey("type") ? tickerMarketById["type"] : null) : tickerFallbackType;
             ccxt.Ticker parsedTicker = this.parseWsTicker(ticker, tickerMarketType);
             string? symbol = parsedTicker.symbol;
             if ((symbol != null))
@@ -3250,8 +3318,6 @@ public partial class binance : ccxt.binance
             await client.future(messageHash);
             return;
         }
-        client.future(messageHash); // created ahead of the request below, so concurrent callers can find it
-        ((IDictionary<string,object>)client.subscriptions)[(string)marketTypeVar] = true;
         Int64 requestId = this.requestId(url);
         string requestHash = requestId.ToString();
         Dictionary<string, object> message = new Dictionary<string, object>() {
@@ -3264,6 +3330,10 @@ public partial class binance : ccxt.binance
             { "method", this.handleUserDataStreamSubscribe },
             { "subscription", marketTypeVar },
         };
+        // created right before the request, after the signing above: concurrent callers find it, and in
+        // the threaded ports the ack can not arrive between this future and the request one watch () adds
+        client.future(messageHash);
+        ((IDictionary<string,object>)client.subscriptions)[(string)marketTypeVar] = true;
         try
         {
             await this.watch(url, requestHash, message, requestHash, subscription);
@@ -3312,7 +3382,8 @@ public partial class binance : ccxt.binance
      * @param {string} [params.symbol] - required for isolated margin
      * @param {boolean} [params.isIsolated] - whether it is isolated margin
      * @param {number} [params.validity] - validity in milliseconds, default 24 hours, max 24 hours
-     * @see {@link https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-api/user-data-stream Binance User Data Stream Documentation}
+     * @see {@link https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-api/user-data-stream Binance User Data Stream Documentation} // deprecated
+     * @see {@link https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/ws-api/user-data-streams Binance User Data Stream Documentation}
      * @returns Promise<void>
      */
     public async virtual Task ensureUserDataStreamWsSubscribeListenToken(string? marketType = null, IDictionary<string, object>? parameters = null)
@@ -3330,7 +3401,7 @@ public partial class binance : ccxt.binance
         Int64? listenTokenRefreshRate = this.safeInteger(this.options, "listenTokenRefreshRate", 82800000); // 23 hours default
         Int64 time = this.milliseconds();
         Int64? delay = (listenTokenRefreshRate + 10000);
-        if (isGreaterThan((time - lastAuthenticatedTime), delay))
+        if (((time - lastAuthenticatedTime) > delay))
         {
             // the future covers the REST create plus the ws subscribe, including the
             // renewal timer re-entry through renewListenToken, so a concurrent caller
@@ -3399,7 +3470,7 @@ public partial class binance : ccxt.binance
                 // Schedule token renewal before expiration
                 if ((expirationTime != null))
                 {
-                    object renewalTime = subtract((expirationTime - time), 60000); // Renew 1 minute before expiration
+                    object renewalTime = ((expirationTime - time) - 60000); // Renew 1 minute before expiration
                     if (isGreaterThan(renewalTime, 0))
                     {
                         Dictionary<string, object> extendedParams = this.extend(parameters, new Dictionary<string, object>() {
@@ -3491,7 +3562,7 @@ public partial class binance : ccxt.binance
         }
         Int64? listenKeyRefreshRate = this.safeInteger(this.options, refreshRateKey, 1200000);
         Int64? delay = (listenKeyRefreshRate + 10000);
-        if (isGreaterThan((time - lastAuthenticatedTime), delay))
+        if (((time - lastAuthenticatedTime) > delay))
         {
             // single-flight leader election, see https://github.com/ccxt/ccxt/issues/29393
             // the flight is registered on a never-dialed client because the
@@ -3523,10 +3594,10 @@ public partial class binance : ccxt.binance
                 } else if ((isPortfolioMargin == true))
                 {
                     response = await this.papiPostListenKey(paramsOmitted);
-                } else if (type == "future")
+                } else if (type == "linear")
                 {
                     response = await this.fapiPrivatePostListenKey(paramsOmitted);
-                } else if (type == "delivery")
+                } else if (type == "inverse")
                 {
                     response = await this.dapiPrivatePostListenKey(paramsOmitted);
                 } else if (type == "option")
@@ -3588,18 +3659,18 @@ public partial class binance : ccxt.binance
         if (type != "option" && type != "stock")
         {
             // guard options first: isLinear returns true for linear-settled options (subType='linear')
-            // which would incorrectly convert type='option' to 'future'.
+            // which would incorrectly convert type='option' to 'linear'.
             // stock needs the same exemption: with a defaultSubType of 'linear' -
             // always on binanceusdm, common on mixed instances - isLinear keys off
-            // subType alone and would flip 'stock' to 'future' - the stock branch
+            // subType alone and would flip 'stock' to 'linear' - the stock branch
             // below would never run, and the bucket lookup would renew the
             // FUTURES listen key while the stock key silently expires
             if (this.isLinear(type, subType))
             {
-                type = "future";
+                type = "linear";
             } else if (this.isInverse(type, subType))
             {
-                type = "delivery";
+                type = "inverse";
             }
         }
         // For margin, token renewal is handled by renewListenToken method
@@ -3632,10 +3703,10 @@ public partial class binance : ccxt.binance
             } else if ((isPortfolioMargin == true))
             {
                 await this.papiPutListenKey(this.extend(request, paramsOmitted));
-            } else if (type == "future")
+            } else if (type == "linear")
             {
                 await this.fapiPrivatePutListenKey(this.extend(request, paramsOmitted));
-            } else if (type == "delivery")
+            } else if (type == "inverse")
             {
                 await this.dapiPrivatePutListenKey(this.extend(request, paramsOmitted));
             } else if (type == "option")
@@ -3648,7 +3719,7 @@ public partial class binance : ccxt.binance
             }
         } catch(Exception error)
         {
-            object url = null;
+            string? url = null;
             if (isStock)
             {
                 // the stock user stream lives on a fixed url and subscribes to
@@ -3665,7 +3736,7 @@ public partial class binance : ccxt.binance
                 {
                     urlType = "optionPrivate";
                 }
-                object cachedListenKey = getValue(getValue(this.options, type), "listenKey");
+                object cachedListenKey = getValue((this.options != null && type != null && this.options.ContainsKey(type) ? this.options[type] : null), "listenKey");
                 url = this.getPrivateWsUrl(urlType, cachedListenKey);
             }
             var client = this.client(url);
@@ -3735,7 +3806,7 @@ public partial class binance : ccxt.binance
         if ((fetchBalanceSnapshot == true))
         {
             object messageHash = add(type, ":fetchBalanceSnapshot");
-            if (!(inOp(client.futures, messageHash)))
+            if (!((client.futures != null && messageHash != null && client.futures.ContainsKey((string)messageHash))))
             {
                 client.future(messageHash);
                 this.spawn(this.loadBalanceSnapshot, new object[] { client, messageHash, type, isPortfolioMargin});
@@ -3751,18 +3822,18 @@ public partial class binance : ccxt.binance
         Dictionary<string, object> parameters = new Dictionary<string, object>() {
             { "type", type },
         };
-        if ((isPortfolioMargin is true))
+        if (isTrue(isPortfolioMargin))
         {
             parameters["portfolioMargin"] = true;
         }
         Dictionary<string, object> response = ccxt.BaseExchange.FromBalances(await this.FetchBalance(parameters));
         this.balance[(string)type] = this.extend(response, this.safeDict(this.balance, type, new Dictionary<string, object>() {}));
         // don't remove the future from the .futures cache
-        if (inOp(client.futures, messageHash))
+        if ((client.futures != null && messageHash != null && client.futures.ContainsKey((string)messageHash)))
         {
             Future future = ((Future)getValue(client.futures, messageHash));
             (future as Future).resolve();
-            client.resolve(getValue(this.balance, type), add(type, ":balance"));
+            client.resolve((this.balance != null && type != null && this.balance.ContainsKey((string)type) ? this.balance[(string)type] : null), add(type, ":balance"));
         }
     }
 
@@ -3774,7 +3845,7 @@ public partial class binance : ccxt.binance
      * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/account-requests#account-information-user_data
      * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/websocket-api
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string|undefined} [params.type] 'future', 'delivery', 'savings', 'funding', or 'spot'
+     * @param {string|undefined} [params.type] 'spot', 'margin', 'swap', 'future', 'savings' or 'funding', use params.subType 'inverse' for COIN-M
      * @param {string|undefined} [params.marginMode] 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
      * @param {string[]|undefined} [params.symbols] unified market symbols, only used in isolated margin mode
      * @param {string|undefined} [params.method] method to use. Can be account.balance, account.status, v2/account.balance or v2/account.status
@@ -3788,7 +3859,7 @@ public partial class binance : ccxt.binance
             await this.loadMarkets();
         }
         string? type = this.getMarketType("fetchBalanceWs", null, parameters);
-        if (type != "spot" && type != "future" && type != "delivery")
+        if (type != "spot" && type != "linear" && type != "inverse")
         {
             throw new BadRequest ((this.id + " fetchBalanceWs only supports spot or swap markets")) ;
         }
@@ -3944,9 +4015,9 @@ public partial class binance : ccxt.binance
         {
             // when symbols aren't provide
             // we shouldn't rely on the defaultType
-            type = "future";
+            type = "linear";
         }
-        if (type != "future" && type != "delivery")
+        if (type != "linear" && type != "inverse")
         {
             throw new BadRequest ((this.id + " fetchPositionsWs only supports swap markets")) ;
         }
@@ -4065,7 +4136,7 @@ public partial class binance : ccxt.binance
             } else if ((type is "option"))
             {
                 bool? demoMode = this.safeBool(this.options, "enableDemoTrading", false);
-                if (((demoMode == true)) || this.isSandboxModeEnabled)
+                if ((demoMode == true) || this.isSandboxModeEnabled)
                 {
                     throw new NotSupported ((this.id + " watchBalance() does not support option markets in demo/testnet mode")) ;
                 }
@@ -4079,7 +4150,7 @@ public partial class binance : ccxt.binance
         IDictionary<string, object> options = this.safeDict(this.options, "watchBalance");
         bool? fetchBalanceSnapshot = this.safeBool(options, "fetchBalanceSnapshot", false);
         bool? awaitBalanceSnapshot = this.safeBool(options, "awaitBalanceSnapshot", true);
-        if (((fetchBalanceSnapshot == true)) && ((awaitBalanceSnapshot == true)))
+        if ((fetchBalanceSnapshot == true) && (awaitBalanceSnapshot == true))
         {
             await client.future(add(type, ":fetchBalanceSnapshot"));
         }
@@ -4116,7 +4187,7 @@ public partial class binance : ccxt.binance
         //         ]
         //     }
         //
-        // future/delivery
+        // linear/inverse
         //
         //     {
         //         "e": "ACCOUNT_UPDATE",            // Event Type
@@ -4161,11 +4232,11 @@ public partial class binance : ccxt.binance
         List<object> subscriptionsKeys = new List<object>(subscriptions.Keys);
         object accountType = this.getAccountTypeFromSubscriptions(subscriptionsKeys);
         string? messageHash = ((string)add(accountType, ":balance"));
-        if (isEqual(getValue(this.balance, accountType), null))
+        if ((((object)((this.balance != null && accountType != null && this.balance.ContainsKey((string)accountType) ? this.balance[(string)accountType] : null))) == null))
         {
             this.balance[(string)accountType] = new Dictionary<string, object>() {};
         }
-        ((IDictionary<string,object>)getValue(this.balance, accountType))["info"] = message;
+        ((IDictionary<string,object>)(this.balance != null && accountType != null && this.balance.ContainsKey((string)accountType) ? this.balance[(string)accountType] : null))["info"] = message;
         string? eventVar = this.safeString(message, "e");
         // balanceUpdate carries the asset code (a string) under 'a', so it reads as the message itself
         IDictionary<string, object> balanceMessage = this.safeDict(message, "a", message);
@@ -4175,9 +4246,9 @@ public partial class binance : ccxt.binance
             string? code = this.safeCurrencyCode(currencyId);
             Dictionary<string, object> account = this.account();
             string? delta = this.safeString(message, "d");
-            if (((accountType != null)) && ((code != null)) && (inOp(getValue(this.balance, accountType), code)))
+            if (((accountType != null)) && ((code != null)) && (inOp((this.balance != null && accountType != null && this.balance.ContainsKey((string)accountType) ? this.balance[(string)accountType] : null), code)))
             {
-                object previousValue = getValue(getValue(getValue(this.balance, accountType), code), "free");
+                object previousValue = getValue(getValue((this.balance != null && accountType != null && this.balance.ContainsKey((string)accountType) ? this.balance[(string)accountType] : null), code), "free");
                 if (!(previousValue is string))
                 {
                     previousValue = this.numberToString(previousValue);
@@ -4189,7 +4260,7 @@ public partial class binance : ccxt.binance
             }
             if (((accountType != null)) && ((code != null)))
             {
-                ((IDictionary<string,object>)getValue(this.balance, accountType))[(string)code] = account;
+                ((IDictionary<string,object>)(this.balance != null && accountType != null && this.balance.ContainsKey((string)accountType) ? this.balance[(string)accountType] : null))[(string)code] = account;
             }
         } else
         {
@@ -4209,15 +4280,15 @@ public partial class binance : ccxt.binance
                 account["total"] = this.safeString(entry, wallet);
                 if (((accountType != null)) && ((code != null)))
                 {
-                    ((IDictionary<string,object>)getValue(this.balance, accountType))[(string)code] = account;
+                    ((IDictionary<string,object>)(this.balance != null && accountType != null && this.balance.ContainsKey((string)accountType) ? this.balance[(string)accountType] : null))[(string)code] = account;
                 }
             }
         }
         Int64? timestamp = this.safeInteger(balanceMessage, "E");
-        ((IDictionary<string,object>)getValue(this.balance, accountType))["timestamp"] = timestamp;
-        ((IDictionary<string,object>)getValue(this.balance, accountType))["datetime"] = this.iso8601(timestamp);
-        this.balance[(string)accountType] = this.safeBalance(getValue(this.balance, accountType));
-        client.resolve(getValue(this.balance, accountType), messageHash);
+        ((IDictionary<string,object>)(this.balance != null && accountType != null && this.balance.ContainsKey((string)accountType) ? this.balance[(string)accountType] : null))["timestamp"] = timestamp;
+        ((IDictionary<string,object>)(this.balance != null && accountType != null && this.balance.ContainsKey((string)accountType) ? this.balance[(string)accountType] : null))["datetime"] = this.iso8601(timestamp);
+        this.balance[(string)accountType] = this.safeBalance((this.balance != null && accountType != null && this.balance.ContainsKey((string)accountType) ? this.balance[(string)accountType] : null));
+        client.resolve((this.balance != null && accountType != null && this.balance.ContainsKey((string)accountType) ? this.balance[(string)accountType] : null), messageHash);
     }
 
     public virtual string? getAccountTypeFromSubscriptions(IList<object> subscriptions)
@@ -4226,7 +4297,7 @@ public partial class binance : ccxt.binance
         for (int i = 0; i < (subscriptions?.Count ?? 0); i++)
         {
             string? subscription = ((string)(subscriptions != null && i < subscriptions.Count ? subscriptions[i] : null));
-            if ((subscription == "spot") || (subscription == "margin") || (subscription == "future") || (subscription == "delivery") || (subscription == "option"))
+            if ((subscription == "spot") || (subscription == "margin") || (subscription == "linear") || (subscription == "inverse") || (subscription == "option"))
             {
                 accountType = subscription;
                 break;
@@ -4256,10 +4327,10 @@ public partial class binance : ccxt.binance
         {
             if (this.isLinear(type, subType))
             {
-                type = "future";
+                type = "linear";
             } else if (this.isInverse(type, subType))
             {
-                type = "delivery";
+                type = "inverse";
             }
         }
         // sites consuming every element unpack this; the two that skip subType
@@ -4267,7 +4338,7 @@ public partial class binance : ccxt.binance
         return new List<object>() {type, subType, paramsSubType};
     }
 
-    public virtual string? getMarketType(object method, IDictionary<string, object> market, object parameters = null)
+    public virtual string? getMarketType(string? method, IDictionary<string, object> market, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? type = null;
@@ -4278,10 +4349,10 @@ public partial class binance : ccxt.binance
         string? subType = ((string)getValue(this.handleSubTypeAndParams(method, market, paramsMarketType), 0));
         if (this.isLinear(type, subType))
         {
-            type = "future";
+            type = "linear";
         } else if (this.isInverse(type, subType))
         {
-            type = "delivery";
+            type = "inverse";
         }
         return type;
     }
@@ -4313,7 +4384,7 @@ public partial class binance : ccxt.binance
         }
         Dictionary<string, object> market = this.market(symbol);
         string? marketType = this.getMarketType("createOrderWs", market, parameters);
-        if (marketType != "spot" && marketType != "future" && marketType != "delivery")
+        if (marketType != "spot" && marketType != "linear" && marketType != "inverse")
         {
             throw new BadRequest ((this.id + " createOrderWs only supports spot or swap markets")) ;
         }
@@ -4325,7 +4396,7 @@ public partial class binance : ccxt.binance
         Int64 requestId = this.requestId(url);
         string messageHash = requestId.ToString();
         bool? sor = this.safeBool2(parameters, "sor", "SOR", false);
-        object paramsOmitted = this.omit(parameters, "sor", "SOR");
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "sor", "SOR"));
         object isConditional = this.isConditionalOrder(paramsOmitted);
         if (((((market.ContainsKey("inverse") ? market["inverse"] : null) as bool?) == true)) && isTrue(isConditional))
         {
@@ -4495,7 +4566,7 @@ public partial class binance : ccxt.binance
         }
         Dictionary<string, object> market = this.market(symbol);
         string? marketType = this.getMarketType("editOrderWs", market, parameters);
-        if (marketType != "spot" && marketType != "future" && marketType != "delivery")
+        if (marketType != "spot" && marketType != "linear" && marketType != "inverse")
         {
             throw new BadRequest ((this.id + " editOrderWs only supports spot or swap markets")) ;
         }
@@ -4506,7 +4577,7 @@ public partial class binance : ccxt.binance
         }
         Int64 requestId = this.requestId(url);
         string messageHash = requestId.ToString();
-        bool isSwap = (marketType == "future" || marketType == "delivery");
+        bool isSwap = (marketType == "linear" || marketType == "inverse");
         Dictionary<string, object> payload = new Dictionary<string, object>() {};
         if (marketType == "spot")
         {
@@ -4688,10 +4759,10 @@ public partial class binance : ccxt.binance
         };
         bool? isConditional = this.safeBoolN(paramsReturnRateLimits, new List<object>() {"stop", "trigger", "conditional"});
         string? clientOrderId = this.safeStringN(paramsReturnRateLimits, new List<object>() {"clientAlgoId", "origClientOrderId", "clientOrderId"});
-        bool shouldUseAlgoOrder = ((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true)) && ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true)) && ((isConditional == true));
+        bool shouldUseAlgoOrder = ((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true)) && (((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true)) || ((((market.ContainsKey("future") ? market["future"] : null) as bool?) == true))) && ((isConditional == true));
         if ((clientOrderId != null))
         {
-            if ((shouldUseAlgoOrder == true))
+            if (shouldUseAlgoOrder)
             {
                 payload["clientAlgoId"] = clientOrderId;
             } else
@@ -4700,7 +4771,7 @@ public partial class binance : ccxt.binance
             }
         } else
         {
-            if ((shouldUseAlgoOrder == true))
+            if (shouldUseAlgoOrder)
             {
                 payload["algoId"] = this.numberToString(id);
             } else
@@ -4714,7 +4785,7 @@ public partial class binance : ccxt.binance
             { "method", "order.cancel" },
             { "params", this.signParams(this.extend(payload, paramsOmitted)) },
         };
-        if ((shouldUseAlgoOrder == true))
+        if (shouldUseAlgoOrder)
         {
             message["method"] = "algoOrder.cancel";
         }
@@ -4800,7 +4871,7 @@ public partial class binance : ccxt.binance
         }
         Dictionary<string, object> market = this.market(symbol);
         string? type = this.getMarketType("fetchOrderWs", market, parameters);
-        if (type != "spot" && type != "future" && type != "delivery")
+        if (type != "spot" && type != "linear" && type != "inverse")
         {
             throw new BadRequest ((this.id + " fetchOrderWs only supports spot or swap markets")) ;
         }
@@ -4981,8 +5052,10 @@ public partial class binance : ccxt.binance
      * @description watches information on multiple orders made by the user
      * @see https://developers.binance.com/docs/binance-spot-api-docs/user-data-stream#order-update
      * @see https://developers.binance.com/docs/margin_trading/trade-data-stream/Event-Order-Update
-     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/user-data-streams/Event-Order-Update
-     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/user-data-streams/Event-Algo-Order-Update
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/user-data-streams/Event-Order-Update // deprecated
+     * @see https://developers.binance.com/en/docs/products/derivatives-trading-usds-futures/user-data-streams#event-order-update
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/user-data-streams/Event-Algo-Order-Update // deprecated
+     * @see https://developers.binance.com/en/docs/products/derivatives-trading-usds-futures/user-data-streams#event-algo-order-update
      * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/ws-streams/user-streams#order-report-stream
      * @param {string} symbol unified market symbol of the market the orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
@@ -5016,7 +5089,7 @@ public partial class binance : ccxt.binance
             {
                 throw new BadRequest ((this.id + " watchOrders() failed to initialize stock listenKey")) ;
             }
-            object stockUrl = this.getStockWsUrl("user");
+            string? stockUrl = this.getStockWsUrl("user");
             string stockStreamName = (stockListenKey + "@orderReport");
             Int64 stockRequestId = this.requestId(stockUrl);
             string stockMessageHash = "orders";
@@ -5081,13 +5154,13 @@ public partial class binance : ccxt.binance
             } else if ((type == "option"))
             {
                 bool? demoMode = this.safeBool(this.options, "enableDemoTrading", false);
-                if (((demoMode == true)) || this.isSandboxModeEnabled)
+                if ((demoMode == true) || this.isSandboxModeEnabled)
                 {
                     throw new NotSupported ((this.id + " watchOrders() does not support option markets in demo/testnet mode")) ;
                 }
                 urlType = "optionPrivate";
             }
-            url = this.getPrivateWsUrl(urlType, getValue(getValue(this.options, type), "listenKey"));
+            url = this.getPrivateWsUrl(urlType, getValue((this.options != null && type != null && this.options.ContainsKey(type) ? this.options[type] : null), "listenKey"));
         }
         var client = this.client(url);
         this.setBalanceCache(client, type, isPortfolioMargin);
@@ -5317,6 +5390,15 @@ public partial class binance : ccxt.binance
         {
             lastTradeTimestamp = T;
         }
+        bool isAlgoOrder = ((order != null && ((IDictionary<string, object>)order).ContainsKey("aid"))); // the ALGO_UPDATE payload carries the algo id, but no execution type (x) and no order time (O)
+        if (isAlgoOrder && ((timestamp == null)))
+        {
+            string? algoStatus = this.safeString(order, "X");
+            if ((algoStatus == "NEW") || (algoStatus == "CANCELED"))
+            {
+                timestamp = T;
+            }
+        }
         Int64? lastUpdateTimestamp = T;
         Dictionary<string, object> fee = null;
         string? feeCost = this.safeString(order, "n");
@@ -5336,17 +5418,18 @@ public partial class binance : ccxt.binance
         {
             clientOrderId = this.safeString(order, "c");
         }
-        string? stopPrice = this.safeStringN(order, new List<object>() {"P", "sp", "tp"});
+        string? stopPrice = ((string)this.omitZero(this.safeStringN(order, new List<object>() {"P", "sp", "tp"})));
         string? orderType = this.safeStringLower(order, "o");
         // stop types are also sent for plain trigger orders, only the take profit types identify the price unambiguously
         bool isTakeProfitType = this.inArray(orderType, new List<object>() {"take_profit", "take_profit_market", "take_profit_limit"});
-        string? takeProfitPrice = isTakeProfitType ? this.omitZero(stopPrice) : null;
+        string? takeProfitPrice = isTakeProfitType ? stopPrice : null;
         string? timeInForce = this.safeString(order, "f");
         if (timeInForce == "GTX")
         {
             // GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
             timeInForce = "PO";
         }
+        bool postOnly = (orderType == "limit_maker") || (timeInForce == "PO");
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
             { "symbol", symbol },
@@ -5358,7 +5441,7 @@ public partial class binance : ccxt.binance
             { "lastUpdateTimestamp", lastUpdateTimestamp },
             { "type", this.parseOrderTypeByMarket(orderType, marketType) },
             { "timeInForce", timeInForce },
-            { "postOnly", null },
+            { "postOnly", postOnly },
             { "reduceOnly", this.safeBool(order, "R") },
             { "side", this.safeStringLower(order, "S") },
             { "price", this.safeString(order, "p") },
@@ -5504,6 +5587,10 @@ public partial class binance : ccxt.binance
         if ((e == "ORDER_TRADE_UPDATE") || (e == "ALGO_UPDATE"))
         {
             messageValue = this.safeDict(message, "o", message);
+            if ((e == "ALGO_UPDATE") && !(inOp(messageValue, "T")))
+            {
+                ((IDictionary<string,object>)messageValue)["T"] = this.safeInteger(message, "T"); // keep the outer event time, the algo payload carries no timestamps
+            }
         }
         if ((e == "ORDER_TRADE_UPDATE") || (e == "ALGO_UPDATE"))
         {
@@ -5724,13 +5811,13 @@ public partial class binance : ccxt.binance
         // spot and margin have no positions - whatever still RESOLVES to spot
         // or margin after the helper falls through to the derivatives stream
         // matching the subType. requests a defaultSubType already rewrote
-        // arrive here as future or delivery and pass untouched, which lands on
+        // arrive here as future or inverse and pass untouched, which lands on
         // the same stream the old raw-type ordering produced in every case
         if ((type is "spot") || (type is "margin"))
         {
-            type = (subType == "inverse") ? "delivery" : "future";
+            type = (subType == "inverse") ? "inverse" : "linear";
         }
-        // 'option' stays as 'option', don't redirect to 'future' - the helper's
+        // 'option' stays as 'option', don't redirect to 'linear' - the helper's
         // guard finally makes this comment true
         Dictionary<string, object> marketTypeObject = new Dictionary<string, object>() {};
         marketTypeObject["type"] = type;
@@ -5746,13 +5833,13 @@ public partial class binance : ccxt.binance
         } else if ((type is "option"))
         {
             bool? demoMode = this.safeBool(this.options, "enableDemoTrading", false);
-            if (((demoMode == true)) || this.isSandboxModeEnabled)
+            if ((demoMode == true) || this.isSandboxModeEnabled)
             {
                 throw new NotSupported ((this.id + " watchPositions() does not support option markets in demo/testnet mode")) ;
             }
             urlType = "optionPrivate";
         }
-        string? url = this.getPrivateWsUrl(urlType, getValue(getValue(this.options, type), "listenKey"));
+        string? url = this.getPrivateWsUrl(urlType, getValue((this.options != null && type != null && this.options.ContainsKey((string)type) ? this.options[(string)type] : null), "listenKey"));
         var client = this.client(url);
         this.setBalanceCache(client, type, isPortfolioMargin);
         this.setPositionsCache(client, type, symbolsNormalized, isPortfolioMargin);
@@ -5791,7 +5878,7 @@ public partial class binance : ccxt.binance
         if ((fetchPositionsSnapshot == true))
         {
             object messageHash = add(type, ":fetchPositionsSnapshot");
-            if (!(inOp(client.futures, messageHash)))
+            if (!((client.futures != null && messageHash != null && client.futures.ContainsKey((string)messageHash))))
             {
                 client.future(messageHash);
                 this.spawn(this.loadPositionsSnapshot, new object[] { client, messageHash, type, isPortfolioMargin});
@@ -5807,7 +5894,7 @@ public partial class binance : ccxt.binance
         Dictionary<string, object> parameters = new Dictionary<string, object>() {
             { "type", type },
         };
-        if ((isPortfolioMargin is true))
+        if (isTrue(isPortfolioMargin))
         {
             parameters["portfolioMargin"] = true;
         }
@@ -5824,7 +5911,7 @@ public partial class binance : ccxt.binance
             }
         }
         // don't remove the future from the .futures cache
-        if (inOp(client.futures, messageHash))
+        if ((client.futures != null && messageHash != null && client.futures.ContainsKey((string)messageHash)))
         {
             Future future = ((Future)getValue(client.futures, messageHash));
             (future as Future).resolve(cache);
@@ -6042,7 +6129,7 @@ public partial class binance : ccxt.binance
         }
         Dictionary<string, object> market = this.market(symbol);
         string? type = this.getMarketType("fetchMyTradesWs", market, parameters);
-        if (type != "spot" && type != "future")
+        if (type != "spot" && type != "linear")
         {
             throw new BadRequest ((((this.id + " fetchMyTradesWs does not support ") + type) + " markets")) ;
         }
@@ -6108,7 +6195,7 @@ public partial class binance : ccxt.binance
         }
         Dictionary<string, object> market = this.market(symbol);
         string? type = this.getMarketType("fetchTradesWs", market, parameters);
-        if (type != "spot" && type != "future")
+        if (type != "spot" && type != "linear")
         {
             throw new BadRequest ((((this.id + " fetchTradesWs does not support ") + type) + " markets")) ;
         }
@@ -6257,13 +6344,13 @@ public partial class binance : ccxt.binance
             } else if ((type == "option"))
             {
                 bool? demoMode = this.safeBool(this.options, "enableDemoTrading", false);
-                if (((demoMode == true)) || this.isSandboxModeEnabled)
+                if ((demoMode == true) || this.isSandboxModeEnabled)
                 {
                     throw new NotSupported ((this.id + " watchMyTrades() does not support option markets in demo/testnet mode")) ;
                 }
                 urlType = "optionPrivate";
             }
-            url = this.getPrivateWsUrl(urlType, getValue(getValue(this.options, type), "listenKey"));
+            url = this.getPrivateWsUrl(urlType, getValue((this.options != null && type != null && this.options.ContainsKey(type) ? this.options[type] : null), "listenKey"));
         }
         var client = this.client(url);
         this.setBalanceCache(client, type, isPortfolioMargin);
@@ -6286,8 +6373,7 @@ public partial class binance : ccxt.binance
         {
             ccxt.Trade trade = this.parseWsTrade(message);
             string? orderId = trade.order;
-            IDictionary<string, object> tradeFee = this.safeDict(ccxt.BaseExchange.FromTrade(trade), "fee", new Dictionary<string, object>() {});
-            tradeFee = this.extend(new Dictionary<string, object>() {}, tradeFee);
+            Dictionary<string, object> tradeFee = this.extend(new Dictionary<string, object>() {}, this.safeDict(ccxt.BaseExchange.FromTrade(trade), "fee", new Dictionary<string, object>() {}));
             string? symbol = trade.symbol;
             if ((orderId != null) && (tradeFee != null) && (symbol != null))
             {
@@ -6299,43 +6385,43 @@ public partial class binance : ccxt.binance
                     if ((order != null))
                     {
                         // accumulate order fees
-                        List<object> fees = ((List<object>)this.safeValue(order, "fees"));
+                        List<object> fees = this.safeList(order, "fees");
                         IDictionary<string, object> fee = this.safeDict(order, "fee");
-                        if (!this.isEmpty(fees))
+                        if (((fees != null)) && !this.isEmpty(fees))
                         {
                             bool insertNewFeeCurrency = true;
-                            for (int i = 0; i < (fees?.Count ?? 0); i++)
+                            for (int i = 0; i < fees.Count; i++)
                             {
                                 object orderFee = fees[i];
                                 if ((this.safeString(orderFee, "currency") == this.safeString(tradeFee, "currency")))
                                 {
-                                    object feeCost = this.sum(GetValue(tradeFee, "cost"), getValue(orderFee, "cost"));
-                                    string? feeCostString = this.currencyToPrecision(((string)GetValue(tradeFee, "currency")), feeCost);
+                                    object feeCost = this.sum((tradeFee != null && tradeFee.ContainsKey("cost") ? tradeFee["cost"] : null), getValue(orderFee, "cost"));
+                                    string? feeCostString = this.currencyToPrecision(((string)(tradeFee != null && tradeFee.ContainsKey("currency") ? tradeFee["currency"] : null)), feeCost);
                                     if ((feeCostString == null))
                                     {
                                         feeCostString = "0";
                                     }
-                                    ((IDictionary<string,object>)getValue(GetValue(order, "fees"), i))["cost"] = parseFloat(feeCostString);
+                                    ((IDictionary<string,object>)getValue((order != null && order.ContainsKey("fees") ? order["fees"] : null), i))["cost"] = parseFloat(feeCostString);
                                     insertNewFeeCurrency = false;
                                     break;
                                 }
                             }
                             if (insertNewFeeCurrency)
                             {
-                                ((IList<object>)GetValue(order, "fees")).Add(tradeFee);
+                                ((IList<object>)(order != null && order.ContainsKey("fees") ? order["fees"] : null)).Add(tradeFee);
                             }
                         } else if ((fee != null))
                         {
                             if ((this.safeString(fee, "currency") == this.safeString(tradeFee, "currency")))
                             {
-                                object feeCost = this.sum(GetValue(fee, "cost"), GetValue(tradeFee, "cost"));
-                                string? feeCostString = this.currencyToPrecision(((string)GetValue(tradeFee, "currency")), feeCost);
+                                object feeCost = this.sum((fee != null && fee.ContainsKey("cost") ? fee["cost"] : null), (tradeFee != null && tradeFee.ContainsKey("cost") ? tradeFee["cost"] : null));
+                                string? feeCostString = this.currencyToPrecision(((string)(tradeFee != null && tradeFee.ContainsKey("currency") ? tradeFee["currency"] : null)), feeCost);
                                 if ((feeCostString == null))
                                 {
                                     feeCostString = "0";
                                 }
-                                ((IDictionary<string,object>)GetValue(order, "fee"))["cost"] = parseFloat(feeCostString);
-                            } else if (isEqual(GetValue(fee, "currency"), null))
+                                ((IDictionary<string,object>)(order != null && order.ContainsKey("fee") ? order["fee"] : null))["cost"] = parseFloat(feeCostString);
+                            } else if (((fee != null && fee.ContainsKey("currency") ? fee["currency"] : null) == null))
                             {
                                 order["fee"] = tradeFee;
                             } else
@@ -6448,7 +6534,7 @@ public partial class binance : ccxt.binance
         //
         // --- balance ---
         string accountType = "option";
-        if (isEqual((this.balance != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null), null))
+        if (((this.balance != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null) == null))
         {
             this.balance[accountType] = new Dictionary<string, object>() {};
         }
@@ -6538,8 +6624,8 @@ public partial class binance : ccxt.binance
             for (int i = 0; i < subscriptionKeys.Count; i++)
             {
                 string? subscriptionHash = ((string)subscriptionKeys[i]);
-                string? subscriptionId = this.safeString(getValue(client.subscriptions, subscriptionHash), "id");
-                string? subscription = this.safeString(getValue(client.subscriptions, subscriptionHash), "subscription");
+                string? subscriptionId = this.safeString((client.subscriptions != null && subscriptionHash != null && client.subscriptions.ContainsKey(subscriptionHash) ? client.subscriptions[subscriptionHash] : null), "id");
+                string? subscription = this.safeString((client.subscriptions != null && subscriptionHash != null && client.subscriptions.ContainsKey(subscriptionHash) ? client.subscriptions[subscriptionHash] : null), "subscription");
                 if ((id == subscriptionId))
                 {
                     client.reject(e, subscriptionHash);
@@ -6557,7 +6643,7 @@ public partial class binance : ccxt.binance
         }
         // reset connection if 5xx error
         string? codeString = this.safeString(error, "code");
-        if (((codeString != null)) && (isEqual(getValue(codeString, 0), "5")))
+        if (((codeString != null)) && (isEqual((codeString != null ? codeString[0].ToString() : null), "5")))
         {
             var resetError = new ExchangeError(((this.id + " ") + this.json(message)));
             client.reset(resetError);

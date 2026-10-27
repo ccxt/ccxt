@@ -257,15 +257,16 @@ public class Revolutx extends RevolutxApi
         }});
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
         Map<String, Object> requestHeaders = null;
         String requestBody = null;
         String implodedPath = (String) this.implodeParams(path, parameters);
         Object query = this.omit(parameters, this.extractParams(path));
-        List<Object> queryKeys = Helpers.objectKeys(query);
+        List<Object> queryKeys = ((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v1 -> { synchronized (j39v1) { yield new ArrayList<Object>(j39v1.keySet()); } } case null, default -> new ArrayList<Object>(); });
         Integer queryLength = ((List<?>)queryKeys).size();
-        String baseApiUrl = this.safeString(this.urls.get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        String baseApiUrl = this.safeString(this.urls.get("api"), apiName);
         if (java.util.Objects.equals(baseApiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
@@ -273,7 +274,7 @@ public class Revolutx extends RevolutxApi
         String baseUrl = baseApiUrl;
         String url = ((baseUrl + "/") + implodedPath);
         String queryString = "";
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private"))
+        if (java.util.Objects.equals(apiName, "private"))
         {
             this.checkRequiredCredentials(true);
             String timestamp = String.valueOf(this.milliseconds());
@@ -296,15 +297,17 @@ public class Revolutx extends RevolutxApi
                 requestBody = this.json(query);
             }
             String requestPath = ("/api/" + implodedPath);
-            String bodyValue = (((!java.util.Objects.equals(requestBody, null)))) ? requestBody : body;
+            String bodyValue = requestBody;
             String bodyString = (((!java.util.Objects.equals(bodyValue, null)))) ? bodyValue : "";
             String message = ((((timestamp + ((String)java.util.Objects.requireNonNullElse(method, "GET")).toUpperCase()) + requestPath) + queryString) + bodyString);
             Object signature = eddsa(this.encode(message), this.privateKey, ed25519());
-            requestHeaders = Helpers.newMap(
-                "X-Revx-API-Key", this.apiKey,
-                "X-Revx-Timestamp", timestamp,
-                "X-Revx-Signature", signature
-            );
+            {
+                HashMap<String, Object> hx4NewMap0 = new HashMap<String, Object>();
+                hx4NewMap0.put("X-Revx-API-Key", this.apiKey);
+                hx4NewMap0.put("X-Revx-Timestamp", timestamp);
+                hx4NewMap0.put("X-Revx-Signature", signature);
+                requestHeaders = hx4NewMap0;
+            }
             if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST") || java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "PUT"))
             {
                 requestHeaders.put("Content-Type", "application/json");
@@ -326,8 +329,8 @@ public class Revolutx extends RevolutxApi
                 }};
             }
         }
-        Object headersResult = (((!java.util.Objects.equals(requestHeaders, null)))) ? requestHeaders : headers;
-        String bodyResult = (((!java.util.Objects.equals(requestBody, null)))) ? requestBody : body;
+        Map<String, Object> headersResult = requestHeaders;
+        String bodyResult = requestBody;
         {
             HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
             h2kMap0.put("url", url);
@@ -449,8 +452,8 @@ public class Revolutx extends RevolutxApi
             //         }
             //     }
             //
-            Object markets = this.safeDict(response, "data", response);
-            List<String> keys = new ArrayList<String>(((Map<String, Object>)markets).keySet());
+            Map<String, Object> markets = (Map<String, Object>) this.safeDict(response, "data", response);
+            List<String> keys = new ArrayList<String>(markets.keySet());
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
@@ -491,7 +494,7 @@ public class Revolutx extends RevolutxApi
         Boolean active = (java.util.Objects.equals(status, "active"));
         String assetType = this.safeString(currency, "asset_type");
         String type = (((java.util.Objects.equals(assetType, "crypto")))) ? "crypto" : "fiat";
-        Object precision = (((!java.util.Objects.equals(scale, null)))) ? Math.pow(Double.parseDouble(String.valueOf(10)), Double.parseDouble(Helpers.toString(Long.valueOf(-scale)))) : null;
+        Object precision = (((!java.util.Objects.equals(scale, null)))) ? Math.pow(Double.parseDouble(String.valueOf(10)), Double.parseDouble(java.util.Objects.toString(Long.valueOf(-scale), null))) : null;
         return new io.github.ccxt.types.CurrencyInterface(new HashMap<String, Object>() {{
             put( "info", currency );
             put( "id", id );
@@ -548,8 +551,8 @@ public class Revolutx extends RevolutxApi
             //         "USD": { "symbol": "$", "name": "US Dollar", "scale": 2, "asset_type": "fiat", "status": "active" }
             //     }
             //
-            Object currencies = this.safeDict(response, "data", response);
-            List<String> keys = new ArrayList<String>(((Map<String, Object>)currencies).keySet());
+            Map<String, Object> currencies = (Map<String, Object>) this.safeDict(response, "data", response);
+            List<String> keys = new ArrayList<String>(currencies.keySet());
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
@@ -681,7 +684,7 @@ public class Revolutx extends RevolutxApi
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
                 Map<String, Object> tickerData = (Map<String, Object>) this.safeDict(data, i, new HashMap<String, Object>() {{}});
-                Helpers.addElementToObject(tickerData, "timestamp", timestamp);
+                tickerData.put("timestamp", timestamp);
                 Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(tickerData, (Map<String, Object>) null);
                 String symbol = this.safeString(ticker, "symbol", "");
                 if (java.util.Objects.equals(symbol, ""))
@@ -884,14 +887,16 @@ public class Revolutx extends RevolutxApi
         String id = this.safeString(trade, "id");
         String tradeSymbol = this.safeString(trade, "symbol");
         String symbol = this.safeSymbol(tradeSymbol, market, "/", (String) null);
-        Double price = this.safeNumber(trade, "price", (Object) null);
-        Double amount = this.safeNumber(trade, "quantity", (Object) null);
+        String priceString = this.safeString(trade, "price");
+        String amountString = this.safeString(trade, "quantity");
+        Double price = this.parseNumber(priceString);
+        Double amount = this.parseNumber(amountString);
         String side = this.safeStringLower(trade, "side");
         Long timestamp = this.safeInteger(trade, "timestamp");
-        Object cost = null;
-        if (!java.util.Objects.equals(price, null) && !java.util.Objects.equals(amount, null))
+        Double cost = null;
+        if (!java.util.Objects.equals(priceString, null) && !java.util.Objects.equals(amountString, null))
         {
-            cost = Helpers.multiply(price, amount);
+            cost = this.parseNumber(Precise.stringMul(priceString, amountString));
         }
         HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
         mapLiteral3.put("info", trade);
@@ -918,7 +923,7 @@ public class Revolutx extends RevolutxApi
      * @see https://developer.revolut.com/docs/api/revolut-x-crypto-exchange#tag-public-market-data
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
-     * @param {int} [limit] the maximum number of trades to return (1-1900, default 1900)
+     * @param {int} [limit] the maximum number of trades to return (1-100)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest trade to fetch
      * @param {string} [params.cursor] pagination cursor from the previous response
@@ -957,7 +962,7 @@ public class Revolutx extends RevolutxApi
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                request.put("limit", Math.min(limit, 1900));
+                request.put("limit", Math.min(limit, 100));
             }
             String cursor = this.safeString(parameters, "cursor");
             if (!java.util.Objects.equals(cursor, null))
@@ -1097,10 +1102,12 @@ public class Revolutx extends RevolutxApi
         Map<String, Object> fee = null;
         if (!java.util.Objects.equals(totalFee, null))
         {
-            fee = Helpers.newMap(
-                "cost", this.parseNumber(totalFee),
-                "currency", feeCurrency
-            );
+            {
+                HashMap<String, Object> hx4NewMap1 = new HashMap<String, Object>();
+                hx4NewMap1.put("cost", this.parseNumber(totalFee));
+                hx4NewMap1.put("currency", feeCurrency);
+                fee = hx4NewMap1;
+            }
         }
         String amountValue = null;
         if (!java.util.Objects.equals(quantity, null))
@@ -1237,13 +1244,13 @@ public class Revolutx extends RevolutxApi
             Map<String, Object> orderData = (Map<String, Object>) ((((data instanceof List))) ? this.safeDict(data, 0, new HashMap<String, Object>() {{}}) : this.safeDict(response, "data", new HashMap<String, Object>() {{}}));
             String venueOrderId = this.safeString(orderData, "venue_order_id");
             String state = this.safeString(orderData, "state");
-            Map<String, Object> order = (Map<String, Object>) this.parseOrder(this.extend(orderData, Helpers.newMap(
-                "id", venueOrderId,
-                "symbol", market.get("id"),
-                "status", state,
-                "side", side,
-                "type", type
-            )), market);
+            Map<String, Object> order = (Map<String, Object>) this.parseOrder(this.extend(orderData, (switch (0) { default -> { HashMap<String, Object> j39v2 = new HashMap<String, Object>();
+                j39v2.put("id", venueOrderId);
+                j39v2.put("symbol", market.get("id"));
+                j39v2.put("status", state);
+                j39v2.put("side", side);
+                j39v2.put("type", type);
+                yield j39v2; } })), market);
             return order;
         }).thenApply(Order::new);
 
@@ -1455,7 +1462,7 @@ public class Revolutx extends RevolutxApi
                 Map<String, Object> market = this.market(symbol);
                 request.put("symbols", market.get("id"));
             }
-            Long thirtyDays = 2592000000L;
+            Long thirtyDays = ((((30L * 24L) * 60L) * 60L) * 1000L);
             Long until = (Long) this.safeInteger2(parameters, "until", "until");
             if (!java.util.Objects.equals(since, null))
             {
@@ -1470,8 +1477,8 @@ public class Revolutx extends RevolutxApi
             } else if (!java.util.Objects.equals(since, null))
             {
                 Long now = this.milliseconds();
-                Object defaultEnd = (since + thirtyDays);
-                request.put("end_date", (((Helpers.isLessThan(defaultEnd, now)))) ? defaultEnd : now);
+                Long thirtyDaysAgo = (now - thirtyDays);
+                request.put("end_date", ((((thirtyDaysAgo != null && since < thirtyDaysAgo)))) ? (since + thirtyDays) : now);
             }
             if (!java.util.Objects.equals(limit, null))
             {
@@ -1543,16 +1550,18 @@ public class Revolutx extends RevolutxApi
     {
         String id = this.safeString(trade, "tid");
         String orderId = this.safeString(trade, "oid");
-        Double price = this.safeNumber(trade, "p", (Object) null);
-        Double amount = this.safeNumber(trade, "q", (Object) null);
+        String priceString = this.safeString(trade, "p");
+        String amountString = this.safeString(trade, "q");
+        Double price = this.parseNumber(priceString);
+        Double amount = this.parseNumber(amountString);
         String side = this.safeStringLower(trade, "s");
         Long timestamp = (Long) this.safeInteger2(trade, "tdt", "pdt");
         Boolean isMaker = (Boolean) this.safeBool(trade, "im", false);
         String takerOrMaker = ((Boolean.TRUE.equals(isMaker))) ? "maker" : "taker";
-        Object cost = null;
-        if (!java.util.Objects.equals(price, null) && !java.util.Objects.equals(amount, null))
+        Double cost = null;
+        if (!java.util.Objects.equals(priceString, null) && !java.util.Objects.equals(amountString, null))
         {
-            cost = Helpers.multiply(price, amount);
+            cost = this.parseNumber(Precise.stringMul(priceString, amountString));
         }
         String symbol = this.safeSymbol(null, market, (String) null, (String) null);
         {
@@ -1605,7 +1614,7 @@ public class Revolutx extends RevolutxApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", market.get("id") );
             }};
-            Long thirtyDays = 2592000000L;
+            Long thirtyDays = ((((30L * 24L) * 60L) * 60L) * 1000L);
             Long until = (Long) this.safeInteger2(parameters, "until", "until");
             if (!java.util.Objects.equals(since, null))
             {
@@ -1620,8 +1629,8 @@ public class Revolutx extends RevolutxApi
             } else if (!java.util.Objects.equals(since, null))
             {
                 Long now = this.milliseconds();
-                Object defaultEnd = (since + thirtyDays);
-                request.put("end_date", (((Helpers.isLessThan(defaultEnd, now)))) ? defaultEnd : now);
+                Long thirtyDaysAgo = (now - thirtyDays);
+                request.put("end_date", ((((thirtyDaysAgo != null && since < thirtyDaysAgo)))) ? (since + thirtyDays) : now);
             }
             if (!java.util.Objects.equals(limit, null))
             {
@@ -1737,7 +1746,8 @@ public class Revolutx extends RevolutxApi
 
     public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
     {
-        if (Helpers.isGreaterThanOrEqual(code, 400))
+        Long statusCode = this.parseToInt(code);
+        if (((statusCode != null && statusCode >= 400)))
         {
             if (java.util.Objects.equals(response, null))
             {

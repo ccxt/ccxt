@@ -7,7 +7,6 @@ import "strings"
 
 type Bitfinex struct {
 	Exchange
-	exchangeTyped *ExchangeTyped
 }
 
 func newBitfinex() *Bitfinex {
@@ -806,7 +805,8 @@ func (this *Bitfinex) Describe() any {
 	})
 }
 func (this *Bitfinex) IsFiat(code any) bool {
-	return (InOp(GetValue(this.Options, "fiat"), code))
+	var fiat map[string]any = SafeMapTyped(this.Options, "fiat")
+	return (InOp(fiat, code))
 }
 func (this *Bitfinex) GetCurrencyName(code any) any {
 	// temporary fix for transpiler recognition, even though this is in parent class
@@ -842,14 +842,14 @@ func (this *Bitfinex) PriceToPrecision(symbol any, price any) *string {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
-func (this *Bitfinex) FetchStatusAsync(optionalArgs ...any) <-chan EndpointResult[map[string]any] {
-	ch := make(chan EndpointResult[map[string]any], 1)
+func (this *Bitfinex) FetchStatusAsync(optionalArgs ...any) <-chan AsyncResult[Status] {
+	ch := make(chan AsyncResult[Status], 1)
 	go this.fetchStatusBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Bitfinex) fetchStatusBody(ch chan EndpointResult[map[string]any], optionalArgs ...any) any {
+func (this *Bitfinex) fetchStatusBody(ch chan AsyncResult[Status], optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicErrorT(ch)
+	defer ReturnPanicError(ch)
 	//
 	//    [1] // operative
 	//    [0] // maintenance
@@ -864,7 +864,7 @@ func (this *Bitfinex) fetchStatusBody(ch chan EndpointResult[map[string]any], op
 	response := r.Raw
 	var statusRaw *string = this.SafeString(response, 0)
 
-	chValue := map[string]any{
+	ch <- AsyncResult[Status]{Value: StatusFromMap(map[string]any{
 		"status": this.SafeString(map[string]any{
 			"0": "maintenance",
 			"1": "ok",
@@ -873,8 +873,7 @@ func (this *Bitfinex) fetchStatusBody(ch chan EndpointResult[map[string]any], op
 		"eta":     nil,
 		"url":     nil,
 		"info":    response,
-	}
-	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
+	})}
 	return nil
 }
 
@@ -886,12 +885,12 @@ func (this *Bitfinex) fetchStatusBody(ch chan EndpointResult[map[string]any], op
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
-func (this *Bitfinex) FetchMarketsAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bitfinex) FetchMarketsAsync(optionalArgs ...any) <-chan AsyncResult[[]MarketInterface] {
+	ch := make(chan AsyncResult[[]MarketInterface], 1)
 	go this.fetchMarketsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Bitfinex) fetchMarketsBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Bitfinex) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -915,7 +914,7 @@ func (this *Bitfinex) fetchMarketsBody(ch chan AsyncResult[any], optionalArgs ..
 	for i := 0; i < len(markets); i++ {
 		var pairObj []any = SafeListTyped(markets, i)
 		var id *string = this.SafeStringUpper(pairObj, 0)
-		var market any = this.SafeValue(pairObj, 1, map[string]any{})
+		var market []any = SafeListTypedDefault(pairObj, 1, []any{})
 		var spot bool = true
 		var typeVar string
 		if func() int {
@@ -1054,7 +1053,7 @@ func (this *Bitfinex) fetchMarketsBody(ch chan AsyncResult[any], optionalArgs ..
 		})
 	}
 
-	ch <- AsyncResult[any]{Value: result}
+	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(result)}
 	return nil
 }
 
@@ -1066,12 +1065,12 @@ func (this *Bitfinex) fetchMarketsBody(ch chan AsyncResult[any], optionalArgs ..
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
  */
-func (this *Bitfinex) FetchCurrenciesAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bitfinex) FetchCurrenciesAsync(optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchCurrenciesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Bitfinex) fetchCurrenciesBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Bitfinex) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1170,6 +1169,7 @@ func (this *Bitfinex) fetchCurrenciesBody(ch chan AsyncResult[any], optionalArgs
 	//         ]
 	//     ]
 	//
+	var networks []any = SafeListTypedDefault(response, 8, []any{})
 	var indexed map[string]any = map[string]any{
 		"sym":         this.IndexBy(this.SafeList(response, 1, []any{}), 0),
 		"label":       this.IndexBy(this.SafeList(response, 2, []any{}), 0),
@@ -1178,13 +1178,13 @@ func (this *Bitfinex) fetchCurrenciesBody(ch chan AsyncResult[any], optionalArgs
 		"pool":        this.IndexBy(this.SafeList(response, 5, []any{}), 0),
 		"explorer":    this.IndexBy(this.SafeList(response, 6, []any{}), 0),
 		"fees":        this.IndexBy(this.SafeList(response, 7, []any{}), 0),
-		"networks":    this.SafeList(response, 8, []any{}),
+		"networks":    networks,
 		"statuses":    this.IndexBy(this.SafeList(response, 9, []any{}), 0),
 		"marginables": this.SafeList(response, 10, []any{}),
 	}
 	var indexedNetworks map[string]any = map[string]any{}
-	for i := 0; i < GetArrayLength(indexed["networks"]); i++ {
-		var networkObj []any = SafeListTyped(indexed["networks"], i)
+	for i := 0; i < len(networks); i++ {
+		var networkObj []any = SafeListTyped(networks, i)
 		var networkId *string = this.SafeString(networkObj, 0)
 		var valuesList []any = SafeListTyped(networkObj, 1)
 		var networkName *string = this.SafeString(valuesList, 0)
@@ -1195,7 +1195,7 @@ func (this *Bitfinex) fetchCurrenciesBody(ch chan AsyncResult[any], optionalArgs
 	}
 	var ids []any = SafeListTypedDefault(response, 0, []any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseCurrenciesCustom(ids, indexed, indexedNetworks)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseCurrenciesCustom(ids, indexed, indexedNetworks)}
 	return nil
 }
 func (this *Bitfinex) ParseCurrenciesCustom(ids []any, indexed map[string]any, indexedNetworks map[string]any) map[string]any {
@@ -1232,7 +1232,8 @@ func (this *Bitfinex) ParseCurrencyCustom(id any, indexed map[string]any, indexe
 	var name *string = this.SafeString(label, 1)
 	var pool []any = SafeListTypedDefault(indexed["pool"], id, []any{})
 	var rawType *string = this.SafeString(pool, 1)
-	var isCryptoCoin bool = (rawType != nil) || (InOp(indexed["explorer"], id)) // "hacky" solution
+	var explorer map[string]any = SafeMapTyped(indexed, "explorer")
+	var isCryptoCoin bool = (rawType != nil) || (InOp(explorer, id)) // "hacky" solution
 	var typeVar *string = func() *string {
 		if isCryptoCoin {
 			return SafeStringPtr("crypto")
@@ -1264,10 +1265,10 @@ func (this *Bitfinex) ParseCurrencyCustom(id any, indexed map[string]any, indexe
 			networks[*network] = map[string]any{
 				"info":      networkId,
 				"id":        strings.ToLower(*networkId),
-				"network":   networkId,
+				"network":   network,
 				"active":    nil,
-				"deposit":   IsEqual(this.SafeInteger(dwStatuses, 1), 1),
-				"withdraw":  IsEqual(this.SafeInteger(dwStatuses, 2), 1),
+				"deposit":   (this.SafeInteger(dwStatuses, 1) != nil && *this.SafeInteger(dwStatuses, 1) == 1),
+				"withdraw":  (this.SafeInteger(dwStatuses, 2) != nil && *this.SafeInteger(dwStatuses, 2) == 1),
 				"fee":       nil,
 				"precision": nil,
 				"limits": map[string]any{
@@ -1313,12 +1314,12 @@ func (this *Bitfinex) ParseCurrencyCustom(id any, indexed map[string]any, indexe
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
-func (this *Bitfinex) FetchBalanceAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bitfinex) FetchBalanceAsync(optionalArgs ...any) <-chan AsyncResult[Balances] {
+	ch := make(chan AsyncResult[Balances], 1)
 	go this.fetchBalanceBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Bitfinex) fetchBalanceBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Bitfinex) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	// this api call does not return the 'used' amount - use the v1 version instead (which also returns zero balances)
@@ -1366,8 +1367,7 @@ func (this *Bitfinex) fetchBalanceBody(ch chan AsyncResult[any], optionalArgs ..
 		}
 		var typeVar *string = this.SafeString(balance, 0)
 		var currencyId *string = this.SafeStringLower(balance, 1, "")
-		var start int64 = Subtract(len(*currencyId), 2).(int64)
-		var isDerivativeCode bool = (Slice(currencyId, start, nil) == "f0")
+		var isDerivativeCode bool = (currencyId != nil) && (strings.HasSuffix(*currencyId, "f0") == true)
 		// this will only filter the derivative codes if the requestedType is 'derivatives'
 		var derivativeCondition bool = (!isDerivative || isDerivativeCode)
 		if (accountType == typeVar || (accountType != nil && typeVar != nil && *accountType == *typeVar)) && derivativeCondition {
@@ -1380,7 +1380,7 @@ func (this *Bitfinex) fetchBalanceBody(ch chan AsyncResult[any], optionalArgs ..
 		}
 	}
 
-	ch <- AsyncResult[any]{Value: this.SafeBalance(result)}
+	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.SafeBalance(result).(map[string]any))}
 	return nil
 }
 
@@ -1396,12 +1396,12 @@ func (this *Bitfinex) fetchBalanceBody(ch chan AsyncResult[any], optionalArgs ..
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Bitfinex) TransferAsync(code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
-	ch := make(chan AsyncResult[map[string]any], 1)
+func (this *Bitfinex) TransferAsync(code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) <-chan AsyncResult[TransferEntry] {
+	ch := make(chan AsyncResult[TransferEntry], 1)
 	go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
 	return ch
 }
-func (this *Bitfinex) transferBody(ch chan AsyncResult[map[string]any], code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) any {
+func (this *Bitfinex) transferBody(ch chan AsyncResult[TransferEntry], code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	// transferring between derivatives wallet and regular wallet is not documented in their API
@@ -1485,12 +1485,12 @@ func (this *Bitfinex) transferBody(ch chan AsyncResult[map[string]any], code str
 		panic(ExchangeError(this.Id + " " + *message))
 	}
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseTransfer(map[string]any{
+	ch <- AsyncResult[TransferEntry]{Value: this.ParseTransfer(map[string]any{
 		"result": response,
 	}, currency)}
 	return nil
 }
-func (this *Bitfinex) ParseTransfer(transfer any, optionalArgs ...any) map[string]any {
+func (this *Bitfinex) ParseTransfer(transfer any, optionalArgs ...any) TransferEntry {
 	//
 	// transfer
 	//
@@ -1523,7 +1523,7 @@ func (this *Bitfinex) ParseTransfer(transfer any, optionalArgs ...any) map[strin
 	var toAccount *string = this.SafeString(info, 2)
 	var currencyId *string = this.SafeString(info, 5)
 	var status *string = this.SafeString(result, 6)
-	return map[string]any{
+	return TransferEntryFromMap(map[string]any{
 		"id":          nil,
 		"timestamp":   timestamp,
 		"datetime":    this.Iso8601(timestamp),
@@ -1533,7 +1533,7 @@ func (this *Bitfinex) ParseTransfer(transfer any, optionalArgs ...any) map[strin
 		"fromAccount": fromAccount,
 		"toAccount":   toAccount,
 		"info":        result,
-	}
+	})
 }
 func (this *Bitfinex) ParseTransferStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
@@ -1543,7 +1543,7 @@ func (this *Bitfinex) ParseTransferStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Bitfinex) ConvertDerivativesId(currency any, typeVar any) any {
+func (this *Bitfinex) ConvertDerivativesId(currency map[string]any, typeVar any) any {
 	// there is a difference between this and the v1 api, namely trading wallet is called margin in v2
 	// {
 	//   "id": "fUSTF0",
@@ -1559,8 +1559,7 @@ func (this *Bitfinex) ConvertDerivativesId(currency any, typeVar any) any {
 		} else {
 			currencyId = nil
 		}
-		var start int64 = Subtract(GetLength(currencyId), 2).(int64)
-		var isDerivativeCode bool = (Slice(currencyId, start, nil) == "F0")
+		var isDerivativeCode bool = EndsWith(currencyId, "F0")
 		if !isDerivativeCode {
 			currencyId = Add(currencyId, "F0")
 		}
@@ -1586,12 +1585,12 @@ func (this *Bitfinex) ConvertDerivativesId(currency any, typeVar any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Bitfinex) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
-	ch := make(chan AsyncResult[map[string]any], 1)
+func (this *Bitfinex) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[OrderBook] {
+	ch := make(chan AsyncResult[OrderBook], 1)
 	go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bitfinex) fetchOrderBookBody(ch chan AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
+func (this *Bitfinex) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1631,7 +1630,7 @@ func (this *Bitfinex) fetchOrderBookBody(ch chan AsyncResult[map[string]any], sy
 		"nonce":     nil,
 	}
 	var priceIndex int = func() int {
-		if IsEqual(fullRequest["precision"], "R0") {
+		if this.SafeString(fullRequest, "precision") != nil && *this.SafeString(fullRequest, "precision") == "R0" {
 			return 1
 		}
 		return 0
@@ -1651,13 +1650,14 @@ func (this *Bitfinex) fetchOrderBookBody(ch chan AsyncResult[map[string]any], sy
 		if Precise.StringGt(signedAmount, "0") {
 			side = "bids"
 		}
-		retRes122312 := result[side]
-		AppendToArray(&retRes122312, []any{price, this.ParseNumber(amount)})
+		retRes122412 := result[side]
+		AppendToArray(&retRes122412, []any{price, this.ParseNumber(amount)})
+		AddElementToObject(result, side, retRes122412)
 	}
 	result["bids"] = this.SortBy(result["bids"], 0, true)
 	result["asks"] = this.SortBy(result["asks"], 0)
 
-	ch <- AsyncResult[map[string]any]{Value: result}
+	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(result)}
 	return nil
 }
 func (this *Bitfinex) ParseTicker(ticker any, optionalArgs ...any) Ticker {
@@ -1739,9 +1739,7 @@ func (this *Bitfinex) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 		bid = this.SafeString(ticker, 2-minusIndex)
 		ask = this.SafeString(ticker, 5-minusIndex)
 		change = this.SafeString(ticker, 8-minusIndex)
-		// DAILY_CHANGE_RELATIVE, per the array above: the same field the trading
-		// branch reads at index 6 and scales
-		percentage = Precise.StringMul(this.SafeString(ticker, 9-minusIndex), "100")
+		// funding DAILY_CHANGE_RELATIVE is not change / (last - change), let safeTicker derive percentage
 		volume = this.SafeString(ticker, 11-minusIndex)
 		high = this.SafeString(ticker, 12-minusIndex)
 		low = this.SafeString(ticker, 13-minusIndex)
@@ -1790,12 +1788,12 @@ func (this *Bitfinex) ParseTicker(ticker any, optionalArgs ...any) Ticker {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Bitfinex) FetchTickersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bitfinex) FetchTickersAsync(optionalArgs ...any) <-chan AsyncResult[map[string]Ticker] {
+	ch := make(chan AsyncResult[map[string]Ticker], 1)
 	go this.fetchTickersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Bitfinex) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Bitfinex) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
@@ -1863,7 +1861,7 @@ func (this *Bitfinex) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ..
 	//         ...
 	//     ]
 	//
-	ch <- AsyncResult[any]{Value: this.ParseTickers(tickers, symbolsNormalized)}
+	ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.ParseTickers(tickers, symbolsNormalized))}
 	return nil
 }
 
@@ -1876,12 +1874,12 @@ func (this *Bitfinex) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ..
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Bitfinex) FetchTickerAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
-	ch := make(chan AsyncResult[map[string]any], 1)
+func (this *Bitfinex) FetchTickerAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[Ticker] {
+	ch := make(chan AsyncResult[Ticker], 1)
 	go this.fetchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bitfinex) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
+func (this *Bitfinex) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1904,7 +1902,7 @@ func (this *Bitfinex) fetchTickerBody(ch chan AsyncResult[map[string]any], symbo
 	}
 	ticker := r1.Value
 
-	ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(ticker, market))}
+	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(ticker, market)}
 	return nil
 }
 func (this *Bitfinex) ParseTrade(trade any, optionalArgs ...any) Trade {
@@ -2036,12 +2034,12 @@ func (this *Bitfinex) ParseTrade(trade any, optionalArgs ...any) Trade {
  * @param {int} [params.until] the latest time in ms to fetch entries for
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Bitfinex) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bitfinex) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bitfinex) fetchTradesBody(ch chan AsyncResult[any], symbol any, optionalArgs ...any) any {
+func (this *Bitfinex) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -2064,11 +2062,11 @@ func (this *Bitfinex) fetchTradesBody(ch chan AsyncResult[any], symbol any, opti
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes153719 []any = ListTyped(r1.Value)
-		if retRes153719 == nil {
-			ch <- AsyncResult[any]{Value: nil}
+		var retRes153619 []any = r1.Value
+		if retRes153619 == nil {
+			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes153719}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes153619)}
 		}
 		return nil
 	}
@@ -2116,7 +2114,7 @@ func (this *Bitfinex) fetchTradesBody(ch chan AsyncResult[any], symbol any, opti
 		}) // convert to array of dicts to match parseOrder signature
 	}
 
-	ch <- AsyncResult[any]{Value: this.ParseTrades(tradesList, market, nil, limit)}
+	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(tradesList, market, nil, limit))}
 	return nil
 }
 
@@ -2134,12 +2132,12 @@ func (this *Bitfinex) fetchTradesBody(ch chan AsyncResult[any], symbol any, opti
  * @param {int} [params.until] timestamp in ms of the latest candle to fetch
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  */
-func (this *Bitfinex) FetchOHLCVAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bitfinex) FetchOHLCVAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]OHLCV] {
+	ch := make(chan AsyncResult[[]OHLCV], 1)
 	go this.fetchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bitfinex) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Bitfinex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var timeframe string = GetArgString(optionalArgs, 0, "1m")
@@ -2164,11 +2162,11 @@ func (this *Bitfinex) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, op
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes159319 []any = ListTyped(r1.Value)
-		if retRes159319 == nil {
-			ch <- AsyncResult[any]{Value: nil}
+		var retRes159219 []any = r1.Value
+		if retRes159219 == nil {
+			ch <- AsyncResult[[]OHLCV]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes159319}
+			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes159219)}
 		}
 		return nil
 	}
@@ -2203,7 +2201,7 @@ func (this *Bitfinex) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, op
 	//         [1591504620000,0.025062,0.025062,0.025062,0.025062,0.5],
 	//     ]
 	//
-	ch <- AsyncResult[any]{Value: this.ParseOHLCVs(this.ToArray(response), market, timeframe, since, limitResolved)}
+	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(this.ToArray(response), market, timeframe, since, limitResolved))}
 	return nil
 }
 func (this *Bitfinex) ParseOHLCV(ohlcv any, optionalArgs ...any) OHLCV {
@@ -2284,7 +2282,7 @@ func (this *Bitfinex) ParseOrder(order any, optionalArgs ...any) Order {
 	var postOnly bool = false
 	if !IsEqual(flags, nil) {
 		for i := 0; i < GetArrayLength(flags); i++ {
-			if IsEqual(GetValue(flags, i), "postOnly") {
+			if GetValue(flags, i) == "postOnly" {
 				postOnly = true
 			}
 		}
@@ -2330,15 +2328,15 @@ func (this *Bitfinex) ParseOrder(order any, optionalArgs ...any) Order {
 		"trades":             nil,
 	}, market)
 }
-func (this *Bitfinex) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) map[string]any {
+func (this *Bitfinex) CreateOrderRequest(symbol *string, typeVar *string, side *string, amount any, optionalArgs ...any) map[string]any {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(typeVar, nil) {
+	if typeVar == nil {
 		panic(ArgumentsRequired(this.Id + " requires a type argument"))
 	}
-	if IsEqual(side, nil) {
+	if side == nil {
 		panic(ArgumentsRequired(this.Id + " requires a side argument"))
 	}
 	/**
@@ -2369,7 +2367,7 @@ func (this *Bitfinex) CreateOrderRequest(symbol any, typeVar any, side any, amou
 		amountString = *derefPtr
 	}
 	amountString = func() any {
-		if IsEqual(side, "buy") {
+		if side != nil && *side == "buy" {
 			return amountString
 		}
 		return Precise.StringNeg(amountString)
@@ -2384,14 +2382,14 @@ func (this *Bitfinex) CreateOrderRequest(symbol any, typeVar any, side any, amou
 	var postOnlyParam *bool = this.SafeBool(params, "postOnly", false)
 	var reduceOnly *bool = this.SafeBool(params, "reduceOnly", false)
 	var clientOrderId any = this.SafeValue2(params, "cid", "clientOrderId")
-	var orderType string = ToUpper(typeVar)
+	var orderType string = strings.ToUpper(*typeVar)
 	if trailingAmount != nil {
 		orderType = "TRAILING STOP"
 		request["price_trailing"] = trailingAmount
 	} else if triggerPrice != nil {
 		// request['price'] is taken as triggerPrice for stop orders
 		request["price"] = this.PriceToPrecision(symbol, triggerPrice)
-		if IsEqual(typeVar, "limit") {
+		if typeVar != nil && *typeVar == "limit" {
 			orderType = "STOP LIMIT"
 			request["price_aux_limit"] = this.PriceToPrecision(symbol, price)
 		} else {
@@ -2400,14 +2398,14 @@ func (this *Bitfinex) CreateOrderRequest(symbol any, typeVar any, side any, amou
 	}
 	var ioc bool = (timeInForce != nil && *timeInForce == "IOC")
 	var fok bool = (timeInForce != nil && *timeInForce == "FOK")
-	var postOnly bool = ((postOnlyParam != nil && *postOnlyParam == true) || (timeInForce != nil && *timeInForce == "PO"))
+	var postOnly bool = ((postOnlyParam != nil && *postOnlyParam) || (timeInForce != nil && *timeInForce == "PO"))
 	if (ioc || fok) && (price == nil) {
 		panic(InvalidOrder(this.Id + " createOrder() requires a price argument with IOC and FOK orders"))
 	}
-	if (ioc || fok) && (IsEqual(typeVar, "market")) {
+	if (ioc || fok) && (typeVar != nil && *typeVar == "market") {
 		panic(InvalidOrder(this.Id + " createOrder() does not allow market IOC and FOK orders"))
 	}
-	if (!IsEqual(typeVar, "market")) && (triggerPrice == nil) {
+	if (typeVar == nil || *typeVar != "market") && (triggerPrice == nil) {
 		request["price"] = this.PriceToPrecision(symbol, price)
 	}
 	if ioc {
@@ -2422,17 +2420,18 @@ func (this *Bitfinex) CreateOrderRequest(symbol any, typeVar any, side any, amou
 	}
 	request["type"] = orderType
 	// flag values may be summed to combine flags
-	var flags any = 0
-	if postOnly {
-		flags = this.Sum(flags, 4096)
+	var flags int = 0
+	if postOnly && (reduceOnly != nil && *reduceOnly) {
+		flags = 5120
+	} else if postOnly {
+		flags = 4096
+	} else if reduceOnly != nil && *reduceOnly {
+		flags = 1024
 	}
-	if reduceOnly != nil && *reduceOnly == true {
-		flags = this.Sum(flags, 1024)
-	}
-	if !IsEqual(flags, 0) {
+	if flags != 0 {
 		request["flags"] = flags
 	}
-	if !IsEqual(clientOrderId, nil) {
+	if clientOrderId != nil {
 		request["cid"] = clientOrderId
 	}
 	var paramsOmitted map[string]any = this.OmitDict(paramsMarginMode, []any{"triggerPrice", "stopPrice", "timeInForce", "postOnly", "reduceOnly", "trailingAmount", "clientOrderId"})
@@ -2461,12 +2460,12 @@ func (this *Bitfinex) CreateOrderRequest(symbol any, typeVar any, side any, amou
  * @param {string} [params.trailingAmount] *swap only* the quote amount to trail away from the current market price
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bitfinex) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
-	ch := make(chan AsyncResult[map[string]any], 1)
+func (this *Bitfinex) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[Order] {
+	ch := make(chan AsyncResult[Order], 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Bitfinex) createOrderBody(ch chan AsyncResult[map[string]any], symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Bitfinex) createOrderBody(ch chan AsyncResult[Order], symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -2481,7 +2480,7 @@ func (this *Bitfinex) createOrderBody(ch chan AsyncResult[map[string]any], symbo
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var request map[string]any = MapTyped(this.CreateOrderRequest(symbol, typeVar, side, amount, price, params))
+	var request map[string]any = this.CreateOrderRequest(SafeStringPtr(symbol), SafeStringPtr(typeVar), SafeStringPtr(side), amount, price, params)
 
 	r1 := <-this.PrivatePostAuthWOrderSubmit(request)
 	if r1.Err != nil {
@@ -2547,7 +2546,7 @@ func (this *Bitfinex) createOrderBody(ch chan AsyncResult[map[string]any], symbo
 		"result": order,
 	}
 
-	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(newOrder, market))}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(newOrder, market)}
 	return nil
 }
 
@@ -2560,12 +2559,12 @@ func (this *Bitfinex) createOrderBody(ch chan AsyncResult[map[string]any], symbo
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bitfinex) CreateOrdersAsync(orders any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bitfinex) CreateOrdersAsync(orders any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
+	ch := make(chan AsyncResult[[]Order], 1)
 	go this.createOrdersBody(ch, orders, optionalArgs...)
 	return ch
 }
-func (this *Bitfinex) createOrdersBody(ch chan AsyncResult[any], orders any, optionalArgs ...any) any {
+func (this *Bitfinex) createOrdersBody(ch chan AsyncResult[[]Order], orders any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2586,7 +2585,7 @@ func (this *Bitfinex) createOrdersBody(ch chan AsyncResult[any], orders any, opt
 		var amount *float64 = this.SafeNumber(rawOrder, "amount")
 		var price *float64 = this.SafeNumber(rawOrder, "price")
 		var orderParams map[string]any = this.SafeDictMap(rawOrder, "params", map[string]any{})
-		var orderRequest map[string]any = MapTyped(this.CreateOrderRequest(symbol, typeVar, side, amount, price, orderParams))
+		var orderRequest map[string]any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, orderParams)
 		ordersRequests = append(ordersRequests, []any{"on", orderRequest})
 	}
 	var request map[string]any = map[string]any{
@@ -2638,7 +2637,7 @@ func (this *Bitfinex) createOrdersBody(ch chan AsyncResult[any], orders any, opt
 		})
 	}
 
-	ch <- AsyncResult[any]{Value: this.ParseOrders(results)}
+	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(results))}
 	return nil
 }
 
@@ -2651,12 +2650,12 @@ func (this *Bitfinex) createOrdersBody(ch chan AsyncResult[any], orders any, opt
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bitfinex) CancelAllOrdersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bitfinex) CancelAllOrdersAsync(optionalArgs ...any) <-chan AsyncResult[[]Order] {
+	ch := make(chan AsyncResult[[]Order], 1)
 	go this.cancelAllOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Bitfinex) cancelAllOrdersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Bitfinex) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2692,7 +2691,7 @@ func (this *Bitfinex) cancelAllOrdersBody(ch chan AsyncResult[any], optionalArgs
 		})
 	}
 
-	ch <- AsyncResult[any]{Value: this.ParseOrders(ordersList)}
+	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(ordersList))}
 	return nil
 }
 
@@ -2706,12 +2705,12 @@ func (this *Bitfinex) cancelAllOrdersBody(ch chan AsyncResult[any], optionalArgs
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bitfinex) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
-	ch := make(chan AsyncResult[map[string]any], 1)
+func (this *Bitfinex) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+	ch := make(chan AsyncResult[Order], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Bitfinex) cancelOrderBody(ch chan AsyncResult[map[string]any], id any, optionalArgs ...any) any {
+func (this *Bitfinex) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2731,9 +2730,9 @@ func (this *Bitfinex) cancelOrderBody(ch chan AsyncResult[map[string]any], id an
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
-	if !IsEqual(cid, nil) {
-		var cidDate any = this.SafeValue(params, "cidDate") // client order id date
-		if IsEqual(cidDate, nil) {
+	if cid != nil {
+		var cidDate *string = this.SafeString(params, "cidDate") // client order id date
+		if cidDate == nil {
 			panic(InvalidOrder(this.Id + " canceling an order by clientOrderId ('cid') requires both 'cid' and 'cid_date' ('YYYY-MM-DD')"))
 		}
 		request = map[string]any{
@@ -2746,7 +2745,7 @@ func (this *Bitfinex) cancelOrderBody(ch chan AsyncResult[map[string]any], id an
 		}
 	}
 	var paramsOmitted map[string]any = func() map[string]any {
-		if !IsEqual(cid, nil) {
+		if cid != nil {
 			return this.OmitDict(params, []any{"cid", "clientOrderId"})
 		}
 		return params
@@ -2762,7 +2761,7 @@ func (this *Bitfinex) cancelOrderBody(ch chan AsyncResult[map[string]any], id an
 		"result": order,
 	}
 
-	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(newOrder, market))}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(newOrder, market)}
 	return nil
 }
 
@@ -2776,12 +2775,12 @@ func (this *Bitfinex) cancelOrderBody(ch chan AsyncResult[map[string]any], id an
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an array of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bitfinex) CancelOrdersAsync(ids any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bitfinex) CancelOrdersAsync(ids any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
+	ch := make(chan AsyncResult[[]Order], 1)
 	go this.cancelOrdersBody(ch, ids, optionalArgs...)
 	return ch
 }
-func (this *Bitfinex) cancelOrdersBody(ch chan AsyncResult[any], ids any, optionalArgs ...any) any {
+func (this *Bitfinex) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2876,7 +2875,7 @@ func (this *Bitfinex) cancelOrdersBody(ch chan AsyncResult[any], ids any, option
 		})
 	}
 
-	ch <- AsyncResult[any]{Value: this.ParseOrders(ordersList, market)}
+	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(ordersList, market))}
 	return nil
 }
 
@@ -2891,12 +2890,12 @@ func (this *Bitfinex) cancelOrdersBody(ch chan AsyncResult[any], ids any, option
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bitfinex) FetchOpenOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bitfinex) FetchOpenOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+	ch := make(chan AsyncResult[Order], 1)
 	go this.fetchOpenOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Bitfinex) fetchOpenOrderBody(ch chan AsyncResult[any], id any, optionalArgs ...any) any {
+func (this *Bitfinex) fetchOpenOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2911,13 +2910,13 @@ func (this *Bitfinex) fetchOpenOrderBody(ch chan AsyncResult[any], id any, optio
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var orders []any = ListTyped(r.Value)
-	var order any = this.SafeValue(orders, 0)
-	if IsEqual(order, nil) {
+	var orders []any = OrdersToList(r.Value)
+	var order map[string]any = SafeMapTyped(orders, 0)
+	if order == nil {
 		panic(OrderNotFound(Add(Add(this.Id+" order ", id), " not found")))
 	}
 
-	ch <- AsyncResult[any]{Value: order}
+	ch <- AsyncResult[Order]{Value: OrderFromMap(order)}
 	return nil
 }
 
@@ -2932,12 +2931,12 @@ func (this *Bitfinex) fetchOpenOrderBody(ch chan AsyncResult[any], id any, optio
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bitfinex) FetchClosedOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bitfinex) FetchClosedOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+	ch := make(chan AsyncResult[Order], 1)
 	go this.fetchClosedOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Bitfinex) fetchClosedOrderBody(ch chan AsyncResult[any], id any, optionalArgs ...any) any {
+func (this *Bitfinex) fetchClosedOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2952,13 +2951,13 @@ func (this *Bitfinex) fetchClosedOrderBody(ch chan AsyncResult[any], id any, opt
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var orders []any = ListTyped(r.Value)
-	var order any = this.SafeValue(orders, 0)
-	if IsEqual(order, nil) {
+	var orders []any = OrdersToList(r.Value)
+	var order map[string]any = SafeMapTyped(orders, 0)
+	if order == nil {
 		panic(OrderNotFound(Add(Add(this.Id+" order ", id), " not found")))
 	}
 
-	ch <- AsyncResult[any]{Value: order}
+	ch <- AsyncResult[Order]{Value: OrderFromMap(order)}
 	return nil
 }
 
@@ -2974,12 +2973,12 @@ func (this *Bitfinex) fetchClosedOrderBody(ch chan AsyncResult[any], id any, opt
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bitfinex) FetchOpenOrdersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bitfinex) FetchOpenOrdersAsync(optionalArgs ...any) <-chan AsyncResult[[]Order] {
+	ch := make(chan AsyncResult[[]Order], 1)
 	go this.fetchOpenOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Bitfinex) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Bitfinex) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3062,7 +3061,7 @@ func (this *Bitfinex) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs
 		})
 	}
 
-	ch <- AsyncResult[any]{Value: this.ParseOrders(ordersList, market, since, limit)}
+	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(ordersList, market, since, limit))}
 	return nil
 }
 
@@ -3080,12 +3079,12 @@ func (this *Bitfinex) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bitfinex) FetchClosedOrdersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bitfinex) FetchClosedOrdersAsync(optionalArgs ...any) <-chan AsyncResult[[]Order] {
+	ch := make(chan AsyncResult[[]Order], 1)
 	go this.fetchClosedOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Bitfinex) fetchClosedOrdersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Bitfinex) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	// returns the most recent closed or canceled orders up to circa two weeks ago
@@ -3111,11 +3110,11 @@ func (this *Bitfinex) fetchClosedOrdersBody(ch chan AsyncResult[any], optionalAr
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes229219 []any = ListTyped(r1.Value)
+		var retRes229219 []any = r1.Value
 		if retRes229219 == nil {
-			ch <- AsyncResult[any]{Value: nil}
+			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes229219}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes229219)}
 		}
 		return nil
 	}
@@ -3191,7 +3190,7 @@ func (this *Bitfinex) fetchClosedOrdersBody(ch chan AsyncResult[any], optionalAr
 		})
 	}
 
-	ch <- AsyncResult[any]{Value: this.ParseOrders(ordersList, market, since, limit)}
+	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(ordersList, market, since, limit))}
 	return nil
 }
 
@@ -3207,12 +3206,12 @@ func (this *Bitfinex) fetchClosedOrdersBody(ch chan AsyncResult[any], optionalAr
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func (this *Bitfinex) FetchOrderTradesAsync(id string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bitfinex) FetchOrderTradesAsync(id string, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchOrderTradesBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Bitfinex) fetchOrderTradesBody(ch chan AsyncResult[any], id string, optionalArgs ...any) any {
+func (this *Bitfinex) fetchOrderTradesBody(ch chan AsyncResult[[]Trade], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3259,7 +3258,7 @@ func (this *Bitfinex) fetchOrderTradesBody(ch chan AsyncResult[any], id string, 
 		}) // convert to array of dicts to match parseOrder signature
 	}
 
-	ch <- AsyncResult[any]{Value: this.ParseTrades(tradesList, market, since, limit)}
+	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(tradesList, market, since, limit))}
 	return nil
 }
 
@@ -3275,12 +3274,12 @@ func (this *Bitfinex) fetchOrderTradesBody(ch chan AsyncResult[any], id string, 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func (this *Bitfinex) FetchMyTradesAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bitfinex) FetchMyTradesAsync(optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchMyTradesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Bitfinex) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Bitfinex) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3333,7 +3332,7 @@ func (this *Bitfinex) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs .
 		}) // convert to array of dicts to match parseOrder signature
 	}
 
-	ch <- AsyncResult[any]{Value: this.ParseTrades(tradesList, market, since, limit)}
+	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(tradesList, market, since, limit))}
 	return nil
 }
 
@@ -3346,12 +3345,12 @@ func (this *Bitfinex) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs .
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
-func (this *Bitfinex) CreateDepositAddressAsync(code string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bitfinex) CreateDepositAddressAsync(code string, optionalArgs ...any) <-chan AsyncResult[DepositAddress] {
+	ch := make(chan AsyncResult[DepositAddress], 1)
 	go this.createDepositAddressBody(ch, code, optionalArgs...)
 	return ch
 }
-func (this *Bitfinex) createDepositAddressBody(ch chan AsyncResult[any], code string, optionalArgs ...any) any {
+func (this *Bitfinex) createDepositAddressBody(ch chan AsyncResult[DepositAddress], code string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3371,11 +3370,11 @@ func (this *Bitfinex) createDepositAddressBody(ch chan AsyncResult[any], code st
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes244815 map[string]any = MapTyped(r1.Value)
+	var retRes244815 map[string]any = StructResultMap(r1.Value, DepositAddressToMap)
 	if retRes244815 == nil {
-		ch <- AsyncResult[any]{Value: nil}
+		ch <- AsyncResult[DepositAddress]{}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes244815}
+		ch <- AsyncResult[DepositAddress]{Value: DepositAddressFromMap(retRes244815)}
 	}
 	return nil
 }
@@ -3389,12 +3388,12 @@ func (this *Bitfinex) createDepositAddressBody(ch chan AsyncResult[any], code st
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
-func (this *Bitfinex) FetchDepositAddressAsync(code string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bitfinex) FetchDepositAddressAsync(code string, optionalArgs ...any) <-chan AsyncResult[DepositAddress] {
+	ch := make(chan AsyncResult[DepositAddress], 1)
 	go this.fetchDepositAddressBody(ch, code, optionalArgs...)
 	return ch
 }
-func (this *Bitfinex) fetchDepositAddressBody(ch chan AsyncResult[any], code string, optionalArgs ...any) any {
+func (this *Bitfinex) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress], code string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3408,7 +3407,8 @@ func (this *Bitfinex) fetchDepositAddressBody(ch chan AsyncResult[any], code str
 	}
 	var currency map[string]any = this.Currency(code)
 	// if not provided explicitly we will try to match using the currency name
-	var network *string = this.SafeString(params, "network", code)
+	var networkParam *string = this.SafeString(params, "network", code)
+	var network *string = this.SafeString(this.NetworkAliases, networkParam, networkParam)
 	var currencyNetworks map[string]any = SafeMapTyped(currency, "networks")
 	var currencyNetwork map[string]any = SafeMapTyped(currencyNetworks, network)
 	var networkId *string = this.SafeString(currencyNetwork, "id")
@@ -3463,13 +3463,13 @@ func (this *Bitfinex) fetchDepositAddressBody(ch chan AsyncResult[any], code str
 	}()
 	this.CheckAddress(address)
 
-	ch <- AsyncResult[any]{Value: map[string]any{
+	ch <- AsyncResult[DepositAddress]{Value: DepositAddressFromMap(map[string]any{
 		"currency": code,
 		"address":  address,
 		"tag":      tag,
 		"network":  nil,
 		"info":     response,
-	}}
+	})}
 	return nil
 }
 func (this *Bitfinex) ParseTransactionStatus(status *string) *string {
@@ -3488,7 +3488,7 @@ func (this *Bitfinex) ParseTransactionStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Bitfinex) ParseTransaction(transaction any, optionalArgs ...any) map[string]any {
+func (this *Bitfinex) ParseTransaction(transaction any, optionalArgs ...any) Transaction {
 	//
 	// withdraw
 	//
@@ -3571,13 +3571,10 @@ func (this *Bitfinex) ParseTransaction(transaction any, optionalArgs ...any) map
 		} else {
 			amount = nil
 		}
-		if derefPtr := this.SafeInteger(data, 0); derefPtr != nil {
-			id = *derefPtr
-		} else {
-			id = nil
-		}
+		var withdrawId *int64 = this.SafeInteger(data, 0)
+		id = withdrawId
 		status = SafeStringPtr("ok")
-		if IsEqual(id, 0) {
+		if withdrawId != nil && *withdrawId == 0 {
 			id = nil
 			status = SafeStringPtr("failed")
 		}
@@ -3619,7 +3616,7 @@ func (this *Bitfinex) ParseTransaction(transaction any, optionalArgs ...any) map
 		txid = this.SafeString(transaction, 20)
 		comment = this.SafeString(transaction, 21)
 	}
-	return map[string]any{
+	return TransactionFromMap(map[string]any{
 		"info":        transaction,
 		"id":          id,
 		"txid":        txid,
@@ -3644,7 +3641,7 @@ func (this *Bitfinex) ParseTransaction(transaction any, optionalArgs ...any) map
 			"cost":     this.ParseNumber(feeCost),
 			"rate":     nil,
 		},
-	}
+	})
 }
 
 /**
@@ -3655,12 +3652,12 @@ func (this *Bitfinex) ParseTransaction(transaction any, optionalArgs ...any) map
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
  */
-func (this *Bitfinex) FetchTradingFeesAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bitfinex) FetchTradingFeesAsync(optionalArgs ...any) <-chan AsyncResult[map[string]TradingFeeInterface] {
+	ch := make(chan AsyncResult[map[string]TradingFeeInterface], 1)
 	go this.fetchTradingFeesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Bitfinex) fetchTradingFeesBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Bitfinex) fetchTradingFeesBody(ch chan AsyncResult[map[string]TradingFeeInterface], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3780,7 +3777,7 @@ func (this *Bitfinex) fetchTradingFeesBody(ch chan AsyncResult[any], optionalArg
 		}
 	}
 
-	ch <- AsyncResult[any]{Value: result}
+	ch <- AsyncResult[map[string]TradingFeeInterface]{Value: TradingFeeInterfaceMapFromMap(result)}
 	return nil
 }
 
@@ -3796,12 +3793,12 @@ func (this *Bitfinex) fetchTradingFeesBody(ch chan AsyncResult[any], optionalArg
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Bitfinex) FetchDepositsWithdrawalsAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bitfinex) FetchDepositsWithdrawalsAsync(optionalArgs ...any) <-chan AsyncResult[[]Transaction] {
+	ch := make(chan AsyncResult[[]Transaction], 1)
 	go this.fetchDepositsWithdrawalsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Bitfinex) fetchDepositsWithdrawalsBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Bitfinex) fetchDepositsWithdrawalsBody(ch chan AsyncResult[[]Transaction], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3830,7 +3827,7 @@ func (this *Bitfinex) fetchDepositsWithdrawalsBody(ch chan AsyncResult[any], opt
 	var response []any = nil
 	if code != nil {
 		currency = this.Currency(code)
-		request["currency"] = GetValue(currency, "id")
+		request["currency"] = currency["id"]
 
 		r1 := <-this.PrivatePostAuthRMovementsCurrencyHist(this.Extend(request, params))
 		if r1.Err != nil {
@@ -3876,7 +3873,7 @@ func (this *Bitfinex) fetchDepositsWithdrawalsBody(ch chan AsyncResult[any], opt
 	//         ]
 	//     ]
 	//
-	ch <- AsyncResult[any]{Value: this.ParseTransactions(response, currency, since, limit)}
+	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(response, currency, since, limit))}
 	return nil
 }
 
@@ -3888,22 +3885,23 @@ func (this *Bitfinex) fetchDepositsWithdrawalsBody(ch chan AsyncResult[any], opt
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
- * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Bitfinex) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
-	ch := make(chan EndpointResult[map[string]any], 1)
+func (this *Bitfinex) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan AsyncResult[Transaction] {
+	ch := make(chan AsyncResult[Transaction], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Bitfinex) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
+func (this *Bitfinex) withdrawBody(ch chan AsyncResult[Transaction], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicErrorT(ch)
-	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
-	_ = tag
-	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
+	defer ReturnPanicError(ch)
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
+	var tagparamsWithdrawTagVariable []any = this.HandleParamString(params, "tag")
+	var tag *string = SafeStringPtr(tagparamsWithdrawTagVariable[0])
+	var paramsWithdrawTag map[string]any = MapTyped(tagparamsWithdrawTagVariable[1])
 	this.CheckAddress(address)
 	if this.Markets == nil {
 
@@ -3914,8 +3912,9 @@ func (this *Bitfinex) withdrawBody(ch chan EndpointResult[map[string]any], code 
 	}
 	var currency map[string]any = this.Currency(code)
 	// if not provided explicitly we will try to match using the currency name
-	var network *string = this.SafeString(params, "network", code)
-	var paramsOmitted map[string]any = this.OmitDict(params, "network")
+	var networkParam *string = this.SafeString(paramsWithdrawTag, "network", code)
+	var network *string = this.SafeString(this.NetworkAliases, networkParam, networkParam)
+	var paramsOmitted map[string]any = this.OmitDict(paramsWithdrawTag, "network")
 	var currencyNetworks map[string]any = SafeMapTyped(currency, "networks")
 	var currencyNetwork map[string]any = SafeMapTyped(currencyNetworks, network)
 	var networkId *string = this.SafeString(currencyNetwork, "id")
@@ -3935,7 +3934,7 @@ func (this *Bitfinex) withdrawBody(ch chan EndpointResult[map[string]any], code 
 	}
 	var withdrawOptions map[string]any = SafeMapTyped(this.Options, "withdraw")
 	var includeFee *bool = this.SafeBool(withdrawOptions, "includeFee", false)
-	if includeFee != nil && *includeFee == true {
+	if includeFee != nil && *includeFee {
 		request["fee_deduct"] = 1
 	}
 
@@ -3988,8 +3987,7 @@ func (this *Bitfinex) withdrawBody(ch chan EndpointResult[map[string]any], code 
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], text, text)
 	}
 
-	chValue := this.ParseTransaction(response, currency)
-	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
+	ch <- AsyncResult[Transaction]{Value: this.ParseTransaction(response, currency)}
 	return nil
 }
 
@@ -4002,12 +4000,12 @@ func (this *Bitfinex) withdrawBody(ch chan EndpointResult[map[string]any], code 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
-func (this *Bitfinex) FetchPositionsAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bitfinex) FetchPositionsAsync(optionalArgs ...any) <-chan AsyncResult[[]Position] {
+	ch := make(chan AsyncResult[[]Position], 1)
 	go this.fetchPositionsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Bitfinex) fetchPositionsBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Bitfinex) fetchPositionsBody(ch chan AsyncResult[[]Position], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
@@ -4075,10 +4073,10 @@ func (this *Bitfinex) fetchPositionsBody(ch chan AsyncResult[any], optionalArgs 
 		})
 	}
 
-	ch <- AsyncResult[any]{Value: this.ParsePositions(positionsList, symbolsNormalized)}
+	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.ParsePositions(positionsList, symbolsNormalized))}
 	return nil
 }
-func (this *Bitfinex) ParsePosition(position any, optionalArgs ...any) any {
+func (this *Bitfinex) ParsePosition(position any, optionalArgs ...any) Position {
 	//
 	//    [
 	//        "tBTCUSD",                    // SYMBOL
@@ -4159,41 +4157,38 @@ func (this *Bitfinex) Nonce() any {
 	return this.Milliseconds()
 }
 func (this *Bitfinex) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, "public")
+	api := GetArg(optionalArgs, 0, []any{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	headers := GetArg(optionalArgs, 3, nil)
-	_ = headers
-	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
-	_ = body
-	var request any = "/" + this.ImplodeParams(path, params)
+	var apiName *string = SafeStringPtr(GetValue(api, 0))
+	var request string = "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
-	if api == "v1" {
-		request = Add(api, request)
+	if apiName != nil && *apiName == "v1" {
+		request = *apiName + request
 	} else {
-		request = Add(this.Version, request)
+		request = this.Version + request
 	}
-	var apiUrl *string = this.SafeString(this.Urls["api"], api)
+	var apiUrl *string = this.SafeString(this.Urls["api"], apiName)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
-	var url any = Add(*apiUrl+"/", request)
-	var requestBody any = nil
+	var url string = *apiUrl + "/" + request
+	var requestBody *string = nil
 	var requestHeaders any = nil
-	if api == "public" {
+	if apiName != nil && *apiName == "public" {
 		if len(ObjectKeys(query)) > 0 {
-			url = Add(url, "?"+this.Urlencode(query))
+			url += "?" + this.Urlencode(query)
 		}
 	}
-	if api == "private" {
+	if apiName != nil && *apiName == "private" {
 		this.CheckRequiredCredentials()
 		// bitfinex rejects a nonce that is not greater than the previous one for the key (error 10114)
 		var nonce string = ToString(this.IncrementingNonce())
-		requestBody = this.Json(query)
-		var auth *string = SafeStringPtr(Add(Add(Add("/api/", request), nonce), requestBody))
+		requestBody = SafeStringPtr(this.Json(query))
+		var auth string = "/api/" + request + nonce + *requestBody
 		var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha384)
 		requestHeaders = map[string]any{
 			"bfx-nonce":     nonce,
@@ -4202,18 +4197,8 @@ func (this *Bitfinex) Sign(path string, optionalArgs ...any) any {
 			"Content-Type":  "application/json",
 		}
 	}
-	var bodyResolved any = func() any {
-		if requestBody == nil {
-			return body
-		}
-		return requestBody
-	}()
-	var headersResolved any = func() any {
-		if requestHeaders == nil {
-			return headers
-		}
-		return requestHeaders
-	}()
+	var bodyResolved *string = requestBody
+	var headersResolved any = requestHeaders
 	return map[string]any{
 		"url":     url,
 		"method":  method,
@@ -4313,7 +4298,7 @@ func (this *Bitfinex) ParseLedgerEntryType(typeVar *string) any {
 		return typeVar
 	}
 }
-func (this *Bitfinex) ParseLedgerEntry(item any, optionalArgs ...any) map[string]any {
+func (this *Bitfinex) ParseLedgerEntry(item any, optionalArgs ...any) LedgerEntry {
 	//
 	//     [
 	//         [
@@ -4378,12 +4363,12 @@ func (this *Bitfinex) ParseLedgerEntry(item any, optionalArgs ...any) map[string
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
  */
-func (this *Bitfinex) FetchLedgerAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bitfinex) FetchLedgerAsync(optionalArgs ...any) <-chan AsyncResult[[]LedgerEntry] {
+	ch := make(chan AsyncResult[[]LedgerEntry], 1)
 	go this.fetchLedgerBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Bitfinex) fetchLedgerBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Bitfinex) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -4408,11 +4393,11 @@ func (this *Bitfinex) fetchLedgerBody(ch chan AsyncResult[any], optionalArgs ...
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes323119 []any = ListTyped(r1.Value)
-		if retRes323119 == nil {
-			ch <- AsyncResult[any]{Value: nil}
+		var retRes323619 []any = r1.Value
+		if retRes323619 == nil {
+			ch <- AsyncResult[[]LedgerEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes323119}
+			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes323619)}
 		}
 		return nil
 	}
@@ -4428,7 +4413,7 @@ func (this *Bitfinex) fetchLedgerBody(ch chan AsyncResult[any], optionalArgs ...
 	var response any = nil
 	if code != nil {
 		currency = this.Currency(code)
-		requestUntil["currency"] = GetValue(currency, "id")
+		requestUntil["currency"] = currency["id"]
 
 		r2 := <-this.PrivatePostAuthRLedgersCurrencyHist(this.Extend(requestUntil, paramsUntil))
 		if r2.Err != nil {
@@ -4466,7 +4451,7 @@ func (this *Bitfinex) fetchLedgerBody(ch chan AsyncResult[any], optionalArgs ...
 		})
 	}
 
-	ch <- AsyncResult[any]{Value: this.ParseLedger(ledgerObjects, currency, since, limit)}
+	ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(this.ParseLedger(ledgerObjects, currency, since, limit))}
 	return nil
 }
 
@@ -4479,12 +4464,12 @@ func (this *Bitfinex) fetchLedgerBody(ch chan AsyncResult[any], optionalArgs ...
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
-func (this *Bitfinex) FetchFundingRatesAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bitfinex) FetchFundingRatesAsync(optionalArgs ...any) <-chan AsyncResult[map[string]FundingRate] {
+	ch := make(chan AsyncResult[map[string]FundingRate], 1)
 	go this.fetchFundingRatesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Bitfinex) fetchFundingRatesBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Bitfinex) fetchFundingRatesBody(ch chan AsyncResult[map[string]FundingRate], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
@@ -4542,7 +4527,7 @@ func (this *Bitfinex) fetchFundingRatesBody(ch chan AsyncResult[any], optionalAr
 	//       ]
 	//   ]
 	//
-	ch <- AsyncResult[any]{Value: this.ParseFundingRates(response, symbols)}
+	ch <- AsyncResult[map[string]FundingRate]{Value: FundingRateMapFromMap(this.ParseFundingRates(response, symbols))}
 	return nil
 }
 
@@ -4559,12 +4544,12 @@ func (this *Bitfinex) fetchFundingRatesBody(ch chan AsyncResult[any], optionalAr
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
-func (this *Bitfinex) FetchFundingRateHistoryAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bitfinex) FetchFundingRateHistoryAsync(optionalArgs ...any) <-chan AsyncResult[[]FundingRateHistory] {
+	ch := make(chan AsyncResult[[]FundingRateHistory], 1)
 	go this.fetchFundingRateHistoryBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Bitfinex) fetchFundingRateHistoryBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Bitfinex) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRateHistory], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -4592,11 +4577,11 @@ func (this *Bitfinex) fetchFundingRateHistoryBody(ch chan AsyncResult[any], opti
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes334919 []any = ListTyped(r1.Value)
-		if retRes334919 == nil {
-			ch <- AsyncResult[any]{Value: nil}
+		var retRes335419 []any = r1.Value
+		if retRes335419 == nil {
+			ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes334919}
+			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes335419)}
 		}
 		return nil
 	}
@@ -4660,15 +4645,15 @@ func (this *Bitfinex) fetchFundingRateHistoryBody(ch chan AsyncResult[any], opti
 	var rawRates any = this.FilterBySymbolSinceLimit(rates, symbol, since, limit)
 	var ratesLength int = GetArrayLength(rawRates)
 	for i := 0; i < ratesLength; i++ {
-		var index any = Subtract(Subtract(ratesLength, i), 1)
+		var index int64 = (int64(ratesLength) - int64(i)) - 1
 		var valueAtIndex any = GetValue(rawRates, index)
 		reversedArray = append(reversedArray, valueAtIndex)
 	}
 
-	ch <- AsyncResult[any]{Value: reversedArray}
+	ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(reversedArray)}
 	return nil
 }
-func (this *Bitfinex) ParseFundingRate(contract any, optionalArgs ...any) map[string]any {
+func (this *Bitfinex) ParseFundingRate(contract any, optionalArgs ...any) FundingRate {
 	//
 	//       [
 	//          "tBTCF0:USTF0",
@@ -4702,7 +4687,7 @@ func (this *Bitfinex) ParseFundingRate(contract any, optionalArgs ...any) map[st
 	var marketId *string = this.SafeString(contract, 0)
 	var timestamp *int64 = this.SafeInteger(contract, 1)
 	var nextFundingTimestamp *int64 = this.SafeInteger(contract, 8)
-	return map[string]any{
+	return FundingRateFromMap(map[string]any{
 		"info":                     contract,
 		"symbol":                   this.SafeSymbol(marketId, market),
 		"markPrice":                this.SafeNumber(contract, 15),
@@ -4721,7 +4706,7 @@ func (this *Bitfinex) ParseFundingRate(contract any, optionalArgs ...any) map[st
 		"previousFundingTimestamp": nil,
 		"previousFundingDatetime":  nil,
 		"interval":                 nil,
-	}
+	})
 }
 func (this *Bitfinex) ParseFundingRateHistory(contract any, optionalArgs ...any) any {
 	//
@@ -4772,12 +4757,12 @@ func (this *Bitfinex) ParseFundingRateHistory(contract any, optionalArgs ...any)
  * @param {object} [params] exchange specific parameters
  * @returns {object[]} a list of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
  */
-func (this *Bitfinex) FetchOpenInterestsAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bitfinex) FetchOpenInterestsAsync(optionalArgs ...any) <-chan AsyncResult[map[string]OpenInterest] {
+	ch := make(chan AsyncResult[map[string]OpenInterest], 1)
 	go this.fetchOpenInterestsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Bitfinex) fetchOpenInterestsBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Bitfinex) fetchOpenInterestsBody(ch chan AsyncResult[map[string]OpenInterest], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
@@ -4836,7 +4821,7 @@ func (this *Bitfinex) fetchOpenInterestsBody(ch chan AsyncResult[any], optionalA
 	//         ]
 	//     ]
 	//
-	ch <- AsyncResult[any]{Value: this.ParseOpenInterests(response, symbolsNormalized)}
+	ch <- AsyncResult[map[string]OpenInterest]{Value: OpenInterestMapFromMap(this.ParseOpenInterests(response, symbolsNormalized))}
 	return nil
 }
 
@@ -4849,12 +4834,12 @@ func (this *Bitfinex) fetchOpenInterestsBody(ch chan AsyncResult[any], optionalA
  * @param {object} [params] exchange specific parameters
  * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
  */
-func (this *Bitfinex) FetchOpenInterestAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
-	ch := make(chan AsyncResult[map[string]any], 1)
+func (this *Bitfinex) FetchOpenInterestAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[OpenInterest] {
+	ch := make(chan AsyncResult[OpenInterest], 1)
 	go this.fetchOpenInterestBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bitfinex) fetchOpenInterestBody(ch chan AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
+func (this *Bitfinex) fetchOpenInterestBody(ch chan AsyncResult[OpenInterest], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4908,7 +4893,7 @@ func (this *Bitfinex) fetchOpenInterestBody(ch chan AsyncResult[map[string]any],
 	//
 	var oi []any = SafeListTyped(response, 0)
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOpenInterest(oi, market)}
+	ch <- AsyncResult[OpenInterest]{Value: this.ParseOpenInterest(oi, market)}
 	return nil
 }
 
@@ -4926,12 +4911,12 @@ func (this *Bitfinex) fetchOpenInterestBody(ch chan AsyncResult[map[string]any],
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns An array of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
  */
-func (this *Bitfinex) FetchOpenInterestHistoryAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bitfinex) FetchOpenInterestHistoryAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]OpenInterest] {
+	ch := make(chan AsyncResult[[]OpenInterest], 1)
 	go this.fetchOpenInterestHistoryBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bitfinex) fetchOpenInterestHistoryBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Bitfinex) fetchOpenInterestHistoryBody(ch chan AsyncResult[[]OpenInterest], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var timeframe string = GetArgString(optionalArgs, 0, "1m")
@@ -4956,11 +4941,11 @@ func (this *Bitfinex) fetchOpenInterestHistoryBody(ch chan AsyncResult[any], sym
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes362719 []any = ListTyped(r1.Value)
-		if retRes362719 == nil {
-			ch <- AsyncResult[any]{Value: nil}
+		var retRes363219 []any = r1.Value
+		if retRes363219 == nil {
+			ch <- AsyncResult[[]OpenInterest]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes362719}
+			ch <- AsyncResult[[]OpenInterest]{Value: OpenInterestsFromList(retRes363219)}
 		}
 		return nil
 	}
@@ -5011,10 +4996,10 @@ func (this *Bitfinex) fetchOpenInterestHistoryBody(ch chan AsyncResult[any], sym
 	//         ],
 	//     ]
 	//
-	ch <- AsyncResult[any]{Value: this.ParseOpenInterestsHistory(response, market, since, limit)}
+	ch <- AsyncResult[[]OpenInterest]{Value: OpenInterestsFromList(this.ParseOpenInterestsHistory(response, market, since, limit))}
 	return nil
 }
-func (this *Bitfinex) ParseOpenInterest(interest any, optionalArgs ...any) map[string]any {
+func (this *Bitfinex) ParseOpenInterest(interest any, optionalArgs ...any) OpenInterest {
 	//
 	// fetchOpenInterest:
 	//
@@ -5107,12 +5092,12 @@ func (this *Bitfinex) ParseOpenInterest(interest any, optionalArgs ...any) map[s
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
  */
-func (this *Bitfinex) FetchLiquidationsAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bitfinex) FetchLiquidationsAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]Liquidation] {
+	ch := make(chan AsyncResult[[]Liquidation], 1)
 	go this.fetchLiquidationsBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bitfinex) fetchLiquidationsBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Bitfinex) fetchLiquidationsBody(ch chan AsyncResult[[]Liquidation], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -5135,11 +5120,11 @@ func (this *Bitfinex) fetchLiquidationsBody(ch chan AsyncResult[any], symbol str
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes376519 []any = ListTyped(r1.Value)
-		if retRes376519 == nil {
-			ch <- AsyncResult[any]{Value: nil}
+		var retRes377019 []any = r1.Value
+		if retRes377019 == nil {
+			ch <- AsyncResult[[]Liquidation]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes376519}
+			ch <- AsyncResult[[]Liquidation]{Value: LiquidationsFromList(retRes377019)}
 		}
 		return nil
 	}
@@ -5153,11 +5138,11 @@ func (this *Bitfinex) fetchLiquidationsBody(ch chan AsyncResult[any], symbol str
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("end", request, paramsPaginate)
 
-	listEp4893 := <-this.PublicGetLiquidationsHist(this.Extend(requestUntil, paramsUntil))
-	if listEp4893.Err != nil {
-		panic(listEp4893.Err)
+	listEp4884 := <-this.PublicGetLiquidationsHist(this.Extend(requestUntil, paramsUntil))
+	if listEp4884.Err != nil {
+		panic(listEp4884.Err)
 	}
-	var response []any = listEp4893.Value
+	var response []any = listEp4884.Value
 
 	//
 	//     [
@@ -5179,7 +5164,7 @@ func (this *Bitfinex) fetchLiquidationsBody(ch chan AsyncResult[any], symbol str
 	//         ],
 	//     ]
 	//
-	ch <- AsyncResult[any]{Value: this.ParseLiquidations(this.ToArray(response), market, since, limit)}
+	ch <- AsyncResult[[]Liquidation]{Value: LiquidationsFromList(this.ParseLiquidations(this.ToArray(response), market, since, limit))}
 	return nil
 }
 func (this *Bitfinex) ParseLiquidation(liquidation any, optionalArgs ...any) any {
@@ -5239,12 +5224,12 @@ func (this *Bitfinex) ParseLiquidation(liquidation any, optionalArgs ...any) any
  * @param {object} [params] parameters specific to the exchange API endpoint
  * @returns {object} A [margin structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#add-margin-structure}
  */
-func (this *Bitfinex) SetMarginAsync(symbol any, amount any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bitfinex) SetMarginAsync(symbol any, amount any, optionalArgs ...any) <-chan AsyncResult[MarginModification] {
+	ch := make(chan AsyncResult[MarginModification], 1)
 	go this.setMarginBody(ch, symbol, amount, optionalArgs...)
 	return ch
 }
-func (this *Bitfinex) setMarginBody(ch chan AsyncResult[any], symbol any, amount any, optionalArgs ...any) any {
+func (this *Bitfinex) setMarginBody(ch chan AsyncResult[MarginModification], symbol any, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -5279,7 +5264,7 @@ func (this *Bitfinex) setMarginBody(ch chan AsyncResult[any], symbol any, amount
 	//
 	var data any = this.SafeValue(response, 0)
 
-	ch <- AsyncResult[any]{Value: this.ParseMarginModification(data, market)}
+	ch <- AsyncResult[MarginModification]{Value: MarginModificationFromMap(this.ParseMarginModification(data, market))}
 	return nil
 }
 func (this *Bitfinex) ParseMarginModification(data any, optionalArgs ...any) map[string]any {
@@ -5294,9 +5279,9 @@ func (this *Bitfinex) ParseMarginModification(data any, optionalArgs ...any) map
 	//
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	var marginStatusRaw any = GetValue(data, 0)
+	var marginStatusRaw *int64 = this.SafeInteger(data, 0)
 	var marginStatus string = "failed"
-	if IsEqual(marginStatusRaw, 1) {
+	if marginStatusRaw != nil && *marginStatusRaw == 1 {
 		marginStatus = "ok"
 	}
 	return map[string]any{
@@ -5324,12 +5309,12 @@ func (this *Bitfinex) ParseMarginModification(data any, optionalArgs ...any) map
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bitfinex) FetchOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
-	ch := make(chan AsyncResult[map[string]any], 1)
+func (this *Bitfinex) FetchOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+	ch := make(chan AsyncResult[Order], 1)
 	go this.fetchOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Bitfinex) fetchOrderBody(ch chan AsyncResult[map[string]any], id any, optionalArgs ...any) any {
+func (this *Bitfinex) fetchOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -5408,7 +5393,7 @@ func (this *Bitfinex) fetchOrderBody(ch chan AsyncResult[map[string]any], id any
 		"result": order,
 	}
 
-	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(newOrder, market))}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(newOrder, market)}
 	return nil
 }
 
@@ -5433,12 +5418,12 @@ func (this *Bitfinex) fetchOrderBody(ch chan AsyncResult[map[string]any], id any
  * @param {float} [params.trailingAmount] *swap only* the quote amount to trail away from the current market price
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bitfinex) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
-	ch := make(chan AsyncResult[map[string]any], 1)
+func (this *Bitfinex) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan AsyncResult[Order] {
+	ch := make(chan AsyncResult[Order], 1)
 	go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Bitfinex) editOrderBody(ch chan AsyncResult[map[string]any], id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
+func (this *Bitfinex) editOrderBody(ch chan AsyncResult[Order], id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var amount *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -5486,19 +5471,20 @@ func (this *Bitfinex) editOrderBody(ch chan AsyncResult[map[string]any], id stri
 			request["price_aux_limit"] = this.PriceToPrecision(symbol, price)
 		}
 	}
-	var postOnly bool = ((postOnlyParam != nil && *postOnlyParam == true) || (timeInForce != nil && *timeInForce == "PO"))
+	var postOnly bool = ((postOnlyParam != nil && *postOnlyParam) || (timeInForce != nil && *timeInForce == "PO"))
 	if (!IsEqual(typeVar, "market")) && (triggerPrice == nil) {
 		request["price"] = this.PriceToPrecision(symbol, price)
 	}
 	// flag values may be summed to combine flags
-	var flags any = 0
-	if postOnly {
-		flags = this.Sum(flags, 4096)
+	var flags int = 0
+	if postOnly && (reduceOnly != nil && *reduceOnly) {
+		flags = 5120
+	} else if postOnly {
+		flags = 4096
+	} else if reduceOnly != nil && *reduceOnly {
+		flags = 1024
 	}
-	if reduceOnly != nil && *reduceOnly == true {
-		flags = this.Sum(flags, 1024)
-	}
-	if !IsEqual(flags, 0) {
+	if flags != 0 {
 		request["flags"] = flags
 	}
 	if clientOrderId != nil {
@@ -5571,7 +5557,7 @@ func (this *Bitfinex) editOrderBody(ch chan AsyncResult[map[string]any], id stri
 		"result": order,
 	}
 
-	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(newOrder, market))}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(newOrder, market)}
 	return nil
 }
 
@@ -5585,7 +5571,6 @@ func (this *Bitfinex) Init(userConfig map[string]any) {
 	this.Exchange = Exchange{}
 	this.Exchange.DerivedExchange = this
 	this.Exchange.InitParent(userConfig, this.Describe().(map[string]any), this)
-	this.exchangeTyped = NewExchangeTyped(&this.Exchange)
 }
 
 // typed methods
@@ -5603,7 +5588,7 @@ func (this *Bitfinex) FetchStatus(params ...any) (Status, error) {
 	if r.Err != nil {
 		return Status{}, r.Err
 	}
-	var res Status = NewStatus(r.Raw)
+	var res Status = r.Value
 	return res, nil
 }
 
@@ -5620,7 +5605,7 @@ func (this *Bitfinex) FetchMarkets(params ...any) ([]MarketInterface, error) {
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []MarketInterface = NewMarketInterfaceArray(r.Value)
+	var res []MarketInterface = r.Value
 	return res, nil
 }
 
@@ -5654,7 +5639,7 @@ func (this *Bitfinex) FetchBalance(params ...any) (Balances, error) {
 	if r.Err != nil {
 		return Balances{}, r.Err
 	}
-	var res Balances = NewBalances(r.Value)
+	var res Balances = r.Value
 	return res, nil
 }
 
@@ -5681,7 +5666,7 @@ func (this *Bitfinex) Transfer(code string, amount float64, fromAccount string, 
 	if r.Err != nil {
 		return TransferEntry{}, r.Err
 	}
-	var res TransferEntry = NewTransferEntry(r.Value)
+	var res TransferEntry = r.Value
 	return res, nil
 }
 
@@ -5706,7 +5691,7 @@ func (this *Bitfinex) FetchOrderBook(symbol string, options ...FetchOrderBookOpt
 	if r.Err != nil {
 		return OrderBook{}, r.Err
 	}
-	var res OrderBook = NewOrderBook(r.Value)
+	var res OrderBook = r.Value
 	return res, nil
 }
 
@@ -5730,7 +5715,7 @@ func (this *Bitfinex) FetchTickers(options ...FetchTickersOptions) (Tickers, err
 	if r.Err != nil {
 		return Tickers{}, r.Err
 	}
-	var res Tickers = NewTickers(r.Value)
+	var res Tickers = Tickers{Tickers: r.Value}
 	return res, nil
 }
 
@@ -5754,7 +5739,7 @@ func (this *Bitfinex) FetchTicker(symbol string, options ...FetchTickerOptions) 
 	if r.Err != nil {
 		return Ticker{}, r.Err
 	}
-	var res Ticker = NewTicker(r.Value)
+	var res Ticker = r.Value
 	return res, nil
 }
 
@@ -5782,7 +5767,7 @@ func (this *Bitfinex) FetchTrades(symbol string, options ...FetchTradesOptions) 
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Trade = NewTradeArray(r.Value)
+	var res []Trade = r.Value
 	return res, nil
 }
 
@@ -5811,7 +5796,7 @@ func (this *Bitfinex) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []OHLCV = NewOHLCVArray(r.Value)
+	var res []OHLCV = r.Value
 	return res, nil
 }
 
@@ -5848,7 +5833,7 @@ func (this *Bitfinex) CreateOrder(symbol string, typeVar string, side string, am
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 
@@ -5872,7 +5857,7 @@ func (this *Bitfinex) CreateOrders(orders []OrderRequest, options ...CreateOrder
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(r.Value)
+	var res []Order = r.Value
 	return res, nil
 }
 
@@ -5896,7 +5881,7 @@ func (this *Bitfinex) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Orde
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(r.Value)
+	var res []Order = r.Value
 	return res, nil
 }
 
@@ -5921,7 +5906,7 @@ func (this *Bitfinex) CancelOrder(id string, options ...CancelOrderOptions) (Ord
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 
@@ -5946,7 +5931,7 @@ func (this *Bitfinex) CancelOrders(ids []string, options ...CancelOrdersOptions)
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(r.Value)
+	var res []Order = r.Value
 	return res, nil
 }
 
@@ -5972,7 +5957,7 @@ func (this *Bitfinex) FetchOpenOrder(id string, options ...FetchOpenOrderOptions
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 
@@ -5998,7 +5983,7 @@ func (this *Bitfinex) FetchClosedOrder(id string, options ...FetchClosedOrderOpt
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 
@@ -6025,7 +6010,7 @@ func (this *Bitfinex) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Orde
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(r.Value)
+	var res []Order = r.Value
 	return res, nil
 }
 
@@ -6054,7 +6039,7 @@ func (this *Bitfinex) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(r.Value)
+	var res []Order = r.Value
 	return res, nil
 }
 
@@ -6081,7 +6066,7 @@ func (this *Bitfinex) FetchOrderTrades(id string, options ...FetchOrderTradesOpt
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Trade = NewTradeArray(r.Value)
+	var res []Trade = r.Value
 	return res, nil
 }
 
@@ -6108,7 +6093,7 @@ func (this *Bitfinex) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, e
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Trade = NewTradeArray(r.Value)
+	var res []Trade = r.Value
 	return res, nil
 }
 
@@ -6132,7 +6117,7 @@ func (this *Bitfinex) CreateDepositAddress(code string, options ...CreateDeposit
 	if r.Err != nil {
 		return DepositAddress{}, r.Err
 	}
-	var res DepositAddress = NewDepositAddress(r.Value)
+	var res DepositAddress = r.Value
 	return res, nil
 }
 
@@ -6156,7 +6141,7 @@ func (this *Bitfinex) FetchDepositAddress(code string, options ...FetchDepositAd
 	if r.Err != nil {
 		return DepositAddress{}, r.Err
 	}
-	var res DepositAddress = NewDepositAddress(r.Value)
+	var res DepositAddress = r.Value
 	return res, nil
 }
 
@@ -6173,7 +6158,7 @@ func (this *Bitfinex) FetchTradingFees(params ...any) (TradingFees, error) {
 	if r.Err != nil {
 		return TradingFees{}, r.Err
 	}
-	var res TradingFees = NewTradingFees(r.Value)
+	var res TradingFees = TradingFees{TradingFees: r.Value}
 	return res, nil
 }
 
@@ -6200,7 +6185,7 @@ func (this *Bitfinex) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawa
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Transaction = NewTransactionArray(r.Value)
+	var res []Transaction = r.Value
 	return res, nil
 }
 
@@ -6212,8 +6197,8 @@ func (this *Bitfinex) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawa
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
- * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Bitfinex) Withdraw(code string, amount float64, address string, options ...WithdrawOptions) (Transaction, error) {
@@ -6223,11 +6208,11 @@ func (this *Bitfinex) Withdraw(code string, amount float64, address string, opti
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
+	r := <-this.WithdrawAsync(code, amount, address, opts.Params)
 	if r.Err != nil {
 		return Transaction{}, r.Err
 	}
-	var res Transaction = NewTransaction(r.Raw)
+	var res Transaction = r.Value
 	return res, nil
 }
 
@@ -6251,7 +6236,7 @@ func (this *Bitfinex) FetchPositions(options ...FetchPositionsOptions) ([]Positi
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Position = NewPositionArray(r.Value)
+	var res []Position = r.Value
 	return res, nil
 }
 
@@ -6279,7 +6264,7 @@ func (this *Bitfinex) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry,
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []LedgerEntry = NewLedgerEntryArray(r.Value)
+	var res []LedgerEntry = r.Value
 	return res, nil
 }
 
@@ -6303,7 +6288,7 @@ func (this *Bitfinex) FetchFundingRates(options ...FetchFundingRatesOptions) (Fu
 	if r.Err != nil {
 		return FundingRates{}, r.Err
 	}
-	var res FundingRates = NewFundingRates(r.Value)
+	var res FundingRates = FundingRates{FundingRates: r.Value}
 	return res, nil
 }
 
@@ -6331,7 +6316,7 @@ func (this *Bitfinex) FetchFundingRateHistory(options ...FetchFundingRateHistory
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []FundingRateHistory = NewFundingRateHistoryArray(r.Value)
+	var res []FundingRateHistory = r.Value
 	return res, nil
 }
 
@@ -6355,7 +6340,7 @@ func (this *Bitfinex) FetchOpenInterests(options ...FetchOpenInterestsOptions) (
 	if r.Err != nil {
 		return OpenInterests{}, r.Err
 	}
-	var res OpenInterests = NewOpenInterests(r.Value)
+	var res OpenInterests = OpenInterests{OpenInterests: r.Value}
 	return res, nil
 }
 
@@ -6379,7 +6364,7 @@ func (this *Bitfinex) FetchOpenInterest(symbol string, options ...FetchOpenInter
 	if r.Err != nil {
 		return OpenInterest{}, r.Err
 	}
-	var res OpenInterest = NewOpenInterest(r.Value)
+	var res OpenInterest = r.Value
 	return res, nil
 }
 
@@ -6408,7 +6393,7 @@ func (this *Bitfinex) FetchOpenInterestHistory(symbol string, options ...FetchOp
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []OpenInterest = NewOpenInterestArray(r.Value)
+	var res []OpenInterest = r.Value
 	return res, nil
 }
 
@@ -6436,7 +6421,7 @@ func (this *Bitfinex) FetchLiquidations(symbol string, options ...FetchLiquidati
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Liquidation = NewLiquidationArray(r.Value)
+	var res []Liquidation = r.Value
 	return res, nil
 }
 
@@ -6461,7 +6446,7 @@ func (this *Bitfinex) SetMargin(symbol string, amount float64, options ...SetMar
 	if r.Err != nil {
 		return MarginModification{}, r.Err
 	}
-	var res MarginModification = NewMarginModification(r.Value)
+	var res MarginModification = r.Value
 	return res, nil
 }
 
@@ -6487,7 +6472,7 @@ func (this *Bitfinex) FetchOrder(id string, options ...FetchOrderOptions) (Order
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 
@@ -6523,522 +6508,6 @@ func (this *Bitfinex) EditOrder(id string, symbol string, typeVar string, side s
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
-}
-
-// missing typed methods from base
-// nolint
-func (this *Bitfinex) LoadMarkets(params ...any) (map[string]MarketInterface, error) {
-	return this.exchangeTyped.LoadMarkets(params...)
-}
-func (this *Bitfinex) CancelOrdersWithClientOrderIds(clientOrderIds []string, options ...CancelOrdersWithClientOrderIdsOptions) ([]Order, error) {
-	return this.exchangeTyped.CancelOrdersWithClientOrderIds(clientOrderIds, options...)
-}
-func (this *Bitfinex) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersAfterOptions) (map[string]any, error) {
-	return this.exchangeTyped.CancelAllOrdersAfter(timeout, options...)
-}
-func (this *Bitfinex) CancelOrderWithClientOrderId(clientOrderId string, options ...CancelOrderWithClientOrderIdOptions) (Order, error) {
-	return this.exchangeTyped.CancelOrderWithClientOrderId(clientOrderId, options...)
-}
-func (this *Bitfinex) CancelOrdersForSymbols(orders []CancellationRequest, options ...CancelOrdersForSymbolsOptions) ([]Order, error) {
-	return this.exchangeTyped.CancelOrdersForSymbols(orders, options...)
-}
-func (this *Bitfinex) CreateConvertTrade(id string, fromCode string, toCode string, options ...CreateConvertTradeOptions) (Conversion, error) {
-	return this.exchangeTyped.CreateConvertTrade(id, fromCode, toCode, options...)
-}
-func (this *Bitfinex) CreateLimitBuyOrder(symbol string, amount float64, price float64, options ...CreateLimitBuyOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateLimitBuyOrder(symbol, amount, price, options...)
-}
-func (this *Bitfinex) CreateLimitOrder(symbol string, side string, amount float64, price float64, options ...CreateLimitOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateLimitOrder(symbol, side, amount, price, options...)
-}
-func (this *Bitfinex) CreateLimitSellOrder(symbol string, amount float64, price float64, options ...CreateLimitSellOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateLimitSellOrder(symbol, amount, price, options...)
-}
-func (this *Bitfinex) CreateMarketBuyOrder(symbol string, amount float64, options ...CreateMarketBuyOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketBuyOrder(symbol, amount, options...)
-}
-func (this *Bitfinex) CreateMarketBuyOrderWithCost(symbol string, cost float64, options ...CreateMarketBuyOrderWithCostOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketBuyOrderWithCost(symbol, cost, options...)
-}
-func (this *Bitfinex) CreateMarketOrder(symbol string, side string, amount float64, options ...CreateMarketOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketOrder(symbol, side, amount, options...)
-}
-func (this *Bitfinex) CreateMarketOrderWithCost(symbol string, side string, cost float64, options ...CreateMarketOrderWithCostOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketOrderWithCost(symbol, side, cost, options...)
-}
-func (this *Bitfinex) CreateMarketSellOrder(symbol string, amount float64, options ...CreateMarketSellOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketSellOrder(symbol, amount, options...)
-}
-func (this *Bitfinex) CreateMarketSellOrderWithCost(symbol string, cost float64, options ...CreateMarketSellOrderWithCostOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketSellOrderWithCost(symbol, cost, options...)
-}
-func (this *Bitfinex) CreateOrderWithTakeProfitAndStopLoss(symbol string, typeVar string, side string, amount float64, options ...CreateOrderWithTakeProfitAndStopLossOptions) (Order, error) {
-	return this.exchangeTyped.CreateOrderWithTakeProfitAndStopLoss(symbol, typeVar, side, amount, options...)
-}
-func (this *Bitfinex) CreatePostOnlyOrder(symbol string, typeVar string, side string, amount float64, options ...CreatePostOnlyOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreatePostOnlyOrder(symbol, typeVar, side, amount, options...)
-}
-func (this *Bitfinex) CreateReduceOnlyOrder(symbol string, typeVar string, side string, amount float64, options ...CreateReduceOnlyOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateReduceOnlyOrder(symbol, typeVar, side, amount, options...)
-}
-func (this *Bitfinex) CreateStopLimitOrder(symbol string, side string, amount float64, price float64, triggerPrice float64, options ...CreateStopLimitOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateStopLimitOrder(symbol, side, amount, price, triggerPrice, options...)
-}
-func (this *Bitfinex) CreateStopLossOrder(symbol string, typeVar string, side string, amount float64, options ...CreateStopLossOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateStopLossOrder(symbol, typeVar, side, amount, options...)
-}
-func (this *Bitfinex) CreateStopMarketOrder(symbol string, side string, amount float64, triggerPrice float64, options ...CreateStopMarketOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateStopMarketOrder(symbol, side, amount, triggerPrice, options...)
-}
-func (this *Bitfinex) CreateStopOrder(symbol string, typeVar string, side string, amount float64, options ...CreateStopOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateStopOrder(symbol, typeVar, side, amount, options...)
-}
-func (this *Bitfinex) CreateTakeProfitOrder(symbol string, typeVar string, side string, amount float64, options ...CreateTakeProfitOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateTakeProfitOrder(symbol, typeVar, side, amount, options...)
-}
-func (this *Bitfinex) CreateTrailingAmountOrder(symbol string, typeVar string, side string, amount float64, options ...CreateTrailingAmountOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateTrailingAmountOrder(symbol, typeVar, side, amount, options...)
-}
-func (this *Bitfinex) CreateTrailingPercentOrder(symbol string, typeVar string, side string, amount float64, options ...CreateTrailingPercentOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateTrailingPercentOrder(symbol, typeVar, side, amount, options...)
-}
-func (this *Bitfinex) CreateTriggerOrder(symbol string, typeVar string, side string, amount float64, options ...CreateTriggerOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateTriggerOrder(symbol, typeVar, side, amount, options...)
-}
-func (this *Bitfinex) EditLimitBuyOrder(id string, symbol string, amount float64, options ...EditLimitBuyOrderOptions) (Order, error) {
-	return this.exchangeTyped.EditLimitBuyOrder(id, symbol, amount, options...)
-}
-func (this *Bitfinex) EditLimitOrder(id string, symbol string, side string, amount float64, options ...EditLimitOrderOptions) (Order, error) {
-	return this.exchangeTyped.EditLimitOrder(id, symbol, side, amount, options...)
-}
-func (this *Bitfinex) EditLimitSellOrder(id string, symbol string, amount float64, options ...EditLimitSellOrderOptions) (Order, error) {
-	return this.exchangeTyped.EditLimitSellOrder(id, symbol, amount, options...)
-}
-func (this *Bitfinex) EditOrderWithClientOrderId(clientOrderId string, symbol string, typeVar string, side string, options ...EditOrderWithClientOrderIdOptions) (Order, error) {
-	return this.exchangeTyped.EditOrderWithClientOrderId(clientOrderId, symbol, typeVar, side, options...)
-}
-func (this *Bitfinex) EditOrders(orders []OrderRequest, options ...EditOrdersOptions) ([]Order, error) {
-	return this.exchangeTyped.EditOrders(orders, options...)
-}
-func (this *Bitfinex) FetchAccounts(params ...any) ([]Account, error) {
-	return this.exchangeTyped.FetchAccounts(params...)
-}
-func (this *Bitfinex) FetchAllGreeks(options ...FetchAllGreeksOptions) (AllGreeks, error) {
-	return this.exchangeTyped.FetchAllGreeks(options...)
-}
-func (this *Bitfinex) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, error) {
-	return this.exchangeTyped.FetchBidsAsks(options...)
-}
-func (this *Bitfinex) FetchBorrowInterest(options ...FetchBorrowInterestOptions) ([]BorrowInterest, error) {
-	return this.exchangeTyped.FetchBorrowInterest(options...)
-}
-func (this *Bitfinex) FetchBorrowRate(code string, amount float64, options ...FetchBorrowRateOptions) (map[string]any, error) {
-	return this.exchangeTyped.FetchBorrowRate(code, amount, options...)
-}
-func (this *Bitfinex) FetchCanceledAndClosedOrders(options ...FetchCanceledAndClosedOrdersOptions) ([]Order, error) {
-	return this.exchangeTyped.FetchCanceledAndClosedOrders(options...)
-}
-func (this *Bitfinex) FetchConvertCurrencies(params ...any) (Currencies, error) {
-	return this.exchangeTyped.FetchConvertCurrencies(params...)
-}
-func (this *Bitfinex) FetchConvertQuote(fromCode string, toCode string, options ...FetchConvertQuoteOptions) (Conversion, error) {
-	return this.exchangeTyped.FetchConvertQuote(fromCode, toCode, options...)
-}
-func (this *Bitfinex) FetchConvertTrade(id string, options ...FetchConvertTradeOptions) (Conversion, error) {
-	return this.exchangeTyped.FetchConvertTrade(id, options...)
-}
-func (this *Bitfinex) FetchConvertTradeHistory(options ...FetchConvertTradeHistoryOptions) ([]Conversion, error) {
-	return this.exchangeTyped.FetchConvertTradeHistory(options...)
-}
-func (this *Bitfinex) FetchCrossBorrowRate(code string, options ...FetchCrossBorrowRateOptions) (CrossBorrowRate, error) {
-	return this.exchangeTyped.FetchCrossBorrowRate(code, options...)
-}
-func (this *Bitfinex) FetchCrossBorrowRates(params ...any) (CrossBorrowRates, error) {
-	return this.exchangeTyped.FetchCrossBorrowRates(params...)
-}
-func (this *Bitfinex) FetchDepositAddresses(options ...FetchDepositAddressesOptions) ([]DepositAddress, error) {
-	return this.exchangeTyped.FetchDepositAddresses(options...)
-}
-func (this *Bitfinex) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) (DepositAddresses, error) {
-	return this.exchangeTyped.FetchDepositAddressesByNetwork(code, options...)
-}
-func (this *Bitfinex) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, error) {
-	return this.exchangeTyped.FetchDeposits(options...)
-}
-func (this *Bitfinex) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (DepositWithdrawFee, error) {
-	return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)
-}
-func (this *Bitfinex) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (DepositWithdrawFees, error) {
-	return this.exchangeTyped.FetchDepositWithdrawFees(options...)
-}
-func (this *Bitfinex) FetchFreeBalance(params ...any) (Balance, error) {
-	return this.exchangeTyped.FetchFreeBalance(params...)
-}
-func (this *Bitfinex) FetchFundingHistory(options ...FetchFundingHistoryOptions) ([]FundingHistory, error) {
-	return this.exchangeTyped.FetchFundingHistory(options...)
-}
-func (this *Bitfinex) FetchFundingInterval(symbol string, options ...FetchFundingIntervalOptions) (FundingRate, error) {
-	return this.exchangeTyped.FetchFundingInterval(symbol, options...)
-}
-func (this *Bitfinex) FetchFundingIntervals(options ...FetchFundingIntervalsOptions) (FundingRates, error) {
-	return this.exchangeTyped.FetchFundingIntervals(options...)
-}
-func (this *Bitfinex) FetchFundingRate(symbol string, options ...FetchFundingRateOptions) (FundingRate, error) {
-	return this.exchangeTyped.FetchFundingRate(symbol, options...)
-}
-func (this *Bitfinex) FetchGreeks(symbol string, options ...FetchGreeksOptions) (Greeks, error) {
-	return this.exchangeTyped.FetchGreeks(symbol, options...)
-}
-func (this *Bitfinex) FetchIndexOHLCV(symbol string, options ...FetchIndexOHLCVOptions) ([]OHLCV, error) {
-	return this.exchangeTyped.FetchIndexOHLCV(symbol, options...)
-}
-func (this *Bitfinex) FetchIsolatedBorrowRate(symbol string, options ...FetchIsolatedBorrowRateOptions) (IsolatedBorrowRate, error) {
-	return this.exchangeTyped.FetchIsolatedBorrowRate(symbol, options...)
-}
-func (this *Bitfinex) FetchIsolatedBorrowRates(params ...any) (IsolatedBorrowRates, error) {
-	return this.exchangeTyped.FetchIsolatedBorrowRates(params...)
-}
-func (this *Bitfinex) FetchLastPrices(options ...FetchLastPricesOptions) (LastPrices, error) {
-	return this.exchangeTyped.FetchLastPrices(options...)
-}
-func (this *Bitfinex) FetchLedgerEntry(id string, options ...FetchLedgerEntryOptions) (LedgerEntry, error) {
-	return this.exchangeTyped.FetchLedgerEntry(id, options...)
-}
-func (this *Bitfinex) FetchLeverage(symbol string, options ...FetchLeverageOptions) (Leverage, error) {
-	return this.exchangeTyped.FetchLeverage(symbol, options...)
-}
-func (this *Bitfinex) FetchLeverages(options ...FetchLeveragesOptions) (Leverages, error) {
-	return this.exchangeTyped.FetchLeverages(options...)
-}
-func (this *Bitfinex) FetchLeverageTiers(options ...FetchLeverageTiersOptions) (LeverageTiers, error) {
-	return this.exchangeTyped.FetchLeverageTiers(options...)
-}
-func (this *Bitfinex) FetchLongShortRatio(symbol string, options ...FetchLongShortRatioOptions) (LongShortRatio, error) {
-	return this.exchangeTyped.FetchLongShortRatio(symbol, options...)
-}
-func (this *Bitfinex) FetchLongShortRatioHistory(options ...FetchLongShortRatioHistoryOptions) ([]LongShortRatio, error) {
-	return this.exchangeTyped.FetchLongShortRatioHistory(options...)
-}
-func (this *Bitfinex) FetchMarginAdjustmentHistory(options ...FetchMarginAdjustmentHistoryOptions) ([]MarginModification, error) {
-	return this.exchangeTyped.FetchMarginAdjustmentHistory(options...)
-}
-func (this *Bitfinex) FetchMarginMode(symbol string, options ...FetchMarginModeOptions) (MarginMode, error) {
-	return this.exchangeTyped.FetchMarginMode(symbol, options...)
-}
-func (this *Bitfinex) FetchMarginModes(options ...FetchMarginModesOptions) (MarginModes, error) {
-	return this.exchangeTyped.FetchMarginModes(options...)
-}
-func (this *Bitfinex) FetchMarketLeverageTiers(symbol string, options ...FetchMarketLeverageTiersOptions) ([]LeverageTier, error) {
-	return this.exchangeTyped.FetchMarketLeverageTiers(symbol, options...)
-}
-func (this *Bitfinex) FetchMarkOHLCV(symbol string, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
-	return this.exchangeTyped.FetchMarkOHLCV(symbol, options...)
-}
-func (this *Bitfinex) FetchMarkPrice(symbol string, options ...FetchMarkPriceOptions) (Ticker, error) {
-	return this.exchangeTyped.FetchMarkPrice(symbol, options...)
-}
-func (this *Bitfinex) FetchMarkPrices(options ...FetchMarkPricesOptions) (Tickers, error) {
-	return this.exchangeTyped.FetchMarkPrices(options...)
-}
-func (this *Bitfinex) FetchMyLiquidations(options ...FetchMyLiquidationsOptions) ([]Liquidation, error) {
-	return this.exchangeTyped.FetchMyLiquidations(options...)
-}
-func (this *Bitfinex) FetchOption(symbol string, options ...FetchOptionOptions) (Option, error) {
-	return this.exchangeTyped.FetchOption(symbol, options...)
-}
-func (this *Bitfinex) FetchOptionChain(code string, options ...FetchOptionChainOptions) (OptionChain, error) {
-	return this.exchangeTyped.FetchOptionChain(code, options...)
-}
-func (this *Bitfinex) FetchOrderWithClientOrderId(clientOrderId string, options ...FetchOrderWithClientOrderIdOptions) (Order, error) {
-	return this.exchangeTyped.FetchOrderWithClientOrderId(clientOrderId, options...)
-}
-func (this *Bitfinex) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBooks, error) {
-	return this.exchangeTyped.FetchOrderBooks(options...)
-}
-func (this *Bitfinex) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {
-	return this.exchangeTyped.FetchOrders(options...)
-}
-func (this *Bitfinex) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
-	return this.exchangeTyped.FetchOrderStatus(id, options...)
-}
-func (this *Bitfinex) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
-	return this.exchangeTyped.FetchPaymentMethods(params...)
-}
-func (this *Bitfinex) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {
-	return this.exchangeTyped.FetchPosition(symbol, options...)
-}
-func (this *Bitfinex) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
-	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
-}
-func (this *Bitfinex) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
-	return this.exchangeTyped.FetchPositionMode(options...)
-}
-func (this *Bitfinex) FetchPositionsForSymbol(symbol string, options ...FetchPositionsForSymbolOptions) ([]Position, error) {
-	return this.exchangeTyped.FetchPositionsForSymbol(symbol, options...)
-}
-func (this *Bitfinex) FetchPositionsHistory(options ...FetchPositionsHistoryOptions) ([]Position, error) {
-	return this.exchangeTyped.FetchPositionsHistory(options...)
-}
-func (this *Bitfinex) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([]Position, error) {
-	return this.exchangeTyped.FetchPositionsRisk(options...)
-}
-func (this *Bitfinex) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
-	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
-}
-func (this *Bitfinex) FetchTime(params ...any) (int64, error) {
-	return this.exchangeTyped.FetchTime(params...)
-}
-func (this *Bitfinex) FetchTradingFee(symbol string, options ...FetchTradingFeeOptions) (TradingFeeInterface, error) {
-	return this.exchangeTyped.FetchTradingFee(symbol, options...)
-}
-func (this *Bitfinex) FetchTradingLimits(options ...FetchTradingLimitsOptions) (map[string]any, error) {
-	return this.exchangeTyped.FetchTradingLimits(options...)
-}
-func (this *Bitfinex) FetchTransactionFee(code string, options ...FetchTransactionFeeOptions) (map[string]any, error) {
-	return this.exchangeTyped.FetchTransactionFee(code, options...)
-}
-func (this *Bitfinex) FetchTransactionFees(options ...FetchTransactionFeesOptions) (map[string]any, error) {
-	return this.exchangeTyped.FetchTransactionFees(options...)
-}
-func (this *Bitfinex) FetchTransactions(options ...FetchTransactionsOptions) ([]Transaction, error) {
-	return this.exchangeTyped.FetchTransactions(options...)
-}
-func (this *Bitfinex) FetchTransfer(id string, options ...FetchTransferOptions) (TransferEntry, error) {
-	return this.exchangeTyped.FetchTransfer(id, options...)
-}
-func (this *Bitfinex) FetchTransfers(options ...FetchTransfersOptions) ([]TransferEntry, error) {
-	return this.exchangeTyped.FetchTransfers(options...)
-}
-func (this *Bitfinex) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Transaction, error) {
-	return this.exchangeTyped.FetchWithdrawals(options...)
-}
-func (this *Bitfinex) SetMarginMode(marginMode string, options ...SetMarginModeOptions) (map[string]any, error) {
-	return this.exchangeTyped.SetMarginMode(marginMode, options...)
-}
-func (this *Bitfinex) SetPositionMode(hedged bool, options ...SetPositionModeOptions) (map[string]any, error) {
-	return this.exchangeTyped.SetPositionMode(hedged, options...)
-}
-func (this *Bitfinex) CancelAllOrdersWs(options ...CancelAllOrdersWsOptions) ([]Order, error) {
-	return this.exchangeTyped.CancelAllOrdersWs(options...)
-}
-func (this *Bitfinex) CancelOrdersWs(ids []string, options ...CancelOrdersWsOptions) ([]Order, error) {
-	return this.exchangeTyped.CancelOrdersWs(ids, options...)
-}
-func (this *Bitfinex) CancelOrderWs(id string, options ...CancelOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CancelOrderWs(id, options...)
-}
-func (this *Bitfinex) CreateLimitBuyOrderWs(symbol string, amount float64, price float64, options ...CreateLimitBuyOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateLimitBuyOrderWs(symbol, amount, price, options...)
-}
-func (this *Bitfinex) CreateLimitOrderWs(symbol string, side string, amount float64, price float64, options ...CreateLimitOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateLimitOrderWs(symbol, side, amount, price, options...)
-}
-func (this *Bitfinex) CreateLimitSellOrderWs(symbol string, amount float64, price float64, options ...CreateLimitSellOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateLimitSellOrderWs(symbol, amount, price, options...)
-}
-func (this *Bitfinex) CreateMarketBuyOrderWs(symbol string, amount float64, options ...CreateMarketBuyOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketBuyOrderWs(symbol, amount, options...)
-}
-func (this *Bitfinex) CreateMarketOrderWithCostWs(symbol string, side string, cost float64, options ...CreateMarketOrderWithCostWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketOrderWithCostWs(symbol, side, cost, options...)
-}
-func (this *Bitfinex) CreateMarketOrderWs(symbol string, side string, amount float64, options ...CreateMarketOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketOrderWs(symbol, side, amount, options...)
-}
-func (this *Bitfinex) CreateMarketSellOrderWs(symbol string, amount float64, options ...CreateMarketSellOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketSellOrderWs(symbol, amount, options...)
-}
-func (this *Bitfinex) CreateOrdersWs(orders []OrderRequest, options ...CreateOrdersWsOptions) ([]Order, error) {
-	return this.exchangeTyped.CreateOrdersWs(orders, options...)
-}
-func (this *Bitfinex) CreateOrderWithTakeProfitAndStopLossWs(symbol string, typeVar string, side string, amount float64, options ...CreateOrderWithTakeProfitAndStopLossWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateOrderWithTakeProfitAndStopLossWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Bitfinex) CreateOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Bitfinex) CreatePostOnlyOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreatePostOnlyOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreatePostOnlyOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Bitfinex) CreateReduceOnlyOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateReduceOnlyOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateReduceOnlyOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Bitfinex) CreateStopLimitOrderWs(symbol string, side string, amount float64, price float64, triggerPrice float64, options ...CreateStopLimitOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateStopLimitOrderWs(symbol, side, amount, price, triggerPrice, options...)
-}
-func (this *Bitfinex) CreateStopLossOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateStopLossOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateStopLossOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Bitfinex) CreateStopMarketOrderWs(symbol string, side string, amount float64, triggerPrice float64, options ...CreateStopMarketOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateStopMarketOrderWs(symbol, side, amount, triggerPrice, options...)
-}
-func (this *Bitfinex) CreateStopOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateStopOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateStopOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Bitfinex) CreateTakeProfitOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTakeProfitOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateTakeProfitOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Bitfinex) CreateTrailingAmountOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTrailingAmountOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateTrailingAmountOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Bitfinex) CreateTrailingPercentOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTrailingPercentOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateTrailingPercentOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Bitfinex) CreateTriggerOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTriggerOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateTriggerOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Bitfinex) EditOrderWs(id string, symbol string, typeVar string, side string, options ...EditOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.EditOrderWs(id, symbol, typeVar, side, options...)
-}
-func (this *Bitfinex) FetchBalanceWs(params ...any) (Balances, error) {
-	return this.exchangeTyped.FetchBalanceWs(params...)
-}
-func (this *Bitfinex) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
-	return this.exchangeTyped.FetchClosedOrdersWs(options...)
-}
-func (this *Bitfinex) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
-	return this.exchangeTyped.FetchDepositsWs(options...)
-}
-func (this *Bitfinex) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
-	return this.exchangeTyped.FetchMyTradesWs(options...)
-}
-func (this *Bitfinex) FetchOHLCVWs(symbol string, options ...FetchOHLCVWsOptions) ([]OHLCV, error) {
-	return this.exchangeTyped.FetchOHLCVWs(symbol, options...)
-}
-func (this *Bitfinex) FetchOpenOrdersWs(options ...FetchOpenOrdersWsOptions) ([]Order, error) {
-	return this.exchangeTyped.FetchOpenOrdersWs(options...)
-}
-func (this *Bitfinex) FetchOrderBookWs(symbol string, options ...FetchOrderBookWsOptions) (OrderBook, error) {
-	return this.exchangeTyped.FetchOrderBookWs(symbol, options...)
-}
-func (this *Bitfinex) FetchOrdersByStatusWs(status string, options ...FetchOrdersByStatusWsOptions) ([]Order, error) {
-	return this.exchangeTyped.FetchOrdersByStatusWs(status, options...)
-}
-func (this *Bitfinex) FetchOrdersWs(options ...FetchOrdersWsOptions) ([]Order, error) {
-	return this.exchangeTyped.FetchOrdersWs(options...)
-}
-func (this *Bitfinex) FetchOrderWs(id string, options ...FetchOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.FetchOrderWs(id, options...)
-}
-func (this *Bitfinex) FetchPositionsForSymbolWs(symbol string, options ...FetchPositionsForSymbolWsOptions) ([]Position, error) {
-	return this.exchangeTyped.FetchPositionsForSymbolWs(symbol, options...)
-}
-func (this *Bitfinex) FetchPositionsWs(options ...FetchPositionsWsOptions) ([]Position, error) {
-	return this.exchangeTyped.FetchPositionsWs(options...)
-}
-func (this *Bitfinex) FetchPositionWs(symbol string, options ...FetchPositionWsOptions) ([]Position, error) {
-	return this.exchangeTyped.FetchPositionWs(symbol, options...)
-}
-func (this *Bitfinex) FetchTickersWs(options ...FetchTickersWsOptions) (Tickers, error) {
-	return this.exchangeTyped.FetchTickersWs(options...)
-}
-func (this *Bitfinex) FetchTickerWs(symbol string, options ...FetchTickerWsOptions) (Ticker, error) {
-	return this.exchangeTyped.FetchTickerWs(symbol, options...)
-}
-func (this *Bitfinex) FetchTradesWs(symbol string, options ...FetchTradesWsOptions) ([]Trade, error) {
-	return this.exchangeTyped.FetchTradesWs(symbol, options...)
-}
-func (this *Bitfinex) FetchTradingFeesWs(params ...any) (TradingFees, error) {
-	return this.exchangeTyped.FetchTradingFeesWs(params...)
-}
-func (this *Bitfinex) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
-	return this.exchangeTyped.FetchWithdrawalsWs(options...)
-}
-func (this *Bitfinex) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {
-	return this.exchangeTyped.UnWatchBidsAsks(options...)
-}
-func (this *Bitfinex) UnWatchMyTrades(options ...UnWatchMyTradesOptions) (any, error) {
-	return this.exchangeTyped.UnWatchMyTrades(options...)
-}
-func (this *Bitfinex) UnWatchOHLCV(symbol string, options ...UnWatchOHLCVOptions) (any, error) {
-	return this.exchangeTyped.UnWatchOHLCV(symbol, options...)
-}
-func (this *Bitfinex) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...UnWatchOHLCVForSymbolsOptions) (any, error) {
-	return this.exchangeTyped.UnWatchOHLCVForSymbols(symbolsAndTimeframes, options...)
-}
-func (this *Bitfinex) UnWatchOrderBook(symbol string, options ...UnWatchOrderBookOptions) (any, error) {
-	return this.exchangeTyped.UnWatchOrderBook(symbol, options...)
-}
-func (this *Bitfinex) UnWatchOrderBookForSymbols(symbols []string, options ...UnWatchOrderBookForSymbolsOptions) (any, error) {
-	return this.exchangeTyped.UnWatchOrderBookForSymbols(symbols, options...)
-}
-func (this *Bitfinex) UnWatchOrders(options ...UnWatchOrdersOptions) (any, error) {
-	return this.exchangeTyped.UnWatchOrders(options...)
-}
-func (this *Bitfinex) UnWatchTicker(symbol string, options ...UnWatchTickerOptions) (any, error) {
-	return this.exchangeTyped.UnWatchTicker(symbol, options...)
-}
-func (this *Bitfinex) UnWatchTickers(options ...UnWatchTickersOptions) (any, error) {
-	return this.exchangeTyped.UnWatchTickers(options...)
-}
-func (this *Bitfinex) UnWatchTrades(symbol string, options ...UnWatchTradesOptions) (any, error) {
-	return this.exchangeTyped.UnWatchTrades(symbol, options...)
-}
-func (this *Bitfinex) UnWatchTradesForSymbols(symbols []string, options ...UnWatchTradesForSymbolsOptions) (any, error) {
-	return this.exchangeTyped.UnWatchTradesForSymbols(symbols, options...)
-}
-func (this *Bitfinex) WatchBalance(params ...any) (Balances, error) {
-	return this.exchangeTyped.WatchBalance(params...)
-}
-func (this *Bitfinex) WatchBidsAsks(options ...WatchBidsAsksOptions) (Tickers, error) {
-	return this.exchangeTyped.WatchBidsAsks(options...)
-}
-func (this *Bitfinex) WatchLiquidations(symbol string, options ...WatchLiquidationsOptions) ([]Liquidation, error) {
-	return this.exchangeTyped.WatchLiquidations(symbol, options...)
-}
-func (this *Bitfinex) WatchMarkPrice(symbol string, options ...WatchMarkPriceOptions) (Ticker, error) {
-	return this.exchangeTyped.WatchMarkPrice(symbol, options...)
-}
-func (this *Bitfinex) WatchMarkPrices(options ...WatchMarkPricesOptions) (Tickers, error) {
-	return this.exchangeTyped.WatchMarkPrices(options...)
-}
-func (this *Bitfinex) WatchMyLiquidations(symbol string, options ...WatchMyLiquidationsOptions) ([]Liquidation, error) {
-	return this.exchangeTyped.WatchMyLiquidations(symbol, options...)
-}
-func (this *Bitfinex) WatchMyLiquidationsForSymbols(symbols []string, options ...WatchMyLiquidationsForSymbolsOptions) ([]Liquidation, error) {
-	return this.exchangeTyped.WatchMyLiquidationsForSymbols(symbols, options...)
-}
-func (this *Bitfinex) WatchMyTrades(options ...WatchMyTradesOptions) ([]Trade, error) {
-	return this.exchangeTyped.WatchMyTrades(options...)
-}
-func (this *Bitfinex) WatchOHLCV(symbol string, options ...WatchOHLCVOptions) ([]OHLCV, error) {
-	return this.exchangeTyped.WatchOHLCV(symbol, options...)
-}
-func (this *Bitfinex) WatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...WatchOHLCVForSymbolsOptions) (map[string]map[string][]OHLCV, error) {
-	return this.exchangeTyped.WatchOHLCVForSymbols(symbolsAndTimeframes, options...)
-}
-func (this *Bitfinex) WatchOrderBook(symbol string, options ...WatchOrderBookOptions) (OrderBook, error) {
-	return this.exchangeTyped.WatchOrderBook(symbol, options...)
-}
-func (this *Bitfinex) WatchOrderBookForSymbols(symbols []string, options ...WatchOrderBookForSymbolsOptions) (OrderBook, error) {
-	return this.exchangeTyped.WatchOrderBookForSymbols(symbols, options...)
-}
-func (this *Bitfinex) WatchOrders(options ...WatchOrdersOptions) ([]Order, error) {
-	return this.exchangeTyped.WatchOrders(options...)
-}
-func (this *Bitfinex) WatchOrdersForSymbols(symbols []string, options ...WatchOrdersForSymbolsOptions) ([]Order, error) {
-	return this.exchangeTyped.WatchOrdersForSymbols(symbols, options...)
-}
-func (this *Bitfinex) WatchPosition(options ...WatchPositionOptions) (Position, error) {
-	return this.exchangeTyped.WatchPosition(options...)
-}
-func (this *Bitfinex) WatchPositions(options ...WatchPositionsOptions) ([]Position, error) {
-	return this.exchangeTyped.WatchPositions(options...)
-}
-func (this *Bitfinex) WatchTicker(symbol string, options ...WatchTickerOptions) (Ticker, error) {
-	return this.exchangeTyped.WatchTicker(symbol, options...)
-}
-func (this *Bitfinex) WatchTickers(options ...WatchTickersOptions) (Tickers, error) {
-	return this.exchangeTyped.WatchTickers(options...)
-}
-func (this *Bitfinex) WatchTrades(symbol string, options ...WatchTradesOptions) ([]Trade, error) {
-	return this.exchangeTyped.WatchTrades(symbol, options...)
-}
-func (this *Bitfinex) WatchTradesForSymbols(symbols []string, options ...WatchTradesForSymbolsOptions) ([]Trade, error) {
-	return this.exchangeTyped.WatchTradesForSymbols(symbols, options...)
-}
-func (this *Bitfinex) WithdrawWs(code string, amount float64, address string, options ...WithdrawWsOptions) (Transaction, error) {
-	return this.exchangeTyped.WithdrawWs(code, amount, address, options...)
 }

@@ -252,15 +252,14 @@ export default class apex extends apexRest {
         // are already subscribed, skip the subscribe entirely.
         const client = this.client (url);
         const newTopics: string[] = [];
-        let newTopicsCount = 0;
         for (let i = 0; i < topics.length; i++) {
             if (!(messageHashes[i] in client.subscriptions)) {
                 newTopics.push (topics[i]);
-                newTopicsCount = newTopicsCount + 1;
             }
         }
+        const newTopicsLength = newTopics.length;
         let message: NullableDict = undefined;
-        if (newTopicsCount > 0) {
+        if (newTopicsLength > 0) {
             const request: Dict = {
                 'op': 'subscribe',
                 'args': newTopics,
@@ -360,7 +359,7 @@ export default class apex extends apexRest {
         bookside.storeArray (bidAsk);
     }
 
-    override handleDeltas (bookside: any, deltas: any) {
+    override handleDeltas (bookside: any, deltas: any[]) {
         for (let i = 0; i < deltas.length; i++) {
             this.handleDelta (bookside, deltas[i]);
         }
@@ -990,7 +989,7 @@ export default class apex extends apexRest {
                 throw new ExchangeError (feedback);
             }
             const success = this.safeBool (message, 'success');
-            if ((success !== undefined) && (success !== true)) {
+            if ((success !== undefined) && (!success)) {
                 const ret_msg = this.safeString (message, 'ret_msg');
                 const request = this.safeDict (message, 'request', {});
                 const op = this.safeString (request, 'op');

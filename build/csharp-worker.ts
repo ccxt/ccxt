@@ -1,6 +1,6 @@
 import { Transpiler } from 'ast-transpiler';
 import { getProgramBatch } from './worker-program-batch.js';
-import { ts, csharpTypeOfValue, installCsharpAsyncCoreReturns, installCsharpCollectionReturns, installCsharpConditionOperands, installCsharpLocalTypes, installCsharpNativeArithmetic, installCsharpNumericComparisons, installCsharpNumericReturns, installCsharpParameterDeclarations, installCsharpBooleanParams, installCsharpGuardedMinMax, installCsharpDictIdentKeyReads, installCsharpNativeComparisons, installCsharpNativeIntProducts, installCsharpOrderBookSideReads, installCsharpStringParams, installCsharpParameterTypes, installCsharpReceiverTypes, installCsharpStringReceivers, installCsharpStringReturns } from './csharp-local-types.js';
+import { ts, csharpTypeOfValue, installCsharpAsyncCoreReturns, installCsharpCollectionReturns, installCsharpConditionOperands, installCsharpLocalTypes, installCsharpNativeArithmetic, installCsharpNumericComparisons, installCsharpNumericReturns, installCsharpParameterDeclarations, installCsharpBooleanParams, installCsharpGuardedMinMax, installCsharpDictIdentKeyReads, installCsharpNativeComparisons, installCsharpNativeIntProducts, installCsharpOrderBookSideReads, installCsharpStringParams, installCsharpParameterTypes, installCsharpReceiverTypes, installCsharpStringReceivers, installCsharpStringReturns, installCsharpDeclaredCollectionLocals, installCsharpNativeAddHx4C02, installCsharpHx4C10NonNullConcat } from './csharp-local-types.js';
 import log from 'ololog'
 
 // task payload posted by csharpTranspiler.ts#webworkerTranspile (structured clone)
@@ -166,6 +166,10 @@ export function setupCsharpPrinter (transpiler: Transpiler) {
     // Drop it when the returned expression's own C# static type already IS the method's boolean
     // type — exact match only, so no nullability (and no spelling) is crossed.
     installCsharpBooleanReturnCasts (csharp);
+    // hx4 C01: emitted collection declarations answer the printer's indexer-read resolver
+    installCsharpDeclaredCollectionLocals (transpiler);
+    installCsharpNativeAddHx4C02 (transpiler); // hx4 C02
+    installCsharpHx4C10NonNullConcat (transpiler); // hx4 C10
 }
 
 // bare helper calls whose hand-written C# signature returns `bool` and whose printed form IS
@@ -222,13 +226,17 @@ function installCsharpBooleanReturnCasts (csharp: any) {
 let cachedTranspiler: Transpiler | null = null;
 let cachedConfigKey: string | null = null;
 let rawComments: string[] = [];
+let programCache: ReturnType<typeof Transpiler.createProgramCache> | null = null;
 
 const verbose = !!process.env['CCXT_TRANSPILE_VERBOSE'];
 
 export default async ({ transpilerConfig, configKey, file, files, roots }: CsharpWorkerTask) => {
     const key = configKey || JSON.stringify (transpilerConfig);
     if (!cachedTranspiler || cachedConfigKey !== key) {
-        cachedTranspiler = new Transpiler (transpilerConfig);
+        if (!programCache) {
+            programCache = Transpiler.createProgramCache ();
+        }
+        cachedTranspiler = new Transpiler (transpilerConfig, programCache);
         setupCsharpPrinter (cachedTranspiler);
         // the main thread turns these into C# doc comments — collect the raw ones and let
         // it replay its own transform so the wrapper docs stay identical

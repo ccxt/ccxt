@@ -6,6 +6,37 @@
     ],
     "outputType": "json",
     "methods": {
+        "fetchTickers": [
+            {
+                "description": "all swap tickers",
+                "method": "fetchTickers",
+                "url": "https://api-evm.orderly.org/v1/public/futures",
+                "input": [],
+                "output": null
+            },
+            {
+                "description": "tickers filtered by symbol",
+                "method": "fetchTickers",
+                "url": "https://api-evm.orderly.org/v1/public/futures",
+                "input": [
+                    [
+                        "BTC/USDC:USDC"
+                    ]
+                ],
+                "output": null
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "single swap ticker",
+                "method": "fetchTicker",
+                "url": "https://api-evm.orderly.org/v1/public/futures/PERP_BTC_USDC",
+                "input": [
+                    "BTC/USDC:USDC"
+                ],
+                "output": null
+            }
+        ],
         "createOrder": [
             {
                 "description": "swap market buy",

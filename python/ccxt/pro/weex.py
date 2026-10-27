@@ -96,7 +96,7 @@ class weex(ccxt.async_support.weex):
         id = self.request_id()
         method = 'SUBSCRIBE'
         unsubscribe = self.safe_bool(subscription, 'unsubscribe', False)
-        if unsubscribe is True:
+        if unsubscribe:
             method = 'UNSUBSCRIBE'
         message = {
             'id': id,
@@ -118,7 +118,7 @@ class weex(ccxt.async_support.weex):
         self.authenticate(url)
         method = 'SUBSCRIBE'
         unsubscribe = self.safe_bool(subscription, 'unsubscribe', False)
-        if unsubscribe is True:
+        if unsubscribe:
             method = 'UNSUBSCRIBE'
         id = self.request_id()
         message = {
@@ -1518,7 +1518,7 @@ class weex(ccxt.async_support.weex):
         options = self.safe_dict(self.options, 'watchBalance')
         fetchBalanceSnapshot = self.safe_bool(options, 'fetchBalanceSnapshot', False)
         awaitBalanceSnapshot = self.safe_bool(options, 'awaitBalanceSnapshot', True)
-        if (fetchBalanceSnapshot is True) and (awaitBalanceSnapshot is True):
+        if (fetchBalanceSnapshot) and (awaitBalanceSnapshot):
             await client.future(type + ':fetchBalanceSnapshot')
         messageHash = type + ':' + 'balance'
         return await self.subscribe_private(messageHash, type, 'account', isContract, paramsMarketType)
@@ -1528,7 +1528,7 @@ class weex(ccxt.async_support.weex):
             return
         options = self.safe_dict(self.options, 'watchBalance')
         fetchBalanceSnapshot = self.safe_bool(options, 'fetchBalanceSnapshot', False)
-        if fetchBalanceSnapshot is True:
+        if fetchBalanceSnapshot:
             messageHash = type + ':fetchBalanceSnapshot'
             if not (messageHash in client.futures):
                 client.future(messageHash)
@@ -1676,7 +1676,7 @@ class weex(ccxt.async_support.weex):
         else:
             self.positions = ArrayCacheBySymbolById()
 
-    async def load_positions_snapshot(self, client: Client, messageHash: str, params: object):
+    async def load_positions_snapshot(self, client: Client, messageHash: str, params: dict):
         positions = await self.fetch_positions(None, params)
         self.positions = ArrayCacheBySymbolById()
         cache = self.positions
@@ -1808,7 +1808,7 @@ class weex(ccxt.async_support.weex):
         subscriptionsById = self.index_by(client.subscriptions, 'id')
         subscription = self.safe_dict(subscriptionsById, id, {})
         unsubscribe = self.safe_bool(subscription, 'unsubscribe', False)
-        if unsubscribe is True:
+        if unsubscribe:
             subHashIsPrefix = self.safe_bool(subscription, 'subHashIsPrefix', False)
             messageHashes = self.safe_list(subscription, 'messageHashes', [])
             subHashes = self.safe_list(subscription, 'subMessageHashes', [])
@@ -1828,7 +1828,7 @@ class weex(ccxt.async_support.weex):
         #     }
         #
         result = self.safe_bool(message, 'result', True)
-        if result is not True:
+        if not result:
             msg = self.safe_string(message, 'msg', '')
             feedback = self.id + ' ' + self.json(message)
             try:

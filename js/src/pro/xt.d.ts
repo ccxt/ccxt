@@ -48,7 +48,7 @@ export default class xt extends xtRest {
      * @param {object} subscriptionParams extra parameters specific to the subscription
      * @returns {object} data from the websocket stream
      */
-    unSubscribe(messageHash: string, name: string, access: string, methodName: string, topic: string, market?: Market, symbols?: Strings, params?: {}, subscriptionParams?: {}): Promise<any>;
+    unSubscribe(messageHash: string, name: string, access: string, methodName: string, topic: string, market?: Market, symbols?: Strings, params?: Dict, subscriptionParams?: {}): Promise<any>;
     /**
      * @method
      * @name xt#watchTicker
@@ -246,7 +246,7 @@ export default class xt extends xtRest {
     unWatchFundingRate(symbol: string, params?: Dict): Promise<FundingRate>;
     handleFundingRate(client: Client, message: Dict): Dict;
     setPositionsCache(client: Client): void;
-    loadPositionsSnapshot(client: Client, messageHash: any): Promise<void>;
+    loadPositionsSnapshot(client: Client, messageHash: string): Promise<void>;
     handlePosition(client: Client, message: Dict): void;
     handleTicker(client: Client, message: Dict): Dict;
     handleTickers(client: Client, message: Dict): Dict;

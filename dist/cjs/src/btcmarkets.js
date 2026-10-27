@@ -1375,12 +1375,12 @@ class btcmarkets extends btcmarkets$1["default"] {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw(code, amount, address, tag = undefined, params = {}) {
-        const [tagWithdrawTag, paramsWithdrawTag] = this.handleWithdrawTagAndParams(tag, params);
+    async withdraw(code, amount, address, params = {}) {
+        const [tagWithdrawTag, paramsWithdrawTag] = this.handleParamString(params, 'tag');
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
@@ -1390,7 +1390,7 @@ class btcmarkets extends btcmarkets$1["default"] {
             'amount': this.currencyToPrecision(code, amount),
         };
         if (code !== 'AUD') {
-            this.checkAddress(address);
+            this.checkAddress(address, code, tagWithdrawTag);
             request['toAddress'] = address;
         }
         if (tagWithdrawTag !== undefined) {
@@ -1418,12 +1418,13 @@ class btcmarkets extends btcmarkets$1["default"] {
     nonce() {
         return this.milliseconds();
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
         let requestHeaders = undefined;
         let requestBody = undefined;
         let request = '/' + this.version + '/' + this.implodeParams(path, params);
         const query = this.keysort(this.omit(params, this.extractParams(path)));
-        if (api === 'private') {
+        if (apiName === 'private') {
             this.checkRequiredCredentials();
             const nonce = this.nonce().toString();
             const secret = this.base64ToBinary(this.secret);
@@ -1447,18 +1448,18 @@ class btcmarkets extends btcmarkets$1["default"] {
                 'BM-AUTH-SIGNATURE': signature,
             };
         }
-        else if (api === 'public') {
+        else if (apiName === 'public') {
             if (Object.keys(query).length > 0) {
                 request += '?' + this.urlencode(query);
             }
         }
-        const apiUrl = this.safeString(this.urls['api'], api);
+        const apiUrl = this.safeString(this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
         const url = apiUrl + request;
-        const headersResult = (requestHeaders !== undefined) ? requestHeaders : headers;
-        const bodyResult = (requestBody !== undefined) ? requestBody : body;
+        const headersResult = requestHeaders;
+        const bodyResult = requestBody;
         return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {

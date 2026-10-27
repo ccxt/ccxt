@@ -15,11 +15,14 @@ func testFetchTradingFeeBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICoreE
 	defer ReturnPanicError(ch)
 	var method string = "fetchTradingFee"
 
-	r := <-exchange.FetchTradingFeeAsync(StringArg(symbol))
+	r := <-exchange.(ccxt.IFetchTradingFee).FetchTradingFeeAsync(StringArg(symbol))
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	fee := r.Value
+	var fee any = nil
+	if !ccxt.StructAbsent(r.Value) {
+		fee = ccxt.StructBox(r.Value, ccxt.TradingFeeInterfaceToMap)
+	}
 	AssertDictionaryResponse(exchange, method, fee, symbol)
 	TestTradingFee(exchange, skippedProperties, method, symbol, fee)
 

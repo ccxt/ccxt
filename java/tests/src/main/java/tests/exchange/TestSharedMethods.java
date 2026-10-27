@@ -366,6 +366,17 @@ public class TestSharedMethods extends BaseTest {
             Assert(Precise.stringEq(value, compareTo), (((((stringValue(key) + " key (with a value of ") + stringValue(value)) + ") was expected to be equal to ") + stringValue(compareTo)) + logText));
         }
     }
+    public static void AssertUnifiedNetworkCode(BaseExchange exchange, Object skippedProperties, Object method, Object entry, Object networkCode)
+    {
+        // returned network codes must be the unified code, never one of its aliases (e.g. ERC20, not ETH)
+        if ((Helpers.inOp(skippedProperties, "network")) || (java.util.Objects.equals(networkCode, null)))
+        {
+            return;
+        }
+        Object logText = logTemplate(exchange, method, entry);
+        String unifiedCode = exchange.safeString(exchange.networkAliases, networkCode, networkCode);
+        Assert(java.util.Objects.equals(unifiedCode, networkCode), (((("network code " + networkCode) + " is an alias, expected the unified code ") + unifiedCode) + logText));
+    }
     public static void AssertNonEqual(BaseExchange exchange, Object skippedProperties, Object method, Object entry, Object key, Object compareTo, Object... optionalArgs)
     {
         Object allowNull = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : true;

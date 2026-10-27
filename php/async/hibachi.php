@@ -134,6 +134,7 @@ class hibachi extends Exchange {
                     'private' => 'https://api.hibachi.xyz',
                 ),
                 'www' => 'https://www.hibachi.xyz/',
+                'doc' => 'https://api-doc.hibachi.xyz/',
                 'referral' => array(
                     'url' => 'https://hibachi.xyz/r/ZBL2YFWIHU',
                 ),
@@ -278,7 +279,7 @@ class hibachi extends Exchange {
         ));
     }
 
-    public function get_account_id() {
+    public function get_account_id(): float {
         $this->check_required_credentials();
         $id = $this->parse_to_int($this->accountId);
         return $id;
@@ -326,7 +327,7 @@ class hibachi extends Exchange {
             'optionType' => null,
             'precision' => array(
                 'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'underlyingDecimals'))),
-                'price' => $this->parse_number($this->safe_value($this->safe_list($market, 'orderbookGranularities', array()), 0)) / 10000.0,
+                'price' => $this->parse_number(Precise::string_div($this->safe_string($this->safe_list($market, 'orderbookGranularities', array()), 0), '10000')),
             ),
             'limits' => array(
                 'leverage' => array(
@@ -923,7 +924,7 @@ class hibachi extends Exchange {
         $makerFee = $this->safe_number($market, 'maker', $this->safe_number($this->options, 'defaultMakerFee', 0.00015));
         $takerFeeValue = ($takerFee === null) ? 0 : $takerFee;
         $makerFeeValue = ($makerFee === null) ? 0 : $makerFee;
-        $feeRate = max($takerFeeValue, $makerFeeValue);
+        $feeRate = $this->parse_number(Precise::string_max($this->number_to_string($takerFeeValue), $this->number_to_string($makerFeeValue)));
         $sideInternal = '';
         if ($side === 'sell') {
             $sideInternal = 'ASK';
@@ -1064,7 +1065,7 @@ class hibachi extends Exchange {
         $makerFee = $this->safe_number($market, 'maker', 0);
         $takerFeeValue = ($takerFee === null) ? 0 : $takerFee;
         $makerFeeValue = ($makerFee === null) ? 0 : $makerFee;
-        $feeRate = max($takerFeeValue, $makerFeeValue);
+        $feeRate = $this->parse_number(Precise::string_max($this->number_to_string($takerFeeValue), $this->number_to_string($makerFeeValue)));
         $message = $this->order_message($market, $nonce, $feeRate, $type, $side, $amount, $price);
         $signature = $this->sign_message($message, $this->privateKey);
         $request = array(
@@ -1167,7 +1168,7 @@ class hibachi extends Exchange {
         return $ret;
     }
 
-    public function cancel_order_request(string $id) {
+    public function cancel_order_request(string $id): array {
         $bigid = $this->convert_to_big_int($id);
         $idbase16 = $this->int_to_base16($bigid);
         $idPadded = str_pad($idbase16, 16, '0', STR_PAD_LEFT);
@@ -1320,11 +1321,11 @@ class hibachi extends Exchange {
         return $message;
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): PromiseInterface {
-        return Async\async(self::do_withdraw(...))($code, $amount, $address, $tag, $params);
+    public function withdraw(string $code, float $amount, string $address, $params = array()): PromiseInterface {
+        return Async\async(self::do_withdraw(...))($code, $amount, $address, $params);
     }
 
-    private function do_withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()) {
+    private function do_withdraw(string $code, float $amount, string $address, $params = array()) {
         /**
          * make a withdrawal
          *
@@ -1333,8 +1334,8 @@ class hibachi extends Exchange {
          * @param {string} $code unified currency $code, only support USDT
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
-         * @param {string} $tag
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
         $withdrawAddress = mb_substr($address, -40);
@@ -1900,9 +1901,10 @@ class hibachi extends Exchange {
         ));
     }
 
-    public function sign(string $path, $api = 'public', mixed $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
+        $apiName = $api[0];
         $endpoint = '/' . $this->implode_params($path, $params);
-        $apiUrl = $this->safe_string($this->urls['api'], $api);
+        $apiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($apiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
@@ -1919,11 +1921,11 @@ class hibachi extends Exchange {
         if ($hasJsonBody) {
             $headersValue['Content-Type'] = 'application/json';
         }
-        $bodyResult = $body;
+        $bodyResult = null;
         if ($hasJsonBody) {
             $bodyResult = $this->json($params);
         }
-        if ($api === 'private') {
+        if ($apiName === 'private') {
             $this->check_required_credentials();
             $headersValue['Authorization'] = $this->apiKey;
         }
@@ -1962,7 +1964,7 @@ class hibachi extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_transaction_status(?string $status) {
+    public function parse_transaction_status(?string $status): ?string {
         $statuses = array(
             'pending' => 'pending',
             'claimable' => 'pending',

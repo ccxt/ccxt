@@ -213,21 +213,22 @@ export default class revolutx extends Exchange {
             },
         });
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
         let requestHeaders = undefined;
         let requestBody = undefined;
         const implodedPath = this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
         const queryKeys = Object.keys(query);
         const queryLength = queryKeys.length;
-        const baseApiUrl = this.safeString(this.urls['api'], api);
+        const apiName = api[0];
+        const baseApiUrl = this.safeString(this.urls['api'], apiName);
         if (baseApiUrl === undefined) {
             throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
         const baseUrl = baseApiUrl;
         let url = baseUrl + '/' + implodedPath;
         let queryString = '';
-        if (api === 'private') {
+        if (apiName === 'private') {
             this.checkRequiredCredentials();
             const timestamp = this.milliseconds().toString();
             if (method === 'GET') {
@@ -246,7 +247,7 @@ export default class revolutx extends Exchange {
                 requestBody = this.json(query);
             }
             const requestPath = '/api/' + implodedPath;
-            const bodyValue = (requestBody !== undefined) ? requestBody : body;
+            const bodyValue = requestBody;
             const bodyString = (bodyValue !== undefined) ? bodyValue : '';
             const message = timestamp + method.toUpperCase() + requestPath + queryString + bodyString;
             const signature = eddsa(this.encode(message), this.privateKey, ed25519);
@@ -271,8 +272,8 @@ export default class revolutx extends Exchange {
                 requestHeaders = { 'Content-Type': 'application/json' };
             }
         }
-        const headersResult = (requestHeaders !== undefined) ? requestHeaders : headers;
-        const bodyResult = (requestBody !== undefined) ? requestBody : body;
+        const headersResult = requestHeaders;
+        const bodyResult = requestBody;
         return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult };
     }
     /**
@@ -740,13 +741,15 @@ export default class revolutx extends Exchange {
         const id = this.safeString(trade, 'id');
         const tradeSymbol = this.safeString(trade, 'symbol');
         const symbol = this.safeSymbol(tradeSymbol, market, '/');
-        const price = this.safeNumber(trade, 'price');
-        const amount = this.safeNumber(trade, 'quantity');
+        const priceString = this.safeString(trade, 'price');
+        const amountString = this.safeString(trade, 'quantity');
+        const price = this.parseNumber(priceString);
+        const amount = this.parseNumber(amountString);
         const side = this.safeStringLower(trade, 'side');
         const timestamp = this.safeInteger(trade, 'timestamp');
         let cost = undefined;
-        if (price !== undefined && amount !== undefined) {
-            cost = price * amount;
+        if (priceString !== undefined && amountString !== undefined) {
+            cost = this.parseNumber(Precise.stringMul(priceString, amountString));
         }
         return {
             'info': trade,
@@ -772,7 +775,7 @@ export default class revolutx extends Exchange {
      * @see https://developer.revolut.com/docs/api/revolut-x-crypto-exchange#tag-public-market-data
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
-     * @param {int} [limit] the maximum number of trades to return (1-1900, default 1900)
+     * @param {int} [limit] the maximum number of trades to return (1-100)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest trade to fetch
      * @param {string} [params.cursor] pagination cursor from the previous response
@@ -801,7 +804,7 @@ export default class revolutx extends Exchange {
             request['end_date'] = this.milliseconds();
         }
         if (limit !== undefined) {
-            request['limit'] = Math.min(limit, 1900);
+            request['limit'] = Math.min(limit, 100);
         }
         const cursor = this.safeString(params, 'cursor');
         if (cursor !== undefined) {
@@ -1212,7 +1215,7 @@ export default class revolutx extends Exchange {
             const market = this.market(symbol);
             request['symbols'] = market['id'];
         }
-        const thirtyDays = 2592000000;
+        const thirtyDays = 30 * 24 * 60 * 60 * 1000;
         const until = this.safeInteger2(params, 'until', 'until');
         if (since !== undefined) {
             request['start_date'] = since;
@@ -1225,8 +1228,8 @@ export default class revolutx extends Exchange {
         }
         else if (since !== undefined) {
             const now = this.milliseconds();
-            const defaultEnd = since + thirtyDays;
-            request['end_date'] = (defaultEnd < now) ? defaultEnd : now;
+            const thirtyDaysAgo = now - thirtyDays;
+            request['end_date'] = (since < thirtyDaysAgo) ? since + thirtyDays : now;
         }
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -1282,15 +1285,17 @@ export default class revolutx extends Exchange {
     parseMyTrade(trade, market = undefined) {
         const id = this.safeString(trade, 'tid');
         const orderId = this.safeString(trade, 'oid');
-        const price = this.safeNumber(trade, 'p');
-        const amount = this.safeNumber(trade, 'q');
+        const priceString = this.safeString(trade, 'p');
+        const amountString = this.safeString(trade, 'q');
+        const price = this.parseNumber(priceString);
+        const amount = this.parseNumber(amountString);
         const side = this.safeStringLower(trade, 's');
         const timestamp = this.safeInteger2(trade, 'tdt', 'pdt');
         const isMaker = this.safeBool(trade, 'im', false);
         const takerOrMaker = (isMaker) ? 'maker' : 'taker';
         let cost = undefined;
-        if (price !== undefined && amount !== undefined) {
-            cost = price * amount;
+        if (priceString !== undefined && amountString !== undefined) {
+            cost = this.parseNumber(Precise.stringMul(priceString, amountString));
         }
         const symbol = this.safeSymbol(undefined, market);
         return {
@@ -1334,7 +1339,7 @@ export default class revolutx extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const thirtyDays = 2592000000;
+        const thirtyDays = 30 * 24 * 60 * 60 * 1000;
         const until = this.safeInteger2(params, 'until', 'until');
         if (since !== undefined) {
             request['start_date'] = since;
@@ -1347,8 +1352,8 @@ export default class revolutx extends Exchange {
         }
         else if (since !== undefined) {
             const now = this.milliseconds();
-            const defaultEnd = since + thirtyDays;
-            request['end_date'] = (defaultEnd < now) ? defaultEnd : now;
+            const thirtyDaysAgo = now - thirtyDays;
+            request['end_date'] = (since < thirtyDaysAgo) ? since + thirtyDays : now;
         }
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -1445,7 +1450,8 @@ export default class revolutx extends Exchange {
         return order;
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
-        if (code >= 400) {
+        const statusCode = this.parseToInt(code);
+        if (statusCode >= 400) {
             if (response === undefined) {
                 return undefined;
             }

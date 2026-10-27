@@ -524,9 +524,7 @@ export default class weex extends Exchange {
                 },
                 'networks': {
                     'BEP20': 'BEP20(BSC)',
-                    'BSC': 'BEP20(BSC)',
                     'ERC20': 'ERC20',
-                    'ETH': 'ERC20',
                     'POLYGON': 'POLYGON(MATIC)',
                     'MATIC': 'POLYGON(MATIC)',
                     'ARBITRUM': 'ARBITRUM(ARB)',
@@ -1328,7 +1326,8 @@ export default class weex extends Exchange {
             'ask': this.safeString(ticker, 'askPrice'),
             'askVolume': this.safeString(ticker, 'askQty'),
             'vwap': undefined,
-            'open': this.safeString(ticker, 'openPrice'),
+            // openPrice comes from a different window than priceChange/priceChangePercent, so open is derived from last - change
+            'open': undefined,
             'close': this.safeString(ticker, 'lastPrice'),
             'last': this.safeString(ticker, 'lastPrice'),
             'previousClose': undefined,
@@ -1583,7 +1582,7 @@ export default class weex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @param {boolean} [params.paginate] whether to automatically paginate requests until the required number of candles is returned
-     * @param {boolean} [params.historical] whether to fetch historical klines (default is false). If false, will fetch last price klines
+     * @param {boolean} [params.historical] whether to fetch historical klines (default is false, forced to true when since or until is set because the recent klines endpoints ignore time filters). If false, will fetch last price klines
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchContractOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -1610,20 +1609,27 @@ export default class weex extends Exchange {
         let response = undefined;
         // hardcap threshold
         const limitResolved = (limit === undefined) ? undefined : Math.min(limit, 1000);
-        if (historical) {
+        // the recent-klines endpoints ignore startTime and endTime and only ever return the
+        // latest candles, so a request bounded by since or until has to go through the history
+        // endpoint, which honours both (endTime = since + limit * timeframe when until is absent)
+        const useHistory = historical || (since !== undefined) || (until !== undefined);
+        if (useHistory) {
             if (priceType !== undefined) {
                 request['priceType'] = priceType;
             }
             let startTime = since;
             let endTime = until;
+            const now = this.milliseconds();
             if ((since === undefined) || (until === undefined)) {
-                const now = this.milliseconds();
                 const duration = this.parseTimeframe(timeframe) * 1000;
-                let numberOfCandles = maxHistoricalLimit;
-                if (limitResolved !== undefined && limitResolved !== null && limitResolved !== 0) {
-                    numberOfCandles = limitResolved;
+                // the history endpoint returns at most maxHistoricalLimit candles and serves the
+                // newest ones inside the window, so a wider window would silently drop the candles
+                // right after since, keep the window at what one call can return
+                let historyLimit = maxHistoricalLimit;
+                if (limit !== undefined && limit !== null && limit !== 0) {
+                    historyLimit = Math.min(limit, maxHistoricalLimit);
                 }
-                const timeDelta = numberOfCandles * duration;
+                const timeDelta = historyLimit * duration;
                 if ((since === undefined) && (until === undefined)) {
                     endTime = now;
                     startTime = now - timeDelta;
@@ -1635,8 +1641,13 @@ export default class weex extends Exchange {
                     startTime = until - timeDelta;
                 }
                 else {
-                    endTime = since + timeDelta;
+                    // this.sum, a bare + is string concatenation in the php port
+                    endTime = this.sum(since, timeDelta);
                 }
+            }
+            // the endpoint rejects an endTime in the future (-1142), which a recent since would produce
+            if ((endTime !== undefined) && (endTime > now)) {
+                endTime = now;
             }
             request['startTime'] = startTime;
             request['endTime'] = endTime;
@@ -2011,12 +2022,12 @@ export default class weex extends Exchange {
         const sandboxMode = this.safeBool(this.options, 'sandboxMode', false);
         // the demo trading API only provides the swap account, don't let the default spot type break a bare fetchBalance() call
         let type = marketType;
-        if ((sandboxMode === true) && (requestedType === undefined)) {
+        if ((sandboxMode) && (requestedType === undefined)) {
             type = 'swap';
         }
         let response = undefined;
         if (type === 'spot') {
-            if (sandboxMode === true) {
+            if (sandboxMode) {
                 throw new NotSupported(this.id + ' fetchBalance() only supports the swap account in sandbox mode, use params["type"] = "swap"');
             }
             //
@@ -2059,7 +2070,7 @@ export default class weex extends Exchange {
             //         }
             //     ]
             //
-            if (sandboxMode === true) {
+            if (sandboxMode) {
                 response = await this.contractPrivateGetCapiV3SimBalance(paramsMarketType);
             }
             else {
@@ -2077,7 +2088,7 @@ export default class weex extends Exchange {
         for (let i = 0; i < balances.length; i++) {
             const entry = this.safeDict(balances, i);
             let currencyId = this.safeString(entry, 'asset');
-            if ((sandboxMode === true) && (currencyId === 'SUSDT')) {
+            if ((sandboxMode) && (currencyId === 'SUSDT')) {
                 currencyId = 'USDT'; // demo trading balances are denominated in the demo asset SUSDT
             }
             const code = this.safeCurrencyCode(currencyId);
@@ -2192,7 +2203,7 @@ export default class weex extends Exchange {
         }
         else {
             const sandboxMode = this.safeBool(this.options, 'sandboxMode', false);
-            if (sandboxMode === true) {
+            if (sandboxMode) {
                 throw new NotSupported(this.id + ' createOrder() only supports swap markets in sandbox mode');
             }
             return await this.createSpotOrder(symbol, type, side, amount, price, params);
@@ -2304,12 +2315,12 @@ export default class weex extends Exchange {
         const sandboxMode = this.safeBool(this.options, 'sandboxMode', false);
         let response = undefined;
         if (triggerPrice !== undefined) {
-            if (sandboxMode === true) {
+            if (sandboxMode) {
                 throw new NotSupported(this.id + ' createOrder() does not support stopLossPrice or takeProfitPrice orders in sandbox mode');
             }
             response = await this.contractPrivatePostCapiV3AlgoOrder(request);
         }
-        else if (sandboxMode === true) {
+        else if (sandboxMode) {
             response = await this.contractPrivatePostCapiV3SimOrder(request);
         }
         else {
@@ -2348,11 +2359,8 @@ export default class weex extends Exchange {
         if (isTrigger && (isStopLoss || isTakeProfit)) {
             throw new BadRequest(this.id + ' createOrder() cannot use the triggerPrice parameter together with the stopLossPrice or takeProfitPrice parameters');
         }
-        let reduceOnly = this.safeBool(query, 'reduceOnly');
-        if (isStopLoss || isTakeProfit) {
-            reduceOnly = true;
-        }
-        const isReduceOnly = (reduceOnly === true);
+        const reduceOnly = this.safeBool(query, 'reduceOnly');
+        const isReduceOnly = isStopLoss || isTakeProfit || (reduceOnly === true);
         let positionSide = 'LONG';
         if (isReduceOnly) {
             if (side === 'buy') {
@@ -2514,7 +2522,7 @@ export default class weex extends Exchange {
         }
         const [type, paramsMarketType] = this.handleMarketTypeAndParams('cancelOrder', market, params);
         const trigger = this.safeBool(paramsMarketType, 'trigger', false);
-        if ((trigger === true) && id === undefined) {
+        if ((trigger) && id === undefined) {
             throw new ArgumentsRequired(this.id + ' cancelOrder() requires an id argument for trigger orders');
         }
         const request = {};
@@ -2545,7 +2553,7 @@ export default class weex extends Exchange {
             //
             response = await this.privateDeleteApiV3Order(this.extend(request, paramsOmitted));
         }
-        else if (trigger === true) {
+        else if (trigger) {
             response = await this.contractPrivateDeleteCapiV3AlgoOrder(this.extend(request, paramsOmitted));
         }
         else {
@@ -2591,7 +2599,7 @@ export default class weex extends Exchange {
             }
             response = await this.privateDeleteApiV3OpenOrders(this.extend(request, paramsOmitted));
         }
-        else if (trigger === true) {
+        else if (trigger) {
             response = await this.contractPrivateDeleteCapiV3AlgoOpenOrders(this.extend(request, paramsOmitted));
         }
         else {
@@ -2798,7 +2806,7 @@ export default class weex extends Exchange {
             }
             const [requestUntil, paramsUntil] = this.handleUntilOption('endTime', request, paramsPaginate);
             const trigger = this.safeBool(paramsUntil, 'trigger', false);
-            if (trigger === true) {
+            if (trigger) {
                 const paramsOmitted = this.omit(paramsUntil, 'trigger');
                 //
                 //     [
@@ -3045,7 +3053,7 @@ export default class weex extends Exchange {
         const [requestUntil, paramsUntil] = this.handleUntilOption('endTime', request, paramsPaginate);
         const sandboxMode = this.safeBool(this.options, 'sandboxMode', false);
         let response = undefined;
-        if (sandboxMode === true) {
+        if (sandboxMode) {
             response = await this.contractPrivateGetCapiV3SimOrderHistory(this.extend(requestUntil, paramsUntil));
         }
         else {
@@ -3270,7 +3278,7 @@ export default class weex extends Exchange {
     handleOrderOrPositionError(errorCode, errorMessage, order) {
         const errorCodeValue = (errorCode === undefined) ? '' : errorCode;
         const errorMessageValue = (errorMessage === undefined) ? '' : errorMessage;
-        if ((errorCodeValue === '') && (errorMessageValue === '')) {
+        if (((errorCode === undefined) || (errorCode === '')) && ((errorMessage === undefined) || (errorMessage === ''))) {
             // some endpoints could return an empty string if there is no error
             return;
         }
@@ -3608,8 +3616,9 @@ export default class weex extends Exchange {
         }
         const [requestUntil, paramsUntil] = this.handleUntilOption('endTime', request, paramsPaginate);
         // the exchange rejects startTime and endTime when either is sent alone, they only work as a pair
-        const hasSince = ('startTime' in requestUntil);
-        const hasUntil = ('endTime' in requestUntil);
+        const hasSince = (since !== undefined);
+        const until = this.safeInteger2(paramsPaginate, 'until', 'till');
+        const hasUntil = (until !== undefined);
         if (hasSince && !hasUntil) {
             requestUntil['endTime'] = this.milliseconds();
         }
@@ -3683,7 +3692,7 @@ export default class weex extends Exchange {
         const symbolsNormalized = this.marketSymbols(symbols);
         const sandboxMode = this.safeBool(this.options, 'sandboxMode', false);
         let response = undefined;
-        if (sandboxMode === true) {
+        if (sandboxMode) {
             response = await this.contractPrivateGetCapiV3SimPositionAllPosition(params);
         }
         else {
@@ -3720,7 +3729,7 @@ export default class weex extends Exchange {
         }
         const market = this.market(symbol);
         const sandboxMode = this.safeBool(this.options, 'sandboxMode', false);
-        if (sandboxMode === true) {
+        if (sandboxMode) {
             // the demo trading API does not provide a single-position endpoint
             return await this.fetchPositions([market['symbol']], params);
         }
@@ -3818,27 +3827,39 @@ export default class weex extends Exchange {
         const notional = this.safeString(position, 'openValue');
         const size = this.safeString(position, 'size');
         const entryPrice = Precise.stringDiv(notional, size);
+        const unrealizePnl = this.safeString(position, 'unrealizePnl');
+        const isolatedMargin = this.omitZero(this.safeString2(position, 'isolatedMargin', 'marginSize'));
+        let collateralString = undefined;
+        if ((marginMode === 'isolated') && (isolatedMargin !== undefined)) {
+            collateralString = (unrealizePnl !== undefined) ? Precise.stringAdd(isolatedMargin, unrealizePnl) : isolatedMargin;
+        }
+        const initialMarginString = this.omitZero(this.safeString2(position, 'marginSize', 'isolatedMargin'));
+        let marginString = undefined;
+        if (marginMode === 'isolated') {
+            marginString = isolatedMargin;
+        }
         return this.safePosition({
             'symbol': marketResolved['symbol'],
             'id': this.safeString2(position, 'id', 'positionId'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'contracts': this.parseNumber(size),
-            'contractSize': undefined,
+            'contractSize': this.safeNumber(marketResolved, 'contractSize'),
             'side': this.safeStringLower(position, 'side'),
             'notional': this.parseNumber(notional),
             'leverage': this.safeNumber(position, 'leverage'),
-            'unrealizedPnl': this.safeNumber(position, 'unrealizePnl'),
+            'unrealizedPnl': this.parseNumber(unrealizePnl),
             'realizedPnl': undefined,
-            'collateral': undefined,
+            'positionMargin': this.parseNumber(marginString),
+            'collateral': this.parseNumber(collateralString),
             'entryPrice': this.parseNumber(entryPrice),
             'markPrice': undefined,
-            'liquidationPrice': this.safeNumber(position, 'liquidatePrice'),
+            'liquidationPrice': this.parseNumber(this.omitZero(this.safeString(position, 'liquidatePrice'))),
             'marginMode': marginMode,
             'hedged': hedged,
             'maintenanceMargin': undefined,
             'maintenanceMarginPercentage': undefined,
-            'initialMargin': this.safeNumber(position, 'marginSize'),
+            'initialMargin': this.parseNumber(initialMarginString),
             'initialMarginPercentage': undefined,
             'marginRatio': undefined,
             'lastUpdateTimestamp': this.safeInteger(position, 'updatedTime'),
@@ -3893,8 +3914,8 @@ export default class weex extends Exchange {
             'symbol': market['id'],
         };
         const response = await this.contractPrivatePostCapiV3ClosePositions(this.extend(request, params));
-        const orders = this.parseOrders(response, market);
-        return this.safeDict(orders, 0);
+        const order = this.safeDict(response, 0, {});
+        return this.parseOrder(order, market);
     }
     /**
      * @method
@@ -4302,7 +4323,7 @@ export default class weex extends Exchange {
     toSandboxMarketId(market) {
         const sandboxMode = this.safeBool(this.options, 'sandboxMode', false);
         const baseId = this.safeString(market, 'baseId');
-        if ((sandboxMode === true) && (baseId !== undefined)) {
+        if ((sandboxMode) && (baseId !== undefined)) {
             // demo trading only has USDT-margined linear markets quoted in the demo asset SUSDT (e.g. BTCSUSDT), revisit if weex ever adds a non-USDT settle
             return baseId + 'SUSDT';
         }
@@ -4318,7 +4339,7 @@ export default class weex extends Exchange {
      */
     fromSandboxMarketId(marketId) {
         const sandboxMode = this.safeBool(this.options, 'sandboxMode', false);
-        if ((sandboxMode !== true) || (marketId === undefined)) {
+        if ((!sandboxMode) || (marketId === undefined)) {
             return marketId;
         }
         if ((this.markets_by_id !== undefined) && (marketId in this.markets_by_id)) {
@@ -4334,7 +4355,8 @@ export default class weex extends Exchange {
         super.setSandboxMode(enable);
         this.options['sandboxMode'] = enable;
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
         let endpoint = this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
         const isBatch = (path.indexOf('batch') >= 0);
@@ -4343,16 +4365,16 @@ export default class weex extends Exchange {
                 endpoint += '?' + this.urlencode(query);
             }
         }
-        const isPrivate = (api === 'private') || (api === 'contractPrivate');
+        const isPrivate = (apiName === 'private') || (apiName === 'contractPrivate');
         const hasJsonBody = isPrivate && ((method === 'POST') || isBatch);
-        let requestBody = body;
+        let requestBody = undefined;
         if (hasJsonBody) {
             requestBody = this.json(query);
         }
         let requestHeaders = undefined;
         if (isPrivate) {
             const sandboxMode = this.safeBool(this.options, 'sandboxMode', false);
-            if ((sandboxMode === true) && (path.indexOf('capi/v3/sim/') !== 0)) {
+            if ((sandboxMode) && (path.indexOf('capi/v3/sim/') !== 0)) {
                 // guard against accidental live private calls with sandbox mode enabled, the demo trading API only provides the capi/v3/sim/ endpoints
                 throw new NotSupported(this.id + ' ' + path + ' is not available in sandbox mode, demo trading only supports fetchBalance, createOrder, fetchPositions, fetchClosedOrders and fetchCanceledOrders for swap markets');
             }
@@ -4378,7 +4400,7 @@ export default class weex extends Exchange {
                 'User-Agent': 'ccxt',
             };
         }
-        const baseApiUrl = this.safeString(this.urls['api'], api);
+        const baseApiUrl = this.safeString(this.urls['api'], apiName);
         if (baseApiUrl === undefined) {
             throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
@@ -4396,6 +4418,9 @@ export default class weex extends Exchange {
         const message = this.safeString(response, 'msg');
         if (message !== undefined) {
             const errorCode = this.safeString(response, 'code');
+            if (errorCode === '200' && message.toLowerCase() === 'success') {
+                return undefined;
+            }
             const feedback = this.id + ' ' + body;
             this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
             this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);

@@ -67,14 +67,6 @@ public partial class blofin : ccxt.blofin
         return "ping";
     }
 
-    public virtual void handlePong(WebSocketClient client, Dictionary<string, object> message)
-    {
-        //
-        //   'pong'
-        //
-        client.lastPong = this.milliseconds();
-    }
-
     /**
      * @method
      * @name blofin#watchTrades
@@ -582,11 +574,31 @@ public partial class blofin : ccxt.blofin
         //     }
         //
         string marketType = "swap"; // for now
-        if (!((this.balance != null && this.balance.ContainsKey(marketType))))
+        // merge the parsed update into the existing balance object instead of
+        // replacing it: a consumer awakened by an earlier message holds a
+        // reference to this.balance[marketType], and Client.resolve is a no-op
+        // while nobody is awaiting, so a replaced object would make updates
+        // landing in that window invisible to the consumer forever (same class
+        // as issue #26773); the free/used/total aggregates are rebuilt from
+        // the merged currencies by safeBalance
+        if ((this.balance == null))
         {
-            this.balance[marketType] = new Dictionary<string, object>() {};
+            this.balance = new Dictionary<string, object>() {};
         }
-        this.balance[marketType] = this.parseWsBalance(message);
+        this.balance[marketType] = this.safeDict(this.balance, marketType, new Dictionary<string, object>() {});
+        Dictionary<string, object> parsed = this.parseWsBalance(message);
+        List<object> reserved = new List<object>() {"free", "used", "total"};
+        List<object> keys = new List<object>(parsed.Keys);
+        for (int i = 0; i < keys.Count; i++)
+        {
+            string? key = ((string)keys[i]);
+            if (this.inArray(key, reserved))
+            {
+                continue;
+            }
+            ((IDictionary<string,object>)(this.balance != null && this.balance.ContainsKey(marketType) ? this.balance[marketType] : null))[(string)key] = (parsed != null && key != null && parsed.ContainsKey(key) ? parsed[key] : null);
+        }
+        this.balance[marketType] = this.safeBalance((this.balance != null && this.balance.ContainsKey(marketType) ? this.balance[marketType] : null));
         string messageHash = (marketType + ":balance");
         client.resolve((this.balance != null && this.balance.ContainsKey(marketType) ? this.balance[marketType] : null), messageHash);
     }
@@ -639,7 +651,7 @@ public partial class blofin : ccxt.blofin
             await this.loadMarkets();
         }
         bool? trigger = this.safeBool2(parameters, "stop", "trigger");
-        object paramsOmitted = this.omit(parameters, new List<object>() {"stop", "trigger"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"stop", "trigger"}));
         string channel = "orders";
         if ((trigger == true))
         {
@@ -923,7 +935,6 @@ public partial class blofin : ccxt.blofin
         // incoming data updates' examples can be seen under each handler method
         //
         Dictionary<string, object> methods = new Dictionary<string, object>() {
-            { "pong", this.handlePong },
             { "trades", this.handleTrades },
             { "books", this.handleOrderBook },
             { "tickers", this.handleTicker },
@@ -937,7 +948,8 @@ public partial class blofin : ccxt.blofin
         object method = null;
         if ((message is "pong"))
         {
-            method = this.safeValue(methods, "pong");
+            client.lastPong = this.milliseconds();
+            return;
         } else
         {
             string? eventVar = this.safeString(message, "event");

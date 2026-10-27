@@ -13,7 +13,7 @@ public partial class bitstamp : Exchange
             { "countries", new List<object>() {"GB"} },
             { "rateLimit", 75 },
             { "version", "v2" },
-            { "userAgent", getValue(this.userAgents, "chrome") },
+            { "userAgent", (this.userAgents != null && this.userAgents.ContainsKey("chrome") ? this.userAgents["chrome"] : null) },
             { "pro", true },
             { "has", new Dictionary<string, object>() {
                 { "CORS", true },
@@ -1274,7 +1274,7 @@ public partial class bitstamp : Exchange
         return ccxt.BaseExchange.ToMarketInterfaceList(result);
     }
 
-    public virtual Dictionary<string, object> constructCurrencyObject(object id, object code, object name, object precision, object minCost, object originalPayload)
+    public virtual Dictionary<string, object> constructCurrencyObject(object id, string? code, object name, object precision, object minCost, object originalPayload)
     {
         string currencyType = "crypto";
         Dictionary<string, object> description = this.describe();
@@ -1325,7 +1325,7 @@ public partial class bitstamp : Exchange
         Int64? timestamp = this.safeInteger(options, "timestamp");
         Int64? expires = this.safeInteger(options, "expires", 1000);
         Int64 now = this.milliseconds();
-        if (((timestamp == null)) || (isGreaterThan((subtract(now, timestamp)), expires)))
+        if (((timestamp == null)) || (((expires != null)) && (((now - timestamp) > expires))))
         {
             List<object> response = await this.publicGetMarkets(parameters);
             //
@@ -1350,7 +1350,9 @@ public partial class bitstamp : Exchange
                 { "timestamp", now },
             });
         }
-        return ccxt.BaseExchange.ToDictList(this.safeValue((this.options.ContainsKey("fetchMarkets") ? this.options["fetchMarkets"] : null), "response"));
+        IDictionary<string, object> cache = this.safeDict(this.options, "fetchMarkets", new Dictionary<string, object>() {});
+        List<object> markets = this.safeList(cache, "response", new List<object>() {});
+        return ccxt.BaseExchange.ToDictList(markets);
     }
 
     /**
@@ -1764,7 +1766,7 @@ public partial class bitstamp : Exchange
         }
         symbol = this.safeString(marketResolved, "symbol");
         string? datetimeString = this.safeString2(trade, "date", "datetime");
-        object timestamp = null;
+        Int64? timestamp = null;
         if ((datetimeString != null))
         {
             if (datetimeString.IndexOf(" ", StringComparison.Ordinal) >= 0)
@@ -1774,8 +1776,8 @@ public partial class bitstamp : Exchange
             } else
             {
                 // string unix epoch in seconds
-                timestamp = parseInt(datetimeString);
-                timestamp = multiply(timestamp, 1000);
+                Int64? seconds = this.parseToInt(datetimeString);
+                timestamp = (seconds * 1000);
             }
         }
         // if it is a private trade
@@ -1927,51 +1929,54 @@ public partial class bitstamp : Exchange
         Int64? until = this.safeInteger(parameters, "until");
         bool untilIsDefined = ((until != null));
         Int64? limitResolved = ((limit == null)) ? 1000 : limit;
-        if ((limit == null))
-        {
-            if ((since == null))
-            {
-                request["limit"] = limitResolved;
-                if (untilIsDefined)
-                {
-                    Int64? end = this.parseToInt(((double?)until / 1000));
-                    request["start"] = subtract(subtract(end, ((duration * limitResolved))), 1);
-                    request["end"] = end;
-                }
-            } else
-            {
-                Int64? start = this.parseToInt(((double?)since / 1000));
-                request["start"] = start;
-                if (untilIsDefined)
-                {
-                    request["end"] = this.parseToInt(((double?)until / 1000));
-                } else
-                {
-                    request["end"] = this.sum(start, subtract((duration * limitResolved), 1));
-                }
-                request["limit"] = limitResolved;
-            }
-        } else
+        if ((limit != null))
         {
             if ((since != null))
             {
                 Int64? start = this.parseToInt(((double?)since / 1000));
                 request["start"] = start;
-                object end = this.sum(start, subtract((duration * limitResolved), 1));
                 if (untilIsDefined)
                 {
-                    end = mathMin(end, this.parseToInt(((double?)until / 1000)));
+                    // Math.min (start + duration * limit - 1, untilSeconds) on integers
+                    Int64? untilSeconds = this.parseToInt(((double?)until / 1000));
+                    request["end"] = ((((duration * limit) - 1) != null && ((untilSeconds - start) == null || (untilSeconds - start) < ((duration * limit) - 1)))) ? untilSeconds : this.sum(start, ((duration * limit) - 1));
+                } else
+                {
+                    request["end"] = this.sum(start, ((duration * limit) - 1));
                 }
-                request["end"] = end;
             } else if (untilIsDefined)
             {
-                Int64? end = this.parseToInt(((double?)until / 1000));
-                request["end"] = end;
-                request["start"] = subtract(subtract(end, ((duration * limitResolved))), 1);
+                Int64? untilEnd = this.parseToInt(((double?)until / 1000));
+                request["end"] = untilEnd;
+                request["start"] = ((untilEnd - ((duration * limit))) - 1);
             }
-            request["limit"] = mathMin(limitResolved, 1000); // min 1, max 1000
+            request["limit"] = Math.Min(limit.Value, 1000); // min 1, max 1000
+        } else
+        {
+            if ((since == null))
+            {
+                request["limit"] = 1000;
+                if (untilIsDefined)
+                {
+                    Int64? untilEndDefault = this.parseToInt(((double?)until / 1000));
+                    request["start"] = ((untilEndDefault - ((duration * 1000L))) - 1);
+                    request["end"] = untilEndDefault;
+                }
+            } else
+            {
+                Int64? startDefault = this.parseToInt(((double?)since / 1000));
+                request["start"] = startDefault;
+                if (untilIsDefined)
+                {
+                    request["end"] = this.parseToInt(((double?)until / 1000));
+                } else
+                {
+                    request["end"] = this.sum(startDefault, ((duration * 1000L) - 1));
+                }
+                request["limit"] = 1000;
+            }
         }
-        object paramsOmitted = this.omit(parameters, "until");
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "until"));
         Dictionary<string, object> response = await this.publicGetOhlcPair(this.extend(request, paramsOmitted));
         //
         //     {
@@ -2849,11 +2854,11 @@ public partial class bitstamp : Exchange
             amount = this.safeString(transaction, "amount");
         } else if ((currency != null))
         {
-            amount = this.safeString(transaction, getValue(currency, "id"), amount);
+            amount = this.safeString(transaction, getValue(currency, "id"));
             feeCurrency = getValue(currency, "code");
         } else if (((code != null)) && ((currencyId != null)))
         {
-            amount = this.safeString(transaction, currencyId, amount);
+            amount = this.safeString(transaction, currencyId);
             feeCurrency = code;
         }
         if ((amount != null))
@@ -3135,7 +3140,8 @@ public partial class bitstamp : Exchange
         {
             Dictionary<string, object> parsedTransaction = this.parseTransaction(item, currency);
             string? direction = null;
-            bool hasTransactionCurrency = !((item != null && ((IDictionary<string, object>)item).ContainsKey("amount"))) && (parsedTransaction.ContainsKey("currency")) && (!isEqual((parsedTransaction != null && parsedTransaction.ContainsKey("currency") ? parsedTransaction["currency"] : null), null));
+            string? transactionCurrency = this.safeString(parsedTransaction, "currency");
+            bool hasTransactionCurrency = !((item != null && ((IDictionary<string, object>)item).ContainsKey("amount"))) && ((transactionCurrency != null));
             object currencyResolved = currency;
             if (hasTransactionCurrency)
             {
@@ -3145,7 +3151,7 @@ public partial class bitstamp : Exchange
             {
                 string? amount = this.safeString(item, "amount");
                 direction = Precise.stringGt(amount, "0") ? "in" : "out";
-            } else if ((parsedTransaction.ContainsKey("currency")) && !isEqual((parsedTransaction != null && parsedTransaction.ContainsKey("currency") ? parsedTransaction["currency"] : null), null))
+            } else if ((transactionCurrency != null))
             {
                 string? amount = this.safeString(item, this.safeString(currencyResolved, "id"));
                 direction = Precise.stringGt(amount, "0") ? "in" : "out";
@@ -3347,7 +3353,7 @@ public partial class bitstamp : Exchange
         object name = this.getCurrencyName(code);
         // the per-currency implicit methods (privatePostBtcAddress etc.) all route
         // through request(), called here directly to avoid dynamic dispatch
-        object response = await this.request(((string)add(name, "_address/")), "private", "POST", parameters);
+        object response = await this.request(((string)add(name, "_address/")), new List<object>() {"private"}, "POST", parameters);
         string? address = this.safeString(response, "address");
         string? tag = this.safeString2(response, "memo_id", "destination_tag");
         this.checkAddress(address);
@@ -3363,23 +3369,23 @@ public partial class bitstamp : Exchange
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, string tag = null, object parameters = null)
+    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, object parameters = null)
     {
         // For fiat withdrawals please provide all required additional parameters in the 'params'
         // Check https://www.bitstamp.net/api/ under 'Open bank withdrawal' for list and description.
         parameters ??= new Dictionary<string, object>();
-        IList<object> tagWithdrawTagparamsWithdrawTagVariable = (IList<object>)this.handleWithdrawTagAndParams(tag, parameters);
-        var tagWithdrawTag = tagWithdrawTagparamsWithdrawTagVariable[0];
+        IList<object> tagWithdrawTagparamsWithdrawTagVariable = (IList<object>)this.handleParamString(parameters, "tag");
+        string? tagWithdrawTag = (string)tagWithdrawTagparamsWithdrawTagVariable[0];
         IDictionary<string, object> paramsWithdrawTag = ((IDictionary<string, object>)tagWithdrawTagparamsWithdrawTagVariable[1]);
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        this.checkAddress(address);
+        this.checkAddress(address, code, tagWithdrawTag);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "amount", amount },
         };
@@ -3404,7 +3410,7 @@ public partial class bitstamp : Exchange
             request["address"] = address;
             // the per-currency implicit methods (privatePostBtcWithdrawal etc.) all
             // route through request(), called here directly to avoid dynamic dispatch
-            response = await this.request(((string)add(name, "_withdrawal/")), "private", "POST", this.extend(request, paramsWithdrawTag));
+            response = await this.request(((string)add(name, "_withdrawal/")), new List<object>() {"private"}, "POST", this.extend(request, paramsWithdrawTag));
         } else
         {
             currency = this.currency(code);
@@ -3501,12 +3507,13 @@ public partial class bitstamp : Exchange
         return this.milliseconds();
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+        object apiName = getValue(api, 0);
+        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), apiName);
         if ((apiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
@@ -3515,7 +3522,7 @@ public partial class bitstamp : Exchange
         url = url + (this.version + "/");
         url = url + this.implodeParams(path, parameters);
         object query = this.omit(parameters, this.extractParams(path));
-        bool isPrivatePost = (!(api is "public")) && ((method == "POST"));
+        bool isPrivatePost = (!(apiName is "public")) && ((method == "POST"));
         // an empty POST triggers an API0020 error, so empty requests send a dummy object
         // https://github.com/ccxt/ccxt/issues/6846
         string emptyPostBody = this.urlencode(new Dictionary<string, object>() {
@@ -3526,13 +3533,13 @@ public partial class bitstamp : Exchange
         {
             postBody = this.urlencode(query);
         }
-        object requestBody = body;
+        string? requestBody = null;
         if (isPrivatePost)
         {
             requestBody = postBody;
         }
         Dictionary<string, object> privateHeaders = null;
-        if ((api is "public"))
+        if ((apiName is "public"))
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
@@ -3557,8 +3564,8 @@ public partial class bitstamp : Exchange
                 contentType = "application/x-www-form-urlencoded";
                 privateHeaders["Content-Type"] = contentType;
             }
-            object authBody = "";
-            if ((requestBody != null) && !(requestBody is ""))
+            string? authBody = "";
+            if ((requestBody != null) && requestBody != "")
             {
                 authBody = requestBody;
             }
@@ -3566,7 +3573,7 @@ public partial class bitstamp : Exchange
             string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
             privateHeaders["X-Auth-Signature"] = signature;
         }
-        object requestHeaders = ((api is "public")) ? headers : privateHeaders;
+        Dictionary<string, object> requestHeaders = ((apiName is "public")) ? null : privateHeaders;
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },

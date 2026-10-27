@@ -30,7 +30,9 @@ impl BlockchaincomCore {
     pub fn init(&mut self) {
         let described = BlockchaincomCore::describe(self);
         self.initialize_properties(described);
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self);
+        // compatibility for sandbox/testnet options in userConfig
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -568,12 +570,12 @@ impl BlockchaincomCore {
         //     }
         //
         let mut markets: Value = self.public_get_symbols(&[params]).await;
-        let mut marketIds: Value = object_keys(&markets);
-        let mut result: Value = Value::from(vec![]);
+        let mut marketIds: Value = Value::Array(markets.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
+        let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_432: bool = true;
-            while { if !__for_first_432 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_432 = false; i.as_f64().unwrap_or(f64::NAN) < ((marketIds.len() as i64) as f64) } {
+            let mut __for_first_451: bool = true;
+            while { if !__for_first_451 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_451 = false; i.as_f64().unwrap_or(f64::NAN) < ((marketIds.len() as i64) as f64) } {
             let mut marketId: Value = marketIds.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.safe_dict(markets.clone(), marketId.clone(), &[]);
             let mut baseId: Value = self.safe_string_k(market.clone(), "base_currency", &[]);
@@ -616,7 +618,7 @@ impl BlockchaincomCore {
                 let mut maxOrderSizeValueString: Value = crate::precise::Precise::stringMul(&maxOrderSizeRaw, &maxOrderSizeScalePrecisionString);
                 maxOrderSize = self.parse_number(maxOrderSizeValueString, &[]);
             }
-            append_to_array(&mut result, Value::Map({
+            result.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("info".to_string(), market);
                     m.insert("id".to_string(), marketId);
@@ -682,7 +684,7 @@ impl BlockchaincomCore {
             }));
         }
         }
-        return result;
+        return Value::from(result);
 
     Value::Null
 }
@@ -703,7 +705,7 @@ impl BlockchaincomCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        return self.fetch_l3_order_book(symbol, &[limit, params]).await;
+        return self.fetch_l2_order_book(symbol, &[limit, params]).await;
 
     Value::Null
 }
@@ -738,7 +740,7 @@ impl BlockchaincomCore {
         }
         let __ws_arg_0 = self.extend(request, &[params]);
         let mut response: Value = self.public_get_l3_symbol(&[__ws_arg_0]).await;
-        return self.parse_order_book(response, market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), &[Value::Null, Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("px".into()), Value::Str("qty".into())]);
+        return self.parse_order_book_l3(response, market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), &[Value::Null, Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("px".into()), Value::Str("qty".into()), Value::Str("num".into())]);
 
     Value::Null
 }
@@ -965,7 +967,7 @@ impl BlockchaincomCore {
         }
         let mut market: Value = self.market(symbol.clone());
         let mut orderType: Value = self.safe_string_k(params.clone(), "ordType", &[type_var]);
-        let mut uppercaseOrderType: Value = to_upper(&orderType);
+        let mut uppercaseOrderType: Value = orderType.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
         let mut clientOrderId: Value = self.safe_string2(params.clone(), Value::Str("clientOrderId".into()), Value::Str("clOrdId".into()), &[self.uuid16(&[])]);
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("ordType".into()), Value::Str("clientOrderId".into()), Value::Str("clOrdId".into())]), &[]);
         self.check_required_argument(Value::Str("createOrder".into()), side.clone(), Value::Str("side".into()), &[]);
@@ -973,7 +975,7 @@ impl BlockchaincomCore {
             let mut m = indexmap::IndexMap::new();
                 m.insert("ordType".to_string(), uppercaseOrderType.clone());
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
-                m.insert("side".to_string(), to_upper(&side));
+                m.insert("side".to_string(), side.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null));
                 m.insert("orderQty".to_string(), self.amount_to_precision(symbol.clone(), amount));
                 m.insert("clOrdId".to_string(), clientOrderId);
             m
@@ -1119,8 +1121,8 @@ impl BlockchaincomCore {
         let mut symbols: Value = self.symbols.clone();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_433: bool = true;
-            while { if !__for_first_433 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_433 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
+            let mut __for_first_452: bool = true;
+            while { if !__for_first_452 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_452 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
             let mut symbol: Value = symbols.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1368,7 +1370,7 @@ impl BlockchaincomCore {
         let mut tag: Value = Value::Null;
         let mut address: Value = Value::Null;
         if (rawAddress != Value::Null) {
-            let mut addressParts: Value = split(&rawAddress, &Value::Str(";".into()));
+            let mut addressParts: Value = Value::Array(rawAddress.as_str().map(|__s| __s.split(";").map(|__p| Value::Str(__p.to_string().into())).collect()).unwrap_or_default());
             // if a tag or memo is used it is separated by a colon in the 'address' value
             tag = self.safe_string(addressParts.clone(), Value::Int(0), &[]);
             address = self.safe_string(addressParts, Value::Int(1), &[]);
@@ -1488,13 +1490,12 @@ impl BlockchaincomCore {
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
- * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
     pub async fn withdraw(&mut self, mut code: Value, mut amount: Value, mut address: Value, optional_args: &[Value]) -> Value {
-        let mut tag = get_arg(optional_args, 0, Value::Null);
-        let mut params = get_arg(optional_args, 1, Value::Map({
+        let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
@@ -1711,8 +1712,8 @@ impl BlockchaincomCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_434: bool = true;
-            while { if !__for_first_434 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_434 = false; i.as_f64().unwrap_or(f64::NAN) < ((balances.len() as i64) as f64) } {
+            let mut __for_first_453: bool = true;
+            while { if !__for_first_453 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_453 = false; i.as_f64().unwrap_or(f64::NAN) < ((balances.len() as i64) as f64) } {
             let mut entry: Value = self.safe_dict(balances.clone(), i.clone(), &[]);
             let mut currencyId: Value = self.safe_string_k(entry.clone(), "currency", &[]);
             let mut code: Value = self.safe_currency_code(currencyId, &[]);
@@ -1761,45 +1762,46 @@ impl BlockchaincomCore {
 }
 
     pub fn sign(&self, mut path: Value, optional_args: &[Value]) -> Value {
-        let mut api = get_arg(optional_args, 0, Value::Str("public".into()));
+        let mut api = get_arg(optional_args, 0, Value::from(vec![Value::Str("public".into())]));
         let mut method = get_arg(optional_args, 1, Value::Str("GET".into()));
         let mut params = get_arg(optional_args, 2, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut headers = get_arg(optional_args, 3, Value::Null);
-        let mut body = get_arg(optional_args, 4, Value::Null);
+        let __api_empty = Vec::new();
+        let api = api.as_array().unwrap_or(&__api_empty);
         let mut requestPath: Value = Value::Str(format!("{}{}", Value::Str("/".into()), self.implode_params(path.clone(), params.clone())).into());
-        let mut apiUrl: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), api.clone(), &[]);
+        let mut apiName: Value = api.get(0).cloned().unwrap_or(Value::Null);
+        let mut apiUrl: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone(), &[]);
         if (apiUrl == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
         let mut url: Value = Value::Str(format!("{}{}", apiUrl, requestPath).into());
         let mut query: Value = self.omit(params, self.extract_params(path), &[]);
-        let mut isPrivate: bool = api.as_str() == Some("private");
+        let mut isPrivate: bool = apiName.as_str() == Some("private");
         let mut privateHeaders: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("X-API-Token".to_string(), self.secret.clone());
             m
         });
-        let mut requestHeaders: Value = headers;
+        let mut requestHeaders: Value = Value::Null;
         if isPrivate {
             requestHeaders = privateHeaders.clone();
         }
         let mut isPrivatePost: bool = isPrivate && (method.as_str() != Some("GET"));
-        let mut requestBody: Value = body;
+        let mut requestBody: Value = Value::Null;
         if isPrivatePost {
             requestBody = json_stringify(&query);
         }
-        if (api.as_str() == Some("public")) {
-            if ((object_keys(&query).len() as i64) as f64) > ((0i64) as f64) {
+        if (apiName.as_str() == Some("public")) {
+            if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
                 url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])).into())).into());
             }
         }  else if isPrivate {
             self.check_required_credentials(&[]);
             if (method.as_str() == Some("GET")) {
-                if ((object_keys(&query).len() as i64) as f64) > ((0i64) as f64) {
-                    url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])).into())).into());
+                if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
+                    url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(query, &[])).into())).into());
                 }
             }  else {
                 if let Value::Dict(__d) = &mut privateHeaders { std::sync::Arc::make_mut(__d).insert("Content-Type".into(), Value::Str("application/json".into())); }

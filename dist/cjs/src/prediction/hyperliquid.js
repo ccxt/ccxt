@@ -166,7 +166,8 @@ class hyperliquid extends hyperliquid$1["default"] {
      * @returns {int} the outcome side encoding
      */
     outcomeEncoding(outcomeId, side) {
-        return this.sum(10 * outcomeId, side);
+        const outcomeIdInt = this.parseToInt(outcomeId);
+        return this.sum(10 * outcomeIdInt, side);
     }
     /**
      * @ignore
@@ -619,12 +620,18 @@ class hyperliquid extends hyperliquid$1["default"] {
         const midStr = this.numberToString(midPx);
         const parts = midStr.split('.');
         const intPart = parts[0];
-        const significantDigits = Math.max(5, intPart.length);
-        const maxDecimals = 8 - szDecimals;
-        const pricePrecisionDecimals = Math.max(1, Math.min(maxDecimals, significantDigits - intPart.length));
+        const intPartLength = intPart.length;
+        const szDecimalsInt = this.parseToInt(szDecimals);
+        const maxDecimals = 8 - szDecimalsInt;
+        // significantDigits - intPartLength, with significantDigits = max (5, intPartLength)
+        let digitsLeft = 0;
+        if (intPartLength <= 5) {
+            digitsLeft = 5 - intPartLength;
+        }
+        const cappedDecimals = (maxDecimals < digitsLeft) ? maxDecimals : digitsLeft;
+        // appends max (1, cappedDecimals) - 1 zeros
         let zeros = '';
-        const zeroCount = pricePrecisionDecimals - 1;
-        for (let zi = 0; zi < zeroCount; zi++) {
+        for (let zi = 1; zi < cappedDecimals; zi++) {
             zeros = zeros + '0';
         }
         return this.parseToNumeric('0.' + zeros + '1');
@@ -861,11 +868,12 @@ class hyperliquid extends hyperliquid$1["default"] {
             const tf = this.parseTimeframe(timeframe);
             const candleCount = (limit !== undefined) ? limit : 100;
             const startOffset = tf * candleCount * -1000;
-            startTime = this.sum(until, startOffset);
+            const shiftedStart = this.sum(until, startOffset);
+            startTime = shiftedStart;
             if (startTime === undefined) {
                 throw new errors.ExchangeError(this.id + ' fetchOHLCV() missing startTime');
             }
-            if (startTime < 0) {
+            if (shiftedStart < 0) {
                 startTime = 0;
             }
         }
@@ -1246,7 +1254,7 @@ class hyperliquid extends hyperliquid$1["default"] {
         if (isMarket) {
             defaultTif = 'Ioc';
         }
-        if (postOnly === true) {
+        if (postOnly) {
             defaultTif = 'Alo';
         }
         let tif = this.capitalize(this.safeStringLower(params, 'timeInForce', defaultTif)); // eslint-disable-line
@@ -1950,7 +1958,7 @@ class hyperliquid extends hyperliquid$1["default"] {
             // push through a local and write the slice back — the go transpiler's
             // AppendToArray reassigns only a local copy of a map-stored array, so a
             // direct push on groupMap[parentSymbol] loses the element in go
-            const parentMarkets = this.safeValue(groupMap, parentSymbol);
+            const parentMarkets = this.safeList(groupMap, parentSymbol, []);
             parentMarkets.push(mkt);
             if (parentSymbol !== undefined) {
                 groupMap[parentSymbol] = parentMarkets;
@@ -2162,7 +2170,7 @@ class hyperliquid extends hyperliquid$1["default"] {
         const nonce = this.incrementingNonce();
         const isSandboxMode = this.safeBool(this.options, 'sandboxMode', false);
         const payload = {
-            'hyperliquidChain': (isSandboxMode === true) ? 'Testnet' : 'Mainnet',
+            'hyperliquidChain': (isSandboxMode) ? 'Testnet' : 'Mainnet',
             'maxFeeRate': maxFeeRate,
             'builder': builder,
             'nonce': nonce,
@@ -2190,7 +2198,7 @@ class hyperliquid extends hyperliquid$1["default"] {
         // async for the PHP and typed transpilers, which mishandle an async body that never suspends
         await this.loadMarkets();
         const buildFee = this.safeBool(this.options, 'builderFee', false);
-        if (buildFee !== true) {
+        if (!buildFee) {
             return undefined;
         }
         if (this.safeBool(this.options, 'approvedBuilderFee', false)) {
@@ -2230,11 +2238,11 @@ class hyperliquid extends hyperliquid$1["default"] {
         }
         return normalized.toLowerCase();
     }
-    sign(path, api = 'public', method = 'POST', params = {}, headers = undefined, body = undefined) {
-        const apiGroup = Array.isArray(api) ? api[0] : api;
+    sign(path, api = ['public'], method = 'POST', params = {}) {
+        const apiGroup = api[0];
         const sandboxMode = this.safeBool(this.options, 'sandboxMode', false);
         let baseUrl;
-        if (sandboxMode === true) {
+        if (sandboxMode) {
             const testUrls = this.safeDict(this.urls, 'test', {});
             baseUrl = this.safeString(testUrls, apiGroup, this.safeString(testUrls, 'public', ''));
         }
@@ -2243,8 +2251,8 @@ class hyperliquid extends hyperliquid$1["default"] {
             baseUrl = this.safeString(apiUrls, apiGroup, this.safeString(apiUrls, 'public', ''));
         }
         const url = baseUrl + '/' + path;
-        let headersValue = headers;
-        let bodyValue = body;
+        let headersValue = undefined;
+        let bodyValue = undefined;
         if (method === 'POST') {
             headersValue = { 'Content-Type': 'application/json' };
             bodyValue = this.json(params);

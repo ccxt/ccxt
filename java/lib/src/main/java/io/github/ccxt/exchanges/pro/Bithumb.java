@@ -327,7 +327,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         Map<String, Object> ticker = (Map<String, Object>) this.parseWsTicker(tickerMessage, (Map<String, Object>) null);
         String messageHash = ("ticker:" + symbol);
         Helpers.addElementToObject(this.tickers, symbol, ticker);
-        client.resolve(Helpers.GetValue(this.tickers, symbol), messageHash);
+        client.resolve((symbol == null || this.tickers == null ? null : ((Map<?, ?>)this.tickers).get(symbol)), messageHash);
     }
 
     public Ticker parseWsTicker(Object ticker, Map<String, Object> market)
@@ -400,10 +400,11 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         String time = this.safeString(ticker, "time", "");
         String kstDatetime = (((((((((((date == null ? null : ((String)date).substring(0, Math.min(4, ((String)date).length()))) + "-") + (date == null ? null : ((String)date).substring(Math.min(4, ((String)date).length()), Math.min(6, ((String)date).length())))) + "-") + (date == null ? null : ((String)date).substring(Math.min(6, ((String)date).length()), Math.min(8, ((String)date).length())))) + "T") + (time == null ? null : ((String)time).substring(0, Math.min(2, ((String)time).length())))) + ":") + (time == null ? null : ((String)time).substring(Math.min(2, ((String)time).length()), Math.min(4, ((String)time).length())))) + ":") + (time == null ? null : ((String)time).substring(Math.min(4, ((String)time).length()), Math.min(6, ((String)time).length()))));
         // date/time are the exchange's local KST wall-clock, not UTC — shift -9h like parseWsTrade
-        Object timestamp = this.parse8601(kstDatetime);
-        if (!java.util.Objects.equals(timestamp, null))
+        Object timestamp = null;
+        Long kstTimestamp = this.parse8601(kstDatetime);
+        if (!java.util.Objects.equals(kstTimestamp, null))
         {
-            timestamp = (Helpers.subtract(timestamp, 32400000));
+            timestamp = (kstTimestamp - 32400000L);
         }
         String marketId = this.safeString(ticker, "symbol");
         HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
@@ -421,8 +422,8 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         mapLiteral2.put("close", this.safeString(ticker, "closePrice"));
         mapLiteral2.put("last", null);
         mapLiteral2.put("previousClose", this.safeString(ticker, "prevClosePrice"));
-        mapLiteral2.put("change", this.safeString(ticker, "chgAmt"));
-        mapLiteral2.put("percentage", this.safeString(ticker, "chgRate"));
+        mapLiteral2.put("change", null);
+        mapLiteral2.put("percentage", null);
         mapLiteral2.put("average", null);
         mapLiteral2.put("baseVolume", this.safeString(ticker, "volume"));
         mapLiteral2.put("quoteVolume", this.safeString(ticker, "value"));
@@ -566,35 +567,14 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         {
             return;
         }
-        String streamType = this.safeString(message, "stream_type");
         Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "watchOrderBook", new HashMap<String, Object>() {{}});
         Long obLimit = this.safeInteger(options, "limit", 1000);
-        if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)) || (java.util.Objects.equals(streamType, "SNAPSHOT")))
+        if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
         {
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}, obLimit));
         }
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
-        orderbook.reset(new HashMap<String, Object>() {{}});
-        orderbook.put("symbol", symbol);
-        io.github.ccxt.ws.OrderBookSide bids = (io.github.ccxt.ws.OrderBookSide) (orderbook == null ? null : orderbook.get("bids"));
-        io.github.ccxt.ws.OrderBookSide asks = (io.github.ccxt.ws.OrderBookSide) (orderbook == null ? null : orderbook.get("asks"));
         List<Object> units = (List<Object>) this.safeList(message, "orderbook_units", new ArrayList<Object>(Arrays.asList()));
-        for (var i = 0; i < ((List<?>)units).size(); i++)
-        {
-            Map<String, Object> entry = (Map<String, Object>) this.safeDict(units, i, (Object) null);
-            Double bidPrice = this.safeNumber(entry, "bid_price", (Object) null);
-            Double bidSize = this.safeNumber(entry, "bid_size", (Object) null);
-            Double askPrice = this.safeNumber(entry, "ask_price", (Object) null);
-            Double askSize = this.safeNumber(entry, "ask_size", (Object) null);
-            if ((!java.util.Objects.equals(bidPrice, null)) && (!java.util.Objects.equals(bidSize, null)))
-            {
-                bids.store(bidPrice, bidSize);
-            }
-            if ((!java.util.Objects.equals(askPrice, null)) && (!java.util.Objects.equals(askSize, null)))
-            {
-                asks.store(askPrice, askSize);
-            }
-        }
         String gen2TimestampStr = this.safeString2(message, "timestamp", "datetime");
         Long timestamp = null;
         if (!java.util.Objects.equals(gen2TimestampStr, null))
@@ -605,8 +585,29 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         {
             timestamp = this.milliseconds();
         }
-        orderbook.put("timestamp", timestamp);
-        orderbook.put("datetime", this.iso8601(timestamp));
+        List<Object> bidsSnapshot = new ArrayList<Object>(Arrays.asList());
+        List<Object> asksSnapshot = new ArrayList<Object>(Arrays.asList());
+        for (var i = 0; i < ((List<?>)units).size(); i++)
+        {
+            Map<String, Object> entry = (Map<String, Object>) this.safeDict(units, i, (Object) null);
+            Double bidPrice = this.safeNumber(entry, "bid_price", (Object) null);
+            Double bidSize = this.safeNumber(entry, "bid_size", (Object) null);
+            Double askPrice = this.safeNumber(entry, "ask_price", (Object) null);
+            Double askSize = this.safeNumber(entry, "ask_size", (Object) null);
+            if ((!java.util.Objects.equals(bidPrice, null)) && (!java.util.Objects.equals(bidSize, null)))
+            {
+                ((List<Object>)bidsSnapshot).add(new ArrayList<Object>(Arrays.asList(bidPrice, bidSize)));
+            }
+            if ((!java.util.Objects.equals(askPrice, null)) && (!java.util.Objects.equals(askSize, null)))
+            {
+                ((List<Object>)asksSnapshot).add(new ArrayList<Object>(Arrays.asList(askPrice, askSize)));
+            }
+        }
+        Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(new HashMap<String, Object>() {{
+            put( "bids", bidsSnapshot );
+            put( "asks", asksSnapshot );
+        }}, symbol, timestamp, "bids", "asks", 0, 1, 2);
+        orderbook.reset(snapshot);
         String messageHash = (("orderbook" + ":") + symbol);
         client.resolve(orderbook, messageHash);
     }
@@ -635,7 +636,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
 
     public void handleBookDeltas(Object orderbook, Object deltas)
     {
-        for (var i = 0; i < Helpers.getArrayLength(deltas); i++)
+        for (var i = 0; i < (switch ((Object)(deltas)) { case null -> 0; case List<?> j39v1 -> j39v1.size(); case String j39v2 -> j39v2.length(); case Object j39v3 -> j39v3.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v3) : 0; }); i++)
         {
             this.handleBookDelta(orderbook, Helpers.GetValue(deltas, i));
         }
@@ -772,7 +773,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
                 var stored = new ArrayCache(((Number)limit).intValue());
                 Helpers.addElementToObject(this.trades, symbol, stored);
             }
-            io.github.ccxt.ws.ArrayCache trades = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(this.trades, symbol);
+            io.github.ccxt.ws.ArrayCache trades = (io.github.ccxt.ws.ArrayCache) (symbol == null || this.trades == null ? null : ((Map<?, ?>)this.trades).get(symbol));
             trades.append(parsed);
             String messageHash = (("trade" + ":") + symbol);
             client.resolve(trades, messageHash);
@@ -826,7 +827,12 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         String marketId = this.safeString(trade, "symbol");
         String datetime = this.safeString(trade, "contDtm");
         // that date is not UTC iso8601, but exchange's local time, -9hr difference
-        Object timestamp = Helpers.subtract(this.parseToInt(this.parse8601(datetime)), 32400000);
+        Object timestamp = null;
+        Long kstTimestamp = this.parse8601(datetime);
+        if (!java.util.Objects.equals(kstTimestamp, null))
+        {
+            timestamp = (kstTimestamp - 32400000L);
+        }
         String sideId = this.safeString(trade, "buySellGb");
         HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
         mapLiteral4.put("id", null);
@@ -919,7 +925,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             (this.authenticate(new HashMap<String, Object>() {{}})).join();
             String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "privateGen2");
             String messageHash = "myAsset";
-            Object request = this.buildGen2SubscriptionRequest(messageHash, new HashMap<String, Object>() {{
+            List<Object> request = (List<Object>) this.buildGen2SubscriptionRequest(messageHash, new HashMap<String, Object>() {{
                 put( "type", messageHash );
             }});
             Object balance = (this.watch(url, messageHash, request, messageHash, null)).join();
@@ -1067,7 +1073,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
             mapLiteral5.put("type", messageHash);
             mapLiteral5.put("codes", codes);
-            Object request = this.buildGen2SubscriptionRequest(messageHash, mapLiteral5);
+            List<Object> request = (List<Object>) this.buildGen2SubscriptionRequest(messageHash, mapLiteral5);
             String symbolResolved = null;
             if (!java.util.Objects.equals(symbol, null))
             {
@@ -1201,10 +1207,12 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         {
             Map<String, Object> marketForFee = this.safeMarket(marketId, market, (String) null, (String) null);
             String feeCurrency = this.safeString(marketForFee, "quote");
-            fee = Helpers.newMap(
-                "cost", feeCost,
-                "currency", feeCurrency
-            );
+            {
+                HashMap<String, Object> hx4NewMap0 = new HashMap<String, Object>();
+                hx4NewMap0.put("cost", feeCost);
+                hx4NewMap0.put("currency", feeCurrency);
+                fee = hx4NewMap0;
+            }
         }
         HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
         mapLiteral6.put("info", order);
@@ -1255,12 +1263,12 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             this.handlePong(client, message);
             return;
         }
-        if ((Helpers.inOp(message, "pong")) || (Helpers.inOp(message, "PINGPONG")))
+        if (((switch ((Object)(message)) { case List<?> j39v9 -> j39v9.contains("pong"); case Map<?, ?> j39v8 -> j39v8.containsKey("pong"); case null, default -> false; })) || ((switch ((Object)(message)) { case List<?> j39v7 -> j39v7.contains("PINGPONG"); case Map<?, ?> j39v6 -> j39v6.containsKey("PINGPONG"); case null, default -> false; })))
         {
             this.handlePong(client, message);
             return;
         }
-        if (Helpers.inOp(message, "ping"))
+        if ((switch ((Object)(message)) { case List<?> j39v5 -> j39v5.contains("ping"); case Map<?, ?> j39v4 -> j39v4.containsKey("ping"); case null, default -> false; }))
         {
             this.handlePing(client, message);
             return;

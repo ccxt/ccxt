@@ -885,7 +885,7 @@ public partial class dydx : Exchange
             request["fromIso"] = this.iso8601(since);
         }
         Int64? until = this.safeInteger(parameters, "until");
-        object paramsOmitted = this.omit(parameters, "until");
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "until"));
         if ((until != null))
         {
             request["toIso"] = this.iso8601(until);
@@ -997,7 +997,7 @@ public partial class dydx : Exchange
         {
             return new List<object>() {user, paramsAddress};
         }
-        if (((this.walletAddress != null)) && (!isEqual(this.walletAddress, "")))
+        if (((this.walletAddress != null)) && (!(this.walletAddress == "")))
         {
             return new List<object>() {this.walletAddress, paramsAddress};
         }
@@ -1368,9 +1368,9 @@ public partial class dydx : Exchange
         return ccxt.BaseExchange.ToPositionList(this.parsePositions(rows, symbols));
     }
 
-    public virtual object hashMessage(object message)
+    public virtual string? hashMessage(object message)
     {
-        return this.hash(message, keccak, "hex");
+        return ((string?)((object)(this.hash(message, keccak, "hex"))));
     }
 
     public virtual Dictionary<string, object> signHash(object hash, object privateKey)
@@ -1407,7 +1407,7 @@ public partial class dydx : Exchange
 }} },
         };
         byte[] msg = this.ethEncodeStructuredData(domain, messageTypes, message);
-        if ((this.privateKey == null) || isEqual(this.privateKey, ""))
+        if ((this.privateKey == null) || (this.privateKey == ""))
         {
             throw new ArgumentsRequired ((this.id + " signOnboardingAction() requires a privateKey to be set.")) ;
         }
@@ -1431,15 +1431,15 @@ public partial class dydx : Exchange
         {
             return credentials;
         }
-        object privateKey = this.safeString(this.options, "privateKey");
+        string? privateKey = this.safeString(this.options, "privateKey");
         if ((privateKey == null))
         {
             Dictionary<string, object> signature = this.signOnboardingAction();
             privateKey = this.hashMessage(this.base16ToBinary(add((signature != null && signature.ContainsKey("r") ? signature["r"] : null), (signature != null && signature.ContainsKey("s") ? signature["s"] : null))));
         }
         credentials = this.retrieveDydxCredentials(privateKey);
-        credentials["privateKey"] = this.binaryToBase16(GetValue(credentials, "privateKey"));
-        credentials["publicKey"] = this.binaryToBase16(GetValue(credentials, "publicKey"));
+        credentials["privateKey"] = this.binaryToBase16((credentials != null && credentials.ContainsKey("privateKey") ? credentials["privateKey"] : null));
+        credentials["publicKey"] = this.binaryToBase16((credentials != null && credentials.ContainsKey("publicKey") ? credentials["publicKey"] : null));
         this.options["dydxCredentials"] = credentials;
         return credentials;
     }
@@ -1451,7 +1451,7 @@ public partial class dydx : Exchange
         IDictionary<string, object> dydxAccount = this.safeDict(this.options, "dydxAccount");
         if ((dydxAccount != null))
         {
-            return ccxt.BaseExchange.ToDict(dydxAccount);
+            return ccxt.BaseExchange.ToDict(this.safeDict(this.options, "dydxAccount", new Dictionary<string, object>() {}));
         }
         if ((this.walletAddress == null))
         {
@@ -1483,10 +1483,10 @@ public partial class dydx : Exchange
             { "key", getValue((account != null && account.ContainsKey("pub_key") ? account["pub_key"] : null), "key") },
         };
         this.options["dydxAccount"] = account;
-        return ccxt.BaseExchange.ToDict(account);
+        return ccxt.BaseExchange.ToDict(this.safeDict(this.options, "dydxAccount", new Dictionary<string, object>() {}));
     }
 
-    public virtual string? pow(object n, object m)
+    public virtual string? pow(string? n, object m)
     {
         string? r = Precise.stringMul(n, "1");
         Int64? c = this.parseToInt(m);
@@ -1522,8 +1522,8 @@ public partial class dydx : Exchange
         Int64? subaccountIdOption = subaccountIdOptionparamsSubAccountIdVariable.Item1;
         IDictionary<string, object> paramsSubAccountId = ((IDictionary<string, object>)subaccountIdOptionparamsSubAccountIdVariable.Item2);
         string? triggerPrice = this.safeString2(paramsSubAccountId, "triggerPrice", "stopPrice");
-        object stopLossPrice = this.safeValue(paramsSubAccountId, "stopLossPrice", triggerPrice);
-        object takeProfitPrice = this.safeValue(paramsSubAccountId, "takeProfitPrice");
+        string? stopLossPrice = this.safeString(paramsSubAccountId, "stopLossPrice", triggerPrice);
+        string? takeProfitPrice = this.safeString(paramsSubAccountId, "takeProfitPrice");
         bool isConditional = (triggerPrice != null) || (stopLossPrice != null) || (takeProfitPrice != null);
         bool isMarket = orderType == "MARKET";
         string? timeInForce = this.safeStringUpper(paramsSubAccountId, "timeInForce", "GTT");
@@ -1620,7 +1620,7 @@ public partial class dydx : Exchange
             {
                 throw new ArgumentsRequired ("goodTillBlockTimeInSeconds is required.") ;
             }
-            goodTillBlockTime = add(this.seconds(), goodTillBlockTimeInSecondsOption);
+            goodTillBlockTime = (this.seconds() + goodTillBlockTimeInSecondsOption);
         }
         int sideNumber = (orderSide == "BUY") ? 1 : 2;
         int defaultClientOrderId = this.randNumber(9); // 2**32 - 1 is 10 digits, but it may overflow with 10
@@ -1673,7 +1673,7 @@ public partial class dydx : Exchange
         return ((string?)((object)(this.uuid5(nameSp, orderInfo))));
     }
 
-    public async virtual Task<Int64> FetchLatestBlockHeight(object parameters = null)
+    public async virtual Task<Int64> FetchLatestBlockHeight(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> response = await this.nodeRpcGetAbciInfo(parameters);
@@ -1784,8 +1784,8 @@ public partial class dydx : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         bool? isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
-        object paramsOmitted = this.omit(parameters, new List<object>() {"trigger", "stop"});
-        if (((isTrigger != true)) && ((symbol == null)))
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"trigger", "stop"}));
+        if ((isTrigger != true) && ((symbol == null)))
         {
             throw new ArgumentsRequired ((this.id + " cancelOrder() requires a symbol argument")) ;
         }
@@ -1804,13 +1804,14 @@ public partial class dydx : Exchange
         {
             throw new NotSupported ((this.id + " cancelOrder() cancelling using id is not currently supported, please use provide the clientOrderId parameter.")) ;
         }
-        Int64? goodTillBlock = this.safeInteger(paramsOmitted, "goodTillBlock");
+        Int64? goodTillBlockOption = this.safeInteger(paramsOmitted, "goodTillBlock");
+        Int64? goodTillBlock = goodTillBlockOption;
         int goodTillBlockTimeInSeconds = 2592000;
         (Int64?, object) goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable = this.handleOptionIntegerAndParams(paramsOmitted, "cancelOrder", "goodTillBlockTimeInSeconds", goodTillBlockTimeInSeconds);
         Int64? goodTillBlockTimeInSecondsOption = goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable.Item1;
         IDictionary<string, object> paramsGoodTillBlockTimeInSeconds = ((IDictionary<string, object>)goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable.Item2); // default is 30 days
         object goodTillBlockTime = null;
-        int defaultOrderFlags = ((isTrigger == true)) ? 32 : 64;
+        int defaultOrderFlags = isTrigger == true ? 32 : 64;
         Int64? orderFlags = this.safeInteger(paramsGoodTillBlockTimeInSeconds, "orderFlags", defaultOrderFlags);
         int subAccountId = 0;
         Int64? subAccountIdOption = this.handleOptionIntegerAndParams(paramsGoodTillBlockTimeInSeconds, "cancelOrder", "subAccountId", subAccountId).Item1;
@@ -1824,11 +1825,11 @@ public partial class dydx : Exchange
             {
                 throw new ArgumentsRequired ((this.id + " goodTillBlockTimeInSeconds is required in params for long term or conditional order.")) ;
             }
-            if ((goodTillBlock != null) && (goodTillBlock > 0))
+            if ((goodTillBlockOption != null) && (goodTillBlockOption > 0))
             {
                 throw new InvalidOrder ((this.id + " goodTillBlock should be 0 for long term or conditional order.")) ;
             }
-            goodTillBlockTime = add(this.seconds(), goodTillBlockTimeInSecondsOption);
+            goodTillBlockTime = (this.seconds() + goodTillBlockTimeInSecondsOption);
         } else
         {
             if ((goodTillBlock == null))
@@ -2399,13 +2400,16 @@ public partial class dydx : Exchange
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, string tag = null, object parameters = null)
+    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        IList<object> tagparamsWithdrawTagVariable = (IList<object>)this.handleParamString(parameters, "tag");
+        string? tag = (string)tagparamsWithdrawTagVariable[0];
+        IDictionary<string, object> paramsWithdrawTag = ((IDictionary<string, object>)tagparamsWithdrawTagVariable[1]);
         if ((code != "USDC"))
         {
             throw new NotSupported ((this.id + " withdraw() only support USDC")) ;
@@ -2415,7 +2419,7 @@ public partial class dydx : Exchange
             await this.loadMarkets();
         }
         this.checkAddress(address);
-        Int64? subaccountId = this.safeInteger(parameters, "subaccountId");
+        Int64? subaccountId = this.safeInteger(paramsWithdrawTag, "subaccountId");
         if ((subaccountId == null))
         {
             throw new ArgumentsRequired ((this.id + " withdraw requires subaccountId.")) ;
@@ -2554,11 +2558,11 @@ public partial class dydx : Exchange
         return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(rows, currency, since, limit));
     }
 
-    public async virtual Task<List<Dictionary<string, object>>> FetchTransactionsHelper(string? code = null, object since = null, object limit = null, object parameters = null)
+    public async virtual Task<List<Dictionary<string, object>>> FetchTransactionsHelper(string? code = null, object since = null, object limit = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? methodName = this.safeString(parameters, "methodName");
-        object paramsOmitted = this.omit(parameters, "methodName");
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "methodName"));
         IList<object> userAddressparamsPublicAddressVariable = (IList<object>)this.handlePublicAddress(methodName, paramsOmitted);
         var userAddress = userAddressparamsPublicAddressVariable[0];
         var paramsPublicAddress = userAddressparamsPublicAddressVariable[1];
@@ -2593,7 +2597,8 @@ public partial class dydx : Exchange
         //     ]
         // }
         //
-        return ccxt.BaseExchange.ToDictList(this.safeList(response, "transfers", new List<object>() {}));
+        List<object> transfers = this.safeList(response, "transfers", new List<object>() {});
+        return ccxt.BaseExchange.ToDictList(transfers);
     }
 
     /**
@@ -2789,7 +2794,7 @@ public partial class dydx : Exchange
 
     public virtual string? getWalletAddress()
     {
-        if ((this.walletAddress != null) && !isEqual(this.walletAddress, ""))
+        if ((this.walletAddress != null) && !(this.walletAddress == ""))
         {
             return this.walletAddress;
         }
@@ -2806,15 +2811,15 @@ public partial class dydx : Exchange
         throw new ArgumentsRequired ((this.id + " getWalletAddress() requires a wallet address. Set `walletAddress` or `dydxAccount` in exchange options.")) ;
     }
 
-    public override Dictionary<string, object> sign(string path, object section = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object section = null, string method = null, object parameters = null)
     {
-        section ??= "public";
+        section ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> requestHeaders = null;
         string? requestBody = null;
         string? pathWithParams = this.implodeParams(path, parameters);
-        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), section);
+        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), getValue(section, 0));
         if ((apiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
@@ -2836,8 +2841,8 @@ public partial class dydx : Exchange
                 { "Content-type", "application/json" },
             };
         }
-        object headersResult = ((requestHeaders != null)) ? requestHeaders : headers;
-        object bodyResult = ((requestBody != null)) ? requestBody : body;
+        Dictionary<string, object> headersResult = requestHeaders;
+        string? bodyResult = requestBody;
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
@@ -2867,8 +2872,8 @@ public partial class dydx : Exchange
         }
         if (((errorCode != null)) && (errorCode != ""))
         {
-            object errorCodeNum = this.parseToNumeric(errorCode);
-            if (isGreaterThan(errorCodeNum, 0))
+            Int64? errorCodeNum = this.parseToInt(errorCode);
+            if ((errorCodeNum > 0))
             {
                 string feedback = ((this.id + " ") + this.json(response));
                 this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorCode, feedback);

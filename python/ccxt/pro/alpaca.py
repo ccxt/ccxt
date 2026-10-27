@@ -258,7 +258,7 @@ class alpaca(ccxt.async_support.alpaca):
         if not (symbol in self.orderbooks):
             self.orderbooks[symbol] = self.order_book()
         orderbook = self.orderbooks[symbol]
-        if isSnapshot is True:
+        if isSnapshot:
             snapshot = self.parse_order_book(message, symbol, timestamp, 'b', 'a', 'p', 's')
             orderbook.reset(snapshot)
         else:
@@ -276,7 +276,7 @@ class alpaca(ccxt.async_support.alpaca):
         bidAsk = self.parse_order_book_bid_ask(delta, 'p', 's')
         bookside.storeArray(bidAsk)
 
-    def handle_deltas(self, bookside: object, deltas: object):
+    def handle_deltas(self, bookside: object, deltas: list[object]):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i])
 

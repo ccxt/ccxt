@@ -19,7 +19,10 @@ func testFetchOpenInterestHistoryBody(ch chan ccxt.AsyncResult[any], exchange cc
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	openInterestHistory := r.Value
+	var openInterestHistory any = nil
+	if r.Value != nil {
+		openInterestHistory = ccxt.OpenInterestsToList(r.Value)
+	}
 	AssertNonEmtpyArray(exchange, skippedProperties, method, openInterestHistory, symbol)
 	for i := 0; i < GetArrayLength(openInterestHistory); i++ {
 		TestOpenInterest(exchange, skippedProperties, method, GetValue(openInterestHistory, i))

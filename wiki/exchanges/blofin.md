@@ -18,6 +18,7 @@
 * [createOrder](#createorder)
 * [cancelOrder](#cancelorder)
 * [createOrders](#createorders)
+* [fetchOrder](#fetchorder)
 * [fetchOpenOrders](#fetchopenorders)
 * [fetchMyTrades](#fetchmytrades)
 * [fetchDeposits](#fetchdeposits)
@@ -379,6 +380,34 @@ blofin.createOrders (orders, params?)
 ```
 
 
+<a name="fetchOrder" id="fetchorder"></a>
+
+### fetchOrder{docsify-ignore}
+fetches information on an order made by the user
+
+**Kind**: instance method of [<code>blofin</code>](#blofin)  
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
+
+**See**
+
+- https://docs.blofin.com/index.html#get-order-detail
+- https://docs.blofin.com/index.html#get-tpsl-order-detail
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| id | <code>string</code> | Yes | order id |
+| symbol | <code>string</code> | Yes | unified symbol of the market the order was made in |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.clientOrderId | <code>string</code> | No | client order id, used instead of the id argument |
+| params.tpsl | <code>boolean</code> | No | True if fetching a tpsl order |
+
+
+```javascript
+blofin.fetchOrder (id, symbol, params?)
+```
+
+
 <a name="fetchOpenOrders" id="fetchopenorders"></a>
 
 ### fetchOpenOrders{docsify-ignore}
@@ -610,8 +639,8 @@ make a withdrawal
 | code | <code>string</code> | Yes | unified currency code |
 | amount | <code>float</code> | Yes | the amount to withdraw, the withdrawal fee is not included and must be reserved on top |
 | address | <code>string</code> | Yes | the address to withdraw to, or a UID / email / phone number for an internal transfer |
-| tag | <code>string</code> | Yes | additional identifier (memo / payment id) required by certain networks |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.tag | <code>string</code> | No | memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies'] |
 | params.network | <code>string</code> | No | the unified network code for on-chain withdrawals, mapped to the exchange's chain name |
 | params.dest | <code>string</code> | No | 'onchain' (default) or 'internal' for an internal transfer |
 | params.addrType | <code>string</code> | No | address type, 1: wallet address, 2: UID, 3: email, 4: mobile phone |
@@ -620,7 +649,7 @@ make a withdrawal
 
 
 ```javascript
-blofin.withdraw (code, amount, address, tag, params?)
+blofin.withdraw (code, amount, address, params?)
 ```
 
 

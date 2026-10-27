@@ -168,6 +168,7 @@ retrieves data on all markets for bitget
 | --- | --- | --- | --- |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta), defaults to false |
+| params.stock | <code>boolean</code> | No | set to true if you would like to fetch tokenized stock markets |
 
 
 ```javascript
@@ -299,14 +300,14 @@ make a withdrawal
 | code | <code>string</code> | Yes | unified currency code |
 | amount | <code>float</code> | Yes | the amount to withdraw |
 | address | <code>string</code> | Yes | the address to withdraw to |
-| tag | <code>string</code> | Yes |  |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.tag | <code>string</code> | No | memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies'] |
 | params.chain | <code>string</code> | No | the blockchain network the withdrawal is taking place on |
 | params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta), defaults to false |
 
 
 ```javascript
-bitget.withdraw (code, amount, address, tag, params?)
+bitget.withdraw (code, amount, address, params?)
 ```
 
 
@@ -403,6 +404,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 - https://www.bitget.com/api-doc/spot/market/Get-Orderbook
 - https://www.bitget.com/api-doc/contract/market/Get-Merge-Depth
 - https://www.bitget.com/api-doc/uta/public/OrderBook
+- https://www.bitget.com/api-doc/uta/reality/market/Reality-OrderBook
 
 
 | Param | Type | Required | Description |
@@ -411,6 +413,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 | limit | <code>int</code> | No | the maximum amount of order book entries to return |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta), defaults to false |
+| params.stock | <code>boolean</code> | No | set to true if you would like to fetch tokenized stock order books |
 
 
 ```javascript
@@ -438,6 +441,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 | symbol | <code>string</code> | Yes | unified symbol of the market to fetch the ticker for |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta), defaults to false |
+| params.stock | <code>boolean</code> | No | set to true if you would like to fetch tokenized stock tickers |
 
 
 ```javascript
@@ -486,6 +490,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 | symbols | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta), defaults to false |
+| params.stock | <code>boolean</code> | No | set to true if you would like to fetch tokenized stock tickers |
 | params.subType | <code>string</code> | No | *contract only* 'linear', 'inverse' |
 | params.productType | <code>string</code> | No | *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES' |
 
@@ -510,6 +515,7 @@ get the list of most recent trades for a particular symbol
 - https://www.bitget.com/api-doc/contract/market/Get-Recent-Fills
 - https://www.bitget.com/api-doc/contract/market/Get-Fills-History
 - https://www.bitget.com/api-doc/uta/public/Fills
+- https://www.bitget.com/api-doc/uta/reality/market/Reality-Fills
 
 
 | Param | Type | Required | Description |
@@ -519,6 +525,7 @@ get the list of most recent trades for a particular symbol
 | limit | <code>int</code> | No | the maximum amount of trades to fetch |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta), defaults to false |
+| params.stock | <code>boolean</code> | No | set to true if you would like to fetch tokenized stock trades |
 | params.until | <code>int</code> | No | *only applies to publicSpotGetV2SpotMarketFillsHistory and publicMixGetV2MixMarketFillsHistory* the latest time in ms to fetch trades for |
 | params.paginate | <code>boolean</code> | No | *only applies to publicSpotGetV2SpotMarketFillsHistory and publicMixGetV2MixMarketFillsHistory* default false, when true will automatically paginate by calling this endpoint multiple times |
 
@@ -600,7 +607,8 @@ fetches historical candlestick data containing the open, high, low, and close pr
 - https://www.bitget.com/api-doc/contract/market/Get-History-Candle-Data
 - https://www.bitget.com/api-doc/contract/market/Get-History-Index-Candle-Data
 - https://www.bitget.com/api-doc/contract/market/Get-History-Mark-Candle-Data
-- https://www.bitget.com/api-doc/uta/public/Get-Candle-Data
+- https://www.bitget.com/docs/catalog/market/market-data#get-kline-candlestick
+- https://www.bitget.com/docs/catalog/market/market-data#get-kline-candlestick-history
 
 
 | Param | Type | Required | Description |
@@ -611,8 +619,9 @@ fetches historical candlestick data containing the open, high, low, and close pr
 | limit | <code>int</code> | No | the maximum amount of candles to fetch |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta), defaults to false |
+| params.stock | <code>boolean</code> | No | set to true if you would like to fetch tokenized stock candlesticks |
 | params.until | <code>int</code> | No | timestamp in ms of the latest candle to fetch |
-| params.useHistoryEndpoint | <code>boolean</code> | No | whether to force to use historical endpoint (it has max limit of 200) |
+| params.useHistoryEndpoint | <code>boolean</code> | No | whether to force to use historical endpoint (it has max limit of 200, 100 for uta) |
 | params.useHistoryEndpointForPagination | <code>boolean</code> | No | whether to force to use historical endpoint for pagination (default true) |
 | params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
 | params.price | <code>string</code> | No | *swap only* "mark" (to fetch mark price candles) or "index" (to fetch index price candles) |
@@ -633,14 +642,12 @@ query for balance and get the amount of funds available for trading or funds loc
 
 **See**
 
-- https://www.bitget.com/api-doc/spot/account/Get-Account-Assets
-- https://www.bitget.com/api-doc/contract/account/Get-Account-List
-- https://www.bitget.com/api-doc/margin/cross/account/Get-Cross-Assets
-- https://www.bitget.com/api-doc/margin/isolated/account/Get-Isolated-Assets
-- https://bitgetlimited.github.io/apidoc/en/margin/#get-cross-assets
-- https://bitgetlimited.github.io/apidoc/en/margin/#get-isolated-assets
-- https://www.bitget.com/api-doc/uta/account/Get-Account
-- https://www.bitget.com/api-doc/uta/account/Get-Account-Funding-Assets
+- https://www.bitget.com/docs/catalog/classic-spot-account/classic-spot-account#get-account-assets
+- https://www.bitget.com/docs/catalog/classic-contract-account/classic-contract-account#get-account-list
+- https://www.bitget.com/docs/catalog/classic-margin-cross-account/classic-margin-cross-account#get-cross-account-assets
+- https://www.bitget.com/docs/catalog/classic-margin-isolated-account/classic-margin-isolated-account#get-isolated-account-asset
+- https://www.bitget.com/docs/catalog/account/assets-balance#get-account-assets
+- https://www.bitget.com/docs/catalog/account/assets-balance#get-account-funding-assets
 
 
 | Param | Type | Required | Description |
@@ -649,6 +656,7 @@ query for balance and get the amount of funds available for trading or funds loc
 | params.productType | <code>string</code> | No | *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES' |
 | params.uta | <code>string</code> | No | set to true for the unified trading account (uta), defaults to false |
 | params.type | <code>string</code> | No | 'funding' to fetch the uta funding-account assets (uta only, classic accounts route funding through 'spot') |
+| params.stock | <code>boolean</code> | No | set to true if you would like to fetch tokenized stock account balances |
 
 
 ```javascript
@@ -702,6 +710,7 @@ create a trade order
 - https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Place-Order
 - https://www.bitget.com/api-doc/uta/trade/Place-Order
 - https://www.bitget.com/api-doc/uta/strategy/Place-Strategy-Order
+- https://www.bitget.com/api-doc/uta/reality/trade/Place-Reality-Order
 
 
 | Param | Type | Required | Description |
@@ -735,6 +744,7 @@ create a trade order
 | params.hedged | <code>bool</code> | No | *swap and future only* true for hedged mode, false for one way mode, default is false |
 | params.reduceOnly | <code>bool</code> | No | true or false whether the order is reduce-only |
 | params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta), defaults to false |
+| params.stock | <code>boolean</code> | No | set to true if you would like to place tokenized stock orders |
 | params.posSide | <code>string</code> | No | *uta only* hedged two-way position side, long or short |
 
 
@@ -840,6 +850,7 @@ cancels an open order
 - https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Cancel-Order
 - https://www.bitget.com/api-doc/uta/trade/Cancel-Order
 - https://www.bitget.com/api-doc/uta/strategy/Cancel-Strategy-Order
+- https://www.bitget.com/api-doc/uta/reality/trade/Cancel-Reality-Order
 
 
 | Param | Type | Required | Description |
@@ -852,6 +863,7 @@ cancels an open order
 | params.planType | <code>string</code> | No | *swap only* either profit_plan, loss_plan, normal_plan, pos_profit, pos_loss, moving_plan or track_plan |
 | params.trailing | <code>boolean</code> | No | set to true if you want to cancel a trailing order |
 | params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta), defaults to false |
+| params.stock | <code>boolean</code> | No | set to true if you would like to cancel tokenized stock orders |
 | params.clientOrderId | <code>string</code> | No | the clientOrderId of the order, id does not need to be provided if clientOrderId is provided |
 
 
@@ -1299,12 +1311,17 @@ fetch the current funding rates for all markets
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
 **Returns**: <code>object</code> - a dictionary of [funding rate structures](https://docs.ccxt.com/?id=funding-rates-structure), indexed by market symbols
 
-**See**: https://www.bitget.com/api-doc/contract/market/Get-All-Symbol-Ticker  
+**See**
+
+- https://www.bitget.com/api-doc/contract/market/Get-All-Symbol-Ticker
+- https://www.bitget.com/docs/catalog/market/derivatives#get-current-funding-rate
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | symbols | <code>Array&lt;string&gt;</code> | No | list of unified market symbols |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta), defaults to false |
 | params.subType | <code>string</code> | No | *contract only* 'linear', 'inverse' |
 | params.productType | <code>string</code> | No | *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES' |
 | params.method | <code>string</code> | No | either (default) 'publicMixGetV2MixMarketTickers' or 'publicMixGetV2MixMarketCurrentFundRate' |
@@ -1323,12 +1340,17 @@ fetch the funding rate interval for multiple markets
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-structure)
 
-**See**: https://www.bitget.com/api-doc/contract/market/Get-All-Symbol-Ticker  
+**See**
+
+- https://www.bitget.com/api-doc/contract/market/Get-All-Symbol-Ticker
+- https://www.bitget.com/docs/catalog/market/derivatives#get-current-funding-rate
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | symbols | <code>Array&lt;string&gt;</code> | No | list of unified market symbols |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta), defaults to false |
 | params.productType | <code>string</code> | No | 'USDT-FUTURES' (default), 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES' |
 
 
@@ -2195,6 +2217,7 @@ watches historical candlestick data containing the open, high, low, close price,
 | limit | <code>int</code> | No | the maximum amount of candles to fetch |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta), defaults to false |
+| params.stock | <code>boolean</code> | No | set to true for tokenized stock symbols, defaults to market['stock'] |
 
 
 ```javascript
@@ -2223,6 +2246,7 @@ unsubscribe from the ohlcv channel
 | timeframe | <code>string</code> | No | the period for the ratio, default is 1 minute |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta), defaults to false |
+| params.stock | <code>boolean</code> | No | set to true for tokenized stock symbols, defaults to market['stock'] |
 
 
 ```javascript
@@ -2251,6 +2275,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 | limit | <code>int</code> | No | the maximum amount of order book entries to return |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta), defaults to false |
+| params.stock | <code>boolean</code> | No | set to true for tokenized stock symbols, defaults to market['stock'] |
 
 
 ```javascript
@@ -2279,6 +2304,7 @@ unsubscribe from the orderbook channel
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.limit | <code>int</code> | No | orderbook limit, default is undefined |
 | params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta), defaults to false |
+| params.stock | <code>boolean</code> | No | set to true for tokenized stock symbols, defaults to market['stock'] |
 
 
 ```javascript
@@ -2307,6 +2333,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 | limit | <code>int</code> | No | the maximum amount of order book entries to return |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta), defaults to false |
+| params.stock | <code>boolean</code> | No | set to true for tokenized stock symbols, defaults to market['stock'] |
 
 
 ```javascript
@@ -2517,6 +2544,7 @@ watch balance and get the amount of funds available for trading or funds locked 
 | params.instType | <code>string</code> | No | one of 'SPOT', 'MARGIN', 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES' |
 | params.marginMode | <code>string</code> | No | 'isolated' or 'cross' for watching spot margin balances |
 | params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta), defaults to false |
+| params.stock | <code>boolean</code> | No | set to true for tokenized stock balances, defaults to false |
 
 
 ```javascript

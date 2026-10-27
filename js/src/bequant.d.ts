@@ -1,4 +1,4 @@
-import hitbtc from './hitbtc.js';
+import hitbtc from './abstract/bequant.js';
 export default class bequant extends hitbtc {
     describe(): any;
 }

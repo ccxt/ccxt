@@ -838,10 +838,11 @@ class bitso(Exchange, ImplicitAPI):
             if limit is not None:
                 duration = self.parse_timeframe(timeframe)
                 request['end'] = self.sum(since, duration * limit * 1000)
-        elif limit is not None:
-            now = self.milliseconds()
-            request['end'] = now
-            request['start'] = now - self.parse_timeframe(timeframe) * 1000 * limit
+        else:
+            if limit is not None:
+                now = self.milliseconds()
+                request['end'] = now
+                request['start'] = now - self.parse_timeframe(timeframe) * 1000 * limit
         response = self.publicGetOhlc(self.extend(request, params))
         #
         #     {
@@ -1242,7 +1243,7 @@ class bitso(Exchange, ImplicitAPI):
             canceledOrders.append(order)
         return canceledOrders
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         statuses = {
             'partial-fill': 'open',  # this is a common substitution in ccxt
             'partially filled': 'open',
@@ -1331,8 +1332,7 @@ class bitso(Exchange, ImplicitAPI):
         }
         response = self.privateGetOpenOrders(self.extend(request, paramsMarker))
         payload = self.safe_list(response, 'payload', [])
-        orders = self.parse_orders(payload, market, since, limit)
-        return orders
+        return self.parse_orders(payload, market, since, limit)
 
     def fetch_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
@@ -1582,7 +1582,7 @@ class bitso(Exchange, ImplicitAPI):
                 continue
             if code is not None:
                 result[code] = {
-                    'deposit': self.safe_value(self.safe_dict(result, code), 'deposit'),
+                    'deposit': self.safe_number(self.safe_dict(result, code), 'deposit'),
                     'withdraw': self.safe_number(withdrawalFees, currencyId),
                     'info': {
                         'deposit': self.safe_value(self.safe_dict(self.safe_dict(result, code), 'info'), 'deposit'),
@@ -1725,18 +1725,18 @@ class bitso(Exchange, ImplicitAPI):
                 result[code]['info'][code] = withdrawFee
         return result
 
-    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:
         """
         make a withdrawal
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
-        :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.tag]: memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        tagWithdrawTag, paramsWithdrawTag = self.handle_withdraw_tag_and_params(tag, params)
-        self.check_address(address)
+        tagWithdrawTag, paramsWithdrawTag = self.handle_param_string(params, 'tag')
+        self.check_address(address, code, tagWithdrawTag)
         if self.markets is None:
             self.load_markets()
         methods = {
@@ -1851,7 +1851,7 @@ class bitso(Exchange, ImplicitAPI):
             'info': transaction,
         }
 
-    def parse_transaction_status(self, status: Str):
+    def parse_transaction_status(self, status: Str) -> Str:
         statuses = {
             'pending': 'pending',
             'in_progress': 'pending',
@@ -1863,9 +1863,9 @@ class bitso(Exchange, ImplicitAPI):
     def nonce(self) -> float:
         return self.milliseconds()
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
-        requestHeaders = headers
-        requestBody = body
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
+        requestHeaders = None
+        requestBody = None
         endpoint = '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if method == 'GET' or method == 'DELETE':
@@ -1875,7 +1875,7 @@ class bitso(Exchange, ImplicitAPI):
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         url = apiUrl + endpoint
-        if api == 'private':
+        if api[0] == 'private':
             self.check_required_credentials()
             # bitso rejects a nonce that is not higher than the previous one (error 104)
             nonce = str(self.incrementing_nonce())
@@ -1884,8 +1884,9 @@ class bitso(Exchange, ImplicitAPI):
             request = ''.join(content)
             if method != 'GET' and method != 'DELETE':
                 if len(query) > 0:
-                    requestBody = self.json(query)
-                    request += requestBody
+                    jsonBody = self.json(query)
+                    requestBody = jsonBody
+                    request += jsonBody
             signature = self.hmac(self.encode(request), self.encode(self.secret), hashlib.sha256)
             auth = self.apiKey + ':' + nonce + ':' + signature
             requestHeaders = {
@@ -1907,7 +1908,7 @@ class bitso(Exchange, ImplicitAPI):
                     success = True
                 else:
                     success = False
-            if success is not True:
+            if not success:
                 feedback = self.id + ' ' + self.json(response)
                 error = self.safe_dict(response, 'error')
                 if error is None:

@@ -30,7 +30,9 @@ impl WooCore {
     pub fn init(&mut self) {
         let described = WooCore::describe(self);
         self.initialize_properties(described);
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self);
+        // compatibility for sandbox/testnet options in userConfig
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -202,10 +204,8 @@ impl crate::exchange_generated::ExchangeBase for WooCore {
                 "parse_market" => self.parse_market(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_order" => self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_order_status" => self.parse_order_status(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_position" => self.parse_position(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_time_in_force" => self.parse_time_in_force(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_token_and_fee_temp" => self.parse_token_and_fee_temp(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
                 "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_trading_fee" => self.parse_trading_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
@@ -243,7 +243,7 @@ impl WooCore {
         m.insert("countries".to_string(), Value::from(vec![Value::Str("KY".into())]));
         m.insert("rateLimit".to_string(), Value::Int(100));
         m.insert("version".to_string(), Value::Str("v1".into()));
-        m.insert("certified".to_string(), Value::Bool(true));
+        m.insert("certified".to_string(), Value::Bool(false));
         m.insert("pro".to_string(), Value::Bool(true));
         m.insert("hostname".to_string(), Value::Str("woox.io".into()));
         m.insert("has".to_string(), Value::Map({
@@ -1168,7 +1168,6 @@ impl WooCore {
         m.insert("createMarketBuyOrderRequiresPrice".to_string(), Value::Bool(true));
         m.insert("networks".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("TRX".to_string(), Value::Str("TRX".into()));
         m.insert("TRC20".to_string(), Value::Str("TRX".into()));
         m.insert("ERC20".to_string(), Value::Str("ETH".into()));
         m.insert("BEP20".to_string(), Value::Str("BSC".into()));
@@ -1648,7 +1647,7 @@ impl WooCore {
 
     pub fn parse_market(&self, mut market: Value) -> Value {
         let mut marketId: Value = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]);
-        let mut parts: Value = split(&marketId, &Value::Str("_".into()));
+        let mut parts: Value = Value::Array(marketId.as_str().map(|__s| __s.split("_").map(|__p| Value::Str(__p.to_string().into())).collect()).unwrap_or_default());
         let mut first: Option<String> = self.safe_string(parts.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
         let mut marketType: Value = Value::Null;
         let mut spot: Value = Value::Bool(false);
@@ -2040,8 +2039,8 @@ impl WooCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1127: bool = true;
-            while { if !__for_first_1127 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1127 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
+            let mut __for_first_1157: bool = true;
+            while { if !__for_first_1157 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1157 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
             let mut symbol: Value = symbols.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2159,11 +2158,11 @@ impl WooCore {
         let mut tokenNetworkRows: Value = self.safe_list_k(tokenNetworkResponse, "rows", &[Value::from(vec![])]);
         let mut networksById: Value = self.group_by(tokenNetworkRows, Value::Str("token".into()), &[]);
         let mut tokensById: Value = self.group_by(tokenRows, Value::Str("balance_token".into()), &[]);
-        let mut currencyIds: Value = object_keys(&tokensById);
+        let mut currencyIds: Value = Value::Array(tokensById.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1128: bool = true;
-            while { if !__for_first_1128 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1128 = false; i.as_f64().unwrap_or(f64::NAN) < ((currencyIds.len() as i64) as f64) } {
+            let mut __for_first_1158: bool = true;
+            while { if !__for_first_1158 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1158 = false; i.as_f64().unwrap_or(f64::NAN) < ((currencyIds.len() as i64) as f64) } {
             let mut id: Value = currencyIds.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut customCurrency: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -2189,15 +2188,15 @@ impl WooCore {
         let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
         let mut tokensByNetworkId: Value = self.index_by(rawCurrency.as_map().and_then(|__m| __m.get("_tokens_by_id")).cloned().unwrap_or(Value::Null), Value::Str("network".into()));
         let mut chainsByNetworkId: Value = self.index_by(rawCurrency.as_map().and_then(|__m| __m.get("_networks_by_id")).cloned().unwrap_or(Value::Null), Value::Str("network".into()));
-        let mut keys: Value = object_keys(&chainsByNetworkId);
+        let mut keys: Value = Value::Array(chainsByNetworkId.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
         let mut resultingNetworks: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_1129: bool = true;
-            while { if !__for_first_1129 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1129 = false; j.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
+            let mut __for_first_1159: bool = true;
+            while { if !__for_first_1159 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_1159 = false; j.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
             let mut networkId: Value = keys.as_array().and_then(|__arr| match &j { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut tokenEntry: Value = self.safe_dict(tokensByNetworkId.clone(), networkId.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2442,12 +2441,12 @@ impl WooCore {
 }));
         let mut reduceOnly: Value = self.safe_bool2(params.clone(), Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), &[]);
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("reduceOnly".into()), Value::Str("reduce_only".into())]), &[]);
-        let mut orderType: Value = to_upper(&type_var);
+        let mut orderType: Value = type_var.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
-        let mut orderSide: Value = to_upper(&side);
+        let mut orderSide: Value = side.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
@@ -2482,7 +2481,7 @@ impl WooCore {
         }
         if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("type".into(), orderType); }; // LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
         if !isConditional {
-            if is_true(&postOnly) {
+            if postOnly.as_bool() == Some(true) {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("type".into(), Value::Str("POST_ONLY".into())); }
             }  else if (timeInForce.as_deref() == Some("fok")) {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("type".into(), Value::Str("FOK".into())); }
@@ -2686,7 +2685,7 @@ impl WooCore {
         }
         let mut isTrigger: Value = self.safe_bool2(params.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[Value::Bool(false)]);
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("clOrdID".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into()), Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()), Value::Str("takeProfitPrice".into()), Value::Str("stopLossPrice".into()), Value::Str("trailingTriggerPrice".into()), Value::Str("trailingAmount".into()), Value::Str("trailingPercent".into()), Value::Str("trigger".into()), Value::Str("stop".into())]), &[]);
-        let mut isConditional: bool = (isTrigger.as_bool() == Some(true)) || isTrailing || (triggerPrice != Value::Null) || (self.safe_value_k(paramsOmitted.clone(), "childOrders", &[]) != Value::Null);
+        let mut isConditional: bool = isTrigger.as_bool() == Some(true) || isTrailing || (triggerPrice != Value::Null) || (self.safe_value_k(paramsOmitted.clone(), "childOrders", &[]) != Value::Null);
         let mut response: Value = Value::Null;
         if isConditional {
             if isByClientOrder {
@@ -2749,7 +2748,7 @@ impl WooCore {
 }));
         let mut isTrigger: Value = self.safe_bool2(params.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[Value::Bool(false)]);
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("trigger".into()), Value::Str("stop".into())]), &[]);
-        if (isTrigger.as_bool() != Some(true)) && (symbol == Value::Null) {
+        if (!(isTrigger.as_bool() == Some(true))) && (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires a symbol argument".into()))));
         }
         if (self.markets.clone() == Value::Null) {
@@ -2768,7 +2767,7 @@ impl WooCore {
         let mut paramsOmitted2: Value = self.omit(paramsOmitted, Value::from(vec![Value::Str("clOrdID".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into())]), &[]);
         let mut isByClientOrder: bool = clientOrderIdExchangeSpecific != Value::Null;
         let mut response: Value = Value::Null;
-        if (isTrigger.as_bool() == Some(true)) {
+        if isTrigger.as_bool() == Some(true) {
             if isByClientOrder {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("clientAlgoOrderId".into(), clientOrderIdExchangeSpecific.clone()); }
             }  else {
@@ -2887,9 +2886,13 @@ impl WooCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
+        let mut triggerAfter: Value = Value::Int(0);
+        if (timeout != Value::Null) && (timeout.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64)) {
+            triggerAfter = (if (timeout.as_f64().unwrap_or(f64::NAN) > ((900000i64) as f64)) { Value::Int(900000) } else { timeout });
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("triggerAfter".to_string(), (if (timeout.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64)) { crate::runtime::Math::min(&timeout, &Value::Int(900000)) } else { Value::Int(0) }));
+                m.insert("triggerAfter".to_string(), triggerAfter);
             m
         });
         let __ws_arg_9 = self.extend(request, &[params]);
@@ -2988,7 +2991,7 @@ impl WooCore {
         let mut paginateparamsPaginateVariable = self.handle_option_bool_and_params(params, Value::Str("fetchOrders".into()), Value::Str("paginate".into()), &[Value::Bool(false)]);
         let mut paginate: Value = paginateparamsPaginateVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsPaginate: Value = paginateparamsPaginateVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-        if is_true(&paginate) {
+        if paginate.as_bool() == Some(true) {
             return self.fetch_paginated_call_incremental(Value::Str("fetchOrders".into()), &[symbol.clone(), since.clone(), limit.clone(), paramsPaginate.clone(), Value::Str("page".into()), Value::Int(500)]).await;
         }
         let mut request: Value = Value::Map({
@@ -3107,7 +3110,7 @@ impl WooCore {
     Value::Null
 }
 
-    pub fn parse_time_in_force(&self, mut timeInForce: Value) -> Value {
+    pub fn parse_time_in_force(&self, mut timeInForce: Value) -> Option<String> {
         let mut timeInForces: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("ioc".to_string(), Value::Str("IOC".into()));
@@ -3115,9 +3118,7 @@ impl WooCore {
                 m.insert("post_only".to_string(), Value::Str("PO".into()));
             m
         });
-        return self.safe_string(timeInForces, timeInForce, &[]);
-
-    Value::Null
+        return self.safe_string(timeInForces, timeInForce, &[]).as_str().map(str::to_owned);
 }
 
     pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
@@ -3252,10 +3253,10 @@ impl WooCore {
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("lastUpdateTimestamp".to_string(), lastUpdateTimestamp);
-        m.insert("status".to_string(), self.parse_order_status(status));
+        m.insert("status".to_string(), self.parse_order_status(status).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
         m.insert("symbol".to_string(), symbol);
         m.insert("type".to_string(), orderType.clone());
-        m.insert("timeInForce".to_string(), self.parse_time_in_force(orderType));
+        m.insert("timeInForce".to_string(), self.parse_time_in_force(orderType).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
         m.insert("postOnly".to_string(), postOnly);
         m.insert("reduceOnly".to_string(), self.safe_bool_k(order.clone(), "reduceOnly", &[]));
         m.insert("side".to_string(), side);
@@ -3282,7 +3283,7 @@ impl WooCore {
     Value::Null
 }
 
-    pub fn parse_order_status(&self, mut status: Value) -> Value {
+    pub fn parse_order_status(&self, mut status: Value) -> Option<String> {
         if (status != Value::Null) {
             let mut statuses: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -3298,11 +3299,9 @@ impl WooCore {
                     m.insert("COMPLETED".to_string(), Value::Str("closed".into()));
                 m
             });
-            return self.safe_string(statuses, status.clone(), &[status.clone()]);
+            return self.safe_string(statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
         }
-        return Value::Null;
-
-    Value::Null
+        return None;
 }
 
 /*
@@ -3544,17 +3543,17 @@ impl WooCore {
 })]);
         let mut rows: Value = self.safe_list_k(data, "rows", &[Value::from(vec![])]);
         let mut timestamp: Value = self.safe_integer_k(response, "timestamp", &[]);
-        let mut result: Value = Value::from(vec![]);
+        let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1130: bool = true;
-            while { if !__for_first_1130 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1130 = false; i.as_f64().unwrap_or(f64::NAN) < ((rows.len() as i64) as f64) } {
+            let mut __for_first_1160: bool = true;
+            while { if !__for_first_1160 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1160 = false; i.as_f64().unwrap_or(f64::NAN) < ((rows.len() as i64) as f64) } {
             let mut row: Value = rows.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut marketId: Value = self.safe_string_k(row.clone(), "symbol", &[]);
             if (marketId == Value::Null) {
                 continue;
             }
-            if (self.markets_by_id.clone() == Value::Null) || !(in_op(&self.markets_by_id, &marketId)) {
+            if (self.markets_by_id.clone() == Value::Null) || !(matches!((&self.markets_by_id, &marketId), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 continue;
             }
             let mut ticker: Value = self.extend(Value::Map({
@@ -3562,10 +3561,10 @@ impl WooCore {
                     m.insert("timestamp".to_string(), timestamp.clone());
                 m
             }), &[row]);
-            append_to_array(&mut result, self.parse_ticker(ticker, &[]));
+            result.push(self.parse_ticker(ticker, &[]));
         }
         }
-        return self.filter_by_array_tickers(result, Value::Str("symbol".into()), &[symbolsNormalized]);
+        return self.filter_by_array_tickers(Value::from(result), Value::Str("symbol".into()), &[symbolsNormalized]);
 
     Value::Null
 }
@@ -3737,7 +3736,7 @@ impl WooCore {
         let mut paginateparamsPaginateVariable = self.handle_option_bool_and_params(params, Value::Str("fetchMyTrades".into()), Value::Str("paginate".into()), &[Value::Bool(false)]);
         let mut paginate: Value = paginateparamsPaginateVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsPaginate: Value = paginateparamsPaginateVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-        if is_true(&paginate) {
+        if paginate.as_bool() == Some(true) {
             return self.fetch_paginated_call_incremental(Value::Str("fetchMyTrades".into()), &[symbol.clone(), since.clone(), limit.clone(), paramsPaginate.clone(), Value::Str("page".into()), Value::Int(500)]).await;
         }
         let mut request: Value = Value::Map({
@@ -3949,8 +3948,8 @@ impl WooCore {
         let mut balances: Value = self.safe_list_k(response, "holding", &[Value::from(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1131: bool = true;
-            while { if !__for_first_1131 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1131 = false; i.as_f64().unwrap_or(f64::NAN) < ((balances.len() as i64) as f64) } {
+            let mut __for_first_1161: bool = true;
+            while { if !__for_first_1161 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1161 = false; i.as_f64().unwrap_or(f64::NAN) < ((balances.len() as i64) as f64) } {
             let mut balance: Value = self.safe_dict(balances.clone(), i.clone(), &[]);
             let mut code: Value = self.safe_currency_code(self.safe_string_k(balance.clone(), "token", &[]), &[]);
             let mut account: Value = self.account();
@@ -4027,7 +4026,7 @@ impl WooCore {
         let mut networkCode: Value = self.network_id_to_code(&[networkCodeRaw, crate::value::get_value_k(&currency, "code")]);
         let mut networkEntry: Value = (if (networkCode == Value::Null) { Value::Null } else { self.safe_dict(crate::value::get_value_k(&currency, "networks"), networkCode, &[]) });
         if (networkEntry == Value::Null) {
-            let mut supportedNetworks: Value = object_keys(&crate::value::get_value_k(&currency, "networks"));
+            let mut supportedNetworks: Value = Value::Array((crate::value::get_value_k(&currency, "networks")).as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str("  can not determine a network code, please provide unified \"network\" param, one from the following: ".into())).into()), json_stringify(&supportedNetworks))));
         }
         let mut currentyNetworkId: Value = self.safe_string_k(networkEntry, "currencyNetworkId", &[]);
@@ -4239,7 +4238,7 @@ impl WooCore {
             return currency;
         }  else {
             let mut parts: Value = split(&networkizedCode, &Value::Str("_".into()));
-            let mut partsLength: Value = get_array_length(&parts);
+            let mut partsLength: Value = parts.as_array().map_or(Value::Int(0), |__a| Value::Int(__a.len() as i64));
             let mut firstPart: Value = self.safe_string(parts.clone(), Value::Int(0), &[]);
             let mut currencyId: Value = self.safe_string(parts.clone(), Value::Int(1), &[firstPart]);
             if partsLength.as_f64().unwrap_or(f64::NAN) > ((2i64) as f64) {
@@ -4370,7 +4369,7 @@ impl WooCore {
         //
         let mut networkizedCode: Value = self.safe_string_k(transaction.clone(), "token", &[]);
         let mut currencyDefined: Value = self.get_currency_from_chaincode(networkizedCode, currency);
-        let mut code: Value = crate::value::get_value_k(&currencyDefined, "code");
+        let mut code: Value = currencyDefined.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null);
         let mut movementDirection: Value = self.safe_string_lower_n(transaction.clone(), Value::from(vec![Value::Str("token_side".into()), Value::Str("tokenSide".into()), Value::Str("type".into())]), &[]);
         if (movementDirection.as_str() == Some("withdraw")) {
             movementDirection = Value::Str("withdrawal".into());
@@ -4469,7 +4468,7 @@ impl WooCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        add_element_to_object(&mut data, &Value::Str("timestamp".into()), self.safe_integer_k(response, "timestamp", &[]));
+        if let Value::Dict(__d) = &mut data { std::sync::Arc::make_mut(__d).insert("timestamp".into(), self.safe_integer_k(response, "timestamp", &[])); }
         if let Value::Dict(__d) = &mut data { std::sync::Arc::make_mut(__d).insert("token".into(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
         if let Value::Dict(__d) = &mut data { std::sync::Arc::make_mut(__d).insert("status".into(), Value::Str("ok".into())); }
         let mut transfer: Value = self.parse_transfer(data, &[currency]);
@@ -4478,10 +4477,10 @@ impl WooCore {
     m
 })]);
         let mut fillResponseFromRequest: Value = self.safe_bool_k(transferOptions, "fillResponseFromRequest", &[Value::Bool(true)]);
-        if (fillResponseFromRequest.as_bool() == Some(true)) {
-            add_element_to_object(&mut transfer, &Value::Str("amount".into()), amount);
-            add_element_to_object(&mut transfer, &Value::Str("fromAccount".into()), fromAccount);
-            add_element_to_object(&mut transfer, &Value::Str("toAccount".into()), toAccount);
+        if fillResponseFromRequest.as_bool() == Some(true) {
+            if let Value::Dict(__d) = &mut transfer { std::sync::Arc::make_mut(__d).insert("amount".into(), amount); }
+            if let Value::Dict(__d) = &mut transfer { std::sync::Arc::make_mut(__d).insert("fromAccount".into(), fromAccount); }
+            if let Value::Dict(__d) = &mut transfer { std::sync::Arc::make_mut(__d).insert("toAccount".into(), toAccount); }
         }
         return transfer;
 
@@ -4649,23 +4648,22 @@ impl WooCore {
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
- * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
     pub async fn withdraw(&mut self, mut code: Value, mut amount: Value, mut address: Value, optional_args: &[Value]) -> Value {
-        let mut tag = get_arg(optional_args, 0, Value::Null);
-        let mut params = get_arg(optional_args, 1, Value::Map({
+        let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut tagWithdrawTagparamsWithdrawTagVariable = self.handle_withdraw_tag_and_params(tag, params);
+        let mut tagWithdrawTagparamsWithdrawTagVariable = self.handle_param_string(params, Value::Str("tag".into()), &[]);
         let mut tagWithdrawTag: Value = tagWithdrawTagparamsWithdrawTagVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsWithdrawTag: Value = tagWithdrawTagparamsWithdrawTagVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        self.check_address(&[address.clone()]);
+        self.check_address(&[address.clone(), code.clone(), tagWithdrawTag.clone()]);
         let mut currency: Value = self.currency(code.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -4697,6 +4695,7 @@ impl WooCore {
 })]);
         let __ws_arg_29 = self.safe_string_k(data.clone(), "withdrawId", &[]);
         let __ws_arg_30 = self.safe_integer_k(response, "timestamp", &[]);
+        let __ws_arg_31 = self.safe_string(self.networkAliases.clone(), network.clone(), &[network.clone()]);
         let mut transactionData: Value = self.extend(data, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), __ws_arg_29);
@@ -4705,7 +4704,7 @@ impl WooCore {
                 m.insert("amount".to_string(), amount);
                 m.insert("addressTo".to_string(), address);
                 m.insert("tag".to_string(), tagWithdrawTag);
-                m.insert("network".to_string(), network);
+                m.insert("network".to_string(), __ws_arg_31);
                 m.insert("type".to_string(), Value::Str("withdrawal".into()));
                 m.insert("status".to_string(), Value::Str("pending".into()));
             m
@@ -4743,8 +4742,8 @@ impl WooCore {
                 m.insert("amount".to_string(), self.currency_to_precision(code, amount.clone(), &[]));
             m
         });
-        let __ws_arg_31 = self.extend(request, &[params]);
-        let mut response: Value = self.v1_private_post_interest_repay(&[__ws_arg_31]).await;
+        let __ws_arg_32 = self.extend(request, &[params]);
+        let mut response: Value = self.v1_private_post_interest_repay(&[__ws_arg_32]).await;
         //
         //     {
         //         "success": true,
@@ -4785,14 +4784,12 @@ impl WooCore {
 }
 
     pub fn sign(&self, mut path: Value, optional_args: &[Value]) -> Value {
-        let mut section = get_arg(optional_args, 0, Value::Str("public".into()));
+        let mut section = get_arg(optional_args, 0, Value::from(vec![Value::Str("public".into())]));
         let mut method = get_arg(optional_args, 1, Value::Str("GET".into()));
         let mut params = get_arg(optional_args, 2, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut headers = get_arg(optional_args, 3, Value::Null);
-        let mut body = get_arg(optional_args, 4, Value::Null);
         let mut requestHeaders: Value = Value::Null;
         let mut requestBody: Value = Value::Null;
         let mut version: Value = self.safe_string(section.clone(), Value::Int(0), &[]);
@@ -4807,19 +4804,19 @@ impl WooCore {
         let mut paramsSorted: Value = self.keysort(self.omit(params, self.extract_params(path.clone()), &[]), &[]);
         if (access.as_str() == Some("public")) {
             url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("public/".into()), pathWithParams).into())).into());
-            if ((object_keys(&paramsSorted).len() as i64) as f64) > ((0i64) as f64) {
+            if ((Value::Array(paramsSorted.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
                 url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(paramsSorted.clone(), &[])).into())).into());
             }
         }  else if (access.as_str() == Some("pub")) {
             url = Value::Str(format!("{}{}", url, pathWithParams).into());
-            if ((object_keys(&paramsSorted).len() as i64) as f64) > ((0i64) as f64) {
+            if ((Value::Array(paramsSorted.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
                 url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(paramsSorted.clone(), &[])).into())).into());
             }
         }  else {
             self.check_required_credentials(&[]);
             if (method.as_str() == Some("POST")) && ((path.as_str() == Some("trade/algoOrder")) || (path.as_str() == Some("trade/order"))) {
                 let mut isSandboxMode: Value = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]);
-                if (isSandboxMode.as_bool() != Some(true)) {
+                if !(isSandboxMode.as_bool() == Some(true)) {
                     let mut applicationId: Value = Value::Str("bc830de7-50f3-460b-9ee0-f430f83f9dad".into());
                     let mut brokerId: Value = self.safe_string_k(self.options.clone(), "brokerId", &[applicationId]);
                     let mut isTrigger: bool = Value::Int(path.as_str().and_then(|__s| __s.find("algo")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64);
@@ -4832,7 +4829,7 @@ impl WooCore {
             }
             let mut paramsSigned: Value = self.keysort(paramsSorted, &[]);
             let mut auth: Value = Value::Str("".into());
-            let mut ts: Value = to_string_val(&self.nonce());
+            let mut ts: Value = Value::Str(format!("{}", self.nonce()).into());
             url = Value::Str(format!("{}{}", url, pathWithParams).into());
             requestHeaders = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -4845,9 +4842,9 @@ impl WooCore {
                 if (method.as_str() == Some("POST")) || (method.as_str() == Some("PUT")) {
                     requestBody = json_stringify(&paramsSigned);
                     auth = Value::Str(format!("{}{}", auth, requestBody).into());
-                    add_element_to_object(&mut requestHeaders, &Value::Str("content-type".into()), Value::Str("application/json".into()));
+                    if let Value::Dict(__d) = &mut requestHeaders { std::sync::Arc::make_mut(__d).insert("content-type".into(), Value::Str("application/json".into())); }
                 }  else {
-                    if ((object_keys(&paramsSigned).len() as i64) as f64) > ((0i64) as f64) {
+                    if ((Value::Array(paramsSigned.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
                         let mut query: Value = self.urlencode(paramsSigned.clone(), &[]);
                         url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), query).into())).into());
                         auth = Value::Str(format!("{}{}", auth, Value::Str(format!("{}{}", Value::Str("?".into()), query).into())).into());
@@ -4858,17 +4855,17 @@ impl WooCore {
                 if (method.as_str() == Some("POST")) || (method.as_str() == Some("PUT")) || (method.as_str() == Some("DELETE")) {
                     requestBody = auth.clone();
                 }  else {
-                    if ((object_keys(&paramsSigned).len() as i64) as f64) > ((0i64) as f64) {
+                    if ((Value::Array(paramsSigned.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
                         url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), auth).into())).into());
                     }
                 }
                 auth = Value::Str(format!("{}{}", auth, Value::Str(format!("{}{}", Value::Str("|".into()), ts).into())).into());
-                add_element_to_object(&mut requestHeaders, &Value::Str("content-type".into()), Value::Str("application/x-www-form-urlencoded".into()));
+                if let Value::Dict(__d) = &mut requestHeaders { std::sync::Arc::make_mut(__d).insert("content-type".into(), Value::Str("application/x-www-form-urlencoded".into())); }
             }
-            add_element_to_object(&mut requestHeaders, &Value::Str("x-api-signature".into()), self.hmac(self.encode(auth), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]));
+            if let Value::Dict(__d) = &mut requestHeaders { std::sync::Arc::make_mut(__d).insert("x-api-signature".into(), self.hmac(self.encode(auth), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[])); }
         }
-        let mut headersResult: Value = (if (requestHeaders != Value::Null) { requestHeaders } else { headers });
-        let mut bodyResult: Value = (if (requestBody != Value::Null) { requestBody } else { body });
+        let mut headersResult: Value = requestHeaders;
+        let mut bodyResult: Value = requestBody;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), url);
@@ -4968,7 +4965,7 @@ impl WooCore {
         let mut paginateparamsPaginateVariable = self.handle_option_bool_and_params(params, Value::Str("fetchFundingHistory".into()), Value::Str("paginate".into()), &[Value::Bool(false)]);
         let mut paginate: Value = paginateparamsPaginateVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsPaginate: Value = paginateparamsPaginateVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-        if is_true(&paginate) {
+        if paginate.as_bool() == Some(true) {
             return self.fetch_paginated_call_incremental(Value::Str("fetchFundingHistory".into()), &[symbol.clone(), since.clone(), limit.clone(), paramsPaginate.clone(), Value::Str("page".into()), Value::Int(500)]).await;
         }
         let mut request: Value = Value::Map({
@@ -4991,8 +4988,8 @@ impl WooCore {
         if (limit != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("size".into(), crate::runtime::Math::min(&limit, &Value::Int(500))); }
         }
-        let __ws_arg_32 = self.extend(request, &[paramsOmitted]);
-        let mut response: Value = self.v3_private_get_futures_funding_fee_history(&[__ws_arg_32]).await;
+        let __ws_arg_33 = self.extend(request, &[paramsOmitted]);
+        let mut response: Value = self.v3_private_get_futures_funding_fee_history(&[__ws_arg_33]).await;
         //
         //     {
         //         "success": true,
@@ -5130,8 +5127,8 @@ impl WooCore {
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_33 = self.extend(request, &[params]);
-        let mut response: Value = self.v3_public_get_funding_rate(&[__ws_arg_33]).await;
+        let __ws_arg_34 = self.extend(request, &[params]);
+        let mut response: Value = self.v3_public_get_funding_rate(&[__ws_arg_34]).await;
         //
         //     {
         //         "success": true,
@@ -5243,7 +5240,7 @@ impl WooCore {
         let mut paginateparamsPaginateVariable = self.handle_option_bool_and_params(params, Value::Str("fetchFundingRateHistory".into()), Value::Str("paginate".into()), &[Value::Bool(false)]);
         let mut paginate: Value = paginateparamsPaginateVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsPaginate: Value = paginateparamsPaginateVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-        if is_true(&paginate) {
+        if paginate.as_bool() == Some(true) {
             return self.fetch_paginated_call_incremental(Value::Str("fetchFundingRateHistory".into()), &[symbol.clone(), since.clone(), limit.clone(), paramsPaginate.clone(), Value::Str("page".into()), Value::Int(25)]).await;
         }
         if (symbol == Value::Null) {
@@ -5262,8 +5259,8 @@ impl WooCore {
         let mut requestUntilparamsUntilVariable = self.handle_until_option(Value::Str("endTime".into()), request, paramsPaginate, &[]);
         let mut requestUntil: Value = requestUntilparamsUntilVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsUntil: Value = requestUntilparamsUntilVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-        let __ws_arg_34 = self.extend(requestUntil, &[paramsUntil]);
-        let mut response: Value = self.v3_public_get_funding_rate_history(&[__ws_arg_34]).await;
+        let __ws_arg_35 = self.extend(requestUntil, &[paramsUntil]);
+        let mut response: Value = self.v3_public_get_funding_rate_history(&[__ws_arg_35]).await;
         //
         //     {
         //         "success": true,
@@ -5291,15 +5288,15 @@ impl WooCore {
     m
 })]);
         let mut rows: Value = self.safe_list_k(data, "rows", &[Value::from(vec![])]);
-        let mut rates: Value = Value::from(vec![]);
+        let mut rates: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1132: bool = true;
-            while { if !__for_first_1132 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1132 = false; i.as_f64().unwrap_or(f64::NAN) < ((rows.len() as i64) as f64) } {
+            let mut __for_first_1162: bool = true;
+            while { if !__for_first_1162 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1162 = false; i.as_f64().unwrap_or(f64::NAN) < ((rows.len() as i64) as f64) } {
             let mut entry: Value = rows.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut marketId: Value = self.safe_string_k(entry.clone(), "symbol", &[]);
             let mut timestamp: Value = self.safe_integer_k(entry.clone(), "fundingRateTimestamp", &[]);
-            append_to_array(&mut rates, Value::Map({
+            rates.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("info".to_string(), entry.clone());
                     m.insert("symbol".to_string(), self.safe_symbol(marketId, &[]));
@@ -5310,7 +5307,7 @@ impl WooCore {
             }));
         }
         }
-        let mut sorted: Value = self.sort_by(rates, Value::Str("timestamp".into()), &[]);
+        let mut sorted: Value = self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]);
         return self.filter_by_symbol_since_limit(sorted, &[symbolValue, since, limit]);
 
     Value::Null
@@ -5333,7 +5330,7 @@ impl WooCore {
     m
 }));
         let mut hedgeMode: Value = Value::Null;
-        if is_true(&hedged) {
+        if hedged.as_bool() == Some(true) {
             hedgeMode = Value::Str("HEDGE_MODE".into());
         }  else {
             hedgeMode = Value::Str("ONE_WAY".into());
@@ -5343,8 +5340,8 @@ impl WooCore {
                 m.insert("positionMode".to_string(), hedgeMode);
             m
         });
-        let __ws_arg_35 = self.extend(request, &[params]);
-        let mut response: Value = self.v3_private_put_futures_position_mode(&[__ws_arg_35]).await;
+        let __ws_arg_36 = self.extend(request, &[params]);
+        let mut response: Value = self.v3_private_put_futures_position_mode(&[__ws_arg_36]).await;
         return response;
 
     Value::Null
@@ -5384,8 +5381,8 @@ impl WooCore {
             let mut marginMode: Value = marginModeparamsMarginModeVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
             let mut paramsMarginMode: Value = marginModeparamsMarginModeVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("marginMode".into(), self.encode_margin_mode(marginMode).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null)); }
-            let __ws_arg_36 = self.extend(request, &[paramsMarginMode]);
-            response = self.v3_private_get_futures_leverage(&[__ws_arg_36]).await;
+            let __ws_arg_37 = self.extend(request, &[paramsMarginMode]);
+            response = self.v3_private_get_futures_leverage(&[__ws_arg_37]).await;
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchLeverage() is not supported for ".into())).into()), market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null)).into()), Value::Str(" markets".into()))));
         }
@@ -5412,8 +5409,8 @@ impl WooCore {
         let mut details: Value = self.safe_list_k(leverage.clone(), "details", &[Value::from(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1133: bool = true;
-            while { if !__for_first_1133 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1133 = false; i.as_f64().unwrap_or(f64::NAN) < ((details.len() as i64) as f64) } {
+            let mut __for_first_1163: bool = true;
+            while { if !__for_first_1163 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1163 = false; i.as_f64().unwrap_or(f64::NAN) < ((details.len() as i64) as f64) } {
             let mut position: Value = self.safe_dict(details.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -5475,16 +5472,16 @@ impl WooCore {
             market = self.market(symbol.clone());
         }
         if (symbol == Value::Null) || matches!((self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)])), Value::Bool(true)) {
-            let __ws_arg_37 = self.extend(request.clone(), &[params.clone()]);
-            return self.v3_private_post_spot_margin_leverage(&[__ws_arg_37]).await;
+            let __ws_arg_38 = self.extend(request.clone(), &[params.clone()]);
+            return self.v3_private_post_spot_margin_leverage(&[__ws_arg_38]).await;
         }  else if matches!(self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)]), Value::Bool(true)) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("symbol".into(), self.safe_string_k(market.clone(), "id", &[])); }
             let mut marginModeparamsMarginModeVariable = self.handle_margin_mode_and_params(Value::Str("setLeverage".into()), &[params, Value::Str("cross".into())]);
             let mut marginMode: Value = marginModeparamsMarginModeVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
             let mut paramsMarginMode: Value = marginModeparamsMarginModeVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("marginMode".into(), self.encode_margin_mode(marginMode).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null)); }
-            let __ws_arg_38 = self.extend(request, &[paramsMarginMode]);
-            return self.v3_private_put_futures_leverage(&[__ws_arg_38]).await;
+            let __ws_arg_39 = self.extend(request, &[paramsMarginMode]);
+            return self.v3_private_put_futures_leverage(&[__ws_arg_39]).await;
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchLeverage() is not supported for ".into())).into()), self.safe_string_k(market, "type", &[])).into()), Value::Str(" markets".into()))));
         }
@@ -5551,8 +5548,8 @@ impl WooCore {
                 m.insert("action".to_string(), type_var);
             m
         });
-        let __ws_arg_39 = self.extend(request, &[params]);
-        return self.v1_private_post_client_isolated_margin(&[__ws_arg_39]).await;
+        let __ws_arg_40 = self.extend(request, &[params]);
+        return self.v1_private_post_client_isolated_margin(&[__ws_arg_40]).await;
 
     Value::Null
 }
@@ -5580,8 +5577,8 @@ impl WooCore {
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_40 = self.extend(request, &[params]);
-        let mut response: Value = self.v3_private_get_futures_positions(&[__ws_arg_40]).await;
+        let __ws_arg_41 = self.extend(request, &[params]);
+        let mut response: Value = self.v3_private_get_futures_positions(&[__ws_arg_41]).await;
         //
         //     {
         //         "success": true,
@@ -5657,8 +5654,8 @@ impl WooCore {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
             }
         }
-        let __ws_arg_41 = self.extend(request, &[params]);
-        let mut response: Value = self.v3_private_get_futures_positions(&[__ws_arg_41]).await;
+        let __ws_arg_42 = self.extend(request, &[params]);
+        let mut response: Value = self.v3_private_get_futures_positions(&[__ws_arg_42]).await;
         //
         //     {
         //         "success": true,
@@ -5754,7 +5751,7 @@ impl WooCore {
         let mut marketResolved: Value = self.safe_market(&[contract, market]);
         let mut size: Value = self.safe_string_k(position.clone(), "holding", &[]);
         let mut side: Value = Value::Null;
-        if is_true(&crate::precise::Precise::stringGt(&size, &Value::Str("0".into()))) {
+        if crate::precise::Precise::stringGt(&size, &Value::Str("0".into())).as_bool() == Some(true) {
             side = Value::Str("long".into());
         }  else {
             side = Value::Str("short".into());
@@ -5776,6 +5773,11 @@ impl WooCore {
         size = crate::precise::Precise::stringAbs(&size);
         let mut notional: Value = crate::precise::Precise::stringMul(&size, &markPrice);
         let mut positionSide: Option<String> = self.safe_string_k(position.clone(), "positionSide", &[]).as_str().map(str::to_owned); // 'SHORT' or 'LONG' for hedged, 'BOTH' for non-hedged
+        let mut marginMode: Value = self.safe_string_lower2(position.clone(), Value::Str("marginMode".into()), Value::Str("margin_mode".into()), &[]);
+        let mut positionMargin: Value = Value::Null;
+        if (marginMode.as_str() == Some("isolated")) {
+            positionMargin = self.safe_number2(position.clone(), Value::Str("isolatedMarginAmount".into()), Value::Str("isolated_margin_amount".into()), &[]);
+        }
         return self.safe_position(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), position.clone());
@@ -5795,11 +5797,12 @@ impl WooCore {
         m.insert("contracts".to_string(), self.parse_number(size, &[]));
         m.insert("contractSize".to_string(), self.parse_number(contractSize, &[]));
         m.insert("marginRatio".to_string(), Value::Null);
-        m.insert("liquidationPrice".to_string(), self.safe_number2(position.clone(), Value::Str("estLiqPrice".into()), Value::Str("est_liq_price".into()), &[]));
+        m.insert("liquidationPrice".to_string(), self.safe_number2(position, Value::Str("estLiqPrice".into()), Value::Str("est_liq_price".into()), &[]));
         m.insert("markPrice".to_string(), self.parse_number(markPrice, &[]));
         m.insert("lastPrice".to_string(), Value::Null);
+        m.insert("positionMargin".to_string(), positionMargin);
         m.insert("collateral".to_string(), Value::Null);
-        m.insert("marginMode".to_string(), self.safe_string_lower2(position, Value::Str("marginMode".into()), Value::Str("margin_mode".into()), &[]));
+        m.insert("marginMode".to_string(), marginMode);
         m.insert("side".to_string(), side);
         m.insert("percentage".to_string(), Value::Null);
         m.insert("hedged".to_string(), Value::Bool(positionSide.as_deref() != Some("BOTH")));
@@ -5833,13 +5836,13 @@ impl WooCore {
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("sellToken".to_string(), to_upper(&fromCode));
-                m.insert("buyToken".to_string(), to_upper(&toCode));
+                m.insert("sellToken".to_string(), fromCode.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null));
+                m.insert("buyToken".to_string(), toCode.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null));
                 m.insert("sellQuantity".to_string(), self.number_to_string(amount));
             m
         });
-        let __ws_arg_42 = self.extend(request, &[params]);
-        let mut response: Value = self.v3_private_get_convert_rfq(&[__ws_arg_42]).await;
+        let __ws_arg_43 = self.extend(request, &[params]);
+        let mut response: Value = self.v3_private_get_convert_rfq(&[__ws_arg_43]).await;
         //
         //     {
         //         "success": true,
@@ -5895,8 +5898,8 @@ impl WooCore {
                 m.insert("quoteId".to_string(), id);
             m
         });
-        let __ws_arg_43 = self.extend(request, &[params]);
-        let mut response: Value = self.v3_private_post_convert_rft(&[__ws_arg_43]).await;
+        let __ws_arg_44 = self.extend(request, &[params]);
+        let mut response: Value = self.v3_private_post_convert_rft(&[__ws_arg_44]).await;
         //
         //     {
         //         "success": true,
@@ -5940,8 +5943,8 @@ impl WooCore {
                 m.insert("quoteId".to_string(), id);
             m
         });
-        let __ws_arg_44 = self.extend(request, &[params]);
-        let mut response: Value = self.v3_private_get_convert_trade(&[__ws_arg_44]).await;
+        let __ws_arg_45 = self.extend(request, &[params]);
+        let mut response: Value = self.v3_private_get_convert_trade(&[__ws_arg_45]).await;
         //
         //     {
         //         "success": true,
@@ -6006,13 +6009,13 @@ impl WooCore {
         let mut requestUntil: Value = requestUntilparamsUntilVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsUntil: Value = requestUntilparamsUntilVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         if (since != Value::Null) {
-            add_element_to_object(&mut requestUntil, &Value::Str("startTime".into()), since.clone());
+            if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("startTime".into(), since.clone()); }
         }
         if (limit != Value::Null) {
-            add_element_to_object(&mut requestUntil, &Value::Str("size".into()), limit.clone());
+            if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("size".into(), limit.clone()); }
         }
-        let __ws_arg_45 = self.extend(requestUntil, &[paramsUntil]);
-        let mut response: Value = self.v3_private_get_convert_trades(&[__ws_arg_45]).await;
+        let __ws_arg_46 = self.extend(requestUntil, &[paramsUntil]);
+        let mut response: Value = self.v3_private_get_convert_trades(&[__ws_arg_46]).await;
         //
         //     {
         //         "success": true,
@@ -6141,8 +6144,8 @@ impl WooCore {
         let mut data: Value = self.safe_list_k(response, "rows", &[Value::from(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1134: bool = true;
-            while { if !__for_first_1134 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1134 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
+            let mut __for_first_1164: bool = true;
+            while { if !__for_first_1164 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1164 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             let mut entry: Value = data.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut id: Value = self.safe_string_k(entry.clone(), "token", &[]);
             let mut code: Value = self.safe_currency_code(id.clone(), &[]);
@@ -6223,8 +6226,8 @@ impl WooCore {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
             }
         }
-        let __ws_arg_46 = self.extend(request, &[params]);
-        let mut response: Value = self.v3_private_get_futures_positions(&[__ws_arg_46]).await;
+        let __ws_arg_47 = self.extend(request, &[params]);
+        let mut response: Value = self.v3_private_get_futures_positions(&[__ws_arg_47]).await;
         //
         //     {
         //         "success": true,
@@ -6313,13 +6316,13 @@ impl WooCore {
     pub fn default_network_code_for_currency(&self, mut code: Value) -> Option<String> {
         let mut currencyItem: Value = self.currency(code);
         let mut networks: Value = currencyItem.as_map().and_then(|__m| __m.get("networks")).cloned().unwrap_or(Value::Null);
-        let mut networkKeys: Value = object_keys(&networks);
+        let mut networkKeys: Value = Value::Array(networks.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1135: bool = true;
-            while { if !__for_first_1135 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1135 = false; i.as_f64().unwrap_or(f64::NAN) < ((networkKeys.len() as i64) as f64) } {
+            let mut __for_first_1165: bool = true;
+            while { if !__for_first_1165 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1165 = false; i.as_f64().unwrap_or(f64::NAN) < ((networkKeys.len() as i64) as f64) } {
             let mut network: Value = networkKeys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-            if (network.as_str() == Some("ETH")) {
+            if (network.as_str() == Some("ERC20")) {
                 return network.as_str().map(str::to_owned);
             }
         }

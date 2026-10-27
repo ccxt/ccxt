@@ -794,8 +794,8 @@ class cryptocom extends Exchange {
             $strike = $this->safe_string($market, 'strike');
             $marginBuyEnabled = $this->safe_bool($market, 'margin_buy_enabled');
             $marginSellEnabled = $this->safe_bool($market, 'margin_sell_enabled');
-            $expiryString = $this->omit_zero($this->safe_string($market, 'expiry_timestamp_ms'));
-            $expiry = ($expiryString !== null) ? intval($expiryString) : null;
+            $expiryRaw = $this->safe_integer($market, 'expiry_timestamp_ms');
+            $expiry = ($expiryRaw === 0) ? null : $expiryRaw;
             $symbol = $base . '/' . $quote;
             $type = null;
             $contract = null;
@@ -1135,8 +1135,9 @@ class cryptocom extends Exchange {
         $paramsOmitted = $this->omit($paramsPaginate, array( 'until' ));
         if ($since !== null) {
             $request['start_ts'] = $since - $duration * 1000;
-            if ($limitResolved !== null) {
-                $request['end_ts'] = $this->sum($since, $duration * $limitResolved * 1000);
+            if ($limit !== null) {
+                $countLimit = $this->parse_to_int(min($limit, 300));
+                $request['end_ts'] = $this->sum($since, $duration * $countLimit * 1000);
             } else {
                 $request['end_ts'] = $until;
             }
@@ -1393,7 +1394,7 @@ class cryptocom extends Exchange {
             }
         }
         $postOnly = $this->safe_bool($paramsValue, 'postOnly', false);
-        if (($postOnly === true) || ($timeInForce === 'PO')) {
+        if (($postOnly) || ($timeInForce === 'PO')) {
             $request['exec_inst'] = array( 'POST_ONLY' );
             $request['time_in_force'] = 'GOOD_TILL_CANCEL';
         }
@@ -1613,7 +1614,7 @@ class cryptocom extends Exchange {
             }
         }
         $postOnly = $this->safe_bool($params, 'postOnly', false);
-        if (($postOnly === true) || ($timeInForce === 'PO')) {
+        if (($postOnly) || ($timeInForce === 'PO')) {
             $request['exec_inst'] = array( 'POST_ONLY' );
             $request['time_in_force'] = 'GOOD_TILL_CANCEL';
         }
@@ -2013,21 +2014,16 @@ class cryptocom extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function parse_address(mixed $addressString) {
-        $address = null;
-        $tag = null;
-        $rawTag = null;
-        if (mb_strpos($addressString, '?') > 0) {
+    public function parse_address(?string $addressString): array {
+        if ($addressString !== null && mb_strpos($addressString, '?') > 0) {
             list($address, $rawTag) = explode('?', $addressString);
             $splitted = explode('=', $rawTag);
-            $tag = $splitted[1];
-        } else {
-            $address = $addressString;
+            return array( $address, $splitted[1] );
         }
-        return array( $address, $tag );
+        return array( $addressString, null );
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): array {
+    public function withdraw(string $code, float $amount, string $address, $params = array()): array {
         /**
          * make a withdrawal
          *
@@ -2036,11 +2032,12 @@ class cryptocom extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
-         * @param {string} $tag
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
-        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_withdraw_tag_and_params($tag, $params);
+        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_param_string($params, 'tag');
+        $this->check_address($address, $code, $tagWithdrawTag);
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -2155,15 +2152,18 @@ class cryptocom extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/?id=address-structure address structure~
          */
-        $network = $this->safe_string_upper($params, 'network');
+        $networkParam = $this->safe_string_upper($params, 'network');
         $paramsOmitted = $this->omit($params, array( 'network' ));
         $depositAddressesRaw = $this->fetch_deposit_addresses_by_network($code, $paramsOmitted);
         $depositAddresses = $depositAddressesRaw;
-        if (is_array($depositAddresses) && array_key_exists($network ?? '', $depositAddresses)) {
-            return $depositAddresses[$network];
+        if ($networkParam !== null) {
+            $network = $this->safe_string($this->networkAliases, $networkParam, $networkParam);
+            if (is_array($depositAddresses) && array_key_exists($network ?? '', $depositAddresses)) {
+                return $this->safe_dict($depositAddresses, $network);
+            }
         }
         $keys = is_array($depositAddresses) ? array_keys($depositAddresses) : array();
-        return $depositAddresses[$keys[0]];
+        return $this->safe_dict($depositAddresses, $this->safe_string($keys, 0));
     }
 
     public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
@@ -2434,7 +2434,7 @@ class cryptocom extends Exchange {
         );
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             'ACTIVE' => 'open',
             'CANCELED' => 'canceled',
@@ -2445,7 +2445,7 @@ class cryptocom extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_time_in_force(?string $timeInForce) {
+    public function parse_time_in_force(?string $timeInForce): ?string {
         $timeInForces = array(
             'GOOD_TILL_CANCEL' => 'GTC',
             'IMMEDIATE_OR_CANCEL' => 'IOC',
@@ -2682,14 +2682,14 @@ class cryptocom extends Exchange {
                 throw new NotSupported($this->id . ' only cross margin is supported');
             }
         } else {
-            if (($defaultType === 'margin') || ($isMargin === true)) {
+            if (($defaultType === 'margin') || ($isMargin)) {
                 $marginMode = 'cross';
             }
         }
         return array( $marginMode, $paramsMarginMode );
     }
 
-    public function parse_deposit_withdraw_fee(mixed $fee, ?array $currency = null): mixed {
+    public function parse_deposit_withdraw_fee(?array $fee, ?array $currency = null): mixed {
         //
         //    {
         //        "full_name": "Alchemix",
@@ -3142,7 +3142,7 @@ class cryptocom extends Exchange {
         $timestamp = $this->safe_integer($contract, 't');
         $fundingTimestamp = null;
         if ($timestamp !== null) {
-            $fundingTimestamp = (int) ceil($timestamp / 3600000) * 3600000; // end of the next hour
+            $fundingTimestamp = $this->parse_to_int((int) ceil($timestamp / 3600000)) * 3600000; // end of the next hour
         }
         return array(
             'info' => $contract,
@@ -3409,7 +3409,8 @@ class cryptocom extends Exchange {
 
     public function params_to_string(mixed $object, float $level): string {
         $maxLevel = 3;
-        if ($level >= $maxLevel) {
+        $depth = $this->parse_to_int($level);
+        if ($depth >= $maxLevel) {
             return (string) $object;
         }
         if (gettype($object) === 'string') {
@@ -3614,9 +3615,9 @@ class cryptocom extends Exchange {
         );
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
-        $requestHeaders = $headers;
-        $requestBody = $body;
+    public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
+        $requestHeaders = null;
+        $requestBody = null;
         $type = $this->safe_string($api, 0);
         $access = $this->safe_string($api, 1);
         $apiUrl = $this->safe_string($this->urls['api'], $type);

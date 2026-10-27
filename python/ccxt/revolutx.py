@@ -218,20 +218,21 @@ class revolutx(Exchange, ImplicitAPI):
             },
         })
 
-    def sign(self, path: str, api: object = 'public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
         requestHeaders = None
         requestBody = None
         implodedPath = self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         queryKeys = list(query.keys())
         queryLength = len(queryKeys)
-        baseApiUrl = self.safe_string(self.urls['api'], api)
+        apiName = api[0]
+        baseApiUrl = self.safe_string(self.urls['api'], apiName)
         if baseApiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         baseUrl = baseApiUrl
         url = baseUrl + '/' + implodedPath
         queryString = ''
-        if api == 'private':
+        if apiName == 'private':
             self.check_required_credentials()
             timestamp = str(self.milliseconds())
             if method == 'GET':
@@ -245,7 +246,7 @@ class revolutx(Exchange, ImplicitAPI):
             else:
                 requestBody = self.json(query)
             requestPath = '/api/' + implodedPath
-            bodyValue = requestBody if (requestBody is not None) else body
+            bodyValue = requestBody
             bodyString = bodyValue if (bodyValue is not None) else ''
             message = timestamp + method.upper() + requestPath + queryString + bodyString
             signature = self.eddsa(self.encode(message), self.privateKey, 'ed25519')
@@ -264,8 +265,8 @@ class revolutx(Exchange, ImplicitAPI):
             else:
                 requestBody = self.json(query)
                 requestHeaders = {'Content-Type': 'application/json'}
-        headersResult = requestHeaders if (requestHeaders is not None) else headers
-        bodyResult = requestBody if (requestBody is not None) else body
+        headersResult = requestHeaders
+        bodyResult = requestBody
         return {'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult}
 
     def parse_market(self, market: dict) -> MarketInterface:
@@ -696,13 +697,15 @@ class revolutx(Exchange, ImplicitAPI):
         id = self.safe_string(trade, 'id')
         tradeSymbol = self.safe_string(trade, 'symbol')
         symbol = self.safe_symbol(tradeSymbol, market, '/')
-        price = self.safe_number(trade, 'price')
-        amount = self.safe_number(trade, 'quantity')
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string(trade, 'quantity')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
         side = self.safe_string_lower(trade, 'side')
         timestamp = self.safe_integer(trade, 'timestamp')
         cost = None
-        if price is not None and amount is not None:
-            cost = price * amount
+        if priceString is not None and amountString is not None:
+            cost = self.parse_number(Precise.string_mul(priceString, amountString))
         return {
             'info': trade,
             'id': id,
@@ -728,7 +731,7 @@ class revolutx(Exchange, ImplicitAPI):
 
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
-        :param int [limit]: the maximum number of trades to return(1-1900, default 1900)
+        :param int [limit]: the maximum number of trades to return(1-100)
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest trade to fetch
         :param str [params.cursor]: pagination cursor from the previous response
@@ -750,7 +753,7 @@ class revolutx(Exchange, ImplicitAPI):
         elif since is not None:
             request['end_date'] = self.milliseconds()
         if limit is not None:
-            request['limit'] = min(limit, 1900)
+            request['limit'] = min(limit, 100)
         cursor = self.safe_string(params, 'cursor')
         if cursor is not None:
             request['cursor'] = cursor
@@ -809,7 +812,7 @@ class revolutx(Exchange, ImplicitAPI):
             result[code] = account
         return self.safe_balance(result)
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         """
         parses the order status from the exchange's status to the unified ccxt status
  @ignore
@@ -1118,7 +1121,7 @@ class revolutx(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
             request['symbols'] = market['id']
-        thirtyDays = 2592000000
+        thirtyDays = 30 * 24 * 60 * 60 * 1000
         until = self.safe_integer_2(params, 'until', 'until')
         if since is not None:
             request['start_date'] = since
@@ -1128,8 +1131,8 @@ class revolutx(Exchange, ImplicitAPI):
             request['end_date'] = until
         elif since is not None:
             now = self.milliseconds()
-            defaultEnd = since + thirtyDays
-            request['end_date'] = defaultEnd if (defaultEnd < now) else now
+            thirtyDaysAgo = now - thirtyDays
+            request['end_date'] = since + thirtyDays if (since < thirtyDaysAgo) else now
         if limit is not None:
             request['limit'] = limit
         cursor = self.safe_string(params, 'cursor')
@@ -1177,15 +1180,17 @@ class revolutx(Exchange, ImplicitAPI):
         """
         id = self.safe_string(trade, 'tid')
         orderId = self.safe_string(trade, 'oid')
-        price = self.safe_number(trade, 'p')
-        amount = self.safe_number(trade, 'q')
+        priceString = self.safe_string(trade, 'p')
+        amountString = self.safe_string(trade, 'q')
+        price = self.parse_number(priceString)
+        amount = self.parse_number(amountString)
         side = self.safe_string_lower(trade, 's')
         timestamp = self.safe_integer_2(trade, 'tdt', 'pdt')
         isMaker = self.safe_bool(trade, 'im', False)
         takerOrMaker = 'maker' if (isMaker) else 'taker'
         cost = None
-        if price is not None and amount is not None:
-            cost = price * amount
+        if priceString is not None and amountString is not None:
+            cost = self.parse_number(Precise.string_mul(priceString, amountString))
         symbol = self.safe_symbol(None, market)
         return {
             'info': trade,
@@ -1226,7 +1231,7 @@ class revolutx(Exchange, ImplicitAPI):
         request = {
             'symbol': market['id'],
         }
-        thirtyDays = 2592000000
+        thirtyDays = 30 * 24 * 60 * 60 * 1000
         until = self.safe_integer_2(params, 'until', 'until')
         if since is not None:
             request['start_date'] = since
@@ -1236,8 +1241,8 @@ class revolutx(Exchange, ImplicitAPI):
             request['end_date'] = until
         elif since is not None:
             now = self.milliseconds()
-            defaultEnd = since + thirtyDays
-            request['end_date'] = defaultEnd if (defaultEnd < now) else now
+            thirtyDaysAgo = now - thirtyDays
+            request['end_date'] = since + thirtyDays if (since < thirtyDaysAgo) else now
         if limit is not None:
             request['limit'] = limit
         cursor = self.safe_string(params, 'cursor')
@@ -1324,7 +1329,8 @@ class revolutx(Exchange, ImplicitAPI):
         return order
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
-        if code >= 400:
+        statusCode = self.parse_to_int(code)
+        if statusCode >= 400:
             if response is None:
                 return None
             feedback = self.id + ' ' + body

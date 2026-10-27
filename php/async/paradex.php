@@ -31,7 +31,7 @@ class paradex extends Exchange {
             'dex' => true,
             'has' => array(
                 'CORS' => null,
-                'spot' => false,
+                'spot' => true,
                 'margin' => false,
                 'swap' => true,
                 'future' => false,
@@ -366,6 +366,10 @@ class paradex extends Exchange {
                     '40110' => '\\ccxt\\AuthenticationError', // Malformed Bearer Token
                     '40111' => '\\ccxt\\AuthenticationError', // Invalid Bearer Token
                     '40112' => '\\ccxt\\PermissionDenied', // Geo IP blocked
+                    '40300' => '\\ccxt\\PermissionDenied', // Permission denied
+                    '40301' => '\\ccxt\\NotSupported', // SBE encoding required
+                    '42900' => '\\ccxt\\OperationRejected', // Max subscriptions per connection, a retry does not help until a channel is unsubscribed
+                    '42901' => '\\ccxt\\RateLimitExceeded', // Rate limited
                 ),
                 'broad' => array(
                     'missing or malformed jwt' => '\\ccxt\\AuthenticationError',
@@ -379,7 +383,16 @@ class paradex extends Exchange {
                 'broker' => 'CCXT',
             ),
             'features' => array(
-                'spot' => null,
+                'spot' => array(
+                    'extends' => 'forSwap',
+                    'createOrder' => array(
+                        // spot takes limit and market orders only, no trigger, stop loss or take profit types
+                        'triggerPrice' => false,
+                        'triggerDirection' => false,
+                        'stopLossPrice' => false,
+                        'takeProfitPrice' => false,
+                    ),
+                ),
                 'forSwap' => array(
                     'sandbox' => true,
                     'createOrder' => array(
@@ -438,7 +451,7 @@ class paradex extends Exchange {
                     ),
                     'fetchClosedOrders' => null, // todo
                     'fetchOHLCV' => array(
-                        'limit' => null, // todo by from/to
+                        'limit' => 1000, // todo by from/to
                     ),
                 ),
                 'swap' => array(
@@ -634,26 +647,53 @@ class paradex extends Exchange {
         //     ]
         //  }
         //
+        // spot
+        //
+        //     {
+        //         "symbol": "ETH-USD",
+        //         "base_currency": "ETH",
+        //         "quote_currency": "USD",
+        //         "settlement_currency": "USDC",
+        //         "order_size_increment": "0.0001",
+        //         "price_tick_size": "0.01",
+        //         "min_notional": "10",
+        //         "asset_kind": "SPOT",
+        //         "market_kind": "cross",
+        //         ...
+        //     }
+        //
         $assetKind = $this->safe_string($market, 'asset_kind');
+        $isSpot = ($assetKind === 'SPOT');
         $isOptionPerpetual = ($assetKind === 'PERP_OPTION');
         $isOptionDelivery = ($assetKind === 'OPTION');
         $isOption = $isOptionPerpetual || $isOptionDelivery;
         $type = 'swap';
-        if ($isOption) {
+        if ($isSpot) {
+            $type = 'spot';
+        } elseif ($isOption) {
             $type = 'option';
         }
         $isSwap = ($type === 'swap');
         $marketId = $this->safe_string($market, 'symbol');
         $quoteId = $this->safe_string($market, 'quote_currency');
         $baseId = $this->safe_string($market, 'base_currency');
+        $settleId = $this->safe_string($market, 'settlement_currency');
+        if ($isSpot) {
+            // spot is quoted in "USD" but paid and received in the settlement token (USDC),
+            // a spot market has no settle, so the token it trades against is the quote
+            $quoteId = $settleId;
+            $settleId = null;
+        }
         $quote = $this->safe_currency_code($quoteId);
         $base = $this->safe_currency_code($baseId);
         if (($base === null) || ($quote === null)) {
             return null;
         }
-        $settleId = $this->safe_string($market, 'settlement_currency');
         $settle = $this->safe_currency_code($settleId);
-        $symbol = $base . '/' . $quote . ':' . $settle;
+        $symbol = $base . '/' . $quote;
+        if (!$isSpot) {
+            $symbol = $symbol . ':' . $settle;
+        }
         $expiry = $this->safe_integer($market, 'expiry_at');
         $optionType = $this->safe_string($market, 'option_type');
         $strikePrice = $this->safe_string($market, 'strike_price');
@@ -678,18 +718,18 @@ class paradex extends Exchange {
             'quoteId' => $quoteId,
             'settleId' => $settleId,
             'type' => $type,
-            'spot' => false,
+            'spot' => $isSpot,
             'margin' => null,
             'swap' => $isSwap,
             'future' => false,
             'option' => $isOption,
             'active' => $this->safe_bool($market, 'enableTrading'),
-            'contract' => true,
-            'linear' => true,
-            'inverse' => false,
+            'contract' => !$isSpot,
+            'linear' => ($isSpot) ? null : true,
+            'inverse' => ($isSpot) ? null : false,
             'taker' => $takerFee,
             'maker' => $makerFee,
-            'contractSize' => $this->parse_number('1'),
+            'contractSize' => ($isSpot) ? null : $this->parse_number('1'),
             'expiry' => $expiry,
             'expiryDatetime' => $expireDatetime,
             'strike' => $this->parse_number($strikePrice),
@@ -868,7 +908,7 @@ class paradex extends Exchange {
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
-         * @param {string} [$params->price] "last", "mark", "index", default is "last"
+         * @param {string} [$params->price] "last", "mark", "index" (sent as "underlying"), default is "last"
          * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
@@ -879,30 +919,31 @@ class paradex extends Exchange {
             'resolution' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             'symbol' => $market['id'],
         );
-        $now = $this->milliseconds();
         $duration = $this->parse_timeframe($timeframe);
-        $until = $this->safe_integer_2($params, 'until', 'till', $now);
         $price = $this->safe_string($params, 'price');
         if ($price !== null) {
-            $request['price_kind'] = $price;
+            // the exchange names the index price "underlying" and rejects "index"
+            $request['price_kind'] = ($price === 'index') ? 'underlying' : $price;
         }
-        $paramsOmitted = $this->omit($params, array( 'until', 'till', 'price' ));
+        list($requestUntil, $paramsUntil) = $this->handle_until_option('end_at', $request, $params);
+        $hasEnd = (is_array($request) && array_key_exists('end_at' ?? '', $request));
+        $paramsOmitted = $this->omit($paramsUntil, array( 'price' ));
+        // exchange has undocumented limit slightly above, but 1000 is reliable limit
+        $limitResolved = (($limit === null) || ($limit > 1000)) ? 1000 : $limit;
+        $windowLength = $this->parse_to_int($duration * ($this->parse_to_int($limitResolved) + 1) * 1000);
         if ($since !== null) {
-            $request['start_at'] = $since;
-            if ($limit !== null) {
-                $request['end_at'] = $since . $duration * ($limit + 1) * 1000 - 1;
-            } else {
-                $request['end_at'] = $until;
+            $requestUntil['start_at'] = $since;
+            if (!$hasEnd) {
+                $sinceInt = $this->parse_to_int($since);
+                $requestUntil['end_at'] = $sinceInt . $windowLength - 1;
             }
         } else {
-            $request['end_at'] = $until;
-            if ($limit !== null) {
-                $request['start_at'] = $until - $duration * ($limit + 1) * 1000 + 1;
-            } else {
-                $request['start_at'] = $until - $duration * 101 * 1000 + 1;
-            }
+            $endAtRaw = $hasEnd ? $this->safe_integer($requestUntil, 'end_at', 0) : $this->milliseconds();
+            $endAt = $this->parse_to_int($endAtRaw);
+            $requestUntil['end_at'] = $endAt;
+            $requestUntil['start_at'] = $endAt - $windowLength + 1;
         }
-        $response = Async\await($this->publicGetMarketsKlines($this->extend($request, $paramsOmitted)));
+        $response = Async\await($this->publicGetMarketsKlines($this->extend($requestUntil, $paramsOmitted)));
         //
         //     {
         //         "results": [
@@ -1437,7 +1478,7 @@ class paradex extends Exchange {
         return $this->parse_open_interest($interest, $market);
     }
 
-    public function parse_open_interest(mixed $interest, ?array $market = null): array {
+    public function parse_open_interest(?array $interest, ?array $market = null): array {
         //
         //     {
         //         "symbol": "BTC-USD-PERP",
@@ -1469,7 +1510,7 @@ class paradex extends Exchange {
         ), $marketResolved);
     }
 
-    public function hash_message(mixed $message) {
+    public function hash_message(mixed $message): string {
         $hashed = $this->hash($message, 'keccak', 'hex');
         return '0x' . $hashed;
     }
@@ -1491,40 +1532,10 @@ class paradex extends Exchange {
     }
 
     private function do_get_system_config() {
-        $cachedConfig = $this->safe_dict($this->options, 'systemConfig');
-        if ($cachedConfig !== null) {
-            return $cachedConfig;
+        if ($this->safe_dict($this->options, 'systemConfig') === null) {
+            $response = Async\await($this->publicGetSystemConfig());
+            $this->options['systemConfig'] = $response;
         }
-        $response = Async\await($this->publicGetSystemConfig());
-        //
-        // {
-        //     "starknet_gateway_url": "https://potc-testnet-sepolia.starknet.io",
-        //     "starknet_fullnode_rpc_url": "https://pathfinder.api.testnet.paradex.trade/rpc/v0_7",
-        //     "starknet_chain_id": "PRIVATE_SN_POTC_SEPOLIA",
-        //     "block_explorer_url": "https://voyager.testnet.paradex.trade/",
-        //     "paraclear_address": "0x286003f7c7bfc3f94e8f0af48b48302e7aee2fb13c23b141479ba00832ef2c6",
-        //     "paraclear_decimals": 8,
-        //     "paraclear_account_proxy_hash": "0x3530cc4759d78042f1b543bf797f5f3d647cde0388c33734cf91b7f7b9314a9",
-        //     "paraclear_account_hash": "0x41cb0280ebadaa75f996d8d92c6f265f6d040bb3ba442e5f86a554f1765244e",
-        //     "oracle_address": "0x2c6a867917ef858d6b193a0ff9e62b46d0dc760366920d631715d58baeaca1f",
-        //     "bridged_tokens": [
-        //         {
-        //             "name": "TEST USDC",
-        //             "symbol": "USDC",
-        //             "decimals": 6,
-        //             "l1_token_address": "0x29A873159D5e14AcBd63913D4A7E2df04570c666",
-        //             "l1_bridge_address": "0x8586e05adc0C35aa11609023d4Ae6075Cb813b4C",
-        //             "l2_token_address": "0x6f373b346561036d98ea10fb3e60d2f459c872b1933b50b21fe6ef4fda3b75e",
-        //             "l2_bridge_address": "0x46e9237f5408b5f899e72125dd69bd55485a287aaf24663d3ebe00d237fc7ef"
-        //         }
-        //     ],
-        //     "l1_core_contract_address": "0x582CC5d9b509391232cd544cDF9da036e55833Af",
-        //     "l1_operator_address": "0x11bACdFbBcd3Febe5e8CEAa75E0Ef6444d9B45FB",
-        //     "l1_chain_id": "11155111",
-        //     "liquidation_fee": "0.2"
-        // }
-        //
-        $this->options['systemConfig'] = $response;
         return $this->safe_dict($this->options, 'systemConfig', array());
     }
 
@@ -1534,7 +1545,7 @@ class paradex extends Exchange {
 
     private function do_prepare_paradex_domain(bool $l1 = false) {
         $systemConfig = Async\await($this->get_system_config());
-        if ($l1 === true) {
+        if ($l1) {
             $l1D = array(
                 'name' => 'Paradex',
                 'chainId' => $systemConfig['l1_chain_id'],
@@ -1555,30 +1566,28 @@ class paradex extends Exchange {
     }
 
     private function do_retrieve_account() {
-        $cachedAccount = $this->safe_dict($this->options, 'paradexAccount');
-        if ($cachedAccount !== null) {
-            return $cachedAccount;
+        if ($this->safe_dict($this->options, 'paradexAccount') === null) {
+            $this->check_required_credentials();
+            $systemConfig = Async\await($this->get_system_config());
+            $domain = Async\await($this->prepare_paradex_domain(true));
+            $messageTypes = array(
+                'Constant' => array(
+                    array( 'name' => 'action', 'type' => 'string' ),
+                ),
+            );
+            $message = array(
+                'action' => 'STARK Key',
+            );
+            $msg = $this->eth_encode_structured_data($domain, $messageTypes, $message);
+            $signature = $this->sign_message($msg, $this->privateKey);
+            $account = $this->retrieve_stark_account(
+                $signature,
+                $systemConfig['paraclear_account_hash'],
+                $systemConfig['paraclear_account_proxy_hash']
+            );
+            $this->options['paradexAccount'] = $account;
         }
-        $this->check_required_credentials();
-        $systemConfig = Async\await($this->get_system_config());
-        $domain = Async\await($this->prepare_paradex_domain(true));
-        $messageTypes = array(
-            'Constant' => array(
-                array( 'name' => 'action', 'type' => 'string' ),
-            ),
-        );
-        $message = array(
-            'action' => 'STARK Key',
-        );
-        $msg = $this->eth_encode_structured_data($domain, $messageTypes, $message);
-        $signature = $this->sign_message($msg, $this->privateKey);
-        $account = $this->retrieve_stark_account(
-            $signature,
-            $systemConfig['paraclear_account_hash'],
-            $systemConfig['paraclear_account_proxy_hash']
-        );
-        $this->options['paradexAccount'] = $account;
-        return $account;
+        return $this->safe_dict($this->options, 'paradexAccount', array());
     }
 
     public function onboarding($params = array()) {
@@ -1611,7 +1620,7 @@ class paradex extends Exchange {
 
     private function do_authenticate_rest($params = array()) {
         $cachedToken = $this->safe_string($this->options, 'authToken');
-        $now = $this->nonce();
+        $now = $this->parse_to_int($this->nonce());
         if ($cachedToken !== null) {
             $cachedExpires = $this->safe_integer($this->options, 'expires');
             if ($cachedExpires === null) {
@@ -1690,7 +1699,11 @@ class paradex extends Exchange {
         //
         $timestamp = $this->safe_integer($order, 'created_at');
         $orderId = $this->safe_string($order, 'id');
-        $clientOrderId = $this->omit_zero($this->safe_string($order, 'client_id'));
+        // a client id is free text, omitZero would drop every non-numeric one in php
+        $clientOrderId = $this->safe_string($order, 'client_id');
+        if ($clientOrderId === '') {
+            $clientOrderId = null;
+        }
         $marketId = $this->safe_string($order, 'market');
         $marketResolved = $this->safe_market($marketId, $market);
         $symbol = $marketResolved['symbol'];
@@ -1748,7 +1761,7 @@ class paradex extends Exchange {
         ), $marketResolved);
     }
 
-    public function parse_time_in_force(?string $timeInForce) {
+    public function parse_time_in_force(?string $timeInForce): ?string {
         $timeInForces = array(
             'IOC' => 'IOC',
             'GTC' => 'GTC',
@@ -1757,7 +1770,7 @@ class paradex extends Exchange {
         return $this->safe_string($timeInForces, $timeInForce);
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         if ($status !== null) {
             $statuses = array(
                 'NEW' => 'open',
@@ -1770,7 +1783,7 @@ class paradex extends Exchange {
         return null;
     }
 
-    public function parse_order_type(?string $type) {
+    public function parse_order_type(?string $type): ?string {
         $types = array(
             'LIMIT' => 'limit',
             'MARKET' => 'market',
@@ -1780,7 +1793,7 @@ class paradex extends Exchange {
         return $this->safe_string_lower($types, $type, $type);
     }
 
-    public function scale_number(string $num) {
+    public function scale_number(string $num): ?string {
         return Precise::string_mul($num, '100000000');
     }
 
@@ -1879,7 +1892,7 @@ class paradex extends Exchange {
 
     private function do_sign_order_request(array $request, bool $modify = false) {
         $account = Async\await($this->retrieve_account());
-        $now = $this->nonce();
+        $now = $this->parse_to_int($this->nonce());
         $orderType = $this->safe_string($request, 'type');
         if ($orderType === null) {
             throw new ExchangeError($this->id . ' signOrderRequest() missing orderType');
@@ -1916,9 +1929,11 @@ class paradex extends Exchange {
         $domain = Async\await($this->prepare_paradex_domain());
         $msg = $this->starknet_encode_structured_data($domain, $messageTypes, $orderReq, $account['address']);
         $signature = $this->starknet_sign($msg, $account['privateKey']);
-        $request['signature'] = $signature;
-        $request['signature_timestamp'] = $orderReq['timestamp'];
-        return $request;
+        $signedRequest = $this->extend($request, array(
+            'signature' => $signature,
+            'signature_timestamp' => $orderReq['timestamp'],
+        ));
+        return $signedRequest;
     }
 
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): PromiseInterface {
@@ -2096,37 +2111,46 @@ class paradex extends Exchange {
         }
         $response = Async\await($this->privatePostOrdersBatch($ordersRequests));
         //
-        // {
-        //     "errors": [
-        //         {
-        //             "error": "VALIDATION_ERROR",
-        //             "message": "Invalid order"
-        //         }
-        //     ],
-        //     "orders": [
-        //         {
-        //             "id": "123456",
-        //             "market": "BTC-USD-PERP",
-        //             "side": "BUY",
-        //             "type": "LIMIT",
-        //             "price": "26000",
-        //             "size": "0.05",
-        //             "status": "NEW"
-        //         }
-        //     ]
-        // }
+        // orders and errors are index-aligned with the request, null where the other array has the entry
+        //
+        //     {
+        //         "errors": [
+        //             null,
+        //             {
+        //                 "error": "DUPLICATED_CLIENT_ID",
+        //                 "message": "duplicated client order id"
+        //             }
+        //         ],
+        //         "orders": [
+        //             {
+        //                 "id": "123456",
+        //                 "market": "BTC-USD-PERP",
+        //                 "side": "BUY",
+        //                 "type": "LIMIT",
+        //                 "price": "26000",
+        //                 "size": "0.05",
+        //                 "status": "NEW"
+        //             },
+        //             null
+        //         ]
+        //     }
         //
         $responseOrders = $this->safe_list($response, 'orders', array());
-        $parsedOrders = $this->parse_orders($responseOrders);
         $errors = $this->safe_list($response, 'errors', array());
-        for ($i = 0; $i < count($errors); $i++) {
-            $error = $errors[$i];
-            $parsedOrders[] = $this->safe_order(array(
-                'info' => $error,
-                'status' => 'rejected',
-            ));
+        $result = array();
+        for ($i = 0; $i < count($orders); $i++) {
+            $responseOrder = $this->safe_dict($responseOrders, $i);
+            if ($responseOrder !== null) {
+                $result[] = $this->parse_order($responseOrder);
+            } else {
+                $error = $this->safe_dict($errors, $i);
+                $result[] = $this->safe_order(array(
+                    'info' => $error,
+                    'status' => 'rejected',
+                ));
+            }
         }
-        return $parsedOrders;
+        return $result;
     }
 
     public function cancel_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
@@ -2666,9 +2690,11 @@ class paradex extends Exchange {
         //                 "realized_pnl": "0",
         //                 "unrealized_pnl": "-2.39677214",
         //                 "unrealized_funding_pnl": "-0.11214013",
+        //                 "leverage": "5",
         //                 "cost": "648.39960537",
         //                 "cost_usd": "648.529",
         //                 "cached_funding_index": "35202.1002351",
+        //                 "created_at": 1718947571560,
         //                 "last_updated_at": 1718950074249,
         //                 "last_fill_id": "1718947571560201703986670001",
         //                 "seq_no": 1718950074249176253,
@@ -2694,9 +2720,11 @@ class paradex extends Exchange {
         //         "realized_pnl": "0",
         //         "unrealized_pnl": "-2.39677214",
         //         "unrealized_funding_pnl": "-0.11214013",
+        //         "leverage": "5",
         //         "cost": "648.39960537",
         //         "cost_usd": "648.529",
         //         "cached_funding_index": "35202.1002351",
+        //         "created_at": 1718947571560,
         //         "last_updated_at": 1718950074249,
         //         "last_fill_id": "1718947571560201703986670001",
         //         "seq_no": 1718950074249176253,
@@ -2707,32 +2735,33 @@ class paradex extends Exchange {
         $marketResolved = $this->safe_market($marketId, $market);
         $symbol = $marketResolved['symbol'];
         $side = $this->safe_string_lower($position, 'side');
-        $quantity = $this->safe_string($position, 'size');
-        if ($side !== 'long') {
-            $quantity = Precise::string_mul('-1', $quantity);
-        }
-        $timestamp = $this->safe_integer($position, 'time');
+        // side carries the direction, the unified contracts is a magnitude whether or not size is signed
+        $quantity = Precise::string_abs($this->safe_string($position, 'size'));
+        $timestamp = $this->safe_integer($position, 'created_at');
         $liquidationPrice = $this->parse_number($this->omit_zero($this->safe_string($position, 'liquidation_price')));
+        // cost_usd is signed by side, the unified notional is a magnitude
+        $notionalString = Precise::string_abs($this->safe_string($position, 'cost_usd'));
         return $this->safe_position(array(
             'info' => $position,
             'id' => $this->safe_string($position, 'id'),
             'symbol' => $symbol,
             'entryPrice' => $this->safe_number($position, 'average_entry_price'),
             'markPrice' => null,
-            'notional' => null,
-            'collateral' => $this->safe_number($position, 'cost'),
+            'notional' => $this->parse_number($notionalString),
+            'collateral' => null, // cross margin is held at the account level, the position payload only carries its cost
             'unrealizedPnl' => $this->safe_number($position, 'unrealized_pnl'),
             'side' => $side,
             'contracts' => $this->parse_number($quantity),
             'contractSize' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
+            'lastUpdateTimestamp' => $this->safe_integer($position, 'last_updated_at'),
             'hedged' => null,
             'maintenanceMargin' => null,
             'maintenanceMarginPercentage' => null,
             'initialMargin' => null,
             'initialMarginPercentage' => null,
-            'leverage' => null,
+            'leverage' => $this->safe_number($position, 'leverage'),
             'liquidationPrice' => $liquidationPrice,
             'marginRatio' => null,
             'marginMode' => null,
@@ -3102,7 +3131,7 @@ class paradex extends Exchange {
         );
     }
 
-    public function parse_transaction_status(?string $status) {
+    public function parse_transaction_status(?string $status): ?string {
         $statuses = array(
             'PENDING' => 'pending',
             'AVAILABLE' => 'pending',
@@ -3637,7 +3666,8 @@ class paradex extends Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $this->safe_string($market, 'symbol'), $since, $limit);
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
+        $apiName = $api[0];
         $version = $this->version;
         $pathValue = $path;
         if (mb_strpos($path, 'v2/') === 0) {
@@ -3652,11 +3682,11 @@ class paradex extends Exchange {
         }
         $url = $this->implode_hostname($baseApiUrl) . '/' . $this->implode_params($pathValue, $params);
         $query = $this->omit($params, $this->extract_params($pathValue));
-        if ($api === 'public') {
+        if ($apiName === 'public') {
             if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($query);
             }
-        } elseif ($api === 'private') {
+        } elseif ($apiName === 'private') {
             $privateHeaders = array(
                 'Accept' => 'application/json',
                 'PARADEX-PARTNER' => $this->safe_string($this->options, 'broker', 'CCXT'),
@@ -3702,10 +3732,10 @@ class paradex extends Exchange {
             //         url += '?' + this.urlencode (query);
             //     }
             // }
-            $bodyResolved = ($privateBody !== null) ? $privateBody : $body;
+            $bodyResolved = $privateBody;
             return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $privateHeaders );
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => null, 'headers' => null );
     }
 
     public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
@@ -3720,6 +3750,24 @@ class paradex extends Exchange {
         //     }
         //
         $errorCode = $this->safe_string($response, 'error');
+        if (($errorCode === null) && ($httpCode === 400)) {
+            //
+            // a batch where every order was rejected, errors are index-aligned with the request
+            //
+            //     {
+            //         "errors": [ { "error": "DUPLICATED_CLIENT_ID", "message": "..." } ],
+            //         "orders": [ null ]
+            //     }
+            //
+            $batchErrors = $this->safe_list($response, 'errors', array());
+            for ($i = 0; $i < count($batchErrors); $i++) {
+                $batchErrorCode = $this->safe_string($batchErrors[$i], 'error');
+                if ($batchErrorCode !== null) {
+                    $errorCode = $batchErrorCode;
+                    break;
+                }
+            }
+        }
         if ($errorCode !== null) {
             $feedback = $this->id . ' ' . $body;
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $feedback);

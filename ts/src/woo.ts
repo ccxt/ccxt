@@ -22,7 +22,7 @@ export default class woo extends Exchange {
             'countries': [ 'KY' ], // Cayman Islands
             'rateLimit': 100,
             'version': 'v1',
-            'certified': true,
+            'certified': false,
             'pro': true,
             'hostname': 'woox.io',
             'has': {
@@ -346,7 +346,6 @@ export default class woo extends Exchange {
                 'sandboxMode': false,
                 'createMarketBuyOrderRequiresPrice': true,
                 'networks': {
-                    'TRX': 'TRX', // WOO X renamed the network id from TRON to TRX
                     'TRC20': 'TRX',
                     'ERC20': 'ETH',
                     'BEP20': 'BSC',
@@ -1642,7 +1641,7 @@ export default class woo extends Exchange {
         }
         const isTrigger = this.safeBool2 (params, 'trigger', 'stop', false);
         const paramsOmitted: Dict = this.omit (params, [ 'clOrdID', 'clientOrderId', 'client_order_id', 'stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice', 'trailingTriggerPrice', 'trailingAmount', 'trailingPercent', 'trigger', 'stop' ]);
-        const isConditional = (isTrigger === true) || isTrailing || (triggerPrice !== undefined) || (this.safeValue (paramsOmitted, 'childOrders') !== undefined);
+        const isConditional = (isTrigger) || isTrailing || (triggerPrice !== undefined) || (this.safeValue (paramsOmitted, 'childOrders') !== undefined);
         let response = undefined;
         if (isConditional) {
             if (isByClientOrder) {
@@ -1693,7 +1692,7 @@ export default class woo extends Exchange {
     override async cancelOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         const isTrigger = this.safeBool2 (params, 'trigger', 'stop', false);
         const paramsOmitted: Dict = this.omit (params, [ 'trigger', 'stop' ]);
-        if ((isTrigger !== true) && (symbol === undefined)) {
+        if ((!isTrigger) && (symbol === undefined)) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
         if (this.markets === undefined) {
@@ -1709,7 +1708,7 @@ export default class woo extends Exchange {
         const paramsOmitted2: Dict = this.omit (paramsOmitted, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
         const isByClientOrder = clientOrderIdExchangeSpecific !== undefined;
         let response = undefined;
-        if (isTrigger === true) {
+        if (isTrigger) {
             if (isByClientOrder) {
                 request['clientAlgoOrderId'] = clientOrderIdExchangeSpecific;
             } else {
@@ -1799,8 +1798,12 @@ export default class woo extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
+        let triggerAfter: Int = 0;
+        if ((timeout !== undefined) && (timeout > 0)) {
+            triggerAfter = (timeout > 900000) ? 900000 : timeout;
+        }
         const request: Dict = {
-            'triggerAfter': ((timeout as number) > 0) ? Math.min ((timeout as number), 900000) : 0,
+            'triggerAfter': triggerAfter,
         };
         const response = await this.v3PrivatePostTradeCancelAllAfter (this.extend (request, params));
         //
@@ -2115,7 +2118,7 @@ export default class woo extends Exchange {
         return await this.fetchOrders (symbol, since, limit, extendedParams);
     }
 
-    parseTimeInForce (timeInForce: Str) {
+    parseTimeInForce (timeInForce: Str): Str {
         const timeInForces: Dict = {
             'ioc': 'IOC',
             'fok': 'FOK',
@@ -2280,7 +2283,7 @@ export default class woo extends Exchange {
         }, marketResolved);
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         if (status !== undefined) {
             const statuses: Dict = {
                 'NEW': 'open',
@@ -2898,7 +2901,7 @@ export default class woo extends Exchange {
         return this.parseDepositAddress (this.extend (data, { 'network': this.safeString (request, 'network') }), currency);
     }
 
-    getDedicatedNetworkId (currency: any, params: Dict): any {
+    getDedicatedNetworkId (currency: any, params: Dict): [Str, Dict] {
         const [ networkCodeRaw, paramsNetworkCode ] = this.handleNetworkCodeAndParams (params);
         const networkCode = this.networkIdToCode (networkCodeRaw, currency['code']);
         const networkEntry = (networkCode === undefined) ? undefined : this.safeDict (currency['networks'], networkCode);
@@ -2923,7 +2926,7 @@ export default class woo extends Exchange {
         } as DepositAddress;
     }
 
-    async getAssetHistoryRows (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<any> {
+    async getAssetHistoryRows (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3067,7 +3070,7 @@ export default class woo extends Exchange {
         return this.safeString (types, (type as string), type);
     }
 
-    getCurrencyFromChaincode (networkizedCode: any, currency: any) {
+    getCurrencyFromChaincode (networkizedCode: any, currency: any): CurrencyInterface {
         if (currency !== undefined) {
             return currency;
         } else {
@@ -3249,7 +3252,7 @@ export default class woo extends Exchange {
         const transfer = this.parseTransfer (data, currency);
         const transferOptions = this.safeDict (this.options, 'transfer', {});
         const fillResponseFromRequest = this.safeBool (transferOptions, 'fillResponseFromRequest', true);
-        if (fillResponseFromRequest === true) {
+        if (fillResponseFromRequest) {
             transfer['amount'] = amount;
             transfer['fromAccount'] = fromAccount;
             transfer['toAccount'] = toAccount;
@@ -3391,16 +3394,16 @@ export default class woo extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
-        const [ tagWithdrawTag, paramsWithdrawTag ] = this.handleWithdrawTagAndParams (tag, params);
+    override async withdraw (code: string, amount: number, address: string, params: Dict = {}): Promise<Transaction> {
+        const [ tagWithdrawTag, paramsWithdrawTag ] = this.handleParamString (params, 'tag');
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        this.checkAddress (address);
+        this.checkAddress (address, code, tagWithdrawTag);
         const currency = this.currency (code);
         const request: Dict = {
             'amount': amount,
@@ -3431,7 +3434,7 @@ export default class woo extends Exchange {
             'amount': amount,
             'addressTo': address,
             'tag': tagWithdrawTag,
-            'network': network,
+            'network': this.safeString (this.networkAliases, network, network),
             'type': 'withdrawal',
             'status': 'pending',
         });
@@ -3493,7 +3496,7 @@ export default class woo extends Exchange {
         return this.milliseconds () - this.safeInteger (this.options, 'timeDifference', 0);
     }
 
-    override sign (path: string, section = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, section: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
         let requestHeaders: NullableDict = undefined;
         let requestBody: Str = undefined;
         const version = this.safeString (section, 0);
@@ -3520,7 +3523,7 @@ export default class woo extends Exchange {
             this.checkRequiredCredentials ();
             if (method === 'POST' && (path === 'trade/algoOrder' || path === 'trade/order')) {
                 const isSandboxMode = this.safeBool (this.options, 'sandboxMode', false);
-                if (isSandboxMode !== true) {
+                if (!isSandboxMode) {
                     const applicationId = 'bc830de7-50f3-460b-9ee0-f430f83f9dad';
                     const brokerId = this.safeString (this.options, 'brokerId', applicationId);
                     const isTrigger = path.indexOf ('algo') > -1;
@@ -3566,8 +3569,8 @@ export default class woo extends Exchange {
             }
             requestHeaders['x-api-signature'] = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
         }
-        const headersResult = (requestHeaders !== undefined) ? requestHeaders : headers;
-        const bodyResult = (requestBody !== undefined) ? requestBody : body;
+        const headersResult = requestHeaders;
+        const bodyResult = requestBody;
         return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult };
     }
 
@@ -4355,6 +4358,11 @@ export default class woo extends Exchange {
         size = Precise.stringAbs (size);
         const notional = Precise.stringMul (size, markPrice);
         const positionSide = this.safeString (position, 'positionSide'); // 'SHORT' or 'LONG' for hedged, 'BOTH' for non-hedged
+        const marginMode = this.safeStringLower2 (position, 'marginMode', 'margin_mode');
+        let positionMargin = undefined;
+        if (marginMode === 'isolated') {
+            positionMargin = this.safeNumber2 (position, 'isolatedMarginAmount', 'isolated_margin_amount');
+        }
         return this.safePosition ({
             'info': position,
             'id': undefined,
@@ -4376,8 +4384,9 @@ export default class woo extends Exchange {
             'liquidationPrice': this.safeNumber2 (position, 'estLiqPrice', 'est_liq_price'),
             'markPrice': this.parseNumber (markPrice),
             'lastPrice': undefined,
+            'positionMargin': positionMargin,
             'collateral': undefined,
-            'marginMode': this.safeStringLower2 (position, 'marginMode', 'margin_mode'),
+            'marginMode': marginMode,
             'side': side,
             'percentage': undefined,
             'hedged': positionSide !== 'BOTH',
@@ -4786,7 +4795,7 @@ export default class woo extends Exchange {
         const networkKeys = Object.keys (networks);
         for (let i = 0; i < networkKeys.length; i++) {
             const network = networkKeys[i];
-            if (network === 'ETH') {
+            if (network === 'ERC20') {
                 return network;
             }
         }

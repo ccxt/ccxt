@@ -1,6 +1,6 @@
 import { Dict } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
-interface Exchange {
+declare abstract class Exchange extends _Exchange {
     zendeskGet201893608(params?: {}): Promise<Dict>;
     zendeskGet360000292886(params?: {}): Promise<Dict>;
     publicGetTime(params?: {}): Promise<Dict>;
@@ -64,7 +64,5 @@ interface Exchange {
     privatePostEarnDeallocateStatus(params?: {}): Promise<Dict>;
     privatePostEarnStrategies(params?: {}): Promise<Dict>;
     privatePostEarnAllocations(params?: {}): Promise<Dict>;
-}
-declare abstract class Exchange extends _Exchange {
 }
 export default Exchange;

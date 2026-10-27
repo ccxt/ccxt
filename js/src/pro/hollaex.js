@@ -239,7 +239,7 @@ export default class hollaex extends hollaexRest {
         // }
         //
         const channel = this.safeString(message, 'topic');
-        const rawTrades = this.safeValue(message, 'data');
+        const rawTrades = this.safeList(message, 'data', []);
         // usually the first message is an empty array
         // when the user does not have any trades yet
         const dataLength = rawTrades.length;
@@ -434,7 +434,7 @@ export default class hollaex extends hollaexRest {
         //     }
         //
         const messageHash = this.safeString(message, 'topic');
-        const data = this.safeValue(message, 'data');
+        const data = this.safeDict(message, 'data', {});
         const keys = Object.keys(data);
         const timestamp = this.safeTimestamp(message, 'time');
         this.balance['info'] = data;
@@ -472,7 +472,8 @@ export default class hollaex extends hollaexRest {
         this.checkRequiredCredentials();
         let expires = this.safeString(this.options, 'ws-expires');
         if (expires === undefined) {
-            const timeout = parseInt((this.timeout / 1000).toString());
+            const timeoutMs = this.parseToInt(this.timeout);
+            const timeout = this.parseToInt(timeoutMs / 1000);
             expires = this.sum(this.seconds(), timeout);
             if (expires === undefined) {
                 throw new ArgumentsRequired(this.id + ' watchPrivate() expires is required');

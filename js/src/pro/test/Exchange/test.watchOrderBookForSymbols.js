@@ -31,7 +31,7 @@ async function testWatchOrderBookForSymbols(exchange, skippedProperties, symbols
             succeeded = false;
         }
         currentTime = exchange.milliseconds();
-        if ((succeeded === true) && (response !== undefined)) {
+        if ((succeeded) && (response !== undefined)) {
             testOrderBook(exchange, skippedProperties, method, response, undefined);
             testSharedMethods.assertInArray(exchange, skippedProperties, method, response, 'symbol', symbols);
             const elapsed = currentTime - startTime;

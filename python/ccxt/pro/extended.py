@@ -130,7 +130,7 @@ class extended(ccxt.async_support.extended):
         amount = self.safe_float_2(delta, 'c', 'q')
         bookside.store(price, amount)
 
-    def handle_deltas(self, bookside: object, deltas: object):
+    def handle_deltas(self, bookside: object, deltas: list[object]):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i])
 
@@ -769,7 +769,7 @@ class extended(ccxt.async_support.extended):
             stored.append(parsed)
         client.resolve(stored, messageHash)
 
-    def find_subscription(self, client: Client, name: str):
+    def find_subscription(self, client: Client, name: str) -> dict:
         keys = list(client.subscriptions.keys())
         for i in range(0, len(keys)):
             key = keys[i]
@@ -797,9 +797,10 @@ class extended(ccxt.async_support.extended):
         if self.handle_error_message(client, message) is True:
             return
         type = self.safe_string(message, 'type')
-        data = self.safe_value(message, 'data')
-        if isinstance(data, list):
-            first = self.safe_dict(data, 0, {})
+        dataList = self.safe_list(message, 'data')
+        data = self.safe_dict(message, 'data')
+        if dataList is not None:
+            first = self.safe_dict(dataList, 0, {})
             side = self.safe_string(first, 'S')
             if side is not None:
                 self.handle_trades(client, message)

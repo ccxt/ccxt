@@ -109,7 +109,7 @@ export default class krakenfutures extends Exchange {
                 },
                 'www': 'https://futures.kraken.com/',
                 'doc': [
-                    'https://docs.kraken.com/api/docs/futures-api/trading/market-data/',
+                    'https://docs.kraken.com/exchange/guides/futures/rest',
                 ],
                 'fees': 'https://support.kraken.com/hc/en-us/articles/360022835771-Transaction-fees-and-rebates-for-Kraken-Futures',
                 'referral': undefined,
@@ -757,7 +757,7 @@ export default class krakenfutures extends Exchange {
         let baseVolume = undefined;
         let quoteVolume = undefined;
         const isIndex = this.safeBool(marketResolved, 'index', false);
-        if (isIndex !== true) {
+        if (!isIndex) {
             if (marketResolved['linear'] === true) {
                 baseVolume = volume;
             }
@@ -794,8 +794,8 @@ export default class krakenfutures extends Exchange {
      * @method
      * @name krakenfutures#fetchTradingFees
      * @description fetch the trading fees for multiple markets, resolving the account's 30-day usd volume tier when API credentials are set
-     * @see https://docs.kraken.com/api/docs/futures-api/trading/get-fee-schedules
-     * @see https://docs.kraken.com/api/docs/futures-api/trading/get-fee-schedules-volumes
+     * @see https://docs.kraken.com/api-reference/fee-schedules/get-fee-schedules
+     * @see https://docs.kraken.com/api-reference/fee-schedules/get-fee-schedule-volumes
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
@@ -894,7 +894,7 @@ export default class krakenfutures extends Exchange {
     /**
      * @method
      * @name krakenfutures#fetchOHLCV
-     * @see https://docs.kraken.com/api/docs/futures-api/charts/candles
+     * @see https://docs.kraken.com/api-reference/candles/market-candles
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
@@ -927,22 +927,25 @@ export default class krakenfutures extends Exchange {
             'interval': this.safeString(this.timeframes, timeframe, timeframe),
         };
         const paramsOmitted = this.omit(paramsPaginate, 'price');
-        const windowLimit = (limit === undefined) ? 2000 : Math.min(limit, 2000);
+        const windowLimit = ((limit === undefined) || (limit > 2000)) ? 2000 : limit;
+        const windowSize = this.parseToInt(windowLimit);
         let limitResolved = undefined;
         if ((since !== undefined) || (limit !== undefined)) {
-            limitResolved = windowLimit;
+            limitResolved = windowSize;
         }
         if (since !== undefined) {
             const duration = this.parseTimeframe(timeframe);
-            request['from'] = this.parseToInt(since / 1000);
-            const toTimestamp = this.sum(request['from'], windowLimit * duration - 1);
+            const fromTimestamp = this.parseToInt(since / 1000);
+            request['from'] = fromTimestamp;
+            const toTimestamp = this.parseToInt(this.sum(fromTimestamp, windowSize * duration - 1));
             const currentTimestamp = this.seconds();
-            request['to'] = Math.min(toTimestamp, currentTimestamp);
+            request['to'] = (toTimestamp < currentTimestamp) ? toTimestamp : currentTimestamp;
         }
         else if (limitResolved !== undefined) {
             const duration = this.parseTimeframe(timeframe);
-            request['to'] = this.seconds();
-            request['from'] = this.parseToInt(request['to'] - (duration * limitResolved));
+            const toTimestamp = this.seconds();
+            request['to'] = toTimestamp;
+            request['from'] = this.parseToInt(toTimestamp - (duration * windowSize));
         }
         const response = await this.chartsGetPriceTypeSymbolInterval(this.extend(request, paramsOmitted));
         //
@@ -986,8 +989,8 @@ export default class krakenfutures extends Exchange {
     /**
      * @method
      * @name krakenfutures#fetchTrades
-     * @see https://docs.kraken.com/api/docs/futures-api/trading/get-history
-     * @see https://docs.kraken.com/api/docs/futures-api/history/get-public-execution-events
+     * @see https://docs.kraken.com/api-reference/market-data/get-trade-history
+     * @see https://docs.kraken.com/api-reference/market-history/get-public-execution-events
      * @description Fetch a history of filled trades that this account has made
      * @param {string} symbol Unified CCXT market symbol
      * @param {int} [since] Timestamp in ms of earliest trade. Not used by krakenfutures except in combination with params.until
@@ -1186,24 +1189,22 @@ export default class krakenfutures extends Exchange {
         let order = this.safeString(trade, 'order_id');
         let marketId = this.safeString(trade, 'symbol');
         let side = this.safeString(trade, 'side');
-        let type = undefined;
+        let rawType = undefined;
         const priorEdit = this.safeDict(trade, 'orderPriorEdit');
         const priorExecution = this.safeDict(trade, 'orderPriorExecution');
         if (priorExecution !== undefined) {
             order = this.safeString(priorExecution, 'orderId');
             marketId = this.safeString(priorExecution, 'symbol');
             side = this.safeString(priorExecution, 'side');
-            type = this.safeString(priorExecution, 'type');
+            rawType = this.safeString(priorExecution, 'type');
         }
         else if (priorEdit !== undefined) {
             order = this.safeString(priorEdit, 'orderId');
             marketId = this.safeString(priorEdit, 'symbol');
             side = this.safeString(priorEdit, 'type');
-            type = this.safeString(priorEdit, 'type');
+            rawType = this.safeString(priorEdit, 'type');
         }
-        if (type !== undefined) {
-            type = this.parseOrderType(type);
-        }
+        const type = this.parseOrderType(rawType); // undefined stays undefined
         const marketResolved = this.safeMarket(marketId, market);
         let cost = undefined;
         const linear = this.safeBool(marketResolved, 'linear');
@@ -1308,7 +1309,8 @@ export default class krakenfutures extends Exchange {
         const isTakeProfitTriggerOrder = takeProfitTriggerPrice !== undefined;
         const isStopLossOrTakeProfitTrigger = isStopLossTriggerOrder || isTakeProfitTriggerOrder;
         const triggerSignal = this.safeString(paramsPostOnly, 'triggerSignal', 'last');
-        let reduceOnly = this.safeBool(paramsPostOnly, 'reduceOnly');
+        const reduceOnlyParam = this.safeBool(paramsPostOnly, 'reduceOnly');
+        let reduceOnly = (reduceOnlyParam === true);
         if (isStopLossOrTakeProfitTrigger || isTriggerOrder) {
             request['triggerSignal'] = triggerSignal;
         }
@@ -1327,7 +1329,7 @@ export default class krakenfutures extends Exchange {
                 request['stopPrice'] = this.priceToPrecision(symbolValue, takeProfitTriggerPrice);
             }
         }
-        if (reduceOnly === true) {
+        if (reduceOnly) {
             request['reduceOnly'] = true;
         }
         request['orderType'] = typeValue;
@@ -1679,7 +1681,7 @@ export default class krakenfutures extends Exchange {
      * @method
      * @name krakenfutures#cancelAllOrdersAfter
      * @description dead man's switch, cancel all orders after the given timeout
-     * @see https://docs.kraken.com/api/docs/futures-api/trading/cancel-all-orders-after
+     * @see https://docs.kraken.com/api-reference/order-management/dead-mans-switch
      * @param {number} timeout time in milliseconds, 0 represents cancel the timer
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the api result
@@ -1805,7 +1807,7 @@ export default class krakenfutures extends Exchange {
         const isTrigger = this.safeBool2(params, 'trigger', 'stop', false);
         let response;
         const paramsOmitted = this.omit(params, ['trigger', 'stop']);
-        if (isTrigger === true) {
+        if (isTrigger) {
             response = await this.historyGetTriggers(this.extend(request, paramsOmitted));
         }
         else {
@@ -1840,7 +1842,7 @@ export default class krakenfutures extends Exchange {
     /**
      * @method
      * @name krakenfutures#fetchCanceledOrders
-     * @see https://docs.kraken.com/api/docs/futures-api/history/get-order-events
+     * @see https://docs.kraken.com/api-reference/account-history/get-order-events
      * @description Gets all canceled orders, including trigger orders, for an account from the exchange api
      * @param {string} symbol Unified market symbol
      * @param {int} [since] Timestamp (ms) of earliest order.
@@ -1862,12 +1864,12 @@ export default class krakenfutures extends Exchange {
             request['count'] = limit;
         }
         if (since !== undefined) {
-            request['from'] = since;
+            request['since'] = since;
         }
         let response;
         const isTrigger = this.safeBool2(params, 'trigger', 'stop', false);
         const paramsOmitted = this.omit(params, ['trigger', 'stop']);
-        if (isTrigger === true) {
+        if (isTrigger) {
             response = await this.historyGetTriggers(this.extend(request, paramsOmitted));
         }
         else {
@@ -2436,8 +2438,9 @@ export default class krakenfutures extends Exchange {
             id = this.safeString2(details, 'orderId', 'uid');
         }
         const type = this.safeStringLower2(details, 'type', 'orderType');
+        const parsedType = this.parseOrderType(type);
         let timeInForce = 'gtc';
-        if (type === 'ioc' || this.parseOrderType(type) === 'market') {
+        if (type === 'ioc' || parsedType === 'market') {
             timeInForce = 'ioc';
         }
         const ts = this.safeInteger(details, 'timestamp', timestamp);
@@ -2455,7 +2458,7 @@ export default class krakenfutures extends Exchange {
             'lastTradeTimestamp': undefined,
             'lastUpdateTimestamp': this.safeInteger(details, 'lastUpdateTimestamp', lastUpdateTimestamp),
             'symbol': symbol,
-            'type': this.parseOrderType(type),
+            'type': parsedType,
             'timeInForce': timeInForce,
             'postOnly': type === 'post',
             'reduceOnly': this.safeBool2(details, 'reduceOnly', 'reduce_only'),
@@ -2490,10 +2493,7 @@ export default class krakenfutures extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market(symbol);
-        }
+        const symbolResolved = (symbol !== undefined) ? this.symbol(symbol) : symbol;
         // todo: lastFillTime: this.iso8601(end)
         const response = await this.privateGetFills(params);
         //
@@ -2517,7 +2517,13 @@ export default class krakenfutures extends Exchange {
         //    }
         //
         const fills = this.safeList(response, 'fills', []);
-        return this.parseTrades(fills, market, since, limit);
+        // the endpoint returns the fills of every contract, each row resolves its own market
+        const trades = this.parseTrades(fills);
+        // a fill of a contract that is no longer listed in /instruments has no unified symbol,
+        // so safeMarket keeps the raw id (eg 'PF_XRPUSD') in trade['symbol']: it is filtered out
+        // whenever a symbol is requested and returned as-is when symbol is undefined, on purpose,
+        // because it is still the user's own fill and dropping it would hide real trades
+        return this.filterBySymbolSinceLimit(trades, symbolResolved, since, limit);
     }
     /**
      * @method
@@ -2793,7 +2799,7 @@ export default class krakenfutures extends Exchange {
     /**
      * @method
      * @name krakenfutures#fetchBalance
-     * @see https://docs.kraken.com/api/docs/futures-api/trading/get-accounts
+     * @see https://docs.kraken.com/api-reference/account-information/get-wallets
      * @description Fetch the balance for a sub-account, all sub-account balances are inside 'info' in the response
      * @param {object} [params] Exchange specific parameters
      * @param {string} [params.type] The sub-account type to query the balance of, possible values include 'flex', 'cash'/'main'/'funding', or a market symbol * defaults to 'flex' *
@@ -2910,7 +2916,7 @@ export default class krakenfutures extends Exchange {
                 type = symbol;
             }
         }
-        const accountName = this.parseAccount(type);
+        const accountName = this.parseKrakenAccountName(type);
         const accounts = this.safeDict(response, 'accounts');
         const account = this.safeDict(accounts, accountName);
         if (account === undefined) {
@@ -3167,7 +3173,7 @@ export default class krakenfutures extends Exchange {
         //        ]
         //    }
         //
-        const rates = this.safeValue(response, 'rates');
+        const rates = this.safeList(response, 'rates', []);
         const result = [];
         for (let i = 0; i < rates.length; i++) {
             const item = this.safeDict(rates, i);
@@ -3408,7 +3414,7 @@ export default class krakenfutures extends Exchange {
         }
         const marketId = this.safeString2(position, 'symbol', 'tradeable');
         const marketResolved = this.safeMarket(marketId, market);
-        return {
+        return this.safePosition({
             'info': position,
             'id': this.safeString(position, 'executionUid'),
             'symbol': marketResolved['symbol'],
@@ -3433,7 +3439,7 @@ export default class krakenfutures extends Exchange {
             'marginMode': marginType,
             'side': side,
             'percentage': undefined,
-        };
+        });
     }
     /**
      * @method
@@ -3587,7 +3593,7 @@ export default class krakenfutures extends Exchange {
             'status': this.safeString(transfer, 'result'),
         };
     }
-    parseAccount(account) {
+    parseKrakenAccountName(account) {
         const accountByType = {
             'main': 'cash',
             'funding': 'cash',
@@ -3654,15 +3660,15 @@ export default class krakenfutures extends Exchange {
         };
         let response;
         if (toAccount === 'spot') {
-            if (this.parseAccount(fromAccount) !== 'cash') {
+            if (this.parseKrakenAccountName(fromAccount) !== 'cash') {
                 throw new BadRequest(this.id + ' transfer cannot transfer from ' + fromAccount + ' to ' + toAccount);
             }
             request['currency'] = currency['id'];
             response = await this.privatePostWithdrawal(this.extend(request, params));
         }
         else {
-            request['fromAccount'] = this.parseAccount(fromAccount);
-            request['toAccount'] = this.parseAccount(toAccount);
+            request['fromAccount'] = this.parseKrakenAccountName(fromAccount);
+            request['toAccount'] = this.parseKrakenAccountName(toAccount);
             request['unit'] = currency['id'];
             response = await this.privatePostTransfer(this.extend(request, params));
         }
@@ -3807,13 +3813,14 @@ export default class krakenfutures extends Exchange {
         }
         throw new ExchangeError(feedback); // unknown message
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const apiVersions = this.safeDict(this.options['versions'], api, {});
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
+        const apiVersions = this.safeDict(this.options['versions'], apiName, {});
         const methodVersions = this.safeDict(apiVersions, method, {});
         const defaultVersion = this.safeString(methodVersions, path, this.version);
         const version = this.safeString(params, 'version', defaultVersion);
         const paramsOmitted = this.omit(params, 'version');
-        const apiAccess = this.safeDict(this.options['access'], api, {});
+        const apiAccess = this.safeDict(this.options['access'], apiName, {});
         const methodAccess = this.safeDict(apiAccess, method, {});
         const access = this.safeString(methodAccess, path, 'public');
         const endpoint = version + '/' + this.implodeParams(path, paramsOmitted);
@@ -3832,18 +3839,18 @@ export default class krakenfutures extends Exchange {
             }
             query += '?' + postData;
         }
-        const apiUrl = this.safeString(this.urls['api'], api);
+        const apiUrl = this.safeString(this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
         const url = apiUrl + query;
-        const requestBody = (path === 'batchorder') ? postData : body;
+        const requestBody = (path === 'batchorder') ? postData : undefined;
         let privateHeaders = undefined;
-        if (api === 'private' || access === 'private') {
+        if (apiName === 'private' || access === 'private') {
             this.checkRequiredCredentials();
             let auth = postData + '/api/';
-            if (api !== 'private') {
-                auth += api + '/';
+            if (apiName !== 'private') {
+                auth += apiName + '/';
             }
             auth += endpoint; // 1
             const hash = this.hash(this.encode(auth), sha256, 'binary'); // 2
@@ -3856,7 +3863,7 @@ export default class krakenfutures extends Exchange {
                 'Authent': signature,
             };
         }
-        const requestHeaders = (privateHeaders !== undefined) ? privateHeaders : headers;
+        const requestHeaders = privateHeaders;
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
 }

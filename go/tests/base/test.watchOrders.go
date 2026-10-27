@@ -41,16 +41,15 @@ func testWatchOrdersBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICoreExcha
 				}()
 				// try block:
 
-				r := <-exchange.WatchOrdersAsync(symbol)
+				r := <-exchange.(ccxt.IWatchOrders).WatchOrdersAsync(symbol)
 				if r.Err != nil {
 					panic(r.Err)
 				}
-				var rValueBox any = nil
-				if r.Value != nil {
-					rValueBox = r.Value
+				if r.Value == nil {
+					response = nil
+				} else {
+					response = ccxt.OrdersToList(r.Value)
 				}
-				response = (UnWrapType(rValueBox))
-				PanicOnError(response)
 				if IsEqual(response, nil) {
 					panic(Error(Add(exchange.GetId(), " watch returned undefined response")))
 				}
@@ -58,7 +57,7 @@ func testWatchOrdersBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICoreExcha
 			}()
 
 		}
-		if success == true {
+		if success {
 			if IsEqual(response, nil) {
 				panic(Error(Add(exchange.GetId(), " watch returned undefined response")))
 			}

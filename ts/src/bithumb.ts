@@ -367,9 +367,8 @@ export default class bithumb extends Exchange {
             },
             'options': {
                 'generation': 2, // either API generation 1 or 2
-                // Bithumb v2 ticker endpoint returns HTTP 414 when the `markets` query string is too long.
-                // Keep this conservative to reduce requests while staying below URL-length limits.
-                'fetchTickersGeneration2MaxMarketIdsPerRequest': 300,
+                // Bithumb v2 ticker endpoint rejects more than 200 ids in `markets`
+                'fetchTickersGeneration2MaxMarketIdsPerRequest': 200,
                 'createMarketBuyOrderRequiresPrice': true,
                 'quoteCurrencies': {
                     'KRW': {
@@ -930,18 +929,7 @@ export default class bithumb extends Exchange {
         const marketId = this.safeString (ticker, 'market');
         const symbol = this.safeSymbol (marketId, market);
         const close = this.safeString2 (ticker, 'closing_price', 'trade_price');
-        let change = this.safeString2 (ticker, 'signed_change_price', 'change_price');
-        let percentage = this.safeString2 (ticker, 'signed_change_rate', 'change_rate');
         const open = this.safeString (ticker, 'opening_price');
-        const nonZeroOpen = this.omitZero (open);
-        if ((marketId !== undefined) && (nonZeroOpen !== undefined) && (close !== undefined)) {
-            const computedChange = Precise.stringSub (close, open);
-            // Some v2 payloads return signed_change_price as 0 while open/last imply a non-zero move.
-            if ((change !== undefined) && Precise.stringEq (change, '0') && !Precise.stringEq (computedChange, '0')) {
-                change = computedChange;
-                percentage = undefined;
-            }
-        }
         let high = this.safeString2 (ticker, 'max_price', 'high_price');
         let low = this.safeString2 (ticker, 'min_price', 'low_price');
         // Some generation 2 ticker payloads can contain inconsistent high/low versus last.
@@ -966,8 +954,9 @@ export default class bithumb extends Exchange {
             'close': close,
             'last': close,
             'previousClose': this.safeString (ticker, 'prev_closing_price'),
-            'change': change,
-            'percentage': percentage,
+            // Exchange changes use previousClose; safeTicker derives unified changes from open.
+            'change': undefined,
+            'percentage': undefined,
             'average': undefined,
             'baseVolume': this.safeString2 (ticker, 'units_traded_24H', 'acc_trade_volume_24h'),
             'quoteVolume': this.safeString2 (ticker, 'acc_trade_value_24H', 'acc_trade_price_24h'),
@@ -1009,26 +998,19 @@ export default class bithumb extends Exchange {
             }
             const marketIdsChunks: string[][] = [];
             const promises: Promise<any>[] = [];
-            if (symbols !== undefined) {
-                request['markets'] = marketIds.join (',');
-                marketIdsChunks.push (marketIds);
-                promises.push (this.publicGetV1Ticker (this.extend (request, paramsGeneration)));
-            } else {
-                let maxMarketIdsPerRequest = this.safeInteger (this.options, 'fetchTickersGeneration2MaxMarketIdsPerRequest', 300);
-                if ((maxMarketIdsPerRequest === undefined) || (maxMarketIdsPerRequest < 1)) {
-                    maxMarketIdsPerRequest = 300;
-                }
-                let marketIdsChunk: string[] = [];
-                for (let i = 0; i < marketIdsLength; i++) {
-                    marketIdsChunk.push (marketIds[i]);
-                    const marketIdsChunkLength = marketIdsChunk.length;
-                    const isLastMarketId = (i === (marketIdsLength - 1));
-                    if ((marketIdsChunkLength >= maxMarketIdsPerRequest) || isLastMarketId) {
-                        marketIdsChunks.push (marketIdsChunk);
-                        request['markets'] = marketIdsChunk.join (',');
-                        promises.push (this.publicGetV1Ticker (this.extend (request, paramsGeneration)));
-                        marketIdsChunk = [];
-                    }
+            // the exchange rejects more than 200 market ids per request
+            const maxMarketIdsOption = this.safeInteger (this.options, 'fetchTickersGeneration2MaxMarketIdsPerRequest', 200);
+            const maxMarketIdsPerRequest = this.parseToInt (((maxMarketIdsOption === undefined) || (maxMarketIdsOption < 1)) ? 200 : maxMarketIdsOption);
+            let marketIdsChunk: string[] = [];
+            for (let i = 0; i < marketIdsLength; i++) {
+                marketIdsChunk.push (marketIds[i]);
+                const marketIdsChunkLength = marketIdsChunk.length;
+                const isLastMarketId = (i === (marketIdsLength - 1));
+                if ((marketIdsChunkLength >= maxMarketIdsPerRequest) || isLastMarketId) {
+                    marketIdsChunks.push (marketIdsChunk);
+                    request['markets'] = marketIdsChunk.join (',');
+                    promises.push (this.publicGetV1Ticker (this.extend (request, paramsGeneration)));
+                    marketIdsChunk = [];
                 }
             }
             //
@@ -1071,9 +1053,9 @@ export default class bithumb extends Exchange {
                     response = response['data'];
                 }
                 let expectedMarketId: Str = undefined;
-                const marketIdsChunk = this.safeList (marketIdsChunks, i, []);
-                const firstMarketId = this.safeString (marketIdsChunk, 0);
-                if ((firstMarketId !== undefined) && (this.safeString (marketIdsChunk, 1) === undefined)) {
+                const requestedMarketIds = this.safeList (marketIdsChunks, i, []);
+                const firstMarketId = this.safeString (requestedMarketIds, 0);
+                if ((firstMarketId !== undefined) && (this.safeString (requestedMarketIds, 1) === undefined)) {
                     expectedMarketId = firstMarketId;
                 }
                 let tickers: Dict[] = [];
@@ -1165,7 +1147,7 @@ export default class bithumb extends Exchange {
                     const currencyId = currencyIds[j];
                     const ticker = data[currencyId];
                     const base = this.safeCurrencyCode (currencyId);
-                    if ((base === undefined) || (quote === undefined)) {
+                    if (base === undefined) {
                         continue;
                     }
                     const symbol = base + '/' + quote;
@@ -1474,25 +1456,32 @@ export default class bithumb extends Exchange {
         //     }
         //
         // a workaround for their bug in date format, hours are not 0-padded
-        let timestamp = this.safeInteger (trade, 'timestamp');
-        const isGenerationTwo = (timestamp !== undefined);
+        const generationTwoTimestamp = this.safeInteger (trade, 'timestamp');
+        let timestamp = generationTwoTimestamp;
+        const isGenerationTwo = (generationTwoTimestamp !== undefined);
         const transactionDatetime = this.safeString (trade, 'transaction_date');
         if (transactionDatetime !== undefined) {
             const parts = transactionDatetime.split (' ');
             const numParts = parts.length;
             if (numParts > 1) {
                 const transactionDate = parts[0];
-                let transactionTime = parts[1];
-                if (transactionTime.length < 8) {
-                    transactionTime = '0' + transactionTime;
+                const rawTransactionTime = this.safeString (parts, 1, '');
+                let transactionTime = rawTransactionTime;
+                if (rawTransactionTime.length < 8) {
+                    transactionTime = '0' + rawTransactionTime;
                 }
-                timestamp = this.parse8601 (transactionDate + ' ' + transactionTime);
+                const kstTimestamp = this.parse8601 (transactionDate + ' ' + transactionTime);
+                timestamp = kstTimestamp;
+                if ((kstTimestamp !== undefined) && (!isGenerationTwo)) {
+                    timestamp = kstTimestamp - 9 * 3600000; // they report UTC + 9 hours, server in Korean timezone
+                }
             } else {
-                timestamp = this.safeIntegerProduct (trade, 'transaction_date', 0.001);
+                const productTimestamp = this.safeIntegerProduct (trade, 'transaction_date', 0.001);
+                timestamp = productTimestamp;
+                if ((productTimestamp !== undefined) && (!isGenerationTwo)) {
+                    timestamp = productTimestamp - 9 * 3600000; // they report UTC + 9 hours, server in Korean timezone
+                }
             }
-        }
-        if ((timestamp !== undefined) && (!isGenerationTwo)) {
-            timestamp -= 9 * 3600000; // they report UTC + 9 hours, server in Korean timezone
         }
         const type = undefined;
         let side = this.safeStringLower2 (trade, 'ask_bid', 'type');
@@ -1507,10 +1496,8 @@ export default class bithumb extends Exchange {
         const marketId = this.safeString (trade, 'market');
         const marketResolved: Market = this.safeMarket (marketId, market);
         const priceString = this.safeString2 (trade, 'price', 'trade_price');
-        let amountString = this.safeString (trade, 'trade_volume');
-        if (amountString === undefined) {
-            amountString = this.fixCommaNumber (this.safeString2 (trade, 'units_traded', 'units'));
-        }
+        const tradeVolume = this.safeString (trade, 'trade_volume');
+        const amountString = (tradeVolume === undefined) ? this.fixCommaNumber (this.safeString2 (trade, 'units_traded', 'units')) : tradeVolume;
         const costString = this.safeString (trade, 'total');
         let fee: FeeString = undefined;
         const feeCostString = this.safeString (trade, 'fee');
@@ -1633,7 +1620,7 @@ export default class bithumb extends Exchange {
             throw new ArgumentsRequired (this.id + ' createOrders() requires a non-empty orders array');
         }
         const ordersRequests: List = [];
-        let orderSymbols: string[] = [];
+        const orderSymbols: string[] = [];
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = this.safeDict (orders, i);
             const symbol = this.safeString (rawOrder, 'symbol');
@@ -1655,8 +1642,8 @@ export default class bithumb extends Exchange {
             const orderRequest = this.createOrderRequest (symbol, type as OrderType, side as OrderSide, amount, price, orderParams);
             ordersRequests.push (orderRequest);
         }
-        orderSymbols = this.marketSymbols (orderSymbols, undefined, false, true, true);
-        const market = this.market (orderSymbols[0]);
+        const symbols = this.marketSymbols (orderSymbols, undefined, false, true, true);
+        const market = this.market (symbols[0]);
         const request: Dict = {
             'batch_orders': ordersRequests,
         };
@@ -1731,19 +1718,16 @@ export default class bithumb extends Exchange {
             if (side === 'buy') {
                 typeRequest = 'price';
                 // for market buy it requires the amount of quote currency to spend
-                let cost = this.safeString (paramsOrder, 'cost');
+                const costParam = this.safeString (paramsOrder, 'cost');
                 const [ createMarketBuyOrderRequiresPrice, paramsRequiresPrice ] = this.handleOptionBoolAndParams (this.omit (paramsOrder, 'cost'), 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
                 paramsOrder = paramsRequiresPrice;
+                const amountString = this.numberToString (amount);
+                let cost: Str = (costParam === undefined) ? amountString : costParam;
                 if (createMarketBuyOrderRequiresPrice) {
-                    if ((price === undefined) && (cost === undefined)) {
+                    if ((price === undefined) && (costParam === undefined)) {
                         throw new InvalidOrder (this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument');
-                    } else {
-                        const amountString = this.numberToString (amount);
-                        const priceString = this.numberToString (price);
-                        cost = Precise.stringMul (amountString, priceString);
                     }
-                } else {
-                    cost = (cost === undefined) ? this.numberToString (amount) : cost;
+                    cost = Precise.stringMul (amountString, this.numberToString (price));
                 }
                 request['price'] = this.priceToPrecision (symbol, cost);
             } else {
@@ -2060,7 +2044,7 @@ export default class bithumb extends Exchange {
         return this.parseOrder (parsedOrder, market);
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             'Pending': 'open',
             'Completed': 'closed',
@@ -2673,8 +2657,8 @@ export default class bithumb extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag the secondary withdrawal destination address
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
      * @param {string} [params.network] the blockchain network to withdraw on, for example BTC or DASH
      * @param {string} [params.destination] secondary address destination for specific currencies, can alternatively use the tag argument
@@ -2689,13 +2673,13 @@ export default class bithumb extends Exchange {
      * @param {string} [params.two_factor_type] *generation 2 KRW withdraw only* the two factor type, for example kakao
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
+    override async withdraw (code: string, amount: number, address: string, params: Dict = {}): Promise<Transaction> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const [ generation, paramsGeneration ] = this.handleOptionIntegerAndParams (params, 'withdraw', 'generation', 2);
-        const [ tagWithdrawTag, paramsWithdrawTag ] = this.handleWithdrawTagAndParams (tag, paramsGeneration);
-        this.checkAddress (address);
+        const [ tagWithdrawTag, paramsWithdrawTag ] = this.handleParamString (paramsGeneration, 'tag');
+        this.checkAddress (address, code, tagWithdrawTag);
         const network = this.safeString2 (paramsWithdrawTag, 'network', 'net_type');
         const paramsNetwork = this.omit (paramsWithdrawTag, 'network');
         const currency = this.currency (code);
@@ -2710,7 +2694,7 @@ export default class bithumb extends Exchange {
         if (requiresDestination) {
             const destination = this.safeString2 (paramsNetwork, 'destination', 'secondary_address');
             if ((tagWithdrawTag === undefined) && (destination === undefined)) {
-                throw new ArgumentsRequired (this.id + ' ' + code + ' withdraw() requires a tag argument or an extra destination param');
+                throw new ArgumentsRequired (this.id + ' ' + code + ' withdraw() requires a tag or an extra destination param');
             } else if (tagWithdrawTag !== undefined) {
                 destinationRequest = tagWithdrawTag;
             } else {
@@ -2733,7 +2717,7 @@ export default class bithumb extends Exchange {
                 }
                 request['address'] = address;
                 request['currency'] = currency['id'];
-                request['net_type'] = network;
+                request['net_type'] = this.networkCodeToId (network, code);
                 request['amount'] = this.numberToString (amount);
                 if (destinationRequest !== undefined) {
                     request['secondary_address'] = destinationRequest;
@@ -2764,7 +2748,7 @@ export default class bithumb extends Exchange {
             request['currency'] = currency['id'];
             request['units'] = amount;
             if (network !== undefined) {
-                request['net_type'] = network;
+                request['net_type'] = this.networkCodeToId (network, code);
             }
             if (destinationRequest !== undefined) {
                 request['destination'] = destinationRequest;
@@ -2828,7 +2812,7 @@ export default class bithumb extends Exchange {
             'txid': this.safeString (transaction, 'txid'),
             'timestamp': timestamp,
             'datetime': datetime,
-            'network': this.safeString (transaction, 'net_type'),
+            'network': this.networkIdToCode (this.safeString (transaction, 'net_type'), currencyResolved['code']),
             'addressFrom': undefined,
             'address': undefined,
             'addressTo': undefined,
@@ -2886,7 +2870,7 @@ export default class bithumb extends Exchange {
      * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
      * @returns {object[]} a list response from the exchange
      */
-    async fetchWithdrawalWhitelist (params: Dict = {}): Promise<any> {
+    async fetchWithdrawalWhitelist (params: Dict = {}): Promise<any[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3162,7 +3146,7 @@ export default class bithumb extends Exchange {
         if (network === undefined) {
             throw new ArgumentsRequired (this.id + ' ' + code + ' createDepositAddress() requires a network parameter');
         }
-        request['net_type'] = network;
+        request['net_type'] = this.networkCodeToId (network, code);
         const response = await this.privatePostV1DepositsGenerateCoinAddress (this.extend (request, paramsOmitted));
         //
         //     {
@@ -3203,7 +3187,7 @@ export default class bithumb extends Exchange {
         if (network === undefined) {
             throw new ArgumentsRequired (this.id + ' ' + code + ' fetchDepositAddress() requires a network parameter');
         }
-        request['net_type'] = network;
+        request['net_type'] = this.networkCodeToId (network, code);
         const response = await this.privateGetV1DepositsCoinAddress (this.extend (request, paramsOmitted));
         //
         //     {
@@ -3269,13 +3253,13 @@ export default class bithumb extends Exchange {
         return {
             'info': response,
             'currency': code,
-            'network': this.safeString (response, 'net_type'),
+            'network': this.networkIdToCode (this.safeString (response, 'net_type'), code),
             'address': address,
             'tag': this.safeString (response, 'secondary_address'),
         } as DepositAddress;
     }
 
-    fixCommaNumber (numberStr: Str) {
+    fixCommaNumber (numberStr: Str): Str {
         // some endpoints need this https://github.com/ccxt/ccxt/issues/11031
         if (numberStr === undefined) {
             return undefined;
@@ -3291,7 +3275,7 @@ export default class bithumb extends Exchange {
         return this.milliseconds ();
     }
 
-    urlencodeWithArrayBrackets (query: Dict) {
+    urlencodeWithArrayBrackets (query: Dict): string {
         const keys = Object.keys (query);
         let result = '';
         for (let i = 0; i < keys.length; i++) {
@@ -3323,11 +3307,12 @@ export default class bithumb extends Exchange {
         return result;
     }
 
-    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
+        const apiName = api[0];
         let requestHeaders: NullableDict = undefined;
         let requestBody: Str = undefined;
         const endpoint = '/' + this.implodeParams (path, params);
-        const apiUrl = this.safeString (this.urls['api'], api);
+        const apiUrl = this.safeString (this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
@@ -3336,7 +3321,7 @@ export default class bithumb extends Exchange {
         const queryKeys = Object.keys (query);
         const queryKeysLength = queryKeys.length;
         const hasQuery = (queryKeysLength > 0);
-        if (api === 'public') {
+        if (apiName === 'public') {
             requestHeaders = {
                 'OPEN-API-PARTNER': 'CCXT',
             };
@@ -3375,11 +3360,11 @@ export default class bithumb extends Exchange {
                 const token = jwt (request, this.encode (this.secret), sha256);
                 requestHeaders['Authorization'] = 'Bearer ' + token;
             } else {
-                requestBody = this.urlencode (this.extend ({
+                const encodedBody = this.urlencode (this.extend ({
                     'endpoint': endpoint,
                 }, query));
                 // bithumb verifies signatures with PHP http_build_query conventions, spaces must be '+'
-                const bodyParts = requestBody.split ('%20');
+                const bodyParts = encodedBody.split ('%20');
                 requestBody = bodyParts.join ('+');
                 const nonce = this.nonce ().toString ();
                 const auth = endpoint + "\0" + requestBody + "\0" + nonce; // eslint-disable-line quotes
@@ -3395,8 +3380,8 @@ export default class bithumb extends Exchange {
                 };
             }
         }
-        const headersResult = (requestHeaders !== undefined) ? requestHeaders : headers;
-        const bodyResult = (requestBody !== undefined) ? requestBody : body;
+        const headersResult = requestHeaders;
+        const bodyResult = requestBody;
         return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult };
     }
 

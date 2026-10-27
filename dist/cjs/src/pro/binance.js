@@ -83,12 +83,12 @@ class binance extends binance$1["default"] {
                     'ws': {
                         'spot': 'wss://stream.testnet.binance.vision/ws',
                         'margin': 'wss://stream.testnet.binance.vision/ws',
-                        'future': 'wss://fstream.binancefuture.com/ws',
-                        'delivery': 'wss://dstream.binancefuture.com/ws',
+                        'linear': 'wss://fstream.binancefuture.com/ws',
+                        'inverse': 'wss://dstream.binancefuture.com/ws',
                         'ws-api': {
                             'spot': 'wss://ws-api.testnet.binance.vision/ws-api/v3',
-                            'future': 'wss://testnet.binancefuture.com/ws-fapi/v1',
-                            'delivery': 'wss://testnet.binancefuture.com/ws-dapi/v1',
+                            'linear': 'wss://testnet.binancefuture.com/ws-fapi/v1',
+                            'inverse': 'wss://testnet.binancefuture.com/ws-dapi/v1',
                         },
                     },
                 },
@@ -96,12 +96,12 @@ class binance extends binance$1["default"] {
                     'ws': {
                         'spot': 'wss://demo-stream.binance.com/ws',
                         'margin': 'wss://demo-stream.binance.com/ws',
-                        'future': 'wss://fstream.binancefuture.com/ws',
-                        'delivery': 'wss://dstream.binancefuture.com/ws',
+                        'linear': 'wss://fstream.binancefuture.com/ws',
+                        'inverse': 'wss://dstream.binancefuture.com/ws',
                         'ws-api': {
                             'spot': 'wss://demo-ws-api.binance.com/ws-api/v3',
-                            'future': 'wss://testnet.binancefuture.com/ws-fapi/v1',
-                            'delivery': 'wss://testnet.binancefuture.com/ws-dapi/v1',
+                            'linear': 'wss://testnet.binancefuture.com/ws-fapi/v1',
+                            'inverse': 'wss://testnet.binancefuture.com/ws-dapi/v1',
                         },
                     },
                 },
@@ -109,16 +109,16 @@ class binance extends binance$1["default"] {
                     'ws': {
                         'spot': 'wss://stream.binance.com:9443/ws',
                         'margin': 'wss://stream.binance.com:9443/ws',
-                        'future': 'wss://fstream.binance.com/ws',
-                        'delivery': 'wss://dstream.binance.com/ws',
+                        'linear': 'wss://fstream.binance.com/ws',
+                        'inverse': 'wss://dstream.binance.com/ws',
                         'stock': 'wss://nbstream.binance.com/equity/ws',
                         'option': 'wss://fstream.binance.com/public/ws',
                         'optionMarket': 'wss://fstream.binance.com/market/ws',
                         'optionPrivate': 'wss://fstream.binance.com/private/ws',
                         'ws-api': {
                             'spot': 'wss://ws-api.binance.com:443/ws-api/v3',
-                            'future': 'wss://ws-fapi.binance.com/ws-fapi/v1',
-                            'delivery': 'wss://ws-dapi.binance.com/ws-dapi/v1',
+                            'linear': 'wss://ws-fapi.binance.com/ws-fapi/v1',
+                            'inverse': 'wss://ws-dapi.binance.com/ws-dapi/v1',
                         },
                         'papi': 'wss://fstream.binance.com/pm/ws',
                     },
@@ -133,8 +133,8 @@ class binance extends binance$1["default"] {
                 'streamLimits': {
                     'spot': 50, // max 1024
                     'margin': 50, // max 1024
-                    'future': 50, // max 200
-                    'delivery': 50, // max 200
+                    'linear': 50, // max 200
+                    'inverse': 50, // max 200
                     'stock': 50,
                     'option': 50, // max 200
                     'optionMarket': 50, // max 200
@@ -142,8 +142,8 @@ class binance extends binance$1["default"] {
                 'subscriptionLimitByStream': {
                     'spot': 200,
                     'margin': 200,
-                    'future': 200,
-                    'delivery': 200,
+                    'linear': 200,
+                    'inverse': 200,
                     'stock': 200,
                     'option': 200,
                     'optionMarket': 200,
@@ -227,10 +227,10 @@ class binance extends binance$1["default"] {
         const streamBySubscriptionsHash = this.safeDict(this.options, 'streamBySubscriptionsHash', this.createSafeDictionary());
         let stream = this.safeString(streamBySubscriptionsHash, subscriptionHash);
         if (stream === undefined) {
-            let streamIndex = this.safeInteger(this.options, 'streamIndex', -1);
+            const previousStreamIndex = this.safeInteger(this.options, 'streamIndex', -1);
             const streamLimits = this.safeDict(this.options, 'streamLimits');
             const streamLimit = this.safeInteger(streamLimits, type);
-            streamIndex = streamIndex + 1;
+            const streamIndex = previousStreamIndex + 1;
             const normalizedIndex = streamIndex % streamLimit;
             this.options['streamIndex'] = streamIndex;
             stream = this.numberToString(normalizedIndex);
@@ -247,7 +247,7 @@ class binance extends binance$1["default"] {
             if (newNumSubscriptions > subscriptionLimitByStream) {
                 throw new errors.BadRequest(this.id + ' reached the limit of subscriptions by stream. Increase the number of streams, or increase the stream limit or subscription limit by stream if the exchange allows.');
             }
-            this.options['numSubscriptionsByStream'][stream] = subscriptionsByStream + numSubscriptions;
+            this.options['numSubscriptionsByStream'][stream] = newNumSubscriptions;
         }
         return stream;
     }
@@ -258,7 +258,7 @@ class binance extends binance$1["default"] {
             return this.urls['api']['ws'][type];
         }
         const baseUrl = this.urls['api']['ws'][type];
-        if (type === 'future') {
+        if (type === 'linear') {
             // skip URL manipulation for proxied/bridge URLs (contain an embedded protocol)
             // const firstProtocol = baseUrl.indexOf ('://');
             // if (firstProtocol !== -1 && baseUrl.indexOf ('://', firstProtocol + 3) !== -1) {
@@ -289,7 +289,7 @@ class binance extends binance$1["default"] {
         if (listenKey === undefined) {
             throw new errors.AuthenticationError(this.id + ' getPrivateWsUrl() requires a listenKey from authenticate()');
         }
-        if (type === 'future') {
+        if (type === 'linear') {
             return this.getWsUrl(type, 'private') + '?listenKey=' + listenKey;
         }
         const wsUrl = this.safeString(this.urls['api']['ws'], type);
@@ -352,8 +352,10 @@ class binance extends binance$1["default"] {
      * @method
      * @name binance#watchLiquidations
      * @description watch the public liquidations of a trading pair
-     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Liquidation-Order-Streams
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Liquidation-Order-Streams
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Liquidation-Order-Streams // deprecated
+     * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/ws-streams/market#liquidation-order-streams
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Liquidation-Order-Streams // deprecated
+     * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/ws-streams/~#market-liquidation-order-streams
      * @param {string} symbol unified CCXT market symbol
      * @param {int} [since] the earliest time in ms to fetch liquidations for
      * @param {int} [limit] the maximum number of liquidation structures to retrieve
@@ -578,8 +580,10 @@ class binance extends binance$1["default"] {
      * @method
      * @name binance#watchMyLiquidations
      * @description watch the private liquidations of a trading pair
-     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/user-data-streams/Event-Order-Update
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/user-data-streams/Event-Order-Update
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/user-data-streams/Event-Order-Update // deprecated
+     * @see https://developers.binance.com/en/docs/products/derivatives-trading-usds-futures/user-data-streams#event-order-update
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/user-data-streams/Event-Order-Update // deprecated
+     * @see https://developers.binance.com/en/docs/products/derivatives-trading-coin-futures/user-data-streams#event-order-update
      * @param {string} symbol unified CCXT market symbol
      * @param {int} [since] the earliest time in ms to fetch liquidations for
      * @param {int} [limit] the maximum number of liquidation structures to retrieve
@@ -593,8 +597,10 @@ class binance extends binance$1["default"] {
      * @method
      * @name binance#watchMyLiquidationsForSymbols
      * @description watch the private liquidations of a trading pair
-     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/user-data-streams/Event-Order-Update
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/user-data-streams/Event-Order-Update
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/user-data-streams/Event-Order-Update // deprecated
+     * @see https://developers.binance.com/en/docs/products/derivatives-trading-usds-futures/user-data-streams#event-order-update
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/user-data-streams/Event-Order-Update // deprecated
+     * @see https://developers.binance.com/en/docs/products/derivatives-trading-coin-futures/user-data-streams#event-order-update
      * @param {string[]} symbols list of unified market symbols
      * @param {int} [since] the earliest time in ms to fetch liquidations for
      * @param {int} [limit] the maximum number of liquidation structures to retrieve
@@ -698,11 +704,16 @@ class binance extends binance$1["default"] {
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#partial-book-depth-streams
      * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#diff-depth-stream
-     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Partial-Book-Depth-Streams
-     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams
-     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams-RPI
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Partial-Book-Depth-Streams
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Partial-Book-Depth-Streams // deprecated
+     * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/ws-streams/public#partial-book-depth-streams
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams // deprecated
+     * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/ws-streams/public#diff-book-depth-streams
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams-RPI // deprecated
+     * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/ws-streams/public#rpi-diff-book-depth-streams
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Partial-Book-Depth-Streams // deprecated
+     * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/ws-streams/~#partial-book-depth-streams
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams // deprecated
+     * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/ws-streams/~#diff-book-depth-streams
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -722,11 +733,16 @@ class binance extends binance$1["default"] {
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#partial-book-depth-streams
      * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#diff-depth-stream
-     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Partial-Book-Depth-Streams
-     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams
-     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams-RPI
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Partial-Book-Depth-Streams
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Partial-Book-Depth-Streams // deprecated
+     * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/ws-streams/public#partial-book-depth-streams
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams // deprecated
+     * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/ws-streams/public#diff-book-depth-streams
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams-RPI // deprecated
+     * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/ws-streams/public#rpi-diff-book-depth-streams
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Partial-Book-Depth-Streams // deprecated
+     * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/ws-streams/~#partial-book-depth-streams
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams // deprecated
+     * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/ws-streams/~#diff-book-depth-streams
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -744,7 +760,7 @@ class binance extends binance$1["default"] {
             type = 'option';
         }
         else if (firstMarket['contract'] === true) {
-            type = (firstMarket['linear'] === true) ? 'future' : 'delivery';
+            type = (firstMarket['linear'] === true) ? 'linear' : 'inverse';
         }
         let name = 'depth';
         let streamHash = 'multipleOrderbook';
@@ -758,7 +774,7 @@ class binance extends binance$1["default"] {
         const [watchOrderBookRateOption, paramsRate] = this.handleOptionStringAndParams(params, 'watchOrderBookForSymbols', 'watchOrderBookRate', '100');
         let watchOrderBookRate = watchOrderBookRateOption;
         const [rpi, paramsRpi] = this.handleOptionBoolAndParams(paramsRate, 'watchOrderBookForSymbols', 'rpi', false);
-        if (rpi && type === 'future') {
+        if (rpi && type === 'linear') {
             name = 'rpiDepth';
             watchOrderBookRate = '500';
         }
@@ -801,10 +817,14 @@ class binance extends binance$1["default"] {
      * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#partial-book-depth-streams
      * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#diff-depth-stream
-     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Partial-Book-Depth-Streams
-     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Partial-Book-Depth-Streams
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Partial-Book-Depth-Streams // deprecated
+     * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/ws-streams/public#partial-book-depth-streams
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams // deprecated
+     * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/ws-streams/public#diff-book-depth-streams
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Partial-Book-Depth-Streams // deprecated
+     * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/ws-streams/~#partial-book-depth-streams
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams // deprecated
+     * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/ws-streams/~#diff-book-depth-streams
      * @param {string[]} symbols unified array of symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
@@ -820,7 +840,7 @@ class binance extends binance$1["default"] {
             type = 'option';
         }
         else if (firstMarket['contract'] === true) {
-            type = (firstMarket['linear'] === true) ? 'future' : 'delivery';
+            type = (firstMarket['linear'] === true) ? 'linear' : 'inverse';
         }
         const name = 'depth';
         let streamHash = 'multipleOrderbook';
@@ -865,10 +885,14 @@ class binance extends binance$1["default"] {
      * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#partial-book-depth-streams
      * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#diff-depth-stream
-     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Partial-Book-Depth-Streams
-     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Partial-Book-Depth-Streams
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Partial-Book-Depth-Streams // deprecated
+     * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/ws-streams/public#partial-book-depth-streams
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams // deprecated
+     * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/ws-streams/public#diff-book-depth-streams
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Partial-Book-Depth-Streams // deprecated
+     * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/ws-streams/~#partial-book-depth-streams
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams // deprecated
+     * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/ws-streams/~#diff-book-depth-streams
      * @param {string} symbol unified array of symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
@@ -899,7 +923,7 @@ class binance extends binance$1["default"] {
             payload['limit'] = limit;
         }
         const marketType = this.getMarketType('fetchOrderBookWs', market, params);
-        if (marketType !== 'future') {
+        if (marketType !== 'linear') {
             throw new errors.BadRequest(this.id + ' fetchOrderBookWs only supports swap markets');
         }
         const url = this.safeString(this.urls['api']['ws']['ws-api'], marketType);
@@ -919,8 +943,9 @@ class binance extends binance$1["default"] {
         const subscription = {
             'method': this.handleFetchOrderBook,
         };
-        const orderbook = await this.watch(url, messageHash, message, messageHash, subscription);
-        orderbook['symbol'] = market['symbol'];
+        const snapshot = await this.watch(url, messageHash, message, messageHash, subscription);
+        snapshot['symbol'] = market['symbol'];
+        const orderbook = this.orderBook(snapshot);
         return orderbook;
     }
     handleFetchOrderBook(client, message) {
@@ -983,23 +1008,31 @@ class binance extends binance$1["default"] {
                     continue;
                 }
                 const pu = this.safeInteger(messageItem, 'pu');
-                if (type === 'future') {
+                const snapshotNonce = this.safeInteger(orderbook, 'nonce');
+                if (snapshotNonce === undefined) {
+                    // every comparison against an undefined nonce is false, only pu === undefined matches
+                    if ((type === 'linear') && (pu === undefined)) {
+                        this.handleOrderBookMessage(client, messageItem, orderbook);
+                    }
+                    continue;
+                }
+                if (type === 'linear') {
                     // 4. Drop any event where u is < lastUpdateId in the snapshot
-                    if (u < orderbook['nonce']) {
+                    if (u < snapshotNonce) {
                         continue;
                     }
                     // 5. The first processed event should have U <= lastUpdateId AND u >= lastUpdateId
-                    if ((U <= orderbook['nonce']) && (u >= orderbook['nonce']) || (pu === orderbook['nonce'])) {
+                    if ((U <= snapshotNonce) && (u >= snapshotNonce) || (pu === snapshotNonce)) {
                         this.handleOrderBookMessage(client, messageItem, orderbook);
                     }
                 }
                 else {
                     // 4. Drop any event where u is <= lastUpdateId in the snapshot
-                    if (u <= orderbook['nonce']) {
+                    if (u <= snapshotNonce) {
                         continue;
                     }
                     // 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1
-                    if (((U - 1) <= orderbook['nonce']) && ((u - 1) >= orderbook['nonce'])) {
+                    if (((U - 1) <= snapshotNonce) && ((u - 1) >= snapshotNonce)) {
                         this.handleOrderBookMessage(client, messageItem, orderbook);
                     }
                 }
@@ -1111,7 +1144,8 @@ class binance extends binance$1["default"] {
                         }
                         if (conditional) {
                             this.handleOrderBookMessage(client, message, orderbook);
-                            if (nonce < this.safeInteger(orderbook, 'nonce', 0)) {
+                            const newNonce = this.safeInteger(orderbook, 'nonce', 0);
+                            if (nonce < newNonce) {
                                 client.resolve(orderbook, messageHash);
                             }
                         }
@@ -1132,7 +1166,8 @@ class binance extends binance$1["default"] {
                         // 6. While listening to the stream, each new event's pu should be equal to the previous event's u, otherwise initialize the process from step 3
                         if ((U <= nonce) || (pu === nonce)) {
                             this.handleOrderBookMessage(client, message, orderbook);
-                            if (nonce <= this.safeInteger(orderbook, 'nonce', 0)) {
+                            const newNonce = this.safeInteger(orderbook, 'nonce', 0);
+                            if (nonce <= newNonce) {
                                 client.resolve(orderbook, messageHash);
                             }
                         }
@@ -1166,10 +1201,12 @@ class binance extends binance$1["default"] {
         // handle list of symbols
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
-            if (symbol in this.orderbooks) {
-                delete this.orderbooks[symbol];
+            if (!(symbol in this.orderbooks)) {
+                this.orderbooks[symbol] = this.orderBook({}, limit);
             }
-            this.orderbooks[symbol] = this.orderBook({}, limit);
+            const orderbook = this.orderbooks[symbol];
+            orderbook['nonce'] = undefined;
+            orderbook.cache = [];
             const symbolSubscription = this.extend(subscription, { 'symbol': symbol });
             // fetch the snapshot in a separate async call
             this.spawn(this.fetchOrderBookSnapshot, client, message, symbolSubscription);
@@ -1190,7 +1227,7 @@ class binance extends binance$1["default"] {
             method.call(this, client, message, subscription);
         }
         const isUnSubMessage = this.safeBool(subscription, 'unsubscribe', false);
-        if (isUnSubMessage === true) {
+        if (isUnSubMessage) {
             this.handleUnSubscription(client, subscription);
         }
         return message;
@@ -1211,8 +1248,10 @@ class binance extends binance$1["default"] {
      * @description get the list of most recent trades for a list of symbols
      * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#aggregate-trades
      * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#recent-trades
-     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Aggregate-Trade-Streams
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Aggregate-Trade-Streams
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Aggregate-Trade-Streams // deprecated
+     * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/ws-streams/market#aggregate-trade-streams
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Aggregate-Trade-Streams // deprecated
+     * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/ws-streams/~#aggregate-trade-streams
      * @param {string[]} symbols unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
@@ -1242,7 +1281,7 @@ class binance extends binance$1["default"] {
             type = 'option';
         }
         else if (firstMarket['contract'] === true) {
-            type = (firstMarket['linear'] === true) ? 'future' : 'delivery';
+            type = (firstMarket['linear'] === true) ? 'linear' : 'inverse';
         }
         const messageHashes = [];
         const subParams = [];
@@ -1299,8 +1338,10 @@ class binance extends binance$1["default"] {
      * @description unsubscribes from the trades channel
      * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#aggregate-trades
      * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#recent-trades
-     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Aggregate-Trade-Streams
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Aggregate-Trade-Streams
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Aggregate-Trade-Streams // deprecated
+     * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/ws-streams/market#aggregate-trade-streams
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Aggregate-Trade-Streams // deprecated
+     * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/ws-streams/~#aggregate-trade-streams
      * @param {string[]} symbols unified symbol of the market to fetch trades for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.name] the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
@@ -1328,7 +1369,7 @@ class binance extends binance$1["default"] {
             type = 'option';
         }
         else if (firstMarket['contract'] === true) {
-            type = (firstMarket['linear'] === true) ? 'future' : 'delivery';
+            type = (firstMarket['linear'] === true) ? 'linear' : 'inverse';
         }
         const subMessageHashes = [];
         const subParams = [];
@@ -1386,8 +1427,10 @@ class binance extends binance$1["default"] {
      * @description unsubscribes from the trades channel
      * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#aggregate-trades
      * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#recent-trades
-     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Aggregate-Trade-Streams
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Aggregate-Trade-Streams
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Aggregate-Trade-Streams // deprecated
+     * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/ws-streams/market#aggregate-trade-streams
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Aggregate-Trade-Streams // deprecated
+     * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/ws-streams/~#aggregate-trade-streams
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.name] the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
@@ -1402,8 +1445,10 @@ class binance extends binance$1["default"] {
      * @description get the list of most recent trades for a particular symbol
      * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#aggregate-trades
      * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#recent-trades
-     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Aggregate-Trade-Streams
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Aggregate-Trade-Streams
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Aggregate-Trade-Streams // deprecated
+     * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/ws-streams/market#aggregate-trade-streams
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Aggregate-Trade-Streams // deprecated
+     * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/ws-streams/~#aggregate-trade-streams
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
@@ -1484,7 +1529,7 @@ class binance extends binance$1["default"] {
         //         "Q": "0.00000000"
         //     }
         //
-        // private watchMyTrades future/delivery
+        // private watchMyTrades linear/inverse
         //
         //     {
         //         "s": "BTCUSDT",
@@ -1613,8 +1658,10 @@ class binance extends binance$1["default"] {
      * @name binance#watchOHLCV
      * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
      * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#klines
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Kline-Candlestick-Streams
-     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Kline-Candlestick-Streams
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Kline-Candlestick-Streams // deprecated
+     * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/ws-streams/~#kline-candlestick-streams
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Kline-Candlestick-Streams // deprecated
+     * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/ws-streams/market#kline-candlestick-streams
      * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/ws-streams/market-streams#kline-stream
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
@@ -1647,8 +1694,10 @@ class binance extends binance$1["default"] {
      * @name binance#watchOHLCVForSymbols
      * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
      * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#klines
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Kline-Candlestick-Streams
-     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Kline-Candlestick-Streams
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Kline-Candlestick-Streams // deprecated
+     * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/ws-streams/~#kline-candlestick-streams
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Kline-Candlestick-Streams // deprecated
+     * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/ws-streams/market#kline-candlestick-streams
      * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/ws-streams/market-streams#kline-stream
      * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -1700,7 +1749,7 @@ class binance extends binance$1["default"] {
             wsUrlType = 'optionMarket'; // eOptions klines are served from /market/ws
         }
         else if (firstMarket['contract'] === true) {
-            type = (firstMarket['linear'] === true) ? 'future' : 'delivery';
+            type = (firstMarket['linear'] === true) ? 'linear' : 'inverse';
             wsUrlType = type;
         }
         const isSpot = (type === 'spot');
@@ -1756,8 +1805,10 @@ class binance extends binance$1["default"] {
      * @name binance#unWatchOHLCVForSymbols
      * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
      * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#klines
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Kline-Candlestick-Streams
-     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Kline-Candlestick-Streams
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Kline-Candlestick-Streams // deprecated
+     * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/ws-streams/~#kline-candlestick-streams
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Kline-Candlestick-Streams // deprecated
+     * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/ws-streams/market#kline-candlestick-streams
      * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {object} [params.timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
@@ -1778,7 +1829,7 @@ class binance extends binance$1["default"] {
             wsUrlType = 'optionMarket'; // eOptions klines are served from /market/ws
         }
         else if (firstMarket['contract'] === true) {
-            type = (firstMarket['linear'] === true) ? 'future' : 'delivery';
+            type = (firstMarket['linear'] === true) ? 'linear' : 'inverse';
             wsUrlType = type;
         }
         const isSpot = (type === 'spot');
@@ -1835,8 +1886,10 @@ class binance extends binance$1["default"] {
      * @name binance#unWatchOHLCV
      * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
      * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#klines
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Kline-Candlestick-Streams
-     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Kline-Candlestick-Streams
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Kline-Candlestick-Streams // deprecated
+     * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/ws-streams/~#kline-candlestick-streams
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Kline-Candlestick-Streams // deprecated
+     * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/ws-streams/market#kline-candlestick-streams
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1943,7 +1996,7 @@ class binance extends binance$1["default"] {
             'symbol': market['id'],
         };
         const type = this.getMarketType('fetchTickerWs', market, params);
-        if (type !== 'future') {
+        if (type !== 'linear') {
             throw new errors.BadRequest(this.id + ' fetchTickerWs only supports swap markets');
         }
         const url = this.safeString(this.urls['api']['ws']['ws-api'], type);
@@ -1989,7 +2042,7 @@ class binance extends binance$1["default"] {
         }
         const market = this.market(symbol);
         const marketType = this.getMarketType('fetchOHLCVWs', market, params);
-        if (marketType !== 'spot' && marketType !== 'future') {
+        if (marketType !== 'spot' && marketType !== 'linear') {
             throw new errors.BadRequest(this.id + ' fetchOHLCVWs only supports spot or swap markets');
         }
         const url = this.safeString(this.urls['api']['ws']['ws-api'], marketType);
@@ -2069,10 +2122,12 @@ class binance extends binance$1["default"] {
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#individual-symbol-mini-ticker-stream
      * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#all-market-mini-tickers-stream
-     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Individual-Symbol-Ticker-Streams
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Individual-Symbol-Ticker-Streams // deprecated
+     * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/ws-streams/market#individual-symbol-ticker-streams
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/All-Market-Mini-Tickers-Stream
      * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/All-Market-Mini-Tickers-Stream
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Individual-Symbol-Ticker-Streams
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Individual-Symbol-Ticker-Streams // deprecated
+     * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/ws-streams/~#individual-symbol-ticker-streams
      * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/ws-streams/market-streams#price-stream
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2092,7 +2147,8 @@ class binance extends binance$1["default"] {
      * @method
      * @name binance#watchMarkPrice
      * @description watches a mark price for a specific market
-     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Mark-Price-Stream
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Mark-Price-Stream // deprecated
+     * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/ws-streams/market#mark-price-stream
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.use1sFreq] *default is true* if set to true, the mark price will be updated every second, otherwise every 3 seconds
@@ -2110,7 +2166,8 @@ class binance extends binance$1["default"] {
      * @method
      * @name binance#watchMarkPrices
      * @description watches the mark price for all markets
-     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Mark-Price-Stream-for-All-market
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Mark-Price-Stream-for-All-market // deprecated
+     * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/ws-streams/market#mark-price-stream-for-all-market
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.use1sFreq] *default is true* if set to true, the mark price will be updated every second, otherwise every 3 seconds
@@ -2133,10 +2190,12 @@ class binance extends binance$1["default"] {
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
      * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#individual-symbol-mini-ticker-stream
      * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#all-market-mini-tickers-stream
-     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Individual-Symbol-Ticker-Streams
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Individual-Symbol-Ticker-Streams // deprecated
+     * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/ws-streams/market#individual-symbol-ticker-streams
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/All-Market-Mini-Tickers-Stream
      * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/All-Market-Mini-Tickers-Stream
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Individual-Symbol-Ticker-Streams
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Individual-Symbol-Ticker-Streams // deprecated
+     * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/ws-streams/~#individual-symbol-ticker-streams
      * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/ws-streams/market-streams#price-stream
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2173,10 +2232,12 @@ class binance extends binance$1["default"] {
      * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
      * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#individual-symbol-mini-ticker-stream
      * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#all-market-mini-tickers-stream
-     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Individual-Symbol-Ticker-Streams
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Individual-Symbol-Ticker-Streams // deprecated
+     * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/ws-streams/market#individual-symbol-ticker-streams
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/All-Market-Mini-Tickers-Stream
      * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/All-Market-Mini-Tickers-Stream
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Individual-Symbol-Ticker-Streams
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Individual-Symbol-Ticker-Streams // deprecated
+     * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/ws-streams/~#individual-symbol-ticker-streams
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -2192,7 +2253,8 @@ class binance extends binance$1["default"] {
      * @method
      * @name binance#unWatchMarkPrices
      * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Mark-Price-Stream
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Mark-Price-Stream // deprecated
+     * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/ws-streams/market#mark-price-stream
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -2208,7 +2270,8 @@ class binance extends binance$1["default"] {
      * @method
      * @name binance#unWatchMarkPrice
      * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Mark-Price-Stream
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Mark-Price-Stream // deprecated
+     * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/ws-streams/market#mark-price-stream
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -2221,7 +2284,8 @@ class binance extends binance$1["default"] {
      * @name binance#unWatchBidsAsks
      * @description unWatches best bid & ask for symbols
      * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#individual-book-ticker-streams
-     * @see https://developers.binance.com/docs/derivatives/options-trading/websocket-market-streams/Bookticker
+     * @see https://developers.binance.com/docs/derivatives/options-trading/websocket-market-streams/Bookticker // deprecated
+     * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/ws-streams/public#individual-symbol-book-ticker-streams
      * @param {string[]} [symbols] unified symbols
      * @param {object} [params] extra parameters
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -2235,10 +2299,12 @@ class binance extends binance$1["default"] {
      * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
      * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#individual-symbol-mini-ticker-stream
      * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#all-market-mini-tickers-stream
-     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Individual-Symbol-Ticker-Streams
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Individual-Symbol-Ticker-Streams // deprecated
+     * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/ws-streams/market#individual-symbol-ticker-streams
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/All-Market-Mini-Tickers-Stream
      * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/All-Market-Mini-Tickers-Stream
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Individual-Symbol-Ticker-Streams
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Individual-Symbol-Ticker-Streams // deprecated
+     * @see https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/ws-streams/~#individual-symbol-ticker-streams
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -2318,10 +2384,10 @@ class binance extends binance$1["default"] {
             rawMarketType = (isOptionMarkPrice) ? 'optionMarket' : 'option';
         }
         else if (this.isLinear(marketType, subType)) {
-            rawMarketType = 'future';
+            rawMarketType = 'linear';
         }
         else if (this.isInverse(marketType, subType)) {
-            rawMarketType = 'delivery';
+            rawMarketType = 'inverse';
         }
         else if (marketType === 'spot') {
             rawMarketType = marketType;
@@ -2340,7 +2406,7 @@ class binance extends binance$1["default"] {
         const unsubscribeMessageHashes = [];
         let suffix = '';
         if (isMarkPrice && !isOptionMarkPrice) {
-            suffix = (use1sFreq === true) ? '@1s' : '';
+            suffix = (use1sFreq) ? '@1s' : '';
         }
         let unifiedPrefix = undefined;
         if (isBidAsk) {
@@ -2650,7 +2716,7 @@ class binance extends binance$1["default"] {
         //
         const messageHash = this.safeString(message, 'id');
         const result = this.safeDict(message, 'result', {});
-        const ticker = this.parseWsTicker(result, 'future');
+        const ticker = this.parseWsTicker(result, 'contract');
         client.resolve(ticker, messageHash);
     }
     handleBidsAsks(client, message) {
@@ -2833,8 +2899,6 @@ class binance extends binance$1["default"] {
             await client.future(messageHash);
             return;
         }
-        client.future(messageHash); // created ahead of the request below, so concurrent callers can find it
-        client.subscriptions[marketType] = true;
         const requestId = this.requestId(url);
         const requestHash = requestId.toString();
         const message = {
@@ -2847,6 +2911,10 @@ class binance extends binance$1["default"] {
             'method': this.handleUserDataStreamSubscribe,
             'subscription': marketType,
         };
+        // created right before the request, after the signing above: concurrent callers find it, and in
+        // the threaded ports the ack can not arrive between this future and the request one watch () adds
+        client.future(messageHash);
+        client.subscriptions[marketType] = true;
         try {
             await this.watch(url, requestHash, message, requestHash, subscription);
             client.resolve(marketType, messageHash);
@@ -2890,7 +2958,8 @@ class binance extends binance$1["default"] {
      * @param {string} [params.symbol] - required for isolated margin
      * @param {boolean} [params.isIsolated] - whether it is isolated margin
      * @param {number} [params.validity] - validity in milliseconds, default 24 hours, max 24 hours
-     * @see {@link https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-api/user-data-stream Binance User Data Stream Documentation}
+     * @see {@link https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-api/user-data-stream Binance User Data Stream Documentation} // deprecated
+     * @see {@link https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/ws-api/user-data-streams Binance User Data Stream Documentation}
      * @returns Promise<void>
      */
     async ensureUserDataStreamWsSubscribeListenToken(marketType = 'margin', params = {}) {
@@ -2921,7 +2990,7 @@ class binance extends binance$1["default"] {
                 const isIsolated = this.safeBool(params, 'isIsolated', false);
                 const validity = this.safeInteger(params, 'validity');
                 const request = {};
-                if (isIsolated === true) {
+                if (isIsolated) {
                     if (symbol === undefined) {
                         throw new errors.ArgumentsRequired(this.id + ' ensureUserDataStreamWsSubscribeListenToken() requires a symbol argument for isolated margin mode');
                     }
@@ -2991,7 +3060,7 @@ class binance extends binance$1["default"] {
         if (symbol !== undefined) {
             renewParams['symbol'] = symbol;
         }
-        if (isIsolated === true) {
+        if (isIsolated) {
             renewParams['isIsolated'] = isIsolated;
         }
         if (validity !== undefined) {
@@ -3064,10 +3133,10 @@ class binance extends binance$1["default"] {
                 else if (isPortfolioMargin) {
                     response = await this.papiPostListenKey(paramsOmitted);
                 }
-                else if (type === 'future') {
+                else if (type === 'linear') {
                     response = await this.fapiPrivatePostListenKey(paramsOmitted);
                 }
-                else if (type === 'delivery') {
+                else if (type === 'inverse') {
                     response = await this.dapiPrivatePostListenKey(paramsOmitted);
                 }
                 else if (type === 'option') {
@@ -3121,17 +3190,17 @@ class binance extends binance$1["default"] {
         const subType = this.handleSubTypeAndParams('keepAliveListenKey', undefined, paramsPortfolioMargin)[0];
         if (type !== 'option' && type !== 'stock') {
             // guard options first: isLinear returns true for linear-settled options (subType='linear')
-            // which would incorrectly convert type='option' to 'future'.
+            // which would incorrectly convert type='option' to 'linear'.
             // stock needs the same exemption: with a defaultSubType of 'linear' -
             // always on binanceusdm, common on mixed instances - isLinear keys off
-            // subType alone and would flip 'stock' to 'future' - the stock branch
+            // subType alone and would flip 'stock' to 'linear' - the stock branch
             // below would never run, and the bucket lookup would renew the
             // FUTURES listen key while the stock key silently expires
             if (this.isLinear(type, subType)) {
-                type = 'future';
+                type = 'linear';
             }
             else if (this.isInverse(type, subType)) {
-                type = 'delivery';
+                type = 'inverse';
             }
         }
         // For margin, token renewal is handled by renewListenToken method
@@ -3161,10 +3230,10 @@ class binance extends binance$1["default"] {
             else if (isPortfolioMargin) {
                 await this.papiPutListenKey(this.extend(request, paramsOmitted));
             }
-            else if (type === 'future') {
+            else if (type === 'linear') {
                 await this.fapiPrivatePutListenKey(this.extend(request, paramsOmitted));
             }
-            else if (type === 'delivery') {
+            else if (type === 'inverse') {
                 await this.dapiPrivatePutListenKey(this.extend(request, paramsOmitted));
             }
             else if (type === 'option') {
@@ -3243,7 +3312,7 @@ class binance extends binance$1["default"] {
         }
         const options = this.safeDict(this.options, 'watchBalance');
         const fetchBalanceSnapshot = this.safeBool(options, 'fetchBalanceSnapshot', false);
-        if (fetchBalanceSnapshot === true) {
+        if (fetchBalanceSnapshot) {
             const messageHash = type + ':fetchBalanceSnapshot';
             if (!(messageHash in client.futures)) {
                 client.future(messageHash);
@@ -3258,7 +3327,7 @@ class binance extends binance$1["default"] {
         const params = {
             'type': type,
         };
-        if (isPortfolioMargin === true) {
+        if (isPortfolioMargin) {
             params['portfolioMargin'] = true;
         }
         const response = await this.fetchBalance(params);
@@ -3278,7 +3347,7 @@ class binance extends binance$1["default"] {
      * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/account-requests#account-information-user_data
      * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/websocket-api
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string|undefined} [params.type] 'future', 'delivery', 'savings', 'funding', or 'spot'
+     * @param {string|undefined} [params.type] 'spot', 'margin', 'swap', 'future', 'savings' or 'funding', use params.subType 'inverse' for COIN-M
      * @param {string|undefined} [params.marginMode] 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
      * @param {string[]|undefined} [params.symbols] unified market symbols, only used in isolated margin mode
      * @param {string|undefined} [params.method] method to use. Can be account.balance, account.status, v2/account.balance or v2/account.status
@@ -3289,7 +3358,7 @@ class binance extends binance$1["default"] {
             await this.loadMarkets();
         }
         const type = this.getMarketType('fetchBalanceWs', undefined, params);
-        if (type !== 'spot' && type !== 'future' && type !== 'delivery') {
+        if (type !== 'spot' && type !== 'linear' && type !== 'inverse') {
             throw new errors.BadRequest(this.id + ' fetchBalanceWs only supports spot or swap markets');
         }
         const url = this.safeString(this.urls['api']['ws']['ws-api'], type);
@@ -3424,9 +3493,9 @@ class binance extends binance$1["default"] {
         if (symbolsNormalized === undefined && (type === 'spot')) {
             // when symbols aren't provide
             // we shouldn't rely on the defaultType
-            type = 'future';
+            type = 'linear';
         }
-        if (type !== 'future' && type !== 'delivery') {
+        if (type !== 'linear' && type !== 'inverse') {
             throw new errors.BadRequest(this.id + ' fetchPositionsWs only supports swap markets');
         }
         const url = this.safeString(this.urls['api']['ws']['ws-api'], type);
@@ -3523,7 +3592,7 @@ class binance extends binance$1["default"] {
             }
             else if (type === 'option') {
                 const demoMode = this.safeBool(this.options, 'enableDemoTrading', false);
-                if ((demoMode === true) || this.isSandboxModeEnabled) {
+                if ((demoMode) || this.isSandboxModeEnabled) {
                     throw new errors.NotSupported(this.id + ' watchBalance() does not support option markets in demo/testnet mode');
                 }
                 urlType = 'optionPrivate';
@@ -3536,7 +3605,7 @@ class binance extends binance$1["default"] {
         const options = this.safeDict(this.options, 'watchBalance');
         const fetchBalanceSnapshot = this.safeBool(options, 'fetchBalanceSnapshot', false);
         const awaitBalanceSnapshot = this.safeBool(options, 'awaitBalanceSnapshot', true);
-        if ((fetchBalanceSnapshot === true) && (awaitBalanceSnapshot === true)) {
+        if ((fetchBalanceSnapshot) && (awaitBalanceSnapshot)) {
             await client.future(type + ':fetchBalanceSnapshot');
         }
         const messageHash = type + ':balance';
@@ -3570,7 +3639,7 @@ class binance extends binance$1["default"] {
         //         ]
         //     }
         //
-        // future/delivery
+        // linear/inverse
         //
         //     {
         //         "e": "ACCOUNT_UPDATE",            // Event Type
@@ -3669,7 +3738,7 @@ class binance extends binance$1["default"] {
         let accountType = '';
         for (let i = 0; i < subscriptions.length; i++) {
             const subscription = subscriptions[i];
-            if ((subscription === 'spot') || (subscription === 'margin') || (subscription === 'future') || (subscription === 'delivery') || (subscription === 'option')) {
+            if ((subscription === 'spot') || (subscription === 'margin') || (subscription === 'linear') || (subscription === 'inverse') || (subscription === 'option')) {
                 accountType = subscription;
                 break;
             }
@@ -3689,10 +3758,10 @@ class binance extends binance$1["default"] {
         let type = marketType;
         if (type !== 'option' && type !== 'stock') {
             if (this.isLinear(type, subType)) {
-                type = 'future';
+                type = 'linear';
             }
             else if (this.isInverse(type, subType)) {
-                type = 'delivery';
+                type = 'inverse';
             }
         }
         // sites consuming every element unpack this; the two that skip subType
@@ -3705,10 +3774,10 @@ class binance extends binance$1["default"] {
         [type, paramsMarketType] = this.handleMarketTypeAndParams(method, market, params);
         const subType = this.handleSubTypeAndParams(method, market, paramsMarketType)[0];
         if (this.isLinear(type, subType)) {
-            type = 'future';
+            type = 'linear';
         }
         else if (this.isInverse(type, subType)) {
-            type = 'delivery';
+            type = 'inverse';
         }
         return type;
     }
@@ -3736,7 +3805,7 @@ class binance extends binance$1["default"] {
         }
         const market = this.market(symbol);
         const marketType = this.getMarketType('createOrderWs', market, params);
-        if (marketType !== 'spot' && marketType !== 'future' && marketType !== 'delivery') {
+        if (marketType !== 'spot' && marketType !== 'linear' && marketType !== 'inverse') {
             throw new errors.BadRequest(this.id + ' createOrderWs only supports spot or swap markets');
         }
         const url = this.safeString(this.urls['api']['ws']['ws-api'], marketType);
@@ -3765,8 +3834,8 @@ class binance extends binance$1["default"] {
             'method': 'order.place',
             'params': this.signParams(this.extend(payload, paramsOmitted2)),
         };
-        if (test === true) {
-            if (sor === true) {
+        if (test) {
+            if (sor) {
                 message['method'] = 'sor.order.test';
             }
             else {
@@ -3899,7 +3968,7 @@ class binance extends binance$1["default"] {
         }
         const market = this.market(symbol);
         const marketType = this.getMarketType('editOrderWs', market, params);
-        if (marketType !== 'spot' && marketType !== 'future' && marketType !== 'delivery') {
+        if (marketType !== 'spot' && marketType !== 'linear' && marketType !== 'inverse') {
             throw new errors.BadRequest(this.id + ' editOrderWs only supports spot or swap markets');
         }
         const url = this.safeString(this.urls['api']['ws']['ws-api'], marketType);
@@ -3908,7 +3977,7 @@ class binance extends binance$1["default"] {
         }
         const requestId = this.requestId(url);
         const messageHash = requestId.toString();
-        const isSwap = (marketType === 'future' || marketType === 'delivery');
+        const isSwap = (marketType === 'linear' || marketType === 'inverse');
         let payload = {};
         if (marketType === 'spot') {
             payload = this.editSpotOrderRequest(id, symbol, type, side, amount, price, params);
@@ -4076,9 +4145,9 @@ class binance extends binance$1["default"] {
         };
         const isConditional = this.safeBoolN(paramsReturnRateLimits, ['stop', 'trigger', 'conditional']);
         const clientOrderId = this.safeStringN(paramsReturnRateLimits, ['clientAlgoId', 'origClientOrderId', 'clientOrderId']);
-        const shouldUseAlgoOrder = (market['linear'] === true) && (market['swap'] === true) && (isConditional === true);
+        const shouldUseAlgoOrder = (market['linear'] === true) && ((market['swap'] === true) || (market['future'] === true)) && (isConditional === true);
         if (clientOrderId !== undefined) {
-            if (shouldUseAlgoOrder === true) {
+            if (shouldUseAlgoOrder) {
                 payload['clientAlgoId'] = clientOrderId;
             }
             else {
@@ -4086,7 +4155,7 @@ class binance extends binance$1["default"] {
             }
         }
         else {
-            if (shouldUseAlgoOrder === true) {
+            if (shouldUseAlgoOrder) {
                 payload['algoId'] = this.numberToString(id);
             }
             else {
@@ -4099,7 +4168,7 @@ class binance extends binance$1["default"] {
             'method': 'order.cancel',
             'params': this.signParams(this.extend(payload, paramsOmitted)),
         };
-        if (shouldUseAlgoOrder === true) {
+        if (shouldUseAlgoOrder) {
             message['method'] = 'algoOrder.cancel';
         }
         const subscription = {
@@ -4170,7 +4239,7 @@ class binance extends binance$1["default"] {
         }
         const market = this.market(symbol);
         const type = this.getMarketType('fetchOrderWs', market, params);
-        if (type !== 'spot' && type !== 'future' && type !== 'delivery') {
+        if (type !== 'spot' && type !== 'linear' && type !== 'inverse') {
             throw new errors.BadRequest(this.id + ' fetchOrderWs only supports spot or swap markets');
         }
         const url = this.safeString(this.urls['api']['ws']['ws-api'], type);
@@ -4322,8 +4391,10 @@ class binance extends binance$1["default"] {
      * @description watches information on multiple orders made by the user
      * @see https://developers.binance.com/docs/binance-spot-api-docs/user-data-stream#order-update
      * @see https://developers.binance.com/docs/margin_trading/trade-data-stream/Event-Order-Update
-     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/user-data-streams/Event-Order-Update
-     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/user-data-streams/Event-Algo-Order-Update
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/user-data-streams/Event-Order-Update // deprecated
+     * @see https://developers.binance.com/en/docs/products/derivatives-trading-usds-futures/user-data-streams#event-order-update
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/user-data-streams/Event-Algo-Order-Update // deprecated
+     * @see https://developers.binance.com/en/docs/products/derivatives-trading-usds-futures/user-data-streams#event-algo-order-update
      * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/ws-streams/user-streams#order-report-stream
      * @param {string} symbol unified market symbol of the market the orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
@@ -4398,7 +4469,7 @@ class binance extends binance$1["default"] {
             }
             else if (type === 'option') {
                 const demoMode = this.safeBool(this.options, 'enableDemoTrading', false);
-                if ((demoMode === true) || this.isSandboxModeEnabled) {
+                if ((demoMode) || this.isSandboxModeEnabled) {
                     throw new errors.NotSupported(this.id + ' watchOrders() does not support option markets in demo/testnet mode');
                 }
                 urlType = 'optionPrivate';
@@ -4623,6 +4694,13 @@ class binance extends binance$1["default"] {
         else if (executionType === 'TRADE') {
             lastTradeTimestamp = T;
         }
+        const isAlgoOrder = ('aid' in order); // the ALGO_UPDATE payload carries the algo id, but no execution type (x) and no order time (O)
+        if (isAlgoOrder && (timestamp === undefined)) {
+            const algoStatus = this.safeString(order, 'X');
+            if ((algoStatus === 'NEW') || (algoStatus === 'CANCELED')) {
+                timestamp = T;
+            }
+        }
         const lastUpdateTimestamp = T;
         let fee = undefined;
         const feeCost = this.safeString(order, 'n');
@@ -4640,16 +4718,17 @@ class binance extends binance$1["default"] {
         if ((clientOrderId === undefined) || (clientOrderId.length === 0)) {
             clientOrderId = this.safeString(order, 'c');
         }
-        const stopPrice = this.safeStringN(order, ['P', 'sp', 'tp']);
+        const stopPrice = this.omitZero(this.safeStringN(order, ['P', 'sp', 'tp']));
         const orderType = this.safeStringLower(order, 'o');
         // stop types are also sent for plain trigger orders, only the take profit types identify the price unambiguously
         const isTakeProfitType = this.inArray(orderType, ['take_profit', 'take_profit_market', 'take_profit_limit']);
-        const takeProfitPrice = isTakeProfitType ? this.omitZero(stopPrice) : undefined;
+        const takeProfitPrice = isTakeProfitType ? stopPrice : undefined;
         let timeInForce = this.safeString(order, 'f');
         if (timeInForce === 'GTX') {
             // GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
             timeInForce = 'PO';
         }
+        const postOnly = (orderType === 'limit_maker') || (timeInForce === 'PO');
         return this.safeOrder({
             'info': order,
             'symbol': symbol,
@@ -4661,7 +4740,7 @@ class binance extends binance$1["default"] {
             'lastUpdateTimestamp': lastUpdateTimestamp,
             'type': this.parseOrderTypeByMarket(orderType, marketType),
             'timeInForce': timeInForce,
-            'postOnly': undefined,
+            'postOnly': postOnly,
             'reduceOnly': this.safeBool(order, 'R'),
             'side': this.safeStringLower(order, 'S'),
             'price': this.safeString(order, 'p'),
@@ -4803,6 +4882,9 @@ class binance extends binance$1["default"] {
         let messageValue = message;
         if ((e === 'ORDER_TRADE_UPDATE') || (e === 'ALGO_UPDATE')) {
             messageValue = this.safeDict(message, 'o', message);
+            if ((e === 'ALGO_UPDATE') && !('T' in messageValue)) {
+                messageValue['T'] = this.safeInteger(message, 'T'); // keep the outer event time, the algo payload carries no timestamps
+            }
         }
         if ((e === 'ORDER_TRADE_UPDATE') || (e === 'ALGO_UPDATE')) {
             const oField = this.safeValue(message, 'o');
@@ -4999,12 +5081,12 @@ class binance extends binance$1["default"] {
         // spot and margin have no positions - whatever still RESOLVES to spot
         // or margin after the helper falls through to the derivatives stream
         // matching the subType. requests a defaultSubType already rewrote
-        // arrive here as future or delivery and pass untouched, which lands on
+        // arrive here as future or inverse and pass untouched, which lands on
         // the same stream the old raw-type ordering produced in every case
         if (type === 'spot' || type === 'margin') {
-            type = (subType === 'inverse') ? 'delivery' : 'future';
+            type = (subType === 'inverse') ? 'inverse' : 'linear';
         }
-        // 'option' stays as 'option', don't redirect to 'future' - the helper's
+        // 'option' stays as 'option', don't redirect to 'linear' - the helper's
         // guard finally makes this comment true
         const marketTypeObject = {};
         marketTypeObject['type'] = type;
@@ -5019,7 +5101,7 @@ class binance extends binance$1["default"] {
         }
         else if (type === 'option') {
             const demoMode = this.safeBool(this.options, 'enableDemoTrading', false);
-            if ((demoMode === true) || this.isSandboxModeEnabled) {
+            if ((demoMode) || this.isSandboxModeEnabled) {
                 throw new errors.NotSupported(this.id + ' watchPositions() does not support option markets in demo/testnet mode');
             }
             urlType = 'optionPrivate';
@@ -5067,7 +5149,7 @@ class binance extends binance$1["default"] {
         const params = {
             'type': type,
         };
-        if (isPortfolioMargin === true) {
+        if (isPortfolioMargin) {
             params['portfolioMargin'] = true;
         }
         const positions = await this.fetchPositions(undefined, params);
@@ -5277,7 +5359,7 @@ class binance extends binance$1["default"] {
         }
         const market = this.market(symbol);
         const type = this.getMarketType('fetchMyTradesWs', market, params);
-        if (type !== 'spot' && type !== 'future') {
+        if (type !== 'spot' && type !== 'linear') {
             throw new errors.BadRequest(this.id + ' fetchMyTradesWs does not support ' + type + ' markets');
         }
         const url = this.safeString(this.urls['api']['ws']['ws-api'], type);
@@ -5332,7 +5414,7 @@ class binance extends binance$1["default"] {
         }
         const market = this.market(symbol);
         const type = this.getMarketType('fetchTradesWs', market, params);
-        if (type !== 'spot' && type !== 'future') {
+        if (type !== 'spot' && type !== 'linear') {
             throw new errors.BadRequest(this.id + ' fetchTradesWs does not support ' + type + ' markets');
         }
         const url = this.safeString(this.urls['api']['ws']['ws-api'], type);
@@ -5456,7 +5538,7 @@ class binance extends binance$1["default"] {
             }
             else if (type === 'option') {
                 const demoMode = this.safeBool(this.options, 'enableDemoTrading', false);
-                if ((demoMode === true) || this.isSandboxModeEnabled) {
+                if ((demoMode) || this.isSandboxModeEnabled) {
                     throw new errors.NotSupported(this.id + ' watchMyTrades() does not support option markets in demo/testnet mode');
                 }
                 urlType = 'optionPrivate';
@@ -5480,8 +5562,7 @@ class binance extends binance$1["default"] {
         if (executionType === 'TRADE') {
             const trade = this.parseWsTrade(message);
             const orderId = this.safeString(trade, 'order');
-            let tradeFee = this.safeDict(trade, 'fee', {});
-            tradeFee = this.extend({}, tradeFee);
+            const tradeFee = this.extend({}, this.safeDict(trade, 'fee', {}));
             const symbol = this.safeString(trade, 'symbol');
             if (orderId !== undefined && tradeFee !== undefined && symbol !== undefined) {
                 const cachedOrders = this.orders;
@@ -5490,9 +5571,9 @@ class binance extends binance$1["default"] {
                     const order = this.safeDict(orders, orderId);
                     if (order !== undefined) {
                         // accumulate order fees
-                        const fees = this.safeValue(order, 'fees');
+                        const fees = this.safeList(order, 'fees');
                         const fee = this.safeDict(order, 'fee');
-                        if (!this.isEmpty(fees)) {
+                        if ((fees !== undefined) && !this.isEmpty(fees)) {
                             let insertNewFeeCurrency = true;
                             for (let i = 0; i < fees.length; i++) {
                                 const orderFee = fees[i];

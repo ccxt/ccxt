@@ -30,7 +30,9 @@ impl DeribitCore {
     pub fn init(&mut self) {
         let described = DeribitCore::describe(self);
         self.initialize_properties(described);
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self);
+        // compatibility for sandbox/testnet options in userConfig
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -173,13 +175,10 @@ impl crate::exchange_generated::ExchangeBase for DeribitCore {
                 "parse_open_interest" => self.parse_open_interest(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_option" => self.parse_option(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_order" => self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_order_status" => self.parse_order_status(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_position" => self.parse_position(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_time_in_force" => self.parse_time_in_force(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_transaction_status" => self.parse_transaction_status(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_transfer" => self.parse_transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_volatility_history" => self.parse_volatility_history(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "safe_market" => self.safe_market(&args[..]),
@@ -323,7 +322,7 @@ impl DeribitCore {
     m
 }));
         m.insert("www".to_string(), Value::Str("https://www.deribit.com".into()));
-        m.insert("doc".to_string(), Value::from(vec![Value::Str("https://docs.deribit.com/v2".into()), Value::Str("https://github.com/deribit".into())]));
+        m.insert("doc".to_string(), Value::from(vec![Value::Str("https://docs.deribit.com".into()), Value::Str("https://github.com/deribit".into())]));
         m.insert("fees".to_string(), Value::Str("https://www.deribit.com/pages/information/fees".into()));
         m.insert("referral".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1349,8 +1348,8 @@ impl DeribitCore {
         // support expired option contracts
         let mut quote: Value = Value::Str("USD".into());
         let mut settle: Value = Value::Null;
-        let mut optionParts: Value = split(&symbol, &Value::Str("-".into()));
-        let mut symbolBase: Value = split(&symbol, &Value::Str("/".into()));
+        let mut optionParts: Value = Value::Array(symbol.as_str().map(|__s| __s.split("-").map(|__p| Value::Str(__p.to_string().into())).collect()).unwrap_or_default());
+        let mut symbolBase: Value = Value::Array(symbol.as_str().map(|__s| __s.split("/").map(|__p| Value::Str(__p.to_string().into())).collect()).unwrap_or_default());
         let mut base: Value = Value::Null;
         let mut expiry: Value = Value::Null;
         if Value::Int(symbol.as_str().and_then(|__s| __s.find("/")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64) {
@@ -1374,7 +1373,7 @@ impl DeribitCore {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" createExpiredOptionMarket() missing base".into()))));
         }
         if Value::Int(base.as_str().and_then(|__s| __s.find("_")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64) {
-            let mut splitSymbol: Value = split(&base, &Value::Str("_".into()));
+            let mut splitSymbol: Value = Value::Array(base.as_str().map(|__s| __s.split("_").map(|__p| Value::Str(__p.to_string().into())).collect()).unwrap_or_default());
             splitBase = self.safe_string(splitSymbol, Value::Int(0), &[]);
         }
         let mut strike: Value = self.safe_string(optionParts.clone(), Value::Int(2), &[]);
@@ -1448,8 +1447,8 @@ impl DeribitCore {
         let mut market = get_arg(optional_args, 1, Value::Null);
         let mut delimiter = get_arg(optional_args, 2, Value::Null);
         let mut marketType = get_arg(optional_args, 3, Value::Null);
-        let mut isOption: bool = (marketId != Value::Null) && ((ends_with(&marketId, &Value::Str("-C".into()))) || (ends_with(&marketId, &Value::Str("-P".into()))));
-        if isOption && ((self.markets_by_id.clone() == Value::Null) || !(in_op(&self.markets_by_id, &marketId))) {
+        let mut isOption: bool = (marketId != Value::Null) && ((marketId.as_str().is_some_and(|__s| __s.ends_with("-C"))) || (marketId.as_str().is_some_and(|__s| __s.ends_with("-P"))));
+        if isOption && ((self.markets_by_id.clone() == Value::Null) || !(matches!((&self.markets_by_id, &marketId), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref())))) {
             return self.create_expired_option_market(marketId.clone());
         }
         return self.super_safe_market(marketId, market, delimiter, marketType);
@@ -1461,7 +1460,7 @@ impl DeribitCore {
  * @method
  * @name deribit#fetchTime
  * @description fetches the current integer timestamp in milliseconds from the exchange server
- * @see https://docs.deribit.com/#public-get_time
+ * @see https://docs.deribit.com/api-reference/supporting/public-get_time
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
@@ -1480,7 +1479,7 @@ impl DeribitCore {
  * @method
  * @name deribit#fetchCurrencies
  * @description fetches all available currencies on an exchange
- * @see https://docs.deribit.com/#public-get_currencies
+ * @see https://docs.deribit.com/api-reference/market-data/public-get_currencies
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
  */
@@ -1584,7 +1583,7 @@ impl DeribitCore {
  * @method
  * @name deribit#fetchStatus
  * @description the latest known information on the availability of the exchange API
- * @see https://docs.deribit.com/#public-status
+ * @see https://docs.deribit.com/api-reference/supporting/public-status
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
@@ -1626,7 +1625,7 @@ impl DeribitCore {
  * @method
  * @name deribit#fetchAccounts
  * @description fetch all the accounts associated with a profile
- * @see https://docs.deribit.com/#private-get_subaccounts
+ * @see https://docs.deribit.com/api-reference/account-management/private-get_subaccounts
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
  */
@@ -1696,8 +1695,8 @@ impl DeribitCore {
  * @method
  * @name deribit#fetchMarkets
  * @description retrieves data on all markets for deribit
- * @see https://docs.deribit.com/#public-get_currencies
- * @see https://docs.deribit.com/#public-get_instruments
+ * @see https://docs.deribit.com/api-reference/market-data/public-get_currencies
+ * @see https://docs.deribit.com/api-reference/market-data/public-get_instruments
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
@@ -1706,8 +1705,8 @@ impl DeribitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut instrumentsResponses: Value = Value::from(vec![]);
-        let mut result: Value = Value::from(vec![]);
+        let mut instrumentsResponses: Vec<Value> = Vec::new();
+        let mut result: Vec<Value> = Vec::new();
         let mut parsedMarkets: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1715,9 +1714,9 @@ impl DeribitCore {
         let mut fetchAllMarketsparamsFetchAllMarketsVariable = self.handle_option_bool_and_params(params, Value::Str("fetchMarkets".into()), Value::Str("fetchAllMarkets".into()), &[Value::Bool(true)]);
         let mut fetchAllMarkets: Value = fetchAllMarketsparamsFetchAllMarketsVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsFetchAllMarkets: Value = fetchAllMarketsparamsFetchAllMarketsVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-        if is_true(&fetchAllMarkets) {
+        if fetchAllMarkets.as_bool() == Some(true) {
             let mut instrumentsResponse: Value = self.public_get_get_instruments(&[paramsFetchAllMarkets.clone()]).await;
-            append_to_array(&mut instrumentsResponses, instrumentsResponse.clone());
+            instrumentsResponses.push(instrumentsResponse.clone());
         }  else {
             let mut currenciesResponse: Value = self.public_get_get_currencies(&[paramsFetchAllMarkets.clone()]).await;
             //
@@ -1747,8 +1746,8 @@ impl DeribitCore {
             let mut currenciesResult: Value = self.safe_list_k(currenciesResponse, "result", &[Value::from(vec![])]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_622: bool = true;
-                while { if !__for_first_622 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_622 = false; i.as_f64().unwrap_or(f64::NAN) < ((currenciesResult.len() as i64) as f64) } {
+                let mut __for_first_616: bool = true;
+                while { if !__for_first_616 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_616 = false; i.as_f64().unwrap_or(f64::NAN) < ((currenciesResult.len() as i64) as f64) } {
                 let mut currencyId: Value = self.safe_string(currenciesResult.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), Value::Str("currency".into()), &[]);
                 let mut request: Value = Value::Map({
                     let mut m = indexmap::IndexMap::new();
@@ -1830,19 +1829,19 @@ impl DeribitCore {
                 //         "testnet":false
                 //     }
                 //
-                append_to_array(&mut instrumentsResponses, instrumentsResponse);
+                instrumentsResponses.push(instrumentsResponse);
             }
             }
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_624: bool = true;
-            while { if !__for_first_624 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_624 = false; i.as_f64().unwrap_or(f64::NAN) < ((instrumentsResponses.len() as i64) as f64) } {
-            let mut instrumentsResult: Value = self.safe_list(instrumentsResponses.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), Value::Str("result".into()), &[Value::from(vec![])]);
+            let mut __for_first_618: bool = true;
+            while { if !__for_first_618 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_618 = false; i.as_f64().unwrap_or(f64::NAN) < ((instrumentsResponses.len() as i64) as f64) } {
+            let mut instrumentsResult: Value = self.safe_list(instrumentsResponses.get((i).as_i64().map_or(usize::MAX, |__n| __n as usize)).cloned().unwrap_or(Value::Null), Value::Str("result".into()), &[Value::from(vec![])]);
             {
                                 let mut k: Value = Value::Int(0);
-                let mut __for_first_623: bool = true;
-                while { if !__for_first_623 { k = (match (&(k), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_623 = false; k.as_f64().unwrap_or(f64::NAN) < ((instrumentsResult.len() as i64) as f64) } {
+                let mut __for_first_617: bool = true;
+                while { if !__for_first_617 { if let Value::Int(n) = &mut k { *n += 1; } } __for_first_617 = false; k.as_f64().unwrap_or(f64::NAN) < ((instrumentsResult.len() as i64) as f64) } {
                 let mut market: Value = instrumentsResult.as_array().and_then(|__arr| match &k { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 let mut kind: Value = self.safe_string_k(market.clone(), "kind", &[]);
                 let mut isSpot: Value = (Value::Bool(kind.as_str() == Some("spot")));
@@ -1909,7 +1908,7 @@ impl DeribitCore {
                 }
                 let mut minTradeAmount: Value = self.safe_number_k(market.clone(), "min_trade_amount", &[]);
                 let mut tickSize: Value = self.safe_number_k(market.clone(), "tick_size", &[]);
-                append_to_array(&mut result, Value::Map({
+                result.push(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("id".to_string(), id);
                         m.insert("symbol".to_string(), symbol);
@@ -1978,7 +1977,7 @@ impl DeribitCore {
             }
         }
         }
-        return result;
+        return Value::from(result);
 
     Value::Null
 }
@@ -1997,8 +1996,8 @@ impl DeribitCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_625: bool = true;
-            while { if !__for_first_625 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_625 = false; i.as_f64().unwrap_or(f64::NAN) < ((summaries.len() as i64) as f64) } {
+            let mut __for_first_619: bool = true;
+            while { if !__for_first_619 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_619 = false; i.as_f64().unwrap_or(f64::NAN) < ((summaries.len() as i64) as f64) } {
             let mut data: Value = self.safe_dict(summaries.clone(), i.clone(), &[]);
             let mut currencyId: Value = self.safe_string_k(data.clone(), "currency", &[]);
             let mut currencyCode: Value = self.safe_currency_code(currencyId, &[]);
@@ -2020,8 +2019,8 @@ impl DeribitCore {
  * @method
  * @name deribit#fetchBalance
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
- * @see https://docs.deribit.com/#private-get_account_summary
- * @see https://docs.deribit.com/#private-get_account_summaries
+ * @see https://docs.deribit.com/api-reference/account-management/private-get_account_summary
+ * @see https://docs.deribit.com/api-reference/account-management/private-get_account_summaries
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.code] unified currency code of the currency for the balance, if defined 'privateGetGetAccountSummary' will be used, otherwise 'privateGetGetAccountSummaries' will be used
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
@@ -2105,7 +2104,7 @@ impl DeribitCore {
  * @method
  * @name deribit#createDepositAddress
  * @description create a currency deposit address
- * @see https://docs.deribit.com/#private-create_deposit_address
+ * @see https://docs.deribit.com/api-reference/wallet/private-create_deposit_address
  * @param {string} code unified currency code of the currency for the deposit address
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
@@ -2161,7 +2160,7 @@ impl DeribitCore {
  * @method
  * @name deribit#fetchDepositAddress
  * @description fetch the deposit address for a currency associated with this account
- * @see https://docs.deribit.com/#private-get_current_deposit_address
+ * @see https://docs.deribit.com/api-reference/wallet/private-get_current_deposit_address
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
@@ -2305,7 +2304,7 @@ impl DeribitCore {
  * @method
  * @name deribit#fetchTicker
  * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
- * @see https://docs.deribit.com/#public-ticker
+ * @see https://docs.deribit.com/api-reference/market-data/public-ticker
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -2367,7 +2366,7 @@ impl DeribitCore {
  * @method
  * @name deribit#fetchTickers
  * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
- * @see https://docs.deribit.com/#public-get_book_summary_by_currency
+ * @see https://docs.deribit.com/api-reference/market-data/public-get_book_summary_by_currency
  * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.code] *required* the currency code to fetch the tickers for, eg. 'BTC', 'ETH'
@@ -2389,11 +2388,12 @@ impl DeribitCore {
         if (symbolsNormalized != Value::Null) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_626: bool = true;
-                while { if !__for_first_626 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_626 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
+                let mut __for_first_620: bool = true;
+                while { if !__for_first_620 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_620 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
                 let mut market: Value = self.market(symbolsNormalized.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
-                if (code != Value::Null) && (code.as_str() != market.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null).as_str()) {
-                    panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchTickers the base currency must be the same for all symbols, this endpoint only supports one base currency at a time. Read more about it here: https://docs.deribit.com/#public-get_book_summary_by_currency".into()))));
+                let mut marketBase: Value = self.safe_string_k(market.clone(), "base", &[]);
+                if (code != Value::Null) && (code != marketBase) {
+                    panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchTickers the base currency must be the same for all symbols, this endpoint only supports one base currency at a time. Read more about it here: https://docs.deribit.com/api-reference/market-data/public-get_book_summary_by_currency".into()))));
                 }
                 if (code == Value::Null) {
                     code = self.safe_string_k(market.clone(), "base", &[]);
@@ -2463,8 +2463,8 @@ impl DeribitCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_627: bool = true;
-            while { if !__for_first_627 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_627 = false; i.as_f64().unwrap_or(f64::NAN) < ((result.len() as i64) as f64) } {
+            let mut __for_first_621: bool = true;
+            while { if !__for_first_621 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_621 = false; i.as_f64().unwrap_or(f64::NAN) < ((result.len() as i64) as f64) } {
             let mut ticker: Value = self.parse_ticker(result.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), &[]);
             let mut symbol: Value = ticker.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             if (symbol != Value::Null) {
@@ -2481,7 +2481,7 @@ impl DeribitCore {
  * @method
  * @name deribit#fetchOHLCV
  * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
- * @see https://docs.deribit.com/#public-get_tradingview_chart_data
+ * @see https://docs.deribit.com/api-reference/market-data/public-get_tradingview_chart_data
  * @param {string} symbol unified symbol of the market to fetch OHLCV data for
  * @param {string} timeframe the length of time each candle represents
  * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -2505,7 +2505,7 @@ impl DeribitCore {
         let mut paginateparamsPaginateVariable = self.handle_option_bool_and_params(params, Value::Str("fetchOHLCV".into()), Value::Str("paginate".into()), &[Value::Bool(false)]);
         let mut paginate: Value = paginateparamsPaginateVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsPaginate: Value = paginateparamsPaginateVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-        if is_true(&paginate) {
+        if paginate.as_bool() == Some(true) {
             return self.fetch_paginated_call_deterministic(Value::Str("fetchOHLCV".into()), &[symbol.clone(), since.clone(), limit.clone(), timeframe.clone(), paramsPaginate.clone(), Value::Int(5000)]).await;
         }
         let mut market: Value = self.market(symbol);
@@ -2518,8 +2518,9 @@ impl DeribitCore {
         let mut duration: Value = self.parse_timeframe(timeframe.clone());
         let mut now: Value = self.milliseconds();
         // at max, it provides 5000 bars, but we set generous default here
-        let mut windowLimit: Value = (if (limit == Value::Null) { Value::Int(1000) } else { limit.clone() });
-        let mut limitResolved: Value = (if (since == Value::Null) { windowLimit.clone() } else { limit.clone() });
+        let mut defaultLimit: Value = Value::Int(1000);
+        let mut windowLimit: Value = (if (limit == Value::Null) { defaultLimit.clone() } else { limit.clone() });
+        let mut limitResolved: Value = (if ((since == Value::Null) && (limit == Value::Null)) { defaultLimit } else { limit.clone() });
         let mut sinceResolved: Value = (if (since == Value::Null) { Value::Null } else { crate::runtime::Math::max(&(match (&(since), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &Value::Int(0)) });
         if (since == Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start_timestamp".into(), (match (&(now), &((match (&((match (&(((match (&(windowLimit), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }))), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })); }
@@ -2668,8 +2669,8 @@ impl DeribitCore {
 /*
  * @method
  * @name deribit#fetchTrades
- * @see https://docs.deribit.com/#public-get_last_trades_by_instrument
- * @see https://docs.deribit.com/#public-get_last_trades_by_instrument_and_time
+ * @see https://docs.deribit.com/api-reference/market-data/public-get_last_trades_by_instrument
+ * @see https://docs.deribit.com/api-reference/market-data/public-get_last_trades_by_instrument_and_time
  * @description get the list of most recent trades for a particular symbol.
  * @param {string} symbol unified symbol of the market to fetch trades for
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
@@ -2753,7 +2754,7 @@ impl DeribitCore {
  * @method
  * @name deribit#fetchTradingFees
  * @description fetch the trading fees for multiple markets
- * @see https://docs.deribit.com/#private-get_account_summary
+ * @see https://docs.deribit.com/api-reference/account-management/private-get_account_summary
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
  */
@@ -2843,8 +2844,8 @@ impl DeribitCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_628: bool = true;
-            while { if !__for_first_628 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_628 = false; i.as_f64().unwrap_or(f64::NAN) < ((fees.len() as i64) as f64) } {
+            let mut __for_first_622: bool = true;
+            while { if !__for_first_622 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_622 = false; i.as_f64().unwrap_or(f64::NAN) < ((fees.len() as i64) as f64) } {
             let mut fee: Value = fees.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut instrumentType: Option<String> = self.safe_string_k(fee.clone(), "instrument_type", &[]).as_str().map(str::to_owned);
             if (instrumentType.as_deref() == Some("future")) {
@@ -2881,8 +2882,8 @@ impl DeribitCore {
         let mut symbols: Value = self.symbols.clone();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_629: bool = true;
-            while { if !__for_first_629 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_629 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
+            let mut __for_first_623: bool = true;
+            while { if !__for_first_623 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_623 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
             let mut symbol: Value = symbols.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.market(symbol.clone());
             let mut fee: Value = Value::Map({
@@ -2914,7 +2915,7 @@ impl DeribitCore {
  * @method
  * @name deribit#fetchOrderBook
  * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
- * @see https://docs.deribit.com/#public-get_order_book
+ * @see https://docs.deribit.com/api-reference/market-data/public-get_order_book
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2992,7 +2993,7 @@ impl DeribitCore {
     Value::Null
 }
 
-    pub fn parse_order_status(&self, mut status: Value) -> Value {
+    pub fn parse_order_status(&self, mut status: Value) -> Option<String> {
         let mut statuses: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("open".to_string(), Value::Str("open".into()));
@@ -3002,12 +3003,10 @@ impl DeribitCore {
                 m.insert("untriggered".to_string(), Value::Str("open".into()));
             m
         });
-        return self.safe_string(statuses, status.clone(), &[status.clone()]);
-
-    Value::Null
+        return self.safe_string(statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
-    pub fn parse_time_in_force(&self, mut timeInForce: Value) -> Value {
+    pub fn parse_time_in_force(&self, mut timeInForce: Value) -> Option<String> {
         let mut timeInForces: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("good_til_cancelled".to_string(), Value::Str("GTC".into()));
@@ -3015,9 +3014,7 @@ impl DeribitCore {
                 m.insert("immediate_or_cancel".to_string(), Value::Str("IOC".into()));
             m
         });
-        return self.safe_string(timeInForces, timeInForce.clone(), &[timeInForce.clone()]);
-
-    Value::Null
+        return self.safe_string(timeInForces, timeInForce.clone(), &[timeInForce.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn parse_order_type(&self, mut orderType: Value) -> Option<String> {
@@ -3084,11 +3081,11 @@ impl DeribitCore {
         let mut lastTradeTimestamp: Value = Value::Null;
         if (filledString != Value::Null) {
             let mut isFilledPositive: Value = crate::precise::Precise::stringGt(&filledString, &Value::Str("0".into()));
-            if is_true(&isFilledPositive) {
+            if isFilledPositive.as_bool() == Some(true) {
                 lastTradeTimestamp = lastUpdate;
             }
         }
-        let mut status: Value = self.parse_order_status(self.safe_string_k(order.clone(), "order_state", &[]));
+        let mut status: Value = self.parse_order_status(self.safe_string_k(order.clone(), "order_state", &[])).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut side: Value = self.safe_string_lower_k(order.clone(), "direction", &[]);
         let mut feeCostString: Value = self.safe_string_k(order.clone(), "commission", &[]);
         let mut fee: Value = Value::Null;
@@ -3105,7 +3102,7 @@ impl DeribitCore {
         let mut type_var: Value = self.parse_order_type(rawType).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         // injected in createOrder
         let mut trades: Value = self.safe_list_k(order.clone(), "trades", &[]);
-        let mut timeInForce: Value = self.parse_time_in_force(self.safe_string_k(order.clone(), "time_in_force", &[]));
+        let mut timeInForce: Value = self.parse_time_in_force(self.safe_string_k(order.clone(), "time_in_force", &[])).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut postOnly: Value = self.safe_bool_k(order.clone(), "post_only", &[]);
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3140,7 +3137,7 @@ impl DeribitCore {
  * @method
  * @name deribit#fetchOrder
  * @description fetches information on an order made by the user
- * @see https://docs.deribit.com/#private-get_order_state
+ * @see https://docs.deribit.com/api-reference/trading/private-get_order_state
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3207,8 +3204,8 @@ impl DeribitCore {
  * @method
  * @name deribit#createOrder
  * @description create a trade order
- * @see https://docs.deribit.com/#private-buy
- * @see https://docs.deribit.com/#private-sell
+ * @see https://docs.deribit.com/api-reference/trading/private-buy
+ * @see https://docs.deribit.com/api-reference/trading/private-sell
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type 'market' or 'limit'
  * @param {string} side 'buy' or 'sell'
@@ -3240,9 +3237,9 @@ impl DeribitCore {
         let mut timeInForce: Option<String> = self.safe_string_upper_k(params.clone(), "timeInForce", &[]).as_str().map(str::to_owned);
         let mut reduceOnly: Value = self.safe_bool2(params.clone(), Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), &[]);
         // only stop loss sell orders are allowed when price crossed from above
-        let mut stopLossPrice: Value = self.safe_value_k(params.clone(), "stopLossPrice", &[]);
+        let mut stopLossPrice: Value = self.safe_string_k(params.clone(), "stopLossPrice", &[]);
         // only take profit buy orders are allowed when price crossed from below
-        let mut takeProfitPrice: Value = self.safe_value_k(params.clone(), "takeProfitPrice", &[]);
+        let mut takeProfitPrice: Value = self.safe_string_k(params.clone(), "takeProfitPrice", &[]);
         let mut trailingAmount: Value = self.safe_string2(params.clone(), Value::Str("trailingAmount".into()), Value::Str("trigger_offset".into()), &[]);
         let mut isTrailingAmountOrder: bool = trailingAmount != Value::Null;
         let mut isStopLimit: bool = type_var.as_str() == Some("stop_limit");
@@ -3294,7 +3291,7 @@ impl DeribitCore {
         if (reduceOnly.as_bool() == Some(true)) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("reduce_only".into(), Value::Bool(true)); }
         }
-        if is_true(&postOnly) {
+        if postOnly.as_bool() == Some(true) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("post_only".into(), Value::Bool(true)); }
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("reject_post_only".into(), Value::Bool(true)); }
         }
@@ -3386,7 +3383,7 @@ impl DeribitCore {
  * @method
  * @name deribit#editOrder
  * @description edit a trade order
- * @see https://docs.deribit.com/#private-edit
+ * @see https://docs.deribit.com/api-reference/trading/private-edit
  * @param {string} id edit order id
  * @param {string} [symbol] unified symbol of the market to edit an order in
  * @param {string} [type] 'market' or 'limit'
@@ -3446,7 +3443,7 @@ impl DeribitCore {
  * @method
  * @name deribit#cancelOrder
  * @description cancels an open order
- * @see https://docs.deribit.com/#private-cancel
+ * @see https://docs.deribit.com/api-reference/trading/private-cancel
  * @param {string} id order id
  * @param {string} symbol not used by cancelOrder ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3481,8 +3478,8 @@ impl DeribitCore {
  * @method
  * @name deribit#cancelAllOrders
  * @description cancel all open orders
- * @see https://docs.deribit.com/#private-cancel_all
- * @see https://docs.deribit.com/#private-cancel_all_by_instrument
+ * @see https://docs.deribit.com/api-reference/trading/private-cancel_all
+ * @see https://docs.deribit.com/api-reference/trading/private-cancel_all_by_instrument
  * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
@@ -3523,8 +3520,8 @@ impl DeribitCore {
  * @method
  * @name deribit#fetchOpenOrders
  * @description fetch all unfilled currently open orders
- * @see https://docs.deribit.com/#private-get_open_orders_by_currency
- * @see https://docs.deribit.com/#private-get_open_orders_by_instrument
+ * @see https://docs.deribit.com/api-reference/trading/private-get_open_orders_by_currency
+ * @see https://docs.deribit.com/api-reference/trading/private-get_open_orders_by_instrument
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch open orders for
  * @param {int} [limit] the maximum number of  open orders structures to retrieve
@@ -3570,8 +3567,8 @@ impl DeribitCore {
  * @method
  * @name deribit#fetchClosedOrders
  * @description fetches information on multiple closed orders made by the user
- * @see https://docs.deribit.com/#private-get_order_history_by_currency
- * @see https://docs.deribit.com/#private-get_order_history_by_instrument
+ * @see https://docs.deribit.com/api-reference/trading/private-get_order_history_by_currency
+ * @see https://docs.deribit.com/api-reference/trading/private-get_order_history_by_instrument
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
@@ -3622,7 +3619,7 @@ impl DeribitCore {
  * @method
  * @name deribit#fetchOrderTrades
  * @description fetch all the trades made from a single order
- * @see https://docs.deribit.com/#private-get_user_trades_by_order
+ * @see https://docs.deribit.com/api-reference/trading/private-get_user_trades_by_order
  * @param {string} id order id
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch trades for
@@ -3691,10 +3688,10 @@ impl DeribitCore {
  * @method
  * @name deribit#fetchMyTrades
  * @description fetch all trades made by the user
- * @see https://docs.deribit.com/#private-get_user_trades_by_currency
- * @see https://docs.deribit.com/#private-get_user_trades_by_currency_and_time
- * @see https://docs.deribit.com/#private-get_user_trades_by_instrument
- * @see https://docs.deribit.com/#private-get_user_trades_by_instrument_and_time
+ * @see https://docs.deribit.com/api-reference/trading/private-get_user_trades_by_currency
+ * @see https://docs.deribit.com/api-reference/trading/private-get_user_trades_by_currency_and_time
+ * @see https://docs.deribit.com/api-reference/trading/private-get_user_trades_by_instrument
+ * @see https://docs.deribit.com/api-reference/trading/private-get_user_trades_by_instrument_and_time
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trades structures to retrieve
@@ -3793,7 +3790,7 @@ impl DeribitCore {
  * @method
  * @name deribit#fetchDeposits
  * @description fetch all deposits made to an account
- * @see https://docs.deribit.com/#private-get_deposits
+ * @see https://docs.deribit.com/api-reference/wallet/private-get_deposits
  * @param {string} code unified currency code
  * @param {int} [since] the earliest time in ms to fetch deposits for
  * @param {int} [limit] the maximum number of deposits structures to retrieve
@@ -3859,7 +3856,7 @@ impl DeribitCore {
  * @method
  * @name deribit#fetchWithdrawals
  * @description fetch all withdrawals made from an account
- * @see https://docs.deribit.com/#private-get_withdrawals
+ * @see https://docs.deribit.com/api-reference/wallet/private-get_withdrawals
  * @param {string} code unified currency code
  * @param {int} [since] the earliest time in ms to fetch withdrawals for
  * @param {int} [limit] the maximum number of withdrawals structures to retrieve
@@ -3925,16 +3922,14 @@ impl DeribitCore {
     Value::Null
 }
 
-    pub fn parse_transaction_status(&self, mut status: Value) -> Value {
+    pub fn parse_transaction_status(&self, mut status: Value) -> Option<String> {
         let mut statuses: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("completed".to_string(), Value::Str("ok".into()));
                 m.insert("unconfirmed".to_string(), Value::Str("pending".into()));
             m
         });
-        return self.safe_string(statuses, status.clone(), &[status.clone()]);
-
-    Value::Null
+        return self.safe_string(statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn parse_transaction(&self, mut transaction: Value, optional_args: &[Value]) -> Value {
@@ -3972,7 +3967,7 @@ impl DeribitCore {
         let mut code: Value = self.safe_currency_code(currencyId, &[currency]);
         let mut timestamp: Value = self.safe_integer2(transaction.clone(), Value::Str("created_timestamp".into()), Value::Str("received_timestamp".into()), &[]);
         let mut updated: Value = self.safe_integer_k(transaction.clone(), "updated_timestamp", &[]);
-        let mut status: Value = self.parse_transaction_status(self.safe_string_k(transaction.clone(), "state", &[]));
+        let mut status: Value = self.parse_transaction_status(self.safe_string_k(transaction.clone(), "state", &[])).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut address: Value = self.safe_string_k(transaction.clone(), "address", &[]);
         let mut feeCost: Value = self.safe_number_k(transaction.clone(), "fee", &[]);
         let mut type_var: Value = Value::Str("deposit".into());
@@ -4091,7 +4086,7 @@ impl DeribitCore {
  * @method
  * @name deribit#fetchPosition
  * @description fetch data on a single open contract trade position
- * @see https://docs.deribit.com/#private-get_position
+ * @see https://docs.deribit.com/api-reference/account-management/private-get_position
  * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
@@ -4151,7 +4146,7 @@ impl DeribitCore {
  * @method
  * @name deribit#fetchPositions
  * @description fetch all open positions
- * @see https://docs.deribit.com/#private-get_positions
+ * @see https://docs.deribit.com/api-reference/account-management/private-get_positions
  * @param {string[]|undefined} symbols list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.currency] currency code filter for positions
@@ -4219,7 +4214,7 @@ impl DeribitCore {
  * @method
  * @name deribit#fetchVolatilityHistory
  * @description fetch the historical volatility of an option market based on an underlying asset
- * @see https://docs.deribit.com/#public-get_historical_volatility
+ * @see https://docs.deribit.com/api-reference/market-data/public-get_historical_volatility
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [volatility history objects]{@link https://docs.ccxt.com/?id=volatility-structure}
@@ -4263,14 +4258,14 @@ impl DeribitCore {
         //     }
         //
         let mut volatilityResult: Value = (match volatility.get("result") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
-        let mut result: Value = Value::from(vec![]);
+        let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_630: bool = true;
-            while { if !__for_first_630 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_630 = false; i.as_f64().unwrap_or(f64::NAN) < ((volatilityResult.len() as i64) as f64) } {
+            let mut __for_first_624: bool = true;
+            while { if !__for_first_624 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_624 = false; i.as_f64().unwrap_or(f64::NAN) < ((volatilityResult.len() as i64) as f64) } {
             let mut timestamp: Value = self.safe_integer(volatilityResult.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), Value::Int(0), &[]);
             let mut volatilityObj: Value = self.safe_number(volatilityResult.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), Value::Int(1), &[]);
-            append_to_array(&mut result, Value::Map({
+            result.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("info".to_string(), volatilityObj.clone());
                     m.insert("timestamp".to_string(), timestamp.clone());
@@ -4280,7 +4275,7 @@ impl DeribitCore {
             }));
         }
         }
-        return result;
+        return Value::from(result);
 
     Value::Null
 }
@@ -4289,7 +4284,7 @@ impl DeribitCore {
  * @method
  * @name deribit#fetchTransfers
  * @description fetch a history of internal transfers made on an account
- * @see https://docs.deribit.com/#private-get_transfers
+ * @see https://docs.deribit.com/api-reference/wallet/private-get_transfers
  * @param {string} code unified currency code of the currency transferred
  * @param {int} [since] the earliest time in ms to fetch transfers for
  * @param {int} [limit] the maximum number of  transfers structures to retrieve
@@ -4368,8 +4363,8 @@ impl DeribitCore {
  * @method
  * @name deribit#transfer
  * @description transfer currency internally between wallets on the same account
- * @see https://docs.deribit.com/#private-submit_transfer_to_user
- * @see https://docs.deribit.com/#private-submit_transfer_to_subaccount
+ * @see https://docs.deribit.com/api-reference/wallet/private-submit_transfer_to_user
+ * @see https://docs.deribit.com/api-reference/wallet/private-submit_transfer_to_subaccount
  * @param {string} code unified currency code
  * @param {float} amount amount to transfer
  * @param {string} fromAccount account to transfer from
@@ -4489,23 +4484,23 @@ impl DeribitCore {
  * @method
  * @name deribit#withdraw
  * @description make a withdrawal
- * @see https://docs.deribit.com/#private-withdraw
+ * @see https://docs.deribit.com/api-reference/wallet/private-withdraw
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
- * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
     pub async fn withdraw(&mut self, mut code: Value, mut amount: Value, mut address: Value, optional_args: &[Value]) -> Value {
-        let mut tag = get_arg(optional_args, 0, Value::Null);
-        let mut params = get_arg(optional_args, 1, Value::Map({
+        let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut tagAndParams: Value = self.handle_withdraw_tag_and_params(tag, params);
-        let mut paramsWithdrawTag: Value = tagAndParams.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-        self.check_address(&[address.clone()]);
+        let mut tagWithdrawTagparamsWithdrawTagVariable = self.handle_param_string(params, Value::Str("tag".into()), &[]);
+        let mut tagWithdrawTag: Value = tagWithdrawTagparamsWithdrawTagVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsWithdrawTag: Value = tagWithdrawTagparamsWithdrawTagVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
+        self.check_address(&[address.clone(), code.clone(), tagWithdrawTag]);
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
@@ -4558,7 +4553,7 @@ impl DeribitCore {
  * @method
  * @name deribit#fetchDepositWithdrawFees
  * @description fetch deposit and withdraw fees
- * @see https://docs.deribit.com/#public-get_currencies
+ * @see https://docs.deribit.com/api-reference/market-data/public-get_currencies
  * @param {string[]|undefined} codes list of unified currency codes
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
@@ -4605,7 +4600,7 @@ impl DeribitCore {
  * @method
  * @name deribit#fetchFundingRate
  * @description fetch the current funding rate
- * @see https://docs.deribit.com/#public-get_funding_rate_value
+ * @see https://docs.deribit.com/api-reference/market-data/public-get_funding_rate_value
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.start_timestamp] fetch funding rate starting from this timestamp
@@ -4640,7 +4635,7 @@ impl DeribitCore {
  * @method
  * @name deribit#fetchFundingRateHistory
  * @description fetch the current funding rate
- * @see https://docs.deribit.com/#public-get_funding_rate_history
+ * @see https://docs.deribit.com/api-reference/market-data/public-get_funding_rate_history
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch funding rate history for
  * @param {int} [limit] the maximum number of entries to retrieve
@@ -4666,7 +4661,7 @@ impl DeribitCore {
         let mut paramsPaginate: Value = paginateparamsPaginateVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut maxEntriesPerRequest: Value = Value::Int(744); // seems exchange returns max 744 items per request
         let mut eachItemDuration: Value = Value::Str("1h".into());
-        if is_true(&paginate) {
+        if paginate.as_bool() == Some(true) {
             // fix for: https://github.com/ccxt/ccxt/issues/25040
             let mut paginationParams: Value = self.extend(paramsPaginate.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -4678,7 +4673,8 @@ impl DeribitCore {
         let mut duration: Value = (match (&(self.parse_timeframe(eachItemDuration)), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
         let mut now: Value = self.milliseconds();
         let mut month: Value = (match (&((match (&((match (&((match (&(Value::Int(30)), &(Value::Int(24))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(60))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(60))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
-        let mut sinceResolved: Value = (if (since == Value::Null) { (match (&(now), &(month)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }) } else { since.clone() });
+        let mut defaultSince: Value = (match (&(now), &(month)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
+        let mut sinceResolved: Value = (if (since == Value::Null) { defaultSince } else { since.clone() });
         let mut time: Value = (if (since == Value::Null) { now } else { (match (&(since), &(month)) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }) });
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -4688,11 +4684,8 @@ impl DeribitCore {
         });
         let mut until: Value = self.safe_integer2(paramsPaginate.clone(), Value::Str("until".into()), Value::Str("end_timestamp".into()), &[]);
         let mut paramsUntil: Value = (if (until != Value::Null) { self.omit(paramsPaginate.clone(), Value::from(vec![Value::Str("until".into())]), &[]) } else { paramsPaginate });
-        if (until != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("end_timestamp".into(), until); }
-        }  else {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("end_timestamp".into(), time); }
-        }
+        let mut endTimestamp: Value = (if (until != Value::Null) { until } else { time });
+        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("end_timestamp".into(), endTimestamp.clone()); }
         let mut isPaginationCall: bool = matches!(&paramsUntil, Value::Dict(__d) if __d.contains_key("isDeribitPaginationCall"));
         let mut paramsOmitted: Value = paramsUntil.clone();
         if isPaginationCall {
@@ -4702,8 +4695,8 @@ impl DeribitCore {
             if (limit == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingRateHistory() requires a limit argument".into()))));
             }
-            let mut maxUntil: Value = self.sum(&[sinceResolved.clone(), (match (&(limit), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]);
-            { let __be_tmp = crate::runtime::Math::min(&crate::value::get_value_k(&request, "end_timestamp"), &maxUntil); if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("end_timestamp".into(), __be_tmp); } }
+            let mut maxUntil: Value = self.parse_to_int(self.sum(&[sinceResolved.clone(), (match (&(limit), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]));
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("end_timestamp".into(), (if (endTimestamp.as_f64().unwrap_or(f64::NAN) < maxUntil.as_f64().unwrap_or(f64::NAN)) { endTimestamp } else { maxUntil })); }
         }
         let __ws_arg_37 = self.extend(request, &[paramsOmitted]);
         let mut response: Value = self.public_get_get_funding_rate_history(&[__ws_arg_37]).await;
@@ -4722,18 +4715,18 @@ impl DeribitCore {
         //        ]
         //    }
         //
-        let mut rates: Value = Value::from(vec![]);
+        let mut rates: Vec<Value> = Vec::new();
         let mut result: Value = self.safe_list_k(response, "result", &[Value::from(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_631: bool = true;
-            while { if !__for_first_631 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_631 = false; i.as_f64().unwrap_or(f64::NAN) < ((result.len() as i64) as f64) } {
+            let mut __for_first_625: bool = true;
+            while { if !__for_first_625 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_625 = false; i.as_f64().unwrap_or(f64::NAN) < ((result.len() as i64) as f64) } {
             let mut fr: Value = self.safe_dict(result.clone(), i.clone(), &[]);
             let mut rate: Value = self.parse_funding_rate(fr, &[market.clone()]);
-            append_to_array(&mut rates, rate);
+            rates.push(rate);
         }
         }
-        return self.filter_by_symbol_since_limit(rates, &[symbol, sinceResolved, limit]);
+        return self.filter_by_symbol_since_limit(Value::from(rates), &[symbol, sinceResolved, limit]);
 
     Value::Null
 }
@@ -4791,7 +4784,7 @@ impl DeribitCore {
  * @method
  * @name deribit#fetchLiquidations
  * @description retrieves the public liquidations of a trading pair
- * @see https://docs.deribit.com/#public-get_last_settlements_by_currency
+ * @see https://docs.deribit.com/api-reference/market-data/public-get_last_settlements_by_currency
  * @param {string} symbol unified CCXT market symbol
  * @param {int} [since] the earliest time in ms to fetch liquidations for
  * @param {int} [limit] the maximum number of liquidation structures to retrieve
@@ -4812,7 +4805,7 @@ impl DeribitCore {
         let mut paginateparamsPaginateVariable = self.handle_option_bool_and_params(params, Value::Str("fetchLiquidations".into()), Value::Str("paginate".into()), &[Value::Bool(false)]);
         let mut paginate: Value = paginateparamsPaginateVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsPaginate: Value = paginateparamsPaginateVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-        if is_true(&paginate) {
+        if paginate.as_bool() == Some(true) {
             return self.fetch_paginated_call_cursor(Value::Str("fetchLiquidations".into()), &[symbol.clone(), since.clone(), limit.clone(), paramsPaginate.clone(), Value::Str("continuation".into()), Value::Str("continuation".into()), Value::Null]).await;
         }
         let mut market: Value = self.market(symbol);
@@ -4874,7 +4867,7 @@ impl DeribitCore {
             let mut dataLength: Value = Value::Int(data.len() as i64);
             if dataLength.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
                 let mut first: Value = data.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-                let mut last: Value = get_value(&data, &(match (&(dataLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }));
+                let mut last: Value = data.as_array().and_then(|__arr| match &((match (&(dataLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })) { Value::Int(__n) if *__n >= 0 => __arr.get(*__n as usize), _ => None }).cloned().unwrap_or(Value::Null);
                 add_element_to_object(&mut first, &Value::Str("continuation".into()), cursor.clone());
                 add_element_to_object(&mut last, &Value::Str("continuation".into()), cursor);
                 add_element_to_object(&mut data, &Value::Int(0), first);
@@ -4890,7 +4883,7 @@ impl DeribitCore {
  * @method
  * @name deribit#fetchMyLiquidations
  * @description retrieves the users liquidated positions
- * @see https://docs.deribit.com/#private-get_settlement_history_by_instrument
+ * @see https://docs.deribit.com/api-reference/trading/private-get_settlement_history_by_instrument
  * @param {string} symbol unified CCXT market symbol
  * @param {int} [since] the earliest time in ms to fetch liquidations for
  * @param {int} [limit] the maximum number of liquidation structures to retrieve
@@ -4999,7 +4992,7 @@ impl DeribitCore {
  * @method
  * @name deribit#fetchGreeks
  * @description fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
- * @see https://docs.deribit.com/#public-ticker
+ * @see https://docs.deribit.com/api-reference/market-data/public-ticker
  * @param {string} symbol unified symbol of the market to fetch greeks for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
@@ -5154,7 +5147,7 @@ impl DeribitCore {
  * @method
  * @name deribit#fetchOption
  * @description fetches option data that is commonly found in an option chain
- * @see https://docs.deribit.com/#public-get_book_summary_by_instrument
+ * @see https://docs.deribit.com/api-reference/market-data/public-get_book_summary_by_instrument
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [option chain structure]{@link https://docs.ccxt.com/?id=option-chain-structure}
@@ -5221,7 +5214,7 @@ impl DeribitCore {
  * @method
  * @name deribit#fetchOptionChain
  * @description fetches data for an underlying asset that is commonly found in an option chain
- * @see https://docs.deribit.com/#public-get_book_summary_by_currency
+ * @see https://docs.deribit.com/api-reference/market-data/public-get_book_summary_by_currency
  * @param {string} code base currency to fetch an option chain for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a list of [option chain structures]{@link https://docs.ccxt.com/?id=option-chain-structure}
@@ -5341,7 +5334,7 @@ impl DeribitCore {
  * @method
  * @name deribit#fetchOpenInterest
  * @description Retrieves the open interest of a symbol
- * @see https://docs.deribit.com/?shell#public-get_book_summary_by_instrument
+ * @see https://docs.deribit.com/api-reference/market-data/public-get_book_summary_by_instrument
  * @param {string} symbol unified CCXT market symbol
  * @param {object} [params] exchange specific parameters
  * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
@@ -5464,27 +5457,28 @@ impl DeribitCore {
 }
 
     pub fn sign(&self, mut path: Value, optional_args: &[Value]) -> Value {
-        let mut api = get_arg(optional_args, 0, Value::Str("public".into()));
+        let mut api = get_arg(optional_args, 0, Value::from(vec![Value::Str("public".into())]));
         let mut method = get_arg(optional_args, 1, Value::Str("GET".into()));
         let mut params = get_arg(optional_args, 2, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut headers = get_arg(optional_args, 3, Value::Null);
-        let mut body = get_arg(optional_args, 4, Value::Null);
-        let mut request: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/".into()), Value::Str("api/".into())).into()), self.version.clone()).into()), Value::Str("/".into())).into()), api).into()), Value::Str("/".into())).into()), path).into());
-        if (api.as_str() == Some("public")) {
-            if ((object_keys(&params).len() as i64) as f64) > ((0i64) as f64) {
+        let __api_empty = Vec::new();
+        let api = api.as_array().unwrap_or(&__api_empty);
+        let mut apiName: Value = api.get(0).cloned().unwrap_or(Value::Null);
+        let mut request: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/".into()), Value::Str("api/".into())).into()), self.version.clone()).into()), Value::Str("/".into())).into()), apiName).into()), Value::Str("/".into())).into()), path).into());
+        if (apiName.as_str() == Some("public")) {
+            if ((Value::Array(params.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
                 request = Value::Str(format!("{}{}", request, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(params.clone(), &[])).into())).into());
             }
         }
-        if (api.as_str() == Some("private")) {
+        if (apiName.as_str() == Some("private")) {
             self.check_required_credentials(&[]);
-            let mut nonce: Value = to_string_val(&self.nonce());
-            let mut timestamp: Value = to_string_val(&self.milliseconds());
+            let mut nonce: Value = Value::Str(format!("{}", self.nonce()).into());
+            let mut timestamp: Value = Value::Str(format!("{}", self.milliseconds()).into());
             let mut requestBody: Value = Value::Str("".into());
-            if ((object_keys(&params).len() as i64) as f64) > ((0i64) as f64) {
-                request = Value::Str(format!("{}{}", request, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(params.clone(), &[])).into())).into());
+            if ((Value::Array(params.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
+                request = Value::Str(format!("{}{}", request, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(params, &[])).into())).into());
             }
             let mut requestData: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", method, Value::Str("\n".into())).into()), request).into()), Value::Str("\n".into())).into()), requestBody).into()), Value::Str("\n".into())).into()); // eslint-disable-line quotes
             let mut auth: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", timestamp, Value::Str("\n".into())).into()), nonce).into()), Value::Str("\n".into())).into()), requestData).into()); // eslint-disable-line quotes
@@ -5503,7 +5497,7 @@ impl DeribitCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), signedUrl);
         m.insert("method".to_string(), method.clone());
-        m.insert("body".to_string(), body.clone());
+        m.insert("body".to_string(), Value::Null);
         m.insert("headers".to_string(), signedHeaders);
     m
 });
@@ -5517,8 +5511,8 @@ impl DeribitCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), url);
         m.insert("method".to_string(), method);
-        m.insert("body".to_string(), body);
-        m.insert("headers".to_string(), headers);
+        m.insert("body".to_string(), Value::Null);
+        m.insert("headers".to_string(), Value::Null);
     m
 });
 

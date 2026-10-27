@@ -97,12 +97,12 @@ func (this *Hitbtc) DescribeData() any {
  * @see https://api.hitbtc.com/#socket-authentication
  * @returns {object} response from exchange
  */
-func (this *Hitbtc) AuthenticateAsync() <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Hitbtc) AuthenticateAsync() <-chan ccxt.AsyncResult[*string] {
+	ch := make(chan ccxt.AsyncResult[*string], 1)
 	go this.authenticateBody(ch)
 	return ch
 }
-func (this *Hitbtc) authenticateBody(ch chan ccxt.AsyncResult[any]) any {
+func (this *Hitbtc) authenticateBody(ch chan ccxt.AsyncResult[*string]) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	this.CheckRequiredCredentials()
@@ -111,7 +111,7 @@ func (this *Hitbtc) authenticateBody(ch chan ccxt.AsyncResult[any]) any {
 	var client ccxt.ClientInterface = this.Client(url)
 	var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
 	var authenticated any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
-	if ccxt.IsEqual(authenticated, nil) {
+	if authenticated == nil {
 		var timestamp int64 = this.Milliseconds()
 		var timestampString *string = this.NumberToString(timestamp)
 		var timestampEncoded *string = timestampString
@@ -135,7 +135,16 @@ func (this *Hitbtc) authenticateBody(ch chan ccxt.AsyncResult[any]) any {
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	ch <- ccxt.AsyncResult[any]{Value: r.Value}
+	var resolved *string
+	switch resolvedBox := r.Value.(type) {
+	case *string:
+		resolved = resolvedBox
+	case string:
+		resolved = &resolvedBox
+	default:
+		_ = resolvedBox
+	}
+	ch <- ccxt.AsyncResult[*string]{Value: resolved}
 	return nil
 }
 
@@ -459,12 +468,12 @@ func (this *Hitbtc) HandleDeltas(bookside any, deltas any) {
  * @param {string} [params.speed] '1s' (default), or '3s'
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Hitbtc) WatchTickerAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]any] {
-	ch := make(chan ccxt.AsyncResult[map[string]any], 1)
+func (this *Hitbtc) WatchTickerAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.Ticker] {
+	ch := make(chan ccxt.AsyncResult[ccxt.Ticker], 1)
 	go this.watchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Hitbtc) watchTickerBody(ch chan ccxt.AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
+func (this *Hitbtc) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -476,7 +485,7 @@ func (this *Hitbtc) watchTickerBody(ch chan ccxt.AsyncResult[map[string]any], sy
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var ticker map[string]any = r.Value
+	var ticker map[string]any = ccxt.StructResultMap(r.Value, ccxt.TickerMapToMap)
 
 	var resolved map[string]any
 	switch resolvedBox := this.SafeValue(ticker, symbol).(type) {
@@ -488,7 +497,7 @@ func (this *Hitbtc) watchTickerBody(ch chan ccxt.AsyncResult[map[string]any], sy
 	default:
 		panic(ccxt.ExchangeError("resolved value is not map[string]any"))
 	}
-	ch <- ccxt.AsyncResult[map[string]any]{Value: resolved}
+	ch <- ccxt.AsyncResult[ccxt.Ticker]{Value: ccxt.TickerFromMap(resolved)}
 	return nil
 }
 
@@ -506,12 +515,12 @@ func (this *Hitbtc) watchTickerBody(ch chan ccxt.AsyncResult[map[string]any], sy
  * @param {string} [params.speed] '1s' (default), or '3s'
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Hitbtc) WatchTickersAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]any] {
-	ch := make(chan ccxt.AsyncResult[map[string]any], 1)
+func (this *Hitbtc) WatchTickersAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]ccxt.Ticker] {
+	ch := make(chan ccxt.AsyncResult[map[string]ccxt.Ticker], 1)
 	go this.watchTickersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Hitbtc) watchTickersBody(ch chan ccxt.AsyncResult[map[string]any], optionalArgs ...any) any {
+func (this *Hitbtc) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Ticker], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbols []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
@@ -527,7 +536,12 @@ func (this *Hitbtc) watchTickersBody(ch chan ccxt.AsyncResult[map[string]any], o
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var methodNameparamsMethodVariable []any = this.HandleParamString(params, "callerMethodName", "watchTickers")
-	methodName := ccxt.GetValue(methodNameparamsMethodVariable, 0)
+	methodName := func() any {
+		if p, _ := methodNameparamsMethodVariable[0].(*string); p != nil {
+			return *p
+		}
+		return nil
+	}()
 	var paramsMethod map[string]any = ccxt.MapTyped(methodNameparamsMethodVariable[1]) // watchTicker passes its own name, so options.watchTicker still applies to it
 	var options map[string]any = ccxt.SafeMapTyped(this.Options, methodName)
 	var defaultMethod *string = this.SafeString(options, "method", "ticker/{speed}/batch")
@@ -567,7 +581,7 @@ func (this *Hitbtc) watchTickersBody(ch chan ccxt.AsyncResult[map[string]any], o
 				ccxt.AddElementToObject(tickers, newTickersSymbol, newTickers)
 			}
 
-			ch <- ccxt.AsyncResult[map[string]any]{Value: tickers}
+			ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: ccxt.TickerMapFromMap(tickers)}
 			return nil
 		}
 	}
@@ -582,7 +596,7 @@ func (this *Hitbtc) watchTickersBody(ch chan ccxt.AsyncResult[map[string]any], o
 	default:
 		panic(ccxt.ExchangeError("resolved value is not map[string]any"))
 	}
-	ch <- ccxt.AsyncResult[map[string]any]{Value: resolved}
+	ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: ccxt.TickerMapFromMap(resolved)}
 	return nil
 }
 func (this *Hitbtc) HandleTicker(client any, message map[string]any) {
@@ -715,12 +729,12 @@ func (this *Hitbtc) ParseWsTicker(ticker any, optionalArgs ...any) any {
  * @param {string} [params.speed] '100ms' (default) or '500ms' or '1000ms'
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Hitbtc) WatchBidsAsksAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]any] {
-	ch := make(chan ccxt.AsyncResult[map[string]any], 1)
+func (this *Hitbtc) WatchBidsAsksAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]ccxt.Ticker] {
+	ch := make(chan ccxt.AsyncResult[map[string]ccxt.Ticker], 1)
 	go this.watchBidsAsksBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Hitbtc) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]any], optionalArgs ...any) any {
+func (this *Hitbtc) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccxt.Ticker], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbols []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
@@ -763,7 +777,7 @@ func (this *Hitbtc) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]any], 
 				ccxt.AddElementToObject(tickers, newTickersSymbol, newTickers)
 			}
 
-			ch <- ccxt.AsyncResult[map[string]any]{Value: tickers}
+			ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: ccxt.TickerMapFromMap(tickers)}
 			return nil
 		}
 	}
@@ -778,7 +792,7 @@ func (this *Hitbtc) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]any], 
 	default:
 		panic(ccxt.ExchangeError("resolved value is not map[string]any"))
 	}
-	ch <- ccxt.AsyncResult[map[string]any]{Value: resolved}
+	ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: ccxt.TickerMapFromMap(resolved)}
 	return nil
 }
 func (this *Hitbtc) HandleBidAsk(client any, message map[string]any) {
@@ -849,12 +863,12 @@ func (this *Hitbtc) ParseWsBidAsk(ticker any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Hitbtc) WatchTradesAsync(symbol any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]any] {
-	ch := make(chan ccxt.AsyncResult[[]any], 1)
+func (this *Hitbtc) WatchTradesAsync(symbol any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
+	ch := make(chan ccxt.AsyncResult[[]ccxt.Trade], 1)
 	go this.watchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Hitbtc) watchTradesBody(ch chan ccxt.AsyncResult[[]any], symbol any, optionalArgs ...any) any {
+func (this *Hitbtc) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -891,7 +905,7 @@ func (this *Hitbtc) watchTradesBody(ch chan ccxt.AsyncResult[[]any], symbol any,
 		limitResolved = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}
 
-	ch <- ccxt.AsyncResult[[]any]{Value: this.FilterBySinceLimit(trades, since, limitResolved, "timestamp")}
+	ch <- ccxt.AsyncResult[[]ccxt.Trade]{Value: ccxt.TradesFromList(this.FilterBySinceLimit(trades, since, limitResolved, "timestamp"))}
 	return nil
 }
 func (this *Hitbtc) HandleTrades(client any, message map[string]any) any {
@@ -948,7 +962,7 @@ func (this *Hitbtc) HandleTrades(client any, message map[string]any) any {
 		var tradesLimit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 		var stored any = this.SafeValue(this.Trades, symbol)
-		if ccxt.IsEqual(stored, nil) {
+		if stored == nil {
 			stored = ccxt.NewArrayCache(tradesLimit)
 			ccxt.AddElementToObject(this.Trades, symbol, stored)
 		}
@@ -1027,12 +1041,12 @@ func (this *Hitbtc) ParseWsTrade(trade any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Hitbtc) WatchOHLCVAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[[]any] {
-	ch := make(chan ccxt.AsyncResult[[]any], 1)
+func (this *Hitbtc) WatchOHLCVAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.OHLCV] {
+	ch := make(chan ccxt.AsyncResult[[]ccxt.OHLCV], 1)
 	go this.watchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Hitbtc) watchOHLCVBody(ch chan ccxt.AsyncResult[[]any], symbol string, optionalArgs ...any) any {
+func (this *Hitbtc) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var timeframe string = ccxt.GetArgString(optionalArgs, 0, "1m")
@@ -1065,7 +1079,7 @@ func (this *Hitbtc) watchOHLCVBody(ch chan ccxt.AsyncResult[[]any], symbol strin
 		limitResolved = ccxt.ToGetsLimit(ohlcv).GetLimit(symbol, limit)
 	}
 
-	ch <- ccxt.AsyncResult[[]any]{Value: this.FilterBySinceLimit(ohlcv, since, limitResolved, 0)}
+	ch <- ccxt.AsyncResult[[]ccxt.OHLCV]{Value: ccxt.OHLCVsFromList(this.FilterBySinceLimit(ohlcv, since, limitResolved, 0))}
 	return nil
 }
 func (this *Hitbtc) HandleOHLCV(client any, message map[string]any) any {
@@ -1123,7 +1137,7 @@ func (this *Hitbtc) HandleOHLCV(client any, message map[string]any) any {
 		var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 		ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
 		var stored any = this.SafeValue(this.SafeDict(this.Ohlcvs, symbol), timeframe)
-		if ccxt.IsEqual(stored, nil) {
+		if stored == nil {
 			var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 			stored = ccxt.NewArrayCacheByTimestamp(limit)
 			ccxt.AddElementToObject(ccxt.GetValue(this.Ohlcvs, symbol), timeframe, stored)
@@ -1167,12 +1181,12 @@ func (this *Hitbtc) ParseWsOHLCV(ohlcv any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
  */
-func (this *Hitbtc) WatchOrdersAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[[]any] {
-	ch := make(chan ccxt.AsyncResult[[]any], 1)
+func (this *Hitbtc) WatchOrdersAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Order] {
+	ch := make(chan ccxt.AsyncResult[[]ccxt.Order], 1)
 	go this.watchOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Hitbtc) watchOrdersBody(ch chan ccxt.AsyncResult[[]any], optionalArgs ...any) any {
+func (this *Hitbtc) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -1212,7 +1226,7 @@ func (this *Hitbtc) watchOrdersBody(ch chan ccxt.AsyncResult[[]any], optionalArg
 		limitResolved = ccxt.ToGetsLimit(orders).GetLimit(symbol, limit)
 	}
 
-	ch <- ccxt.AsyncResult[[]any]{Value: this.FilterBySinceLimit(orders, since, limitResolved, "timestamp")}
+	ch <- ccxt.AsyncResult[[]ccxt.Order]{Value: ccxt.OrdersFromList(this.FilterBySinceLimit(orders, since, limitResolved, "timestamp"))}
 	return nil
 }
 func (this *Hitbtc) HandleOrder(client any, message map[string]any) any {
@@ -1444,12 +1458,12 @@ func (this *Hitbtc) ParseWsOrder(order any, optionalArgs ...any) any {
  * @param {string} [params.mode] 'updates' or 'batches' (default), 'updates' = messages arrive after balance updates, 'batches' = messages arrive at equal intervals if there were any updates
  * @returns {object[]} a list of [balance structures]{@link https://docs.ccxt.com/?id=balance-structure}
  */
-func (this *Hitbtc) WatchBalanceAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]any] {
-	ch := make(chan ccxt.AsyncResult[map[string]any], 1)
+func (this *Hitbtc) WatchBalanceAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.Balances] {
+	ch := make(chan ccxt.AsyncResult[ccxt.Balances], 1)
 	go this.watchBalanceBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Hitbtc) watchBalanceBody(ch chan ccxt.AsyncResult[map[string]any], optionalArgs ...any) any {
+func (this *Hitbtc) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1487,7 +1501,7 @@ func (this *Hitbtc) watchBalanceBody(ch chan ccxt.AsyncResult[map[string]any], o
 	default:
 		panic(ccxt.ExchangeError("resolved value is not map[string]any"))
 	}
-	ch <- ccxt.AsyncResult[map[string]any]{Value: resolved}
+	ch <- ccxt.AsyncResult[ccxt.Balances]{Value: ccxt.BalancesFromMap(resolved)}
 	return nil
 }
 
@@ -1511,12 +1525,12 @@ func (this *Hitbtc) watchBalanceBody(ch chan ccxt.AsyncResult[map[string]any], o
  * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", "Day", "GTD"
  * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
  */
-func (this *Hitbtc) CreateOrderWsAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]any] {
-	ch := make(chan ccxt.AsyncResult[map[string]any], 1)
+func (this *Hitbtc) CreateOrderWsAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.Order] {
+	ch := make(chan ccxt.AsyncResult[ccxt.Order], 1)
 	go this.createOrderWsBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Hitbtc) createOrderWsBody(ch chan ccxt.AsyncResult[map[string]any], symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Hitbtc) createOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var price *float64 = ccxt.GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -1534,8 +1548,8 @@ func (this *Hitbtc) createOrderWsBody(ch chan ccxt.AsyncResult[map[string]any], 
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("createOrder", market, params)
 	marginMode, paramsMarginMode := this.HandleMarginModeAndParams("createOrder", paramsMarketType)
 	orderRequestparamsValueVariable := this.CreateOrderRequest(market, marketType, typeVar, side, amount, price, marginMode, paramsMarginMode)
-	var orderRequest map[string]any = ccxt.MapTyped(ccxt.GetValue(orderRequestparamsValueVariable, 0))
-	var paramsValue map[string]any = ccxt.MapTyped(ccxt.GetValue(orderRequestparamsValueVariable, 1))
+	var orderRequest map[string]any = ccxt.MapTyped(orderRequestparamsValueVariable[0])
+	var paramsValue map[string]any = ccxt.MapTyped(orderRequestparamsValueVariable[1])
 	var request map[string]any = this.Extend(orderRequest, paramsValue)
 	if marketType != nil && *marketType == "swap" {
 
@@ -1553,9 +1567,9 @@ func (this *Hitbtc) createOrderWsBody(ch chan ccxt.AsyncResult[map[string]any], 
 		default:
 			panic(ccxt.ExchangeError("resolved value is not map[string]any"))
 		}
-		ch <- ccxt.AsyncResult[map[string]any]{Value: resolved}
+		ch <- ccxt.AsyncResult[ccxt.Order]{Value: ccxt.OrderFromMap(resolved)}
 		return nil
-	} else if (marketType != nil && *marketType == "margin") || (!ccxt.IsEqual(marginMode, nil)) {
+	} else if (marketType != nil && *marketType == "margin") || (marginMode != nil) {
 
 		r2 := <-this.TradeRequestAsync("margin_new_order", request)
 		if r2.Err != nil {
@@ -1571,7 +1585,7 @@ func (this *Hitbtc) createOrderWsBody(ch chan ccxt.AsyncResult[map[string]any], 
 		default:
 			panic(ccxt.ExchangeError("resolved value is not map[string]any"))
 		}
-		ch <- ccxt.AsyncResult[map[string]any]{Value: resolved1}
+		ch <- ccxt.AsyncResult[ccxt.Order]{Value: ccxt.OrderFromMap(resolved1)}
 		return nil
 	} else {
 
@@ -1589,7 +1603,7 @@ func (this *Hitbtc) createOrderWsBody(ch chan ccxt.AsyncResult[map[string]any], 
 		default:
 			panic(ccxt.ExchangeError("resolved value is not map[string]any"))
 		}
-		ch <- ccxt.AsyncResult[map[string]any]{Value: resolved2}
+		ch <- ccxt.AsyncResult[ccxt.Order]{Value: ccxt.OrderFromMap(resolved2)}
 		return nil
 	}
 }
@@ -1608,12 +1622,12 @@ func (this *Hitbtc) createOrderWsBody(ch chan ccxt.AsyncResult[map[string]any], 
  * @param {bool} [params.margin] true for canceling a margin order
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Hitbtc) CancelOrderWsAsync(id string, optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]any] {
-	ch := make(chan ccxt.AsyncResult[map[string]any], 1)
+func (this *Hitbtc) CancelOrderWsAsync(id string, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.Order] {
+	ch := make(chan ccxt.AsyncResult[ccxt.Order], 1)
 	go this.cancelOrderWsBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Hitbtc) cancelOrderWsBody(ch chan ccxt.AsyncResult[map[string]any], id string, optionalArgs ...any) any {
+func (this *Hitbtc) cancelOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -1653,7 +1667,7 @@ func (this *Hitbtc) cancelOrderWsBody(ch chan ccxt.AsyncResult[map[string]any], 
 		default:
 			panic(ccxt.ExchangeError("resolved value is not map[string]any"))
 		}
-		ch <- ccxt.AsyncResult[map[string]any]{Value: resolved}
+		ch <- ccxt.AsyncResult[ccxt.Order]{Value: ccxt.OrderFromMap(resolved)}
 		return nil
 	} else if (marketType != nil && *marketType == "margin") || (marginMode != nil) {
 
@@ -1671,7 +1685,7 @@ func (this *Hitbtc) cancelOrderWsBody(ch chan ccxt.AsyncResult[map[string]any], 
 		default:
 			panic(ccxt.ExchangeError("resolved value is not map[string]any"))
 		}
-		ch <- ccxt.AsyncResult[map[string]any]{Value: resolved1}
+		ch <- ccxt.AsyncResult[ccxt.Order]{Value: ccxt.OrderFromMap(resolved1)}
 		return nil
 	} else {
 
@@ -1689,7 +1703,7 @@ func (this *Hitbtc) cancelOrderWsBody(ch chan ccxt.AsyncResult[map[string]any], 
 		default:
 			panic(ccxt.ExchangeError("resolved value is not map[string]any"))
 		}
-		ch <- ccxt.AsyncResult[map[string]any]{Value: resolved2}
+		ch <- ccxt.AsyncResult[ccxt.Order]{Value: ccxt.OrderFromMap(resolved2)}
 		return nil
 	}
 }
@@ -1706,12 +1720,12 @@ func (this *Hitbtc) cancelOrderWsBody(ch chan ccxt.AsyncResult[map[string]any], 
  * @param {bool} [params.margin] true for canceling margin orders
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Hitbtc) CancelAllOrdersWsAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[[]any] {
-	ch := make(chan ccxt.AsyncResult[[]any], 1)
+func (this *Hitbtc) CancelAllOrdersWsAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Order] {
+	ch := make(chan ccxt.AsyncResult[[]ccxt.Order], 1)
 	go this.cancelAllOrdersWsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Hitbtc) cancelAllOrdersWsBody(ch chan ccxt.AsyncResult[[]any], optionalArgs ...any) any {
+func (this *Hitbtc) cancelAllOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Order], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -1747,7 +1761,7 @@ func (this *Hitbtc) cancelAllOrdersWsBody(ch chan ccxt.AsyncResult[[]any], optio
 		default:
 			panic(ccxt.ExchangeError("resolved value is not []any"))
 		}
-		ch <- ccxt.AsyncResult[[]any]{Value: resolved}
+		ch <- ccxt.AsyncResult[[]ccxt.Order]{Value: ccxt.OrdersFromList(resolved)}
 		return nil
 	} else if (marketType != nil && *marketType == "margin") || (marginMode != nil) {
 		panic(ccxt.NotSupported(this.Id + " cancelAllOrdersWs is not supported for margin orders"))
@@ -1767,7 +1781,7 @@ func (this *Hitbtc) cancelAllOrdersWsBody(ch chan ccxt.AsyncResult[[]any], optio
 		default:
 			panic(ccxt.ExchangeError("resolved value is not []any"))
 		}
-		ch <- ccxt.AsyncResult[[]any]{Value: resolved1}
+		ch <- ccxt.AsyncResult[[]ccxt.Order]{Value: ccxt.OrdersFromList(resolved1)}
 		return nil
 	}
 }
@@ -1787,12 +1801,12 @@ func (this *Hitbtc) cancelAllOrdersWsBody(ch chan ccxt.AsyncResult[[]any], optio
  * @param {bool} [params.margin] true for fetching open margin orders
  * @returns {ccxt.Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Hitbtc) FetchOpenOrdersWsAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Hitbtc) FetchOpenOrdersWsAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Order] {
+	ch := make(chan ccxt.AsyncResult[[]ccxt.Order], 1)
 	go this.fetchOpenOrdersWsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Hitbtc) fetchOpenOrdersWsBody(ch chan ccxt.AsyncResult[any], optionalArgs ...any) any {
+func (this *Hitbtc) fetchOpenOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Order], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -1824,7 +1838,17 @@ func (this *Hitbtc) fetchOpenOrdersWsBody(ch chan ccxt.AsyncResult[any], optiona
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		ch <- ccxt.AsyncResult[any]{Value: r1.Value}
+		var resolved []any
+		switch resolvedBox := r1.Value.(type) {
+		case []any:
+			resolved = resolvedBox
+		case ccxt.IArrayCache:
+			resolved = resolvedBox.ToArray()
+		case nil:
+		default:
+			panic(ccxt.ExchangeError("resolved value is not []any"))
+		}
+		ch <- ccxt.AsyncResult[[]ccxt.Order]{Value: ccxt.OrdersFromList(resolved)}
 		return nil
 	} else if (marketType != nil && *marketType == "margin") || (marginMode != nil) {
 
@@ -1832,7 +1856,17 @@ func (this *Hitbtc) fetchOpenOrdersWsBody(ch chan ccxt.AsyncResult[any], optiona
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		ch <- ccxt.AsyncResult[any]{Value: r2.Value}
+		var resolved1 []any
+		switch resolved1Box := r2.Value.(type) {
+		case []any:
+			resolved1 = resolved1Box
+		case ccxt.IArrayCache:
+			resolved1 = resolved1Box.ToArray()
+		case nil:
+		default:
+			panic(ccxt.ExchangeError("resolved value is not []any"))
+		}
+		ch <- ccxt.AsyncResult[[]ccxt.Order]{Value: ccxt.OrdersFromList(resolved1)}
 		return nil
 	} else {
 
@@ -1840,7 +1874,17 @@ func (this *Hitbtc) fetchOpenOrdersWsBody(ch chan ccxt.AsyncResult[any], optiona
 		if r3.Err != nil {
 			panic(r3.Err)
 		}
-		ch <- ccxt.AsyncResult[any]{Value: r3.Value}
+		var resolved2 []any
+		switch resolved2Box := r3.Value.(type) {
+		case []any:
+			resolved2 = resolved2Box
+		case ccxt.IArrayCache:
+			resolved2 = resolved2Box.ToArray()
+		case nil:
+		default:
+			panic(ccxt.ExchangeError("resolved value is not []any"))
+		}
+		ch <- ccxt.AsyncResult[[]ccxt.Order]{Value: ccxt.OrdersFromList(resolved2)}
 		return nil
 	}
 }
@@ -1862,8 +1906,27 @@ func (this *Hitbtc) HandleBalance(client any, message map[string]any) {
 	//
 	var messageHash *string = this.SafeString(message, "method")
 	var params []any = ccxt.SafeListTypedDefault(message, "params", []any{})
+	// merge the parsed update into the existing balance object instead of
+	// replacing it: a consumer awakened by an earlier message holds a
+	// reference to this.balance, and ccxt.Client.resolve is a no-op while
+	// nobody is awaiting, so a replaced object would make updates landing
+	// in that window invisible to the consumer forever (same class as
+	// issue #26773); the free/used/total aggregates are rebuilt from the
+	// merged currencies by safeBalance
 	var balance any = this.ParseBalance(params)
-	this.Balance = this.DeepExtend(this.Balance, balance)
+	if ccxt.IsEqual(this.Balance, nil) {
+		this.Balance = map[string]any{}
+	}
+	var reserved []any = []any{"free", "used", "total"}
+	var keys []string = ccxt.ObjectKeys(balance)
+	for i := 0; i < len(keys); i++ {
+		var key string = keys[i]
+		if this.InArray(key, reserved) {
+			continue
+		}
+		ccxt.AddElementToObject(this.Balance, key, ccxt.GetValue(balance, key))
+	}
+	this.Balance = this.SafeBalance(this.Balance)
 	client.(ccxt.ClientInterface).Resolve(this.Balance, messageHash)
 }
 func (this *Hitbtc) HandleNotification(client any, message map[string]any) any {
@@ -1950,7 +2013,7 @@ func (this *Hitbtc) HandleMessage(client any, message any) {
 			}
 			return this.SafeValue(methods, channel)
 		}()
-		if !ccxt.IsEqual(method, nil) {
+		if method != nil {
 			ccxt.CallDynamically(method, client, message)
 		}
 	} else {
@@ -2134,7 +2197,7 @@ func (this *Hitbtc) WatchTicker(symbol string, options ...ccxt.WatchTickerOption
 	if r.Err != nil {
 		return ccxt.Ticker{}, r.Err
 	}
-	var res ccxt.Ticker = ccxt.NewTicker(r.Value)
+	var res ccxt.Ticker = r.Value
 	return res, nil
 }
 
@@ -2163,7 +2226,7 @@ func (this *Hitbtc) WatchTickers(options ...ccxt.WatchTickersOptions) (ccxt.Tick
 	if r.Err != nil {
 		return ccxt.Tickers{}, r.Err
 	}
-	var res ccxt.Tickers = ccxt.NewTickers(r.Value)
+	var res ccxt.Tickers = ccxt.Tickers{Tickers: r.Value}
 	return res, nil
 }
 
@@ -2189,7 +2252,7 @@ func (this *Hitbtc) WatchBidsAsks(options ...ccxt.WatchBidsAsksOptions) (ccxt.Ti
 	if r.Err != nil {
 		return ccxt.Tickers{}, r.Err
 	}
-	var res ccxt.Tickers = ccxt.NewTickers(r.Value)
+	var res ccxt.Tickers = ccxt.Tickers{Tickers: r.Value}
 	return res, nil
 }
 
@@ -2215,7 +2278,7 @@ func (this *Hitbtc) WatchTrades(symbol string, options ...ccxt.WatchTradesOption
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []ccxt.Trade = ccxt.NewTradeArray(r.Value)
+	var res []ccxt.Trade = r.Value
 	return res, nil
 }
 
@@ -2242,7 +2305,7 @@ func (this *Hitbtc) WatchOHLCV(symbol string, options ...ccxt.WatchOHLCVOptions)
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []ccxt.OHLCV = ccxt.NewOHLCVArray(r.Value)
+	var res []ccxt.OHLCV = r.Value
 	return res, nil
 }
 
@@ -2270,7 +2333,7 @@ func (this *Hitbtc) WatchOrders(options ...ccxt.WatchOrdersOptions) ([]ccxt.Orde
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []ccxt.Order = ccxt.NewOrderArray(r.Value)
+	var res []ccxt.Order = r.Value
 	return res, nil
 }
 
@@ -2292,7 +2355,7 @@ func (this *Hitbtc) WatchBalance(params ...any) (ccxt.Balances, error) {
 	if r.Err != nil {
 		return ccxt.Balances{}, r.Err
 	}
-	var res ccxt.Balances = ccxt.NewBalances(r.Value)
+	var res ccxt.Balances = r.Value
 	return res, nil
 }
 func (this *Hitbtc) CreateOrderWs(symbol string, typeVar string, side string, amount float64, options ...ccxt.CreateOrderWsOptions) (ccxt.Order, error) {
@@ -2306,7 +2369,7 @@ func (this *Hitbtc) CreateOrderWs(symbol string, typeVar string, side string, am
 	if r.Err != nil {
 		return ccxt.Order{}, r.Err
 	}
-	var res ccxt.Order = ccxt.NewOrder(r.Value)
+	var res ccxt.Order = r.Value
 	return res, nil
 }
 
@@ -2335,7 +2398,7 @@ func (this *Hitbtc) CancelOrderWs(id string, options ...ccxt.CancelOrderWsOption
 	if r.Err != nil {
 		return ccxt.Order{}, r.Err
 	}
-	var res ccxt.Order = ccxt.NewOrder(r.Value)
+	var res ccxt.Order = r.Value
 	return res, nil
 }
 
@@ -2362,7 +2425,7 @@ func (this *Hitbtc) CancelAllOrdersWs(options ...ccxt.CancelAllOrdersWsOptions) 
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []ccxt.Order = ccxt.NewOrderArray(r.Value)
+	var res []ccxt.Order = r.Value
 	return res, nil
 }
 
@@ -2392,6 +2455,6 @@ func (this *Hitbtc) FetchOpenOrdersWs(options ...ccxt.FetchOpenOrdersWsOptions) 
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []ccxt.Order = ccxt.NewOrderArray(r.Value)
+	var res []ccxt.Order = r.Value
 	return res, nil
 }

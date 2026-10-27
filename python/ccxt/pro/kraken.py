@@ -142,7 +142,7 @@ class kraken(ccxt.async_support.kraken):
             request['params']['limit_price'] = self.parse_to_numeric(self.price_to_precision(symbol, price))
         isMarket = (type == 'market')
         postOnly, paramsPostOnly = self.handle_post_only(isMarket, False, params)
-        if postOnly is True:
+        if postOnly:
             request['params']['post_only'] = True
         clientOrderId = self.safe_string(paramsPostOnly, 'clientOrderId')
         if clientOrderId is not None:
@@ -918,9 +918,25 @@ class kraken(ccxt.async_support.kraken):
             orderbook['datetime'] = datetime
         else:
             # snapshot
-            depth = len(a)
-            self.orderbooks[symbol] = self.order_book({}, depth)
+            subscription = self.safe_dict(client.subscriptions, messageHash, {})
+            # size the book from the subscribed depth (10 by default), not from
+            # the level count of this snapshot: a thin market's snapshot can
+            # carry fewer levels than the subscription and must not cap the book
+            limit = self.safe_integer(subscription, 'limit', 10)
+            asksLength = len(a)
+            depth = asksLength if (asksLength > limit) else limit
+            depths = self.safe_dict(self.options, 'wsOrderBookDepths', {})
+            storedDepth = self.safe_integer(depths, symbol)
+            if not (symbol in self.orderbooks) or (storedDepth != depth):
+                # rebuild only on the first snapshot or when the depth changes,
+                # e.g. a re-subscription with a different limit
+                self.orderbooks[symbol] = self.order_book({}, depth)
+                depths[symbol] = depth
+                self.options['wsOrderBookDepths'] = depths
+            # reset in place so that references held by users keep receiving
+            # updates after a reconnect snapshot (a new object would orphan them)
             orderbook = self.orderbooks[symbol]
+            orderbook.reset({})
             keys = ['asks', 'bids']
             for i in range(0, len(keys)):
                 key = keys[i]
@@ -976,14 +992,11 @@ class kraken(ccxt.async_support.kraken):
 
     def format_number(self, data: str) -> str:
         parts = data.split('.')
-        integer = self.safe_string(parts, 0)
+        integer = self.safe_string(parts, 0, '')
         decimals = self.safe_string(parts, 1, '')
         joinedResult = integer + decimals
-        i = 0
-        while(joinedResult[i] == '0'):
-            i += 1
-        if i > 0:
-            joinedResult = joinedResult[i:]
+        while(joinedResult.startswith('0')):
+            joinedResult = joinedResult[1:]
         return joinedResult
 
     def handle_system_status(self, client: Client, message: dict) -> dict:
@@ -1022,8 +1035,9 @@ class kraken(ccxt.async_support.kraken):
         subscription = self.safe_value(client.subscriptions, authenticated)
         now = self.seconds()
         start = self.safe_integer(subscription, 'start')
-        expires = self.safe_integer(subscription, 'expires')
-        if (subscription is None) or ((subscription is not None) and (start + expires) <= now):
+        expires = self.safe_integer(subscription, 'expires', -1)
+        expired = (start is not None) and (expires >= 0) and (start <= (now - expires))
+        if (subscription is None) or expired:
             # single-flight leader election, see
             # https://github.com/ccxt/ccxt/issues/29393: the staleness gate
             # above is followed by an awaited privatePostGetWebSocketsToken (),
@@ -1291,8 +1305,9 @@ class kraken(ccxt.async_support.kraken):
                 if length == limit and (previousOrder is None):
                     first = stored[0]
                     symbolsByOrderId = self.safe_dict(self.options, 'symbolsByOrderId', {})
-                    if first['id'] in symbolsByOrderId:
-                        del symbolsByOrderId[first['id']]
+                    firstId = self.safe_string(first, 'id')
+                    if (firstId is not None) and (firstId in symbolsByOrderId):
+                        del symbolsByOrderId[firstId]
                 stored.append(newOrder)
                 if symbol is not None:
                     symbols[symbol] = True
@@ -1446,20 +1461,25 @@ class kraken(ccxt.async_support.kraken):
         #         "sequence": 1
         #     }
         #
+        # merge updates into the existing balance object instead of building a
+        # fresh one: a consumer awakened by an earlier message holds a reference
+        # to this.balance[type], and Client.resolve is a no-op while nobody is
+        # awaiting, so a replaced object would make updates landing in that
+        # window invisible to the consumer forever (issue #26773)
+        type = 'spot'
+        if self.balance is None:
+            self.balance = {}
+        self.balance[type] = self.safe_dict(self.balance, type, {})
+        self.balance[type]['info'] = message
         data = self.safe_list(message, 'data', [])
-        result = {'info': message}
         for i in range(0, len(data)):
             currencyId = self.safe_string(data[i], 'asset')
             code = self.safe_currency_code(currencyId)
             account = self.account()
             eq = self.safe_string(data[i], 'balance')
             account['total'] = eq
-            result[code] = account
-        type = 'spot'
-        balance = self.safe_balance(result)
-        oldBalance = self.safe_dict(self.balance, type, {})
-        newBalance = self.deep_extend(oldBalance, balance)
-        self.balance[type] = self.safe_balance(newBalance)
+            self.balance[type][code] = account
+        self.balance[type] = self.safe_balance(self.balance[type])
         channel = self.safe_string(message, 'channel')
         client.resolve(self.balance[type], channel)
 

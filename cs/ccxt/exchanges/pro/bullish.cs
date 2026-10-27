@@ -396,7 +396,7 @@ public partial class bullish : ccxt.bullish
                 continue;
             }
             string? price = this.safeString(entry, i);
-            string? amount = this.safeString(entry, add(i, 1));
+            string? amount = this.safeString(entry, (i + 1L));
             result.Add(new List<object>() {price, amount});
         }
         return result;
@@ -427,7 +427,7 @@ public partial class bullish : ccxt.bullish
         if ((symbol != null))
         {
             symbolResolved = this.symbol(symbol);
-            messageHash = add(add(messageHash, "::"), symbolResolved);
+            messageHash = ((messageHash + "::") + symbolResolved);
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "topic", "orders" },

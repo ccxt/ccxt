@@ -465,7 +465,7 @@ public partial class bitrue : ccxt.bitrue
         List<object> symbols = new List<object>(markets.Keys);
         for (int i = 0; i < symbols.Count; i++)
         {
-            object candidate = getValue(markets, symbols[i]);
+            object candidate = (markets != null && symbols[i] != null && markets.ContainsKey((string)symbols[i]) ? markets[(string)symbols[i]] : null);
             if (!(this.safeBool(candidate, "swap", false) == true))
             {
                 continue;
@@ -476,7 +476,7 @@ public partial class bitrue : ccxt.bitrue
             {
                 throw new ExchangeError ((((this.id + " findSwapMarketByWsBaseQuote() market ") + (symbols[i])) + " has no baseId or quoteId")) ;
             }
-            if (isEqual((baseId + quoteId), wsBaseQuote))
+            if (((baseId + quoteId) == wsBaseQuote))
             {
                 return candidate;
             }
@@ -510,7 +510,11 @@ public partial class bitrue : ccxt.bitrue
             return rawQuantity;
         }
         double? contractSize = this.safeNumber(market, "contractSize", 1);
-        return multiply(rawQuantity, contractSize);
+        if ((contractSize == null))
+        {
+            return rawQuantity;
+        }
+        return ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))(rawQuantity, contractSize);
     }
 
     /**
@@ -737,12 +741,12 @@ public partial class bitrue : ccxt.bitrue
         {
             this.ohlcvs[(string)symbol] = new Dictionary<string, object>() {};
         }
-        if (!(inOp(getValue(this.ohlcvs, symbol), timeframe)))
+        if (!(inOp((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey((string)symbol) ? this.ohlcvs[(string)symbol] : null), timeframe)))
         {
             Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
-            ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[timeframe] = new ArrayCacheByTimestamp(limit);
+            ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey((string)symbol) ? this.ohlcvs[(string)symbol] : null))[timeframe] = new ArrayCacheByTimestamp(limit);
         }
-        ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)getValue(getValue(this.ohlcvs, symbol), timeframe));
+        ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)getValue((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey((string)symbol) ? this.ohlcvs[(string)symbol] : null), timeframe));
         stored.append(parsed);
         string messageHash = ((("ohlcv:" + (symbol)) + ":") + timeframe);
         client.resolve(stored, messageHash);
@@ -849,7 +853,7 @@ public partial class bitrue : ccxt.bitrue
         object quoteVolume = this.convertFromRawQuantity(symbol, rawAmount);
         double? close = this.safeNumber(tick, "close");
         double? rose = this.safeNumber(tick, "rose");
-        object percentage = ((rose == null)) ? null : multiply(rose, 100);
+        object percentage = ((rose == null)) ? null : ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))(rose, 100);
         return this.safeTicker(new Dictionary<string, object>() {
             { "info", tick },
             { "symbol", symbol },

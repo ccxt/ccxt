@@ -30,7 +30,9 @@ impl ParadexCore {
     pub fn init(&mut self) {
         let described = ParadexCore::describe(self);
         self.initialize_properties(described);
-        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self);
+        // compatibility for sandbox/testnet options in userConfig
+        let user_config = self.userConfig.clone();
+        <Self as crate::exchange_generated::ExchangeBase>::after_construct(self, &[user_config]);
     }
 
     /// Compatibility no-op. The old pointer-based dispatch needed a post-move
@@ -161,7 +163,6 @@ impl crate::exchange_generated::ExchangeBase for ParadexCore {
                 "fetch_withdrawals" => self.fetch_withdrawals(&args[..]).await,
                 "get_system_config" => self.get_system_config().await,
                 "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
-                "hash_message" => self.hash_message(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "onboarding" => self.onboarding(&args[..]).await,
                 "parse_balance" => self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_funding_rate" => self.parse_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
@@ -174,19 +175,14 @@ impl crate::exchange_generated::ExchangeBase for ParadexCore {
                 "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_open_interest" => self.parse_open_interest(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_order" => self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_order_status" => self.parse_order_status(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "parse_order_type" => self.parse_order_type(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_position" => self.parse_position(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_time_in_force" => self.parse_time_in_force(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_trading_fee" => self.parse_trading_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "parse_transaction_status" => self.parse_transaction_status(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_transfer" => self.parse_transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "prepare_paradex_domain" => self.prepare_paradex_domain(&args[..]).await,
                 "retrieve_account" => self.retrieve_account().await,
-                "scale_number" => self.scale_number(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "set_leverage" => self.set_leverage(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "set_margin_mode" => self.set_margin_mode(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "sign" => self.sign(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
@@ -222,7 +218,7 @@ impl ParadexCore {
         m.insert("has".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("CORS".to_string(), Value::Null);
-        m.insert("spot".to_string(), Value::Bool(false));
+        m.insert("spot".to_string(), Value::Bool(true));
         m.insert("margin".to_string(), Value::Bool(false));
         m.insert("swap".to_string(), Value::Bool(true));
         m.insert("future".to_string(), Value::Bool(false));
@@ -1098,6 +1094,10 @@ impl ParadexCore {
         m.insert("40110".to_string(), Value::Str("AuthenticationError".into()).clone());
         m.insert("40111".to_string(), Value::Str("AuthenticationError".into()).clone());
         m.insert("40112".to_string(), Value::Str("PermissionDenied".into()).clone());
+        m.insert("40300".to_string(), Value::Str("PermissionDenied".into()).clone());
+        m.insert("40301".to_string(), Value::Str("NotSupported".into()).clone());
+        m.insert("42900".to_string(), Value::Str("OperationRejected".into()).clone());
+        m.insert("42901".to_string(), Value::Str("RateLimitExceeded".into()).clone());
     m
 }));
         m.insert("broad".to_string(), Value::Map({
@@ -1120,7 +1120,19 @@ impl ParadexCore {
 }));
         m.insert("features".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("spot".to_string(), Value::Null);
+        m.insert("spot".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("extends".to_string(), Value::Str("forSwap".into()));
+        m.insert("createOrder".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("triggerPrice".to_string(), Value::Bool(false));
+        m.insert("triggerDirection".to_string(), Value::Bool(false));
+        m.insert("stopLossPrice".to_string(), Value::Bool(false));
+        m.insert("takeProfitPrice".to_string(), Value::Bool(false));
+    m
+}));
+    m
+}));
         m.insert("forSwap".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("sandbox".to_string(), Value::Bool(true));
@@ -1195,7 +1207,7 @@ impl ParadexCore {
         m.insert("fetchClosedOrders".to_string(), Value::Null);
         m.insert("fetchOHLCV".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("limit".to_string(), Value::Null);
+        m.insert("limit".to_string(), Value::Int(1000));
     m
 }));
     m
@@ -1406,26 +1418,53 @@ impl ParadexCore {
         //     ]
         //  }
         //
+        // spot
+        //
+        //     {
+        //         "symbol": "ETH-USD",
+        //         "base_currency": "ETH",
+        //         "quote_currency": "USD",
+        //         "settlement_currency": "USDC",
+        //         "order_size_increment": "0.0001",
+        //         "price_tick_size": "0.01",
+        //         "min_notional": "10",
+        //         "asset_kind": "SPOT",
+        //         "market_kind": "cross",
+        //         ...
+        //     }
+        //
         let mut assetKind: Option<String> = self.safe_string_k(market.clone(), "asset_kind", &[]).as_str().map(str::to_owned);
+        let mut isSpot: Value = (Value::Bool(assetKind.as_deref() == Some("SPOT")));
         let mut isOptionPerpetual: bool = assetKind.as_deref() == Some("PERP_OPTION");
         let mut isOptionDelivery: bool = assetKind.as_deref() == Some("OPTION");
         let mut isOption: Value = Value::Bool(isOptionPerpetual || isOptionDelivery);
         let mut type_var: Value = Value::Str("swap".into());
-        if matches!(&isOption, Value::Bool(true)) {
+        if matches!(&isSpot, Value::Bool(true)) {
+            type_var = Value::Str("spot".into());
+        }  else if matches!(&isOption, Value::Bool(true)) {
             type_var = Value::Str("option".into());
         }
         let mut isSwap: Value = (Value::Bool(type_var.as_str() == Some("swap")));
         let mut marketId: Value = self.safe_string_k(market.clone(), "symbol", &[]);
         let mut quoteId: Value = self.safe_string_k(market.clone(), "quote_currency", &[]);
         let mut baseId: Value = self.safe_string_k(market.clone(), "base_currency", &[]);
+        let mut settleId: Value = self.safe_string_k(market.clone(), "settlement_currency", &[]);
+        if matches!(&isSpot, Value::Bool(true)) {
+            // spot is quoted in "USD" but paid and received in the settlement token (USDC),
+            // a spot market has no settle, so the token it trades against is the quote
+            quoteId = settleId.clone();
+            settleId = Value::Null;
+        }
         let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
         let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
         if (base == Value::Null) || (quote == Value::Null) {
             return Value::Null;
         }
-        let mut settleId: Value = self.safe_string_k(market.clone(), "settlement_currency", &[]);
         let mut settle: Value = self.safe_currency_code(settleId.clone(), &[]);
-        let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into()), Value::Str(":".into())).into()), settle).into());
+        let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into());
+        if !(matches!(&isSpot, Value::Bool(true))) {
+            symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str(":".into())).into()), settle).into());
+        }
         let mut expiry: Value = self.safe_integer_k(market.clone(), "expiry_at", &[]);
         let mut optionType: Option<String> = self.safe_string_k(market.clone(), "option_type", &[]).as_str().map(str::to_owned);
         let mut strikePrice: Value = self.safe_string_k(market.clone(), "strike_price", &[]);
@@ -1451,18 +1490,18 @@ impl ParadexCore {
         m.insert("quoteId".to_string(), quoteId);
         m.insert("settleId".to_string(), settleId);
         m.insert("type".to_string(), type_var);
-        m.insert("spot".to_string(), Value::Bool(false));
+        m.insert("spot".to_string(), isSpot.clone());
         m.insert("margin".to_string(), Value::Null);
         m.insert("swap".to_string(), isSwap);
         m.insert("future".to_string(), Value::Bool(false));
         m.insert("option".to_string(), isOption);
         m.insert("active".to_string(), self.safe_bool_k(market.clone(), "enableTrading", &[]));
-        m.insert("contract".to_string(), Value::Bool(true));
-        m.insert("linear".to_string(), Value::Bool(true));
-        m.insert("inverse".to_string(), Value::Bool(false));
+        m.insert("contract".to_string(), Value::Bool(!(matches!(&isSpot, Value::Bool(true)))));
+        m.insert("linear".to_string(), (if matches!(&isSpot, Value::Bool(true)) { Value::Null } else { Value::Bool(true) }));
+        m.insert("inverse".to_string(), (if matches!(&isSpot, Value::Bool(true)) { Value::Null } else { Value::Bool(false) }));
         m.insert("taker".to_string(), takerFee);
         m.insert("maker".to_string(), makerFee);
-        m.insert("contractSize".to_string(), self.parse_number(Value::Str("1".into()), &[]));
+        m.insert("contractSize".to_string(), (if matches!(&isSpot, Value::Bool(true)) { Value::Null } else { self.parse_number(Value::Str("1".into()), &[]) }));
         m.insert("expiry".to_string(), expiry);
         m.insert("expiryDatetime".to_string(), expireDatetime);
         m.insert("strike".to_string(), self.parse_number(strikePrice, &[]));
@@ -1662,8 +1701,8 @@ impl ParadexCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1044: bool = true;
-            while { if !__for_first_1044 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1044 = false; i.as_f64().unwrap_or(f64::NAN) < ((fees.len() as i64) as f64) } {
+            let mut __for_first_1053: bool = true;
+            while { if !__for_first_1053 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1053 = false; i.as_f64().unwrap_or(f64::NAN) < ((fees.len() as i64) as f64) } {
             let mut fee: Value = self.parse_trading_fee(fees.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), &[]);
             let mut symbol: Value = fee.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), fee); }
@@ -1685,7 +1724,7 @@ impl ParadexCore {
  * @param {int} [limit] the maximum amount of candles to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest candle to fetch
- * @param {string} [params.price] "last", "mark", "index", default is "last"
+ * @param {string} [params.price] "last", "mark", "index" (sent as "underlying"), default is "last"
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
     pub async fn fetch_ohlcv(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
@@ -1706,30 +1745,33 @@ impl ParadexCore {
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let mut now: Value = self.milliseconds();
         let mut duration: Value = self.parse_timeframe(timeframe.clone());
-        let mut until: Value = self.safe_integer2(params.clone(), Value::Str("until".into()), Value::Str("till".into()), &[now]);
         let mut price: Value = self.safe_string_k(params.clone(), "price", &[]);
         if (price != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price_kind".into(), price); }
+            // the exchange names the index price "underlying" and rejects "index"
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price_kind".into(), (if (price.as_str() == Some("index")) { Value::Str("underlying".into()) } else { price })); }
         }
-        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("until".into()), Value::Str("till".into()), Value::Str("price".into())]), &[]);
+        let mut requestUntilparamsUntilVariable = self.handle_until_option(Value::Str("end_at".into()), request.clone(), params, &[]);
+        let mut requestUntil: Value = requestUntilparamsUntilVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsUntil: Value = requestUntilparamsUntilVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
+        let mut hasEnd: bool = matches!(&request, Value::Dict(__d) if __d.contains_key("end_at"));
+        let mut paramsOmitted: Value = self.omit(paramsUntil, Value::from(vec![Value::Str("price".into())]), &[]);
+        // exchange has undocumented limit slightly above, but 1000 is reliable limit
+        let mut limitResolved: Value = (if ((limit == Value::Null) || (limit.as_f64().unwrap_or(f64::NAN) > ((1000i64) as f64))) { Value::Int(1000) } else { limit.clone() });
+        let mut windowLength: Value = self.parse_to_int((match (&((match (&(duration), &(((match (&(self.parse_to_int(limitResolved)), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null })))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }));
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start_at".into(), since.clone()); }
-            if (limit != Value::Null) {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("end_at".into(), (match (&((match (&(since), &((match (&((match (&(duration), &(((match (&(limit), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null })))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null })), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })); }
-            }  else {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("end_at".into(), until.clone()); }
+            if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("start_at".into(), since.clone()); }
+            if !hasEnd {
+                let mut sinceInt: Value = self.parse_to_int(since.clone());
+                if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("end_at".into(), (match (&((match (&(sinceInt), &(windowLength)) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null })), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })); }
             }
         }  else {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("end_at".into(), until.clone()); }
-            if (limit != Value::Null) {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start_at".into(), (match (&((match (&(until), &((match (&((match (&(duration), &(((match (&(limit), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null })))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null })); }
-            }  else {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start_at".into(), (match (&((match (&(until), &((match (&((match (&(duration), &(Value::Int(101))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null })); }
-            }
+            let mut endAtRaw: Value = (if hasEnd { self.safe_integer_k(requestUntil.clone(), "end_at", &[Value::Int(0)]) } else { self.milliseconds() });
+            let mut endAt: Value = self.parse_to_int(endAtRaw);
+            if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("end_at".into(), endAt.clone()); }
+            if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("start_at".into(), (match (&((match (&(endAt), &(windowLength)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null })); }
         }
-        let __ws_arg_1 = self.extend(request, &[paramsOmitted]);
+        let __ws_arg_1 = self.extend(requestUntil, &[paramsOmitted]);
         let mut response: Value = self.public_get_markets_klines(&[__ws_arg_1]).await;
         //
         //     {
@@ -2030,7 +2072,7 @@ impl ParadexCore {
 })]), Value::Str("funding_period_hours".into()), &[]);
         // zero hours is not an interval, and a caller annualising a rate divides by it
         let mut interval: Value = Value::Null;
-        if (hours != Value::Null) && is_true(&crate::precise::Precise::stringGt(&hours, &Value::Str("0".into()))) {
+        if (hours != Value::Null) && crate::precise::Precise::stringGt(&hours, &Value::Str("0".into())).as_bool() == Some(true) {
             interval = Value::Str(format!("{}{}", hours, Value::Str("h".into())).into());
         }
         return Value::Map({
@@ -2142,7 +2184,7 @@ impl ParadexCore {
         let mut paginateparamsPaginateVariable = self.handle_option_bool_and_params(params, Value::Str("fetchTrades".into()), Value::Str("paginate".into()), &[Value::Bool(false)]);
         let mut paginate: Value = paginateparamsPaginateVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsPaginate: Value = paginateparamsPaginateVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-        if is_true(&paginate) {
+        if paginate.as_bool() == Some(true) {
             return self.fetch_paginated_call_cursor(Value::Str("fetchTrades".into()), &[symbol.clone(), since.clone(), limit.clone(), paramsPaginate.clone(), Value::Str("next".into()), Value::Str("cursor".into()), Value::Null, Value::Int(100)]).await;
         }
         let mut market: Value = self.market(symbol);
@@ -2182,8 +2224,8 @@ impl ParadexCore {
         let mut trades: Value = self.safe_list_k(response.clone(), "results", &[Value::from(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1045: bool = true;
-            while { if !__for_first_1045 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1045 = false; i.as_f64().unwrap_or(f64::NAN) < ((trades.len() as i64) as f64) } {
+            let mut __for_first_1054: bool = true;
+            while { if !__for_first_1054 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1054 = false; i.as_f64().unwrap_or(f64::NAN) < ((trades.len() as i64) as f64) } {
             add_element_to_object(get_value_mut(&mut trades, &i), &Value::Str("next".into()), self.safe_string_k(response.clone(), "next", &[]));
         }
         }
@@ -2363,11 +2405,9 @@ impl ParadexCore {
     Value::Null
 }
 
-    pub fn hash_message(&self, mut message: Value) -> Value {
+    pub fn hash_message(&self, mut message: Value) -> Option<String> {
         let mut hashed: Value = self.hash(message, Value::Str("keccak".into()), &[Value::Str("hex".into())]);
-        return Value::Str(format!("{}{}", Value::Str("0x".into()), hashed).into());
-
-    Value::Null
+        return Value::Str(format!("{}{}", Value::Str("0x".into()), hashed).into()).as_str().map(str::to_owned);
 }
 
     pub fn sign_hash(&self, mut hash: Value, mut privateKey: Value) -> Option<String> {
@@ -2375,48 +2415,18 @@ impl ParadexCore {
         let mut r: Value = signature.as_map().and_then(|__m| __m.get("r")).cloned().unwrap_or(Value::Null);
         let mut s: Value = signature.as_map().and_then(|__m| __m.get("s")).cloned().unwrap_or(Value::Null);
         let mut v: Value = self.int_to_base16(self.sum(&[Value::Int(27), signature.as_map().and_then(|__m| __m.get("v")).cloned().unwrap_or(Value::Null)]), &[]);
-        return Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("0x".into()), pad_start(&r, &Value::Int(64), &Value::Str("0".into()))).into()), pad_start(&s, &Value::Int(64), &Value::Str("0".into()))).into()), v).into()).as_str().map(str::to_owned);
+        return Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("0x".into()), r.as_str().map(|__s| Value::Str(format!("{:0>64}", __s).into())).unwrap_or(Value::Null)).into()), s.as_str().map(|__s| Value::Str(format!("{:0>64}", __s).into())).unwrap_or(Value::Null)).into()), v).into()).as_str().map(str::to_owned);
 }
 
     pub fn sign_message(&self, mut message: Value, mut privateKey: Value) -> Option<String> {
-        return self.sign_hash(self.hash_message(message), privateKey.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = (__l - 64).max(0); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
+        return self.sign_hash(self.hash_message(message).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null), privateKey.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = (__l - 64).max(0); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
 }
 
     pub async fn get_system_config(&mut self) -> Value {
-        let mut cachedConfig: Value = self.safe_dict_k(self.options.clone(), "systemConfig", &[]);
-        if (cachedConfig != Value::Null) {
-            return cachedConfig;
+        if (self.safe_dict_k(self.options.clone(), "systemConfig", &[]) == Value::Null) {
+            let mut response: Value = self.public_get_system_config(&[]).await;
+            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("systemConfig".into(), response); }
         }
-        let mut response: Value = self.public_get_system_config(&[]).await;
-        //
-        // {
-        //     "starknet_gateway_url": "https://potc-testnet-sepolia.starknet.io",
-        //     "starknet_fullnode_rpc_url": "https://pathfinder.api.testnet.paradex.trade/rpc/v0_7",
-        //     "starknet_chain_id": "PRIVATE_SN_POTC_SEPOLIA",
-        //     "block_explorer_url": "https://voyager.testnet.paradex.trade/",
-        //     "paraclear_address": "0x286003f7c7bfc3f94e8f0af48b48302e7aee2fb13c23b141479ba00832ef2c6",
-        //     "paraclear_decimals": 8,
-        //     "paraclear_account_proxy_hash": "0x3530cc4759d78042f1b543bf797f5f3d647cde0388c33734cf91b7f7b9314a9",
-        //     "paraclear_account_hash": "0x41cb0280ebadaa75f996d8d92c6f265f6d040bb3ba442e5f86a554f1765244e",
-        //     "oracle_address": "0x2c6a867917ef858d6b193a0ff9e62b46d0dc760366920d631715d58baeaca1f",
-        //     "bridged_tokens": [
-        //         {
-        //             "name": "TEST USDC",
-        //             "symbol": "USDC",
-        //             "decimals": 6,
-        //             "l1_token_address": "0x29A873159D5e14AcBd63913D4A7E2df04570c666",
-        //             "l1_bridge_address": "0x8586e05adc0C35aa11609023d4Ae6075Cb813b4C",
-        //             "l2_token_address": "0x6f373b346561036d98ea10fb3e60d2f459c872b1933b50b21fe6ef4fda3b75e",
-        //             "l2_bridge_address": "0x46e9237f5408b5f899e72125dd69bd55485a287aaf24663d3ebe00d237fc7ef"
-        //         }
-        //     ],
-        //     "l1_core_contract_address": "0x582CC5d9b509391232cd544cDF9da036e55833Af",
-        //     "l1_operator_address": "0x11bACdFbBcd3Febe5e8CEAa75E0Ef6444d9B45FB",
-        //     "l1_chain_id": "11155111",
-        //     "liquidation_fee": "0.2"
-        // }
-        //
-        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("systemConfig".into(), response); }
         return self.safe_dict_k(self.options.clone(), "systemConfig", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2428,7 +2438,7 @@ impl ParadexCore {
     pub async fn prepare_paradex_domain(&mut self, optional_args: &[Value]) -> Value {
         let mut l1 = get_arg(optional_args, 0, Value::Bool(false));
         let mut systemConfig: Value = self.get_system_config().await;
-        if (l1.as_bool() == Some(true)) {
+        if l1.as_bool() == Some(true) {
             let mut l1D: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("name".to_string(), Value::Str("Paradex".into()));
@@ -2451,33 +2461,34 @@ impl ParadexCore {
 }
 
     pub async fn retrieve_account(&mut self) -> Value {
-        let mut cachedAccount: Value = self.safe_dict_k(self.options.clone(), "paradexAccount", &[]);
-        if (cachedAccount != Value::Null) {
-            return cachedAccount;
-        }
-        self.check_required_credentials(&[]);
-        let mut systemConfig: Value = self.get_system_config().await;
-        let mut domain: Value = self.prepare_paradex_domain(&[Value::Bool(true)]).await;
-        let mut messageTypes: Value = Value::Map({
-            let mut m = indexmap::IndexMap::new();
-                m.insert("Constant".to_string(), Value::from(vec![Value::Map({
+        if (self.safe_dict_k(self.options.clone(), "paradexAccount", &[]) == Value::Null) {
+            self.check_required_credentials(&[]);
+            let mut systemConfig: Value = self.get_system_config().await;
+            let mut domain: Value = self.prepare_paradex_domain(&[Value::Bool(true)]).await;
+            let mut messageTypes: Value = Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                    m.insert("Constant".to_string(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("name".to_string(), Value::Str("action".into()));
         m.insert("type".to_string(), Value::Str("string".into()));
     m
 })]));
-            m
-        });
-        let mut message: Value = Value::Map({
-            let mut m = indexmap::IndexMap::new();
-                m.insert("action".to_string(), Value::Str("STARK Key".into()));
-            m
-        });
-        let mut msg: Value = self.eth_encode_structured_data(domain, messageTypes, message);
-        let mut signature: Value = self.sign_message(msg, self.privateKey.clone()).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
-        let mut account: Value = self.retrieve_stark_account(signature, systemConfig.as_map().and_then(|__m| __m.get("paraclear_account_hash")).cloned().unwrap_or(Value::Null), systemConfig.as_map().and_then(|__m| __m.get("paraclear_account_proxy_hash")).cloned().unwrap_or(Value::Null));
-        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("paradexAccount".into(), account.clone()); }
-        return account;
+                m
+            });
+            let mut message: Value = Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                    m.insert("action".to_string(), Value::Str("STARK Key".into()));
+                m
+            });
+            let mut msg: Value = self.eth_encode_structured_data(domain, messageTypes, message);
+            let mut signature: Value = self.sign_message(msg, self.privateKey.clone()).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
+            let mut account: Value = self.retrieve_stark_account(signature, systemConfig.as_map().and_then(|__m| __m.get("paraclear_account_hash")).cloned().unwrap_or(Value::Null), systemConfig.as_map().and_then(|__m| __m.get("paraclear_account_proxy_hash")).cloned().unwrap_or(Value::Null));
+            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("paradexAccount".into(), account); }
+        }
+        return self.safe_dict_k(self.options.clone(), "paradexAccount", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
 
     Value::Null
 }
@@ -2521,7 +2532,7 @@ impl ParadexCore {
     m
 }));
         let mut cachedToken: Value = self.safe_string_k(self.options.clone(), "authToken", &[]);
-        let mut now: Value = self.nonce();
+        let mut now: Value = self.parse_to_int(self.nonce());
         if (cachedToken != Value::Null) {
             let mut cachedExpires: Value = self.safe_integer_k(self.options.clone(), "expires", &[]);
             if (cachedExpires == Value::Null) {
@@ -2626,7 +2637,11 @@ impl ParadexCore {
         //
         let mut timestamp: Value = self.safe_integer_k(order.clone(), "created_at", &[]);
         let mut orderId: Value = self.safe_string_k(order.clone(), "id", &[]);
-        let mut clientOrderId: Value = self.omit_zero(self.safe_string_k(order.clone(), "client_id", &[]));
+        // a client id is free text, omitZero would drop every non-numeric one in php
+        let mut clientOrderId: Value = self.safe_string_k(order.clone(), "client_id", &[]);
+        if (clientOrderId.as_str() == Some("")) {
+            clientOrderId = Value::Null;
+        }
         let mut marketId: Value = self.safe_string_k(order.clone(), "market", &[]);
         let mut marketResolved: Value = self.safe_market(&[marketId, market]);
         let mut symbol: Value = marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
@@ -2660,10 +2675,10 @@ impl ParadexCore {
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("lastUpdateTimestamp".to_string(), lastUpdateTimestamp);
-        m.insert("status".to_string(), self.parse_order_status(status));
+        m.insert("status".to_string(), self.parse_order_status(status).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
         m.insert("symbol".to_string(), symbol);
-        m.insert("type".to_string(), self.parse_order_type(orderType));
-        m.insert("timeInForce".to_string(), self.parse_time_in_force(self.safe_string_k(order.clone(), "instruction", &[])));
+        m.insert("type".to_string(), self.parse_order_type(orderType).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
+        m.insert("timeInForce".to_string(), self.parse_time_in_force(self.safe_string_k(order.clone(), "instruction", &[])).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
         m.insert("postOnly".to_string(), Value::Null);
         m.insert("reduceOnly".to_string(), reduceOnly);
         m.insert("side".to_string(), side);
@@ -2690,7 +2705,7 @@ impl ParadexCore {
     Value::Null
 }
 
-    pub fn parse_time_in_force(&self, mut timeInForce: Value) -> Value {
+    pub fn parse_time_in_force(&self, mut timeInForce: Value) -> Option<String> {
         let mut timeInForces: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("IOC".to_string(), Value::Str("IOC".into()));
@@ -2698,12 +2713,10 @@ impl ParadexCore {
                 m.insert("POST_ONLY".to_string(), Value::Str("PO".into()));
             m
         });
-        return self.safe_string(timeInForces, timeInForce, &[]);
-
-    Value::Null
+        return self.safe_string(timeInForces, timeInForce, &[]).as_str().map(str::to_owned);
 }
 
-    pub fn parse_order_status(&self, mut status: Value) -> Value {
+    pub fn parse_order_status(&self, mut status: Value) -> Option<String> {
         if (status != Value::Null) {
             let mut statuses: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -2713,14 +2726,12 @@ impl ParadexCore {
                     m.insert("CLOSED".to_string(), Value::Str("closed".into()));
                 m
             });
-            return self.safe_string(statuses, status.clone(), &[status.clone()]);
+            return self.safe_string(statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
         }
-        return Value::Null;
-
-    Value::Null
+        return None;
 }
 
-    pub fn parse_order_type(&self, mut type_var: Value) -> Value {
+    pub fn parse_order_type(&self, mut type_var: Value) -> Option<String> {
         let mut types: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("LIMIT".to_string(), Value::Str("limit".into()));
@@ -2729,15 +2740,11 @@ impl ParadexCore {
                 m.insert("STOP_MARKET".to_string(), Value::Str("market".into()));
             m
         });
-        return self.safe_string_lower(types, type_var.clone(), &[type_var.clone()]);
-
-    Value::Null
+        return self.safe_string_lower(types, type_var.clone(), &[type_var.clone()]).as_str().map(str::to_owned);
 }
 
-    pub fn scale_number(&self, mut num: Value) -> Value {
-        return crate::precise::Precise::stringMul(&num, &Value::Str("100000000".into()));
-
-    Value::Null
+    pub fn scale_number(&self, mut num: Value) -> Option<String> {
+        return crate::precise::Precise::stringMul(&num, &Value::Str("100000000".into())).as_str().map(str::to_owned);
 }
 
     pub fn create_order_request(&self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
@@ -2754,8 +2761,8 @@ impl ParadexCore {
         }
         let mut market: Value = self.market(symbol.clone());
         let mut reduceOnly: Value = self.safe_bool2(params.clone(), Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), &[]);
-        let mut orderType: Value = to_upper(&type_var);
-        let mut orderSide: Value = to_upper(&side);
+        let mut orderType: Value = type_var.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
+        let mut orderSide: Value = side.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("market".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
@@ -2774,7 +2781,7 @@ impl ParadexCore {
         let mut timeInForce: Option<String> = self.safe_string_upper_k(params.clone(), "timeInForce", &[]).as_str().map(str::to_owned);
         let mut postOnly: Value = self.is_post_only(isMarket.clone(), Value::Null, &[params.clone()]);
         if !(matches!(&isMarket, Value::Bool(true))) {
-            if is_true(&postOnly) {
+            if postOnly.as_bool() == Some(true) {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("instruction".into(), Value::Str("POST_ONLY".into())); }
             }  else if (timeInForce.as_deref() == Some("IOC")) {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("instruction".into(), Value::Str("IOC".into())); }
@@ -2839,7 +2846,7 @@ impl ParadexCore {
     pub async fn sign_order_request(&mut self, mut request: Value, optional_args: &[Value]) -> Value {
         let mut modify = get_arg(optional_args, 0, Value::Bool(false));
         let mut account: Value = self.retrieve_account().await;
-        let mut now: Value = self.nonce();
+        let mut now: Value = self.parse_to_int(self.nonce());
         let mut orderType: Value = self.safe_string_k(request.clone(), "type", &[]);
         if (orderType == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" signOrderRequest() missing orderType".into()))));
@@ -2851,8 +2858,8 @@ impl ParadexCore {
                 m.insert("market".to_string(), self.string_to_base16(request.as_map().and_then(|__m| __m.get("market")).cloned().unwrap_or(Value::Null)));
                 m.insert("side".to_string(), (if (self.safe_string_k(request.clone(), "side", &[]).as_str() == Some("BUY")) { Value::Str("1".into()) } else { Value::Str("2".into()) }));
                 m.insert("orderType".to_string(), self.string_to_base16(request.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null)));
-                m.insert("size".to_string(), self.scale_number(request.as_map().and_then(|__m| __m.get("size")).cloned().unwrap_or(Value::Null)));
-                m.insert("price".to_string(), (if (isMarket) { Value::Str("0".into()) } else { self.scale_number(request.as_map().and_then(|__m| __m.get("price")).cloned().unwrap_or(Value::Null)) }));
+                m.insert("size".to_string(), self.scale_number(request.as_map().and_then(|__m| __m.get("size")).cloned().unwrap_or(Value::Null)).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
+                m.insert("price".to_string(), (if (isMarket) { Value::Str("0".into()) } else { self.scale_number(request.as_map().and_then(|__m| __m.get("price")).cloned().unwrap_or(Value::Null)).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null) }));
             m
         });
         let mut orderFields: Value = Value::from(vec![Value::Map({
@@ -2913,9 +2920,13 @@ impl ParadexCore {
         let mut domain: Value = self.prepare_paradex_domain(&[]).await;
         let mut msg: Value = self.starknet_encode_structured_data(domain, messageTypes, orderReq.clone(), account.as_map().and_then(|__m| __m.get("address")).cloned().unwrap_or(Value::Null));
         let mut signature: Value = self.starknet_sign(msg, account.as_map().and_then(|__m| __m.get("privateKey")).cloned().unwrap_or(Value::Null));
-        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("signature".into(), signature); }
-        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("signature_timestamp".into(), match &orderReq { Value::Dict(__m15) => __m15.get("timestamp").cloned().unwrap_or(Value::Null), _ => Value::Null }); }
-        return request;
+        let mut signedRequest: Value = self.extend(request, &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("signature".to_string(), signature);
+                m.insert("signature_timestamp".to_string(), match &orderReq { Value::Dict(__m15) => __m15.get("timestamp").cloned().unwrap_or(Value::Null), _ => Value::Null });
+            m
+        })]);
+        return signedRequest;
 
     Value::Null
 }
@@ -3052,11 +3063,11 @@ impl ParadexCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut ordersRequests: Value = Value::from(vec![]);
+        let mut ordersRequests: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1046: bool = true;
-            while { if !__for_first_1046 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1046 = false; i.as_f64().unwrap_or(f64::NAN) < ((orders.len() as i64) as f64) } {
+            let mut __for_first_1055: bool = true;
+            while { if !__for_first_1055 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1055 = false; i.as_f64().unwrap_or(f64::NAN) < ((orders.len() as i64) as f64) } {
             let mut rawOrder: Value = self.safe_dict(orders.clone(), i.clone(), &[]);
             let mut symbol: Value = self.safe_string_k(rawOrder.clone(), "symbol", &[]);
             let mut type_var: Value = self.safe_string_k(rawOrder.clone(), "type", &[]);
@@ -3070,48 +3081,57 @@ impl ParadexCore {
             let mut extendedParams: Value = self.extend(params.clone(), &[orderParams]);
             let mut orderRequest: Value = self.create_order_request(symbol, type_var, side, amount, &[price, extendedParams]);
             orderRequest = self.sign_order_request(orderRequest.clone(), &[]).await;
-            append_to_array(&mut ordersRequests, orderRequest);
+            ordersRequests.push(orderRequest);
         }
         }
-        let mut response: Value = self.private_post_orders_batch(&[ordersRequests]).await;
+        let mut response: Value = self.private_post_orders_batch(&[Value::from(ordersRequests)]).await;
         //
-        // {
-        //     "errors": [
-        //         {
-        //             "error": "VALIDATION_ERROR",
-        //             "message": "Invalid order"
-        //         }
-        //     ],
-        //     "orders": [
-        //         {
-        //             "id": "123456",
-        //             "market": "BTC-USD-PERP",
-        //             "side": "BUY",
-        //             "type": "LIMIT",
-        //             "price": "26000",
-        //             "size": "0.05",
-        //             "status": "NEW"
-        //         }
-        //     ]
-        // }
+        // orders and errors are index-aligned with the request, null where the other array has the entry
+        //
+        //     {
+        //         "errors": [
+        //             null,
+        //             {
+        //                 "error": "DUPLICATED_CLIENT_ID",
+        //                 "message": "duplicated client order id"
+        //             }
+        //         ],
+        //         "orders": [
+        //             {
+        //                 "id": "123456",
+        //                 "market": "BTC-USD-PERP",
+        //                 "side": "BUY",
+        //                 "type": "LIMIT",
+        //                 "price": "26000",
+        //                 "size": "0.05",
+        //                 "status": "NEW"
+        //             },
+        //             null
+        //         ]
+        //     }
         //
         let mut responseOrders: Value = self.safe_list_k(response.clone(), "orders", &[Value::from(vec![])]);
-        let mut parsedOrders: Value = self.parse_orders(responseOrders, &[]);
         let mut errors: Value = self.safe_list_k(response, "errors", &[Value::from(vec![])]);
+        let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1047: bool = true;
-            while { if !__for_first_1047 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1047 = false; i.as_f64().unwrap_or(f64::NAN) < ((errors.len() as i64) as f64) } {
-            let mut error: Value = errors.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-            append_to_array(&mut parsedOrders, self.safe_order(Value::Map({
+            let mut __for_first_1056: bool = true;
+            while { if !__for_first_1056 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1056 = false; i.as_f64().unwrap_or(f64::NAN) < ((orders.len() as i64) as f64) } {
+            let mut responseOrder: Value = self.safe_dict(responseOrders.clone(), i.clone(), &[]);
+            if (responseOrder != Value::Null) {
+                result.push(self.parse_order(responseOrder, &[]));
+            }  else {
+                let mut error: Value = self.safe_dict(errors.clone(), i.clone(), &[]);
+                result.push(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), error);
         m.insert("status".to_string(), Value::Str("rejected".into()));
     m
 }), &[]));
+            }
         }
         }
-        return parsedOrders;
+        return Value::from(result);
 
     Value::Null
 }
@@ -3226,8 +3246,8 @@ impl ParadexCore {
         let mut orders: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1048: bool = true;
-            while { if !__for_first_1048 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1048 = false; i.as_f64().unwrap_or(f64::NAN) < ((results.len() as i64) as f64) } {
+            let mut __for_first_1057: bool = true;
+            while { if !__for_first_1057 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1057 = false; i.as_f64().unwrap_or(f64::NAN) < ((results.len() as i64) as f64) } {
             let mut result: Value = results.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut marketId: Value = self.safe_string_k(result.clone(), "market", &[]);
             let mut market: Value = self.safe_market(&[marketId]);
@@ -3240,7 +3260,7 @@ impl ParadexCore {
             }  else if (status.as_deref() == Some("NOT_FOUND")) {
                 orderStatus = Value::Str("rejected".into());
             }
-            append_to_array(&mut orders, self.safe_order(Value::Map({
+            if let Value::Arr(__a) = &mut orders { std::sync::Arc::make_mut(__a).push(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), result.clone());
         m.insert("id".to_string(), self.safe_string_k(result.clone(), "id", &[]));
@@ -3248,7 +3268,7 @@ impl ParadexCore {
         m.insert("status".to_string(), orderStatus);
         m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
     m
-}), &[market]));
+}), &[market])); }
         }
         }
         return orders;
@@ -3367,7 +3387,7 @@ impl ParadexCore {
         let mut paginateparamsPaginateVariable = self.handle_option_bool_and_params(params, Value::Str("fetchOrders".into()), Value::Str("paginate".into()), &[Value::Bool(false)]);
         let mut paginate: Value = paginateparamsPaginateVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsPaginate: Value = paginateparamsPaginateVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-        if is_true(&paginate) {
+        if paginate.as_bool() == Some(true) {
             return self.fetch_paginated_call_cursor(Value::Str("fetchOrders".into()), &[symbol.clone(), since.clone(), limit.clone(), paramsPaginate.clone(), Value::Str("next".into()), Value::Str("cursor".into()), Value::Null, Value::Int(50)]).await;
         }
         let mut request: Value = Value::Map({
@@ -3552,8 +3572,8 @@ impl ParadexCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1049: bool = true;
-            while { if !__for_first_1049 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1049 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&response).as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_1058: bool = true;
+            while { if !__for_first_1058 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1058 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&response).as_f64().unwrap_or(f64::NAN) } {
             let mut balance: Value = self.safe_dict(response.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3600,7 +3620,7 @@ impl ParadexCore {
         let mut paginateparamsPaginateVariable = self.handle_option_bool_and_params(params, Value::Str("fetchMyTrades".into()), Value::Str("paginate".into()), &[Value::Bool(false)]);
         let mut paginate: Value = paginateparamsPaginateVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsPaginate: Value = paginateparamsPaginateVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-        if is_true(&paginate) {
+        if paginate.as_bool() == Some(true) {
             return self.fetch_paginated_call_cursor(Value::Str("fetchMyTrades".into()), &[symbol.clone(), since.clone(), limit.clone(), paramsPaginate.clone(), Value::Str("next".into()), Value::Str("cursor".into()), Value::Null, Value::Int(100)]).await;
         }
         let mut request: Value = Value::Map({
@@ -3649,8 +3669,8 @@ impl ParadexCore {
         let mut trades: Value = self.safe_list_k(response.clone(), "results", &[Value::from(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1050: bool = true;
-            while { if !__for_first_1050 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1050 = false; i.as_f64().unwrap_or(f64::NAN) < ((trades.len() as i64) as f64) } {
+            let mut __for_first_1059: bool = true;
+            while { if !__for_first_1059 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1059 = false; i.as_f64().unwrap_or(f64::NAN) < ((trades.len() as i64) as f64) } {
             add_element_to_object(get_value_mut(&mut trades, &i), &Value::Str("next".into()), self.safe_string_k(response.clone(), "next", &[]));
         }
         }
@@ -3722,9 +3742,11 @@ impl ParadexCore {
         //                 "realized_pnl": "0",
         //                 "unrealized_pnl": "-2.39677214",
         //                 "unrealized_funding_pnl": "-0.11214013",
+        //                 "leverage": "5",
         //                 "cost": "648.39960537",
         //                 "cost_usd": "648.529",
         //                 "cached_funding_index": "35202.1002351",
+        //                 "created_at": 1718947571560,
         //                 "last_updated_at": 1718950074249,
         //                 "last_fill_id": "1718947571560201703986670001",
         //                 "seq_no": 1718950074249176253,
@@ -3753,9 +3775,11 @@ impl ParadexCore {
         //         "realized_pnl": "0",
         //         "unrealized_pnl": "-2.39677214",
         //         "unrealized_funding_pnl": "-0.11214013",
+        //         "leverage": "5",
         //         "cost": "648.39960537",
         //         "cost_usd": "648.529",
         //         "cached_funding_index": "35202.1002351",
+        //         "created_at": 1718947571560,
         //         "last_updated_at": 1718950074249,
         //         "last_fill_id": "1718947571560201703986670001",
         //         "seq_no": 1718950074249176253,
@@ -3766,12 +3790,12 @@ impl ParadexCore {
         let mut marketResolved: Value = self.safe_market(&[marketId, market]);
         let mut symbol: Value = marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut side: Value = self.safe_string_lower_k(position.clone(), "side", &[]);
-        let mut quantity: Value = self.safe_string_k(position.clone(), "size", &[]);
-        if (side.as_str() != Some("long")) {
-            quantity = crate::precise::Precise::stringMul(&Value::Str("-1".into()), &quantity);
-        }
-        let mut timestamp: Value = self.safe_integer_k(position.clone(), "time", &[]);
+        // side carries the direction, the unified contracts is a magnitude whether or not size is signed
+        let mut quantity: Value = crate::precise::Precise::stringAbs(&self.safe_string_k(position.clone(), "size", &[]));
+        let mut timestamp: Value = self.safe_integer_k(position.clone(), "created_at", &[]);
         let mut liquidationPrice: Value = self.parse_number(self.omit_zero(self.safe_string_k(position.clone(), "liquidation_price", &[])), &[]);
+        // cost_usd is signed by side, the unified notional is a magnitude
+        let mut notionalString: Value = crate::precise::Precise::stringAbs(&self.safe_string_k(position.clone(), "cost_usd", &[]));
         return self.safe_position(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), position.clone());
@@ -3779,20 +3803,21 @@ impl ParadexCore {
         m.insert("symbol".to_string(), symbol);
         m.insert("entryPrice".to_string(), self.safe_number_k(position.clone(), "average_entry_price", &[]));
         m.insert("markPrice".to_string(), Value::Null);
-        m.insert("notional".to_string(), Value::Null);
-        m.insert("collateral".to_string(), self.safe_number_k(position.clone(), "cost", &[]));
-        m.insert("unrealizedPnl".to_string(), self.safe_number_k(position, "unrealized_pnl", &[]));
+        m.insert("notional".to_string(), self.parse_number(notionalString, &[]));
+        m.insert("collateral".to_string(), Value::Null);
+        m.insert("unrealizedPnl".to_string(), self.safe_number_k(position.clone(), "unrealized_pnl", &[]));
         m.insert("side".to_string(), side);
         m.insert("contracts".to_string(), self.parse_number(quantity, &[]));
         m.insert("contractSize".to_string(), Value::Null);
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("lastUpdateTimestamp".to_string(), self.safe_integer_k(position.clone(), "last_updated_at", &[]));
         m.insert("hedged".to_string(), Value::Null);
         m.insert("maintenanceMargin".to_string(), Value::Null);
         m.insert("maintenanceMarginPercentage".to_string(), Value::Null);
         m.insert("initialMargin".to_string(), Value::Null);
         m.insert("initialMarginPercentage".to_string(), Value::Null);
-        m.insert("leverage".to_string(), Value::Null);
+        m.insert("leverage".to_string(), self.safe_number_k(position, "leverage", &[]));
         m.insert("liquidationPrice".to_string(), liquidationPrice);
         m.insert("marginRatio".to_string(), Value::Null);
         m.insert("marginMode".to_string(), Value::Null);
@@ -3916,7 +3941,7 @@ impl ParadexCore {
         let mut paginateparamsPaginateVariable = self.handle_option_bool_and_params(params, Value::Str("fetchDeposits".into()), Value::Str("paginate".into()), &[Value::Bool(false)]);
         let mut paginate: Value = paginateparamsPaginateVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsPaginate: Value = paginateparamsPaginateVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-        if is_true(&paginate) {
+        if paginate.as_bool() == Some(true) {
             return self.fetch_paginated_call_cursor(Value::Str("fetchDeposits".into()), &[code, since.clone(), limit.clone(), paramsPaginate.clone(), Value::Str("next".into()), Value::Str("cursor".into()), Value::Null, Value::Int(100)]).await;
         }
         let mut request: Value = Value::Map({
@@ -3956,18 +3981,18 @@ impl ParadexCore {
         //     }
         //
         let mut rows: Value = self.safe_list_k(response, "results", &[Value::from(vec![])]);
-        let mut deposits: Value = Value::from(vec![]);
+        let mut deposits: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1051: bool = true;
-            while { if !__for_first_1051 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1051 = false; i.as_f64().unwrap_or(f64::NAN) < ((rows.len() as i64) as f64) } {
+            let mut __for_first_1060: bool = true;
+            while { if !__for_first_1060 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1060 = false; i.as_f64().unwrap_or(f64::NAN) < ((rows.len() as i64) as f64) } {
             let mut row: Value = rows.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             if (self.safe_string_k(row.clone(), "kind", &[]).as_str() == Some("DEPOSIT")) {
-                append_to_array(&mut deposits, row);
+                deposits.push(row);
             }
         }
         }
-        return self.parse_transactions(deposits, &[Value::Null, since, limit]);
+        return self.parse_transactions(Value::from(deposits), &[Value::Null, since, limit]);
 
     Value::Null
 }
@@ -4000,7 +4025,7 @@ impl ParadexCore {
         let mut paginateparamsPaginateVariable = self.handle_option_bool_and_params(params, Value::Str("fetchWithdrawals".into()), Value::Str("paginate".into()), &[Value::Bool(false)]);
         let mut paginate: Value = paginateparamsPaginateVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsPaginate: Value = paginateparamsPaginateVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-        if is_true(&paginate) {
+        if paginate.as_bool() == Some(true) {
             return self.fetch_paginated_call_cursor(Value::Str("fetchWithdrawals".into()), &[code, since.clone(), limit.clone(), paramsPaginate.clone(), Value::Str("next".into()), Value::Str("cursor".into()), Value::Null, Value::Int(100)]).await;
         }
         let mut request: Value = Value::Map({
@@ -4040,18 +4065,18 @@ impl ParadexCore {
         //     }
         //
         let mut rows: Value = self.safe_list_k(response, "results", &[Value::from(vec![])]);
-        let mut deposits: Value = Value::from(vec![]);
+        let mut deposits: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1052: bool = true;
-            while { if !__for_first_1052 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1052 = false; i.as_f64().unwrap_or(f64::NAN) < ((rows.len() as i64) as f64) } {
+            let mut __for_first_1061: bool = true;
+            while { if !__for_first_1061 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1061 = false; i.as_f64().unwrap_or(f64::NAN) < ((rows.len() as i64) as f64) } {
             let mut row: Value = rows.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             if (self.safe_string_k(row.clone(), "kind", &[]).as_str() == Some("WITHDRAWAL")) {
-                append_to_array(&mut deposits, row);
+                deposits.push(row);
             }
         }
         }
-        return self.parse_transactions(deposits, &[Value::Null, since, limit]);
+        return self.parse_transactions(Value::from(deposits), &[Value::Null, since, limit]);
 
     Value::Null
 }
@@ -4084,7 +4109,7 @@ impl ParadexCore {
         let mut paginateparamsPaginateVariable = self.handle_option_bool_and_params(params, Value::Str("fetchTransfers".into()), Value::Str("paginate".into()), &[Value::Bool(false)]);
         let mut paginate: Value = paginateparamsPaginateVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsPaginate: Value = paginateparamsPaginateVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-        if is_true(&paginate) {
+        if paginate.as_bool() == Some(true) {
             return self.fetch_paginated_call_cursor(Value::Str("fetchTransfers".into()), &[code.clone(), since.clone(), limit.clone(), paramsPaginate.clone(), Value::Str("next".into()), Value::Str("cursor".into()), Value::Null, Value::Int(100)]).await;
         }
         let mut request: Value = Value::Map({
@@ -4173,7 +4198,7 @@ impl ParadexCore {
         m.insert("amount".to_string(), self.safe_number_k(transfer.clone(), "amount", &[]));
         m.insert("fromAccount".to_string(), fromAccount);
         m.insert("toAccount".to_string(), toAccount);
-        m.insert("status".to_string(), self.parse_transaction_status(self.safe_string_k(transfer, "status", &[])));
+        m.insert("status".to_string(), self.parse_transaction_status(self.safe_string_k(transfer, "status", &[])).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
     m
 });
 
@@ -4208,7 +4233,7 @@ impl ParadexCore {
         let mut updated: Value = self.safe_integer_k(transaction.clone(), "last_updated_at", &[]);
         let mut type_var: Value = self.safe_string_k(transaction.clone(), "kind", &[]);
         type_var = (if (type_var.as_str() == Some("DEPOSIT")) { Value::Str("deposit".into()) } else { Value::Str("withdrawal".into()) });
-        let mut status: Value = self.parse_transaction_status(self.safe_string_k(transaction.clone(), "status", &[]));
+        let mut status: Value = self.parse_transaction_status(self.safe_string_k(transaction.clone(), "status", &[])).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut amount: Value = self.safe_number_k(transaction.clone(), "amount", &[]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4238,7 +4263,7 @@ impl ParadexCore {
     Value::Null
 }
 
-    pub fn parse_transaction_status(&self, mut status: Value) -> Value {
+    pub fn parse_transaction_status(&self, mut status: Value) -> Option<String> {
         let mut statuses: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("PENDING".to_string(), Value::Str("pending".into()));
@@ -4247,9 +4272,7 @@ impl ParadexCore {
                 m.insert("FAILED".to_string(), Value::Str("failed".into()));
             m
         });
-        return self.safe_string(statuses, status.clone(), &[status.clone()]);
-
-    Value::Null
+        return self.safe_string(statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
 /*
@@ -4699,7 +4722,7 @@ impl ParadexCore {
         let mut paginateparamsPaginateVariable = self.handle_option_bool_and_params(params, Value::Str("fetchFundingHistory".into()), Value::Str("paginate".into()), &[Value::Bool(false)]);
         let mut paginate: Value = paginateparamsPaginateVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsPaginate: Value = paginateparamsPaginateVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-        if is_true(&paginate) {
+        if paginate.as_bool() == Some(true) {
             return self.fetch_paginated_call_cursor(Value::Str("fetchFundingHistory".into()), &[symbol.clone(), since.clone(), limit.clone(), paramsPaginate.clone(), Value::Str("next".into()), Value::Str("cursor".into()), Value::Null, Value::Int(100)]).await;
         }
         let mut market: Value = self.market(symbol);
@@ -4843,15 +4866,15 @@ impl ParadexCore {
         // not a settled payment: paradex recomputes it each second and accrues it
         // into funding_index, so the series cannot be summed
         let mut results: Value = self.safe_list_k(response, "results", &[Value::from(vec![])]);
-        let mut rates: Value = Value::from(vec![]);
+        let mut rates: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1053: bool = true;
-            while { if !__for_first_1053 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1053 = false; i.as_f64().unwrap_or(f64::NAN) < ((results.len() as i64) as f64) } {
+            let mut __for_first_1062: bool = true;
+            while { if !__for_first_1062 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1062 = false; i.as_f64().unwrap_or(f64::NAN) < ((results.len() as i64) as f64) } {
             let mut rate: Value = results.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut timestamp: Value = self.safe_integer_k(rate.clone(), "created_at", &[]);
             let mut datetime: Value = self.iso8601(timestamp.clone());
-            append_to_array(&mut rates, Value::Map({
+            rates.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("info".to_string(), rate.clone());
                     m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
@@ -4862,25 +4885,26 @@ impl ParadexCore {
             }));
         }
         }
-        let mut sorted: Value = self.sort_by(rates, Value::Str("timestamp".into()), &[]);
+        let mut sorted: Value = self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]);
         return self.filter_by_symbol_since_limit(sorted, &[self.safe_string_k(market, "symbol", &[]), since, limit]);
 
     Value::Null
 }
 
     pub fn sign(&self, mut path: Value, optional_args: &[Value]) -> Value {
-        let mut api = get_arg(optional_args, 0, Value::Str("public".into()));
+        let mut api = get_arg(optional_args, 0, Value::from(vec![Value::Str("public".into())]));
         let mut method = get_arg(optional_args, 1, Value::Str("GET".into()));
         let mut params = get_arg(optional_args, 2, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut headers = get_arg(optional_args, 3, Value::Null);
-        let mut body = get_arg(optional_args, 4, Value::Null);
+        let __api_empty = Vec::new();
+        let api = api.as_array().unwrap_or(&__api_empty);
+        let mut apiName: Value = api.get(0).cloned().unwrap_or(Value::Null);
         let mut version: Value = self.version.clone();
         let mut pathValue: Value = path.clone();
         if (Value::Int(path.as_str().and_then(|__s| __s.find("v2/")).map(|__i| __i as i64).unwrap_or(-1)).as_f64() == Some(0.0)) {
-            pathValue = replace_str(&path, &Value::Str("v2/".into()), &Value::Str("".into()));
+            pathValue = path.as_str().map(|__s| Value::Str(__s.replace("v2/", "").into())).unwrap_or_else(|| path.clone());
         }
         if (Value::Int(path.as_str().and_then(|__s| __s.find("v2/")).map(|__i| __i as i64).unwrap_or(-1)).as_f64() == Some(0.0)) {
             version = Value::Str("v2".into());
@@ -4891,11 +4915,11 @@ impl ParadexCore {
         }
         let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.implode_hostname(baseApiUrl), Value::Str("/".into())).into()), self.implode_params(pathValue.clone(), params.clone())).into());
         let mut query: Value = self.omit(params, self.extract_params(pathValue.clone()), &[]);
-        if (api.as_str() == Some("public")) {
-            if ((object_keys(&query).len() as i64) as f64) > ((0i64) as f64) {
+        if (apiName.as_str() == Some("public")) {
+            if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
                 url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])).into())).into());
             }
-        }  else if (api.as_str() == Some("private")) {
+        }  else if (apiName.as_str() == Some("private")) {
             let mut privateHeaders: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Accept".to_string(), Value::Str("application/json".into()));
@@ -4913,7 +4937,7 @@ impl ParadexCore {
                 if let Value::Dict(__d) = &mut privateHeaders { std::sync::Arc::make_mut(__d).insert("PARADEX-ETHEREUM-ACCOUNT".into(), self.walletAddress.clone()); }
                 if let Value::Dict(__d) = &mut privateHeaders { std::sync::Arc::make_mut(__d).insert("PARADEX-STARKNET-ACCOUNT".into(), query.as_map().and_then(|__m| __m.get("account")).cloned().unwrap_or(Value::Null)); }
                 if let Value::Dict(__d) = &mut privateHeaders { std::sync::Arc::make_mut(__d).insert("PARADEX-STARKNET-SIGNATURE".into(), query.as_map().and_then(|__m| __m.get("signature")).cloned().unwrap_or(Value::Null)); }
-                if let Value::Dict(__d) = &mut privateHeaders { std::sync::Arc::make_mut(__d).insert("PARADEX-TIMESTAMP".into(), to_string_val(&self.nonce())); }
+                if let Value::Dict(__d) = &mut privateHeaders { std::sync::Arc::make_mut(__d).insert("PARADEX-TIMESTAMP".into(), Value::Str(format!("{}", self.nonce()).into())); }
                 if let Value::Dict(__d) = &mut privateHeaders { std::sync::Arc::make_mut(__d).insert("Content-Type".into(), Value::Str("application/json".into())); }
                 privateBody = json_stringify(&Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4945,7 +4969,7 @@ impl ParadexCore {
             //         url += '?' + this.urlencode (query);
             //     }
             // }
-            let mut bodyResolved: Value = (if (privateBody != Value::Null) { privateBody } else { body.clone() });
+            let mut bodyResolved: Value = privateBody;
             return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), url.clone());
@@ -4959,8 +4983,8 @@ impl ParadexCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), url);
         m.insert("method".to_string(), method);
-        m.insert("body".to_string(), body);
-        m.insert("headers".to_string(), headers);
+        m.insert("body".to_string(), Value::Null);
+        m.insert("headers".to_string(), Value::Null);
     m
 });
 
@@ -4978,7 +5002,29 @@ impl ParadexCore {
         //         "message": "User has never called /onboarding endpoint"
         //     }
         //
-        let mut errorCode: Value = self.safe_string_k(response, "error", &[]);
+        let mut errorCode: Value = self.safe_string_k(response.clone(), "error", &[]);
+        if (errorCode == Value::Null) && (httpCode.as_f64() == Some(400.0)) {
+            //
+            // a batch where every order was rejected, errors are index-aligned with the request
+            //
+            //     {
+            //         "errors": [ { "error": "DUPLICATED_CLIENT_ID", "message": "..." } ],
+            //         "orders": [ null ]
+            //     }
+            //
+            let mut batchErrors: Value = self.safe_list_k(response, "errors", &[Value::from(vec![])]);
+            {
+                                let mut i: Value = Value::Int(0);
+                let mut __for_first_1063: bool = true;
+                while { if !__for_first_1063 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1063 = false; i.as_f64().unwrap_or(f64::NAN) < ((batchErrors.len() as i64) as f64) } {
+                let mut batchErrorCode: Value = self.safe_string(batchErrors.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), Value::Str("error".into()), &[]);
+                if (batchErrorCode != Value::Null) {
+                    errorCode = batchErrorCode;
+                    break;
+                }
+            }
+            }
+        }
         if (errorCode != Value::Null) {
             let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body).into());
             self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), body, feedback.clone());

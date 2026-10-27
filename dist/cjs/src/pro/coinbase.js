@@ -275,7 +275,8 @@ class coinbase extends coinbase$1["default"] {
             const currentToken = this.safeString(this.options, 'wsToken');
             const tokenTimestamp = this.safeInteger(this.options, 'wsTokenTimestamp', 0);
             const seconds = this.seconds();
-            if (currentToken === undefined || tokenTimestamp + 120 < seconds) {
+            const tokenExpiry = tokenTimestamp + 120;
+            if (currentToken === undefined || tokenExpiry < seconds) {
                 // we should generate new token
                 const token = this.createAuthToken(seconds);
                 this.options['wsToken'] = token;
@@ -929,13 +930,19 @@ class coinbase extends coinbase$1["default"] {
             const limit = this.safeInteger(subscription, 'limit');
             const type = this.safeString(event, 'type');
             if (type === 'snapshot') {
-                this.orderbooks[symbol] = this.orderBook({}, limit);
+                if (!(symbol in this.orderbooks)) {
+                    this.orderbooks[symbol] = this.orderBook({}, limit);
+                }
             }
-            // unknown bug, can't reproduce, but sometimes orderbook is undefined
-            if (!(symbol in this.orderbooks) && this.orderbooks[symbol] === undefined) {
+            else if (!(symbol in this.orderbooks)) {
+                // an update can arrive after unWatchOrderBook deleted the orderbook (or before any snapshot)
                 continue;
             }
             const orderbook = this.orderbooks[symbol];
+            if (type === 'snapshot') {
+                // reset in place so consumers holding a reference keep receiving updates after a resync
+                orderbook.reset({});
+            }
             this.handleOrderBookHelper(orderbook, updates);
             orderbook['timestamp'] = this.parse8601(datetime);
             orderbook['datetime'] = datetime;

@@ -301,7 +301,8 @@ public partial class coinbase : ccxt.coinbase
             string? currentToken = this.safeString(this.options, "wsToken");
             Int64? tokenTimestamp = this.safeInteger(this.options, "wsTokenTimestamp", 0);
             Int64 seconds = this.seconds();
-            if ((currentToken == null) || isLessThan((tokenTimestamp + 120), seconds))
+            Int64? tokenExpiry = (tokenTimestamp + 120);
+            if ((currentToken == null) || ((tokenExpiry == null || tokenExpiry < seconds)))
             {
                 // we should generate new token
                 string token = this.createAuthToken(seconds);
@@ -852,7 +853,7 @@ public partial class coinbase : ccxt.coinbase
             int tradesLength = currentTrades.Count;
             for (Int64 j = 0; j < tradesLength; j++)
             {
-                object item = getValue(currentTrades, ((tradesLength - j) - 1));
+                object item = (currentTrades != null && ((tradesLength - j) - 1) < currentTrades.Count ? currentTrades[(int)((tradesLength - j) - 1)] : null);
                 tradesArray.append(ccxt.BaseExchange.FromTrade(this.parseTrade(item)));
             }
         }
@@ -1052,14 +1053,20 @@ public partial class coinbase : ccxt.coinbase
             string? type = this.safeString(eventVar, "type");
             if (type == "snapshot")
             {
-                ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
-            }
-            // unknown bug, can't reproduce, but sometimes orderbook is undefined
-            if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))) && isEqual(this.getOrderBook(this.orderbooks, symbol), null))
+                if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
+                {
+                    ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
+                }
+            } else if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
             {
                 continue;
             }
             ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
+            if (type == "snapshot")
+            {
+                // reset in place so consumers holding a reference keep receiving updates after a resync
+                (orderbook as IOrderBook).reset(new Dictionary<string, object>() {});
+            }
             this.handleOrderBookHelper(orderbook, updates);
             orderbook["timestamp"] = this.parse8601(datetime);
             orderbook["datetime"] = datetime;
