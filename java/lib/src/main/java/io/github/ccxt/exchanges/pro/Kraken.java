@@ -1282,12 +1282,12 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             // size the book from the subscribed depth (10 by default), not from
             // the level count of this snapshot: a thin market's snapshot can
             // carry fewer levels than the subscription and must not cap the book
-            Long limit = this.safeInteger(subscription, "limit", 10);
+            Long limit = this.parseToInt(this.safeInteger(subscription, "limit", 10));
             Object asksLength = ((List<?>)a).size();
-            Object depth = (((((limit == null || ((Number) asksLength).doubleValue() > limit))))) ? asksLength : limit;
+            Long depth = this.parseToInt((((((limit == null || ((Number) asksLength).doubleValue() > limit))))) ? asksLength : limit);
             Map<String, Object> depths = (Map<String, Object>) this.safeDict(this.options, "wsOrderBookDepths", new HashMap<String, Object>() {{}});
             Long storedDepth = this.safeInteger(depths, symbol);
-            if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)) || (!java.util.Objects.equals(storedDepth, (depth == null ? null : ((Number) depth).longValue()))))
+            if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)) || (!java.util.Objects.equals(storedDepth, depth)))
             {
                 // rebuild only on the first snapshot or when the depth changes,
                 // e.g. a re-subscription with a different limit

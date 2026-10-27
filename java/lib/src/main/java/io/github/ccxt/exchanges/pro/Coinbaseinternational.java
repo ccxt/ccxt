@@ -1524,7 +1524,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             Boolean useDepthEndpoint = useDepthEndpointparamsDepthEndpointVariable.first();
             Map<String, Object> paramsDepthEndpoint = useDepthEndpointparamsDepthEndpointVariable.second();
             Map<String, Object> paramsChannel = paramsDepthEndpoint;
-            String descriptor = ((String)interval);
+            String descriptor = ("." + interval);
             if (Boolean.TRUE.equals(useDepthEndpoint))
             {
                 Pair<String, Map<String, Object>> depthparamsDepthVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsDepthEndpoint), "watchOrderBookForSymbols", "depth", "20");
@@ -1534,14 +1534,14 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
                 String groupKey = groupKeyparamsGroupVariable.first();
                 Map<String, Object> paramsGroup = groupKeyparamsGroupVariable.second();
                 paramsChannel = paramsGroup;
-                descriptor = ((((groupKey + ".") + depth) + ".") + interval);
+                descriptor = ((((("." + groupKey) + ".") + depth) + ".") + interval);
             }
             List<String> channels = new ArrayList<String>(Arrays.asList());
             Integer symbolsLength = ((List<?>)symbols).size();
             for (var i = 0; (symbolsLength != null && i < symbolsLength); i++)
             {
                 Map<String, Object> market = this.market(this.safeString(symbols, i, ""));
-                channels.add(((("book." + this.safeString(market, "id", "")) + ".") + descriptor));
+                channels.add((("book." + this.safeString(market, "id", "")) + descriptor));
             }
             Object orderbook = (this.subscribe(channels, channels, isPrivate, paramsChannel)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
@@ -1599,7 +1599,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             Boolean useDepthEndpoint = useDepthEndpointparamsDepthEndpointVariable.first();
             Map<String, Object> paramsDepthEndpoint = useDepthEndpointparamsDepthEndpointVariable.second();
             Map<String, Object> paramsChannel = paramsDepthEndpoint;
-            String descriptor = ((String)interval);
+            String descriptor = ("." + interval);
             if (Boolean.TRUE.equals(useDepthEndpoint))
             {
                 Pair<String, Map<String, Object>> depthparamsDepthVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsDepthEndpoint), "watchOrderBookForSymbols", "depth", "20");
@@ -1609,13 +1609,13 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
                 String groupKey = groupKeyparamsGroupVariable.first();
                 Map<String, Object> paramsGroup = groupKeyparamsGroupVariable.second();
                 paramsChannel = paramsGroup;
-                descriptor = ((((groupKey + ".") + depth) + ".") + interval);
+                descriptor = ((((("." + groupKey) + ".") + depth) + ".") + interval);
             }
             List<String> channels = new ArrayList<String>(Arrays.asList());
             Integer symbolsLength = ((List<?>)symbols).size();
             for (var i = 0; (symbolsLength != null && i < symbolsLength); i++)
             {
-                channels.add(((("book." + this.safeString(this.market(this.safeString(symbols, i, "")), "id", "")) + ".") + descriptor));
+                channels.add((("book." + this.safeString(this.market(this.safeString(symbols, i, "")), "id", "")) + descriptor));
             }
             return (this.unSubscribe(channels, java.util.Objects.equals(interval, "raw"), paramsChannel)).join();
         });
@@ -1640,18 +1640,18 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             this.orderbooks.put(symbol, ((Boolean.TRUE.equals(isGrouped))) ? this.orderBook(new HashMap<String, Object>() {{}}, limit) : this.countedOrderBook(new HashMap<String, Object>() {{}}, limit));
         }
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
-        if (!Boolean.TRUE.equals(isGrouped) && (!java.util.Objects.equals(type, "snapshot")) && (java.util.Objects.equals(this.safeInteger(orderbook, "nonce"), null)))
+        Long nonce = this.safeInteger(orderbook, "nonce");
+        if (!Boolean.TRUE.equals(isGrouped) && (!java.util.Objects.equals(type, "snapshot")) && (java.util.Objects.equals(nonce, null)))
         {
             return;
         }
         if (Boolean.TRUE.equals(isGrouped))
         {
-            Map<String, Object> parsedSnapshot = (Map<String, Object>) this.parseOrderBook(data, symbol, timestamp, "bids", "asks", 0, 1, 2);
-            orderbook.reset(parsedSnapshot);
+            orderbook.reset(this.parseOrderBook(data, symbol, timestamp, "bids", "asks", 0, 1, 2));
         } else
         {
             Long previousChangeId = this.safeInteger(data, "prev_change_id");
-            if ((!java.util.Objects.equals(type, "snapshot")) && (!java.util.Objects.equals(this.safeInteger(orderbook, "nonce"), null)) && (!java.util.Objects.equals(previousChangeId, this.safeInteger(orderbook, "nonce"))))
+            if ((!java.util.Objects.equals(type, "snapshot")) && (!java.util.Objects.equals(nonce, null)) && (!java.util.Objects.equals(previousChangeId, nonce)))
             {
                 // drop the stale book and reject only this channels future
                 ((Map<String,Object>)this.orderbooks).remove((String)symbol);

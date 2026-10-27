@@ -280,14 +280,14 @@ public class Hyperliquid extends HyperliquidApi
     public String buildOutcomeSymbol(Map<String, Object> desc, Object side, Object outcomeId)
     {
         String underlying = this.safeString(desc, "underlying", ("OUTCOME" + String.valueOf(outcomeId)));
-        String targetPrice = this.safeString(desc, "targetPrice");
+        String targetPrice = this.safeString(desc, "targetPrice", "");
         String expiry = this.safeString(desc, "expiry", "");
         // Parse expiry: "20260503-0600" → "20260503"
         Object expiryDate = "";
         if (!java.util.Objects.equals(expiry, ""))
         {
-            List<String> j05parts1 = Arrays.asList(((String)expiry).split(java.util.regex.Pattern.quote("-")));
-            expiryDate = (0 >= j05parts1.size() ? null : j05parts1.get(0));
+            List<Object> expiryParts = new ArrayList<Object>(Arrays.asList(((String)expiry).split(java.util.regex.Pattern.quote("-"))));
+            expiryDate = (expiryParts == null || 0 >= expiryParts.size() ? null : expiryParts.get(0));
         }
         String label = "NO";
         if (Helpers.isEqual(side, 0))
@@ -295,11 +295,11 @@ public class Hyperliquid extends HyperliquidApi
             label = "YES";
         }
         Object base = underlying.toUpperCase();
-        if ((!java.util.Objects.equals(targetPrice, null)) && (!java.util.Objects.equals(targetPrice, "")))
+        if (!java.util.Objects.equals(targetPrice, ""))
         {
             base = ((base + "_ABOVE_") + targetPrice);
         }
-        if ((!java.util.Objects.equals(expiryDate, null)) && (!java.util.Objects.equals(expiryDate, "")))
+        if (!java.util.Objects.equals(expiryDate, ""))
         {
             base = ((base + "_") + expiryDate);
         }
@@ -319,23 +319,23 @@ public class Hyperliquid extends HyperliquidApi
      */
     public Object buildOutcomeParentSymbol(Map<String, Object> desc, Object outcomeId, Object name, Map<String, Object> question)
     {
-        String underlying = this.safeString(desc, "underlying");
-        if ((!java.util.Objects.equals(underlying, null)) && (!java.util.Objects.equals(underlying, "")))
+        String underlying = this.safeString(desc, "underlying", "");
+        if (!java.util.Objects.equals(underlying, ""))
         {
-            String targetPrice = this.safeString(desc, "targetPrice");
+            String targetPrice = this.safeString(desc, "targetPrice", "");
             String expiry = this.safeString(desc, "expiry", "");
             Object expiryDate = "";
             if (!java.util.Objects.equals(expiry, ""))
             {
-                List<String> j05parts2 = Arrays.asList(((String)expiry).split(java.util.regex.Pattern.quote("-")));
-                expiryDate = (0 >= j05parts2.size() ? null : j05parts2.get(0));
+                List<Object> expiryParts = new ArrayList<Object>(Arrays.asList(((String)expiry).split(java.util.regex.Pattern.quote("-"))));
+                expiryDate = (expiryParts == null || 0 >= expiryParts.size() ? null : expiryParts.get(0));
             }
             Object base = underlying.toUpperCase();
-            if ((!java.util.Objects.equals(targetPrice, null)) && (!java.util.Objects.equals(targetPrice, "")))
+            if (!java.util.Objects.equals(targetPrice, ""))
             {
                 base = ((base + "_ABOVE_") + targetPrice);
             }
-            if ((!java.util.Objects.equals(expiryDate, null)) && (!java.util.Objects.equals(expiryDate, "")))
+            if (!java.util.Objects.equals(expiryDate, ""))
             {
                 base = ((base + "_") + expiryDate);
             }
@@ -350,11 +350,11 @@ public class Hyperliquid extends HyperliquidApi
             {
                 String questionUnderlying = this.safeString(questionDesc, "underlying");
                 String questionExpiry = this.safeString(questionDesc, "expiry", "");
-                Object expiryDate = "";
+                Object questionExpiryDate = "";
                 if (!java.util.Objects.equals(questionExpiry, ""))
                 {
-                    List<String> j05parts3 = Arrays.asList(((String)questionExpiry).split(java.util.regex.Pattern.quote("-")));
-                    expiryDate = (0 >= j05parts3.size() ? null : j05parts3.get(0));
+                    List<Object> questionExpiryParts = new ArrayList<Object>(Arrays.asList(((String)questionExpiry).split(java.util.regex.Pattern.quote("-"))));
+                    questionExpiryDate = (questionExpiryParts == null || 0 >= questionExpiryParts.size() ? null : questionExpiryParts.get(0));
                 }
                 String thresholdsRaw = this.safeString(questionDesc, "priceThresholds", "");
                 String indexStr = this.safeString(desc, "index");
@@ -389,9 +389,9 @@ public class Hyperliquid extends HyperliquidApi
                             bucketLabel = ((("BETWEEN_" + (thresholds == null || ((int) (index - 1L)) < 0 || ((int) (index - 1L)) >= thresholds.size() ? null : thresholds.get(((int) (index - 1L))))) + "_") + (thresholds == null || index == null || index.intValue() < 0 || index.intValue() >= thresholds.size() ? null : thresholds.get(index.intValue())));
                         }
                         String base = ((questionUnderlying.toUpperCase() + "_") + bucketLabel);
-                        if ((!java.util.Objects.equals(expiryDate, null)) && (!java.util.Objects.equals(expiryDate, "")))
+                        if (!java.util.Objects.equals(questionExpiryDate, ""))
                         {
-                            base = ((base + "_") + expiryDate);
+                            base = ((base + "_") + questionExpiryDate);
                         }
                         return base;
                     }
@@ -400,9 +400,9 @@ public class Hyperliquid extends HyperliquidApi
                 if ((!java.util.Objects.equals(questionUnderlying, null) && !java.util.Objects.equals(questionUnderlying, "")) && Boolean.TRUE.equals(isFallbackLike))
                 {
                     String base = (questionUnderlying.toUpperCase() + "_OTHER");
-                    if ((!java.util.Objects.equals(expiryDate, null)) && (!java.util.Objects.equals(expiryDate, "")))
+                    if (!java.util.Objects.equals(questionExpiryDate, ""))
                     {
-                        base = ((base + "_") + expiryDate);
+                        base = ((base + "_") + questionExpiryDate);
                     }
                     return base;
                 }
@@ -647,8 +647,8 @@ public class Hyperliquid extends HyperliquidApi
         HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
         mapLiteral3.put("id", String.valueOf(outcomeId));
         mapLiteral3.put("market", parentSymbol);
-        List<String> j05parts4 = Arrays.asList(((String)parentSymbol).split(java.util.regex.Pattern.quote("/")));
-        mapLiteral3.put("base", (0 >= j05parts4.size() ? null : j05parts4.get(0)));
+        List<String> j05parts1 = Arrays.asList(((String)parentSymbol).split(java.util.regex.Pattern.quote("/")));
+        mapLiteral3.put("base", (0 >= j05parts1.size() ? null : j05parts1.get(0)));
         mapLiteral3.put("quote", quoteCurrency);
         mapLiteral3.put("settle", null);
         mapLiteral3.put("baseId", String.valueOf(outcomeId));

@@ -629,7 +629,8 @@ public class Kalshi extends KalshiApi
 
             List<Object> tickers = new ArrayList<Object>(Arrays.asList());
             Map<String, Object> seen = new HashMap<String, Object>() {{}};
-            for (var i = 0; i < ((List<?>)outcomeSymbols).size(); i++)
+            Integer outcomeSymbolsLength = ((List<?>)outcomeSymbols).size();
+            for (var i = 0; (outcomeSymbolsLength != null && i < outcomeSymbolsLength); i++)
             {
                 Object outcomeSymbol = (outcomeSymbols == null || i < 0 || i >= ((List<?>)outcomeSymbols).size() ? null : ((List<?>)outcomeSymbols).get(i));
                 if (((String)outcomeSymbol).indexOf(":") >= 0)
@@ -681,7 +682,7 @@ public class Kalshi extends KalshiApi
                     this.indexMarketOutcomes(parsed);
                 }
             }
-            for (var i = 0; i < ((List<?>)outcomeSymbols).size(); i++)
+            for (var i = 0; (outcomeSymbolsLength != null && i < outcomeSymbolsLength); i++)
             {
                 if (!this.hasOutcome((String) ((outcomeSymbols == null || i < 0 || i >= ((List<?>)outcomeSymbols).size() ? null : ((List<?>)outcomeSymbols).get(i)))))
                 {

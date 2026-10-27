@@ -5328,10 +5328,10 @@ public Map<String, Object> describe()
                 // safeValue (not entry[field]) so a missing field is a non-match, not a
                 // KeyError in python/php — prediction structures key on outcome, not symbol
                 Boolean entryFiledEqualValue = Helpers.isEqual(this.safeValue(entry, field), value);
-                Object firstCondition = ((Boolean.TRUE.equals(valueIsDefined))) ? entryFiledEqualValue : true;
+                Boolean firstCondition = !Boolean.TRUE.equals(valueIsDefined) || Boolean.TRUE.equals(entryFiledEqualValue);
                 Long entryKeyValue = this.safeInteger(entry, java.util.Objects.requireNonNullElse(key, "timestamp"));
-                Object entryKeyGESince = (!java.util.Objects.equals(entryKeyValue, null)) && ((entryKeyValue == null || entryKeyValue != 0)) && (!java.util.Objects.equals(since, null)) && (((entryKeyValue != null && entryKeyValue >= since)));
-                Object secondCondition = ((Boolean.TRUE.equals(sinceIsDefined))) ? entryKeyGESince : true;
+                Boolean entryKeyGESince = (!java.util.Objects.equals(entryKeyValue, null)) && ((entryKeyValue == null || entryKeyValue != 0)) && (!java.util.Objects.equals(since, null)) && (((entryKeyValue != null && entryKeyValue >= since)));
+                Boolean secondCondition = !Boolean.TRUE.equals(sinceIsDefined) || Boolean.TRUE.equals(entryKeyGESince);
                 if (Boolean.TRUE.equals(firstCondition) && Boolean.TRUE.equals(secondCondition))
                 {
                     ((List<Object>)result).add(entry);

@@ -2019,7 +2019,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             }
         }
         stored.append(parsedOrder);
-        String symbol = this.safeString(parsedOrder, "symbol");
+        String symbol = this.safeString(parsedOrder, "symbol", "");
         String spotHash = "spot:order";
         String swapHash = "swap:order";
         String messageHash = swapHash;
