@@ -1267,7 +1267,8 @@ class bitbns extends Exchange {
 
     public function sign(string $path, array $api = array('www'), string $method = 'GET', $params = array()): array {
         $apiName = $api[0];
-        if (!(is_array($this->urls['api']) && array_key_exists($apiName ?? '', $this->urls['api']))) {
+        $baseApiUrl = $this->safe_string($this->urls['api'], $apiName);
+        if ($baseApiUrl === null) {
             throw new ExchangeError($this->id . ' does not have a testnet/sandbox URL for ' . $apiName . ' endpoints');
         }
         if ($apiName !== 'www') {
@@ -1276,10 +1277,6 @@ class bitbns extends Exchange {
         $requestHeaders = array();
         if ($apiName !== 'www') {
             $requestHeaders['X-BITBNS-APIKEY'] = $this->apiKey;
-        }
-        $baseApiUrl = $this->safe_string($this->urls['api'], $apiName);
-        if ($baseApiUrl === null) {
-            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
         $baseUrl = $this->implode_hostname($baseApiUrl);
         $url = $baseUrl . '/' . $this->implode_params($path, $params);

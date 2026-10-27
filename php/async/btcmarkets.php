@@ -579,8 +579,8 @@ class btcmarkets extends Exchange {
             'contract' => false,
             'linear' => null,
             'inverse' => null,
-            'taker' => $fees['taker'],
-            'maker' => $fees['maker'],
+            'taker' => $this->safe_number($fees, 'taker'),
+            'maker' => $this->safe_number($fees, 'maker'),
             'contractSize' => null,
             'expiry' => null,
             'expiryDatetime' => null,
@@ -1203,10 +1203,7 @@ class btcmarkets extends Exchange {
         $cost = null;
         if ($market['quote'] === 'AUD') {
             $currency = $this->safe_string($market, 'quote');
-            $amountString = $this->number_to_string($amount);
-            $priceString = $this->number_to_string($price);
-            $otherUnitsAmount = Precise::string_mul($amountString, $priceString);
-            $cost = $this->cost_to_precision($symbol, $otherUnitsAmount);
+            $cost = $this->cost_to_precision($symbol, Precise::string_mul($this->number_to_string($amount), $this->number_to_string($price)));
         } else {
             $currency = $this->safe_string($market, 'base');
             $cost = $this->amount_to_precision($symbol, $amount);
@@ -1484,7 +1481,8 @@ class btcmarkets extends Exchange {
          * @param {string} [$params->tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
-        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_param_string($params, 'tag');
+        $tagWithdrawTag = $this->safe_string($params, 'tag');
+        $paramsWithdrawTag = $this->omit($params, 'tag');
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }

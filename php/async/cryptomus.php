@@ -341,8 +341,8 @@ class cryptomus extends Exchange {
             throw new ExchangeError($this->id . ' parseMarket() missing marketId');
         }
         $parts = explode('_', $marketId);
-        $baseId = $parts[0];
-        $quoteId = $parts[1];
+        $baseId = $this->safe_string($parts, 0);
+        $quoteId = $this->safe_string($parts, 1);
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
         if (($base === null) || ($quote === null)) {
@@ -869,14 +869,14 @@ class cryptomus extends Exchange {
          *
          * @param {string} $symbol unified $market $symbol of the $market $orders were made in (not used in cryptomus)
          * @param {int} [$since] the earliest time in ms to fetch $orders for (not used in cryptomus)
-         * @param {int} [$limit] the maximum number of $order structures to retrieve (not used in cryptomus)
+         * @param {int} [$limit] the maximum number of order structures to retrieve (not used in cryptomus)
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {string} [$params->direction] $order direction 'buy' or 'sell'
-         * @param {string} [$params->order_id] $order id
-         * @param {string} [$params->client_order_id] client $order id
+         * @param {string} [$params->direction] order direction 'buy' or 'sell'
+         * @param {string} [$params->order_id] order id
+         * @param {string} [$params->client_order_id] client order id
          * @param {string} [$params->limit] A special parameter that sets the maximum number of records the $request will return
          * @param {string} [$params->offset] A special parameter that sets the number of records from the beginning of the list
-         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=$order-structure $order structures~
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -933,8 +933,7 @@ class cryptomus extends Exchange {
         $result = $this->safe_list($response, 'result', array());
         $orders = array();
         for ($i = 0; $i < count($result); $i++) {
-            $order = $result[$i];
-            $orders[] = $this->parse_order($order, $market);
+            $orders[] = $this->parse_order($result[$i], $market);
         }
         return $orders;
     }

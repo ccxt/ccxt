@@ -628,7 +628,7 @@ class bigone extends Exchange {
         $promises = array( $this->publicGetAssetPairs($params), $this->contractPublicGetSymbols($params) );
         $promisesResult = Async\await(Promise\all($promises));
         $response = $this->safe_dict($promisesResult, 0);
-        $contractResponse = $promisesResult[1];
+        $contractResponse = $this->safe_value($promisesResult, 1);
         //
         //     {
         //         "code":0,
@@ -859,7 +859,7 @@ class bigone extends Exchange {
         //    }
         //
         $marketType = 'swap';
-        if (is_array($ticker) && array_key_exists('asset_pair_name' ?? '', $ticker)) {
+        if ($this->safe_string($ticker, 'asset_pair_name') !== null) {
             $marketType = 'spot';
         }
         $marketId = $this->safe_string_2($ticker, 'asset_pair_name', 'symbol');
@@ -2228,7 +2228,7 @@ class bigone extends Exchange {
         $address = $this->safe_string($transaction, 'target_address');
         $tag = $this->safe_string($transaction, 'memo');
         $type = 'deposit';
-        if (is_array($transaction) && array_key_exists('customer_id' ?? '', $transaction)) {
+        if ($this->safe_string($transaction, 'customer_id') !== null) {
             $type = 'withdrawal';
         }
         $internal = $this->safe_bool($transaction, 'is_internal');

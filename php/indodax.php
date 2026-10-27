@@ -830,10 +830,10 @@ class indodax extends Exchange {
             $symbol = $marketResolved['symbol'];
             $quoteId = $this->safe_string($marketResolved, 'quoteId', '');
             $baseId = $this->safe_string($marketResolved, 'baseId', '');
-            if (($marketResolved['quoteId'] === 'idr') && (is_array($order) && array_key_exists('order_rp' ?? '', $order))) {
+            if (($marketResolved['quoteId'] === 'idr') && ($this->safe_string($order, 'order_rp') !== null)) {
                 $quoteId = 'rp';
             }
-            if (($marketResolved['baseId'] === 'idr') && (is_array($order) && array_key_exists('remain_rp' ?? '', $order))) {
+            if (($marketResolved['baseId'] === 'idr') && ($this->safe_string($order, 'remain_rp') !== null)) {
                 $baseId = 'rp';
             }
             $cost = $this->safe_string($order, 'order_' . $quoteId);
@@ -1572,10 +1572,10 @@ class indodax extends Exchange {
             return null; // public endpoints may return []-arrays
         }
         $error = $this->safe_string($response, 'error', '');
-        if (!(is_array($response) && array_key_exists('success' ?? '', $response)) && $error === '') {
+        $status = $this->safe_string($response, 'success');
+        if (($status === null) && ($error === '')) {
             return null; // no 'success' property on public responses
         }
-        $status = $this->safe_string($response, 'success');
         if ($status === 'approved') {
             return null;
         }

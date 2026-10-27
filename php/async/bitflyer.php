@@ -231,7 +231,7 @@ class bitflyer extends Exchange {
     public function parse_expiry_date(string $expiry): ?int {
         $day = mb_substr($expiry, 0, 2 - 0);
         $monthName = mb_substr($expiry, 2, 5 - 2);
-        $year = mb_substr($expiry, 5, 9 - 5);
+        $expiryYear = mb_substr($expiry, 5, 9 - 5);
         $months = array(
             'JAN' => '01',
             'FEB' => '02',
@@ -250,7 +250,7 @@ class bitflyer extends Exchange {
         if ($month === null) {
             return null;
         }
-        return $this->parse8601($year . '-' . $month . '-' . $day . 'T00:00:00Z');
+        return $this->parse8601($expiryYear . '-' . $month . '-' . $day . 'T00:00:00Z');
     }
 
     public function safe_market(?string $marketId = null, ?array $market = null, ?string $delimiter = null, ?string $marketType = null): array {
@@ -1330,16 +1330,16 @@ class bitflyer extends Exchange {
         }
         $request .= $path;
         if ($method === 'GET') {
-            if (count($params) > 0) {
-                $request .= '?' . $this->urlencode($params);
+            $query = $this->urlencode($params);
+            if ($query !== '') {
+                $request .= '?' . $query;
             }
         }
         $apiUrl = $this->safe_string($this->urls['api'], 'rest');
         if ($apiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
-        $baseUrl = $this->implode_hostname($apiUrl);
-        $url = $baseUrl . $request;
+        $url = $this->implode_hostname($apiUrl) . $request;
         if ($apiName === 'private') {
             $this->check_required_credentials();
             $nonce = (string) $this->nonce();

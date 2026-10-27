@@ -758,12 +758,11 @@ class coinspot extends Exchange {
         $requestBody = null;
         $apiLength = count($api);
         $isVersionedApi = $apiLength > 1;
-        $version = $isVersionedApi ? $api[0] : null;
         $accessType = $isVersionedApi ? $api[1] : $api[0];
         $endpoint = '/' . $this->implode_params($path, $params);
         $fullPath = $endpoint;
-        if ($version !== null) {
-            $fullPath = '/' . $version . $endpoint;
+        if ($isVersionedApi) {
+            $fullPath = '/' . $api[0] . $endpoint;
         }
         $apiUrl = $this->safe_string($this->urls['api'], $accessType);
         if ($apiUrl === null) {

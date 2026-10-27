@@ -692,7 +692,7 @@ class mercado extends Exchange {
         $id = $this->safe_string($order, 'order_id');
         $order_type = $this->safe_string($order, 'order_type');
         $side = null;
-        if (is_array($order) && array_key_exists('order_type' ?? '', $order)) {
+        if ($order_type !== null) {
             $side = ($order_type === '1') ? 'buy' : 'sell';
         }
         $status = $this->parse_order_status($this->safe_string($order, 'status'));

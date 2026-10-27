@@ -124,9 +124,6 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         // nobody is awaiting, so a replaced object would make updates landing
         // in that window invisible to the consumer forever (same class as
         // issue #26773)
-        if ($this->balance === null) {
-            $this->balance = array();
-        }
         $this->balance['info'] = $message;
         $balances = $this->safe_list($message, 'balances', array());
         for ($i = 0; $i < count($balances); $i++) {
@@ -207,8 +204,7 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         //
         $event = $this->safe_string($message, 'event');
         if ($event === 'rejected') {
-            $jsonMessage = $this->json($message);
-            throw new ExchangeError($this->id . ' ' . $jsonMessage);
+            throw new ExchangeError($this->id . ' ' . $this->json($message));
         } elseif ($event === 'updated') {
             $marketId = $this->safe_string($message, 'symbol');
             $symbol = $this->safe_symbol($marketId, null, '-');
@@ -755,7 +751,7 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         $messageHash = 'orderbook:' . $symbol . ':' . $type;
         $datetime = $this->safe_string($message, 'timestamp');
         $timestamp = $this->parse8601($datetime);
-        if ($this->safe_value($this->orderbooks, $symbol) === null) {
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $this->orderbooks[$symbol] = $this->counted_order_book();
         }
         $orderbook = $this->orderbooks[$symbol];
@@ -788,22 +784,23 @@ class blockchaincom extends \ccxt\async\blockchaincom {
 
     public function handle_message(Client $client, array $message) {
         $channel = $this->safe_string($message, 'channel');
-        $handlers = array(
-            'ticker' => array($this, 'handle_ticker'),
-            'trades' => array($this, 'handle_trades'),
-            'prices' => array($this, 'handle_ohlcv'),
-            'l2' => array($this, 'handle_order_book'),
-            'l3' => array($this, 'handle_order_book'),
-            'auth' => array($this, 'handle_authentication_message'),
-            'balances' => array($this, 'handle_balance'),
-            'trading' => array($this, 'handle_orders'),
-        );
-        $handler = $this->safe_value($handlers, $channel);
-        if ($handler !== null) {
-            $handler($client, $message);
-            return;
+        if ($channel === 'ticker') {
+            $this->handle_ticker($client, $message);
+        } elseif ($channel === 'trades') {
+            $this->handle_trades($client, $message);
+        } elseif ($channel === 'prices') {
+            $this->handle_ohlcv($client, $message);
+        } elseif ($channel === 'l2' || $channel === 'l3') {
+            $this->handle_order_book($client, $message);
+        } elseif ($channel === 'auth') {
+            $this->handle_authentication_message($client, $message);
+        } elseif ($channel === 'balances') {
+            $this->handle_balance($client, $message);
+        } elseif ($channel === 'trading') {
+            $this->handle_orders($client, $message);
+        } else {
+            throw new NotSupported($this->id . ' received an unsupported message => ' . $this->json($message));
         }
-        throw new NotSupported($this->id . ' received an unsupported message => ' . $this->json($message));
     }
 
     public function handle_authentication_message(Client $client, array $message) {

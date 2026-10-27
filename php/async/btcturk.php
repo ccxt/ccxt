@@ -1190,13 +1190,13 @@ class btcturk extends Exchange {
     public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         $errorCode = $this->safe_string($response, 'code', '0');
         $message = $this->safe_string($response, 'message');
-        $output = $message;
-        if ($message === null) {
-            $output = $body;
+        $feedback = $this->id . ' ' . $body;
+        if ($message !== null) {
+            $feedback = $this->id . ' ' . $message;
         }
-        $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $this->id . ' ' . $output);
+        $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
         if (($errorCode !== '0') && ($errorCode !== 'SUCCESS')) {
-            throw new ExchangeError($this->id . ' ' . $output);
+            throw new ExchangeError($feedback);
         }
         return null;
     }

@@ -1490,13 +1490,14 @@ class coinsph extends Exchange {
             'side' => $orderSide,
         );
         $options = $this->safe_dict($this->options, 'createOrder', array());
-        $newOrderRespType = $this->safe_value($options, 'newOrderRespType', array());
+        $newOrderRespTypes = $this->safe_value($options, 'newOrderRespType', array());
+        $newOrderRespType = 'FULL';
         // if limit order
         if ($orderType === 'LIMIT' || $orderType === 'STOP_LOSS_LIMIT' || $orderType === 'TAKE_PROFIT_LIMIT' || $orderType === 'LIMIT_MAKER') {
             if ($price === null) {
                 throw new ArgumentsRequired($this->id . ' createOrder() requires a price argument for a ' . $type . ' order');
             }
-            $newOrderRespType = $this->safe_string($newOrderRespType, 'limit', 'FULL');
+            $newOrderRespType = $this->safe_string($newOrderRespTypes, 'limit', 'FULL');
             $request['price'] = $this->price_to_precision($symbol, $price);
             $request['quantity'] = $this->amount_to_precision($symbol, $amount);
             if ($orderType !== 'LIMIT_MAKER') {
@@ -1504,7 +1505,7 @@ class coinsph extends Exchange {
             }
         // if market order
         } elseif ($orderType === 'MARKET' || $orderType === 'STOP_LOSS' || $orderType === 'TAKE_PROFIT') {
-            $newOrderRespType = $this->safe_string($newOrderRespType, 'market', 'FULL');
+            $newOrderRespType = $this->safe_string($newOrderRespTypes, 'market', 'FULL');
             if ($orderSide === 'SELL') {
                 $request['quantity'] = $this->amount_to_precision($symbol, $amount);
             } elseif ($orderSide === 'BUY') {
@@ -2392,7 +2393,7 @@ class coinsph extends Exchange {
         if ($apiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
-        $query = $this->omit($params, $this->extract_params($path));
+        $query = $this->extend(array(), $this->omit($params, $this->extract_params($path)));
         $endpoint = $this->implode_params($path, $params);
         $url = $apiUrl . '/' . $endpoint;
         if ($apiName === 'private') {

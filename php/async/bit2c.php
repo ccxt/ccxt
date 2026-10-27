@@ -503,7 +503,7 @@ class bit2c extends Exchange {
         }
         $market = $this->market($symbol);
         $optionValue = $this->safe_string($this->options, 'fetchTradesMethod'); // kept here for backward compatibility #29154
-        $method = $this->handle_option('fetchTrades', 'method', $optionValue); // publicGetExchangesPairTrades or publicGetExchangesPairLasttrades
+        $method = $this->safe_string($this->handle_option_and_params(array(), 'fetchTrades', 'method', $optionValue), 0); // publicGetExchangesPairTrades or publicGetExchangesPairLasttrades
         $request = array(
             'pair' => $market['id'],
         );
@@ -765,8 +765,9 @@ class bit2c extends Exchange {
         //
         $orderUnified = null;
         $isNewOrder = false;
-        if (is_array($order) && array_key_exists('NewOrder' ?? '', $order)) {
-            $orderUnified = $order['NewOrder'];
+        $newOrder = $this->safe_value($order, 'NewOrder');
+        if ($newOrder !== null) {
+            $orderUnified = $newOrder;
             $isNewOrder = true;
         } else {
             $orderUnified = $order;
