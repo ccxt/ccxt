@@ -2802,7 +2802,7 @@ public partial class bydfi : Exchange
             await this.loadMarkets();
         }
         string positionType = "ONEWAY";
-        if (hedged)
+        if ((hedged == true))
         {
             positionType = "HEDGE";
         }

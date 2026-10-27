@@ -2399,13 +2399,10 @@ public partial class okx : Exchange
         string quote = "USD";
         List<object> optionParts = ((string)symbol).Split(new [] {"-"}, StringSplitOptions.None).ToList<object>();
         List<object> symbolBase = ((string)symbol).Split(new [] {"/"}, StringSplitOptions.None).ToList<object>();
-        object bs = null;
+        object bs = this.safeString(optionParts, 0, "");
         if (((string)symbol).IndexOf("/", StringComparison.Ordinal) > -1)
         {
             bs = this.safeString(symbolBase, 0, "");
-        } else
-        {
-            bs = this.safeString(optionParts, 0, "");
         }
         string? expiry = this.safeString(optionParts, 2, "");
         string? strike = this.safeString(optionParts, 3, "");
@@ -2413,8 +2410,8 @@ public partial class okx : Exchange
         string? datetime = (expiry == "") ? null : this.convertExpireDate(expiry);
         Int64? timestamp = this.parse8601(datetime);
         return new Dictionary<string, object>() {
-            { "id", add(add(add(add(add(add(add(add(bs, "-"), quote), "-"), expiry), "-"), strike), "-"), optionType) },
-            { "symbol", add(add(add(add(add(add(add(add(add(add(bs, "/"), quote), ":"), bs), "-"), expiry), "-"), strike), "-"), optionType) },
+            { "id", ((((((((bs + "-") + quote) + "-") + expiry) + "-") + strike) + "-") + optionType) },
+            { "symbol", ((((((((((bs + "/") + quote) + ":") + bs) + "-") + expiry) + "-") + strike) + "-") + optionType) },
             { "base", bs },
             { "quote", quote },
             { "settle", bs },
@@ -2745,7 +2742,7 @@ public partial class okx : Exchange
         //         instType: "SWAP",
         //         state: "preopen",
         //
-        string? id = this.safeString(market, "instId", "");
+        string id = this.safeString(market, "instId", "");
         string? type = this.safeStringLower(market, "instType");
         if (type == "futures")
         {
@@ -2780,28 +2777,30 @@ public partial class okx : Exchange
         {
             return null;
         }
-        object symbol = ((bs + "/") + quote);
+        string baseSymbol = ((bs + "/") + quote);
         // handle preopen empty markets
         if (bs == "" || quote == "")
         {
-            symbol = id;
+            baseSymbol = (id + "");
         }
+        string symbol = baseSymbol;
         Int64? expiry = null;
         string? strikePrice = null;
         string? optionType = null;
         if (contract)
         {
+            string settledSymbol = baseSymbol;
             if ((settle != null))
             {
-                symbol = add(add(symbol, ":"), settle);
+                settledSymbol = ((baseSymbol + ":") + settle);
             }
+            symbol = settledSymbol;
             if (future)
             {
                 expiry = this.safeInteger(market, "expTime");
                 if ((expiry != null))
                 {
-                    string? ymd = this.yymmdd(expiry);
-                    symbol = add(add(symbol, "-"), ymd);
+                    symbol = ((settledSymbol + "-") + this.yymmdd(expiry));
                 }
             } else if (option)
             {
@@ -2810,8 +2809,7 @@ public partial class okx : Exchange
                 optionType = this.safeString(market, "optType");
                 if ((expiry != null))
                 {
-                    string? ymd = this.yymmdd(expiry);
-                    symbol = add(add(add(add(add(add(symbol, "-"), ymd), "-"), strikePrice), "-"), optionType);
+                    symbol = ((((((settledSymbol + "-") + this.yymmdd(expiry)) + "-") + strikePrice) + "-") + optionType);
                     optionType = (optionType == "P") ? "put" : "call";
                 }
             }

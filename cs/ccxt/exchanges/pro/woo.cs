@@ -78,7 +78,9 @@ public partial class woo : ccxt.woo
         IDictionary<string, object> options = this.safeDict(this.options, "requestId", new Dictionary<string, object>() {});
         Int64? previousValue = this.safeInteger(options, url, 0);
         Int64 newValue = this.sum(previousValue, 1);
-        ((IDictionary<string,object>)(this.options.ContainsKey("requestId") ? this.options["requestId"] : null))[(string)url] = newValue;
+        Dictionary<string, object> entry = new Dictionary<string, object>() {};
+        entry[(string)url] = newValue;
+        this.options["requestId"] = this.extend(this.safeDict(this.options, "requestId", new Dictionary<string, object>() {}), entry);
         return newValue;
     }
 
@@ -705,7 +707,7 @@ public partial class woo : ccxt.woo
             }
             ticker["ts"] = timestamp;
             Dictionary<string, object> parsedTicker = this.parseWsBidAsk(ticker);
-            string? symbol = ((string)(parsedTicker != null && parsedTicker.ContainsKey("symbol") ? parsedTicker["symbol"] : null));
+            string? symbol = this.safeString(parsedTicker, "symbol");
             if ((symbol != null))
             {
                 this.bidsasks[(string)symbol] = parsedTicker;
@@ -1131,9 +1133,10 @@ public partial class woo : ccxt.woo
         }
         IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"stop", "trigger"}));
         string messageHash = topic;
-        string? symbolResolved = ((symbol != null)) ? this.symbol(symbol) : null;
-        if ((symbolResolved != null))
+        string? symbolResolved = null;
+        if ((symbol != null))
         {
+            symbolResolved = this.symbol(symbol);
             messageHash = ((topic + ":") + symbolResolved);
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -1178,9 +1181,10 @@ public partial class woo : ccxt.woo
         }
         IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"stop", "trigger"}));
         string messageHash = "myTrades";
-        string? symbolResolved = ((symbol != null)) ? this.symbol(symbol) : null;
-        if ((symbolResolved != null))
+        string? symbolResolved = null;
+        if ((symbol != null))
         {
+            symbolResolved = this.symbol(symbol);
             messageHash = (("myTrades" + ":") + symbolResolved);
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -1681,19 +1685,15 @@ public partial class woo : ccxt.woo
             string? key = ((string)keys[i]);
             IDictionary<string, object> value = this.safeDict(balances, key);
             string? code = this.safeCurrencyCode(key);
-            object account = this.account();
-            if (((code != null)) && ((this.balance != null && code != null && this.balance.ContainsKey(code))))
-            {
-                account = (this.balance != null && code != null && this.balance.ContainsKey(code) ? this.balance[code] : null);
-            }
+            Dictionary<string, object> account = this.account();
             string? total = this.safeString(value, "holding");
             string? used = this.safeString(value, "frozen");
-            ((IDictionary<string,object>)account)["total"] = total;
-            ((IDictionary<string,object>)account)["used"] = used;
-            ((IDictionary<string,object>)account)["free"] = Precise.stringSub(total, used);
+            account["total"] = total;
+            account["used"] = used;
+            account["free"] = Precise.stringSub(total, used);
             if ((code != null))
             {
-                this.balance[(string)code] = account;
+                this.balance[(string)code] = this.extend(this.safeDict(this.balance, code, new Dictionary<string, object>() {}), account);
             }
         }
         this.balance = this.safeBalance(this.balance);

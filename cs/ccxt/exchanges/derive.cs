@@ -1102,7 +1102,10 @@ public partial class derive : Exchange
             margin = false;
             settleId = "USDC";
             settle = this.safeCurrencyCode(settleId);
-            symbol = ((((bs + "/") + quote) + ":") + settle);
+            if ((settle != null))
+            {
+                symbol = ((((bs + "/") + quote) + ":") + settle);
+            }
             swap = true;
             linear = true;
             inverse = false;
@@ -1130,7 +1133,6 @@ public partial class derive : Exchange
             inverse = false;
         }
         int? contractSize = spot ? null : 1;
-        bool isContract = (swap || option);
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", marketId },
             { "symbol", symbol },
@@ -1147,7 +1149,7 @@ public partial class derive : Exchange
             { "future", false },
             { "option", option },
             { "active", this.safeBool(market, "is_active") },
-            { "contract", isContract },
+            { "contract", (swap || option) },
             { "linear", linear },
             { "inverse", inverse },
             { "contractSize", contractSize },
@@ -1299,13 +1301,12 @@ public partial class derive : Exchange
         Int64? timestamp = this.safeInteger(interest, "t");
         IDictionary<string, object> stats = this.safeDict(interest, "stats", new Dictionary<string, object>() {});
         string? amount = this.safeString(stats, "oi");
-        string? markPrice = this.safeString(interest, "M");
         string? value = null;
         bool? isOption = this.safeBool(market, "option", false);
         // for options the mark is the premium, a notional derived from it would be misleading, so only the contract amount is reported there
         if (((market != null)) && ((isOption != true)))
         {
-            value = Precise.stringMul(amount, markPrice);
+            value = Precise.stringMul(amount, this.safeString(interest, "M"));
         }
         return this.safeOpenInterest(new Dictionary<string, object>() {
             { "symbol", this.safeSymbol(null, market) },
@@ -1725,8 +1726,9 @@ public partial class derive : Exchange
         IDictionary<string, object> market = null;
         if ((symbol != null))
         {
-            market = this.market(symbol);
-            request["instrument_name"] = (market.ContainsKey("id") ? market["id"] : null);
+            Dictionary<string, object> symbolMarket = this.market(symbol);
+            market = symbolMarket;
+            request["instrument_name"] = (symbolMarket != null && symbolMarket.ContainsKey("id") ? symbolMarket["id"] : null);
         }
         Int64? limitResolved = limit;
         if ((limit != null) && (limit > 1000))
@@ -2230,7 +2232,7 @@ public partial class derive : Exchange
     public virtual string? signOrder(object order, object privateKey)
     {
         string? hashOrder = this.hashOrderMessage(order);
-        return ((string?)((object)(this.signHash(((hashOrder == null) ? null : hashOrder.Substring(Math.Max(hashOrder.Length - 64, 0))), ((privateKey == null) ? null : ((string)privateKey).Substring(Math.Max(((string)privateKey).Length - 64, 0)))))));
+        return ((string?)((object)(this.signHash(hashOrder, privateKey))));
     }
 
     /**
@@ -2274,7 +2276,7 @@ public partial class derive : Exchange
 
     public virtual string? signMessage(object message, object privateKey)
     {
-        return this.signHash(this.hashMessage(message), ((privateKey == null) ? null : ((string)privateKey).Substring(Math.Max(((string)privateKey).Length - 64, 0))));
+        return this.signHash(this.hashMessage(message), privateKey);
     }
 
     public virtual string? parseUnits(string? num, string? dec = null)
@@ -3263,8 +3265,9 @@ public partial class derive : Exchange
         IDictionary<string, object> market = null;
         if ((symbol != null))
         {
-            market = this.market(symbol);
-            request["instrument_name"] = (market.ContainsKey("id") ? market["id"] : null);
+            Dictionary<string, object> symbolMarket = this.market(symbol);
+            market = symbolMarket;
+            request["instrument_name"] = (symbolMarket != null && symbolMarket.ContainsKey("id") ? symbolMarket["id"] : null);
         }
         if ((limit != null))
         {
@@ -3355,8 +3358,9 @@ public partial class derive : Exchange
         IDictionary<string, object> market = null;
         if ((symbol != null))
         {
-            market = this.market(symbol);
-            request["instrument_name"] = (market.ContainsKey("id") ? market["id"] : null);
+            Dictionary<string, object> symbolMarket = this.market(symbol);
+            market = symbolMarket;
+            request["instrument_name"] = (symbolMarket != null && symbolMarket.ContainsKey("id") ? symbolMarket["id"] : null);
         }
         if ((limit != null))
         {
@@ -3633,8 +3637,9 @@ public partial class derive : Exchange
         IDictionary<string, object> market = null;
         if ((symbol != null))
         {
-            market = this.market(symbol);
-            request["instrument_name"] = (market.ContainsKey("id") ? market["id"] : null);
+            Dictionary<string, object> symbolMarket = this.market(symbol);
+            market = symbolMarket;
+            request["instrument_name"] = (symbolMarket != null && symbolMarket.ContainsKey("id") ? symbolMarket["id"] : null);
         }
         if ((since != null))
         {
@@ -4019,12 +4024,11 @@ public partial class derive : Exchange
         };
         // margin requirements come as negative subaccount-level contributions in usd terms (initial_margin = collaterals_initial_margin + positions_initial_margin, verified on live data), so they are attributed to the usdc settlement currency and clamped by the usdc cash below; other collaterals stay total-only because the shared margin pool cannot be split per currency
         string? usedUsd = "0";
-        for (int i = 0; i < getArrayLength(response); i++)
+        IList<object> subaccounts = this.toArray(response);
+        for (int i = 0; i < (subaccounts?.Count ?? 0); i++)
         {
-            IDictionary<string, object> subaccount = this.safeDict(response, i);
-            string? positionsMargin = this.safeString(subaccount, "positions_initial_margin", "0");
-            string? ordersMargin = this.safeString(subaccount, "open_orders_margin", "0");
-            usedUsd = Precise.stringSub(usedUsd, Precise.stringAdd(positionsMargin, ordersMargin));
+            IDictionary<string, object> subaccount = this.safeDict(subaccounts, i);
+            usedUsd = Precise.stringSub(usedUsd, Precise.stringAdd(this.safeString(subaccount, "positions_initial_margin", "0"), this.safeString(subaccount, "open_orders_margin", "0")));
             List<object> collaterals = this.safeList(subaccount, "collaterals", new List<object>() {});
             for (int j = 0; j < collaterals.Count; j++)
             {
@@ -4037,9 +4041,7 @@ public partial class derive : Exchange
                     account["total"] = this.safeString(balance, "amount");
                 } else
                 {
-                    string? amount = this.safeString(balance, "amount");
-                    string? previousTotal = this.safeString(account, "total");
-                    account["total"] = Precise.stringAdd(previousTotal, amount);
+                    account["total"] = Precise.stringAdd(this.safeString(account, "total"), this.safeString(balance, "amount"));
                 }
                 if ((code != null))
                 {
@@ -4725,13 +4727,13 @@ public partial class derive : Exchange
                 // remember the first explicitly used subaccount as the instance default, but never overwrite a configured default: a one-off param must not silently re-route later calls
                 this.options["subaccount_id"] = subaccountIdInt;
             }
-            return new List<object>() {subaccountIdInt, paramsSubaccountId};
+            return new List<object>() {subaccountIdInt, this.extend(paramsSubaccountId)};
         }
         Int64? optionsWallet = this.safeInteger(this.options, "subaccount_id");
         if ((optionsWallet != null))
         {
             // parsed, not returned raw: every arm of this tuple has to hand back a plain value so the statically typed ports read the slot natively instead of through a runtime helper
-            return new List<object> {this.parseToInt(optionsWallet), paramsSubaccountId};
+            return new List<object> {this.parseToInt(optionsWallet), this.extend(paramsSubaccountId)};
         }
         throw new ArgumentsRequired ((((this.id + " ") + methodName) + "() requires a subaccount_id parameter inside 'params' or exchange.options['subaccount_id']=ID.")) ;
     }
@@ -4744,17 +4746,17 @@ public partial class derive : Exchange
         if (((deriveWalletAddress != null)) && (!(deriveWalletAddress == "")))
         {
             this.options["deriveWalletAddress"] = deriveWalletAddress;
-            return new List<object>() {deriveWalletAddress, paramsDeriveWalletAddress};
+            return new List<object>() {deriveWalletAddress, this.extend(paramsDeriveWalletAddress)};
         }
         string? optionsWallet = this.safeString(this.options, "deriveWalletAddress");
         if (((optionsWallet != null)) && (optionsWallet != ""))
         {
-            return new List<object>() {optionsWallet, paramsDeriveWalletAddress};
+            return new List<object>() {optionsWallet, this.extend(paramsDeriveWalletAddress)};
         }
         // v3 abolished the separate derive wallet: the owner wallet is the user's own EOA, so the walletAddress credential is the default; set deriveWalletAddress explicitly only when signing with a session key registered to another owner wallet
         if (((this.walletAddress != null)) && (!(this.walletAddress == "")))
         {
-            return new List<object>() {this.walletAddress, paramsDeriveWalletAddress};
+            return new List<object>() {this.walletAddress, this.extend(paramsDeriveWalletAddress)};
         }
         throw new ArgumentsRequired ((((this.id + " ") + methodName) + "() requires the walletAddress credential, a deriveWalletAddress parameter inside 'params', or exchange.options['deriveWalletAddress'] = ADDRESS.")) ;
     }

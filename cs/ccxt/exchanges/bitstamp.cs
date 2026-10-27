@@ -1407,15 +1407,15 @@ public partial class bitstamp : Exchange
                 throw new ExchangeError ((this.id + " parseCurrencies() missing description")) ;
             }
             List<object> descriptionParts = description.Split(new [] {" / "}, StringSplitOptions.None).ToList<object>();
-            string? baseDescription = ((string)(descriptionParts != null && 0 < descriptionParts.Count ? descriptionParts[0] : null));
-            string? quoteDescription = ((string)(descriptionParts != null && 1 < descriptionParts.Count ? descriptionParts[1] : null));
+            string? baseDescription = this.safeString(descriptionParts, 0);
+            string? quoteDescription = this.safeString(descriptionParts, 1);
             string? minimumOrder = this.safeString(market, "minimum_order_value");
             if ((minimumOrder == null))
             {
                 throw new ExchangeError ((this.id + " parseCurrencies() missing minimumOrder")) ;
             }
             List<object> parts = minimumOrder.Split(new [] {" "}, StringSplitOptions.None).ToList<object>();
-            string? cost = ((string)(parts != null && 0 < parts.Count ? parts[0] : null));
+            string? cost = this.safeString(parts, 0);
             if (((bs != null)) && !(((bs != null) && result.ContainsKey(bs))))
             {
                 Int64? baseDecimals = this.safeInteger(market, "base_decimals");
@@ -1799,11 +1799,11 @@ public partial class bitstamp : Exchange
             }
         } else
         {
-            side = this.safeString(trade, "type");
-            if (side == "1")
+            string? sideRaw = this.safeString(trade, "type");
+            if (sideRaw == "1")
             {
                 side = "sell";
-            } else if (side == "0")
+            } else if (sideRaw == "0")
             {
                 side = "buy";
             } else
@@ -2887,17 +2887,17 @@ public partial class bitstamp : Exchange
             // from fetchWithdrawals
             type = "withdrawal";
         }
-        object tag = null;
-        object address = null;
+        string? tag = null;
+        string? address = null;
         string? addressRaw = this.safeString(transaction, "address");
         if ((addressRaw != null))
         {
             // dt (destination tag) is embedded into the address field
             List<object> addressParts = addressRaw.Split(new [] {"?dt="}, StringSplitOptions.None).ToList<object>();
-            address = (addressParts != null && 0 < addressParts.Count ? addressParts[0] : null);
+            address = this.safeString(addressParts, 0);
             if (addressParts.Count > 1)
             {
-                tag = (addressParts != null && 1 < addressParts.Count ? addressParts[1] : null);
+                tag = this.safeString(addressParts, 1);
             }
         }
         Dictionary<string, object> fee = new Dictionary<string, object>() {
@@ -3635,7 +3635,7 @@ public partial class bitstamp : Exchange
             string feedback = ((this.id + " ") + (body));
             for (int i = 0; i < (errors?.Count ?? 0); i++)
             {
-                object value = errors[i];
+                string? value = this.safeString(errors, i);
                 this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), value, feedback);
                 this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), value, feedback);
             }

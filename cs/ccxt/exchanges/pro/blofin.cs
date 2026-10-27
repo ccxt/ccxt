@@ -281,7 +281,7 @@ public partial class blofin : ccxt.blofin
         Dictionary<string, object> market = this.market(symbol);
         string? symbolValue = this.safeString(market, "symbol", "");
         Dictionary<string, object> result = ccxt.BaseExchange.FromTickers(await this.WatchTickers(new List<object>() {symbolValue}, parameters));
-        return ccxt.BaseExchange.ToTicker((result != null && symbolValue != null && result.ContainsKey(symbolValue) ? result[symbolValue] : null));
+        return ccxt.BaseExchange.ToTicker(this.safeValue(result, symbolValue));
     }
 
     /**
@@ -584,10 +584,6 @@ public partial class blofin : ccxt.blofin
         // landing in that window invisible to the consumer forever (same class
         // as issue #26773); the free/used/total aggregates are rebuilt from
         // the merged currencies by safeBalance
-        if ((this.balance == null))
-        {
-            this.balance = new Dictionary<string, object>() {};
-        }
         this.balance[marketType] = this.safeDict(this.balance, marketType, new Dictionary<string, object>() {});
         Dictionary<string, object> parsed = this.parseWsBalance(message);
         List<object> reserved = new List<object>() {"free", "used", "total"};
@@ -880,7 +876,7 @@ public partial class blofin : ccxt.blofin
                     { "instId", (market.ContainsKey("id") ? market["id"] : null) },
                 };
                 rawSubscriptions.Add(topic);
-                messageHashes.Add(add(add(channel, ":"), (market.ContainsKey("symbol") ? market["symbol"] : null)));
+                messageHashes.Add(add(add(channel, ":"), this.safeString(market, "symbol", "")));
             }
         } else
         {
@@ -898,7 +894,7 @@ public partial class blofin : ccxt.blofin
         }
         Dictionary<string, object> request = this.getSubscriptionRequest(rawSubscriptions);
         string privateOrPublic = "private";
-        if (isPublic == true)
+        if ((isPublic == true))
         {
             privateOrPublic = "public";
         }

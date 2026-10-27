@@ -801,11 +801,9 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
                             };
                         }
                         IDictionary<string, object> previousOrderFee = this.safeDict(previousOrder, "fee", new Dictionary<string, object>() {});
-                        if ((!((previousOrderFee != null && previousOrderFee.ContainsKey("cost") ? previousOrderFee["cost"] : null) == null)) && (!(this.safeNumber((ccxt.BaseExchange.FromFee((object)trade.fee)), "cost") == null)))
+                        if ((!(this.safeNumber(previousOrderFee, "cost") == null)) && (!(this.safeNumber((ccxt.BaseExchange.FromFee((object)trade.fee)), "cost") == null)))
                         {
-                            ((IDictionary<string,object>)(previousOrder != null && previousOrder.ContainsKey("fee") ? previousOrder["fee"] : null))["cost"] = this.sum((previousOrderFee != null && previousOrderFee.ContainsKey("cost") ? previousOrderFee["cost"] : null), this.safeNumber((ccxt.BaseExchange.FromFee((object)trade.fee)), "cost"));
-                            IDictionary<string, object> tradeFee = this.safeDict(ccxt.BaseExchange.FromTrade(trade), "fee");
-                            ((IDictionary<string,object>)(previousOrder != null && previousOrder.ContainsKey("fee") ? previousOrder["fee"] : null))["cost"] = this.parseNumber(Precise.stringAdd(this.safeString(previousOrderFee, "cost"), this.safeString(tradeFee, "cost")));
+                            ((IDictionary<string,object>)(previousOrder != null && previousOrder.ContainsKey("fee") ? previousOrder["fee"] : null))["cost"] = this.parseNumber(Precise.stringAdd(this.safeString(previousOrderFee, "cost"), this.safeString((ccxt.BaseExchange.FromFee((object)trade.fee)), "cost")));
                         }
                         // update the newUpdates count
                         orders.append(previousOrder);

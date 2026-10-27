@@ -2406,7 +2406,7 @@ public partial class bybit : Exchange
         List<object> symbolBase = ((string)symbol).Split(new [] {"/"}, StringSplitOptions.None).ToList<object>();
         string? expiry = null;
         bool hasSlash = ((string)symbol).IndexOf("/", StringComparison.Ordinal) > -1;
-        object baseName = null;
+        object baseName = this.safeString(optionParts, 0);
         if (hasSlash)
         {
             baseName = this.safeString(symbolBase, 0);
@@ -2422,7 +2422,6 @@ public partial class bybit : Exchange
             settle = quoteAndSettle;
         } else
         {
-            baseName = this.safeString(optionParts, 0);
             expiry = this.convertMarketIdExpireDate(this.safeString(optionParts, 1));
             if (((string)symbol).EndsWith("-USDT"))
             {
@@ -11818,7 +11817,7 @@ public partial class bybit : Exchange
                     { "Content-Type", "application/json" },
                     { "X-BAPI-API-KEY", this.apiKey },
                     { "X-BAPI-TIMESTAMP", timestamp },
-                    { "X-BAPI-RECV-WINDOW", this.numberToString((this.options.ContainsKey("recvWindow") ? this.options["recvWindow"] : null)) },
+                    { "X-BAPI-RECV-WINDOW", this.safeString(this.options, "recvWindow", "") },
                 };
                 if (isV3UnifiedMargin || isV3Contract)
                 {
@@ -11826,7 +11825,7 @@ public partial class bybit : Exchange
                 }
                 Dictionary<string, object> query = this.extend(new Dictionary<string, object>() {}, parameters);
                 string queryEncoded = this.rawencode(query);
-                string auth_base = ((timestamp.ToString() + this.apiKey) + ((object)(this.options.ContainsKey("recvWindow") ? this.options["recvWindow"] : null)).ToString());
+                string auth_base = ((timestamp + this.apiKey) + this.safeString(this.options, "recvWindow", ""));
                 string? authFull = null;
                 if ((method == "POST"))
                 {
@@ -11942,21 +11941,18 @@ public partial class bybit : Exchange
                 // {"ret_code":30084,"ret_msg":"Isolated not modified","ext_code":"","ext_info":"","result":null,"time_now":"1642005219.937988","rate_limit_status":73,"rate_limit_reset_ms":1642005219894,"rate_limit":75}
                 return null;
             }
-            object feedback = null;
+            string feedback = ((this.id + " ") + (body));
             if (errorCode == "10005" && url.IndexOf("order", StringComparison.Ordinal) < 0)
             {
                 feedback = ((this.id + " private api uses /user/v3/private/query-api to check if you have a unified account. The API key of user id must own one of permissions: \"Account Transfer\", \"Subaccount Transfer\", \"Withdrawal\" ") + (body));
-            } else
-            {
-                feedback = ((this.id + " ") + (body));
             }
             if (((string)body).IndexOf("Withdraw address chain or destination tag are not equal", StringComparison.Ordinal) > -1)
             {
-                feedback = add(feedback, "; You might also need to ensure the address is whitelisted");
+                feedback = (feedback + "; You might also need to ensure the address is whitelisted");
             }
             this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), body, feedback);
             this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorCode, feedback);
-            throw new ExchangeError ((string)feedback) ;
+            throw new ExchangeError (feedback) ;
         }
         return null;
     }

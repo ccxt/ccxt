@@ -988,7 +988,7 @@ public partial class gate : ccxt.gate
         Dictionary<string, object> market = this.market((symbolsNormalized != null && 0 < symbolsNormalized.Count ? symbolsNormalized[0] : null));
         string messageType = this.getTypeByMarket(market);
         IList<object> marketIds = this.marketIds(symbolsNormalized);
-        (string?, object) channelNameparamsMethodVariable = this.handleOptionStringAndParams(paramsCallerMethodName, callerMethodNameOption, "method");
+        (string?, object) channelNameparamsMethodVariable = this.handleOptionStringAndParams(paramsCallerMethodName, callerMethodNameOption, "method", "");
         string? channelName = channelNameparamsMethodVariable.Item1;
         IDictionary<string, object> paramsMethod = ((IDictionary<string, object>)channelNameparamsMethodVariable.Item2);
         string? url = this.getUrlByMarket(market);
@@ -2627,10 +2627,10 @@ public partial class gate : ccxt.gate
         {
             return null;
         }
-        if (((market != null && market.ContainsKey("spot") ? market["spot"] : null) is true))
+        if ((this.safeBool(market, "spot", false) == true))
         {
             return "spot";
-        } else if (((market != null && market.ContainsKey("option") ? market["option"] : null) is true))
+        } else if ((this.safeBool(market, "option", false) == true))
         {
             return "options";
         } else

@@ -1393,7 +1393,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         {
             this.parseWsBalance(rawBalances[i], account);
         }
-        if ((this.safeValue(this.balance, account) == null))
+        if (!((this.balance != null && this.balance.ContainsKey(account))))
         {
             this.balance[(string)account] = new Dictionary<string, object>() {};
         }
@@ -1646,7 +1646,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         if ((symbol != null))
         {
             market = this.market(symbol);
-            messageHash = ("order:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
+            messageHash = ("order:" + this.safeString(market, "symbol", ""));
         }
         object symbolResolved = ((market != null)) ? this.safeString(market, "symbol") : symbol;
         string? url = ((string)(this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("public") ? this.urlsApiSections["ws"]["public"] : null));

@@ -8628,7 +8628,7 @@ public partial class gate : Exchange
         string? authentication = ((string)(api != null && 0 < api.Count ? api[0] : null)); // public, private
         string? type = ((string)(api != null && 1 < api.Count ? api[1] : null)); // spot, margin, future, delivery
         object query = this.omit(parameters, this.extractParams(path));
-        string? pathImploded = null;
+        string? pathImploded = "";
         string? bodyJson = null;
         Dictionary<string, object> signedHeaders = null;
         bool containsSettle = path.IndexOf("settle", StringComparison.Ordinal) > -1;

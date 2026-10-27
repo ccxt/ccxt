@@ -5369,16 +5369,14 @@ public partial class mexc : Exchange
         while (Precise.stringLt(floor, maxVol))
         {
             string? cap = Precise.stringAdd(floor, riskIncrVol);
-            double? minNotional = this.parseNumber(floor);
-            double? mainMarginRate = this.parseNumber(maintenanceMarginRate);
             double? maxLev = this.parseNumber(Precise.stringDiv("1", initialMarginRate));
             tiers.Add(new Dictionary<string, object>() {
                 { "tier", this.parseNumber(Precise.stringDiv(cap, riskIncrVol)) },
                 { "symbol", this.safeSymbol(marketId, market, null, "contract") },
                 { "currency", this.safeCurrencyCode(quoteId) },
-                { "minNotional", minNotional },
+                { "minNotional", this.parseNumber(floor) },
                 { "maxNotional", this.parseNumber(cap) },
-                { "maintenanceMarginRate", mainMarginRate },
+                { "maintenanceMarginRate", this.parseNumber(maintenanceMarginRate) },
                 { "maxLeverage", maxLev },
                 { "info", info },
             });
@@ -6435,9 +6433,8 @@ public partial class mexc : Exchange
             return ccxt.BaseExchange.ToTransaction(this.parseTransaction(responseForInternal, currency));
         }
         IDictionary<string, object> networks = this.safeDict(this.options, "networks", new Dictionary<string, object>() {});
-        string? network = this.safeString2(paramsWithdrawTag, "network", "netWork"); // this line allows the user to specify either ERC20 or ETH
-        network = this.safeString(networks, network, network); // handle ETH > ERC-20 alias
-        network = this.networkCodeToId(network, this.safeString(currency, "code"));
+        string? networkRaw = this.safeString2(paramsWithdrawTag, "network", "netWork"); // this line allows the user to specify either ERC20 or ETH
+        string? network = this.networkCodeToId(this.safeString(networks, networkRaw, networkRaw), this.safeString(currency, "code")); // handle ETH > ERC-20 alias
         this.checkAddress(address, code, tagResolved);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "coin", (currency.ContainsKey("id") ? currency["id"] : null) },
@@ -6983,7 +6980,7 @@ public partial class mexc : Exchange
         string? access = ((string)(api != null && 1 < api.Count ? api[1] : null));
         string? pathValue = this.implodeParams(path, parameters);
         object paramsValue = this.omit(parameters, this.extractParams(path));
-        object url = null;
+        object url = "";
         if (section == "spot" || section == "broker")
         {
             if (section == "broker")
@@ -7023,13 +7020,13 @@ public partial class mexc : Exchange
             if ((new List<object>(urlParams.Keys)).Count > 0)
             {
                 paramsEncoded = this.urlencode(urlParams);
-                url = add(url, ("?" + paramsEncoded));
+                url = ((url + "?") + paramsEncoded);
             }
             if (access == "private")
             {
                 this.checkRequiredCredentials();
                 string signature = this.hmac(this.encode(paramsEncoded), this.encode(this.secret), sha256);
-                url = add(url, (("&" + "signature=") + signature));
+                url = ((url + "&signature=") + signature);
                 requestHeaders = new Dictionary<string, object>() {
                     { "X-MEXC-APIKEY", this.apiKey },
                     { "source", this.safeString(this.options, "broker", "CCXT") },
@@ -7079,7 +7076,7 @@ public partial class mexc : Exchange
                     if ((new List<object>(paramsSorted.Keys)).Count > 0)
                     {
                         auth = add(auth, this.urlencode(paramsSorted));
-                        url = add(url, ("?" + (auth)));
+                        url = (url + ("?" + (auth)));
                     }
                 }
                 auth = ((this.apiKey + timestamp) + (auth));

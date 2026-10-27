@@ -8997,11 +8997,8 @@ public partial class htx : Exchange
         string pathString = path;
         string url = "/";
         bool isArrayParams = ((parameters is IList<object>) || (parameters.GetType().IsGenericType && parameters.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
-        object query = null;
-        if (isArrayParams)
-        {
-            query = new Dictionary<string, object>() {};
-        } else
+        object query = new Dictionary<string, object>() {};
+        if (!isArrayParams)
         {
             query = this.omit(parameters, this.extractParams(path));
         }
@@ -9064,7 +9061,7 @@ public partial class htx : Exchange
                 }
             } else
             {
-                if (((query != null)) && ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0))
+                if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
                 {
                     url = url + ("?" + this.urlencode(query));
                 }
@@ -9099,7 +9096,7 @@ public partial class htx : Exchange
             url = url + this.implodeParams(path, parameters);
             if (access == "public")
             {
-                if (((query != null)) && ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0))
+                if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
                 {
                     url = url + ("?" + this.urlencode(query));
                 }

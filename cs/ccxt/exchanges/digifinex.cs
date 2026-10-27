@@ -1092,9 +1092,9 @@ public partial class digifinex : Exchange
         string? marginMode = marginModequeryVariable.Item1;
         IDictionary<string, object> query = ((IDictionary<string, object>)marginModequeryVariable.Item2);
         Dictionary<string, object> response = null;
-        if ((marginMode != null) || marketType == "margin")
+        bool isMargin = ((marginMode != null)) || (marketType == "margin");
+        if (isMargin)
         {
-            marketType = "margin";
             response = await this.privateSpotGetMarginAssets(query);
         } else if (marketType == "spot")
         {
@@ -1143,7 +1143,7 @@ public partial class digifinex : Exchange
         //     }
         //
         string balanceRequest = "list";
-        if (marketType == "swap")
+        if (!isMargin && marketType == "swap")
         {
             balanceRequest = "data";
         }
@@ -1420,19 +1420,12 @@ public partial class digifinex : Exchange
         List<object> tickers = this.safeList(response, "ticker", new List<object>() {});
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         IDictionary<string, object> firstTicker = this.safeDict(tickers, 0, new Dictionary<string, object>() {});
-        IDictionary<string, object> result = null;
-        if ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true))
-        {
-            result = data;
-        } else
+        IDictionary<string, object> result = data;
+        if ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) != true))
         {
             result = this.extend(new Dictionary<string, object>() {
                 { "date", date },
             }, firstTicker);
-        }
-        if ((result == null))
-        {
-            throw new NullResponse ((this.id + " fetchTicker() returned empty response")) ;
         }
         return this.parseTicker(result, market);
     }
@@ -2357,9 +2350,9 @@ public partial class digifinex : Exchange
         string? marginMode = marginModequeryVariable.Item1;
         IDictionary<string, object> query = ((IDictionary<string, object>)marginModequeryVariable.Item2);
         Dictionary<string, object> response = null;
-        if ((marginMode != null) || marketType == "margin")
+        bool isMargin = ((marginMode != null)) || (marketType == "margin");
+        if (isMargin)
         {
-            marketType = "margin";
             response = await this.privateSpotPostMarginOrderCancel(this.extend(request, query));
         } else if (marketType == "spot")
         {
@@ -2392,7 +2385,7 @@ public partial class digifinex : Exchange
         //         "data": "1590923061186531328"
         //     }
         //
-        if ((marketType == "spot") || (marketType == "margin"))
+        if (isMargin || (marketType == "spot"))
         {
             List<object> canceledOrders = this.safeList(response, "success", new List<object>() {});
             int numCanceledOrders = canceledOrders.Count;
@@ -2854,9 +2847,9 @@ public partial class digifinex : Exchange
             request[(string)marketIdRequest] = (market.ContainsKey("id") ? market["id"] : null);
         }
         Dictionary<string, object> response = null;
-        if ((marginMode != null) || marketType == "margin")
+        bool isMargin = ((marginMode != null)) || (marketType == "margin");
+        if (isMargin)
         {
-            marketType = "margin";
             response = await this.privateSpotGetMarginOrderCurrent(this.extend(request, query));
         } else if (marketType == "spot")
         {
@@ -2984,9 +2977,9 @@ public partial class digifinex : Exchange
             request["limit"] = limit;
         }
         Dictionary<string, object> response = null;
-        if ((marginMode != null) || marketType == "margin")
+        bool isMargin = ((marginMode != null)) || (marketType == "margin");
+        if (isMargin)
         {
-            marketType = "margin";
             response = await this.privateSpotGetMarginOrderHistory(this.extend(request, query));
         } else if (marketType == "spot")
         {
@@ -3099,9 +3092,9 @@ public partial class digifinex : Exchange
             request["market"] = marketType;
         }
         Dictionary<string, object> response = null;
-        if (((marginMode != null)) || (marketType == "margin"))
+        bool isMargin = ((marginMode != null)) || (marketType == "margin");
+        if (isMargin)
         {
-            marketType = "margin";
             response = await this.privateSpotGetMarginOrder(this.extend(request, query));
         } else if (marketType == "spot")
         {
@@ -3162,7 +3155,7 @@ public partial class digifinex : Exchange
         //     }
         //
         object data = this.safeValue(response, "data");
-        object order = (marketType == "swap") ? data : this.safeValue(data, 0);
+        object order = (!isMargin && (marketType == "swap")) ? data : this.safeValue(data, 0);
         if ((order == null))
         {
             throw new OrderNotFound ((((this.id + " fetchOrder() order ") + idValue) + " not found")) ;
@@ -3231,9 +3224,9 @@ public partial class digifinex : Exchange
             request["limit"] = limit;
         }
         Dictionary<string, object> response = null;
-        if ((marginMode != null) || marketType == "margin")
+        bool isMargin = ((marginMode != null)) || (marketType == "margin");
+        if (isMargin)
         {
-            marketType = "margin";
             response = await this.privateSpotGetMarginMytrades(this.extend(request, query));
         } else if (marketType == "spot")
         {
@@ -3291,7 +3284,7 @@ public partial class digifinex : Exchange
         //     }
         //
         string responseRequest = "list";
-        if (marketType == "swap")
+        if (!isMargin && (marketType == "swap"))
         {
             responseRequest = "data";
         }
@@ -3415,9 +3408,9 @@ public partial class digifinex : Exchange
             request["limit"] = limit;
         }
         Dictionary<string, object> response = null;
-        if ((marginMode != null) || marketType == "margin")
+        bool isMargin = ((marginMode != null)) || (marketType == "margin");
+        if (isMargin)
         {
-            marketType = "margin";
             response = await this.privateSpotGetMarginFinancelog(this.extend(request, query));
         } else if (marketType == "spot")
         {
@@ -3463,7 +3456,7 @@ public partial class digifinex : Exchange
         //     }
         //
         List<object> ledger = null;
-        if (marketType == "swap")
+        if (!isMargin && (marketType == "swap"))
         {
             ledger = this.safeList(response, "data", new List<object>() {});
         } else
@@ -5400,7 +5393,7 @@ public partial class digifinex : Exchange
                 }
             } else
             {
-                nonce = this.nonce().ToString();
+                nonce = this.seconds().ToString();
                 auth = urlencoded;
             }
             string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);

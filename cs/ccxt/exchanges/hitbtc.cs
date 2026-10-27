@@ -2060,13 +2060,13 @@ public partial class hitbtc : Exchange
         {
             request["from"] = this.iso8601(since);
         }
+        if ((limit != null))
+        {
+            request["limit"] = Math.Min(limit.Value, 1000);
+        }
         IList<object> requestUntilparamsUntilVariable = (IList<object>)this.handleUntilOption("until", request, paramsPaginate);
         Dictionary<string, object> requestUntil = (Dictionary<string, object>)requestUntilparamsUntilVariable[0];
         IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)requestUntilparamsUntilVariable[1]);
-        if ((limit != null))
-        {
-            requestUntil["limit"] = Math.Min(limit.Value, 1000);
-        }
         string? price = this.safeString(paramsUntil, "price");
         Dictionary<string, object> paramsOmitted = this.omit(paramsUntil, "price");
         List<object> response = new List<object>() {};
@@ -4335,27 +4335,16 @@ public partial class hitbtc : Exchange
             }
         }
         string url = (baseUrl + getRequest);
-        string? bodyResolved = ((method == "GET")) ? null : this.json(parameters);
+        string bodyString = "";
+        if ((method != "GET"))
+        {
+            bodyString = this.json(parameters);
+        }
         if (apiName == "private")
         {
             this.checkRequiredCredentials();
             string? timestamp = this.numberToString(this.nonce());
-            List<object> payload = new List<object>() {method, ("/api/3/" + implodedPath)};
-            if ((method == "GET"))
-            {
-                if (getRequest != "")
-                {
-                    payload.Add(getRequest);
-                }
-            } else
-            {
-                if ((bodyResolved != null))
-                {
-                    payload.Add(bodyResolved);
-                }
-            }
-            payload.Add(timestamp);
-            string payloadString = String.Join("", payload.ToArray());
+            string payloadString = (((((method + "/api/3/") + implodedPath) + getRequest) + bodyString) + timestamp);
             string signature = this.hmac(this.encode(payloadString), this.encode(this.secret), sha256, "hex");
             string secondPayload = ((((this.apiKey + ":") + signature) + ":") + timestamp);
             headersValue["Authorization"] = ("HS256 " + this.stringToBase64(secondPayload));
@@ -4363,7 +4352,7 @@ public partial class hitbtc : Exchange
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
-            { "body", bodyResolved },
+            { "body", ((method == "GET")) ? null : bodyString },
             { "headers", headersValue },
         };
     }

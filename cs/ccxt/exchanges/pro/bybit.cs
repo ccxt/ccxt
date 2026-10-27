@@ -417,7 +417,7 @@ public partial class bybit : ccxt.bybit
         {
             throw new BadRequest ((this.id + " watchTicker() only supports name tickers for contract markets")) ;
         }
-        List<object> topics = new List<object>() {((topic + ".") + ((market.ContainsKey("id") ? market["id"] : null)))};
+        List<object> topics = new List<object>() {((topic + ".") + this.safeString(market, "id", ""))};
         return ccxt.BaseExchange.ToTicker(await this.watchTopics(url, new List<object>() {messageHash}, topics, paramsValue));
     }
 
@@ -450,7 +450,7 @@ public partial class bybit : ccxt.bybit
         {
             string? marketId = ((string)marketIds[i]);
             topics.Add(((topic + ".") + marketId));
-            messageHashes.Add(("ticker:" + ((symbolsValue != null && i < symbolsValue.Count ? symbolsValue[i] : null))));
+            messageHashes.Add(("ticker:" + this.safeString(symbolsValue, i, "")));
         }
         object ticker = await this.watchTopics(url, messageHashes, topics, paramsValue);
         if (this.newUpdates)
@@ -701,7 +701,7 @@ public partial class bybit : ccxt.bybit
             string? marketId = ((string)marketIds[i]);
             string topic = ("orderbook.1." + marketId);
             topics.Add(topic);
-            messageHashes.Add(("bidask:" + ((symbolsValue != null && i < symbolsValue.Count ? symbolsValue[i] : null))));
+            messageHashes.Add(("bidask:" + this.safeString(symbolsValue, i, "")));
         }
         object ticker = await this.watchTopics(url, messageHashes, topics, paramsValue);
         if (this.newUpdates)
@@ -1008,7 +1008,7 @@ public partial class bybit : ccxt.bybit
             List<object> selectedLimits = this.safeList2(limits, (market.ContainsKey("type") ? market["type"] : null), "default", new List<object>() {});
             if (!this.inArray(limit, selectedLimits))
             {
-                throw new BadRequest (((((this.id + " watchOrderBookForSymbols(): for ") + ((market.ContainsKey("type") ? market["type"] : null))) + " markets limit can be one of: ") + this.json(selectedLimits))) ;
+                throw new BadRequest (((((this.id + " watchOrderBookForSymbols(): for ") + this.safeString(market, "type", "")) + " markets limit can be one of: ") + this.json(selectedLimits))) ;
             }
         }
         List<object> topics = new List<object>() {};

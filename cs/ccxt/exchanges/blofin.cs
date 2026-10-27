@@ -3220,7 +3220,7 @@ public partial class blofin : Exchange
                 for (int i = 0; i < getArrayLength(tpslIds); i++)
                 {
                     request.Add(new Dictionary<string, object>() {
-                        { "tpslId", getValue(tpslIds, i) },
+                        { "tpslId", this.safeString(tpslIds, i) },
                         { "instId", (market.ContainsKey("id") ? market["id"] : null) },
                     });
                 }
@@ -3230,13 +3230,13 @@ public partial class blofin : Exchange
                 if ((trigger == true))
                 {
                     request.Add(new Dictionary<string, object>() {
-                        { "tpslId", getValue(orderIds, i) },
+                        { "tpslId", this.safeString(orderIds, i) },
                         { "instId", (market.ContainsKey("id") ? market["id"] : null) },
                     });
                 } else
                 {
                     request.Add(new Dictionary<string, object>() {
-                        { "orderId", getValue(orderIds, i) },
+                        { "orderId", this.safeString(orderIds, i) },
                         { "instId", (market.ContainsKey("id") ? market["id"] : null) },
                     });
                 }
@@ -3247,7 +3247,7 @@ public partial class blofin : Exchange
             {
                 request.Add(new Dictionary<string, object>() {
                     { "instId", (market.ContainsKey("id") ? market["id"] : null) },
-                    { "clientOrderId", getValue(clientOrderIds, i) },
+                    { "clientOrderId", this.safeString(clientOrderIds, i) },
                 });
             }
         }
@@ -4009,7 +4009,7 @@ public partial class blofin : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "positionMode", hedged ? "long_short_mode" : "net_mode" },
+            { "positionMode", ((hedged == true)) ? "long_short_mode" : "net_mode" },
         };
         //
         //     {

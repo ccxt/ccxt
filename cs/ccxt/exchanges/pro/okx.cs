@@ -97,10 +97,6 @@ public partial class okx : ccxt.okx
     {
         // for context: https://www.okx.com/help-center/changes-to-v5-api-websocket-subscription-parameter-and-url
         access ??= "public";
-        if ((channel == null))
-        {
-            throw new ArgumentsRequired ((this.id + " getUrl() requires a channel argument")) ;
-        }
         object isSandbox = (this.options.ContainsKey("sandboxMode") ? this.options["sandboxMode"] : null);
         string sandboxSuffix = "";
         if ((isSandbox is true))
@@ -3139,11 +3135,8 @@ public partial class okx : ccxt.okx
         string messageHash = ("unsubscribe:" + subMessageHash);
         this.cleanUnsubscription(client, subMessageHash, messageHash);
         // watchOHLCV subscribes through subscribe () under channel:marketId
-        if ((symbol != null))
-        {
-            this.cleanUnsubscription(client, ((channel + ":") + this.marketId(symbol)), null);
-        }
-        if (((symbol != null)) && ((timeframe != null)) && (inOp((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), timeframe)))
+        this.cleanUnsubscription(client, ((channel + ":") + this.marketId(symbol)), null);
+        if (inOp((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), timeframe))
         {
             ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null)).Remove(timeframe);
         }
@@ -3173,16 +3166,24 @@ public partial class okx : ccxt.okx
         // }
         // arg might be an array or list
         IDictionary<string, object> arg = this.safeDict(message, "arg", new Dictionary<string, object>() {});
-        string? channel = this.safeString(arg, "channel", "");
+        string? channel = this.safeString(arg, "channel");
+        if ((channel == null))
+        {
+            return;
+        }
         string? marketId = this.safeString(arg, "instId");
         string? symbol = this.safeSymbol(marketId);
+        if ((symbol == null))
+        {
+            return;
+        }
         if (channel == "trades" || channel == "trades-all")
         {
             this.handleUnSubscriptionTrades(client, symbol, channel);
         } else if (channel.StartsWith("bbo") || channel.StartsWith("book"))
         {
             this.handleUnsubscriptionOrderBook(client, symbol, channel);
-        } else if ((channel?.IndexOf("tickers", StringComparison.Ordinal) ?? -1) > -1)
+        } else if (channel.IndexOf("tickers", StringComparison.Ordinal) > -1)
         {
             this.handleUnsubscriptionTicker(client, symbol, channel);
         } else if (channel.StartsWith("candle"))

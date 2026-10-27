@@ -1828,13 +1828,7 @@ public partial class woo : Exchange
         } else if (hasStopLoss || hasTakeProfit)
         {
             request["algoType"] = "BRACKET";
-            Dictionary<string, object> outterOrder = new Dictionary<string, object>() {
-                { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
-                { "reduceOnly", false },
-                { "algoType", "POSITIONAL_TP_SL" },
-                { "childOrders", new List<object>() {} },
-            };
-            object childOrders = outterOrder["childOrders"];
+            List<object> childOrders = new List<object>() {};
             string closeSide = "BUY";
             if (orderSide == "BUY")
             {
@@ -1850,7 +1844,7 @@ public partial class woo : Exchange
                     { "type", "CLOSE_POSITION" },
                     { "reduceOnly", true },
                 };
-                ((IList<object>)childOrders).Add(stopLossOrder);
+                childOrders.Add(stopLossOrder);
             }
             if (hasTakeProfit)
             {
@@ -1862,8 +1856,14 @@ public partial class woo : Exchange
                     { "type", "CLOSE_POSITION" },
                     { "reduceOnly", true },
                 };
-                ((IList<object>)childOrders).Add(takeProfitOrder);
+                childOrders.Add(takeProfitOrder);
             }
+            Dictionary<string, object> outterOrder = new Dictionary<string, object>() {
+                { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
+                { "reduceOnly", false },
+                { "algoType", "POSITIONAL_TP_SL" },
+                { "childOrders", childOrders },
+            };
             request["childOrders"] = new List<object>() {outterOrder};
         }
         object paramsRequest = this.omit(paramsCost, new List<object>() {"clOrdID", "clientOrderId", "client_order_id", "postOnly", "timeInForce", "stopPrice", "triggerPrice", "stopLoss", "takeProfit", "trailingPercent", "trailingAmount", "trailingTriggerPrice"});
@@ -1877,8 +1877,7 @@ public partial class woo : Exchange
         }
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         data = this.safeDict(this.safeList(data, "rows"), 0, data);
-        data["timestamp"] = this.safeString(response, "timestamp");
-        return this.parseOrder(data, market);
+        return this.parseOrder(this.extend(data, new Dictionary<string, object>() {             { "timestamp", this.safeString(response, "timestamp") },         }), market);
     }
 
     public virtual string? encodeMarginMode(string? mode)
@@ -4959,17 +4958,17 @@ public partial class woo : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        IList<object> requestUntilparamsUntilVariable = (IList<object>)this.handleUntilOption("endTime", request, parameters);
-        Dictionary<string, object> requestUntil = (Dictionary<string, object>)requestUntilparamsUntilVariable[0];
-        IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)requestUntilparamsUntilVariable[1]);
         if ((since != null))
         {
-            requestUntil["startTime"] = since;
+            request["startTime"] = since;
         }
         if ((limit != null))
         {
-            requestUntil["size"] = limit;
+            request["size"] = limit;
         }
+        IList<object> requestUntilparamsUntilVariable = (IList<object>)this.handleUntilOption("endTime", request, parameters);
+        Dictionary<string, object> requestUntil = (Dictionary<string, object>)requestUntilparamsUntilVariable[0];
+        IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)requestUntilparamsUntilVariable[1]);
         Dictionary<string, object> response = await this.v3PrivateGetConvertTrades(this.extend(requestUntil, paramsUntil));
         //
         //     {

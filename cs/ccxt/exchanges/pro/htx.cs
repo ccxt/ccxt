@@ -1007,13 +1007,8 @@ public partial class htx : ccxt.htx
         bool isV5Linear = (linear && (swap || future));
         if (type == "spot")
         {
-            string? mode = null;
-            if ((mode == null))
-            {
-                mode = this.safeString2(this.options, "watchMyTrades", "mode", "0");
-                mode = this.safeString(paramsRequest, "mode", mode);
-                paramsRequest = this.omit(paramsRequest, "mode");
-            }
+            string? mode = this.safeString(paramsRequest, "mode", this.safeString2(this.options, "watchMyTrades", "mode", "0"));
+            paramsRequest = this.omit(paramsRequest, "mode");
             messageHash = (((("trade.clearing" + "#") + (marketId)) + "#") + mode);
             channel = messageHash;
         } else if (isV5Linear)

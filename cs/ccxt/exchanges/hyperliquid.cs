@@ -5799,9 +5799,9 @@ public partial class hyperliquid : Exchange
             return null;
         }
         IDictionary<string, object> hi3TokensByname = this.safeDict(this.options, "hip3TokensByName", new Dictionary<string, object>() {});
-        if ((this.safeDict(hi3TokensByname, coin) != null))
+        IDictionary<string, object> hip3Dict = this.safeDict(hi3TokensByname, coin);
+        if ((hip3Dict != null))
         {
-            IDictionary<string, object> hip3Dict = this.safeDict(hi3TokensByname, coin);
             string? quote = this.safeString(hip3Dict, "quote", "USDC");
             object code = this.safeString(hip3Dict, "code", coin);
             return ((string?)((object)(add(add(add(add(code, "/"), quote), ":"), quote))));

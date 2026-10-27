@@ -263,9 +263,9 @@ public partial class binance : ccxt.binance
         {
             // eOptions urls are stored as full public/market/private paths, no category rewrite needed,
             // see https://github.com/ccxt/ccxt/pull/27982 and https://github.com/ccxt/ccxt/issues/26333
-            return ((string?)((object)((wsUrls != null && type != null && wsUrls.ContainsKey((string)type) ? wsUrls[(string)type] : null))));
+            return this.safeString(wsUrls, type, "");
         }
-        object baseUrl = (wsUrls != null && type != null && wsUrls.ContainsKey((string)type) ? wsUrls[(string)type] : null);
+        string? baseUrl = this.safeString(wsUrls, type, "");
         if ((type is "linear"))
         {
             // skip URL manipulation for proxied/bridge URLs (contain an embedded protocol)
@@ -273,22 +273,22 @@ public partial class binance : ccxt.binance
             // if (firstProtocol !== -1 && baseUrl.indexOf ('://', firstProtocol + 3) !== -1) {
             //     return baseUrl;
             // }
-            List<object> baseUrlSplit = ((string)baseUrl).Split(new [] {"://"}, StringSplitOptions.None).ToList<object>();
+            List<object> baseUrlSplit = baseUrl.Split(new [] {"://"}, StringSplitOptions.None).ToList<object>();
             int baseUrlSplitLength = baseUrlSplit.Count;
             if (baseUrlSplitLength > 2)
             {
-                return ((string?)((object)(baseUrl)));
+                return baseUrl;
             }
             // only rewrite when the URL ends with exactly "/ws"
             // this avoids matching "/wss", "/ws-api", "/ws-fapi/v1", etc.
-            if (((string)baseUrl).EndsWith("/ws"))
+            if ((baseUrl.EndsWith("/ws") == true))
             {
-                object prefix = slice(baseUrl, 0, (((string)baseUrl).Length - 3));
+                object prefix = slice(baseUrl, 0, (baseUrl.Length - 3));
                 return ((string?)((object)(add(add(add(prefix, "/"), category), "/ws"))));
             }
-            return ((string?)((object)(baseUrl)));
+            return baseUrl;
         }
-        return ((string?)((object)(baseUrl)));
+        return baseUrl;
     }
 
     public virtual string? getFutureWsCategory(object channel)

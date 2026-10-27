@@ -638,8 +638,8 @@ public partial class lbank : Exchange
         parameters ??= new Dictionary<string, object>();
         List<object> marketsPromises = new List<object> {this.FetchSpotMarkets(parameters), this.FetchSwapMarkets(parameters)};
         List<object> resolvedMarkets = await promiseAll(marketsPromises);
-        object spotMarkets = (resolvedMarkets != null && 0 < resolvedMarkets.Count ? resolvedMarkets[0] : null);
-        object swapMarkets = (resolvedMarkets != null && 1 < resolvedMarkets.Count ? resolvedMarkets[1] : null);
+        object spotMarkets = this.safeValue(resolvedMarkets, 0);
+        object swapMarkets = this.safeValue(resolvedMarkets, 1);
         return ccxt.BaseExchange.ToMarketInterfaceList(this.arrayConcat(spotMarkets, swapMarkets));
     }
 
@@ -3430,8 +3430,7 @@ public partial class lbank : Exchange
                 { "timestamp", timestamp },
             }, signedQuery)));
             string? encoded = this.encode(auth);
-            string hash = ((string)this.hash(encoded, md5));
-            string uppercaseHash = hash.ToUpper();
+            string uppercaseHash = ((string)this.hash(encoded, md5)).ToUpper();
             string? sign = null;
             if (signatureMethod == "RSA")
             {
@@ -3482,7 +3481,7 @@ public partial class lbank : Exchange
 
     public virtual string? convertSecretToPem(object secret)
     {
-        int secretLength = (getArrayLength(secret) - 0);
+        int secretLength = getArrayLength(secret);
         Int64? fullLines = this.parseToInt(((double)secretLength / 64));
         string pem = "-----BEGIN PRIVATE KEY-----\n"; // eslint-disable-line
         for (int i = 0; (i <= fullLines); i++)

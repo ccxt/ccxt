@@ -327,7 +327,7 @@ public partial class bitstamp : ccxt.bitstamp
         string? price = this.safeString(trade, "price");
         string? amount = this.safeString(trade, "amount");
         Dictionary<string, object> marketResolved = this.safeMarket(null, market);
-        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
+        string? symbol = this.safeString(marketResolved, "symbol", "");
         Int64? sideRaw = this.safeInteger(trade, "type");
         string side = "sell";
         if ((sideRaw == 0))
@@ -381,7 +381,7 @@ public partial class bitstamp : ccxt.bitstamp
         List<object> parts = channel.Split(new [] {"_"}, StringSplitOptions.None).ToList<object>();
         string? marketId = this.safeString(parts, 2);
         Dictionary<string, object> market = this.safeMarket(marketId);
-        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbol = this.safeString(market, "symbol", "");
         string messageHash = ("trades:" + symbol);
         IDictionary<string, object> data = this.safeDict(message, "data");
         ccxt.Trade trade = this.parseWsTrade(data, market);
@@ -450,7 +450,7 @@ public partial class bitstamp : ccxt.bitstamp
         List<object> parts = channel.Split(new [] {"_"}, StringSplitOptions.None).ToList<object>();
         string? marketId = this.safeString(parts, 2);
         Dictionary<string, object> market = this.safeMarket(marketId);
-        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbol = this.safeString(market, "symbol", "");
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         Dictionary<string, object> fundingRate = this.parseFundingRate(data, market);
         this.fundingRates[(string)symbol] = fundingRate;
@@ -479,7 +479,7 @@ public partial class bitstamp : ccxt.bitstamp
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbolValue = this.safeString(market, "symbol", "");
         string channel = "private-my_orders";
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "symbol", symbolValue },
@@ -517,7 +517,7 @@ public partial class bitstamp : ccxt.bitstamp
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbolValue = this.safeString(market, "symbol", "");
         await this.authenticate();
         string? userId = this.safeString(this.options, "userId");
         if ((userId == null))
@@ -551,7 +551,7 @@ public partial class bitstamp : ccxt.bitstamp
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbolValue = this.safeString(market, "symbol", "");
         string channel = "private-my_trades";
         string messageHash = ((channel + "_") + this.safeString(market, "id", ""));
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
@@ -590,7 +590,7 @@ public partial class bitstamp : ccxt.bitstamp
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbolValue = this.safeString(market, "symbol", "");
         await this.authenticate();
         string? userId = this.safeString(this.options, "userId");
         if ((userId == null))
@@ -664,7 +664,7 @@ public partial class bitstamp : ccxt.bitstamp
         Int64? microtimestamp = this.safeInteger(trade, "microtimestamp", 0);
         Int64? timestamp = this.parseToInt(((double?)microtimestamp / 1000));
         Dictionary<string, object> marketResolved = this.safeMarket(null, market);
-        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
+        string? symbol = this.safeString(marketResolved, "symbol", "");
         string? feeCost = this.safeString(trade, "fee");
         Dictionary<string, object> fee = null;
         if ((feeCost != null))
@@ -821,7 +821,7 @@ public partial class bitstamp : ccxt.bitstamp
         string? triggerPrice = this.safeString(order, "stop_price");
         Int64? timestamp = this.safeTimestamp(order, "datetime");
         Dictionary<string, object> marketResolved = this.safeMarket(null, market);
-        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
+        string? symbol = this.safeString(marketResolved, "symbol", "");
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
             { "symbol", symbol },
@@ -1170,7 +1170,7 @@ public partial class bitstamp : ccxt.bitstamp
             { "event", "bts:subscribe" },
             { "data", new Dictionary<string, object>() {
                 { "channel", messageHashValue },
-                { "auth", (this.options.ContainsKey("wsSessionToken") ? this.options["wsSessionToken"] : null) },
+                { "auth", this.safeString(this.options, "wsSessionToken") },
             } },
         };
         subscription["messageHash"] = messageHashValue;

@@ -5802,15 +5802,14 @@ public partial class binance : Exchange
                 object symbols = "";
                 if (((paramSymbols is IList<object>) || (paramSymbols.GetType().IsGenericType && paramSymbols.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
                 {
-                    string? mid = this.marketId(this.safeValue(paramSymbols, 0));
+                    string? mid = this.marketId(this.safeString(paramSymbols, 0));
                     if ((mid != null))
                     {
                         symbols = mid;
                     }
                     for (int i = 1; i < paramSymbols.Count; i++)
                     {
-                        object symbol = this.safeValue(paramSymbols, i);
-                        string? id = this.marketId(symbol);
+                        string? id = this.marketId(this.safeString(paramSymbols, i));
                         if ((id != null))
                         {
                             symbols = add(symbols, ("," + id));
@@ -15958,7 +15957,7 @@ public partial class binance : Exchange
                     extendedParams = this.omit(extendedParams, new List<object>() {"orderidlist", "origclientorderidlist", "origClientOrderIdList"});
                     if (extendedParams.ContainsKey("symbol"))
                     {
-                        extendedParams["symbol"] = this.encodeURIComponent((extendedParams != null && extendedParams.ContainsKey("symbol") ? extendedParams["symbol"] : null));
+                        extendedParams["symbol"] = this.encodeURIComponent(this.safeString(extendedParams, "symbol", ""));
                     }
                     query = this.rawencode(extendedParams);
                     int orderidlistLength = orderidlist.Count;
@@ -15973,7 +15972,7 @@ public partial class binance : Exchange
                         List<object> newClientOrderIds = new List<object>() {};
                         for (int i = 0; i < origclientorderidlistLength; i++)
                         {
-                            newClientOrderIds.Add((("%22" + ((origclientorderidlist != null && i < origclientorderidlist.Count ? origclientorderidlist[i] : null))) + "%22"));
+                            newClientOrderIds.Add((("%22" + this.safeString(origclientorderidlist, i, "")) + "%22"));
                         }
                         query = ((((query + "&") + "origclientorderidlist=%5B") + String.Join("%2C", newClientOrderIds.ToArray())) + "%5D");
                     }

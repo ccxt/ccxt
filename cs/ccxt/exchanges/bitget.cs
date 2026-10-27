@@ -4652,7 +4652,7 @@ public partial class bitget : Exchange
         object minNotional = 0;
         for (int i = 0; i < getArrayLength(info); i++)
         {
-            object item = getValue(info, i);
+            object item = this.safeValue(info, i);
             double? minimumNotional = this.safeNumber2(item, "startUnit", "minTierValue");
             if ((minimumNotional != null))
             {
@@ -6069,7 +6069,7 @@ public partial class bitget : Exchange
         string? posMode = this.safeString(trade, "posMode");
         string? category = this.safeString(trade, "category");
         bool isFeeStructure = ((posMode != null)) || ((category != null));
-        object feeStructure = isFeeStructure ? getValue(feeDetail, 0) : feeDetail;
+        object feeStructure = isFeeStructure ? this.safeValue(feeDetail, 0) : feeDetail;
         if ((feeStructure != null))
         {
             string? currencyCode = this.safeCurrencyCode(this.safeString(feeStructure, "feeCoin"));
@@ -14657,9 +14657,7 @@ public partial class bitget : Exchange
         object query = this.omit(parameters, this.extractParams(path));
         if (!signed && ((method == "GET")))
         {
-            List<object> keys = new List<object>(((IDictionary<string,object>)query).Keys);
-            int keysLength = keys.Count;
-            if (keysLength > 0)
+            if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
                 url = ((url + "?") + this.urlencode(query));
             }
