@@ -5386,7 +5386,7 @@ export class BaseExchange {
         const noSymbols = (symbolsNormalized === undefined) || (symbolsLength === 0);
         if (Array.isArray(response)) {
             for (let i = 0; i < response.length; i++) {
-                const item = response[i];
+                const item = this.safeValue(response, i);
                 const id = (marketIdKey === undefined) ? undefined : this.safeString(item, marketIdKey);
                 const market = this.safeMarket(id, undefined, undefined, 'swap');
                 const symbol = this.safeString(market, 'symbol', '');
@@ -5400,7 +5400,7 @@ export class BaseExchange {
             const keys = Object.keys(response);
             for (let i = 0; i < keys.length; i++) {
                 const marketId = keys[i];
-                const item = response[marketId];
+                const item = this.safeValue(response, marketId);
                 const market = this.safeMarket(marketId, undefined, undefined, 'swap');
                 const symbol = this.safeString(market, 'symbol', '');
                 const contract = this.safeBool(market, 'contract', false);

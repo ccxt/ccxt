@@ -1581,14 +1581,13 @@ class bybit extends bybit$1["default"] {
     createExpiredOptionMarket(symbol) {
         // support expired option contracts
         let quote = undefined;
-        let settle = undefined;
         const optionParts = symbol.split('-');
         const symbolBase = symbol.split('/');
         let expiry = undefined;
         const hasSlash = symbol.indexOf('/') > -1;
-        let baseName = this.safeString(optionParts, 0);
+        let baseName = this.safeString(optionParts, 0, '');
         if (hasSlash) {
-            baseName = this.safeString(symbolBase, 0);
+            baseName = this.safeString(symbolBase, 0, '');
             expiry = this.safeString(optionParts, 1);
             const symbolQuoteAndSettle = this.safeString(symbolBase, 1);
             if (symbolQuoteAndSettle === undefined) {
@@ -1597,17 +1596,14 @@ class bybit extends bybit$1["default"] {
             const splitQuote = symbolQuoteAndSettle.split(':');
             const quoteAndSettle = this.safeString(splitQuote, 0);
             quote = quoteAndSettle;
-            settle = quoteAndSettle;
         }
         else {
             expiry = this.convertMarketIdExpireDate(this.safeString(optionParts, 1));
             if (symbol.endsWith('-USDT')) {
                 quote = 'USDT';
-                settle = 'USDT';
             }
             else {
                 quote = 'USDC';
-                settle = 'USDC';
             }
         }
         const strike = this.safeString(optionParts, 2);
@@ -1632,18 +1628,18 @@ class bybit extends bybit$1["default"] {
         const convertedExpireDate = this.convertExpireDateToMarketIdDate(expiry);
         return {
             'id': baseName + '-' + convertedExpireDate + '-' + strike + '-' + optionType,
-            'symbol': baseName + '/' + quote + ':' + settle + '-' + expiry + '-' + strike + '-' + optionType,
+            'symbol': baseName + '/' + quote + ':' + quote + '-' + expiry + '-' + strike + '-' + optionType,
             'base': baseName,
             'quote': quote,
-            'settle': settle,
+            'settle': quote,
             'baseId': baseName,
             'quoteId': quote,
-            'settleId': settle,
+            'settleId': quote,
             'active': false,
             'type': 'option',
-            'subType': (baseName === settle) ? 'inverse' : 'linear',
-            'linear': (baseName !== settle),
-            'inverse': (baseName === settle),
+            'subType': (baseName === quote) ? 'inverse' : 'linear',
+            'linear': (baseName !== quote),
+            'inverse': (baseName === quote),
             'spot': false,
             'swap': false,
             'future': false,

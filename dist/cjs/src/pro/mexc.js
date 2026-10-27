@@ -932,8 +932,8 @@ class mexc extends mexc$1["default"] {
         const nonce = this.safeInteger(storedOrderBook, 'nonce');
         let shouldReturn = false;
         if (nonce === undefined) {
-            const cacheLength = storedOrderBook.cache.length;
-            const snapshotDelay = this.handleOption('watchOrderBook', 'snapshotDelay', 25);
+            const cacheLength = this.parseToInt(storedOrderBook.cache.length);
+            const snapshotDelay = this.parseToInt(this.handleOption('watchOrderBook', 'snapshotDelay', 25));
             if (cacheLength === snapshotDelay) {
                 this.spawn(this.loadOrderBook, client, messageHash, symbol, limit, {});
             }

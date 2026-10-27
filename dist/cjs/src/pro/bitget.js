@@ -30,6 +30,7 @@ class bitget extends bitget$1["default"] {
                 'watchBalance': true,
                 'watchMyTrades': true,
                 'watchOHLCV': true,
+                'unWatchOHLCV': true,
                 'watchOHLCVForSymbols': false,
                 'watchOrderBook': true,
                 'watchOrderBookForSymbols': true,
@@ -38,6 +39,7 @@ class bitget extends bitget$1["default"] {
                 'watchTickers': true,
                 'watchBidsAsks': true,
                 'watchTrades': true,
+                'unWatchTrades': true,
                 'watchTradesForSymbols': true,
                 'watchPositions': true,
             },
@@ -964,7 +966,7 @@ class bitget extends bitget$1["default"] {
         }
         const marketId = this.safeString2(arg, 'instId', 'symbol');
         const market = this.safeMarket(marketId, undefined, undefined, marketType);
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         const messageHash = 'orderbook:' + symbol;
         const data = this.safeValue(message, 'data');
         // tokenized stock snapshots arrive as a plain dict instead of a list
@@ -2565,7 +2567,7 @@ class bitget extends bitget$1["default"] {
                     const code = this.safeCurrencyCode(currencyId);
                     let account = this.account();
                     if ((code !== undefined) && (code in this.balance)) {
-                        account = this.balance[code];
+                        account = this.safeDict(this.balance, code, account);
                     }
                     const borrow = this.safeString(entry, 'borrow');
                     const debts = this.safeString(entry, 'debts');
@@ -2585,7 +2587,7 @@ class bitget extends bitget$1["default"] {
                 const code = this.safeCurrencyCode(currencyId);
                 let account = this.account();
                 if ((code !== undefined) && (code in this.balance)) {
-                    account = this.balance[code];
+                    account = this.safeDict(this.balance, code, account);
                 }
                 const borrow = this.safeString(rawBalance, 'borrow');
                 if (borrow !== undefined) {
