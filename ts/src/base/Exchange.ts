@@ -4291,24 +4291,24 @@ export class BaseExchange {
         if (!(marketType in this.features)) {
             return defaultValue; // unsupported marketType, check "exchange.features" for details
         }
+        let methodsContainer: NullableDict = this.features[marketType];
         // if marketType dict undefined
-        if (this.features[marketType] === undefined) {
+        if (methodsContainer === undefined) {
             return defaultValue;
         }
-        let methodsContainer = this.features[marketType];
         if (subType === undefined) {
             if (marketType !== 'spot') {
                 return defaultValue; // subType is required for non-spot markets
             }
         } else {
-            if (!(subType in this.features[marketType])) {
+            if (!(subType in methodsContainer)) {
                 return defaultValue; // unsupported subType, check "exchange.features" for details
             }
+            methodsContainer = methodsContainer[subType];
             // if subType dict undefined
-            if (this.features[marketType][subType] === undefined) {
+            if (methodsContainer === undefined) {
                 return defaultValue;
             }
-            methodsContainer = this.features[marketType][subType];
         }
         // if user wanted only marketType and didn't provide methodName, eg: featureIsSupported('spot')
         if (methodName === undefined) {
@@ -4317,7 +4317,7 @@ export class BaseExchange {
         if (!(methodName in methodsContainer)) {
             return defaultValue; // unsupported method, check "exchange.features" for details');
         }
-        const methodDict = methodsContainer[methodName];
+        const methodDict: Dict = methodsContainer[methodName];
         if (methodDict === undefined) {
             return defaultValue;
         }
