@@ -10938,6 +10938,9 @@ export function hx4C17NativeHelperCalls (content: string): string {
             return (d !== undefined) && nullGuarded (region, arg, line);
         }
         if ([ 'this.uuid', 'this.uuid16', 'this.uuid22' ].includes (call[1]) && (ownReturns[call[1].slice (5)] === undefined)) return true;
+        // BinaryToBase16 (a null buffer throws in the hex loop) and IntToBase16 (Convert.ToInt64(null) is 0) never answer null
+        if ([ 'this.binaryToBase16', 'this.intToBase16' ].includes (call[1]) && (comma === undefined)
+                && !ownMember (call[1].slice (5)) && (ownReturns[call[1].slice (5)] === undefined)) return true;
         // SafeString / SafeString2 answer `defaultValue as string` for a missing / null value
         const arity = { 'this.safeString': 3, 'this.safeString2': 4 }[call[1]];
         if (arity !== undefined) {
@@ -11052,6 +11055,8 @@ export function hx4C17SelfTest (): string[] {
         }
     };
     check ('string param left', 'object q = add(b, a);', 'object q = (b + a);');
+    check ('binaryToBase16 box accumulates natively', 'object h = this.binaryToBase16(a);\nobject d = add(add(h, \"00\"), this.intToBase16(a));\nd = add(d, \"01\");', 'd = (d + \"01\");');
+    check ('implodeHostname box keeps helper', 'object u = this.implodeHostname(a);\nobject d = add(u, \"/x\");', 'add(u, \"/x\")');
     check ('string? chain', 'object q = add(add(c, "-"), a);', '((c + "-") + a)');
     check ('object param left keeps helper', 'object q = add(a, "x");', 'add(a, "x")');
     check ('object literal-initialised local', 'object x = "/";\nx = add(x, b);', 'x = (x + b);');
