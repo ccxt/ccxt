@@ -1,5 +1,5 @@
 import Exchange from './abstract/bybit.js';
-import type { Int, OrderSide, OrderType, Trade, Order, OHLCV, FundingRateHistory, OpenInterest, OrderRequest, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, CurrencyInterface, MarketInterface, TransferEntry, Liquidation, Leverage, List, Num, FundingHistory, Option, OptionChain, TradingFeeInterface, Currencies, TradingFees, CancellationRequest, Position, CrossBorrowRate, Dict, LeverageTier, LeverageTiers, int, LedgerEntry, Conversion, FundingRate, FundingRates, DepositAddress, LongShortRatio, BorrowInterest, MarginMode, ADL, Bool, DepositWithdrawFees, Status, MarginLoan, AllGreeks, DepositAddresses } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, Order, OHLCV, FundingRateHistory, OpenInterest, OrderRequest, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, CurrencyInterface, MarketInterface, TransferEntry, Liquidation, Leverage, List, Num, FundingHistory, Option, OptionChain, TradingFeeInterface, Currencies, TradingFees, CancellationRequest, Position, CrossBorrowRate, Dict, NullableDict, LeverageTier, LeverageTiers, int, LedgerEntry, Conversion, FundingRate, FundingRates, DepositAddress, LongShortRatio, BorrowInterest, MarginMode, ADL, Bool, DepositWithdrawFees, Status, MarginLoan, AllGreeks, DepositAddresses } from './base/types.js';
 /**
  * @class bybit
  * @augments Exchange
@@ -25,7 +25,7 @@ export default class bybit extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} [enableUnifiedMargin, enableUnifiedAccount]
      */
-    isUnifiedEnabled(params?: Dict): Promise<any[]>;
+    isUnifiedEnabled(params?: Dict): Promise<[boolean, boolean]>;
     /**
      * @method
      * @name bybit#upgradeUnifiedTradeAccount
@@ -215,7 +215,7 @@ export default class bybit extends Exchange {
     createMarketBuyOrderWithCost(symbol: string, cost: number, params?: Dict): Promise<Order>;
     /**
      * @method
-     * @name bybit#createMarkeSellOrderWithCost
+     * @name bybit#createMarketSellOrderWithCost
      * @description create a market sell order by providing the symbol and cost
      * @see https://bybit-exchange.github.io/docs/v5/order/create-order
      * @param {string} symbol unified symbol of the market to create an order in
@@ -742,7 +742,7 @@ export default class bybit extends Exchange {
      * @returns An array of open interest structures
      */
     fetchOpenInterestHistory(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OpenInterest[]>;
-    parseOpenInterest(interest: any, market?: Market): OpenInterest;
+    parseOpenInterest(interest: NullableDict, market?: Market): OpenInterest;
     /**
      * @method
      * @name bybit#fetchCrossBorrowRate
@@ -874,7 +874,7 @@ export default class bybit extends Exchange {
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
     fetchTradingFees(params?: Dict): Promise<TradingFees>;
-    parseDepositWithdrawFee(fee: any, currency?: Currency): any;
+    parseDepositWithdrawFee(fee: NullableDict, currency?: Currency): any;
     /**
      * @method
      * @name bybit#fetchDepositWithdrawFees

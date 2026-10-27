@@ -1140,7 +1140,8 @@ class cex extends cex$1["default"] {
             'orderId': parseInt(id),
         };
         const result = await this.fetchOpenOrders(symbol, undefined, undefined, this.extend(request, params));
-        return result[0];
+        const order = this.safeDict(result, 0);
+        return order;
     }
     /**
      * @method
@@ -1160,7 +1161,8 @@ class cex extends cex$1["default"] {
             'orderId': parseInt(id),
         };
         const result = await this.fetchClosedOrders(symbol, undefined, undefined, this.extend(request, params));
-        return result[0];
+        const order = this.safeDict(result, 0);
+        return order;
     }
     parseOrderStatus(status) {
         const statuses = {

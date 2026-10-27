@@ -240,8 +240,8 @@ class gemini(ccxt.async_support.gemini):
             tradesLimit = self.safe_integer(self.options, 'tradesLimit', 1000)
             storesForSymbols = {}
             for i in range(0, len(trades)):
-                marketId = trades[i]['symbol']
-                market = self.safe_market(marketId.lower())
+                marketId = self.safe_string(trades[i], 'symbol', '').lower()
+                market = self.safe_market(marketId)
                 symbol = market['symbol']
                 trade = self.parse_ws_trade(trades[i], market)
                 trade['timestamp'] = timestamp
@@ -325,9 +325,9 @@ class gemini(ccxt.async_support.gemini):
         #     }
         #
         type = self.safe_string(message, 'type', '')
-        timeframeId = type[8:]
-        timeframeEndIndex = timeframeId.find('_')
-        timeframeId = timeframeId[0:timeframeEndIndex]
+        timeframeIdFull = type[8:]
+        timeframeEndIndex = timeframeIdFull.find('_')
+        timeframeId = timeframeIdFull[0:timeframeEndIndex]
         marketId = self.safe_string(message, 'symbol', '').lower()
         market = self.safe_market(marketId)
         symbol = self.safe_symbol(marketId, market)
@@ -480,8 +480,9 @@ class gemini(ccxt.async_support.gemini):
         #     type: 'update'
         # }
         #
-        marketId = rawBidAskChanges[0]['symbol']
-        market = self.safe_market(marketId.lower())
+        firstBidAsk = rawBidAskChanges[0]
+        marketId = self.safe_string(firstBidAsk, 'symbol', '').lower()
+        market = self.safe_market(marketId)
         symbol = market['symbol']
         if not (symbol in self.bidsasks):
             self.bidsasks[symbol] = self.parse_ticker({})
@@ -557,8 +558,9 @@ class gemini(ccxt.async_support.gemini):
         #   },
         #   ...
         #
-        marketId = rawOrderBookChanges[0]['symbol']
-        market = self.safe_market(marketId.lower())
+        firstChange = rawOrderBookChanges[0]
+        marketId = self.safe_string(firstChange, 'symbol', '').lower()
+        market = self.safe_market(marketId)
         symbol = market['symbol']
         messageHash = 'orderbook:' + symbol
         if not (symbol in self.orderbooks):
@@ -877,7 +879,8 @@ class gemini(ccxt.async_support.gemini):
             for i in range(0, len(events)):
                 event = events[i]
                 eventType = self.safe_string(event, 'type')
-                isOrderBook = (eventType == 'change') and ('side' in event) and self.in_array(event['side'], ['ask', 'bid'])
+                side = self.safe_string(event, 'side')
+                isOrderBook = (eventType == 'change') and (side is not None) and self.in_array(side, ['ask', 'bid'])
                 eventReason = self.safe_string(event, 'reason')
                 isBidAsk = (eventReason == 'top-of-book') or (isOrderBook and (eventReason == 'initial') and eventsLength == 2)
                 if isBidAsk:
@@ -903,7 +906,8 @@ class gemini(ccxt.async_support.gemini):
         if (self.clients is not None) and (url in self.clients):
             return
         self.check_required_credentials()
-        startIndex = len(self.urls['api']['ws'])
+        wsBaseUrl = self.safe_string(self.urls['api'], 'ws', '')
+        startIndex = len(wsBaseUrl)
         urlParamsIndex = url.find('?')
         urlLength = len(url)
         endIndex = urlParamsIndex if (urlParamsIndex >= 0) else urlLength

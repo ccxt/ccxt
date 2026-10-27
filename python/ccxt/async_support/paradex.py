@@ -840,7 +840,6 @@ class paradex(Exchange, ImplicitAPI):
             'resolution': self.safe_string(self.timeframes, timeframe, timeframe),
             'symbol': market['id'],
         }
-        maxLimit = 1000  # exchange has undocumented limit slightly above, but this is reliable limit
         duration = self.parse_timeframe(timeframe)
         price = self.safe_string(params, 'price')
         if price is not None:
@@ -848,15 +847,19 @@ class paradex(Exchange, ImplicitAPI):
         requestUntil, paramsUntil = self.handle_until_option('end_at', request, params)
         hasEnd = ('end_at' in request)
         paramsOmitted = self.omit(paramsUntil, ['price'])
-        limitResolved = maxLimit if (limit is None) else min(limit, maxLimit)
+        # exchange has undocumented limit slightly above, but 1000 is reliable limit
+        limitResolved = 1000 if ((limit is None) or (limit > 1000)) else limit
+        windowLength = self.parse_to_int(duration * (self.parse_to_int(limitResolved) + 1) * 1000)
         if since is not None:
             requestUntil['start_at'] = since
             if not hasEnd:
-                requestUntil['end_at'] = since + duration * (limitResolved + 1) * 1000 - 1
+                sinceInt = self.parse_to_int(since)
+                requestUntil['end_at'] = sinceInt + windowLength - 1
         else:
-            if not hasEnd:
-                requestUntil['end_at'] = self.milliseconds()
-            requestUntil['start_at'] = requestUntil['end_at'] - duration * (limitResolved + 1) * 1000 + 1
+            endAtRaw = self.safe_integer(requestUntil, 'end_at', 0) if hasEnd else self.milliseconds()
+            endAt = self.parse_to_int(endAtRaw)
+            requestUntil['end_at'] = endAt
+            requestUntil['start_at'] = endAt - windowLength + 1
         response = await self.publicGetMarketsKlines(self.extend(requestUntil, paramsOmitted))
         #
         #     {
@@ -1333,7 +1336,7 @@ class paradex(Exchange, ImplicitAPI):
         interest = self.safe_dict(data, 0, {})
         return self.parse_open_interest(interest, market)
 
-    def parse_open_interest(self, interest: object, market: Market = None) -> OpenInterest:
+    def parse_open_interest(self, interest: dict, market: Market = None) -> OpenInterest:
         #
         #     {
         #         "symbol": "BTC-USD-PERP",
@@ -1364,7 +1367,7 @@ class paradex(Exchange, ImplicitAPI):
             'info': interest,
         }, marketResolved)
 
-    def hash_message(self, message: object):
+    def hash_message(self, message: object) -> str:
         hashed = self.hash(message, 'keccak', 'hex')
         return '0x' + hashed
 
@@ -1379,44 +1382,14 @@ class paradex(Exchange, ImplicitAPI):
         return self.sign_hash(self.hash_message(message), privateKey[-64:])
 
     async def get_system_config(self) -> dict:
-        cachedConfig = self.safe_dict(self.options, 'systemConfig')
-        if cachedConfig is not None:
-            return cachedConfig
-        response = await self.publicGetSystemConfig()
-        #
-        # {
-        #     "starknet_gateway_url": "https://potc-testnet-sepolia.starknet.io",
-        #     "starknet_fullnode_rpc_url": "https://pathfinder.api.testnet.paradex.trade/rpc/v0_7",
-        #     "starknet_chain_id": "PRIVATE_SN_POTC_SEPOLIA",
-        #     "block_explorer_url": "https://voyager.testnet.paradex.trade/",
-        #     "paraclear_address": "0x286003f7c7bfc3f94e8f0af48b48302e7aee2fb13c23b141479ba00832ef2c6",
-        #     "paraclear_decimals": 8,
-        #     "paraclear_account_proxy_hash": "0x3530cc4759d78042f1b543bf797f5f3d647cde0388c33734cf91b7f7b9314a9",
-        #     "paraclear_account_hash": "0x41cb0280ebadaa75f996d8d92c6f265f6d040bb3ba442e5f86a554f1765244e",
-        #     "oracle_address": "0x2c6a867917ef858d6b193a0ff9e62b46d0dc760366920d631715d58baeaca1f",
-        #     "bridged_tokens": [
-        #         {
-        #             "name": "TEST USDC",
-        #             "symbol": "USDC",
-        #             "decimals": 6,
-        #             "l1_token_address": "0x29A873159D5e14AcBd63913D4A7E2df04570c666",
-        #             "l1_bridge_address": "0x8586e05adc0C35aa11609023d4Ae6075Cb813b4C",
-        #             "l2_token_address": "0x6f373b346561036d98ea10fb3e60d2f459c872b1933b50b21fe6ef4fda3b75e",
-        #             "l2_bridge_address": "0x46e9237f5408b5f899e72125dd69bd55485a287aaf24663d3ebe00d237fc7ef"
-        #         }
-        #     ],
-        #     "l1_core_contract_address": "0x582CC5d9b509391232cd544cDF9da036e55833Af",
-        #     "l1_operator_address": "0x11bACdFbBcd3Febe5e8CEAa75E0Ef6444d9B45FB",
-        #     "l1_chain_id": "11155111",
-        #     "liquidation_fee": "0.2"
-        # }
-        #
-        self.options['systemConfig'] = response
+        if self.safe_dict(self.options, 'systemConfig') is None:
+            response = await self.publicGetSystemConfig()
+            self.options['systemConfig'] = response
         return self.safe_dict(self.options, 'systemConfig', {})
 
     async def prepare_paradex_domain(self, l1: bool = False) -> dict:
         systemConfig = await self.get_system_config()
-        if l1 is True:
+        if l1:
             l1D = {
                 'name': 'Paradex',
                 'chainId': systemConfig['l1_chain_id'],
@@ -1431,29 +1404,27 @@ class paradex(Exchange, ImplicitAPI):
         return domain
 
     async def retrieve_account(self) -> dict:
-        cachedAccount = self.safe_dict(self.options, 'paradexAccount')
-        if cachedAccount is not None:
-            return cachedAccount
-        self.check_required_credentials()
-        systemConfig = await self.get_system_config()
-        domain = await self.prepare_paradex_domain(True)
-        messageTypes = {
-            'Constant': [
-                {'name': 'action', 'type': 'string'},
-            ],
-        }
-        message = {
-            'action': 'STARK Key',
-        }
-        msg = self.eth_encode_structured_data(domain, messageTypes, message)
-        signature = self.sign_message(msg, self.privateKey)
-        account = self.retrieve_stark_account(
-            signature,
-            systemConfig['paraclear_account_hash'],
-            systemConfig['paraclear_account_proxy_hash']
-        )
-        self.options['paradexAccount'] = account
-        return account
+        if self.safe_dict(self.options, 'paradexAccount') is None:
+            self.check_required_credentials()
+            systemConfig = await self.get_system_config()
+            domain = await self.prepare_paradex_domain(True)
+            messageTypes = {
+                'Constant': [
+                    {'name': 'action', 'type': 'string'},
+                ],
+            }
+            message = {
+                'action': 'STARK Key',
+            }
+            msg = self.eth_encode_structured_data(domain, messageTypes, message)
+            signature = self.sign_message(msg, self.privateKey)
+            account = self.retrieve_stark_account(
+                signature,
+                systemConfig['paraclear_account_hash'],
+                systemConfig['paraclear_account_proxy_hash']
+            )
+            self.options['paradexAccount'] = account
+        return self.safe_dict(self.options, 'paradexAccount', {})
 
     async def onboarding(self, params: dict = {}):
         account = await self.retrieve_account()
@@ -1476,7 +1447,7 @@ class paradex(Exchange, ImplicitAPI):
 
     async def authenticate_rest(self, params: dict = {}) -> Str:
         cachedToken = self.safe_string(self.options, 'authToken')
-        now = self.nonce()
+        now = self.parse_to_int(self.nonce())
         if cachedToken is not None:
             cachedExpires = self.safe_integer(self.options, 'expires')
             if cachedExpires is None:
@@ -1608,7 +1579,7 @@ class paradex(Exchange, ImplicitAPI):
             'info': order,
         }, marketResolved)
 
-    def parse_time_in_force(self, timeInForce: Str):
+    def parse_time_in_force(self, timeInForce: Str) -> Str:
         timeInForces = {
             'IOC': 'IOC',
             'GTC': 'GTC',
@@ -1616,7 +1587,7 @@ class paradex(Exchange, ImplicitAPI):
         }
         return self.safe_string(timeInForces, timeInForce)
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         if status is not None:
             statuses = {
                 'NEW': 'open',
@@ -1627,7 +1598,7 @@ class paradex(Exchange, ImplicitAPI):
             return self.safe_string(statuses, status, status)
         return None
 
-    def parse_order_type(self, type: Str):
+    def parse_order_type(self, type: Str) -> Str:
         types = {
             'LIMIT': 'limit',
             'MARKET': 'market',
@@ -1636,7 +1607,7 @@ class paradex(Exchange, ImplicitAPI):
         }
         return self.safe_string_lower(types, type, type)
 
-    def scale_number(self, num: str):
+    def scale_number(self, num: str) -> Str:
         return Precise.string_mul(num, '100000000')
 
     def create_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params: dict = {}) -> dict:
@@ -1717,7 +1688,7 @@ class paradex(Exchange, ImplicitAPI):
 
     async def sign_order_request(self, request: dict, modify: bool = False) -> dict:
         account = await self.retrieve_account()
-        now = self.nonce()
+        now = self.parse_to_int(self.nonce())
         orderType = self.safe_string(request, 'type')
         if orderType is None:
             raise ExchangeError(self.id + ' signOrderRequest() missing orderType')
@@ -1752,9 +1723,11 @@ class paradex(Exchange, ImplicitAPI):
         domain = await self.prepare_paradex_domain()
         msg = self.starknet_encode_structured_data(domain, messageTypes, orderReq, account['address'])
         signature = self.starknet_sign(msg, account['privateKey'])
-        request['signature'] = signature
-        request['signature_timestamp'] = orderReq['timestamp']
-        return request
+        signedRequest = self.extend(request, {
+            'signature': signature,
+            'signature_timestamp': orderReq['timestamp'],
+        })
+        return signedRequest
 
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
@@ -1934,13 +1907,14 @@ class paradex(Exchange, ImplicitAPI):
         responseOrders = self.safe_list(response, 'orders', [])
         parsedOrders = self.parse_orders(responseOrders)
         errors = self.safe_list(response, 'errors', [])
+        rejected = []
         for i in range(0, len(errors)):
             error = errors[i]
-            parsedOrders.append(self.safe_order({
+            rejected.append(self.safe_order({
                 'info': error,
                 'status': 'rejected',
             }))
-        return parsedOrders
+        return self.array_concat(parsedOrders, rejected)
 
     async def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
@@ -2795,7 +2769,7 @@ class paradex(Exchange, ImplicitAPI):
             'fee': None,
         }
 
-    def parse_transaction_status(self, status: Str):
+    def parse_transaction_status(self, status: Str) -> Str:
         statuses = {
             'PENDING': 'pending',
             'AVAILABLE': 'pending',
@@ -3267,7 +3241,7 @@ class paradex(Exchange, ImplicitAPI):
         sorted = self.sort_by(rates, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, self.safe_string(market, 'symbol'), since, limit)
 
-    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
         apiName = api[0]
         version = self.version
         pathValue = path

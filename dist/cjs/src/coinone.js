@@ -1275,7 +1275,7 @@ class coinone extends coinone$1["default"] {
                 result[code] = depositAddress;
             }
         }
-        return result;
+        return this.toArray(result);
     }
     sign(path, api = ['public'], method = 'GET', params = {}) {
         const apiName = api[0];

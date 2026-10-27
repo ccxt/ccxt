@@ -2580,8 +2580,9 @@ class bitrue extends bitrue$1["default"] {
         if (since !== undefined) {
             request['startTime'] = since;
         }
-        const limitResolved = (limit === undefined) ? undefined : Math.min(limit, 1000);
-        if (limitResolved !== undefined) {
+        let limitResolved = undefined;
+        if (limit !== undefined) {
+            limitResolved = (limit > 1000) ? 1000 : limit;
             request['limit'] = limitResolved;
         }
         if (market['swap'] === true) {
@@ -3109,8 +3110,9 @@ class bitrue extends bitrue$1["default"] {
         if (since !== undefined) {
             request['beginTime'] = since;
         }
-        const limitResolved = (limit === undefined) ? undefined : Math.min(limit, 200);
-        if (limitResolved !== undefined) {
+        let limitResolved = undefined;
+        if (limit !== undefined) {
+            limitResolved = (limit > 200) ? 200 : limit;
             request['limit'] = limitResolved;
         }
         const until = this.safeInteger(params, 'until');
@@ -3366,7 +3368,8 @@ class bitrue extends bitrue$1["default"] {
         // error response in a form: { "code": -1013, "msg": "Invalid quantity." }
         // following block contains legacy checks against message patterns in "msg" property
         // will switch "code" checks eventually, when we know all of them
-        if (code >= 400) {
+        const statusCode = this.parseToInt(code);
+        if (statusCode >= 400) {
             if (body.indexOf('Price * QTY is zero or less') >= 0) {
                 throw new errors.InvalidOrder(this.id + ' order cost = amount * price is zero or less ' + body);
             }
@@ -3384,7 +3387,7 @@ class bitrue extends bitrue$1["default"] {
         // response in format {'msg': 'The coin does not exist.', 'success': true/false}
         const success = this.safeBool(response, 'success', true);
         let parsedMessage = undefined;
-        if (success !== true) {
+        if (!success) {
             const messageInner = this.safeString(response, 'msg');
             if (messageInner !== undefined) {
                 try {
@@ -3420,7 +3423,7 @@ class bitrue extends bitrue$1["default"] {
             this.throwExactlyMatchedException(this.exceptions['exact'], error, feedback);
             throw new errors.ExchangeError(feedback);
         }
-        if (success !== true) {
+        if (!success) {
             throw new errors.ExchangeError(this.id + ' ' + body);
         }
         return undefined;
@@ -3430,11 +3433,12 @@ class bitrue extends bitrue$1["default"] {
             return config['noSymbol'];
         }
         else if (('byLimit' in config) && ('limit' in params)) {
-            const limit = params['limit'];
+            const limit = this.safeInteger(params, 'limit');
             const byLimit = this.safeList(config, 'byLimit', []);
             for (let i = 0; i < byLimit.length; i++) {
                 const entry = byLimit[i];
-                if (limit <= entry[0]) {
+                const threshold = this.safeInteger(entry, 0);
+                if (limit !== undefined && threshold !== undefined && limit <= threshold) {
                     return entry[1];
                 }
             }

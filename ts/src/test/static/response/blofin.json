@@ -3,6 +3,58 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "fetchFundingRate": [
+            {
+                "description": "funding rate interval from fundingInterval and its unit",
+                "method": "fetchFundingRate",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "success",
+                    "data": [
+                        {
+                            "instId": "BTC-USDT",
+                            "fundingRate": "0.00020736000000000002",
+                            "fundingTime": "1792742400000",
+                            "fundingInterval": "8",
+                            "fundingIntervalUnit": "hour",
+                            "fundingRateCap": "0.005",
+                            "fundingRateFloor": "-0.005"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "info": {
+                        "instId": "BTC-USDT",
+                        "fundingRate": "0.00020736000000000002",
+                        "fundingTime": "1792742400000",
+                        "fundingInterval": "8",
+                        "fundingIntervalUnit": "hour",
+                        "fundingRateCap": "0.005",
+                        "fundingRateFloor": "-0.005"
+                    },
+                    "symbol": "BTC/USDT:USDT",
+                    "markPrice": null,
+                    "indexPrice": null,
+                    "interestRate": 0,
+                    "estimatedSettlePrice": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "fundingRate": 0.00020736000000000002,
+                    "fundingTimestamp": 1792742400000,
+                    "fundingDatetime": "2026-10-23T08:00:00.000Z",
+                    "nextFundingRate": null,
+                    "nextFundingTimestamp": null,
+                    "nextFundingDatetime": null,
+                    "previousFundingRate": null,
+                    "previousFundingTimestamp": null,
+                    "previousFundingDatetime": null,
+                    "interval": "8h"
+                }
+            }
+        ],
         "fetchDepositAddress": [
             {
                 "description": "deposit address for USDT on TRC20",
@@ -950,10 +1002,11 @@
                         "datetime": "2026-05-05T15:39:48.333Z",
                         "lastUpdateTimestamp": null,
                         "maintenanceMargin": null,
-                        "maintenanceMarginPercentage": 0,
+                        "maintenanceMarginPercentage": null,
+                        "positionMargin": null,
                         "collateral": null,
                         "initialMargin": null,
-                        "initialMarginPercentage": null,
+                        "initialMarginPercentage": 0.02,
                         "leverage": 50,
                         "marginRatio": null,
                         "stopLossPrice": null,
@@ -1645,7 +1698,7 @@
                         },
                         "id": null,
                         "symbol": "LTC/USDT:USDT",
-                        "notional": null,
+                        "notional": 67.83143340000001,
                         "marginMode": "cross",
                         "liquidationPrice": 6.588863861975257,
                         "entryPrice": 67.85,
@@ -1663,10 +1716,11 @@
                         "datetime": "2024-02-06T13:04:38.837Z",
                         "lastUpdateTimestamp": null,
                         "maintenanceMargin": 0.33915716700000004,
-                        "maintenanceMarginPercentage": 0,
+                        "maintenanceMarginPercentage": 0.005,
+                        "positionMargin": null,
                         "collateral": 22.591911200000013,
                         "initialMargin": 22.6104778,
-                        "initialMarginPercentage": null,
+                        "initialMarginPercentage": 0.3333,
                         "leverage": 3,
                         "marginRatio": 0.015,
                         "stopLossPrice": null,

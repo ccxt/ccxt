@@ -1158,7 +1158,6 @@ export default class nado extends nadoRest {
     async unWatchPublicMultiple(streamType, markets, messageHashes, params = {}, subscriptionParams = undefined) {
         const url = this.urls['api']['ws']['subscriptions'];
         const client = this.client(url);
-        const results = [];
         for (let i = 0; i < messageHashes.length; i++) {
             const messageHash = messageHashes[i];
             const id = this.requestId();
@@ -1173,9 +1172,9 @@ export default class nado extends nadoRest {
                 'messageHash': messageHash,
                 'unsubscribeHash': unsubscribeHash,
             };
-            results.push(await this.watchMultiple(url, [unsubscribeHash], request, [unsubscribeHash], subscription));
+            await this.watchMultiple(url, [unsubscribeHash], request, [unsubscribeHash], subscription);
         }
-        return results;
+        return true;
     }
     parseWsTimestamp(message, key) {
         const value = this.safeString(message, key);
@@ -1716,7 +1715,7 @@ export default class nado extends nadoRest {
                 this.cleanUnsubscription(client, messageHash, unsubscribeHash);
                 this.handleUnsubscriptionCache(messageHash);
             }
-            client.resolve(message, unsubscribeHash);
+            client.resolve(true, unsubscribeHash);
             return;
         }
         const subscriptions = Object.keys(client.subscriptions);
@@ -1732,7 +1731,7 @@ export default class nado extends nadoRest {
                 this.cleanUnsubscription(client, messageHash, unsubscribeHash);
                 this.handleUnsubscriptionCache(messageHash);
             }
-            client.resolve(message, unsubscribeHash);
+            client.resolve(true, unsubscribeHash);
             return;
         }
     }

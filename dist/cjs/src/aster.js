@@ -1002,10 +1002,11 @@ class aster extends aster$1["default"] {
             spot = false;
             swap = true;
             settleId = this.safeString(market, 'marginAsset');
-            settle = this.safeCurrencyCode(settleId);
-            symbol = base + '/' + quote + ':' + settle;
-            linear = settle === quote;
-            inverse = settle === base;
+            const settleCode = this.safeCurrencyCode(settleId);
+            settle = settleCode;
+            symbol = base + '/' + quote + ':' + settleCode;
+            linear = settleCode === quote;
+            inverse = settleCode === base;
             contractSize = this.safeNumber2(market, 'contractSize', 'unit', this.parseNumber('1'));
         }
         else {
@@ -1346,7 +1347,7 @@ class aster extends aster$1["default"] {
             request = this.handleUntilOption('endTime', request, params);
         }
         // use historical endpoint for targeted requests
-        if ('startTime' in request) {
+        if (sinceDefined) {
             if (market['swap'] === true) {
                 response = await this.fapiPublicGetV3AggTrades(this.extend(request, params));
             }
@@ -1753,7 +1754,7 @@ class aster extends aster$1["default"] {
             results.push(priceData);
         }
         const symbolsNormalized2 = this.marketSymbols(symbolsNormalized);
-        return this.filterByArray(results, 'symbol', symbolsNormalized2);
+        return this.indexBy(this.filterByArray(results, 'symbol', symbolsNormalized2, false), 'symbol');
     }
     parseLastPrice(entry, market = undefined) {
         //
@@ -2861,7 +2862,7 @@ class aster extends aster$1["default"] {
             triggerPriceIsRequired = true;
         }
         else if ((uppercaseType === 'STOP_MARKET') || (uppercaseType === 'TAKE_PROFIT_MARKET')) {
-            if (closePosition !== true) {
+            if (!closePosition) {
                 quantityIsRequired = true;
             }
             triggerPriceIsRequired = true;
@@ -2899,9 +2900,7 @@ class aster extends aster$1["default"] {
             if (stopPrice === undefined) {
                 throw new errors.InvalidOrder(this.id + ' createOrder() requires a stopPrice extra param for a ' + type + ' order');
             }
-            if (stopPrice !== undefined) {
-                request['stopPrice'] = this.priceToPrecision(symbol, stopPrice);
-            }
+            request['stopPrice'] = this.priceToPrecision(symbol, stopPrice);
         }
         const [tifOption, paramsTifOption] = this.handleOptionStringAndParams(params, 'createOrder', 'timeInForce');
         const tifIsMissing = timeInForceIsRequired && (this.safeString(params, 'timeInForce') === undefined) && (this.safeString(request, 'timeInForce') === undefined);
@@ -3579,7 +3578,7 @@ class aster extends aster$1["default"] {
         let maintenanceMarginPercentageString = undefined;
         for (let i = 0; i < leverageBracket.length; i++) {
             const bracket = leverageBracket[i];
-            if (Precise["default"].stringLt(notionalStringAbs, bracket[0])) {
+            if (Precise["default"].stringLt(notionalStringAbs, this.safeString(bracket, 0))) {
                 break;
             }
             maintenanceMarginPercentageString = this.safeString(bracket, 1);
@@ -3653,7 +3652,9 @@ class aster extends aster$1["default"] {
         else {
             collateralString = this.safeString(position, 'isolatedMargin');
         }
-        collateralString = (collateralString === undefined) ? '0' : collateralString;
+        if (collateralString === undefined) {
+            collateralString = '0';
+        }
         const collateral = this.parseNumber(collateralString);
         const markPrice = this.parseNumber(this.omitZero(this.safeString(position, 'markPrice')));
         let timestamp = this.safeInteger(position, 'updateTime');
@@ -3671,7 +3672,7 @@ class aster extends aster$1["default"] {
         let initialMarginPercentageString = undefined;
         const leverageString = this.safeString(position, 'leverage');
         if (leverageString !== undefined) {
-            const leverage = parseInt(leverageString);
+            const leverage = this.parseToInt(leverageString);
             const rational = this.isRoundNumber(1000 % leverage);
             initialMarginPercentageString = Precise["default"].stringDiv('1', leverageString, 8);
             if (!rational) {
@@ -3693,6 +3694,10 @@ class aster extends aster$1["default"] {
         }
         const positionSide = this.safeString(position, 'positionSide');
         const hedged = positionSide !== 'BOTH';
+        let isolatedWalletString = undefined;
+        if (marginMode === 'isolated') {
+            isolatedWalletString = this.safeString(position, 'isolatedWallet');
+        }
         return this.safePosition({
             'info': position,
             'id': undefined,
@@ -3702,6 +3707,7 @@ class aster extends aster$1["default"] {
             'unrealizedPnl': unrealizedPnl,
             'leverage': this.parseNumber(leverageString),
             'liquidationPrice': liquidationPrice,
+            'positionMargin': this.parseNumber(isolatedWalletString),
             'collateral': collateral,
             'notional': notional,
             'markPrice': markPrice,
@@ -3832,9 +3838,10 @@ class aster extends aster$1["default"] {
             if (!filterClosed || isPositionOpen) {
                 // sometimes not all the codes are correctly returned...
                 if (code in balances) {
+                    const balance = this.safeDict(balances, code);
                     const parsed = this.parseAccountPosition(this.extend(position, {
-                        'crossMargin': balances[code]['crossMargin'],
-                        'crossWalletBalance': balances[code]['crossWalletBalance'],
+                        'crossMargin': this.safeString(balance, 'crossMargin'),
+                        'crossWalletBalance': this.safeString(balance, 'crossWalletBalance'),
                     }), market);
                     result.push(parsed);
                 }
@@ -3847,15 +3854,12 @@ class aster extends aster$1["default"] {
         const marketResolved = this.safeMarket(marketId, market, undefined, 'contract');
         const symbol = this.safeString(marketResolved, 'symbol');
         const leverageString = this.safeString(position, 'leverage');
-        const leverage = (leverageString !== undefined) ? parseInt(leverageString) : undefined;
         const initialMarginString = this.safeString(position, 'initialMargin');
         const initialMargin = this.parseNumber(initialMarginString);
         let initialMarginPercentageString = undefined;
         if (leverageString !== undefined) {
             initialMarginPercentageString = Precise["default"].stringDiv('1', leverageString, 8);
-            if (leverage === undefined) {
-                throw new errors.ExchangeError(this.id + ' parseAccountPosition() missing leverage');
-            }
+            const leverage = this.parseToInt(leverageString);
             const rational = this.isRoundNumber(1000 % leverage);
             if (!rational) {
                 initialMarginPercentageString = Precise["default"].stringDiv(Precise["default"].stringAdd(initialMarginPercentageString, '1e-8'), '1', 8);
@@ -3884,7 +3888,7 @@ class aster extends aster$1["default"] {
         let maintenanceMarginPercentageString = undefined;
         for (let i = 0; i < leverageBracket.length; i++) {
             const bracket = leverageBracket[i];
-            if (Precise["default"].stringLt(notionalStringAbs, bracket[0])) {
+            if (Precise["default"].stringLt(notionalStringAbs, this.safeString(bracket, 0))) {
                 break;
             }
             maintenanceMarginPercentageString = this.safeString(bracket, 1);
@@ -3896,10 +3900,14 @@ class aster extends aster$1["default"] {
         if (timestamp === 0) {
             timestamp = undefined;
         }
-        let isolated = this.safeBool(position, 'isolated');
-        if (isolated === undefined) {
+        const isolatedRaw = this.safeBool(position, 'isolated');
+        let isolated = false;
+        if (isolatedRaw === undefined) {
             const isolatedMarginRaw = this.safeString(position, 'isolatedMargin');
             isolated = !Precise["default"].stringEq(isolatedMarginRaw, '0');
+        }
+        else {
+            isolated = (isolatedRaw === true);
         }
         let marginMode = undefined;
         let collateralString = undefined;
@@ -3973,8 +3981,7 @@ class aster extends aster$1["default"] {
             const pricePrecisionPlusOne = pricePrecision + 1;
             const pricePrecisionPlusOneString = pricePrecisionPlusOne.toString();
             // round half up
-            const rounder = new Precise["default"]('5e-' + pricePrecisionPlusOneString);
-            const rounderString = rounder.toString();
+            const rounderString = '5e-' + pricePrecisionPlusOneString;
             const liquidationPriceRoundedString = Precise["default"].stringAdd(rounderString, liquidationPriceStringRaw);
             let truncatedLiquidationPrice = Precise["default"].stringDiv(liquidationPriceRoundedString, '1', pricePrecision);
             if (truncatedLiquidationPrice === undefined) {
@@ -3989,6 +3996,10 @@ class aster extends aster$1["default"] {
         }
         const positionSide = this.safeString(position, 'positionSide');
         const hedged = positionSide !== 'BOTH';
+        let isolatedWalletString = undefined;
+        if (marginMode === 'isolated') {
+            isolatedWalletString = this.safeString(position, 'isolatedWallet');
+        }
         return {
             'info': position,
             'id': undefined,
@@ -4008,6 +4019,7 @@ class aster extends aster$1["default"] {
             'marginRatio': marginRatio,
             'liquidationPrice': liquidationPrice,
             'markPrice': undefined,
+            'positionMargin': this.parseNumber(isolatedWalletString),
             'collateral': collateral,
             'marginMode': marginMode,
             'side': side,
@@ -4421,11 +4433,11 @@ class aster extends aster$1["default"] {
     }
     async initializeClient(params = {}) {
         const builderFee = this.safeBool(params, 'builderFee', this.safeBool(this.options, 'builderFee', true)); // we shouldn't omit here
-        if (builderFee !== true) {
+        if (!builderFee) {
             return false; // skip if builder fee is not enabled
         }
         const approvedBuilderFee = this.safeBool(this.options, 'approvedBuilderFee', false);
-        if (approvedBuilderFee === true) {
+        if (approvedBuilderFee) {
             return true; // skip if builder fee is already approved
         }
         const result = await this.fapiPrivateGetV3Builder();
@@ -4442,10 +4454,11 @@ class aster extends aster$1["default"] {
         const approvedBuilders = result;
         const length = approvedBuilders.length;
         let found = false;
+        const builderAddress = this.safeString(this.options, 'builder');
         for (let i = 0; i < length; i++) {
             const builderInfo = this.safeDict(approvedBuilders, i, {});
             const builderAccountId = this.safeString(builderInfo, 'builderAddress');
-            if (builderAccountId === this.safeString(this.options, 'builder')) {
+            if (builderAccountId === builderAddress) {
                 found = true;
                 break;
             }

@@ -604,7 +604,10 @@ class bitbank(Exchange, ImplicitAPI):
         windowLimit = 1000 if (limit is None) else limit
         limitResolved = windowLimit if (since is None) else limit
         duration = self.parse_timeframe(timeframe)
-        sinceResolved = self.milliseconds() - duration * 1000 * windowLimit if (since is None) else since
+        windowMs = duration * 1000 * 1000
+        if limit is not None:
+            windowMs = duration * 1000 * limit
+        sinceResolved = self.milliseconds() - windowMs if (since is None) else since
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
@@ -705,7 +708,7 @@ class bitbank(Exchange, ImplicitAPI):
         #
         return self.parse_balance(response)
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         statuses = {
             'UNFILLED': 'open',
             'PARTIALLY_FILLED': 'open',
@@ -1047,7 +1050,7 @@ class bitbank(Exchange, ImplicitAPI):
     def nonce(self) -> float:
         return self.milliseconds()
 
-    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
         apiName = api[0]
         query = self.omit(params, self.extract_params(path))
         apiUrl = self.safe_string(self.urls['api'], apiName)
@@ -1076,14 +1079,15 @@ class bitbank(Exchange, ImplicitAPI):
                 auth = requestTime + timeWindow
             url += self.version + '/' + self.implode_params(path, params)
             if method == 'POST':
-                requestBody = self.json(query)
-                auth += requestBody
+                jsonBody = self.json(query)
+                requestBody = jsonBody
+                auth += jsonBody
             else:
                 auth += '/' + self.version + '/' + path
                 if len(query) > 0:
-                    query = self.urlencode(query)
-                    url += '?' + query
-                    auth += '?' + query
+                    queryString = self.urlencode(query)
+                    url += '?' + queryString
+                    auth += '?' + queryString
             requestHeaders = {
                 'Content-Type': 'application/json',
                 'ACCESS-KEY': self.apiKey,

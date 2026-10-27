@@ -38,8 +38,8 @@ async fn fetchTickersHelperTest(mut exchange: Value, mut skippedProperties: Valu
     crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), values.clone(), checkedSymbol.clone()]);
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_1543: bool = true;
-        while { if !__for_first_1543 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1543 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(values.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+        let mut __for_first_1582: bool = true;
+        while { if !__for_first_1582 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1582 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(values.len() as i64).as_f64().unwrap_or(f64::NAN) } {
         // todo: symbol check here
         let mut ticker: Value = values.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
@@ -69,7 +69,7 @@ fn fetchTickersAmountsTest(mut exchange: Value, mut skippedProperties: Value, mu
         let mut notInactiveSymbolsLength: Value = get_array_length(&nonInactiveMarkets);
         let mut obtainedTickersLength: Value = Value::Int(tickersValues.len() as i64);
         let mut minRatio: Value = Value::Float(0.99); // 1.0 - 0.01 = 0.99, hardcoded to avoid C# transpiler type casting issues
-        assert!(ccxt::runtime::is_true(&((obtainedTickersLength.as_f64().unwrap_or(f64::NAN) >= multiply(&notInactiveSymbolsLength, &minRatio).as_f64().unwrap_or(f64::NAN)))));
+        assert!(ccxt::runtime::is_true(&((obtainedTickersLength.as_f64().unwrap_or(f64::NAN) >= (match (&(notInactiveSymbolsLength), &(minRatio)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }).as_f64().unwrap_or(f64::NAN)))));
         //
         // ensure tickers length is less than markets length
         //

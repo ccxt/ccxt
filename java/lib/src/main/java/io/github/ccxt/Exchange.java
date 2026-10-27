@@ -55,7 +55,7 @@ public class Exchange extends BaseExchange implements TypedSurface {
     @SuppressWarnings("unchecked")
     public void loadOrderBook(Client client, Object messageHash, Object symbol, Object limit, Object params) {
         try {
-            if (!Helpers.inOp(this.orderbooks, symbol)) {
+            if (!((java.util.function.BiPredicate<Object, Object>) (hx4J44v0A, hx4J44v0B) -> { if (hx4J44v0A == null || hx4J44v0B == null) { return false; } if (hx4J44v0A instanceof java.util.List<?> hx4J44v0l) { return hx4J44v0l.contains(hx4J44v0B); } if (hx4J44v0A instanceof java.util.Map<?, ?> hx4J44v0m) { return hx4J44v0B instanceof String && hx4J44v0m.containsKey(hx4J44v0B); } return false; }).test(this.orderbooks, symbol)) {
                 client.reject(new ExchangeError(this.id + " loadOrderBook() orderbook is not initiated"), messageHash);
                 return;
             }
@@ -66,9 +66,9 @@ public class Exchange extends BaseExchange implements TypedSurface {
                 Object stored = Helpers.GetValue(this.orderbooks, symbol);
                 while (tries < maxRetries) {
                     java.util.List<Object> cache = (java.util.List<Object>) Helpers.GetValue(stored, "cache");
-                    Object orderBook = this.fetchRestOrderBookSafe(symbol, Helpers.toLongOrNull(limit), params != null ? Helpers.toMapArg(params) : new java.util.HashMap<String, Object>()).join();
+                    Object orderBook = this.fetchRestOrderBookSafe(symbol, (Long) (switch ((Object) limit) { case null -> (Long) null; case Long hx4J42l -> hx4J42l; case Number hx4J42n -> Long.valueOf(hx4J42n.longValue()); case Object hx4J42o -> throw new ClassCastException("ccxt: expected a number, got " + hx4J42o.getClass().getName()); }), params != null ? (switch ((Object) params) { case java.util.Map<?, ?> hx4J42m -> (java.util.Map<String, Object>) hx4J42m; case Object hx4J42p -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J42p.getClass().getName()); }) : new java.util.HashMap<String, Object>()).join();
                     Object index = this.getCacheIndex(orderBook, cache);
-                    if (Helpers.isGreaterThanOrEqual(index, 0)) {
+                    if (((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } java.util.function.Predicate<Object> j38i = j38o -> { if (j38o instanceof Byte || j38o instanceof Short || j38o instanceof Integer || j38o instanceof Long || j38o instanceof java.util.concurrent.atomic.AtomicInteger || j38o instanceof java.util.concurrent.atomic.AtomicLong) return true; return (j38o instanceof Float || j38o instanceof Double || j38o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(j38o)).stripTrailingZeros().scale() <= 0; }; java.util.function.ToLongFunction<Object> j38l = j38o -> (j38o instanceof Long || j38o instanceof Integer || j38o instanceof Double || j38o instanceof Float || j38o instanceof java.math.BigDecimal) ? ((Number) j38o).longValue() : Long.parseLong(String.valueOf(j38o)); boolean j38e; try { if (j38a == null || j38b == null) j38e = j38a == j38b; else if (!j38a.getClass().equals(j38b.getClass()) && !(j38n.test(j38a) && j38n.test(j38b))) j38e = false; else if (j38i.test(j38a) && j38i.test(j38b)) j38e = j38l.applyAsLong(j38a) == j38l.applyAsLong(j38b); else if (j38a instanceof Double || j38b instanceof Double) j38e = j38d.applyAsDouble(j38a) == j38d.applyAsDouble(j38b); else if (j38a instanceof Float || j38b instanceof Float) j38e = (float) j38d.applyAsDouble(j38a) == (float) j38d.applyAsDouble(j38b); else if (j38a instanceof String && j38b instanceof String) j38e = j38a.equals(j38b); else if (j38a instanceof Boolean && j38b instanceof Boolean) j38e = j38a.equals(j38b); else if (j38n.test(j38a) && j38n.test(j38b)) j38e = new java.math.BigDecimal(String.valueOf(j38a)).compareTo(new java.math.BigDecimal(String.valueOf(j38b))) == 0; else j38e = false; } catch (Exception j38x) { j38e = false; } return j38g || j38e; }).test(index, 0)) {
                         Helpers.callDynamically(stored, "reset", new Object[]{orderBook});
                         int idx = ((Number) index).intValue();
                         this.handleBookDeltas(stored, cache.subList(idx, cache.size()));
@@ -165,8 +165,7 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
              */
             if (!java.util.Objects.equals(this.has.get("fetchPositionsHistory"), null) && !java.util.Objects.equals(this.has.get("fetchPositionsHistory"), false))
             {
-                Object positions = (this.fetchPositionsHistory(new ArrayList<String>(Arrays.asList(symbol)), since, limit, parameters)).join();
-                return positions;
+                return (this.fetchPositionsHistory(new ArrayList<String>(Arrays.asList(symbol)), since, limit, parameters)).join();
             } else
             {
                 throw new NotSupported((this.id + " fetchPositionHistory () is not supported yet")) ;
@@ -496,7 +495,7 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
             Object paramsValue = this.setTakeProfitAndStopLossParams(symbol, (String) (type), (String) (side), amount, price, takeProfit, stopLoss, parameters);
             if (!java.util.Objects.equals(this.has.get("createOrderWithTakeProfitAndStopLossWs"), null) && !java.util.Objects.equals(this.has.get("createOrderWithTakeProfitAndStopLossWs"), false))
             {
-                return (this.createOrderWs(symbol, (String) (type), (String) (side), amount, price, Helpers.toMapArg(paramsValue))).join();
+                return (this.createOrderWs(symbol, (String) (type), (String) (side), amount, price, ((Map<String, Object>) (switch ((Object) (paramsValue)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v2 -> (Map<String, Object>) hx4J40v2; case Object hx4J40v2 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v2.getClass().getName()); })))).join();
             }
             throw new NotSupported((this.id + " createOrderWithTakeProfitAndStopLossWs() is not supported yet")) ;
         }).thenApply(Order::new);
@@ -596,9 +595,9 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
             {
                 throw new ArgumentsRequired((this.id + " createStopLossOrderWs() requires a stopLossPrice argument")) ;
             }
-            Map<String, Object> paramsExtended = this.extend(parameters, Helpers.newMap(
-                "stopLossPrice", stopLossPrice
-            ));
+            HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+            mapLiteral1.put("stopLossPrice", stopLossPrice);
+            Map<String, Object> paramsExtended = this.extend(parameters, mapLiteral1);
             if (!java.util.Objects.equals(this.has.get("createStopLossOrderWs"), null) && !java.util.Objects.equals(this.has.get("createStopLossOrderWs"), false))
             {
                 return (this.createOrderWs(symbol, (String) (type), (String) (side), amount, price, paramsExtended)).join();
@@ -638,9 +637,9 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
             {
                 throw new ArgumentsRequired((this.id + " createStopOrderWs() requires a stopPrice argument")) ;
             }
-            Map<String, Object> query = this.extend(parameters, Helpers.newMap(
-                "stopPrice", triggerPrice
-            ));
+            HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+            mapLiteral2.put("stopPrice", triggerPrice);
+            Map<String, Object> query = this.extend(parameters, mapLiteral2);
             return (this.createOrderWs(symbol, (String) (type), (String) (side), amount, price, query)).join();
         }).thenApply(Order::new);
 
@@ -668,9 +667,9 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
             {
                 throw new ArgumentsRequired((this.id + " createTakeProfitOrderWs() requires a takeProfitPrice argument")) ;
             }
-            Map<String, Object> paramsExtended = this.extend(parameters, Helpers.newMap(
-                "takeProfitPrice", takeProfitPrice
-            ));
+            HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+            mapLiteral3.put("takeProfitPrice", takeProfitPrice);
+            Map<String, Object> paramsExtended = this.extend(parameters, mapLiteral3);
             if (!java.util.Objects.equals(this.has.get("createTakeProfitOrderWs"), null) && !java.util.Objects.equals(this.has.get("createTakeProfitOrderWs"), false))
             {
                 return (this.createOrderWs(symbol, (String) (type), (String) (side), amount, price, paramsExtended)).join();
@@ -776,9 +775,9 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
             {
                 throw new ArgumentsRequired((this.id + " createTriggerOrderWs() requires a triggerPrice argument")) ;
             }
-            Map<String, Object> paramsExtended = this.extend(parameters, Helpers.newMap(
-                "triggerPrice", triggerPrice
-            ));
+            HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+            mapLiteral4.put("triggerPrice", triggerPrice);
+            Map<String, Object> paramsExtended = this.extend(parameters, mapLiteral4);
             if (!java.util.Objects.equals(this.has.get("createTriggerOrderWs"), null) && !java.util.Objects.equals(this.has.get("createTriggerOrderWs"), false))
             {
                 return (this.createOrderWs(symbol, (String) (type), (String) (side), amount, price, paramsExtended)).join();
@@ -973,7 +972,7 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
         return BaseExchange.supplyAsync(() -> {
 
             Object fetchSnapshotMaxRetries = this.handleOption("watchOrderBook", "maxRetries", 3);
-            for (var i = 0; Helpers.isLessThan(i, fetchSnapshotMaxRetries); i++)
+            for (var i = 0; ((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } java.util.function.Predicate<Object> j38i = j38o -> { if (j38o instanceof Byte || j38o instanceof Short || j38o instanceof Integer || j38o instanceof Long || j38o instanceof java.util.concurrent.atomic.AtomicInteger || j38o instanceof java.util.concurrent.atomic.AtomicLong) return true; return (j38o instanceof Float || j38o instanceof Double || j38o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(j38o)).stripTrailingZeros().scale() <= 0; }; java.util.function.ToLongFunction<Object> j38l = j38o -> (j38o instanceof Long || j38o instanceof Integer || j38o instanceof Double || j38o instanceof Float || j38o instanceof java.math.BigDecimal) ? ((Number) j38o).longValue() : Long.parseLong(String.valueOf(j38o)); boolean j38e; try { if (j38a == null || j38b == null) j38e = j38a == j38b; else if (!j38a.getClass().equals(j38b.getClass()) && !(j38n.test(j38a) && j38n.test(j38b))) j38e = false; else if (j38i.test(j38a) && j38i.test(j38b)) j38e = j38l.applyAsLong(j38a) == j38l.applyAsLong(j38b); else if (j38a instanceof Double || j38b instanceof Double) j38e = j38d.applyAsDouble(j38a) == j38d.applyAsDouble(j38b); else if (j38a instanceof Float || j38b instanceof Float) j38e = (float) j38d.applyAsDouble(j38a) == (float) j38d.applyAsDouble(j38b); else if (j38a instanceof String && j38b instanceof String) j38e = j38a.equals(j38b); else if (j38a instanceof Boolean && j38b instanceof Boolean) j38e = j38a.equals(j38b); else if (j38n.test(j38a) && j38n.test(j38b)) j38e = new java.math.BigDecimal(String.valueOf(j38a)).compareTo(new java.math.BigDecimal(String.valueOf(j38b))) == 0; else j38e = false; } catch (Exception j38x) { j38e = false; } return !j38g && !j38e; }).test(i, fetchSnapshotMaxRetries); i++)
             {
                 try
                 {
@@ -1225,7 +1224,7 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
             // TODO: TypeScript: change method signature by replacing
             // Promise<string> with Promise<Order['status']>.
             Order order = (this.fetchOrder(id, symbol, parameters)).join();
-            return ((Map<String, Object>)order).get("status");
+            return this.safeString(order, "status");
         }).thenApply(res -> (String) res);
 
     }
@@ -1416,9 +1415,9 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
             {
                 throw new ArgumentsRequired((this.id + " createTriggerOrder() requires a triggerPrice argument")) ;
             }
-            Map<String, Object> paramsExtended = this.extend(parameters, Helpers.newMap(
-                "triggerPrice", triggerPrice
-            ));
+            HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
+            mapLiteral5.put("triggerPrice", triggerPrice);
+            Map<String, Object> paramsExtended = this.extend(parameters, mapLiteral5);
             if (!java.util.Objects.equals(this.has.get("createTriggerOrder"), null) && !java.util.Objects.equals(this.has.get("createTriggerOrder"), false))
             {
                 return (this.createOrder(symbol, (String) (type), (String) (side), amount, price, paramsExtended)).join();
@@ -1450,9 +1449,9 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
             {
                 throw new ArgumentsRequired((this.id + " createStopLossOrder() requires a stopLossPrice argument")) ;
             }
-            Map<String, Object> paramsExtended = this.extend(parameters, Helpers.newMap(
-                "stopLossPrice", stopLossPrice
-            ));
+            HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
+            mapLiteral6.put("stopLossPrice", stopLossPrice);
+            Map<String, Object> paramsExtended = this.extend(parameters, mapLiteral6);
             if (!java.util.Objects.equals(this.has.get("createStopLossOrder"), null) && !java.util.Objects.equals(this.has.get("createStopLossOrder"), false))
             {
                 return (this.createOrder(symbol, (String) (type), (String) (side), amount, price, paramsExtended)).join();
@@ -1484,9 +1483,9 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
             {
                 throw new ArgumentsRequired((this.id + " createTakeProfitOrder() requires a takeProfitPrice argument")) ;
             }
-            Map<String, Object> paramsExtended = this.extend(parameters, Helpers.newMap(
-                "takeProfitPrice", takeProfitPrice
-            ));
+            HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
+            mapLiteral7.put("takeProfitPrice", takeProfitPrice);
+            Map<String, Object> paramsExtended = this.extend(parameters, mapLiteral7);
             if (!java.util.Objects.equals(this.has.get("createTakeProfitOrder"), null) && !java.util.Objects.equals(this.has.get("createTakeProfitOrder"), false))
             {
                 return (this.createOrder(symbol, (String) (type), (String) (side), amount, price, paramsExtended)).join();
@@ -1526,7 +1525,7 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
             Object paramsValue = this.setTakeProfitAndStopLossParams(symbol, (String) (type), (String) (side), amount, price, takeProfit, stopLoss, parameters);
             if (!java.util.Objects.equals(this.has.get("createOrderWithTakeProfitAndStopLoss"), null) && !java.util.Objects.equals(this.has.get("createOrderWithTakeProfitAndStopLoss"), false))
             {
-                return (this.createOrder(symbol, (String) (type), (String) (side), amount, price, Helpers.toMapArg(paramsValue))).join();
+                return (this.createOrder(symbol, (String) (type), (String) (side), amount, price, ((Map<String, Object>) (switch ((Object) (paramsValue)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); })))).join();
             }
             throw new NotSupported((this.id + " createOrderWithTakeProfitAndStopLoss() is not supported yet")) ;
         }).thenApply(Order::new);
@@ -1622,7 +1621,7 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
 
         return BaseExchange.supplyAsync(() -> {
 
-            return this.cancelOrder(this.safeString(order, "id"), this.safeString(order, "symbol"), parameters);
+            return (this.cancelOrder(this.safeString(order, "id"), this.safeString(order, "symbol"), parameters)).join();
         }).thenApply(Order::new);
 
     }
@@ -1828,9 +1827,9 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
             {
                 throw new ArgumentsRequired((this.id + " create_stop_order() requires a stopPrice argument")) ;
             }
-            Map<String, Object> query = this.extend(parameters, Helpers.newMap(
-                "stopPrice", triggerPrice
-            ));
+            HashMap<String, Object> mapLiteral8 = new HashMap<String, Object>();
+            mapLiteral8.put("stopPrice", triggerPrice);
+            Map<String, Object> query = this.extend(parameters, mapLiteral8);
             return (this.createOrder(symbol, (String) (type), (String) (side), amount, price, query)).join();
         }).thenApply(Order::new);
 

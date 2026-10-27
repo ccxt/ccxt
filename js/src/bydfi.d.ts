@@ -400,7 +400,7 @@ export default class bydfi extends Exchange {
     parseBalance(response: any): Balances;
     /**
      * @method
-     * @name budfi#transfer
+     * @name bydfi#transfer
      * @description transfer currency internally between wallets on the same account
      * @see https://developers.bydfi.com/en/account#asset-transfer-between-accounts
      * @param {string} code unified currency code
@@ -450,7 +450,7 @@ export default class bydfi extends Exchange {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Transaction[]>;
-    fetchTransactionsHelper(type: string, code: Str, since: Int, limit: Int, params: any): Promise<Transaction[]>;
+    fetchTransactionsHelper(type: string, code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Transaction[]>;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     parseTransactionStatus(status: Str): Str;
     sign(path: string, api?: string[], method?: string, params?: Dict): Dict;

@@ -355,13 +355,13 @@ class upbit(Exchange, ImplicitAPI):
         walletLocked = self.safe_bool(memberInfo, 'wallet_locked')
         locked = self.safe_bool(memberInfo, 'locked')
         active = True
-        if (canWithdraw is not None) and (canWithdraw is not True):
+        if (canWithdraw is not None) and (not canWithdraw):
             active = False
         elif walletState != 'working':
             active = False
-        elif (walletLocked is not None) and (walletLocked is True):
+        elif (walletLocked is not None) and (walletLocked):
             active = False
-        elif (locked is not None) and (locked is True):
+        elif (locked is not None) and (locked):
             active = False
         maxOnetimeWithdrawal = self.safe_string(withdrawLimits, 'onetime')
         maxDailyWithdrawal = self.safe_string(withdrawLimits, 'daily', maxOnetimeWithdrawal)
@@ -854,7 +854,7 @@ class upbit(Exchange, ImplicitAPI):
         #
         return self.parse_tickers(tickers, symbolsNormalized)
 
-    def ids_query_strings(self, ids: Strings, maxQueryLength: float) -> list[str]:
+    def ids_query_strings(self, ids: Strings, maxQueryLength: int) -> list[str]:
         if ids is None:
             return []
         idsString = ''
@@ -1183,7 +1183,7 @@ class upbit(Exchange, ImplicitAPI):
         ohlcvs = self.to_array(response)
         return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limitResolved)
 
-    def calc_order_price(self, symbol: str, amount: Num, price: Num = None, params={}) -> Str:
+    def calc_order_price(self, symbol: str, amount: Num, price: Num = None, params: dict = {}) -> Str:
         quoteAmount = None
         createMarketBuyOrderRequiresPrice = self.safe_bool(self.options, 'createMarketBuyOrderRequiresPrice')
         cost = self.safe_string(params, 'cost')
@@ -1290,7 +1290,7 @@ class upbit(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' createOrder() requires a timeInForce parameter for best type orders')
         response: dict
         paramsRequest = self.omit(paramsOrdType, ['timeInForce', 'time_in_force', 'postOnly', 'clientOrderId', 'cost', 'selfTradePrevention', 'smp_type', 'test'])
-        if test is True:
+        if test:
             response = self.privatePostOrdersTest(self.extend(request, paramsRequest))
         else:
             response = self.privatePostOrders(self.extend(request, paramsRequest))
@@ -1510,7 +1510,7 @@ class upbit(Exchange, ImplicitAPI):
         #
         return self.parse_transactions(response, currency, since, limit)
 
-    def fetch_deposit(self, id: str, code: Str = None, params={}) -> Transaction:
+    def fetch_deposit(self, id: str, code: Str = None, params: dict = {}) -> Transaction:
         """
         fetch information on a deposit
 
@@ -1594,7 +1594,7 @@ class upbit(Exchange, ImplicitAPI):
         #
         return self.parse_transactions(response, currency, since, limit)
 
-    def fetch_withdrawal(self, id: str, code: Str = None, params={}) -> Transaction:
+    def fetch_withdrawal(self, id: str, code: Str = None, params: dict = {}) -> Transaction:
         """
         fetch data on a currency withdrawal via the withdrawal id
 
@@ -1634,7 +1634,7 @@ class upbit(Exchange, ImplicitAPI):
         #
         return self.parse_transaction(response, currency)
 
-    def parse_transaction_status(self, status: Str):
+    def parse_transaction_status(self, status: Str) -> Str:
         statuses = {
             'submitting': 'pending',  # 처리 중
             'submitted': 'pending',  # 처리 완료
@@ -1713,7 +1713,7 @@ class upbit(Exchange, ImplicitAPI):
             },
         }
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         statuses = {
             'wait': 'open',
             'done': 'closed',
@@ -2276,7 +2276,7 @@ class upbit(Exchange, ImplicitAPI):
     def nonce(self) -> float:
         return self.milliseconds()
 
-    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
         apiName = api[0]
         baseApiUrl = self.safe_string(self.urls['api'], apiName)
         if baseApiUrl is None:

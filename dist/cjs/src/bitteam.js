@@ -473,7 +473,7 @@ class bitteam extends bitteam$1["default"] {
         let minCost = undefined;
         const currenciesValuedInUsd = this.handleOption('fetchMarkets', 'currenciesValuedInUsd', {});
         const quoteInUsd = this.safeBool(currenciesValuedInUsd, quote, false);
-        if (quoteInUsd === true) {
+        if (quoteInUsd) {
             const settings = this.safeDict(market, 'settings', {});
             minCost = this.safeNumber(settings, 'limit_usd');
         }
@@ -2107,7 +2107,7 @@ class bitteam extends bitteam$1["default"] {
     }
     /**
      * @method
-     * @name betteam#fetchBalance
+     * @name bitteam#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://bit.team/trade/api/documentation#/PRIVATE/getTradeApiCcxtBalance
      * @param {object} [params] extra parameters specific to the exchange API endpoint

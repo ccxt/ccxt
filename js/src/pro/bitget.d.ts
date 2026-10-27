@@ -76,6 +76,7 @@ export default class bitget extends bitgetRest {
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @param {boolean} [params.stock] set to true for tokenized stock symbols, defaults to market['stock']
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
@@ -90,6 +91,7 @@ export default class bitget extends bitgetRest {
      * @param {string} [timeframe] the period for the ratio, default is 1 minute
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @param {boolean} [params.stock] set to true for tokenized stock symbols, defaults to market['stock']
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     unWatchOHLCV(symbol: string, timeframe?: string, params?: Dict): Promise<any>;
@@ -106,6 +108,7 @@ export default class bitget extends bitgetRest {
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @param {boolean} [params.stock] set to true for tokenized stock symbols, defaults to market['stock']
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     watchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
@@ -120,6 +123,7 @@ export default class bitget extends bitgetRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.limit] orderbook limit, default is undefined
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @param {boolean} [params.stock] set to true for tokenized stock symbols, defaults to market['stock']
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     unWatchOrderBook(symbol: string, params?: Dict): Promise<any>;
@@ -135,13 +139,14 @@ export default class bitget extends bitgetRest {
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @param {boolean} [params.stock] set to true for tokenized stock symbols, defaults to market['stock']
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: Dict): Promise<OrderBook>;
     handleOrderBook(client: Client, message: Dict): void;
     handleCheckSumError(client: Client, symbol: string, messageHash: string): Promise<void>;
     handleDelta(bookside: any, delta: any): void;
-    handleDeltas(bookside: any, deltas: any): void;
+    handleDeltas(bookside: any, deltas: any[]): void;
     /**
      * @method
      * @name bitget#watchTrades
@@ -259,12 +264,14 @@ export default class bitget extends bitgetRest {
      * @param {string} [params.instType] one of 'SPOT', 'MARGIN', 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
      * @param {string} [params.marginMode] 'isolated' or 'cross' for watching spot margin balances
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @param {boolean} [params.stock] set to true for tokenized stock balances, defaults to false
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     watchBalance(params?: Dict): Promise<Balances>;
     handleBalance(client: Client, message: Dict): void;
     watchPublic(uta: boolean, messageHash: string, args: Dict, params?: Dict): Promise<any>;
     unWatchPublic(uta: boolean, messageHash: string, args: Dict, params?: Dict): Promise<any>;
+    unWatchPrivate(uta: any, messageHash: any, args: any, params?: Dict): Promise<any>;
     watchPublicMultiple(uta: boolean, messageHashes: string[], argsArray: any[], params?: Dict): Promise<any>;
     authenticate(params?: Dict): Promise<any>;
     watchPrivate(uta: boolean, messageHash: string, subscriptionHash: string, args: Dict, params?: Dict): Promise<any>;

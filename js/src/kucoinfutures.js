@@ -29,6 +29,7 @@ export default class kucoinfutures extends kucoin {
                 'swap': true,
                 'future': true,
                 'option': undefined,
+                'editOrder': false,
                 'fetchBidsAsks': true,
                 'transfer': true,
             },

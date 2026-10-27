@@ -411,14 +411,14 @@ class deepcoin extends deepcoin$1["default"] {
         else {
             types = this.safeList(this.options, 'fetchMarkets', types); // backward-support
         }
-        let promises = [];
+        const promises = [];
         let result = [];
         for (let i = 0; i < types.length; i++) {
             promises.push(this.fetchMarketsByType(types[i], params));
         }
-        promises = await Promise.all(promises);
-        for (let i = 0; i < promises.length; i++) {
-            result = this.arrayConcat(result, promises[i]);
+        const responses = await Promise.all(promises);
+        for (let i = 0; i < responses.length; i++) {
+            result = this.arrayConcat(result, responses[i]);
         }
         return result;
     }
@@ -685,9 +685,9 @@ class deepcoin extends deepcoin$1["default"] {
             request['after'] = until;
         }
         const calculateUntil = this.safeBool(paramsPaginate, 'calculateUntil', false);
-        const keysToOmit = (calculateUntil === true) ? ['price', 'until', 'calculateUntil'] : ['price', 'until'];
+        const keysToOmit = (calculateUntil) ? ['price', 'until', 'calculateUntil'] : ['price', 'until'];
         const paramsOmitted = this.omit(paramsPaginate, keysToOmit);
-        if (calculateUntil === true) {
+        if (calculateUntil) {
             if (since !== undefined) {
                 // the exchange do not have a since param for this endpoint
                 // we calculate until (after) for correct pagination
@@ -1219,16 +1219,17 @@ class deepcoin extends deepcoin$1["default"] {
         const paramsOmitted = (network !== undefined) ? this.omit(params, 'network') : params;
         const addressess = await this.fetchDepositAddresses([code], paramsOmitted);
         const length = addressess.length;
-        let address = this.safeDict(addressess, 0, {});
+        let index = 0;
         if ((network !== undefined) && (length > 1)) {
+            // the last entry on the requested network wins
             for (let i = 0; i < length; i++) {
-                const entry = addressess[i];
-                if (entry['network'] === network) {
-                    address = entry;
+                const entryNetwork = this.safeString(this.safeDict(addressess, i, {}), 'network');
+                if (entryNetwork === network) {
+                    index = i;
                 }
             }
         }
-        return address;
+        return this.safeDict(addressess, index, {});
     }
     parseDepositAddress(response, currency = undefined) {
         //
@@ -1433,7 +1434,7 @@ class deepcoin extends deepcoin$1["default"] {
         const transfer = this.parseTransfer(data, currency);
         const transferOptions = this.safeDict(this.options, 'transfer', {});
         const fillResponseFromRequest = this.safeBool(transferOptions, 'fillResponseFromRequest', true);
-        if (fillResponseFromRequest === true) {
+        if (fillResponseFromRequest) {
             transfer['fromAccount'] = fromAccount;
             transfer['toAccount'] = toAccount;
             transfer['amount'] = amount;
@@ -1658,7 +1659,7 @@ class deepcoin extends deepcoin$1["default"] {
             request['mrgPosition'] = mrgPosition;
             let posSide = undefined;
             const reduceOnly = this.safeBool(paramsMrgPosition, 'reduceOnly', false);
-            if (reduceOnly === true) {
+            if (reduceOnly) {
                 if (side === 'buy') {
                     posSide = 'short';
                 }
@@ -1743,7 +1744,7 @@ class deepcoin extends deepcoin$1["default"] {
         request['isCrossMargin'] = isCrossMargin;
         request['tdMode'] = marginModeOption;
         if (market['swap'] === true) {
-            if (reduceOnly === true) {
+            if (reduceOnly) {
                 if (side === 'buy') {
                     request['posSide'] = 'short';
                 }
@@ -1962,7 +1963,7 @@ class deepcoin extends deepcoin$1["default"] {
             request['limit'] = limit; // default 100
         }
         let response = undefined;
-        if (trigger === true) {
+        if (trigger) {
             if (methodName !== 'fetchCanceledAndClosedOrders') {
                 throw new errors.BadRequest(this.id + ' ' + methodName + '() does not support trigger orders');
             }
@@ -2121,7 +2122,7 @@ class deepcoin extends deepcoin$1["default"] {
         const trigger = this.safeBool(params, 'trigger', false);
         const paramsOmitted = this.omit(params, 'trigger');
         let response = undefined;
-        if (trigger === true) {
+        if (trigger) {
             request['instType'] = this.convertToInstrumentType(market['type']);
             //
             //     {
@@ -2234,7 +2235,7 @@ class deepcoin extends deepcoin$1["default"] {
         };
         let response = undefined;
         const trigger = this.safeBool(params, 'trigger', false);
-        if (trigger === true) {
+        if (trigger) {
             const paramsOmitted = this.omit(params, 'trigger');
             response = await this.privatePostDeepcoinTradeCancelTriggerOrder(this.extend(request, paramsOmitted));
         }
@@ -2625,6 +2626,13 @@ class deepcoin extends deepcoin$1["default"] {
         const marketId = this.safeString(position, 'instId');
         const marketResolved = this.safeMarket(marketId, market);
         const timestamp = this.safeInteger(position, 'cTime');
+        const marginMode = this.safeString(position, 'mgnMode');
+        const useMargin = this.safeNumber(position, 'useMargin');
+        // useMargin is the margin held in the position (excludes unrealized pnl)
+        let positionMargin = undefined;
+        if (marginMode === 'isolated') {
+            positionMargin = useMargin;
+        }
         return this.safePosition({
             'symbol': marketResolved['symbol'],
             'id': this.safeString(position, 'posId'),
@@ -2635,17 +2643,18 @@ class deepcoin extends deepcoin$1["default"] {
             'side': this.safeString(position, 'posSide'),
             'notional': undefined,
             'leverage': this.parseNumber(this.omitZero(this.safeString(position, 'lever'))),
-            'unrealizedPnl': undefined,
+            'unrealizedPnl': this.safeNumber(position, 'unrealizedProfit'),
             'realizedPnl': undefined,
+            'positionMargin': positionMargin,
             'collateral': undefined,
             'entryPrice': this.safeNumber(position, 'avgPx'),
             'markPrice': undefined,
             'liquidationPrice': this.safeNumber(position, 'liqPx'),
-            'marginMode': this.safeString(position, 'mgnMode'),
+            'marginMode': marginMode,
             'hedged': true,
-            'maintenanceMargin': this.safeNumber(position, 'useMargin'),
+            'maintenanceMargin': undefined,
             'maintenanceMarginPercentage': undefined,
-            'initialMargin': undefined,
+            'initialMargin': useMargin,
             'initialMarginPercentage': undefined,
             'marginRatio': undefined,
             'lastUpdateTimestamp': this.safeInteger(position, 'uTime'),

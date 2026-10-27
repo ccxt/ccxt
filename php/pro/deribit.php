@@ -90,7 +90,7 @@ class deribit extends \ccxt\async\deribit {
     private function do_watch_balance($params = array()) {
         /**
          *
-         * @see https://docs.deribit.com/#user-portfolio-currency
+         * @see https://docs.deribit.com/subscriptions/user/userportfoliocurrency
          *
          * watch balance and get the amount of funds available for trading or funds locked in orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -181,7 +181,7 @@ class deribit extends \ccxt\async\deribit {
     private function do_watch_ticker(string $symbol, $params = array()) {
         /**
          *
-         * @see https://docs.deribit.com/#ticker-instrument_name-$interval
+         * @see https://docs.deribit.com/subscriptions/market-data/tickerinstrument_nameinterval
          *
          * watches a price ticker, a statistical calculation with the information for a specific $market->
          * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
@@ -222,7 +222,7 @@ class deribit extends \ccxt\async\deribit {
     private function do_watch_tickers(?array $symbols = null, $params = array()) {
         /**
          *
-         * @see https://docs.deribit.com/#ticker-instrument_name-$interval
+         * @see https://docs.deribit.com/subscriptions/market-data/tickerinstrument_nameinterval
          *
          * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
          * @param {string[]} [$symbols] unified symbol of the $market to fetch the ticker for
@@ -316,7 +316,7 @@ class deribit extends \ccxt\async\deribit {
     private function do_watch_bids_asks(?array $symbols = null, $params = array()) {
         /**
          *
-         * @see https://docs.deribit.com/#quote-instrument_name
+         * @see https://docs.deribit.com/subscriptions/market-data/quoteinstrument_name
          *
          * watches best bid & ask for $symbols
          * @param {string[]} [$symbols] unified symbol of the $market to fetch the ticker for
@@ -406,7 +406,7 @@ class deribit extends \ccxt\async\deribit {
         /**
          * get the list of most recent trades for a particular $symbol
          *
-         * @see https://docs.deribit.com/#trades-instrument_name-interval
+         * @see https://docs.deribit.com/subscriptions/trades/tradesinstrument_nameinterval
          *
          * @param {string} $symbol unified $symbol of the market to fetch trades for
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
@@ -427,7 +427,7 @@ class deribit extends \ccxt\async\deribit {
         /**
          * get the list of most recent $trades for a list of $symbols
          *
-         * @see https://docs.deribit.com/#$trades-instrument_name-$interval
+         * @see https://docs.deribit.com/subscriptions/trades/tradesinstrument_nameinterval
          *
          * @param {string[]} $symbols unified symbol of the market to fetch $trades for
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
@@ -502,7 +502,7 @@ class deribit extends \ccxt\async\deribit {
         /**
          * get the list of $trades associated with the user
          *
-         * @see https://docs.deribit.com/#user-$trades-instrument_name-$interval
+         * @see https://docs.deribit.com/subscriptions/user/usertradesinstrument_nameinterval
          *
          * @param {string} $symbol unified $symbol of the market to fetch $trades for. Use 'any' to watch all $trades
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
@@ -592,7 +592,7 @@ class deribit extends \ccxt\async\deribit {
     private function do_watch_order_book(string $symbol, ?int $limit = null, $params = array()) {
         /**
          *
-         * @see https://docs.deribit.com/#book-instrument_name-group-depth-interval
+         * @see https://docs.deribit.com/subscriptions/orderbook/bookinstrument_namegroupdepthinterval
          *
          * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} $symbol unified $symbol of the market to fetch the order book for
@@ -613,7 +613,7 @@ class deribit extends \ccxt\async\deribit {
         /**
          * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          *
-         * @see https://docs.deribit.com/#book-instrument_name-$group-$depth-$interval
+         * @see https://docs.deribit.com/subscriptions/orderbook/bookinstrument_namegroupdepthinterval
          *
          * @param {string[]} $symbols unified array of $symbols
          * @param {int} [$limit] the maximum amount of order book entries to return
@@ -749,7 +749,7 @@ class deribit extends \ccxt\async\deribit {
         }
     }
 
-    public function handle_deltas(mixed $bookside, mixed $deltas) {
+    public function handle_deltas(mixed $bookside, array $deltas) {
         for ($i = 0; $i < count($deltas); $i++) {
             $this->handle_delta($bookside, $deltas[$i]);
         }
@@ -762,7 +762,7 @@ class deribit extends \ccxt\async\deribit {
     private function do_watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          *
-         * @see https://docs.deribit.com/#user-$orders-instrument_name-raw
+         * @see https://docs.deribit.com/subscriptions/user/userordersinstrument_nameraw
          *
          * watches information on multiple $orders made by the user
          * @param {string} $symbol unified market $symbol of the market $orders were made in
@@ -862,7 +862,7 @@ class deribit extends \ccxt\async\deribit {
     private function do_watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          *
-         * @see https://docs.deribit.com/#chart-trades-instrument_name-resolution
+         * @see https://docs.deribit.com/subscriptions/market-data/charttradesinstrument_nameresolution
          *
          * watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @param {string} $symbol unified $symbol of the market to fetch OHLCV data for
@@ -888,7 +888,7 @@ class deribit extends \ccxt\async\deribit {
         /**
          * watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          *
-         * @see https://docs.deribit.com/#chart-trades-instrument_name-resolution
+         * @see https://docs.deribit.com/subscriptions/market-data/charttradesinstrument_nameresolution
          *
          * @param {string[][]} $symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
@@ -1021,7 +1021,7 @@ class deribit extends \ccxt\async\deribit {
             'id' => $this->request_id(),
         );
         $extendedRequest = $this->deep_extend($request, $params);
-        $maxMessageByteLimit = 32768 - 1; // 'Message Too Big: limit 32768B'
+        $maxMessageByteLimit = 32767; // 'Message Too Big: limit 32768B'
         $jsonedText = $this->json($extendedRequest);
         if (strlen($jsonedText) >= $maxMessageByteLimit) {
             throw new ExchangeError($this->id . ' requested subscription length over limit, try to reduce symbols amount');

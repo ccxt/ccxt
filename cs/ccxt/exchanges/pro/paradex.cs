@@ -70,6 +70,26 @@ public partial class paradex : ccxt.paradex
         return requestId;
     }
 
+    /**
+     * @ignore
+     * @method
+     * @name paradex#subscribeRequest
+     * @description builds a json-rpc subscribe request, its id is kept in the subscription passed to watch, so an error reply reaches only the watchers of that request
+     * @param {string} channel the channel to subscribe to
+     * @returns {object} the subscribe request
+     */
+    public virtual object subscribeRequest(object channel)
+    {
+        return new Dictionary<string, object>() {
+            { "jsonrpc", "2.0" },
+            { "id", this.requestId() },
+            { "method", "subscribe" },
+            { "params", new Dictionary<string, object>() {
+                { "channel", channel },
+            } },
+        };
+    }
+
     public async virtual Task<object> authenticate(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
@@ -81,15 +101,19 @@ public partial class paradex : ccxt.paradex
         if ((authenticated == null))
         {
             string? token = await this.authenticateRest();
+            Int64 requestId = this.requestId();
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "jsonrpc", "2.0" },
-                { "id", this.requestId() },
+                { "id", requestId },
                 { "method", "auth" },
                 { "params", new Dictionary<string, object>() {
                     { "bearer", token },
                 } },
             };
-            this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash);
+            Dictionary<string, object> subscription = new Dictionary<string, object>() {
+                { "id", requestId },
+            };
+            this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash, subscription);
         }
         return await (future as Exchange.Future);
     }
@@ -103,15 +127,42 @@ public partial class paradex : ccxt.paradex
         //         "result": { "node_id": "73cf456f7cb78d59" }
         //     }
         //
-        IDictionary<string, object> result = this.safeDict(message, "result");
-        if ((result != null))
+        // the future stays resolved, so later private watches on this connection skip the auth request
+        Future future = ((Future)this.safeValue(client.futures, "authenticated"));
+        if ((future != null))
         {
-            // client.resolve (true, messageHash);
-            Future future = ((Future)this.safeValue(client.futures, "authenticated"));
-            if ((future != null))
-            {
-                (future as Future).resolve(true);
-            }
+            (future as Future).resolve(true);
+        }
+    }
+
+    public virtual void handleRequestReply(WebSocketClient client, object message)
+    {
+        //
+        // auth
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "id": 1,
+        //         "result": { "node_id": "73cf456f7cb78d59" }
+        //     }
+        //
+        // subscribe
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "id": 2,
+        //         "result": { "channel": "orders.ALL" }
+        //     }
+        //
+        // only the reply to the auth request resolves the auth, a subscribe ack carries a channel instead of a node id
+        string? requestId = this.safeString(message, "id");
+        IDictionary<string, object> authSubscription = this.safeDict(client.subscriptions, "authenticated");
+        string? authRequestId = this.safeString(authSubscription, "id");
+        IDictionary<string, object> result = this.safeDict(message, "result");
+        bool isAuth = (((requestId != null)) && ((requestId == authRequestId))) || ((this.safeString(result, "node_id") != null));
+        if (isAuth)
+        {
+            this.handleAuthenticationMessage(client, message);
         }
     }
 
@@ -143,14 +194,12 @@ public partial class paradex : ccxt.paradex
             messageHash = messageHash + "ALL";
         }
         object url = this.getWsUrl();
-        Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "jsonrpc", "2.0" },
-            { "method", "subscribe" },
-            { "params", new Dictionary<string, object>() {
-                { "channel", messageHash },
-            } },
+        object request = this.subscribeRequest(messageHash);
+        Dictionary<string, object> subscription = new Dictionary<string, object>() {
+            { "id", getValue(request, "id") },
+            { "messageHashes", new List<object>() {messageHash} },
         };
-        ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)await this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash));
+        ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)await this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash, subscription));
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
@@ -222,14 +271,12 @@ public partial class paradex : ccxt.paradex
         Dictionary<string, object> market = this.market(symbol);
         string? messageHash = ((string)this.getOrderBookChannel((market.ContainsKey("id") ? market["id"] : null)));
         object url = this.getWsUrl();
-        Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "jsonrpc", "2.0" },
-            { "method", "subscribe" },
-            { "params", new Dictionary<string, object>() {
-                { "channel", messageHash },
-            } },
+        object request = this.subscribeRequest(messageHash);
+        Dictionary<string, object> subscription = new Dictionary<string, object>() {
+            { "id", getValue(request, "id") },
+            { "messageHashes", new List<object>() {messageHash} },
         };
-        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash));
+        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash, subscription));
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
 
@@ -325,15 +372,13 @@ public partial class paradex : ccxt.paradex
         // option too, thousands of messages a second, all decoded only to be filtered out
         string channel = ("markets_summary." + ((market.ContainsKey("id") ? market["id"] : null)));
         object url = this.getWsUrl();
-        Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "jsonrpc", "2.0" },
-            { "method", "subscribe" },
-            { "params", new Dictionary<string, object>() {
-                { "channel", channel },
-            } },
-        };
         string messageHash = ("markets_summary." + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
-        return ccxt.BaseExchange.ToTicker(await this.watch(url, messageHash, this.deepExtend(request, parameters), channel));
+        object request = this.subscribeRequest(channel);
+        Dictionary<string, object> subscription = new Dictionary<string, object>() {
+            { "id", getValue(request, "id") },
+            { "messageHashes", new List<object>() {messageHash} },
+        };
+        return ccxt.BaseExchange.ToTicker(await this.watch(url, messageHash, this.deepExtend(request, parameters), channel, subscription));
     }
 
     /**
@@ -355,13 +400,6 @@ public partial class paradex : ccxt.paradex
         IList<object> symbolsNormalized = this.marketSymbols(symbols);
         string channel = "markets_summary";
         object url = this.getWsUrl();
-        Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "jsonrpc", "2.0" },
-            { "method", "subscribe" },
-            { "params", new Dictionary<string, object>() {
-                { "channel", channel },
-            } },
-        };
         List<object> messageHashes = new List<object>() {};
         if ((symbolsNormalized != null) && ((symbolsNormalized is IList<object>) || (symbolsNormalized.GetType().IsGenericType && symbolsNormalized.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
@@ -374,7 +412,11 @@ public partial class paradex : ccxt.paradex
         {
             messageHashes.Add(channel);
         }
-        object newTicker = await this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), messageHashes);
+        object request = this.subscribeRequest(channel);
+        Dictionary<string, object> subscription = new Dictionary<string, object>() {
+            { "id", getValue(request, "id") },
+        };
+        object newTicker = await this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), messageHashes, subscription);
         if (this.newUpdates)
         {
             Dictionary<string, object> result = new Dictionary<string, object>() {};
@@ -420,14 +462,12 @@ public partial class paradex : ccxt.paradex
             channel = channel + "ALL";
         }
         object url = this.getWsUrl();
-        Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "jsonrpc", "2.0" },
-            { "method", "subscribe" },
-            { "params", new Dictionary<string, object>() {
-                { "channel", channel },
-            } },
+        object request = this.subscribeRequest(channel);
+        Dictionary<string, object> subscription = new Dictionary<string, object>() {
+            { "id", getValue(request, "id") },
+            { "messageHashes", new List<object>() {messageHash} },
         };
-        ccxt.pro.ArrayCache orders = ((ccxt.pro.ArrayCache)await this.watch(url, messageHash, this.deepExtend(request, parameters), channel));
+        ccxt.pro.ArrayCache orders = ((ccxt.pro.ArrayCache)await this.watch(url, messageHash, this.deepExtend(request, parameters), channel, subscription));
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
@@ -516,14 +556,12 @@ public partial class paradex : ccxt.paradex
             channel = channel + "ALL";
         }
         object url = this.getWsUrl();
-        Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "jsonrpc", "2.0" },
-            { "method", "subscribe" },
-            { "params", new Dictionary<string, object>() {
-                { "channel", channel },
-            } },
+        object request = this.subscribeRequest(channel);
+        Dictionary<string, object> subscription = new Dictionary<string, object>() {
+            { "id", getValue(request, "id") },
+            { "messageHashes", new List<object>() {messageHash} },
         };
-        ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)await this.watch(url, messageHash, this.deepExtend(request, parameters), channel));
+        ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)await this.watch(url, messageHash, this.deepExtend(request, parameters), channel, subscription));
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
@@ -600,13 +638,6 @@ public partial class paradex : ccxt.paradex
         // one channel carries every market
         string channel = "positions";
         object url = this.getWsUrl();
-        Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "jsonrpc", "2.0" },
-            { "method", "subscribe" },
-            { "params", new Dictionary<string, object>() {
-                { "channel", channel },
-            } },
-        };
         List<object> messageHashes = new List<object>() {};
         int symbolsLength = 0;
         if ((symbolsNormalized != null))
@@ -623,7 +654,12 @@ public partial class paradex : ccxt.paradex
                 messageHashes.Add(((channel + ":") + ((symbolsNormalized != null && i < symbolsNormalized.Count ? symbolsNormalized[i] : null))));
             }
         }
-        object newPositions = await this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), new List<object>() {channel});
+        object request = this.subscribeRequest(channel);
+        Dictionary<string, object> subscription = new Dictionary<string, object>() {
+            { "id", getValue(request, "id") },
+            { "messageHashes", messageHashes },
+        };
+        object newPositions = await this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), new List<object>() {channel}, subscription);
         if (this.newUpdates)
         {
             return ccxt.BaseExchange.ToPositionList(newPositions);
@@ -711,14 +747,13 @@ public partial class paradex : ccxt.paradex
         await this.authenticate();
         string channel = "account";
         object url = this.getWsUrl();
-        Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "jsonrpc", "2.0" },
-            { "method", "subscribe" },
-            { "params", new Dictionary<string, object>() {
-                { "channel", channel },
-            } },
+        string messageHash = "balance";
+        object request = this.subscribeRequest(channel);
+        Dictionary<string, object> subscription = new Dictionary<string, object>() {
+            { "id", getValue(request, "id") },
+            { "messageHashes", new List<object>() {messageHash} },
         };
-        return ccxt.BaseExchange.ToBalances(await this.watch(url, "balance", this.deepExtend(request, parameters), channel));
+        return ccxt.BaseExchange.ToBalances(await this.watch(url, messageHash, this.deepExtend(request, parameters), channel, subscription));
     }
 
     public virtual void handleBalance(WebSocketClient client, Dictionary<string, object> message)
@@ -747,7 +782,30 @@ public partial class paradex : ccxt.paradex
         //
         IDictionary<string, object> parameters = this.safeDict(message, "params", new Dictionary<string, object>() {});
         IDictionary<string, object> data = this.safeDict(parameters, "data", new Dictionary<string, object>() {});
-        this.balance = this.parseWsBalance(data);
+        // merge the parsed update into the existing balance object instead of
+        // replacing it: a consumer awakened by an earlier message holds a
+        // reference to this.balance, and Client.resolve is a no-op while
+        // nobody is awaiting, so a replaced object would make updates landing
+        // in that window invisible to the consumer forever (same class as
+        // issue #26773); the free/used/total aggregates are rebuilt from the
+        // merged currencies by safeBalance
+        Dictionary<string, object> balance = this.parseWsBalance(data);
+        if ((this.balance == null))
+        {
+            this.balance = new Dictionary<string, object>() {};
+        }
+        List<object> reserved = new List<object>() {"free", "used", "total"};
+        List<object> keys = new List<object>(balance.Keys);
+        for (int i = 0; i < keys.Count; i++)
+        {
+            string? key = ((string)keys[i]);
+            if (this.inArray(key, reserved))
+            {
+                continue;
+            }
+            this.balance[(string)key] = (balance != null && key != null && balance.ContainsKey(key) ? balance[key] : null);
+        }
+        this.balance = this.safeBalance(this.balance);
         client.resolve(this.balance, "balance");
     }
 
@@ -834,15 +892,13 @@ public partial class paradex : ccxt.paradex
         string? symbolValue = this.symbol(symbol);
         string channel = "funding_data";
         object url = this.getWsUrl();
-        Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "jsonrpc", "2.0" },
-            { "method", "subscribe" },
-            { "params", new Dictionary<string, object>() {
-                { "channel", channel },
-            } },
-        };
         string messageHash = ((channel + ".") + symbolValue);
-        return ccxt.BaseExchange.ToFundingRate(await this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash));
+        object request = this.subscribeRequest(channel);
+        Dictionary<string, object> subscription = new Dictionary<string, object>() {
+            { "id", getValue(request, "id") },
+            { "messageHashes", new List<object>() {messageHash} },
+        };
+        return ccxt.BaseExchange.ToFundingRate(await this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash, subscription));
     }
 
     /**
@@ -864,13 +920,6 @@ public partial class paradex : ccxt.paradex
         IList<object> symbolsNormalized = this.marketSymbols(symbols);
         string channel = "funding_data";
         object url = this.getWsUrl();
-        Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "jsonrpc", "2.0" },
-            { "method", "subscribe" },
-            { "params", new Dictionary<string, object>() {
-                { "channel", channel },
-            } },
-        };
         List<object> messageHashes = new List<object>() {};
         if ((symbolsNormalized != null))
         {
@@ -890,7 +939,11 @@ public partial class paradex : ccxt.paradex
         {
             messageHashes.Add(channel);
         }
-        object newFundingRates = await this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), messageHashes);
+        object request = this.subscribeRequest(channel);
+        Dictionary<string, object> subscription = new Dictionary<string, object>() {
+            { "id", getValue(request, "id") },
+        };
+        object newFundingRates = await this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), messageHashes, subscription);
         if (this.newUpdates)
         {
             Dictionary<string, object> result = new Dictionary<string, object>() {};
@@ -1001,56 +1054,56 @@ public partial class paradex : ccxt.paradex
         {
             return null;
         }
-        object blockLength = this.sbeReadUint(frameHex, 0, 2);
-        object templateId = this.sbeReadUint(frameHex, 2, 2);
-        object schemaId = this.sbeReadUint(frameHex, 4, 2);
-        if ((!isEqual(schemaId, 1)) || (isLessThan(frameLength, this.sum(blockLength, 8))))
+        Int64? blockLength = this.parseToInt(this.sbeReadUint(frameHex, 0, 2));
+        Int64? templateId = this.parseToInt(this.sbeReadUint(frameHex, 2, 2));
+        Int64? schemaId = this.parseToInt(this.sbeReadUint(frameHex, 4, 2));
+        if (((schemaId != 1)) || (isLessThan(frameLength, this.sum(blockLength, 8))))
         {
             return null;
         }
         object channel = null;
-        object data = null;
-        if (isEqual(templateId, 1))
+        Dictionary<string, object> data = null;
+        if ((templateId == 1))
         {
             data = this.parseSbeTrade(frameHex, blockLength, frameLength);
             if ((data != null))
             {
-                channel = ("trades." + (getValue(data, "market")));
+                channel = ("trades." + ((data != null && data.ContainsKey("market") ? data["market"] : null)));
             }
-        } else if (isEqual(templateId, 3))
+        } else if ((templateId == 3))
         {
             data = this.parseSbeOrderBook(frameHex, blockLength, frameLength);
             if ((data != null))
             {
-                channel = this.getOrderBookChannel(getValue(data, "market"));
+                channel = this.getOrderBookChannel((data != null && data.ContainsKey("market") ? data["market"] : null));
             }
-        } else if (isEqual(templateId, 4))
+        } else if ((templateId == 4))
         {
             data = this.parseSbeMarketSummary(frameHex, blockLength, frameLength);
             channel = "markets_summary";
-        } else if (isEqual(templateId, 5))
+        } else if ((templateId == 5))
         {
             data = this.parseSbeFundingData(frameHex, blockLength, frameLength);
             channel = "funding_data";
-        } else if (isEqual(templateId, 20))
+        } else if ((templateId == 20))
         {
             data = this.parseSbeOrder(frameHex, blockLength, frameLength);
             if ((data != null))
             {
-                channel = ("orders." + (getValue(data, "market")));
+                channel = ("orders." + ((data != null && data.ContainsKey("market") ? data["market"] : null)));
             }
-        } else if (isEqual(templateId, 21))
+        } else if ((templateId == 21))
         {
             data = this.parseSbeFill(frameHex, blockLength, frameLength);
             if ((data != null))
             {
-                channel = ("fills." + (getValue(data, "market")));
+                channel = ("fills." + ((data != null && data.ContainsKey("market") ? data["market"] : null)));
             }
-        } else if (isEqual(templateId, 22))
+        } else if ((templateId == 22))
         {
             data = this.parseSbePosition(frameHex, blockLength, frameLength);
             channel = "positions";
-        } else if (isEqual(templateId, 23))
+        } else if ((templateId == 23))
         {
             data = this.parseSbeAccount(frameHex, blockLength, frameLength);
             channel = "account";
@@ -1074,36 +1127,39 @@ public partial class paradex : ccxt.paradex
         string digits = "0123456789abcdef";
         object result = 0;
         object factor = 1;
-        object position = multiply(offset, 2);
-        for (int i = 0; isLessThan(i, length); i++)
+        Int64? count = this.parseToInt(length);
+        Int64? start = this.parseToInt(offset);
+        Int64? position = (start * 2);
+        for (int i = 0; (i < count); i++)
         {
             // plain variables as slice bounds, php gets end - start unparenthesized
-            object middle = add(position, 1);
-            object next = add(position, 2);
+            Int64? middle = (position + 1);
+            Int64? next = (position + 2);
             int high = digits.IndexOf(((string)slice(frameHex, position, middle)), StringComparison.Ordinal);
             int low = digits.IndexOf(((string)slice(frameHex, middle, next)), StringComparison.Ordinal);
-            result = this.sum(result, multiply((high * 16L), factor), multiply(low, factor));
-            factor = multiply(factor, 256);
-            position = next;
+            result = this.parseToInt(this.sum(result, ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))((high * 16L), factor), ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))(low, factor)));
+            factor = this.parseToInt(((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))(factor, 256));
+            position = this.parseToInt(next);
         }
-        return result;
+        // an exact integer below 2^32, parseToInt keeps it and types the return as an integer
+        return this.parseToInt(result);
     }
 
     public virtual object sbeReadInt64(object frameHex, object offset)
     {
         // a signed int64 as a decimal string, undefined for INT64_MIN which the schema uses as null
-        object low = this.sbeReadUint(frameHex, offset, 4);
-        object high = this.sbeReadUint(frameHex, add(offset, 4), 4);
-        if ((isEqual(high, 2147483648)) && (isEqual(low, 0)))
+        Int64? low = this.parseToInt(this.sbeReadUint(frameHex, offset, 4));
+        Int64? high = this.parseToInt(this.sbeReadUint(frameHex, this.sum(offset, 4), 4));
+        if (((high == 2147483648)) && ((low == 0)))
         {
             return null;
         }
-        if (isEqual(high, 0))
+        if ((high == 0))
         {
             return this.numberToString(low);
         }
         string? result = Precise.stringAdd(Precise.stringMul(this.numberToString(high), "4294967296"), this.numberToString(low));
-        if (isGreaterThanOrEqual(high, 2147483648))
+        if ((high >= 2147483648))
         {
             result = Precise.stringSub(result, "18446744073709551616");
         }
@@ -1135,74 +1191,84 @@ public partial class paradex : ccxt.paradex
 
     public virtual object sbeReadEnum(object frameHex, object offset, IDictionary<string, object> values)
     {
-        object value = this.sbeReadUint(frameHex, offset, 1);
+        Int64? value = this.parseToInt(this.sbeReadUint(frameHex, offset, 1));
         return this.safeString(values, this.numberToString(value));
     }
 
     public virtual object sbeReadString(object frameHex, object offset, object length)
     {
-        object start = multiply(offset, 2);
-        object end = this.sum(start, multiply(length, 2));
+        Int64? first = this.parseToInt(offset);
+        Int64? size = this.parseToInt(length);
+        Int64? start = (first * 2);
+        Int64 end = this.sum(start, (size * 2));
         return this.binaryToString(this.base16ToBinary(slice(frameHex, start, end)));
     }
 
     public virtual object sbeReadAddress(object frameHex, object offset)
     {
         // a 32-byte big-endian account address, printed without leading zeros like the JSON feed
-        object rawStart = multiply(offset, 2);
-        object rawEnd = add(rawStart, 64);
+        Int64? first = this.parseToInt(offset);
+        Int64? rawStart = (first * 2);
+        Int64? rawEnd = (rawStart + 64);
         string? raw = slice(frameHex, rawStart, rawEnd);
-        object start = 0;
-        object next = 1;
-        while ((isLessThan(start, 63)) && (isEqual(slice(raw, start, next), "0")))
+        int start = 63;
+        for (int i = 0; i < 63; i++)
         {
-            start = next;
-            next = add(start, 1);
+            Int64 next = (i + 1L);
+            if (!isEqual(slice(raw, i, next), "0"))
+            {
+                start = i;
+                break;
+            }
         }
         return ("0x" + slice(raw, start, 64));
     }
 
-    public virtual object sbeReadVarStrings(object frameHex, object offset, object count, object frameLength)
+    public virtual List<object> sbeReadVarStrings(object frameHex, object offset, object count, object frameLength)
     {
         // the var-data section: count strings, each prefixed with a uint8 length. Returns undefined
         // when the frame ends before all of them, and only the strings present when a trailing one is
         // absent, which is how a field appended to var-data reads on a frame from before it
         List<object> result = new List<object>() {};
-        object position = offset;
-        for (int i = 0; isLessThan(i, count); i++)
+        Int64? end = this.parseToInt(frameLength);
+        Int64? total = this.parseToInt(count);
+        Int64? position = this.parseToInt(offset);
+        for (int i = 0; (i < total); i++)
         {
-            if (isGreaterThanOrEqual(position, frameLength))
+            if ((end == null || position >= end))
             {
                 return result;
             }
-            object length = this.sbeReadUint(frameHex, position, 1);
-            if (isGreaterThan(this.sum(position, 1, length), frameLength))
+            Int64? length = this.parseToInt(this.sbeReadUint(frameHex, position, 1));
+            Int64? next = this.parseToInt(this.sum(position, 1, length));
+            if ((next != null && (end == null || next > end)))
             {
-                return null;
+                return ((List<object>)((object)(null)));
             }
-            result.Add(this.sbeReadString(frameHex, add(position, 1), length));
-            position = this.sum(position, 1, length);
+            result.Add(this.sbeReadString(frameHex, (position + 1), length));
+            position = next;
         }
         return result;
     }
 
-    public virtual object parseSbeTrade(object frameHex, object blockLength, object frameLength)
+    public virtual Dictionary<string, object> parseSbeTrade(object frameHex, object blockLength, object frameLength)
     {
+        Int64? blockSize = this.parseToInt(blockLength);
         //
         // TradeEvent (templateId 1), 50-byte block
         //
         //     ts int64, seq int64, tradeId int64 (deprecated, truncated), side uint8, price int64,
         //     size int64, createdAt int64, tradeType uint8, then market and tradeIdStr strings
         //
-        if (isLessThan(blockLength, 50))
+        if (((blockSize == null || blockSize < 50)))
         {
-            return null;
+            return ((Dictionary<string, object>)((object)(null)));
         }
-        object strings = this.sbeReadVarStrings(frameHex, this.sum(blockLength, 8), 2, frameLength);
-        int stringsLength = ((strings == null)) ? 0 : getArrayLength(strings);
+        List<object> strings = this.sbeReadVarStrings(frameHex, this.sum(blockLength, 8), 2, frameLength);
+        int stringsLength = ((strings == null)) ? 0 : (strings?.Count ?? 0);
         if (stringsLength < 1)
         {
-            return null;
+            return ((Dictionary<string, object>)((object)(null)));
         }
         Dictionary<string, object> sides = new Dictionary<string, object>() {
             { "1", "BUY" },
@@ -1216,80 +1282,83 @@ public partial class paradex : ccxt.paradex
             { "5", "RPI" },
             { "6", "BLOCK_TRADE" },
         };
-        return new Dictionary<string, object>() {
+        return ((Dictionary<string, object>)((object)(new Dictionary<string, object>() {
             { "id", this.safeString(strings, 1) },
-            { "market", getValue(strings, 0) },
+            { "market", (strings != null && 0 < strings.Count ? strings[0] : null) },
             { "side", this.sbeReadEnum(frameHex, 32, sides) },
             { "size", this.sbeReadDecimal(frameHex, 41) },
             { "price", this.sbeReadDecimal(frameHex, 33) },
             { "created_at", this.sbeReadTimestamp(frameHex, 49) },
             { "trade_type", this.sbeReadEnum(frameHex, 57, tradeTypes) },
-        };
+        })));
     }
 
-    public virtual object parseSbeOrderBook(object frameHex, object blockLength, object frameLength)
+    public virtual Dictionary<string, object> parseSbeOrderBook(object frameHex, object blockLength, object frameLength)
     {
+        Int64? blockSize = this.parseToInt(blockLength);
         //
         // BookEvent (templateId 3), 89-byte block
         //
         //     ts int64, seq int64, pkgType uint8, nine best bid/ask int64 fields, then the bids and asks
         //     groups of (price int64, size int64) entries and the market string
         //
-        if (isLessThan(blockLength, 17))
+        if (((blockSize == null || blockSize < 17)))
         {
-            return null;
+            return ((Dictionary<string, object>)((object)(null)));
         }
         // watchOrderBook subscribes to the snapshot channel, a delta would need a book to apply it to
-        object pkgType = this.sbeReadUint(frameHex, 24, 1);
-        if (!isEqual(pkgType, 0))
+        Int64? pkgType = this.parseToInt(this.sbeReadUint(frameHex, 24, 1));
+        if ((pkgType != 0))
         {
-            return null;
+            return ((Dictionary<string, object>)((object)(null)));
         }
         List<object> inserts = new List<object>() {};
         List<object> sides = new List<object>() {"BUY", "SELL"};
-        object position = this.sum(blockLength, 8);
+        Int64? frameEnd = this.parseToInt(frameLength);
+        Int64? position = this.parseToInt(this.sum(blockLength, 8));
         for (int i = 0; i < (sides?.Count ?? 0); i++)
         {
-            if (isGreaterThan(add(position, 4), frameLength))
+            if (((position + 4) != null && (frameEnd == null || (position + 4) > frameEnd)))
             {
-                return null;
+                return ((Dictionary<string, object>)((object)(null)));
             }
-            object entryLength = this.sbeReadUint(frameHex, position, 2);
-            object numInGroup = this.sbeReadUint(frameHex, add(position, 2), 2);
-            position = add(position, 4);
-            if ((isLessThan(entryLength, 16)) || (isGreaterThan(this.sum(position, multiply(numInGroup, entryLength)), frameLength)))
+            Int64? entryLength = this.parseToInt(this.sbeReadUint(frameHex, position, 2));
+            Int64? numInGroup = this.parseToInt(this.sbeReadUint(frameHex, (position + 2), 2));
+            position = this.parseToInt((position + 4));
+            if ((((entryLength == null || entryLength < 16))) || (isGreaterThan(this.parseToInt(this.sum(position, (numInGroup * entryLength))), frameEnd)))
             {
-                return null;
+                return ((Dictionary<string, object>)((object)(null)));
             }
-            for (int j = 0; isLessThan(j, numInGroup); j++)
+            for (int j = 0; (j < numInGroup); j++)
             {
                 inserts.Add(new Dictionary<string, object>() {
                     { "side", sides[i] },
                     { "price", this.sbeReadDecimal(frameHex, position) },
-                    { "size", this.sbeReadDecimal(frameHex, add(position, 8)) },
+                    { "size", this.sbeReadDecimal(frameHex, (position + 8)) },
                 });
-                position = this.sum(position, entryLength);
+                position = this.parseToInt(this.sum(position, entryLength));
             }
         }
-        object strings = this.sbeReadVarStrings(frameHex, position, 1, frameLength);
-        int stringsLength = ((strings == null)) ? 0 : getArrayLength(strings);
+        List<object> strings = this.sbeReadVarStrings(frameHex, position, 1, frameLength);
+        int stringsLength = ((strings == null)) ? 0 : (strings?.Count ?? 0);
         if (stringsLength < 1)
         {
-            return null;
+            return ((Dictionary<string, object>)((object)(null)));
         }
-        return new Dictionary<string, object>() {
+        return ((Dictionary<string, object>)((object)(new Dictionary<string, object>() {
             { "seq_no", this.sbeReadInt64(frameHex, 16) },
-            { "market", getValue(strings, 0) },
+            { "market", (strings != null && 0 < strings.Count ? strings[0] : null) },
             { "last_updated_at", this.sbeReadTimestamp(frameHex, 8) },
             { "update_type", "s" },
             { "inserts", inserts },
             { "updates", new List<object>() {} },
             { "deletes", new List<object>() {} },
-        };
+        })));
     }
 
-    public virtual object parseSbeMarketSummary(object frameHex, object blockLength, object frameLength)
+    public virtual Dictionary<string, object> parseSbeMarketSummary(object frameHex, object blockLength, object frameLength)
     {
+        Int64? blockSize = this.parseToInt(blockLength);
         //
         // MarketSummaryEvent (templateId 4), 248-byte block (240 before 1:3), of which the first
         // 12 int64 fields and settlementTwapEstimate are read
@@ -1298,24 +1367,24 @@ public partial class paradex : ccxt.paradex
         //     ask, totalVolume, priceChangeRate24h, ..., settlementTwapEstimate (1:3, at 240), then the
         //     market string
         //
-        if (isLessThan(blockLength, 96))
+        if (((blockSize == null || blockSize < 96)))
         {
-            return null;
+            return ((Dictionary<string, object>)((object)(null)));
         }
-        object strings = this.sbeReadVarStrings(frameHex, this.sum(blockLength, 8), 1, frameLength);
-        int stringsLength = ((strings == null)) ? 0 : getArrayLength(strings);
+        List<object> strings = this.sbeReadVarStrings(frameHex, this.sum(blockLength, 8), 1, frameLength);
+        int stringsLength = ((strings == null)) ? 0 : (strings?.Count ?? 0);
         if (stringsLength < 1)
         {
-            return null;
+            return ((Dictionary<string, object>)((object)(null)));
         }
         // appended in 1:3: null outside the pre-expiry settlement window and for undated markets
         object settlementTwapEstimate = null;
-        if (isGreaterThanOrEqual(blockLength, 248))
+        if ((blockSize >= 248))
         {
             settlementTwapEstimate = this.sbeReadDecimal(frameHex, 248);
         }
-        return new Dictionary<string, object>() {
-            { "symbol", getValue(strings, 0) },
+        return ((Dictionary<string, object>)((object)(new Dictionary<string, object>() {
+            { "symbol", (strings != null && 0 < strings.Count ? strings[0] : null) },
             { "mark_price", this.sbeReadDecimal(frameHex, 24) },
             { "last_traded_price", this.sbeReadDecimal(frameHex, 40) },
             { "bid", this.sbeReadDecimal(frameHex, 72) },
@@ -1327,40 +1396,42 @@ public partial class paradex : ccxt.paradex
             { "funding_rate", this.sbeReadDecimal(frameHex, 64) },
             { "price_change_rate_24h", this.sbeReadDecimal(frameHex, 96) },
             { "settlement_twap_estimate", settlementTwapEstimate },
-        };
+        })));
     }
 
-    public virtual object parseSbeFundingData(object frameHex, object blockLength, object frameLength)
+    public virtual Dictionary<string, object> parseSbeFundingData(object frameHex, object blockLength, object frameLength)
     {
+        Int64? blockSize = this.parseToInt(blockLength);
         //
         // FundingDataEvent (templateId 5), 66-byte block
         //
         //     ts int64, seq int64, fundingRate int64, fundingIndex int64, createdAt int64,
         //     fundingPremium int64, fundingRate8h int64, fundingPeriodHours int16, ... then the market
         //
-        if (isLessThan(blockLength, 58))
+        if (((blockSize == null || blockSize < 58)))
         {
-            return null;
+            return ((Dictionary<string, object>)((object)(null)));
         }
-        object strings = this.sbeReadVarStrings(frameHex, this.sum(blockLength, 8), 1, frameLength);
-        int stringsLength = ((strings == null)) ? 0 : getArrayLength(strings);
+        List<object> strings = this.sbeReadVarStrings(frameHex, this.sum(blockLength, 8), 1, frameLength);
+        int stringsLength = ((strings == null)) ? 0 : (strings?.Count ?? 0);
         if (stringsLength < 1)
         {
-            return null;
+            return ((Dictionary<string, object>)((object)(null)));
         }
-        return new Dictionary<string, object>() {
-            { "market", getValue(strings, 0) },
+        return ((Dictionary<string, object>)((object)(new Dictionary<string, object>() {
+            { "market", (strings != null && 0 < strings.Count ? strings[0] : null) },
             { "funding_index", this.sbeReadDecimal(frameHex, 32) },
             { "funding_premium", this.sbeReadDecimal(frameHex, 48) },
             { "funding_rate", this.sbeReadDecimal(frameHex, 24) },
             { "funding_rate_8h", this.sbeReadDecimal(frameHex, 56) },
             { "funding_period_hours", this.sbeReadUint(frameHex, 64, 2) },
             { "created_at", this.sbeReadTimestamp(frameHex, 40) },
-        };
+        })));
     }
 
-    public virtual object parseSbeOrder(object frameHex, object blockLength, object frameLength)
+    public virtual Dictionary<string, object> parseSbeOrder(object frameHex, object blockLength, object frameLength)
     {
+        Int64? blockSize = this.parseToInt(blockLength);
         //
         // OrderEvent (templateId 20), 128-byte block (126 before the 1:2 request fields)
         //
@@ -1369,15 +1440,15 @@ public partial class paradex : ccxt.paradex
         //     createdAt int64, updatedAt int64, account [32]byte, receivedAt int64, publishedAt int64,
         //     stp uint8, flags uint8, ... then the orderId, clientOrderId, market and cancelReason strings
         //
-        if (isLessThan(blockLength, 126))
+        if (((blockSize == null || blockSize < 126)))
         {
-            return null;
+            return ((Dictionary<string, object>)((object)(null)));
         }
-        object strings = this.sbeReadVarStrings(frameHex, this.sum(blockLength, 8), 4, frameLength);
-        int stringsLength = ((strings == null)) ? 0 : getArrayLength(strings);
+        List<object> strings = this.sbeReadVarStrings(frameHex, this.sum(blockLength, 8), 4, frameLength);
+        int stringsLength = ((strings == null)) ? 0 : (strings?.Count ?? 0);
         if (stringsLength < 4)
         {
-            return null;
+            return ((Dictionary<string, object>)((object)(null)));
         }
         Dictionary<string, object> statuses = new Dictionary<string, object>() {
             { "1", "NEW" },
@@ -1415,13 +1486,13 @@ public partial class paradex : ccxt.paradex
         Dictionary<string, object> order = new Dictionary<string, object>() {
             { "account", this.sbeReadAddress(frameHex, 84) },
             { "avg_fill_price", this.sbeReadDecimal(frameHex, 60) },
-            { "client_id", getValue(strings, 1) },
+            { "client_id", (strings != null && 1 < strings.Count ? strings[1] : null) },
             { "created_at", this.sbeReadTimestamp(frameHex, 68) },
             { "flags", flags },
-            { "id", getValue(strings, 0) },
+            { "id", (strings != null && 0 < strings.Count ? strings[0] : null) },
             { "instruction", this.sbeReadEnum(frameHex, 27, timeInForces) },
             { "last_updated_at", this.sbeReadTimestamp(frameHex, 76) },
-            { "market", getValue(strings, 2) },
+            { "market", (strings != null && 2 < strings.Count ? strings[2] : null) },
             { "price", this.sbeReadDecimal(frameHex, 28) },
             { "published_at", this.sbeReadTimestamp(frameHex, 124) },
             { "received_at", this.sbeReadTimestamp(frameHex, 116) },
@@ -1436,9 +1507,9 @@ public partial class paradex : ccxt.paradex
             { "type", this.sbeReadEnum(frameHex, 26, orderTypes) },
         };
         // an empty cancel reason is sent for every live order, parseOrder reads any reason as canceled
-        if (!isEqual(getValue(strings, 3), ""))
+        if (!((strings != null && 3 < strings.Count ? strings[3] : null) is ""))
         {
-            order["cancel_reason"] = getValue(strings, 3);
+            order["cancel_reason"] = (strings != null && 3 < strings.Count ? strings[3] : null);
         }
         return order;
     }
@@ -1447,21 +1518,22 @@ public partial class paradex : ccxt.paradex
     {
         // a uint8 bitset, names[bit] for each set bit, an empty name for a bit the schema leaves unused
         List<object> flags = new List<object>() {};
-        object bits = this.sbeReadUint(frameHex, offset, 1);
+        Int64? bits = this.parseToInt(this.sbeReadUint(frameHex, offset, 1));
         for (int i = 0; i < getArrayLength(names); i++)
         {
-            Int64? bit = this.parseToInt(mod(bits, 2));
-            if (((bit == 1)) && (!isEqual(getValue(names, i), "")))
+            Int64? bit = this.parseToInt(((Int64?)((double?)bits % 2)));
+            if (((bit == 1)) && (!(getValue(names, i) is "")))
             {
                 flags.Add(getValue(names, i));
             }
-            bits = this.parseToInt(divide((subtract(bits, bit)), 2));
+            bits = this.parseToInt(((double?)bits / 2));
         }
         return flags;
     }
 
-    public virtual object parseSbeFill(object frameHex, object blockLength, object frameLength)
+    public virtual Dictionary<string, object> parseSbeFill(object frameHex, object blockLength, object frameLength)
     {
+        Int64? blockSize = this.parseToInt(blockLength);
         //
         // FillEvent (templateId 21), 116-byte block (107 before the 1:2 flags and orderbookSeqNo)
         //
@@ -1470,15 +1542,15 @@ public partial class paradex : ccxt.paradex
         //     underlyingPrice int64, realizedFunding int64, flags uint8, orderbookSeqNo uint64, then the
         //     fillId, orderId, clientOrderId, tradeId, market and feeCurrency (1:2) strings
         //
-        if (isLessThan(blockLength, 107))
+        if (((blockSize == null || blockSize < 107)))
         {
-            return null;
+            return ((Dictionary<string, object>)((object)(null)));
         }
-        object strings = this.sbeReadVarStrings(frameHex, this.sum(blockLength, 8), 6, frameLength);
-        int stringsLength = ((strings == null)) ? 0 : getArrayLength(strings);
+        List<object> strings = this.sbeReadVarStrings(frameHex, this.sum(blockLength, 8), 6, frameLength);
+        int stringsLength = ((strings == null)) ? 0 : (strings?.Count ?? 0);
         if (stringsLength < 5)
         {
-            return null;
+            return ((Dictionary<string, object>)((object)(null)));
         }
         Dictionary<string, object> fillTypes = new Dictionary<string, object>() {
             { "1", "FILL" },
@@ -1498,15 +1570,15 @@ public partial class paradex : ccxt.paradex
         };
         Dictionary<string, object> fill = new Dictionary<string, object>() {
             { "account", this.sbeReadAddress(frameHex, 67) },
-            { "client_id", getValue(strings, 2) },
+            { "client_id", (strings != null && 2 < strings.Count ? strings[2] : null) },
             { "created_at", this.sbeReadTimestamp(frameHex, 59) },
             { "fee", this.sbeReadDecimal(frameHex, 43) },
             { "fee_currency", this.safeString(strings, 5) },
             { "fill_type", this.sbeReadEnum(frameHex, 24, fillTypes) },
-            { "id", getValue(strings, 0) },
+            { "id", (strings != null && 0 < strings.Count ? strings[0] : null) },
             { "liquidity", this.sbeReadEnum(frameHex, 26, liquidities) },
-            { "market", getValue(strings, 4) },
-            { "order_id", getValue(strings, 1) },
+            { "market", (strings != null && 4 < strings.Count ? strings[4] : null) },
+            { "order_id", (strings != null && 1 < strings.Count ? strings[1] : null) },
             { "price", this.sbeReadDecimal(frameHex, 27) },
             { "realized_funding", this.sbeReadDecimal(frameHex, 107) },
             { "realized_pnl", this.sbeReadDecimal(frameHex, 51) },
@@ -1514,7 +1586,7 @@ public partial class paradex : ccxt.paradex
             { "size", this.sbeReadDecimal(frameHex, 35) },
             { "underlying_price", this.sbeReadDecimal(frameHex, 99) },
         };
-        if (isGreaterThanOrEqual(blockLength, 116))
+        if ((blockSize >= 116))
         {
             // lowercase, as the JSON feed spells fill flags
             fill["flags"] = this.sbeReadFlags(frameHex, 115, new List<object>() {"interactive", "rpi", "fastfill", "", "", "", "", "unknown"});
@@ -1523,8 +1595,9 @@ public partial class paradex : ccxt.paradex
         return fill;
     }
 
-    public virtual object parseSbePosition(object frameHex, object blockLength, object frameLength)
+    public virtual Dictionary<string, object> parseSbePosition(object frameHex, object blockLength, object frameLength)
     {
+        Int64? blockSize = this.parseToInt(blockLength);
         //
         // PositionEvent (templateId 22), 154-byte block
         //
@@ -1534,15 +1607,15 @@ public partial class paradex : ccxt.paradex
         //     int64, cost int64, costUsd int64, cachedFundingIndex int64, unrealizedFundingPnl int64,
         //     status uint8, then the market and lastFillId strings
         //
-        if (isLessThan(blockLength, 154))
+        if (((blockSize == null || blockSize < 154)))
         {
-            return null;
+            return ((Dictionary<string, object>)((object)(null)));
         }
-        object strings = this.sbeReadVarStrings(frameHex, this.sum(blockLength, 8), 2, frameLength);
-        int stringsLength = ((strings == null)) ? 0 : getArrayLength(strings);
+        List<object> strings = this.sbeReadVarStrings(frameHex, this.sum(blockLength, 8), 2, frameLength);
+        int stringsLength = ((strings == null)) ? 0 : (strings?.Count ?? 0);
         if (stringsLength < 1)
         {
-            return null;
+            return ((Dictionary<string, object>)((object)(null)));
         }
         Dictionary<string, object> sides = new Dictionary<string, object>() {
             { "1", "LONG" },
@@ -1560,19 +1633,19 @@ public partial class paradex : ccxt.paradex
         {
             size = Precise.stringNeg(size);
         }
-        return new Dictionary<string, object>() {
+        return ((Dictionary<string, object>)((object)(new Dictionary<string, object>() {
             { "account", account },
             { "average_entry_price", this.sbeReadDecimal(frameHex, 33) },
             { "average_entry_price_usd", this.sbeReadDecimal(frameHex, 121) },
             { "cached_funding_index", this.sbeReadDecimal(frameHex, 145) },
             { "cost", this.sbeReadDecimal(frameHex, 129) },
             { "cost_usd", this.sbeReadDecimal(frameHex, 137) },
-            { "id", add(add(account, "-"), getValue(strings, 0)) },
+            { "id", add(add(account, "-"), (strings != null && 0 < strings.Count ? strings[0] : null)) },
             { "last_fill_id", this.safeString(strings, 1) },
             { "last_updated_at", this.sbeReadTimestamp(frameHex, 81) },
             { "leverage", this.sbeReadDecimal(frameHex, 73) },
             { "liquidation_price", this.sbeReadDecimal(frameHex, 65) },
-            { "market", getValue(strings, 0) },
+            { "market", (strings != null && 0 < strings.Count ? strings[0] : null) },
             { "realized_positional_pnl", this.sbeReadDecimal(frameHex, 49) },
             { "seq_no", this.sbeReadInt64(frameHex, 16) },
             { "side", side },
@@ -1580,11 +1653,12 @@ public partial class paradex : ccxt.paradex
             { "status", this.sbeReadEnum(frameHex, 161, statuses) },
             { "unrealized_funding_pnl", this.sbeReadDecimal(frameHex, 153) },
             { "unrealized_pnl", this.sbeReadDecimal(frameHex, 41) },
-        };
+        })));
     }
 
-    public virtual object parseSbeAccount(object frameHex, object blockLength, object frameLength)
+    public virtual Dictionary<string, object> parseSbeAccount(object frameHex, object blockLength, object frameLength)
     {
+        Int64? blockSize = this.parseToInt(blockLength);
         //
         // AccountEvent (templateId 23), 121-byte block (113 before the 1:2 lastSeenNotification)
         //
@@ -1593,15 +1667,15 @@ public partial class paradex : ccxt.paradex
         //     int64, account [32]byte, marginCushion int64, status uint8, lastSeenNotification int64,
         //     then the settlementAsset string
         //
-        if (isLessThan(blockLength, 113))
+        if (((blockSize == null || blockSize < 113)))
         {
-            return null;
+            return ((Dictionary<string, object>)((object)(null)));
         }
-        object strings = this.sbeReadVarStrings(frameHex, this.sum(blockLength, 8), 1, frameLength);
-        int stringsLength = ((strings == null)) ? 0 : getArrayLength(strings);
+        List<object> strings = this.sbeReadVarStrings(frameHex, this.sum(blockLength, 8), 1, frameLength);
+        int stringsLength = ((strings == null)) ? 0 : (strings?.Count ?? 0);
         if (stringsLength < 1)
         {
-            return null;
+            return ((Dictionary<string, object>)((object)(null)));
         }
         Dictionary<string, object> statuses = new Dictionary<string, object>() {
             { "1", "ACTIVE" },
@@ -1615,12 +1689,12 @@ public partial class paradex : ccxt.paradex
             { "maintenance_margin_requirement", this.sbeReadDecimal(frameHex, 48) },
             { "margin_cushion", this.sbeReadDecimal(frameHex, 112) },
             { "seq_no", this.sbeReadInt64(frameHex, 16) },
-            { "settlement_asset", getValue(strings, 0) },
+            { "settlement_asset", (strings != null && 0 < strings.Count ? strings[0] : null) },
             { "status", this.sbeReadEnum(frameHex, 120, statuses) },
             { "total_collateral", this.sbeReadDecimal(frameHex, 24) },
             { "updated_at", this.sbeReadTimestamp(frameHex, 72) },
         };
-        if (isGreaterThanOrEqual(blockLength, 121))
+        if ((blockSize >= 121))
         {
             account["last_seen_notification"] = this.sbeReadTimestamp(frameHex, 121);
         }
@@ -1647,21 +1721,59 @@ public partial class paradex : ccxt.paradex
         if ((error == null))
         {
             return ((bool?)((object)(true)));
-        } else
+        }
+        try
         {
+            string feedback = ((this.id + " ") + this.json(error));
             string? errorCode = this.safeString(error, "code");
             if ((errorCode != null))
             {
-                string feedback = ((this.id + " ") + this.json(error));
-                this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), "-32600", feedback);
-                string? messageString = this.safeString(error, "message");
-                if ((messageString != null))
+                this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorCode, feedback);
+            }
+            string? messageString = this.safeString(error, "message");
+            if ((messageString != null))
+            {
+                this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), messageString, feedback);
+            }
+            throw new ExchangeError (feedback) ;
+        } catch(Exception e)
+        {
+            // the subscription of every request sent keeps its id, so the request this error answers is found
+            // by it. A failed subscribe or auth is forgotten, so that the next watch sends it again
+            string? requestId = this.safeString(message, "id");
+            bool handled = false;
+            if ((requestId != null))
+            {
+                List<object> subscribeHashes = new List<object>(((IDictionary<string,object>)client.subscriptions).Keys);
+                for (int i = 0; i < subscribeHashes.Count; i++)
                 {
-                    this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), messageString, feedback);
+                    string? subscribeHash = ((string)subscribeHashes[i]);
+                    IDictionary<string, object> subscription = this.safeDict(client.subscriptions, subscribeHash);
+                    if ((this.safeString(subscription, "id") == requestId))
+                    {
+                        handled = true;
+                        ((IDictionary<string,object>)client.subscriptions).Remove(subscribeHash);
+                        // watchMultiple subscribes per message hash, so the subscribe hash is what its watcher waits on
+                        List<object> messageHashes = this.safeList(subscription, "messageHashes", new List<object>() {subscribeHash});
+                        for (int j = 0; j < messageHashes.Count; j++)
+                        {
+                            client.reject(e, messageHashes[j]);
+                        }
+                    }
                 }
             }
-            return ((bool?)((object)(false)));
+            if (!handled)
+            {
+                // not a reply to a known request, every watcher on the connection gets the error,
+                // and the next private watch authenticates again instead of waiting on a rejected future
+                if ((client.subscriptions != null && client.subscriptions.ContainsKey("authenticated")))
+                {
+                    ((IDictionary<string,object>)client.subscriptions).Remove("authenticated");
+                }
+                client.reject(e);
+            }
         }
+        return ((bool?)((object)(false)));
     }
 
     public override void handleMessage(WebSocketClient client, object message)
@@ -1675,7 +1787,7 @@ public partial class paradex : ccxt.paradex
                 return;
             }
         }
-        if (!isEqual(this.handleErrorMessage(client, parsedMessage), true))
+        if (!(this.handleErrorMessage(client, parsedMessage) == true))
         {
             return;
         }
@@ -1710,7 +1822,7 @@ public partial class paradex : ccxt.paradex
         IDictionary<string, object> result = this.safeDict(parsedMessage, "result");
         if ((result != null))
         {
-            this.handleAuthenticationMessage(client, parsedMessage);
+            this.handleRequestReply(client, parsedMessage);
             return;
         }
         IDictionary<string, object> data = this.safeDict(parsedMessage, "params");

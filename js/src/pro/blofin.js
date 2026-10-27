@@ -70,12 +70,6 @@ export default class blofin extends blofinRest {
     ping(client) {
         return 'ping';
     }
-    handlePong(client, message) {
-        //
-        //   'pong'
-        //
-        client.lastPong = this.milliseconds();
-    }
     /**
      * @method
      * @name blofin#watchTrades
@@ -495,10 +489,28 @@ export default class blofin extends blofinRest {
         //     }
         //
         const marketType = 'swap'; // for now
-        if (!(marketType in this.balance)) {
-            this.balance[marketType] = {};
+        // merge the parsed update into the existing balance object instead of
+        // replacing it: a consumer awakened by an earlier message holds a
+        // reference to this.balance[marketType], and Client.resolve is a no-op
+        // while nobody is awaiting, so a replaced object would make updates
+        // landing in that window invisible to the consumer forever (same class
+        // as issue #26773); the free/used/total aggregates are rebuilt from
+        // the merged currencies by safeBalance
+        if (this.balance === undefined) {
+            this.balance = {};
         }
-        this.balance[marketType] = this.parseWsBalance(message);
+        this.balance[marketType] = this.safeDict(this.balance, marketType, {});
+        const parsed = this.parseWsBalance(message);
+        const reserved = ['free', 'used', 'total'];
+        const keys = Object.keys(parsed);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            if (this.inArray(key, reserved)) {
+                continue;
+            }
+            this.balance[marketType][key] = parsed[key];
+        }
+        this.balance[marketType] = this.safeBalance(this.balance[marketType]);
         const messageHash = marketType + ':balance';
         client.resolve(this.balance[marketType], messageHash);
     }
@@ -774,7 +786,6 @@ export default class blofin extends blofinRest {
         //
         const methods = {
             // public
-            'pong': this.handlePong,
             'trades': this.handleTrades,
             'books': this.handleOrderBook,
             'tickers': this.handleTicker,
@@ -788,7 +799,8 @@ export default class blofin extends blofinRest {
         };
         let method = undefined;
         if (message === 'pong') {
-            method = this.safeValue(methods, 'pong');
+            client.lastPong = this.milliseconds();
+            return;
         }
         else {
             const event = this.safeString(message, 'event');

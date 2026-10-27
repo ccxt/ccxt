@@ -1318,7 +1318,7 @@ export default class bullish extends Exchange {
         if ((method !== 'fetchOHLCV') && (method !== 'fetchFundingRateHistory') && (method !== 'fetchTrades')) {
             throw new NotSupported (this.id + ' safeDeterministicCall() does not support the ' + method + ' method');
         }
-        let errors = 0;
+        let errors: int = 0;
         const paramsOmitted: Dict = this.omit (paramsMaxRetries, 'until');
         // the exchange returns the most recent data, so we do not need to pass until into paginated calls
         // the correct util value will be calculated inside of the method
@@ -1374,17 +1374,22 @@ export default class bullish extends Exchange {
             '_pageSize': maxLimit,
         };
         const [ requestUntil, paramsUntil ] = this.handleUntilOption ('createdAtDatetime[lte]', request, paramsPaginate);
-        let until = this.safeInteger (requestUntil, 'createdAtDatetime[lte]');
+        const untilParam = this.safeInteger (requestUntil, 'createdAtDatetime[lte]');
+        let until: Int = undefined;
+        if (untilParam !== undefined) {
+            until = untilParam;
+        }
         const duration = this.parseTimeframe (timeframe);
-        const maxDelta = 1000 * duration * maxLimit;
-        let startTime = since;
+        const maxDelta = duration * maxLimit * 1000;
+        let startTime: Int = since;
         // both of since and until are required
-        if (startTime === undefined && until === undefined) {
-            until = this.milliseconds ();
-            startTime = until - maxDelta;
-        } else if (startTime === undefined) {
-            startTime = (until as number) - maxDelta;
-        } else if (until === undefined) {
+        if (since === undefined && untilParam === undefined) {
+            const now = this.milliseconds ();
+            until = now;
+            startTime = now - maxDelta;
+        } else if ((since === undefined) && (untilParam !== undefined)) {
+            startTime = untilParam - maxDelta;
+        } else if (untilParam === undefined) {
             until = this.sum (startTime, maxDelta);
         }
         requestUntil['createdAtDatetime[gte]'] = this.iso8601 (startTime);
@@ -1506,7 +1511,7 @@ export default class bullish extends Exchange {
         await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
         const tradingAccountId = await this.loadAccount (params);
         const paginate = this.safeBool (params, 'paginate', false);
-        if (paginate === true) {
+        if (paginate) {
             const paramsPagination: Dict = this.handlePaginationParams ('fetchOrders', since, params);
             return await this.fetchPaginatedCallDynamic ('fetchOrders', symbol, since, limit, paramsPagination, 100) as Order[];
         }
@@ -1582,23 +1587,29 @@ export default class bullish extends Exchange {
     }
 
     handleSinceAndUntil (since: Int = undefined, params: Dict = {}, sinceKey: Str = 'createdAtDatetime[gte]', untilKey: Str = 'createdAtDatetime[lte]'): Dict {
-        let until = this.safeInteger (params, 'until');
-        const sinceFromUntil = (since === undefined) && (until !== undefined);
+        const untilParam = this.safeInteger (params, 'until');
+        let until: Int = undefined;
+        if (untilParam !== undefined) {
+            until = untilParam;
+        }
+        const sinceFromUntil = (since === undefined) && (untilParam !== undefined);
         let paramsResult: Dict = params;
         if (sinceFromUntil) {
             paramsResult = this.omit (params, 'until');
         }
-        if ((since !== undefined) || (until !== undefined)) {
+        if ((since !== undefined) || (untilParam !== undefined)) {
             const timeDelta = 7 * 24 * 60 * 60 * 1000; // 7 days
             let sinceResolved: Int = since;
-            if (since === undefined) {
-                sinceResolved = (until as number) - timeDelta;
+            if ((since === undefined) && (untilParam !== undefined)) {
+                sinceResolved = untilParam - timeDelta;
             }
-            if ((since !== undefined) && (until === undefined)) {
-                until = this.sum (since, timeDelta);
+            if ((since !== undefined) && (untilParam === undefined)) {
                 const now = this.milliseconds ();
-                if ((until as number) > now) {
+                const latestSince = now - timeDelta;
+                if (since > latestSince) {
                     until = now;
+                } else {
+                    until = this.sum (since, timeDelta);
                 }
             }
             const sinceDate = this.iso8601 (sinceResolved);
@@ -1611,11 +1622,14 @@ export default class bullish extends Exchange {
 
     getClosestLimit (limit: Int): Int {
         let pageSize = 5;
-        if (((limit as number) > 5) && ((limit as number) < 26)) {
+        if (limit === undefined) {
+            return pageSize;
+        }
+        if ((limit > 5) && (limit < 26)) {
             pageSize = 25;
-        } else if (((limit as number) > 25) && ((limit as number) < 51)) {
+        } else if ((limit > 25) && (limit < 51)) {
             pageSize = 50;
-        } else if ((limit as number) > 50) {
+        } else if (limit > 50) {
             pageSize = 100;
         }
         return pageSize;
@@ -1850,7 +1864,7 @@ export default class bullish extends Exchange {
             request['type'] = type.toUpperCase ();
         }
         const postOnly = this.safeBool (params, 'postOnly', false);
-        if (postOnly === true) {
+        if (postOnly) {
             request['type'] = 'POST_ONLY';
         }
         if (amount !== undefined) {
@@ -1859,7 +1873,7 @@ export default class bullish extends Exchange {
         if (price !== undefined) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        const paramsOmitted: Dict = (postOnly === true) ? this.omit (params, 'postOnly') : params;
+        const paramsOmitted: Dict = (postOnly) ? this.omit (params, 'postOnly') : params;
         const response = await this.privatePostV2Command (this.extend (request, paramsOmitted));
         return this.parseOrder (response, market);
     }
@@ -2038,7 +2052,7 @@ export default class bullish extends Exchange {
         }, marketResolved);
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             'OPEN': 'open',
             'CLOSED': 'closed',
@@ -2048,7 +2062,7 @@ export default class bullish extends Exchange {
         return this.safeString (statuses, status as string, status);
     }
 
-    parseOrderType (type: Str) {
+    parseOrderType (type: Str): Str {
         const types: Dict = {
             'LMT': 'limit',
             'MKT': 'market',
@@ -2245,7 +2259,7 @@ export default class bullish extends Exchange {
         };
     }
 
-    parseTransactionType (type: Str) {
+    parseTransactionType (type: Str): Str {
         const types: Dict = {
             'DEPOSIT': 'deposit',
             'WITHDRAW': 'withdrawal',
@@ -2253,7 +2267,7 @@ export default class bullish extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    parseTransactionStatus (status: Str) {
+    parseTransactionStatus (status: Str): Str {
         const statuses: Dict = {
             'COMPLETE': 'ok',
             'FAILED': 'failed',
@@ -2263,10 +2277,9 @@ export default class bullish extends Exchange {
         return this.safeString (statuses, status as string, status);
     }
 
-    async loadAccount (params: Dict = {}): Promise<string> {
-        let tradingAccountId: Str = undefined;
-        let paramsTradingAccountId = undefined;
-        [ tradingAccountId, paramsTradingAccountId ] = this.handleOptionStringAndParams (params, 'loadAccount', 'tradingAccountId');
+    async loadAccount (params: Dict = {}): Promise<Str> {
+        const [ tradingAccountIdOption, paramsTradingAccountId ] = this.handleOptionStringAndParams (params, 'loadAccount', 'tradingAccountId');
+        let tradingAccountId: Str = tradingAccountIdOption;
         if (tradingAccountId === undefined) {
             const response = await this.privateGetV1AccountsTradingAccounts (paramsTradingAccountId);
             const accounts = this.toArray (response);
@@ -2283,7 +2296,7 @@ export default class bullish extends Exchange {
             throw new ArgumentsRequired (this.id + ' loadAccount() requires a tradingAccountId parameter in options["tradingAccountId"] or params["tradingAccountId"], fetchAccounts() was not able to find the Primary account');
         }
         this.options['tradingAccountId'] = tradingAccountId;
-        return tradingAccountId;
+        return this.safeString (this.options, 'tradingAccountId');
     }
 
     /**
@@ -2417,9 +2430,10 @@ export default class bullish extends Exchange {
         const safeResponse = this.toArray (response);
         const length = safeResponse.length;
         let data = this.safeDict (safeResponse, 0, {});
-        let network: Str = undefined;
-        network = this.handleNetworkCodeAndParams (params)[0];
-        const networkDefinedByUser = network !== undefined;
+        const networkAndParams = this.handleNetworkCodeAndParams (params);
+        const networkParam: Str = networkAndParams[0];
+        const networkDefinedByUser = networkParam !== undefined;
+        let network: Str = networkParam;
         if ((length > 1) || (networkDefinedByUser)) {
             // some currencies have multiple networks
             if (network === undefined) {
@@ -2629,7 +2643,7 @@ export default class bullish extends Exchange {
         });
     }
 
-    parsePositionSide (side: Str) {
+    parsePositionSide (side: Str): Str {
         const sides: Dict = {
             'BUY': 'long',
             'SELL': 'short',
@@ -2731,7 +2745,7 @@ export default class bullish extends Exchange {
         const transferOptions = this.safeDict (this.options, 'transfer', {});
         const fillResponseFromRequest = this.safeBool (transferOptions, 'fillResponseFromRequest', true);
         const transfer = this.parseTransfer (response, currency);
-        if (fillResponseFromRequest === true) {
+        if (fillResponseFromRequest) {
             transfer['fromAccount'] = fromAccount;
             transfer['toAccount'] = toAccount;
             transfer['amount'] = amount;
@@ -2781,7 +2795,7 @@ export default class bullish extends Exchange {
         };
     }
 
-    parseTransferStatus (status: Str) {
+    parseTransferStatus (status: Str): Str {
         const statuses: Dict = {
             'CLOSED': 'ok',
             'OPEN': 'pending',
@@ -2817,7 +2831,7 @@ export default class bullish extends Exchange {
         const [ requestUntil, paramsUntil ] = this.handleUntilOption ('createdAtDatetime[lte]', request, params);
         let until = this.safeInteger (requestUntil, 'createdAtDatetime[lte]');
         // current endpoint requires both since and until parameters
-        if (startTimestamp === undefined) {
+        if (since === undefined) {
             startTimestamp = now - 1000 * 60 * 60 * 24 * 90; // Only the last 90 days of data is available for querying
         }
         if (until === undefined) {
@@ -2864,7 +2878,7 @@ export default class bullish extends Exchange {
         };
     }
 
-    getTimestamp () {
+    getTimestamp (): number {
         return this.milliseconds () - this.safeInteger (this.options, 'timeDifference', 0);
     }
 
@@ -2927,7 +2941,7 @@ export default class bullish extends Exchange {
         return this.parseOpenInterest (response, market);
     }
 
-    override parseOpenInterest (interest: any, market: Market = undefined): OpenInterest {
+    override parseOpenInterest (interest: NullableDict, market: Market = undefined): OpenInterest {
         //
         //     {
         //         "createdAtDatetime": "2021-05-20T01:01:01.000Z",
@@ -2979,7 +2993,7 @@ export default class bullish extends Exchange {
         }, market);
     }
 
-    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
         const apiName = api[0];
         let requestHeaders: NullableDict = undefined;
         let requestBody: Str = undefined;

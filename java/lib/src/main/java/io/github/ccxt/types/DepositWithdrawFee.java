@@ -9,7 +9,7 @@ import java.util.Map;
 public final class DepositWithdrawFee extends TypedMap {
     public DepositWithdrawFeeNetwork withdraw;
     public DepositWithdrawFeeNetwork deposit;
-    public Map<String, DepositWithdrawFeeNetwork> networks;
+    public Map<String, DepositWithdrawFeeNetworkEntry> networks;
     public Map<String, Object> info;
 
     @SuppressWarnings("unchecked")
@@ -24,7 +24,7 @@ public final class DepositWithdrawFee extends TypedMap {
         if (networksRaw instanceof Map<?, ?> networksMap) {
             this.networks = new LinkedHashMap<>();
             for (Map.Entry<String, Object> entry : ((Map<String, Object>) networksMap).entrySet()) {
-                this.networks.put(entry.getKey(), new DepositWithdrawFeeNetwork(entry.getValue()));
+                this.networks.put(entry.getKey(), new DepositWithdrawFeeNetworkEntry(entry.getValue()));
             }
         }
         this.info = TypeHelper.getInfo(data);

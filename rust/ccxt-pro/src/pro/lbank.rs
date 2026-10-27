@@ -378,7 +378,8 @@ impl LbankCore {
             m
         });
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut message { std::sync::Arc::make_mut(__d).insert("start".into(), self.parse_to_int(math_floor(&(match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })))); }
+            let mut sinceInt: Value = self.parse_to_int(since);
+            if let Value::Dict(__d) = &mut message { std::sync::Arc::make_mut(__d).insert("start".into(), self.parse_to_int((match ((sinceInt).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))); }
         }
         if (limit != Value::Null) {
             if let Value::Dict(__d) = &mut message { std::sync::Arc::make_mut(__d).insert("size".into(), limit); }
@@ -437,7 +438,7 @@ impl LbankCore {
         let mut request: Value = self.deep_extend(subscribe, &[params]);
         let mut ohlcv: Value = self.watch(url, messageHash.clone(), &[request, messageHash.clone()]).await;
         let mut limitResolved: Value = limit.clone();
-        if is_true(&self.newUpdates) {
+        if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(symbol, limit);
         }
         return self.filter_by_since_limit(ohlcv, &[since, limitResolved, Value::Int(0), Value::Bool(true)]);
@@ -519,7 +520,7 @@ impl LbankCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]); if let Value::Dict(__d) = &mut self.ohlcvs { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
-            let mut stored: Value = self.safe_value(get_value(&self.ohlcvs, &symbol), timeframe.clone(), &[]);
+            let mut stored: Value = self.safe_value(self.ohlcvs.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), timeframe.clone(), &[]);
             if (stored == Value::Null) {
                 let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
                 stored = ArrayCacheByTimestamp::new(limit.clone());
@@ -541,7 +542,7 @@ impl LbankCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]); if let Value::Dict(__d) = &mut self.ohlcvs { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
-            let mut stored: Value = self.safe_value(get_value(&self.ohlcvs, &symbol), timeframe.clone(), &[]);
+            let mut stored: Value = self.safe_value(self.ohlcvs.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), timeframe.clone(), &[]);
             if (stored == Value::Null) {
                 let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
                 stored = ArrayCacheByTimestamp::new(limit);
@@ -835,8 +836,8 @@ impl LbankCore {
         let mut rawTrades: Value = (match message.get("trades") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![rawTrade]) });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_456: bool = true;
-            while { if !__for_first_456 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_456 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawTrades.len() as i64) as f64) } {
+            let mut __for_first_478: bool = true;
+            while { if !__for_first_478 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_478 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawTrades.len() as i64) as f64) } {
             let mut trade: Value = self.parse_ws_trade(rawTrades.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), &[market.clone()]);
             add_element_to_object(&mut trade, &Value::Str("symbol".into()), symbol.clone());
             stored.append(trade);
@@ -844,9 +845,9 @@ impl LbankCore {
         }
         if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), stored); }
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("trades:".into()), symbol).into());
-        client.resolve(&[get_value(&self.trades, &symbol), messageHash.clone()]);
+        client.resolve(&[self.trades.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), messageHash.clone()]);
         messageHash = Value::Str(format!("{}{}", Value::Str("fetchTrades:".into()), symbol).into());
-        client.resolve(&[get_value(&self.trades, &symbol), messageHash]);
+        client.resolve(&[self.trades.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), messageHash]);
 }
 
     pub fn parse_ws_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
@@ -874,7 +875,7 @@ impl LbankCore {
             timestamp = self.parse8601(datetime.clone());
         }
         let mut rawSide: Value = self.safe_string2(trade.clone(), Value::Str("direction".into()), Value::Int(3), &[]);
-        let mut parts: Value = split(&rawSide, &Value::Str("_".into()));
+        let mut parts: Value = Value::Array(rawSide.as_str().map(|__s| __s.split("_").map(|__p| Value::Str(__p.to_string().into())).collect()).unwrap_or_default());
         let mut firstPart: Value = self.safe_string(parts.clone(), Value::Int(0), &[]);
         let mut secondPart: Option<String> = self.safe_string(parts, Value::Int(1), &[]).as_str().map(str::to_owned);
         let mut side: Value = firstPart;
@@ -1039,7 +1040,7 @@ impl LbankCore {
             m
         })]);
         let mut rawType: Value = self.safe_string_k(orderUpdate.clone(), "type", &[Value::Str("".into())]);
-        let mut typeParts: Value = split(&rawType, &Value::Str("_".into()));
+        let mut typeParts: Value = Value::Array(rawType.as_str().map(|__s| __s.split("_").map(|__p| Value::Str(__p.to_string().into())).collect()).unwrap_or_default());
         let mut side: Value = self.safe_string(typeParts.clone(), Value::Int(0), &[]);
         let mut exchangeType: Option<String> = self.safe_string(typeParts, Value::Int(1), &[]).as_str().map(str::to_owned);
         let mut type_var: Value = Value::Null;
@@ -1312,13 +1313,13 @@ impl LbankCore {
         let mut datetime: Value = (match __pro_message.get("TS").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
         let mut timestamp: Value = self.parse8601(datetime);
         // let orderbook = this.safeValue (this.orderbooks, symbol);
-        if !(in_op(&self.orderbooks, &symbol)) {
+        if !(matches!((&self.orderbooks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             { let __be_tmp = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
         }
-        let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
+        let mut orderbook: Value = self.orderbooks.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
         let mut snapshot: Value = self.parse_order_book(orderBook, symbol.clone(), &[timestamp, Value::Str("bids".into()), Value::Str("asks".into())]);
         orderbook.reset(snapshot);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook:".into()), symbol).into());

@@ -102,6 +102,7 @@ pub(crate) use ccxt::exchanges::{
     paymium::PaymiumCore,
     phemex::PhemexCore,
     poloniex::PoloniexCore,
+    polymarket::PolymarketCore,
     revolutx::RevolutxCore,
     tokocrypto::TokocryptoCore,
     toobit::ToobitCore,
@@ -120,7 +121,6 @@ pub(crate) use ccxt::prediction::{
     limitless::LimitlessCore,
     myriad::MyriadCore,
     opinion::OpinionCore,
-    polymarket::PolymarketCore,
     predictfun::PredictfunCore,
     sxbet::SxbetCore,
 };
@@ -204,6 +204,7 @@ pub(crate) use ccxt_pro::pro::{
     paradex::ParadexCore as WsParadexCore,
     phemex::PhemexCore as WsPhemexCore,
     poloniex::PoloniexCore as WsPoloniexCore,
+    polymarket::PolymarketCore as WsPolymarketCore,
     toobit::ToobitCore as WsToobitCore,
     upbit::UpbitCore as WsUpbitCore,
     weex::WeexCore as WsWeexCore,
@@ -399,6 +400,7 @@ macro_rules! for_each_ws_core {
         $cb!(paradex, WsParadexCore);
         $cb!(phemex, WsPhemexCore);
         $cb!(poloniex, WsPoloniexCore);
+        $cb!(polymarket, WsPolymarketCore);
         $cb!(toobit, WsToobitCore);
         $cb!(upbit, WsUpbitCore);
         $cb!(weex, WsWeexCore);
@@ -409,3 +411,18 @@ macro_rules! for_each_ws_core {
     };
 }
 pub(crate) use for_each_ws_core;
+
+macro_rules! for_each_prediction_core {
+    ($cb:ident) => {
+        $cb!(binance, PredBinanceCore);
+        $cb!(hyperliquid, PredHyperliquidCore);
+        $cb!(kalshi, PredKalshiCore);
+        $cb!(limitless, PredLimitlessCore);
+        $cb!(myriad, PredMyriadCore);
+        $cb!(opinion, PredOpinionCore);
+        $cb!(polymarket, PredPolymarketCore);
+        $cb!(predictfun, PredPredictfunCore);
+        $cb!(sxbet, PredSxbetCore);
+    };
+}
+pub(crate) use for_each_prediction_core;

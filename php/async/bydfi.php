@@ -641,18 +641,23 @@ class bydfi extends Exchange {
     }
 
     public function get_closest_limit(?int $limit): ?int {
-        $limits = array( 5, 10, 20, 50, 100, 500, 1000 );
-        $result = 1000;
-        for ($i = 0; $i < count($limits); $i++) {
-            if ($limit === null) {
-                throw new ArgumentsRequired($this->id . ' getClosestLimit() requires a limit argument');
-            }
-            if ($limit <= $limits[$i]) {
-                $result = $limits[$i];
-                break;
-            }
+        if ($limit === null) {
+            throw new ArgumentsRequired($this->id . ' getClosestLimit() requires a limit argument');
         }
-        return $result;
+        if ($limit <= 5) {
+            return 5;
+        } elseif ($limit <= 10) {
+            return 10;
+        } elseif ($limit <= 20) {
+            return 20;
+        } elseif ($limit <= 50) {
+            return 50;
+        } elseif ($limit <= 100) {
+            return 100;
+        } elseif ($limit <= 500) {
+            return 500;
+        }
+        return 1000;
     }
 
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -728,7 +733,7 @@ class bydfi extends Exchange {
             Async\await($this->load_markets());
         }
         $paginate = $this->safe_bool($params, 'paginate', false);
-        if ($paginate === true) {
+        if ($paginate) {
             $maxLimit = 500;
             $paramsPaginate = $this->extend($this->omit($params, 'paginate'), array( 'paginationDirection' => 'backward' ));
             $paginatedResponse = Async\await($this->fetch_paginated_call_dynamic('fetchMyTrades', $symbol, $since, $limit, $paramsPaginate, $maxLimit, true));
@@ -877,7 +882,7 @@ class bydfi extends Exchange {
         $maxLimit = 500; // docs says max 1500, but in practice only 500 works
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchOHLCV', 'paginate', false);
         if ($paginate) {
-            return $this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $paramsPaginate, $maxLimit);
+            return Async\await($this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $paramsPaginate, $maxLimit));
         }
         $market = $this->market($symbol);
         $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
@@ -885,30 +890,31 @@ class bydfi extends Exchange {
             'symbol' => $market['id'],
             'interval' => $interval,
         );
-        $startTime = $since;
         $numberOfCandles = $maxLimit;
         if ($limit !== null && $limit !== null && $limit !== 0) {
-            $numberOfCandles = $limit;
+            $numberOfCandles = $this->parse_to_int($limit);
         }
-        $until = null;
-        $paramsUntil = null;
-        list($until, $paramsUntil) = $this->handle_option_integer_and_params($paramsPaginate, 'fetchOHLCV', 'until');
+        list($untilParam, $paramsUntil) = $this->handle_option_integer_and_params($paramsPaginate, 'fetchOHLCV', 'until');
         $now = $this->milliseconds();
         $duration = $this->parse_timeframe($timeframe) * 1000;
         $timeDelta = $duration * $numberOfCandles;
-        if ($startTime === null && $until === null) {
+        $startTime = $since;
+        $until = $untilParam;
+        if ($since === null && $untilParam === null) {
             $startTime = $now - $timeDelta;
             $until = $now;
-        } elseif ($until === null) {
-            if ($startTime === null) {
+        } elseif ($untilParam !== null) {
+            if ($since === null) {
+                $untilInt = $this->parse_to_int($untilParam);
+                $startTime = $untilInt - $timeDelta;
+            }
+        } else {
+            if ($since === null) {
                 throw new ArgumentsRequired($this->id . ' fetchOHLCV() requires a since or until argument');
             }
-            $until = $startTime . $timeDelta;
-            if ($until > $now) {
-                $until = $now;
-            }
-        } elseif ($startTime === null) {
-            $startTime = $until - $timeDelta;
+            $sinceInt = $this->parse_to_int($since);
+            $sinceEnd = $sinceInt . $timeDelta;
+            $until = ($sinceEnd > $now) ? $now : $sinceEnd;
         }
         $request['startTime'] = $startTime;
         $request['endTime'] = $until;
@@ -935,8 +941,7 @@ class bydfi extends Exchange {
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
-        $result = $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
-        return $result;
+        return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
     public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
@@ -1377,13 +1382,13 @@ class bydfi extends Exchange {
         if ($hedged) {
             $query = $this->omit($query, 'reduceOnly');
             if ($side === 'buy') {
-                $request['positionSide'] = ($reduceOnly === true) ? 'SHORT' : 'LONG';
+                $request['positionSide'] = ($reduceOnly) ? 'SHORT' : 'LONG';
             } elseif ($side === 'sell') {
-                $request['positionSide'] = ($reduceOnly === true) ? 'LONG' : 'SHORT';
+                $request['positionSide'] = ($reduceOnly) ? 'LONG' : 'SHORT';
             }
         }
         $closePosition = $this->safe_bool($query, 'closePosition', false);
-        if ($closePosition !== true) {
+        if (!$closePosition) {
             $query = $this->omit($query, 'closePosition');
             $request['quantity'] = $this->amount_to_precision($symbol, $amount);
         } elseif (($typeValue !== 'STOP_MARKET') && ($typeValue !== 'TAKE_PROFIT_MARKET')) {
@@ -1777,7 +1782,7 @@ class bydfi extends Exchange {
             Async\await($this->load_markets());
         }
         $paginate = $this->safe_bool($params, 'paginate', false);
-        if ($paginate === true) {
+        if ($paginate) {
             $maxLimit = 500;
             $paramsPaginate = $this->extend($this->omit($params, 'paginate'), array( 'paginationDirection' => 'backward' ));
             $paginatedResponse = Async\await($this->fetch_paginated_call_dynamic('fetchCanceledAndClosedOrders', $symbol, $since, $limit, $paramsPaginate, $maxLimit, true));
@@ -1847,26 +1852,26 @@ class bydfi extends Exchange {
     }
 
     public function handle_since_and_until(string $methodName, ?int $since = null, $params = array()): array {
-        $until = null;
-        $paramsUntil = null;
-        list($until, $paramsUntil) = $this->handle_option_integer_and_params_2($params, $methodName, 'until', 'endTime');
+        list($untilParam, $paramsUntil) = $this->handle_option_integer_and_params_2($params, $methodName, 'until', 'endTime');
         $now = $this->milliseconds();
         $sevenDays = 7 * 24 * 60 * 60 * 1000; // the maximum range is 7 days
         $startTime = $since;
-        if ($startTime === null) {
-            if ($until === null) {
+        $until = $untilParam;
+        if ($since === null) {
+            if ($untilParam !== null) {
+                // since is undefined but until is defined
+                $startTime = $untilParam - $sevenDays;
+            } else {
                 // both since and until are undefined
                 $startTime = $now - $sevenDays;
                 $until = $now;
-            } else {
-                // since is undefined but until is defined
-                $startTime = $until - $sevenDays;
             }
-        } elseif ($until === null) {
+        } elseif ($untilParam === null) {
             // until is undefined but since is defined
-            $delta = $now - $startTime;
+            $sinceInt = $this->parse_to_int($since);
+            $delta = $now - $sinceInt;
             if ($delta > $sevenDays) {
-                $until = $startTime . $sevenDays;
+                $until = $sinceInt . $sevenDays;
             } else {
                 $until = $now;
             }
@@ -2278,6 +2283,11 @@ class bydfi extends Exchange {
             $contracts = Precise::string_div($contracts, $contractSize);
         }
         $timestamp = $this->safe_integer($position, 'createTime');
+        // raw positionMargin is the margin held in the position; it reads 0 when the position is not isolated
+        $positionMargin = $this->safe_string($position, 'positionMargin');
+        if (($positionMargin !== null) && !Precise::string_gt($positionMargin, '0')) {
+            $positionMargin = null;
+        }
         return $this->safe_position(array(
             'info' => $position,
             'id' => $this->safe_string($position, 'id'),
@@ -2286,6 +2296,7 @@ class bydfi extends Exchange {
             'markPrice' => $this->parse_number($this->safe_string($position, 'markPrice')),
             'lastPrice' => $this->parse_number($this->safe_string($position, 'avgClosePositionPrice')),
             'notional' => $this->parse_number($this->safe_string($position, 'closePositionCost')),
+            'positionMargin' => $this->parse_number($positionMargin),
             'collateral' => null,
             'unrealizedPnl' => $this->parse_number($this->safe_string($position, 'unPnl')),
             'realizedPnl' => $this->parse_number($this->safe_string($position, 'positionProfits')),
@@ -2784,7 +2795,7 @@ class bydfi extends Exchange {
         $transfer = $this->parse_transfer($response, $currency);
         $transferOptions = $this->safe_dict($this->options, 'transfer', array());
         $fillResponseFromRequest = $this->safe_bool($transferOptions, 'fillResponseFromRequest', true);
-        if ($fillResponseFromRequest === true) {
+        if ($fillResponseFromRequest) {
             $transfer['currency'] = $code;
             $transfer['fromAccount'] = $fromAccount;
             $transfer['toAccount'] = $toAccount;
@@ -2818,7 +2829,7 @@ class bydfi extends Exchange {
         }
         $currency = $this->currency($code);
         $paginate = $this->safe_bool($params, 'paginate', false);
-        if ($paginate === true) {
+        if ($paginate) {
             $maxLimit = 50;
             $paramsPaginate = $this->extend($this->omit($params, 'paginate'), array( 'paginationDirection' => 'backward' ));
             $paginatedResponse = Async\await($this->fetch_paginated_call_dynamic('fetchTransfers', $this->safe_string($currency, 'code'), $since, $limit, $paramsPaginate, $maxLimit, true));
@@ -2926,7 +2937,8 @@ class bydfi extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
-        return Async\await($this->fetch_transactions_helper('deposit', $code, $since, $limit, $params));
+        $transactions = Async\await($this->fetch_transactions_helper('deposit', $code, $since, $limit, $params));
+        return $this->to_array($transactions);
     }
 
     public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -2945,14 +2957,15 @@ class bydfi extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
-        return Async\await($this->fetch_transactions_helper('withdrawal', $code, $since, $limit, $params));
+        $transactions = Async\await($this->fetch_transactions_helper('withdrawal', $code, $since, $limit, $params));
+        return $this->to_array($transactions);
     }
 
-    public function fetch_transactions_helper(string $type, ?string $code, ?int $since, ?int $limit, mixed $params): PromiseInterface {
+    public function fetch_transactions_helper(string $type, ?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_transactions_helper(...))($type, $code, $since, $limit, $params);
     }
 
-    private function do_fetch_transactions_helper(string $type, ?string $code, ?int $since, ?int $limit, mixed $params) {
+    private function do_fetch_transactions_helper(string $type, ?string $code = null, ?int $since = null, ?int $limit = null, $params = array()) {
         $methodName = 'fetchWithdrawals';
         if ($type === 'deposit') {
             $methodName = 'fetchDeposits';
@@ -2965,7 +2978,7 @@ class bydfi extends Exchange {
         }
         $currency = $this->currency($code);
         $paginate = $this->safe_bool($params, 'paginate', false);
-        if ($paginate === true) {
+        if ($paginate) {
             $maxLimit = 50;
             $paramsPaginate = $this->extend($this->omit($params, 'paginate'), array( 'paginationDirection' => 'backward' ));
             $paginatedResponse = Async\await($this->fetch_paginated_call_dynamic($methodName, $this->safe_string($currency, 'code'), $since, $limit, $paramsPaginate, $maxLimit, true));
@@ -2974,26 +2987,26 @@ class bydfi extends Exchange {
         $request = array(
             'asset' => $currency['id'],
         );
-        $until = null;
-        $paramsUntil = null;
-        list($until, $paramsUntil) = $this->handle_option_integer_and_params_2($params, 'fetchTransfers', 'until', 'endTime');
+        list($untilParam, $paramsUntil) = $this->handle_option_integer_and_params_2($params, 'fetchTransfers', 'until', 'endTime');
         $now = $this->milliseconds();
         $sevenDays = 7 * 24 * 60 * 60 * 1000; // the maximum range is 7 days
         $startTime = $since;
-        if ($startTime === null) {
-            if ($until === null) {
+        $until = $untilParam;
+        if ($since === null) {
+            if ($untilParam !== null) {
+                // since is undefined but until is defined
+                $startTime = $untilParam - $sevenDays;
+            } else {
                 // both since and until are undefined
                 $startTime = $now - $sevenDays;
                 $until = $now;
-            } else {
-                // since is undefined but until is defined
-                $startTime = $until - $sevenDays;
             }
-        } elseif ($until === null) {
+        } elseif ($untilParam === null) {
             // until is undefined but since is defined
-            $delta = $now - $startTime;
+            $sinceInt = $this->parse_to_int($since);
+            $delta = $now - $sinceInt;
             if ($delta > $sevenDays) {
-                $until = $startTime . $sevenDays;
+                $until = $sinceInt . $sevenDays;
             } else {
                 $until = $now;
             }
@@ -3101,7 +3114,7 @@ class bydfi extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+    public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
         $apiName = $api[0];
         $apiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($apiUrl === null) {

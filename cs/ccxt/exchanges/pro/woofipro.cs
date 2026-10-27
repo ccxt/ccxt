@@ -79,7 +79,7 @@ public partial class woofipro : ccxt.woofipro
     {
         // the default id
         object id = "OqdphuyCtYWxwzhxyLLjOWNdFP7sQt8RPWzmb5xY";
-        if ((this.accountId != null) && !isEqual(this.accountId, ""))
+        if ((this.accountId != null) && !(this.accountId == ""))
         {
             id = this.accountId;
         }
@@ -376,9 +376,10 @@ public partial class woofipro : ccxt.woofipro
             Dictionary<string, object> ticker = this.parseWsBidAsk(this.extend(data[i], new Dictionary<string, object>() {
                 { "ts", timestamp },
             }));
-            if (!isEqual((ticker != null && ticker.ContainsKey("symbol") ? ticker["symbol"] : null), null))
+            string? tickerSymbol = this.safeString(ticker, "symbol");
+            if ((tickerSymbol != null))
             {
-                this.tickers[(string)(ticker != null && ticker.ContainsKey("symbol") ? ticker["symbol"] : null)] = ticker;
+                this.tickers[(string)tickerSymbol] = ticker;
             }
             result.Add(ticker);
         }
@@ -752,7 +753,7 @@ public partial class woofipro : ccxt.woofipro
         {
             topic = "algoexecutionreport";
         }
-        object paramsOmitted = this.omit(parameters, new List<object>() {"stop", "trigger"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"stop", "trigger"}));
         string messageHash = topic;
         IDictionary<string, object> market = null;
         if ((symbol != null))
@@ -804,7 +805,7 @@ public partial class woofipro : ccxt.woofipro
         {
             topic = "algoexecutionreport";
         }
-        object paramsOmitted = this.omit(parameters, "stop");
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "stop"));
         string messageHash = "myTrades";
         IDictionary<string, object> market = null;
         if ((symbol != null))
@@ -1190,7 +1191,7 @@ public partial class woofipro : ccxt.woofipro
             }
         }
         // don't remove the future from the .futures cache
-        if (inOp(client.futures, messageHash))
+        if ((client.futures != null && messageHash != null && client.futures.ContainsKey((string)messageHash)))
         {
             Future future = ((Future)getValue(client.futures, messageHash));
             (future as Future).resolve(cache);
@@ -1415,19 +1416,19 @@ public partial class woofipro : ccxt.woofipro
         client.resolve(this.balance, "balance");
     }
 
-    public virtual bool? handleErrorMessage(WebSocketClient client, object message)
+    public virtual bool handleErrorMessage(WebSocketClient client, object message)
     {
         //
         // {"id":"1","event":"subscribe","success":false,"ts":1710780997216,"errorMsg":"Auth is needed."}
         //
         if (!((message != null && ((IDictionary<string, object>)message).ContainsKey("success"))))
         {
-            return ((bool?)((object)(false)));
+            return false;
         }
         bool? success = this.safeBool(message, "success");
         if ((success == true))
         {
-            return ((bool?)((object)(false)));
+            return false;
         }
         string? errorMessage = this.safeString(message, "errorMsg");
         try
@@ -1437,7 +1438,7 @@ public partial class woofipro : ccxt.woofipro
                 string feedback = ((this.id + " ") + this.json(message));
                 this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorMessage, feedback);
             }
-            return ((bool?)((object)(false)));
+            return false;
         } catch(Exception error)
         {
             if (error is AuthenticationError)
@@ -1452,13 +1453,13 @@ public partial class woofipro : ccxt.woofipro
             {
                 client.reject(error);
             }
-            return ((bool?)((object)(true)));
+            return true;
         }
     }
 
     public override void handleMessage(WebSocketClient client, object message)
     {
-        if (isEqual(this.handleErrorMessage(client, message), true))
+        if ((this.handleErrorMessage(client, message) == true))
         {
             return;
         }

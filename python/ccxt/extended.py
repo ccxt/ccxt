@@ -366,7 +366,7 @@ class extended(Exchange, ImplicitAPI):
             self.options['currenciesByNumericId'] = self.index_by_stringified_numeric_id(self.currencies)
         return markets
 
-    def index_by_stringified_numeric_id(self, input: dict):
+    def index_by_stringified_numeric_id(self, input: dict) -> dict:
         result = {}
         if input is None:
             return None
@@ -1295,7 +1295,9 @@ class extended(Exchange, ImplicitAPI):
         until = self.safe_integer(paramsPaginate, 'until', self.milliseconds())
         endTime = self.safe_integer(paramsPaginate, 'endTime', until)
         paramsOmitted = self.omit(paramsPaginate, ['endTime', 'until'])
-        sinceResolved = endTime - (limitResolved * 60 * 60 * 1000) if (since is None) else since
+        sinceResolved = since
+        if (endTime is not None) and (since is None):
+            sinceResolved = endTime - (limitResolved * 60 * 60 * 1000)
         request = {
             'market': market['id'],
             'startTime': sinceResolved,
@@ -1374,7 +1376,9 @@ class extended(Exchange, ImplicitAPI):
         until = self.safe_integer(params, 'until', self.milliseconds())
         endTime = self.safe_integer(params, 'endTime', until)
         paramsOmitted = self.omit(params, ['endTime', 'until'])
-        sinceResolved = endTime - (limitResolved * self.parse_timeframe(timeframe) * 1000) if (since is None) else since
+        sinceResolved = since
+        if (endTime is not None) and (since is None):
+            sinceResolved = endTime - (limitResolved * self.parse_timeframe(timeframe) * 1000)
         request = {
             'market': market['id'],
             'interval': interval,
@@ -1398,7 +1402,7 @@ class extended(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_open_interests_history(data, market, sinceResolved, limitResolved)
 
-    def parse_open_interest(self, interest: object, market: Market = None) -> OpenInterest:
+    def parse_open_interest(self, interest: dict, market: Market = None) -> OpenInterest:
         #
         #     {
         #       "i": "112620590.6060360000000000",
@@ -2375,14 +2379,13 @@ class extended(Exchange, ImplicitAPI):
             result = Precise.string_add(result, '1')
         return result
 
-    def fetch_extended_account(self, params={}) -> object:
-        account = self.safe_dict(self.options, 'account')
-        if account is not None:
-            return account
+    def fetch_extended_account(self, params: dict = {}) -> dict:
+        cachedAccount = self.safe_dict(self.options, 'account')
+        if cachedAccount is not None:
+            return self.safe_dict(self.options, 'account', {})
         accountData = self.fetch_account(params)
-        account = accountData['info']
-        self.options['account'] = account
-        return account
+        self.options['account'] = accountData['info']
+        return self.safe_dict(self.options, 'account', {})
 
     def create_order_settlement_data(self, isBuy: bool, amountString: str, priceString: str, params: dict = {}) -> dict:
         totalFee = self.safe_string(params, 'totalFee')
@@ -2432,7 +2435,7 @@ class extended(Exchange, ImplicitAPI):
         recipient = self.safe_string(params, 'recipient', address)
         currencyInfo = self.safe_dict(currency, 'info', {})
         collateralId = self.safe_string(params, 'collateralId', self.safe_string_2(currencyInfo, 'starkexId', 'l1Id'))
-        resolution = self.safe_integer(params, 'resolution', self.safe_value_2(currencyInfo, 'starkexResolution', 'l1Resolution'))
+        resolution = self.safe_integer(params, 'resolution', self.safe_integer_2(currencyInfo, 'starkexResolution', 'l1Resolution'))
         starkKey = self.safe_string(account, 'l2Key')
         if (positionId is None) or (collateralId is None) or (resolution is None) or (starkKey is None):
             raise BadRequest(self.id + ' withdraw() requires currency starkexId/starkexResolution, account l2Vault and account l2Key')
@@ -2463,7 +2466,7 @@ class extended(Exchange, ImplicitAPI):
         fromL2Key = self.safe_string_2(params, 'fromL2Key', 'senderPublicKey', self.safe_string(account, 'l2Key'))
         currencyInfo = self.safe_dict(currency, 'info', {})
         collateralId = self.safe_string_2(params, 'assetId', 'collateralId', self.safe_string_2(currencyInfo, 'starkexId', 'l1Id'))
-        resolution = self.safe_integer(params, 'resolution', self.safe_value_2(currencyInfo, 'starkexResolution', 'l1Resolution'))
+        resolution = self.safe_integer(params, 'resolution', self.safe_integer_2(currencyInfo, 'starkexResolution', 'l1Resolution'))
         if (fromVault is None) or (fromL2Key is None) or (collateralId is None) or (resolution is None):
             raise BadRequest(self.id + ' transfer() requires currency starkexId/starkexResolution, account l2Vault and account l2Key')
         transferAmount = self.get_extended_stark_amount(amountString, resolution)
@@ -2526,7 +2529,8 @@ class extended(Exchange, ImplicitAPI):
             totalFee = Precise.string_add(fee, builderFeeRate)
         now = self.milliseconds()
         expiryEpochMillis = self.safe_integer(paramsBuilder, 'expiryEpochMillis', now + 3600000)
-        settlementExpiration = self.safe_integer(paramsBuilder, 'settlementExpiration', self.parse_to_int((expiryEpochMillis + 999) / 1000) + 1209600)
+        settlementDefault = self.parse_to_int((expiryEpochMillis + 999) / 1000) + 1209600 if (expiryEpochMillis is not None) else None
+        settlementExpiration = self.safe_integer(paramsBuilder, 'settlementExpiration', settlementDefault)
         nonce = self.number_to_string(self.nonce())
         account = self.fetch_extended_account()
         starkKey = self.safe_string(account, 'l2Key')
@@ -2802,8 +2806,10 @@ class extended(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = None
+        orderSymbol = symbol
         if symbol is not None:
             market = self.market(symbol)
+            orderSymbol = market['symbol']
         response = None
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_id')
         paramsOmitted = self.omit(params, ['clientOrderId', 'client_id'])
@@ -2825,7 +2831,6 @@ class extended(Exchange, ImplicitAPI):
         #     }
         #
         orderId = id if (clientOrderId is None) else None
-        orderSymbol = symbol if (market is None) else market['symbol']
         return self.safe_order({
             'info': response,
             'id': orderId,
@@ -3225,7 +3230,7 @@ class extended(Exchange, ImplicitAPI):
             return Precise.string_add(prime, valueString)
         return value
 
-    def get_extended_decimal_to_base16(self, value: object):
+    def get_extended_decimal_to_base16(self, value: object) -> str:
         decimalString = ''
         if isinstance(value, str):
             decimalString = value
@@ -3241,7 +3246,7 @@ class extended(Exchange, ImplicitAPI):
             return '0'
         return result
 
-    def get_extended_signature_hex(self, signature: object):
+    def get_extended_signature_hex(self, signature: object) -> str:
         if isinstance(signature, str):
             if signature.find('0x') == 0:
                 return signature
@@ -3255,7 +3260,8 @@ class extended(Exchange, ImplicitAPI):
         domainTypeHash = self.convert_to_big_int(self.extended_starknet_get_selector_from_name(
             '"StarknetDomain"("name":"shortstring","version":"shortstring","chainId":"shortstring","revision":"shortstring")'
         ))
-        isTestnet = self.urls['api']['rest'].find('sepolia') >= 0
+        restUrl = self.safe_string(self.urls['api'], 'rest', '')
+        isTestnet = restUrl.find('sepolia') >= 0
         defaultChainId = 'SN_MAIN'
         if isTestnet:
             defaultChainId = 'SN_SEPOLIA'
@@ -3365,7 +3371,7 @@ class extended(Exchange, ImplicitAPI):
             raise ExchangeError(feedback)
         return None
 
-    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
         requestHeaders = None
         requestBody = None
         version = self.safe_string(api, 0)

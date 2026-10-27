@@ -323,7 +323,7 @@ class hibachi extends hibachi$1["default"] {
             'optionType': undefined,
             'precision': {
                 'amount': this.parseNumber(this.parsePrecision(this.safeString(market, 'underlyingDecimals'))),
-                'price': this.parseNumber(this.safeValue(this.safeList(market, 'orderbookGranularities', []), 0)) / 10000.0,
+                'price': this.parseNumber(Precise["default"].stringDiv(this.safeString(this.safeList(market, 'orderbookGranularities', []), 0), '10000')),
             },
             'limits': {
                 'leverage': {
@@ -888,7 +888,7 @@ class hibachi extends hibachi$1["default"] {
         const makerFee = this.safeNumber(market, 'maker', this.safeNumber(this.options, 'defaultMakerFee', 0.00015));
         const takerFeeValue = (takerFee === undefined) ? 0 : takerFee;
         const makerFeeValue = (makerFee === undefined) ? 0 : makerFee;
-        const feeRate = Math.max(takerFeeValue, makerFeeValue);
+        const feeRate = this.parseNumber(Precise["default"].stringMax(this.numberToString(takerFeeValue), this.numberToString(makerFeeValue)));
         let sideInternal = '';
         if (side === 'sell') {
             sideInternal = 'ASK';
@@ -1021,7 +1021,7 @@ class hibachi extends hibachi$1["default"] {
         const makerFee = this.safeNumber(market, 'maker', 0);
         const takerFeeValue = (takerFee === undefined) ? 0 : takerFee;
         const makerFeeValue = (makerFee === undefined) ? 0 : makerFee;
-        const feeRate = Math.max(takerFeeValue, makerFeeValue);
+        const feeRate = this.parseNumber(Precise["default"].stringMax(this.numberToString(takerFeeValue), this.numberToString(makerFeeValue)));
         const message = this.orderMessage(market, nonce, feeRate, type, side, amount, price);
         const signature = this.signMessage(message, this.privateKey);
         const request = {

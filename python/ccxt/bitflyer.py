@@ -708,7 +708,7 @@ class bitflyer(Exchange, ImplicitAPI):
             'info': response,
         })
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         statuses = {
             'ACTIVE': 'open',
             'COMPLETED': 'closed',
@@ -784,10 +784,9 @@ class bitflyer(Exchange, ImplicitAPI):
             'count': limit,
         }
         response = self.privateGetGetchildorders(self.extend(request, params))
-        orders = self.parse_orders(response, market, since, limit)
         if symbol is not None:
-            orders = self.filter_by(orders, 'symbol', symbol)
-        return orders
+            return self.filter_by(self.parse_orders(response, market, since, limit), 'symbol', symbol)
+        return self.parse_orders(response, market, since, limit)
 
     def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = 100, params: dict = {}) -> list[Order]:
         """
@@ -1176,7 +1175,7 @@ class bitflyer(Exchange, ImplicitAPI):
             'interval': None,
         }
 
-    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
         apiName = api[0]
         bodySigned = None
         headersSigned = None
@@ -1199,8 +1198,9 @@ class bitflyer(Exchange, ImplicitAPI):
             auth = ''.join(content)
             if len(params) > 0:
                 if method != 'GET':
-                    bodySigned = self.json(params)
-                    auth += bodySigned
+                    body = self.json(params)
+                    bodySigned = body
+                    auth += body
             headersSigned = {
                 'ACCESS-KEY': self.apiKey,
                 'ACCESS-TIMESTAMP': nonce,

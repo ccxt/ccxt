@@ -1716,10 +1716,12 @@ public class Hashkey extends HashkeyApi
         }
         if (!java.util.Objects.equals(feeCost, null))
         {
-            fee = Helpers.newMap(
-                "cost", this.parseNumber(feeCost),
-                "currency", this.safeCurrencyCode(feeCurrncyId, (Map<String, Object>) null)
-            );
+            {
+                HashMap<String, Object> hx4NewMap0 = new HashMap<String, Object>();
+                hx4NewMap0.put("cost", this.parseNumber(feeCost));
+                hx4NewMap0.put("currency", this.safeCurrencyCode(feeCurrncyId, (Map<String, Object>) null));
+                fee = hx4NewMap0;
+            }
         }
         HashMap<String, Object> mapLiteral8 = new HashMap<String, Object>();
         mapLiteral8.put("id", this.safeString2(trade, "id", "tradeId"));
@@ -2181,8 +2183,8 @@ public class Hashkey extends HashkeyApi
             //         "coinType": "ERC20_TOKEN"
             //     }
             //
-            Object depositAddress = this.parseDepositAddress((Map<String, Object>) (response), currency);
-            ((Map<String, Object>)depositAddress).put("network", networkCode);
+            Map<String, Object> depositAddress = (Map<String, Object>) this.parseDepositAddress((Map<String, Object>) (response), currency);
+            depositAddress.put("network", networkCode);
             return depositAddress;
         }).thenApply(DepositAddress::new);
 
@@ -2467,7 +2469,7 @@ public class Hashkey extends HashkeyApi
         if (java.util.Objects.equals(status, null))
         {
             Boolean success = (Boolean) this.safeBool(transaction, "success", false); // for withdraw
-            if (java.util.Objects.equals(success, true))
+            if (Boolean.TRUE.equals(success))
             {
                 status = "ok";
             } else
@@ -2488,10 +2490,12 @@ public class Hashkey extends HashkeyApi
         Map<String, Object> fee = null;
         if (!java.util.Objects.equals(feeCost, null))
         {
-            fee = Helpers.newMap(
-                "cost", feeCost,
-                "currency", code
-            );
+            {
+                HashMap<String, Object> hx4NewMap1 = new HashMap<String, Object>();
+                hx4NewMap1.put("cost", feeCost);
+                hx4NewMap1.put("currency", code);
+                fee = hx4NewMap1;
+            }
         }
         {
             HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
@@ -2588,7 +2592,7 @@ public class Hashkey extends HashkeyApi
         String currencyId = this.safeString(currency, "id");
         String status = null;
         Boolean success = (Boolean) this.safeBool(transfer, "success", false);
-        if (java.util.Objects.equals(success, true))
+        if (Boolean.TRUE.equals(success))
         {
             status = "ok";
         }
@@ -4326,7 +4330,7 @@ public class Hashkey extends HashkeyApi
             //         }
             //     ]
             //
-            return this.parsePositions(response, Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbol))), new HashMap<String, Object>() {{}});
+            return this.parsePositions(response, ((List<String>) (switch ((Object) (new ArrayList<Object>(Arrays.asList(symbol)))) { case null -> (List<String>) null; case List<?> hx4J40v0 -> (List<String>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v0.getClass().getName()); })), new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }
@@ -4484,7 +4488,7 @@ public class Hashkey extends HashkeyApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String marginModeUpper = ((String)marginMode).toUpperCase();
-            Object marginModeValue = (((java.util.Objects.equals(marginModeUpper, "CROSSED")))) ? "CROSS" : marginModeUpper;
+            String marginModeValue = (((java.util.Objects.equals(marginModeUpper, "CROSSED")))) ? "CROSS" : marginModeUpper;
             if ((!java.util.Objects.equals(marginModeValue, "CROSS")) && (!java.util.Objects.equals(marginModeValue, "ISOLATED")))
             {
                 throw new ArgumentsRequired((this.id + " setMarginMode() marginMode must be either cross or isolated")) ;
@@ -4588,10 +4592,10 @@ public class Hashkey extends HashkeyApi
             //         "timestamp": "1726869763318"
             //     }
             //
-            return this.extend(this.parseMarginModification((Map<String, Object>) (response), market), Helpers.newMap(
-                "type", type,
-                "amount", amount
-            ));
+            return this.extend(this.parseMarginModification((Map<String, Object>) (response), market), (switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+                j39v1.put("type", type);
+                j39v1.put("amount", amount);
+                yield j39v1; } }));
         });
 
     }
@@ -4731,16 +4735,16 @@ public class Hashkey extends HashkeyApi
         {
             Object tier = (riskLimits == null || i < 0 || i >= riskLimits.size() ? null : riskLimits.get(i));
             String initialMarginRate = this.safeString(tier, "initialMargin");
-            ((List<Object>)tiers).add(Helpers.newMap(
-                "tier", this.sum(i, 1),
-                "symbol", this.safeSymbol(marketId, marketResolved, (String) null, (String) null),
-                "currency", marketResolved.get("settle"),
-                "minNotional", null,
-                "maxNotional", this.safeNumber(tier, "quantity", (Object) null),
-                "maintenanceMarginRate", this.safeNumber(tier, "maintMargin", (Object) null),
-                "maxLeverage", this.parseNumber(Precise.stringDiv("1", initialMarginRate)),
-                "info", tier
-            ));
+            ((List<Object>)tiers).add((switch (0) { default -> { HashMap<String, Object> j39v2 = new HashMap<String, Object>();
+                j39v2.put("tier", this.sum(i, 1));
+                j39v2.put("symbol", this.safeSymbol(marketId, marketResolved, (String) null, (String) null));
+                j39v2.put("currency", marketResolved.get("settle"));
+                j39v2.put("minNotional", null);
+                j39v2.put("maxNotional", this.safeNumber(tier, "quantity", (Object) null));
+                j39v2.put("maintenanceMarginRate", this.safeNumber(tier, "maintMargin", (Object) null));
+                j39v2.put("maxLeverage", this.parseNumber(Precise.stringDiv("1", initialMarginRate)));
+                j39v2.put("info", tier);
+                yield j39v2; } }));
         }
         return tiers;
     }
@@ -4984,7 +4988,7 @@ public class Hashkey extends HashkeyApi
                 }
             }
         }
-        if ((!Helpers.isEqual(code, 200)) || Boolean.TRUE.equals(errorInArray))
+        if ((!(code != null && ((Number) code).doubleValue() == 200)) || Boolean.TRUE.equals(errorInArray))
         {
             String feedback = ((this.id + " ") + body);
             this.throwBroadlyMatchedException(this.exceptions.get("broad"), responseCodeString, feedback);

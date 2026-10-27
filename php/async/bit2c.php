@@ -924,7 +924,7 @@ class bit2c extends Exchange {
         return $this->parse_trades($responseList, $market, $since, $limit);
     }
 
-    public function remove_comma_from_value(string $str) {
+    public function remove_comma_from_value(string $str): string {
         $newString = '';
         $strParts = explode(',', $str);
         for ($i = 0; $i < count($strParts); $i++) {
@@ -1095,7 +1095,7 @@ class bit2c extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+    public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
         $apiUrl = $this->safe_string($this->urls['api'], 'rest');
         if ($apiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');

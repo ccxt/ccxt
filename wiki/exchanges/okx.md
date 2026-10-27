@@ -25,6 +25,7 @@
 * [createOrder](#createorder)
 * [createOrders](#createorders)
 * [editOrder](#editorder)
+* [editOrders](#editorders)
 * [cancelOrder](#cancelorder)
 * [cancelOrders](#cancelorders)
 * [cancelOrdersForSymbols](#cancelordersforsymbols)
@@ -73,6 +74,7 @@
 * [fetchOpenInterestHistory](#fetchopeninteresthistory)
 * [fetchDepositWithdrawFees](#fetchdepositwithdrawfees)
 * [fetchSettlementHistory](#fetchsettlementhistory)
+* [fetchMySettlementHistory](#fetchmysettlementhistory)
 * [fetchUnderlyingAssets](#fetchunderlyingassets)
 * [fetchGreeks](#fetchgreeks)
 * [fetchAllGreeks](#fetchallgreeks)
@@ -626,6 +628,27 @@ edit a trade order
 
 ```javascript
 okx.editOrder (id, symbol, type, side, amount, price?, params?)
+```
+
+
+<a name="editOrders" id="editorders"></a>
+
+### editOrders{docsify-ignore}
+edit a list of trade orders
+
+**Kind**: instance method of [<code>okx</code>](#okx)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
+
+**See**: https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-amend-multiple-orders  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| orders | <code>Array</code> | Yes | list of orders to edit, each object should contain the parameters required by editOrder, namely id, symbol, type, side, amount, price and params |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+okx.editOrders (orders, params?)
 ```
 
 
@@ -1340,6 +1363,7 @@ fetch the history of funding payments paid and received on this account
 | since | <code>int</code> | No | the earliest time in ms to fetch funding history for |
 | limit | <code>int</code> | No | the maximum number of funding history structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.until | <code>int</code> | No | the latest time in ms to fetch funding history for |
 
 
 ```javascript
@@ -1778,6 +1802,35 @@ fetches historical settlement records
 
 ```javascript
 okx.fetchSettlementHistory (symbol, since?, limit?, params?)
+```
+
+
+<a name="fetchMySettlementHistory" id="fetchmysettlementhistory"></a>
+
+### fetchMySettlementHistory{docsify-ignore}
+fetches historical settlement records of the user, derived from delivery and exercise account bills
+
+**Kind**: instance method of [<code>okx</code>](#okx)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [settlement history objects](https://docs.ccxt.com/?id=settlement-history-structure)
+
+**See**
+
+- https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-bills-details-last-3-months
+- https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-bills-details-last-7-days
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | No | unified market symbol of the settlement history |
+| since | <code>int</code> | No | timestamp in ms |
+| limit | <code>int</code> | No | number of records, max 100 |
+| params | <code>object</code> | No | exchange specific params |
+| params.method | <code>string</code> | No | 'privateGetAccountBillsArchive' (default, last 3 months) or 'privateGetAccountBills' (last 7 days) |
+| params.until | <code>int</code> | No | timestamp in ms of the latest record to fetch |
+
+
+```javascript
+okx.fetchMySettlementHistory (symbol?, since?, limit?, params?)
 ```
 
 

@@ -85,7 +85,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         if (((IDictionary<string, object>)parameters).ContainsKey("signature"))
         {
             // need to distinguish between public trades and user trades
-            url = add(url, "?");
+            url = (url + "?");
         }
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "type", "subscribe" },
@@ -127,7 +127,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         if (((IDictionary<string, object>)parameters).ContainsKey("signature"))
         {
             // need to distinguish between public trades and user trades
-            url = add(url, "?");
+            url = (url + "?");
         }
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "type", "subscribe" },
@@ -619,7 +619,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         Dictionary<string, object> marketResolved = this.market((parsed != null && parsed.ContainsKey("symbol") ? parsed["symbol"] : null));
         string? feeCurrency = ((string)(marketResolved != null && marketResolved.ContainsKey("quote") ? marketResolved["quote"] : null));
         string? feeCost = null;
-        if ((!isEqual((parsed != null && parsed.ContainsKey("cost") ? parsed["cost"] : null), null)) && ((feeRate != null)))
+        if ((!((parsed != null && parsed.ContainsKey("cost") ? parsed["cost"] : null) == null)) && ((feeRate != null)))
         {
             string? cost = this.safeString(parsed, "cost");
             feeCost = Precise.stringMul(cost, feeRate);
@@ -767,15 +767,15 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
                     if (type == "match")
                     {
                         ccxt.Trade trade = this.parseWsTrade(message);
-                        if (isEqual(GetValue(previousOrder, "trades"), null))
+                        if (((previousOrder != null && previousOrder.ContainsKey("trades") ? previousOrder["trades"] : null) == null))
                         {
                             previousOrder["trades"] = new List<object>() {};
                         }
-                        ((IList<object>)GetValue(previousOrder, "trades")).Add(ccxt.BaseExchange.FromTrade(trade));
+                        ((IList<object>)(previousOrder != null && previousOrder.ContainsKey("trades") ? previousOrder["trades"] : null)).Add(ccxt.BaseExchange.FromTrade(trade));
                         previousOrder["lastTradeTimestamp"] = (((object)trade.timestamp));
                         string? totalCost = "0";
                         string? totalAmount = "0";
-                        object trades = GetValue(previousOrder, "trades");
+                        object trades = (previousOrder != null && previousOrder.ContainsKey("trades") ? previousOrder["trades"] : null);
                         for (int i = 0; i < getArrayLength(trades); i++)
                         {
                             IDictionary<string, object> tradeEntry = this.safeDict(trades, i);
@@ -791,38 +791,38 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
                         if ((previousOrderFilled != null))
                         {
                             previousOrder["filled"] = this.parseNumber(Precise.stringAdd(previousOrderFilled, this.safeString(ccxt.BaseExchange.FromTrade(trade), "amount")));
-                            if (!isEqual(GetValue(previousOrder, "amount"), null))
+                            if (!((previousOrder != null && previousOrder.ContainsKey("amount") ? previousOrder["amount"] : null) == null))
                             {
                                 previousOrder["remaining"] = this.parseNumber(Precise.stringSub(this.safeString(previousOrder, "amount"), this.safeString(previousOrder, "filled")));
                             }
                         }
-                        if (isEqual(GetValue(previousOrder, "fee"), null))
+                        if (((previousOrder != null && previousOrder.ContainsKey("fee") ? previousOrder["fee"] : null) == null))
                         {
                             previousOrder["fee"] = new Dictionary<string, object>() {
                                 { "cost", 0 },
                                 { "currency", this.safeString((ccxt.BaseExchange.FromFee((object)trade.fee)), "currency") },
                             };
                         }
-                        if ((!isEqual(getValue(GetValue(previousOrder, "fee"), "cost"), null)) && (!isEqual(this.safeNumber((ccxt.BaseExchange.FromFee((object)trade.fee)), "cost"), null)))
+                        if ((!(getValue((previousOrder != null && previousOrder.ContainsKey("fee") ? previousOrder["fee"] : null), "cost") == null)) && (!(this.safeNumber((ccxt.BaseExchange.FromFee((object)trade.fee)), "cost") == null)))
                         {
-                            ((IDictionary<string,object>)GetValue(previousOrder, "fee"))["cost"] = this.sum(getValue(GetValue(previousOrder, "fee"), "cost"), this.safeNumber((ccxt.BaseExchange.FromFee((object)trade.fee)), "cost"));
+                            ((IDictionary<string,object>)(previousOrder != null && previousOrder.ContainsKey("fee") ? previousOrder["fee"] : null))["cost"] = this.sum(getValue((previousOrder != null && previousOrder.ContainsKey("fee") ? previousOrder["fee"] : null), "cost"), this.safeNumber((ccxt.BaseExchange.FromFee((object)trade.fee)), "cost"));
                             IDictionary<string, object> previousOrderFee = this.safeDict(previousOrder, "fee");
                             IDictionary<string, object> tradeFee = this.safeDict(ccxt.BaseExchange.FromTrade(trade), "fee");
-                            ((IDictionary<string,object>)GetValue(previousOrder, "fee"))["cost"] = this.parseNumber(Precise.stringAdd(this.safeString(previousOrderFee, "cost"), this.safeString(tradeFee, "cost")));
+                            ((IDictionary<string,object>)(previousOrder != null && previousOrder.ContainsKey("fee") ? previousOrder["fee"] : null))["cost"] = this.parseNumber(Precise.stringAdd(this.safeString(previousOrderFee, "cost"), this.safeString(tradeFee, "cost")));
                         }
                         // update the newUpdates count
                         orders.append(previousOrder);
                         client.resolve(orders, messageHash);
                     } else if ((type == "received") || (type == "done"))
                     {
-                        Dictionary<string, object> info = this.extend(GetValue(previousOrder, "info"), message);
+                        Dictionary<string, object> info = this.extend((previousOrder != null && previousOrder.ContainsKey("info") ? previousOrder["info"] : null), message);
                         Dictionary<string, object> order = ccxt.BaseExchange.FromOrder(this.parseWsOrder(info));
                         List<object> keys = new List<object>(order.Keys);
                         // update the reference
                         for (int i = 0; i < keys.Count; i++)
                         {
                             string? key = ((string)keys[i]);
-                            if (!isEqual((order != null && key != null && order.ContainsKey(key) ? order[key] : null), null))
+                            if (!((order != null && key != null && order.ContainsKey(key) ? order[key] : null) == null))
                             {
                                 previousOrder[(string)key] = (order != null && key != null && order.ContainsKey(key) ? order[key] : null);
                             }
@@ -1138,8 +1138,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
             { "done", this.handleOrder },
             { "error", this.handleErrorMessage },
         };
-        object length = (((string)client.url).Length - 0);
-        bool authenticated = isEqual(getValue(client.url, subtract(length, 1)), "?");
+        bool authenticated = ((string)client.url).EndsWith("?");
         Delegate method = ((Delegate)this.safeValue(methods, type));
         if ((method == null))
         {

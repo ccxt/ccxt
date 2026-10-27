@@ -397,8 +397,8 @@ impl BydfiCore {
         });
         let mut unsubscribe: Value = self.safe_bool_k(params.clone(), "unsubscribe", &[Value::Bool(false)]);
         let mut method: Value = Value::Str("SUBSCRIBE".into());
-        let mut paramsOmitted: Value = (if (unsubscribe.as_bool() == Some(true)) { self.omit(params.clone(), Value::Str("unsubscribe".into()), &[]) } else { params });
-        if (unsubscribe.as_bool() == Some(true)) {
+        let mut paramsOmitted: Value = (if unsubscribe.as_bool() == Some(true) { self.omit(params.clone(), Value::Str("unsubscribe".into()), &[]) } else { params });
+        if unsubscribe.as_bool() == Some(true) {
             method = Value::Str("UNSUBSCRIBE".into());
             if let Value::Dict(__d) = &mut subscriptionParams { std::sync::Arc::make_mut(__d).insert("unsubscribe".into(), Value::Bool(true)); }
             if let Value::Dict(__d) = &mut subscriptionParams { std::sync::Arc::make_mut(__d).insert("messageHashes".into(), messageHashes.clone()); }
@@ -434,7 +434,7 @@ impl BydfiCore {
         let mut paramsLogin: Value = Value::Null;
         if (privateSubscription == Value::Null) {
             let mut id: Value = self.request_id();
-            let mut timestamp: Value = to_string_val(&self.milliseconds());
+            let mut timestamp: Value = Value::Str(format!("{}", self.milliseconds()).into());
             let mut payload: Value = Value::Str(format!("{}{}", self.apiKey.clone(), timestamp).into());
             let mut signature: Value = self.hmac(self.encode(payload), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("hex".into())]);
             let mut request: Value = Value::Map({
@@ -524,26 +524,26 @@ impl BydfiCore {
             self.load_markets(&[]).await;
         }
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(true)]);
-        let mut messageHashes: Value = Value::from(vec![]);
+        let mut messageHashes: Vec<Value> = Vec::new();
         let mut messageHash: Value = Value::Str("ticker::".into());
-        let mut channels: Value = Value::from(vec![]);
+        let mut channels: Vec<Value> = Vec::new();
         let mut channel: Value = Value::Str("@ticker".into());
         if (symbolsNormalized == Value::Null) {
-            append_to_array(&mut messageHashes, Value::Str(format!("{}{}", messageHash, Value::Str("all".into())).into()));
-            append_to_array(&mut channels, Value::Str("!ticker@arr".into()));
+            messageHashes.push(Value::Str(format!("{}{}", messageHash, Value::Str("all".into())).into()));
+            channels.push(Value::Str("!ticker@arr".into()));
         }  else {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_216: bool = true;
-                while { if !__for_first_216 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_216 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
+                let mut __for_first_218: bool = true;
+                while { if !__for_first_218 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_218 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
                 let mut symbol: Value = symbolsNormalized.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 let mut marketId: Value = self.market_id(symbol.clone());
-                append_to_array(&mut messageHashes, Value::Str(format!("{}{}", messageHash, symbol).into()));
-                append_to_array(&mut channels, Value::Str(format!("{}{}", marketId, channel).into()));
+                messageHashes.push(Value::Str(format!("{}{}", messageHash, symbol).into()));
+                channels.push(Value::Str(format!("{}{}", marketId, channel).into()));
             }
             }
         }
-        self.watch_public(messageHashes, channels, &[params]).await;
+        self.watch_public(Value::from(messageHashes), Value::from(channels), &[params]).await;
         return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &[symbolsNormalized]);
 
     Value::Null
@@ -566,9 +566,9 @@ impl BydfiCore {
     m
 }));
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(true)]);
-        let mut messageHashes: Value = Value::from(vec![]);
+        let mut messageHashes: Vec<Value> = Vec::new();
         let mut messageHash: Value = Value::Str("unsubscribe::ticker::".into());
-        let mut channels: Value = Value::from(vec![]);
+        let mut channels: Vec<Value> = Vec::new();
         let mut channel: Value = Value::Str("@ticker".into());
         let mut subscription: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -582,31 +582,31 @@ impl BydfiCore {
             if let Value::Dict(__d) = &mut subscription { std::sync::Arc::make_mut(__d).insert("subHashIsPrefix".into(), Value::Bool(true)); }
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_217: bool = true;
-                while { if !__for_first_217 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_217 = false; i.as_f64().unwrap_or(f64::NAN) < ((subHashes.len() as i64) as f64) } {
+                let mut __for_first_219: bool = true;
+                while { if !__for_first_219 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_219 = false; i.as_f64().unwrap_or(f64::NAN) < ((subHashes.len() as i64) as f64) } {
                 let mut subHash: Value = self.safe_string(subHashes.clone(), i.clone(), &[]);
                 if (subHash != Value::Null) {
-                    let mut parts: Value = split(&subHash, &Value::Str("::".into()));
+                    let mut parts: Value = Value::Array(subHash.as_str().map(|__s| __s.split("::").map(|__p| Value::Str(__p.to_string().into())).collect()).unwrap_or_default());
                     let mut symbol: Value = self.safe_string(parts, Value::Int(1), &[]);
                     if (symbol.as_str() == Some("all")) {
                         continue;
                     }
                     let mut marketId: Value = self.market_id(symbol.clone());
-                    append_to_array(&mut channels, Value::Str(format!("{}{}", marketId, channel).into()));
+                    channels.push(Value::Str(format!("{}{}", marketId, channel).into()));
                 }
             }
             }
-            append_to_array(&mut messageHashes, messageHash.clone());
-            append_to_array(&mut channels, Value::Str("!ticker@arr".into()));
+            messageHashes.push(messageHash.clone());
+            channels.push(Value::Str("!ticker@arr".into()));
         }  else {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_218: bool = true;
-                while { if !__for_first_218 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_218 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
+                let mut __for_first_220: bool = true;
+                while { if !__for_first_220 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_220 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
                 let mut symbol: Value = symbolsNormalized.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 let mut marketId: Value = self.market_id(symbol.clone());
-                append_to_array(&mut messageHashes, Value::Str(format!("{}{}", messageHash, symbol).into()));
-                append_to_array(&mut channels, Value::Str(format!("{}{}", marketId, channel).into()));
+                messageHashes.push(Value::Str(format!("{}{}", messageHash, symbol).into()));
+                channels.push(Value::Str(format!("{}{}", marketId, channel).into()));
             }
             }
             if let Value::Dict(__d) = &mut subscription { std::sync::Arc::make_mut(__d).insert("symbols".into(), symbolsNormalized); }
@@ -616,7 +616,7 @@ impl BydfiCore {
                 m.insert("unsubscribe".to_string(), Value::Bool(true));
             m
         })]);
-        return self.watch_public(messageHashes, channels, &[paramsExtended, subscription]).await;
+        return self.watch_public(Value::from(messageHashes), Value::from(channels), &[paramsExtended, subscription]).await;
 
     Value::Null
 }
@@ -625,19 +625,19 @@ impl BydfiCore {
         let mut url: Value = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public");
         let mut client: Value = self.client(&[url]);
         let mut subscriptions: Value = get_value(&client, &Value::Str("subscriptions".into()));
-        let mut messageHashes: Value = Value::from(vec![]);
+        let mut messageHashes: Vec<Value> = Vec::new();
         let mut keys: Value = object_keys(&subscriptions);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_219: bool = true;
-            while { if !__for_first_219 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_219 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
+            let mut __for_first_221: bool = true;
+            while { if !__for_first_221 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_221 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
             let mut key: Value = keys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             if (Value::Int(key.as_str().and_then(|__s| __s.find("ticker::")).map(|__i| __i as i64).unwrap_or(-1)).as_f64() == Some(0.0)) {
-                append_to_array(&mut messageHashes, key);
+                messageHashes.push(key);
             }
         }
         }
-        return messageHashes;
+        return Value::from(messageHashes);
 
     Value::Null
 }
@@ -659,7 +659,7 @@ impl BydfiCore {
         let mut symbol: Value = ticker.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("ticker::".into()), symbol).into());
         if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ticker); }
-        client.resolve(&[get_value(&self.tickers, &symbol), messageHash]);
+        client.resolve(&[self.tickers.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), messageHash]);
         client.resolve(&[self.tickers.clone(), Value::Str("ticker::all".into())]);
 }
 
@@ -733,12 +733,12 @@ impl BydfiCore {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']".into()))));
         }
         self.load_markets(&[]).await;
-        let mut channels: Value = Value::from(vec![]);
-        let mut messageHashes: Value = Value::from(vec![]);
+        let mut channels: Vec<Value> = Vec::new();
+        let mut messageHashes: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_220: bool = true;
-            while { if !__for_first_220 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_220 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsAndTimeframes.len() as i64) as f64) } {
+            let mut __for_first_222: bool = true;
+            while { if !__for_first_222 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_222 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsAndTimeframes.len() as i64) as f64) } {
             let mut symbolAndTimeframe: Value = self.safe_list(symbolsAndTimeframes.clone(), i.clone(), &[]);
             let mut marketId: Value = self.safe_string(symbolAndTimeframe.clone(), Value::Int(0), &[]);
             let mut market: Value = self.market(marketId);
@@ -748,16 +748,16 @@ impl BydfiCore {
                 m
             })]);
             let mut interval: Value = self.safe_string(timeframes, tf.clone(), &[tf.clone()]);
-            append_to_array(&mut channels, Value::Str(format!("{}{}", Value::Str(format!("{}{}", market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), Value::Str("@kline_".into())).into()), interval).into()));
-            append_to_array(&mut messageHashes, Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv::".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into()), Value::Str("::".into())).into()), interval).into()));
+            channels.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), Value::Str("@kline_".into())).into()), interval).into()));
+            messageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv::".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into()), Value::Str("::".into())).into()), interval).into()));
         }
         }
-        let mut symboltimeframecandlesVariable = self.watch_public(messageHashes, channels, &[params]).await;
+        let mut symboltimeframecandlesVariable = self.watch_public(Value::from(messageHashes), Value::from(channels), &[params]).await;
         let mut symbol: Value = get_value(&symboltimeframecandlesVariable, &Value::Int(0));
         let mut timeframe: Value = get_value(&symboltimeframecandlesVariable, &Value::Int(1));
         let mut candles: Value = get_value(&symboltimeframecandlesVariable, &Value::Int(2));
         let mut limitResolved: Value = limit.clone();
-        if is_true(&self.newUpdates) {
+        if self.newUpdates.as_bool() == Some(true) {
             limitResolved = candles.get_limit(symbol.clone(), limit);
         }
         let mut filtered: Value = self.filter_by_since_limit(candles, &[since, limitResolved, Value::Int(0), Value::Bool(true)]);
@@ -785,19 +785,19 @@ impl BydfiCore {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']".into()))));
         }
         self.load_markets(&[]).await;
-        let mut channels: Value = Value::from(vec![]);
-        let mut messageHashes: Value = Value::from(vec![]);
+        let mut channels: Vec<Value> = Vec::new();
+        let mut messageHashes: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_221: bool = true;
-            while { if !__for_first_221 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_221 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsAndTimeframes.len() as i64) as f64) } {
+            let mut __for_first_223: bool = true;
+            while { if !__for_first_223 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_223 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsAndTimeframes.len() as i64) as f64) } {
             let mut symbolAndTimeframe: Value = self.safe_list(symbolsAndTimeframes.clone(), i.clone(), &[]);
             let mut marketId: Value = self.safe_string(symbolAndTimeframe.clone(), Value::Int(0), &[]);
             let mut market: Value = self.market(marketId);
             let mut tf: Value = self.safe_string(symbolAndTimeframe, Value::Int(1), &[]);
             let mut interval: Value = self.safe_string(self.timeframes.clone(), tf.clone(), &[tf.clone()]);
-            append_to_array(&mut channels, Value::Str(format!("{}{}", Value::Str(format!("{}{}", market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), Value::Str("@kline_".into())).into()), interval).into()));
-            append_to_array(&mut messageHashes, Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("unsubscribe::ohlcv::".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into()), Value::Str("::".into())).into()), interval).into()));
+            channels.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), Value::Str("@kline_".into())).into()), interval).into()));
+            messageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("unsubscribe::ohlcv::".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into()), Value::Str("::".into())).into()), interval).into()));
         }
         }
         let mut paramsExtended: Value = self.extend(params, &[Value::Map({
@@ -811,7 +811,7 @@ impl BydfiCore {
                 m.insert("symbolsAndTimeframes".to_string(), symbolsAndTimeframes);
             m
         });
-        return self.watch_public(messageHashes, channels, &[paramsExtended, subscription]).await;
+        return self.watch_public(Value::from(messageHashes), Value::from(channels), &[paramsExtended, subscription]).await;
 
     Value::Null
 }
@@ -842,18 +842,18 @@ impl BydfiCore {
             m
         })]);
         let mut timeframe: Value = self.find_timeframe(interval, &[timeframes]);
-        if !(in_op(&self.ohlcvs, &symbol)) {
+        if !(matches!((&self.ohlcvs, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             if let Value::Dict(__d) = &mut self.ohlcvs { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })); }
         }
-        if !(in_op(&get_value(&self.ohlcvs, &symbol), &timeframe)) {
+        if !(in_op(&self.ohlcvs.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), &timeframe)) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
             let mut stored = ArrayCacheByTimestamp::new(limit);
             add_element_to_object(get_value_mut(&mut self.ohlcvs, &symbol), &timeframe, stored);
         }
-        let mut ohlcv: Value = get_value(&get_value(&self.ohlcvs, &symbol), &timeframe);
+        let mut ohlcv: Value = self.ohlcvs.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| timeframe.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
         let mut parsed: Value = self.parse_ws_ohlcv(message, &[]);
         ohlcv.append(parsed);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv::".into()), symbol).into()), Value::Str("::".into())).into()), timeframe).into());
@@ -932,19 +932,19 @@ impl BydfiCore {
         if (frequencyOption.as_str() == Some("100ms")) {
             channelSuffix = Value::Str("@100ms".into());
         }
-        let mut channels: Value = Value::from(vec![]);
-        let mut messageHashes: Value = Value::from(vec![]);
+        let mut channels: Vec<Value> = Vec::new();
+        let mut messageHashes: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_222: bool = true;
-            while { if !__for_first_222 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_222 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
+            let mut __for_first_224: bool = true;
+            while { if !__for_first_224 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_224 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
             let mut symbol: Value = symbolsNormalized.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.market(symbol.clone());
-            append_to_array(&mut channels, Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), Value::Str("@depth".into())).into()), depthOption).into()), channelSuffix).into()));
-            append_to_array(&mut messageHashes, Value::Str(format!("{}{}", Value::Str("orderbook::".into()), symbol).into()));
+            channels.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), Value::Str("@depth".into())).into()), depthOption).into()), channelSuffix).into()));
+            messageHashes.push(Value::Str(format!("{}{}", Value::Str("orderbook::".into()), symbol).into()));
         }
         }
-        let mut orderbook: Value = self.watch_public(messageHashes, channels, &[paramsFrequency]).await;
+        let mut orderbook: Value = self.watch_public(Value::from(messageHashes), Value::from(channels), &[paramsFrequency]).await;
         return orderbook.limit();
 
     Value::Null
@@ -981,16 +981,16 @@ impl BydfiCore {
         if (frequencyOption.as_str() == Some("100ms")) {
             channelSuffix = Value::Str("@100ms".into());
         }
-        let mut channels: Value = Value::from(vec![]);
-        let mut messageHashes: Value = Value::from(vec![]);
+        let mut channels: Vec<Value> = Vec::new();
+        let mut messageHashes: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_223: bool = true;
-            while { if !__for_first_223 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_223 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
+            let mut __for_first_225: bool = true;
+            while { if !__for_first_225 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_225 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
             let mut symbol: Value = symbolsNormalized.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.market(symbol.clone());
-            append_to_array(&mut channels, Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), Value::Str("@depth".into())).into()), depthOption).into()), channelSuffix).into()));
-            append_to_array(&mut messageHashes, Value::Str(format!("{}{}", Value::Str("unsubscribe::orderbook::".into()), symbol).into()));
+            channels.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), Value::Str("@depth".into())).into()), depthOption).into()), channelSuffix).into()));
+            messageHashes.push(Value::Str(format!("{}{}", Value::Str("unsubscribe::orderbook::".into()), symbol).into()));
         }
         }
         let mut subscription: Value = Value::Map({
@@ -1004,7 +1004,7 @@ impl BydfiCore {
                 m.insert("unsubscribe".to_string(), Value::Bool(true));
             m
         })]);
-        return self.watch_public(messageHashes, channels, &[paramsExtended, subscription]).await;
+        return self.watch_public(Value::from(messageHashes), Value::from(channels), &[paramsExtended, subscription]).await;
 
     Value::Null
 }
@@ -1024,10 +1024,10 @@ impl BydfiCore {
         let mut marketId: Value = (match __pro_message.get("s").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
         let mut symbol: Value = self.safe_symbol(marketId, &[]);
         let mut timestamp: Value = (match __pro_message.get("E").cloned() { Some(Value::Int(__n)) => Value::Int(__n), Some(Value::Float(__f)) => Value::Int(__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null });
-        if !(in_op(&self.orderbooks, &symbol)) {
+        if !(matches!((&self.orderbooks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             { let __be_tmp = self.order_book(&[]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
         }
-        let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
+        let mut orderbook: Value = self.orderbooks.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
         let mut parsed: Value = self.parse_order_book(message, symbol.clone(), &[timestamp, Value::Str("b".into()), Value::Str("a".into())]);
         orderbook.reset(parsed);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook::".into()), symbol).into());
@@ -1085,24 +1085,24 @@ impl BydfiCore {
             self.load_markets(&[]).await;
         }
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(true)]);
-        let mut messageHashes: Value = Value::from(vec![]);
+        let mut messageHashes: Vec<Value> = Vec::new();
         if (symbolsNormalized == Value::Null) {
-            append_to_array(&mut messageHashes, Value::Str("orders".into()));
+            messageHashes.push(Value::Str("orders".into()));
         }  else {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_224: bool = true;
-                while { if !__for_first_224 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_224 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
+                let mut __for_first_226: bool = true;
+                while { if !__for_first_226 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_226 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
                 let mut symbol: Value = symbolsNormalized.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-                append_to_array(&mut messageHashes, Value::Str(format!("{}{}", Value::Str("orders::".into()), symbol).into()));
+                messageHashes.push(Value::Str(format!("{}{}", Value::Str("orders::".into()), symbol).into()));
             }
             }
         }
-        let mut orders: Value = self.watch_private(messageHashes, &[params]).await;
+        let mut orders: Value = self.watch_private(Value::from(messageHashes), &[params]).await;
         let mut first: Value = self.safe_dict(orders.clone(), Value::Int(0), &[]);
         let mut tradeSymbol: Value = self.safe_string_k(first, "symbol", &[]);
         let mut limitResolved: Value = limit.clone();
-        if is_true(&self.newUpdates) {
+        if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(tradeSymbol, limit);
         }
         return self.filter_by_since_limit(orders, &[since, limitResolved, Value::Str("timestamp".into()), Value::Bool(true)]);
@@ -1258,22 +1258,22 @@ impl BydfiCore {
             self.load_markets(&[]).await;
         }
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(true)]);
-        let mut messageHashes: Value = Value::from(vec![]);
+        let mut messageHashes: Vec<Value> = Vec::new();
         let mut messageHash: Value = Value::Str("positions".into());
         if (symbolsNormalized == Value::Null) {
-            append_to_array(&mut messageHashes, messageHash.clone());
+            messageHashes.push(messageHash.clone());
         }  else {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_225: bool = true;
-                while { if !__for_first_225 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_225 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
+                let mut __for_first_227: bool = true;
+                while { if !__for_first_227 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_227 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
                 let mut symbol: Value = symbolsNormalized.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-                append_to_array(&mut messageHashes, Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str("::".into())).into()), symbol).into()));
+                messageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str("::".into())).into()), symbol).into()));
             }
             }
         }
-        let mut positions: Value = self.watch_private(messageHashes, &[params]).await;
-        if is_true(&self.newUpdates) {
+        let mut positions: Value = self.watch_private(Value::from(messageHashes), &[params]).await;
+        if self.newUpdates.as_bool() == Some(true) {
             return positions;
         }
         return self.filter_by_symbols_since_limit(self.positions.clone(), &[symbolsNormalized, since, limit, Value::Bool(true)]);
@@ -1443,7 +1443,7 @@ impl BydfiCore {
         let mut options: Value = self.safe_dict_k(self.options.clone(), "watchBalance", &[]);
         let mut fetchBalanceSnapshot: Value = self.safe_bool_k(options.clone(), "fetchBalanceSnapshot", &[Value::Bool(false)]);
         let mut awaitBalanceSnapshot: Value = self.safe_bool_k(options, "awaitBalanceSnapshot", &[Value::Bool(true)]);
-        if (fetchBalanceSnapshot.as_bool() == Some(true)) && (awaitBalanceSnapshot.as_bool() == Some(true)) {
+        if fetchBalanceSnapshot.as_bool() == Some(true) && awaitBalanceSnapshot.as_bool() == Some(true) {
             crate::exchange_stubs::ws_await_flight(&client.future(&[Value::Str("fetchBalanceSnapshot".into())])).await;
         }
         let mut messageHash: Value = Value::Str("balance".into());
@@ -1455,7 +1455,7 @@ impl BydfiCore {
     pub fn fetch_balance_snapshot(&mut self, mut client: Value) {
         let mut options: Value = self.safe_dict_k(self.options.clone(), "watchBalance", &[]);
         let mut fetchBalanceSnapshot: Value = self.safe_bool_k(options, "fetchBalanceSnapshot", &[Value::Bool(false)]);
-        if (fetchBalanceSnapshot.as_bool() == Some(true)) {
+        if fetchBalanceSnapshot.as_bool() == Some(true) {
             let mut messageHash: Value = Value::Str("fetchBalanceSnapshot".into());
             if !(in_op(&get_value(&client, &Value::Str("futures".into())), &messageHash)) {
                 client.future(&[messageHash.clone()]);
@@ -1471,7 +1471,37 @@ impl BydfiCore {
             m
         });
         let mut response: Value = self.fetch_balance(&[params]).await;
-        { let __t = self.extend(response, &[self.balance.clone()]); self.balance = __t; }
+        // merge the snapshot into the existing balance object per currency so
+        // the object keeps its identity and deltas that arrived while the
+        // snapshot was in flight are not overwritten; the free/used/total
+        // aggregates are rebuilt from the merged currencies by safeBalance
+        if (self.balance.clone() == Value::Null) {
+            self.balance = Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                m
+            });
+        }
+        let mut reserved: Value = Value::from(vec![Value::Str("info".into()), Value::Str("timestamp".into()), Value::Str("datetime".into()), Value::Str("free".into()), Value::Str("used".into()), Value::Str("total".into())]);
+        let mut keys: Value = object_keys(&response);
+        {
+                        let mut i: Value = Value::Int(0);
+            let mut __for_first_228: bool = true;
+            while { if !__for_first_228 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_228 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
+            let mut key: Value = keys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            if self.in_array(key.clone(), reserved.clone()).as_bool() == Some(true) {
+                continue;
+            }
+            if !(matches!((&self.balance, &key), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+                if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&key), response.as_map().and_then(|__m| key.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null)); }
+            }
+        }
+        }
+        if !(matches!(&self.balance, Value::Dict(__d) if __d.contains_key("info"))) {
+            if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("info".into(), response.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null)); }
+            if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("timestamp".into(), response.as_map().and_then(|__m| __m.get("timestamp")).cloned().unwrap_or(Value::Null)); }
+            if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("datetime".into(), response.as_map().and_then(|__m| __m.get("datetime")).cloned().unwrap_or(Value::Null)); }
+        }
+        { let __t = self.safe_balance(self.balance.clone()); self.balance = __t; }
         // don't remove the future from the .futures cache
         let mut future: Value = get_value(&get_value(&client, &Value::Str("futures".into())), &messageHash);
         future.resolve(&[]);
@@ -1523,40 +1553,44 @@ impl BydfiCore {
         //         "e": "ACCOUNT_UPDATE"
         //     }
         //
-        let mut messageHash: Value = Value::Str("balance".into());
-        if (in_op(&get_value(&client, &Value::Str("futures".into())), &messageHash)) {
-            let mut data: Value = (match __pro_message.get("a").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Map({
+        // merge updates into the existing balance object instead of building a
+        // fresh one: a consumer awakened by an earlier message holds a reference
+        // to this.balance, and Client.resolve is a no-op while nobody is
+        // awaiting, so a replaced object would make updates landing in that
+        // window invisible to the consumer forever (issue #26773)
+        if (self.balance.clone() == Value::Null) {
+            self.balance = Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                m
+            });
+        }
+        let mut data: Value = (match __pro_message.get("a").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }) });
-            let mut balances: Value = self.safe_list_k(data, "B", &[Value::from(vec![])]);
-            let mut timestamp: Value = (match __pro_message.get("T").cloned() { Some(Value::Int(__n)) => Value::Int(__n), Some(Value::Float(__f)) => Value::Int(__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null });
-            let mut result: Value = Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                    m.insert("info".to_string(), message);
-                    m.insert("timestamp".to_string(), timestamp.clone());
-                    m.insert("datetime".to_string(), self.iso8601(timestamp));
-                m
-            });
-            {
-                                let mut i: Value = Value::Int(0);
-                let mut __for_first_226: bool = true;
-                while { if !__for_first_226 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_226 = false; i.as_f64().unwrap_or(f64::NAN) < ((balances.len() as i64) as f64) } {
-                let mut balance: Value = self.safe_dict(balances.clone(), i.clone(), &[]);
-                let mut currencyId: Value = self.safe_string_k(balance.clone(), "a", &[]);
-                let mut code: Value = self.safe_currency_code(currencyId, &[]);
-                let mut account: Value = self.account();
-                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".into(), self.safe_string_k(balance.clone(), "wb", &[])); }
-                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".into(), self.safe_string_k(balance.clone(), "tfm", &[])); }
-                if (code != Value::Null) {
-                    if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), account); }
-                }
+        let mut balances: Value = self.safe_list_k(data, "B", &[Value::from(vec![])]);
+        let mut timestamp: Value = (match __pro_message.get("T").cloned() { Some(Value::Int(__n)) => Value::Int(__n), Some(Value::Float(__f)) => Value::Int(__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null });
+        if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("info".into(), message); }
+        if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("timestamp".into(), timestamp.clone()); }
+        { let __be_tmp = self.iso8601(timestamp); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("datetime".into(), __be_tmp); } }
+        {
+                        let mut i: Value = Value::Int(0);
+            let mut __for_first_229: bool = true;
+            while { if !__for_first_229 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_229 = false; i.as_f64().unwrap_or(f64::NAN) < ((balances.len() as i64) as f64) } {
+            let mut balance: Value = self.safe_dict(balances.clone(), i.clone(), &[]);
+            let mut currencyId: Value = self.safe_string_k(balance.clone(), "a", &[]);
+            let mut code: Value = self.safe_currency_code(currencyId, &[]);
+            let mut account: Value = self.account();
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".into(), self.safe_string_k(balance.clone(), "wb", &[])); }
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".into(), self.safe_string_k(balance.clone(), "tfm", &[])); }
+            if (code != Value::Null) {
+                if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), account); }
             }
-            }
-            let mut parsedBalance: Value = self.safe_balance(result);
-            { let __t = self.extend(self.balance.clone(), &[parsedBalance]); self.balance = __t; }
-            client.resolve(&[self.balance.clone(), messageHash.clone()]);
         }
+        }
+        { let __t = self.safe_balance(self.balance.clone()); self.balance = __t; }
+        let mut messageHash: Value = Value::Str("balance".into());
+        client.resolve(&[self.balance.clone(), messageHash]);
 }
 
     pub fn handle_subscription_status(&mut self, mut client: Value, mut message: Value) -> Value {
@@ -1575,7 +1609,7 @@ impl BydfiCore {
             m
         })]);
         let mut isUnSubMessage: Value = self.safe_bool_k(subscription.clone(), "unsubscribe", &[Value::Bool(false)]);
-        if (isUnSubMessage.as_bool() == Some(true)) {
+        if isUnSubMessage.as_bool() == Some(true) {
             self.handle_un_subscription(client, subscription);
         }
         return message;
@@ -1590,8 +1624,8 @@ impl BydfiCore {
         let mut subHashIsPrefix: Value = (match __pro_message.get("subHashIsPrefix").cloned() { Some(__v) if matches!(__v, Value::Bool(_)) => __v, _ => Value::Bool(false) });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_227: bool = true;
-            while { if !__for_first_227 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_227 = false; i.as_f64().unwrap_or(f64::NAN) < ((messageHashes.len() as i64) as f64) } {
+            let mut __for_first_230: bool = true;
+            while { if !__for_first_230 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_230 = false; i.as_f64().unwrap_or(f64::NAN) < ((messageHashes.len() as i64) as f64) } {
             let mut unsubHash: Value = messageHashes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut subHash: Value = replace_str(&unsubHash, &Value::Str("unsubscribe::".into()), &Value::Str("".into()));
             self.clean_unsubscription(client.clone(), subHash, unsubHash, &[subHashIsPrefix.clone()]);

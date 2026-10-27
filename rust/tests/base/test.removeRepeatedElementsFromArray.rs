@@ -42,7 +42,7 @@ pub fn testRemoveRepeatedElementsFromArray() {
 })]);
     let mut res1: Value = exchange.remove_repeated_elements_from_array(array1.clone(), &[Value::Bool(false)]);
     let mut res1Length: Value = get_array_length(&res1);
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&res1Length, &Value::Int(3))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(res1Length.as_f64() == Some(3.0)))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(get_value(&get_value(&res1, &Value::Int(0)), &Value::Str("uniq".into())).as_str() == Some("x1")))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(get_value(&get_value(&res1, &Value::Int(1)), &Value::Str("uniq".into())).as_str() == Some("x2")))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(get_value(&get_value(&res1, &Value::Int(2)), &Value::Str("uniq".into())).as_str() == Some("x4")))));
@@ -74,14 +74,14 @@ pub fn testRemoveRepeatedElementsFromArray() {
 })]);
     let mut res2: Value = exchange.remove_repeated_elements_from_array(array2.clone(), &[Value::Bool(true)]);
     let mut res2Length: Value = get_array_length(&res2);
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&res2Length, &Value::Int(3))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(res2Length.as_f64() == Some(3.0)))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(get_value(&get_value(&res2, &Value::Int(0)), &Value::Str("uniq".into())).as_str() == Some("x1")))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(get_value(&get_value(&res2, &Value::Int(1)), &Value::Str("uniq".into())).as_str() == Some("x2")))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(get_value(&get_value(&res2, &Value::Int(2)), &Value::Str("uniq".into())).as_str() == Some("x4")))));
     // CASE 3: by timestamp index (used in ohlcv)
     let mut array3: Value = Value::from(vec![Value::from(vec![Value::Int(555), Value::Int(1), Value::Int(1), Value::Str("x1".into())]), Value::from(vec![Value::Int(666), Value::Int(1), Value::Int(1), Value::Str("x2".into())]), Value::from(vec![Value::Int(555), Value::Int(1), Value::Int(1), Value::Str("x3".into())])]);
     let mut res3: Value = exchange.remove_repeated_elements_from_array(array3.clone(), &[Value::Bool(true)]);
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_array_length(&res3), &Value::Int(2))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(get_array_length(&res3).as_f64() == Some(2.0)))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(get_value(&get_value(&res3, &Value::Int(0)), &Value::Int(3)).as_str() == Some("x1")))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(get_value(&get_value(&res3, &Value::Int(1)), &Value::Int(3)).as_str() == Some("x2")))));
 }

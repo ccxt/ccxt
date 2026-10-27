@@ -57,7 +57,7 @@ public partial class upbit : ccxt.upbit
         {
             ((IDictionary<string,object>)client.subscriptions)[subscriptionsKey] = this.createSafeDictionary(true);
         }
-        object subscriptions = getValue(client.subscriptions, subscriptionsKey);
+        object subscriptions = (client.subscriptions != null && subscriptionsKey != null && client.subscriptions.ContainsKey(subscriptionsKey) ? client.subscriptions[subscriptionsKey] : null);
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
         {
@@ -441,7 +441,7 @@ public partial class upbit : ccxt.upbit
         {
             channelKey = add(add(channel, ":"), symbolResolved);
         }
-        object subscriptions = getValue(client.subscriptions, subscriptionsKey);
+        object subscriptions = (client.subscriptions != null && subscriptionsKey != null && client.subscriptions.ContainsKey(subscriptionsKey) ? client.subscriptions[subscriptionsKey] : null);
         bool isNewChannel = !(inOp(subscriptions, channelKey));
         if (isNewChannel)
         {

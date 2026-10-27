@@ -246,7 +246,7 @@ export default class krakenfutures extends Exchange {
      */
     fetchCanceledOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     parseOrderType(orderType: Str): Str;
-    verifyOrderActionSuccess(status: any, method: any, omit?: string[]): void;
+    verifyOrderActionSuccess(status: any, method: string, omit?: string[]): void;
     parseOrderStatus(status: Str): Str;
     parseOrder(order: Dict, market?: Market): Order;
     /**
@@ -360,32 +360,7 @@ export default class krakenfutures extends Exchange {
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
     fetchPositionsHistory(symbols?: Strings, since?: Int, limit?: Int, params?: Dict): Promise<Position[]>;
-    parsePosition(position: Dict, market?: Market): {
-        info: Dict;
-        id: Str;
-        symbol: string;
-        timestamp: Int;
-        datetime: Str;
-        initialMargin: undefined;
-        initialMarginPercentage: undefined;
-        maintenanceMargin: undefined;
-        maintenanceMarginPercentage: undefined;
-        entryPrice: number;
-        notional: undefined;
-        leverage: Num;
-        unrealizedPnl: Num;
-        realizedPnl: Num;
-        contracts: number;
-        contractSize: Num;
-        marginRatio: undefined;
-        liquidationPrice: undefined;
-        markPrice: undefined;
-        lastPrice: Num;
-        collateral: undefined;
-        marginMode: string;
-        side: Str;
-        percentage: undefined;
-    };
+    parsePosition(position: Dict, market?: Market): Position;
     /**
      * @method
      * @name krakenfutures#fetchLeverageTiers
@@ -398,7 +373,7 @@ export default class krakenfutures extends Exchange {
     fetchLeverageTiers(symbols?: Strings, params?: Dict): Promise<LeverageTiers>;
     parseMarketLeverageTiers(info: any, market?: Market): LeverageTier[];
     parseTransfer(transfer: Dict, currency?: Currency): TransferEntry;
-    parseAccount(account: any): any;
+    parseKrakenAccountName(account: string): string;
     /**
      * @method
      * @name krakenfutures#transferOut

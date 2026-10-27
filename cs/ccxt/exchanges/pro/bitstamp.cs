@@ -242,7 +242,7 @@ public partial class bitstamp : ccxt.bitstamp
             Int64? deltaNonce = this.safeInteger(delta, "microtimestamp");
             if ((deltaNonce == nonce))
             {
-                return add(i, 1);
+                return (i + 1L);
             }
         }
         return deltas?.Count ?? 0;
@@ -1049,7 +1049,7 @@ public partial class bitstamp : ccxt.bitstamp
 
     public override void handleMessage(WebSocketClient client, object message)
     {
-        if (!isEqual(this.handleErrorMessage(client, message), true))
+        if (!(this.handleErrorMessage(client, message) == true))
         {
             return;
         }

@@ -21,7 +21,10 @@ func testFetchCurrenciesBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICoreE
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	currencies := r.Value
+	var currencies any = nil
+	if r.Value != nil {
+		currencies = r.Value
+	}
 	// todo: try to invent something to avoid undefined undefined, i.e. maybe move into private and force it to have a value
 	var numInactiveCurrencies any = 0
 	var maxInactiveCurrenciesPercentage any = ccxt.DerefScalar(exchange.SafeInteger(skippedProperties, "maxInactiveCurrenciesPercentage", 50)) // no more than X% currencies should be inactive
@@ -60,7 +63,7 @@ func testFetchCurrenciesBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICoreE
 			var deposit any = ccxt.DerefScalar(exchange.SafeBool(currency, "deposit"))
 			var isMicaCompliant any = ccxt.DerefScalar(exchange.SafeBool(exchange.GetOptions(), "mica", false))
 			var skipUsdtForMica bool = (isMicaCompliant == true) && (code == "USDT")
-			if EvalTruthy(exchange.InArray(code, requiredActiveCurrencies)) && !skipMajorCurrencyCheck && (skipUsdtForMica != true) {
+			if EvalTruthy(exchange.InArray(code, requiredActiveCurrencies)) && !skipMajorCurrencyCheck && (!skipUsdtForMica) {
 				Assert((withdraw == true) && (deposit == true), Add(Add(Add("Major currency ", code), " should have withdraw and deposit flags enabled ::: "), exchange.Json(currency)))
 			}
 		}

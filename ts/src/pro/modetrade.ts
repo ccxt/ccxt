@@ -198,10 +198,11 @@ export default class modetrade extends modetradeRest {
         //         "count": 3689
         //     }
         //
+        const timestamp = this.safeInteger (ticker, 'timestamp');
         return this.safeTicker ({
             'symbol': this.safeSymbol (undefined, market),
-            'timestamp': undefined,
-            'datetime': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'high': this.safeString (ticker, 'high'),
             'low': this.safeString (ticker, 'low'),
             'bid': undefined,
@@ -244,8 +245,7 @@ export default class modetrade extends modetradeRest {
         const marketId = this.safeString (data, 'symbol');
         const market = this.safeMarket (marketId);
         const timestamp = this.safeInteger (message, 'ts');
-        data['date'] = timestamp;
-        const ticker = this.parseWsTicker (data, market);
+        const ticker = this.parseWsTicker (this.extend (data, { 'timestamp': timestamp }), market);
         ticker['symbol'] = market['symbol'];
         this.tickers[market['symbol']] = ticker;
         client.resolve (ticker, topic);
@@ -304,7 +304,7 @@ export default class modetrade extends modetradeRest {
         for (let i = 0; i < data.length; i++) {
             const marketId = this.safeString (data[i], 'symbol');
             const market = this.safeMarket (marketId);
-            const ticker = this.parseWsTicker (this.extend (data[i], { 'date': timestamp }), market);
+            const ticker = this.parseWsTicker (this.extend (data[i], { 'timestamp': timestamp }), market);
             this.tickers[market['symbol']] = ticker;
             result.push (ticker);
         }
@@ -714,7 +714,7 @@ export default class modetrade extends modetradeRest {
         }
         const trigger = this.safeBool2 (params, 'stop', 'trigger', false);
         let topic: Str = 'executionreport';
-        if (trigger === true) {
+        if (trigger) {
             topic = 'algoexecutionreport';
         }
         const paramsOmitted: Dict = this.omit (params, [ 'stop', 'trigger' ]);
@@ -757,7 +757,7 @@ export default class modetrade extends modetradeRest {
         }
         const trigger = this.safeBool2 (params, 'stop', 'trigger', false);
         let topic: Str = 'executionreport';
-        if (trigger === true) {
+        if (trigger) {
             topic = 'algoexecutionreport';
         }
         const paramsOmitted: Dict = this.omit (params, 'stop');
@@ -1082,7 +1082,7 @@ export default class modetrade extends modetradeRest {
         return this.filterBySymbolsSinceLimit (this.positions, symbolsNormalized, since, limit, true);
     }
 
-    setPositionsCache (client: Client, type: any, symbols: Strings = undefined) {
+    setPositionsCache (client: Client, symbols: Strings = undefined) {
         const fetchPositionsSnapshot: Bool = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', false);
         if (fetchPositionsSnapshot === true) {
             const messageHash = 'fetchPositionsSnapshot';
@@ -1318,7 +1318,7 @@ export default class modetrade extends modetradeRest {
         client.resolve (this.balance, 'balance');
     }
 
-    handleErrorMessage (client: Client, message: Dict): Bool {
+    handleErrorMessage (client: Client, message: Dict): boolean {
         //
         // {"id":"1","event":"subscribe","success":false,"ts":1710780997216,"errorMsg":"Auth is needed."}
         //
@@ -1351,7 +1351,7 @@ export default class modetrade extends modetradeRest {
     }
 
     override handleMessage (client: Client, message: Dict) {
-        if (this.handleErrorMessage (client, message) === true) {
+        if (this.handleErrorMessage (client, message)) {
             return;
         }
         const methods: Dict = {

@@ -652,7 +652,7 @@ export default class indodax extends Exchange {
             const parsed = this.parseTicker (rawTicker, market);
             parsedTickers[marketId] = parsed;
         }
-        return this.filterByArray (parsedTickers, 'symbol', symbols);
+        return this.filterByArrayTickers (parsedTickers, 'symbol', symbols);
     }
 
     override parseTrade (trade: Dict, market: Market = undefined): Trade {
@@ -749,7 +749,11 @@ export default class indodax extends Exchange {
             request['from'] = Math.floor (since / 1000);
         } else {
             const duration = this.parseTimeframe (timeframe);
-            request['from'] = now - limitResolved * duration - 1;
+            if (limit === undefined) {
+                request['from'] = now - 1000 * duration - 1;
+            } else {
+                request['from'] = now - limit * duration - 1;
+            }
         }
         const response = await this.publicGetTradingviewHistoryV2 (this.extend (request, paramsOmitted));
         //
@@ -767,7 +771,7 @@ export default class indodax extends Exchange {
         return this.parseOHLCVs (this.toArray (response), market, timeframe, since, limitResolved);
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             'open': 'open',
             'filled': 'closed',
@@ -1412,7 +1416,7 @@ export default class indodax extends Exchange {
         } as Transaction;
     }
 
-    parseTransactionStatus (status: Str) {
+    parseTransactionStatus (status: Str): Str {
         const statuses: Dict = {
             'success': 'ok',
         };
@@ -1472,9 +1476,7 @@ export default class indodax extends Exchange {
         const addresses = this.safeDict (data, 'address', {});
         const networks = this.safeDict (data, 'network', {});
         const addressKeys = Object.keys (addresses);
-        const result: Dict = {
-            'info': data,
-        };
+        const result: Dict[] = [];
         for (let i = 0; i < addressKeys.length; i++) {
             const marketId = addressKeys[i];
             const code = this.safeCurrencyCode (marketId);
@@ -1508,20 +1510,20 @@ export default class indodax extends Exchange {
                 }
                 const finalNetwork = network; // java req
                 if (code !== undefined) {
-                    result[code] = {
+                    result.push ({
                         'info': {},
                         'currency': code,
                         'network': finalNetwork,
                         'address': address,
                         'tag': undefined,
-                    };
+                    });
                 }
             }
         }
-        return result as DepositAddress[];
+        return this.toArray (result);
     }
 
-    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
         const apiName = api[0];
         const apiUrl = this.safeString (this.urls['api'], apiName);
         if (apiUrl === undefined) {

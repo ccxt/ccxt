@@ -631,7 +631,7 @@ class mercado(Exchange, ImplicitAPI):
         order = self.safe_dict(responseData, 'order', {})
         return self.parse_order(order, market)
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         statuses = {
             '2': 'open',
             '3': 'canceled',
@@ -951,7 +951,7 @@ class mercado(Exchange, ImplicitAPI):
         # the venue accepts any strictly-increasing integer tonce, so use milliseconds: with the second-resolution base nonce a burst of N calls would leave incrementingNonce N seconds ahead of the clock
         return self.milliseconds()
 
-    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
         apiName = api[0]
         apiUrl = self.safe_string(self.urls['api'], apiName)
         if apiUrl is None:

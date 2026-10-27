@@ -215,8 +215,12 @@ public partial class p2b : Exchange
                 { "trading", new Dictionary<string, object>() {
                     { "tierBased", true },
                     { "percentage", true },
-                    { "taker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.2")}, new List<object> {this.parseNumber("1"), this.parseNumber("0.19")}, new List<object> {this.parseNumber("5"), this.parseNumber("0.18")}, new List<object> {this.parseNumber("10"), this.parseNumber("0.17")}, new List<object> {this.parseNumber("25"), this.parseNumber("0.16")}, new List<object> {this.parseNumber("75"), this.parseNumber("0.15")}, new List<object> {this.parseNumber("100"), this.parseNumber("0.14")}, new List<object> {this.parseNumber("150"), this.parseNumber("0.13")}, new List<object> {this.parseNumber("300"), this.parseNumber("0.12")}, new List<object> {this.parseNumber("450"), this.parseNumber("0.11")}, new List<object> {this.parseNumber("500"), this.parseNumber("0.1")}} },
-                    { "maker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.2")}, new List<object> {this.parseNumber("1"), this.parseNumber("0.18")}, new List<object> {this.parseNumber("5"), this.parseNumber("0.16")}, new List<object> {this.parseNumber("10"), this.parseNumber("0.14")}, new List<object> {this.parseNumber("25"), this.parseNumber("0.12")}, new List<object> {this.parseNumber("75"), this.parseNumber("0.1")}, new List<object> {this.parseNumber("100"), this.parseNumber("0.08")}, new List<object> {this.parseNumber("150"), this.parseNumber("0.06")}, new List<object> {this.parseNumber("300"), this.parseNumber("0.04")}, new List<object> {this.parseNumber("450"), this.parseNumber("0.02")}, new List<object> {this.parseNumber("500"), this.parseNumber("0.01")}} },
+                    { "taker", this.parseNumber("0.002") },
+                    { "maker", this.parseNumber("0.002") },
+                    { "tiers", new Dictionary<string, object>() {
+                        { "taker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.002")}, new List<object> {this.parseNumber("1"), this.parseNumber("0.0019")}, new List<object> {this.parseNumber("5"), this.parseNumber("0.0018")}, new List<object> {this.parseNumber("10"), this.parseNumber("0.0017")}, new List<object> {this.parseNumber("25"), this.parseNumber("0.0016")}, new List<object> {this.parseNumber("75"), this.parseNumber("0.0015")}, new List<object> {this.parseNumber("100"), this.parseNumber("0.0014")}, new List<object> {this.parseNumber("150"), this.parseNumber("0.0013")}, new List<object> {this.parseNumber("300"), this.parseNumber("0.0012")}, new List<object> {this.parseNumber("450"), this.parseNumber("0.0011")}, new List<object> {this.parseNumber("500"), this.parseNumber("0.001")}} },
+                        { "maker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.002")}, new List<object> {this.parseNumber("1"), this.parseNumber("0.0018")}, new List<object> {this.parseNumber("5"), this.parseNumber("0.0016")}, new List<object> {this.parseNumber("10"), this.parseNumber("0.0014")}, new List<object> {this.parseNumber("25"), this.parseNumber("0.0012")}, new List<object> {this.parseNumber("75"), this.parseNumber("0.001")}, new List<object> {this.parseNumber("100"), this.parseNumber("0.0008")}, new List<object> {this.parseNumber("150"), this.parseNumber("0.0006")}, new List<object> {this.parseNumber("300"), this.parseNumber("0.0004")}, new List<object> {this.parseNumber("450"), this.parseNumber("0.0002")}, new List<object> {this.parseNumber("500"), this.parseNumber("0.0001")}} },
+                    } },
                 } },
             } },
             { "features", new Dictionary<string, object>() {
@@ -1192,22 +1196,33 @@ public partial class p2b : Exchange
         {
             await this.loadMarkets();
         }
-        Int64? until = this.safeInteger(parameters, "until");
-        object paramsOmitted = this.omit(parameters, "until");
-        if ((until == null))
+        Int64? untilParam = this.safeInteger(parameters, "until");
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "until"));
+        Int64? until = null;
+        object sinceResolved = 0;
+        if ((untilParam != null))
         {
-            if ((since == null))
+            until = untilParam;
+            if ((since != null))
             {
-                until = this.milliseconds();
+                if (((untilParam - since) > 86400000))
+                {
+                    throw new BadRequest ((this.id + " fetchMyTrades () the time between since and params[\"until\"] cannot be greater than 24 hours")) ;
+                }
+                sinceResolved = since;
             } else
             {
-                until = (since + 86400000);
+                sinceResolved = (untilParam - 86400000);
             }
-        }
-        object sinceResolved = ((since == null)) ? (subtract(until, 86400000)) : since;
-        if (isGreaterThan((subtract(until, sinceResolved)), 86400000))
+        } else if ((since != null))
         {
-            throw new BadRequest ((this.id + " fetchMyTrades () the time between since and params[\"until\"] cannot be greater than 24 hours")) ;
+            until = (since + 86400000);
+            sinceResolved = since;
+        } else
+        {
+            Int64 now = this.milliseconds();
+            until = now;
+            sinceResolved = (now - 86400000);
         }
         Dictionary<string, object> market = this.market(symbol);
         Int64? sinceSec = this.parseToInt(divide(sinceResolved, 1000));
@@ -1275,27 +1290,38 @@ public partial class p2b : Exchange
         {
             await this.loadMarkets();
         }
-        Int64? until = this.safeInteger(parameters, "until");
-        object paramsOmitted = this.omit(parameters, "until");
+        Int64? untilParam = this.safeInteger(parameters, "until");
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "until"));
         IDictionary<string, object> market = null;
         if ((symbol != null))
         {
             market = this.market(symbol);
         }
-        if ((until == null))
+        Int64? until = null;
+        object sinceResolved = 0;
+        if ((untilParam != null))
         {
-            if ((since == null))
+            until = untilParam;
+            if ((since != null))
             {
-                until = this.milliseconds();
+                if (((untilParam - since) > 86400000))
+                {
+                    throw new BadRequest ((this.id + " fetchClosedOrders () the time between since and params[\"until\"] cannot be greater than 24 hours")) ;
+                }
+                sinceResolved = since;
             } else
             {
-                until = (since + 86400000);
+                sinceResolved = (untilParam - 86400000);
             }
-        }
-        object sinceResolved = ((since == null)) ? (subtract(until, 86400000)) : since;
-        if (isGreaterThan((subtract(until, sinceResolved)), 86400000))
+        } else if ((since != null))
         {
-            throw new BadRequest ((this.id + " fetchClosedOrders () the time between since and params[\"until\"] cannot be greater than 24 hours")) ;
+            until = (since + 86400000);
+            sinceResolved = since;
+        } else
+        {
+            Int64 now = this.milliseconds();
+            until = now;
+            sinceResolved = (now - 86400000);
         }
         Int64? sinceSec = this.parseToInt(divide(sinceResolved, 1000));
         Int64? untilSec = this.parseToInt(((double?)until / 1000));
@@ -1483,13 +1509,14 @@ public partial class p2b : Exchange
         //     {"success":true,"errorCode":"","message":"","result":{...},"cache_time":1787611797.535462,"current_time":1787611797.535973}
         //
         bool? success = this.safeBool(response, "success", true);
-        if ((success != true))
+        if (success != true)
         {
             string? errorCode = this.safeString(response, "errorCode");
             string feedback = ((this.id + " ") + (body));
             this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorCode, feedback);
             string codeAsString = code.ToString();
-            if ((isLessThan(code, 400)) || !(this.httpExceptions.ContainsKey(codeAsString)))
+            Int64? statusCode = this.parseToInt(code);
+            if ((((statusCode == null || statusCode < 400))) || !(this.httpExceptions.ContainsKey(codeAsString)))
             {
                 throw new ExchangeError (feedback) ;
             }

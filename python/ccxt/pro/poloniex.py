@@ -171,8 +171,7 @@ class poloniex(ccxt.async_support.poloniex):
         else:
             if symbols is None:
                 raise ArgumentsRequired(self.id + ' subscribe() symbols is required')
-            ids = self.market_ids(symbols)
-            marketIds = [] if (ids is None) else ids
+            marketIds = self.market_ids(symbols)
         symbolsSuffix = '' if (symbols is None) else ','.join(symbols)
         symbolsHash = None
         if self.is_empty(symbols):
@@ -547,7 +546,7 @@ class poloniex(ccxt.async_support.poloniex):
         options = self.safe_dict(self.options, 'watchBalance')
         fetchBalanceSnapshot = self.safe_bool(options, 'fetchBalanceSnapshot', False)
         awaitBalanceSnapshot = self.safe_bool(options, 'awaitBalanceSnapshot', True)
-        if (fetchBalanceSnapshot is True) and (awaitBalanceSnapshot is True):
+        if (fetchBalanceSnapshot) and (awaitBalanceSnapshot):
             await client.future(name + ':fetchBalanceSnapshot')
         return await self.subscribe(name, name, True, None, params)
 
@@ -556,7 +555,7 @@ class poloniex(ccxt.async_support.poloniex):
             return
         options = self.safe_dict(self.options, 'watchBalance')
         fetchBalanceSnapshot = self.safe_bool(options, 'fetchBalanceSnapshot', False)
-        if fetchBalanceSnapshot is True:
+        if fetchBalanceSnapshot:
             messageHash = type + ':fetchBalanceSnapshot'
             if not (messageHash in client.futures):
                 client.future(messageHash)
@@ -633,8 +632,8 @@ class poloniex(ccxt.async_support.poloniex):
         #        ]
         #    }
         #
-        data = self.safe_value(message, 'data')
-        data = self.safe_value(data, 0)
+        dataList = self.safe_list(message, 'data')
+        data = self.safe_dict(dataList, 0)
         channel = self.safe_string(message, 'channel')
         marketId = self.safe_string(data, 'symbol')
         symbol = self.safe_symbol(marketId)
@@ -1118,12 +1117,13 @@ class poloniex(ccxt.async_support.poloniex):
             asks = self.safe_list(item, 'asks')
             bids = self.safe_list(item, 'bids')
             if snapshot or update:
-                if snapshot and not (symbol in self.orderbooks):
-                    self.orderbooks[symbol] = self.order_book({}, limit)
-                if not (symbol in self.orderbooks):
-                    # a delta can arrive before the snapshot, it cannot be applied without a book
+                orderbook = self.safe_value(self.orderbooks, symbol)
+                if snapshot and (orderbook is None):
+                    orderbook = self.order_book({}, limit)
+                    self.orderbooks[symbol] = orderbook
+                if orderbook is None:
+                    # a delta before the snapshot (or after the book was dropped) cannot be applied
                     continue
-                orderbook = self.orderbooks[symbol]
                 if snapshot:
                     # reset the existing orderbook in place instead of
                     # replacing it: a consumer awakened earlier keeps a

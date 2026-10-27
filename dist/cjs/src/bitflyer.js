@@ -813,11 +813,10 @@ class bitflyer extends bitflyer$1["default"] {
             'count': limit,
         };
         const response = await this.privateGetGetchildorders(this.extend(request, params));
-        let orders = this.parseOrders(response, market, since, limit);
         if (symbol !== undefined) {
-            orders = this.filterBy(orders, 'symbol', symbol);
+            return this.filterBy(this.parseOrders(response, market, since, limit), 'symbol', symbol);
         }
-        return orders;
+        return this.parseOrders(response, market, since, limit);
     }
     /**
      * @method
@@ -1251,8 +1250,9 @@ class bitflyer extends bitflyer$1["default"] {
             let auth = content.join('');
             if (Object.keys(params).length > 0) {
                 if (method !== 'GET') {
-                    bodySigned = this.json(params);
-                    auth += bodySigned;
+                    const body = this.json(params);
+                    bodySigned = body;
+                    auth += body;
                 }
             }
             headersSigned = {

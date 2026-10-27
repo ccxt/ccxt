@@ -317,8 +317,8 @@ class bittrade extends \ccxt\async\bittrade {
         $market = $this->market($symbol);
         $symbolValue = $market['symbol'];
         // only supports a limit of 150 at this time
-        $limitValue = ($limit === null) ? 150 : $limit;
-        $messageHash = 'market.' . $market['id'] . '.mbp.' . (string) $limitValue;
+        $limitValue = 150;
+        $messageHash = 'market.' . $market['id'] . '.mbp.150';
         $api = $this->safe_string($this->options, 'api', 'api');
         $hostname = array( 'hostname' => $this->hostname );
         $url = $this->implode_params($this->urls['api']['ws'][$api]['public'], $hostname);
@@ -364,7 +364,11 @@ class bittrade extends \ccxt\async\bittrade {
         $symbol = $this->safe_string($subscription, 'symbol');
         $messageHash = $this->safe_string($subscription, 'messageHash');
         $timestamp = $this->safe_integer($message, 'ts');
-        $orderbook = $this->orderbooks[$symbol];
+        $orderbook = $this->safe_value($this->orderbooks, $symbol);
+        if ($orderbook === null) {
+            // the book was removed (unwatch/cleanCache) before the snapshot arrived
+            return;
+        }
         $data = $this->safe_dict($message, 'data');
         $snapshot = $this->parse_order_book($data, $symbol);
         $snapshot['nonce'] = $this->safe_integer($data, 'seqNum');
@@ -423,7 +427,7 @@ class bittrade extends \ccxt\async\bittrade {
         $bookside->store($price, $amount);
     }
 
-    public function handle_deltas(mixed $bookside, mixed $deltas) {
+    public function handle_deltas(mixed $bookside, array $deltas) {
         for ($i = 0; $i < count($deltas); $i++) {
             $this->handle_delta($bookside, $deltas[$i]);
         }
@@ -456,7 +460,8 @@ class bittrade extends \ccxt\async\bittrade {
         if (($prevSeqNum === null) || ($seqNum === null)) {
             return $orderbook;
         }
-        if (($prevSeqNum <= $orderbook['nonce']) && ($seqNum > $orderbook['nonce'])) {
+        $nonce = $this->safe_integer($orderbook, 'nonce');
+        if (($nonce !== null) && ($prevSeqNum <= $nonce) && ($seqNum > $nonce)) {
             $asks = $this->safe_list($tick, 'asks', array());
             $bids = $this->safe_list($tick, 'bids', array());
             $this->handle_deltas($orderbook['asks'], $asks);
@@ -493,12 +498,19 @@ class bittrade extends \ccxt\async\bittrade {
         //     }
         //
         $messageHash = $this->safe_string($message, 'ch');
-        $ch = $this->safe_value($message, 'ch');
+        $ch = $this->safe_string($message, 'ch');
+        if ($ch === null) {
+            return;
+        }
         $parts = explode('.', $ch);
         $marketId = $this->safe_string($parts, 1);
         $symbol = $this->safe_symbol($marketId);
-        $orderbook = $this->orderbooks[$symbol];
-        if ($orderbook['nonce'] === null) {
+        $orderbook = $this->safe_value($this->orderbooks, $symbol);
+        if ($orderbook === null) {
+            // no active subscription holds a book for this symbol, drop the delta
+            return;
+        }
+        if ($this->safe_integer($orderbook, 'nonce') === null) {
             $orderbook->cache[] = $message;
         } else {
             $this->handle_order_book_message($client, $message, $orderbook);
@@ -585,7 +597,10 @@ class bittrade extends \ccxt\async\bittrade {
         //         }
         //     }
         //
-        $ch = $this->safe_value($message, 'ch');
+        $ch = $this->safe_string($message, 'ch');
+        if ($ch === null) {
+            return;
+        }
         $parts = explode('.', $ch);
         $type = $this->safe_string($parts, 0);
         if ($type === 'market') {

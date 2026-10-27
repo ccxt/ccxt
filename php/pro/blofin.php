@@ -78,13 +78,6 @@ class blofin extends \ccxt\async\blofin {
         return 'ping';
     }
 
-    public function handle_pong(Client $client, mixed $message) {
-        //
-        //   'pong'
-        //
-        $client->lastPong = $this->milliseconds();
-    }
-
     public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_watch_trades(...))($symbol, $since, $limit, $params);
     }
@@ -559,10 +552,28 @@ class blofin extends \ccxt\async\blofin {
         //     }
         //
         $marketType = 'swap'; // for now
-        if (!(is_array($this->balance) && array_key_exists($marketType ?? '', $this->balance))) {
-            $this->balance[$marketType] = array();
+        // merge the parsed update into the existing balance object instead of
+        // replacing it: a consumer awakened by an earlier message holds a
+        // reference to this.balance[marketType], and Client.resolve is a no-op
+        // while nobody is awaiting, so a replaced object would make updates
+        // landing in that window invisible to the consumer forever (same class
+        // as issue #26773); the free/used/total aggregates are rebuilt from
+        // the merged currencies by safeBalance
+        if ($this->balance === null) {
+            $this->balance = array();
         }
-        $this->balance[$marketType] = $this->parse_ws_balance($message);
+        $this->balance[$marketType] = $this->safe_dict($this->balance, $marketType, array());
+        $parsed = $this->parse_ws_balance($message);
+        $reserved = array( 'free', 'used', 'total' );
+        $keys = is_array($parsed) ? array_keys($parsed) : array();
+        for ($i = 0; $i < count($keys); $i++) {
+            $key = $keys[$i];
+            if ($this->in_array($key, $reserved)) {
+                continue;
+            }
+            $this->balance[$marketType][$key] = $parsed[$key];
+        }
+        $this->balance[$marketType] = $this->safe_balance($this->balance[$marketType]);
         $messageHash = $marketType . ':balance';
         $client->resolve($this->balance[$marketType], $messageHash);
     }
@@ -846,7 +857,7 @@ class blofin extends \ccxt\async\blofin {
         return Async\await($this->watch_multiple($url, $messageHashes, $this->deep_extend($request, $paramsMarketType), $messageHashes));
     }
 
-    public function get_subscription_request(mixed $args) {
+    public function get_subscription_request(array $args): array {
         return array(
             'op' => 'subscribe',
             'args' => $args,
@@ -869,7 +880,6 @@ class blofin extends \ccxt\async\blofin {
         //
         $methods = array(
             // public
-            'pong' => array($this, 'handle_pong'),
             'trades' => array($this, 'handle_trades'),
             'books' => array($this, 'handle_order_book'),
             'tickers' => array($this, 'handle_ticker'),
@@ -883,7 +893,8 @@ class blofin extends \ccxt\async\blofin {
         );
         $method = null;
         if ($message === 'pong') {
-            $method = $this->safe_value($methods, 'pong');
+            $client->lastPong = $this->milliseconds();
+            return;
         } else {
             $event = $this->safe_string($message, 'event');
             if ($event === 'subscribe') {

@@ -19,7 +19,7 @@ function testCurrency(exchange, skippedProperties, method, entry) {
     // todo: info key needs to be added in base, when exchange does not have fetchCurrencies
     const isNative = (exchange.has['fetchCurrencies'] !== undefined) && (exchange.has['fetchCurrencies'] !== false) && (exchange.has['fetchCurrencies'] !== 'emulated');
     const currencyType = exchange.safeString(entry, 'type');
-    if (isNative === true) {
+    if (isNative) {
         format['info'] = {};
         // todo: 'name': 'Bitcoin', // uppercase string, base currency, 2 or more letters
         format['withdraw'] = true; // withdraw enabled

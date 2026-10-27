@@ -1,5 +1,5 @@
 import Exchange from './abstract/bingx.js';
-import type { LeverageTier, TransferEntry, Int, OrderSide, OHLCV, FundingRateHistory, Order, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, CurrencyInterface, Position, Dict, Leverage, MarginMode, Num, MarginModification, Currencies, int, TradingFeeInterface, FundingRate, FundingRates, DepositAddress, FundingHistory, DepositWithdrawFees, PositionModeInfo, DepositAddresses } from './base/types.js';
+import type { LeverageTier, TransferEntry, Int, OrderSide, OHLCV, FundingRateHistory, Order, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, CurrencyInterface, Position, Dict, NullableDict, Leverage, MarginMode, Num, MarginModification, Currencies, int, TradingFeeInterface, FundingRate, FundingRates, DepositAddress, FundingHistory, DepositWithdrawFees, PositionModeInfo, DepositAddresses } from './base/types.js';
 import type { Liquidation, OpenInterest } from './base/types.js';
 /**
  * @class bingx
@@ -152,7 +152,7 @@ export default class bingx extends Exchange {
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
     fetchOpenInterest(symbol: string, params?: Dict): Promise<OpenInterest>;
-    parseOpenInterest(interest: any, market?: Market): OpenInterest;
+    parseOpenInterest(interest: NullableDict, market?: Market): OpenInterest;
     /**
      * @method
      * @name bingx#fetchTicker
@@ -653,7 +653,7 @@ export default class bingx extends Exchange {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
-    parseDepositWithdrawFee(fee: any, currency?: Currency): any;
+    parseDepositWithdrawFee(fee: NullableDict, currency?: Currency): any;
     /**
      * @method
      * @name bingx#fetchDepositWithdrawFees
@@ -710,7 +710,7 @@ export default class bingx extends Exchange {
     closePosition(symbol: string, side?: Str, params?: Dict): Promise<Order>;
     /**
      * @method
-     * @name bitget#closePositions
+     * @name bingx#closeAllPositions
      * @description closes open positions for a market
      * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Close%20All%20Positions
      * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Close%20all%20positions%20in%20bulk
@@ -761,6 +761,7 @@ export default class bingx extends Exchange {
      *
      * EXCHANGE SPECIFIC PARAMETERS
      * @param {string} [params.cancelClientOrderID] the user-defined id of the order to be canceled, 1-40 characters, different orders cannot use the same clientOrderID, only supports a query range of 2 hours
+     * @param {string} [params.cancelClientOrderId] the client order id of the order to cancel
      * @param {string} [params.cancelRestrictions] cancel orders with specified status, NEW: New order, PENDING: Pending order, PARTIALLY_FILLED: Partially filled
      * @param {string} [params.cancelReplaceMode] STOP_ON_FAILURE - if the cancel order fails, it will not continue to place a new order, ALLOW_FAILURE - regardless of whether the cancel order succeeds or fails, it will continue to place a new order
      * @param {float} [params.quoteOrderQty] order amount

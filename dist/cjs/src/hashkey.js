@@ -2160,7 +2160,7 @@ class hashkey extends hashkey$1["default"] {
         let status = this.safeString(transaction, 'status'); // for fetchDeposits
         if (status === undefined) {
             const success = this.safeBool(transaction, 'success', false); // for withdraw
-            if (success === true) {
+            if (success) {
                 status = 'ok';
             }
             else {
@@ -2264,7 +2264,7 @@ class hashkey extends hashkey$1["default"] {
         const currencyId = this.safeString(currency, 'id');
         let status = undefined;
         const success = this.safeBool(transfer, 'success', false);
-        if (success === true) {
+        if (success) {
             status = 'ok';
         }
         return {

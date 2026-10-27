@@ -79,7 +79,7 @@ public partial class modetrade : ccxt.modetrade
     {
         // the default id
         object id = "OqdphuyCtYWxwzhxyLLjOWNdFP7sQt8RPWzmb5xY";
-        if ((this.accountId != null) && !isEqual(this.accountId, ""))
+        if ((this.accountId != null) && !(this.accountId == ""))
         {
             id = this.accountId;
         }
@@ -206,10 +206,11 @@ public partial class modetrade : ccxt.modetrade
         //         "count": 3689
         //     }
         //
+        Int64? timestamp = this.safeInteger(ticker, "timestamp");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", this.safeSymbol(null, market) },
-            { "timestamp", null },
-            { "datetime", null },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
             { "high", this.safeString(ticker, "high") },
             { "low", this.safeString(ticker, "low") },
             { "bid", null },
@@ -253,8 +254,9 @@ public partial class modetrade : ccxt.modetrade
         string? marketId = this.safeString(data, "symbol");
         Dictionary<string, object> market = this.safeMarket(marketId);
         Int64? timestamp = this.safeInteger(message, "ts");
-        data["date"] = timestamp;
-        ccxt.Ticker ticker = this.parseWsTicker(data, market);
+        ccxt.Ticker ticker = this.parseWsTicker(this.extend(data, new Dictionary<string, object>() {
+            { "timestamp", timestamp },
+        }), market);
         ticker.symbol = ccxt.BaseExchange.StructString((market.ContainsKey("symbol") ? market["symbol"] : null));
         this.tickers[(string)(market.ContainsKey("symbol") ? market["symbol"] : null)] = ccxt.BaseExchange.FromTicker(ticker);
         client.resolve(ccxt.BaseExchange.FromTicker(ticker), topic);
@@ -319,7 +321,7 @@ public partial class modetrade : ccxt.modetrade
             string? marketId = this.safeString(data[i], "symbol");
             Dictionary<string, object> market = this.safeMarket(marketId);
             ccxt.Ticker ticker = this.parseWsTicker(this.extend(data[i], new Dictionary<string, object>() {
-                { "date", timestamp },
+                { "timestamp", timestamp },
             }), market);
             this.tickers[(string)(market.ContainsKey("symbol") ? market["symbol"] : null)] = ccxt.BaseExchange.FromTicker(ticker);
             result.Add(ccxt.BaseExchange.FromTicker(ticker));
@@ -775,7 +777,7 @@ public partial class modetrade : ccxt.modetrade
         {
             topic = "algoexecutionreport";
         }
-        object paramsOmitted = this.omit(parameters, new List<object>() {"stop", "trigger"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"stop", "trigger"}));
         string messageHash = topic;
         string? symbolResolved = null;
         if ((symbol != null))
@@ -824,7 +826,7 @@ public partial class modetrade : ccxt.modetrade
         {
             topic = "algoexecutionreport";
         }
-        object paramsOmitted = this.omit(parameters, "stop");
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "stop"));
         string messageHash = "myTrades";
         string? symbolResolved = null;
         if ((symbol != null))
@@ -1174,7 +1176,7 @@ public partial class modetrade : ccxt.modetrade
         return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(this.positions, symbolsNormalized, since, limit, true));
     }
 
-    public virtual void setPositionsCache(WebSocketClient client, object type, IList<object> symbols = null)
+    public virtual void setPositionsCache(WebSocketClient client, object symbols = null)
     {
         bool fetchPositionsSnapshot = ((bool)this.handleOption("watchPositions", "fetchPositionsSnapshot", false));
         if ((fetchPositionsSnapshot == true))
@@ -1206,7 +1208,7 @@ public partial class modetrade : ccxt.modetrade
             }
         }
         // don't remove the future from the .futures cache
-        if (inOp(client.futures, messageHash))
+        if ((client.futures != null && messageHash != null && client.futures.ContainsKey((string)messageHash)))
         {
             Future future = ((Future)getValue(client.futures, messageHash));
             (future as Future).resolve(cache);
@@ -1431,19 +1433,19 @@ public partial class modetrade : ccxt.modetrade
         client.resolve(this.balance, "balance");
     }
 
-    public virtual bool? handleErrorMessage(WebSocketClient client, object message)
+    public virtual bool handleErrorMessage(WebSocketClient client, object message)
     {
         //
         // {"id":"1","event":"subscribe","success":false,"ts":1710780997216,"errorMsg":"Auth is needed."}
         //
         if (!((message != null && ((IDictionary<string, object>)message).ContainsKey("success"))))
         {
-            return ((bool?)((object)(false)));
+            return false;
         }
         bool? success = this.safeBool(message, "success");
         if ((success == true))
         {
-            return ((bool?)((object)(false)));
+            return false;
         }
         string? errorMessage = this.safeString(message, "errorMsg");
         try
@@ -1453,7 +1455,7 @@ public partial class modetrade : ccxt.modetrade
                 string feedback = ((this.id + " ") + this.json(message));
                 this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorMessage, feedback);
             }
-            return ((bool?)((object)(false)));
+            return false;
         } catch(Exception error)
         {
             if (error is AuthenticationError)
@@ -1468,13 +1470,13 @@ public partial class modetrade : ccxt.modetrade
             {
                 client.reject(error);
             }
-            return ((bool?)((object)(true)));
+            return true;
         }
     }
 
     public override void handleMessage(WebSocketClient client, object message)
     {
-        if (isEqual(this.handleErrorMessage(client, message), true))
+        if (this.handleErrorMessage(client, message))
         {
             return;
         }

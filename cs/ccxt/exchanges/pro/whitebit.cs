@@ -173,7 +173,7 @@ public partial class whitebit : ccxt.whitebit
         IDictionary<string, object> options = this.safeDict(this.options, "watchOrderBook", new Dictionary<string, object>() {});
         string? defaultPriceInterval = this.safeString(options, "priceInterval", "0");
         string? priceInterval = this.safeString(parameters, "priceInterval", defaultPriceInterval);
-        object paramsOmitted = this.omit(parameters, "priceInterval");
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "priceInterval"));
         List<object> reqParams = new List<object>() {(market.ContainsKey("id") ? market["id"] : null), limitValue, priceInterval, true};
         ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watchPublic(messageHash, method, reqParams, paramsOmitted));
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
@@ -513,7 +513,7 @@ public partial class whitebit : ccxt.whitebit
         //       "id": null
         //   }
         //
-        List<object> trade = ((List<object>)this.safeValue(message, "params"));
+        List<object> trade = this.safeList(message, "params", new List<object>() {});
         if ((this.myTrades == null))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -867,7 +867,7 @@ public partial class whitebit : ccxt.whitebit
         if ((fetchBalanceSnapshot == true))
         {
             object messageHash = add(type, ":fetchBalanceSnapshot");
-            if (!(inOp(client.futures, messageHash)))
+            if (!((client.futures != null && messageHash != null && client.futures.ContainsKey((string)messageHash))))
             {
                 client.future(messageHash);
                 this.spawn(this.loadBalanceSnapshot, new object[] { client, messageHash, type, subscriptionHash});
@@ -880,7 +880,7 @@ public partial class whitebit : ccxt.whitebit
         Dictionary<string, object> response = ccxt.BaseExchange.FromBalances(await this.FetchBalance(new Dictionary<string, object>() { { "type", type }, }));
         this.balance = this.extend(response, this.balance);
         // don't remove the future from the .futures cache
-        if (inOp(client.futures, messageHash))
+        if ((client.futures != null && messageHash != null && client.futures.ContainsKey((string)messageHash)))
         {
             Future future = ((Future)getValue(client.futures, messageHash));
             (future as Future).resolve();
@@ -1035,7 +1035,7 @@ public partial class whitebit : ccxt.whitebit
             Dictionary<string, object> market = this.market(symbol);
             string? marketId = ((string)(market.ContainsKey("id") ? market["id"] : null));
             bool? isSubscribed = this.safeBool(subscription, marketId, false);
-            if ((isSubscribed != true))
+            if (isSubscribed != true)
             {
                 if ((marketId != null))
                 {
@@ -1231,7 +1231,7 @@ public partial class whitebit : ccxt.whitebit
         // pong
         //    { error: null, result: "pong", id: 0 }
         //
-        if (!isEqual(this.handleErrorMessage(client, message), true))
+        if (!(this.handleErrorMessage(client, message) == true))
         {
             return;
         }

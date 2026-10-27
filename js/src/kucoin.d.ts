@@ -1,5 +1,5 @@
 import Exchange from './abstract/kucoin.js';
-import type { ADL, Account, Balances, Bool, BorrowInterest, CrossBorrowRate, Currencies, Currency, CurrencyInterface, DepositAddress, Dict, FundingHistory, FundingRate, FundingRateHistory, FundingRates, Int, LedgerEntry, Leverage, LeverageTier, LeverageTiers, MarginMode, MarginModification, Market, Num, OHLCV, OpenInterest, OpenInterests, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry, int, DepositWithdrawFee, DepositWithdrawFees, Status, PositionModeInfo, MarginLoan, DepositAddresses } from './base/types.js';
+import type { ADL, Account, Balances, Bool, BorrowInterest, CrossBorrowRate, Currencies, Currency, CurrencyInterface, DepositAddress, Dict, FundingHistory, FundingRate, FundingRateHistory, FundingRates, Int, LedgerEntry, Leverage, LeverageTier, LeverageTiers, MarginMode, MarginModification, Market, NullableDict, Num, OHLCV, OpenInterest, OpenInterests, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry, int, DepositWithdrawFee, DepositWithdrawFees, Status, PositionModeInfo, MarginLoan, DepositAddresses } from './base/types.js';
 /**
  * @class kucoin
  * @augments Exchange
@@ -1011,7 +1011,7 @@ export default class kucoin extends Exchange {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     withdraw(code: string, amount: number, address: string, params?: Dict): Promise<Transaction>;
-    parseTransactionStatus(status: Str): string | undefined;
+    parseTransactionStatus(status: Str): Str;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     /**
      * @method
@@ -1187,7 +1187,7 @@ export default class kucoin extends Exchange {
     calculateRateLimiterCost(api: string[], method: any, path: any, params: any, config?: Dict): any;
     parseBorrowRate(info: any, currency?: Currency): {
         currency: Str;
-        rate: Num;
+        rate: number;
         period: number;
         timestamp: Int;
         datetime: string | undefined;
@@ -1317,6 +1317,7 @@ export default class kucoin extends Exchange {
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
     fetchLeverage(symbol: string, params?: Dict): Promise<Leverage>;
+    parseLeverage(leverage: Dict, market?: Market): Leverage;
     /**
      * @method
      * @name kucoin#setLeverage
@@ -1587,7 +1588,7 @@ export default class kucoin extends Exchange {
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
     fetchOpenInterests(symbols?: Strings, params?: Dict): Promise<OpenInterests>;
-    parseOpenInterest(interest: any, market?: Market): OpenInterest;
+    parseOpenInterest(interest: NullableDict, market?: Market): OpenInterest;
     /**
      * @method
      * @name kucoin#fetchOpenInterestHistory

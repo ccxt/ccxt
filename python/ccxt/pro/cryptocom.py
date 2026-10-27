@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Balances, Bool, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Balances, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -191,7 +191,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         count = self.safe_integer(delta, 2)
         bookside.storeArray([price, amount, count])
 
-    def handle_deltas(self, bookside: object, deltas: object):
+    def handle_deltas(self, bookside: object, deltas: list[object]):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i])
 
@@ -254,8 +254,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         marketId = self.safe_string(message, 'instrument_name')
         market = self.safe_market(marketId)
         symbol = market['symbol']
-        data = self.safe_value(message, 'data')
-        data = self.safe_dict(data, 0)
+        data = self.safe_dict(self.safe_list(message, 'data'), 0)
         timestamp = self.safe_integer(data, 't')
         if not (symbol in self.orderbooks):
             limit = self.safe_integer(message, 'depth')
@@ -747,7 +746,7 @@ class cryptocom(ccxt.async_support.cryptocom):
             stored = ArrayCacheByTimestamp(limit)
             if symbol is not None and timeframe is not None:
                 self.ohlcvs[symbol][timeframe] = stored
-        data = self.safe_value(message, 'data')
+        data = self.safe_list(message, 'data', [])
         for i in range(0, len(data)):
             tick = self.safe_dict(data, i)
             parsed = self.parse_ohlcv(tick, market)
@@ -1218,7 +1217,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         message = self.extend(request, params)
         return await self.watch(url, messageHash, message, messageHash)
 
-    def handle_error_message(self, client: Client, message: dict) -> Bool:
+    def handle_error_message(self, client: Client, message: dict) -> bool:
         #
         #    {
         #        "id": 0,
@@ -1306,7 +1305,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         # handle unsubscribe
         # {"id":1725448572836,"method":"unsubscribe","code":0}
         #
-        if self.handle_error_message(client, message) is True:
+        if self.handle_error_message(client, message):
             return
         method = self.safe_string(message, 'method')
         methods = {

@@ -226,7 +226,7 @@ class xt(ccxt.async_support.xt):
         url = self.safe_string(self.urls['api']['ws'], tradeType) + '/' + tail
         return await self.watch(url, messageHash, request, messageHash, subscription)
 
-    async def un_subscribe(self, messageHash: str, name: str, access: str, methodName: str, topic: str, market: Market = None, symbols: Strings = None, params={}, subscriptionParams={}) -> object:
+    async def un_subscribe(self, messageHash: str, name: str, access: str, methodName: str, topic: str, market: Market = None, symbols: Strings = None, params: dict = {}, subscriptionParams={}) -> object:
         """
  @ignore
         Connects to a websocket channel
@@ -374,10 +374,7 @@ class xt(ccxt.async_support.xt):
         if symbols is not None:
             raise NotSupported(self.id + ' unWatchTickers() does not support symbols argument, unsubscribtion is for all tickers at once only')
         messageHash = 'unsubscribe::' + name
-        tickers = await self.un_subscribe(messageHash, name, 'public', 'unWatchTickers', 'ticker', None, symbols, params)
-        if self.newUpdates:
-            return tickers
-        return self.filter_by_array(self.tickers, 'symbol', symbols)
+        return await self.un_subscribe(messageHash, name, 'public', 'unWatchTickers', 'ticker', None, symbols, params)
 
     async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
@@ -687,7 +684,7 @@ class xt(ccxt.async_support.xt):
                 client.future(messageHash)
                 self.spawn(self.load_positions_snapshot, client, messageHash)
 
-    async def load_positions_snapshot(self, client: Client, messageHash: object):
+    async def load_positions_snapshot(self, client: Client, messageHash: str):
         positions = await self.fetch_positions()
         self.positions = ArrayCacheBySymbolBySide()
         cache = self.positions
@@ -1500,11 +1497,10 @@ class xt(ccxt.async_support.xt):
         #
         id = self.safe_string(message, 'id')
         subscriptionsById = self.index_by(client.subscriptions, 'id')
-        unsubscribe = False
         if id is not None:
             subscription = self.safe_dict(subscriptionsById, id, {})
             unsubscribe = self.safe_bool(subscription, 'unsubscribe', False)
-            if unsubscribe is True:
+            if unsubscribe:
                 self.handle_un_subscription(client, subscription)
         return message
 

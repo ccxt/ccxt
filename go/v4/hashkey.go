@@ -7,7 +7,6 @@ import "strings"
 
 type Hashkey struct {
 	Exchange
-	exchangeTyped *ExchangeTyped
 }
 
 func newHashkey() *Hashkey {
@@ -786,14 +785,14 @@ func (this *Hashkey) fetchTimeBody(ch chan AsyncResult[*int64], optionalArgs ...
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
-func (this *Hashkey) FetchStatusAsync(optionalArgs ...any) <-chan EndpointResult[map[string]any] {
-	ch := make(chan EndpointResult[map[string]any], 1)
+func (this *Hashkey) FetchStatusAsync(optionalArgs ...any) <-chan AsyncResult[Status] {
+	ch := make(chan AsyncResult[Status], 1)
 	go this.fetchStatusBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Hashkey) fetchStatusBody(ch chan EndpointResult[map[string]any], optionalArgs ...any) any {
+func (this *Hashkey) fetchStatusBody(ch chan AsyncResult[Status], optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicErrorT(ch)
+	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
@@ -806,14 +805,13 @@ func (this *Hashkey) fetchStatusBody(ch chan EndpointResult[map[string]any], opt
 	//
 	// {}
 	//
-	chValue := map[string]any{
+	ch <- AsyncResult[Status]{Value: StatusFromMap(map[string]any{
 		"status":  "ok",
 		"updated": nil,
 		"eta":     nil,
 		"url":     nil,
 		"info":    response,
-	}
-	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
+	})}
 	return nil
 }
 
@@ -826,12 +824,12 @@ func (this *Hashkey) fetchStatusBody(ch chan EndpointResult[map[string]any], opt
  * @param {string} [params.symbol] the id of the market to fetch
  * @returns {object[]} an array of objects representing market data
  */
-func (this *Hashkey) FetchMarketsAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Hashkey) FetchMarketsAsync(optionalArgs ...any) <-chan AsyncResult[[]MarketInterface] {
+	ch := make(chan AsyncResult[[]MarketInterface], 1)
 	go this.fetchMarketsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Hashkey) fetchMarketsBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Hashkey) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1025,7 +1023,7 @@ func (this *Hashkey) fetchMarketsBody(ch chan AsyncResult[any], optionalArgs ...
 		markets = []any{response} // if user provides params.symbol the exchange returns a single object instead of list of objects
 	}
 
-	ch <- AsyncResult[any]{Value: this.ParseMarkets(markets)}
+	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(this.ParseMarkets(markets))}
 	return nil
 }
 func (this *Hashkey) ParseMarket(market any) any {
@@ -1322,12 +1320,12 @@ func (this *Hashkey) ParseMarket(market any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
  */
-func (this *Hashkey) FetchCurrenciesAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Hashkey) FetchCurrenciesAsync(optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchCurrenciesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Hashkey) fetchCurrenciesBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Hashkey) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1367,7 +1365,7 @@ func (this *Hashkey) fetchCurrenciesBody(ch chan AsyncResult[any], optionalArgs 
 	//         ]
 	//     }
 	//
-	ch <- AsyncResult[any]{Value: this.ParseCurrencies(coins)}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseCurrencies(coins)}
 	return nil
 }
 func (this *Hashkey) ParseCurrency(rawCurrency any) map[string]any {
@@ -1447,12 +1445,12 @@ func (this *Hashkey) ParseCurrency(rawCurrency any) map[string]any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Hashkey) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
-	ch := make(chan AsyncResult[map[string]any], 1)
+func (this *Hashkey) FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[OrderBook] {
+	ch := make(chan AsyncResult[OrderBook], 1)
 	go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Hashkey) fetchOrderBookBody(ch chan AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
+func (this *Hashkey) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1496,7 +1494,7 @@ func (this *Hashkey) fetchOrderBookBody(ch chan AsyncResult[map[string]any], sym
 	//
 	var timestamp *int64 = this.SafeInteger(response, "t")
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseOrderBook(response, symbol, timestamp, "b", "a")}
+	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(response, symbol, timestamp, "b", "a"))}
 	return nil
 }
 
@@ -1511,12 +1509,12 @@ func (this *Hashkey) fetchOrderBookBody(ch chan AsyncResult[map[string]any], sym
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Hashkey) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Hashkey) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Hashkey) fetchTradesBody(ch chan AsyncResult[any], symbol any, optionalArgs ...any) any {
+func (this *Hashkey) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1540,11 +1538,11 @@ func (this *Hashkey) fetchTradesBody(ch chan AsyncResult[any], symbol any, optio
 		request["limit"] = limit
 	}
 
-	listEp1511 := <-this.PublicGetQuoteV1Trades(this.Extend(request, params))
-	if listEp1511.Err != nil {
-		panic(listEp1511.Err)
+	listEp1510 := <-this.PublicGetQuoteV1Trades(this.Extend(request, params))
+	if listEp1510.Err != nil {
+		panic(listEp1510.Err)
 	}
-	var response []any = listEp1511.Value
+	var response []any = listEp1510.Value
 
 	//
 	//     [
@@ -1557,7 +1555,7 @@ func (this *Hashkey) fetchTradesBody(ch chan AsyncResult[any], symbol any, optio
 	//         ...
 	//     ]
 	//
-	ch <- AsyncResult[any]{Value: this.ParseTrades(response, market, since, limit)}
+	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(response, market, since, limit))}
 	return nil
 }
 
@@ -1580,12 +1578,12 @@ func (this *Hashkey) fetchTradesBody(ch chan AsyncResult[any], symbol any, optio
  * @param {string} [params.accountId] account id to fetch the orders from
  * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
  */
-func (this *Hashkey) FetchMyTradesAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Hashkey) FetchMyTradesAsync(optionalArgs ...any) <-chan AsyncResult[[]Trade] {
+	ch := make(chan AsyncResult[[]Trade], 1)
 	go this.fetchMyTradesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Hashkey) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Hashkey) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1619,7 +1617,7 @@ func (this *Hashkey) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs ..
 	var untilparamsUntilVariable []any = this.HandleOptionAndParams(paramsMarketType, methodName, "until")
 	until := GetValue(untilparamsUntilVariable, 0)
 	var paramsUntil map[string]any = MapTyped(untilparamsUntilVariable[1])
-	if !IsEqual(until, nil) {
+	if until != nil {
 		request["endTime"] = until
 	}
 	accountId, paramsAccountId := this.HandleOptionStringAndParams(paramsUntil, methodName, "accountId")
@@ -1632,11 +1630,11 @@ func (this *Hashkey) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs ..
 			request["accountId"] = accountId
 		}
 
-		listEp1596 := <-this.PrivateGetApiV1AccountTrades(this.Extend(request, paramsAccountId))
-		if listEp1596.Err != nil {
-			panic(listEp1596.Err)
+		listEp1595 := <-this.PrivateGetApiV1AccountTrades(this.Extend(request, paramsAccountId))
+		if listEp1595.Err != nil {
+			panic(listEp1595.Err)
 		}
-		response = listEp1596.Value
+		response = listEp1595.Value
 	} else if marketType != nil && *marketType == "swap" {
 		if symbol == nil {
 			panic(ArgumentsRequired(this.Id + " " + methodName + "() requires a symbol argument for swap markets"))
@@ -1645,24 +1643,24 @@ func (this *Hashkey) fetchMyTradesBody(ch chan AsyncResult[any], optionalArgs ..
 		if accountId != nil {
 			request["subAccountId"] = accountId
 
-			listEp1605 := <-this.PrivateGetApiV1FuturesSubAccountUserTrades(this.Extend(request, paramsAccountId))
-			if listEp1605.Err != nil {
-				panic(listEp1605.Err)
+			listEp1604 := <-this.PrivateGetApiV1FuturesSubAccountUserTrades(this.Extend(request, paramsAccountId))
+			if listEp1604.Err != nil {
+				panic(listEp1604.Err)
 			}
-			response = listEp1605.Value
+			response = listEp1604.Value
 		} else {
 
-			listEp1608 := <-this.PrivateGetApiV1FuturesUserTrades(this.Extend(request, paramsAccountId))
-			if listEp1608.Err != nil {
-				panic(listEp1608.Err)
+			listEp1607 := <-this.PrivateGetApiV1FuturesUserTrades(this.Extend(request, paramsAccountId))
+			if listEp1607.Err != nil {
+				panic(listEp1607.Err)
 			}
-			response = listEp1608.Value
+			response = listEp1607.Value
 		}
 	} else {
 		panic(NotSupported(this.Id + " " + methodName + "() is not supported for " + *marketType + " type of markets"))
 	}
 
-	ch <- AsyncResult[any]{Value: this.ParseTrades(response, market, since, limit)}
+	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(response, market, since, limit))}
 	return nil
 }
 func (this *Hashkey) ParseTrade(trade any, optionalArgs ...any) Trade {
@@ -1803,12 +1801,12 @@ func (this *Hashkey) ParseTrade(trade any, optionalArgs ...any) Trade {
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Hashkey) FetchOHLCVAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Hashkey) FetchOHLCVAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]OHLCV] {
+	ch := make(chan AsyncResult[[]OHLCV], 1)
 	go this.fetchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Hashkey) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Hashkey) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var timeframe string = GetArgString(optionalArgs, 0, "1m")
@@ -1834,11 +1832,11 @@ func (this *Hashkey) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, opt
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes157919 []any = ListTyped(r1.Value)
+		var retRes157919 []any = r1.Value
 		if retRes157919 == nil {
-			ch <- AsyncResult[any]{Value: nil}
+			ch <- AsyncResult[[]OHLCV]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes157919}
+			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes157919)}
 		}
 		return nil
 	}
@@ -1857,15 +1855,15 @@ func (this *Hashkey) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, opt
 	var untilparamsUntilVariable []any = this.HandleOptionAndParams(paramsPaginate, methodName, "until")
 	until := GetValue(untilparamsUntilVariable, 0)
 	var paramsUntil map[string]any = MapTyped(untilparamsUntilVariable[1])
-	if !IsEqual(until, nil) {
+	if until != nil {
 		request["endTime"] = until
 	}
 
-	listEp1806 := <-this.PublicGetQuoteV1Klines(this.Extend(request, paramsUntil))
-	if listEp1806.Err != nil {
-		panic(listEp1806.Err)
+	listEp1805 := <-this.PublicGetQuoteV1Klines(this.Extend(request, paramsUntil))
+	if listEp1805.Err != nil {
+		panic(listEp1805.Err)
 	}
-	var response []any = listEp1806.Value
+	var response []any = listEp1805.Value
 	//
 	//     [
 	//         [
@@ -1884,7 +1882,7 @@ func (this *Hashkey) fetchOHLCVBody(ch chan AsyncResult[any], symbol string, opt
 	//
 	var ohlcvs []any = this.ToArray(response)
 
-	ch <- AsyncResult[any]{Value: this.ParseOHLCVs(ohlcvs, market, timeframeValue, since, limit)}
+	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(ohlcvs, market, timeframeValue, since, limit))}
 	return nil
 }
 func (this *Hashkey) ParseOHLCV(ohlcv any, optionalArgs ...any) OHLCV {
@@ -1915,12 +1913,12 @@ func (this *Hashkey) ParseOHLCV(ohlcv any, optionalArgs ...any) OHLCV {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Hashkey) FetchTickerAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
-	ch := make(chan AsyncResult[map[string]any], 1)
+func (this *Hashkey) FetchTickerAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[Ticker] {
+	ch := make(chan AsyncResult[Ticker], 1)
 	go this.fetchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Hashkey) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
+func (this *Hashkey) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1937,11 +1935,11 @@ func (this *Hashkey) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol
 		"symbol": market["id"],
 	}
 
-	listEp1875 := <-this.PublicGetQuoteV1Ticker24hr(this.Extend(request, params))
-	if listEp1875.Err != nil {
-		panic(listEp1875.Err)
+	listEp1874 := <-this.PublicGetQuoteV1Ticker24hr(this.Extend(request, params))
+	if listEp1874.Err != nil {
+		panic(listEp1874.Err)
 	}
-	var response []any = listEp1875.Value
+	var response []any = listEp1874.Value
 	//
 	//     [
 	//         {
@@ -1960,7 +1958,7 @@ func (this *Hashkey) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol
 	//
 	var ticker map[string]any = this.SafeDictMap(response, 0, map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: TickerToMap(this.ParseTicker(ticker, market))}
+	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(ticker, market)}
 	return nil
 }
 
@@ -1973,12 +1971,12 @@ func (this *Hashkey) fetchTickerBody(ch chan AsyncResult[map[string]any], symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Hashkey) FetchTickersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Hashkey) FetchTickersAsync(optionalArgs ...any) <-chan AsyncResult[map[string]Ticker] {
+	ch := make(chan AsyncResult[map[string]Ticker], 1)
 	go this.fetchTickersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Hashkey) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Hashkey) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
@@ -1994,13 +1992,13 @@ func (this *Hashkey) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ...
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
-	listEp1925 := <-this.PublicGetQuoteV1Ticker24hr(params)
-	if listEp1925.Err != nil {
-		panic(listEp1925.Err)
+	listEp1924 := <-this.PublicGetQuoteV1Ticker24hr(params)
+	if listEp1924.Err != nil {
+		panic(listEp1924.Err)
 	}
-	var response []any = listEp1925.Value
+	var response []any = listEp1924.Value
 
-	ch <- AsyncResult[any]{Value: this.ParseTickers(response, symbolsNormalized)}
+	ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.ParseTickers(response, symbolsNormalized))}
 	return nil
 }
 func (this *Hashkey) ParseTicker(ticker any, optionalArgs ...any) Ticker {
@@ -2064,12 +2062,12 @@ func (this *Hashkey) ParseTicker(ticker any, optionalArgs ...any) Ticker {
  * @param {string} [params.symbol] the id of the market to fetch last price for
  * @returns {object} a dictionary of lastprices structures
  */
-func (this *Hashkey) FetchLastPricesAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Hashkey) FetchLastPricesAsync(optionalArgs ...any) <-chan AsyncResult[map[string]LastPrice] {
+	ch := make(chan AsyncResult[map[string]LastPrice], 1)
 	go this.fetchLastPricesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Hashkey) fetchLastPricesBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Hashkey) fetchLastPricesBody(ch chan AsyncResult[map[string]LastPrice], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
@@ -2086,11 +2084,11 @@ func (this *Hashkey) fetchLastPricesBody(ch chan AsyncResult[any], optionalArgs 
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var request map[string]any = map[string]any{}
 
-	listEp2010 := <-this.PublicGetQuoteV1TickerPrice(this.Extend(request, params))
-	if listEp2010.Err != nil {
-		panic(listEp2010.Err)
+	listEp2009 := <-this.PublicGetQuoteV1TickerPrice(this.Extend(request, params))
+	if listEp2009.Err != nil {
+		panic(listEp2009.Err)
 	}
-	var response []any = listEp2010.Value
+	var response []any = listEp2009.Value
 
 	//
 	//     [
@@ -2101,7 +2099,7 @@ func (this *Hashkey) fetchLastPricesBody(ch chan AsyncResult[any], optionalArgs 
 	//         ...
 	//     ]
 	//
-	ch <- AsyncResult[any]{Value: this.ParseLastPrices(response, symbolsNormalized)}
+	ch <- AsyncResult[map[string]LastPrice]{Value: LastPriceMapFromMap(this.ParseLastPrices(response, symbolsNormalized))}
 	return nil
 }
 func (this *Hashkey) ParseLastPrice(entry any, optionalArgs ...any) any {
@@ -2129,12 +2127,12 @@ func (this *Hashkey) ParseLastPrice(entry any, optionalArgs ...any) any {
  * @param {string} [params.type] 'spot' or 'swap' - the type of the market to fetch balance for (default 'spot')
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
-func (this *Hashkey) FetchBalanceAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Hashkey) FetchBalanceAsync(optionalArgs ...any) <-chan AsyncResult[Balances] {
+	ch := make(chan AsyncResult[Balances], 1)
 	go this.fetchBalanceBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Hashkey) fetchBalanceBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Hashkey) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2171,7 +2169,7 @@ func (this *Hashkey) fetchBalanceBody(ch chan AsyncResult[any], optionalArgs ...
 		//
 		var balance map[string]any = this.SafeDictMap(response, 0, map[string]any{})
 
-		ch <- AsyncResult[any]{Value: this.ParseSwapBalance(balance)}
+		ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseSwapBalance(balance))}
 		return nil
 	} else if marketTypeOption != nil && *marketTypeOption == "spot" {
 
@@ -2197,7 +2195,7 @@ func (this *Hashkey) fetchBalanceBody(ch chan AsyncResult[any], optionalArgs ...
 		//         "userId": "1732885739572845312"
 		//     }
 		//
-		ch <- AsyncResult[any]{Value: this.ParseBalance(response)}
+		ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalance(response))}
 		return nil
 	} else {
 		panic(NotSupported(this.Id + " " + methodName + "() is not supported for " + *marketTypeOption + " type of markets"))
@@ -2238,7 +2236,7 @@ func (this *Hashkey) ParseBalance(balance any) map[string]any {
 	}
 	return this.SafeBalance(result).(map[string]any)
 }
-func (this *Hashkey) ParseSwapBalance(balance map[string]any) any {
+func (this *Hashkey) ParseSwapBalance(balance map[string]any) map[string]any {
 	//
 	//     {
 	//         "balance": "30.63364672",
@@ -2262,7 +2260,7 @@ func (this *Hashkey) ParseSwapBalance(balance map[string]any) any {
 	if code != nil {
 		result[*code] = account
 	}
-	return this.SafeBalance(result)
+	return this.SafeBalance(result).(map[string]any)
 }
 
 /**
@@ -2275,12 +2273,12 @@ func (this *Hashkey) ParseSwapBalance(balance map[string]any) any {
  * @param {string} [params.network] network for fetch deposit address (default is 'ERC20')
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
-func (this *Hashkey) FetchDepositAddressAsync(code string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Hashkey) FetchDepositAddressAsync(code string, optionalArgs ...any) <-chan AsyncResult[DepositAddress] {
+	ch := make(chan AsyncResult[DepositAddress], 1)
 	go this.fetchDepositAddressBody(ch, code, optionalArgs...)
 	return ch
 }
-func (this *Hashkey) fetchDepositAddressBody(ch chan AsyncResult[any], code string, optionalArgs ...any) any {
+func (this *Hashkey) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress], code string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2297,10 +2295,15 @@ func (this *Hashkey) fetchDepositAddressBody(ch chan AsyncResult[any], code stri
 		"coin": currency["id"],
 	}
 	var networkCodeInParamsparamsNetworkCodeVariable []any = this.HandleNetworkCodeAndParams(params)
-	networkCodeInParams := GetValue(networkCodeInParamsparamsNetworkCodeVariable, 0)
+	networkCodeInParams := func() any {
+		if p, _ := networkCodeInParamsparamsNetworkCodeVariable[0].(*string); p != nil {
+			return *p
+		}
+		return nil
+	}()
 	var paramsNetworkCode map[string]any = MapTyped(networkCodeInParamsparamsNetworkCodeVariable[1])
 	var networkCode any = func() any {
-		if IsEqual(networkCodeInParams, nil) {
+		if networkCodeInParams == nil {
 			return this.SafeString(this.SafeDict(this.Options, "defaultNetworks", map[string]any{}), code, this.SafeString(this.Options, "defaultNetwork"))
 		}
 		return networkCodeInParams
@@ -2324,13 +2327,13 @@ func (this *Hashkey) fetchDepositAddressBody(ch chan AsyncResult[any], code stri
 	//         "coinType": "ERC20_TOKEN"
 	//     }
 	//
-	var depositAddress map[string]any = this.ParseDepositAddress(response, currency)
+	var depositAddress map[string]any = DepositAddressToMap(this.ParseDepositAddress(response, currency))
 	depositAddress["network"] = networkCode
 
-	ch <- AsyncResult[any]{Value: depositAddress}
+	ch <- AsyncResult[DepositAddress]{Value: DepositAddressFromMap(depositAddress)}
 	return nil
 }
-func (this *Hashkey) ParseDepositAddress(depositAddress any, optionalArgs ...any) map[string]any {
+func (this *Hashkey) ParseDepositAddress(depositAddress any, optionalArgs ...any) DepositAddress {
 	//
 	//     {
 	//         "canDeposit": true,
@@ -2351,13 +2354,13 @@ func (this *Hashkey) ParseDepositAddress(depositAddress any, optionalArgs ...any
 	if tag != nil && *tag == "" {
 		tag = nil
 	}
-	return map[string]any{
+	return DepositAddressFromMap(map[string]any{
 		"info":     depositAddress,
 		"currency": this.SafeString(currency, "code"),
 		"network":  nil,
 		"address":  address,
 		"tag":      tag,
-	}
+	})
 }
 
 /**
@@ -2373,12 +2376,12 @@ func (this *Hashkey) ParseDepositAddress(depositAddress any, optionalArgs ...any
  * @param {int} [params.fromId] starting ID (To be released)
  * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Hashkey) FetchDepositsAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Hashkey) FetchDepositsAsync(optionalArgs ...any) <-chan AsyncResult[[]Transaction] {
+	ch := make(chan AsyncResult[[]Transaction], 1)
 	go this.fetchDepositsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Hashkey) fetchDepositsBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Hashkey) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2401,7 +2404,7 @@ func (this *Hashkey) fetchDepositsBody(ch chan AsyncResult[any], optionalArgs ..
 	var currency map[string]any = nil
 	if code != nil {
 		currency = this.Currency(code)
-		request["coin"] = GetValue(currency, "id")
+		request["coin"] = currency["id"]
 	}
 	if since != nil {
 		request["startTime"] = since
@@ -2412,15 +2415,15 @@ func (this *Hashkey) fetchDepositsBody(ch chan AsyncResult[any], optionalArgs ..
 	var untilparamsUntilVariable []any = this.HandleOptionAndParams(params, methodName, "until")
 	until := GetValue(untilparamsUntilVariable, 0)
 	var paramsUntil map[string]any = MapTyped(untilparamsUntilVariable[1])
-	if !IsEqual(until, nil) {
+	if until != nil {
 		request["endTime"] = until
 	}
 
-	listEp2317 := <-this.PrivateGetApiV1AccountDepositOrders(this.Extend(request, paramsUntil))
-	if listEp2317.Err != nil {
-		panic(listEp2317.Err)
+	listEp2316 := <-this.PrivateGetApiV1AccountDepositOrders(this.Extend(request, paramsUntil))
+	if listEp2316.Err != nil {
+		panic(listEp2316.Err)
 	}
-	var response []any = listEp2317.Value
+	var response []any = listEp2316.Value
 
 	//
 	//     [
@@ -2436,9 +2439,9 @@ func (this *Hashkey) fetchDepositsBody(ch chan AsyncResult[any], optionalArgs ..
 	//         }
 	//     ]
 	//
-	ch <- AsyncResult[any]{Value: this.ParseTransactions(response, currency, since, limit, map[string]any{
+	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(response, currency, since, limit, map[string]any{
 		"type": "deposit",
-	})}
+	}))}
 	return nil
 }
 
@@ -2454,12 +2457,12 @@ func (this *Hashkey) fetchDepositsBody(ch chan AsyncResult[any], optionalArgs ..
  * @param {int} [params.until] the latest time in ms to fetch transfers for (default time now)
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Hashkey) FetchWithdrawalsAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Hashkey) FetchWithdrawalsAsync(optionalArgs ...any) <-chan AsyncResult[[]Transaction] {
+	ch := make(chan AsyncResult[[]Transaction], 1)
 	go this.fetchWithdrawalsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Hashkey) fetchWithdrawalsBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Hashkey) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2482,7 +2485,7 @@ func (this *Hashkey) fetchWithdrawalsBody(ch chan AsyncResult[any], optionalArgs
 	var currency map[string]any = nil
 	if code != nil {
 		currency = this.Currency(code)
-		request["coin"] = GetValue(currency, "id")
+		request["coin"] = currency["id"]
 	}
 	if since != nil {
 		request["startTime"] = since
@@ -2493,15 +2496,15 @@ func (this *Hashkey) fetchWithdrawalsBody(ch chan AsyncResult[any], optionalArgs
 	var untilparamsUntilVariable []any = this.HandleOptionAndParams(params, methodName, "until")
 	until := GetValue(untilparamsUntilVariable, 0)
 	var paramsUntil map[string]any = MapTyped(untilparamsUntilVariable[1])
-	if !IsEqual(until, nil) {
+	if until != nil {
 		request["endTime"] = until
 	}
 
-	listEp2391 := <-this.PrivateGetApiV1AccountWithdrawOrders(this.Extend(request, paramsUntil))
-	if listEp2391.Err != nil {
-		panic(listEp2391.Err)
+	listEp2390 := <-this.PrivateGetApiV1AccountWithdrawOrders(this.Extend(request, paramsUntil))
+	if listEp2390.Err != nil {
+		panic(listEp2390.Err)
 	}
-	var response []any = listEp2391.Value
+	var response []any = listEp2390.Value
 
 	//
 	//     [
@@ -2524,9 +2527,9 @@ func (this *Hashkey) fetchWithdrawalsBody(ch chan AsyncResult[any], optionalArgs
 	//         }
 	//     ]
 	//
-	ch <- AsyncResult[any]{Value: this.ParseTransactions(response, currency, since, limit, map[string]any{
+	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(response, currency, since, limit, map[string]any{
 		"type": "withdrawal",
-	})}
+	}))}
 	return nil
 }
 
@@ -2545,18 +2548,23 @@ func (this *Hashkey) fetchWithdrawalsBody(ch chan AsyncResult[any], optionalArgs
  * @param {string} [params.platform] the platform to withdraw to (hashkey, HashKey HK)
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Hashkey) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
-	ch := make(chan EndpointResult[map[string]any], 1)
+func (this *Hashkey) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan AsyncResult[Transaction] {
+	ch := make(chan AsyncResult[Transaction], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Hashkey) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
+func (this *Hashkey) withdrawBody(ch chan AsyncResult[Transaction], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicErrorT(ch)
+	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleParamString(params, "tag")
-	tagWithdrawTag := GetValue(tagWithdrawTagparamsWithdrawTagVariable, 0)
+	tagWithdrawTag := func() any {
+		if p, _ := tagWithdrawTagparamsWithdrawTagVariable[0].(*string); p != nil {
+			return *p
+		}
+		return nil
+	}()
 	var paramsWithdrawTag map[string]any = MapTyped(tagWithdrawTagparamsWithdrawTagVariable[1])
 	this.CheckAddress(address, code, tagWithdrawTag)
 	if this.Markets == nil {
@@ -2572,7 +2580,7 @@ func (this *Hashkey) withdrawBody(ch chan EndpointResult[map[string]any], code s
 		"address":  address,
 		"quantity": amount,
 	}
-	if !IsEqual(tagWithdrawTag, nil) {
+	if tagWithdrawTag != nil {
 		request["addressExt"] = tagWithdrawTag
 	}
 	var networkCodeparamsNetworkCodeVariable []any = this.HandleNetworkCodeAndParams(paramsWithdrawTag)
@@ -2596,11 +2604,10 @@ func (this *Hashkey) withdrawBody(ch chan EndpointResult[map[string]any], code s
 	//         "accountId": "1732885739589466115"
 	//     }
 	//
-	chValue := this.ParseTransaction(response, currency)
-	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
+	ch <- AsyncResult[Transaction]{Value: this.ParseTransaction(response, currency)}
 	return nil
 }
-func (this *Hashkey) ParseTransaction(transaction any, optionalArgs ...any) map[string]any {
+func (this *Hashkey) ParseTransaction(transaction any, optionalArgs ...any) Transaction {
 	//
 	//  fetchDeposits
 	//     {
@@ -2648,7 +2655,7 @@ func (this *Hashkey) ParseTransaction(transaction any, optionalArgs ...any) map[
 	var status *string = this.SafeString(transaction, "status") // for fetchDeposits
 	if status == nil {
 		var success *bool = this.SafeBool(transaction, "success", false) // for withdraw
-		if success != nil && *success == true {
+		if success != nil && *success {
 			status = SafeStringPtr("ok")
 		} else {
 			var addressUrl *string = this.SafeString(transaction, "addressUrl") // for fetchWithdrawals
@@ -2670,7 +2677,7 @@ func (this *Hashkey) ParseTransaction(transaction any, optionalArgs ...any) map[
 			"currency": code,
 		}
 	}
-	return map[string]any{
+	return TransactionFromMap(map[string]any{
 		"info":        transaction,
 		"id":          id,
 		"txid":        txid,
@@ -2691,7 +2698,7 @@ func (this *Hashkey) ParseTransaction(transaction any, optionalArgs ...any) map[
 		"internal":    nil,
 		"comment":     nil,
 		"fee":         fee,
-	}
+	})
 }
 func (this *Hashkey) ParseTransactionStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
@@ -2725,12 +2732,12 @@ func (this *Hashkey) ParseTransactionStatus(status *string) *string {
  * @param {string} [params.remark] a note for the transfer
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Hashkey) TransferAsync(code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
-	ch := make(chan AsyncResult[map[string]any], 1)
+func (this *Hashkey) TransferAsync(code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) <-chan AsyncResult[TransferEntry] {
+	ch := make(chan AsyncResult[TransferEntry], 1)
 	go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
 	return ch
 }
-func (this *Hashkey) transferBody(ch chan AsyncResult[map[string]any], code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) any {
+func (this *Hashkey) transferBody(ch chan AsyncResult[TransferEntry], code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2764,20 +2771,20 @@ func (this *Hashkey) transferBody(ch chan AsyncResult[map[string]any], code stri
 	//         "orderId": "1740839420695806720"
 	//     }
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.ParseTransfer(response, currency)}
+	ch <- AsyncResult[TransferEntry]{Value: this.ParseTransfer(response, currency)}
 	return nil
 }
-func (this *Hashkey) ParseTransfer(transfer any, optionalArgs ...any) map[string]any {
+func (this *Hashkey) ParseTransfer(transfer any, optionalArgs ...any) TransferEntry {
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var timestamp *int64 = this.SafeInteger(transfer, "timestamp")
 	var currencyId *string = this.SafeString(currency, "id")
 	var status *string = nil
 	var success *bool = this.SafeBool(transfer, "success", false)
-	if success != nil && *success == true {
+	if success != nil && *success {
 		status = SafeStringPtr("ok")
 	}
-	return map[string]any{
+	return TransferEntryFromMap(map[string]any{
 		"id":          this.SafeString(transfer, "orderId"),
 		"timestamp":   timestamp,
 		"datetime":    this.Iso8601(timestamp),
@@ -2787,7 +2794,7 @@ func (this *Hashkey) ParseTransfer(transfer any, optionalArgs ...any) map[string
 		"toAccount":   nil,
 		"status":      status,
 		"info":        transfer,
-	}
+	})
 }
 
 /**
@@ -2798,12 +2805,12 @@ func (this *Hashkey) ParseTransfer(transfer any, optionalArgs ...any) map[string
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
  */
-func (this *Hashkey) FetchAccountsAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Hashkey) FetchAccountsAsync(optionalArgs ...any) <-chan AsyncResult[[]Account] {
+	ch := make(chan AsyncResult[[]Account], 1)
 	go this.fetchAccountsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Hashkey) fetchAccountsBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Hashkey) fetchAccountsBody(ch chan AsyncResult[[]Account], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2816,11 +2823,11 @@ func (this *Hashkey) fetchAccountsBody(ch chan AsyncResult[any], optionalArgs ..
 		}
 	}
 
-	listEp2688 := <-this.PrivateGetApiV1AccountType(params)
-	if listEp2688.Err != nil {
-		panic(listEp2688.Err)
+	listEp2687 := <-this.PrivateGetApiV1AccountType(params)
+	if listEp2687.Err != nil {
+		panic(listEp2687.Err)
 	}
-	var response []any = listEp2688.Value
+	var response []any = listEp2687.Value
 
 	//
 	//     [
@@ -2833,10 +2840,10 @@ func (this *Hashkey) fetchAccountsBody(ch chan AsyncResult[any], optionalArgs ..
 	//         ...
 	//     ]
 	//
-	ch <- AsyncResult[any]{Value: this.ParseAccounts(response, params)}
+	ch <- AsyncResult[[]Account]{Value: AccountsFromList(this.ParseAccounts(response, params))}
 	return nil
 }
-func (this *Hashkey) ParseAccount(account any) any {
+func (this *Hashkey) ParseAccount(account any) map[string]any {
 	var accountLabel *string = this.SafeString(account, "accountLabel")
 	var label string = ""
 	if (accountLabel != nil && *accountLabel == "Main Trading Account") || (accountLabel != nil && *accountLabel == "Main Future Account") {
@@ -2895,12 +2902,12 @@ func (this *Hashkey) EncodeFlowType(typeVar any) any {
  * @param {int} [params.accountType] spot, swap, custody
  * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
  */
-func (this *Hashkey) FetchLedgerAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Hashkey) FetchLedgerAsync(optionalArgs ...any) <-chan AsyncResult[[]LedgerEntry] {
+	ch := make(chan AsyncResult[[]LedgerEntry], 1)
 	go this.fetchLedgerBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Hashkey) fetchLedgerBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Hashkey) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2918,7 +2925,7 @@ func (this *Hashkey) fetchLedgerBody(ch chan AsyncResult[any], optionalArgs ...a
 	var untilparamsUntilVariable []any = this.HandleOptionAndParams(params, methodName, "until")
 	until := GetValue(untilparamsUntilVariable, 0)
 	var paramsUntil map[string]any = MapTyped(untilparamsUntilVariable[1])
-	if IsEqual(until, nil) {
+	if until == nil {
 		panic(ArgumentsRequired(this.Id + " " + methodName + "() requires an until argument"))
 	}
 	if this.Markets == nil {
@@ -2936,19 +2943,19 @@ func (this *Hashkey) fetchLedgerBody(ch chan AsyncResult[any], optionalArgs ...a
 	}
 	request["endTime"] = until
 	flowType, paramsFlowType := this.HandleOptionStringAndParams(paramsUntil, methodName, "flowType")
-	if !IsEqual(flowType, nil) {
+	if flowType != nil {
 		request["flowType"] = this.EncodeFlowType(flowType)
 	}
 	accountType, paramsAccountType := this.HandleOptionStringAndParams(paramsFlowType, methodName, "accountType")
-	if !IsEqual(accountType, nil) {
+	if accountType != nil {
 		request["accountType"] = this.EncodeAccountType(accountType)
 	}
 
-	listEp2809 := <-this.PrivateGetApiV1AccountBalanceFlow(this.Extend(request, paramsAccountType))
-	if listEp2809.Err != nil {
-		panic(listEp2809.Err)
+	listEp2808 := <-this.PrivateGetApiV1AccountBalanceFlow(this.Extend(request, paramsAccountType))
+	if listEp2808.Err != nil {
+		panic(listEp2808.Err)
 	}
-	var response []any = listEp2809.Value
+	var response []any = listEp2808.Value
 
 	//
 	//     [
@@ -2968,7 +2975,7 @@ func (this *Hashkey) fetchLedgerBody(ch chan AsyncResult[any], optionalArgs ...a
 	//         ...
 	//     ]
 	//
-	ch <- AsyncResult[any]{Value: this.ParseLedger(response, currency, since, limit)}
+	ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(this.ParseLedger(response, currency, since, limit))}
 	return nil
 }
 func (this *Hashkey) ParseLedgerEntryType(typeVar *string) *string {
@@ -2981,7 +2988,7 @@ func (this *Hashkey) ParseLedgerEntryType(typeVar *string) *string {
 	}
 	return this.SafeString(types, typeVar, typeVar)
 }
-func (this *Hashkey) ParseLedgerEntry(item any, optionalArgs ...any) map[string]any {
+func (this *Hashkey) ParseLedgerEntry(item any, optionalArgs ...any) LedgerEntry {
 	//
 	//     {
 	//         "id": "1740844413612065537",
@@ -3067,12 +3074,12 @@ func (this *Hashkey) ParseLedgerEntry(item any, optionalArgs ...any) map[string]
  * @param {float} [params.triggerPrice] *swap markets only* The price at which a trigger order is triggered at
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Hashkey) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
-	ch := make(chan AsyncResult[map[string]any], 1)
+func (this *Hashkey) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[Order] {
+	ch := make(chan AsyncResult[Order], 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Hashkey) createOrderBody(ch chan AsyncResult[map[string]any], symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Hashkey) createOrderBody(ch chan AsyncResult[Order], symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -3093,11 +3100,11 @@ func (this *Hashkey) createOrderBody(ch chan AsyncResult[map[string]any], symbol
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes253119 map[string]any = r1.Value
+		var retRes253119 map[string]any = StructResultMap(r1.Value, OrderToMap)
 		if retRes253119 == nil {
-			ch <- AsyncResult[map[string]any]{Value: nil}
+			ch <- AsyncResult[Order]{}
 		} else {
-			ch <- AsyncResult[map[string]any]{Value: retRes253119}
+			ch <- AsyncResult[Order]{Value: OrderFromMap(retRes253119)}
 		}
 		return nil
 	} else if market["swap"] == true {
@@ -3106,11 +3113,11 @@ func (this *Hashkey) createOrderBody(ch chan AsyncResult[map[string]any], symbol
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes253319 map[string]any = r2.Value
+		var retRes253319 map[string]any = StructResultMap(r2.Value, OrderToMap)
 		if retRes253319 == nil {
-			ch <- AsyncResult[map[string]any]{Value: nil}
+			ch <- AsyncResult[Order]{}
 		} else {
-			ch <- AsyncResult[map[string]any]{Value: retRes253319}
+			ch <- AsyncResult[Order]{Value: OrderFromMap(retRes253319)}
 		}
 		return nil
 	} else {
@@ -3127,12 +3134,12 @@ func (this *Hashkey) createOrderBody(ch chan AsyncResult[map[string]any], symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Hashkey) CreateMarketBuyOrderWithCostAsync(symbol string, cost any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Hashkey) CreateMarketBuyOrderWithCostAsync(symbol string, cost any, optionalArgs ...any) <-chan AsyncResult[Order] {
+	ch := make(chan AsyncResult[Order], 1)
 	go this.createMarketBuyOrderWithCostBody(ch, symbol, cost, optionalArgs...)
 	return ch
 }
-func (this *Hashkey) createMarketBuyOrderWithCostBody(ch chan AsyncResult[any], symbol string, cost any, optionalArgs ...any) any {
+func (this *Hashkey) createMarketBuyOrderWithCostBody(ch chan AsyncResult[Order], symbol string, cost any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3156,11 +3163,11 @@ func (this *Hashkey) createMarketBuyOrderWithCostBody(ch chan AsyncResult[any], 
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes255915 map[string]any = r1.Value
+	var retRes255915 map[string]any = StructResultMap(r1.Value, OrderToMap)
 	if retRes255915 == nil {
-		ch <- AsyncResult[any]{Value: nil}
+		ch <- AsyncResult[Order]{}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes255915}
+		ch <- AsyncResult[Order]{Value: OrderFromMap(retRes255915)}
 	}
 	return nil
 }
@@ -3184,14 +3191,14 @@ func (this *Hashkey) createMarketBuyOrderWithCostBody(ch chan AsyncResult[any], 
  * @param {string} [params.clientOrderId] a unique id for the order
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Hashkey) CreateSpotOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
-	ch := make(chan EndpointResult[map[string]any], 1)
+func (this *Hashkey) CreateSpotOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[Order] {
+	ch := make(chan AsyncResult[Order], 1)
 	go this.createSpotOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Hashkey) createSpotOrderBody(ch chan EndpointResult[map[string]any], symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Hashkey) createSpotOrderBody(ch chan AsyncResult[Order], symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicErrorT(ch)
+	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -3213,7 +3220,7 @@ func (this *Hashkey) createSpotOrderBody(ch chan EndpointResult[map[string]any],
 	if (!isMarketBuy) && (cost != nil) {
 		panic(NotSupported(this.Id + " createOrder() supports cost parameter for spot market buy orders only"))
 	}
-	var request map[string]any = this.CreateSpotOrderRequest(symbol, typeVar, side, amount, price, params)
+	var request map[string]any = this.CreateSpotOrderRequest(SafeStringPtr(symbol), SafeStringPtr(typeVar), SafeStringPtr(side), amount, price, params)
 	var response any = map[string]any{}
 	var test *bool = this.SafeBool(params, "test")
 	if test != nil && *test == true {
@@ -3239,19 +3246,18 @@ func (this *Hashkey) createSpotOrderBody(ch chan EndpointResult[map[string]any],
 		response = r3.Raw // the endpoint for market buy orders by cost and other orders
 	}
 
-	chValue := OrderToMap(this.ParseOrder(response, market))
-	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(response, market)}
 	return nil
 }
-func (this *Hashkey) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Hashkey) CreateOrderRequest(symbol *string, typeVar *string, side *string, amount *float64, optionalArgs ...any) any {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(typeVar, nil) {
+	if typeVar == nil {
 		panic(ArgumentsRequired(this.Id + " requires a type argument"))
 	}
-	if IsEqual(side, nil) {
+	if side == nil {
 		panic(ArgumentsRequired(this.Id + " requires a side argument"))
 	}
 	var market map[string]any = this.Market(symbol)
@@ -3263,15 +3269,15 @@ func (this *Hashkey) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 		panic(NotSupported(Add(Add(this.Id+" "+"createOrderRequest() is not supported for ", market["type"]), " type of markets")))
 	}
 }
-func (this *Hashkey) CreateSpotOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) map[string]any {
+func (this *Hashkey) CreateSpotOrderRequest(symbol *string, typeVar *string, side *string, amount any, optionalArgs ...any) map[string]any {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(typeVar, nil) {
+	if typeVar == nil {
 		panic(ArgumentsRequired(this.Id + " requires a type argument"))
 	}
-	if IsEqual(side, nil) {
+	if side == nil {
 		panic(ArgumentsRequired(this.Id + " requires a side argument"))
 	}
 	/**
@@ -3292,19 +3298,24 @@ func (this *Hashkey) CreateSpotOrderRequest(symbol any, typeVar any, side any, a
 	 * @returns {object} request to be sent to the exchange
 	 */
 	var market map[string]any = this.Market(symbol)
-	var typeValue string = ToUpper(typeVar)
+	var typeValue string = strings.ToUpper(*typeVar)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
-		"side":   ToUpper(side),
+		"side":   strings.ToUpper(*side),
 		"type":   typeValue,
 	}
 	if !IsEqual(amount, nil) {
 		request["quantity"] = this.AmountToPrecision(symbol, amount)
 	}
 	var costparamsCostVariable []any = this.HandleParamString(params, "cost")
-	cost := GetValue(costparamsCostVariable, 0)
+	cost := func() any {
+		if p, _ := costparamsCostVariable[0].(*string); p != nil {
+			return *p
+		}
+		return nil
+	}()
 	var paramsCost map[string]any = MapTyped(costparamsCostVariable[1])
-	if !IsEqual(cost, nil) {
+	if cost != nil {
 		request["quantity"] = this.CostToPrecision(symbol, cost)
 	}
 	if price != nil {
@@ -3327,7 +3338,7 @@ func (this *Hashkey) CreateSpotOrderRequest(symbol any, typeVar any, side any, a
 	}
 	return this.Extend(request, paramsClientOrderId)
 }
-func (this *Hashkey) CreateSwapOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) map[string]any {
+func (this *Hashkey) CreateSwapOrderRequest(symbol *string, typeVar *string, side *string, amount any, optionalArgs ...any) map[string]any {
 	/**
 	 * @method
 	 * @ignore
@@ -3356,7 +3367,7 @@ func (this *Hashkey) CreateSwapOrderRequest(symbol any, typeVar any, side any, a
 		"type":     "LIMIT",
 		"quantity": this.AmountToPrecision(symbol, amount),
 	}
-	var isMarketOrder bool = (IsEqual(typeVar, "market"))
+	var isMarketOrder bool = (typeVar != nil && *typeVar == "market")
 	if isMarketOrder {
 		request["priceType"] = "MARKET"
 	}
@@ -3365,7 +3376,12 @@ func (this *Hashkey) CreateSwapOrderRequest(symbol any, typeVar any, side any, a
 		request["priceType"] = "INPUT"
 	}
 	var reduceOnlyparamsReduceOnlyVariable []any = this.HandleParamBool(params, "reduceOnly", false)
-	reduceOnly := GetValue(reduceOnlyparamsReduceOnlyVariable, 0)
+	reduceOnly := func() any {
+		if p, _ := reduceOnlyparamsReduceOnlyVariable[0].(*bool); p != nil {
+			return *p
+		}
+		return nil
+	}()
 	var paramsReduceOnly map[string]any = MapTyped(reduceOnlyparamsReduceOnlyVariable[1])
 	var suffix string = "_OPEN"
 	if reduceOnly == true {
@@ -3421,14 +3437,14 @@ func (this *Hashkey) CreateSwapOrderRequest(symbol any, typeVar any, side any, a
  * @param {string} [params.clientOrderId] a unique id for the order
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Hashkey) CreateSwapOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
-	ch := make(chan EndpointResult[map[string]any], 1)
+func (this *Hashkey) CreateSwapOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[Order] {
+	ch := make(chan AsyncResult[Order], 1)
 	go this.createSwapOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Hashkey) createSwapOrderBody(ch chan EndpointResult[map[string]any], symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Hashkey) createSwapOrderBody(ch chan AsyncResult[Order], symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicErrorT(ch)
+	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -3441,7 +3457,7 @@ func (this *Hashkey) createSwapOrderBody(ch chan EndpointResult[map[string]any],
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var request map[string]any = this.CreateSwapOrderRequest(symbol, typeVar, side, amount, price, params)
+	var request map[string]any = this.CreateSwapOrderRequest(SafeStringPtr(symbol), SafeStringPtr(typeVar), SafeStringPtr(side), amount, price, params)
 
 	r1 := <-this.PrivatePostApiV1FuturesOrder(this.Extend(request, params))
 	if r1.Err != nil {
@@ -3470,8 +3486,7 @@ func (this *Hashkey) createSwapOrderBody(ch chan EndpointResult[map[string]any],
 	//         "contractMultiplier": "0.00100000"
 	//     }
 	//
-	chValue := OrderToMap(this.ParseOrder(response, market))
-	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(response, market)}
 	return nil
 }
 
@@ -3485,12 +3500,12 @@ func (this *Hashkey) createSwapOrderBody(ch chan EndpointResult[map[string]any],
  * @param {object} [params] extra parameters specific to the api endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Hashkey) CreateOrdersAsync(orders any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Hashkey) CreateOrdersAsync(orders any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
+	ch := make(chan AsyncResult[[]Order], 1)
 	go this.createOrdersBody(ch, orders, optionalArgs...)
 	return ch
 }
-func (this *Hashkey) createOrdersBody(ch chan AsyncResult[any], orders any, optionalArgs ...any) any {
+func (this *Hashkey) createOrdersBody(ch chan AsyncResult[[]Order], orders any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3550,7 +3565,7 @@ func (this *Hashkey) createOrdersBody(ch chan AsyncResult[any], orders any, opti
 		responseOrders = append(responseOrders, responseOrder)
 	}
 
-	ch <- AsyncResult[any]{Value: this.ParseOrders(responseOrders)}
+	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(responseOrders))}
 	return nil
 }
 
@@ -3569,12 +3584,12 @@ func (this *Hashkey) createOrdersBody(ch chan AsyncResult[any], orders any, opti
  * @param {bool} [params.stop] *swap markets only* an alternative for trigger param
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Hashkey) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
-	ch := make(chan AsyncResult[map[string]any], 1)
+func (this *Hashkey) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+	ch := make(chan AsyncResult[Order], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Hashkey) cancelOrderBody(ch chan AsyncResult[map[string]any], id any, optionalArgs ...any) any {
+func (this *Hashkey) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3610,7 +3625,7 @@ func (this *Hashkey) cancelOrderBody(ch chan AsyncResult[map[string]any], id any
 		response = r1.Value
 	} else if marketType != nil && *marketType == "swap" {
 		isTriggerparamsTriggerVariable := this.HandleTriggerOptionAndParams(paramsMarketType, methodName, false)
-		isTrigger := GetValue(isTriggerparamsTriggerVariable, 0)
+		isTrigger := isTriggerparamsTriggerVariable[0]
 		paramsTrigger := GetValue(isTriggerparamsTriggerVariable, 1)
 		if isTrigger == true {
 			request["type"] = "STOP"
@@ -3630,7 +3645,7 @@ func (this *Hashkey) cancelOrderBody(ch chan AsyncResult[map[string]any], id any
 		panic(NotSupported(this.Id + " " + methodName + "() is not supported for " + *marketType + " type of markets"))
 	}
 
-	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response))}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(response)}
 	return nil
 }
 
@@ -3645,12 +3660,12 @@ func (this *Hashkey) cancelOrderBody(ch chan AsyncResult[map[string]any], id any
  * @param {string} [params.side] 'buy' or 'sell'
  * @returns {object} response from exchange
  */
-func (this *Hashkey) CancelAllOrdersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Hashkey) CancelAllOrdersAsync(optionalArgs ...any) <-chan AsyncResult[[]Order] {
+	ch := make(chan AsyncResult[[]Order], 1)
 	go this.cancelAllOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Hashkey) cancelAllOrdersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Hashkey) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	// Does not cancel trigger orders. For canceling trigger order use cancelOrder() or cancelOrders()
@@ -3698,7 +3713,7 @@ func (this *Hashkey) cancelAllOrdersBody(ch chan AsyncResult[any], optionalArgs 
 	var order map[string]any = OrderToMap(this.SafeOrder(response))
 	order["info"] = response
 
-	ch <- AsyncResult[any]{Value: []any{order}}
+	ch <- AsyncResult[[]Order]{Value: OrdersFromList([]any{order})}
 	return nil
 }
 
@@ -3714,12 +3729,12 @@ func (this *Hashkey) cancelAllOrdersBody(ch chan AsyncResult[any], optionalArgs 
  * @param {string} [params.type] 'spot' or 'swap' - the type of the market to fetch entry for (default 'spot')
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Hashkey) CancelOrdersAsync(ids any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Hashkey) CancelOrdersAsync(ids any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
+	ch := make(chan AsyncResult[[]Order], 1)
 	go this.cancelOrdersBody(ch, ids, optionalArgs...)
 	return ch
 }
-func (this *Hashkey) cancelOrdersBody(ch chan AsyncResult[any], ids any, optionalArgs ...any) any {
+func (this *Hashkey) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3764,7 +3779,7 @@ func (this *Hashkey) cancelOrdersBody(ch chan AsyncResult[any], ids any, optiona
 	var order map[string]any = OrderToMap(this.SafeOrder(response))
 	order["info"] = response
 
-	ch <- AsyncResult[any]{Value: []any{order}}
+	ch <- AsyncResult[[]Order]{Value: OrdersFromList([]any{order})}
 	return nil
 }
 
@@ -3784,12 +3799,12 @@ func (this *Hashkey) cancelOrdersBody(ch chan AsyncResult[any], ids any, optiona
  * @param {bool} [params.stop] *swap markets only* an alternative for trigger param
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Hashkey) FetchOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
-	ch := make(chan AsyncResult[map[string]any], 1)
+func (this *Hashkey) FetchOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+	ch := make(chan AsyncResult[Order], 1)
 	go this.fetchOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Hashkey) fetchOrderBody(ch chan AsyncResult[map[string]any], id any, optionalArgs ...any) any {
+func (this *Hashkey) fetchOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3830,7 +3845,7 @@ func (this *Hashkey) fetchOrderBody(ch chan AsyncResult[map[string]any], id any,
 		response = r1.Value
 	} else if marketType != nil && *marketType == "swap" {
 		isTriggerparamsTriggerVariable := this.HandleTriggerOptionAndParams(paramsMarketType, methodName, false)
-		isTrigger := GetValue(isTriggerparamsTriggerVariable, 0)
+		isTrigger := isTriggerparamsTriggerVariable[0]
 		paramsTrigger := GetValue(isTriggerparamsTriggerVariable, 1)
 		if isTrigger == true {
 			request["type"] = "STOP"
@@ -3845,7 +3860,7 @@ func (this *Hashkey) fetchOrderBody(ch chan AsyncResult[map[string]any], id any,
 		panic(NotSupported(this.Id + " " + methodName + "() is not supported for " + *marketType + " type of markets"))
 	}
 
-	ch <- AsyncResult[map[string]any]{Value: OrderToMap(this.ParseOrder(response))}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(response)}
 	return nil
 }
 
@@ -3870,12 +3885,12 @@ func (this *Hashkey) fetchOrderBody(ch chan AsyncResult[map[string]any], id any,
  * @param {string} [params.accountId] account id to fetch the orders from
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Hashkey) FetchOpenOrdersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Hashkey) FetchOpenOrdersAsync(optionalArgs ...any) <-chan AsyncResult[[]Order] {
+	ch := make(chan AsyncResult[[]Order], 1)
 	go this.fetchOpenOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Hashkey) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Hashkey) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3910,11 +3925,11 @@ func (this *Hashkey) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs 
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes330219 []any = r1.Value
+		var retRes330219 []any = OrdersToList(r1.Value)
 		if retRes330219 == nil {
-			ch <- AsyncResult[any]{Value: nil}
+			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes330219}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes330219)}
 		}
 		return nil
 	} else if marketTypeOption != nil && *marketTypeOption == "swap" {
@@ -3923,11 +3938,11 @@ func (this *Hashkey) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs 
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes330419 []any = r2.Value
+		var retRes330419 []any = OrdersToList(r2.Value)
 		if retRes330419 == nil {
-			ch <- AsyncResult[any]{Value: nil}
+			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[any]{Value: retRes330419}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes330419)}
 		}
 		return nil
 	} else {
@@ -3951,12 +3966,12 @@ func (this *Hashkey) fetchOpenOrdersBody(ch chan AsyncResult[any], optionalArgs 
  * @param {string} [params.accountId] account id to fetch the orders from
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Hashkey) FetchOpenSpotOrdersAsync(optionalArgs ...any) <-chan AsyncResult[[]any] {
-	ch := make(chan AsyncResult[[]any], 1)
+func (this *Hashkey) FetchOpenSpotOrdersAsync(optionalArgs ...any) <-chan AsyncResult[[]Order] {
+	ch := make(chan AsyncResult[[]Order], 1)
 	go this.fetchOpenSpotOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Hashkey) fetchOpenSpotOrdersBody(ch chan AsyncResult[[]any], optionalArgs ...any) any {
+func (this *Hashkey) fetchOpenSpotOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3976,7 +3991,12 @@ func (this *Hashkey) fetchOpenSpotOrdersBody(ch chan AsyncResult[[]any], optiona
 	}
 	var methodName string = "fetchOpenSpotOrders"
 	var methodNameOptionparamsMethodNameVariable []any = this.HandleParamString(params, "methodName", methodName)
-	methodNameOption := GetValue(methodNameOptionparamsMethodNameVariable, 0)
+	methodNameOption := func() any {
+		if p, _ := methodNameOptionparamsMethodNameVariable[0].(*string); p != nil {
+			return *p
+		}
+		return nil
+	}()
 	var paramsMethodName map[string]any = MapTyped(methodNameOptionparamsMethodNameVariable[1])
 	var market map[string]any = nil
 	var request map[string]any = map[string]any{}
@@ -3985,11 +4005,11 @@ func (this *Hashkey) fetchOpenSpotOrdersBody(ch chan AsyncResult[[]any], optiona
 	if accountId != nil {
 		request["subAccountId"] = accountId
 
-		listEp3734 := <-this.PrivateGetApiV1SpotSubAccountOpenOrders(this.Extend(request, paramsAccountId))
-		if listEp3734.Err != nil {
-			panic(listEp3734.Err)
+		listEp3733 := <-this.PrivateGetApiV1SpotSubAccountOpenOrders(this.Extend(request, paramsAccountId))
+		if listEp3733.Err != nil {
+			panic(listEp3733.Err)
 		}
-		response = listEp3734.Value
+		response = listEp3733.Value
 	} else {
 		if symbol != nil {
 			market = this.Market(symbol)
@@ -3999,14 +4019,14 @@ func (this *Hashkey) fetchOpenSpotOrdersBody(ch chan AsyncResult[[]any], optiona
 			request["limit"] = limit
 		}
 
-		listEp3744 := <-this.PrivateGetApiV1SpotOpenOrders(this.Extend(request, paramsAccountId))
-		if listEp3744.Err != nil {
-			panic(listEp3744.Err)
+		listEp3743 := <-this.PrivateGetApiV1SpotOpenOrders(this.Extend(request, paramsAccountId))
+		if listEp3743.Err != nil {
+			panic(listEp3743.Err)
 		}
-		response = listEp3744.Value
+		response = listEp3743.Value
 	}
 
-	ch <- AsyncResult[[]any]{Value: this.ParseOrders(response, market, since, limit)}
+	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(response, market, since, limit))}
 	return nil
 }
 
@@ -4027,12 +4047,12 @@ func (this *Hashkey) fetchOpenSpotOrdersBody(ch chan AsyncResult[[]any], optiona
  * @param {string} [params.accountId] account id to fetch the orders from
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Hashkey) FetchOpenSwapOrdersAsync(optionalArgs ...any) <-chan AsyncResult[[]any] {
-	ch := make(chan AsyncResult[[]any], 1)
+func (this *Hashkey) FetchOpenSwapOrdersAsync(optionalArgs ...any) <-chan AsyncResult[[]Order] {
+	ch := make(chan AsyncResult[[]Order], 1)
 	go this.fetchOpenSwapOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Hashkey) fetchOpenSwapOrdersBody(ch chan AsyncResult[[]any], optionalArgs ...any) any {
+func (this *Hashkey) fetchOpenSwapOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -4045,7 +4065,12 @@ func (this *Hashkey) fetchOpenSwapOrdersBody(ch chan AsyncResult[[]any], optiona
 	_ = params
 	var methodName string = "fetchOpenSwapOrders"
 	var methodNameOptionparamsMethodNameVariable []any = this.HandleParamString(params, "methodName", methodName)
-	methodNameOption := GetValue(methodNameOptionparamsMethodNameVariable, 0)
+	methodNameOption := func() any {
+		if p, _ := methodNameOptionparamsMethodNameVariable[0].(*string); p != nil {
+			return *p
+		}
+		return nil
+	}()
 	var paramsMethodName map[string]any = MapTyped(methodNameOptionparamsMethodNameVariable[1])
 	if symbol == nil {
 		panic(ArgumentsRequired(Add(Add(this.Id+" ", methodNameOption), "() requires a symbol argument for swap market orders")))
@@ -4056,7 +4081,7 @@ func (this *Hashkey) fetchOpenSwapOrdersBody(ch chan AsyncResult[[]any], optiona
 	}
 	var isTrigger bool = false
 	isTriggerTriggerparamsTriggerVariable := this.HandleTriggerOptionAndParams(paramsMethodName, methodNameOption, isTrigger)
-	isTriggerTrigger := GetValue(isTriggerTriggerparamsTriggerVariable, 0)
+	isTriggerTrigger := isTriggerTriggerparamsTriggerVariable[0]
 	paramsTrigger := GetValue(isTriggerTriggerparamsTriggerVariable, 1)
 	if isTriggerTrigger == true {
 		request["type"] = "STOP"
@@ -4071,21 +4096,21 @@ func (this *Hashkey) fetchOpenSwapOrdersBody(ch chan AsyncResult[[]any], optiona
 	if accountId != nil {
 		request["subAccountId"] = accountId
 
-		listEp3812 := <-this.PrivateGetApiV1FuturesSubAccountOpenOrders(this.Extend(request, paramsAccountId))
-		if listEp3812.Err != nil {
-			panic(listEp3812.Err)
+		listEp3811 := <-this.PrivateGetApiV1FuturesSubAccountOpenOrders(this.Extend(request, paramsAccountId))
+		if listEp3811.Err != nil {
+			panic(listEp3811.Err)
 		}
-		response = listEp3812.Value
+		response = listEp3811.Value
 	} else {
 
-		listEp3815 := <-this.PrivateGetApiV1FuturesOpenOrders(this.Extend(request, paramsAccountId))
-		if listEp3815.Err != nil {
-			panic(listEp3815.Err)
+		listEp3814 := <-this.PrivateGetApiV1FuturesOpenOrders(this.Extend(request, paramsAccountId))
+		if listEp3814.Err != nil {
+			panic(listEp3814.Err)
 		}
-		response = listEp3815.Value
+		response = listEp3814.Value
 	}
 
-	ch <- AsyncResult[[]any]{Value: this.ParseOrders(response, market, since, limit)}
+	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(response, market, since, limit))}
 	return nil
 }
 
@@ -4110,12 +4135,12 @@ func (this *Hashkey) fetchOpenSwapOrdersBody(ch chan AsyncResult[[]any], optiona
  * @param {string} [params.accountId] account id to fetch the orders from
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Hashkey) FetchCanceledAndClosedOrdersAsync(optionalArgs ...any) <-chan AsyncResult[[]any] {
-	ch := make(chan AsyncResult[[]any], 1)
+func (this *Hashkey) FetchCanceledAndClosedOrdersAsync(optionalArgs ...any) <-chan AsyncResult[[]Order] {
+	ch := make(chan AsyncResult[[]Order], 1)
 	go this.fetchCanceledAndClosedOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Hashkey) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]any], optionalArgs ...any) any {
+func (this *Hashkey) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -4145,7 +4170,7 @@ func (this *Hashkey) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]any]
 	var untilparamsUntilVariable []any = this.HandleOptionAndParams(params, methodName, "until")
 	until := GetValue(untilparamsUntilVariable, 0)
 	var paramsUntil map[string]any = MapTyped(untilparamsUntilVariable[1])
-	if !IsEqual(until, nil) {
+	if until != nil {
 		request["endTime"] = until
 	}
 	accountId, paramsAccountId := this.HandleOptionStringAndParams(paramsUntil, methodName, "accountId")
@@ -4163,18 +4188,18 @@ func (this *Hashkey) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]any]
 			request["accountId"] = accountId
 		}
 
-		listEp3893 := <-this.PrivateGetApiV1SpotTradeOrders(this.Extend(request, paramsMarketType))
-		if listEp3893.Err != nil {
-			panic(listEp3893.Err)
+		listEp3892 := <-this.PrivateGetApiV1SpotTradeOrders(this.Extend(request, paramsMarketType))
+		if listEp3892.Err != nil {
+			panic(listEp3892.Err)
 		}
-		response = listEp3893.Value
+		response = listEp3892.Value
 	} else if marketType != nil && *marketType == "swap" {
 		if symbol == nil {
 			panic(ArgumentsRequired(this.Id + " " + methodName + "() requires a symbol argument for swap markets"))
 		}
 		request["symbol"] = this.SafeString(market, "id")
 		isTriggerparamsTriggerVariable := this.HandleTriggerOptionAndParams(paramsMarketType, methodName, false)
-		isTrigger := GetValue(isTriggerparamsTriggerVariable, 0)
+		isTrigger := isTriggerparamsTriggerVariable[0]
 		paramsTrigger := GetValue(isTriggerparamsTriggerVariable, 1)
 		if isTrigger == true {
 			request["type"] = "STOP"
@@ -4184,24 +4209,24 @@ func (this *Hashkey) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]any]
 		if accountId != nil {
 			request["subAccountId"] = accountId
 
-			listEp3910 := <-this.PrivateGetApiV1FuturesSubAccountHistoryOrders(this.Extend(request, paramsTrigger))
-			if listEp3910.Err != nil {
-				panic(listEp3910.Err)
+			listEp3909 := <-this.PrivateGetApiV1FuturesSubAccountHistoryOrders(this.Extend(request, paramsTrigger))
+			if listEp3909.Err != nil {
+				panic(listEp3909.Err)
 			}
-			response = listEp3910.Value
+			response = listEp3909.Value
 		} else {
 
-			listEp3913 := <-this.PrivateGetApiV1FuturesHistoryOrders(this.Extend(request, paramsTrigger))
-			if listEp3913.Err != nil {
-				panic(listEp3913.Err)
+			listEp3912 := <-this.PrivateGetApiV1FuturesHistoryOrders(this.Extend(request, paramsTrigger))
+			if listEp3912.Err != nil {
+				panic(listEp3912.Err)
 			}
-			response = listEp3913.Value
+			response = listEp3912.Value
 		}
 	} else {
 		panic(NotSupported(this.Id + " " + methodName + "() is not supported for " + *marketType + " type of markets"))
 	}
 
-	ch <- AsyncResult[[]any]{Value: this.ParseOrders(response, market, since, limit)}
+	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(response, market, since, limit))}
 	return nil
 }
 func (this *Hashkey) CheckTypeParam(methodName string, params any) {
@@ -4213,12 +4238,17 @@ func (this *Hashkey) CheckTypeParam(methodName string, params any) {
 		panic(BadRequest(this.Id + " " + methodName + " () type parameter can not be \"" + *paramsType + "\". It should define the type of the market (\"spot\" or \"swap\"). To define the type of an order use the trigger parameter (true for trigger orders)"))
 	}
 }
-func (this *Hashkey) HandleTriggerOptionAndParams(params any, methodName any, optionalArgs ...any) any {
+func (this *Hashkey) HandleTriggerOptionAndParams(params any, methodName any, optionalArgs ...any) []any {
 	var defaultValue *bool = GetArgBoolPtr(optionalArgs, 0, nil)
 	_ = defaultValue
 	var isTrigger *bool = defaultValue
 	var isTriggerStopparamsStopVariable []any = this.HandleOptionBoolAndParams2Nullable(params, methodName, "stop", "trigger", isTrigger)
-	isTriggerStop := GetValue(isTriggerStopparamsStopVariable, 0)
+	isTriggerStop := func() any {
+		if p, _ := isTriggerStopparamsStopVariable[0].(*bool); p != nil {
+			return *p
+		}
+		return nil
+	}()
 	var paramsStop map[string]any = MapTyped(isTriggerStopparamsStopVariable[1])
 	return []any{isTriggerStop, paramsStop}
 }
@@ -4367,7 +4397,7 @@ func (this *Hashkey) ParseOrder(order any, optionalArgs ...any) Order {
 	var side any = this.SafeStringLower(order, "side")
 	var reduceOnly any = nil
 	sidereduceOnlyVariable := this.ParseOrderSideAndReduceOnly(side)
-	side = GetValue(sidereduceOnlyVariable, 0)
+	side = sidereduceOnlyVariable[0]
 	reduceOnly = GetValue(sidereduceOnlyVariable, 1)
 	var feeCurrncyId *string = this.SafeString(order, "feeCoin")
 	if feeCurrncyId != nil && *feeCurrncyId == "" {
@@ -4404,7 +4434,7 @@ func (this *Hashkey) ParseOrder(order any, optionalArgs ...any) Order {
 		"info":       order,
 	}, marketResolved)
 }
-func (this *Hashkey) ParseOrderSideAndReduceOnly(unparsed any) any {
+func (this *Hashkey) ParseOrderSideAndReduceOnly(unparsed any) []any {
 	var parts []string = Split(unparsed, "_")
 	var side any = func() any {
 		if 0 >= 0 && 0 < len(parts) {
@@ -4437,7 +4467,7 @@ func (this *Hashkey) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Hashkey) ParseOrderTypeTimeInForceAndPostOnly(typeVar any, timeInForce any) any {
+func (this *Hashkey) ParseOrderTypeTimeInForceAndPostOnly(typeVar any, timeInForce any) []any {
 	var postOnly any = nil
 	var isMakerTimeInForce bool = (IsEqual(timeInForce, "LIMIT_MAKER")) || (IsEqual(timeInForce, "MAKER"))
 	if (IsEqual(typeVar, "LIMIT_MAKER")) || isMakerTimeInForce {
@@ -4469,12 +4499,12 @@ func (this *Hashkey) ParseOrderType(typeVar any) *string {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
-func (this *Hashkey) FetchFundingRateAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
-	ch := make(chan AsyncResult[map[string]any], 1)
+func (this *Hashkey) FetchFundingRateAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[FundingRate] {
+	ch := make(chan AsyncResult[FundingRate], 1)
 	go this.fetchFundingRateBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Hashkey) fetchFundingRateBody(ch chan AsyncResult[map[string]any], symbol string, optionalArgs ...any) any {
+func (this *Hashkey) fetchFundingRateBody(ch chan AsyncResult[FundingRate], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4492,11 +4522,11 @@ func (this *Hashkey) fetchFundingRateBody(ch chan AsyncResult[map[string]any], s
 		"timestamp": this.Milliseconds(),
 	}
 
-	listEp4204 := <-this.PublicGetApiV1FuturesFundingRate(this.Extend(request, params))
-	if listEp4204.Err != nil {
-		panic(listEp4204.Err)
+	listEp4203 := <-this.PublicGetApiV1FuturesFundingRate(this.Extend(request, params))
+	if listEp4203.Err != nil {
+		panic(listEp4203.Err)
 	}
-	var response []any = listEp4204.Value
+	var response []any = listEp4203.Value
 	//
 	//     [
 	//         { "symbol": "ETHUSDT-PERPETUAL", "rate": "0.0001", "nextSettleTime": "1722297600000" }
@@ -4504,7 +4534,7 @@ func (this *Hashkey) fetchFundingRateBody(ch chan AsyncResult[map[string]any], s
 	//
 	var rate map[string]any = this.SafeDictMap(response, 0, map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseFundingRate(rate, market)}
+	ch <- AsyncResult[FundingRate]{Value: this.ParseFundingRate(rate, market)}
 	return nil
 }
 
@@ -4517,12 +4547,12 @@ func (this *Hashkey) fetchFundingRateBody(ch chan AsyncResult[map[string]any], s
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
  */
-func (this *Hashkey) FetchFundingRatesAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Hashkey) FetchFundingRatesAsync(optionalArgs ...any) <-chan AsyncResult[map[string]FundingRate] {
+	ch := make(chan AsyncResult[map[string]FundingRate], 1)
 	go this.fetchFundingRatesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Hashkey) fetchFundingRatesBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Hashkey) fetchFundingRatesBody(ch chan AsyncResult[map[string]FundingRate], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
@@ -4541,11 +4571,11 @@ func (this *Hashkey) fetchFundingRatesBody(ch chan AsyncResult[any], optionalArg
 		"timestamp": this.Milliseconds(),
 	}
 
-	listEp4246 := <-this.PublicGetApiV1FuturesFundingRate(this.Extend(request, params))
-	if listEp4246.Err != nil {
-		panic(listEp4246.Err)
+	listEp4245 := <-this.PublicGetApiV1FuturesFundingRate(this.Extend(request, params))
+	if listEp4245.Err != nil {
+		panic(listEp4245.Err)
 	}
-	var response []any = listEp4246.Value
+	var response []any = listEp4245.Value
 
 	//
 	//     [
@@ -4553,10 +4583,10 @@ func (this *Hashkey) fetchFundingRatesBody(ch chan AsyncResult[any], optionalArg
 	//         { "symbol": "ETHUSDT-PERPETUAL", "rate": "0.0001", "nextSettleTime": "1722297600000" }
 	//     ]
 	//
-	ch <- AsyncResult[any]{Value: this.ParseFundingRates(response, symbolsNormalized)}
+	ch <- AsyncResult[map[string]FundingRate]{Value: FundingRateMapFromMap(this.ParseFundingRates(response, symbolsNormalized))}
 	return nil
 }
-func (this *Hashkey) ParseFundingRate(contract any, optionalArgs ...any) map[string]any {
+func (this *Hashkey) ParseFundingRate(contract any, optionalArgs ...any) FundingRate {
 	//
 	//     {
 	//         "symbol": "ETHUSDT-PERPETUAL",
@@ -4570,7 +4600,7 @@ func (this *Hashkey) ParseFundingRate(contract any, optionalArgs ...any) map[str
 	var marketResolved map[string]any = this.SafeMarket(marketId, market, nil, "swap")
 	var fundingRate *float64 = this.SafeNumber(contract, "rate")
 	var fundingTimestamp *int64 = this.SafeInteger(contract, "nextSettleTime")
-	return map[string]any{
+	return FundingRateFromMap(map[string]any{
 		"info":                     contract,
 		"symbol":                   marketResolved["symbol"],
 		"markPrice":                nil,
@@ -4589,7 +4619,7 @@ func (this *Hashkey) ParseFundingRate(contract any, optionalArgs ...any) map[str
 		"previousFundingTimestamp": nil,
 		"previousFundingDatetime":  nil,
 		"interval":                 nil,
-	}
+	})
 }
 
 /**
@@ -4605,12 +4635,12 @@ func (this *Hashkey) ParseFundingRate(contract any, optionalArgs ...any) map[str
  * @param {int} [params.endId] the id of the entry to end with
  * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
  */
-func (this *Hashkey) FetchFundingRateHistoryAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Hashkey) FetchFundingRateHistoryAsync(optionalArgs ...any) <-chan AsyncResult[[]FundingRateHistory] {
+	ch := make(chan AsyncResult[[]FundingRateHistory], 1)
 	go this.fetchFundingRateHistoryBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Hashkey) fetchFundingRateHistoryBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Hashkey) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRateHistory], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -4639,11 +4669,11 @@ func (this *Hashkey) fetchFundingRateHistoryBody(ch chan AsyncResult[any], optio
 		request["limit"] = limit
 	}
 
-	listEp4337 := <-this.PublicGetApiV1FuturesHistoryFundingRate(this.Extend(request, params))
-	if listEp4337.Err != nil {
-		panic(listEp4337.Err)
+	listEp4336 := <-this.PublicGetApiV1FuturesHistoryFundingRate(this.Extend(request, params))
+	if listEp4336.Err != nil {
+		panic(listEp4336.Err)
 	}
-	var response []any = listEp4337.Value
+	var response []any = listEp4336.Value
 	//
 	//     [
 	//         {
@@ -4675,7 +4705,7 @@ func (this *Hashkey) fetchFundingRateHistoryBody(ch chan AsyncResult[any], optio
 	}
 	var sorted []any = this.SortBy(rates, "timestamp")
 
-	ch <- AsyncResult[any]{Value: this.FilterBySinceLimit(sorted, since, limit)}
+	ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(this.FilterBySinceLimit(sorted, since, limit))}
 	return nil
 }
 
@@ -4690,12 +4720,12 @@ func (this *Hashkey) fetchFundingRateHistoryBody(ch chan AsyncResult[any], optio
  * @param {string} [params.side] 'LONG' or 'SHORT' - the direction of the position (if not provided, positions for both sides will be returned)
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
-func (this *Hashkey) FetchPositionsAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Hashkey) FetchPositionsAsync(optionalArgs ...any) <-chan AsyncResult[[]Position] {
+	ch := make(chan AsyncResult[[]Position], 1)
 	go this.fetchPositionsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Hashkey) fetchPositionsBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Hashkey) fetchPositionsBody(ch chan AsyncResult[[]Position], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
@@ -4730,11 +4760,11 @@ func (this *Hashkey) fetchPositionsBody(ch chan AsyncResult[any], optionalArgs .
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes401315 []any = r1.Value
+	var retRes401315 []any = PositionsToList(r1.Value)
 	if retRes401315 == nil {
-		ch <- AsyncResult[any]{Value: nil}
+		ch <- AsyncResult[[]Position]{Value: nil}
 	} else {
-		ch <- AsyncResult[any]{Value: retRes401315}
+		ch <- AsyncResult[[]Position]{Value: PositionsFromList(retRes401315)}
 	}
 	return nil
 }
@@ -4750,12 +4780,12 @@ func (this *Hashkey) fetchPositionsBody(ch chan AsyncResult[any], optionalArgs .
  * @param {string} [params.side] 'LONG' or 'SHORT' - the direction of the position (if not provided, positions for both sides will be returned)
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
-func (this *Hashkey) FetchPositionsForSymbolAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]any] {
-	ch := make(chan AsyncResult[[]any], 1)
+func (this *Hashkey) FetchPositionsForSymbolAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]Position] {
+	ch := make(chan AsyncResult[[]Position], 1)
 	go this.fetchPositionsForSymbolBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Hashkey) fetchPositionsForSymbolBody(ch chan AsyncResult[[]any], symbol string, optionalArgs ...any) any {
+func (this *Hashkey) fetchPositionsForSymbolBody(ch chan AsyncResult[[]Position], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4779,11 +4809,11 @@ func (this *Hashkey) fetchPositionsForSymbolBody(ch chan AsyncResult[[]any], sym
 		"symbol": market["id"],
 	}
 
-	listEp4463 := <-this.PrivateGetApiV1FuturesPositions(this.Extend(request, paramsMethodName))
-	if listEp4463.Err != nil {
-		panic(listEp4463.Err)
+	listEp4462 := <-this.PrivateGetApiV1FuturesPositions(this.Extend(request, paramsMethodName))
+	if listEp4462.Err != nil {
+		panic(listEp4462.Err)
 	}
-	var response []any = listEp4463.Value
+	var response []any = listEp4462.Value
 
 	//
 	//     [
@@ -4806,10 +4836,10 @@ func (this *Hashkey) fetchPositionsForSymbolBody(ch chan AsyncResult[[]any], sym
 	//         }
 	//     ]
 	//
-	ch <- AsyncResult[[]any]{Value: this.ParsePositions(response, []any{symbol})}
+	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.ParsePositions(response, []any{symbol}))}
 	return nil
 }
-func (this *Hashkey) ParsePosition(position any, optionalArgs ...any) any {
+func (this *Hashkey) ParsePosition(position any, optionalArgs ...any) Position {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(position, "symbol")
@@ -4856,12 +4886,12 @@ func (this *Hashkey) ParsePosition(position any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
  */
-func (this *Hashkey) FetchLeverageAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
-	ch := make(chan AsyncResult[map[string]any], 1)
+func (this *Hashkey) FetchLeverageAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[Leverage] {
+	ch := make(chan AsyncResult[Leverage], 1)
 	go this.fetchLeverageBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Hashkey) fetchLeverageBody(ch chan AsyncResult[map[string]any], symbol any, optionalArgs ...any) any {
+func (this *Hashkey) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4878,11 +4908,11 @@ func (this *Hashkey) fetchLeverageBody(ch chan AsyncResult[map[string]any], symb
 		"symbol": market["id"],
 	}
 
-	listEp4555 := <-this.PrivateGetApiV1FuturesLeverage(this.Extend(request, params))
-	if listEp4555.Err != nil {
-		panic(listEp4555.Err)
+	listEp4554 := <-this.PrivateGetApiV1FuturesLeverage(this.Extend(request, params))
+	if listEp4554.Err != nil {
+		panic(listEp4554.Err)
 	}
-	var response []any = listEp4555.Value
+	var response []any = listEp4554.Value
 	//
 	//     [
 	//         {
@@ -4894,21 +4924,21 @@ func (this *Hashkey) fetchLeverageBody(ch chan AsyncResult[map[string]any], symb
 	//
 	var leverage map[string]any = this.SafeDictMap(response, 0, map[string]any{})
 
-	ch <- AsyncResult[map[string]any]{Value: this.ParseLeverage(leverage, market)}
+	ch <- AsyncResult[Leverage]{Value: this.ParseLeverage(leverage, market)}
 	return nil
 }
-func (this *Hashkey) ParseLeverage(leverage any, optionalArgs ...any) map[string]any {
+func (this *Hashkey) ParseLeverage(leverage any, optionalArgs ...any) Leverage {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marginMode *string = this.SafeStringLower(leverage, "marginType")
 	var leverageValue *float64 = this.SafeNumber(leverage, "leverage")
-	return map[string]any{
+	return LeverageFromMap(map[string]any{
 		"info":          leverage,
 		"symbol":        this.SafeString(market, "symbol"),
 		"marginMode":    marginMode,
 		"longLeverage":  leverageValue,
 		"shortLeverage": leverageValue,
-	}
+	})
 }
 
 /**
@@ -4921,12 +4951,12 @@ func (this *Hashkey) ParseLeverage(leverage any, optionalArgs ...any) map[string
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} response from the exchange
  */
-func (this *Hashkey) SetLeverageAsync(leverage int64, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Hashkey) SetLeverageAsync(leverage int64, optionalArgs ...any) <-chan AsyncResult[Leverage] {
+	ch := make(chan AsyncResult[Leverage], 1)
 	go this.setLeverageBody(ch, leverage, optionalArgs...)
 	return ch
 }
-func (this *Hashkey) setLeverageBody(ch chan AsyncResult[any], leverage int64, optionalArgs ...any) any {
+func (this *Hashkey) setLeverageBody(ch chan AsyncResult[Leverage], leverage int64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -4962,7 +4992,7 @@ func (this *Hashkey) setLeverageBody(ch chan AsyncResult[any], leverage int64, o
 	//         "leverage": "3"
 	//     }
 	//
-	ch <- AsyncResult[any]{Value: this.ParseLeverage(response, market)}
+	ch <- AsyncResult[Leverage]{Value: this.ParseLeverage(response, market)}
 	return nil
 }
 
@@ -4976,12 +5006,12 @@ func (this *Hashkey) setLeverageBody(ch chan AsyncResult[any], leverage int64, o
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} response from the exchange
  */
-func (this *Hashkey) SetMarginModeAsync(marginMode string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Hashkey) SetMarginModeAsync(marginMode string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.setMarginModeBody(ch, marginMode, optionalArgs...)
 	return ch
 }
-func (this *Hashkey) setMarginModeBody(ch chan AsyncResult[any], marginMode string, optionalArgs ...any) any {
+func (this *Hashkey) setMarginModeBody(ch chan AsyncResult[map[string]any], marginMode string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -5021,7 +5051,7 @@ func (this *Hashkey) setMarginModeBody(ch chan AsyncResult[any], marginMode stri
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	ch <- AsyncResult[any]{Value: r1.Raw}
+	ch <- AsyncResult[map[string]any]{Value: r1.Value}
 	return nil
 }
 
@@ -5036,12 +5066,12 @@ func (this *Hashkey) setMarginModeBody(ch chan AsyncResult[any], marginMode stri
  * @param {string} params.side position side, either 'long' or 'short'
  * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
-func (this *Hashkey) AddMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
-	ch := make(chan AsyncResult[map[string]any], 1)
+func (this *Hashkey) AddMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan AsyncResult[MarginModification] {
+	ch := make(chan AsyncResult[MarginModification], 1)
 	go this.addMarginBody(ch, symbol, amount, optionalArgs...)
 	return ch
 }
-func (this *Hashkey) addMarginBody(ch chan AsyncResult[map[string]any], symbol string, amount any, optionalArgs ...any) any {
+func (this *Hashkey) addMarginBody(ch chan AsyncResult[MarginModification], symbol string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -5051,11 +5081,11 @@ func (this *Hashkey) addMarginBody(ch chan AsyncResult[map[string]any], symbol s
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes422215 map[string]any = MapTyped(r.Value)
+	var retRes422215 map[string]any = StructResultMap(r.Value, MarginModificationToMap)
 	if retRes422215 == nil {
-		ch <- AsyncResult[map[string]any]{Value: nil}
+		ch <- AsyncResult[MarginModification]{}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes422215}
+		ch <- AsyncResult[MarginModification]{Value: MarginModificationFromMap(retRes422215)}
 	}
 	return nil
 }
@@ -5071,14 +5101,14 @@ func (this *Hashkey) addMarginBody(ch chan AsyncResult[map[string]any], symbol s
  * @param {string} params.side position side, either 'long' or 'short'
  * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
-func (this *Hashkey) ReduceMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
-	ch := make(chan EndpointResult[map[string]any], 1)
+func (this *Hashkey) ReduceMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan AsyncResult[MarginModification] {
+	ch := make(chan AsyncResult[MarginModification], 1)
 	go this.reduceMarginBody(ch, symbol, amount, optionalArgs...)
 	return ch
 }
-func (this *Hashkey) reduceMarginBody(ch chan EndpointResult[map[string]any], symbol string, amount any, optionalArgs ...any) any {
+func (this *Hashkey) reduceMarginBody(ch chan AsyncResult[MarginModification], symbol string, amount any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicErrorT(ch)
+	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
@@ -5086,20 +5116,20 @@ func (this *Hashkey) reduceMarginBody(ch chan EndpointResult[map[string]any], sy
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes423715 map[string]any = MapTyped(r.Value)
+	var retRes423715 map[string]any = StructResultMap(r.Value, MarginModificationToMap)
 	if retRes423715 == nil {
-		ch <- EndpointResult[map[string]any]{}
+		ch <- AsyncResult[MarginModification]{}
 	} else {
-		ch <- EndpointResult[map[string]any]{Value: retRes423715, Raw: retRes423715}
+		ch <- AsyncResult[MarginModification]{Value: MarginModificationFromMap(retRes423715)}
 	}
 	return nil
 }
-func (this *Hashkey) ModifyMarginHelperAsync(symbol string, amount any, typeVar string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Hashkey) ModifyMarginHelperAsync(symbol string, amount any, typeVar string, optionalArgs ...any) <-chan AsyncResult[MarginModification] {
+	ch := make(chan AsyncResult[MarginModification], 1)
 	go this.modifyMarginHelperBody(ch, symbol, amount, typeVar, optionalArgs...)
 	return ch
 }
-func (this *Hashkey) modifyMarginHelperBody(ch chan AsyncResult[any], symbol string, amount any, typeVar string, optionalArgs ...any) any {
+func (this *Hashkey) modifyMarginHelperBody(ch chan AsyncResult[MarginModification], symbol string, amount any, typeVar string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -5149,10 +5179,10 @@ func (this *Hashkey) modifyMarginHelperBody(ch chan AsyncResult[any], symbol str
 	//         "timestamp": "1726869763318"
 	//     }
 	//
-	ch <- AsyncResult[any]{Value: this.Extend(this.ParseMarginModification(response, market), map[string]any{
+	ch <- AsyncResult[MarginModification]{Value: MarginModificationFromMap(this.Extend(this.ParseMarginModification(response, market), map[string]any{
 		"type":   typeVar,
 		"amount": amount,
-	})}
+	}))}
 	return nil
 }
 func (this *Hashkey) ParseMarginModification(data any, optionalArgs ...any) map[string]any {
@@ -5191,12 +5221,12 @@ func (this *Hashkey) ParseMarginModification(data any, optionalArgs ...any) map[
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
  */
-func (this *Hashkey) FetchLeverageTiersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Hashkey) FetchLeverageTiersAsync(optionalArgs ...any) <-chan AsyncResult[LeverageTiers] {
+	ch := make(chan AsyncResult[LeverageTiers], 1)
 	go this.fetchLeverageTiersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Hashkey) fetchLeverageTiersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Hashkey) fetchLeverageTiersBody(ch chan AsyncResult[LeverageTiers], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
@@ -5220,10 +5250,10 @@ func (this *Hashkey) fetchLeverageTiersBody(ch chan AsyncResult[any], optionalAr
 	var data []any = SafeListTypedDefault(response, "contracts", []any{})
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
-	ch <- AsyncResult[any]{Value: this.ParseLeverageTiers(data, symbolsNormalized, "symbol")}
+	ch <- AsyncResult[LeverageTiers]{Value: LeverageTiersFromMap(this.ParseLeverageTiers(data, symbolsNormalized, "symbol"))}
 	return nil
 }
-func (this *Hashkey) ParseMarketLeverageTiers(info any, optionalArgs ...any) any {
+func (this *Hashkey) ParseMarketLeverageTiers(info any, optionalArgs ...any) []any {
 	//
 	//     {
 	//         "filters": [
@@ -5339,12 +5369,12 @@ func (this *Hashkey) ParseMarketLeverageTiers(info any, optionalArgs ...any) any
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
  */
-func (this *Hashkey) FetchTradingFeeAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Hashkey) FetchTradingFeeAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[TradingFeeInterface] {
+	ch := make(chan AsyncResult[TradingFeeInterface], 1)
 	go this.fetchTradingFeeBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Hashkey) fetchTradingFeeBody(ch chan AsyncResult[any], symbol string, optionalArgs ...any) any {
+func (this *Hashkey) fetchTradingFeeBody(ch chan AsyncResult[TradingFeeInterface], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -5365,10 +5395,14 @@ func (this *Hashkey) fetchTradingFeeBody(ch chan AsyncResult[any], symbol string
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		response = r1.Value
+		if StructAbsent(r1.Value) {
+			response = nil
+		} else {
+			response = StructBox(r1.Value, TradingFeeInterfaceMapToMap)
+		}
 		var fee map[string]any = SafeMapTyped(response, symbol)
 
-		ch <- AsyncResult[any]{Value: fee}
+		ch <- AsyncResult[TradingFeeInterface]{Value: TradingFeeInterfaceFromMap(fee)}
 		return nil
 	} else if market["swap"] == true {
 
@@ -5380,7 +5414,7 @@ func (this *Hashkey) fetchTradingFeeBody(ch chan AsyncResult[any], symbol string
 		}
 		response = r2.Raw
 
-		ch <- AsyncResult[any]{Value: this.ParseTradingFee(response, market)}
+		ch <- AsyncResult[TradingFeeInterface]{Value: this.ParseTradingFee(response, market)}
 		return nil
 	} else {
 		panic(NotSupported(Add(Add(this.Id+" "+methodName+"() is not supported for ", market["type"]), " type of markets")))
@@ -5395,12 +5429,12 @@ func (this *Hashkey) fetchTradingFeeBody(ch chan AsyncResult[any], symbol string
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
  */
-func (this *Hashkey) FetchTradingFeesAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Hashkey) FetchTradingFeesAsync(optionalArgs ...any) <-chan AsyncResult[map[string]TradingFeeInterface] {
+	ch := make(chan AsyncResult[map[string]TradingFeeInterface], 1)
 	go this.fetchTradingFeesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Hashkey) fetchTradingFeesBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Hashkey) fetchTradingFeesBody(ch chan AsyncResult[map[string]TradingFeeInterface], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -5444,14 +5478,14 @@ func (this *Hashkey) fetchTradingFeesBody(ch chan AsyncResult[any], optionalArgs
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(data); i++ {
 		var fee map[string]any = this.SafeDictMap(data, i, map[string]any{})
-		var parsedFee map[string]any = this.ParseTradingFee(fee)
+		var parsedFee map[string]any = TradingFeeInterfaceToMap(this.ParseTradingFee(fee))
 		AddElementToObject(result, parsedFee["symbol"], parsedFee)
 	}
 
-	ch <- AsyncResult[any]{Value: result}
+	ch <- AsyncResult[map[string]TradingFeeInterface]{Value: TradingFeeInterfaceMapFromMap(result)}
 	return nil
 }
-func (this *Hashkey) ParseTradingFee(fee any, optionalArgs ...any) map[string]any {
+func (this *Hashkey) ParseTradingFee(fee any, optionalArgs ...any) TradingFeeInterface {
 	//
 	// spot
 	//     {
@@ -5477,14 +5511,14 @@ func (this *Hashkey) ParseTradingFee(fee any, optionalArgs ...any) map[string]an
 	_ = market
 	var marketId *string = this.SafeString(fee, "symbol")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
-	return map[string]any{
+	return TradingFeeInterfaceFromMap(map[string]any{
 		"info":       fee,
 		"symbol":     marketResolved["symbol"],
 		"maker":      this.SafeNumber2(fee, "openMakerFee", "actualMakerRate"),
 		"taker":      this.SafeNumber2(fee, "openTakerFee", "actualTakerRate"),
 		"percentage": true,
 		"tierBased":  true,
-	}
+	})
 }
 func (this *Hashkey) Sign(path string, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, []any{"public"})
@@ -5606,7 +5640,6 @@ func (this *Hashkey) Init(userConfig map[string]any) {
 	this.Exchange = Exchange{}
 	this.Exchange.DerivedExchange = this
 	this.Exchange.InitParent(userConfig, this.Describe().(map[string]any), this)
-	this.exchangeTyped = NewExchangeTyped(&this.Exchange)
 }
 
 // typed methods
@@ -5641,7 +5674,7 @@ func (this *Hashkey) FetchStatus(params ...any) (Status, error) {
 	if r.Err != nil {
 		return Status{}, r.Err
 	}
-	var res Status = NewStatus(r.Raw)
+	var res Status = r.Value
 	return res, nil
 }
 
@@ -5659,7 +5692,7 @@ func (this *Hashkey) FetchMarkets(params ...any) ([]MarketInterface, error) {
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []MarketInterface = NewMarketInterfaceArray(r.Value)
+	var res []MarketInterface = r.Value
 	return res, nil
 }
 
@@ -5701,7 +5734,7 @@ func (this *Hashkey) FetchOrderBook(symbol string, options ...FetchOrderBookOpti
 	if r.Err != nil {
 		return OrderBook{}, r.Err
 	}
-	var res OrderBook = NewOrderBook(r.Value)
+	var res OrderBook = r.Value
 	return res, nil
 }
 
@@ -5727,7 +5760,7 @@ func (this *Hashkey) FetchTrades(symbol string, options ...FetchTradesOptions) (
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Trade = NewTradeArray(r.Value)
+	var res []Trade = r.Value
 	return res, nil
 }
 
@@ -5761,7 +5794,7 @@ func (this *Hashkey) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, er
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Trade = NewTradeArray(r.Value)
+	var res []Trade = r.Value
 	return res, nil
 }
 
@@ -5790,7 +5823,7 @@ func (this *Hashkey) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []OHLCV = NewOHLCVArray(r.Value)
+	var res []OHLCV = r.Value
 	return res, nil
 }
 
@@ -5814,7 +5847,7 @@ func (this *Hashkey) FetchTicker(symbol string, options ...FetchTickerOptions) (
 	if r.Err != nil {
 		return Ticker{}, r.Err
 	}
-	var res Ticker = NewTicker(r.Value)
+	var res Ticker = r.Value
 	return res, nil
 }
 
@@ -5838,7 +5871,7 @@ func (this *Hashkey) FetchTickers(options ...FetchTickersOptions) (Tickers, erro
 	if r.Err != nil {
 		return Tickers{}, r.Err
 	}
-	var res Tickers = NewTickers(r.Value)
+	var res Tickers = Tickers{Tickers: r.Value}
 	return res, nil
 }
 
@@ -5863,7 +5896,7 @@ func (this *Hashkey) FetchLastPrices(options ...FetchLastPricesOptions) (LastPri
 	if r.Err != nil {
 		return LastPrices{}, r.Err
 	}
-	var res LastPrices = NewLastPrices(r.Value)
+	var res LastPrices = LastPrices{LastPrices: r.Value}
 	return res, nil
 }
 
@@ -5882,7 +5915,7 @@ func (this *Hashkey) FetchBalance(params ...any) (Balances, error) {
 	if r.Err != nil {
 		return Balances{}, r.Err
 	}
-	var res Balances = NewBalances(r.Value)
+	var res Balances = r.Value
 	return res, nil
 }
 
@@ -5907,7 +5940,7 @@ func (this *Hashkey) FetchDepositAddress(code string, options ...FetchDepositAdd
 	if r.Err != nil {
 		return DepositAddress{}, r.Err
 	}
-	var res DepositAddress = NewDepositAddress(r.Value)
+	var res DepositAddress = r.Value
 	return res, nil
 }
 
@@ -5935,7 +5968,7 @@ func (this *Hashkey) FetchDeposits(options ...FetchDepositsOptions) ([]Transacti
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Transaction = NewTransactionArray(r.Value)
+	var res []Transaction = r.Value
 	return res, nil
 }
 
@@ -5962,7 +5995,7 @@ func (this *Hashkey) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Tra
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Transaction = NewTransactionArray(r.Value)
+	var res []Transaction = r.Value
 	return res, nil
 }
 
@@ -5992,7 +6025,7 @@ func (this *Hashkey) Withdraw(code string, amount float64, address string, optio
 	if r.Err != nil {
 		return Transaction{}, r.Err
 	}
-	var res Transaction = NewTransaction(r.Raw)
+	var res Transaction = r.Value
 	return res, nil
 }
 
@@ -6021,7 +6054,7 @@ func (this *Hashkey) Transfer(code string, amount float64, fromAccount string, t
 	if r.Err != nil {
 		return TransferEntry{}, r.Err
 	}
-	var res TransferEntry = NewTransferEntry(r.Value)
+	var res TransferEntry = r.Value
 	return res, nil
 }
 
@@ -6038,7 +6071,7 @@ func (this *Hashkey) FetchAccounts(params ...any) ([]Account, error) {
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Account = NewAccountArray(r.Value)
+	var res []Account = r.Value
 	return res, nil
 }
 
@@ -6067,7 +6100,7 @@ func (this *Hashkey) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry, 
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []LedgerEntry = NewLedgerEntryArray(r.Value)
+	var res []LedgerEntry = r.Value
 	return res, nil
 }
 
@@ -6103,7 +6136,7 @@ func (this *Hashkey) CreateOrder(symbol string, typeVar string, side string, amo
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 
@@ -6127,7 +6160,7 @@ func (this *Hashkey) CreateMarketBuyOrderWithCost(symbol string, cost float64, o
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 
@@ -6152,7 +6185,7 @@ func (this *Hashkey) CreateOrders(orders []OrderRequest, options ...CreateOrders
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(r.Value)
+	var res []Order = r.Value
 	return res, nil
 }
 
@@ -6182,7 +6215,7 @@ func (this *Hashkey) CancelOrder(id string, options ...CancelOrderOptions) (Orde
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 
@@ -6208,7 +6241,7 @@ func (this *Hashkey) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(r.Value)
+	var res []Order = r.Value
 	return res, nil
 }
 
@@ -6235,7 +6268,7 @@ func (this *Hashkey) CancelOrders(ids []string, options ...CancelOrdersOptions) 
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(r.Value)
+	var res []Order = r.Value
 	return res, nil
 }
 
@@ -6266,7 +6299,7 @@ func (this *Hashkey) FetchOrder(id string, options ...FetchOrderOptions) (Order,
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = r.Value
 	return res, nil
 }
 
@@ -6302,7 +6335,7 @@ func (this *Hashkey) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(r.Value)
+	var res []Order = r.Value
 	return res, nil
 }
 
@@ -6333,7 +6366,7 @@ func (this *Hashkey) FetchOpenSpotOrders(options ...FetchOpenSpotOrdersOptions) 
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(r.Value)
+	var res []Order = r.Value
 	return res, nil
 }
 
@@ -6365,7 +6398,7 @@ func (this *Hashkey) FetchOpenSwapOrders(options ...FetchOpenSwapOrdersOptions) 
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(r.Value)
+	var res []Order = r.Value
 	return res, nil
 }
 
@@ -6401,7 +6434,7 @@ func (this *Hashkey) FetchCanceledAndClosedOrders(options ...FetchCanceledAndClo
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Order = NewOrderArray(r.Value)
+	var res []Order = r.Value
 	return res, nil
 }
 
@@ -6425,7 +6458,7 @@ func (this *Hashkey) FetchFundingRate(symbol string, options ...FetchFundingRate
 	if r.Err != nil {
 		return FundingRate{}, r.Err
 	}
-	var res FundingRate = NewFundingRate(r.Value)
+	var res FundingRate = r.Value
 	return res, nil
 }
 
@@ -6449,7 +6482,7 @@ func (this *Hashkey) FetchFundingRates(options ...FetchFundingRatesOptions) (Fun
 	if r.Err != nil {
 		return FundingRates{}, r.Err
 	}
-	var res FundingRates = NewFundingRates(r.Value)
+	var res FundingRates = FundingRates{FundingRates: r.Value}
 	return res, nil
 }
 
@@ -6477,7 +6510,7 @@ func (this *Hashkey) FetchFundingRateHistory(options ...FetchFundingRateHistoryO
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []FundingRateHistory = NewFundingRateHistoryArray(r.Value)
+	var res []FundingRateHistory = r.Value
 	return res, nil
 }
 
@@ -6503,7 +6536,7 @@ func (this *Hashkey) FetchPositions(options ...FetchPositionsOptions) ([]Positio
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Position = NewPositionArray(r.Value)
+	var res []Position = r.Value
 	return res, nil
 }
 
@@ -6529,7 +6562,7 @@ func (this *Hashkey) FetchPositionsForSymbol(symbol string, options ...FetchPosi
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	var res []Position = NewPositionArray(r.Value)
+	var res []Position = r.Value
 	return res, nil
 }
 
@@ -6553,7 +6586,7 @@ func (this *Hashkey) FetchLeverage(symbol string, options ...FetchLeverageOption
 	if r.Err != nil {
 		return Leverage{}, r.Err
 	}
-	var res Leverage = NewLeverage(r.Value)
+	var res Leverage = r.Value
 	return res, nil
 }
 
@@ -6578,7 +6611,7 @@ func (this *Hashkey) SetLeverage(leverage int64, options ...SetLeverageOptions) 
 	if r.Err != nil {
 		return Leverage{}, r.Err
 	}
-	var res Leverage = NewLeverage(r.Value)
+	var res Leverage = r.Value
 	return res, nil
 }
 
@@ -6603,7 +6636,7 @@ func (this *Hashkey) SetMarginMode(marginMode string, options ...SetMarginModeOp
 	if r.Err != nil {
 		return map[string]any{}, r.Err
 	}
-	var res map[string]any = r.Value.(map[string]any)
+	var res map[string]any = r.Value
 	return res, nil
 }
 
@@ -6627,7 +6660,7 @@ func (this *Hashkey) FetchLeverageTiers(options ...FetchLeverageTiersOptions) (L
 	if r.Err != nil {
 		return LeverageTiers{}, r.Err
 	}
-	var res LeverageTiers = NewLeverageTiers(r.Value)
+	var res LeverageTiers = r.Value
 	return res, nil
 }
 
@@ -6652,7 +6685,7 @@ func (this *Hashkey) FetchTradingFee(symbol string, options ...FetchTradingFeeOp
 	if r.Err != nil {
 		return TradingFeeInterface{}, r.Err
 	}
-	var res TradingFeeInterface = NewTradingFeeInterface(r.Value)
+	var res TradingFeeInterface = r.Value
 	return res, nil
 }
 
@@ -6669,513 +6702,6 @@ func (this *Hashkey) FetchTradingFees(params ...any) (TradingFees, error) {
 	if r.Err != nil {
 		return TradingFees{}, r.Err
 	}
-	var res TradingFees = NewTradingFees(r.Value)
+	var res TradingFees = TradingFees{TradingFees: r.Value}
 	return res, nil
-}
-
-// missing typed methods from base
-// nolint
-func (this *Hashkey) LoadMarkets(params ...any) (map[string]MarketInterface, error) {
-	return this.exchangeTyped.LoadMarkets(params...)
-}
-func (this *Hashkey) CancelOrdersWithClientOrderIds(clientOrderIds []string, options ...CancelOrdersWithClientOrderIdsOptions) ([]Order, error) {
-	return this.exchangeTyped.CancelOrdersWithClientOrderIds(clientOrderIds, options...)
-}
-func (this *Hashkey) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersAfterOptions) (map[string]any, error) {
-	return this.exchangeTyped.CancelAllOrdersAfter(timeout, options...)
-}
-func (this *Hashkey) CancelOrderWithClientOrderId(clientOrderId string, options ...CancelOrderWithClientOrderIdOptions) (Order, error) {
-	return this.exchangeTyped.CancelOrderWithClientOrderId(clientOrderId, options...)
-}
-func (this *Hashkey) CancelOrdersForSymbols(orders []CancellationRequest, options ...CancelOrdersForSymbolsOptions) ([]Order, error) {
-	return this.exchangeTyped.CancelOrdersForSymbols(orders, options...)
-}
-func (this *Hashkey) CreateConvertTrade(id string, fromCode string, toCode string, options ...CreateConvertTradeOptions) (Conversion, error) {
-	return this.exchangeTyped.CreateConvertTrade(id, fromCode, toCode, options...)
-}
-func (this *Hashkey) CreateDepositAddress(code string, options ...CreateDepositAddressOptions) (DepositAddress, error) {
-	return this.exchangeTyped.CreateDepositAddress(code, options...)
-}
-func (this *Hashkey) CreateLimitBuyOrder(symbol string, amount float64, price float64, options ...CreateLimitBuyOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateLimitBuyOrder(symbol, amount, price, options...)
-}
-func (this *Hashkey) CreateLimitOrder(symbol string, side string, amount float64, price float64, options ...CreateLimitOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateLimitOrder(symbol, side, amount, price, options...)
-}
-func (this *Hashkey) CreateLimitSellOrder(symbol string, amount float64, price float64, options ...CreateLimitSellOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateLimitSellOrder(symbol, amount, price, options...)
-}
-func (this *Hashkey) CreateMarketBuyOrder(symbol string, amount float64, options ...CreateMarketBuyOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketBuyOrder(symbol, amount, options...)
-}
-func (this *Hashkey) CreateMarketOrder(symbol string, side string, amount float64, options ...CreateMarketOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketOrder(symbol, side, amount, options...)
-}
-func (this *Hashkey) CreateMarketOrderWithCost(symbol string, side string, cost float64, options ...CreateMarketOrderWithCostOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketOrderWithCost(symbol, side, cost, options...)
-}
-func (this *Hashkey) CreateMarketSellOrder(symbol string, amount float64, options ...CreateMarketSellOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketSellOrder(symbol, amount, options...)
-}
-func (this *Hashkey) CreateMarketSellOrderWithCost(symbol string, cost float64, options ...CreateMarketSellOrderWithCostOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketSellOrderWithCost(symbol, cost, options...)
-}
-func (this *Hashkey) CreateOrderWithTakeProfitAndStopLoss(symbol string, typeVar string, side string, amount float64, options ...CreateOrderWithTakeProfitAndStopLossOptions) (Order, error) {
-	return this.exchangeTyped.CreateOrderWithTakeProfitAndStopLoss(symbol, typeVar, side, amount, options...)
-}
-func (this *Hashkey) CreatePostOnlyOrder(symbol string, typeVar string, side string, amount float64, options ...CreatePostOnlyOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreatePostOnlyOrder(symbol, typeVar, side, amount, options...)
-}
-func (this *Hashkey) CreateReduceOnlyOrder(symbol string, typeVar string, side string, amount float64, options ...CreateReduceOnlyOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateReduceOnlyOrder(symbol, typeVar, side, amount, options...)
-}
-func (this *Hashkey) CreateStopLimitOrder(symbol string, side string, amount float64, price float64, triggerPrice float64, options ...CreateStopLimitOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateStopLimitOrder(symbol, side, amount, price, triggerPrice, options...)
-}
-func (this *Hashkey) CreateStopLossOrder(symbol string, typeVar string, side string, amount float64, options ...CreateStopLossOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateStopLossOrder(symbol, typeVar, side, amount, options...)
-}
-func (this *Hashkey) CreateStopMarketOrder(symbol string, side string, amount float64, triggerPrice float64, options ...CreateStopMarketOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateStopMarketOrder(symbol, side, amount, triggerPrice, options...)
-}
-func (this *Hashkey) CreateStopOrder(symbol string, typeVar string, side string, amount float64, options ...CreateStopOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateStopOrder(symbol, typeVar, side, amount, options...)
-}
-func (this *Hashkey) CreateTakeProfitOrder(symbol string, typeVar string, side string, amount float64, options ...CreateTakeProfitOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateTakeProfitOrder(symbol, typeVar, side, amount, options...)
-}
-func (this *Hashkey) CreateTrailingAmountOrder(symbol string, typeVar string, side string, amount float64, options ...CreateTrailingAmountOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateTrailingAmountOrder(symbol, typeVar, side, amount, options...)
-}
-func (this *Hashkey) CreateTrailingPercentOrder(symbol string, typeVar string, side string, amount float64, options ...CreateTrailingPercentOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateTrailingPercentOrder(symbol, typeVar, side, amount, options...)
-}
-func (this *Hashkey) CreateTriggerOrder(symbol string, typeVar string, side string, amount float64, options ...CreateTriggerOrderOptions) (Order, error) {
-	return this.exchangeTyped.CreateTriggerOrder(symbol, typeVar, side, amount, options...)
-}
-func (this *Hashkey) EditLimitBuyOrder(id string, symbol string, amount float64, options ...EditLimitBuyOrderOptions) (Order, error) {
-	return this.exchangeTyped.EditLimitBuyOrder(id, symbol, amount, options...)
-}
-func (this *Hashkey) EditLimitOrder(id string, symbol string, side string, amount float64, options ...EditLimitOrderOptions) (Order, error) {
-	return this.exchangeTyped.EditLimitOrder(id, symbol, side, amount, options...)
-}
-func (this *Hashkey) EditLimitSellOrder(id string, symbol string, amount float64, options ...EditLimitSellOrderOptions) (Order, error) {
-	return this.exchangeTyped.EditLimitSellOrder(id, symbol, amount, options...)
-}
-func (this *Hashkey) EditOrder(id string, symbol string, typeVar string, side string, options ...EditOrderOptions) (Order, error) {
-	return this.exchangeTyped.EditOrder(id, symbol, typeVar, side, options...)
-}
-func (this *Hashkey) EditOrderWithClientOrderId(clientOrderId string, symbol string, typeVar string, side string, options ...EditOrderWithClientOrderIdOptions) (Order, error) {
-	return this.exchangeTyped.EditOrderWithClientOrderId(clientOrderId, symbol, typeVar, side, options...)
-}
-func (this *Hashkey) EditOrders(orders []OrderRequest, options ...EditOrdersOptions) ([]Order, error) {
-	return this.exchangeTyped.EditOrders(orders, options...)
-}
-func (this *Hashkey) FetchAllGreeks(options ...FetchAllGreeksOptions) (AllGreeks, error) {
-	return this.exchangeTyped.FetchAllGreeks(options...)
-}
-func (this *Hashkey) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, error) {
-	return this.exchangeTyped.FetchBidsAsks(options...)
-}
-func (this *Hashkey) FetchBorrowInterest(options ...FetchBorrowInterestOptions) ([]BorrowInterest, error) {
-	return this.exchangeTyped.FetchBorrowInterest(options...)
-}
-func (this *Hashkey) FetchBorrowRate(code string, amount float64, options ...FetchBorrowRateOptions) (map[string]any, error) {
-	return this.exchangeTyped.FetchBorrowRate(code, amount, options...)
-}
-func (this *Hashkey) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]Order, error) {
-	return this.exchangeTyped.FetchClosedOrders(options...)
-}
-func (this *Hashkey) FetchConvertCurrencies(params ...any) (Currencies, error) {
-	return this.exchangeTyped.FetchConvertCurrencies(params...)
-}
-func (this *Hashkey) FetchConvertQuote(fromCode string, toCode string, options ...FetchConvertQuoteOptions) (Conversion, error) {
-	return this.exchangeTyped.FetchConvertQuote(fromCode, toCode, options...)
-}
-func (this *Hashkey) FetchConvertTrade(id string, options ...FetchConvertTradeOptions) (Conversion, error) {
-	return this.exchangeTyped.FetchConvertTrade(id, options...)
-}
-func (this *Hashkey) FetchConvertTradeHistory(options ...FetchConvertTradeHistoryOptions) ([]Conversion, error) {
-	return this.exchangeTyped.FetchConvertTradeHistory(options...)
-}
-func (this *Hashkey) FetchCrossBorrowRate(code string, options ...FetchCrossBorrowRateOptions) (CrossBorrowRate, error) {
-	return this.exchangeTyped.FetchCrossBorrowRate(code, options...)
-}
-func (this *Hashkey) FetchCrossBorrowRates(params ...any) (CrossBorrowRates, error) {
-	return this.exchangeTyped.FetchCrossBorrowRates(params...)
-}
-func (this *Hashkey) FetchDepositAddresses(options ...FetchDepositAddressesOptions) ([]DepositAddress, error) {
-	return this.exchangeTyped.FetchDepositAddresses(options...)
-}
-func (this *Hashkey) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) (DepositAddresses, error) {
-	return this.exchangeTyped.FetchDepositAddressesByNetwork(code, options...)
-}
-func (this *Hashkey) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawalsOptions) ([]Transaction, error) {
-	return this.exchangeTyped.FetchDepositsWithdrawals(options...)
-}
-func (this *Hashkey) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (DepositWithdrawFee, error) {
-	return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)
-}
-func (this *Hashkey) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (DepositWithdrawFees, error) {
-	return this.exchangeTyped.FetchDepositWithdrawFees(options...)
-}
-func (this *Hashkey) FetchFreeBalance(params ...any) (Balance, error) {
-	return this.exchangeTyped.FetchFreeBalance(params...)
-}
-func (this *Hashkey) FetchFundingHistory(options ...FetchFundingHistoryOptions) ([]FundingHistory, error) {
-	return this.exchangeTyped.FetchFundingHistory(options...)
-}
-func (this *Hashkey) FetchFundingInterval(symbol string, options ...FetchFundingIntervalOptions) (FundingRate, error) {
-	return this.exchangeTyped.FetchFundingInterval(symbol, options...)
-}
-func (this *Hashkey) FetchFundingIntervals(options ...FetchFundingIntervalsOptions) (FundingRates, error) {
-	return this.exchangeTyped.FetchFundingIntervals(options...)
-}
-func (this *Hashkey) FetchGreeks(symbol string, options ...FetchGreeksOptions) (Greeks, error) {
-	return this.exchangeTyped.FetchGreeks(symbol, options...)
-}
-func (this *Hashkey) FetchIndexOHLCV(symbol string, options ...FetchIndexOHLCVOptions) ([]OHLCV, error) {
-	return this.exchangeTyped.FetchIndexOHLCV(symbol, options...)
-}
-func (this *Hashkey) FetchIsolatedBorrowRate(symbol string, options ...FetchIsolatedBorrowRateOptions) (IsolatedBorrowRate, error) {
-	return this.exchangeTyped.FetchIsolatedBorrowRate(symbol, options...)
-}
-func (this *Hashkey) FetchIsolatedBorrowRates(params ...any) (IsolatedBorrowRates, error) {
-	return this.exchangeTyped.FetchIsolatedBorrowRates(params...)
-}
-func (this *Hashkey) FetchLedgerEntry(id string, options ...FetchLedgerEntryOptions) (LedgerEntry, error) {
-	return this.exchangeTyped.FetchLedgerEntry(id, options...)
-}
-func (this *Hashkey) FetchLeverages(options ...FetchLeveragesOptions) (Leverages, error) {
-	return this.exchangeTyped.FetchLeverages(options...)
-}
-func (this *Hashkey) FetchLiquidations(symbol string, options ...FetchLiquidationsOptions) ([]Liquidation, error) {
-	return this.exchangeTyped.FetchLiquidations(symbol, options...)
-}
-func (this *Hashkey) FetchLongShortRatio(symbol string, options ...FetchLongShortRatioOptions) (LongShortRatio, error) {
-	return this.exchangeTyped.FetchLongShortRatio(symbol, options...)
-}
-func (this *Hashkey) FetchLongShortRatioHistory(options ...FetchLongShortRatioHistoryOptions) ([]LongShortRatio, error) {
-	return this.exchangeTyped.FetchLongShortRatioHistory(options...)
-}
-func (this *Hashkey) FetchMarginAdjustmentHistory(options ...FetchMarginAdjustmentHistoryOptions) ([]MarginModification, error) {
-	return this.exchangeTyped.FetchMarginAdjustmentHistory(options...)
-}
-func (this *Hashkey) FetchMarginMode(symbol string, options ...FetchMarginModeOptions) (MarginMode, error) {
-	return this.exchangeTyped.FetchMarginMode(symbol, options...)
-}
-func (this *Hashkey) FetchMarginModes(options ...FetchMarginModesOptions) (MarginModes, error) {
-	return this.exchangeTyped.FetchMarginModes(options...)
-}
-func (this *Hashkey) FetchMarketLeverageTiers(symbol string, options ...FetchMarketLeverageTiersOptions) ([]LeverageTier, error) {
-	return this.exchangeTyped.FetchMarketLeverageTiers(symbol, options...)
-}
-func (this *Hashkey) FetchMarkOHLCV(symbol string, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
-	return this.exchangeTyped.FetchMarkOHLCV(symbol, options...)
-}
-func (this *Hashkey) FetchMarkPrice(symbol string, options ...FetchMarkPriceOptions) (Ticker, error) {
-	return this.exchangeTyped.FetchMarkPrice(symbol, options...)
-}
-func (this *Hashkey) FetchMarkPrices(options ...FetchMarkPricesOptions) (Tickers, error) {
-	return this.exchangeTyped.FetchMarkPrices(options...)
-}
-func (this *Hashkey) FetchMyLiquidations(options ...FetchMyLiquidationsOptions) ([]Liquidation, error) {
-	return this.exchangeTyped.FetchMyLiquidations(options...)
-}
-func (this *Hashkey) FetchOpenInterest(symbol string, options ...FetchOpenInterestOptions) (OpenInterest, error) {
-	return this.exchangeTyped.FetchOpenInterest(symbol, options...)
-}
-func (this *Hashkey) FetchOpenInterestHistory(symbol string, options ...FetchOpenInterestHistoryOptions) ([]OpenInterest, error) {
-	return this.exchangeTyped.FetchOpenInterestHistory(symbol, options...)
-}
-func (this *Hashkey) FetchOpenInterests(options ...FetchOpenInterestsOptions) (OpenInterests, error) {
-	return this.exchangeTyped.FetchOpenInterests(options...)
-}
-func (this *Hashkey) FetchOption(symbol string, options ...FetchOptionOptions) (Option, error) {
-	return this.exchangeTyped.FetchOption(symbol, options...)
-}
-func (this *Hashkey) FetchOptionChain(code string, options ...FetchOptionChainOptions) (OptionChain, error) {
-	return this.exchangeTyped.FetchOptionChain(code, options...)
-}
-func (this *Hashkey) FetchOrderWithClientOrderId(clientOrderId string, options ...FetchOrderWithClientOrderIdOptions) (Order, error) {
-	return this.exchangeTyped.FetchOrderWithClientOrderId(clientOrderId, options...)
-}
-func (this *Hashkey) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBooks, error) {
-	return this.exchangeTyped.FetchOrderBooks(options...)
-}
-func (this *Hashkey) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {
-	return this.exchangeTyped.FetchOrders(options...)
-}
-func (this *Hashkey) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
-	return this.exchangeTyped.FetchOrderStatus(id, options...)
-}
-func (this *Hashkey) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
-	return this.exchangeTyped.FetchOrderTrades(id, options...)
-}
-func (this *Hashkey) FetchPaymentMethods(params ...any) ([]map[string]any, error) {
-	return this.exchangeTyped.FetchPaymentMethods(params...)
-}
-func (this *Hashkey) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {
-	return this.exchangeTyped.FetchPosition(symbol, options...)
-}
-func (this *Hashkey) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
-	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
-}
-func (this *Hashkey) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
-	return this.exchangeTyped.FetchPositionMode(options...)
-}
-func (this *Hashkey) FetchPositionsHistory(options ...FetchPositionsHistoryOptions) ([]Position, error) {
-	return this.exchangeTyped.FetchPositionsHistory(options...)
-}
-func (this *Hashkey) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([]Position, error) {
-	return this.exchangeTyped.FetchPositionsRisk(options...)
-}
-func (this *Hashkey) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
-	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
-}
-func (this *Hashkey) FetchTradingLimits(options ...FetchTradingLimitsOptions) (map[string]any, error) {
-	return this.exchangeTyped.FetchTradingLimits(options...)
-}
-func (this *Hashkey) FetchTransactionFee(code string, options ...FetchTransactionFeeOptions) (map[string]any, error) {
-	return this.exchangeTyped.FetchTransactionFee(code, options...)
-}
-func (this *Hashkey) FetchTransactionFees(options ...FetchTransactionFeesOptions) (map[string]any, error) {
-	return this.exchangeTyped.FetchTransactionFees(options...)
-}
-func (this *Hashkey) FetchTransactions(options ...FetchTransactionsOptions) ([]Transaction, error) {
-	return this.exchangeTyped.FetchTransactions(options...)
-}
-func (this *Hashkey) FetchTransfer(id string, options ...FetchTransferOptions) (TransferEntry, error) {
-	return this.exchangeTyped.FetchTransfer(id, options...)
-}
-func (this *Hashkey) FetchTransfers(options ...FetchTransfersOptions) ([]TransferEntry, error) {
-	return this.exchangeTyped.FetchTransfers(options...)
-}
-func (this *Hashkey) SetMargin(symbol string, amount float64, options ...SetMarginOptions) (MarginModification, error) {
-	return this.exchangeTyped.SetMargin(symbol, amount, options...)
-}
-func (this *Hashkey) SetPositionMode(hedged bool, options ...SetPositionModeOptions) (map[string]any, error) {
-	return this.exchangeTyped.SetPositionMode(hedged, options...)
-}
-func (this *Hashkey) CancelAllOrdersWs(options ...CancelAllOrdersWsOptions) ([]Order, error) {
-	return this.exchangeTyped.CancelAllOrdersWs(options...)
-}
-func (this *Hashkey) CancelOrdersWs(ids []string, options ...CancelOrdersWsOptions) ([]Order, error) {
-	return this.exchangeTyped.CancelOrdersWs(ids, options...)
-}
-func (this *Hashkey) CancelOrderWs(id string, options ...CancelOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CancelOrderWs(id, options...)
-}
-func (this *Hashkey) CreateLimitBuyOrderWs(symbol string, amount float64, price float64, options ...CreateLimitBuyOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateLimitBuyOrderWs(symbol, amount, price, options...)
-}
-func (this *Hashkey) CreateLimitOrderWs(symbol string, side string, amount float64, price float64, options ...CreateLimitOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateLimitOrderWs(symbol, side, amount, price, options...)
-}
-func (this *Hashkey) CreateLimitSellOrderWs(symbol string, amount float64, price float64, options ...CreateLimitSellOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateLimitSellOrderWs(symbol, amount, price, options...)
-}
-func (this *Hashkey) CreateMarketBuyOrderWs(symbol string, amount float64, options ...CreateMarketBuyOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketBuyOrderWs(symbol, amount, options...)
-}
-func (this *Hashkey) CreateMarketOrderWithCostWs(symbol string, side string, cost float64, options ...CreateMarketOrderWithCostWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketOrderWithCostWs(symbol, side, cost, options...)
-}
-func (this *Hashkey) CreateMarketOrderWs(symbol string, side string, amount float64, options ...CreateMarketOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketOrderWs(symbol, side, amount, options...)
-}
-func (this *Hashkey) CreateMarketSellOrderWs(symbol string, amount float64, options ...CreateMarketSellOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateMarketSellOrderWs(symbol, amount, options...)
-}
-func (this *Hashkey) CreateOrdersWs(orders []OrderRequest, options ...CreateOrdersWsOptions) ([]Order, error) {
-	return this.exchangeTyped.CreateOrdersWs(orders, options...)
-}
-func (this *Hashkey) CreateOrderWithTakeProfitAndStopLossWs(symbol string, typeVar string, side string, amount float64, options ...CreateOrderWithTakeProfitAndStopLossWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateOrderWithTakeProfitAndStopLossWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Hashkey) CreateOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Hashkey) CreatePostOnlyOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreatePostOnlyOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreatePostOnlyOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Hashkey) CreateReduceOnlyOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateReduceOnlyOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateReduceOnlyOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Hashkey) CreateStopLimitOrderWs(symbol string, side string, amount float64, price float64, triggerPrice float64, options ...CreateStopLimitOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateStopLimitOrderWs(symbol, side, amount, price, triggerPrice, options...)
-}
-func (this *Hashkey) CreateStopLossOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateStopLossOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateStopLossOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Hashkey) CreateStopMarketOrderWs(symbol string, side string, amount float64, triggerPrice float64, options ...CreateStopMarketOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateStopMarketOrderWs(symbol, side, amount, triggerPrice, options...)
-}
-func (this *Hashkey) CreateStopOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateStopOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateStopOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Hashkey) CreateTakeProfitOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTakeProfitOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateTakeProfitOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Hashkey) CreateTrailingAmountOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTrailingAmountOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateTrailingAmountOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Hashkey) CreateTrailingPercentOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTrailingPercentOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateTrailingPercentOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Hashkey) CreateTriggerOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTriggerOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.CreateTriggerOrderWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Hashkey) EditOrderWs(id string, symbol string, typeVar string, side string, options ...EditOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.EditOrderWs(id, symbol, typeVar, side, options...)
-}
-func (this *Hashkey) FetchBalanceWs(params ...any) (Balances, error) {
-	return this.exchangeTyped.FetchBalanceWs(params...)
-}
-func (this *Hashkey) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
-	return this.exchangeTyped.FetchClosedOrdersWs(options...)
-}
-func (this *Hashkey) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
-	return this.exchangeTyped.FetchDepositsWs(options...)
-}
-func (this *Hashkey) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
-	return this.exchangeTyped.FetchMyTradesWs(options...)
-}
-func (this *Hashkey) FetchOHLCVWs(symbol string, options ...FetchOHLCVWsOptions) ([]OHLCV, error) {
-	return this.exchangeTyped.FetchOHLCVWs(symbol, options...)
-}
-func (this *Hashkey) FetchOpenOrdersWs(options ...FetchOpenOrdersWsOptions) ([]Order, error) {
-	return this.exchangeTyped.FetchOpenOrdersWs(options...)
-}
-func (this *Hashkey) FetchOrderBookWs(symbol string, options ...FetchOrderBookWsOptions) (OrderBook, error) {
-	return this.exchangeTyped.FetchOrderBookWs(symbol, options...)
-}
-func (this *Hashkey) FetchOrdersByStatusWs(status string, options ...FetchOrdersByStatusWsOptions) ([]Order, error) {
-	return this.exchangeTyped.FetchOrdersByStatusWs(status, options...)
-}
-func (this *Hashkey) FetchOrdersWs(options ...FetchOrdersWsOptions) ([]Order, error) {
-	return this.exchangeTyped.FetchOrdersWs(options...)
-}
-func (this *Hashkey) FetchOrderWs(id string, options ...FetchOrderWsOptions) (Order, error) {
-	return this.exchangeTyped.FetchOrderWs(id, options...)
-}
-func (this *Hashkey) FetchPositionsForSymbolWs(symbol string, options ...FetchPositionsForSymbolWsOptions) ([]Position, error) {
-	return this.exchangeTyped.FetchPositionsForSymbolWs(symbol, options...)
-}
-func (this *Hashkey) FetchPositionsWs(options ...FetchPositionsWsOptions) ([]Position, error) {
-	return this.exchangeTyped.FetchPositionsWs(options...)
-}
-func (this *Hashkey) FetchPositionWs(symbol string, options ...FetchPositionWsOptions) ([]Position, error) {
-	return this.exchangeTyped.FetchPositionWs(symbol, options...)
-}
-func (this *Hashkey) FetchTickersWs(options ...FetchTickersWsOptions) (Tickers, error) {
-	return this.exchangeTyped.FetchTickersWs(options...)
-}
-func (this *Hashkey) FetchTickerWs(symbol string, options ...FetchTickerWsOptions) (Ticker, error) {
-	return this.exchangeTyped.FetchTickerWs(symbol, options...)
-}
-func (this *Hashkey) FetchTradesWs(symbol string, options ...FetchTradesWsOptions) ([]Trade, error) {
-	return this.exchangeTyped.FetchTradesWs(symbol, options...)
-}
-func (this *Hashkey) FetchTradingFeesWs(params ...any) (TradingFees, error) {
-	return this.exchangeTyped.FetchTradingFeesWs(params...)
-}
-func (this *Hashkey) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
-	return this.exchangeTyped.FetchWithdrawalsWs(options...)
-}
-func (this *Hashkey) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {
-	return this.exchangeTyped.UnWatchBidsAsks(options...)
-}
-func (this *Hashkey) UnWatchMyTrades(options ...UnWatchMyTradesOptions) (any, error) {
-	return this.exchangeTyped.UnWatchMyTrades(options...)
-}
-func (this *Hashkey) UnWatchOHLCV(symbol string, options ...UnWatchOHLCVOptions) (any, error) {
-	return this.exchangeTyped.UnWatchOHLCV(symbol, options...)
-}
-func (this *Hashkey) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...UnWatchOHLCVForSymbolsOptions) (any, error) {
-	return this.exchangeTyped.UnWatchOHLCVForSymbols(symbolsAndTimeframes, options...)
-}
-func (this *Hashkey) UnWatchOrderBook(symbol string, options ...UnWatchOrderBookOptions) (any, error) {
-	return this.exchangeTyped.UnWatchOrderBook(symbol, options...)
-}
-func (this *Hashkey) UnWatchOrderBookForSymbols(symbols []string, options ...UnWatchOrderBookForSymbolsOptions) (any, error) {
-	return this.exchangeTyped.UnWatchOrderBookForSymbols(symbols, options...)
-}
-func (this *Hashkey) UnWatchOrders(options ...UnWatchOrdersOptions) (any, error) {
-	return this.exchangeTyped.UnWatchOrders(options...)
-}
-func (this *Hashkey) UnWatchTicker(symbol string, options ...UnWatchTickerOptions) (any, error) {
-	return this.exchangeTyped.UnWatchTicker(symbol, options...)
-}
-func (this *Hashkey) UnWatchTickers(options ...UnWatchTickersOptions) (any, error) {
-	return this.exchangeTyped.UnWatchTickers(options...)
-}
-func (this *Hashkey) UnWatchTrades(symbol string, options ...UnWatchTradesOptions) (any, error) {
-	return this.exchangeTyped.UnWatchTrades(symbol, options...)
-}
-func (this *Hashkey) UnWatchTradesForSymbols(symbols []string, options ...UnWatchTradesForSymbolsOptions) (any, error) {
-	return this.exchangeTyped.UnWatchTradesForSymbols(symbols, options...)
-}
-func (this *Hashkey) WatchBalance(params ...any) (Balances, error) {
-	return this.exchangeTyped.WatchBalance(params...)
-}
-func (this *Hashkey) WatchBidsAsks(options ...WatchBidsAsksOptions) (Tickers, error) {
-	return this.exchangeTyped.WatchBidsAsks(options...)
-}
-func (this *Hashkey) WatchLiquidations(symbol string, options ...WatchLiquidationsOptions) ([]Liquidation, error) {
-	return this.exchangeTyped.WatchLiquidations(symbol, options...)
-}
-func (this *Hashkey) WatchMarkPrice(symbol string, options ...WatchMarkPriceOptions) (Ticker, error) {
-	return this.exchangeTyped.WatchMarkPrice(symbol, options...)
-}
-func (this *Hashkey) WatchMarkPrices(options ...WatchMarkPricesOptions) (Tickers, error) {
-	return this.exchangeTyped.WatchMarkPrices(options...)
-}
-func (this *Hashkey) WatchMyLiquidations(symbol string, options ...WatchMyLiquidationsOptions) ([]Liquidation, error) {
-	return this.exchangeTyped.WatchMyLiquidations(symbol, options...)
-}
-func (this *Hashkey) WatchMyLiquidationsForSymbols(symbols []string, options ...WatchMyLiquidationsForSymbolsOptions) ([]Liquidation, error) {
-	return this.exchangeTyped.WatchMyLiquidationsForSymbols(symbols, options...)
-}
-func (this *Hashkey) WatchMyTrades(options ...WatchMyTradesOptions) ([]Trade, error) {
-	return this.exchangeTyped.WatchMyTrades(options...)
-}
-func (this *Hashkey) WatchOHLCV(symbol string, options ...WatchOHLCVOptions) ([]OHLCV, error) {
-	return this.exchangeTyped.WatchOHLCV(symbol, options...)
-}
-func (this *Hashkey) WatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...WatchOHLCVForSymbolsOptions) (map[string]map[string][]OHLCV, error) {
-	return this.exchangeTyped.WatchOHLCVForSymbols(symbolsAndTimeframes, options...)
-}
-func (this *Hashkey) WatchOrderBook(symbol string, options ...WatchOrderBookOptions) (OrderBook, error) {
-	return this.exchangeTyped.WatchOrderBook(symbol, options...)
-}
-func (this *Hashkey) WatchOrderBookForSymbols(symbols []string, options ...WatchOrderBookForSymbolsOptions) (OrderBook, error) {
-	return this.exchangeTyped.WatchOrderBookForSymbols(symbols, options...)
-}
-func (this *Hashkey) WatchOrders(options ...WatchOrdersOptions) ([]Order, error) {
-	return this.exchangeTyped.WatchOrders(options...)
-}
-func (this *Hashkey) WatchOrdersForSymbols(symbols []string, options ...WatchOrdersForSymbolsOptions) ([]Order, error) {
-	return this.exchangeTyped.WatchOrdersForSymbols(symbols, options...)
-}
-func (this *Hashkey) WatchPosition(options ...WatchPositionOptions) (Position, error) {
-	return this.exchangeTyped.WatchPosition(options...)
-}
-func (this *Hashkey) WatchPositions(options ...WatchPositionsOptions) ([]Position, error) {
-	return this.exchangeTyped.WatchPositions(options...)
-}
-func (this *Hashkey) WatchTicker(symbol string, options ...WatchTickerOptions) (Ticker, error) {
-	return this.exchangeTyped.WatchTicker(symbol, options...)
-}
-func (this *Hashkey) WatchTickers(options ...WatchTickersOptions) (Tickers, error) {
-	return this.exchangeTyped.WatchTickers(options...)
-}
-func (this *Hashkey) WatchTrades(symbol string, options ...WatchTradesOptions) ([]Trade, error) {
-	return this.exchangeTyped.WatchTrades(symbol, options...)
-}
-func (this *Hashkey) WatchTradesForSymbols(symbols []string, options ...WatchTradesForSymbolsOptions) ([]Trade, error) {
-	return this.exchangeTyped.WatchTradesForSymbols(symbols, options...)
-}
-func (this *Hashkey) WithdrawWs(code string, amount float64, address string, options ...WithdrawWsOptions) (Transaction, error) {
-	return this.exchangeTyped.WithdrawWs(code, amount, address, options...)
 }

@@ -1,5 +1,5 @@
 import Exchange from './abstract/pacifica.js';
-import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, Num, int, Transaction, Currency, TradingFeeInterface, TradingFees, LedgerEntry, FundingRates, FundingRate, OpenInterests, Leverage, MarginMode, Tickers, Ticker, FundingHistory, OpenInterest } from './base/types.js';
+import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, NullableDict, Num, int, Transaction, Currency, TradingFeeInterface, TradingFees, LedgerEntry, FundingRates, FundingRate, OpenInterests, Leverage, MarginMode, Tickers, Ticker, FundingHistory, OpenInterest } from './base/types.js';
 /**
  * @class pacifica
  * @augments Exchange
@@ -168,9 +168,7 @@ export default class pacifica extends Exchange {
      */
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: Dict): Promise<Order>;
     createOrderRequest(symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: Dict): [Dict, Str];
-    batchOrdersRequest(actions: any[]): {
-        actions: any[];
-    };
+    batchOrdersRequest(actions: any[]): Dict;
     createOrdersRequest(orders: OrderRequest[], params?: Dict): Dict;
     /**
      * @method
@@ -455,7 +453,7 @@ export default class pacifica extends Exchange {
      * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
     fetchOpenInterest(symbol: string, params?: Dict): Promise<OpenInterest>;
-    parseOpenInterest(interest: any, market?: Market): OpenInterest;
+    parseOpenInterest(interest: NullableDict, market?: Market): OpenInterest;
     /**
      * @method
      * @name pacifica#fetchLedger

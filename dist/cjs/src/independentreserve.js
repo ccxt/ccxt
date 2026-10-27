@@ -403,7 +403,7 @@ class independentreserve extends independentreserve$1["default"] {
                         },
                     },
                     'created': undefined,
-                    'info': id,
+                    'info': { 'primaryCurrencyCode': baseId, 'secondaryCurrencyCode': quoteId },
                 });
             }
         }
@@ -723,10 +723,7 @@ class independentreserve extends independentreserve$1["default"] {
             request['primaryCurrencyCode'] = market['baseId'];
             request['secondaryCurrencyCode'] = market['quoteId'];
         }
-        let limitResolved = limit;
-        if (limitResolved === undefined) {
-            limitResolved = 50;
-        }
+        const limitResolved = (limit === undefined) ? 50 : limit;
         request['pageIndex'] = 1;
         request['pageSize'] = limitResolved;
         const response = await this.privatePostGetOpenOrders(this.extend(request, params));
@@ -754,10 +751,7 @@ class independentreserve extends independentreserve$1["default"] {
             request['primaryCurrencyCode'] = market['baseId'];
             request['secondaryCurrencyCode'] = market['quoteId'];
         }
-        let limitResolved = limit;
-        if (limitResolved === undefined) {
-            limitResolved = 50;
-        }
+        const limitResolved = (limit === undefined) ? 50 : limit;
         request['pageIndex'] = 1;
         request['pageSize'] = limitResolved;
         const response = await this.privatePostGetClosedOrders(this.extend(request, params));
@@ -1183,7 +1177,8 @@ class independentreserve extends independentreserve$1["default"] {
             const signedHeaders = { 'Content-Type': 'application/json' };
             return { 'url': url, 'method': method, 'body': signedBody, 'headers': signedHeaders };
         }
-        return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
+        const headers = {};
+        return { 'url': url, 'method': method, 'body': undefined, 'headers': headers };
     }
 }
 

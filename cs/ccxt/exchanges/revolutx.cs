@@ -456,12 +456,12 @@ public partial class revolutx : Exchange
         string? id = this.safeString2(currency, "id", "symbol", "");
         string? code = this.safeCurrencyCode(id);
         string? name = this.safeString(currency, "name");
-        object scale = this.safeInteger(currency, "scale");
+        Int64? scale = this.safeInteger(currency, "scale");
         string? status = this.safeString(currency, "status");
         bool active = (status == "active");
         string? assetType = this.safeString(currency, "asset_type");
         string type = (assetType == "crypto") ? "crypto" : "fiat";
-        double? precision = (!(scale == null)) ? Math.Pow(Convert.ToDouble(10), Convert.ToDouble(prefixUnaryNeg(ref scale))) : null;
+        double? precision = (!(scale == null)) ? Math.Pow(Convert.ToDouble(10), Convert.ToDouble((-scale))) : null;
         return ccxt.BaseExchange.ToDict(new Dictionary<string, object>() {
             { "info", currency },
             { "id", id },
@@ -836,14 +836,16 @@ public partial class revolutx : Exchange
         string? id = this.safeString(trade, "id");
         string? tradeSymbol = this.safeString(trade, "symbol");
         string? symbol = this.safeSymbol(tradeSymbol, market, "/");
-        double? price = this.safeNumber(trade, "price");
-        double? amount = this.safeNumber(trade, "quantity");
+        string? priceString = this.safeString(trade, "price");
+        string? amountString = this.safeString(trade, "quantity");
+        double? price = this.parseNumber(priceString);
+        double? amount = this.parseNumber(amountString);
         string? side = this.safeStringLower(trade, "side");
         Int64? timestamp = this.safeInteger(trade, "timestamp");
-        object cost = null;
-        if ((price != null) && (amount != null))
+        double? cost = null;
+        if ((priceString != null) && (amountString != null))
         {
-            cost = multiply(price, amount);
+            cost = this.parseNumber(Precise.stringMul(priceString, amountString));
         }
         return new ccxt.Trade(new Dictionary<string, object>() {
             { "info", trade },
@@ -1373,7 +1375,7 @@ public partial class revolutx : Exchange
             Dictionary<string, object> market = this.market(symbol);
             request["symbols"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        Int64 thirtyDays = 2592000000;
+        Int64 thirtyDays = ((((30L * 24L) * 60) * 60) * 1000);
         Int64? until = this.safeInteger2(parameters, "until", "until");
         if ((since != null))
         {
@@ -1388,8 +1390,8 @@ public partial class revolutx : Exchange
         } else if ((since != null))
         {
             Int64 now = this.milliseconds();
-            Int64? defaultEnd = (since + thirtyDays);
-            request["end_date"] = (((defaultEnd == null || defaultEnd < now))) ? defaultEnd : now;
+            Int64 thirtyDaysAgo = (now - thirtyDays);
+            request["end_date"] = ((since < thirtyDaysAgo)) ? (since + thirtyDays) : now;
         }
         if ((limit != null))
         {
@@ -1455,16 +1457,18 @@ public partial class revolutx : Exchange
     {
         string? id = this.safeString(trade, "tid");
         string? orderId = this.safeString(trade, "oid");
-        double? price = this.safeNumber(trade, "p");
-        double? amount = this.safeNumber(trade, "q");
+        string? priceString = this.safeString(trade, "p");
+        string? amountString = this.safeString(trade, "q");
+        double? price = this.parseNumber(priceString);
+        double? amount = this.parseNumber(amountString);
         string? side = this.safeStringLower(trade, "s");
         Int64? timestamp = this.safeInteger2(trade, "tdt", "pdt");
         bool? isMaker = this.safeBool(trade, "im", false);
         string takerOrMaker = isMaker == true ? "maker" : "taker";
-        object cost = null;
-        if ((price != null) && (amount != null))
+        double? cost = null;
+        if ((priceString != null) && (amountString != null))
         {
-            cost = multiply(price, amount);
+            cost = this.parseNumber(Precise.stringMul(priceString, amountString));
         }
         string? symbol = this.safeSymbol(null, market);
         return new Dictionary<string, object>() {
@@ -1513,7 +1517,7 @@ public partial class revolutx : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        Int64 thirtyDays = 2592000000;
+        Int64 thirtyDays = ((((30L * 24L) * 60) * 60) * 1000);
         Int64? until = this.safeInteger2(parameters, "until", "until");
         if ((since != null))
         {
@@ -1528,8 +1532,8 @@ public partial class revolutx : Exchange
         } else if ((since != null))
         {
             Int64 now = this.milliseconds();
-            Int64? defaultEnd = (since + thirtyDays);
-            request["end_date"] = (((defaultEnd == null || defaultEnd < now))) ? defaultEnd : now;
+            Int64 thirtyDaysAgo = (now - thirtyDays);
+            request["end_date"] = ((since < thirtyDaysAgo)) ? (since + thirtyDays) : now;
         }
         if ((limit != null))
         {
@@ -1639,7 +1643,8 @@ public partial class revolutx : Exchange
 
     public override object handleErrors(object code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
     {
-        if (isGreaterThanOrEqual(code, 400))
+        Int64? statusCode = this.parseToInt(code);
+        if ((statusCode >= 400))
         {
             if ((response == null))
             {

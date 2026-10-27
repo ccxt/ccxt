@@ -5,7 +5,6 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
-import math
 from ccxt.base.types import Balances, Int, Market, Order, OrderBook, Str, Ticker, Trade
 from ccxt.async_support.base.ws.client import Client
 from ccxt.base.errors import ExchangeError
@@ -102,7 +101,8 @@ class lbank(ccxt.async_support.lbank):
             'pair': market['id'],
         }
         if since is not None:
-            message['start'] = self.parse_to_int(int(math.floor(since / 1000)))
+            sinceInt = self.parse_to_int(since)
+            message['start'] = self.parse_to_int(sinceInt / 1000)
         if limit is not None:
             message['size'] = limit
         request = self.deep_extend(message, params)

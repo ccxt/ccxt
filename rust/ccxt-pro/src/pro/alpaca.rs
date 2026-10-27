@@ -463,7 +463,7 @@ impl AlpacaCore {
         let __ws_arg_1 = self.extend(request, &[params]);
         let mut ohlcv: Value = self.watch(url, messageHash.clone(), &[__ws_arg_1, messageHash.clone()]).await;
         let mut limitResolved: Value = limit.clone();
-        if is_true(&self.newUpdates) {
+        if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(symbolValue, limit);
         }
         return self.filter_by_since_limit(ohlcv, &[since, limitResolved, Value::Int(0), Value::Bool(true)]);
@@ -568,11 +568,11 @@ impl AlpacaCore {
         let mut datetime: Value = (match __pro_message.get("t").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
         let mut timestamp: Value = self.parse8601(datetime.clone());
         let mut isSnapshot: Value = (match __pro_message.get("r").cloned() { Some(__v) if matches!(__v, Value::Bool(_)) => __v, _ => Value::Bool(false) });
-        if !(in_op(&self.orderbooks, &symbol)) {
+        if !(matches!((&self.orderbooks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             { let __be_tmp = self.order_book(&[]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
         }
-        let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
-        if (isSnapshot.as_bool() == Some(true)) {
+        let mut orderbook: Value = self.orderbooks.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+        if isSnapshot.as_bool() == Some(true) {
             let mut snapshot: Value = self.parse_order_book(message, symbol.clone(), &[timestamp.clone(), Value::Str("b".into()), Value::Str("a".into()), Value::Str("p".into()), Value::Str("s".into())]);
             orderbook.reset(snapshot);
         }  else {
@@ -597,8 +597,8 @@ impl AlpacaCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_0: bool = true;
-            while { if !__for_first_0 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_0 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&deltas).as_f64().unwrap_or(f64::NAN) } {
-            self.handle_delta(bookside.clone(), get_value(&deltas, &i));
+            while { if !__for_first_0 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_0 = false; i.as_f64().unwrap_or(f64::NAN) < ((deltas.len() as i64) as f64) } {
+            self.handle_delta(bookside.clone(), deltas.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
         }
         }
 }
@@ -638,7 +638,7 @@ impl AlpacaCore {
         let __ws_arg_3 = self.extend(request, &[params]);
         let mut trades: Value = self.watch(url, messageHash.clone(), &[__ws_arg_3, messageHash.clone()]).await;
         let mut limitResolved: Value = limit.clone();
-        if is_true(&self.newUpdates) {
+        if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolValue, limit);
         }
         return self.filter_by_since_limit(trades, &[since, limitResolved, Value::Str("timestamp".into()), Value::Bool(true)]);
@@ -717,7 +717,7 @@ impl AlpacaCore {
         let __ws_arg_4 = self.extend(request, &[params]);
         let mut trades: Value = self.watch(url, messageHash.clone(), &[__ws_arg_4, messageHash.clone()]).await;
         let mut limitResolved: Value = limit.clone();
-        if is_true(&self.newUpdates) {
+        if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolResolved, limit);
         }
         return self.filter_by_since_limit(trades, &[since, limitResolved, Value::Str("timestamp".into()), Value::Bool(true)]);
@@ -768,7 +768,7 @@ impl AlpacaCore {
         let __ws_arg_5 = self.extend(request, &[params]);
         let mut orders: Value = self.watch(url, messageHash.clone(), &[__ws_arg_5, messageHash.clone()]).await;
         let mut limitResolved: Value = limit.clone();
-        if is_true(&self.newUpdates) {
+        if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.clone(), limit);
         }
         return self.filter_by_symbol_since_limit(orders, &[symbolResolved, since, limitResolved, Value::Bool(true)]);
@@ -1066,7 +1066,7 @@ impl AlpacaCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1: bool = true;
-            while { if !__for_first_1 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1 = false; i.as_f64().unwrap_or(f64::NAN) < ((message.len() as i64) as f64) } {
+            while { if !__for_first_1 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1 = false; i.as_f64().unwrap_or(f64::NAN) < ((message.len() as i64) as f64) } {
             let mut data: Value = message.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut T: Value = self.safe_string_k(data.clone(), "T", &[]);
             let mut msg: Option<String> = self.safe_string_k(data.clone(), "msg", &[]).as_str().map(str::to_owned);

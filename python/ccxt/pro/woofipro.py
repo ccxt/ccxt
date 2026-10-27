@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
-from ccxt.base.types import Balances, Bool, Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Balances, Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -338,8 +338,9 @@ class woofipro(ccxt.async_support.woofipro):
         result = []
         for i in range(0, len(data)):
             ticker = self.parse_ws_bid_ask(self.extend(data[i], {'ts': timestamp}))
-            if ticker['symbol'] is not None:
-                self.tickers[ticker['symbol']] = ticker
+            tickerSymbol = self.safe_string(ticker, 'symbol')
+            if tickerSymbol is not None:
+                self.tickers[tickerSymbol] = ticker
             result.append(ticker)
         client.resolve(result, topic)
 
@@ -651,7 +652,7 @@ class woofipro(ccxt.async_support.woofipro):
             await self.load_markets()
         trigger = self.safe_bool_2(params, 'stop', 'trigger', False)
         topic = 'executionreport'
-        if trigger is True:
+        if trigger:
             topic = 'algoexecutionreport'
         paramsOmitted = self.omit(params, ['stop', 'trigger'])
         messageHash = topic
@@ -690,7 +691,7 @@ class woofipro(ccxt.async_support.woofipro):
             await self.load_markets()
         trigger = self.safe_bool_2(params, 'stop', 'trigger', False)
         topic = 'executionreport'
-        if trigger is True:
+        if trigger:
             topic = 'algoexecutionreport'
         paramsOmitted = self.omit(params, 'stop')
         messageHash = 'myTrades'
@@ -1206,7 +1207,7 @@ class woofipro(ccxt.async_support.woofipro):
         self.balance = self.safe_balance(self.balance)
         client.resolve(self.balance, 'balance')
 
-    def handle_error_message(self, client: Client, message: dict) -> Bool:
+    def handle_error_message(self, client: Client, message: dict) -> bool:
         #
         # {"id":"1","event":"subscribe","success":false,"ts":1710780997216,"errorMsg":"Auth is needed."}
         #

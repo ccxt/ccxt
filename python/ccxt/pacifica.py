@@ -5,7 +5,6 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.pacifica import ImplicitAPI
-import math
 from ccxt.base.types import Balances, Currency, FundingHistory, Int, LedgerEntry, Leverage, MarginMode, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, FundingRates, OpenInterests, Trade, TradingFeeInterface, TradingFees, Transaction, FundingRateHistory, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -583,10 +582,10 @@ class pacifica(Exchange, ImplicitAPI):
         if self.isSandboxModeEnabled:  # At this stage, building codes are mostly only on the mainnet.
             return False
         buildFee = self.safe_bool(self.options, 'builderFee', True)
-        if buildFee is not True:
+        if not buildFee:
             return False  # skip if builder fee is not enabled
         approvedBuilderFee = self.safe_bool(self.options, 'approvedBuilderFee', False)
-        if approvedBuilderFee is True:
+        if approvedBuilderFee:
             return True  # skip if builder fee is already approved
         try:
             builder = self.safe_string(self.options, 'builderCode', 'CCXT')  # case sensitive
@@ -723,7 +722,7 @@ class pacifica(Exchange, ImplicitAPI):
             contractSize = self.parse_number('1')
             minLeverage = 1
             maxLeverage = self.safe_integer(market, 'max_leverage')
-            crossMargin = isolatedOnly is not True
+            crossMargin = not isolatedOnly
             isolatedMargin = True
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
@@ -916,7 +915,7 @@ class pacifica(Exchange, ImplicitAPI):
         isIsolated = self.safe_bool(setting, 'isolated', False)
         leverage = self.safe_integer(setting, 'leverage')
         marginMode = 'cross'
-        if isIsolated is True:
+        if isIsolated:
             marginMode = 'isolated'
         return {
             'info': setting,
@@ -970,7 +969,7 @@ class pacifica(Exchange, ImplicitAPI):
 
     def load_account_settings(self, refresh: bool = False, params: dict = {}):
         settings = self.handle_option('loadAccountSettings', 'settings')
-        if (settings is None) or (refresh is True):
+        if (settings is None) or (refresh):
             self.options['settings'] = self.create_safe_dictionary()
             settings = self.fetch_account_settings(params)
             self.options['settings'] = settings
@@ -1040,7 +1039,7 @@ class pacifica(Exchange, ImplicitAPI):
         # }
         isIsolated = self.safe_bool(setting, 'isolated', False)
         marginMode = 'cross'
-        if isIsolated is True:
+        if isIsolated:
             marginMode = 'isolated'
         return {
             'symbol': symbol,
@@ -1171,7 +1170,8 @@ class pacifica(Exchange, ImplicitAPI):
         oraclePx = self.safe_number(info, 'oracle')
         nextFundingRate = self.safe_number(info, 'next_funding')
         timestamp = self.safe_integer(info, 'timestamp')
-        fundingTimestamp = (int(math.floor(self.milliseconds()) / 60 / 60 / 1000) + 1) * 60 * 60 * 1000
+        currentHour = self.parse_to_int(self.milliseconds() / 60 / 60 / 1000)
+        fundingTimestamp = (currentHour + 1) * 60 * 60 * 1000
         return {
             'info': info,
             'symbol': symbol,
@@ -1210,8 +1210,6 @@ class pacifica(Exchange, ImplicitAPI):
         """
         if since is None:
             raise ArgumentsRequired(self.id + ' fetchOHLCV() requires a "since" argument')
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOHLCV() requires a "symbol" argument')
         defaultMaxLimit = 3950  # 4000 by docs, but in fact >~3960 returns error
         if self.markets is None:
             self.load_markets()
@@ -1227,15 +1225,14 @@ class pacifica(Exchange, ImplicitAPI):
         }
         requestUntil, paramsUntil = self.handle_until_option('end_time', request, paramsPaginate)
         nowMillis = self.milliseconds()
-        until = self.safe_integer(requestUntil, 'end_time')
-        if until is None:
-            if limit is not None:
-                until = since + (limit * (self.parse_timeframe(tf) * 1000)) - 1
-            if until is None:
-                until = since + (defaultMaxLimit * (self.parse_timeframe(tf) * 1000)) - 1
-            if until > nowMillis:
-                until = nowMillis
-            requestUntil['end_time'] = until
+        requestedUntil = self.safe_integer(requestUntil, 'end_time')
+        if requestedUntil is None:
+            durationMillis = self.parse_timeframe(tf) * 1000
+            candleCount = defaultMaxLimit if (limit is None) else limit
+            if since is not None:
+                windowEnd = self.parse_to_int(self.sum(since - 1, candleCount * durationMillis))
+                until = nowMillis if (windowEnd > nowMillis) else windowEnd
+                requestUntil['end_time'] = until
         response = self.publicGetKline(self.extend(requestUntil, paramsUntil))
         #
         # {
@@ -1515,7 +1512,7 @@ class pacifica(Exchange, ImplicitAPI):
         #
         success = self.safe_bool(response, 'success', False)
         status = None
-        if success is not True:
+        if not success:
             status = 'rejected'
         else:
             status = 'open'
@@ -1618,7 +1615,7 @@ class pacifica(Exchange, ImplicitAPI):
         request = self.post_action_request(operationType, sigPayload, paramsClientOrderId)
         return [request, operationType]
 
-    def batch_orders_request(self, actions: list[object]):
+    def batch_orders_request(self, actions: list[object]) -> dict:
         #
         # [
         #     {
@@ -1654,8 +1651,9 @@ class pacifica(Exchange, ImplicitAPI):
         #  Cancel (Only common (limit) orders)
         #
         lenActions = len(actions)
-        maxLen = self.handle_option('batchOrdersRequest', 'batchOrdersMax')
-        if maxLen is not None:
+        maxLenOption = self.handle_option('batchOrdersRequest', 'batchOrdersMax')
+        if maxLenOption is not None:
+            maxLen = self.parse_to_int(maxLenOption)
             if lenActions > maxLen:
                 raise ExchangeError(self.id + ' batchOrdersRequest() too many orders to create/cancel. Limit is ' + self.number_to_string(maxLen))
         return {
@@ -1727,7 +1725,7 @@ class pacifica(Exchange, ImplicitAPI):
             error = self.safe_string(order, 'error')
             success = self.safe_bool(order, 'success', False)
             status = None
-            if (error is not None) or (success is not True):
+            if (error is not None) or (not success):
                 status = 'rejected'
             else:
                 status = 'open'
@@ -1783,7 +1781,7 @@ class pacifica(Exchange, ImplicitAPI):
             error = self.safe_string(order, 'error')
             success = self.safe_bool(order, 'success', False)
             status = None
-            if (error is not None) or (success is not True):
+            if (error is not None) or (not success):
                 status = 'closed'
             else:
                 status = 'canceled'
@@ -1887,7 +1885,7 @@ class pacifica(Exchange, ImplicitAPI):
         isStopOrder = self.safe_bool_2(params, 'trigger', 'stop', False)
         paramsOmitted = self.omit(params, ['expiryWindow', 'trigger', 'stop', 'clientOrderId'])
         response = None
-        if isStopOrder is True:
+        if isStopOrder:
             response = self.privatePostOrdersStopCancel(self.extend(request, paramsOmitted))
         else:
             response = self.privatePostOrdersCancel(self.extend(request, paramsOmitted))
@@ -1900,7 +1898,7 @@ class pacifica(Exchange, ImplicitAPI):
         #
         success = self.safe_bool(response, 'success', False)
         status = 'closed'
-        if success is True:
+        if success:
             status = 'canceled'
         return self.safe_order({'id': id, 'status': status, 'info': response, 'symbol': symbol})
 
@@ -1908,7 +1906,7 @@ class pacifica(Exchange, ImplicitAPI):
         market = self.market(symbol)
         isStopOrder = self.safe_bool_2(params, 'trigger', 'stop', False)
         operationType = None
-        if isStopOrder is True:
+        if isStopOrder:
             operationType = 'cancel_stop_order'
         else:
             operationType = 'cancel_order'
@@ -2290,15 +2288,14 @@ class pacifica(Exchange, ImplicitAPI):
         # }
         #
         data = self.add_pagination_cursor_to_result(response)
-        orders = self.parse_orders(data, market, since, limit)
-        return orders
+        return self.parse_orders(data, market, since, limit)
 
     def add_pagination_cursor_to_result(self, response: dict) -> list[dict]:
         data = self.safe_list(response, 'data', [])
         paginationCursor = self.safe_string(response, 'next_cursor')
         hasMore = self.safe_bool(response, 'has_more', False)
         dataLength = len(data)
-        if hasMore is True:
+        if hasMore:
             if (paginationCursor is not None) and (dataLength > 0):
                 first = data[0]
                 first['next_cursor'] = paginationCursor
@@ -2380,7 +2377,7 @@ class pacifica(Exchange, ImplicitAPI):
             lastInfo = sorted[0]
         return self.parse_order(lastInfo, market)
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         statuses = {
             'open': 'open',
             'partially_filled': 'open',
@@ -2405,14 +2402,14 @@ class pacifica(Exchange, ImplicitAPI):
             tif = tifRaw.upper()
         return self.safe_string(tifMap, tif, 'GTC')
 
-    def map_side(self, sideRaw: Str):
+    def map_side(self, sideRaw: Str) -> Str:
         sideMap = {
             'sell': 'ask',
             'buy': 'bid',
         }
         return self.safe_string(sideMap, sideRaw, sideRaw)
 
-    def parse_order_type(self, status: Str):
+    def parse_order_type(self, status: Str) -> Str:
         statuses = {
             'stop_limit': 'limit',
             'stop_market': 'market',
@@ -2628,8 +2625,11 @@ class pacifica(Exchange, ImplicitAPI):
         marketResolved = self.safe_market(marketId, market)
         symbol = marketResolved['symbol']
         margin = self.safe_string(position, 'margin')
-        marginMode = 'isolated' if (margin is not None and margin != '0') else 'cross'
-        isIsolated = (marginMode == 'isolated')
+        rawIsolated = self.safe_bool(position, 'isolated')
+        isIsolated = (margin is not None and margin != '0')
+        if rawIsolated is not None:
+            isIsolated = rawIsolated
+        marginMode = 'isolated' if isIsolated else 'cross'
         side = self.safe_string(position, 'side')
         if side is not None:
             side = 'long' if (side == 'bid') else 'short'
@@ -2649,13 +2649,13 @@ class pacifica(Exchange, ImplicitAPI):
             'markPrice': None,
             'notional': None,
             'leverage': None,
-            'collateral': margin,
+            'collateral': self.safe_number(position, 'margin'),
             'initialMargin': None,
             'maintenanceMargin': None,
             'initialMarginPercentage': None,
             'maintenanceMarginPercentage': None,
             'unrealizedPnl': None,
-            'liquidationPrice': None,
+            'liquidationPrice': self.safe_number(position, 'liquidation_price'),
             'marginMode': marginMode,
             'percentage': None,
         })
@@ -2881,7 +2881,7 @@ class pacifica(Exchange, ImplicitAPI):
             raise BadSymbol(self.id + ' fetchOpenInterest() could not find open interest for ' + symbolValue)
         return oi
 
-    def parse_open_interest(self, interest: object, market: Market = None) -> OpenInterest:
+    def parse_open_interest(self, interest: dict, market: Market = None) -> OpenInterest:
         #
         #     {
         #       "funding": "0.00010529",
@@ -2974,25 +2974,33 @@ class pacifica(Exchange, ImplicitAPI):
         #
         timestamp = self.safe_integer(item, 'created_at')
         type = self.safe_string(item, 'event_type')
-        amount = self.safe_string(item, 'amount')
+        change = self.safe_string(item, 'amount')
         balance = self.safe_string(item, 'balance')
+        currencyResolved = self.safe_currency('USDC', currency)
+        direction = None
+        amount = change
+        if Precise.string_lt(amount, '0'):
+            direction = 'out'
+            amount = Precise.string_abs(amount)
+        else:
+            direction = 'in'
         return self.safe_ledger_entry({
             'info': item,
             'id': None,
-            'direction': None,
+            'direction': direction,
             'account': None,
             'referenceAccount': None,
             'referenceId': None,
             'type': self.parse_ledger_entry_type(type),
-            'currency': None,
+            'currency': currencyResolved['code'],
             'amount': self.parse_number(amount),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'before': None,
+            'before': self.parse_number(Precise.string_sub(balance, change)),
             'after': self.parse_number(balance),
             'status': None,
             'fee': None,
-        }, currency)
+        }, currencyResolved)
 
     def parse_ledger_entry_type(self, type: Str) -> Str:
         ledgerType = {
@@ -3244,7 +3252,7 @@ class pacifica(Exchange, ImplicitAPI):
         success = self.safe_bool(transfer, 'success')
         status = None
         if success is not None:
-            status = 'ok' if (success is True) else 'failed'
+            status = 'ok' if (success) else 'failed'
         return {
             'info': transfer,
             'id': None,
@@ -3460,12 +3468,13 @@ class pacifica(Exchange, ImplicitAPI):
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorId, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)  # documented message prefixes are more specific than the http-status echo
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
+            statusCode = self.parse_to_int(code)
             codeAsString = str(code)
-            if (code < 400) or not (codeAsString in self.httpExceptions):
+            if (statusCode < 400) or not (codeAsString in self.httpExceptions):
                 raise ExchangeError(feedback)  # unknown message
         return None
 
-    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
         requestBody = None
         isTestnet = self.isSandboxModeEnabled
         urlKey = 'api'
@@ -3550,7 +3559,7 @@ class pacifica(Exchange, ImplicitAPI):
                 builderCode = self.handle_option('postActionRequest', 'builderCode')
             if builderCode is not None:
                 isOperationSupportBuilder = self.safe_bool(self.options['builderSupportOperations'], operationType, False)
-                if isOperationSupportBuilder is True:
+                if isOperationSupportBuilder:
                     sigPayload['builder_code'] = builderCode
         expiryWindow, paramsExpiryWindow = self.handle_option_integer_and_params_2(params, 'postActionRequest', 'expiryWindow', 'expiry_window', 5000)
         timestamp = self.safe_integer(paramsExpiryWindow, 'timestamp', self.milliseconds())

@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.5.88'
+__version__ = '4.5.90'
 
 # -----------------------------------------------------------------------------
 
@@ -976,7 +976,7 @@ class BaseExchange(SyncExchange):
                 return content
         except Exception as e:
             errorMessage = self.id + ' ' + method + '() failed to fetch correct data from website. Probably webpage markup has been changed, breaking the page custom parser.'
-        if muteOnFailure is True:
+        if muteOnFailure:
             return None
         else:
             raise BadResponse(errorMessage)
@@ -1101,7 +1101,7 @@ class BaseExchange(SyncExchange):
         if self.has['fetchDepositWithdrawFees'] is None or self.has['fetchDepositWithdrawFees'] is False:
             raise NotSupported(self.id + ' fetchDepositWithdrawFee() is not supported yet')
         fees = await self.fetch_deposit_withdraw_fees([code], params)
-        return self.safe_value(fees, code)
+        return self.safe_dict(fees, code)
 
     async def fetch_cross_borrow_rate(self, code: str, params={}):
         await self.load_markets()
@@ -1249,12 +1249,11 @@ class BaseExchange(SyncExchange):
 
     async def fetch_deposit_address(self, code: str, params: dict = {}):
         if self.has['fetchDepositAddresses'] is not None and self.has['fetchDepositAddresses'] is not False:
-            depositAddresses = await self.fetch_deposit_addresses([code], params)
-            depositAddress = self.safe_value(depositAddresses, code)
-            if depositAddress is None:
+            depositAddressesList = await self.fetch_deposit_addresses([code], params)
+            depositAddresses = self.index_by(depositAddressesList, 'currency')
+            if self.safe_dict(depositAddresses, code) is None:
                 raise InvalidAddress(self.id + ' fetchDepositAddress() could not find a deposit address for ' + code + ', make sure you have created a corresponding deposit address in your wallet on the exchange website')
-            else:
-                return depositAddress
+            return self.safe_dict(depositAddresses, code)
         elif self.has['fetchDepositAddressesByNetwork'] is not None and self.has['fetchDepositAddressesByNetwork'] is not False:
             network = self.safe_string(params, 'network')
             paramsOmitted = self.omit(params, 'network')
@@ -1277,7 +1276,7 @@ class BaseExchange(SyncExchange):
         if serverTime is None:
             raise ExchangeError(self.id + ' loadTimeDifference() missing serverTime')
         self.options['timeDifference'] = after - serverTime
-        return self.options['timeDifference']
+        return self.parse_to_int(self.options['timeDifference'])
 
     async def fetch_market_leverage_tiers(self, symbol: str, params: dict = {}):
         if self.has['fetchLeverageTiers'] is not None and self.has['fetchLeverageTiers'] is not False:
@@ -1285,7 +1284,8 @@ class BaseExchange(SyncExchange):
             if market['contract'] is not True:
                 raise BadSymbol(self.id + ' fetchMarketLeverageTiers() supports contract markets only')
             tiers = await self.fetch_leverage_tiers([symbol])
-            return self.safe_value(tiers, symbol)
+            marketTiers = self.safe_list(tiers, symbol)
+            return marketTiers
         else:
             raise NotSupported(self.id + ' fetchMarketLeverageTiers() is not supported yet')
 
@@ -1422,6 +1422,7 @@ class BaseExchange(SyncExchange):
             if since is None:
                 raise ArgumentsRequired(self.id + ' pagination requires a since argument when paginationDirection set to forward')
             paginationTimestamp = since
+        shouldBreak = False
         while((calls < maxCallsPaginationCalls)):
             calls += 1
             try:
@@ -1438,14 +1439,17 @@ class BaseExchange(SyncExchange):
                             backwardMessage += ' timestamp ' + self.number_to_string(paginationTimestamp)
                         self.log(backwardMessage)
                     if responseLength == 0:
+                        shouldBreak = True
                         break
                     errors = 0
                     result = self.array_concat(result, response)
                     firstElement = self.safe_value(response, 0)
                     paginationTimestamp = self.safe_integer_2(firstElement, 'timestamp', 0)
                     if paginationTimestamp is None:
+                        shouldBreak = True
                         break
                     if (since is not None) and (paginationTimestamp <= since):
+                        shouldBreak = True
                         break
                 else:
                     # do it forwards, starting from the since
@@ -1457,21 +1461,26 @@ class BaseExchange(SyncExchange):
                             forwardMessage += ' timestamp ' + self.number_to_string(paginationTimestamp)
                         self.log(forwardMessage)
                     if responseLength == 0:
+                        shouldBreak = True
                         break
                     errors = 0
                     result = self.array_concat(result, response)
                     last = self.safe_value(response, responseLength - 1)
                     lastTimestamp = self.safe_integer(last, 'timestamp', 0)
                     if lastTimestamp is None:
+                        shouldBreak = True
                         break
                     nextPaginationTimestamp = lastTimestamp + 1
                     paginationTimestamp = nextPaginationTimestamp
                     if (until is not None) and (nextPaginationTimestamp >= until):
+                        shouldBreak = True
                         break
             except Exception as e:
                 errors += 1
                 if errors > maxRetriesOption:
                     raise e
+            if shouldBreak:
+                break  # go turns a break inside try into a panic that only ends the iteration
         uniqueResults = result
         if removeRepeatedOption:
             uniqueResults = self.remove_repeated_elements_from_array(result)
@@ -1509,7 +1518,7 @@ class BaseExchange(SyncExchange):
         tasks = []
         time = self.parse_timeframe(timeframe) * 1000
         maxEntriesPerRequestValue = self.require_value(maxEntriesPerRequestOption, 'fetchPaginatedCallDeterministic() maxEntriesPerRequest is required')
-        step = time * maxEntriesPerRequestValue
+        step = time * self.parse_to_int(maxEntriesPerRequestValue)
         until = self.safe_integer_2(paramsOmitted, 'until', 'till')  # do not omit it here
         currentSince = current - (maxCallsPaginationCalls * step) - 1
         if since is not None:
@@ -1535,7 +1544,8 @@ class BaseExchange(SyncExchange):
             if currentSince >= current:
                 break
             tasks.append(self.safe_deterministic_call(method, symbol, currentSince, maxEntriesPerRequestValue, timeframe, paramsOmitted))
-            currentSince = currentSince + step - 1
+            # this.sum keeps it numeric in PHP, where the regex transpiler turns `a + b` into string concatenation
+            currentSince = self.sum(currentSince, step) - 1
         results = await asyncio.gather(*tasks)
         result = []
         for i in range(0, len(results)):
@@ -1556,11 +1566,12 @@ class BaseExchange(SyncExchange):
         result = []
         timeframe = self.safe_string(paramsMaxEntriesPerRequest, 'timeframe')
         paramsOmitted = self.omit(paramsMaxEntriesPerRequest, 'timeframe')  # reading the timeframe from the method arguments to avoid changing the signature
+        shouldBreak = False
         while(i < maxCallsPaginationCalls):
             try:
                 if cursorValue is not None:
                     if cursorIncrement is not None:
-                        cursorValue = self.parse_to_int(cursorValue) + cursorIncrement
+                        cursorValue = self.sum(self.parse_to_int(cursorValue), cursorIncrement)
                     paramsOmitted[cursorSent] = cursorValue
                 response = None
                 if method == 'fetchAccounts':
@@ -1586,31 +1597,35 @@ class BaseExchange(SyncExchange):
                     cursorMessage = 'Cursor pagination call ' + str(iteration) + ' method ' + method + ' response length ' + str(responseLength) + ' cursor ' + cursorString
                     self.log(cursorMessage)
                 if responseLength == 0:
+                    shouldBreak = True
                     break
                 if response is not None:
                     result = self.array_concat(result, response)
                 last = self.safe_dict(response, responseLength - 1)
                 # cursorValue = this.safeValue (last['info'], cursorReceived);
                 cursorValue = None  # search for the cursor
+                # guard instead of break: inside a try block go turns break into a panic that ends the whole iteration
                 for j in range(0, responseLength):
-                    index = responseLength - j - 1
-                    entry = self.safe_dict(response, index)
-                    info = self.safe_dict(entry, 'info')
-                    cursor = None if (cursorReceived is None) else self.safe_value(info, cursorReceived)
-                    if cursor is not None:
-                        cursorValue = cursor
-                        break
+                    if cursorValue is None:
+                        index = responseLength - j - 1
+                        entry = self.safe_dict(response, index)
+                        info = self.safe_dict(entry, 'info')
+                        cursorValue = None if (cursorReceived is None) else self.safe_value(info, cursorReceived)
                 if cursorValue is None:
+                    shouldBreak = True
                     break
                 lastTimestamp = self.safe_integer(last, 'timestamp')
                 if since is None:
                     raise ArgumentsRequired(self.id + ' fetchPaginatedCallCursor() requires a since argument')
                 if lastTimestamp is not None and lastTimestamp < since:
+                    shouldBreak = True
                     break
             except Exception as e:
                 errors += 1
                 if errors > maxRetriesOption:
                     raise e
+            if shouldBreak:
+                break  # go turns a break inside try into a panic that only ends the iteration
             i += 1
         sorted = self.sort_cursor_paginated_result(result)
         key = 0 if (method == 'fetchOHLCV') else 'timestamp'
@@ -1625,6 +1640,7 @@ class BaseExchange(SyncExchange):
         i = 0
         errors = 0
         result = []
+        shouldBreak = False
         while(i < maxCallsPaginationCalls):
             try:
                 paramsMaxEntriesPerRequest[pageKey] = i + 1
@@ -1632,16 +1648,19 @@ class BaseExchange(SyncExchange):
                 errors = 0
                 responseLength = len(response)
                 if self.verbose:
-                    iteration = (i + str(1))
-                    incrementalMessage = 'Incremental pagination call ' + iteration + ' method ' + method + ' response length ' + str(responseLength)
+                    iteration = (i + 1)
+                    incrementalMessage = 'Incremental pagination call ' + str(iteration) + ' method ' + method + ' response length ' + str(responseLength)
                     self.log(incrementalMessage)
                 if responseLength == 0:
+                    shouldBreak = True
                     break
                 result = self.array_concat(result, response)
             except Exception as e:
                 errors += 1
                 if errors > maxRetriesOption:
                     raise e
+            if shouldBreak:
+                break  # go turns a break inside try into a panic that only ends the iteration
             i += 1
         sorted = self.sort_cursor_paginated_result(result)
         key = 0 if (method == 'fetchOHLCV') else 'timestamp'
@@ -1749,8 +1768,7 @@ class Exchange(BaseExchange):
         :returns dict[]: a list of `position structures <https://docs.ccxt.com/?id=position-structure>`
         """
         if self.has['fetchPositionsHistory'] is not None and self.has['fetchPositionsHistory'] is not False:
-            positions = await self.fetchPositionsHistory([symbol], since, limit, params)
-            return positions
+            return await self.fetchPositionsHistory([symbol], since, limit, params)
         else:
             raise NotSupported(self.id + ' fetchPositionHistory () is not supported yet')
 
@@ -2218,7 +2236,7 @@ class Exchange(BaseExchange):
         # TODO: TypeScript: change method signature by replacing
         # Promise<string> with Promise<Order['status']>.
         order = await self.fetchOrder(id, symbol, params)
-        return order['status']
+        return self.safe_string(order, 'status')
 
     async def fetch_unified_order(self, order: object, params: dict = {}):
         return await self.fetchOrder(self.safe_string(order, 'id'), self.safe_string(order, 'symbol'), params)
@@ -2425,7 +2443,7 @@ class Exchange(BaseExchange):
         raise NotSupported(self.id + ' cancelAllOrders() is not supported yet')
 
     async def cancel_unified_order(self, order: Order, params: dict = {}):
-        return self.cancel_order(self.safe_string(order, 'id'), self.safe_string(order, 'symbol'), params)
+        return await self.cancel_order(self.safe_string(order, 'id'), self.safe_string(order, 'symbol'), params)
 
     async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}):
         if (self.has['fetchOpenOrders'] is not None and self.has['fetchOpenOrders'] is not False) and (self.has['fetchClosedOrders'] is not None and self.has['fetchClosedOrders'] is not False):
