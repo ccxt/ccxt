@@ -1054,12 +1054,12 @@ pub trait ExchangeBase:
                 let mut entry: Value = parsedArray.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 // safeValue (not entry[field]) so a missing field is a non-match, not a
                 // KeyError in python/php — prediction structures key on outcome, not symbol
-                let mut entryFiledEqualValue: Value = Value::Bool(is_equal(&self.safe_value(entry.clone(), field.clone(), &[]), &value));
-                let mut firstCondition: Value = (if valueIsDefined.as_bool() == Some(true) { entryFiledEqualValue } else { Value::Bool(true) });
+                let mut entryFiledEqualValue: bool = is_equal(&self.safe_value(entry.clone(), field.clone(), &[]), &value);
+                let mut firstCondition: bool = !(valueIsDefined.as_bool() == Some(true)) || entryFiledEqualValue;
                 let mut entryKeyValue: Value = self.safe_integer(entry.clone(), key.clone(), &[]);
-                let mut entryKeyGESince: Value = Value::Bool((entryKeyValue != Value::Null) && (entryKeyValue.as_f64() != Some(0.0)) && (since != Value::Null) && (entryKeyValue.as_f64().unwrap_or(f64::NAN) >= since.as_f64().unwrap_or(f64::NAN)));
-                let mut secondCondition: Value = (if sinceIsDefined.as_bool() == Some(true) { entryKeyGESince } else { Value::Bool(true) });
-                if firstCondition.as_bool() == Some(true) && secondCondition.as_bool() == Some(true) {
+                let mut entryKeyGESince: bool = (entryKeyValue != Value::Null) && (entryKeyValue.as_f64() != Some(0.0)) && (since != Value::Null) && (entryKeyValue.as_f64().unwrap_or(f64::NAN) >= since.as_f64().unwrap_or(f64::NAN));
+                let mut secondCondition: bool = !(sinceIsDefined.as_bool() == Some(true)) || entryKeyGESince;
+                if firstCondition && secondCondition {
                     if let Value::Arr(__a) = &mut result { std::sync::Arc::make_mut(__a).push(entry); }
                 }
             }

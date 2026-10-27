@@ -450,22 +450,23 @@ impl HyperliquidCore {
         let __desc_empty = indexmap::IndexMap::new();
         let desc = desc.as_map().unwrap_or(&__desc_empty);
         let mut underlying: Value = (match desc.get("underlying") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str(format!("{}{}", Value::Str("OUTCOME".into()), Value::Str(format!("{}", outcomeId).into())).into()) });
-        let mut targetPrice: Value = (match desc.get("targetPrice") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
+        let mut targetPrice: Value = (match desc.get("targetPrice") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) });
         let mut expiry: Value = (match desc.get("expiry") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) });
         // Parse expiry: "20260503-0600" → "20260503"
         let mut expiryDate: Value = Value::Str("".into());
         if (expiry.as_str() != Some("")) {
-            expiryDate = Value::Array(expiry.as_str().map(|__s| __s.split("-").map(Value::from).collect()).unwrap_or_default()).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+            let mut expiryParts: Vec<Value> = Value::Array(expiry.as_str().map(|__s| __s.split("-").map(Value::from).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+            expiryDate = expiryParts.get(0).cloned().unwrap_or(Value::Null);
         }
         let mut label: Value = Value::Str("NO".into());
         if (side.as_f64() == Some(0.0)) {
             label = Value::Str("YES".into());
         }
         let mut base: Value = underlying.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
-        if (targetPrice != Value::Null) && (targetPrice.as_str() != Some("")) {
+        if (targetPrice.as_str() != Some("")) {
             base = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("_ABOVE_".into())).into()), targetPrice).into());
         }
-        if (expiryDate != Value::Null) && (expiryDate.as_str() != Some("")) {
+        if (expiryDate.as_str() != Some("")) {
             base = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("_".into())).into()), expiryDate).into());
         }
         return Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str(":".into())).into()), label).into()).as_str().map(str::to_owned);
@@ -490,19 +491,20 @@ impl HyperliquidCore {
 }));
         let __question_empty = indexmap::IndexMap::new();
         let question = question.as_map().unwrap_or(&__question_empty);
-        let mut underlying: Value = self.safe_string_k(desc.clone(), "underlying", &[]);
-        if (underlying != Value::Null) && (underlying.as_str() != Some("")) {
-            let mut targetPrice: Option<String> = self.safe_string_k_opt(desc.clone(), "targetPrice", &[]);
+        let mut underlying: Value = self.safe_string_k(desc.clone(), "underlying", &[Value::Str("".into())]);
+        if (underlying.as_str() != Some("")) {
+            let mut targetPrice: Value = self.safe_string_k(desc.clone(), "targetPrice", &[Value::Str("".into())]);
             let mut expiry: Value = self.safe_string_k(desc.clone(), "expiry", &[Value::Str("".into())]);
             let mut expiryDate: Value = Value::Str("".into());
             if (expiry.as_str() != Some("")) {
-                expiryDate = Value::Array(expiry.as_str().map(|__s| __s.split("-").map(Value::from).collect()).unwrap_or_default()).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+                let mut expiryParts: Vec<Value> = Value::Array(expiry.as_str().map(|__s| __s.split("-").map(Value::from).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+                expiryDate = expiryParts.get(0).cloned().unwrap_or(Value::Null);
             }
             let mut base: Value = underlying.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
-            if (targetPrice.is_some()) && (targetPrice.as_deref() != Some("")) {
-                base = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("_ABOVE_".into())).into()), targetPrice.map(Value::from).unwrap_or(Value::Null)).into());
+            if (targetPrice.as_str() != Some("")) {
+                base = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("_ABOVE_".into())).into()), targetPrice).into());
             }
-            if (expiryDate != Value::Null) && (expiryDate.as_str() != Some("")) {
+            if (expiryDate.as_str() != Some("")) {
                 base = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("_".into())).into()), expiryDate).into());
             }
             return base.as_str().map(str::to_owned);
@@ -514,9 +516,10 @@ impl HyperliquidCore {
             if (questionClass.as_deref() == Some("pricebucket")) {
                 let mut questionUnderlying: Value = self.safe_string_k(questionDesc.clone(), "underlying", &[]);
                 let mut questionExpiry: Value = self.safe_string_k(questionDesc.clone(), "expiry", &[Value::Str("".into())]);
-                let mut expiryDate: Value = Value::Str("".into());
+                let mut questionExpiryDate: Value = Value::Str("".into());
                 if (questionExpiry.as_str() != Some("")) {
-                    expiryDate = Value::Array(questionExpiry.as_str().map(|__s| __s.split("-").map(Value::from).collect()).unwrap_or_default()).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+                    let mut questionExpiryParts: Vec<Value> = Value::Array(questionExpiry.as_str().map(|__s| __s.split("-").map(Value::from).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+                    questionExpiryDate = questionExpiryParts.get(0).cloned().unwrap_or(Value::Null);
                 }
                 let mut thresholdsRaw: Value = self.safe_string_k(questionDesc, "priceThresholds", &[Value::Str("".into())]);
                 let mut indexStr: Option<String> = self.safe_string_k_opt(desc.clone(), "index", &[]);
@@ -549,8 +552,8 @@ impl HyperliquidCore {
                                 Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }))).into()), Value::Str("_".into())).into()), get_value(&thresholds, &index)).into());
                         }
                         let mut base: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", questionUnderlying.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null), Value::Str("_".into())).into()), bucketLabel).into());
-                        if (expiryDate != Value::Null) && (expiryDate.as_str() != Some("")) {
-                            base = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("_".into())).into()), expiryDate).into());
+                        if (questionExpiryDate.as_str() != Some("")) {
+                            base = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("_".into())).into()), questionExpiryDate).into());
                         }
                         return base.as_str().map(str::to_owned);
                     }
@@ -559,8 +562,8 @@ impl HyperliquidCore {
                     i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64));
                 if ((questionUnderlying != Value::Null) && (questionUnderlying.as_str() != Some(""))) && isFallbackLike {
                     let mut base: Value = Value::Str(format!("{}{}", questionUnderlying.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null), Value::Str("_OTHER".into())).into());
-                    if (expiryDate != Value::Null) && (expiryDate.as_str() != Some("")) {
-                        base = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("_".into())).into()), expiryDate).into());
+                    if (questionExpiryDate.as_str() != Some("")) {
+                        base = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("_".into())).into()), questionExpiryDate).into());
                     }
                     return base.as_str().map(str::to_owned);
                 }

@@ -407,7 +407,7 @@ impl PolymarketCore {
             m
         });
         let mut pending: Value = self.extend(Value::Map(basePending), &[context]);
-        add_element_to_object(&mut __ch.subscriptions, &Value::Str(format!("{}{}", Value::Str("req:".into()), Value::Str(format!("{}", id).into())).into()), pending);
+        __ch.add_subscription(&Value::Str(format!("{}{}", Value::Str("req:".into()), Value::Str(format!("{}", id).into())).into()), pending);
         return self.extend(Value::Map(request), &[params]);
 
     Value::Null
@@ -1114,7 +1114,7 @@ impl PolymarketCore {
                     m.insert("subMessageHashes".to_string(), Value::from(vec![messageHash.clone()]));
                 m
             });
-            add_element_to_object(&mut __ch.subscriptions, &Value::Str(format!("{}{}", Value::Str("req:".into()), Value::Str(format!("{}", id).into())).into()), Value::Map(pending));
+            __ch.add_subscription(&Value::Str(format!("{}{}", Value::Str("req:".into()), Value::Str(format!("{}", id).into())).into()), Value::Map(pending));
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), id);
@@ -1649,7 +1649,7 @@ impl PolymarketCore {
                 let mut postKey: Value = Value::Str(format!("{}{}", Value::Str("req:".into()), id.clone().map(Value::from).unwrap_or(Value::Null)).into());
                 let mut postPending: Value = self.safe_dict(__ch.subscriptions.clone(), postKey.clone(), &[]);
                 if (postPending != Value::Null) {
-                    remove(&mut __ch.subscriptions, &postKey);
+                    __ch.remove_subscription(&postKey);
                     let mut postAction: Option<String> = self.safe_string_k(postPending, "method", &[]).as_str().map(str::to_owned);
                     if (postAction.as_deref() == Some("auth")) {
                         let mut authStatus: Option<String> = self.safe_string_k(data.clone(), "status", &[]).as_str().map(str::to_owned);
@@ -1664,7 +1664,7 @@ impl PolymarketCore {
                             let mut authError = Value::from(crate::exchange_errors::authentication_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" authentication failed ".into())).into()), json_stringify(&data))));
                             client.reject(&[authError, Value::Str("authenticated".into())]);
                             if (matches!(&get_value(&client, &Value::Str("subscriptions".into())), Value::Dict(__d) if __d.contains_key("authenticated"))) {
-                                remove(&mut __ch.subscriptions, &Value::Str("authenticated".into()));
+                                __ch.remove_subscription(&Value::Str("authenticated".into()));
                             }
                         }
                         return;
@@ -1683,7 +1683,7 @@ impl PolymarketCore {
         if (pending == Value::Null) {
             return;
         }
-        remove(&mut __ch.subscriptions, &key);
+        __ch.remove_subscription(&key);
         let mut messageHashes: Vec<Value> = self.safe_list_k(pending.clone(), "messageHashes", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut subMessageHashes: Vec<Value> = self.safe_list_k(pending.clone(), "subMessageHashes", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut action: Option<String> = self.safe_string_k(pending.clone(), "method", &[]).as_str().map(str::to_owned);
@@ -1715,12 +1715,12 @@ impl PolymarketCore {
                 // subscription untouched instead
                 let mut messageHash: Value = messageHashes.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
                 if (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                    remove(&mut __ch.subscriptions, &messageHash);
+                    __ch.remove_subscription(&messageHash);
                 }
                 if (action.as_deref() == Some("sub")) {
                     let mut subMessageHash: Value = subMessageHashes.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
                     if (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &subMessageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                        remove(&mut __ch.subscriptions, &subMessageHash);
+                        __ch.remove_subscription(&subMessageHash);
                     }
                 }
             }

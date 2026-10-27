@@ -2244,7 +2244,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     let mut subscription: Value = self.safe_dict(__ch.subscriptions.clone(), subscribeHash.clone(), &[]);
                     if (self.safe_string_k(subscription.clone(), "id", &[]).as_str() == requestId.as_str()) {
                         handled = true;
-                        remove(&mut __ch.subscriptions, &subscribeHash);
+                        __ch.remove_subscription(&subscribeHash);
                         // watchMultiple subscribes per message hash, so the subscribe hash is what its watcher waits on
                         let mut messageHashes: Vec<Value> = self.safe_list_k(subscription, "messageHashes", &[Value::from(vec![subscribeHash])]).as_array().cloned().unwrap_or_default();
                         {
@@ -2262,7 +2262,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 // not a reply to a known request, every watcher on the connection gets the error,
                 // and the next private watch authenticates again instead of waiting on a rejected future
                 if (matches!(&get_value(&client, &Value::Str("subscriptions".into())), Value::Dict(__d) if __d.contains_key("authenticated"))) {
-                    remove(&mut __ch.subscriptions, &Value::Str("authenticated".into()));
+                    __ch.remove_subscription(&Value::Str("authenticated".into()));
                 }
                 client.reject(&[e]);
             }

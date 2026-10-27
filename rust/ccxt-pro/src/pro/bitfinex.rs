@@ -382,7 +382,7 @@ impl BitfinexCore {
             m
         });
         let mut unSubChanMsg: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), channelId).into());
-        add_element_to_object(&mut __ch.subscriptions, &unSubChanMsg, subMessageHash.clone());
+        __ch.add_subscription(&unSubChanMsg, subMessageHash.clone());
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("messageHashes".to_string(), Value::from(vec![messageHash.clone()]));
@@ -495,7 +495,7 @@ impl BitfinexCore {
             m
         });
         let mut unSubChanMsg: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), channelId).into());
-        add_element_to_object(&mut __ch.subscriptions, &unSubChanMsg, subMessageHash.clone());
+        __ch.add_subscription(&unSubChanMsg, subMessageHash.clone());
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("messageHashes".to_string(), Value::from(vec![messageHash.clone()]));
@@ -1248,7 +1248,7 @@ impl BitfinexCore {
         let mut localChecksum: Value = self.crc32(&[payload, Value::Bool(true)]);
         let mut responseChecksum: Value = self.safe_integer(message, Value::Int(2), &[]);
         if (responseChecksum.as_f64() != localChecksum.as_f64()) {
-            remove(&mut __ch.subscriptions, &messageHash);
+            __ch.remove_subscription(&messageHash);
             if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.orderbooks, &symbol) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
             let mut checksum: Value = self.handle_option(Value::Str("watchOrderBook".into()), Value::Str("checksum".into()), &[Value::Bool(true)]);
             if (match &(checksum) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 1.0) }) {
@@ -1435,7 +1435,7 @@ impl BitfinexCore {
         let mut unSubChannel: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), channelId).into());
         let subMessageHash: String = self.safe_string_opt(__ch.subscriptions.clone(), unSubChannel.clone(), &[Value::Str("".into())]).unwrap_or_default();
         let mut subscription: Value = self.safe_dict(__ch.subscriptions.clone(), Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash).into()), &[]);
-        remove(&mut __ch.subscriptions, &unSubChannel);
+        __ch.remove_subscription(&unSubChannel);
         let mut messageHashes: Vec<Value> = self.safe_list_k(subscription.clone(), "messageHashes", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut subMessageHashes: Vec<Value> = self.safe_list_k(subscription.clone(), "subMessageHashes", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         {
@@ -1477,7 +1477,7 @@ impl BitfinexCore {
         //  }
         //
         let mut channelId: Value = (match __pro_message.get("chanId").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) });
-        add_element_to_object(&mut __ch.subscriptions, &channelId, message.clone());
+        __ch.add_subscription(&channelId, message.clone());
         // store the opposite direction too for unWatch
         let mut mappings: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1492,13 +1492,13 @@ impl BitfinexCore {
             // handle ohlcv differently because the message is different
             let mut key: Value = (match __pro_message.get("key").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) });
             let mut subKeyId: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), key).into());
-            add_element_to_object(&mut __ch.subscriptions, &subKeyId, channelId.clone());
+            __ch.add_subscription(&subKeyId, channelId.clone());
         }  else {
             let mut marketId: Option<String> = self.safe_string_k_opt(message.clone(), "symbol", &[]);
             let mut symbol: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[]);
             if (unifiedChannel.is_some()) {
                 let mut subId: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), unifiedChannel.map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(":".into())).into()), symbol).into());
-                add_element_to_object(&mut __ch.subscriptions, &subId, channelId);
+                __ch.add_subscription(&subId, channelId);
             }
         }
         return message;
@@ -1555,7 +1555,7 @@ impl BitfinexCore {
             client.reject(&[Value::from(error), messageHash.clone()]);
             // allows further authentication attempts
             if (matches!((&__ch.subscriptions.clone(), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                remove(&mut __ch.subscriptions, &messageHash);
+                __ch.remove_subscription(&messageHash);
             }
         }
 }

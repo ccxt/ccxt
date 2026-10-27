@@ -492,7 +492,7 @@ impl IndependentreserveCore {
             orderbook.reset(snapshot);
             // write through the parent index: php copies arrays by value, so
             // mutating the local bind would not persist the flag
-            add_element_to_object(&mut __ch.subscriptions, &messageHash, self.extend(subscription, &[Value::Map({
+            __ch.add_subscription(&messageHash, self.extend(subscription, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("receivedSnapshot".to_string(), Value::Bool(true));
     m
@@ -534,7 +534,7 @@ impl IndependentreserveCore {
             let mut responseChecksum: Value = self.safe_integer_k(orderBook, "Crc32", &[]);
             if (calculatedChecksum.as_f64() != responseChecksum.as_f64()) {
                 let mut error = Value::from(crate::exchange_errors::checksum_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), self.orderbook_checksum_message(symbol.clone()))));
-                remove(&mut __ch.subscriptions, &messageHash);
+                __ch.remove_subscription(&messageHash);
                 if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.orderbooks, &symbol) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
                 client.reject(&[Value::from(error), messageHash.clone()]);
                 return;

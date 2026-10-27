@@ -1382,7 +1382,7 @@ impl MexcCore {
             add_element_to_object(&mut storedOrderBook, &Value::Str("datetime".into()), self.iso8601(timestamp.clone()));
          #[allow(unreachable_code)] { Value::Null }}));
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
-            remove(&mut __ch.subscriptions, &messageHash);
+            __ch.remove_subscription(&messageHash);
             client.reject(&[e, messageHash.clone()]);
             // return;
             shouldReturn = true;

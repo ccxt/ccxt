@@ -1370,7 +1370,7 @@ impl BitvavoCore {
             let mut watchingOrderBookSnapshot: Value = self.safe_bool(subscription.clone(), flagKey.clone(), &[]);
             if (watchingOrderBookSnapshot == Value::Null) {
                 add_element_to_object(&mut subscription, &flagKey, Value::Bool(true));
-                add_element_to_object(&mut __ch.subscriptions, &messageHash, subscription.clone());
+                __ch.add_subscription(&messageHash, subscription.clone());
                 let mut options: Value = self.safe_dict_k(self.options.clone(), "watchOrderBookSnapshot", &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
@@ -1469,7 +1469,7 @@ impl BitvavoCore {
         // instead of suppressing the request as an already-active subscription
         let mut snapshotHash: Value = Value::Str(format!("{}{}", Value::Str("getBook@".into()), self.safe_string_k(response, "market", &[Value::Str("".into())])).into());
         if (matches!((&__ch.subscriptions.clone(), &snapshotHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-            remove(&mut __ch.subscriptions, &snapshotHash);
+            __ch.remove_subscription(&snapshotHash);
         }
 }
 
@@ -2659,7 +2659,7 @@ impl BitvavoCore {
             });
             let mut message: Value = self.extend(Value::Map(request), &[params]);
             future = self.watch(url.map(Value::from).unwrap_or(Value::Null), messageHash.clone(), &[message, messageHash.clone()]).await;
-            add_element_to_object(&mut __ch.subscriptions, &messageHash, future.clone());
+            __ch.add_subscription(&messageHash, future.clone());
         }
         return future;
 
@@ -2686,7 +2686,7 @@ impl BitvavoCore {
             client.reject(&[Value::from(error), messageHash.clone()]);
             // allows further authentication attempts
             if (matches!((&__ch.subscriptions.clone(), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                remove(&mut __ch.subscriptions, &messageHash);
+                __ch.remove_subscription(&messageHash);
             }
         }
 }

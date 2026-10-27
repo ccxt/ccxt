@@ -427,7 +427,7 @@ impl XtCore {
                 if (listenKey == Value::Null) {
                     panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), Value::Str(" getListenKey() received an empty listen key".into()))));
                 }
-                add_element_to_object(&mut __ch.subscriptions, &Value::Str("token".into()), listenKey.clone());
+                __ch.add_subscription(&Value::Str("token".into()), listenKey.clone());
                 client.resolve(&[listenKey, messageHash.clone()]);
              #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
@@ -2270,7 +2270,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut msg: Option<String> = (match __pro_message.get("msg").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         if (msg.as_deref() == Some("invalid_listen_key")) || (msg.as_deref() == Some("token expire")) {
             if (matches!(&__ch.subscriptions.clone(), Value::Dict(__d) if __d.contains_key("token"))) {
-                remove(&mut __ch.subscriptions, &Value::Str("token".into()));
+                __ch.remove_subscription(&Value::Str("token".into()));
             }
             self.get_listen_key(true.clone()).await;
             return;

@@ -815,7 +815,7 @@ impl BittradeCore {
             return orderbook.limit();
          #[allow(unreachable_code)] { Value::Null }})).await;
 match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { return __try_ok; } return Value::Null; } Err(_try_err) => { let e: Value = panic_to_value(_try_err); 
-            remove(&mut __ch.subscriptions, &messageHash.clone().map(Value::from).unwrap_or(Value::Null));
+            __ch.remove_subscription(&messageHash.clone().map(Value::from).unwrap_or(Value::Null));
             client.reject(&[e, messageHash.map(Value::from).unwrap_or(Value::Null)]);
          } }
         return Value::Null;
@@ -966,7 +966,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             }
             // clean up
             if (matches!((&__ch.subscriptions.clone(), &id), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                remove(&mut __ch.subscriptions, &id);
+                __ch.remove_subscription(&id);
             }
         }
         return message;
@@ -1080,7 +1080,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     client.reject(&[e.clone(), messageHash.map(Value::from).unwrap_or(Value::Null)]);
                     client.reject(&[e, id.clone()]);
                     if (matches!((&__ch.subscriptions.clone(), &id), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                        remove(&mut __ch.subscriptions, &id);
+                        __ch.remove_subscription(&id);
                     }
                 }
             }

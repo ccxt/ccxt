@@ -2128,7 +2128,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         client.reject(&[e.clone(), subscriptionHash]);
                         handled = true;
                         if (subscription.is_some()) {
-                            remove(&mut __ch.subscriptions, &subscription.clone().map(Value::from).unwrap_or(Value::Null));
+                            __ch.remove_subscription(&subscription.clone().map(Value::from).unwrap_or(Value::Null));
                         }
                     }
                 }
@@ -2268,7 +2268,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     let mut subscriptionParams: Value = self.safe_dict_k(subscription, "params", &[]);
                     let mut subscribedChannel: Option<String> = self.safe_string_k(subscriptionParams, "channel", &[]).as_str().map(str::to_owned);
                     if (subscribedChannel.as_deref() == Some("market_stats/all")) {
-                        remove(&mut __ch.subscriptions, &subscriptionHash);
+                        __ch.remove_subscription(&subscriptionHash);
                         if (matches!((&__ch.futures.clone(), &subscriptionHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                             let mut error = Value::from(crate::exchange_errors::unsubscribe_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), subscriptionHash)));
                             client.reject(&[Value::from(error.clone()), subscriptionHash.clone()]);
@@ -2279,7 +2279,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
             let mut allMessageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), self.get_message_hash(Value::Str("ticker".into()), &[]).map(Value::from).unwrap_or(Value::Null)).into());
             if (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &allMessageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                remove(&mut __ch.subscriptions, &allMessageHash);
+                __ch.remove_subscription(&allMessageHash);
             }
             client.resolve(&[Value::Bool(true), allMessageHash]);
             let mut tickersStructure: indexmap::IndexMap<String, Value> = ({

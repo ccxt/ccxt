@@ -1530,7 +1530,7 @@ impl OnetradingCore {
                 let mut marketSubscribed: Value = self.safe_bool(ohlcvMarket, timeframe.clone(), &[Value::Bool(false)]);
                 if !(marketSubscribed.as_bool() == Some(true)) {
                     type_var = Value::Str("UPDATE_SUBSCRIPTION".into());
-                    add_element_to_object(&mut __ch.subscriptions, &subscriptionHash, Value::Null);
+                    __ch.add_subscription(&subscriptionHash, Value::Null);
                 }
             }  else {
                 subscription = Value::Map({
@@ -1815,7 +1815,7 @@ impl OnetradingCore {
                     let mut marketSubscribed: Value = self.safe_bool(subscription.clone(), marketId.clone(), &[Value::Bool(false)]);
                     if !(marketSubscribed.as_bool() == Some(true)) {
                         type_var = Value::Str("UPDATE_SUBSCRIPTION".into());
-                        add_element_to_object(&mut __ch.subscriptions, &subscriptionHash, Value::Null);
+                        __ch.add_subscription(&subscriptionHash, Value::Null);
                     }
                 }
                 }

@@ -1635,9 +1635,9 @@ impl KrakenCore {
             // size the book from the subscribed depth (10 by default), not from
             // the level count of this snapshot: a thin market's snapshot can
             // carry fewer levels than the subscription and must not cap the book
-            let mut limit: Value = self.safe_integer_k(subscription, "limit", &[Value::Int(10)]);
+            let mut limit: Value = self.parse_to_int(self.safe_integer_k(subscription, "limit", &[Value::Int(10)]));
             let mut asksLength: Value = Value::Int(a.len() as i64);
-            let mut depth: Value = (if (asksLength.as_f64().unwrap_or(f64::NAN) > limit.as_f64().unwrap_or(f64::NAN)) { asksLength } else { limit.clone() });
+            let mut depth: Value = self.parse_to_int((if (asksLength.as_f64().unwrap_or(f64::NAN) > limit.as_f64().unwrap_or(f64::NAN)) { asksLength } else { limit.clone() }));
             let mut depths: Value = self.safe_dict_k(self.options.clone(), "wsOrderBookDepths", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -1716,7 +1716,7 @@ impl KrakenCore {
             let mut localChecksum: Value = self.crc32(&[payload, Value::Bool(false)]);
             if (localChecksum.as_f64() != c.as_f64()) {
                 let mut error = Value::from(crate::exchange_errors::checksum_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), self.orderbook_checksum_message(symbol.clone()))));
-                remove(&mut __ch.subscriptions, &messageHash);
+                __ch.remove_subscription(&messageHash);
                 if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.orderbooks, &symbol) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
                 client.reject(&[Value::from(error), messageHash.clone()]);
                 return;
@@ -1808,7 +1808,7 @@ impl KrakenCore {
                     panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), Value::Str(" authenticate() received an empty token".into()))));
                 }
                 add_element_to_object(&mut subscription, &Value::Str("start".into()), now);
-                add_element_to_object(&mut __ch.subscriptions, &authenticated, subscription.clone());
+                __ch.add_subscription(&authenticated, subscription.clone());
                 // settle the flight and wake every waiter - resolve () also
                 // clears the registry entry, so the next refresh re-leads
                 client.resolve(&[token.map(Value::from).unwrap_or(Value::Null), messageHash.clone()]);
@@ -2432,7 +2432,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //
         let mut channelId: Value = (match __pro_message.get("channelID").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
         if (channelId != Value::Null) {
-            add_element_to_object(&mut __ch.subscriptions, &channelId, message);
+            __ch.add_subscription(&channelId, message);
         }
 }
 

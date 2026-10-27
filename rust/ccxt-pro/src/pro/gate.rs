@@ -1206,7 +1206,7 @@ impl GateCore {
             Value::Float(y)) => Value::Float(x - y), _ => Value::Null }).as_f64().unwrap_or(f64::NAN)) {
             self.handle_book_delta(storedOrderBook.clone(), delta);
         }  else {
-            remove(&mut __ch.subscriptions, &messageHash);
+            __ch.remove_subscription(&messageHash);
             add_element_to_object(&mut storedOrderBook, &Value::Str("nonce".into()), Value::Null);
             crate::set_value(&mut storedOrderBook, &Value::Str("cache".into()), Value::from(vec![]));
             let mut checksum: Value = self.handle_option(Value::Str("watchOrderBook".into()), Value::Str("checksum".into()), &[Value::Bool(true)]);
@@ -2843,7 +2843,7 @@ impl GateCore {
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 client.reject(&[e, messageHash.clone().map(Value::from).unwrap_or(Value::Null)]);
                 if (messageHash.is_some()) && (matches!((&__ch.subscriptions.clone(), &messageHash.clone().map(Value::from).unwrap_or(Value::Null)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                    remove(&mut __ch.subscriptions, &messageHash.clone().map(Value::from).unwrap_or(Value::Null));
+                    __ch.remove_subscription(&messageHash.clone().map(Value::from).unwrap_or(Value::Null));
                 }
                 // remove subscriptions for watchSymbols
                 let mut channel: Value = (match __pro_message.get("channel").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
@@ -2863,14 +2863,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut symbol: Value = self.safe_symbol(payload.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null), &[Value::Null, Value::Str("_".into()), marketType]);
                         let mut messageHashSymbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", parsedChannel.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null), Value::Str(":".into())).into()), symbol).into());
                         if (messageHashSymbol != Value::Null) && (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &messageHashSymbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                            remove(&mut __ch.subscriptions, &messageHashSymbol);
+                            __ch.remove_subscription(&messageHashSymbol);
                         }
                     }
                     }
                 }
             }
             if (id != Value::Null) && (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &id), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                remove(&mut __ch.subscriptions, &id);
+                __ch.remove_subscription(&id);
             }
             return Value::Bool(true);
         }
@@ -2912,7 +2912,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         if (matches!((&__ch.subscriptions.clone(), &id), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             if (id != Value::Null) {
-                remove(&mut __ch.subscriptions, &id);
+                __ch.remove_subscription(&id);
             }
         }
 }
@@ -3219,7 +3219,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
             if !(matches!((&__ch.subscriptions.clone(), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 let mut tempSubscriptionHash: Value = Value::Str(format!("{}", requestId).into());
-                add_element_to_object(&mut __ch.subscriptions, &tempSubscriptionHash, messageHash.clone());
+                __ch.add_subscription(&tempSubscriptionHash, messageHash.clone());
             }
         }
         let mut message: Value = self.extend(Value::Map(request), &[params]);
@@ -3393,7 +3393,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if !(matches!((&__ch.subscriptions.clone(), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             let mut tempSubscriptionHash: Value = Value::Str(format!("{}", requestId).into());
             // in case of authenticationError we will throw
-            add_element_to_object(&mut __ch.subscriptions, &tempSubscriptionHash, messageHash.clone());
+            __ch.add_subscription(&tempSubscriptionHash, messageHash.clone());
         }
         let mut message: Value = self.extend(Value::Map(request), &[params]);
         return self.watch(url, messageHash.clone(), &[message.clone(), messageHash.clone(), messageHash.clone()]).await;

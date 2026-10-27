@@ -1404,7 +1404,7 @@ impl WhitebitCore {
                     m
                 });
                 if (matches!((&__ch.subscriptions.clone(), &method), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                    remove(&mut __ch.subscriptions, &method);
+                    __ch.remove_subscription(&method);
                 }
                 return self.watch(url.map(Value::from).unwrap_or(Value::Null), messageHash, &[Value::Map(resubRequest), method, subscription]).await;
             }
@@ -1513,7 +1513,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             // client.reject () - guarded, so it always has a waiter and the
             // error is never parked in client.rejections
             if (matches!((&__ch.subscriptions.clone(), &subscribeHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                remove(&mut __ch.subscriptions, &subscribeHash);
+                __ch.remove_subscription(&subscribeHash);
             }
             if (matches!((&__ch.futures.clone(), &subscribeHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 client.reject(&[e.clone(), subscribeHash.clone()]);
@@ -1565,7 +1565,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if is_instance(&e, &Value::Str("AuthenticationError".into())) {
                 client.reject(&[e.clone(), Value::Str("authenticated".into())]);
                 if (matches!(&__ch.subscriptions.clone(), Value::Dict(__d) if __d.contains_key("authenticated"))) {
-                    remove(&mut __ch.subscriptions, &Value::Str("authenticated".into()));
+                    __ch.remove_subscription(&Value::Str("authenticated".into()));
                 }
                 return Value::Bool(false);
             }

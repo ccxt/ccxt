@@ -1432,7 +1432,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 if (result.as_bool() != Some(true)) {
                     panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" failed to get subscribe key".into()))));
                 }
-                add_element_to_object(&mut __ch.subscriptions, &Value::Str("authenticated".into()), Value::Map({
+                __ch.add_subscription(&Value::Str("authenticated".into()), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("key".to_string(), self.safe_string_k(response.clone(), "data", &[]));
         m.insert("expires".to_string(), self.sum(&[now.clone(), Value::Int(3300000)]));

@@ -2095,7 +2095,7 @@ impl HitbtcCore {
             let mut error = Value::from(crate::exchange_errors::authentication_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&message))));
             client.reject(&[Value::from(error), messageHash.clone()]);
             if (matches!((&__ch.subscriptions.clone(), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                remove(&mut __ch.subscriptions, &messageHash);
+                __ch.remove_subscription(&messageHash);
             }
         }
         return message;
@@ -2135,7 +2135,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     let mut messageHash: Value = Value::Str("authenticated".into());
                     client.reject(&[e.clone(), messageHash.clone()]);
                     if (matches!((&__ch.subscriptions.clone(), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                        remove(&mut __ch.subscriptions, &messageHash);
+                        __ch.remove_subscription(&messageHash);
                     }
                 }  else {
                     client.reject(&[e.clone(), id.clone()]); // trade requests use the request id as the message hash
@@ -2152,7 +2152,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     let mut subscriptionId: Value = self.safe_string(get_value(&get_value(&client, &Value::Str("subscriptions".into())), &subscriptionHash), Value::Str("id".into()), &[]);
                     if (subscriptionId != Value::Null) && (subscriptionId == id) {
                         client.reject(&[e.clone(), subscriptionHash.clone()]);
-                        remove(&mut __ch.subscriptions, &subscriptionHash); // so a retry sends the subscribe request again
+                        __ch.remove_subscription(&subscriptionHash); // so a retry sends the subscribe request again
                     }
                 }
                 }

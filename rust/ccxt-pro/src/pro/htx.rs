@@ -1028,7 +1028,7 @@ impl HtxCore {
                             delayTime = self.sum(&[Value::Int(1000), (match (&(lastTimestamp), &(snapshotTimestamp)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })]);
                         }
                         if let Value::Dict(__d) = &mut subscription { std::sync::Arc::make_mut(__d).insert("numAttempts".into(), nextAttempts); }
-                        add_element_to_object(&mut __ch.subscriptions, &messageHash.clone().map(Value::from).unwrap_or(Value::Null), subscription.clone());
+                        __ch.add_subscription(&messageHash.clone().map(Value::from).unwrap_or(Value::Null), subscription.clone());
                         self.delay(delayTime, &[Value::Str("watch_order_book_snapshot".into()).clone(), client.clone(), message, subscription.clone()]).await;
                     }
                 }  else {
@@ -1053,7 +1053,7 @@ impl HtxCore {
          #[allow(unreachable_code)] { false }})).await;
 match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) => { let e: Value = panic_to_value(_try_err); 
             if (messageHash.is_some()) {
-                remove(&mut __ch.subscriptions, &messageHash.clone().map(Value::from).unwrap_or(Value::Null));
+                __ch.remove_subscription(&messageHash.clone().map(Value::from).unwrap_or(Value::Null));
             }
             if (symbol.is_some()) {
                 if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.orderbooks, &symbol.clone().map(Value::from).unwrap_or(Value::Null)) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
@@ -1101,7 +1101,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
          #[allow(unreachable_code)] { Value::Null }})).await;
 match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { return __try_ok; } return Value::Null; } Err(_try_err) => { let e: Value = panic_to_value(_try_err); 
             if (messageHash.is_some()) {
-                remove(&mut __ch.subscriptions, &messageHash.clone().map(Value::from).unwrap_or(Value::Null));
+                __ch.remove_subscription(&messageHash.clone().map(Value::from).unwrap_or(Value::Null));
             }
             client.reject(&[e, messageHash.map(Value::from).unwrap_or(Value::Null)]);
          } }
@@ -2849,7 +2849,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             // clean up
             if (matches!((&__ch.subscriptions.clone(), &id), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 if (id != Value::Null) {
-                    remove(&mut __ch.subscriptions, &id);
+                    __ch.remove_subscription(&id);
                 }
             }
         }
@@ -3155,7 +3155,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     client.reject(&[e.clone(), id.clone()]);
                     if (matches!((&__ch.subscriptions.clone(), &id), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                         if (id != Value::Null) {
-                            remove(&mut __ch.subscriptions, &id);
+                            __ch.remove_subscription(&id);
                         }
                     }
                     // the subscription is keyed by the messageHash, not by the id -
@@ -3163,7 +3163,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     // that nothing will resolve instead of resubscribing, see
                     // https://github.com/ccxt/ccxt/issues/10280
                     if (messageHash.is_some()) && (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &messageHash.clone().map(Value::from).unwrap_or(Value::Null)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                        remove(&mut __ch.subscriptions, &messageHash.clone().map(Value::from).unwrap_or(Value::Null));
+                        __ch.remove_subscription(&messageHash.clone().map(Value::from).unwrap_or(Value::Null));
                     }
                 }
             }
@@ -3181,7 +3181,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     client.reject(&[e.clone(), Value::Str("auth".into())]);
                     let mut method: Value = Value::Str("auth".into());
                     if (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &method), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                        remove(&mut __ch.subscriptions, &method);
+                        __ch.remove_subscription(&method);
                     }
                     return Value::Bool(false);
                 }  else {

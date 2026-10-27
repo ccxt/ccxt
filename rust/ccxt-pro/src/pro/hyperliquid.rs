@@ -2615,7 +2615,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (user.is_some()) {
             let mut subscribeHash: Value = Value::Str(format!("{}{}", Value::Str("subscribe:orderUpdates::".into()), user.map(Value::from).unwrap_or(Value::Null)).into());
             if (matches!((&__ch.subscriptions.clone(), &subscribeHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                remove(&mut __ch.subscriptions, &subscribeHash);
+                __ch.remove_subscription(&subscribeHash);
             }
         }
         let mut topicStructure: indexmap::IndexMap<String, Value> = ({
@@ -2640,7 +2640,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (user.is_some()) {
             let mut subscribeHash: Value = Value::Str(format!("{}{}", Value::Str("subscribe:userFills::".into()), user.map(Value::from).unwrap_or(Value::Null)).into());
             if (matches!((&__ch.subscriptions.clone(), &subscribeHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                remove(&mut __ch.subscriptions, &subscribeHash);
+                __ch.remove_subscription(&subscribeHash);
             }
         }
         let mut topicStructure: indexmap::IndexMap<String, Value> = ({

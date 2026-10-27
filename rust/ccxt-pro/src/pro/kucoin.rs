@@ -564,7 +564,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut client: Value = self.client(&[url.clone()]);
         let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         if !(matches!((&__ch.subscriptions.clone(), &subscriptionHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-            add_element_to_object(&mut __ch.subscriptions, &requestId, subscriptionHash.clone());
+            __ch.add_subscription(&requestId, subscriptionHash.clone());
         }
         return self.watch(url, messageHash, &[message, subscriptionHash, subscription]).await;
 
@@ -603,7 +603,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut client: Value = self.client(&[url.clone().map(Value::from).unwrap_or(Value::Null)]);
         let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         if !(matches!((&__ch.subscriptions.clone(), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-            add_element_to_object(&mut __ch.subscriptions, &requestId, messageHash.clone());
+            __ch.add_subscription(&requestId, messageHash.clone());
         }
         return self.watch(url.map(Value::from).unwrap_or(Value::Null), messageHash.clone(), &[message, messageHash.clone(), subscription]).await;
 
@@ -640,7 +640,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut client: Value = self.client(&[url.clone()]);
         let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         if !(matches!((&__ch.subscriptions.clone(), &subscribeHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-            add_element_to_object(&mut __ch.subscriptions, &requestId, subscribeHash.clone());
+            __ch.add_subscription(&requestId, subscribeHash.clone());
         }
         return self.watch_multiple(url, messageHashes, &[message, Value::from(vec![subscribeHash]), subscription]).await;
 
@@ -738,7 +738,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             while { if !__for_first_456 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_456 = false; i.as_f64().unwrap_or(f64::NAN) < ((subscriptionHashes.len() as i64) as f64) } {
             let mut subscriptionHash: Value = self.safe_string(subscriptionHashes.clone(), i.clone(), &[Value::Str("".into())]);
             if !(matches!((&__ch.subscriptions.clone(), &subscriptionHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                add_element_to_object(&mut __ch.subscriptions, &requestId, subscriptionHash.clone());
+                __ch.add_subscription(&requestId, subscriptionHash.clone());
             }
         }
         }
@@ -774,7 +774,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             while { if !__for_first_457 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_457 = false; i.as_f64().unwrap_or(f64::NAN) < ((subscriptionHashes.len() as i64) as f64) } {
             let mut subscriptionHash: Value = self.safe_string(subscriptionHashes.clone(), i.clone(), &[Value::Str("".into())]);
             if !(matches!((&__ch.subscriptions.clone(), &subscriptionHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                add_element_to_object(&mut __ch.subscriptions, &requestId, subscriptionHash.clone());
+                __ch.add_subscription(&requestId, subscriptionHash.clone());
             }
         }
         }
@@ -1008,7 +1008,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         let mut messageHashWithSymbols: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(":".into())).into()), join(&symbols, &Value::Str(",".into()))).into());
         if !(matches!((&__ch.subscriptions.clone(), &messageHashWithSymbols), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-            add_element_to_object(&mut __ch.subscriptions, &requestId, messageHashWithSymbols.clone());
+            __ch.add_subscription(&requestId, messageHashWithSymbols.clone());
         }
         return self.watch_multiple(url.map(Value::from).unwrap_or(Value::Null), messageHashes.clone(), &[message, messageHashes.clone(), subscription]).await;
 
@@ -2673,7 +2673,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut subscriptionHash: Option<String> = self.safe_string_opt(__ch.subscriptions.clone(), id.clone(), &[]);
         let mut subscription: Value = self.safe_dict(__ch.subscriptions.clone(), subscriptionHash.clone().map(Value::from).unwrap_or(Value::Null), &[]);
-        remove(&mut __ch.subscriptions, &id);
+        __ch.remove_subscription(&id);
         let mut method: Value = self.safe_value_k(subscription.clone(), "method", &[]);
         if (method != Value::Null) {
             self.dispatch_ws_handler(&method, &[client.clone(), message, subscription.clone()]);
@@ -3571,7 +3571,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             });
             let mut message: Value = self.extend(Value::Map(request), &[paramsOmitted]);
             if !(matches!((&__ch.subscriptions.clone(), &subscriptionHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                add_element_to_object(&mut __ch.subscriptions, &requestId, subscriptionHash.clone());
+                __ch.add_subscription(&requestId, subscriptionHash.clone());
             }
             return self.watch(url, messageHash, &[message, uniformType]).await;
         }

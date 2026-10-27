@@ -538,7 +538,7 @@ impl BackpackCore {
 }));
                 messageHashes.push(messageHash.clone());
             }
-            add_element_to_object(&mut __ch.subscriptions, &subscriptionKey, subscriptions.clone());
+            __ch.add_subscription(&subscriptionKey, subscriptions.clone());
             let mut subscriptionHashes: Vec<Value> = object_keys(&subscriptions).as_array().cloned().unwrap_or_default();
             let mut subscriptionsLength: f64 = ((subscriptionHashes.len() as i64) as f64);
             if !unwatch || (subscriptionsLength == 0.0) {

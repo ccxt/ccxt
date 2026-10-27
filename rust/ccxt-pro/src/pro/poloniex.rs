@@ -422,7 +422,7 @@ impl PoloniexCore {
             //        "channel": "auth"
             //    }
             //
-            add_element_to_object(&mut __ch.subscriptions, &messageHash, future.clone());
+            __ch.add_subscription(&messageHash, future.clone());
         }
         return future;
 
@@ -1959,7 +1959,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     let mut messageHash: Value = Value::Str("authenticated".into());
                     client.reject(&[e.clone(), messageHash.clone()]);
                     if (matches!((&__ch.subscriptions.clone(), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                        remove(&mut __ch.subscriptions, &messageHash);
+                        __ch.remove_subscription(&messageHash);
                     }
                 }  else {
                     client.reject(&[e, id.clone()]);
@@ -1993,7 +1993,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut error = Value::from(crate::exchange_errors::authentication_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&message))));
             client.reject(&[Value::from(error.clone()), messageHash.clone()]);
             if (matches!((&__ch.subscriptions.clone(), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                remove(&mut __ch.subscriptions, &messageHash);
+                __ch.remove_subscription(&messageHash);
             }
         }
         return message;

@@ -1827,7 +1827,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
                     if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.orderbooks, &symbol) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
                 }
                 if (matches!((&__ch.subscriptions.clone(), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                    remove(&mut __ch.subscriptions, &messageHash);
+                    __ch.remove_subscription(&messageHash);
                 }
                 client.reject(&[e, messageHash.clone()]);
              } }
@@ -3953,13 +3953,13 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         // created right before the request, after the signing above: concurrent callers find it, and in
         // the threaded ports the ack can not arrive between this future and the request one watch () adds
         client.future(&[messageHash.clone()]);
-        add_element_to_object(&mut __ch.subscriptions, &marketType, Value::Bool(true));
+        __ch.add_subscription(&marketType, Value::Bool(true));
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             self.watch(url.map(Value::from).unwrap_or(Value::Null), requestHash.clone(), &[Value::Map(message), requestHash, Value::Map(subscription)]).await;
             client.resolve(&[marketType.clone(), messageHash.clone()]);
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
-            remove(&mut __ch.subscriptions, &marketType);
+            __ch.remove_subscription(&marketType);
             client.reject(&[e.clone(), messageHash.clone()]);
             panic!("{}", e);
         }
@@ -3990,7 +3990,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }) });
         let mut subscriptionId: Option<i64> = self.safe_integer_k(result, "subscriptionId", &[]).as_i64();
         if (subscriptionId.is_none()) {
-            remove(&mut __ch.subscriptions, &accountType);
+            __ch.remove_subscription(&accountType);
             let mut error = Value::from(crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" user data stream subscribe failed ".into())).into()), json_stringify(&message))));
             client.reject(&[Value::from(error.clone()), accountType]);
             client.reject(&[Value::from(error), messageHash.clone()]);
@@ -7653,7 +7653,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 if (id == subscriptionId) {
                     client.reject(&[e.clone(), subscriptionHash]);
                     if (subscription.is_some()) {
-                        remove(&mut __ch.subscriptions, &subscription.clone().map(Value::from).unwrap_or(Value::Null));
+                        __ch.remove_subscription(&subscription.clone().map(Value::from).unwrap_or(Value::Null));
                     }
                 }
             }
@@ -7686,7 +7686,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut subscriptionsKeys: Value = object_keys(&subscriptions);
         let mut accountType: Value = self.get_account_type_from_subscriptions(subscriptionsKeys).map(Value::from).unwrap_or(Value::Null);
         if (event.as_deref() == Some("eventStreamTerminated")) {
-            remove(&mut __ch.subscriptions, &accountType);
+            __ch.remove_subscription(&accountType);
             let mut error = Value::from(crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" user data event stream terminated ".into())).into()), json_stringify(&message))));
             client.reject(&[Value::from(error.clone()), accountType]);
         }

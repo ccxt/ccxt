@@ -2320,7 +2320,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
         }
         stored.append(parsedOrder.clone());
-        let symbol: String = self.safe_string_k_opt(parsedOrder, "symbol", &[]).unwrap_or_default();
+        let symbol: String = self.safe_string_k_opt(parsedOrder, "symbol", &[Value::Str("".into())]).unwrap_or_default();
         let mut spotHash: Value = Value::Str("spot:order".into());
         let mut swapHash: Value = Value::Str("swap:order".into());
         let mut messageHash: Value = swapHash;

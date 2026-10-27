@@ -1659,7 +1659,7 @@ impl DeribitCore {
             });
             let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
             future = self.watch(url, messageHash.clone(), &[__ws_arg_0, messageHash.clone()]).await;
-            add_element_to_object(&mut __ch.subscriptions, &messageHash, future.clone());
+            __ch.add_subscription(&messageHash, future.clone());
         }
         return future;
 

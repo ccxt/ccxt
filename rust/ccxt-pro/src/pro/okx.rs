@@ -2202,7 +2202,7 @@ impl OkxCore {
         let mut nonce: Value = self.safe_integer_k(orderbook.clone(), "nonce", &[]);
         if (prevSeqId != Value::Null) && (prevSeqId.as_f64() != Value::Int(-1).as_f64()) && (nonce.as_f64() != prevSeqId.as_f64()) {
             let mut error = Value::from(crate::exchange_errors::invalid_nonce(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBook received invalid nonce".into()))));
-            remove(&mut __ch.subscriptions, &messageHash);
+            __ch.remove_subscription(&messageHash);
             if (symbol != Value::Null) {
                 if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.orderbooks, &symbol) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
             }
@@ -2369,7 +2369,7 @@ impl OkxCore {
                     self.handle_order_book_message(client.clone(), update.clone(), orderbook.clone(), messageHash.clone(), &[market.clone()]);
                     if !(matches!((&__ch.subscriptions.clone(), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                         // a nonce gap rejected the future; the channel stays subscribed without a book until the next watch resyncs it
-                        add_element_to_object(&mut __ch.subscriptions, &messageHash, Value::Str("resync".into()));
+                        __ch.add_subscription(&messageHash, Value::Str("resync".into()));
                         break;
                     }
                     client.resolve(&[orderbook.clone(), messageHash.clone()]);

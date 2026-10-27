@@ -944,10 +944,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut m = indexmap::IndexMap::new();
             m
         });
+        let mut outcomeSymbolsLength: f64 = ((outcomeSymbols.len() as i64) as f64);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1253: bool = true;
-            while { if !__for_first_1253 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1253 = false; i.as_f64().unwrap_or(f64::NAN) < ((outcomeSymbols.len() as i64) as f64) } {
+            while { if !__for_first_1253 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1253 = false; i.as_f64().unwrap_or(f64::NAN) < outcomeSymbolsLength } {
             let mut outcomeSymbol: Value = outcomeSymbols.get((i).as_i64().map_or(usize::MAX, |__n| __n as usize)).cloned().unwrap_or(Value::Null);
             if Value::Int(outcomeSymbol.as_str().and_then(|__s| __s.find(":")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
                 continue;
@@ -1004,7 +1005,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1256: bool = true;
-            while { if !__for_first_1256 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1256 = false; i.as_f64().unwrap_or(f64::NAN) < ((outcomeSymbols.len() as i64) as f64) } {
+            while { if !__for_first_1256 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1256 = false; i.as_f64().unwrap_or(f64::NAN) < outcomeSymbolsLength } {
             if !(self.has_outcome(outcomeSymbols.get((i).as_i64().map_or(usize::MAX, |__n| __n as usize)).cloned().unwrap_or(Value::Null)).as_bool() == Some(true)) {
                 self.fetch_outcome(outcomeSymbols.get((i).as_i64().map_or(usize::MAX, |__n| __n as usize)).cloned().unwrap_or(Value::Null)).await;
             }
