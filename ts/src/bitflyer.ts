@@ -229,7 +229,7 @@ export default class bitflyer extends Exchange {
     parseExpiryDate (expiry: string): Int {
         const day = expiry.slice (0, 2);
         const monthName = expiry.slice (2, 5);
-        const year = expiry.slice (5, 9);
+        const expiryYear = expiry.slice (5, 9);
         const months: Dict = {
             'JAN': '01',
             'FEB': '02',
@@ -248,7 +248,7 @@ export default class bitflyer extends Exchange {
         if (month === undefined) {
             return undefined;
         }
-        return this.parse8601 (year + '-' + month + '-' + day + 'T00:00:00Z');
+        return this.parse8601 (expiryYear + '-' + month + '-' + day + 'T00:00:00Z');
     }
 
     override safeMarket (marketId: Str = undefined, market: Market = undefined, delimiter: Str = undefined, marketType: Str = undefined): MarketInterface {
@@ -1256,16 +1256,16 @@ export default class bitflyer extends Exchange {
         }
         request += path;
         if (method === 'GET') {
-            if (Object.keys (params).length > 0) {
-                request += '?' + this.urlencode (params);
+            const query = this.urlencode (params);
+            if (query !== '') {
+                request += '?' + query;
             }
         }
         const apiUrl = this.safeString (this.urls['api'], 'rest');
         if (apiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
-        const baseUrl = this.implodeHostname (apiUrl);
-        const url = baseUrl + request;
+        const url = this.implodeHostname (apiUrl) + request;
         if (apiName === 'private') {
             this.checkRequiredCredentials ();
             const nonce = this.nonce ().toString ();
