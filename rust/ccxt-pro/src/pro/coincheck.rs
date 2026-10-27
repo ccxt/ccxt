@@ -326,7 +326,7 @@ impl CoincheckCore {
         //         }
         //     ]
         //
-        let mut symbol: Value = self.symbol(self.safe_string(message.clone(), Value::Int(0), &[]));
+        let mut symbol: Value = self.safe_string(self.market(self.safe_string(message.clone(), Value::Int(0), &[])), Value::Str("symbol".into()), &[Value::Str("".into())]);
         let mut data: Value = self.safe_dict(message, Value::Int(1), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -401,7 +401,7 @@ impl CoincheckCore {
         //     ]
         //
         let mut first: Value = self.safe_list(message.clone(), Value::Int(0), &[Value::from(vec![])]);
-        let mut symbol: Value = self.symbol(self.safe_string(first, Value::Int(2), &[]));
+        let mut symbol: Value = self.safe_string(self.market(self.safe_string(first, Value::Int(2), &[])), Value::Str("symbol".into()), &[Value::Str("".into())]);
         let mut stored: Value = self.safe_value(self.trades.clone(), symbol.clone(), &[]);
         if (stored == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);

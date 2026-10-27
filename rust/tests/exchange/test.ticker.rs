@@ -54,7 +54,8 @@ pub fn testTicker(mut exchange: Value, mut skippedProperties: Value, mut method:
         m
     });
     // todo: atm, many exchanges fail, so temporarily decrease stict mode
-    let mut emptyAllowedFor: Value = Value::from(vec![Value::Str("timestamp".into()), Value::Str("datetime".into()), Value::Str("open".into()), Value::Str("high".into()), Value::Str("low".into()), Value::Str("close".into()), Value::Str("last".into()), Value::Str("baseVolume".into()), Value::Str("quoteVolume".into()), Value::Str("previousClose".into()), Value::Str("bidVolume".into()), Value::Str("askVolume".into()), Value::Str("vwap".into()), Value::Str("change".into()), Value::Str("percentage".into()), Value::Str("average".into())]);
+    let mut emptyAllowedFor: Value = Value::from(vec![Value::Str("timestamp".into()), Value::Str("datetime".into()), Value::Str("open".into()), Value::Str("high".into()), Value::Str("low".into()), Value::Str("close".into()), Value::Str("last".into()), Value::Str("baseVolume".into()), Value::Str("quoteVolume".into()), Value::Str("previousClose".into()),
+        Value::Str("bidVolume".into()), Value::Str("askVolume".into()), Value::Str("vwap".into()), Value::Str("change".into()), Value::Str("percentage".into()), Value::Str("average".into())]);
     // trick csharp-transpiler for string
     if !is_true(&(contains(&Value::Str(format!("{}", method).into()), &Value::Str("BidsAsks".into())))) {
         append_to_array(&mut emptyAllowedFor, Value::Str("bid".into()));

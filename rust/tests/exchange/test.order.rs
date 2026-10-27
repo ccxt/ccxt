@@ -49,7 +49,8 @@ pub fn testOrder(mut exchange: Value, mut skippedProperties: Value, mut method: 
             m.insert("trades".to_string(), Value::from(vec![]));
         m
     });
-    let mut emptyAllowedFor: Value = Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("stopPrice".into()), Value::Str("trades".into()), Value::Str("timestamp".into()), Value::Str("datetime".into()), Value::Str("lastTradeTimestamp".into()), Value::Str("average".into()), Value::Str("type".into()), Value::Str("timeInForce".into()), Value::Str("postOnly".into()), Value::Str("side".into()), Value::Str("price".into()), Value::Str("amount".into()), Value::Str("cost".into()), Value::Str("filled".into()), Value::Str("remaining".into()), Value::Str("status".into()), Value::Str("fee".into())]); // there are exchanges that return only order id, so we don't need to strictly requite all props to be set.
+    let mut emptyAllowedFor: Value = Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("stopPrice".into()), Value::Str("trades".into()), Value::Str("timestamp".into()), Value::Str("datetime".into()), Value::Str("lastTradeTimestamp".into()), Value::Str("average".into()), Value::Str("type".into()), Value::Str("timeInForce".into()),
+        Value::Str("postOnly".into()), Value::Str("side".into()), Value::Str("price".into()), Value::Str("amount".into()), Value::Str("cost".into()), Value::Str("filled".into()), Value::Str("remaining".into()), Value::Str("status".into()), Value::Str("fee".into())]); // there are exchanges that return only order id, so we don't need to strictly requite all props to be set.
     crate::tests_support::shared::assert_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), format.clone(), emptyAllowedFor.clone()]);
     crate::tests_support::shared::assert_timestamp_and_datetime(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), now.clone()]);
     //
@@ -79,7 +80,8 @@ pub fn testOrder(mut exchange: Value, mut skippedProperties: Value, mut method: 
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_1542: bool = true;
-                while { if !__for_first_1542 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1542 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&get_value(&entry, &Value::Str("trades".into()))).as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_1542 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
+                    } __for_first_1542 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&get_value(&entry, &Value::Str("trades".into()))).as_f64().unwrap_or(f64::NAN) } {
                 testTrade(exchange.clone(), skippedNew.clone(), method.clone(), get_value(&entry.as_map().and_then(|__m| __m.get("trades")).cloned().unwrap_or(Value::Null), &i), symbol.clone(), now.clone(), Value::Bool(false));
             }
             }

@@ -214,7 +214,8 @@ impl crate::exchange_generated::ExchangeBase for GateCore {
                 "fetch_withdrawals" => self.fetch_withdrawals(&args[..]).await,
                 "get_margin_mode" => self.get_margin_mode(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "get_settlement_currencies" => self.get_settlement_currencies(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
-                "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
+                "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null),
+                    args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
                 "is_gate_futures_contract_with_decimal_size" => self.is_gate_futures_contract_with_decimal_size(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "load_unified_status" => self.load_unified_status(&args[..]).await,
                 "modify_margin_helper" => self.modify_margin_helper(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]).await,
@@ -3135,8 +3136,20 @@ impl GateCore {
         m.insert("taker".to_string(), self.parse_number(Value::Str("0.002".into()), &[]));
         m.insert("tiers".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("maker".to_string(), Value::from(vec![Value::from(vec![self.parse_number(Value::Str("0".into()), &[]), self.parse_number(Value::Str("0.002".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("1.5".into()), &[]), self.parse_number(Value::Str("0.00185".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("3".into()), &[]), self.parse_number(Value::Str("0.00175".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("6".into()), &[]), self.parse_number(Value::Str("0.00165".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("12.5".into()), &[]), self.parse_number(Value::Str("0.00155".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("25".into()), &[]), self.parse_number(Value::Str("0.00145".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("75".into()), &[]), self.parse_number(Value::Str("0.00135".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("200".into()), &[]), self.parse_number(Value::Str("0.00125".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("500".into()), &[]), self.parse_number(Value::Str("0.00115".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("1250".into()), &[]), self.parse_number(Value::Str("0.00105".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("2500".into()), &[]), self.parse_number(Value::Str("0.00095".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("3000".into()), &[]), self.parse_number(Value::Str("0.00085".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("6000".into()), &[]), self.parse_number(Value::Str("0.00075".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("11000".into()), &[]), self.parse_number(Value::Str("0.00065".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("20000".into()), &[]), self.parse_number(Value::Str("0.00055".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("40000".into()), &[]), self.parse_number(Value::Str("0.00055".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("75000".into()), &[]), self.parse_number(Value::Str("0.00055".into()), &[])])]));
-        m.insert("taker".to_string(), Value::from(vec![Value::from(vec![self.parse_number(Value::Str("0".into()), &[]), self.parse_number(Value::Str("0.002".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("1.5".into()), &[]), self.parse_number(Value::Str("0.00195".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("3".into()), &[]), self.parse_number(Value::Str("0.00185".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("6".into()), &[]), self.parse_number(Value::Str("0.00175".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("12.5".into()), &[]), self.parse_number(Value::Str("0.00165".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("25".into()), &[]), self.parse_number(Value::Str("0.00155".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("75".into()), &[]), self.parse_number(Value::Str("0.00145".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("200".into()), &[]), self.parse_number(Value::Str("0.00135".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("500".into()), &[]), self.parse_number(Value::Str("0.00125".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("1250".into()), &[]), self.parse_number(Value::Str("0.00115".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("2500".into()), &[]), self.parse_number(Value::Str("0.00105".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("3000".into()), &[]), self.parse_number(Value::Str("0.00095".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("6000".into()), &[]), self.parse_number(Value::Str("0.00085".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("11000".into()), &[]), self.parse_number(Value::Str("0.00075".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("20000".into()), &[]), self.parse_number(Value::Str("0.00065".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("40000".into()), &[]), self.parse_number(Value::Str("0.00065".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("75000".into()), &[]), self.parse_number(Value::Str("0.00065".into()), &[])])]));
+        m.insert("maker".to_string(), Value::from(vec![Value::from(vec![self.parse_number(Value::Str("0".into()), &[]), self.parse_number(Value::Str("0.002".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("1.5".into()), &[]), self.parse_number(Value::Str("0.00185".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("3".into()),
+            &[]), self.parse_number(Value::Str("0.00175".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("6".into()), &[]), self.parse_number(Value::Str("0.00165".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("12.5".into()), &[]), self.parse_number(Value::Str("0.00155".into()), &[])]),
+            Value::from(vec![self.parse_number(Value::Str("25".into()), &[]), self.parse_number(Value::Str("0.00145".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("75".into()), &[]), self.parse_number(Value::Str("0.00135".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("200".into()), &[]),
+            self.parse_number(Value::Str("0.00125".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("500".into()), &[]), self.parse_number(Value::Str("0.00115".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("1250".into()), &[]), self.parse_number(Value::Str("0.00105".into()), &[])]),
+            Value::from(vec![self.parse_number(Value::Str("2500".into()), &[]), self.parse_number(Value::Str("0.00095".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("3000".into()), &[]), self.parse_number(Value::Str("0.00085".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("6000".into()), &[]),
+            self.parse_number(Value::Str("0.00075".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("11000".into()), &[]), self.parse_number(Value::Str("0.00065".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("20000".into()), &[]), self.parse_number(Value::Str("0.00055".into()), &[])]),
+            Value::from(vec![self.parse_number(Value::Str("40000".into()), &[]), self.parse_number(Value::Str("0.00055".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("75000".into()), &[]), self.parse_number(Value::Str("0.00055".into()), &[])])]));
+        m.insert("taker".to_string(), Value::from(vec![Value::from(vec![self.parse_number(Value::Str("0".into()), &[]), self.parse_number(Value::Str("0.002".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("1.5".into()), &[]), self.parse_number(Value::Str("0.00195".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("3".into()),
+            &[]), self.parse_number(Value::Str("0.00185".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("6".into()), &[]), self.parse_number(Value::Str("0.00175".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("12.5".into()), &[]), self.parse_number(Value::Str("0.00165".into()), &[])]),
+            Value::from(vec![self.parse_number(Value::Str("25".into()), &[]), self.parse_number(Value::Str("0.00155".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("75".into()), &[]), self.parse_number(Value::Str("0.00145".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("200".into()), &[]),
+            self.parse_number(Value::Str("0.00135".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("500".into()), &[]), self.parse_number(Value::Str("0.00125".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("1250".into()), &[]), self.parse_number(Value::Str("0.00115".into()), &[])]),
+            Value::from(vec![self.parse_number(Value::Str("2500".into()), &[]), self.parse_number(Value::Str("0.00105".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("3000".into()), &[]), self.parse_number(Value::Str("0.00095".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("6000".into()), &[]),
+            self.parse_number(Value::Str("0.00085".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("11000".into()), &[]), self.parse_number(Value::Str("0.00075".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("20000".into()), &[]), self.parse_number(Value::Str("0.00065".into()), &[])]),
+            Value::from(vec![self.parse_number(Value::Str("40000".into()), &[]), self.parse_number(Value::Str("0.00065".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("75000".into()), &[]), self.parse_number(Value::Str("0.00065".into()), &[])])]));
     m
 }));
     m
@@ -3150,8 +3163,20 @@ impl GateCore {
         m.insert("taker".to_string(), self.parse_number(Value::Str("0.0005".into()), &[]));
         m.insert("tiers".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("maker".to_string(), Value::from(vec![Value::from(vec![self.parse_number(Value::Str("0".into()), &[]), self.parse_number(Value::Str("0.0000".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("1.5".into()), &[]), self.parse_number(Value::Str("-0.00005".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("3".into()), &[]), self.parse_number(Value::Str("-0.00005".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("6".into()), &[]), self.parse_number(Value::Str("-0.00005".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("12.5".into()), &[]), self.parse_number(Value::Str("-0.00005".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("25".into()), &[]), self.parse_number(Value::Str("-0.00005".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("75".into()), &[]), self.parse_number(Value::Str("-0.00005".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("200".into()), &[]), self.parse_number(Value::Str("-0.00005".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("500".into()), &[]), self.parse_number(Value::Str("-0.00005".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("1250".into()), &[]), self.parse_number(Value::Str("-0.00005".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("2500".into()), &[]), self.parse_number(Value::Str("-0.00005".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("3000".into()), &[]), self.parse_number(Value::Str("-0.00008".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("6000".into()), &[]), self.parse_number(Value::Str("-0.01000".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("11000".into()), &[]), self.parse_number(Value::Str("-0.01002".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("20000".into()), &[]), self.parse_number(Value::Str("-0.01005".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("40000".into()), &[]), self.parse_number(Value::Str("-0.02000".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("75000".into()), &[]), self.parse_number(Value::Str("-0.02005".into()), &[])])]));
-        m.insert("taker".to_string(), Value::from(vec![Value::from(vec![self.parse_number(Value::Str("0".into()), &[]), self.parse_number(Value::Str("0.00050".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("1.5".into()), &[]), self.parse_number(Value::Str("0.00048".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("3".into()), &[]), self.parse_number(Value::Str("0.00046".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("6".into()), &[]), self.parse_number(Value::Str("0.00044".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("12.5".into()), &[]), self.parse_number(Value::Str("0.00042".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("25".into()), &[]), self.parse_number(Value::Str("0.00040".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("75".into()), &[]), self.parse_number(Value::Str("0.00038".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("200".into()), &[]), self.parse_number(Value::Str("0.00036".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("500".into()), &[]), self.parse_number(Value::Str("0.00034".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("1250".into()), &[]), self.parse_number(Value::Str("0.00032".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("2500".into()), &[]), self.parse_number(Value::Str("0.00030".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("3000".into()), &[]), self.parse_number(Value::Str("0.00030".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("6000".into()), &[]), self.parse_number(Value::Str("0.00030".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("11000".into()), &[]), self.parse_number(Value::Str("0.00030".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("20000".into()), &[]), self.parse_number(Value::Str("0.00030".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("40000".into()), &[]), self.parse_number(Value::Str("0.00030".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("75000".into()), &[]), self.parse_number(Value::Str("0.00030".into()), &[])])]));
+        m.insert("maker".to_string(), Value::from(vec![Value::from(vec![self.parse_number(Value::Str("0".into()), &[]), self.parse_number(Value::Str("0.0000".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("1.5".into()), &[]), self.parse_number(Value::Str("-0.00005".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("3".into()),
+            &[]), self.parse_number(Value::Str("-0.00005".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("6".into()), &[]), self.parse_number(Value::Str("-0.00005".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("12.5".into()), &[]), self.parse_number(Value::Str("-0.00005".into()), &[])]),
+            Value::from(vec![self.parse_number(Value::Str("25".into()), &[]), self.parse_number(Value::Str("-0.00005".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("75".into()), &[]), self.parse_number(Value::Str("-0.00005".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("200".into()), &[]),
+            self.parse_number(Value::Str("-0.00005".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("500".into()), &[]), self.parse_number(Value::Str("-0.00005".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("1250".into()), &[]), self.parse_number(Value::Str("-0.00005".into()), &[])]),
+            Value::from(vec![self.parse_number(Value::Str("2500".into()), &[]), self.parse_number(Value::Str("-0.00005".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("3000".into()), &[]), self.parse_number(Value::Str("-0.00008".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("6000".into()), &[]),
+            self.parse_number(Value::Str("-0.01000".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("11000".into()), &[]), self.parse_number(Value::Str("-0.01002".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("20000".into()), &[]), self.parse_number(Value::Str("-0.01005".into()), &[])]),
+            Value::from(vec![self.parse_number(Value::Str("40000".into()), &[]), self.parse_number(Value::Str("-0.02000".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("75000".into()), &[]), self.parse_number(Value::Str("-0.02005".into()), &[])])]));
+        m.insert("taker".to_string(), Value::from(vec![Value::from(vec![self.parse_number(Value::Str("0".into()), &[]), self.parse_number(Value::Str("0.00050".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("1.5".into()), &[]), self.parse_number(Value::Str("0.00048".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("3".into()),
+            &[]), self.parse_number(Value::Str("0.00046".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("6".into()), &[]), self.parse_number(Value::Str("0.00044".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("12.5".into()), &[]), self.parse_number(Value::Str("0.00042".into()), &[])]),
+            Value::from(vec![self.parse_number(Value::Str("25".into()), &[]), self.parse_number(Value::Str("0.00040".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("75".into()), &[]), self.parse_number(Value::Str("0.00038".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("200".into()), &[]),
+            self.parse_number(Value::Str("0.00036".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("500".into()), &[]), self.parse_number(Value::Str("0.00034".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("1250".into()), &[]), self.parse_number(Value::Str("0.00032".into()), &[])]),
+            Value::from(vec![self.parse_number(Value::Str("2500".into()), &[]), self.parse_number(Value::Str("0.00030".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("3000".into()), &[]), self.parse_number(Value::Str("0.00030".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("6000".into()), &[]),
+            self.parse_number(Value::Str("0.00030".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("11000".into()), &[]), self.parse_number(Value::Str("0.00030".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("20000".into()), &[]), self.parse_number(Value::Str("0.00030".into()), &[])]),
+            Value::from(vec![self.parse_number(Value::Str("40000".into()), &[]), self.parse_number(Value::Str("0.00030".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("75000".into()), &[]), self.parse_number(Value::Str("0.00030".into()), &[])])]));
     m
 }));
     m
@@ -3375,8 +3400,10 @@ if _try_result.is_err() {
         let mut timestamp: Value = self.parse8601(datetime.clone());
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("_".into())).into()), quote).into()), Value::Str("-".into())).into()), Value::Str("20".into())).into()), expiry).into()), Value::Str("-".into())).into()), strike).into()), Value::Str("-".into())).into()), optionType).into()));
-        m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into()), Value::Str(":".into())).into()), settle).into()), Value::Str("-".into())).into()), expiry).into()), Value::Str("-".into())).into()), strike).into()), Value::Str("-".into())).into()), optionType).into()));
+        m.insert("id".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("_".into())).into()), quote).into()),
+            Value::Str("-".into())).into()), Value::Str("20".into())).into()), expiry).into()), Value::Str("-".into())).into()), strike).into()), Value::Str("-".into())).into()), optionType).into()));
+        m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()),
+            quote).into()), Value::Str(":".into())).into()), settle).into()), Value::Str("-".into())).into()), expiry).into()), Value::Str("-".into())).into()), strike).into()), Value::Str("-".into())).into()), optionType).into()));
         m.insert("base".to_string(), base.clone());
         m.insert("quote".to_string(), quote.clone());
         m.insert("settle".to_string(), settle.clone());
@@ -3558,11 +3585,11 @@ if _try_result.is_err() {
             let mut id: Value = self.safe_string_k(spotMarket.clone(), "id", &[]);
             let mut marginMarket: Value = self.safe_dict(marginMarkets.clone(), id.clone(), &[]);
             let mut market: Value = self.deep_extend(marginMarket, &[spotMarket.clone()]);
-            let baseIdquoteIdVariable: Vec<Value> = Value::Array(id.as_str().map(|__s| __s.split("_").map(Value::from).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
-            let mut baseId: Value = baseIdquoteIdVariable.get(0).cloned().unwrap_or(Value::Null);
-            let mut quoteId: Value = baseIdquoteIdVariable.get(1).cloned().unwrap_or(Value::Null);
-            let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
-            let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
+            let mut idParts: Value = Value::Array(id.as_str().map(|__s| __s.split("_").map(Value::from).collect()).unwrap_or_default());
+            let mut baseId: Option<String> = self.safe_string_opt(idParts.clone(), Value::Int(0), &[]);
+            let mut quoteId: Option<String> = self.safe_string_opt(idParts, Value::Int(1), &[]);
+            let mut base: Value = self.safe_currency_code(baseId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+            let mut quote: Value = self.safe_currency_code(quoteId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             if (base == Value::Null) || (quote == Value::Null) {
                 continue;
             }
@@ -3583,8 +3610,8 @@ if _try_result.is_err() {
                     m.insert("base".to_string(), base);
                     m.insert("quote".to_string(), quote);
                     m.insert("settle".to_string(), Value::Null);
-                    m.insert("baseId".to_string(), baseId);
-                    m.insert("quoteId".to_string(), quoteId);
+                    m.insert("baseId".to_string(), baseId.map(Value::from).unwrap_or(Value::Null));
+                    m.insert("quoteId".to_string(), quoteId.map(Value::from).unwrap_or(Value::Null));
                     m.insert("settleId".to_string(), Value::Null);
                     m.insert("type".to_string(), Value::Str("spot".into()));
                     m.insert("spot".to_string(), Value::Bool(true));
@@ -3662,10 +3689,10 @@ if _try_result.is_err() {
                         let mut c: Value = Value::Int(0);
             let mut __for_first_681: bool = true;
             while { if !__for_first_681 { if let Value::Int(n) = &mut c { *n += 1; } } __for_first_681 = false; c.as_f64().unwrap_or(f64::NAN) < ((swapSettlementCurrencies.len() as i64) as f64) } {
-            let mut settleId: Value = swapSettlementCurrencies.as_array().and_then(|__arr| match &c { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut settleId: Option<String> = self.safe_string_opt(swapSettlementCurrencies.clone(), c.clone(), &[]);
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("settle".to_string(), settleId.clone());
+                    m.insert("settle".to_string(), settleId.clone().map(Value::from).unwrap_or(Value::Null));
                 m
             });
             let __ws_arg_0 = self.extend(Value::Map(request), &[params.clone()]);
@@ -3678,7 +3705,7 @@ if _try_result.is_err() {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-                let mut parsedMarket: Value = self.parse_contract_market(contract, settleId.clone());
+                let mut parsedMarket: Value = self.parse_contract_market(contract, settleId.clone().map(Value::from).unwrap_or(Value::Null));
                 if (parsedMarket != Value::Null) {
                     result.push(parsedMarket);
                 }
@@ -3705,10 +3732,10 @@ if _try_result.is_err() {
                         let mut c: Value = Value::Int(0);
             let mut __for_first_683: bool = true;
             while { if !__for_first_683 { if let Value::Int(n) = &mut c { *n += 1; } } __for_first_683 = false; c.as_f64().unwrap_or(f64::NAN) < ((futureSettlementCurrencies.len() as i64) as f64) } {
-            let mut settleId: Value = futureSettlementCurrencies.as_array().and_then(|__arr| match &c { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut settleId: Option<String> = self.safe_string_opt(futureSettlementCurrencies.clone(), c.clone(), &[]);
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("settle".to_string(), settleId.clone());
+                    m.insert("settle".to_string(), settleId.clone().map(Value::from).unwrap_or(Value::Null));
                 m
             });
             let __ws_arg_1 = self.extend(Value::Map(request), &[params.clone()]);
@@ -3721,7 +3748,7 @@ if _try_result.is_err() {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-                let mut parsedMarket: Value = self.parse_contract_market(contract, settleId.clone());
+                let mut parsedMarket: Value = self.parse_contract_market(contract, settleId.clone().map(Value::from).unwrap_or(Value::Null));
                 if (parsedMarket != Value::Null) {
                     result.push(parsedMarket);
                 }
@@ -3995,7 +4022,8 @@ if _try_result.is_err() {
                 if (isCall.as_bool() == Some(true)) {
                     optionType = Value::Str("call".into());
                 }
-                let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into()), Value::Str(":".into())).into()), quote).into()), Value::Str("-".into())).into()), self.yymmdd(expiry.clone(), &[])).into()), Value::Str("-".into())).into()), strike).into()), Value::Str("-".into())).into()), optionLetter).into());
+                let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()),
+                    quote).into()), Value::Str(":".into())).into()), quote).into()), Value::Str("-".into())).into()), self.yymmdd(expiry.clone(), &[])).into()), Value::Str("-".into())).into()), strike).into()), Value::Str("-".into())).into()), optionLetter).into());
                 let mut priceDeviate: Option<String> = self.safe_string_k_opt(market.clone(), "order_price_deviate", &[]);
                 let mut markPrice: Option<String> = self.safe_string_k_opt(market.clone(), "mark_price", &[]);
                 let mut minMultiplier: Value = crate::precise::Precise::stringSub(&Value::Str("1".into()), &priceDeviate.clone().map(Value::from).unwrap_or(Value::Null));
@@ -5906,7 +5934,8 @@ if _try_result.is_err() {
             let mut duration: Value = self.parse_timeframe(timeframe.clone());
             let mut fromTimestamp: Value = self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("from".into(), fromTimestamp.clone()); }
-            let mut distance: Value = (match (&(((match (&(limitValue), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }))), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
+            let mut distance: Value = (match (&(((match (&(limitValue), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }))),
+                &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
             let mut toTimestamp: Value = self.sum(&[fromTimestamp, distance]);
             let mut currentTimestamp: Value = self.seconds();
             let mut to: Value = crate::runtime::Math::min(&toTimestamp, &currentTimestamp);
@@ -6547,7 +6576,9 @@ if _try_result.is_err() {
         if (since != Value::Null) {
             let mut start: Value = self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
             request.insert("from".into(), start.clone());
-            request.insert("to".into(), self.sum(&[start, (match (&((match (&((match (&(Value::Int(30)), &(Value::Int(24))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(60))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(60))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]));
+            request.insert("to".into(), self.sum(&[start, (match (&((match (&((match (&(Value::Int(30)), &(Value::Int(24))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
+                Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(60))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y),
+                _ => Value::Null })), &(Value::Int(60))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]));
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("to".into()), Value::Map(request), paramsPaginate, &[Value::Float(0.001)]).as_array().cloned().unwrap_or_default();
         let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
@@ -6604,7 +6635,9 @@ if _try_result.is_err() {
         if (since != Value::Null) {
             let mut start: Value = self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
             request.insert("from".into(), start.clone());
-            request.insert("to".into(), self.sum(&[start, (match (&((match (&((match (&(Value::Int(30)), &(Value::Int(24))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(60))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(60))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]));
+            request.insert("to".into(), self.sum(&[start, (match (&((match (&((match (&(Value::Int(30)), &(Value::Int(24))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
+                Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(60))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y),
+                _ => Value::Null })), &(Value::Int(60))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]));
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("to".into()), Value::Map(request), paramsPaginate, &[Value::Float(0.001)]).as_array().cloned().unwrap_or_default();
         let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
@@ -7121,14 +7154,16 @@ if _try_result.is_err() {
                 if isMarketOrder && (side.as_str() == Some("buy")) {
                     let mut quoteAmount: Value = Value::Null;
                     let mut createMarketBuyOrderRequiresPrice: Value = Value::Bool(true);
-                    { let __destr_tmp: Vec<Value> = self.handle_option_bool_and_params(query.clone(), Value::Str("createOrder".into()), Value::Str("createMarketBuyOrderRequiresPrice".into()), &[Value::Bool(true)]).as_array().cloned().unwrap_or_default(); createMarketBuyOrderRequiresPrice = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+                    { let __destr_tmp: Vec<Value> = self.handle_option_bool_and_params(query.clone(), Value::Str("createOrder".into()), Value::Str("createMarketBuyOrderRequiresPrice".into()), &[Value::Bool(true)]).as_array().cloned().unwrap_or_default(); createMarketBuyOrderRequiresPrice = __destr_tmp.get(0).cloned().unwrap_or(Value::Null);
+                        query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
                     let mut cost: Value = self.safe_number_k(query.clone(), "cost", &[]);
                     query = self.omit(query.clone(), Value::Str("cost".into()), &[]);
                     if (cost != Value::Null) {
                         quoteAmount = self.cost_to_precision(symbol.clone(), cost);
                     }  else if createMarketBuyOrderRequiresPrice.as_bool() == Some(true) {
                         if (priceResolved == Value::Null) {
-                            panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument".into()))));
+                            panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(),
+                                Value::Str(" createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument".into()))));
                         }  else {
                             let mut amountString: Value = self.number_to_string(amountResolved.clone());
                             let mut priceString: Value = self.number_to_string(priceResolved.clone());
@@ -8419,8 +8454,6 @@ if _try_result.is_err() {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let __ids_empty = Vec::new();
-        let ids = ids.as_array().unwrap_or(&__ids_empty);
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
@@ -8449,7 +8482,7 @@ if _try_result.is_err() {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_700: bool = true;
                 while { if !__for_first_700 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_700 = false; i.as_f64().unwrap_or(f64::NAN) < ((ids.len() as i64) as f64) } {
-                let mut id: Value = ids.get((i).as_i64().map_or(usize::MAX, |__n| __n as usize)).cloned().unwrap_or(Value::Null);
+                let mut id: Value = self.safe_string(ids.clone(), i.clone(), &[Value::Str("".into())]);
                 let mut orderItem: Value = Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("id".to_string(), id);
@@ -8471,7 +8504,7 @@ if _try_result.is_err() {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_701: bool = true;
             while { if !__for_first_701 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_701 = false; i.as_f64().unwrap_or(f64::NAN) < ((ids.len() as i64) as f64) } {
-            finalList.push(ids.get((i).as_i64().map_or(usize::MAX, |__n| __n as usize)).cloned().unwrap_or(Value::Null));
+            finalList.push(self.safe_string(ids.clone(), i.clone(), &[Value::Str("".into())]));
         }
         }
         let mut response: Value = self.private_futures_post_settle_batch_cancel_orders(&[Value::from(finalList)]).await;
@@ -10471,7 +10504,8 @@ if _try_result.is_err() {
         if ((rawTimestamp.len() as i64) as f64) > ((10i64) as f64) {
             timestamp = (match &rawTimestamp { Value::Str(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), Value::Int(__parse_n) => Value::Int(*__parse_n), Value::Float(__parse_f) => Value::Int(*__parse_f as i64), _ => Value::Null });
         }  else {
-            timestamp = (match (&((match &rawTimestamp { Value::Str(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), Value::Int(__parse_n) => Value::Int(*__parse_n), Value::Float(__parse_f) => Value::Int(*__parse_f as i64), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
+            timestamp = (match (&((match &rawTimestamp { Value::Str(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), Value::Int(__parse_n) => Value::Int(*__parse_n), Value::Float(__parse_f) => Value::Int(*__parse_f as i64), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y),
+                (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
         }
         let mut balanceString: Option<String> = self.safe_string_k_opt(item.clone(), "balance", &[]);
         let mut changeString: Option<String> = self.safe_string_k_opt(item.clone(), "change", &[]);

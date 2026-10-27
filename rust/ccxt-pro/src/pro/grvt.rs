@@ -1117,7 +1117,7 @@ impl GrvtCore {
             self.load_markets(&[]).await;
         }
         self.authenticate(&[]).await;
-        let mut subAccountId: Value = self.parent.get_sub_account_id(params.clone());
+        let mut subAccountId: Value = self.parent.get_sub_account_id(params.clone()).map(Value::from).unwrap_or(Value::Null);
         let mut messageHashes: Value = Value::from(vec![]);
         let mut rawHashes: Vec<Value> = Vec::new();
         if (symbol != Value::Null) {
@@ -1227,7 +1227,7 @@ impl GrvtCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut subAccountId: Value = self.parent.get_sub_account_id(params.clone());
+        let mut subAccountId: Value = self.parent.get_sub_account_id(params.clone()).map(Value::from).unwrap_or(Value::Null);
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
         let mut rawHashes: Vec<Value> = Vec::new();
         let mut messageHashes: Vec<Value> = Vec::new();
@@ -1335,7 +1335,7 @@ impl GrvtCore {
             self.load_markets(&[]).await;
         }
         self.authenticate(&[]).await;
-        let mut subAccountId: Value = self.parent.get_sub_account_id(params.clone());
+        let mut subAccountId: Value = self.parent.get_sub_account_id(params.clone()).map(Value::from).unwrap_or(Value::Null);
         let mut messageHashes: Vec<Value> = Vec::new();
         let mut rawHashes: Vec<Value> = Vec::new();
         if (symbol == Value::Null) {

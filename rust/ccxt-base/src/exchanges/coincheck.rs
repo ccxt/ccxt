@@ -95,7 +95,8 @@ impl crate::exchange_generated::ExchangeBase for CoincheckCore {
                 "fetch_trades" => self.fetch_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "fetch_trading_fees" => self.fetch_trading_fees(&args[..]).await,
                 "fetch_withdrawals" => self.fetch_withdrawals(&args[..]).await,
-                "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
+                "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null),
+                    args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
                 "nonce" => self.nonce(),
                 "parse_balance" => self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_order" => self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
@@ -599,10 +600,11 @@ impl CoincheckCore {
             let mut code: Value = codes.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
             let mut currency: indexmap::IndexMap<String, Value> = self.currency(code.clone()).as_map().cloned().unwrap_or_default();
             let mut currencyId: Value = currency.get("id").cloned().unwrap_or(Value::Null);
-            if (in_op(&response, &currencyId)) {
+            let mut free: Option<String> = self.safe_string_opt(response.clone(), currencyId.clone(), &[]);
+            if (free.is_some()) {
                 let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
                 let mut reserved: Value = Value::Str(format!("{}{}", currencyId, Value::Str("_reserved".into())).into());
-                account.insert("free".into(), self.safe_string(response.clone(), currencyId.clone(), &[]));
+                account.insert("free".into(), free.map(Value::from).unwrap_or(Value::Null));
                 account.insert("used".into(), self.safe_string(response.clone(), reserved, &[]));
                 result.insert(crate::runtime::stringify_param(&code), Value::Map(account));
             }
@@ -951,10 +953,11 @@ impl CoincheckCore {
         let mut side: Value = Value::Null;
         let mut fee: Value = Value::Null;
         let mut orderId: Value = Value::Null;
-        if (matches!(&trade, Value::Dict(__d) if __d.contains_key("liquidity"))) {
-            if (self.safe_string_k(trade.clone(), "liquidity", &[]).as_str() == Some("T")) {
+        let mut liquidity: Option<String> = self.safe_string_k(trade.clone(), "liquidity", &[]).as_str().map(str::to_owned);
+        if (liquidity.is_some()) {
+            if (liquidity.as_deref() == Some("T")) {
                 takerOrMaker = Value::Str("taker".into());
-            }  else if (self.safe_string_k(trade.clone(), "liquidity", &[]).as_str() == Some("M")) {
+            }  else if (liquidity.as_deref() == Some("M")) {
                 takerOrMaker = Value::Str("maker".into());
             }
             let mut funds: Value = self.safe_dict_k(trade.clone(), "funds", &[Value::Map({

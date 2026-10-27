@@ -853,12 +853,11 @@ impl CoinbaseexchangeCore {
             let mut trade: Value = self.parse_ws_trade(message.clone(), &[]);
             let mut type_var: Value = Value::Str("myTrades".into());
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", type_var, Value::Str(":".into())).into()), marketId).into());
-            let mut tradesArray: Value = self.myTrades.clone();
-            if (tradesArray == Value::Null) {
+            if (self.myTrades.clone() == Value::Null) {
                 let mut limit: Value = self.safe_integer_k(self.options.clone(), "myTradesLimit", &[Value::Int(1000)]);
-                tradesArray = ArrayCacheBySymbolById::new(limit);
-                self.myTrades = tradesArray.clone();
+                self.myTrades = ArrayCacheBySymbolById::new(limit);
             }
+            let mut tradesArray: Value = self.myTrades.clone();
             tradesArray.append(trade);
             client.resolve(&[tradesArray, messageHash]);
         }
@@ -922,10 +921,11 @@ impl CoinbaseexchangeCore {
         let mut parsed: Value = self.parent.parse_trade(trade.clone(), &[]);
         let mut feeRate: Value = Value::Null;
         let mut isMaker: bool = false;
-        if (matches!(&trade, Value::Dict(__d) if __d.contains_key("maker_fee_rate"))) {
+        let mut makerFeeRate: Option<String> = self.safe_string_k_opt(trade.clone(), "maker_fee_rate", &[]);
+        if (makerFeeRate.is_some()) {
             isMaker = true;
             add_element_to_object(&mut parsed, &Value::Str("takerOrMaker".into()), Value::Str("maker".into()));
-            feeRate = self.safe_string_k(trade.clone(), "maker_fee_rate", &[]);
+            feeRate = makerFeeRate.map(Value::from).unwrap_or(Value::Null);
         }  else {
             add_element_to_object(&mut parsed, &Value::Str("takerOrMaker".into()), Value::Str("taker".into()));
             feeRate = self.safe_string_k(trade.clone(), "taker_fee_rate", &[]);
@@ -1084,7 +1084,8 @@ impl CoinbaseexchangeCore {
                 orders.append(parsed);
                 client.resolve(&[orders.clone(), messageHash.clone()]);
             }  else {
-                let mut sequence: Value = (match __pro_message.get("sequence").cloned() { Some(Value::Int(__n)) => Value::Int(__n), Some(Value::Float(__f)) => Value::Int(__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null });
+                let mut sequence: Value = (match __pro_message.get("sequence").cloned() { Some(Value::Int(__n)) => Value::Int(__n), Some(Value::Float(__f)) => Value::Int(__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n),
+                    Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null });
                 if (sequence == Value::Null) {
                     return;
                 }
@@ -1250,7 +1251,7 @@ impl CoinbaseexchangeCore {
             if (symbol != Value::Null) {
                 if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ticker.clone()); }
             }
-            let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("ticker:".into()), symbol).into());
+            let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("ticker:".into()), self.safe_string_k(ticker.clone(), "symbol", &[Value::Str("".into())])).into());
             let mut idMessageHash: Value = Value::Str(format!("{}{}", Value::Str("ticker:".into()), marketId).into());
             client.resolve(&[ticker.clone(), messageHash]);
             client.resolve(&[ticker, idMessageHash]);

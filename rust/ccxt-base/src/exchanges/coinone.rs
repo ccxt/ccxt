@@ -92,7 +92,8 @@ impl crate::exchange_generated::ExchangeBase for CoinoneCore {
                 "fetch_ticker" => self.fetch_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "fetch_tickers" => self.fetch_tickers(&args[..]).await,
                 "fetch_trades" => self.fetch_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
-                "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
+                "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null),
+                    args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
                 "parse_balance" => self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_currency" => self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_order" => self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
@@ -1840,28 +1841,23 @@ impl CoinoneCore {
             let mut currencyId: Option<String> = self.safe_string_opt(parts.clone(), Value::Int(0), &[]);
             let mut secondPart: Option<String> = self.safe_string(parts, Value::Int(1), &[]).as_str().map(str::to_owned);
             let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
-            let mut depositAddress: Value = self.safe_dict(Value::Map(result.clone()), code.clone(), &[]);
-            if (depositAddress == Value::Null) {
-                depositAddress = Value::Map({
-                    let mut m = indexmap::IndexMap::new();
-                        m.insert("info".to_string(), value.clone());
-                        m.insert("currency".to_string(), code.clone());
-                        m.insert("network".to_string(), Value::Null);
-                        m.insert("address".to_string(), Value::Null);
-                        m.insert("tag".to_string(), Value::Null);
-                    m
-                });
-            }
-            let mut address: Value = self.safe_string_k(depositAddress.clone(), "address", &[value.clone()]);
+            let mut address: Value = self.safe_string(self.safe_value(Value::Map(result.clone()), code.clone(), &[]), Value::Str("address".into()), &[value.clone()]);
             self.check_address(&[address.clone()]);
-            if let Value::Dict(__d) = &mut depositAddress { std::sync::Arc::make_mut(__d).insert("address".into(), address.clone()); }
-            if let Value::Dict(__d) = &mut depositAddress { std::sync::Arc::make_mut(__d).insert("info".into(), address.clone()); }
+            let mut depositAddress: indexmap::IndexMap<String, Value> = ({
+                let mut m = indexmap::IndexMap::new();
+                    m.insert("info".to_string(), address.clone());
+                    m.insert("currency".to_string(), code.clone());
+                    m.insert("network".to_string(), Value::Null);
+                    m.insert("address".to_string(), address.clone());
+                    m.insert("tag".to_string(), self.safe_string(self.safe_value(Value::Map(result.clone()), code.clone(), &[]), Value::Str("tag".into()), &[]));
+                m
+            });
             if ((secondPart.as_deref() == Some("tag")) || (secondPart.as_deref() == Some("memo"))) {
-                if let Value::Dict(__d) = &mut depositAddress { std::sync::Arc::make_mut(__d).insert("tag".into(), value.clone()); }
-                if let Value::Dict(__d) = &mut depositAddress { std::sync::Arc::make_mut(__d).insert("info".into(), Value::from(vec![address, value])); }
+                depositAddress.insert("tag".into(), value.clone());
+                depositAddress.insert("info".into(), Value::from(vec![address, value]));
             }
             if (code != Value::Null) {
-                result.insert(crate::runtime::stringify_param(&code), depositAddress);
+                result.insert(crate::runtime::stringify_param(&code), Value::Map(depositAddress));
             }
         }
         }
