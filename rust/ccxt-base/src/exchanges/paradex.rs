@@ -218,7 +218,7 @@ impl ParadexCore {
         m.insert("has".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("CORS".to_string(), Value::Null);
-        m.insert("spot".to_string(), Value::Bool(false));
+        m.insert("spot".to_string(), Value::Bool(true));
         m.insert("margin".to_string(), Value::Bool(false));
         m.insert("swap".to_string(), Value::Bool(true));
         m.insert("future".to_string(), Value::Bool(false));
@@ -1094,6 +1094,10 @@ impl ParadexCore {
         m.insert("40110".to_string(), Value::Str("AuthenticationError".into()).clone());
         m.insert("40111".to_string(), Value::Str("AuthenticationError".into()).clone());
         m.insert("40112".to_string(), Value::Str("PermissionDenied".into()).clone());
+        m.insert("40300".to_string(), Value::Str("PermissionDenied".into()).clone());
+        m.insert("40301".to_string(), Value::Str("NotSupported".into()).clone());
+        m.insert("42900".to_string(), Value::Str("OperationRejected".into()).clone());
+        m.insert("42901".to_string(), Value::Str("RateLimitExceeded".into()).clone());
     m
 }));
         m.insert("broad".to_string(), Value::Map({
@@ -1116,7 +1120,19 @@ impl ParadexCore {
 }));
         m.insert("features".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("spot".to_string(), Value::Null);
+        m.insert("spot".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("extends".to_string(), Value::Str("forSwap".into()));
+        m.insert("createOrder".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("triggerPrice".to_string(), Value::Bool(false));
+        m.insert("triggerDirection".to_string(), Value::Bool(false));
+        m.insert("stopLossPrice".to_string(), Value::Bool(false));
+        m.insert("takeProfitPrice".to_string(), Value::Bool(false));
+    m
+}));
+    m
+}));
         m.insert("forSwap".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("sandbox".to_string(), Value::Bool(true));
@@ -1402,26 +1418,53 @@ impl ParadexCore {
         //     ]
         //  }
         //
+        // spot
+        //
+        //     {
+        //         "symbol": "ETH-USD",
+        //         "base_currency": "ETH",
+        //         "quote_currency": "USD",
+        //         "settlement_currency": "USDC",
+        //         "order_size_increment": "0.0001",
+        //         "price_tick_size": "0.01",
+        //         "min_notional": "10",
+        //         "asset_kind": "SPOT",
+        //         "market_kind": "cross",
+        //         ...
+        //     }
+        //
         let mut assetKind: Option<String> = self.safe_string_k(market.clone(), "asset_kind", &[]).as_str().map(str::to_owned);
+        let mut isSpot: Value = (Value::Bool(assetKind.as_deref() == Some("SPOT")));
         let mut isOptionPerpetual: bool = assetKind.as_deref() == Some("PERP_OPTION");
         let mut isOptionDelivery: bool = assetKind.as_deref() == Some("OPTION");
         let mut isOption: Value = Value::Bool(isOptionPerpetual || isOptionDelivery);
         let mut type_var: Value = Value::Str("swap".into());
-        if matches!(&isOption, Value::Bool(true)) {
+        if matches!(&isSpot, Value::Bool(true)) {
+            type_var = Value::Str("spot".into());
+        }  else if matches!(&isOption, Value::Bool(true)) {
             type_var = Value::Str("option".into());
         }
         let mut isSwap: Value = (Value::Bool(type_var.as_str() == Some("swap")));
         let mut marketId: Value = self.safe_string_k(market.clone(), "symbol", &[]);
         let mut quoteId: Value = self.safe_string_k(market.clone(), "quote_currency", &[]);
         let mut baseId: Value = self.safe_string_k(market.clone(), "base_currency", &[]);
+        let mut settleId: Value = self.safe_string_k(market.clone(), "settlement_currency", &[]);
+        if matches!(&isSpot, Value::Bool(true)) {
+            // spot is quoted in "USD" but paid and received in the settlement token (USDC),
+            // a spot market has no settle, so the token it trades against is the quote
+            quoteId = settleId.clone();
+            settleId = Value::Null;
+        }
         let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
         let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
         if (base == Value::Null) || (quote == Value::Null) {
             return Value::Null;
         }
-        let mut settleId: Value = self.safe_string_k(market.clone(), "settlement_currency", &[]);
         let mut settle: Value = self.safe_currency_code(settleId.clone(), &[]);
-        let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into()), Value::Str(":".into())).into()), settle).into());
+        let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into());
+        if !(matches!(&isSpot, Value::Bool(true))) {
+            symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str(":".into())).into()), settle).into());
+        }
         let mut expiry: Value = self.safe_integer_k(market.clone(), "expiry_at", &[]);
         let mut optionType: Option<String> = self.safe_string_k(market.clone(), "option_type", &[]).as_str().map(str::to_owned);
         let mut strikePrice: Value = self.safe_string_k(market.clone(), "strike_price", &[]);
@@ -1447,18 +1490,18 @@ impl ParadexCore {
         m.insert("quoteId".to_string(), quoteId);
         m.insert("settleId".to_string(), settleId);
         m.insert("type".to_string(), type_var);
-        m.insert("spot".to_string(), Value::Bool(false));
+        m.insert("spot".to_string(), isSpot.clone());
         m.insert("margin".to_string(), Value::Null);
         m.insert("swap".to_string(), isSwap);
         m.insert("future".to_string(), Value::Bool(false));
         m.insert("option".to_string(), isOption);
         m.insert("active".to_string(), self.safe_bool_k(market.clone(), "enableTrading", &[]));
-        m.insert("contract".to_string(), Value::Bool(true));
-        m.insert("linear".to_string(), Value::Bool(true));
-        m.insert("inverse".to_string(), Value::Bool(false));
+        m.insert("contract".to_string(), Value::Bool(!(matches!(&isSpot, Value::Bool(true)))));
+        m.insert("linear".to_string(), (if matches!(&isSpot, Value::Bool(true)) { Value::Null } else { Value::Bool(true) }));
+        m.insert("inverse".to_string(), (if matches!(&isSpot, Value::Bool(true)) { Value::Null } else { Value::Bool(false) }));
         m.insert("taker".to_string(), takerFee);
         m.insert("maker".to_string(), makerFee);
-        m.insert("contractSize".to_string(), self.parse_number(Value::Str("1".into()), &[]));
+        m.insert("contractSize".to_string(), (if matches!(&isSpot, Value::Bool(true)) { Value::Null } else { self.parse_number(Value::Str("1".into()), &[]) }));
         m.insert("expiry".to_string(), expiry);
         m.insert("expiryDatetime".to_string(), expireDatetime);
         m.insert("strike".to_string(), self.parse_number(strikePrice, &[]));
@@ -1681,7 +1724,7 @@ impl ParadexCore {
  * @param {int} [limit] the maximum amount of candles to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest candle to fetch
- * @param {string} [params.price] "last", "mark", "index", default is "last"
+ * @param {string} [params.price] "last", "mark", "index" (sent as "underlying"), default is "last"
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
     pub async fn fetch_ohlcv(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
@@ -1705,7 +1748,8 @@ impl ParadexCore {
         let mut duration: Value = self.parse_timeframe(timeframe.clone());
         let mut price: Value = self.safe_string_k(params.clone(), "price", &[]);
         if (price != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price_kind".into(), price); }
+            // the exchange names the index price "underlying" and rejects "index"
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price_kind".into(), (if (price.as_str() == Some("index")) { Value::Str("underlying".into()) } else { price })); }
         }
         let mut requestUntilparamsUntilVariable = self.handle_until_option(Value::Str("end_at".into()), request.clone(), params, &[]);
         let mut requestUntil: Value = requestUntilparamsUntilVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
@@ -3042,44 +3086,52 @@ impl ParadexCore {
         }
         let mut response: Value = self.private_post_orders_batch(&[Value::from(ordersRequests)]).await;
         //
-        // {
-        //     "errors": [
-        //         {
-        //             "error": "VALIDATION_ERROR",
-        //             "message": "Invalid order"
-        //         }
-        //     ],
-        //     "orders": [
-        //         {
-        //             "id": "123456",
-        //             "market": "BTC-USD-PERP",
-        //             "side": "BUY",
-        //             "type": "LIMIT",
-        //             "price": "26000",
-        //             "size": "0.05",
-        //             "status": "NEW"
-        //         }
-        //     ]
-        // }
+        // orders and errors are index-aligned with the request, null where the other array has the entry
+        //
+        //     {
+        //         "errors": [
+        //             null,
+        //             {
+        //                 "error": "DUPLICATED_CLIENT_ID",
+        //                 "message": "duplicated client order id"
+        //             }
+        //         ],
+        //         "orders": [
+        //             {
+        //                 "id": "123456",
+        //                 "market": "BTC-USD-PERP",
+        //                 "side": "BUY",
+        //                 "type": "LIMIT",
+        //                 "price": "26000",
+        //                 "size": "0.05",
+        //                 "status": "NEW"
+        //             },
+        //             null
+        //         ]
+        //     }
         //
         let mut responseOrders: Value = self.safe_list_k(response.clone(), "orders", &[Value::from(vec![])]);
-        let mut parsedOrders: Value = self.parse_orders(responseOrders, &[]);
         let mut errors: Value = self.safe_list_k(response, "errors", &[Value::from(vec![])]);
-        let mut rejected: Vec<Value> = Vec::new();
+        let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1056: bool = true;
-            while { if !__for_first_1056 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1056 = false; i.as_f64().unwrap_or(f64::NAN) < ((errors.len() as i64) as f64) } {
-            let mut error: Value = errors.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-            rejected.push(self.safe_order(Value::Map({
+            while { if !__for_first_1056 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1056 = false; i.as_f64().unwrap_or(f64::NAN) < ((orders.len() as i64) as f64) } {
+            let mut responseOrder: Value = self.safe_dict(responseOrders.clone(), i.clone(), &[]);
+            if (responseOrder != Value::Null) {
+                result.push(self.parse_order(responseOrder, &[]));
+            }  else {
+                let mut error: Value = self.safe_dict(errors.clone(), i.clone(), &[]);
+                result.push(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), error);
         m.insert("status".to_string(), Value::Str("rejected".into()));
     m
 }), &[]));
+            }
         }
         }
-        return self.array_concat(parsedOrders, Value::from(rejected));
+        return Value::from(result);
 
     Value::Null
 }
@@ -4950,7 +5002,29 @@ impl ParadexCore {
         //         "message": "User has never called /onboarding endpoint"
         //     }
         //
-        let mut errorCode: Value = self.safe_string_k(response, "error", &[]);
+        let mut errorCode: Value = self.safe_string_k(response.clone(), "error", &[]);
+        if (errorCode == Value::Null) && (httpCode.as_f64() == Some(400.0)) {
+            //
+            // a batch where every order was rejected, errors are index-aligned with the request
+            //
+            //     {
+            //         "errors": [ { "error": "DUPLICATED_CLIENT_ID", "message": "..." } ],
+            //         "orders": [ null ]
+            //     }
+            //
+            let mut batchErrors: Value = self.safe_list_k(response, "errors", &[Value::from(vec![])]);
+            {
+                                let mut i: Value = Value::Int(0);
+                let mut __for_first_1063: bool = true;
+                while { if !__for_first_1063 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1063 = false; i.as_f64().unwrap_or(f64::NAN) < ((batchErrors.len() as i64) as f64) } {
+                let mut batchErrorCode: Value = self.safe_string(batchErrors.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), Value::Str("error".into()), &[]);
+                if (batchErrorCode != Value::Null) {
+                    errorCode = batchErrorCode;
+                    break;
+                }
+            }
+            }
+        }
         if (errorCode != Value::Null) {
             let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body).into());
             self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), body, feedback.clone());
