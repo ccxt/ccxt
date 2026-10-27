@@ -1256,10 +1256,10 @@ class BaseExchange extends \ccxt\BaseExchange {
                 // safeValue (not entry[field]) so a missing field is a non-match, not a
                 // KeyError in python/php — prediction structures key on outcome, not symbol
                 $entryFiledEqualValue = $this->safe_value($entry, $field) === $value;
-                $firstCondition = $valueIsDefined ? $entryFiledEqualValue : true;
+                $firstCondition = !$valueIsDefined || $entryFiledEqualValue;
                 $entryKeyValue = $this->safe_integer($entry, $key);
                 $entryKeyGESince = ($entryKeyValue !== null) && ($entryKeyValue !== 0) && ($since !== null) && ($entryKeyValue >= $since);
-                $secondCondition = $sinceIsDefined ? $entryKeyGESince : true;
+                $secondCondition = !$sinceIsDefined || $entryKeyGESince;
                 if ($firstCondition && $secondCondition) {
                     $result[] = $entry;
                 }

@@ -1329,18 +1329,18 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         $isPrivate = $interval === 'raw';
         list($useDepthEndpoint, $paramsDepthEndpoint) = $this->handle_option_bool_and_params($paramsInterval, 'watchOrderBookForSymbols', 'useDepthEndpoint', false);
         $paramsChannel = $paramsDepthEndpoint;
-        $descriptor = $interval;
+        $descriptor = '.' . $interval;
         if ($useDepthEndpoint) {
             list($depth, $paramsDepth) = $this->handle_option_string_and_params($paramsDepthEndpoint, 'watchOrderBookForSymbols', 'depth', '20');
             list($groupKey, $paramsGroup) = $this->handle_option_string_and_params($paramsDepth, 'watchOrderBookForSymbols', 'group', 'none');
             $paramsChannel = $paramsGroup;
-            $descriptor = $groupKey . '.' . $depth . '.' . $interval;
+            $descriptor = '.' . $groupKey . '.' . $depth . '.' . $interval;
         }
         $channels = array();
         $symbolsLength = count($symbols);
         for ($i = 0; $i < $symbolsLength; $i++) {
             $market = $this->market($this->safe_string($symbols, $i, ''));
-            $channels[] = 'book.' . $this->safe_string($market, 'id', '') . '.' . $descriptor;
+            $channels[] = 'book.' . $this->safe_string($market, 'id', '') . $descriptor;
         }
         $orderbook = Async\await($this->subscribe($channels, $channels, $isPrivate, $paramsChannel));
         return $orderbook->limit();
@@ -1389,17 +1389,17 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         list($interval, $paramsInterval) = $this->handle_option_string_and_params($paramsResolved, 'watchOrderBookForSymbols', 'interval', '100ms');
         list($useDepthEndpoint, $paramsDepthEndpoint) = $this->handle_option_bool_and_params($paramsInterval, 'watchOrderBookForSymbols', 'useDepthEndpoint', false);
         $paramsChannel = $paramsDepthEndpoint;
-        $descriptor = $interval;
+        $descriptor = '.' . $interval;
         if ($useDepthEndpoint) {
             list($depth, $paramsDepth) = $this->handle_option_string_and_params($paramsDepthEndpoint, 'watchOrderBookForSymbols', 'depth', '20');
             list($groupKey, $paramsGroup) = $this->handle_option_string_and_params($paramsDepth, 'watchOrderBookForSymbols', 'group', 'none');
             $paramsChannel = $paramsGroup;
-            $descriptor = $groupKey . '.' . $depth . '.' . $interval;
+            $descriptor = '.' . $groupKey . '.' . $depth . '.' . $interval;
         }
         $channels = array();
         $symbolsLength = count($symbols);
         for ($i = 0; $i < $symbolsLength; $i++) {
-            $channels[] = 'book.' . $this->safe_string($this->market($this->safe_string($symbols, $i, '')), 'id', '') . '.' . $descriptor;
+            $channels[] = 'book.' . $this->safe_string($this->market($this->safe_string($symbols, $i, '')), 'id', '') . $descriptor;
         }
         return Async\await($this->un_subscribe($channels, $interval === 'raw', $paramsChannel));
     }
@@ -1420,15 +1420,15 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
             $this->orderbooks[$symbol] = $isGrouped ? $this->order_book(array(), $limit) : $this->counted_order_book(array(), $limit);
         }
         $orderbook = $this->orderbooks[$symbol];
-        if (!$isGrouped && ($type !== 'snapshot') && ($this->safe_integer($orderbook, 'nonce') === null)) {
+        $nonce = $this->safe_integer($orderbook, 'nonce');
+        if (!$isGrouped && ($type !== 'snapshot') && ($nonce === null)) {
             return;
         }
         if ($isGrouped) {
-            $parsedSnapshot = $this->parse_order_book($data, $symbol, $timestamp, 'bids', 'asks');
-            $orderbook->reset($parsedSnapshot);
+            $orderbook->reset($this->parse_order_book($data, $symbol, $timestamp, 'bids', 'asks'));
         } else {
             $previousChangeId = $this->safe_integer($data, 'prev_change_id');
-            if (($type !== 'snapshot') && ($this->safe_integer($orderbook, 'nonce') !== null) && ($previousChangeId !== $this->safe_integer($orderbook, 'nonce'))) {
+            if (($type !== 'snapshot') && ($nonce !== null) && ($previousChangeId !== $nonce)) {
                 // drop the stale book and reject only this channels future
                 unset($this->orderbooks[$symbol]);
                 if (is_array($client->subscriptions) && array_key_exists($channel ?? '', $client->subscriptions)) {

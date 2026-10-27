@@ -422,7 +422,8 @@ class kalshi extends Exchange {
          */
         $tickers = array();
         $seen = array();
-        for ($i = 0; $i < count($outcomeSymbols); $i++) {
+        $outcomeSymbolsLength = count($outcomeSymbols);
+        for ($i = 0; $i < $outcomeSymbolsLength; $i++) {
             $outcomeSymbol = $outcomeSymbols[$i];
             if (mb_strpos($outcomeSymbol, ':') !== false) {
                 continue;
@@ -466,7 +467,7 @@ class kalshi extends Exchange {
                 $this->index_market_outcomes($parsed);
             }
         }
-        for ($i = 0; $i < count($outcomeSymbols); $i++) {
+        for ($i = 0; $i < $outcomeSymbolsLength; $i++) {
             if (!$this->has_outcome($outcomeSymbols[$i])) {
                 Async\await($this->fetch_outcome($outcomeSymbols[$i]));
             }

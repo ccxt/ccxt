@@ -1771,7 +1771,7 @@ class bingx extends \ccxt\async\bingx {
             }
         }
         $stored->append($parsedOrder);
-        $symbol = $this->safe_string($parsedOrder, 'symbol');
+        $symbol = $this->safe_string($parsedOrder, 'symbol', '');
         $spotHash = 'spot:order';
         $swapHash = 'swap:order';
         $messageHash = $swapHash;
