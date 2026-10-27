@@ -3652,25 +3652,25 @@ export class BaseExchange {
         if (!(marketType in this.features)) {
             return defaultValue; // unsupported marketType, check "exchange.features" for details
         }
+        let methodsContainer = this.features[marketType];
         // if marketType dict undefined
-        if (this.features[marketType] === undefined) {
+        if (methodsContainer === undefined) {
             return defaultValue;
         }
-        let methodsContainer = this.features[marketType];
         if (subType === undefined) {
             if (marketType !== 'spot') {
                 return defaultValue; // subType is required for non-spot markets
             }
         }
         else {
-            if (!(subType in this.features[marketType])) {
+            if (!(subType in methodsContainer)) {
                 return defaultValue; // unsupported subType, check "exchange.features" for details
             }
+            methodsContainer = methodsContainer[subType];
             // if subType dict undefined
-            if (this.features[marketType][subType] === undefined) {
+            if (methodsContainer === undefined) {
                 return defaultValue;
             }
-            methodsContainer = this.features[marketType][subType];
         }
         // if user wanted only marketType and didn't provide methodName, eg: featureIsSupported('spot')
         if (methodName === undefined) {
@@ -6198,15 +6198,14 @@ export class BaseExchange {
             }
             else {
                 // still processing the same timeframe -> update opening trade
-                const prevHigh = ohlcvs[candle][i_high];
-                const prevLow = ohlcvs[candle][i_low];
-                const prevHighValue = (prevHigh === undefined) ? price : prevHigh;
-                const prevLowValue = (prevLow === undefined) ? price : prevLow;
-                ohlcvs[candle][i_high] = Math.max(prevHighValue, price);
-                ohlcvs[candle][i_low] = Math.min(prevLowValue, price);
+                const prevCandle = this.safeValue(ohlcvs, candle);
+                const prevHigh = this.safeValue(prevCandle, i_high);
+                const prevLow = this.safeValue(prevCandle, i_low);
+                ohlcvs[candle][i_high] = Math.max((prevHigh === undefined) ? price : prevHigh, price);
+                ohlcvs[candle][i_low] = Math.min((prevLow === undefined) ? price : prevLow, price);
                 ohlcvs[candle][i_close] = price;
-                ohlcvs[candle][i_volume] = this.sum(ohlcvs[candle][i_volume], trade['amount']);
-                ohlcvs[candle][i_count] = this.sum(ohlcvs[candle][i_count], 1);
+                ohlcvs[candle][i_volume] = this.sum(this.safeValue(prevCandle, i_volume), trade['amount']);
+                ohlcvs[candle][i_count] = this.sum(this.safeValue(prevCandle, i_count), 1);
             }
         }
         return ohlcvs;
@@ -7179,8 +7178,7 @@ export class BaseExchange {
         const results = [];
         if (Array.isArray(pricesData)) {
             for (let i = 0; i < pricesData.length; i++) {
-                const priceData = this.extend(this.parseLastPrice(pricesData[i]), params);
-                results.push(priceData);
+                results.push(this.extend(this.parseLastPrice(pricesData[i]), params));
             }
         }
         else {
@@ -7188,12 +7186,10 @@ export class BaseExchange {
             for (let i = 0; i < marketIds.length; i++) {
                 const marketId = marketIds[i];
                 const market = this.safeMarket(marketId);
-                const priceData = this.extend(this.parseLastPrice(pricesData[marketId], market), params);
-                results.push(priceData);
+                results.push(this.extend(this.parseLastPrice(pricesData[marketId], market), params));
             }
         }
-        const symbolsNormalized = this.marketSymbols(symbols);
-        return this.indexBy(this.filterByArray(results, 'symbol', symbolsNormalized, false), 'symbol');
+        return this.indexBy(this.filterByArray(results, 'symbol', this.marketSymbols(symbols), false), 'symbol');
     }
     parseTickers(tickers, symbols = undefined, params = {}) {
         //
@@ -7221,9 +7217,7 @@ export class BaseExchange {
         const results = [];
         if (Array.isArray(tickers)) {
             for (let i = 0; i < tickers.length; i++) {
-                const parsedTicker = this.parseTicker(tickers[i]);
-                const ticker = this.extend(parsedTicker, params);
-                results.push(ticker);
+                results.push(this.extend(this.parseTicker(tickers[i]), params));
             }
         }
         else {
@@ -7231,13 +7225,10 @@ export class BaseExchange {
             for (let i = 0; i < marketIds.length; i++) {
                 const marketId = marketIds[i];
                 const market = this.safeMarket(marketId);
-                const parsed = this.parseTicker(tickers[marketId], market);
-                const ticker = this.extend(parsed, params);
-                results.push(ticker);
+                results.push(this.extend(this.parseTicker(tickers[marketId], market), params));
             }
         }
-        const symbolsNormalized = this.marketSymbols(symbols);
-        return this.filterByArrayTickers(results, 'symbol', symbolsNormalized);
+        return this.filterByArrayTickers(results, 'symbol', this.marketSymbols(symbols));
     }
     parseDepositAddresses(addresses, codes = undefined, indexed = true, params = {}) {
         let result = [];
@@ -8305,9 +8296,7 @@ export class BaseExchange {
         const results = [];
         if (Array.isArray(greeks)) {
             for (let i = 0; i < greeks.length; i++) {
-                const parsedTicker = this.parseGreeks(greeks[i]);
-                const greek = this.extend(parsedTicker, params);
-                results.push(greek);
+                results.push(this.extend(this.parseGreeks(greeks[i]), params));
             }
         }
         else {
@@ -8315,13 +8304,10 @@ export class BaseExchange {
             for (let i = 0; i < marketIds.length; i++) {
                 const marketId = marketIds[i];
                 const market = this.safeMarket(marketId);
-                const parsed = this.parseGreeks(greeks[marketId], market);
-                const greek = this.extend(parsed, params);
-                results.push(greek);
+                results.push(this.extend(this.parseGreeks(greeks[marketId], market), params));
             }
         }
-        const symbolsNormalized = this.marketSymbols(symbols);
-        return this.indexBy(this.filterByArray(results, 'symbol', symbolsNormalized, false), 'symbol');
+        return this.indexBy(this.filterByArray(results, 'symbol', this.marketSymbols(symbols), false), 'symbol');
     }
     parseOption(chain, currency = undefined, market = undefined) {
         throw new NotSupported(this.id + ' parseOption () is not supported yet');
