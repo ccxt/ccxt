@@ -3231,6 +3231,7 @@ export function formatGoSource (filePath: string, content: string): string {
     content = goErrValuePass (goEndpointCheckedReceives (content));  // G10K-err-a
     content = goChan3Pass (content);  // GO-CHAN3: AsyncResult[any] -> AsyncResult[T], after go-err
     content = gp18Pass (content);  // hx10 w9 GP18: EndpointResult[T] receive reads .Value, MapTyped(Raw) drops
+    content = hx4G12TupleSlotReads (content, filePath);  // hx4 G12, again: async []any producers are received as rN.Value only after GOCHAN3
     content = goTickerCachePass (content);  // typed ws ticker caches, after goChan3's resolved switches
     content = g09Pass (content);  // hx10w2 G09: Options is a plain map
     content = hx10G10Pass (content);  // hx10 G10: plain ws cache maps on BaseExchange
@@ -13300,7 +13301,40 @@ function g12HolderProducer (ctx: any, fn: any, holder: string, k: number): strin
         if (decl !== null) {
             return g12Encloses (ctx, j, k) ? decl[1] : undefined;
         }
+        const recv = new RegExp ('^\\s*(?:' + holder + ' :=|var ' + holder + ' \\[\\]any =) (?:(\\w+)\\.Value|(listRecv\\d+))\\s*$').exec (ctx.masked[j]);
+        if (recv !== null) {
+            return g12Encloses (ctx, j, k) ? g12AsyncReceiveProducer (ctx, fn, j, recv[1] ?? recv[2]) : undefined;
+        }
         if (goTextWritesName (ctx.masked[j], holder)) {
+            return undefined;
+        }
+    }
+    return undefined;
+}
+
+// the body of the `[]any` async producer behind `rN := <-this.MAsync(..)` read as `rN.Value` or via `listRecvN, _ := rN.Value, ..`
+function g12AsyncReceiveProducer (ctx: any, fn: any, k: number, source: string): string {
+    let result = source;
+    if (source.startsWith ('listRecv')) {
+        result = undefined;
+        for (let j = k - 1; j > fn.open; j--) {
+            const list = new RegExp ('^\\s*' + source + ', _ := (\\w+)\\.Value, \\1\\.Value != nil\\s*$').exec (ctx.masked[j]);
+            if (list !== null) {
+                result = g12Encloses (ctx, j, k) ? list[1] : undefined;
+                k = j;
+                break;
+            }
+        }
+    }
+    if (result === undefined) {
+        return undefined;
+    }
+    for (let j = k - 1; j > fn.open; j--) {
+        const recv = new RegExp ('^\\s*' + result + ' := <-this\\.(\\w+)Async\\(').exec (ctx.masked[j]);
+        if (recv !== null) {
+            return g12Encloses (ctx, j, k) ? recv[1].charAt (0).toLowerCase () + recv[1].substring (1) + 'Body' : undefined;
+        }
+        if (goTextWritesName (ctx.masked[j], result)) {
             return undefined;
         }
     }
@@ -13410,7 +13444,8 @@ function g12LocalProducer (ctx: any, method: string, depth: number): any {
     if (ctx.busy.has (method) || (depth > 5)) {
         return undefined;
     }
-    const fn = ctx.blocks.find ((b: any) => (b.depth === 1) && new RegExp ('^func \\(this \\*(\\w+)\\) ' + method + '\\(.*\\) \\[\\]any \\{$').test (ctx.masked[b.open]));
+    const asyncBody = method.endsWith ('Body');
+    const fn = ctx.blocks.find ((b: any) => (b.depth === 1) && new RegExp ('^func \\(this \\*(\\w+)\\) ' + method + '\\(' + (asyncBody ? 'ch chan AsyncResult\\[\\[\\]any\\], .*\\) any' : '.*\\) \\[\\]any') + ' \\{$').test (ctx.masked[b.open]));
     const owner = (fn === undefined) ? undefined : /^func \(this \*(\w+)\)/.exec (ctx.masked[fn.open])[1];
     if ((fn === undefined) || (owner === 'BaseExchange') || (owner === 'PredictionExchange')) {
         return undefined;
@@ -13420,10 +13455,13 @@ function g12LocalProducer (ctx: any, method: string, depth: number): any {
     const rows: string[][][] = [];
     let ok = true;
     for (let k = fn.open + 1; ok && (k < fn.close); k++) {
-        if (!/\breturn\b/.test (ctx.masked[k]) || literals.some ((b: any) => (b.open <= k) && (k <= b.close))) {
+        if (asyncBody && /^\s*return nil\s*$/.test (ctx.masked[k])) {
             continue;
         }
-        const r = /^(\s*return \[\]any\{)(.*)\}\s*$/.exec (ctx.masked[k]);
+        if (!(asyncBody ? /\bch <- / : /\breturn\b/).test (ctx.masked[k]) || literals.some ((b: any) => (b.open <= k) && (k <= b.close))) {
+            continue;
+        }
+        const r = (asyncBody ? /^(\s*ch <- AsyncResult\[\[\]any\]\{Value: \[\]any\{)(.*)\}\}\s*$/ : /^(\s*return \[\]any\{)(.*)\}\s*$/).exec (ctx.masked[k]);
         const parts = ((r === null) || (r[2].trim () === '')) ? undefined : g12SplitTop (r[2], ctx.lines[k].substring (r[1].length, r[1].length + r[2].length));
         ok = (parts !== undefined);
         if (ok) {
@@ -13571,8 +13609,16 @@ function g12SlotChecks (): string[] {
     const proParent = 'package ccxtpro\n\ntype Y struct {\n\t*Z\n\tbase *Z\n}\n\n';
     ok (run ('\thVariable := this.P(nil, p)\n\tb := ccxt.GetValue(hVariable, 1)\n', proParent, '/r/go/v4/pro/y.go', reader).includes ('ccxt.GetValue(hVariable, 1)'), 'a pro parent chain is not resolved');
     ok (run ('\thVariable := this.P(nil, p)\n\tb := GetValue(hVariable, 1)\n', producer.replace ('(this *X)', '(this *BaseExchange)')).includes ('GetValue(hVariable, 1)'), 'base producers stay with the static table');
+    const asyncProducer = 'func (this *X) PAsync(m any) <-chan AsyncResult[[]any] {\n\tch := make(chan AsyncResult[[]any], 1)\n\tgo this.pBody(ch, m)\n\treturn ch\n}\n'
+        + 'func (this *X) pBody(ch chan AsyncResult[[]any], m any, optionalArgs ...any) any {\n\tdefer close(ch)\n\tvar a any = nil\n\tif m != nil {\n\t\ta = this.ParseToInt(m)\n\t}\n\n\tch <- AsyncResult[[]any]{Value: []any{this.ParseToInt(a), map[string]any{}}}\n\treturn nil\n}\n';
+    const recvBody = '\tr := <-this.PAsync(p)\n\tif r.Err != nil {\n\t\tpanic(r.Err)\n\t}\n\tlistRecv1, _ := r.Value, r.Value != nil\n\tvar hVariable []any = listRecv1\n\ta := GetValue(hVariable, 0)\n\tb := GetValue(hVariable, 1)\n';
+    const asyncOut = run (recvBody, asyncProducer);
+    ok (asyncOut.includes ('a := hVariable[0]') && asyncOut.includes ('b := hVariable[1]'), 'async producer received through listRecv reads natively: ' + asyncOut);
+    ok (run (recvBody, asyncProducer.replace ('Value: []any{this.ParseToInt(a), ', 'Value: []any{this.SafeString(m, \"k\"), ')).includes ('a := GetValue(hVariable, 0)'), 'an async slot with a pointer value keeps GetValue');
     ok (hx4G12TupleSlotReads (pos) === pos, 'idempotent');
     ok (formatGoSource ('selftest.go', producer + user ('\thVariable := this.P(nil, p)\n\tb := GetValue(hVariable, 1)\n')).includes ('b := hVariable[1]'), 'wired into formatGoSource');
+    const wiredAsync = formatGoSource ('selftest.go', 'package ccxt\n\n' + asyncProducer + 'func (this *X) F(p any) any {\n' + recvBody + '\treturn b\n}\n');
+    ok (wiredAsync.includes ('b := hVariable[1]'), 'async producer slot wired into formatGoSource: ' + wiredAsync);
     return problems;
 }
 
