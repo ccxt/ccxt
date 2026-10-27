@@ -37,7 +37,15 @@ const B02_PLAIN_SLOTS: { [producer: string]: number[] } = {
     'HandleWithdrawTagAndParams': [ 1 ],
     'HandlePostOnly': [ 0, 1 ],
     'HandleUntilOption': [ 0, 1 ],
+    'HandleHfAndParams': [ 1 ],
+    'GetMarginMode': [ 1 ],
+    'GetInstType': [ 1 ],
+    'ResolveAuthType': [ 1 ],
+    'OrderRequest': [ 1 ],
 };
+
+// exchange-local producers: one `[]any{x, ..., <map>}` return, read in their own file too
+const B02_OWN_FILE_PRODUCERS = [ 'HandleHfAndParams', 'GetMarginMode', 'GetInstType', 'ResolveAuthType', 'OrderRequest' ];
 
 // `<indent>[var] <holder> [type] := [TupleSlice (] this.<producer> (`
 const B02_HOLDER_RE = /^[ \t]*(?:var )?([A-Za-z_]\w*)(?: (\[\]any|any))? :?= (?:ccxt\.)?(?:TupleSlice\()?this\.(\w+)\(/;
@@ -192,7 +200,7 @@ export function b02TupleSliceSlotReads (content: string): string {
         const annotation = holder[2];
         const producer = holder[3];
         const slots = B02_PLAIN_SLOTS[producer];
-        if ((slots === undefined) || declared (producer)) {
+        if ((slots === undefined) || (declared (producer) && (B02_OWN_FILE_PRODUCERS.indexOf (producer) < 0))) {
             continue;
         }
         const funcStart = b02FunctionStart (maskedLines, i);
@@ -264,6 +272,8 @@ export function b02TupleSliceSlotSelfTest (): string[] {
     // kept: the file declares the producer, so its signature is the file's
     const sameFile = 'package ccxt\n\nfunc (this *X) HandleOptionStringAndParams (p any, m any, o any, optionalArgs ...any) []any {\n\treturn nil\n}\n\nfunc (this *X) g (p map[string]any) any {\n\tv := TupleSlice(this.HandleOptionStringAndParams(p, "m", "o"))\n\tx := GetValue(v, 1)\n\treturn x\n}\n';
     ok (b02TupleSliceSlotReads (sameFile).indexOf ('GetValue(v, 1)') >= 0, 'an in-file producer keeps GetValue');
+    const own = 'package ccxt\n\nfunc (this *X) GetMarginMode (t any, p any) []any {\n\treturn []any{nil, p}\n}\n\nfunc (this *X) g (p map[string]any) any {\n\tvar q any = nil\n\tv := this.GetMarginMode(true, p)\n\tq = GetValue(v, 1)\n\treturn q\n}\n';
+    ok (b02TupleSliceSlotReads (own).indexOf ('q = v[1]') >= 0, 'an own-file exchange producer reads by index');
     // a string or comment that looks like a read is not one
     ok (f (held + '\t_ = "GetValue(queryparamsQueryVariable, 1)"\n').indexOf ('paramsQuery') >= 0, 'a literal is untouched');
     // no removable read: the holder annotation is left alone too
