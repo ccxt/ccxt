@@ -6600,7 +6600,10 @@ export class BaseExchange {
     /* eslint-enable no-unused-vars */
     handleParamString (params: object, paramName: string, defaultValue: Str = undefined): [Str, Dict] {
         const value = this.safeString (params, paramName, defaultValue);
-        const paramsOmitted = (value !== undefined) ? this.omit (params, paramName) : params;
+        let paramsOmitted = params;
+        if (value !== undefined) {
+            paramsOmitted = this.omit (params, paramName);
+        }
         return [ value, paramsOmitted ];
     }
 
@@ -6610,31 +6613,46 @@ export class BaseExchange {
     /* eslint-enable no-unused-vars */
     handleParamString2 (params: object, paramName1: string, paramName2: string, defaultValue: Str = undefined): [Str, Dict] {
         const value = this.safeString2 (params, paramName1, paramName2, defaultValue);
-        const paramsOmitted = (value !== undefined) ? this.omit (params, [ paramName1, paramName2 ]) : params;
+        let paramsOmitted = params;
+        if (value !== undefined) {
+            paramsOmitted = this.omit (params, [ paramName1, paramName2 ]);
+        }
         return [ value, paramsOmitted ];
     }
 
     handleParamInteger (params: object, paramName: string, defaultValue: Int = undefined): [Int, Dict] {
         const value = this.safeInteger (params, paramName, defaultValue);
-        const paramsOmitted = (value !== undefined) ? this.omit (params, paramName) : params;
+        let paramsOmitted = params;
+        if (value !== undefined) {
+            paramsOmitted = this.omit (params, paramName);
+        }
         return [ value, paramsOmitted ];
     }
 
     handleParamInteger2 (params: object, paramName1: string, paramName2: string, defaultValue: Int = undefined): [Int, Dict] {
         const value = this.safeInteger2 (params, paramName1, paramName2, defaultValue);
-        const paramsOmitted = (value !== undefined) ? this.omit (params, [ paramName1, paramName2 ]) : params;
+        let paramsOmitted = params;
+        if (value !== undefined) {
+            paramsOmitted = this.omit (params, [ paramName1, paramName2 ]);
+        }
         return [ value, paramsOmitted ];
     }
 
     handleParamBool (params: object, paramName: string, defaultValue: Bool = undefined): [Bool, object] {
         const value = this.safeBool (params, paramName, defaultValue);
-        const paramsOmitted = (value !== undefined) ? this.omit (params, paramName) : params;
+        let paramsOmitted = params;
+        if (value !== undefined) {
+            paramsOmitted = this.omit (params, paramName);
+        }
         return [ value, paramsOmitted ];
     }
 
     handleParamBool2 (params: object, paramName1: string, paramName2: string, defaultValue: Bool = undefined): [Bool, object] {
         const value = this.safeBool2 (params, paramName1, paramName2, defaultValue);
-        const paramsOmitted = (value !== undefined) ? this.omit (params, [ paramName1, paramName2 ]) : params;
+        let paramsOmitted = params;
+        if (value !== undefined) {
+            paramsOmitted = this.omit (params, [ paramName1, paramName2 ]);
+        }
         return [ value, paramsOmitted ];
     }
 
@@ -7163,7 +7181,9 @@ export class BaseExchange {
                 value = this.safeValue2 (this.options, optionName, defaultOptionName);
             }
             // if it's still undefined, use the default value
-            value = (value !== undefined) ? value : defaultValue;
+            if (value === undefined) {
+                value = defaultValue;
+            }
             return [ value, paramsCallerMethodName ];
         }
     }
