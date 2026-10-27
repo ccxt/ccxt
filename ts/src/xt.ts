@@ -5882,7 +5882,7 @@ export default class xt extends Exchange {
         let signedBody: Str = undefined;
         if (signed) {
             this.checkRequiredCredentials ();
-            const defaultRecvWindow = this.safeString (this.options, 'recvWindow');
+            const defaultRecvWindow = this.safeString (this.options, 'recvWindow', '5000');
             const recvWindow = this.safeString (query, 'recvWindow', defaultRecvWindow);
             const timestamp = this.numberToString (this.nonce ());
             if ((payload === '/v4/order') || (payload === '/future/trade/v1/order/create') || (payload === '/future/trade/v1/entrust/create-plan') || (payload === '/future/trade/v1/entrust/create-profit') || (payload === '/future/trade/v1/order/create-batch')) {
@@ -5898,7 +5898,7 @@ export default class xt extends Exchange {
                 isUndefinedBody = false;
             }
             signedBody = isUndefinedBody ? undefined : this.json (query);
-            let payloadString: Str = undefined;
+            let payloadString = '';
             if ((endpoint === 'spot') || (endpoint === 'user')) {
                 payloadString = 'xt-validate-algorithms=HmacSHA256&xt-validate-appkey=' + this.apiKey + '&xt-validate-recvwindow=' + recvWindow + '&xt-validate-t' + 'imestamp=' + timestamp;
                 if (isUndefinedBody) {
