@@ -6170,17 +6170,15 @@ impl MexcCore {
         }
         while crate::precise::Precise::stringLt(&floor, &maxVol.clone().map(Value::from).unwrap_or(Value::Null)).as_bool() == Some(true) {
             let mut cap: Value = crate::precise::Precise::stringAdd(&floor, &riskIncrVol.clone().map(Value::from).unwrap_or(Value::Null));
-            let mut minNotional: Value = self.parse_number(floor.clone(), &[]);
-            let mut mainMarginRate: Value = self.parse_number(maintenanceMarginRate.clone(), &[]);
             let mut maxLev: Value = self.parse_number(crate::precise::Precise::stringDiv(&Value::Str("1".into()), &initialMarginRate), &[]);
             if let Value::Arr(__a) = &mut tiers { std::sync::Arc::make_mut(__a).push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("tier".to_string(), self.parse_number(crate::precise::Precise::stringDiv(&cap, &riskIncrVol.clone().map(Value::from).unwrap_or(Value::Null)), &[]));
                     m.insert("symbol".to_string(), self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), &[market.clone(), Value::Null, Value::Str("contract".into())]));
                     m.insert("currency".to_string(), self.safe_currency_code(quoteId.clone().map(Value::from).unwrap_or(Value::Null), &[]));
-                    m.insert("minNotional".to_string(), minNotional);
+                    m.insert("minNotional".to_string(), self.parse_number(floor.clone(), &[]));
                     m.insert("maxNotional".to_string(), self.parse_number(cap.clone(), &[]));
-                    m.insert("maintenanceMarginRate".to_string(), mainMarginRate);
+                    m.insert("maintenanceMarginRate".to_string(), self.parse_number(maintenanceMarginRate.clone(), &[]));
                     m.insert("maxLeverage".to_string(), maxLev);
                     m.insert("info".to_string(), info.clone());
                 m
@@ -7282,9 +7280,8 @@ impl MexcCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut network: Value = self.safe_string2(paramsWithdrawTag.clone(), Value::Str("network".into()), Value::Str("netWork".into()), &[]); // this line allows the user to specify either ERC20 or ETH
-        network = self.safe_string(networks, network.clone(), &[network.clone()]); // handle ETH > ERC-20 alias
-        network = self.network_code_to_id(network.clone(), &[self.safe_string_k(currency.clone(), "code", &[])]);
+        let mut networkRaw: Value = self.safe_string2(paramsWithdrawTag.clone(), Value::Str("network".into()), Value::Str("netWork".into()), &[]); // this line allows the user to specify either ERC20 or ETH
+        let mut network: Value = self.network_code_to_id(self.safe_string(networks, networkRaw.clone(), &[networkRaw.clone()]), &[self.safe_string_k(currency.clone(), "code", &[])]); // handle ETH > ERC-20 alias
         self.check_address(&[address.clone(), code, tagResolved.clone()]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -7850,7 +7847,7 @@ impl MexcCore {
         let mut access: Value = api.get(1).cloned().unwrap_or(Value::Null);
         let mut pathValue: Value = self.implode_params(path.clone(), params.clone());
         let mut paramsValue: Value = self.omit(params, self.extract_params(path), &[]);
-        let mut url: Value = Value::Null;
+        let mut url: Value = Value::Str("".into());
         if (section.as_str() == Some("spot")) || (section.as_str() == Some("broker")) {
             if (section.as_str() == Some("broker")) {
                 let mut apiUrl: Option<String> = self.safe_string_opt(get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &section), access.clone(), &[]);
@@ -7886,12 +7883,12 @@ impl MexcCore {
             let mut paramsEncoded: Value = Value::Str("".into());
             if ((Value::Array(urlParams.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
                 paramsEncoded = self.urlencode(urlParams, &[]);
-                url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), paramsEncoded).into())).into());
+                url = Value::Str(format!("{}{}", Value::Str(format!("{}{}", url, Value::Str("?".into())).into()), paramsEncoded).into());
             }
             if (access.as_str() == Some("private")) {
                 self.check_required_credentials(&[]);
                 let mut signature: Value = self.hmac(self.encode(paramsEncoded), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
-                url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("&".into()), Value::Str("signature=".into())).into()), signature).into())).into());
+                url = Value::Str(format!("{}{}", Value::Str(format!("{}{}", url, Value::Str("&signature=".into())).into()), signature).into());
                 requestHeaders = Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("X-MEXC-APIKEY".to_string(), self.apiKey.clone());

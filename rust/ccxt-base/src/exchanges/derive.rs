@@ -1670,7 +1670,9 @@ impl DeriveCore {
             margin = Value::Bool(false);
             settleId = Value::Str("USDC".into());
             settle = self.safe_currency_code(settleId.clone(), &[]);
-            symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into()), Value::Str(":".into())).into()), settle).into());
+            if (settle != Value::Null) {
+                symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into()), Value::Str(":".into())).into()), settle).into());
+            }
             swap = true;
             linear = Value::Bool(true);
             inverse = Value::Bool(false);
@@ -1695,7 +1697,6 @@ impl DeriveCore {
             inverse = Value::Bool(false);
         }
         let mut contractSize: Value = (if (spot).as_bool() == Some(true) { Value::Null } else { Value::Int(1) });
-        let mut isContract: Value = Value::Bool(swap || option);
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), marketId.map(Value::from).unwrap_or(Value::Null));
@@ -1709,11 +1710,11 @@ impl DeriveCore {
         m.insert("type".to_string(), marketType);
         m.insert("spot".to_string(), spot);
         m.insert("margin".to_string(), margin);
-        m.insert("swap".to_string(), Value::Bool(swap));
+        m.insert("swap".to_string(), Value::Bool(swap.clone()));
         m.insert("future".to_string(), Value::Bool(false));
-        m.insert("option".to_string(), Value::Bool(option));
+        m.insert("option".to_string(), Value::Bool(option.clone()));
         m.insert("active".to_string(), self.safe_bool_k(market.clone(), "is_active", &[]));
-        m.insert("contract".to_string(), isContract);
+        m.insert("contract".to_string(), Value::Bool((swap || option)));
         m.insert("linear".to_string(), linear);
         m.insert("inverse".to_string(), inverse);
         m.insert("contractSize".to_string(), contractSize);
@@ -1900,12 +1901,11 @@ impl DeriveCore {
     m
 })]);
         let mut amount: Option<String> = self.safe_string_k_opt(stats, "oi", &[]);
-        let mut markPrice: Option<String> = self.safe_string_k_opt(interest.clone(), "M", &[]);
         let mut value: Value = Value::Null;
         let mut isOption: Value = self.safe_bool_k(market.clone(), "option", &[Value::Bool(false)]);
         // for options the mark is the premium, a notional derived from it would be misleading, so only the contract amount is reported there
         if (market != Value::Null) && (isOption.as_bool() != Some(true)) {
-            value = crate::precise::Precise::stringMul(&amount.clone().map(Value::from).unwrap_or(Value::Null), &markPrice.clone().map(Value::from).unwrap_or(Value::Null));
+            value = crate::precise::Precise::stringMul(&amount.clone().map(Value::from).unwrap_or(Value::Null), &self.safe_string_k(interest.clone(), "M", &[]));
         }
         return self.safe_open_interest(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2401,8 +2401,9 @@ impl DeriveCore {
         });
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
-            market = self.market(symbol);
-            request.insert("instrument_name".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            let mut symbolMarket: Value = self.market(symbol);
+            market = symbolMarket.clone();
+            request.insert("instrument_name".into(), symbolMarket.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         let mut limitResolved: Value = limit.clone();
         if (limit != Value::Null) && limit.as_f64().unwrap_or(f64::NAN) > ((1000i64) as f64) {
@@ -2945,7 +2946,7 @@ impl DeriveCore {
 
     pub fn sign_order(&self, mut order: Value, mut privateKey: Value) -> Option<String> {
         let mut hashOrder: Value = self.hash_order_message(order).map(Value::from).unwrap_or(Value::Null);
-        return self.sign_hash(hashOrder.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = (__l - 64).max(0); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null), privateKey.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = (__l - 64).max(0); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null));
+        return self.sign_hash(hashOrder, privateKey);
 }
 
 /*
@@ -2985,7 +2986,7 @@ impl DeriveCore {
 }
 
     pub fn sign_message(&self, mut message: Value, mut privateKey: Value) -> Option<String> {
-        return self.sign_hash(self.hash_message(message).map(Value::from).unwrap_or(Value::Null), privateKey.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = (__l - 64).max(0); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null));
+        return self.sign_hash(self.hash_message(message).map(Value::from).unwrap_or(Value::Null), privateKey);
 }
 
     pub fn parse_units(&self, mut num: Value, optional_args: &[Value]) -> Option<String> {
@@ -4033,8 +4034,9 @@ impl DeriveCore {
         });
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
-            market = self.market(symbol);
-            request.insert("instrument_name".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            let mut symbolMarket: Value = self.market(symbol);
+            market = symbolMarket.clone();
+            request.insert("instrument_name".into(), symbolMarket.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         if (limit != Value::Null) {
             request.insert("page_size".into(), limit.clone());
@@ -4133,8 +4135,9 @@ impl DeriveCore {
         });
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
-            market = self.market(symbol);
-            request.insert("instrument_name".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            let mut symbolMarket: Value = self.market(symbol);
+            market = symbolMarket.clone();
+            request.insert("instrument_name".into(), symbolMarket.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         if (limit != Value::Null) {
             request.insert("page_size".into(), limit.clone());
@@ -4429,8 +4432,9 @@ impl DeriveCore {
         });
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
-            market = self.market(symbol);
-            request.insert("instrument_name".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            let mut symbolMarket: Value = self.market(symbol);
+            market = symbolMarket.clone();
+            request.insert("instrument_name".into(), symbolMarket.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         if (since != Value::Null) {
             request.insert("start_timestamp".into(), since.clone());
@@ -4832,14 +4836,13 @@ impl DeriveCore {
         });
         // margin requirements come as negative subaccount-level contributions in usd terms (initial_margin = collaterals_initial_margin + positions_initial_margin, verified on live data), so they are attributed to the usdc settlement currency and clamped by the usdc cash below; other collaterals stay total-only because the shared margin pool cannot be split per currency
         let mut usedUsd: Value = Value::Str("0".into());
+        let mut subaccounts: Value = self.to_array(response);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_632: bool = true;
-            while { if !__for_first_632 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_632 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&response).as_f64().unwrap_or(f64::NAN) } {
-            let mut subaccount: Value = self.safe_dict(response.clone(), i.clone(), &[]);
-            let mut positionsMargin: Value = self.safe_string_k(subaccount.clone(), "positions_initial_margin", &[Value::Str("0".into())]);
-            let mut ordersMargin: Value = self.safe_string_k(subaccount.clone(), "open_orders_margin", &[Value::Str("0".into())]);
-            usedUsd = crate::precise::Precise::stringSub(&usedUsd, &crate::precise::Precise::stringAdd(&positionsMargin, &ordersMargin));
+            while { if !__for_first_632 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_632 = false; i.as_f64().unwrap_or(f64::NAN) < ((subaccounts.len() as i64) as f64) } {
+            let mut subaccount: Value = self.safe_dict(subaccounts.clone(), i.clone(), &[]);
+            usedUsd = crate::precise::Precise::stringSub(&usedUsd, &crate::precise::Precise::stringAdd(&self.safe_string_k(subaccount.clone(), "positions_initial_margin", &[Value::Str("0".into())]), &self.safe_string_k(subaccount.clone(), "open_orders_margin", &[Value::Str("0".into())])));
             let mut collaterals: Value = self.safe_list_k(subaccount, "collaterals", &[Value::from(vec![])]);
             {
                                 let mut j: Value = Value::Int(0);
@@ -4852,9 +4855,7 @@ impl DeriveCore {
                     account = self.account();
                     if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".into(), self.safe_string_k(balance.clone(), "amount", &[])); }
                 }  else {
-                    let mut amount: Option<String> = self.safe_string_k_opt(balance, "amount", &[]);
-                    let mut previousTotal: Option<String> = self.safe_string_k_opt(account.clone(), "total", &[]);
-                    if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".into(), crate::precise::Precise::stringAdd(&previousTotal.clone().map(Value::from).unwrap_or(Value::Null), &amount.clone().map(Value::from).unwrap_or(Value::Null))); }
+                    { let __be_tmp = crate::precise::Precise::stringAdd(&self.safe_string_k(account.clone(), "total", &[]), &self.safe_string_k(balance, "amount", &[])); if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".into(), __be_tmp); } }
                 }
                 if (code != Value::Null) {
                     result.insert(crate::runtime::stringify_param(&code), account);
@@ -5648,11 +5649,11 @@ impl DeriveCore {
                 // remember the first explicitly used subaccount as the instance default, but never overwrite a configured default: a one-off param must not silently re-route later calls
                 if let Value::Dict(__d) = &mut self.options.clone() { std::sync::Arc::make_mut(__d).insert("subaccount_id".into(), subaccountIdInt.clone()); }
             }
-            return Value::from(vec![subaccountIdInt, paramsSubaccountId.clone()]);
+            return Value::from(vec![subaccountIdInt, self.extend(paramsSubaccountId.clone(), &[])]);
         }
         let mut optionsWallet: Value = self.safe_integer_k(self.options.clone(), "subaccount_id", &[]);
         if (optionsWallet != Value::Null) {
-            return Value::from(vec![self.parse_to_int(optionsWallet), paramsSubaccountId]);
+            return Value::from(vec![self.parse_to_int(optionsWallet), self.extend(paramsSubaccountId, &[])]);
         }
         panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), methodName).into()), Value::Str("() requires a subaccount_id parameter inside 'params' or exchange.options['subaccount_id']=ID.".into()))));
 
@@ -5665,15 +5666,15 @@ impl DeriveCore {
         let mut paramsDeriveWalletAddress: Value = deriveWalletAddressparamsDeriveWalletAddressVariable.get(1).cloned().unwrap_or(Value::Null);
         if (deriveWalletAddress != Value::Null) && (deriveWalletAddress.as_str() != Some("")) {
             if let Value::Dict(__d) = &mut self.options.clone() { std::sync::Arc::make_mut(__d).insert("deriveWalletAddress".into(), deriveWalletAddress.clone()); }
-            return Value::from(vec![deriveWalletAddress, paramsDeriveWalletAddress.clone()]);
+            return Value::from(vec![deriveWalletAddress, self.extend(paramsDeriveWalletAddress.clone(), &[])]);
         }
         let mut optionsWallet: Option<String> = self.safe_string_k_opt(self.options.clone(), "deriveWalletAddress", &[]);
         if (optionsWallet.is_some()) && (optionsWallet.as_deref() != Some("")) {
-            return Value::from(vec![optionsWallet.map(Value::from).unwrap_or(Value::Null), paramsDeriveWalletAddress.clone()]);
+            return Value::from(vec![optionsWallet.map(Value::from).unwrap_or(Value::Null), self.extend(paramsDeriveWalletAddress.clone(), &[])]);
         }
         // v3 abolished the separate derive wallet: the owner wallet is the user's own EOA, so the walletAddress credential is the default; set deriveWalletAddress explicitly only when signing with a session key registered to another owner wallet
         if (self.walletAddress.clone() != Value::Null) && (self.walletAddress.as_str() != Some("")) {
-            return Value::from(vec![self.walletAddress.clone(), paramsDeriveWalletAddress]);
+            return Value::from(vec![self.walletAddress.clone(), self.extend(paramsDeriveWalletAddress, &[])]);
         }
         panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), methodName).into()), Value::Str("() requires the walletAddress credential, a deriveWalletAddress parameter inside 'params', or exchange.options['deriveWalletAddress'] = ADDRESS.".into()))));
 

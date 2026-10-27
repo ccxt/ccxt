@@ -2732,12 +2732,12 @@ impl HitbtcCore {
         if (since != Value::Null) {
             request.insert("from".into(), self.iso8601(since.clone()));
         }
+        if (limit != Value::Null) {
+            request.insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(1000)));
+        }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("until".into()), Value::Map(request), paramsPaginate, &[]).as_array().cloned().unwrap_or_default();
         let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
-        if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(1000))); }
-        }
         let mut price: Option<String> = self.safe_string_k(paramsUntil.clone(), "price", &[]).as_str().map(str::to_owned);
         let mut paramsOmitted: Value = self.omit(paramsUntil, Value::Str("price".into()), &[]);
         let mut response: Value = Value::from(vec![]);
@@ -4969,7 +4969,7 @@ impl HitbtcCore {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
         let mut baseUrl: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), implodedPath).into());
-        let mut getRequest: String = "".to_string();
+        let mut getRequest: Value = Value::Str("".into());
         let mut queryString: Value = self.urlencode(query, &[]);
         let mut headersValue: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -4978,26 +4978,18 @@ impl HitbtcCore {
         });
         if (method.as_str() == Some("GET")) {
             if (Value::Int(queryString.len() as i64).as_f64() != Some(0.0)) {
-                getRequest = format!("{}{}", Value::Str("?".into()), queryString).into();
+                getRequest = Value::Str(format!("{}{}", Value::Str("?".into()), queryString).into());
             }
         }
         let mut url: Value = Value::Str(format!("{}{}", baseUrl, getRequest).into());
-        let mut bodyResolved: Value = (if (method.as_str() == Some("GET")) { Value::Null } else { json_stringify(&params) });
+        let mut bodyString: Value = Value::Str("".into());
+        if (method.as_str() != Some("GET")) {
+            bodyString = json_stringify(&params);
+        }
         if (apiName.as_str() == Some("private")) {
             self.check_required_credentials(&[]);
             let mut timestamp: Value = self.number_to_string(self.nonce());
-            let mut payload: Vec<Value> = vec![method.clone(), Value::Str(format!("{}{}", Value::Str("/api/3/".into()), implodedPath).into())];
-            if (method.as_str() == Some("GET")) {
-                if ((getRequest != "")) {
-                    payload.push(Value::str(getRequest));
-                }
-            }  else {
-                if (bodyResolved != Value::Null) {
-                    payload.push(bodyResolved.clone());
-                }
-            }
-            payload.push(timestamp.clone());
-            let mut payloadString: Value = Value::Str(payload.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join("").into());
+            let mut payloadString: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", method, Value::Str("/api/3/".into())).into()), implodedPath).into()), getRequest).into()), bodyString).into()), timestamp).into());
             let mut signature: Value = self.hmac(self.encode(payloadString), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("hex".into())]);
             let mut secondPayload: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.apiKey.clone(), Value::Str(":".into())).into()), signature).into()), Value::Str(":".into())).into()), timestamp).into());
             headersValue.insert("Authorization".into(), Value::Str(format!("{}{}", Value::Str("HS256 ".into()), self.string_to_base64(secondPayload, &[])).into()));
@@ -5005,8 +4997,8 @@ impl HitbtcCore {
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), url);
-        m.insert("method".to_string(), method);
-        m.insert("body".to_string(), bodyResolved);
+        m.insert("method".to_string(), method.clone());
+        m.insert("body".to_string(), (if (method.as_str() == Some("GET")) { Value::Null } else { bodyString }));
         m.insert("headers".to_string(), Value::Map(headersValue));
     m
 });

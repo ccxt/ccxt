@@ -2237,22 +2237,22 @@ impl BitstampCore {
             if (description == Value::Null) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" parseCurrencies() missing description".into()))));
             }
-            let mut descriptionParts: Vec<Value> = Value::Array(description.as_str().map(|__s| __s.split(" / ").map(Value::from).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
-            let mut baseDescription: Value = descriptionParts.get(0).cloned().unwrap_or(Value::Null);
-            let mut quoteDescription: Value = descriptionParts.get(1).cloned().unwrap_or(Value::Null);
+            let mut descriptionParts: Value = Value::Array(description.as_str().map(|__s| __s.split(" / ").map(Value::from).collect()).unwrap_or_default());
+            let mut baseDescription: Option<String> = self.safe_string_opt(descriptionParts.clone(), Value::Int(0), &[]);
+            let mut quoteDescription: Option<String> = self.safe_string_opt(descriptionParts, Value::Int(1), &[]);
             let mut minimumOrder: Value = self.safe_string_k(market.clone(), "minimum_order_value", &[]);
             if (minimumOrder == Value::Null) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" parseCurrencies() missing minimumOrder".into()))));
             }
-            let mut parts: Vec<Value> = Value::Array(minimumOrder.as_str().map(|__s| __s.split(" ").map(Value::from).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
-            let mut cost: Value = parts.get(0).cloned().unwrap_or(Value::Null);
+            let mut parts: Value = Value::Array(minimumOrder.as_str().map(|__s| __s.split(" ").map(Value::from).collect()).unwrap_or_default());
+            let mut cost: Option<String> = self.safe_string_opt(parts, Value::Int(0), &[]);
             if (base != Value::Null) && !(matches!((&result, &base), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 let mut baseDecimals: Value = self.safe_integer_k(market.clone(), "base_decimals", &[]);
-                if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&base), self.construct_currency_object(baseId.map(Value::from).unwrap_or(Value::Null), base.clone(), baseDescription, baseDecimals, Value::Null, market.clone())); }
+                if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&base), self.construct_currency_object(baseId.map(Value::from).unwrap_or(Value::Null), base.clone(), baseDescription.map(Value::from).unwrap_or(Value::Null), baseDecimals, Value::Null, market.clone())); }
             }
             if (quote != Value::Null) && !(matches!((&result, &quote), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 let mut counterDecimals: Value = self.safe_integer_k(market.clone(), "counter_decimals", &[]);
-                if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&quote), self.construct_currency_object(quoteId.map(Value::from).unwrap_or(Value::Null), quote.clone(), quoteDescription, counterDecimals, self.parse_number(cost, &[]), market)); }
+                if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&quote), self.construct_currency_object(quoteId.map(Value::from).unwrap_or(Value::Null), quote.clone(), quoteDescription.map(Value::from).unwrap_or(Value::Null), counterDecimals, self.parse_number(cost.map(Value::from).unwrap_or(Value::Null), &[]), market)); }
             }
         }
         }
@@ -2602,10 +2602,10 @@ impl BitstampCore {
                 }
             }
         }  else {
-            side = self.safe_string_k(trade.clone(), "type", &[]);
-            if (side.as_str() == Some("1")) {
+            let mut sideRaw: Option<String> = self.safe_string_k(trade.clone(), "type", &[]).as_str().map(str::to_owned);
+            if (sideRaw.as_deref() == Some("1")) {
                 side = Value::Str("sell".into());
-            }  else if (side.as_str() == Some("0")) {
+            }  else if (sideRaw.as_deref() == Some("0")) {
                 side = Value::Str("buy".into());
             }  else {
                 side = Value::Null;
@@ -3719,10 +3719,10 @@ impl BitstampCore {
         let mut addressRaw: Value = self.safe_string_k(transaction.clone(), "address", &[]);
         if (addressRaw != Value::Null) {
             // dt (destination tag) is embedded into the address field
-            let mut addressParts: Vec<Value> = Value::Array(addressRaw.as_str().map(|__s| __s.split("?dt=").map(Value::from).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
-            address = addressParts.get(0).cloned().unwrap_or(Value::Null);
+            let mut addressParts: Value = Value::Array(addressRaw.as_str().map(|__s| __s.split("?dt=").map(Value::from).collect()).unwrap_or_default());
+            address = self.safe_string(addressParts.clone(), Value::Int(0), &[]);
             if ((addressParts.len() as i64) as f64) > ((1i64) as f64) {
-                tag = addressParts.get(1).cloned().unwrap_or(Value::Null);
+                tag = self.safe_string(addressParts, Value::Int(1), &[]);
             }
         }
         let mut fee: indexmap::IndexMap<String, Value> = ({
@@ -4505,9 +4505,9 @@ impl BitstampCore {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_435: bool = true;
                 while { if !__for_first_435 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_435 = false; i.as_f64().unwrap_or(f64::NAN) < ((errors.len() as i64) as f64) } {
-                let mut value: Value = errors.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-                self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), value.clone(), feedback.clone());
-                self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), value, feedback.clone());
+                let mut value: Option<String> = self.safe_string_opt(errors.clone(), i.clone(), &[]);
+                self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), value.clone().map(Value::from).unwrap_or(Value::Null), feedback.clone());
+                self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), value.map(Value::from).unwrap_or(Value::Null), feedback.clone());
             }
             }
             panic!("{}", crate::exchange_errors::exchange_error(feedback));

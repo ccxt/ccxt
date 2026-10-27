@@ -3717,7 +3717,7 @@ impl BybitCore {
         let mut symbolBase: Value = Value::Array(symbol.as_str().map(|__s| __s.split("/").map(Value::from).collect()).unwrap_or_default());
         let mut expiry: Value = Value::Null;
         let mut hasSlash: bool = Value::Int(symbol.as_str().and_then(|__s| __s.find("/")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64);
-        let mut baseName: Value = Value::Null;
+        let mut baseName: Value = self.safe_string(optionParts.clone(), Value::Int(0), &[]);
         if hasSlash {
             baseName = self.safe_string(symbolBase.clone(), Value::Int(0), &[]);
             expiry = self.safe_string(optionParts.clone(), Value::Int(1), &[]);
@@ -3730,7 +3730,6 @@ impl BybitCore {
             quote = quoteAndSettle.clone().map(Value::from).unwrap_or(Value::Null);
             settle = quoteAndSettle.map(Value::from).unwrap_or(Value::Null);
         }  else {
-            baseName = self.safe_string(optionParts.clone(), Value::Int(0), &[]);
             expiry = self.convert_market_id_expire_date(self.safe_string(optionParts.clone(), Value::Int(1), &[]));
             if (symbol.as_str().is_some_and(|__s| __s.ends_with("-USDT"))) {
                 quote = Value::Str("USDT".into());
@@ -13675,7 +13674,7 @@ impl BybitCore {
                         m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
                         m.insert("X-BAPI-API-KEY".to_string(), self.apiKey.clone());
                         m.insert("X-BAPI-TIMESTAMP".to_string(), timestamp.clone());
-                        m.insert("X-BAPI-RECV-WINDOW".to_string(), self.number_to_string(self.options.as_map().and_then(|__m| __m.get("recvWindow")).cloned().unwrap_or(Value::Null)));
+                        m.insert("X-BAPI-RECV-WINDOW".to_string(), self.safe_string_k(self.options.clone(), "recvWindow", &[Value::Str("".into())]));
                     m
                 });
                 if isV3UnifiedMargin || isV3Contract {
@@ -13686,7 +13685,7 @@ impl BybitCore {
                     m
                 }), &[params.clone()]);
                 let mut queryEncoded: Value = self.rawencode(query.clone(), &[]);
-                let mut auth_base: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}", timestamp).into()), self.apiKey.clone()).into()), to_string_val(&self.options.as_map().and_then(|__m| __m.get("recvWindow")).cloned().unwrap_or(Value::Null))).into());
+                let mut auth_base: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", timestamp, self.apiKey.clone()).into()), self.safe_string_k(self.options.clone(), "recvWindow", &[Value::Str("".into())])).into());
                 let mut authFull: Value = Value::Null;
                 if (method.as_str() == Some("POST")) {
                     requestBody = json_stringify(&query);
@@ -13797,11 +13796,9 @@ impl BybitCore {
             if (errorCode.as_str() == Some("30084")) {
                 return Value::Null;
             }
-            let mut feedback: Value = Value::Null;
+            let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body).into());
             if (errorCode.as_str() == Some("10005")) && Value::Int(url.as_str().and_then(|__s| __s.find("order")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) < ((0i64) as f64) {
                 feedback = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" private api uses /user/v3/private/query-api to check if you have a unified account. The API key of user id must own one of permissions: \"Account Transfer\", \"Subaccount Transfer\", \"Withdrawal\" ".into())).into()), body).into());
-            }  else {
-                feedback = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body).into());
             }
             if Value::Int(body.as_str().and_then(|__s| __s.find("Withdraw address chain or destination tag are not equal")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64) {
                 feedback = Value::Str(format!("{}{}", feedback, Value::Str("; You might also need to ensure the address is whitelisted".into())).into());

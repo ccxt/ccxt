@@ -6818,8 +6818,7 @@ if _try_result.is_err() {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_369: bool = true;
             while { if !__for_first_369 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_369 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&info).as_f64().unwrap_or(f64::NAN) } {
-            let mut item: Value = get_value(&info, &i);
-            let mut item: Value = get_value(&info, &i);
+            let mut item: Value = self.safe_value(info.clone(), i.clone(), &[]);
             let mut minimumNotional: Value = self.safe_number2(item.clone(), Value::Str("startUnit".into()), Value::Str("minTierValue".into()), &[]);
             if (minimumNotional != Value::Null) {
                 minNotional = minimumNotional;
@@ -8307,7 +8306,7 @@ if _try_result.is_err() {
         let mut posMode: Option<String> = self.safe_string_k(trade.clone(), "posMode", &[]).as_str().map(str::to_owned);
         let mut category: Option<String> = self.safe_string_k(trade.clone(), "category", &[]).as_str().map(str::to_owned);
         let mut isFeeStructure: bool = (posMode.is_some()) || (category.is_some());
-        let mut feeStructure: Value = (if isFeeStructure { get_value(&feeDetail, &Value::Int(0)) } else { feeDetail.clone() });
+        let mut feeStructure: Value = (if isFeeStructure { self.safe_value(feeDetail.clone(), Value::Int(0), &[]) } else { feeDetail });
         if (feeStructure != Value::Null) {
             let mut currencyCode: Value = self.safe_currency_code(self.safe_string_k(feeStructure.clone(), "feeCoin", &[]), &[]);
             let mut feeCostString: Value = self.safe_string2(feeStructure.clone(), Value::Str("totalFee".into()), Value::Str("fee".into()), &[]);
@@ -16922,9 +16921,7 @@ if _try_result.is_err() {
         let mut url: Value = Value::Str(format!("{}{}", self.implode_hostname(apiUrl.map(Value::from).unwrap_or(Value::Null)), payload).into());
         let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
         if !signed && (method.as_str() == Some("GET")) {
-            let mut keys: Vec<Value> = Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
-            let mut keysLength: f64 = ((keys.len() as i64) as f64);
-            if keysLength > ((0i64) as f64) {
+            if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
                 url = Value::Str(format!("{}{}", Value::Str(format!("{}{}", url, Value::Str("?".into())).into()), self.urlencode(query, &[])).into());
             }
         }

@@ -1650,8 +1650,8 @@ impl DigifinexCore {
         let mut marginMode: Value = marginModequeryVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut query: Value = marginModequeryVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut response: Value = Value::Null;
-        if (marginMode != Value::Null) || (marketType.as_str() == Some("margin")) {
-            marketType = Value::Str("margin".into());
+        let mut isMargin: bool = (marginMode != Value::Null) || (marketType.as_str() == Some("margin"));
+        if isMargin {
             response = self.private_spot_get_margin_assets(&[query.clone()]).await;
         }  else if (marketType.as_str() == Some("spot")) {
             response = self.private_spot_get_spot_assets(&[query.clone()]).await;
@@ -1697,7 +1697,7 @@ impl DigifinexCore {
         //     }
         //
         let mut balanceRequest: Value = Value::Str("list".into());
-        if (marketType.as_str() == Some("swap")) {
+        if !isMargin && (marketType.as_str() == Some("swap")) {
             balanceRequest = Value::Str("data".into());
         }
         let mut balances: Value = self.safe_list(response, balanceRequest, &[Value::from(vec![])]);
@@ -2006,18 +2006,13 @@ impl DigifinexCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut result: Value = Value::Null;
-        if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
-            result = data;
-        }  else {
+        let mut result: Value = data;
+        if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
             result = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("date".to_string(), date);
                 m
             }), &[firstTicker]);
-        }
-        if (result == Value::Null) {
-            panic!("{}", crate::exchange_errors::null_response(format!("{}{}", self.id.clone(), Value::Str(" fetchTicker() returned empty response".into()))));
         }
         return self.parse_ticker(result, &[market]);
 
@@ -2939,8 +2934,8 @@ impl DigifinexCore {
         let mut marginMode: Value = marginModequeryVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut query: Value = marginModequeryVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut response: Value = Value::Null;
-        if (marginMode != Value::Null) || (marketType.as_str() == Some("margin")) {
-            marketType = Value::Str("margin".into());
+        let mut isMargin: bool = (marginMode != Value::Null) || (marketType.as_str() == Some("margin"));
+        if isMargin {
             let __ws_arg_11 = self.extend(Value::Map(request.clone()), &[query.clone()]);
             response = self.private_spot_post_margin_order_cancel(&[__ws_arg_11]).await;
         }  else if (marketType.as_str() == Some("spot")) {
@@ -2973,7 +2968,7 @@ impl DigifinexCore {
         //         "data": "1590923061186531328"
         //     }
         //
-        if (marketType.as_str() == Some("spot")) || (marketType.as_str() == Some("margin")) {
+        if isMargin || (marketType.as_str() == Some("spot")) {
             let mut canceledOrders: Vec<Value> = self.safe_list_k(response.clone(), "success", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
             let mut numCanceledOrders: f64 = ((canceledOrders.len() as i64) as f64);
             if (numCanceledOrders != 1.0) {
@@ -3448,8 +3443,8 @@ impl DigifinexCore {
             request.insert(crate::runtime::stringify_param(&marketIdRequest), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         let mut response: Value = Value::Null;
-        if (marginMode != Value::Null) || (marketType.as_str() == Some("margin")) {
-            marketType = Value::Str("margin".into());
+        let mut isMargin: bool = (marginMode != Value::Null) || (marketType.as_str() == Some("margin"));
+        if isMargin {
             let __ws_arg_16 = self.extend(Value::Map(request.clone()), &[query.clone()]);
             response = self.private_spot_get_margin_order_current(&[__ws_arg_16]).await;
         }  else if (marketType.as_str() == Some("spot")) {
@@ -3576,8 +3571,8 @@ impl DigifinexCore {
             request.insert("limit".into(), limit.clone());
         }
         let mut response: Value = Value::Null;
-        if (marginMode != Value::Null) || (marketType.as_str() == Some("margin")) {
-            marketType = Value::Str("margin".into());
+        let mut isMargin: bool = (marginMode != Value::Null) || (marketType.as_str() == Some("margin"));
+        if isMargin {
             let __ws_arg_19 = self.extend(Value::Map(request.clone()), &[query.clone()]);
             response = self.private_spot_get_margin_order_history(&[__ws_arg_19]).await;
         }  else if (marketType.as_str() == Some("spot")) {
@@ -3690,8 +3685,8 @@ impl DigifinexCore {
             request.insert("market".into(), marketType.clone());
         }
         let mut response: Value = Value::Null;
-        if (marginMode != Value::Null) || (marketType.as_str() == Some("margin")) {
-            marketType = Value::Str("margin".into());
+        let mut isMargin: bool = (marginMode != Value::Null) || (marketType.as_str() == Some("margin"));
+        if isMargin {
             let __ws_arg_22 = self.extend(Value::Map(request.clone()), &[query.clone()]);
             response = self.private_spot_get_margin_order(&[__ws_arg_22]).await;
         }  else if (marketType.as_str() == Some("spot")) {
@@ -3752,7 +3747,7 @@ impl DigifinexCore {
         //     }
         //
         let mut data: Value = self.safe_value_k(response, "data", &[]);
-        let mut order: Value = (if (marketType.as_str() == Some("swap")) { data.clone() } else { self.safe_value(data, Value::Int(0), &[]) });
+        let mut order: Value = (if (!isMargin && (marketType.as_str() == Some("swap"))) { data.clone() } else { self.safe_value(data, Value::Int(0), &[]) });
         if (order == Value::Null) {
             panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOrder() order ".into())).into()), idValue).into()), Value::Str(" not found".into()))));
         }
@@ -3819,8 +3814,8 @@ impl DigifinexCore {
             request.insert("limit".into(), limit.clone());
         }
         let mut response: Value = Value::Null;
-        if (marginMode != Value::Null) || (marketType.as_str() == Some("margin")) {
-            marketType = Value::Str("margin".into());
+        let mut isMargin: bool = (marginMode != Value::Null) || (marketType.as_str() == Some("margin"));
+        if isMargin {
             let __ws_arg_25 = self.extend(Value::Map(request.clone()), &[query.clone()]);
             response = self.private_spot_get_margin_mytrades(&[__ws_arg_25]).await;
         }  else if (marketType.as_str() == Some("spot")) {
@@ -3878,7 +3873,7 @@ impl DigifinexCore {
         //     }
         //
         let mut responseRequest: Value = Value::Str("list".into());
-        if (marketType.as_str() == Some("swap")) {
+        if !isMargin && (marketType.as_str() == Some("swap")) {
             responseRequest = Value::Str("data".into());
         }
         let mut data: Value = self.safe_list(response, responseRequest, &[Value::from(vec![])]);
@@ -4006,8 +4001,8 @@ impl DigifinexCore {
             request.insert("limit".into(), limit.clone());
         }
         let mut response: Value = Value::Null;
-        if (marginMode != Value::Null) || (marketType.as_str() == Some("margin")) {
-            marketType = Value::Str("margin".into());
+        let mut isMargin: bool = (marginMode != Value::Null) || (marketType.as_str() == Some("margin"));
+        if isMargin {
             let __ws_arg_28 = self.extend(Value::Map(request.clone()), &[query.clone()]);
             response = self.private_spot_get_margin_financelog(&[__ws_arg_28]).await;
         }  else if (marketType.as_str() == Some("spot")) {
@@ -4053,7 +4048,7 @@ impl DigifinexCore {
         //     }
         //
         let mut ledger: Value = Value::Null;
-        if (marketType.as_str() == Some("swap")) {
+        if !isMargin && (marketType.as_str() == Some("swap")) {
             ledger = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         }  else {
             let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
@@ -6195,7 +6190,7 @@ impl DigifinexCore {
                     auth = Value::Str(format!("{}{}", auth, urlencoded).into());
                 }
             }  else {
-                nonce = Value::Str(format!("{}", self.nonce()).into());
+                nonce = Value::Str(format!("{}", self.seconds()).into());
                 auth = urlencoded.clone();
             }
             let mut signature: Value = self.hmac(self.encode(auth), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);

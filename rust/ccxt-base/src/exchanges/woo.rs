@@ -2539,15 +2539,7 @@ impl WooCore {
             }
         }  else if hasStopLoss || hasTakeProfit {
             request.insert("algoType".into(), Value::Str("BRACKET".into()));
-            let mut outterOrder: Value = Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                    m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
-                    m.insert("reduceOnly".to_string(), Value::Bool(false));
-                    m.insert("algoType".to_string(), Value::Str("POSITIONAL_TP_SL".into()));
-                    m.insert("childOrders".to_string(), Value::from(vec![]));
-                m
-            });
-            let mut childOrders: Value = match &outterOrder { Value::Dict(__m15) => __m15.get("childOrders").cloned().unwrap_or(Value::Null), _ => Value::Null };
+            let mut childOrders: Vec<Value> = Vec::new();
             let mut closeSide: Value = Value::Str("BUY".into());
             if (orderSide.as_str() == Some("BUY")) {
                 closeSide = Value::Str("SELL".into());
@@ -2563,7 +2555,7 @@ impl WooCore {
                         m.insert("reduceOnly".to_string(), Value::Bool(true));
                     m
                 });
-                if let Value::Arr(__a) = &mut childOrders { std::sync::Arc::make_mut(__a).push(stopLossOrder); };
+                childOrders.push(stopLossOrder);
             }
             if hasTakeProfit {
                 let mut takeProfitPrice: Value = self.safe_string_k(takeProfit.clone(), "triggerPrice", &[takeProfit.clone()]);
@@ -2576,8 +2568,16 @@ impl WooCore {
                         m.insert("reduceOnly".to_string(), Value::Bool(true));
                     m
                 });
-                if let Value::Arr(__a) = &mut childOrders { std::sync::Arc::make_mut(__a).push(takeProfitOrder); };
+                childOrders.push(takeProfitOrder);
             }
+            let mut outterOrder: Value = Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                    m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                    m.insert("reduceOnly".to_string(), Value::Bool(false));
+                    m.insert("algoType".to_string(), Value::Str("POSITIONAL_TP_SL".into()));
+                    m.insert("childOrders".to_string(), Value::from(childOrders));
+                m
+            });
             request.insert("childOrders".into(), Value::from(vec![outterOrder]));
         }
         let mut paramsRequest: Value = self.omit(paramsCost, Value::from(vec![Value::Str("clOrdID".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into()), Value::Str("postOnly".into()), Value::Str("timeInForce".into()), Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()), Value::Str("stopLoss".into()), Value::Str("takeProfit".into()), Value::Str("trailingPercent".into()), Value::Str("trailingAmount".into()), Value::Str("trailingTriggerPrice".into())]), &[]);
@@ -2594,8 +2594,12 @@ impl WooCore {
     m
 })]);
         data = self.safe_dict(self.safe_list_k(data.clone(), "rows", &[]), Value::Int(0), &[data.clone()]);
-        add_element_to_object(&mut data, &Value::Str("timestamp".into()), self.safe_string_k(response, "timestamp", &[]));
-        return self.parse_order(data, &[market]);
+        let __ws_arg_4 = self.extend(data, &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("timestamp".to_string(), self.safe_string_k(response, "timestamp", &[]));
+    m
+})]);
+        return self.parse_order(__ws_arg_4, &[market]);
 
     Value::Null
 }
@@ -2688,16 +2692,16 @@ impl WooCore {
             }  else {
                 request.insert("algoOrderId".into(), id.clone());
             }
-            let __ws_arg_4 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
-            response = self.v3_private_put_trade_algo_order(&[__ws_arg_4]).await;
+            let __ws_arg_5 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
+            response = self.v3_private_put_trade_algo_order(&[__ws_arg_5]).await;
         }  else {
             if isByClientOrder {
                 request.insert("clientOrderId".into(), clientOrderIdExchangeSpecific.clone());
             }  else {
                 request.insert("orderId".into(), id.clone());
             }
-            let __ws_arg_5 = self.extend(Value::Map(request), &[paramsOmitted]);
-            response = self.v3_private_put_trade_order(&[__ws_arg_5]).await;
+            let __ws_arg_6 = self.extend(Value::Map(request), &[paramsOmitted]);
+            response = self.v3_private_put_trade_order(&[__ws_arg_6]).await;
         }
         //
         //     {
@@ -2768,8 +2772,8 @@ impl WooCore {
             }  else {
                 request.insert("algoOrderId".into(), id.clone());
             }
-            let __ws_arg_6 = self.extend(Value::Map(request.clone()), &[paramsOmitted2.clone()]);
-            response = self.v3_private_delete_trade_algo_order(&[__ws_arg_6]).await;
+            let __ws_arg_7 = self.extend(Value::Map(request.clone()), &[paramsOmitted2.clone()]);
+            response = self.v3_private_delete_trade_algo_order(&[__ws_arg_7]).await;
         }  else {
             request.insert("symbol".into(), self.safe_string_k(market.clone(), "id", &[]));
             if isByClientOrder {
@@ -2777,8 +2781,8 @@ impl WooCore {
             }  else {
                 request.insert("orderId".into(), id.clone());
             }
-            let __ws_arg_7 = self.extend(Value::Map(request), &[paramsOmitted2]);
-            response = self.v3_private_delete_trade_order(&[__ws_arg_7]).await;
+            let __ws_arg_8 = self.extend(Value::Map(request), &[paramsOmitted2]);
+            response = self.v3_private_delete_trade_order(&[__ws_arg_8]).await;
         }
         //
         //     {
@@ -2839,8 +2843,8 @@ impl WooCore {
             response = self.v3_private_delete_trade_algo_orders(&[paramsOmitted.clone()]).await;
         }  else {
             // cancels both regular and algo orders
-            let __ws_arg_8 = self.extend(Value::Map(request), &[paramsOmitted]);
-            response = self.v3_private_delete_trade_all_orders(&[__ws_arg_8]).await;
+            let __ws_arg_9 = self.extend(Value::Map(request), &[paramsOmitted]);
+            response = self.v3_private_delete_trade_all_orders(&[__ws_arg_9]).await;
         }
         //
         //     {
@@ -2890,8 +2894,8 @@ impl WooCore {
                 m.insert("triggerAfter".to_string(), triggerAfter);
             m
         });
-        let __ws_arg_9 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.v3_private_post_trade_cancel_all_after(&[__ws_arg_9]).await;
+        let __ws_arg_10 = self.extend(Value::Map(request), &[params]);
+        let mut response: Value = self.v3_private_post_trade_cancel_all_after(&[__ws_arg_10]).await;
         return response;
 
     Value::Null
@@ -2936,16 +2940,16 @@ impl WooCore {
             }  else {
                 request.insert("algoOrderId".into(), id.clone());
             }
-            let __ws_arg_10 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
-            response = self.v3_private_get_trade_algo_order(&[__ws_arg_10]).await;
+            let __ws_arg_11 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
+            response = self.v3_private_get_trade_algo_order(&[__ws_arg_11]).await;
         }  else {
             if (clientOrderId != Value::Null) {
                 request.insert("clientOrderId".into(), clientOrderId);
             }  else {
                 request.insert("orderId".into(), id);
             }
-            let __ws_arg_11 = self.extend(Value::Map(request), &[paramsOmitted]);
-            response = self.v3_private_get_trade_order(&[__ws_arg_11]).await;
+            let __ws_arg_12 = self.extend(Value::Map(request), &[paramsOmitted]);
+            response = self.v3_private_get_trade_order(&[__ws_arg_12]).await;
         }
         let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3013,11 +3017,11 @@ impl WooCore {
         }
         let mut response: Value = Value::Null;
         if (trigger.as_bool() == Some(true)) {
-            let __ws_arg_12 = self.extend(Value::Map(request.clone()), &[paramsOmitted2.clone()]);
-            response = self.v3_private_get_trade_algo_orders(&[__ws_arg_12]).await;
+            let __ws_arg_13 = self.extend(Value::Map(request.clone()), &[paramsOmitted2.clone()]);
+            response = self.v3_private_get_trade_algo_orders(&[__ws_arg_13]).await;
         }  else {
-            let __ws_arg_13 = self.extend(Value::Map(request), &[paramsOmitted2]);
-            response = self.v3_private_get_trade_orders(&[__ws_arg_13]).await;
+            let __ws_arg_14 = self.extend(Value::Map(request), &[paramsOmitted2]);
+            response = self.v3_private_get_trade_orders(&[__ws_arg_14]).await;
         }
         let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3327,8 +3331,8 @@ impl WooCore {
         if (limit != Value::Null) {
             request.insert("maxLevel".into(), limit);
         }
-        let __ws_arg_14 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.v3_public_get_orderbook(&[__ws_arg_14]).await;
+        let __ws_arg_15 = self.extend(Value::Map(request), &[params]);
+        let mut response: Value = self.v3_public_get_orderbook(&[__ws_arg_15]).await;
         //
         // }
         //     {
@@ -3438,8 +3442,8 @@ impl WooCore {
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_15 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.v3_public_get_futures(&[__ws_arg_15]).await;
+        let __ws_arg_16 = self.extend(Value::Map(request), &[params]);
+        let mut response: Value = self.v3_public_get_futures(&[__ws_arg_16]).await;
         //
         //     {
         //         "success": true,
@@ -3474,10 +3478,10 @@ impl WooCore {
         if (first == Value::Null) {
             panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchTicker() could not find ticker data for ".into())).into()), symbol)));
         }
-        let __ws_arg_16 = self.safe_integer_k(response, "timestamp", &[]);
+        let __ws_arg_17 = self.safe_integer_k(response, "timestamp", &[]);
         let mut ticker: Value = self.extend(Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("timestamp".to_string(), __ws_arg_16);
+                m.insert("timestamp".to_string(), __ws_arg_17);
             m
         }), &[first]);
         return self.parse_ticker(ticker, &[market]);
@@ -3606,8 +3610,8 @@ impl WooCore {
         if (until != Value::Null) {
             request.insert("before".into(), until);
         }
-        let __ws_arg_17 = self.extend(Value::Map(request), &[paramsOmitted]);
-        let mut response: Value = self.v3_public_get_kline_history(&[__ws_arg_17]).await;
+        let __ws_arg_18 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let mut response: Value = self.v3_public_get_kline_history(&[__ws_arg_18]).await;
         //
         //     {
         //         "success": true,
@@ -3679,8 +3683,8 @@ impl WooCore {
                 m.insert("oid".to_string(), id);
             m
         });
-        let __ws_arg_18 = self.extend(Value::Map(request), &[params.clone()]);
-        let mut response: Value = self.v1_private_get_order_oid_trades(&[__ws_arg_18]).await;
+        let __ws_arg_19 = self.extend(Value::Map(request), &[params.clone()]);
+        let mut response: Value = self.v1_private_get_order_oid_trades(&[__ws_arg_19]).await;
         // {
         //     "success": true,
         //     "rows": [
@@ -3754,8 +3758,8 @@ impl WooCore {
         if (limit != Value::Null) {
             request.insert("limit".into(), limit.clone());
         }
-        let __ws_arg_19 = self.extend(Value::Map(request), &[paramsOmitted.clone()]);
-        let mut response: Value = self.v3_private_get_trade_transaction_history(&[__ws_arg_19]).await;
+        let __ws_arg_20 = self.extend(Value::Map(request), &[paramsOmitted.clone()]);
+        let mut response: Value = self.v3_private_get_trade_transaction_history(&[__ws_arg_20]).await;
         //
         //     {
         //         "success": true,
@@ -3988,8 +3992,8 @@ impl WooCore {
                 m.insert("network".to_string(), self.network_code_to_id(networkCode, &[self.safe_string_k(currency.clone(), "code", &[])]));
             m
         });
-        let __ws_arg_20 = self.extend(Value::Map(request.clone()), &[paramsNetworkCode]);
-        let mut response: Value = self.v3_private_get_asset_wallet_deposit(&[__ws_arg_20]).await;
+        let __ws_arg_21 = self.extend(Value::Map(request.clone()), &[paramsNetworkCode]);
+        let mut response: Value = self.v3_private_get_asset_wallet_deposit(&[__ws_arg_21]).await;
         //
         //     {
         //         "success": true,
@@ -4004,12 +4008,12 @@ impl WooCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let __ws_arg_21 = self.extend(data, &[Value::Map({
+        let __ws_arg_22 = self.extend(data, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("network".to_string(), self.safe_string_k(Value::Map(request), "network", &[]));
     m
 })]);
-        return self.parse_deposit_address(__ws_arg_21, &[currency]);
+        return self.parse_deposit_address(__ws_arg_22, &[currency]);
 
     Value::Null
 }
@@ -4094,8 +4098,8 @@ impl WooCore {
         if (transactionType.is_some()) {
             request.insert("type".into(), transactionType.map(Value::from).unwrap_or(Value::Null));
         }
-        let __ws_arg_22 = self.extend(Value::Map(request), &[paramsOmitted]);
-        let mut response: Value = self.v3_private_get_asset_wallet_history(&[__ws_arg_22]).await;
+        let __ws_arg_23 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let mut response: Value = self.v3_private_get_asset_wallet_history(&[__ws_arg_23]).await;
         //
         //     {
         //         "success": true,
@@ -4276,8 +4280,8 @@ impl WooCore {
                 m.insert("tokenSide".to_string(), Value::Str("DEPOSIT".into()));
             m
         });
-        let __ws_arg_23 = self.extend(Value::Map(request), &[params]);
-        return self.fetch_deposits_withdrawals(&[code, since, limit, __ws_arg_23]).await;
+        let __ws_arg_24 = self.extend(Value::Map(request), &[params]);
+        return self.fetch_deposits_withdrawals(&[code, since, limit, __ws_arg_24]).await;
 
     Value::Null
 }
@@ -4306,8 +4310,8 @@ impl WooCore {
                 m.insert("tokenSide".to_string(), Value::Str("WITHDRAW".into()));
             m
         });
-        let __ws_arg_24 = self.extend(Value::Map(request), &[params]);
-        return self.fetch_deposits_withdrawals(&[code, since, limit, __ws_arg_24]).await;
+        let __ws_arg_25 = self.extend(Value::Map(request), &[params]);
+        return self.fetch_deposits_withdrawals(&[code, since, limit, __ws_arg_25]).await;
 
     Value::Null
 }
@@ -4336,8 +4340,8 @@ impl WooCore {
                 m.insert("type".to_string(), Value::Str("BALANCE".into()));
             m
         });
-        let __ws_arg_25 = self.extend(Value::Map(request), &[params.clone()]);
-        let mut currencyRows: Value = self.get_asset_history_rows(&[code, since.clone(), limit.clone(), __ws_arg_25]).await;
+        let __ws_arg_26 = self.extend(Value::Map(request), &[params.clone()]);
+        let mut currencyRows: Value = self.get_asset_history_rows(&[code, since.clone(), limit.clone(), __ws_arg_26]).await;
         let mut currency: Value = self.safe_value(currencyRows.clone(), Value::Int(0), &[]);
         let mut rows: Value = self.safe_list(currencyRows, Value::Int(1), &[Value::from(vec![])]);
         return self.parse_transactions(rows, &[currency, since, limit, self.omit(params, Value::Str("tokenSide".into()), &[])]);
@@ -4458,8 +4462,8 @@ impl WooCore {
 }));
             m
         });
-        let __ws_arg_26 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.v3_private_post_asset_transfer(&[__ws_arg_26]).await;
+        let __ws_arg_27 = self.extend(Value::Map(request), &[params]);
+        let mut response: Value = self.v3_private_post_asset_transfer(&[__ws_arg_27]).await;
         //
         //     {
         //         "success": true,
@@ -4528,8 +4532,8 @@ impl WooCore {
         if (until != Value::Null) {
             request.insert("endTime".into(), until);
         }
-        let __ws_arg_27 = self.extend(Value::Map(request), &[paramsOmitted.clone()]);
-        let mut response: Value = self.v3_private_get_asset_transfer_history(&[__ws_arg_27]).await;
+        let __ws_arg_28 = self.extend(Value::Map(request), &[paramsOmitted.clone()]);
+        let mut response: Value = self.v3_private_get_asset_transfer_history(&[__ws_arg_28]).await;
         //
         //     {
         //         "success": true,
@@ -4683,8 +4687,8 @@ impl WooCore {
         let mut paramsOmitted: Value = self.omit(paramsWithdrawTag, Value::Str("network".into()), &[]);
         request.insert("token".into(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         request.insert("network".into(), self.network_code_to_id(network.clone().map(Value::from).unwrap_or(Value::Null), &[self.safe_string_k(currency.clone(), "code", &[])]));
-        let __ws_arg_28 = self.extend(Value::Map(request), &[paramsOmitted]);
-        let mut response: Value = self.v3_private_post_asset_wallet_withdraw(&[__ws_arg_28]).await;
+        let __ws_arg_29 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let mut response: Value = self.v3_private_post_asset_wallet_withdraw(&[__ws_arg_29]).await;
         //
         //     {
         //         "success": true,
@@ -4695,18 +4699,18 @@ impl WooCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let __ws_arg_29 = self.safe_string_k(data.clone(), "withdrawId", &[]);
-        let __ws_arg_30 = self.safe_integer_k(response, "timestamp", &[]);
-        let __ws_arg_31 = self.safe_string(self.networkAliases.clone(), network.clone().map(Value::from).unwrap_or(Value::Null), &[network.map(Value::from).unwrap_or(Value::Null)]);
+        let __ws_arg_30 = self.safe_string_k(data.clone(), "withdrawId", &[]);
+        let __ws_arg_31 = self.safe_integer_k(response, "timestamp", &[]);
+        let __ws_arg_32 = self.safe_string(self.networkAliases.clone(), network.clone().map(Value::from).unwrap_or(Value::Null), &[network.map(Value::from).unwrap_or(Value::Null)]);
         let mut transactionData: Value = self.extend(data, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("id".to_string(), __ws_arg_29);
-                m.insert("timestamp".to_string(), __ws_arg_30);
+                m.insert("id".to_string(), __ws_arg_30);
+                m.insert("timestamp".to_string(), __ws_arg_31);
                 m.insert("currency".to_string(), code);
                 m.insert("amount".to_string(), amount);
                 m.insert("addressTo".to_string(), address);
                 m.insert("tag".to_string(), tagWithdrawTag);
-                m.insert("network".to_string(), __ws_arg_31);
+                m.insert("network".to_string(), __ws_arg_32);
                 m.insert("type".to_string(), Value::Str("withdrawal".into()));
                 m.insert("status".to_string(), Value::Str("pending".into()));
             m
@@ -4744,8 +4748,8 @@ impl WooCore {
                 m.insert("amount".to_string(), self.currency_to_precision(code, amount.clone(), &[]));
             m
         });
-        let __ws_arg_32 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.v1_private_post_interest_repay(&[__ws_arg_32]).await;
+        let __ws_arg_33 = self.extend(Value::Map(request), &[params]);
+        let mut response: Value = self.v1_private_post_interest_repay(&[__ws_arg_33]).await;
         //
         //     {
         //         "success": true,
@@ -4995,8 +4999,8 @@ impl WooCore {
         if (limit != Value::Null) {
             request.insert("size".into(), crate::runtime::Math::min(&limit, &Value::Int(500)));
         }
-        let __ws_arg_33 = self.extend(Value::Map(request), &[paramsOmitted]);
-        let mut response: Value = self.v3_private_get_futures_funding_fee_history(&[__ws_arg_33]).await;
+        let __ws_arg_34 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let mut response: Value = self.v3_private_get_futures_funding_fee_history(&[__ws_arg_34]).await;
         //
         //     {
         //         "success": true,
@@ -5134,8 +5138,8 @@ impl WooCore {
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_34 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.v3_public_get_funding_rate(&[__ws_arg_34]).await;
+        let __ws_arg_35 = self.extend(Value::Map(request), &[params]);
+        let mut response: Value = self.v3_public_get_funding_rate(&[__ws_arg_35]).await;
         //
         //     {
         //         "success": true,
@@ -5266,8 +5270,8 @@ impl WooCore {
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), paramsPaginate, &[]).as_array().cloned().unwrap_or_default();
         let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
-        let __ws_arg_35 = self.extend(requestUntil, &[paramsUntil]);
-        let mut response: Value = self.v3_public_get_funding_rate_history(&[__ws_arg_35]).await;
+        let __ws_arg_36 = self.extend(requestUntil, &[paramsUntil]);
+        let mut response: Value = self.v3_public_get_funding_rate_history(&[__ws_arg_36]).await;
         //
         //     {
         //         "success": true,
@@ -5347,8 +5351,8 @@ impl WooCore {
                 m.insert("positionMode".to_string(), hedgeMode);
             m
         });
-        let __ws_arg_36 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.v3_private_put_futures_position_mode(&[__ws_arg_36]).await;
+        let __ws_arg_37 = self.extend(Value::Map(request), &[params]);
+        let mut response: Value = self.v3_private_put_futures_position_mode(&[__ws_arg_37]).await;
         return response;
 
     Value::Null
@@ -5388,8 +5392,8 @@ impl WooCore {
             let mut marginMode: Value = marginModeparamsMarginModeVariable.get(0).cloned().unwrap_or(Value::Null);
             let mut paramsMarginMode: Value = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null);
             request.insert("marginMode".into(), self.encode_margin_mode(marginMode).map(Value::from).unwrap_or(Value::Null));
-            let __ws_arg_37 = self.extend(Value::Map(request), &[paramsMarginMode]);
-            response = self.v3_private_get_futures_leverage(&[__ws_arg_37]).await;
+            let __ws_arg_38 = self.extend(Value::Map(request), &[paramsMarginMode]);
+            response = self.v3_private_get_futures_leverage(&[__ws_arg_38]).await;
         }  else {
             let marketType: String = self.safe_string_k_opt(market.clone(), "type", &[Value::Str("".into())]).unwrap_or_default();
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchLeverage() is not supported for ".into())).into()), marketType).into()), Value::Str(" markets".into()))));
@@ -5480,16 +5484,16 @@ impl WooCore {
             market = self.market(symbol.clone());
         }
         if (symbol == Value::Null) || matches!((self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)])), Value::Bool(true)) {
-            let __ws_arg_38 = self.extend(Value::Map(request.clone()), &[params.clone()]);
-            return self.v3_private_post_spot_margin_leverage(&[__ws_arg_38]).await;
+            let __ws_arg_39 = self.extend(Value::Map(request.clone()), &[params.clone()]);
+            return self.v3_private_post_spot_margin_leverage(&[__ws_arg_39]).await;
         }  else if matches!(self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)]), Value::Bool(true)) {
             request.insert("symbol".into(), self.safe_string_k(market.clone(), "id", &[]));
             let marginModeparamsMarginModeVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("setLeverage".into()), &[params, Value::Str("cross".into())]).as_array().cloned().unwrap_or_default();
             let mut marginMode: Value = marginModeparamsMarginModeVariable.get(0).cloned().unwrap_or(Value::Null);
             let mut paramsMarginMode: Value = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null);
             request.insert("marginMode".into(), self.encode_margin_mode(marginMode).map(Value::from).unwrap_or(Value::Null));
-            let __ws_arg_39 = self.extend(Value::Map(request), &[paramsMarginMode]);
-            return self.v3_private_put_futures_leverage(&[__ws_arg_39]).await;
+            let __ws_arg_40 = self.extend(Value::Map(request), &[paramsMarginMode]);
+            return self.v3_private_put_futures_leverage(&[__ws_arg_40]).await;
         }  else {
             let marketType: String = self.safe_string_k_opt(market, "type", &[Value::Str("".into())]).unwrap_or_default();
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchLeverage() is not supported for ".into())).into()), marketType).into()), Value::Str(" markets".into()))));
@@ -5557,8 +5561,8 @@ impl WooCore {
                 m.insert("action".to_string(), type_var);
             m
         });
-        let __ws_arg_40 = self.extend(Value::Map(request), &[params]);
-        return self.v1_private_post_client_isolated_margin(&[__ws_arg_40]).await;
+        let __ws_arg_41 = self.extend(Value::Map(request), &[params]);
+        return self.v1_private_post_client_isolated_margin(&[__ws_arg_41]).await;
 
     Value::Null
 }
@@ -5586,8 +5590,8 @@ impl WooCore {
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_41 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.v3_private_get_futures_positions(&[__ws_arg_41]).await;
+        let __ws_arg_42 = self.extend(Value::Map(request), &[params]);
+        let mut response: Value = self.v3_private_get_futures_positions(&[__ws_arg_42]).await;
         //
         //     {
         //         "success": true,
@@ -5663,8 +5667,8 @@ impl WooCore {
                 request.insert("symbol".into(), market.get("id").cloned().unwrap_or(Value::Null));
             }
         }
-        let __ws_arg_42 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.v3_private_get_futures_positions(&[__ws_arg_42]).await;
+        let __ws_arg_43 = self.extend(Value::Map(request), &[params]);
+        let mut response: Value = self.v3_private_get_futures_positions(&[__ws_arg_43]).await;
         //
         //     {
         //         "success": true,
@@ -5850,8 +5854,8 @@ impl WooCore {
                 m.insert("sellQuantity".to_string(), self.number_to_string(amount));
             m
         });
-        let __ws_arg_43 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.v3_private_get_convert_rfq(&[__ws_arg_43]).await;
+        let __ws_arg_44 = self.extend(Value::Map(request), &[params]);
+        let mut response: Value = self.v3_private_get_convert_rfq(&[__ws_arg_44]).await;
         //
         //     {
         //         "success": true,
@@ -5907,8 +5911,8 @@ impl WooCore {
                 m.insert("quoteId".to_string(), id);
             m
         });
-        let __ws_arg_44 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.v3_private_post_convert_rft(&[__ws_arg_44]).await;
+        let __ws_arg_45 = self.extend(Value::Map(request), &[params]);
+        let mut response: Value = self.v3_private_post_convert_rft(&[__ws_arg_45]).await;
         //
         //     {
         //         "success": true,
@@ -5952,8 +5956,8 @@ impl WooCore {
                 m.insert("quoteId".to_string(), id);
             m
         });
-        let __ws_arg_45 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.v3_private_get_convert_trade(&[__ws_arg_45]).await;
+        let __ws_arg_46 = self.extend(Value::Map(request), &[params]);
+        let mut response: Value = self.v3_private_get_convert_trade(&[__ws_arg_46]).await;
         //
         //     {
         //         "success": true,
@@ -6014,17 +6018,17 @@ impl WooCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
+        if (since != Value::Null) {
+            request.insert("startTime".into(), since.clone());
+        }
+        if (limit != Value::Null) {
+            request.insert("size".into(), limit.clone());
+        }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), params, &[]).as_array().cloned().unwrap_or_default();
         let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
-        if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("startTime".into(), since.clone()); }
-        }
-        if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("size".into(), limit.clone()); }
-        }
-        let __ws_arg_46 = self.extend(requestUntil, &[paramsUntil]);
-        let mut response: Value = self.v3_private_get_convert_trades(&[__ws_arg_46]).await;
+        let __ws_arg_47 = self.extend(requestUntil, &[paramsUntil]);
+        let mut response: Value = self.v3_private_get_convert_trades(&[__ws_arg_47]).await;
         //
         //     {
         //         "success": true,
@@ -6235,8 +6239,8 @@ impl WooCore {
                 request.insert("symbol".into(), market.get("id").cloned().unwrap_or(Value::Null));
             }
         }
-        let __ws_arg_47 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.v3_private_get_futures_positions(&[__ws_arg_47]).await;
+        let __ws_arg_48 = self.extend(Value::Map(request), &[params]);
+        let mut response: Value = self.v3_private_get_futures_positions(&[__ws_arg_48]).await;
         //
         //     {
         //         "success": true,

@@ -3778,11 +3778,9 @@ impl OkxCore {
         let mut quote: Value = Value::Str("USD".into());
         let mut optionParts: Value = Value::Array(symbol.as_str().map(|__s| __s.split("-").map(Value::from).collect()).unwrap_or_default());
         let mut symbolBase: Value = Value::Array(symbol.as_str().map(|__s| __s.split("/").map(Value::from).collect()).unwrap_or_default());
-        let mut base: Value = Value::Null;
+        let mut base: Value = self.safe_string(optionParts.clone(), Value::Int(0), &[Value::Str("".into())]);
         if Value::Int(symbol.as_str().and_then(|__s| __s.find("/")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64) {
             base = self.safe_string(symbolBase, Value::Int(0), &[Value::Str("".into())]);
-        }  else {
-            base = self.safe_string(optionParts.clone(), Value::Int(0), &[Value::Str("".into())]);
         }
         let mut expiry: Value = self.safe_string(optionParts.clone(), Value::Int(2), &[Value::Str("".into())]);
         let mut strike: Value = self.safe_string(optionParts.clone(), Value::Int(3), &[Value::Str("".into())]);
@@ -4196,31 +4194,32 @@ impl OkxCore {
         if (base == Value::Null) || (quote == Value::Null) {
             return Value::Null;
         }
-        let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into());
+        let mut baseSymbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into());
         // handle preopen empty markets
         if (base.as_str() == Some("")) || (quote.as_str() == Some("")) {
-            symbol = id.clone();
+            baseSymbol = Value::Str(format!("{}{}", id, Value::Str("".into())).into());
         }
+        let mut symbol: Value = baseSymbol.clone();
         let mut expiry: Value = Value::Null;
         let mut strikePrice: Value = Value::Null;
         let mut optionType: Value = Value::Null;
         if contract {
+            let mut settledSymbol: Value = baseSymbol.clone();
             if (settle != Value::Null) {
-                symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str(":".into())).into()), settle).into());
+                settledSymbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseSymbol, Value::Str(":".into())).into()), settle).into());
             }
+            symbol = settledSymbol.clone();
             if matches!(&future, Value::Bool(true)) {
                 expiry = self.safe_integer_k(market.clone(), "expTime", &[]);
                 if (expiry != Value::Null) {
-                    let mut ymd: Value = self.yymmdd(expiry.clone(), &[]);
-                    symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str("-".into())).into()), ymd).into());
+                    symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", settledSymbol, Value::Str("-".into())).into()), self.yymmdd(expiry.clone(), &[])).into());
                 }
             }  else if matches!(&option, Value::Bool(true)) {
                 expiry = self.safe_integer_k(market.clone(), "expTime", &[]);
                 strikePrice = self.safe_string_k(market.clone(), "stk", &[]);
                 optionType = self.safe_string_k(market.clone(), "optType", &[]);
                 if (expiry != Value::Null) {
-                    let mut ymd: Value = self.yymmdd(expiry.clone(), &[]);
-                    symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str("-".into())).into()), ymd).into()), Value::Str("-".into())).into()), strikePrice).into()), Value::Str("-".into())).into()), optionType).into());
+                    symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", settledSymbol, Value::Str("-".into())).into()), self.yymmdd(expiry.clone(), &[])).into()), Value::Str("-".into())).into()), strikePrice).into()), Value::Str("-".into())).into()), optionType).into());
                     optionType = (if (optionType.as_str() == Some("P")) { Value::Str("put".into()) } else { Value::Str("call".into()) });
                 }
             }

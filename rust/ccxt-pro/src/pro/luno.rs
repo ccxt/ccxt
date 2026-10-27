@@ -364,8 +364,8 @@ impl LunoCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_490: bool = true;
-            while { if !__for_first_490 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_490 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawTrades.len() as i64) as f64) } {
+            let mut __for_first_489: bool = true;
+            while { if !__for_first_489 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_489 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawTrades.len() as i64) as f64) } {
             let mut rawTrade: Value = rawTrades.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
             let mut trade: Value = self.parse_trade(rawTrade, &[market.clone()]);
             stored.append(trade);
@@ -561,8 +561,8 @@ impl LunoCore {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_491: bool = true;
-            while { if !__for_first_491 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_491 = false; i.as_f64().unwrap_or(f64::NAN) < ((bidasksValue.len() as i64) as f64) } {
+            let mut __for_first_490: bool = true;
+            while { if !__for_first_490 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_490 = false; i.as_f64().unwrap_or(f64::NAN) < ((bidasksValue.len() as i64) as f64) } {
             result.push(self.custom_parse_bid_ask(bidasksValue.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), &[priceKey.clone(), amountKey.clone(), thirdKey.clone()]));
         }
         }
@@ -639,8 +639,8 @@ impl LunoCore {
         let mut tradeUpdates: Vec<Value> = self.safe_list_k(message.clone(), "trade_updates", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_492: bool = true;
-            while { if !__for_first_492 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_492 = false; i.as_f64().unwrap_or(f64::NAN) < ((tradeUpdates.len() as i64) as f64) } {
+            let mut __for_first_491: bool = true;
+            while { if !__for_first_491 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_491 = false; i.as_f64().unwrap_or(f64::NAN) < ((tradeUpdates.len() as i64) as f64) } {
             let mut tradeUpdate: Value = tradeUpdates.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
             let mut makerOrderId: Option<String> = self.safe_string_k_opt(tradeUpdate.clone(), "maker_order_id", &[]);
             let mut tradedAmount: Option<String> = self.safe_string_k_opt(tradeUpdate, "base", &[]);
@@ -687,8 +687,8 @@ impl LunoCore {
         let mut sideLength: Value = get_array_length(&orderSide);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_493: bool = true;
-            while { if !__for_first_493 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_493 = false; i.as_f64().unwrap_or(f64::NAN) < sideLength.as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_492: bool = true;
+            while { if !__for_first_492 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_492 = false; i.as_f64().unwrap_or(f64::NAN) < sideLength.as_f64().unwrap_or(f64::NAN) } {
             let mut order: Value = get_value(&orderSide, &i);
             let mut order: Value = get_value(&orderSide, &i);
             let mut entryId: Value = self.safe_string(order.clone(), Value::Int(2), &[]);
@@ -781,8 +781,8 @@ impl LunoCore {
         let mut handlers: Value = Value::from(vec![Value::Str("handle_order_book".into()).clone(), Value::Str("handle_trades".into()).clone()]);
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_494: bool = true;
-            while { if !__for_first_494 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_494 = false; j.as_f64().unwrap_or(f64::NAN) < ((handlers.len() as i64) as f64) } {
+            let mut __for_first_493: bool = true;
+            while { if !__for_first_493 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_493 = false; j.as_f64().unwrap_or(f64::NAN) < ((handlers.len() as i64) as f64) } {
             let mut handler: Value = handlers.as_array().and_then(|__arr| match &j { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             self.dispatch_ws_handler(&handler, &[client.clone(), message.clone(), subscriptions.get(0).cloned().unwrap_or(Value::Null)]);
         }

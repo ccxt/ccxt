@@ -3356,7 +3356,7 @@ impl BydfiCore {
             self.load_markets(&[]).await;
         }
         let mut positionType: Value = Value::Str("ONEWAY".into());
-        if hedged.as_bool() == Some(true) {
+        if (hedged.as_bool() == Some(true)) {
             positionType = Value::Str("HEDGE".into());
         }
         let mut wallet: Value = Value::Str("W001".into());

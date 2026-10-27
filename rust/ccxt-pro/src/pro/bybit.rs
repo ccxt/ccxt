@@ -813,7 +813,7 @@ impl BybitCore {
         if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) && (topic.as_str() != Some("tickers")) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" watchTicker() only supports name tickers for contract markets".into()))));
         }
-        let mut topics: Value = Value::from(vec![Value::Str(format!("{}{}", Value::Str(format!("{}{}", topic, Value::Str(".".into())).into()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).into())]);
+        let mut topics: Value = Value::from(vec![Value::Str(format!("{}{}", Value::Str(format!("{}{}", topic, Value::Str(".".into())).into()), self.safe_string_k(market, "id", &[Value::Str("".into())])).into())]);
         return self.watch_topics(url, Value::from(vec![messageHash]), topics, &[paramsValue]).await;
 
     Value::Null
@@ -855,7 +855,7 @@ impl BybitCore {
             while { if !__for_first_186 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_186 = false; i.as_f64().unwrap_or(f64::NAN) < ((marketIds.len() as i64) as f64) } {
             let mut marketId: Value = marketIds.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             topics.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", topic, Value::Str(".".into())).into()), marketId).into()));
-            messageHashes.push(Value::Str(format!("{}{}", Value::Str("ticker:".into()), symbolsValue.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null)).into()));
+            messageHashes.push(Value::Str(format!("{}{}", Value::Str("ticker:".into()), self.safe_string(symbolsValue.clone(), i.clone(), &[Value::Str("".into())])).into()));
         }
         }
         let mut ticker: Value = self.watch_topics(url, Value::from(messageHashes), Value::from(topics), &[paramsValue]).await;
@@ -1134,7 +1134,7 @@ impl BybitCore {
             let mut marketId: Value = marketIds.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut topic: Value = Value::Str(format!("{}{}", Value::Str("orderbook.1.".into()), marketId).into());
             topics.push(topic);
-            messageHashes.push(Value::Str(format!("{}{}", Value::Str("bidask:".into()), symbolsValue.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null)).into()));
+            messageHashes.push(Value::Str(format!("{}{}", Value::Str("bidask:".into()), self.safe_string(symbolsValue.clone(), i.clone(), &[Value::Str("".into())])).into()));
         }
         }
         let mut ticker: Value = self.watch_topics(url, Value::from(messageHashes), Value::from(topics), &[paramsValue]).await;
@@ -1483,7 +1483,7 @@ impl BybitCore {
             });
             let mut selectedLimits: Value = self.safe_list2(Value::Map(limits), market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null), Value::Str("default".into()), &[Value::from(vec![])]);
             if !(self.in_array(limit.clone(), selectedLimits.clone()).as_bool() == Some(true)) {
-                panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBookForSymbols(): for ".into())).into()), market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null)).into()), Value::Str(" markets limit can be one of: ".into())).into()), json_stringify(&selectedLimits))));
+                panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBookForSymbols(): for ".into())).into()), self.safe_string_k(market, "type", &[Value::Str("".into())])).into()), Value::Str(" markets limit can be one of: ".into())).into()), json_stringify(&selectedLimits))));
             }
         }
         let mut topics: Vec<Value> = Vec::new();

@@ -6817,8 +6817,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        if (self.safe_dict(hi3TokensByname.clone(), coin.clone(), &[]) != Value::Null) {
-            let mut hip3Dict: Value = self.safe_dict(hi3TokensByname, coin.clone(), &[]);
+        let mut hip3Dict: Value = self.safe_dict(hi3TokensByname, coin.clone(), &[]);
+        if (hip3Dict != Value::Null) {
             let quote: String = self.safe_string_k_opt(hip3Dict.clone(), "quote", &[Value::Str("USDC".into())]).unwrap_or_default();
             let mut code: Value = self.safe_string_k(hip3Dict, "code", &[coin.clone()]);
             return Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", code, Value::Str("/".into())).into()), quote).into()), Value::Str(":".into())).into()), quote).into()).as_str().map(str::to_owned);

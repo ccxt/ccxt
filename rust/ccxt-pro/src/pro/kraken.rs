@@ -1005,8 +1005,8 @@ impl KrakenCore {
         let mut parsed: Value = self.parse_trades(data, &[market]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_428: bool = true;
-            while { if !__for_first_428 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_428 = false; i.as_f64().unwrap_or(f64::NAN) < ((parsed.len() as i64) as f64) } {
+            let mut __for_first_427: bool = true;
+            while { if !__for_first_427 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_427 = false; i.as_f64().unwrap_or(f64::NAN) < ((parsed.len() as i64) as f64) } {
             stored.append(parsed.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
         }
         }
@@ -1064,8 +1064,8 @@ impl KrakenCore {
         let mut ohlcvsLength: f64 = ((data.len() as i64) as f64);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_429: bool = true;
-            while { if !__for_first_429 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_429 = false; i.as_f64().unwrap_or(f64::NAN) < ohlcvsLength } {
+            let mut __for_first_428: bool = true;
+            while { if !__for_first_428 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_428 = false; i.as_f64().unwrap_or(f64::NAN) < ohlcvsLength } {
             let mut candle: Value = self.safe_dict(data.clone(), i.clone(), &[]);
             let mut datetime: Option<String> = self.safe_string_k_opt(candle.clone(), "interval_begin", &[]);
             let mut timestamp: Value = self.parse8601(datetime.map(Value::from).unwrap_or(Value::Null));
@@ -1357,8 +1357,8 @@ impl KrakenCore {
             if (symbols != Value::Null) {
                 {
                                         let mut i: Value = Value::Int(0);
-                    let mut __for_first_430: bool = true;
-                    while { if !__for_first_430 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_430 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
+                    let mut __for_first_429: bool = true;
+                    while { if !__for_first_429 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_429 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
                     let mut symbol: Value = symbols.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                     let mut market: Value = self.market(symbol);
                     let mut info: Value = self.safe_dict_k(market.clone(), "info", &[Value::Map({
@@ -1547,8 +1547,8 @@ impl KrakenCore {
             let mut keys: Value = Value::from(vec![Value::Str("asks".into()), Value::Str("bids".into())]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_431: bool = true;
-                while { if !__for_first_431 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_431 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
+                let mut __for_first_430: bool = true;
+                while { if !__for_first_430 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_430 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
                 let mut key: Value = keys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 let mut bookside: Value = get_value(&orderbook, &key);
                 let mut bookside: Value = get_value(&orderbook, &key);
@@ -1571,8 +1571,8 @@ impl KrakenCore {
                 let mut checkBids: Value = get_value(&orderbook, &Value::Str("bids".into()));
                 {
                                         let mut i: Value = Value::Int(0);
-                    let mut __for_first_432: bool = true;
-                    while { if !__for_first_432 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_432 = false; i.as_f64().unwrap_or(f64::NAN) < ((10i64) as f64) } {
+                    let mut __for_first_431: bool = true;
+                    while { if !__for_first_431 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_431 = false; i.as_f64().unwrap_or(f64::NAN) < ((10i64) as f64) } {
                     let mut currentAsk: Vec<Value> = self.safe_list(checkAsks.clone(), i.clone(), &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
                     let mut formattedAsk: Value = Value::Str(format!("{}{}", self.format_number(currentAsk.get(0).cloned().unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null), self.format_number(currentAsk.get(1).cloned().unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null)).into());
                     payloadArray.push(formattedAsk);
@@ -1580,8 +1580,8 @@ impl KrakenCore {
                 }
                 {
                                         let mut i: Value = Value::Int(0);
-                    let mut __for_first_433: bool = true;
-                    while { if !__for_first_433 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_433 = false; i.as_f64().unwrap_or(f64::NAN) < ((10i64) as f64) } {
+                    let mut __for_first_432: bool = true;
+                    while { if !__for_first_432 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_432 = false; i.as_f64().unwrap_or(f64::NAN) < ((10i64) as f64) } {
                     let mut currentBid: Vec<Value> = self.safe_list(checkBids.clone(), i.clone(), &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
                     let mut formattedBid: Value = Value::Str(format!("{}{}", self.format_number(currentBid.get(0).cloned().unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null), self.format_number(currentBid.get(1).cloned().unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null)).into());
                     payloadArray.push(formattedBid);
@@ -1604,8 +1604,8 @@ impl KrakenCore {
     pub fn custom_handle_deltas(&self, mut bookside: Value, mut deltas: Value) {
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_434: bool = true;
-            while { if !__for_first_434 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_434 = false; j.as_f64().unwrap_or(f64::NAN) < ((deltas.len() as i64) as f64) } {
+            let mut __for_first_433: bool = true;
+            while { if !__for_first_433 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_433 = false; j.as_f64().unwrap_or(f64::NAN) < ((deltas.len() as i64) as f64) } {
             let mut delta: Value = self.safe_dict(deltas.clone(), j.clone(), &[]);
             let mut price: Value = self.safe_number_k(delta.clone(), "price", &[]);
             let mut amount: Value = self.safe_number_k(delta, "qty", &[]);
@@ -1820,8 +1820,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             });
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_435: bool = true;
-                while { if !__for_first_435 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_435 = false; i.as_f64().unwrap_or(f64::NAN) < ((allTrades.len() as i64) as f64) } {
+                let mut __for_first_434: bool = true;
+                while { if !__for_first_434 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_434 = false; i.as_f64().unwrap_or(f64::NAN) < ((allTrades.len() as i64) as f64) } {
                 let mut trade: Value = self.safe_dict(allTrades.clone(), i.clone(), &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
@@ -1837,8 +1837,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut keys: Vec<Value> = Value::Array(symbols.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_436: bool = true;
-                while { if !__for_first_436 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_436 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
+                let mut __for_first_435: bool = true;
+                while { if !__for_first_435 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_435 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
                 let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str(":".into())).into()), keys.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null)).into());
                 client.resolve(&[self.myTrades.clone(), messageHash]);
             }
@@ -1991,8 +1991,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             });
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_437: bool = true;
-                while { if !__for_first_437 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_437 = false; i.as_f64().unwrap_or(f64::NAN) < ((allOrders.len() as i64) as f64) } {
+                let mut __for_first_436: bool = true;
+                while { if !__for_first_436 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_436 = false; i.as_f64().unwrap_or(f64::NAN) < ((allOrders.len() as i64) as f64) } {
                 let mut order: Value = self.safe_dict(allOrders.clone(), i.clone(), &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
@@ -2030,8 +2030,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut keys: Vec<Value> = Value::Array(symbols.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_438: bool = true;
-                while { if !__for_first_438 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_438 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
+                let mut __for_first_437: bool = true;
+                while { if !__for_first_437 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_437 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
                 let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str(":".into())).into()), keys.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null)).into());
                 client.resolve(&[self.orders.clone(), messageHash]);
             }
@@ -2134,8 +2134,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut messageHashes: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_439: bool = true;
-            while { if !__for_first_439 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_439 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
+            let mut __for_first_438: bool = true;
+            while { if !__for_first_438 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_438 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
             let mut eventTrigger: Option<String> = self.safe_string_k(params.clone(), "event_trigger", &[]).as_str().map(str::to_owned);
             if (eventTrigger.is_some()) {
                 if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(self.get_message_hash(channelName.clone(), &[Value::Null, self.symbol(symbolsNormalized.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null))]).map(Value::from).unwrap_or(Value::Null)); }
@@ -2243,8 +2243,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut data: Vec<Value> = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_440: bool = true;
-            while { if !__for_first_440 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_440 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
+            let mut __for_first_439: bool = true;
+            while { if !__for_first_439 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_439 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             let mut currencyId: Option<String> = self.safe_string_opt(data.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null), Value::Str("asset".into()), &[]);
             let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();

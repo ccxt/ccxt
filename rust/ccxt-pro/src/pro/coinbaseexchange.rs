@@ -1130,14 +1130,12 @@ impl CoinbaseexchangeCore {
     m
 }));
                         }
-                        let mut previousOrderFee: indexmap::IndexMap<String, Value> = self.safe_dict_k(previousOrder.clone(), "fee", &[Value::Map({
+                        let mut previousOrderFee: Value = self.safe_dict_k(previousOrder.clone(), "fee", &[Value::Map({
                             let mut m = indexmap::IndexMap::new();
                             m
-                        })]).as_map().cloned().unwrap_or_default();
-                        if (previousOrderFee.get("cost").cloned().unwrap_or(Value::Null) != Value::Null) && (self.safe_number(trade.as_map().and_then(|__m| __m.get("fee")).cloned().unwrap_or(Value::Null), Value::Str("cost".into()), &[]) != Value::Null) {
-                            add_element_to_object(get_value_mut(&mut previousOrder, &Value::Str("fee".into())), &Value::Str("cost".into()), self.sum(&[previousOrderFee.get("cost").cloned().unwrap_or(Value::Null), self.safe_number(trade.as_map().and_then(|__m| __m.get("fee")).cloned().unwrap_or(Value::Null), Value::Str("cost".into()), &[])]));
-                            let mut tradeFee: Value = self.safe_dict_k(trade, "fee", &[]);
-                            add_element_to_object(get_value_mut(&mut previousOrder, &Value::Str("fee".into())), &Value::Str("cost".into()), self.parse_number(crate::precise::Precise::stringAdd(&self.safe_string_k(Value::Map(previousOrderFee), "cost", &[]), &self.safe_string_k(tradeFee, "cost", &[])), &[]));
+                        })]);
+                        if (self.safe_number_k(previousOrderFee.clone(), "cost", &[]) != Value::Null) && (self.safe_number(trade.as_map().and_then(|__m| __m.get("fee")).cloned().unwrap_or(Value::Null), Value::Str("cost".into()), &[]) != Value::Null) {
+                            add_element_to_object(get_value_mut(&mut previousOrder, &Value::Str("fee".into())), &Value::Str("cost".into()), self.parse_number(crate::precise::Precise::stringAdd(&self.safe_string_k(previousOrderFee, "cost", &[]), &self.safe_string(trade.as_map().and_then(|__m| __m.get("fee")).cloned().unwrap_or(Value::Null), Value::Str("cost".into()), &[])), &[]));
                         }
                         // update the newUpdates count
                         orders.append(previousOrder.clone());

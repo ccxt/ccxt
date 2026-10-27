@@ -1414,7 +1414,7 @@ impl GateCore {
         let mut market: Value = self.market(symbolsNormalized.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null));
         let mut messageType: Value = self.get_type_by_market(market.clone());
         let mut marketIds: Value = self.market_ids(&[symbolsNormalized.clone()]);
-        let channelNameparamsMethodVariable: Vec<Value> = self.handle_option_string_and_params(paramsCallerMethodName, callerMethodNameOption.clone(), Value::Str("method".into()), &[]).as_array().cloned().unwrap_or_default();
+        let channelNameparamsMethodVariable: Vec<Value> = self.handle_option_string_and_params(paramsCallerMethodName, callerMethodNameOption.clone(), Value::Str("method".into()), &[Value::Str("".into())]).as_array().cloned().unwrap_or_default();
         let mut channelName: Value = channelNameparamsMethodVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsMethod: Value = channelNameparamsMethodVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut url: Value = self.get_url_by_market(market);
@@ -3132,9 +3132,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (market == Value::Null) {
             return Value::Null;
         }
-        if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
             return Value::Str("spot".into());
-        }  else if (market.as_map().and_then(|__m| __m.get("option")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
+        }  else if matches!(self.safe_bool_k(market, "option", &[Value::Bool(false)]), Value::Bool(true)) {
             return Value::Str("options".into());
         }  else {
             return Value::Str("futures".into());

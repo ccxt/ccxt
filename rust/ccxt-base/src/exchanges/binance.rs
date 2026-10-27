@@ -8120,7 +8120,7 @@ impl BinanceCore {
             if (paramSymbols != Value::Null) {
                 let mut symbols: Value = Value::Str("".into());
                 if (matches!(&paramSymbols, Value::Arr(_))) {
-                    let mut mid: Value = self.market_id(self.safe_value(paramSymbols.clone(), Value::Int(0), &[]));
+                    let mut mid: Value = self.market_id(self.safe_string(paramSymbols.clone(), Value::Int(0), &[]));
                     if (mid != Value::Null) {
                         symbols = mid;
                     }
@@ -8128,8 +8128,7 @@ impl BinanceCore {
                                                 let mut i: Value = Value::Int(1);
                         let mut __for_first_279: bool = true;
                         while { if !__for_first_279 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_279 = false; i.as_f64().unwrap_or(f64::NAN) < ((paramSymbols.len() as i64) as f64) } {
-                        let mut symbol: Value = self.safe_value(paramSymbols.clone(), i.clone(), &[]);
-                        let mut id: Value = self.market_id(symbol);
+                        let mut id: Value = self.market_id(self.safe_string(paramSymbols.clone(), i.clone(), &[]));
                         if (id != Value::Null) {
                             symbols = Value::Str(format!("{}{}", symbols, Value::Str(format!("{}{}", Value::Str(",".into()), id).into())).into());
                         }
@@ -17714,7 +17713,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     let mut origclientorderidlist: Value = self.safe_list2(extendedParams.clone(), Value::Str("origclientorderidlist".into()), Value::Str("origClientOrderIdList".into()), &[Value::from(vec![])]);
                     extendedParams = self.omit(extendedParams.clone(), Value::from(vec![Value::Str("orderidlist".into()), Value::Str("origclientorderidlist".into()), Value::Str("origClientOrderIdList".into())]), &[]);
                     if (matches!(&extendedParams, Value::Dict(__d) if __d.contains_key("symbol"))) {
-                        { let __be_tmp = self.encode_uri_component(crate::value::get_value_k(&extendedParams, "symbol")); if let Value::Dict(__d) = &mut extendedParams { std::sync::Arc::make_mut(__d).insert("symbol".into(), __be_tmp); } }
+                        { let __be_tmp = self.encode_uri_component(self.safe_string_k(extendedParams.clone(), "symbol", &[Value::Str("".into())])); if let Value::Dict(__d) = &mut extendedParams { std::sync::Arc::make_mut(__d).insert("symbol".into(), __be_tmp); } }
                     }
                     query = self.rawencode(extendedParams.clone(), &[]);
                     let mut orderidlistLength: f64 = ((orderidlist.len() as i64) as f64);
@@ -17729,7 +17728,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                                                         let mut i: Value = Value::Int(0);
                             let mut __for_first_307: bool = true;
                             while { if !__for_first_307 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_307 = false; i.as_f64().unwrap_or(f64::NAN) < origclientorderidlistLength } {
-                            newClientOrderIds.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("%22".into()), origclientorderidlist.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null)).into()), Value::Str("%22".into())).into()));
+                            newClientOrderIds.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("%22".into()), self.safe_string(origclientorderidlist.clone(), i.clone(), &[Value::Str("".into())])).into()), Value::Str("%22".into())).into()));
                         }
                         }
                         query = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", query, Value::Str("&".into())).into()), Value::Str("origclientorderidlist=%5B".into())).into()), Value::Str(newClientOrderIds.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join("%2C").into())).into()), Value::Str("%5D".into())).into());

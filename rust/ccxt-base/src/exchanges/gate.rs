@@ -9705,7 +9705,7 @@ if _try_result.is_err() {
         let mut authentication: Value = api.get(0).cloned().unwrap_or(Value::Null); // public, private
         let mut type_var: Value = api.get(1).cloned().unwrap_or(Value::Null); // spot, margin, future, delivery
         let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
-        let mut pathImploded: Value = Value::Null;
+        let mut pathImploded: Value = Value::Str("".into());
         let mut bodyJson: Value = Value::Null;
         let mut signedHeaders: Value = Value::Null;
         let mut containsSettle: bool = Value::Int(path.as_str().and_then(|__s| __s.find("settle")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64);

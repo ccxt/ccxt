@@ -3945,7 +3945,7 @@ impl BlofinCore {
                     while { if !__for_first_463 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_463 = false; i.as_f64().unwrap_or(f64::NAN) < ((tpslIds.len() as i64) as f64) } {
                     request.push(Value::Map({
                         let mut m = indexmap::IndexMap::new();
-                            m.insert("tpslId".to_string(), tpslIds.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
+                            m.insert("tpslId".to_string(), self.safe_string(tpslIds.clone(), i.clone(), &[]));
                             m.insert("instId".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                         m
                     }));
@@ -3959,14 +3959,14 @@ impl BlofinCore {
                 if (trigger.as_bool() == Some(true)) {
                     request.push(Value::Map({
                         let mut m = indexmap::IndexMap::new();
-                            m.insert("tpslId".to_string(), orderIds.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
+                            m.insert("tpslId".to_string(), self.safe_string(orderIds.clone(), i.clone(), &[]));
                             m.insert("instId".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                         m
                     }));
                 }  else {
                     request.push(Value::Map({
                         let mut m = indexmap::IndexMap::new();
-                            m.insert("orderId".to_string(), orderIds.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
+                            m.insert("orderId".to_string(), self.safe_string(orderIds.clone(), i.clone(), &[]));
                             m.insert("instId".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                         m
                     }));
@@ -3981,7 +3981,7 @@ impl BlofinCore {
                 request.push(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("instId".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
-                        m.insert("clientOrderId".to_string(), clientOrderIds.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
+                        m.insert("clientOrderId".to_string(), self.safe_string(clientOrderIds.clone(), i.clone(), &[]));
                     m
                 }));
             }
@@ -4819,7 +4819,7 @@ impl BlofinCore {
 }));
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("positionMode".to_string(), (if hedged.as_bool() == Some(true) { Value::Str("long_short_mode".into()) } else { Value::Str("net_mode".into()) }));
+                m.insert("positionMode".to_string(), (if (hedged.as_bool() == Some(true)) { Value::Str("long_short_mode".into()) } else { Value::Str("net_mode".into()) }));
             m
         });
         let __ws_arg_37 = self.extend(Value::Map(request), &[params]);

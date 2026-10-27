@@ -1024,9 +1024,9 @@ impl LbankCore {
     m
 }));
         let mut marketsPromises: Value = Value::from(vec![self.fetch_spot_markets(&[params.clone()]).await, self.fetch_swap_markets(&[params]).await]);
-        let mut resolvedMarkets: Vec<Value> = promise_all(&marketsPromises).await.as_array().cloned().unwrap_or_default();
-        let mut spotMarkets: Value = resolvedMarkets.get(0).cloned().unwrap_or(Value::Null);
-        let mut swapMarkets: Value = resolvedMarkets.get(1).cloned().unwrap_or(Value::Null);
+        let mut resolvedMarkets: Value = promise_all(&marketsPromises).await;
+        let mut spotMarkets: Value = self.safe_value(resolvedMarkets.clone(), Value::Int(0), &[]);
+        let mut swapMarkets: Value = self.safe_value(resolvedMarkets, Value::Int(1), &[]);
         return self.array_concat(spotMarkets, swapMarkets);
 
     Value::Null
@@ -4183,8 +4183,7 @@ impl LbankCore {
             }), &[signedQuery.clone()]), &[]);
             let mut auth: Value = self.rawencode(__ws_arg_34, &[]);
             let mut encoded: Value = self.encode(auth);
-            let mut hash: Value = self.hash(encoded, Value::Str("md5".into()), &[]);
-            let mut uppercaseHash: Value = hash.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
+            let mut uppercaseHash: Value = (self.hash(encoded, Value::Str("md5".into()), &[])).as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
             let mut sign: Value = Value::Null;
             if (signatureMethod.as_str() == Some("RSA")) {
                 let mut cacheSecretAsPem: Value = self.safe_bool_k(self.options.clone(), "cacheSecretAsPem", &[Value::Bool(true)]);
@@ -4236,7 +4235,7 @@ impl LbankCore {
 }
 
     pub fn convert_secret_to_pem(&self, mut secret: Value) -> Option<String> {
-        let mut secretLength: Value = (match (&(get_array_length(&secret)), &(Value::Int(0))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
+        let mut secretLength: Value = get_array_length(&secret);
         let mut fullLines: Value = self.parse_to_int((match ((secretLength).as_f64(), (Value::Int(64)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
         let mut pem: Value = Value::Str("-----BEGIN PRIVATE KEY-----\n".into()); // eslint-disable-line
         {

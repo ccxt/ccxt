@@ -10518,13 +10518,11 @@ impl HtxCore {
         let mut pathString: Value = path.clone();
         let mut url: Value = Value::Str("/".into());
         let mut isArrayParams: bool = matches!(&params, Value::Arr(_));
-        let mut query: Value = Value::Null;
-        if isArrayParams {
-            query = Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            });
-        }  else {
+        let mut query: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
+        if !isArrayParams {
             query = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
         }
         let mut apiLength: f64 = ((api.len() as i64) as f64);
@@ -10584,7 +10582,7 @@ impl HtxCore {
                     });
                 }
             }  else {
-                if (query != Value::Null) && (((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64)) {
+                if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
                     url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])).into())).into());
                 }
             }
@@ -10615,7 +10613,7 @@ impl HtxCore {
             hostname = hostnames;
             url = Value::Str(format!("{}{}", url, self.implode_params(path, params.clone())).into());
             if (access.as_deref() == Some("public")) {
-                if (query != Value::Null) && (((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64)) {
+                if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
                     url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])).into())).into());
                 }
             }  else if (access.as_deref() == Some("private")) {
