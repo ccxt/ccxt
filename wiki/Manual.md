@@ -1163,6 +1163,14 @@ Each market is an associative array (aka dictionary) with the following keys:
 - `strike`. Price at which an option can be bought or sold when it is exercised.
 - `stock`. A boolean indicating whether the market represents a stock instrument.
 
+### Bitget Stock Market Routing
+
+Bitget classifies instruments with `symbolType: 'stock'` as `stock: true`, including instruments with `isReality: 'no'`. For older instrument responses without `symbolType`, `isReality: 'yes'` is used as a fallback. An explicit `symbolType: 'crypto'` is not classified as stock. Stock-underlying derivatives retain their swap or future market type and use derivative REST endpoints, not Reality spot endpoints.
+
+Methods requiring a symbol, including `fetchOrderBook`, `fetchTicker`, `fetchTrades`, `fetchOHLCV`, `createOrder`, `cancelOrder`, and the corresponding supported WebSocket subscriptions, derive stock routing from the loaded market. They do not accept `params.stock` or method-level stock options as routing overrides; legacy `params.stock` values are discarded. Load the appropriate markets before using a stock symbol, for example with `loadMarkets(true, { uta: true })`. The `stock` selector remains available on `fetchMarkets`, `fetchTickers`, `fetchBalance` and `watchBalance`, which can operate without a symbol.
+
+This classification does not establish ownership of underlying shares or add support for the separate Stock+ securities account.
+
 ### Backpack Tokenized Stocks and Equity Data
 
 `fetchMarkets({ marketType: ... })` accepts a string or array with aliases `spot` → `SPOT`, `swap` → `PERP`, and `stock` → `RFQ`. Mixed aliases and exchange-native values are normalized and deduplicated. The `stock` market-type alias selects RFQ execution; use `params.stock: true` to filter stock underlyings across spot, swap and RFQ markets.
@@ -9505,4 +9513,3 @@ In case you experience any difficulty connecting to a particular exchange, do th
 - Some exchanges are not available in certain countries, using a [proxy](#proxy) might be the solution in such cases.
 - If you are getting authentication errors or *'invalid keys'* errors, those are most likely due to a nonce issue.
 - Some exchanges do not state it clearly if they fail to authenticate your request. In those circumstances they might respond with an exotic error code, like HTTP 502 Bad Gateway Error or something that's even less related to the actual cause of the error.
-

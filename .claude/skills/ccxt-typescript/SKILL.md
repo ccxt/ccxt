@@ -216,6 +216,10 @@ await exchange.cancelOrder(orderId, 'BTC/USDT')
 await exchange.cancelAllOrders('BTC/USDT')
 ```
 
+## Bitget Stock Routing
+
+Load UTA markets with `await exchange.loadMarkets(true, { uta: true })` to discover stock instruments. `symbolType: 'stock'` sets `market.stock: true`; `isReality: 'yes'` is a fallback only when `symbolType` is absent. Stock-underlying derivatives remain derivatives and do not use Reality spot REST endpoints. Required-symbol REST methods and supported stock WebSocket subscriptions infer routing from the market and discard legacy `params.stock`; stock options cannot override that routing. Keep `stock` selectors for symbol-less discovery, tickers and balances. This does not add Stock+ securities-account support or imply ownership of underlying shares.
+
 ## Backpack Tokenized Stocks (REST)
 
 - `fetchMarkets` accepts scalar or array `marketType` aliases: `spot`/`SPOT`, `swap`/`PERP`, `stock`/`RFQ`. The `stock` alias selects RFQs; `params.stock: true` filters stock underlyings across execution types.
