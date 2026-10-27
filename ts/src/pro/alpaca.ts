@@ -291,12 +291,6 @@ export default class alpaca extends alpacaRest {
         bookside.storeArray (bidAsk);
     }
 
-    override handleDeltas (bookside: any, deltas: any[]) {
-        for (let i = 0; i < deltas.length; i++) {
-            this.handleDelta (bookside, deltas[i]);
-        }
-    }
-
     /**
      * @method
      * @name alpaca#watchTrades
