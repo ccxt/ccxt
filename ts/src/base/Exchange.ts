@@ -7972,20 +7972,17 @@ export class BaseExchange {
         const results: LastPrice[] = [];
         if (Array.isArray (pricesData)) {
             for (let i = 0; i < pricesData.length; i++) {
-                const priceData = this.extend (this.parseLastPrice (pricesData[i]), params);
-                results.push (priceData);
+                results.push (this.extend (this.parseLastPrice (pricesData[i]), params));
             }
         } else {
             const marketIds = Object.keys (pricesData);
             for (let i = 0; i < marketIds.length; i++) {
                 const marketId = marketIds[i];
                 const market = this.safeMarket (marketId);
-                const priceData = this.extend (this.parseLastPrice (pricesData[marketId], market), params);
-                results.push (priceData);
+                results.push (this.extend (this.parseLastPrice (pricesData[marketId], market), params));
             }
         }
-        const symbolsNormalized: Strings = this.marketSymbols (symbols);
-        return this.indexBy (this.filterByArray (results, 'symbol', symbolsNormalized, false), 'symbol');
+        return this.indexBy (this.filterByArray (results, 'symbol', this.marketSymbols (symbols), false), 'symbol');
     }
 
     parseTickers (tickers: any, symbols: Strings = undefined, params: Dict = {}): Tickers {
@@ -8014,22 +8011,17 @@ export class BaseExchange {
         const results: Ticker[] = [];
         if (Array.isArray (tickers)) {
             for (let i = 0; i < tickers.length; i++) {
-                const parsedTicker = this.parseTicker (tickers[i]);
-                const ticker = this.extend (parsedTicker, params);
-                results.push (ticker);
+                results.push (this.extend (this.parseTicker (tickers[i]), params));
             }
         } else {
             const marketIds = Object.keys (tickers);
             for (let i = 0; i < marketIds.length; i++) {
                 const marketId = marketIds[i];
                 const market = this.safeMarket (marketId);
-                const parsed = this.parseTicker (tickers[marketId], market);
-                const ticker = this.extend (parsed, params);
-                results.push (ticker);
+                results.push (this.extend (this.parseTicker (tickers[marketId], market), params));
             }
         }
-        const symbolsNormalized: Strings = this.marketSymbols (symbols);
-        return this.filterByArrayTickers (results, 'symbol', symbolsNormalized);
+        return this.filterByArrayTickers (results, 'symbol', this.marketSymbols (symbols));
     }
 
     parseDepositAddresses (addresses: any, codes: Strings = undefined, indexed = true, params: Dict = {}): DepositAddress[] {
@@ -9133,22 +9125,17 @@ export class BaseExchange {
         const results: Dict[] = [];
         if (Array.isArray (greeks)) {
             for (let i = 0; i < greeks.length; i++) {
-                const parsedTicker = this.parseGreeks (greeks[i]);
-                const greek = this.extend (parsedTicker, params);
-                results.push (greek);
+                results.push (this.extend (this.parseGreeks (greeks[i]), params));
             }
         } else {
             const marketIds = Object.keys (greeks);
             for (let i = 0; i < marketIds.length; i++) {
                 const marketId = marketIds[i];
                 const market = this.safeMarket (marketId);
-                const parsed = this.parseGreeks (greeks[marketId], market);
-                const greek = this.extend (parsed, params);
-                results.push (greek);
+                results.push (this.extend (this.parseGreeks (greeks[marketId], market), params));
             }
         }
-        const symbolsNormalized: Strings = this.marketSymbols (symbols);
-        return this.indexBy (this.filterByArray (results, 'symbol', symbolsNormalized, false), 'symbol') as AllGreeks;
+        return this.indexBy (this.filterByArray (results, 'symbol', this.marketSymbols (symbols), false), 'symbol') as AllGreeks;
     }
 
     parseOption (chain: Dict, currency: Currency = undefined, market: Market = undefined): Option {
