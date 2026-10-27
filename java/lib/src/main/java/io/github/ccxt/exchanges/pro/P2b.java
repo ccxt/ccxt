@@ -206,7 +206,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, false, false);
+            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, false, false);
             Map<String, Object> watchTickerOptions = (Map<String, Object>) this.safeDict(this.options, "watchTicker", (Object) null);
             String name = this.safeString(watchTickerOptions, "name", "state"); // or price
             Pair<String, Map<String, Object>> nameOptionparamsNameVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchTickers", "name", name);
@@ -214,9 +214,9 @@ public class P2b extends io.github.ccxt.exchanges.P2b
             Map<String, Object> paramsName = nameOptionparamsNameVariable.second();
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             List<Object> args = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)(List<String>)(symbolsNormalized)).size(); i++)
+            for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
             {
-                Map<String, Object> market = this.market(Helpers.GetValue((List<String>)(symbolsNormalized), i));
+                Map<String, Object> market = this.market((symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i)));
                 ((List<Object>)messageHashes).add(((nameOption + "::") + this.safeString(market, "symbol", "")));
                 ((List<Object>)args).add(market.get("id"));
             }
