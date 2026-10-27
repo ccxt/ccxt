@@ -81,7 +81,9 @@ export default class woo extends wooRest {
         const options = this.safeDict (this.options, 'requestId', {});
         const previousValue = this.safeInteger (options, url, 0);
         const newValue = this.sum (previousValue, 1);
-        this.options['requestId'][url] = newValue;
+        const entry: Dict = {};
+        entry[url] = newValue;
+        this.options['requestId'] = this.extend (this.safeDict (this.options, 'requestId', {}), entry);
         return newValue;
     }
 
@@ -628,7 +630,7 @@ export default class woo extends wooRest {
             }
             ticker['ts'] = timestamp;
             const parsedTicker = this.parseWsBidAsk (ticker);
-            const symbol = parsedTicker['symbol'];
+            const symbol = this.safeString (parsedTicker, 'symbol');
             if (symbol !== undefined) {
                 this.bidsasks[symbol] = parsedTicker;
             }
@@ -1013,8 +1015,9 @@ export default class woo extends wooRest {
         }
         const paramsOmitted: Dict = this.omit (params, [ 'stop', 'trigger' ]);
         let messageHash: string = topic;
-        const symbolResolved: Str = (symbol !== undefined) ? this.symbol (symbol) : undefined;
-        if (symbolResolved !== undefined) {
+        let symbolResolved: Str = undefined;
+        if (symbol !== undefined) {
+            symbolResolved = this.symbol (symbol);
             messageHash = topic + ':' + symbolResolved;
         }
         const request: Dict = {
@@ -1054,8 +1057,9 @@ export default class woo extends wooRest {
         }
         const paramsOmitted: Dict = this.omit (params, [ 'stop', 'trigger' ]);
         let messageHash: string = 'myTrades';
-        const symbolResolved: Str = (symbol !== undefined) ? this.symbol (symbol) : undefined;
-        if (symbolResolved !== undefined) {
+        let symbolResolved: Str = undefined;
+        if (symbol !== undefined) {
+            symbolResolved = this.symbol (symbol);
             messageHash = 'myTrades' + ':' + symbolResolved;
         }
         const request: Dict = {
@@ -1513,17 +1517,14 @@ export default class woo extends wooRest {
             const key = keys[i];
             const value = this.safeDict (balances, key);
             const code = this.safeCurrencyCode (key);
-            let account = this.account ();
-            if ((code !== undefined) && (code in this.balance)) {
-                account = this.balance[code];
-            }
+            const account = this.account ();
             const total = this.safeString (value, 'holding');
             const used = this.safeString (value, 'frozen');
             account['total'] = total;
             account['used'] = used;
             account['free'] = Precise.stringSub (total, used);
             if (code !== undefined) {
-                this.balance[code] = account;
+                this.balance[code] = this.extend (this.safeDict (this.balance, code, {}), account);
             }
         }
         this.balance = this.safeBalance (this.balance);
