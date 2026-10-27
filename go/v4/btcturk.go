@@ -1469,13 +1469,13 @@ func (this *Btcturk) Sign(path string, optionalArgs ...any) any {
 func (this *Btcturk) HandleErrors(code int64, reason any, url string, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	var errorCode *string = this.SafeString(response, "code", "0")
 	var message *string = this.SafeString(response, "message")
-	var output *string = message
-	if message == nil {
-		output = SafeStringPtr(body)
+	var feedback string = this.Id + " " + body
+	if message != nil {
+		feedback = this.Id + " " + *message
 	}
-	this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, Add(this.Id+" ", output))
+	this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, feedback)
 	if (errorCode == nil || *errorCode != "0") && (errorCode == nil || *errorCode != "SUCCESS") {
-		panic(ExchangeError(Add(this.Id+" ", output)))
+		panic(ExchangeError(feedback))
 	}
 	return nil
 }

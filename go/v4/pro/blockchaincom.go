@@ -138,9 +138,6 @@ func (this *Blockchaincom) HandleBalance(client any, message map[string]any) {
 	// nobody is awaiting, so a replaced object would make updates landing
 	// in that window invisible to the consumer forever (same class as
 	// issue #26773)
-	if ccxt.IsEqual(this.Balance, nil) {
-		this.Balance = map[string]any{}
-	}
 	this.Balance["info"] = message
 	var balances []any = ccxt.SafeListTyped(message, "balances")
 	for i := 0; i < len(balances); i++ {
@@ -242,8 +239,7 @@ func (this *Blockchaincom) HandleOHLCV(client any, message map[string]any) {
 	//
 	var event *string = this.SafeString(message, "event")
 	if event != nil && *event == "rejected" {
-		var jsonMessage string = this.Json(message)
-		panic(ccxt.ExchangeError(this.Id + " " + jsonMessage))
+		panic(ccxt.ExchangeError(this.Id + " " + this.Json(message)))
 	} else if event != nil && *event == "updated" {
 		var marketId *string = this.SafeString(message, "symbol")
 		var symbol *string = this.SafeSymbol(marketId, nil, "-")
@@ -886,7 +882,7 @@ func (this *Blockchaincom) HandleOrderBook(client any, message map[string]any) {
 	var messageHash string = "orderbook:" + *symbol + ":" + *typeVar
 	var datetime *string = this.SafeString(message, "timestamp")
 	var timestamp *int64 = this.Parse8601(datetime)
-	if ccxt.IsEqual(this.SafeValue(this.Orderbooks, symbol), nil) {
+	if _, ok := this.Orderbooks[*symbol]; !ok {
 		this.Orderbooks[*symbol] = this.CountedOrderBook()
 	}
 	var orderbook ccxt.OrderBookInterface
@@ -919,22 +915,23 @@ func (this *Blockchaincom) HandleDeltas(bookside any, deltas any) {
 }
 func (this *Blockchaincom) HandleMessage(client any, message map[string]any) {
 	var channel *string = this.SafeString(message, "channel")
-	var handlers map[string]any = map[string]any{
-		"ticker":   this.HandleTicker,
-		"trades":   this.HandleTrades,
-		"prices":   this.HandleOHLCV,
-		"l2":       this.HandleOrderBook,
-		"l3":       this.HandleOrderBook,
-		"auth":     this.HandleAuthenticationMessage,
-		"balances": this.HandleBalance,
-		"trading":  this.HandleOrders,
+	if channel != nil && *channel == "ticker" {
+		this.HandleTicker(client, message)
+	} else if channel != nil && *channel == "trades" {
+		this.HandleTrades(client, message)
+	} else if channel != nil && *channel == "prices" {
+		this.HandleOHLCV(client, message)
+	} else if (channel != nil && *channel == "l2") || (channel != nil && *channel == "l3") {
+		this.HandleOrderBook(client, message)
+	} else if channel != nil && *channel == "auth" {
+		this.HandleAuthenticationMessage(client, message)
+	} else if channel != nil && *channel == "balances" {
+		this.HandleBalance(client, message)
+	} else if channel != nil && *channel == "trading" {
+		this.HandleOrders(client, message)
+	} else {
+		panic(ccxt.NotSupported(this.Id + " received an unsupported message: " + this.Json(message)))
 	}
-	var handler any = this.SafeValue(handlers, channel)
-	if handler != nil {
-		ccxt.CallDynamically(handler, client, message)
-		return
-	}
-	panic(ccxt.NotSupported(this.Id + " received an unsupported message: " + this.Json(message)))
 }
 func (this *Blockchaincom) HandleAuthenticationMessage(client any, message map[string]any) {
 	//

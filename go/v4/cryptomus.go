@@ -409,13 +409,8 @@ func (this *Cryptomus) ParseMarket(market any) map[string]any {
 		panic(ExchangeError(this.Id + " parseMarket() missing marketId"))
 	}
 	var parts []string = strings.Split(*marketId, "_")
-	var baseId *string = SafeStringPtr(parts[0])
-	var quoteId *string = SafeStringPtr(func() any {
-		if 1 >= 0 && 1 < len(parts) {
-			return parts[1]
-		}
-		return nil
-	}())
+	var baseId *string = this.SafeString(parts, 0)
+	var quoteId *string = this.SafeString(parts, 1)
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
 	if (base == nil) || (quote == nil) {
@@ -1181,8 +1176,7 @@ func (this *Cryptomus) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]Or
 	var result []any = SafeListTyped(response, "result")
 	var orders []any = []any{}
 	for i := 0; i < len(result); i++ {
-		var order any = DerefScalar(result[i])
-		orders = append(orders, OrderToMap(this.ParseOrder(order, market)))
+		orders = append(orders, OrderToMap(this.ParseOrder(DerefScalar(result[i]), market)))
 	}
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(orders)}

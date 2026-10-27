@@ -1729,7 +1729,8 @@ func (this *Bitbns) Sign(path string, optionalArgs ...any) any {
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
 	var apiName string = api[0]
-	if !(InOp(this.Urls["api"], apiName)) {
+	var baseApiUrl *string = this.SafeString(this.Urls["api"], apiName)
+	if baseApiUrl == nil {
 		panic(ExchangeError(this.Id + " does not have a testnet/sandbox URL for " + apiName + " endpoints"))
 	}
 	if apiName != "www" {
@@ -1738,10 +1739,6 @@ func (this *Bitbns) Sign(path string, optionalArgs ...any) any {
 	var requestHeaders map[string]any = map[string]any{}
 	if apiName != "www" {
 		requestHeaders["X-BITBNS-APIKEY"] = this.ApiKey
-	}
-	var baseApiUrl *string = this.SafeString(this.Urls["api"], apiName)
-	if baseApiUrl == nil {
-		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var baseUrl string = this.ImplodeHostname(baseApiUrl)
 	var url string = baseUrl + "/" + this.ImplodeParams(path, params)

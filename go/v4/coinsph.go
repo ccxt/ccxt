@@ -1864,20 +1864,29 @@ func (this *Coinsph) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 		"side":   orderSide,
 	}
 	var options map[string]any = SafeMapTyped(this.Options, "createOrder")
-	var newOrderRespType any = this.SafeValue(options, "newOrderRespType", map[string]any{})
+	var newOrderRespTypes any = this.SafeValue(options, "newOrderRespType", map[string]any{})
+	var newOrderRespType any = "FULL"
 	// if limit order
 	if (orderType != nil && *orderType == "LIMIT") || (orderType != nil && *orderType == "STOP_LOSS_LIMIT") || (orderType != nil && *orderType == "TAKE_PROFIT_LIMIT") || (orderType != nil && *orderType == "LIMIT_MAKER") {
 		if price == nil {
 			panic(ArgumentsRequired(this.Id + " createOrder() requires a price argument for a " + typeVar + " order"))
 		}
-		newOrderRespType = (*this.SafeString(newOrderRespType, "limit", "FULL"))
+		if derefPtr := this.SafeString(newOrderRespTypes, "limit", "FULL"); derefPtr != nil {
+			newOrderRespType = *derefPtr
+		} else {
+			newOrderRespType = nil
+		}
 		request["price"] = this.PriceToPrecision(symbol, price)
 		request["quantity"] = this.AmountToPrecision(symbol, amount)
 		if orderType == nil || *orderType != "LIMIT_MAKER" {
 			request["timeInForce"] = this.SafeString(options, "timeInForce", "GTC")
 		}
 	} else if (orderType != nil && *orderType == "MARKET") || (orderType != nil && *orderType == "STOP_LOSS") || (orderType != nil && *orderType == "TAKE_PROFIT") {
-		newOrderRespType = DerefScalar(this.SafeString(newOrderRespType, "market", "FULL"))
+		if derefPtr := this.SafeString(newOrderRespTypes, "market", "FULL"); derefPtr != nil {
+			newOrderRespType = *derefPtr
+		} else {
+			newOrderRespType = nil
+		}
 		if orderSide != nil && *orderSide == "SELL" {
 			request["quantity"] = this.AmountToPrecision(symbol, amount)
 		} else if orderSide != nil && *orderSide == "BUY" {
@@ -2054,11 +2063,11 @@ func (this *Coinsph) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalA
 		request["symbol"] = market["id"]
 	}
 
-	listEp1979 := <-this.PrivateGetOpenapiV1OpenOrders(this.Extend(request, params))
-	if listEp1979.Err != nil {
-		panic(listEp1979.Err)
+	listEp1980 := <-this.PrivateGetOpenapiV1OpenOrders(this.Extend(request, params))
+	if listEp1980.Err != nil {
+		panic(listEp1980.Err)
 	}
-	var response []any = listEp1979.Value
+	var response []any = listEp1980.Value
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(response, market, since, limit))}
 	return nil
@@ -2113,11 +2122,11 @@ func (this *Coinsph) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optiona
 		request["limit"] = limit
 	}
 
-	listEp2031 := <-this.PrivateGetOpenapiV1HistoryOrders(this.Extend(request, params))
-	if listEp2031.Err != nil {
-		panic(listEp2031.Err)
+	listEp2032 := <-this.PrivateGetOpenapiV1HistoryOrders(this.Extend(request, params))
+	if listEp2032.Err != nil {
+		panic(listEp2032.Err)
 	}
-	var response []any = listEp2031.Value
+	var response []any = listEp2032.Value
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(response, market, since, limit))}
 	return nil
@@ -2209,11 +2218,11 @@ func (this *Coinsph) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalA
 		request["symbol"] = market["id"]
 	}
 
-	listEp2113 := <-this.PrivateDeleteOpenapiV1OpenOrders(this.Extend(request, params))
-	if listEp2113.Err != nil {
-		panic(listEp2113.Err)
+	listEp2114 := <-this.PrivateDeleteOpenapiV1OpenOrders(this.Extend(request, params))
+	if listEp2114.Err != nil {
+		panic(listEp2114.Err)
 	}
-	var response []any = listEp2113.Value
+	var response []any = listEp2114.Value
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(response, market))}
 	return nil
@@ -2425,11 +2434,11 @@ func (this *Coinsph) fetchTradingFeeBody(ch chan AsyncResult[TradingFeeInterface
 		"symbol": market["id"],
 	}
 
-	listEp2322 := <-this.PrivateGetOpenapiV1AssetTradeFee(this.Extend(request, params))
-	if listEp2322.Err != nil {
-		panic(listEp2322.Err)
+	listEp2323 := <-this.PrivateGetOpenapiV1AssetTradeFee(this.Extend(request, params))
+	if listEp2323.Err != nil {
+		panic(listEp2323.Err)
 	}
-	var response []any = listEp2322.Value
+	var response []any = listEp2323.Value
 	//
 	//     [
 	//       {
@@ -2471,11 +2480,11 @@ func (this *Coinsph) fetchTradingFeesBody(ch chan AsyncResult[map[string]Trading
 		}
 	}
 
-	listEp2361 := <-this.PrivateGetOpenapiV1AssetTradeFee(params)
-	if listEp2361.Err != nil {
-		panic(listEp2361.Err)
+	listEp2362 := <-this.PrivateGetOpenapiV1AssetTradeFee(params)
+	if listEp2362.Err != nil {
+		panic(listEp2362.Err)
 	}
-	var response []any = listEp2361.Value
+	var response []any = listEp2362.Value
 	//
 	//     [
 	//         {
@@ -2641,11 +2650,11 @@ func (this *Coinsph) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optio
 		request["limit"] = limit
 	}
 
-	listEp2524 := <-this.PrivateGetOpenapiWalletV1DepositHistory(this.Extend(request, params))
-	if listEp2524.Err != nil {
-		panic(listEp2524.Err)
+	listEp2525 := <-this.PrivateGetOpenapiWalletV1DepositHistory(this.Extend(request, params))
+	if listEp2525.Err != nil {
+		panic(listEp2525.Err)
 	}
-	var response []any = listEp2524.Value
+	var response []any = listEp2525.Value
 
 	//
 	// [
@@ -2727,11 +2736,11 @@ func (this *Coinsph) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], op
 		request["limit"] = limit
 	}
 
-	listEp2603 := <-this.PrivateGetOpenapiWalletV1WithdrawHistory(this.Extend(request, params))
-	if listEp2603.Err != nil {
-		panic(listEp2603.Err)
+	listEp2604 := <-this.PrivateGetOpenapiWalletV1WithdrawHistory(this.Extend(request, params))
+	if listEp2604.Err != nil {
+		panic(listEp2604.Err)
 	}
-	var response []any = listEp2603.Value
+	var response []any = listEp2604.Value
 
 	//
 	// [
@@ -3009,17 +3018,17 @@ func (this *Coinsph) Sign(path string, optionalArgs ...any) any {
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
-	var query any = this.Omit(params, this.ExtractParams(path))
+	var query map[string]any = this.Extend(map[string]any{}, this.Omit(params, this.ExtractParams(path)))
 	var endpoint string = this.ImplodeParams(path, params)
 	var url any = *apiUrl + "/" + endpoint
 	if apiName == "private" {
 		this.CheckRequiredCredentials()
-		AddElementToObject(query, "timestamp", this.Milliseconds())
+		query["timestamp"] = this.Milliseconds()
 		var recvWindow *int64 = this.SafeInteger(query, "recvWindow")
 		if recvWindow == nil {
 			var defaultRecvWindow *int64 = this.SafeInteger(this.Options, "recvWindow")
 			if defaultRecvWindow != nil {
-				AddElementToObject(query, "recvWindow", defaultRecvWindow)
+				query["recvWindow"] = defaultRecvWindow
 			}
 		}
 		var signedQuery any = this.UrlEncodeQuery(query)

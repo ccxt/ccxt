@@ -1219,8 +1219,8 @@ func (this *Lighter) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], o
 		panic(r1.Err)
 	}
 	var accountIndexparamsAccountIndexVariable []any = r1.Value
-	accountIndex := ccxt.GetValue(accountIndexparamsAccountIndexVariable, 0)
-	paramsAccountIndex := ccxt.GetValue(accountIndexparamsAccountIndexVariable, 1)
+	accountIndex := accountIndexparamsAccountIndexVariable[0]
+	paramsAccountIndex := accountIndexparamsAccountIndexVariable[1]
 	var messageHash string = this.GetMessageHash("myTrades")
 	var symbolResolved any = nil
 	if symbol != nil {
@@ -1280,8 +1280,8 @@ func (this *Lighter) unWatchMyTradesBody(ch chan ccxt.AsyncResult[bool], optiona
 		panic(r.Err)
 	}
 	var accountIndexparamsAccountIndexVariable []any = r.Value
-	accountIndex := ccxt.GetValue(accountIndexparamsAccountIndexVariable, 0)
-	paramsAccountIndex := ccxt.GetValue(accountIndexparamsAccountIndexVariable, 1)
+	accountIndex := accountIndexparamsAccountIndexVariable[0]
+	paramsAccountIndex := accountIndexparamsAccountIndexVariable[1]
 	var subMessageHash string = this.GetMessageHash("myTrades")
 	var messageHash string = "unsubscribe:" + subMessageHash
 	var request map[string]any = map[string]any{
@@ -1513,8 +1513,8 @@ func (this *Lighter) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], o
 		panic(r1.Err)
 	}
 	var accountIndexparamsAccountIndexVariable []any = r1.Value
-	accountIndex := ccxt.GetValue(accountIndexparamsAccountIndexVariable, 0)
-	paramsAccountIndex := ccxt.GetValue(accountIndexparamsAccountIndexVariable, 1)
+	accountIndex := accountIndexparamsAccountIndexVariable[0]
+	paramsAccountIndex := accountIndexparamsAccountIndexVariable[1]
 	var messageHash string = this.GetMessageHash("balances", nil, typeVar)
 	var request map[string]any = map[string]any{}
 	if typeVar == "spot" {
@@ -1674,8 +1674,8 @@ func (this *Lighter) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opt
 		panic(r1.Err)
 	}
 	var accountIndexparamsAccountIndexVariable []any = r1.Value
-	accountIndex := ccxt.GetValue(accountIndexparamsAccountIndexVariable, 0)
-	paramsAccountIndex := ccxt.GetValue(accountIndexparamsAccountIndexVariable, 1)
+	accountIndex := accountIndexparamsAccountIndexVariable[0]
+	paramsAccountIndex := accountIndexparamsAccountIndexVariable[1]
 	var messageHash string
 	var request map[string]any = map[string]any{}
 	if symbol != nil {
@@ -1734,8 +1734,8 @@ func (this *Lighter) unWatchOrdersBody(ch chan ccxt.AsyncResult[bool], optionalA
 		panic(r1.Err)
 	}
 	var accountIndexparamsAccountIndexVariable []any = r1.Value
-	accountIndex := ccxt.GetValue(accountIndexparamsAccountIndexVariable, 0)
-	paramsAccountIndex := ccxt.GetValue(accountIndexparamsAccountIndexVariable, 1)
+	accountIndex := accountIndexparamsAccountIndexVariable[0]
+	paramsAccountIndex := accountIndexparamsAccountIndexVariable[1]
 	var subMessageHash string
 	var request map[string]any = map[string]any{}
 	if symbol != nil {

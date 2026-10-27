@@ -937,7 +937,7 @@ func (this *Mercado) ParseOrder(order any, optionalArgs ...any) Order {
 	var id *string = this.SafeString(order, "order_id")
 	var order_type *string = this.SafeString(order, "order_type")
 	var side *string = nil
-	if InOp(order, "order_type") {
+	if order_type != nil {
 		side = SafeStringPtr(func() string {
 			if order_type != nil && *order_type == "1" {
 				return "buy"

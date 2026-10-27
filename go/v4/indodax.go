@@ -1057,10 +1057,10 @@ func (this *Indodax) ParseOrder(order any, optionalArgs ...any) Order {
 		symbol = marketResolved["symbol"]
 		var quoteId *string = this.SafeString(marketResolved, "quoteId", "")
 		var baseId *string = this.SafeString(marketResolved, "baseId", "")
-		if (marketResolved["quoteId"] == "idr") && (InOp(order, "order_rp")) {
+		if (marketResolved["quoteId"] == "idr") && (this.SafeString(order, "order_rp") != nil) {
 			quoteId = SafeStringPtr("rp")
 		}
-		if (marketResolved["baseId"] == "idr") && (InOp(order, "remain_rp")) {
+		if (marketResolved["baseId"] == "idr") && (this.SafeString(order, "remain_rp") != nil) {
 			baseId = SafeStringPtr("rp")
 		}
 		cost = this.SafeString(order, "order_"+*quoteId)
@@ -2070,10 +2070,10 @@ func (this *Indodax) HandleErrors(code int64, reason any, url string, method any
 		return nil // public endpoints may return []-arrays
 	}
 	var error *string = this.SafeString(response, "error", "")
-	if !(InOp(response, "success")) && (error != nil && *error == "") {
+	var status *string = this.SafeString(response, "success")
+	if (status == nil) && (error != nil && *error == "") {
 		return nil // no 'success' property on public responses
 	}
-	var status *string = this.SafeString(response, "success")
 	if status != nil && *status == "approved" {
 		return nil
 	}

@@ -754,8 +754,8 @@ func (this *Btcmarkets) ParseMarket(market any) map[string]any {
 		"contract":       false,
 		"linear":         nil,
 		"inverse":        nil,
-		"taker":          GetValue(fees, "taker"),
-		"maker":          GetValue(fees, "maker"),
+		"taker":          this.SafeNumber(fees, "taker"),
+		"maker":          this.SafeNumber(fees, "maker"),
 		"contractSize":   nil,
 		"expiry":         nil,
 		"expiryDatetime": nil,
@@ -1540,10 +1540,7 @@ func (this *Btcmarkets) CalculateFee(symbol any, typeVar any, side any, amount a
 	var cost any = nil
 	if market["quote"] == "AUD" {
 		currency = this.SafeString(market, "quote")
-		var amountString *string = this.NumberToString(amount)
-		var priceString *string = this.NumberToString(price)
-		var otherUnitsAmount *string = Precise.StringMul(amountString, priceString)
-		cost = this.CostToPrecision(symbol, otherUnitsAmount)
+		cost = this.CostToPrecision(symbol, Precise.StringMul(this.NumberToString(amount), this.NumberToString(price)))
 	} else {
 		currency = this.SafeString(market, "base")
 		if derefPtr := this.AmountToPrecision(symbol, amount); derefPtr != nil {
@@ -1736,11 +1733,11 @@ func (this *Btcmarkets) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 		request["limit"] = limit
 	}
 
-	listEp1633 := <-this.PrivateGetOrders(this.Extend(request, params))
-	if listEp1633.Err != nil {
-		panic(listEp1633.Err)
+	listEp1630 := <-this.PrivateGetOrders(this.Extend(request, params))
+	if listEp1630.Err != nil {
+		panic(listEp1630.Err)
 	}
-	var response []any = listEp1633.Value
+	var response []any = listEp1630.Value
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(response, market, since, limit))}
 	return nil
@@ -1781,11 +1778,11 @@ func (this *Btcmarkets) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], option
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes131215 []any = OrdersToList(r.Value)
-	if retRes131215 == nil {
+	var retRes130915 []any = OrdersToList(r.Value)
+	if retRes130915 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes131215)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes130915)}
 	}
 	return nil
 }
@@ -1875,11 +1872,11 @@ func (this *Btcmarkets) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optional
 		request["limit"] = limit
 	}
 
-	listEp1757 := <-this.PrivateGetTrades(this.Extend(request, params))
-	if listEp1757.Err != nil {
-		panic(listEp1757.Err)
+	listEp1754 := <-this.PrivateGetTrades(this.Extend(request, params))
+	if listEp1754.Err != nil {
+		panic(listEp1754.Err)
 	}
-	var response []any = listEp1757.Value
+	var response []any = listEp1754.Value
 
 	//
 	//     [
@@ -1934,8 +1931,8 @@ func (this *Btcmarkets) withdrawBody(ch chan AsyncResult[Transaction], code stri
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var tagWithdrawTag *string = nil
-	tagWithdrawTag, paramsWithdrawTag := this.HandleParamString(params, "tag")
+	var tagWithdrawTag *string = this.SafeString(params, "tag")
+	var paramsWithdrawTag map[string]any = this.OmitDict(params, "tag")
 	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()

@@ -699,7 +699,7 @@ func (this *Bigone) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 	}
 	var promisesResult []any = ListTyped(r.Value)
 	var response map[string]any = SafeMapTyped(promisesResult, 0)
-	var contractResponse any = GetValue(promisesResult, 1)
+	var contractResponse any = this.SafeValue(promisesResult, 1)
 	//
 	//     {
 	//         "code":0,
@@ -933,7 +933,7 @@ func (this *Bigone) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketType string = "swap"
-	if InOp(ticker, "asset_pair_name") {
+	if this.SafeString(ticker, "asset_pair_name") != nil {
 		marketType = "spot"
 	}
 	var marketId *string = this.SafeString2(ticker, "asset_pair_name", "symbol")
@@ -2665,7 +2665,7 @@ func (this *Bigone) ParseTransaction(transaction any, optionalArgs ...any) Trans
 	var address *string = this.SafeString(transaction, "target_address")
 	var tag *string = this.SafeString(transaction, "memo")
 	var typeVar string = "deposit"
-	if InOp(transaction, "customer_id") {
+	if this.SafeString(transaction, "customer_id") != nil {
 		typeVar = "withdrawal"
 	}
 	var internal *bool = this.SafeBool(transaction, "is_internal")

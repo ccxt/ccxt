@@ -300,7 +300,7 @@ func (this *Bitflyer) Describe() any {
 func (this *Bitflyer) ParseExpiryDate(expiry string) any {
 	var day string = expiry[0:min(2, len(expiry))]
 	var monthName string = expiry[2:min(5, len(expiry))]
-	var year string = expiry[5:min(9, len(expiry))]
+	var expiryYear string = expiry[5:min(9, len(expiry))]
 	var months map[string]any = map[string]any{
 		"JAN": "01",
 		"FEB": "02",
@@ -319,7 +319,7 @@ func (this *Bitflyer) ParseExpiryDate(expiry string) any {
 	if month == nil {
 		return nil
 	}
-	return this.Parse8601(year + "-" + *month + "-" + day + "T00:00:00Z")
+	return this.Parse8601(expiryYear + "-" + *month + "-" + day + "T00:00:00Z")
 }
 func (this *Bitflyer) SafeMarket(optionalArgs ...any) map[string]any {
 	// Bitflyer has a different type of conflict in markets, because
@@ -1817,16 +1817,16 @@ func (this *Bitflyer) Sign(path string, optionalArgs ...any) any {
 	}
 	request += path
 	if method == "GET" {
-		if len(ObjectKeys(params)) > 0 {
-			request += "?" + this.Urlencode(params)
+		var query string = this.Urlencode(params)
+		if query != "" {
+			request += "?" + query
 		}
 	}
 	var apiUrl *string = this.SafeString(this.Urls["api"], "rest")
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
-	var baseUrl string = this.ImplodeHostname(apiUrl)
-	var url string = baseUrl + request
+	var url string = this.ImplodeHostname(apiUrl) + request
 	if apiName == "private" {
 		this.CheckRequiredCredentials()
 		var nonce string = ToString(this.Nonce())

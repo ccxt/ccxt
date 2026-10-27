@@ -626,8 +626,8 @@ func (this *Bit2c) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, opt
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var optionValue *string = this.SafeString(this.Options, "fetchTradesMethod") // kept here for backward compatibility #29154
-	var method any = this.HandleOption("fetchTrades", "method", optionValue)     // publicGetExchangesPairTrades or publicGetExchangesPairLasttrades
+	var optionValue *string = this.SafeString(this.Options, "fetchTradesMethod")                                                // kept here for backward compatibility #29154
+	var method *string = this.SafeString(this.HandleOptionAndParams(map[string]any{}, "fetchTrades", "method", optionValue), 0) // publicGetExchangesPairTrades or publicGetExchangesPairLasttrades
 	var request map[string]any = map[string]any{
 		"pair": market["id"],
 	}
@@ -638,7 +638,7 @@ func (this *Bit2c) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, opt
 		request["limit"] = limit // max 100000
 	}
 	var responseList []any = []any{}
-	if (IsEqual(method, "publicGetExchangesPairTrades")) || (IsEqual(method, "public_get_exchanges_pair_trades")) {
+	if (method != nil && *method == "publicGetExchangesPairTrades") || (method != nil && *method == "public_get_exchanges_pair_trades") {
 
 		r1 := <-this.PublicGetExchangesPairTrades(this.Extend(request, params))
 		if r1.Err != nil {
@@ -1014,8 +1014,9 @@ func (this *Bit2c) ParseOrder(order any, optionalArgs ...any) Order {
 	_ = market
 	var orderUnified any = nil
 	var isNewOrder bool = false
-	if InOp(order, "NewOrder") {
-		orderUnified = GetValue(order, "NewOrder")
+	var newOrder any = this.SafeValue(order, "NewOrder")
+	if newOrder != nil {
+		orderUnified = newOrder
 		isNewOrder = true
 	} else {
 		orderUnified = order
@@ -1144,11 +1145,11 @@ func (this *Bit2c) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs 
 		request["pair"] = market["id"]
 	}
 
-	listEp1072 := <-this.PrivateGetOrderOrderHistory(this.Extend(request, params))
-	if listEp1072.Err != nil {
-		panic(listEp1072.Err)
+	listEp1073 := <-this.PrivateGetOrderOrderHistory(this.Extend(request, params))
+	if listEp1073.Err != nil {
+		panic(listEp1073.Err)
 	}
-	var response []any = listEp1072.Value
+	var response []any = listEp1073.Value
 	//
 	//     [
 	//         {
