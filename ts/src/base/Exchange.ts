@@ -7455,16 +7455,6 @@ export class BaseExchange {
         if ((takeProfit === undefined) && (stopLoss === undefined)) {
             throw new ArgumentsRequired (this.id + ' createOrderWithTakeProfitAndStopLoss() requires either a takeProfit or stopLoss argument');
         }
-        if (takeProfit !== undefined) {
-            params['takeProfit'] = {
-                'triggerPrice': takeProfit,
-            };
-        }
-        if (stopLoss !== undefined) {
-            params['stopLoss'] = {
-                'triggerPrice': stopLoss,
-            };
-        }
         const takeProfitType = this.safeString (params, 'takeProfitType');
         const takeProfitPriceType = this.safeString (params, 'takeProfitPriceType');
         const takeProfitLimitPrice = this.safeString (params, 'takeProfitLimitPrice');
@@ -7473,29 +7463,41 @@ export class BaseExchange {
         const stopLossPriceType = this.safeString (params, 'stopLossPriceType');
         const stopLossLimitPrice = this.safeString (params, 'stopLossLimitPrice');
         const stopLossAmount = this.safeString (params, 'stopLossAmount');
-        if (takeProfitType !== undefined) {
-            params['takeProfit']['type'] = takeProfitType;
+        if (takeProfit !== undefined) {
+            const takeProfitRequest: Dict = {
+                'triggerPrice': takeProfit,
+            };
+            if (takeProfitType !== undefined) {
+                takeProfitRequest['type'] = takeProfitType;
+            }
+            if (takeProfitPriceType !== undefined) {
+                takeProfitRequest['priceType'] = takeProfitPriceType;
+            }
+            if (takeProfitLimitPrice !== undefined) {
+                takeProfitRequest['price'] = this.parseToNumeric (takeProfitLimitPrice);
+            }
+            if (takeProfitAmount !== undefined) {
+                takeProfitRequest['amount'] = this.parseToNumeric (takeProfitAmount);
+            }
+            params['takeProfit'] = takeProfitRequest;
         }
-        if (takeProfitPriceType !== undefined) {
-            params['takeProfit']['priceType'] = takeProfitPriceType;
-        }
-        if (takeProfitLimitPrice !== undefined) {
-            params['takeProfit']['price'] = this.parseToNumeric (takeProfitLimitPrice);
-        }
-        if (takeProfitAmount !== undefined) {
-            params['takeProfit']['amount'] = this.parseToNumeric (takeProfitAmount);
-        }
-        if (stopLossType !== undefined) {
-            params['stopLoss']['type'] = stopLossType;
-        }
-        if (stopLossPriceType !== undefined) {
-            params['stopLoss']['priceType'] = stopLossPriceType;
-        }
-        if (stopLossLimitPrice !== undefined) {
-            params['stopLoss']['price'] = this.parseToNumeric (stopLossLimitPrice);
-        }
-        if (stopLossAmount !== undefined) {
-            params['stopLoss']['amount'] = this.parseToNumeric (stopLossAmount);
+        if (stopLoss !== undefined) {
+            const stopLossRequest: Dict = {
+                'triggerPrice': stopLoss,
+            };
+            if (stopLossType !== undefined) {
+                stopLossRequest['type'] = stopLossType;
+            }
+            if (stopLossPriceType !== undefined) {
+                stopLossRequest['priceType'] = stopLossPriceType;
+            }
+            if (stopLossLimitPrice !== undefined) {
+                stopLossRequest['price'] = this.parseToNumeric (stopLossLimitPrice);
+            }
+            if (stopLossAmount !== undefined) {
+                stopLossRequest['amount'] = this.parseToNumeric (stopLossAmount);
+            }
+            params['stopLoss'] = stopLossRequest;
         }
         const paramsOmitted: Dict = this.omit (params, [ 'takeProfitType', 'takeProfitPriceType', 'takeProfitLimitPrice', 'takeProfitAmount', 'stopLossType', 'stopLossPriceType', 'stopLossLimitPrice', 'stopLossAmount' ]);
         return paramsOmitted;
