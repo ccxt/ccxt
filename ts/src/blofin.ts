@@ -2399,7 +2399,7 @@ export default class blofin extends Exchange {
      * @param {string} [params.clientId] look up by the client-supplied id instead, with id set to undefined
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    async fetchWithdrawal (id: string, code: Str = undefined, params: Dict = {}): Promise<Transaction> {
+    async fetchWithdrawal (id: Str, code: Str = undefined, params: Dict = {}): Promise<Transaction> {
         const clientId = this.safeString (params, 'clientId');
         if ((id === undefined) && (clientId === undefined)) {
             throw new ArgumentsRequired (this.id + ' fetchWithdrawal() requires an id argument or a params["clientId"]');
