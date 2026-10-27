@@ -8916,6 +8916,20 @@ export function nativeJavaJ34MapLocals (content: string): string {
                 if (!fresh (recv)) return whole;
                 return `${ind}((java.util.Map<Object, Object>) (java.util.Map<?, ?>) ${recv}).put(${key}, ${value});${tail ?? ''}`;
             });
+            // BaseExchange Map fields: a value that is never null skips the ConcurrentHashMap null-remove branch
+            next = next.replace (/^(\s*)Helpers\.addElementToObject\((this\.(?:balance|tickers|orderbooks|urls|has|features)), (.*)\);(\s*\/\/.*)?$/, (whole, ind, recv, rest, tail) => {
+                const args = j26Args (`(${rest})`, 0);
+                if (args === undefined || args.length !== 2) return whole;
+                const [ key, value ] = args.map ((a) => a.trim ());
+                const v = j26Strip (value);
+                const call = v.match (/^this\.(extend|safeBalance|orderBook)\(/);
+                const closed = call !== null && j26Close (v, call[0].length - 1) === v.length - 1;
+                const twoArgExtend = call === null || call[1] !== 'extend' || (j26Args (v, call[0].length - 1) ?? []).length === 2;
+                if (!(nonNull (value) || (closed && twoArgExtend))) return whole;
+                if (!stringKey (key) && !/^[A-Za-z_]\w*$/.test (key)) return whole;
+                if (stringKey (key) || declaredType (key) === 'String') return `${ind}${recv}.put(${key}, ${value});${tail ?? ''}`;
+                return `${ind}((java.util.Map<Object, Object>) (java.util.Map<?, ?>) ${recv}).put(${key}, ${value});${tail ?? ''}`;
+            });
             next = next.replace (/Helpers\.GetValue\(([A-Za-z_]\w*), ("(?:[^"\\]|\\.)*"|[A-Za-z_]\w*)\)/g, (whole, recv, key) => {
                 if (!isMap (recv)) return whole;
                 if (stringKey (key)) return `(${recv} == null ? null : ${recv}.get(${key}))`;
@@ -8952,6 +8966,12 @@ function j34MapLocalsSelfTest (): string[] {
         [ 'String-key read', 'Map<String, Object> p, String k', '        return Helpers.GetValue(p, k);', '(p == null || k == null ? null : p.get(k))' ],
         [ 'inOp', 'Map<String, Object> p', '        return Helpers.inOp(p, "a");', '(p != null && p.containsKey("a"))' ],
         [ 'fresh keys', 'Object v', '        Map<String, Object> r = new HashMap<String, Object>() {{}};\n        return Helpers.objectKeys(r);', 'new java.util.ArrayList<Object>(r.keySet())' ],
+        [ 'field put extend', 'Object r, Object k', '        Helpers.addElementToObject(this.balance, \"spot\", this.extend(r, this.safeDict(this.balance, \"spot\", new HashMap<String, Object>() {{}})));', '        this.balance.put(\"spot\", this.extend(' ],
+        [ 'field put Object key', 'Object k', '        Helpers.addElementToObject(this.orderbooks, k, this.orderBook(new HashMap<String, Object>() {{}}, 5));', '(java.util.Map<?, ?>) this.orderbooks).put(k, this.orderBook(' ],
+        [ 'field put String key', 'String k', '        Helpers.addElementToObject(this.balance, k, this.safeBalance(null));', '        this.balance.put(k, this.safeBalance(null));' ],
+        [ 'field nullable value', 'Object v', '        Helpers.addElementToObject(this.balance, \"info\", v);', undefined ],
+        [ 'field options', 'Object v', '        Helpers.addElementToObject(this.options, \"a\", \"x\");', undefined ],
+        [ 'field extend of 3', 'Object p, Object q', '        Helpers.addElementToObject(this.balance, \"a\", this.extend(p, q, p));', undefined ],
         // negatives: nullable value on a possibly concurrent map, Object receiver, Object key read, shared map keys, mixed decls, 3-arg extend
         [ 'nullable on param map', 'Map<String, Object> p, Object v', '        Helpers.addElementToObject(p, "a", v);', undefined ],
         [ 'nullable on safeDict map', 'Object o, Object v', '        Map<String, Object> r = (Map<String, Object>) this.safeDict(o, "x");\n        Helpers.addElementToObject(r, "a", v);', undefined ],
