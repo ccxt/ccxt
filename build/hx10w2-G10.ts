@@ -6,8 +6,11 @@ import { goChanMask, goChanClose } from './go-chan.js';
 const WS_FIELDS = [ 'Orderbooks', 'Ohlcvs', 'Trades', 'FundingRates' ];
 const FIELD = WS_FIELDS.join ('|');
 const RECEIVER = new RegExp ('^this\\.(?:' + FIELD + ')$');
+// the second level of the ohlcv book: a plain map[string]any (a missing symbol reads as a nil map)
+const OHLCV_BOOK = /^this\.Ohlcvs\[(?:\*?\w+|"[^"\\\n]*")\]$/;
+const isCacheReceiver = (text: string): boolean => RECEIVER.test (text) || OHLCV_BOOK.test (text);
 const ANY_FIELD = new RegExp ('this\\.(?:' + FIELD + ')\\b');
-const STATEMENT_CALL = new RegExp ('^\\s*(?:ccxt\\.)?(?:AddElementToObject|Remove)\\(this\\.(?:' + FIELD + '), ');
+const STATEMENT_CALL = new RegExp ('^\\s*(?:ccxt\\.)?(?:AddElementToObject|Remove)\\(this\\.(?:' + FIELD + ')(?:\\[[^\\]]*\\])?, ');
 const RECEIVER_CALL = /(?<![\w.])(?:ccxt\.)?(?:AddElementToObject|GetValue|InOp|Remove)\(/g;
 
 // Go types of a store value the helper's derefScalar leaves untouched: cache objects, dictionaries,
@@ -197,7 +200,7 @@ function hx10G10Statement (line: string, maskedLine: string, decls: Map<string, 
     }
     const args = call.args.map (a => line.substring (a.s, a.e).trim ());
     const key = hx10G10Key (maskedBody, decls, args[1] ?? '', index);
-    if ((key === undefined) || !RECEIVER.test (args[0] ?? '')) {
+    if ((key === undefined) || !(RECEIVER.test (args[0] ?? '') || ((name === 'Remove') && OHLCV_BOOK.test (args[0] ?? '')))) {
         return undefined;
     }
     const indent = /^(\s*)/.exec (line)?.[1] ?? '';
@@ -253,16 +256,47 @@ function hx10G10InOp (line: string, maskedLine: string, decls: Map<string, Decl>
     }
     const args = call.args.map (a => line.substring (a.s, a.e).trim ());
     const key = hx10G10Key (maskedBody, decls, args[1] ?? '', index);
-    if ((key === undefined) || !RECEIVER.test (args[0] ?? '')) {
+    if ((key === undefined) || !isCacheReceiver (args[0] ?? '')) {
         return undefined;
     }
     const before = line.substring (cond[1].length, call.at);
     const after = line.substring (call.close);
-    if (/\bok\b/.test (before + after) || /\bok\b/.test (maskedBody.join ('\n'))) {
+    // the lookup moves into the if-init, ahead of a `key != nil &&` term of the same condition
+    if (/\bok\b/.test (before + after) || !hx10G10OkIsIfLocal (maskedBody) || (key.startsWith ('*') && new RegExp ('\\b' + key.substring (1) + '\\b').test (before + after))) {
         return undefined;
     }
     const rest = (before + 'ok' + after).replace (/(^|[^\w)\]])(\(ok\))/g, '$1ok');
     return cond[1] + '_, ok := ' + args[0] + '[' + key + ']; ' + rest;
+}
+
+// a name declared more than once in the func (one `var symbol string` per branch) is typed by the
+// nearest declaration whose block is still open at the site
+function hx10G10DeclsAt (body: string[], maskedBody: string[], decls: Map<string, Decl>, site: number): Map<string, Decl> {
+    let view = decls;
+    const siteDepth = hx10G10DepthBefore (maskedBody, site);
+    for (const [ name, decl ] of decls) {
+        if (decl.type !== '?') {
+            continue;
+        }
+        for (let k = site - 1; k >= 1; k--) {
+            const declaration = /^\s*var (\w+) ([^=\n]+?) = /.exec (maskedBody[k]);
+            if ((declaration === null) || (declaration[1] !== name)) {
+                continue;
+            }
+            const depth = hx10G10DepthBefore (maskedBody, k);
+            if ((depth <= siteDepth) && hx10G10BlockStillOpen (maskedBody, k, site, depth)) {
+                view = (view === decls) ? new Map (decls) : view;
+                view.set (name, { 'type': declaration[2].trim (), 'line': k });
+                break;
+            }
+        }
+    }
+    return view;
+}
+
+// every `ok` of the func is the local of an `if x, ok := ...; ...` header, so a new header `ok` shadows nothing
+function hx10G10OkIsIfLocal (maskedBody: string[]): boolean {
+    return maskedBody.every (line => !/\bok\b/.test (line) || /^\s*(?:\} else )?if (?:\w+|_), ok := [^;]+; .*\{$/.test (line));
 }
 
 export function hx10G10Pass (content: string): string {
@@ -291,7 +325,7 @@ export function hx10G10Pass (content: string): string {
         const decls = hx10G10Decls (body, body[0]);
         out.push (body[0]);
         for (let i = 1; i < body.length; i++) {
-            const rewritten = hx10G10Line (body, maskedBody, decls, i);
+            const rewritten = hx10G10Line (body, maskedBody, ANY_FIELD.test (maskedBody[i]) ? hx10G10DeclsAt (body, maskedBody, decls, i) : decls, i);
             out.push (...rewritten);
             if (rewritten.length === 1) {
                 body[i] = rewritten[0];
@@ -445,6 +479,13 @@ export function hx10G10SelfTest (): string[] {
     // membership: the comma-ok of the helper's map branch, negated and compound
     ok (f ('sym string', '\tif ccxt.InOp(this.Orderbooks, sym) {\n\t}\n').indexOf ('\tif _, ok := this.Orderbooks[sym]; ok {') >= 0, 'InOp goes native');
     ok (f ('sym string', '\tif !(ccxt.InOp(this.Orderbooks, sym)) {\n\t}\n').indexOf ('\tif _, ok := this.Orderbooks[sym]; !ok {') >= 0, 'negated InOp goes native');
+    // second level of the ohlcv book: delete on a proven key, one declaration per branch typed by scope
+    ok (f ('symbol *string, timeframe string', '\tvar u string = *symbol\n\tccxt.Remove(this.Ohlcvs[*symbol], timeframe)\n').indexOf ('\tdelete(this.Ohlcvs[*symbol], timeframe)') >= 0, 'Remove on the ohlcv book goes native');
+    ok (f ('symbol *string, timeframe any', '\tccxt.Remove(this.Ohlcvs[*symbol], timeframe)\n').indexOf ('ccxt.Remove(this.Ohlcvs[*symbol]') >= 0, 'unproven timeframe keeps Remove');
+    ok (f ('', '\tif x {\n\t\tvar s string = \"a\"\n\t\tif ccxt.InOp(this.Orderbooks, s) {\n\t\t\tccxt.Remove(this.Orderbooks, s)\n\t\t}\n\t} else {\n\t\tvar s *string = nil\n\t\t_ = s\n\t}\n').indexOf ('if _, ok := this.Orderbooks[s]; ok {\n\t\t\tdelete(this.Orderbooks, s)') >= 0, 'a branch-scoped string declaration types its site');
+    ok (f ('s string', '\tif _, ok := this.Trades[s]; ok {\n\t}\n\tif ccxt.InOp(this.Orderbooks, s) {\n\t}\n').indexOf ('if _, ok := this.Orderbooks[s]; ok {') >= 0, 'an if-local ok does not block the rewrite');
+    ok (f ('s string', '\tvar ok bool = true\n\tif ccxt.InOp(this.Orderbooks, s) {\n\t}\n').indexOf ('InOp(this.Orderbooks, s)') >= 0, 'a func-level ok keeps the helper');
+    ok (f ('symbol string, timeframe *string', '\tif (timeframe != nil) && (ccxt.InOp(this.Ohlcvs[symbol], timeframe)) {\n\t}\n').indexOf ('InOp(this.Ohlcvs[symbol], timeframe)') >= 0, 'a lookup ahead of its own nil guard keeps InOp');
     // the printer's *sync.Map arms
     ok (f ('sym string', '\tthis.Orderbooks.Store(sym, this.OrderBook())\n').indexOf ('\tthis.Orderbooks[sym] = this.OrderBook()') >= 0, 'Store goes native');
     ok (f ('sym string', '\tthis.Orderbooks.Delete(sym)\n').indexOf ('\tdelete(this.Orderbooks, sym)') >= 0, 'Delete goes native');
