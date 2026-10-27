@@ -307583,8 +307583,10 @@ class coinbase extends _abstract_coinbase_js__rspack_import_0/* ["default"] */.A
                             'total': total
                         });
                     } else {
-                        account['free'] = _base_Precise_js__rspack_import_3/* .Precise.stringAdd */.Y.stringAdd(this.safeString(account, 'free'), total);
-                        account['total'] = _base_Precise_js__rspack_import_3/* .Precise.stringAdd */.Y.stringAdd(this.safeString(account, 'total'), total);
+                        account = this.extend(account, {
+                            'free': _base_Precise_js__rspack_import_3/* .Precise.stringAdd */.Y.stringAdd(this.safeString(account, 'free'), total),
+                            'total': _base_Precise_js__rspack_import_3/* .Precise.stringAdd */.Y.stringAdd(this.safeString(account, 'total'), total)
+                        });
                     }
                     if (code !== undefined) {
                         result[code] = account;
@@ -307607,9 +307609,11 @@ class coinbase extends _abstract_coinbase_js__rspack_import_0/* ["default"] */.A
                             'total': total
                         });
                     } else {
-                        account['free'] = _base_Precise_js__rspack_import_3/* .Precise.stringAdd */.Y.stringAdd(this.safeString(account, 'free'), free);
-                        account['used'] = _base_Precise_js__rspack_import_3/* .Precise.stringAdd */.Y.stringAdd(this.safeString(account, 'used'), used);
-                        account['total'] = _base_Precise_js__rspack_import_3/* .Precise.stringAdd */.Y.stringAdd(this.safeString(account, 'total'), total);
+                        account = this.extend(account, {
+                            'free': _base_Precise_js__rspack_import_3/* .Precise.stringAdd */.Y.stringAdd(this.safeString(account, 'free'), free),
+                            'used': _base_Precise_js__rspack_import_3/* .Precise.stringAdd */.Y.stringAdd(this.safeString(account, 'used'), used),
+                            'total': _base_Precise_js__rspack_import_3/* .Precise.stringAdd */.Y.stringAdd(this.safeString(account, 'total'), total)
+                        });
                     }
                     if (code !== undefined) {
                         result[code] = account;
@@ -592286,9 +592290,8 @@ class luno extends _luno_js__rspack_import_0/* ["default"] */.A {
         //         "timestamp": 1660598775360
         //     }
         //
-        const symbol = subscription['symbol'];
-        const symbolValue = this.safeString(subscription, 'symbol', '');
-        const messageHash = 'orderbook:' + symbolValue;
+        const symbol = this.safeString(subscription, 'symbol', '');
+        const messageHash = 'orderbook:' + symbol;
         const timestamp = this.safeInteger(message, 'timestamp');
         if (!(symbol in this.orderbooks)) {
             this.orderbooks[symbol] = this.indexedOrderBook({});

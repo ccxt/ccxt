@@ -2485,8 +2485,10 @@ class coinbase extends coinbase$1["default"] {
                         account = this.extend(this.account(), { 'free': free, 'total': total });
                     }
                     else {
-                        account['free'] = Precise["default"].stringAdd(this.safeString(account, 'free'), total);
-                        account['total'] = Precise["default"].stringAdd(this.safeString(account, 'total'), total);
+                        account = this.extend(account, {
+                            'free': Precise["default"].stringAdd(this.safeString(account, 'free'), total),
+                            'total': Precise["default"].stringAdd(this.safeString(account, 'total'), total),
+                        });
                     }
                     if (code !== undefined) {
                         result[code] = account;
@@ -2507,9 +2509,11 @@ class coinbase extends coinbase$1["default"] {
                         account = this.extend(this.account(), { 'free': free, 'used': used, 'total': total });
                     }
                     else {
-                        account['free'] = Precise["default"].stringAdd(this.safeString(account, 'free'), free);
-                        account['used'] = Precise["default"].stringAdd(this.safeString(account, 'used'), used);
-                        account['total'] = Precise["default"].stringAdd(this.safeString(account, 'total'), total);
+                        account = this.extend(account, {
+                            'free': Precise["default"].stringAdd(this.safeString(account, 'free'), free),
+                            'used': Precise["default"].stringAdd(this.safeString(account, 'used'), used),
+                            'total': Precise["default"].stringAdd(this.safeString(account, 'total'), total),
+                        });
                     }
                     if (code !== undefined) {
                         result[code] = account;

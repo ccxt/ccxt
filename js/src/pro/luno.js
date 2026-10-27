@@ -218,9 +218,8 @@ export default class luno extends lunoRest {
         //         "timestamp": 1660598775360
         //     }
         //
-        const symbol = subscription['symbol'];
-        const symbolValue = this.safeString(subscription, 'symbol', '');
-        const messageHash = 'orderbook:' + symbolValue;
+        const symbol = this.safeString(subscription, 'symbol', '');
+        const messageHash = 'orderbook:' + symbol;
         const timestamp = this.safeInteger(message, 'timestamp');
         if (!(symbol in this.orderbooks)) {
             this.orderbooks[symbol] = this.indexedOrderBook({});
