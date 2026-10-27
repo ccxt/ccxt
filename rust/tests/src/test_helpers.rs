@@ -457,6 +457,24 @@ fn binary_frame(m: &Value) -> Value {
 /// Whether the mock inbound queue still has frames to drain — the
 /// parsedResponse loop keeps re-watching until every frame is consumed so the
 /// asserted structure reflects the final state after all deltas.
+/// Replays every frame still queued on the mock transport straight into the
+/// venue's `handle_message`. The parsedResponse harness otherwise drains leftovers
+/// by calling the method again, which is right for watch* (the re-watch only
+/// re-reads) but wrong for unWatch*: each call re-sends the unsubscribe and the
+/// sentMessages assertion counts it (kraken acks a multi-symbol unsubscribe once
+/// per symbol, so its fixture holds more acks than the one that resolves the call).
+pub async fn drainWsMessages(exchange: &mut Value, url: Value) -> Value {
+    let u = ws_url(&url);
+    let client = ccxt::pro::ws_client::client_value(&u);
+    let mut guard = 0;
+    while let Some(msg) = ccxt::pro::ws_client::mock_pop_message(&u) {
+        crate::live_dispatch::dispatch(exchange, "handleMessage", vec![client.clone(), msg]).await;
+        guard += 1;
+        if guard >= 500 { break; }
+    }
+    Value::Null
+}
+
 pub fn wsHasQueuedMessages(_exchange: Value, url: Value) -> Value {
     Value::Bool(ccxt::pro::ws_client::mock_has_queued_messages(&ws_url(&url)))
 }
