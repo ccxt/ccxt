@@ -5450,7 +5450,7 @@ class BaseExchange(object):
         noSymbols = (symbolsNormalized is None) or (symbolsLength == 0)
         if isinstance(response, list):
             for i in range(0, len(response)):
-                item = response[i]
+                item = self.safe_value(response, i)
                 id = None if (marketIdKey is None) else self.safe_string(item, marketIdKey)
                 market = self.safe_market(id, None, None, 'swap')
                 symbol = self.safe_string(market, 'symbol', '')
@@ -5461,7 +5461,7 @@ class BaseExchange(object):
             keys = list(response.keys())
             for i in range(0, len(keys)):
                 marketId = keys[i]
-                item = response[marketId]
+                item = self.safe_value(response, marketId)
                 market = self.safe_market(marketId, None, None, 'swap')
                 symbol = self.safe_string(market, 'symbol', '')
                 contract = self.safe_bool(market, 'contract', False)

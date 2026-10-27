@@ -2927,9 +2927,9 @@ class binance(Exchange, ImplicitAPI):
                     settle = self.safe_string(market, 'base', '')
                     if isLegacyLinear:
                         settle = self.safe_string(market, 'quote', '')
-                    futuresSymbol = symbol + ':' + settle
-                    if (self.markets is not None) and (futuresSymbol in self.markets):
-                        return self.markets[futuresSymbol]
+                    legacySymbol = self.safe_string(market, 'symbol', '') + ':' + settle
+                    if (self.markets is not None) and (legacySymbol in self.markets):
+                        return self.markets[legacySymbol]
                 else:
                     return market
                 # end diff
@@ -5651,9 +5651,9 @@ class binance(Exchange, ImplicitAPI):
         validOrderTypes = self.safe_list(market['info'], 'orderTypes', [])
         if not self.in_array(uppercaseType, validOrderTypes):
             if initialUppercaseType != uppercaseType:
-                raise InvalidOrder(self.id + ' triggerPrice parameter is not allowed for ' + symbol + ' ' + type + ' orders')
+                raise InvalidOrder(self.id + ' triggerPrice parameter is not allowed for ' + self.safe_string(market, 'symbol', '') + ' ' + type + ' orders')
             else:
-                raise InvalidOrder(self.id + ' ' + type + ' is not a valid order type for the ' + symbol + ' market')
+                raise InvalidOrder(self.id + ' ' + type + ' is not a valid order type for the ' + self.safe_string(market, 'symbol', '') + ' market')
         if clientOrderId is None:
             request['newClientOrderId'] = self.generate_client_order_id(market)
         else:
@@ -7033,7 +7033,7 @@ class binance(Exchange, ImplicitAPI):
                     stopLossOrTakeProfit = self.safe_string(paramsPapi, 'stopLossOrTakeProfit')
                     omitKeys.append('stopLossOrTakeProfit')
                     if (stopLossOrTakeProfit != 'stopLoss') and (stopLossOrTakeProfit != 'takeProfit'):
-                        raise InvalidOrder(self.id + symbol + ' trailingPercent orders require a stopLossOrTakeProfit parameter of either stopLoss or takeProfit')
+                        raise InvalidOrder(self.id + self.safe_string(market, 'symbol', '') + ' trailingPercent orders require a stopLossOrTakeProfit parameter of either stopLoss or takeProfit')
                     if isMarketOrder:
                         if stopLossOrTakeProfit == 'stopLoss':
                             uppercaseType = 'STOP_LOSS'
@@ -7066,16 +7066,16 @@ class binance(Exchange, ImplicitAPI):
                 uppercaseType = 'TAKE_PROFIT' if (market['contract'] is True) else 'TAKE_PROFIT_LIMIT'
         if market['option'] is True:
             if type == 'market':
-                raise InvalidOrder(self.id + ' ' + type + ' is not a valid order type for the ' + symbol + ' market')
+                raise InvalidOrder(self.id + ' ' + type + ' is not a valid order type for the ' + self.safe_string(market, 'symbol', '') + ' market')
         else:
             validOrderTypes = self.safe_list(market['info'], 'orderTypes', [])
             if stock:
                 validOrderTypes = ['LIMIT', 'MARKET']
             if not self.in_array(uppercaseType, validOrderTypes):
                 if initialUppercaseType != uppercaseType:
-                    raise InvalidOrder(self.id + ' triggerPrice parameter is not allowed for ' + symbol + ' ' + type + ' orders')
+                    raise InvalidOrder(self.id + ' triggerPrice parameter is not allowed for ' + self.safe_string(market, 'symbol', '') + ' ' + type + ' orders')
                 else:
-                    raise InvalidOrder(self.id + ' ' + type + ' is not a valid order type for the ' + symbol + ' market')
+                    raise InvalidOrder(self.id + ' ' + type + ' is not a valid order type for the ' + self.safe_string(market, 'symbol', '') + ' market')
         clientOrderIdRequest = 'newClientOrderId'
         if isPortfolioMarginConditional:
             clientOrderIdRequest = 'newClientStrategyId'

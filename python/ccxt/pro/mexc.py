@@ -893,8 +893,8 @@ class mexc(ccxt.async_support.mexc):
         nonce = self.safe_integer(storedOrderBook, 'nonce')
         shouldReturn = False
         if nonce is None:
-            cacheLength = len(storedOrderBook.cache)
-            snapshotDelay = self.handle_option('watchOrderBook', 'snapshotDelay', 25)
+            cacheLength = self.parse_to_int(len(storedOrderBook.cache))
+            snapshotDelay = self.parse_to_int(self.handle_option('watchOrderBook', 'snapshotDelay', 25))
             if cacheLength == snapshotDelay:
                 self.spawn(self.load_order_book, client, messageHash, symbol, limit, {})
             storedOrderBook.cache.append(data)

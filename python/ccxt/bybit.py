@@ -1591,14 +1591,13 @@ class bybit(Exchange, ImplicitAPI):
     def create_expired_option_market(self, symbol: str) -> MarketInterface:
         # support expired option contracts
         quote = None
-        settle = None
         optionParts = symbol.split('-')
         symbolBase = symbol.split('/')
         expiry = None
         hasSlash = symbol.find('/') > -1
-        baseName = self.safe_string(optionParts, 0)
+        baseName = self.safe_string(optionParts, 0, '')
         if hasSlash:
-            baseName = self.safe_string(symbolBase, 0)
+            baseName = self.safe_string(symbolBase, 0, '')
             expiry = self.safe_string(optionParts, 1)
             symbolQuoteAndSettle = self.safe_string(symbolBase, 1)
             if symbolQuoteAndSettle is None:
@@ -1606,15 +1605,12 @@ class bybit(Exchange, ImplicitAPI):
             splitQuote = symbolQuoteAndSettle.split(':')
             quoteAndSettle = self.safe_string(splitQuote, 0)
             quote = quoteAndSettle
-            settle = quoteAndSettle
         else:
             expiry = self.convert_market_id_expire_date(self.safe_string(optionParts, 1))
             if symbol.endswith('-USDT'):
                 quote = 'USDT'
-                settle = 'USDT'
             else:
                 quote = 'USDC'
-                settle = 'USDC'
         strike = self.safe_string(optionParts, 2)
         optionType = self.safe_string(optionParts, 3)
         datetime = self.convert_expire_date(expiry)
@@ -1634,18 +1630,18 @@ class bybit(Exchange, ImplicitAPI):
         convertedExpireDate = self.convert_expire_date_to_market_id_date(expiry)
         return {
             'id': baseName + '-' + convertedExpireDate + '-' + strike + '-' + optionType,
-            'symbol': baseName + '/' + quote + ':' + settle + '-' + expiry + '-' + strike + '-' + optionType,
+            'symbol': baseName + '/' + quote + ':' + quote + '-' + expiry + '-' + strike + '-' + optionType,
             'base': baseName,
             'quote': quote,
-            'settle': settle,
+            'settle': quote,
             'baseId': baseName,
             'quoteId': quote,
-            'settleId': settle,
+            'settleId': quote,
             'active': False,
             'type': 'option',
-            'subType': 'inverse' if (baseName == settle) else 'linear',
-            'linear': (baseName != settle),
-            'inverse': (baseName == settle),
+            'subType': 'inverse' if (baseName == quote) else 'linear',
+            'linear': (baseName != quote),
+            'inverse': (baseName == quote),
             'spot': False,
             'swap': False,
             'future': False,

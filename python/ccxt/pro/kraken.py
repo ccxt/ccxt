@@ -41,6 +41,9 @@ class kraken(ccxt.async_support.kraken):
                 'watchBidsAsks': True,
                 'watchTrades': True,
                 'watchTradesForSymbols': True,
+                'unWatchOHLCV': True,
+                'unWatchTrades': True,
+                'unWatchTradesForSymbols': True,
                 'createOrderWs': True,
                 'editOrderWs': True,
                 'cancelOrderWs': True,
@@ -733,6 +736,46 @@ class kraken(ccxt.async_support.kraken):
             limitResolved = trades.getLimit(tradeSymbol, limit)
         return self.filter_by_since_limit(trades, since, limitResolved, 'timestamp', True)
 
+    async def un_watch_trades(self, symbol: str, params: dict = {}) -> object:
+        """
+        stop watching the list of most recent trades for a particular symbol
+
+        https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/trade
+
+        :param str symbol: unified symbol of the market to stop watching the trades for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns any: status of the unwatch request
+        """
+        return await self.un_watch_trades_for_symbols([symbol], params)
+
+    async def un_watch_trades_for_symbols(self, symbols: list[str], params: dict = {}) -> object:
+        """
+        stop watching the list of most recent trades for a list of symbols
+
+        https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/trade
+
+        :param str[] symbols: unified symbols of the markets to stop watching the trades for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns any: status of the unwatch request
+        """
+        await self.load_markets()
+        symbolsNormalized = self.market_symbols(symbols, None, False, True, False)
+        unsubMessageHashes = []
+        for i in range(0, len(symbolsNormalized)):
+            unsubMessageHashes.append('unsubscribe:' + self.get_message_hash('trade', None, symbolsNormalized[i]))
+        request = {
+            'method': 'unsubscribe',
+            'params': {
+                'channel': 'trade',
+                'symbol': symbolsNormalized,
+            },
+            'req_id': self.request_id(),
+        }
+        request['params'] = self.deep_extend(request['params'], params)
+        url = (self.urls['api'])['ws']['publicV2']
+        # kraken acknowledges each symbol separately, see handleUnsubscriptionStatus
+        return await self.watch_multiple(url, unsubMessageHashes, request, unsubMessageHashes)
+
     def watch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
@@ -801,6 +844,35 @@ class kraken(ccxt.async_support.kraken):
         if self.newUpdates:
             limitResolved = ohlcv.getLimit(symbolValue, limit)
         return self.filter_by_since_limit(ohlcv, since, limitResolved, 'timestamp', True)
+
+    async def un_watch_ohlcv(self, symbol: str, timeframe: str = '1m', params: dict = {}) -> object:
+        """
+        stop watching historical candlestick data for a market
+
+        https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/ohlc
+
+        :param str symbol: unified symbol of the market to stop watching the candles for
+        :param str timeframe: the length of time each candle represents
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns any: status of the unwatch request
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        symbolValue = market['symbol']
+        interval = self.safe_string(self.timeframes, timeframe, timeframe)
+        unsubMessageHash = 'unsubscribe:' + self.get_message_hash('ohlcv', interval, symbolValue)
+        unsubscribe = {
+            'method': 'unsubscribe',
+            'params': {
+                'channel': 'ohlc',
+                'symbol': [symbolValue],
+                'interval': self.safe_value(self.timeframes, timeframe, timeframe),
+            },
+            'req_id': self.request_id(),
+        }
+        request = self.deep_extend(unsubscribe, params)
+        url = (self.urls['api'])['ws']['publicV2']
+        return await self.watch(url, unsubMessageHash, request, unsubMessageHash)
 
     async def load_markets(self, reload=False, params: dict = {}):
         markets = await super(kraken, self).load_markets(reload, params)
@@ -1541,6 +1613,35 @@ class kraken(ccxt.async_support.kraken):
         #     delete client.futures[requestId];
         # }
 
+    def handle_unsubscription_status(self, client: Client, message: dict) -> dict:
+        #
+        # one acknowledgement per symbol in the unsubscribe request
+        #
+        #     {
+        #         "method": "unsubscribe",
+        #         "req_id": 4,
+        #         "result": { "channel": "ohlc", "interval": 5, "symbol": "BTC/USD" },
+        #         "success": true,
+        #         "time_in": "2026-10-26T16:12:36.610481Z",
+        #         "time_out": "2026-10-26T16:12:36.610502Z"
+        #     }
+        #
+        result = self.safe_dict(message, 'result', {})
+        channel = self.safe_string(result, 'channel')
+        symbol = self.safe_symbol(self.safe_string(result, 'symbol'))
+        if channel == 'trade':
+            subMessageHash = self.get_message_hash('trade', None, symbol)
+            self.clean_cache({'topic': 'trades', 'symbols': [symbol]})
+            self.clean_unsubscription(client, subMessageHash, 'unsubscribe:' + subMessageHash)
+        elif channel == 'ohlc':
+            interval = self.safe_integer(result, 'interval')
+            timeframe = self.find_timeframe(interval)
+            subMessageHash = self.get_message_hash('ohlcv', None, symbol)
+            unsubMessageHash = 'unsubscribe:' + self.get_message_hash('ohlcv', self.number_to_string(interval), symbol)
+            self.clean_cache({'topic': 'ohlcv', 'symbolsAndTimeframes': [[symbol, timeframe]]})
+            self.clean_unsubscription(client, subMessageHash, unsubMessageHash)
+        return message
+
     def handle_error_message(self, client: Client, message: dict) -> Bool:
         #
         #     {
@@ -1603,6 +1704,7 @@ class kraken(ccxt.async_support.kraken):
                 'heartbeat': self.handle_heartbeat,
                 'systemStatus': self.handle_system_status,
                 'subscriptionStatus': self.handle_subscription_status,
+                'unsubscribe': self.handle_unsubscription_status,
                 'add_order': self.handle_create_edit_order,
                 'amend_order': self.handle_create_edit_order,
                 'cancel_order': self.handle_cancel_order,

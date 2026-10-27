@@ -34,6 +34,7 @@ class bitget(ccxt.async_support.bitget):
                 'watchBalance': True,
                 'watchMyTrades': True,
                 'watchOHLCV': True,
+                'unWatchOHLCV': True,
                 'watchOHLCVForSymbols': False,
                 'watchOrderBook': True,
                 'watchOrderBookForSymbols': True,
@@ -42,6 +43,7 @@ class bitget(ccxt.async_support.bitget):
                 'watchTickers': True,
                 'watchBidsAsks': True,
                 'watchTrades': True,
+                'unWatchTrades': True,
                 'watchTradesForSymbols': True,
                 'watchPositions': True,
             },
@@ -914,7 +916,7 @@ class bitget(ccxt.async_support.bitget):
             marketType = 'spot'
         marketId = self.safe_string_2(arg, 'instId', 'symbol')
         market = self.safe_market(marketId, None, None, marketType)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         messageHash = 'orderbook:' + symbol
         data = self.safe_value(message, 'data')
         # tokenized stock snapshots arrive as a plain dict instead of a list
@@ -2394,7 +2396,7 @@ class bitget(ccxt.async_support.bitget):
                     code = self.safe_currency_code(currencyId)
                     account = self.account()
                     if (code is not None) and (code in self.balance):
-                        account = self.balance[code]
+                        account = self.safe_dict(self.balance, code, account)
                     borrow = self.safe_string(entry, 'borrow')
                     debts = self.safe_string(entry, 'debts')
                     if (borrow is not None) or (debts is not None):
@@ -2409,7 +2411,7 @@ class bitget(ccxt.async_support.bitget):
                 code = self.safe_currency_code(currencyId)
                 account = self.account()
                 if (code is not None) and (code in self.balance):
-                    account = self.balance[code]
+                    account = self.safe_dict(self.balance, code, account)
                 borrow = self.safe_string(rawBalance, 'borrow')
                 if borrow is not None:
                     interest = self.safe_string(rawBalance, 'interest')
