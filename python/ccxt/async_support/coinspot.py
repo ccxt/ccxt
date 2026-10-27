@@ -726,12 +726,11 @@ class coinspot(Exchange, ImplicitAPI):
         requestBody = None
         apiLength = len(api)
         isVersionedApi = apiLength > 1
-        version = api[0] if isVersionedApi else None
         accessType = api[1] if isVersionedApi else api[0]
         endpoint = '/' + self.implode_params(path, params)
         fullPath = endpoint
-        if version is not None:
-            fullPath = '/' + version + endpoint
+        if isVersionedApi:
+            fullPath = '/' + api[0] + endpoint
         apiUrl = self.safe_string(self.urls['api'], accessType)
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')

@@ -333,8 +333,8 @@ class cryptomus(Exchange, ImplicitAPI):
         if marketId is None:
             raise ExchangeError(self.id + ' parseMarket() missing marketId')
         parts = marketId.split('_')
-        baseId = parts[0]
-        quoteId = parts[1]
+        baseId = self.safe_string(parts, 0)
+        quoteId = self.safe_string(parts, 1)
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
         if (base is None) or (quote is None):
@@ -429,7 +429,7 @@ class cryptomus(Exchange, ImplicitAPI):
         groupedArray = list(groupedById.values())
         return self.parse_currencies(groupedArray)
 
-    def parse_currency(self, rawCurrency: dict) -> CurrencyInterface:
+    def parse_currency(self, rawCurrency: list) -> CurrencyInterface:
         # currency here is array of networks
         id = None  # all entries have same id, as they were grouped by
         code = None
@@ -859,8 +859,7 @@ class cryptomus(Exchange, ImplicitAPI):
         result = self.safe_list(response, 'result', [])
         orders = []
         for i in range(0, len(result)):
-            order = result[i]
-            orders.append(self.parse_order(order, market))
+            orders.append(self.parse_order(result[i], market))
         return orders
 
     def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:

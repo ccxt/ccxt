@@ -616,7 +616,7 @@ class bigone(Exchange, ImplicitAPI):
         promises = [self.publicGetAssetPairs(params), self.contractPublicGetSymbols(params)]
         promisesResult = await asyncio.gather(*promises)
         response = self.safe_dict(promisesResult, 0)
-        contractResponse = promisesResult[1]
+        contractResponse = self.safe_value(promisesResult, 1)
         #
         #     {
         #         "code":0,
@@ -842,7 +842,7 @@ class bigone(Exchange, ImplicitAPI):
         #    }
         #
         marketType = 'swap'
-        if 'asset_pair_name' in ticker:
+        if self.safe_string(ticker, 'asset_pair_name') is not None:
             marketType = 'spot'
         marketId = self.safe_string_2(ticker, 'asset_pair_name', 'symbol')
         symbol = self.safe_symbol(marketId, market, '-', marketType)
@@ -2046,7 +2046,7 @@ class bigone(Exchange, ImplicitAPI):
         address = self.safe_string(transaction, 'target_address')
         tag = self.safe_string(transaction, 'memo')
         type = 'deposit'
-        if 'customer_id' in transaction:
+        if self.safe_string(transaction, 'customer_id') is not None:
             type = 'withdrawal'
         internal = self.safe_bool(transaction, 'is_internal')
         return {

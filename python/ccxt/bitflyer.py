@@ -230,7 +230,7 @@ class bitflyer(Exchange, ImplicitAPI):
     def parse_expiry_date(self, expiry: str) -> Int:
         day = expiry[0:2]
         monthName = expiry[2:5]
-        year = expiry[5:9]
+        expiryYear = expiry[5:9]
         months = {
             'JAN': '01',
             'FEB': '02',
@@ -248,7 +248,7 @@ class bitflyer(Exchange, ImplicitAPI):
         month = self.safe_string(months, monthName)
         if month is None:
             return None
-        return self.parse8601(year + '-' + month + '-' + day + 'T00:00:00Z')
+        return self.parse8601(expiryYear + '-' + month + '-' + day + 'T00:00:00Z')
 
     def safe_market(self, marketId: Str = None, market: Market = None, delimiter: Str = None, marketType: Str = None) -> MarketInterface:
         # Bitflyer has a different type of conflict in markets, because
@@ -1182,13 +1182,13 @@ class bitflyer(Exchange, ImplicitAPI):
             request += 'me/'
         request += path
         if method == 'GET':
-            if len(params) > 0:
-                request += '?' + self.urlencode(params)
+            query = self.urlencode(params)
+            if query != '':
+                request += '?' + query
         apiUrl = self.safe_string(self.urls['api'], 'rest')
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
-        baseUrl = self.implode_hostname(apiUrl)
-        url = baseUrl + request
+        url = self.implode_hostname(apiUrl) + request
         if apiName == 'private':
             self.check_required_credentials()
             nonce = str(self.nonce())

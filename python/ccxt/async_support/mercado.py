@@ -668,7 +668,7 @@ class mercado(Exchange, ImplicitAPI):
         id = self.safe_string(order, 'order_id')
         order_type = self.safe_string(order, 'order_type')
         side = None
-        if 'order_type' in order:
+        if order_type is not None:
             side = 'buy' if (order_type == '1') else 'sell'
         status = self.parse_order_status(self.safe_string(order, 'status'))
         marketId = self.safe_string(order, 'coin_pair')

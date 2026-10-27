@@ -542,8 +542,8 @@ class btcmarkets(Exchange, ImplicitAPI):
             'contract': False,
             'linear': None,
             'inverse': None,
-            'taker': fees['taker'],
-            'maker': fees['maker'],
+            'taker': self.safe_number(fees, 'taker'),
+            'maker': self.safe_number(fees, 'maker'),
             'contractSize': None,
             'expiry': None,
             'expiryDatetime': None,
@@ -1087,10 +1087,7 @@ class btcmarkets(Exchange, ImplicitAPI):
         cost = None
         if market['quote'] == 'AUD':
             currency = self.safe_string(market, 'quote')
-            amountString = self.number_to_string(amount)
-            priceString = self.number_to_string(price)
-            otherUnitsAmount = Precise.string_mul(amountString, priceString)
-            cost = self.cost_to_precision(symbol, otherUnitsAmount)
+            cost = self.cost_to_precision(symbol, Precise.string_mul(self.number_to_string(amount), self.number_to_string(price)))
         else:
             currency = self.safe_string(market, 'base')
             cost = self.amount_to_precision(symbol, amount)
@@ -1324,7 +1321,8 @@ class btcmarkets(Exchange, ImplicitAPI):
         :param str [params.tag]: memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        tagWithdrawTag, paramsWithdrawTag = self.handle_param_string(params, 'tag')
+        tagWithdrawTag = self.safe_string(params, 'tag')
+        paramsWithdrawTag = self.omit(params, 'tag')
         if self.markets is None:
             await self.load_markets()
         currency = self.currency(code)

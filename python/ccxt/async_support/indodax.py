@@ -814,9 +814,9 @@ class indodax(Exchange, ImplicitAPI):
             symbol = marketResolved['symbol']
             quoteId = self.safe_string(marketResolved, 'quoteId', '')
             baseId = self.safe_string(marketResolved, 'baseId', '')
-            if (marketResolved['quoteId'] == 'idr') and ('order_rp' in order):
+            if (marketResolved['quoteId'] == 'idr') and (self.safe_string(order, 'order_rp') is not None):
                 quoteId = 'rp'
-            if (marketResolved['baseId'] == 'idr') and ('remain_rp' in order):
+            if (marketResolved['baseId'] == 'idr') and (self.safe_string(order, 'remain_rp') is not None):
                 baseId = 'rp'
             cost = self.safe_string(order, 'order_' + quoteId)
             amount = self.safe_string(order, 'order_' + baseId)
@@ -1490,9 +1490,9 @@ class indodax(Exchange, ImplicitAPI):
         if isinstance(response, list):
             return None  # public endpoints may return []-arrays
         error = self.safe_string(response, 'error', '')
-        if not ('success' in response) and error == '':
-            return None  # no 'success' property on public responses
         status = self.safe_string(response, 'success')
+        if (status is None) and (error == ''):
+            return None  # no 'success' property on public responses
         if status == 'approved':
             return None
         if self.safe_integer(response, 'success', 0) == 1:

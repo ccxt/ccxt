@@ -1081,10 +1081,10 @@ class btcturk(Exchange, ImplicitAPI):
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         errorCode = self.safe_string(response, 'code', '0')
         message = self.safe_string(response, 'message')
-        output = message
-        if message is None:
-            output = body
-        self.throw_exactly_matched_exception(self.exceptions['exact'], message, self.id + ' ' + output)
+        feedback = self.id + ' ' + body
+        if message is not None:
+            feedback = self.id + ' ' + message
+        self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
         if (errorCode != '0') and (errorCode != 'SUCCESS'):
-            raise ExchangeError(self.id + ' ' + output)
+            raise ExchangeError(feedback)
         return None

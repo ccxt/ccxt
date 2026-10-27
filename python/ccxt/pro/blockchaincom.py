@@ -115,8 +115,6 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         # nobody is awaiting, so a replaced object would make updates landing
         # in that window invisible to the consumer forever (same class as
         # issue #26773)
-        if self.balance is None:
-            self.balance = {}
         self.balance['info'] = message
         balances = self.safe_list(message, 'balances', [])
         for i in range(0, len(balances)):
@@ -187,8 +185,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         #
         event = self.safe_string(message, 'event')
         if event == 'rejected':
-            jsonMessage = self.json(message)
-            raise ExchangeError(self.id + ' ' + jsonMessage)
+            raise ExchangeError(self.id + ' ' + self.json(message))
         elif event == 'updated':
             marketId = self.safe_string(message, 'symbol')
             symbol = self.safe_symbol(marketId, None, '-')
@@ -691,7 +688,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         messageHash = 'orderbook:' + symbol + ':' + type
         datetime = self.safe_string(message, 'timestamp')
         timestamp = self.parse8601(datetime)
-        if self.safe_value(self.orderbooks, symbol) is None:
+        if not (symbol in self.orderbooks):
             self.orderbooks[symbol] = self.counted_order_book()
         orderbook = self.orderbooks[symbol]
         if event == 'snapshot':
@@ -718,21 +715,22 @@ class blockchaincom(ccxt.async_support.blockchaincom):
 
     def handle_message(self, client: Client, message: dict):
         channel = self.safe_string(message, 'channel')
-        handlers = {
-            'ticker': self.handle_ticker,
-            'trades': self.handle_trades,
-            'prices': self.handle_ohlcv,
-            'l2': self.handle_order_book,
-            'l3': self.handle_order_book,
-            'auth': self.handle_authentication_message,
-            'balances': self.handle_balance,
-            'trading': self.handle_orders,
-        }
-        handler = self.safe_value(handlers, channel)
-        if handler is not None:
-            handler(client, message)
-            return
-        raise NotSupported(self.id + ' received an unsupported message: ' + self.json(message))
+        if channel == 'ticker':
+            self.handle_ticker(client, message)
+        elif channel == 'trades':
+            self.handle_trades(client, message)
+        elif channel == 'prices':
+            self.handle_ohlcv(client, message)
+        elif channel == 'l2' or channel == 'l3':
+            self.handle_order_book(client, message)
+        elif channel == 'auth':
+            self.handle_authentication_message(client, message)
+        elif channel == 'balances':
+            self.handle_balance(client, message)
+        elif channel == 'trading':
+            self.handle_orders(client, message)
+        else:
+            raise NotSupported(self.id + ' received an unsupported message: ' + self.json(message))
 
     def handle_authentication_message(self, client: Client, message: dict):
         #

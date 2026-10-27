@@ -1393,19 +1393,20 @@ class coinsph(Exchange, ImplicitAPI):
             'side': orderSide,
         }
         options = self.safe_dict(self.options, 'createOrder', {})
-        newOrderRespType = self.safe_value(options, 'newOrderRespType', {})
+        newOrderRespTypes = self.safe_value(options, 'newOrderRespType', {})
+        newOrderRespType = 'FULL'
         # if limit order
         if orderType == 'LIMIT' or orderType == 'STOP_LOSS_LIMIT' or orderType == 'TAKE_PROFIT_LIMIT' or orderType == 'LIMIT_MAKER':
             if price is None:
                 raise ArgumentsRequired(self.id + ' createOrder() requires a price argument for a ' + type + ' order')
-            newOrderRespType = self.safe_string(newOrderRespType, 'limit', 'FULL')
+            newOrderRespType = self.safe_string(newOrderRespTypes, 'limit', 'FULL')
             request['price'] = self.price_to_precision(symbol, price)
             request['quantity'] = self.amount_to_precision(symbol, amount)
             if orderType != 'LIMIT_MAKER':
                 request['timeInForce'] = self.safe_string(options, 'timeInForce', 'GTC')
         # if market order
         elif orderType == 'MARKET' or orderType == 'STOP_LOSS' or orderType == 'TAKE_PROFIT':
-            newOrderRespType = self.safe_string(newOrderRespType, 'market', 'FULL')
+            newOrderRespType = self.safe_string(newOrderRespTypes, 'market', 'FULL')
             if orderSide == 'SELL':
                 request['quantity'] = self.amount_to_precision(symbol, amount)
             elif orderSide == 'BUY':
@@ -2172,7 +2173,7 @@ class coinsph(Exchange, ImplicitAPI):
         apiUrl = self.safe_string(self.urls['api'], apiName)
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
-        query = self.omit(params, self.extract_params(path))
+        query = self.extend({}, self.omit(params, self.extract_params(path)))
         endpoint = self.implode_params(path, params)
         url = apiUrl + '/' + endpoint
         if apiName == 'private':

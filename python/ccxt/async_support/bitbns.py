@@ -1210,16 +1210,14 @@ class bitbns(Exchange, ImplicitAPI):
 
     def sign(self, path: str, api: list[str] = ['www'], method: str = 'GET', params: dict = {}) -> dict:
         apiName = api[0]
-        if not (apiName in self.urls['api']):
+        baseApiUrl = self.safe_string(self.urls['api'], apiName)
+        if baseApiUrl is None:
             raise ExchangeError(self.id + ' does not have a testnet/sandbox URL for ' + apiName + ' endpoints')
         if apiName != 'www':
             self.check_required_credentials()
         requestHeaders = {}
         if apiName != 'www':
             requestHeaders['X-BITBNS-APIKEY'] = self.apiKey
-        baseApiUrl = self.safe_string(self.urls['api'], apiName)
-        if baseApiUrl is None:
-            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         baseUrl = self.implode_hostname(baseApiUrl)
         url = baseUrl + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))

@@ -474,7 +474,7 @@ class bit2c(Exchange, ImplicitAPI):
             self.load_markets()
         market = self.market(symbol)
         optionValue = self.safe_string(self.options, 'fetchTradesMethod')  # kept here for backward compatibility #29154
-        method = self.handle_option('fetchTrades', 'method', optionValue)  # publicGetExchangesPairTrades or publicGetExchangesPairLasttrades
+        method = self.safe_string(self.handle_option_and_params({}, 'fetchTrades', 'method', optionValue), 0)  # publicGetExchangesPairTrades or publicGetExchangesPairLasttrades
         request = {
             'pair': market['id'],
         }
@@ -697,8 +697,9 @@ class bit2c(Exchange, ImplicitAPI):
         #
         orderUnified = None
         isNewOrder = False
-        if 'NewOrder' in order:
-            orderUnified = order['NewOrder']
+        newOrder = self.safe_value(order, 'NewOrder')
+        if newOrder is not None:
+            orderUnified = newOrder
             isNewOrder = True
         else:
             orderUnified = order
