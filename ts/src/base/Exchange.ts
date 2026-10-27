@@ -8985,8 +8985,7 @@ export class BaseExchange {
                 break; // go turns a break inside try into a panic that only ends the iteration
             }
         }
-        const key = (method === 'fetchOHLCV') ? 0 : 'timestamp';
-        return this.filterBySinceLimit (this.sortCursorPaginatedResult (result), since, limit, key);
+        return this.filterBySinceLimit (this.sortCursorPaginatedResult (result), since, limit, (method === 'fetchOHLCV') ? 0 : 'timestamp');
     }
 
     sortCursorPaginatedResult (result: any) {
