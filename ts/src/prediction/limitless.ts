@@ -3044,8 +3044,7 @@ export default class limitless extends Exchange {
         const eventKeys = Object.keys (eventGroups);
         const eventKeysLength = eventKeys.length;
         for (let i = 0; i < eventKeysLength; i++) {
-            const g = this.safeValue (eventGroups, eventKeys[i]);
-            const ev = this.parseEvent (g);
+            const ev = this.parseEvent (this.safeDict (eventGroups, eventKeys[i], {}));
             result.push (ev);
         }
         // setEvents keys events by id/slug/handle; populateOutcomes rebuilds the outcome cache
@@ -3117,7 +3116,7 @@ export default class limitless extends Exchange {
      * @param {int} [params.limit] max number of raw markets to collect per category
      * @returns {object[]} raw limitless market objects, deduped by slug
      */
-    async fetchRawMarketsByTags (tags: string[], params: Dict = {}): Promise<any[]> {
+    async fetchRawMarketsByTags (tags: string[], params: Dict = {}): Promise<Dict[]> {
         const categoriesResponse = await this.limitlessPublicGetCategories ();
         let categories: List = [];
         if (Array.isArray (categoriesResponse)) {
@@ -3152,7 +3151,7 @@ export default class limitless extends Exchange {
             throw new BadRequest (this.id + ' fetchEvents() could not match the requested tags to any limitless category — GET /categories lists the valid names');
         }
         const seen: Dict = {};
-        const allRaw: any[] = [];
+        const allRaw: Dict[] = [];
         for (let ci = 0; ci < categoryIdsLength; ci++) {
             const categoryMarkets = await this.fetchRawActiveMarkets (params, categoryIds[ci]);
             const categoryMarketsLength = categoryMarkets.length;
@@ -3187,7 +3186,6 @@ export default class limitless extends Exchange {
      */
     override sign (path: string, api: string[] = [ 'limitless' ], method: string = 'GET', params: Dict = {}) {
         const apiGroup: string = api[0];
-        const access = api[1];
         const baseUrls = this.urls['api'];
         const baseUrl = this.safeString (baseUrls, apiGroup, baseUrls['limitless']);
         let url = '/' + this.implodeParams (path, params);
@@ -3198,7 +3196,7 @@ export default class limitless extends Exchange {
         }
         let headersValue: any = undefined;
         let bodyValue: any = undefined;
-        if (access === 'private') {
+        if (api[1] === 'private') {
             let bodyString = '';
             headersValue = {};
             if (method === 'POST' && (querystring !== '')) {
