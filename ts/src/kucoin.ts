@@ -3671,13 +3671,12 @@ export default class kucoin extends Exchange {
                 request['chain'] = _netIdTmp.toLowerCase ();
             }
         }
-        const getVersions: Dict = this.safeDict (this.safeDict (this.safeDict (this.options, 'versions', {}), 'private', {}), 'GET', {});
-        const version = getVersions['deposit-addresses'];
-        this.options['versions']['private']['GET']['deposit-addresses'] = 'v1';
+        const version = this.getDepositAddressesVersion ();
+        this.setDepositAddressesVersion ('v1');
         const response = await this.privateGetDepositAddresses (this.extend (request, paramsRequest));
         // BCH {"code":"200000","data":{"address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""}}
         // BTC {"code":"200000","data":{"address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""}}
-        this.options['versions']['private']['GET']['deposit-addresses'] = version;
+        this.setDepositAddressesVersion (version);
         const data = this.safeDict (response, 'data');
         if (data === undefined) {
             throw new ExchangeError (this.id + ' fetchDepositAddress() returned an empty response, you might try to run createDepositAddress() first and try again');
@@ -3804,9 +3803,8 @@ export default class kucoin extends Exchange {
             //
             response = await this.utaPrivateGetAssetDepositAddress (this.extend (request, paramsRequest));
         } else {
-            const getVersions: Dict = this.safeDict (this.safeDict (this.safeDict (this.options, 'versions', {}), 'private', {}), 'GET', {});
-            const version = getVersions['deposit-addresses'];
-            this.options['versions']['private']['GET']['deposit-addresses'] = 'v2';
+            const version = this.getDepositAddressesVersion ();
+            this.setDepositAddressesVersion ('v2');
             response = await this.privateGetDepositAddresses (this.extend (request, paramsRequest));
             //
             //     {
@@ -3823,7 +3821,7 @@ export default class kucoin extends Exchange {
             //         ]
             //     }
             //
-            this.options['versions']['private']['GET']['deposit-addresses'] = version;
+            this.setDepositAddressesVersion (version);
         }
         const chains: Dict[] = this.safeList (response, 'data', []);
         const parsed = this.parseDepositAddresses (chains, [ currency['code'] ], false, {
@@ -11812,6 +11810,15 @@ export default class kucoin extends Exchange {
         }
         const uta = this.safeBool (this.options, 'uta') === true;
         return uta;
+    }
+
+    getDepositAddressesVersion (): string {
+        const getVersions: Dict = this.safeDict (this.safeDict (this.safeDict (this.options, 'versions', {}), 'private', {}), 'GET', {});
+        return this.safeString (getVersions, 'deposit-addresses', 'v1');
+    }
+
+    setDepositAddressesVersion (version: string) {
+        this.options['versions']['private']['GET']['deposit-addresses'] = version;
     }
 
     override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
