@@ -985,7 +985,7 @@ export default class bitget extends bitgetRest {
         }
         const marketId = this.safeString2 (arg, 'instId', 'symbol');
         const market = this.safeMarket (marketId, undefined, undefined, marketType);
-        const symbol = market['symbol'];
+        const symbol = this.safeString (market, 'symbol', '');
         const messageHash = 'orderbook:' + symbol;
         const data = this.safeValue (message, 'data');
         // tokenized stock snapshots arrive as a plain dict instead of a list
@@ -2584,9 +2584,9 @@ export default class bitget extends bitgetRest {
                     const entry = this.safeDict (coins, j);
                     const currencyId = this.safeString (entry, 'coin');
                     const code = this.safeCurrencyCode (currencyId);
-                    let account = this.account ();
+                    let account: Dict = this.account ();
                     if ((code !== undefined) && (code in this.balance)) {
-                        account = this.balance[code];
+                        account = this.safeDict (this.balance, code, account);
                     }
                     const borrow = this.safeString (entry, 'borrow');
                     const debts = this.safeString (entry, 'debts');
@@ -2603,9 +2603,9 @@ export default class bitget extends bitgetRest {
             } else {
                 const currencyId = this.safeString2 (rawBalance, 'coin', 'marginCoin');
                 const code = this.safeCurrencyCode (currencyId);
-                let account = this.account ();
+                let account: Dict = this.account ();
                 if ((code !== undefined) && (code in this.balance)) {
-                    account = this.balance[code];
+                    account = this.safeDict (this.balance, code, account);
                 }
                 const borrow = this.safeString (rawBalance, 'borrow');
                 if (borrow !== undefined) {
