@@ -312,6 +312,7 @@ impl BitgetCore {
         m.insert("watchBalance".to_string(), Value::Bool(true));
         m.insert("watchMyTrades".to_string(), Value::Bool(true));
         m.insert("watchOHLCV".to_string(), Value::Bool(true));
+        m.insert("unWatchOHLCV".to_string(), Value::Bool(true));
         m.insert("watchOHLCVForSymbols".to_string(), Value::Bool(false));
         m.insert("watchOrderBook".to_string(), Value::Bool(true));
         m.insert("watchOrderBookForSymbols".to_string(), Value::Bool(true));
@@ -320,6 +321,7 @@ impl BitgetCore {
         m.insert("watchTickers".to_string(), Value::Bool(true));
         m.insert("watchBidsAsks".to_string(), Value::Bool(true));
         m.insert("watchTrades".to_string(), Value::Bool(true));
+        m.insert("unWatchTrades".to_string(), Value::Bool(true));
         m.insert("watchTradesForSymbols".to_string(), Value::Bool(true));
         m.insert("watchPositions".to_string(), Value::Bool(true));
     m
