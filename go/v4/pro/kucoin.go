@@ -21,7 +21,7 @@ func newKucoin() *Kucoin {
 	return p
 }
 
-func (this *Kucoin) Describe() any {
+func (this *Kucoin) Describe() map[string]any {
 	return this.DeepExtend(this.base.Describe(), map[string]any{
 		"has": map[string]any{
 			"ws":                       true,
@@ -438,7 +438,7 @@ func (this *Kucoin) authenticateUtaBody(ch chan ccxt.AsyncResult[*string]) any {
 	var now int64 = this.Milliseconds()
 	var expired bool = ((now - lastUpdate) >= *refreshInterval)
 	var messageHash string = "utaToken"
-	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["private"])
+	var url *string = this.SafeString(this.UrlsApi["ws"], "private", "")
 	var client ccxt.ClientInterface = this.Client(url)
 	if (utaToken == nil) || expired {
 		if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; ok {
@@ -826,7 +826,7 @@ func (this *Kucoin) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Ti
 			var symbol string = symbolsNormalized[i]
 			messageHashes = append(messageHashes, "ticker:"+symbol)
 			var market map[string]any = this.Market(symbol)
-			topics = append(topics, ccxt.Add(*method+":", market["id"]))
+			topics = append(topics, *method+":"+*this.SafeString(market, "id", ""))
 		}
 	}
 

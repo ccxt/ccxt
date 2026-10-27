@@ -21,7 +21,7 @@ func newBitvavo() *Bitvavo {
 	return p
 }
 
-func (this *Bitvavo) Describe() any {
+func (this *Bitvavo) Describe() map[string]any {
 	return this.DeepExtend(this.base.Describe(), map[string]any{
 		"has": map[string]any{
 			"ws":                         true,

@@ -20,7 +20,7 @@ func newToobit() *Toobit {
 	return p
 }
 
-func (this *Toobit) Describe() any {
+func (this *Toobit) Describe() map[string]any {
 	return this.DeepExtend(this.base.Describe(), map[string]any{
 		"has": map[string]any{
 			"ws":                       true,

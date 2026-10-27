@@ -16,7 +16,7 @@ func newBtse() *Btse {
 	return p
 }
 
-func (this *Btse) Describe() any {
+func (this *Btse) Describe() map[string]any {
 	return this.DeepExtend(this.Exchange.Describe(), map[string]any{
 		"id":        "btse",
 		"name":      "BTSE",
@@ -3272,12 +3272,10 @@ func (this *Btse) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 	var response any = nil
 	if marketTypeOption != nil && *marketTypeOption == "spot" {
 		// the literal ALL value cancels every open order across all pairs
-		request["symbol"] = func() any {
-			if symbol != nil {
-				return this.SafeString(market, "id")
-			}
-			return "ALL"
-		}()
+		request["symbol"] = "ALL"
+		if symbol != nil {
+			request["symbol"] = this.SafeString(market, "id")
+		}
 
 		r1 := <-this.PrivateDeleteSpotApiV4TradeOrdersAll(this.Extend(request, paramsMarketType))
 		if r1.Err != nil {
@@ -3404,21 +3402,21 @@ func (this *Btse) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 			request["symbol"] = this.SafeString(market, "id")
 		}
 
-		listEp3198 := <-this.PrivateGetSpotApiV4TradeOrders(this.Extend(request, paramsMarketType))
-		if listEp3198.Err != nil {
-			panic(listEp3198.Err)
+		listEp3196 := <-this.PrivateGetSpotApiV4TradeOrders(this.Extend(request, paramsMarketType))
+		if listEp3196.Err != nil {
+			panic(listEp3196.Err)
 		}
-		response = listEp3198.Value
+		response = listEp3196.Value
 	} else {
 		if symbol != nil {
 			request["symbol"] = this.FuturesRequestId(this.Market(symbol))
 		}
 
-		listEp3204 := <-this.PrivateGetFuturesApiV3TradeOrders(this.Extend(request, paramsMarketType))
-		if listEp3204.Err != nil {
-			panic(listEp3204.Err)
+		listEp3202 := <-this.PrivateGetFuturesApiV3TradeOrders(this.Extend(request, paramsMarketType))
+		if listEp3202.Err != nil {
+			panic(listEp3202.Err)
 		}
-		response = listEp3204.Value
+		response = listEp3202.Value
 	}
 	// the endpoints have no server side time filters, accept a bare array
 	// and a data envelope and filter client-side
@@ -3615,20 +3613,20 @@ func (this *Btse) fetchTradingFeesBody(ch chan AsyncResult[map[string]TradingFee
 	marketTypeOption, paramsMarketType := this.HandleMarketTypeAndParams("fetchTradingFees", nil, params, marketType)
 	if marketTypeOption != nil && *marketTypeOption == "spot" {
 
-		listEp3398 := <-this.PrivateGetSpotApiV4TradeFees(paramsMarketType)
-		if listEp3398.Err != nil {
-			panic(listEp3398.Err)
+		listEp3396 := <-this.PrivateGetSpotApiV4TradeFees(paramsMarketType)
+		if listEp3396.Err != nil {
+			panic(listEp3396.Err)
 		}
-		response = listEp3398.Value
+		response = listEp3396.Value
 	} else {
 		// the futures fees stay on the legacy endpoint, the unified futures
 		// api has no fees route
 
-		listEp3403 := <-this.PrivateGetFuturesApiV23UserFees(paramsMarketType)
-		if listEp3403.Err != nil {
-			panic(listEp3403.Err)
+		listEp3401 := <-this.PrivateGetFuturesApiV23UserFees(paramsMarketType)
+		if listEp3401.Err != nil {
+			panic(listEp3401.Err)
 		}
-		response = listEp3403.Value
+		response = listEp3401.Value
 	}
 	//
 	//     [
@@ -3818,11 +3816,11 @@ func (this *Btse) fetchDepositsWithdrawalsBody(ch chan AsyncResult[[]Transaction
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes291115 []any = r.Value
-	if retRes291115 == nil {
+	var retRes291415 []any = r.Value
+	if retRes291415 == nil {
 		ch <- AsyncResult[[]Transaction]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes291115)}
+		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes291415)}
 	}
 	return nil
 }
@@ -3861,11 +3859,11 @@ func (this *Btse) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optional
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes292815 []any = r.Value
-	if retRes292815 == nil {
+	var retRes293115 []any = r.Value
+	if retRes293115 == nil {
 		ch <- AsyncResult[[]Transaction]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes292815)}
+		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes293115)}
 	}
 	return nil
 }
@@ -3904,11 +3902,11 @@ func (this *Btse) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], optio
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes294515 []any = r.Value
-	if retRes294515 == nil {
+	var retRes294815 []any = r.Value
+	if retRes294815 == nil {
 		ch <- AsyncResult[[]Transaction]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes294515)}
+		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes294815)}
 	}
 	return nil
 }
@@ -4204,20 +4202,20 @@ func (this *Btse) fetchTradingFeeBody(ch chan AsyncResult[TradingFeeInterface], 
 	var response []any = nil
 	if market["spot"] == true {
 
-		listEp3944 := <-this.PrivateGetSpotApiV4TradeFees(this.Extend(request, params))
-		if listEp3944.Err != nil {
-			panic(listEp3944.Err)
+		listEp3942 := <-this.PrivateGetSpotApiV4TradeFees(this.Extend(request, params))
+		if listEp3942.Err != nil {
+			panic(listEp3942.Err)
 		}
-		response = listEp3944.Value
+		response = listEp3942.Value
 	} else {
 		// the futures fees stay on the legacy endpoint, the unified futures
 		// api has no fees route
 
-		listEp3949 := <-this.PrivateGetFuturesApiV23UserFees(this.Extend(request, params))
-		if listEp3949.Err != nil {
-			panic(listEp3949.Err)
+		listEp3947 := <-this.PrivateGetFuturesApiV23UserFees(this.Extend(request, params))
+		if listEp3947.Err != nil {
+			panic(listEp3947.Err)
 		}
-		response = listEp3949.Value
+		response = listEp3947.Value
 	}
 	var rows any = this.SafeList(response, "data", response)
 	var feeInfo map[string]any = this.SafeDictMap(rows, 0, map[string]any{})
@@ -4311,11 +4309,11 @@ func (this *Btse) fetchPositionsForSymbolBody(ch chan AsyncResult[[]Position], s
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes325415 []any = PositionsToList(r1.Value)
-	if retRes325415 == nil {
+	var retRes325715 []any = PositionsToList(r1.Value)
+	if retRes325715 == nil {
 		ch <- AsyncResult[[]Position]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Position]{Value: PositionsFromList(retRes325415)}
+		ch <- AsyncResult[[]Position]{Value: PositionsFromList(retRes325715)}
 	}
 	return nil
 }
@@ -4461,11 +4459,11 @@ func (this *Btse) fetchPositionModeBody(ch chan AsyncResult[PositionModeInfo], o
 		"symbol": this.FuturesRequestId(market),
 	}
 
-	listEp4177 := <-this.PrivateGetFuturesApiV3TradePositionMode(this.Extend(request, params))
-	if listEp4177.Err != nil {
-		panic(listEp4177.Err)
+	listEp4175 := <-this.PrivateGetFuturesApiV3TradePositionMode(this.Extend(request, params))
+	if listEp4175.Err != nil {
+		panic(listEp4175.Err)
 	}
-	var response []any = listEp4177.Value
+	var response []any = listEp4175.Value
 	//
 	//     [
 	//         {
@@ -4567,11 +4565,11 @@ func (this *Btse) fetchMarginModeBody(ch chan AsyncResult[MarginMode], symbol an
 		"symbol": this.FuturesRequestId(market),
 	}
 
-	listEp4269 := <-this.PrivateGetFuturesApiV3TradeLeverage(this.Extend(request, params))
-	if listEp4269.Err != nil {
-		panic(listEp4269.Err)
+	listEp4267 := <-this.PrivateGetFuturesApiV3TradeLeverage(this.Extend(request, params))
+	if listEp4267.Err != nil {
+		panic(listEp4267.Err)
 	}
-	var response []any = listEp4269.Value
+	var response []any = listEp4267.Value
 	var data map[string]any = this.SafeDictMap(response, 0, map[string]any{})
 
 	ch <- AsyncResult[MarginMode]{Value: this.ParseMarginMode(data, market)}
@@ -4960,13 +4958,12 @@ func (this *Btse) Sign(path string, optionalArgs ...any) any {
 	_ = params
 	var apiName string = api[0]
 	var requestBody *string = nil
-	var requestHeaders any = nil
+	var requestHeaders map[string]any = nil
 	var apiUrl *string = this.SafeString(this.Urls["api"], apiName)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
-	var baseUrl *string = apiUrl
-	var url string = *baseUrl + "/" + this.ImplodeParams(path, params)
+	var url string = *apiUrl + "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
 	// the futures v3 trading api reads DELETE params from a signed json
 	// body like its POST and PUT counterparts, while the spot v4 and the
@@ -5009,13 +5006,11 @@ func (this *Btse) Sign(path string, optionalArgs ...any) any {
 			"BROKER-ID":     "ccxt",
 		}
 	}
-	var bodyResolved *string = requestBody
-	var headersResolved any = requestHeaders
 	return map[string]any{
 		"url":     url,
 		"method":  method,
-		"body":    bodyResolved,
-		"headers": headersResolved,
+		"body":    requestBody,
+		"headers": requestHeaders,
 	}
 }
 func (this *Btse) FuturesRequestId(market map[string]any) *string {
@@ -5044,7 +5039,7 @@ func NewBtse(userConfig map[string]any) *Btse {
 func (this *Btse) Init(userConfig map[string]any) {
 	this.Exchange = Exchange{}
 	this.Exchange.DerivedExchange = this
-	this.Exchange.InitParent(userConfig, this.Describe().(map[string]any), this)
+	this.Exchange.InitParent(userConfig, this.Describe(), this)
 }
 
 // typed methods

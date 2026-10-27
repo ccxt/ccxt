@@ -16,7 +16,7 @@ func newIndependentreserve() *Independentreserve {
 	return p
 }
 
-func (this *Independentreserve) Describe() any {
+func (this *Independentreserve) Describe() map[string]any {
 	return this.DeepExtend(this.Exchange.Describe(), map[string]any{
 		"id":        "independentreserve",
 		"name":      "Independent Reserve",
@@ -1666,7 +1666,7 @@ func NewIndependentreserve(userConfig map[string]any) *Independentreserve {
 func (this *Independentreserve) Init(userConfig map[string]any) {
 	this.Exchange = Exchange{}
 	this.Exchange.DerivedExchange = this
-	this.Exchange.InitParent(userConfig, this.Describe().(map[string]any), this)
+	this.Exchange.InitParent(userConfig, this.Describe(), this)
 }
 
 // typed methods

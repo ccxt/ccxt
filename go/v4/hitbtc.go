@@ -16,7 +16,7 @@ func newHitbtc() *Hitbtc {
 	return p
 }
 
-func (this *Hitbtc) Describe() any {
+func (this *Hitbtc) Describe() map[string]any {
 	return this.DeepExtend(this.Exchange.Describe(), map[string]any{
 		"id":        "hitbtc",
 		"name":      "HitBTC",
@@ -929,7 +929,7 @@ func (this *Hitbtc) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 			inverse = !(linear == true)
 			symbol = Add(*base+"/"+*quote+":", settle)
 			if future {
-				symbol = Add(Add(Add(*base+"/"+*quote+":", settle), "-"), this.NumberToString(expiry))
+				symbol = Add(Add(Add(*base+"/"+*quote+":", settle), "-"), this.SafeString(market, "expiry", ""))
 				typeVar = "future"
 			} else {
 				typeVar = "swap"
@@ -5331,7 +5331,7 @@ func NewHitbtc(userConfig map[string]any) *Hitbtc {
 func (this *Hitbtc) Init(userConfig map[string]any) {
 	this.Exchange = Exchange{}
 	this.Exchange.DerivedExchange = this
-	this.Exchange.InitParent(userConfig, this.Describe().(map[string]any), this)
+	this.Exchange.InitParent(userConfig, this.Describe(), this)
 }
 
 // typed methods

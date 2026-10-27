@@ -20,7 +20,7 @@ func newDydx() *Dydx {
 	return p
 }
 
-func (this *Dydx) Describe() any {
+func (this *Dydx) Describe() map[string]any {
 	return this.DeepExtend(this.base.Describe(), map[string]any{
 		"has": map[string]any{
 			"ws":             true,

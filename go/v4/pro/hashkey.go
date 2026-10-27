@@ -18,7 +18,7 @@ func newHashkey() *Hashkey {
 	return p
 }
 
-func (this *Hashkey) Describe() any {
+func (this *Hashkey) Describe() map[string]any {
 	return this.DeepExtend(this.base.Describe(), map[string]any{
 		"has": map[string]any{
 			"ws":                    true,
@@ -151,7 +151,7 @@ func (this *Hashkey) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symb
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
+	var symbolValue *string = this.SafeString(market, "symbol", "")
 	var interval *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var topic string = "kline_" + *interval
 	var messageHash string = "ohlcv:" + *symbolValue + ":" + timeframe
@@ -272,7 +272,7 @@ func (this *Hashkey) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symb
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
+	var symbolValue *string = this.SafeString(market, "symbol", "")
 	var topic string = "realtimes"
 	var messageHash string = "ticker:" + *symbolValue
 
@@ -354,7 +354,7 @@ func (this *Hashkey) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], sym
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
+	var symbolValue *string = this.SafeString(market, "symbol", "")
 	var topic string = "trade"
 	var messageHash string = "trades:" + *symbolValue
 
@@ -452,7 +452,7 @@ func (this *Hashkey) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookI
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
+	var symbolValue *string = this.SafeString(market, "symbol", "")
 	var topic string = "depth"
 	var messageHash string = "orderbook:" + *symbolValue
 
@@ -1036,9 +1036,9 @@ func (this *Hashkey) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], o
 	var url any = this.GetPrivateUrl(listenKey)
 	var client ccxt.ClientInterface = this.Client(url)
 	this.SetBalanceCache(client, typeMarketType, messageHash)
-	var fetchBalanceSnapshot *bool = ccxt.SafeBoolPtr(ccxt.GetValue(ccxt.TupleSlice(this.HandleOptionBoolAndParams(this.Options, "watchBalance", "fetchBalanceSnapshot", true)), 0))
-	var awaitBalanceSnapshot *bool = ccxt.SafeBoolPtr(ccxt.GetValue(ccxt.TupleSlice(this.HandleOptionBoolAndParams(this.Options, "watchBalance", "awaitBalanceSnapshot", false)), 0))
-	if (fetchBalanceSnapshot != nil && *fetchBalanceSnapshot) && (awaitBalanceSnapshot != nil && *awaitBalanceSnapshot) {
+	fetchBalanceSnapshot, _ := this.HandleOptionBoolAndParams(this.Options, "watchBalance", "fetchBalanceSnapshot", true)
+	awaitBalanceSnapshot, _ := this.HandleOptionBoolAndParams(this.Options, "watchBalance", "awaitBalanceSnapshot", false)
+	if fetchBalanceSnapshot && awaitBalanceSnapshot {
 
 		r2 := <-client.(ccxt.ClientInterface).Future(*typeMarketType + ":fetchBalanceSnapshot")
 		if r2.Err != nil {

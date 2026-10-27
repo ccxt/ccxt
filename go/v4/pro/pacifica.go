@@ -20,7 +20,7 @@ func newPacifica() *Pacifica {
 	return p
 }
 
-func (this *Pacifica) Describe() any {
+func (this *Pacifica) Describe() map[string]any {
 	return this.DeepExtend(this.base.Describe(), map[string]any{
 		"has": map[string]any{
 			"ws":                    true,

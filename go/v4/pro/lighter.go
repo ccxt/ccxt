@@ -20,7 +20,7 @@ func newLighter() *Lighter {
 	return p
 }
 
-func (this *Lighter) Describe() any {
+func (this *Lighter) Describe() map[string]any {
 	return this.DeepExtend(this.base.Describe(), map[string]any{
 		"has": map[string]any{
 			"ws":                            true,
@@ -249,12 +249,7 @@ func (this *Lighter) HandleOrderBook(client any, message map[string]any) {
 	var data map[string]any = this.SafeDictMap(message, "order_book", map[string]any{})
 	var channel *string = this.SafeString(message, "channel", "")
 	var parts []string = strings.Split(*channel, ":")
-	var marketId *string = ccxt.SafeStringPtr(func() any {
-		if 1 >= 0 && 1 < len(parts) {
-			return parts[1]
-		}
-		return nil
-	}())
+	var marketId *string = this.SafeString(parts, 1)
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var timestamp *int64 = this.SafeInteger(message, "timestamp")
@@ -872,12 +867,7 @@ func (this *Lighter) HandleTrades(client any, message map[string]any) {
 	var data []any = ccxt.SafeListTyped(message, "trades")
 	var channel *string = this.SafeString(message, "channel", "")
 	var parts []string = strings.Split(*channel, ":")
-	var marketId *string = ccxt.SafeStringPtr(func() any {
-		if 1 >= 0 && 1 < len(parts) {
-			return parts[1]
-		}
-		return nil
-	}())
+	var marketId *string = this.SafeString(parts, 1)
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var stored any = this.SafeValue(this.Trades, symbol)
@@ -1134,12 +1124,7 @@ func (this *Lighter) HandleMyTrades(client any, message map[string]any) bool {
 	//
 	var channel *string = this.SafeString(message, "channel", "")
 	var parts []string = strings.Split(*channel, ":")
-	var accountIndex *string = ccxt.SafeStringPtr(func() any {
-		if 1 >= 0 && 1 < len(parts) {
-			return parts[1]
-		}
-		return nil
-	}())
+	var accountIndex *string = this.SafeString(parts, 1)
 	var data map[string]any = ccxt.SafeMapTyped(message, "trades")
 	var marketIds []string = nil
 	if data != nil {
@@ -1393,12 +1378,7 @@ func (this *Lighter) HandleLiquidation(client any, message map[string]any) {
 	var data []any = ccxt.SafeListTyped(message, "liquidation_trades")
 	var channel *string = this.SafeString(message, "channel", "")
 	var parts []string = strings.Split(*channel, ":")
-	var marketId *string = ccxt.SafeStringPtr(func() any {
-		if 1 >= 0 && 1 < len(parts) {
-			return parts[1]
-		}
-		return nil
-	}())
+	var marketId *string = this.SafeString(parts, 1)
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var stored any = this.SafeValue(this.Liquidations, symbol)

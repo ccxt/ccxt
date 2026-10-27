@@ -16,7 +16,7 @@ func newSxbet() *Sxbet {
 	return p
 }
 
-func (this *Sxbet) Describe() any {
+func (this *Sxbet) Describe() map[string]any {
 	return this.DeepExtend(this.BaseExchange.Describe(), map[string]any{
 		"id":        "sxbet",
 		"name":      "SX Bet",
@@ -3059,6 +3059,11 @@ func (this *Sxbet) ParseSxbetV3BookSides(snapshot any, isOutcomeOne bool) map[st
 		"asks": this.SortBy(asks, 0),
 	}
 }
+func (this *Sxbet) SetWsOption(group string, key *string, value any) {
+	var entry map[string]any = map[string]any{}
+	ccxt.AddElementToObject(entry, key, value)
+	ccxt.AddElementToObject(this.Options, group, this.Extend(this.SafeDict(this.Options, group, map[string]any{}), entry))
+}
 func (this *Sxbet) RequestId(url any) int64 {
 	var existing any = this.SafeValue(this.Options, "requestId")
 	if existing == nil {
@@ -3083,12 +3088,8 @@ func (this *Sxbet) RequestId(url any) int64 {
  * @param {string} subscription the subscription hash registered by watch() ('connect' or the channel name)
  */
 func (this *Sxbet) RegisterSxbetWsRequest(requestId int64, messageHash string, subscription string) {
-	var existing map[string]any = ccxt.SafeMapTyped(this.Options, "wsPendingRequests")
-	if existing == nil {
-		this.Options["wsPendingRequests"] = this.CreateSafeDictionary()
-	}
 	var requestIdString *string = this.NumberToString(requestId)
-	ccxt.AddElementToObject(this.Options["wsPendingRequests"], requestIdString, map[string]any{
+	this.SetWsOption("wsPendingRequests", requestIdString, map[string]any{
 		"messageHash":  messageHash,
 		"subscription": subscription,
 	})
@@ -3391,11 +3392,7 @@ func (this *Sxbet) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInt
 	var isNewSubscription bool = ccxt.IsEqual(this.SafeValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), channel), nil)
 	if ccxt.IsEqual(this.WsCacheGet("Orderbooks", sym), nil) {
 		// seed from the REST snapshot so the book is served before the first publication
-		var watchedBooks map[string]any = ccxt.SafeMapTyped(this.Options, "wsWatchedBooks")
-		if watchedBooks == nil {
-			this.Options["wsWatchedBooks"] = this.CreateSafeDictionary()
-		}
-		ccxt.AddElementToObject(this.Options["wsWatchedBooks"], sym, marketHash)
+		this.SetWsOption("wsWatchedBooks", sym, marketHash)
 
 		r2 := <-this.FetchSxbetBookSnapshotAsync(marketHash)
 		if r2.Err != nil {
@@ -3450,16 +3447,12 @@ func (this *Sxbet) ApplySxbetWsSnapshot(snapshot any) []any {
 	if marketHash == nil {
 		return refreshed
 	}
-	var versionsAll map[string]any = ccxt.SafeMapTyped(this.Options, "wsBookVersions")
-	if versionsAll == nil {
-		this.Options["wsBookVersions"] = this.CreateSafeDictionary()
-	}
-	var held *string = this.SafeString(this.Options["wsBookVersions"], marketHash, "")
+	var held *string = this.SafeString(this.SafeDict(this.Options, "wsBookVersions", map[string]any{}), marketHash, "")
 	// versions are fixed-width numeric strings - replace only on a strictly newer publication
 	if (held == nil || *held != "") && (ccxt.IsLessThanOrEqual(version, held)) {
 		return refreshed
 	}
-	ccxt.AddElementToObject(this.Options["wsBookVersions"], marketHash, version)
+	this.SetWsOption("wsBookVersions", marketHash, version)
 	var watchedBooks map[string]any = ccxt.SafeMapTyped(this.Options, "wsWatchedBooks")
 	var watchedSyms []string = nil
 	if watchedBooks != nil {
@@ -3544,11 +3537,7 @@ func (this *Sxbet) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.PredictionTicke
 	var sym *string = this.SafeString(outcomeObj, "outcome", "")
 	var marketHash *string = this.SafeString(outcomeObj["info"], "marketHash")
 	var messageHash string = "ticker::" + *sym
-	var watchedTickers map[string]any = ccxt.SafeMapTyped(this.Options, "wsWatchedTickers")
-	if watchedTickers == nil {
-		this.Options["wsWatchedTickers"] = this.CreateSafeDictionary()
-	}
-	ccxt.AddElementToObject(this.Options["wsWatchedTickers"], sym, marketHash)
+	this.SetWsOption("wsWatchedTickers", sym, marketHash)
 	var url *string = this.SafeString(this.Urls["api"], "ws")
 
 	r1 := <-this.ConnectSxbetCentrifugoAsync(url)
@@ -3999,8 +3988,7 @@ func (this *Sxbet) Sign(path string, optionalArgs ...any) any {
 	// /orders-v3/all and /orders-v3/event - take query parameters, like every GET
 	var sendAsQuery bool = (method == "GET")
 	if method == "DELETE" {
-		var hasOrdersList bool = (ccxt.InOp(query, "orders"))
-		sendAsQuery = !hasOrdersList
+		sendAsQuery = !(ccxt.InOp(query, "orders"))
 	}
 	var bodyValue *string = nil
 	if sendAsQuery {
@@ -4009,9 +3997,7 @@ func (this *Sxbet) Sign(path string, optionalArgs ...any) any {
 			url += "?" + querystring
 		}
 	} else {
-		var queryKeys []string = ccxt.ObjectKeys(query)
-		var queryKeysLength int = len(queryKeys)
-		if queryKeysLength > 0 {
+		if len(ccxt.ObjectKeys(query)) > 0 {
 			bodyValue = ccxt.SafeStringPtr(this.Json(query))
 		}
 	}
@@ -4032,7 +4018,7 @@ func NewSxbet(userConfig map[string]any) *Sxbet {
 func (this *Sxbet) Init(userConfig map[string]any) {
 	this.BaseExchange = ccxt.BaseExchange{}
 	this.BaseExchange.DerivedExchange = this
-	this.BaseExchange.InitParent(userConfig, this.Describe().(map[string]any), this)
+	this.BaseExchange.InitParent(userConfig, this.Describe(), this)
 }
 
 // typed methods

@@ -15,7 +15,7 @@ func newCoinone() *Coinone {
 	return p
 }
 
-func (this *Coinone) Describe() any {
+func (this *Coinone) Describe() map[string]any {
 	return this.DeepExtend(this.Exchange.Describe(), map[string]any{
 		"id":        "coinone",
 		"name":      "CoinOne",
@@ -1696,26 +1696,21 @@ func (this *Coinone) fetchDepositAddressesBody(ch chan AsyncResult[[]DepositAddr
 		var currencyId *string = this.SafeString(parts, 0)
 		var secondPart *string = this.SafeString(parts, 1)
 		var code *string = this.SafeCurrencyCode(currencyId)
-		var depositAddress any = this.SafeDict(result, code)
-		if depositAddress == nil {
-			depositAddress = map[string]any{
-				"info":     value,
-				"currency": code,
-				"network":  nil,
-				"address":  nil,
-				"tag":      nil,
-			}
-		}
-		var address *string = this.SafeString(depositAddress, "address", value)
+		var address *string = this.SafeString(this.SafeValue(result, code), "address", value)
 		this.CheckAddress(address)
-		AddElementToObject(depositAddress, "address", address)
-		AddElementToObject(depositAddress, "info", address)
+		var depositAddress map[string]any = map[string]any{
+			"info":     address,
+			"currency": code,
+			"network":  nil,
+			"address":  address,
+			"tag":      this.SafeString(this.SafeValue(result, code), "tag"),
+		}
 		if (secondPart != nil && *secondPart == "tag") || (secondPart != nil && *secondPart == "memo") {
-			AddElementToObject(depositAddress, "tag", value)
-			AddElementToObject(depositAddress, "info", []any{address, value})
+			depositAddress["tag"] = value
+			depositAddress["info"] = []any{address, value}
 		}
 		if code != nil {
-			AddElementToObject(result, code, depositAddress)
+			result[*code] = depositAddress
 		}
 	}
 
@@ -1823,7 +1818,7 @@ func NewCoinone(userConfig map[string]any) *Coinone {
 func (this *Coinone) Init(userConfig map[string]any) {
 	this.Exchange = Exchange{}
 	this.Exchange.DerivedExchange = this
-	this.Exchange.InitParent(userConfig, this.Describe().(map[string]any), this)
+	this.Exchange.InitParent(userConfig, this.Describe(), this)
 }
 
 // typed methods

@@ -18,7 +18,7 @@ func newApex() *Apex {
 	return p
 }
 
-func (this *Apex) Describe() any {
+func (this *Apex) Describe() map[string]any {
 	return this.DeepExtend(this.Exchange.Describe(), map[string]any{
 		"id":        "apex",
 		"name":      "Apex",
@@ -1900,9 +1900,7 @@ func (this *Apex) transferBody(ch chan AsyncResult[TransferEntry], code string, 
 	var configResponse map[string]any = r1.Value
 	var configData map[string]any = SafeMapTyped(configResponse, "data")
 	var contractConfig map[string]any = SafeMapTyped(configData, "contractConfig")
-	var contractAssets any = this.SafeList(contractConfig, "assets", []any{})
 	var spotConfig map[string]any = SafeMapTyped(configData, "spotConfig")
-	var spotAssets any = this.SafeList(spotConfig, "assets", []any{})
 	var globalConfig map[string]any = SafeMapTyped(spotConfig, "global")
 	var receiverAddress *string = this.SafeString(globalConfig, "contractAssetPoolEthAddress", "")
 	var receiverZkAccountId *string = this.SafeString(globalConfig, "contractAssetPoolZkAccountId", "")
@@ -1928,13 +1926,15 @@ func (this *Apex) transferBody(ch chan AsyncResult[TransferEntry], code string, 
 	var accountId *string = this.SafeString(accountData, "id", "")
 	var currency any = map[string]any{}
 	var isContract bool = (ToLower(fromAccount) == "contract")
-	var assets any = spotAssets
+	var assets any = this.SafeList(spotConfig, "assets", []any{})
 	if isContract {
-		assets = contractAssets
+		assets = this.SafeList(contractConfig, "assets", []any{})
 	}
-	for i := 0; i < GetArrayLength(assets); i++ {
-		if *this.SafeString(this.SafeDict(assets, i, map[string]any{}), "token", "") == code {
-			currency = this.SafeDict(assets, i, map[string]any{})
+	var numAssets int = GetArrayLength(assets)
+	for i := 0; i < numAssets; i++ {
+		var asset any = this.SafeDict(assets, i, map[string]any{})
+		if this.SafeString(asset, "token", "") != nil && *this.SafeString(asset, "token", "") == code {
+			currency = asset
 		}
 	}
 	var tokenId *string = this.SafeString(currency, "tokenId", "")
@@ -2820,7 +2820,7 @@ func NewApex(userConfig map[string]any) *Apex {
 func (this *Apex) Init(userConfig map[string]any) {
 	this.Exchange = Exchange{}
 	this.Exchange.DerivedExchange = this
-	this.Exchange.InitParent(userConfig, this.Describe().(map[string]any), this)
+	this.Exchange.InitParent(userConfig, this.Describe(), this)
 }
 
 // typed methods

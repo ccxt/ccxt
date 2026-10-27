@@ -21,7 +21,7 @@ func newBinance() *Binance {
 	return p
 }
 
-func (this *Binance) Describe() any {
+func (this *Binance) Describe() map[string]any {
 	var superDescribe any = this.base.Describe()
 	return this.DeepExtend(superDescribe, this.DescribeData())
 }
@@ -1268,8 +1268,8 @@ func (this *Binance) FetchOrderBookSnapshotAsync(client any, message any, subscr
 func (this *Binance) fetchOrderBookSnapshotBody(ch chan ccxt.AsyncResult[bool], client any, message any, subscription any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	var symbol *string = this.SafeString(subscription, "symbol")
-	var messageHash any = ccxt.Add("orderbook::", symbol)
+	var symbol *string = this.SafeString(subscription, "symbol", "")
+	var messageHash string = "orderbook::" + *symbol
 
 	{
 		func(this *Binance) (ret_ any) {
@@ -6007,7 +6007,7 @@ func (this *Binance) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opt
 	}()
 	if symbol != nil {
 		market = this.Market(symbol)
-		messageHash = ccxt.Add(messageHash, ccxt.Add(":", symbolResolved))
+		messageHash = ccxt.Add("orders:", this.Symbol(symbol))
 	}
 	typeVarsubTypeparamsValueVariable := this.ResolveAuthType("watchOrders", market, paramsStock)
 	typeVar := ccxt.GetValue(typeVarsubTypeparamsValueVariable, 0)
@@ -7416,8 +7416,7 @@ func (this *Binance) HandleMyTrade(client any, message any) {
 		var myTrades any = this.MyTrades
 		myTrades.(ccxt.Appender).Append(trade)
 		client.(ccxt.ClientInterface).Resolve(this.MyTrades, messageHash)
-		var messageHashSymbol *string = ccxt.SafeStringPtr(ccxt.Add(messageHash+":", symbol))
-		client.(ccxt.ClientInterface).Resolve(this.MyTrades, messageHashSymbol)
+		client.(ccxt.ClientInterface).Resolve(this.MyTrades, ccxt.Add("myTrades:", symbol))
 	}
 }
 func (this *Binance) HandleOrder(client any, message any) {

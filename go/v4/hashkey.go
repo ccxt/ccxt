@@ -15,7 +15,7 @@ func newHashkey() *Hashkey {
 	return p
 }
 
-func (this *Hashkey) Describe() any {
+func (this *Hashkey) Describe() map[string]any {
 	return this.DeepExtend(this.Exchange.Describe(), map[string]any{
 		"id":        "hashkey",
 		"name":      "HashKey Global",
@@ -1181,7 +1181,7 @@ func (this *Hashkey) ParseMarket(market any) map[string]any {
 	var marketType string = "spot"
 	var isSpot bool = true
 	var isSwap bool = false
-	var suffix any = ""
+	var suffix string = ""
 	var parts []string = strings.Split(*marketId, "-")
 	var secondPart *string = this.SafeString(parts, 1)
 	if secondPart != nil && *secondPart == "PERPETUAL" {
@@ -1189,13 +1189,13 @@ func (this *Hashkey) ParseMarket(market any) map[string]any {
 		isSpot = false
 		isSwap = true
 		baseId = this.SafeString(market, "underlying")
-		suffix = Add(":", settleId)
+		suffix = ":" + *this.SafeString(market, "marginToken", "")
 	}
 	var base *string = this.SafeCurrencyCode(baseId)
 	if (base == nil) || (quote == nil) {
 		return nil
 	}
-	var symbol *string = SafeStringPtr(Add(*base+"/"+*quote, suffix))
+	var symbol string = *base + "/" + *quote + suffix
 	var status *string = this.SafeString(market, "status")
 	var active bool = (status != nil && *status == "TRADING")
 	var isLinear any = nil
@@ -5113,13 +5113,12 @@ func (this *Hashkey) modifyMarginHelperBody(ch chan AsyncResult[MarginModificati
 	if market["swap"] != true {
 		panic(BadSymbol(this.Id + " modifyMarginHelper() supports swap markets only"))
 	}
-	var paramsSide map[string]any = nil
-	var sideParam any = nil
-	sideParam, paramsSide = this.HandleParamString(params, "side")
-	if IsEqual(sideParam, nil) {
+	var sideParam *string = this.SafeString(params, "side")
+	var paramsSide map[string]any = this.OmitDict(params, "side")
+	if sideParam == nil {
 		panic(ArgumentsRequired(this.Id + " " + typeVar + "Margin() requires a params[\"side\"] argument, either \"long\" or \"short\""))
 	}
-	var side string = ToUpper(sideParam)
+	var side string = strings.ToUpper(*sideParam)
 	if (side != "LONG") && (side != "SHORT") {
 		panic(ArgumentsRequired(this.Id + " " + typeVar + "Margin() params[\"side\"] must be either long or short"))
 	}
@@ -5603,7 +5602,7 @@ func NewHashkey(userConfig map[string]any) *Hashkey {
 func (this *Hashkey) Init(userConfig map[string]any) {
 	this.Exchange = Exchange{}
 	this.Exchange.DerivedExchange = this
-	this.Exchange.InitParent(userConfig, this.Describe().(map[string]any), this)
+	this.Exchange.InitParent(userConfig, this.Describe(), this)
 }
 
 // typed methods

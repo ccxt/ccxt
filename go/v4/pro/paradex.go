@@ -20,7 +20,7 @@ func newParadex() *Paradex {
 	return p
 }
 
-func (this *Paradex) Describe() any {
+func (this *Paradex) Describe() map[string]any {
 	return this.DeepExtend(this.base.Describe(), map[string]any{
 		"has": map[string]any{
 			"ws":                    true,
@@ -1238,7 +1238,7 @@ func (this *Paradex) ParseSbeMessage(message any) any {
 	if templateId == 1 {
 		data = this.ParseSbeTrade(frameHex, blockLength, frameLength)
 		if !ccxt.IsEqual(data, nil) {
-			channel = ccxt.Add("trades.", this.SafeString(data, "market"))
+			channel = "trades." + *this.SafeString(data, "market", "")
 		}
 	} else if templateId == 3 {
 		data = this.ParseSbeOrderBook(frameHex, blockLength, frameLength)
@@ -1254,12 +1254,12 @@ func (this *Paradex) ParseSbeMessage(message any) any {
 	} else if templateId == 20 {
 		data = this.ParseSbeOrder(frameHex, blockLength, frameLength)
 		if !ccxt.IsEqual(data, nil) {
-			channel = ccxt.Add("orders.", this.SafeString(data, "market"))
+			channel = "orders." + *this.SafeString(data, "market", "")
 		}
 	} else if templateId == 21 {
 		data = this.ParseSbeFill(frameHex, blockLength, frameLength)
 		if !ccxt.IsEqual(data, nil) {
-			channel = ccxt.Add("fills.", this.SafeString(data, "market"))
+			channel = "fills." + *this.SafeString(data, "market", "")
 		}
 	} else if templateId == 22 {
 		data = this.ParseSbePosition(frameHex, blockLength, frameLength)
@@ -1733,7 +1733,7 @@ func (this *Paradex) ParseSbePosition(frameHex string, blockLength int64, frameL
 		"cached_funding_index":    this.SbeReadDecimal(frameHex, 145),
 		"cost":                    this.SbeReadDecimal(frameHex, 129),
 		"cost_usd":                this.SbeReadDecimal(frameHex, 137),
-		"id":                      ccxt.Add(account+"-", this.SafeString(strings, 0)),
+		"id":                      account + "-" + *this.SafeString(strings, 0, ""),
 		"last_fill_id":            this.SafeString(strings, 1),
 		"last_updated_at":         this.SbeReadTimestamp(frameHex, 81),
 		"leverage":                this.SbeReadDecimal(frameHex, 73),

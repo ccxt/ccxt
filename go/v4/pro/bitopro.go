@@ -18,7 +18,7 @@ func newBitopro() *Bitopro {
 	return p
 }
 
-func (this *Bitopro) Describe() any {
+func (this *Bitopro) Describe() map[string]any {
 	return this.DeepExtend(this.base.Describe(), map[string]any{
 		"has": map[string]any{
 			"ws":                    true,

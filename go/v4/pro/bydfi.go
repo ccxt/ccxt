@@ -21,7 +21,7 @@ func newBydfi() *Bydfi {
 	return p
 }
 
-func (this *Bydfi) Describe() any {
+func (this *Bydfi) Describe() map[string]any {
 	return this.DeepExtend(this.base.Describe(), map[string]any{
 		"has": map[string]any{
 			"ws":                         true,
@@ -671,21 +671,21 @@ func (this *Bydfi) HandleOHLCV(client any, message map[string]any) {
 	var interval *string = this.SafeString(message, "i")
 	var timeframes any = this.SafeDict(this.Options, "timeframes", map[string]any{})
 	var timeframe *string = this.FindTimeframe(interval, timeframes)
-	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ohlcv::"+*symbol+"::", timeframe))
+	if timeframe == nil {
+		return
+	}
+	var messageHash string = "ohlcv::" + *symbol + "::" + *timeframe
 	if _, ok := this.Ohlcvs[*symbol]; !ok {
 		this.Ohlcvs[*symbol] = map[string]any{}
 	}
-	if !(ccxt.InOp(this.Ohlcvs[*symbol], timeframe)) {
+	if _, ok := this.Ohlcvs[*symbol][*timeframe]; !ok {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		stored := ccxt.NewArrayCacheByTimestamp(limit)
-		if timeframe != nil {
+		if this.Ohlcvs[*symbol] != nil {
 			this.Ohlcvs[*symbol][*timeframe] = stored
 		}
 	}
-	var ohlcv any
-	if timeframe != nil {
-		ohlcv = this.Ohlcvs[*symbol][*timeframe]
-	}
+	var ohlcv any = this.Ohlcvs[*symbol][*timeframe]
 	var parsed any = this.ParseWsOHLCV(message)
 	ohlcv.(ccxt.Appender).Append(parsed)
 	client.(ccxt.ClientInterface).Resolve([]any{symbol, timeframe, ohlcv}, messageHash)

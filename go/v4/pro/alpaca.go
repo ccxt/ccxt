@@ -20,7 +20,7 @@ func newAlpaca() *Alpaca {
 	return p
 }
 
-func (this *Alpaca) Describe() any {
+func (this *Alpaca) Describe() map[string]any {
 	return this.DeepExtend(this.base.Describe(), map[string]any{
 		"has": map[string]any{
 			"ws":                                     true,

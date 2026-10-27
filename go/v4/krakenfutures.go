@@ -15,7 +15,7 @@ func newKrakenfutures() *Krakenfutures {
 	return p
 }
 
-func (this *Krakenfutures) Describe() any {
+func (this *Krakenfutures) Describe() map[string]any {
 	return this.DeepExtend(this.Exchange.Describe(), map[string]any{
 		"id":        "krakenfutures",
 		"name":      "Kraken Futures",
@@ -4879,7 +4879,7 @@ func NewKrakenfutures(userConfig map[string]any) *Krakenfutures {
 func (this *Krakenfutures) Init(userConfig map[string]any) {
 	this.Exchange = Exchange{}
 	this.Exchange.DerivedExchange = this
-	this.Exchange.InitParent(userConfig, this.Describe().(map[string]any), this)
+	this.Exchange.InitParent(userConfig, this.Describe(), this)
 }
 
 // typed methods

@@ -15,7 +15,7 @@ func newDydx() *Dydx {
 	return p
 }
 
-func (this *Dydx) Describe() any {
+func (this *Dydx) Describe() map[string]any {
 	return this.DeepExtend(this.Exchange.Describe(), map[string]any{
 		"id":        "dydx",
 		"name":      "dYdX",
@@ -1890,10 +1890,10 @@ func (this *Dydx) CreateOrderRequest(symbol string, typeVar string, side string,
 }
 func (this *Dydx) CreateOrderIdFromParts(address any, subAccountNumber any, clientOrderId any, orderFlags any, clobPairId any) string {
 	var nameSp *string = this.SafeString(this.Options, "namespace", "0f9da948-a6fb-4c45-9edc-4685c3f3317d")
-	var prefixAddress any = Add(Add(address, "-"), this.NumberToString(subAccountNumber))
-	var prefix string = this.Uuid5(nameSp, prefixAddress)
-	var orderInfo *string = SafeStringPtr(Add(Add(Add(Add(Add(prefix+"-", this.NumberToString(clientOrderId)), "-"), this.NumberToString(clobPairId)), "-"), this.NumberToString(orderFlags)))
-	return this.Uuid5(nameSp, orderInfo)
+	var clientOrderIdString *string = this.NumberToString(clientOrderId)
+	var clobPairIdString *string = this.NumberToString(clobPairId)
+	var orderFlagsString *string = this.NumberToString(orderFlags)
+	return this.Uuid5(nameSp, this.Uuid5(nameSp, Add(Add(address, "-"), this.NumberToString(subAccountNumber)))+"-"+*clientOrderIdString+"-"+*clobPairIdString+"-"+*orderFlagsString)
 }
 func (this *Dydx) FetchLatestBlockHeightAsync(optionalArgs ...any) <-chan AsyncResult[*int64] {
 	ch := make(chan AsyncResult[*int64], 1)
@@ -3502,7 +3502,7 @@ func NewDydx(userConfig map[string]any) *Dydx {
 func (this *Dydx) Init(userConfig map[string]any) {
 	this.Exchange = Exchange{}
 	this.Exchange.DerivedExchange = this
-	this.Exchange.InitParent(userConfig, this.Describe().(map[string]any), this)
+	this.Exchange.InitParent(userConfig, this.Describe(), this)
 }
 
 // typed methods

@@ -15,7 +15,7 @@ func newWoo() *Woo {
 	return p
 }
 
-func (this *Woo) Describe() any {
+func (this *Woo) Describe() map[string]any {
 	return this.DeepExtend(this.Exchange.Describe(), map[string]any{
 		"id":        "woo",
 		"name":      "WOO X",
@@ -6288,7 +6288,7 @@ func NewWoo(userConfig map[string]any) *Woo {
 func (this *Woo) Init(userConfig map[string]any) {
 	this.Exchange = Exchange{}
 	this.Exchange.DerivedExchange = this
-	this.Exchange.InitParent(userConfig, this.Describe().(map[string]any), this)
+	this.Exchange.InitParent(userConfig, this.Describe(), this)
 }
 
 // typed methods

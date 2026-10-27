@@ -16,7 +16,7 @@ func newKraken() *Kraken {
 	return p
 }
 
-func (this *Kraken) Describe() any {
+func (this *Kraken) Describe() map[string]any {
 	return this.DeepExtend(this.Exchange.Describe(), map[string]any{
 		"id":        "kraken",
 		"name":      "Kraken",
@@ -4960,7 +4960,7 @@ func (this *Kraken) HandleErrors(code int64, reason any, url string, method any,
 	if response == nil {
 		return nil
 	}
-	if GetValue(body, 0) == "{" {
+	if this.SafeString(body, 0) != nil && *this.SafeString(body, 0) == "{" {
 		if !IsString(response) {
 			var message string = this.Id + " " + body
 			var errors []any = SafeListTyped(response, "error")
@@ -5005,7 +5005,7 @@ func NewKraken(userConfig map[string]any) *Kraken {
 func (this *Kraken) Init(userConfig map[string]any) {
 	this.Exchange = Exchange{}
 	this.Exchange.DerivedExchange = this
-	this.Exchange.InitParent(userConfig, this.Describe().(map[string]any), this)
+	this.Exchange.InitParent(userConfig, this.Describe(), this)
 }
 
 // typed methods

@@ -15,7 +15,7 @@ func newBittrade() *Bittrade {
 	return p
 }
 
-func (this *Bittrade) Describe() any {
+func (this *Bittrade) Describe() map[string]any {
 	return this.DeepExtend(this.Exchange.Describe(), map[string]any{
 		"id":        "bittrade",
 		"name":      "BitTrade",
@@ -2589,7 +2589,7 @@ func (this *Bittrade) ParseCancelOrders(orders any) []any {
 	var failed []any = SafeList2Typed(orders, "errors", "failed")
 	var result []any = []any{}
 	for i := 0; i < GetArrayLength(success); i++ {
-		var order *string = SafeStringPtr(GetValue(success, i))
+		var order *string = this.SafeString(success, i)
 		result = append(result, OrderToMap(this.SafeOrder(map[string]any{
 			"info":   order,
 			"id":     order,
@@ -3104,7 +3104,7 @@ func NewBittrade(userConfig map[string]any) *Bittrade {
 func (this *Bittrade) Init(userConfig map[string]any) {
 	this.Exchange = Exchange{}
 	this.Exchange.DerivedExchange = this
-	this.Exchange.InitParent(userConfig, this.Describe().(map[string]any), this)
+	this.Exchange.InitParent(userConfig, this.Describe(), this)
 }
 
 // typed methods

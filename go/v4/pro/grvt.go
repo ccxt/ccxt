@@ -21,7 +21,7 @@ func newGrvt() *Grvt {
 	return p
 }
 
-func (this *Grvt) Describe() any {
+func (this *Grvt) Describe() map[string]any {
 	return this.DeepExtend(this.base.Describe(), map[string]any{
 		"has": map[string]any{
 			"ws":                       true,

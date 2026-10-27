@@ -17,7 +17,7 @@ func newMyriad() *Myriad {
 	return p
 }
 
-func (this *Myriad) Describe() any {
+func (this *Myriad) Describe() map[string]any {
 	return this.DeepExtend(this.BaseExchange.Describe(), map[string]any{
 		"id":        "myriad",
 		"name":      "Myriad",
@@ -894,10 +894,8 @@ func (this *Myriad) ParsePredictionPosition(position any, optionalArgs ...any) a
 	var outcomeTitle *string = this.SafeString(position, "outcomeTitle", "")
 	var outcome any = this.SlugToOutcomeSymbol(marketSlug, marketSlug, outcomeTitle)
 	var marketSymbol any = this.SlugToMarketSymbol(marketSlug, marketSlug)
-	var networkId *string = this.SafeString(position, "networkId")
-	var marketId *string = this.SafeString(position, "marketId")
 	var outcomeId *string = this.SafeString(position, "outcomeId")
-	var id *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(networkId, ":"), marketId), "/"), outcomeId))
+	var id string = *this.SafeString(position, "networkId", "") + ":" + *this.SafeString(position, "marketId", "") + "/" + *this.SafeString(position, "outcomeId", "")
 	var shares *float64 = this.SafeNumber(position, "shares")
 	var value *float64 = this.SafeNumber(position, "value")
 	var profit *float64 = this.SafeNumber(position, "profit")
@@ -1666,11 +1664,11 @@ func (this *Myriad) createMarketBuyOrderWithCostBody(ch chan ccxt.AsyncResult[cc
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes111615 map[string]any = ccxt.StructResultMap(r.Value, ccxt.PredictionOrderToMap)
-	if retRes111615 == nil {
+	var retRes111415 map[string]any = ccxt.StructResultMap(r.Value, ccxt.PredictionOrderToMap)
+	if retRes111415 == nil {
 		ch <- ccxt.AsyncResult[ccxt.PredictionOrder]{}
 	} else {
-		ch <- ccxt.AsyncResult[ccxt.PredictionOrder]{Value: ccxt.PredictionOrderFromMap(retRes111615)}
+		ch <- ccxt.AsyncResult[ccxt.PredictionOrder]{Value: ccxt.PredictionOrderFromMap(retRes111415)}
 	}
 	return nil
 }
@@ -2610,11 +2608,11 @@ func (this *Myriad) fetchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionOr
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes178519 []any = ccxt.PredictionOrdersToList(r1.Value)
-		if retRes178519 == nil {
+		var retRes178319 []any = ccxt.PredictionOrdersToList(r1.Value)
+		if retRes178319 == nil {
 			ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: nil}
 		} else {
-			ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(retRes178519)}
+			ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(retRes178319)}
 		}
 		return nil
 	}
@@ -2704,11 +2702,11 @@ func (this *Myriad) fetchOpenOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predicti
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes184615 []any = ccxt.PredictionOrdersToList(r.Value)
-	if retRes184615 == nil {
+	var retRes184415 []any = ccxt.PredictionOrdersToList(r.Value)
+	if retRes184415 == nil {
 		ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: nil}
 	} else {
-		ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(retRes184615)}
+		ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(retRes184415)}
 	}
 	return nil
 }
@@ -2748,11 +2746,11 @@ func (this *Myriad) fetchClosedOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predic
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes186415 []any = ccxt.PredictionOrdersToList(r.Value)
-	if retRes186415 == nil {
+	var retRes186215 []any = ccxt.PredictionOrdersToList(r.Value)
+	if retRes186215 == nil {
 		ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: nil}
 	} else {
-		ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(retRes186415)}
+		ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(retRes186215)}
 	}
 	return nil
 }
@@ -2792,11 +2790,11 @@ func (this *Myriad) fetchCanceledOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Pred
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes188215 []any = ccxt.PredictionOrdersToList(r.Value)
-	if retRes188215 == nil {
+	var retRes188015 []any = ccxt.PredictionOrdersToList(r.Value)
+	if retRes188015 == nil {
 		ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: nil}
 	} else {
-		ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(retRes188215)}
+		ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(retRes188015)}
 	}
 	return nil
 }
@@ -4861,7 +4859,7 @@ func (this *Myriad) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Prediction
 }
 func (this *Myriad) WalletAddressOrUndefined() any {
 	// like walletAddressFromKeys but returns undefined instead of throwing when no wallet is configured
-	if (this.WalletAddress != "") && (ccxt.GetLength(this.WalletAddress) > 0) {
+	if this.WalletAddress != "" {
 		return strings.ToLower(this.WalletAddress)
 	}
 	if this.PrivateKey != "" {
@@ -5526,15 +5524,13 @@ func (this *Myriad) WalletAddressFromKeys() string {
 	// the orders/positions channels are keyed by the lowercase trader address (Centrifugo channels
 	// are case-sensitive); lowercase here so the channel matches regardless of the address checksum.
 	// check length too: an unset walletAddress is an empty string (not undefined) in some languages
-	var address any = this.WalletAddress
-	var hasWallet bool = (address != nil) && (ccxt.GetLength(this.WalletAddress) > 0)
-	if !hasWallet {
-		if this.PrivateKey == "" {
-			panic(ccxt.ArgumentsRequired(this.Id + " requires a walletAddress or privateKey to watch private channels"))
-		}
-		address = this.EthGetAddressFromPrivateKey(this.PrivateKey)
+	if this.WalletAddress != "" {
+		return strings.ToLower(this.WalletAddress)
 	}
-	return ccxt.ToLower(address)
+	if this.PrivateKey == "" {
+		panic(ccxt.ArgumentsRequired(this.Id + " requires a walletAddress or privateKey to watch private channels"))
+	}
+	return strings.ToLower(this.EthGetAddressFromPrivateKey(this.PrivateKey))
 }
 func (this *Myriad) HandleErrors(code int64, reason any, url string, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	// Myriad error responses are { "error": "<message>", "details": [...] } with a 4xx status
@@ -5623,7 +5619,7 @@ func NewMyriad(userConfig map[string]any) *Myriad {
 func (this *Myriad) Init(userConfig map[string]any) {
 	this.BaseExchange = ccxt.BaseExchange{}
 	this.BaseExchange.DerivedExchange = this
-	this.BaseExchange.InitParent(userConfig, this.Describe().(map[string]any), this)
+	this.BaseExchange.InitParent(userConfig, this.Describe(), this)
 }
 
 // typed methods

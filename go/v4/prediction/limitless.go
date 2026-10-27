@@ -19,7 +19,7 @@ func newLimitless() *Limitless {
 	return p
 }
 
-func (this *Limitless) Describe() any {
+func (this *Limitless) Describe() map[string]any {
 	return this.DeepExtend(this.BaseExchange.Describe(), map[string]any{
 		"id":        "limitless",
 		"name":      "Limitless",
@@ -3917,8 +3917,7 @@ func (this *Limitless) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.Predictio
 	}
 	var eventKeysLength int = len(eventKeys)
 	for i := 0; i < eventKeysLength; i++ {
-		var g any = this.SafeValue(eventGroups, eventKeys[i])
-		var ev map[string]any = this.ParseEvent(g)
+		var ev map[string]any = this.ParseEvent(this.SafeDict(eventGroups, eventKeys[i], map[string]any{}))
 		result = append(result, ev)
 	}
 	// setEvents keys events by id/slug/handle; populateOutcomes rebuilds the outcome cache
@@ -4118,7 +4117,6 @@ func (this *Limitless) Sign(path string, optionalArgs ...any) any {
 	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
 	var apiGroup string = api[0]
-	var access string = api[1]
 	var baseUrls any = this.Urls["api"]
 	var baseUrl *string = this.SafeString(baseUrls, apiGroup, ccxt.GetValue(baseUrls, "limitless"))
 	var url string = "/" + this.ImplodeParams(path, params)
@@ -4129,7 +4127,7 @@ func (this *Limitless) Sign(path string, optionalArgs ...any) any {
 	}
 	var headersValue map[string]any = nil
 	var bodyValue *string = nil
-	if access == "private" {
+	if api[1] == "private" {
 		var bodyString string = ""
 		headersValue = map[string]any{}
 		if (method == "POST") && (querystring != "") {
@@ -4202,7 +4200,7 @@ func NewLimitless(userConfig map[string]any) *Limitless {
 func (this *Limitless) Init(userConfig map[string]any) {
 	this.BaseExchange = ccxt.BaseExchange{}
 	this.BaseExchange.DerivedExchange = this
-	this.BaseExchange.InitParent(userConfig, this.Describe().(map[string]any), this)
+	this.BaseExchange.InitParent(userConfig, this.Describe(), this)
 }
 
 // typed methods

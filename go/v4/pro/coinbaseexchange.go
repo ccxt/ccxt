@@ -20,7 +20,7 @@ func newCoinbaseexchange() *Coinbaseexchange {
 	return p
 }
 
-func (this *Coinbaseexchange) Describe() any {
+func (this *Coinbaseexchange) Describe() map[string]any {
 	return this.DeepExtend(this.base.Describe(), map[string]any{
 		"has": map[string]any{
 			"ws":                       true,
@@ -752,12 +752,11 @@ func (this *Coinbaseexchange) HandleMyTrade(client any, message map[string]any) 
 		var trade map[string]any = this.ParseWsTrade(message)
 		var typeVar string = "myTrades"
 		var messageHash string = typeVar + ":" + *marketId
-		var tradesArray any = this.MyTrades
-		if ccxt.IsEqual(tradesArray, nil) {
+		if this.MyTrades == nil {
 			var limit *int64 = this.SafeInteger(this.Options, "myTradesLimit", 1000)
-			tradesArray = ccxt.NewArrayCacheBySymbolById(limit)
-			this.MyTrades = tradesArray
+			this.MyTrades = ccxt.NewArrayCacheBySymbolById(limit)
 		}
+		var tradesArray any = this.MyTrades
 		tradesArray.(ccxt.Appender).Append(trade)
 		client.(ccxt.ClientInterface).Resolve(tradesArray, messageHash)
 	}
@@ -819,12 +818,13 @@ func (this *Coinbaseexchange) ParseWsTrade(trade any, optionalArgs ...any) map[s
 	var parsed map[string]any = ccxt.TradeToMap(this.base.ParseTrade(trade))
 	var feeRate *string = nil
 	var isMaker bool = false
-	if ccxt.InOp(trade, "maker_fee_rate") {
+	var makerFeeRate *string = this.SafeString(trade, "maker_fee_rate")
+	if makerFeeRate != nil {
 		isMaker = true
 		if parsed != nil {
 			parsed["takerOrMaker"] = "maker"
 		}
-		feeRate = this.SafeString(trade, "maker_fee_rate")
+		feeRate = makerFeeRate
 	} else {
 		if parsed != nil {
 			parsed["takerOrMaker"] = "taker"
@@ -1132,7 +1132,7 @@ func (this *Coinbaseexchange) HandleTicker(client any, message map[string]any) a
 		if symbol != nil {
 			this.Tickers.Store(symbol, ticker)
 		}
-		var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ticker:", symbol))
+		var messageHash string = "ticker:" + *this.SafeString(ticker, "symbol", "")
 		var idMessageHash string = "ticker:" + *marketId
 		client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
 		client.(ccxt.ClientInterface).Resolve(ticker, idMessageHash)

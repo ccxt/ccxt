@@ -21,7 +21,7 @@ func newBlofin() *Blofin {
 	return p
 }
 
-func (this *Blofin) Describe() any {
+func (this *Blofin) Describe() map[string]any {
 	return this.DeepExtend(this.base.Describe(), map[string]any{
 		"has": map[string]any{
 			"ws":                       true,
@@ -633,7 +633,7 @@ func (this *Blofin) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[string
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 	var symbolsLength int = ccxt.GetArrayLength(symbolsAndTimeframes)
-	if (symbolsLength == 0) || !ccxt.IsArray(ccxt.GetValue(symbolsAndTimeframes, 0)) {
+	if (symbolsLength == 0) || ccxt.IsEqual(this.SafeList(symbolsAndTimeframes, 0), nil) {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]"))
 	}
 	if this.Markets() == nil {

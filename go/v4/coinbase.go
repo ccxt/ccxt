@@ -16,7 +16,7 @@ func newCoinbase() *Coinbase {
 	return p
 }
 
-func (this *Coinbase) Describe() any {
+func (this *Coinbase) Describe() map[string]any {
 	return this.DeepExtend(this.Exchange.Describe(), map[string]any{
 		"id":        "coinbase",
 		"name":      "Coinbase Advanced",
@@ -7408,7 +7408,7 @@ func NewCoinbase(userConfig map[string]any) *Coinbase {
 func (this *Coinbase) Init(userConfig map[string]any) {
 	this.Exchange = Exchange{}
 	this.Exchange.DerivedExchange = this
-	this.Exchange.InitParent(userConfig, this.Describe().(map[string]any), this)
+	this.Exchange.InitParent(userConfig, this.Describe(), this)
 }
 
 // typed methods

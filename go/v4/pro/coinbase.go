@@ -20,7 +20,7 @@ func newCoinbase() *Coinbase {
 	return p
 }
 
-func (this *Coinbase) Describe() any {
+func (this *Coinbase) Describe() map[string]any {
 	return this.DeepExtend(this.base.Describe(), map[string]any{
 		"has": map[string]any{
 			"ws":                       true,

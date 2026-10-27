@@ -16,7 +16,7 @@ func newBitrue() *Bitrue {
 	return p
 }
 
-func (this *Bitrue) Describe() any {
+func (this *Bitrue) Describe() map[string]any {
 	return this.DeepExtend(this.Exchange.Describe(), map[string]any{
 		"id":        "bitrue",
 		"name":      "Bitrue",
@@ -4072,9 +4072,7 @@ func (this *Bitrue) Sign(path string, optionalArgs ...any) any {
 			}
 			var signMessage any = timestamp + method + (signPrefix + "/" + version + "/" + path)
 			if method == "GET" {
-				var keys []string = ObjectKeys(paramsOmitted)
-				var keysLength int = len(keys)
-				if keysLength > 0 {
+				if len(ObjectKeys(paramsOmitted)) > 0 {
 					signMessage = Add(signMessage, "?"+this.Urlencode(paramsOmitted))
 				}
 				var signature string = this.Hmac(this.Encode(signMessage), this.Encode(this.Secret), sha256)
@@ -4142,32 +4140,11 @@ func (this *Bitrue) HandleErrors(code int64, reason any, url string, method any,
 	if !(success != nil && *success) {
 		var messageInner *string = this.SafeString(response, "msg")
 		if messageInner != nil {
-
-			{
-				func(this *Bitrue) (ret_ any) {
-					defer func() {
-						if e := recover(); e != nil {
-							if e == "break" {
-								return
-							}
-							ret_ = func(this *Bitrue) any {
-								// catch block:
-								// do nothing
-								parsedMessage = nil
-								return nil
-							}(this)
-						}
-					}()
-					// try block:
-					parsedMessage = JsonParse(messageInner)
-					return nil
-				}(this)
-
-			}
+			parsedMessage = this.ParseJson(messageInner)
 		}
 	}
 	var errorResponse any = func() any {
-		if !IsEqual(parsedMessage, nil) {
+		if parsedMessage != nil {
 			return parsedMessage
 		}
 		return response
@@ -4228,7 +4205,7 @@ func NewBitrue(userConfig map[string]any) *Bitrue {
 func (this *Bitrue) Init(userConfig map[string]any) {
 	this.Exchange = Exchange{}
 	this.Exchange.DerivedExchange = this
-	this.Exchange.InitParent(userConfig, this.Describe().(map[string]any), this)
+	this.Exchange.InitParent(userConfig, this.Describe(), this)
 }
 
 // typed methods

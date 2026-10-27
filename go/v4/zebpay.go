@@ -16,7 +16,7 @@ func newZebpay() *Zebpay {
 	return p
 }
 
-func (this *Zebpay) Describe() any {
+func (this *Zebpay) Describe() map[string]any {
 	return this.DeepExtend(this.Exchange.Describe(), map[string]any{
 		"id":        "zebpay",
 		"name":      "Zebpay",
@@ -2800,7 +2800,7 @@ func NewZebpay(userConfig map[string]any) *Zebpay {
 func (this *Zebpay) Init(userConfig map[string]any) {
 	this.Exchange = Exchange{}
 	this.Exchange.DerivedExchange = this
-	this.Exchange.InitParent(userConfig, this.Describe().(map[string]any), this)
+	this.Exchange.InitParent(userConfig, this.Describe(), this)
 }
 
 // typed methods

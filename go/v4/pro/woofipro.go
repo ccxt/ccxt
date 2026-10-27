@@ -20,7 +20,7 @@ func newWoofipro() *Woofipro {
 	return p
 }
 
-func (this *Woofipro) Describe() any {
+func (this *Woofipro) Describe() map[string]any {
 	return this.DeepExtend(this.base.Describe(), map[string]any{
 		"has": map[string]any{
 			"ws":                    true,
@@ -1444,8 +1444,8 @@ func (this *Woofipro) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], 
 		}
 	}
 	// don't remove the future from the .futures cache
-	if ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash) {
-		var future any = ccxt.GetValue(client.(ccxt.ClientInterface).GetFutures(), messageHash)
+	var future any = this.SafeValue(client.(ccxt.ClientInterface).GetFutures(), messageHash)
+	if future != nil {
 		future.(*ccxt.Future).Resolve(cache)
 		client.(ccxt.ClientInterface).Resolve(cache, "positions")
 	}

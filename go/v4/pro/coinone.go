@@ -20,7 +20,7 @@ func newCoinone() *Coinone {
 	return p
 }
 
-func (this *Coinone) Describe() any {
+func (this *Coinone) Describe() map[string]any {
 	return this.DeepExtend(this.base.Describe(), map[string]any{
 		"has": map[string]any{
 			"ws":                    true,

@@ -15,7 +15,7 @@ func newOkx() *Okx {
 	return p
 }
 
-func (this *Okx) Describe() any {
+func (this *Okx) Describe() map[string]any {
 	return this.DeepExtend(this.Exchange.Describe(), map[string]any{
 		"id":        "okx",
 		"name":      "OKX",
@@ -11281,12 +11281,10 @@ func (this *Okx) HandleTradingStatisticsWindow(request map[string]any, period an
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 	var maxLimit int = 100
-	var effectiveLimit any = func() any {
-		if (limit == nil) || (limit != nil && *limit > 100) {
-			return 100
-		}
-		return limit
-	}()
+	var effectiveLimit any = this.ParseToInt(100)
+	if (limit != nil) && (100 > *limit) {
+		effectiveLimit = limit
+	}
 	if limit != nil {
 		request["limit"] = effectiveLimit
 	}
@@ -13278,7 +13276,7 @@ func NewOkx(userConfig map[string]any) *Okx {
 func (this *Okx) Init(userConfig map[string]any) {
 	this.Exchange = Exchange{}
 	this.Exchange.DerivedExchange = this
-	this.Exchange.InitParent(userConfig, this.Describe().(map[string]any), this)
+	this.Exchange.InitParent(userConfig, this.Describe(), this)
 }
 
 // typed methods

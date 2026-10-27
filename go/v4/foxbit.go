@@ -16,7 +16,7 @@ func newFoxbit() *Foxbit {
 	return p
 }
 
-func (this *Foxbit) Describe() any {
+func (this *Foxbit) Describe() map[string]any {
 	return this.DeepExtend(this.Exchange.Describe(), map[string]any{
 		"id":        "foxbit",
 		"name":      "Foxbit",
@@ -2838,7 +2838,7 @@ func NewFoxbit(userConfig map[string]any) *Foxbit {
 func (this *Foxbit) Init(userConfig map[string]any) {
 	this.Exchange = Exchange{}
 	this.Exchange.DerivedExchange = this
-	this.Exchange.InitParent(userConfig, this.Describe().(map[string]any), this)
+	this.Exchange.InitParent(userConfig, this.Describe(), this)
 }
 
 // typed methods

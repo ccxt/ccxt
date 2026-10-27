@@ -13,7 +13,7 @@ func newBinancecoinm() *Binancecoinm {
 	return p
 }
 
-func (this *Binancecoinm) Describe() any {
+func (this *Binancecoinm) Describe() map[string]any {
 	return this.DeepExtend(this.Binance.Describe(), map[string]any{
 		"id":   "binancecoinm",
 		"name": "Binance COIN-M",

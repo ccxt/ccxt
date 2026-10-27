@@ -16,7 +16,7 @@ func newCoinbaseinternational() *Coinbaseinternational {
 	return p
 }
 
-func (this *Coinbaseinternational) Describe() any {
+func (this *Coinbaseinternational) Describe() map[string]any {
 	return this.DeepExtend(this.Exchange.Describe(), map[string]any{
 		"id":        "coinbaseinternational",
 		"name":      "Coinbase International",
@@ -1653,7 +1653,7 @@ func (this *Coinbaseinternational) fetchOrderBookBody(ch chan AsyncResult[OrderB
 			}
 			for i := 0; i < len(depths); i++ {
 				if *limit <= this.ParseToInt(DerefScalar(depths[i])) {
-					request["depth"] = this.ParseToInt(DerefScalar(depths[i]))
+					request["depth"] = this.SafeInteger(depths, i, 0)
 					break
 				}
 			}
@@ -4497,7 +4497,7 @@ func NewCoinbaseinternational(userConfig map[string]any) *Coinbaseinternational 
 func (this *Coinbaseinternational) Init(userConfig map[string]any) {
 	this.Exchange = Exchange{}
 	this.Exchange.DerivedExchange = this
-	this.Exchange.InitParent(userConfig, this.Describe().(map[string]any), this)
+	this.Exchange.InitParent(userConfig, this.Describe(), this)
 }
 
 // typed methods

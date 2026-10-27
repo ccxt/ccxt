@@ -16,7 +16,7 @@ func newBullish() *Bullish {
 	return p
 }
 
-func (this *Bullish) Describe() any {
+func (this *Bullish) Describe() map[string]any {
 	return this.DeepExtend(this.Exchange.Describe(), map[string]any{
 		"id":        "bullish",
 		"name":      "Bullish",
@@ -4309,7 +4309,7 @@ func NewBullish(userConfig map[string]any) *Bullish {
 func (this *Bullish) Init(userConfig map[string]any) {
 	this.Exchange = Exchange{}
 	this.Exchange.DerivedExchange = this
-	this.Exchange.InitParent(userConfig, this.Describe().(map[string]any), this)
+	this.Exchange.InitParent(userConfig, this.Describe(), this)
 }
 
 // typed methods

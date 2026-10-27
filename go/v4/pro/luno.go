@@ -20,7 +20,7 @@ func newLuno() *Luno {
 	return p
 }
 
-func (this *Luno) Describe() any {
+func (this *Luno) Describe() map[string]any {
 	return this.DeepExtend(this.base.Describe(), map[string]any{
 		"has": map[string]any{
 			"ws":                    true,

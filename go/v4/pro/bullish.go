@@ -21,7 +21,7 @@ func newBullish() *Bullish {
 	return p
 }
 
-func (this *Bullish) Describe() any {
+func (this *Bullish) Describe() map[string]any {
 	return this.DeepExtend(this.base.Describe(), map[string]any{
 		"has": map[string]any{
 			"ws":             true,

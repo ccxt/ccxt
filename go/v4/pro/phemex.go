@@ -21,7 +21,7 @@ func newPhemex() *Phemex {
 	return p
 }
 
-func (this *Phemex) Describe() any {
+func (this *Phemex) Describe() map[string]any {
 	return this.DeepExtend(this.base.Describe(), map[string]any{
 		"has": map[string]any{
 			"ws":                       true,
@@ -1082,7 +1082,7 @@ func (this *Phemex) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], op
 		}
 	}
 	typeVar, paramsType := this.HandleMarketTypeAndParams("watchMyTrades", market, this.Extend(params, settleRequest))
-	if ccxt.IsEqual(symbolResolved, nil) {
+	if symbol == nil {
 		var settle *string = this.SafeString(paramsType, "settle")
 		if settle != nil && *settle == "USDT" {
 			messageHash = "trades:perpetual"
@@ -1301,7 +1301,7 @@ func (this *Phemex) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opti
 	}
 	typeVar, paramsType := this.HandleMarketTypeAndParams("watchOrders", market, this.Extend(params, settleRequest))
 	var isUSDTSettled bool = (this.SafeString(paramsType, "settle") != nil && *this.SafeString(paramsType, "settle") == "USDT")
-	if ccxt.IsEqual(symbolResolved, nil) {
+	if symbol == nil {
 		if isUSDTSettled {
 			messageHash = "orders:perpetual"
 		} else {

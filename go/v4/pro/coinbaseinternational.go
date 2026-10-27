@@ -21,7 +21,7 @@ func newCoinbaseinternational() *Coinbaseinternational {
 	return p
 }
 
-func (this *Coinbaseinternational) Describe() any {
+func (this *Coinbaseinternational) Describe() map[string]any {
 	return this.DeepExtend(this.base.Describe(), map[string]any{
 		"has": map[string]any{
 			"ws":                         true,
@@ -548,7 +548,7 @@ func (this *Coinbaseinternational) watchOrdersForSymbolsBody(ch chan ccxt.AsyncR
 	var channels []any = []any{}
 	var symbolsLength int = len(symbolsResolved)
 	for i := 0; i < symbolsLength; i++ {
-		channels = append(channels, "user.orders."+*this.SafeString(this.Market(symbolsResolved[i]), "id", "")+"."+*interval)
+		channels = append(channels, "user.orders."+*this.SafeString(this.Market(this.SafeString(symbolsResolved, i, "")), "id", "")+"."+*interval)
 	}
 
 	r1 := <-this.SubscribeAsync(channels, channels, true, paramsInterval)
@@ -678,12 +678,7 @@ func (this *Coinbaseinternational) watchPositionsBody(ch chan ccxt.AsyncResult[[
 	}
 	if (symbolsResolved != nil) && (symbolsLength > 0) {
 		for i := 0; i < symbolsLength; i++ {
-			channels = append(channels, "user.changes."+*this.SafeString(this.Market(func() any {
-				if i >= 0 && i < len(symbolsResolved) {
-					return symbolsResolved[i]
-				}
-				return nil
-			}()), "id", "")+"."+*interval)
+			channels = append(channels, "user.changes."+*this.SafeString(this.Market(this.SafeString(symbolsResolved, i, "")), "id", "")+"."+*interval)
 		}
 	} else {
 		channels = append(channels, "user.changes.any.any."+*interval)
@@ -754,12 +749,7 @@ func (this *Coinbaseinternational) unWatchPositionsBody(ch chan ccxt.AsyncResult
 	}
 	if (symbolsResolved != nil) && (symbolsLength > 0) {
 		for i := 0; i < symbolsLength; i++ {
-			channels = append(channels, "user.changes."+*this.SafeString(this.Market(func() any {
-				if i >= 0 && i < len(symbolsResolved) {
-					return symbolsResolved[i]
-				}
-				return nil
-			}()), "id", "")+"."+*interval)
+			channels = append(channels, "user.changes."+*this.SafeString(this.Market(this.SafeString(symbolsResolved, i, "")), "id", "")+"."+*interval)
 		}
 	} else {
 		channels = append(channels, "user.changes.any.any."+*interval)
@@ -1055,7 +1045,7 @@ func (this *Coinbaseinternational) watchTickersBody(ch chan ccxt.AsyncResult[map
 	var channels []any = []any{}
 	var symbolsLength int = len(symbolsResolved)
 	for i := 0; i < symbolsLength; i++ {
-		var market map[string]any = this.Market(symbolsResolved[i])
+		var market map[string]any = this.Market(this.SafeString(symbolsResolved, i, ""))
 		channels = append(channels, "ticker."+*this.SafeString(market, "id", "")+"."+*interval)
 	}
 
@@ -1115,7 +1105,7 @@ func (this *Coinbaseinternational) unWatchTickersBody(ch chan ccxt.AsyncResult[b
 	var channels []any = []any{}
 	var symbolsLength int = len(symbolsResolved)
 	for i := 0; i < symbolsLength; i++ {
-		channels = append(channels, "ticker."+*this.SafeString(this.Market(symbolsResolved[i]), "id", "")+"."+*interval)
+		channels = append(channels, "ticker."+*this.SafeString(this.Market(this.SafeString(symbolsResolved, i, "")), "id", "")+"."+*interval)
 	}
 
 	r1 := <-this.UnSubscribeAsync(channels, (interval != nil && *interval == "raw"), paramsInterval)
@@ -1291,7 +1281,7 @@ func (this *Coinbaseinternational) watchBidsAsksBody(ch chan ccxt.AsyncResult[ma
 	var channels []any = []any{}
 	var symbolsLength int = len(symbolsResolved)
 	for i := 0; i < symbolsLength; i++ {
-		var market map[string]any = this.Market(symbolsResolved[i])
+		var market map[string]any = this.Market(this.SafeString(symbolsResolved, i, ""))
 		channels = append(channels, "quote."+*this.SafeString(market, "id", ""))
 	}
 
@@ -1347,7 +1337,7 @@ func (this *Coinbaseinternational) unWatchBidsAsksBody(ch chan ccxt.AsyncResult[
 	var channels []any = []any{}
 	var symbolsLength int = len(symbolsResolved)
 	for i := 0; i < symbolsLength; i++ {
-		channels = append(channels, "quote."+*this.SafeString(this.Market(symbolsResolved[i]), "id", ""))
+		channels = append(channels, "quote."+*this.SafeString(this.Market(this.SafeString(symbolsResolved, i, "")), "id", ""))
 	}
 
 	r1 := <-this.UnSubscribeAsync(channels, false, paramsResolved)
@@ -1715,7 +1705,7 @@ func (this *Coinbaseinternational) watchTradesForSymbolsBody(ch chan ccxt.AsyncR
 	var channels []any = []any{}
 	var symbolsLength int = len(symbolsResolved)
 	for i := 0; i < symbolsLength; i++ {
-		var market map[string]any = this.Market(symbolsResolved[i])
+		var market map[string]any = this.Market(this.SafeString(symbolsResolved, i, ""))
 		channels = append(channels, "trades."+*this.SafeString(market, "id", "")+"."+*interval)
 	}
 
@@ -1800,7 +1790,7 @@ func (this *Coinbaseinternational) unWatchTradesForSymbolsBody(ch chan ccxt.Asyn
 	var channels []any = []any{}
 	var symbolsLength int = len(symbolsResolved)
 	for i := 0; i < symbolsLength; i++ {
-		channels = append(channels, "trades."+*this.SafeString(this.Market(symbolsResolved[i]), "id", "")+"."+*interval)
+		channels = append(channels, "trades."+*this.SafeString(this.Market(this.SafeString(symbolsResolved, i, "")), "id", "")+"."+*interval)
 	}
 
 	r1 := <-this.UnSubscribeAsync(channels, (interval != nil && *interval == "raw"), paramsInterval)
@@ -1923,7 +1913,7 @@ func (this *Coinbaseinternational) watchOrderBookForSymbolsBody(ch chan ccxt.Asy
 	var channels []any = []any{}
 	var symbolsLength int = ccxt.GetArrayLength(symbols)
 	for i := 0; i < symbolsLength; i++ {
-		var market map[string]any = this.Market(ccxt.GetValue(symbols, i))
+		var market map[string]any = this.Market(this.SafeString(symbols, i, ""))
 		channels = append(channels, ccxt.Add("book."+*this.SafeString(market, "id", "")+".", descriptor))
 	}
 
@@ -2010,7 +2000,7 @@ func (this *Coinbaseinternational) unWatchOrderBookForSymbolsBody(ch chan ccxt.A
 	var channels []any = []any{}
 	var symbolsLength int = len(symbols)
 	for i := 0; i < symbolsLength; i++ {
-		channels = append(channels, ccxt.Add("book."+*this.SafeString(this.Market(symbols[i]), "id", "")+".", descriptor))
+		channels = append(channels, ccxt.Add("book."+*this.SafeString(this.Market(this.SafeString(symbols, i, "")), "id", "")+".", descriptor))
 	}
 
 	r1 := <-this.UnSubscribeAsync(channels, (interval != nil && *interval == "raw"), paramsChannel)

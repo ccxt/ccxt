@@ -16,7 +16,7 @@ func newPolymarket() *Polymarket {
 	return p
 }
 
-func (this *Polymarket) Describe() any {
+func (this *Polymarket) Describe() map[string]any {
 	return this.DeepExtend(this.Exchange.Describe(), map[string]any{
 		"id":        "polymarket",
 		"name":      "Polymarket",
@@ -4144,7 +4144,7 @@ func NewPolymarket(userConfig map[string]any) *Polymarket {
 func (this *Polymarket) Init(userConfig map[string]any) {
 	this.Exchange = Exchange{}
 	this.Exchange.DerivedExchange = this
-	this.Exchange.InitParent(userConfig, this.Describe().(map[string]any), this)
+	this.Exchange.InitParent(userConfig, this.Describe(), this)
 }
 
 // typed methods

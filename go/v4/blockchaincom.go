@@ -15,7 +15,7 @@ func newBlockchaincom() *Blockchaincom {
 	return p
 }
 
-func (this *Blockchaincom) Describe() any {
+func (this *Blockchaincom) Describe() map[string]any {
 	return this.DeepExtend(this.Exchange.Describe(), map[string]any{
 		"id":        "blockchaincom",
 		"secret":    nil,
@@ -1898,7 +1898,7 @@ func NewBlockchaincom(userConfig map[string]any) *Blockchaincom {
 func (this *Blockchaincom) Init(userConfig map[string]any) {
 	this.Exchange = Exchange{}
 	this.Exchange.DerivedExchange = this
-	this.Exchange.InitParent(userConfig, this.Describe().(map[string]any), this)
+	this.Exchange.InitParent(userConfig, this.Describe(), this)
 }
 
 // typed methods

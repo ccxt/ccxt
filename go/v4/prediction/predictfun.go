@@ -16,7 +16,7 @@ func newPredictfun() *Predictfun {
 	return p
 }
 
-func (this *Predictfun) Describe() any {
+func (this *Predictfun) Describe() map[string]any {
 	return this.DeepExtend(this.BaseExchange.Describe(), map[string]any{
 		"id":        "predictfun",
 		"name":      "predict.fun",
@@ -1643,8 +1643,8 @@ func (this *Predictfun) ParsePredictionTicker(ticker any, optionalArgs ...any) m
 		// an unmatched indexSet would otherwise return a ticker whose every quote is
 		// undefined, which reads as an empty book rather than as a market that never
 		// carried this outcome
-		var requested any = this.SafeOutcomeSymbol(nil, market)
-		panic(ccxt.BadSymbol(ccxt.Add(ccxt.Add(this.Id+" fetchTicker() did not find ", requested), " among the outcomes of its market")))
+		var requested *string = this.SafeString(market, "outcome", "")
+		panic(ccxt.BadSymbol(this.Id + " fetchTicker() did not find " + *requested + " among the outcomes of its market"))
 	}
 	// the venue quotes each outcome on its own side of the book, so no complement is needed
 	var bestBid map[string]any = ccxt.SafeMapTyped(rawOutcome, "bestBid")
@@ -3465,8 +3465,8 @@ func (this *Predictfun) approveBody(ch chan ccxt.AsyncResult[any], optionalArgs 
 		var receipts []any = []any{}
 		var operatorsLength int = len(operators)
 		for i := 0; i < operatorsLength; i++ {
-			var operatorAddress any = ccxt.DerefScalar(operators[i])
-			if ccxt.IsEqual(operatorAddress, nil) {
+			var operatorAddress *string = this.SafeString(operators, i)
+			if operatorAddress == nil {
 				panic(ccxt.ArgumentsRequired(this.Id + " approve() could not resolve the operator to approve for chain " + *chainKey))
 			}
 			// setApprovalForAll(operator, approved) -> selector 0xa22cb465
@@ -4874,7 +4874,7 @@ func NewPredictfun(userConfig map[string]any) *Predictfun {
 func (this *Predictfun) Init(userConfig map[string]any) {
 	this.BaseExchange = ccxt.BaseExchange{}
 	this.BaseExchange.DerivedExchange = this
-	this.BaseExchange.InitParent(userConfig, this.Describe().(map[string]any), this)
+	this.BaseExchange.InitParent(userConfig, this.Describe(), this)
 }
 
 // typed methods

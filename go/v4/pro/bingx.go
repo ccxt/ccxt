@@ -20,7 +20,7 @@ func newBingx() *Bingx {
 	return p
 }
 
-func (this *Bingx) Describe() any {
+func (this *Bingx) Describe() map[string]any {
 	return this.DeepExtend(this.base.Describe(), map[string]any{
 		"has": map[string]any{
 			"ws":                       true,

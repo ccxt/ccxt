@@ -21,7 +21,7 @@ func newBitget() *Bitget {
 	return p
 }
 
-func (this *Bitget) Describe() any {
+func (this *Bitget) Describe() map[string]any {
 	return this.DeepExtend(this.base.Describe(), map[string]any{
 		"has": map[string]any{
 			"ws":                       true,

@@ -15,7 +15,7 @@ func newHyperliquid() *Hyperliquid {
 	return p
 }
 
-func (this *Hyperliquid) Describe() any {
+func (this *Hyperliquid) Describe() map[string]any {
 	return this.DeepExtend(this.Exchange.Describe(), map[string]any{
 		"id":        "hyperliquid",
 		"name":      "Hyperliquid",
@@ -677,7 +677,7 @@ func (this *Hyperliquid) fetchHip3MarketsBody(ch chan AsyncResult[[]MarketInterf
 		var dex map[string]any = SafeMapTyped(fetchDexes, i)
 		var secondPart int64 = (int64(i) * 10000) - 10000
 		var offset int64 = this.Sum(110000, secondPart).(int64)
-		AddElementToObject(perpDexesOffset, dex["name"], offset)
+		AddElementToObject(perpDexesOffset, this.SafeString(dex, "name", ""), offset)
 	}
 	var fetchDexesList any = []any{}
 	var options map[string]any = SafeMapTyped(this.Options, "fetchMarkets")
@@ -5735,10 +5735,9 @@ func (this *Hyperliquid) transferBody(ch chan AsyncResult[TransferEntry], code s
 		if derefPtr := this.NumberToString(amount); derefPtr != nil {
 			strAmount = *derefPtr
 		}
-		var vaultAddress any = DerefScalar(this.SafeString2(params, "vaultAddress", "subAccountAddress"))
-		if !IsEqual(vaultAddress, nil) {
-			vaultAddress = this.FormatVaultAddress(vaultAddress)
-			strAmount = Add(Add(strAmount, " subaccount:"), vaultAddress)
+		var vaultAddressRaw *string = this.SafeString2(params, "vaultAddress", "subAccountAddress")
+		if vaultAddressRaw != nil {
+			strAmount = Add(Add(strAmount, " subaccount:"), this.FormatVaultAddress(vaultAddressRaw))
 		}
 		var strAmountFinal any = strAmount // java req
 		var toPerp bool = (toAccount == "perp") || (toAccount == "swap")
@@ -5816,8 +5815,8 @@ func (this *Hyperliquid) transferBody(ch chan AsyncResult[TransferEntry], code s
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		listRecv5481, _ := r2.Value, r2.Value != nil
-		var isUnifiedqueryVariable []any = listRecv5481
+		listRecv5480, _ := r2.Value, r2.Value != nil
+		var isUnifiedqueryVariable []any = listRecv5480
 		isUnified = GetValue(isUnifiedqueryVariable, 0)
 		query = GetValue(isUnifiedqueryVariable, 1)
 		useSendAsset = (isUnified == true)
@@ -7110,7 +7109,7 @@ func NewHyperliquid(userConfig map[string]any) *Hyperliquid {
 func (this *Hyperliquid) Init(userConfig map[string]any) {
 	this.Exchange = Exchange{}
 	this.Exchange.DerivedExchange = this
-	this.Exchange.InitParent(userConfig, this.Describe().(map[string]any), this)
+	this.Exchange.InitParent(userConfig, this.Describe(), this)
 }
 
 // typed methods

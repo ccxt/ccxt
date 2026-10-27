@@ -20,7 +20,7 @@ func newAster() *Aster {
 	return p
 }
 
-func (this *Aster) Describe() any {
+func (this *Aster) Describe() map[string]any {
 	return this.DeepExtend(this.base.Describe(), map[string]any{
 		"has": map[string]any{
 			"ws":                         true,
@@ -815,7 +815,7 @@ func (this *Aster) HandleBidAsk(client any, message map[string]any) {
 	if symbol != nil {
 		this.Bidsasks.Store(symbol, ticker)
 	}
-	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("bidask:", symbol))
+	var messageHash string = "bidask:" + *this.SafeString(ticker, "symbol", "")
 	client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
 }
 func (this *Aster) ParseWsBidAsk(message any, market map[string]any) any {
@@ -1372,13 +1372,15 @@ func (this *Aster) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.Or
 		"method": "SUBSCRIBE",
 		"params": subscriptionArgs,
 	}
-	var limitResolved any = 20
-	if (limit != nil && *limit == 5) || (limit != nil && *limit == 10) || (limit != nil && *limit == 20) {
-		limitResolved = limit
+	var depthSuffix string = "@depth20"
+	if limit != nil && *limit == 5 {
+		depthSuffix = "@depth5"
+	} else if limit != nil && *limit == 10 {
+		depthSuffix = "@depth10"
 	}
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var market map[string]any = this.Market(this.SafeString(symbolsNormalized, i, ""))
-		subscriptionArgs = append(subscriptionArgs, ccxt.Add(*this.SafeStringLower(market, "id", "")+"@depth", this.NumberToString(limitResolved)))
+		subscriptionArgs = append(subscriptionArgs, *this.SafeStringLower(market, "id", "")+depthSuffix)
 		messageHashes = append(messageHashes, "orderbook:"+*this.SafeString(market, "symbol", ""))
 	}
 
@@ -1442,13 +1444,15 @@ func (this *Aster) unWatchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[bool]
 		"params": subscriptionArgs,
 	}
 	var limit *float64 = this.SafeNumber(paramsOmitted, "limit")
-	var limitResolved any = 20
-	if (limit != nil && *limit == 5) || (limit != nil && *limit == 10) || (limit != nil && *limit == 20) {
-		limitResolved = limit
+	var depthSuffix string = "@depth20"
+	if limit != nil && *limit == 5 {
+		depthSuffix = "@depth5"
+	} else if limit != nil && *limit == 10 {
+		depthSuffix = "@depth10"
 	}
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var market map[string]any = this.Market(this.SafeString(symbolsNormalized, i, ""))
-		subscriptionArgs = append(subscriptionArgs, ccxt.Add(*this.SafeStringLower(market, "id", "")+"@depth", this.NumberToString(limitResolved)))
+		subscriptionArgs = append(subscriptionArgs, *this.SafeStringLower(market, "id", "")+depthSuffix)
 		messageHashes = append(messageHashes, "unsubscribe:orderbook:"+*this.SafeString(market, "symbol", ""))
 	}
 
@@ -2669,9 +2673,9 @@ func (this *Aster) HandleMyTrade(client any, message any) {
 							}
 						}
 						if insertNewFeeCurrency {
-							retRes186832 := ccxt.GetValue(order, "fees")
-							ccxt.AppendToArray(&retRes186832, tradeFee)
-							ccxt.AddElementToObject(order, "fees", retRes186832)
+							retRes187232 := ccxt.GetValue(order, "fees")
+							ccxt.AppendToArray(&retRes187232, tradeFee)
+							ccxt.AddElementToObject(order, "fees", retRes187232)
 						}
 					} else if fee != nil {
 						if this.SafeString(fee, "currency") == this.SafeString(tradeFee, "currency") || (this.SafeString(fee, "currency") != nil && this.SafeString(tradeFee, "currency") != nil && *this.SafeString(fee, "currency") == *this.SafeString(tradeFee, "currency")) {
@@ -2793,7 +2797,7 @@ func (this *Aster) HandleOrder(client any, message any) {
 	}
 	var cache any = this.Orders
 	var parsed map[string]any = this.ParseWsOrder(message, market)
-	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
+	var symbol *string = this.SafeString(market, "symbol", "")
 	cache.(ccxt.Appender).Append(parsed)
 	var messageHashes any = this.FindMessageHashes(ccxt.AsClient(client), messageHash)
 	if !this.IsEmpty(messageHashes) {

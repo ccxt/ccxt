@@ -21,7 +21,7 @@ func newMexc() *Mexc {
 	return p
 }
 
-func (this *Mexc) Describe() any {
+func (this *Mexc) Describe() map[string]any {
 	return this.DeepExtend(this.base.Describe(), map[string]any{
 		"has": map[string]any{
 			"ws":                    true,
@@ -2462,14 +2462,14 @@ func (this *Mexc) HandleUnsubscriptions(client any, messageHashes any) {
 		} else if strings.Index(*messageHash, "candles") >= 0 {
 			var splitHashes []string = strings.Split(*messageHash, ":")
 			var candlesSymbol any
-			if derefPtr := this.SafeString(splitHashes, 2); derefPtr != nil {
+			if derefPtr := this.SafeString(splitHashes, 2, ""); derefPtr != nil {
 				candlesSymbol = *derefPtr
 			}
 			var splitHashesLength int = len(splitHashes) // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
 			if splitHashesLength > 4 {
-				candlesSymbol = ccxt.Add(candlesSymbol, ccxt.Add(":", this.SafeString(splitHashes, 3)))
+				candlesSymbol = ccxt.Add(ccxt.Add(candlesSymbol, ":"), this.SafeString(splitHashes, 3, ""))
 			}
-			if (candlesSymbol != nil) && (ccxt.InOp(this.Ohlcvs, candlesSymbol)) {
+			if ccxt.InOp(this.Ohlcvs, candlesSymbol) {
 				ccxt.Remove(this.Ohlcvs, candlesSymbol)
 			}
 		} else if strings.Index(*messageHash, "orderbook") >= 0 {

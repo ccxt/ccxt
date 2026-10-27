@@ -18,7 +18,7 @@ func newBithumb() *Bithumb {
 	return p
 }
 
-func (this *Bithumb) Describe() any {
+func (this *Bithumb) Describe() map[string]any {
 	return this.DeepExtend(this.base.Describe(), map[string]any{
 		"has": map[string]any{
 			"ws":             true,

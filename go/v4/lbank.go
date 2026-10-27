@@ -16,7 +16,7 @@ func newLbank() *Lbank {
 	return p
 }
 
-func (this *Lbank) Describe() any {
+func (this *Lbank) Describe() map[string]any {
 	return this.DeepExtend(this.Exchange.Describe(), map[string]any{
 		"id":        "lbank",
 		"name":      "LBank",
@@ -4005,13 +4005,10 @@ func (this *Lbank) ParsePublicDepositWithdrawFees(response any, optionalArgs ...
 					if resultValue == nil {
 						result[*code] = this.DepositWithdrawFee([]any{fee})
 					} else {
-						var resultCodeInfo any = GetValue(func() any {
-							if code == nil {
-								return nil
-							}
-							return result[*code]
-						}(), "info")
-						AppendToArray(&resultCodeInfo, fee)
+						var infoList []any = this.ArrayConcat(resultValue["info"], []any{fee})
+						result[*code] = this.Extend(resultValue, map[string]any{
+							"info": infoList,
+						})
 					}
 					var networkCode *string = this.NetworkIdToCode(this.SafeString(fee, "chain"), code)
 					if networkCode != nil {
@@ -4331,7 +4328,7 @@ func NewLbank(userConfig map[string]any) *Lbank {
 func (this *Lbank) Init(userConfig map[string]any) {
 	this.Exchange = Exchange{}
 	this.Exchange.DerivedExchange = this
-	this.Exchange.InitParent(userConfig, this.Describe().(map[string]any), this)
+	this.Exchange.InitParent(userConfig, this.Describe(), this)
 }
 
 // typed methods

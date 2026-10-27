@@ -21,7 +21,7 @@ func newWoo() *Woo {
 	return p
 }
 
-func (this *Woo) Describe() any {
+func (this *Woo) Describe() map[string]any {
 	return this.DeepExtend(this.base.Describe(), map[string]any{
 		"has": map[string]any{
 			"ws":                    true,

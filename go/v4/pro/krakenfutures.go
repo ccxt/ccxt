@@ -20,7 +20,7 @@ func newKrakenfutures() *Krakenfutures {
 	return p
 }
 
-func (this *Krakenfutures) Describe() any {
+func (this *Krakenfutures) Describe() map[string]any {
 	return this.DeepExtend(this.base.Describe(), map[string]any{
 		"has": map[string]any{
 			"ws":                       true,

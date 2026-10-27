@@ -18,7 +18,7 @@ func newRevolutx() *Revolutx {
 	return p
 }
 
-func (this *Revolutx) Describe() any {
+func (this *Revolutx) Describe() map[string]any {
 	return this.DeepExtend(this.Exchange.Describe(), map[string]any{
 		"id":        "revolutx",
 		"name":      "Revolut X",
@@ -248,7 +248,6 @@ func (this *Revolutx) Sign(path string, optionalArgs ...any) any {
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
 	var requestHeaders any = nil
-	var requestBody any = nil
 	var implodedPath string = this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var apiName string = api[0]
@@ -259,6 +258,7 @@ func (this *Revolutx) Sign(path string, optionalArgs ...any) any {
 	var baseUrl *string = baseApiUrl
 	var url string = *baseUrl + "/" + implodedPath
 	var queryString string = ""
+	var bodyString string = ""
 	if apiName == "private" {
 		this.CheckRequiredCredentials()
 		var timestamp string = strconv.FormatInt(this.Milliseconds(), 10)
@@ -273,17 +273,10 @@ func (this *Revolutx) Sign(path string, optionalArgs ...any) any {
 				url += "?" + queryString
 			}
 		} else {
-			requestBody = this.Json(query)
+			bodyString = this.Json(query)
 		}
 		var requestPath string = "/api/" + implodedPath
-		var bodyValue any = requestBody
-		var bodyString any = func() any {
-			if bodyValue != nil {
-				return bodyValue
-			}
-			return ""
-		}()
-		var message *string = SafeStringPtr(Add(timestamp+strings.ToUpper(method)+requestPath+queryString, bodyString))
+		var message string = timestamp + strings.ToUpper(method) + requestPath + queryString + bodyString
 		var signature string = Eddsa(this.Encode(message), this.PrivateKey, ed25519)
 		requestHeaders = map[string]any{
 			"X-Revx-API-Key":   this.ApiKey,
@@ -302,14 +295,19 @@ func (this *Revolutx) Sign(path string, optionalArgs ...any) any {
 				url += "?" + queryString
 			}
 		} else {
-			requestBody = this.Json(query)
+			bodyString = this.Json(query)
 			requestHeaders = map[string]any{
 				"Content-Type": "application/json",
 			}
 		}
 	}
 	var headersResult any = requestHeaders
-	var bodyResult any = requestBody
+	var bodyResult *string = func() *string {
+		if bodyString != "" {
+			return SafeStringPtr(bodyString)
+		}
+		return nil
+	}()
 	return map[string]any{
 		"url":     url,
 		"method":  method,
@@ -1723,11 +1721,11 @@ func (this *Revolutx) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], option
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes128215 []any = OrdersToList(r.Value)
-	if retRes128215 == nil {
+	var retRes128015 []any = OrdersToList(r.Value)
+	if retRes128015 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes128215)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes128015)}
 	}
 	return nil
 }
@@ -2012,7 +2010,7 @@ func NewRevolutx(userConfig map[string]any) *Revolutx {
 func (this *Revolutx) Init(userConfig map[string]any) {
 	this.Exchange = Exchange{}
 	this.Exchange.DerivedExchange = this
-	this.Exchange.InitParent(userConfig, this.Describe().(map[string]any), this)
+	this.Exchange.InitParent(userConfig, this.Describe(), this)
 }
 
 // typed methods

@@ -18,7 +18,7 @@ func newUpbit() *Upbit {
 	return p
 }
 
-func (this *Upbit) Describe() any {
+func (this *Upbit) Describe() map[string]any {
 	return this.DeepExtend(this.base.Describe(), map[string]any{
 		"has": map[string]any{
 			"ws":                    true,
@@ -562,16 +562,12 @@ func (this *Upbit) watchPrivateBody(ch chan ccxt.AsyncResult[any], symbol any, c
 	}
 	// Build subscription message with all requested private channels
 	// Format: [{'ticket': uuid}, {'type': 'myOrder'}, {'type': 'myAsset'}, ...]
-	var requests []any = []any{}
-	var channelKeys []string = ccxt.ObjectKeys(subscriptions)
-	for i := 0; i < len(channelKeys); i++ {
-		requests = append(requests, ccxt.GetValue(subscriptions, channelKeys[i]))
-	}
 	var message []any = []any{map[string]any{
 		"ticket": this.Uuid(),
 	}}
-	for i := 0; i < len(requests); i++ {
-		message = append(message, ccxt.DerefScalar(requests[i]))
+	var channelKeys []string = ccxt.ObjectKeys(subscriptions)
+	for i := 0; i < len(channelKeys); i++ {
+		message = append(message, ccxt.GetValue(subscriptions, channelKeys[i]))
 	}
 
 	r1 := <-this.Watch(url, messageHashResolved, message, messageHashResolved)

@@ -21,7 +21,7 @@ func newOkx() *Okx {
 	return p
 }
 
-func (this *Okx) Describe() any {
+func (this *Okx) Describe() map[string]any {
 	return this.DeepExtend(this.base.Describe(), map[string]any{
 		"has": map[string]any{
 			"ws":                            true,
@@ -1244,7 +1244,7 @@ func (this *Okx) HandleLiquidation(client any, message map[string]any) {
 	for i := 0; i < len(rawLiquidations); i++ {
 		var rawLiquidation any = ccxt.DerefScalar(rawLiquidations[i])
 		var liquidation any = this.ParseWsLiquidation(rawLiquidation)
-		var symbol *string = this.SafeString(liquidation, "symbol")
+		var symbol *string = this.SafeString(liquidation, "symbol", "")
 		if this.Liquidations == nil {
 			var limit *int64 = this.SafeInteger(this.Options, "liquidationsLimit", 1000)
 			this.Liquidations = ccxt.NewArrayCache(limit)
@@ -1252,7 +1252,7 @@ func (this *Okx) HandleLiquidation(client any, message map[string]any) {
 		var cache any = this.Liquidations
 		cache.(ccxt.Appender).Append(liquidation)
 		client.(ccxt.ClientInterface).Resolve([]any{liquidation}, "liquidations")
-		client.(ccxt.ClientInterface).Resolve([]any{liquidation}, ccxt.Add("liquidations::", symbol))
+		client.(ccxt.ClientInterface).Resolve([]any{liquidation}, "liquidations::"+*symbol)
 	}
 }
 
@@ -1388,7 +1388,7 @@ func (this *Okx) HandleMyLiquidation(client any, message map[string]any) {
 			return
 		}
 		var liquidation any = this.ParseWsMyLiquidation(rawLiquidation)
-		var symbol *string = this.SafeString(liquidation, "symbol")
+		var symbol *string = this.SafeString(liquidation, "symbol", "")
 		if this.Liquidations == nil {
 			var limit *int64 = this.SafeInteger(this.Options, "liquidationsLimit", 1000)
 			this.Liquidations = ccxt.NewArrayCache(limit)
@@ -1396,7 +1396,7 @@ func (this *Okx) HandleMyLiquidation(client any, message map[string]any) {
 		var cache any = this.Liquidations
 		cache.(ccxt.Appender).Append(liquidation)
 		client.(ccxt.ClientInterface).Resolve([]any{liquidation}, "myLiquidations")
-		client.(ccxt.ClientInterface).Resolve([]any{liquidation}, ccxt.Add("myLiquidations::", symbol))
+		client.(ccxt.ClientInterface).Resolve([]any{liquidation}, "myLiquidations::"+*symbol)
 	}
 }
 func (this *Okx) ParseWsMyLiquidation(liquidation any, optionalArgs ...any) any {
@@ -2105,10 +2105,8 @@ func (this *Okx) HandleOrderBookMessage(client any, message any, orderbook any, 
 	_ = market
 	var asks []any = ccxt.SafeListTypedDefault(message, "asks", []any{})
 	var bids []any = ccxt.SafeListTypedDefault(message, "bids", []any{})
-	var storedAsks any = ccxt.GetValue(orderbook, "asks")
-	var storedBids any = ccxt.GetValue(orderbook, "bids")
-	this.HandleDeltas(storedAsks, asks)
-	this.HandleDeltas(storedBids, bids)
+	this.HandleDeltas(ccxt.GetValue(orderbook, "asks"), asks)
+	this.HandleDeltas(ccxt.GetValue(orderbook, "bids"), bids)
 	var marketId *string = this.SafeString(message, "instId")
 	var symbol *string = this.SafeSymbol(marketId, market)
 	var seqId *int64 = this.SafeInteger(message, "seqId")
@@ -2828,7 +2826,7 @@ func (this *Okx) HandlePositions(client any, message map[string]any) {
 	for i := 0; i < len(data); i++ {
 		var rawPosition any = ccxt.DerefScalar(data[i])
 		var position map[string]any = ccxt.PositionToMap(this.ParsePosition(rawPosition))
-		if ccxt.IsEqual(position["contracts"], 0) && (this.SafeString(rawPosition, "posSide") != nil && *this.SafeString(rawPosition, "posSide") == "net") {
+		if ccxt.IsEqual(this.SafeNumber(position, "contracts"), 0) && (this.SafeString(rawPosition, "posSide") != nil && *this.SafeString(rawPosition, "posSide") == "net") {
 			position["side"] = "long"
 			var shortPosition any = this.Clone(position)
 			ccxt.AddElementToObject(shortPosition, "side", "short")
@@ -3020,7 +3018,7 @@ func (this *Okx) HandleOrders(client any, message map[string]any) {
 		for i := 0; i < len(parsed); i++ {
 			var order any = parsed[i]
 			stored.(ccxt.Appender).Append(order)
-			var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(order, "symbol"))
+			var symbol *string = this.SafeString(order, "symbol", "")
 			var market map[string]any = this.Market(symbol)
 			marketIds = append(marketIds, market["id"])
 		}

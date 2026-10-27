@@ -15,7 +15,7 @@ func newParadex() *Paradex {
 	return p
 }
 
-func (this *Paradex) Describe() any {
+func (this *Paradex) Describe() map[string]any {
 	return this.DeepExtend(this.Exchange.Describe(), map[string]any{
 		"id":        "paradex",
 		"name":      "Paradex",
@@ -956,12 +956,10 @@ func (this *Paradex) ParseMarket(market any) map[string]any {
 			}
 			return "P"
 		}()
-		var deliveryValue any = func() any {
-			if expiry != nil && *expiry == 0 {
-				return ""
-			}
-			return this.Yymmdd(expiry) + "-"
-		}()
+		var deliveryValue string = ""
+		if expiry == nil || *expiry != 0 {
+			deliveryValue = this.Yymmdd(expiry) + "-"
+		}
 		symbol = Add(Add(Add(Add(Add(symbol, "-"), deliveryValue), strikePrice), "-"), optionTypeSuffix)
 		makerFee = this.ParseNumber("0.0003")
 	} else {
@@ -1757,11 +1755,11 @@ func (this *Paradex) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, o
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes123319 []any = r1.Value
-		if retRes123319 == nil {
+		var retRes123619 []any = r1.Value
+		if retRes123619 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes123319)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes123619)}
 		}
 		return nil
 	}
@@ -3230,11 +3228,11 @@ func (this *Paradex) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs 
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes223719 []any = r2.Value
-		if retRes223719 == nil {
+		var retRes224019 []any = r2.Value
+		if retRes224019 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes223719)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes224019)}
 		}
 		return nil
 	}
@@ -3510,11 +3508,11 @@ func (this *Paradex) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArg
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes242119 []any = r2.Value
-		if retRes242119 == nil {
+		var retRes242419 []any = r2.Value
+		if retRes242419 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes242119)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes242419)}
 		}
 		return nil
 	}
@@ -3895,11 +3893,11 @@ func (this *Paradex) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optio
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes268019 []any = r2.Value
-		if retRes268019 == nil {
+		var retRes268319 []any = r2.Value
+		if retRes268319 == nil {
 			ch <- AsyncResult[[]Transaction]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes268019)}
+			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes268319)}
 		}
 		return nil
 	}
@@ -3999,11 +3997,11 @@ func (this *Paradex) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], op
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes274319 []any = r2.Value
-		if retRes274319 == nil {
+		var retRes274619 []any = r2.Value
+		if retRes274619 == nil {
 			ch <- AsyncResult[[]Transaction]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes274319)}
+			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes274619)}
 		}
 		return nil
 	}
@@ -4103,11 +4101,11 @@ func (this *Paradex) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], op
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes280619 []any = r2.Value
-		if retRes280619 == nil {
+		var retRes280919 []any = r2.Value
+		if retRes280919 == nil {
 			ch <- AsyncResult[[]TransferEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(retRes280619)}
+			ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(retRes280919)}
 		}
 		return nil
 	}
@@ -4794,11 +4792,11 @@ func (this *Paradex) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistor
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes330619 []any = r2.Value
-		if retRes330619 == nil {
+		var retRes330919 []any = r2.Value
+		if retRes330919 == nil {
 			ch <- AsyncResult[[]FundingHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes330619)}
+			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes330919)}
 		}
 		return nil
 	}
@@ -5093,7 +5091,7 @@ func NewParadex(userConfig map[string]any) *Paradex {
 func (this *Paradex) Init(userConfig map[string]any) {
 	this.Exchange = Exchange{}
 	this.Exchange.DerivedExchange = this
-	this.Exchange.InitParent(userConfig, this.Describe().(map[string]any), this)
+	this.Exchange.InitParent(userConfig, this.Describe(), this)
 }
 
 // typed methods

@@ -20,7 +20,7 @@ func newModetrade() *Modetrade {
 	return p
 }
 
-func (this *Modetrade) Describe() any {
+func (this *Modetrade) Describe() map[string]any {
 	return this.DeepExtend(this.base.Describe(), map[string]any{
 		"has": map[string]any{
 			"ws":                    true,

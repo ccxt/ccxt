@@ -20,7 +20,7 @@ func newBitstamp() *Bitstamp {
 	return p
 }
 
-func (this *Bitstamp) Describe() any {
+func (this *Bitstamp) Describe() map[string]any {
 	return this.DeepExtend(this.base.Describe(), map[string]any{
 		"has": map[string]any{
 			"ws":                    true,

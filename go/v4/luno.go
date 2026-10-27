@@ -15,7 +15,7 @@ func newLuno() *Luno {
 	return p
 }
 
-func (this *Luno) Describe() any {
+func (this *Luno) Describe() map[string]any {
 	return this.DeepExtend(this.Exchange.Describe(), map[string]any{
 		"id":        "luno",
 		"name":      "Luno",
@@ -2313,8 +2313,10 @@ func (this *Luno) fetchDepositWithdrawFeeBody(ch chan AsyncResult[DepositWithdra
 	//     }
 	//
 	var result map[string]any = this.DepositWithdrawFee(response)
-	AddElementToObject(result["withdraw"], "fee", this.SafeNumber(response, "fee"))
-	AddElementToObject(result["withdraw"], "percentage", false)
+	result["withdraw"] = map[string]any{
+		"fee":        this.SafeNumber(response, "fee"),
+		"percentage": false,
+	}
 
 	ch <- AsyncResult[DepositWithdrawFee]{Value: DepositWithdrawFeeFromMap(this.AssignDefaultDepositWithdrawFees(result, currency))}
 	return nil
@@ -2375,7 +2377,7 @@ func NewLuno(userConfig map[string]any) *Luno {
 func (this *Luno) Init(userConfig map[string]any) {
 	this.Exchange = Exchange{}
 	this.Exchange.DerivedExchange = this
-	this.Exchange.InitParent(userConfig, this.Describe().(map[string]any), this)
+	this.Exchange.InitParent(userConfig, this.Describe(), this)
 }
 
 // typed methods

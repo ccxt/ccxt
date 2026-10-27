@@ -20,7 +20,7 @@ func newDeribit() *Deribit {
 	return p
 }
 
-func (this *Deribit) Describe() any {
+func (this *Deribit) Describe() map[string]any {
 	return this.DeepExtend(this.base.Describe(), map[string]any{
 		"has": map[string]any{
 			"ws":                       true,

@@ -18,7 +18,7 @@ func newKucoinfutures() *Kucoinfutures {
 	return p
 }
 
-func (this *Kucoinfutures) Describe() any {
+func (this *Kucoinfutures) Describe() map[string]any {
 	return this.DeepExtend(this.base.Describe(), map[string]any{
 		"id":   "kucoinfutures",
 		"name": "KuCoin Futures",

@@ -18,7 +18,7 @@ func newNdax() *Ndax {
 	return p
 }
 
-func (this *Ndax) Describe() any {
+func (this *Ndax) Describe() map[string]any {
 	return this.DeepExtend(this.base.Describe(), map[string]any{
 		"has": map[string]any{
 			"ws":                    true,

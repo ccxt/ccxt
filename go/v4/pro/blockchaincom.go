@@ -18,7 +18,7 @@ func newBlockchaincom() *Blockchaincom {
 	return p
 }
 
-func (this *Blockchaincom) Describe() any {
+func (this *Blockchaincom) Describe() map[string]any {
 	return this.DeepExtend(this.base.Describe(), map[string]any{
 		"has": map[string]any{
 			"ws":                    true,

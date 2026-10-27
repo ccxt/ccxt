@@ -15,7 +15,7 @@ func newCryptomus() *Cryptomus {
 	return p
 }
 
-func (this *Cryptomus) Describe() any {
+func (this *Cryptomus) Describe() map[string]any {
 	return this.DeepExtend(this.Exchange.Describe(), map[string]any{
 		"id":        "cryptomus",
 		"name":      "Cryptomus",
@@ -1598,7 +1598,7 @@ func NewCryptomus(userConfig map[string]any) *Cryptomus {
 func (this *Cryptomus) Init(userConfig map[string]any) {
 	this.Exchange = Exchange{}
 	this.Exchange.DerivedExchange = this
-	this.Exchange.InitParent(userConfig, this.Describe().(map[string]any), this)
+	this.Exchange.InitParent(userConfig, this.Describe(), this)
 }
 
 // typed methods

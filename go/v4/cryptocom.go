@@ -17,7 +17,7 @@ func newCryptocom() *Cryptocom {
 	return p
 }
 
-func (this *Cryptocom) Describe() any {
+func (this *Cryptocom) Describe() map[string]any {
 	return this.DeepExtend(this.Exchange.Describe(), map[string]any{
 		"id":        "cryptocom",
 		"name":      "Crypto.com",
@@ -4576,7 +4576,7 @@ func (this *Cryptocom) ParamsToString(object any, level any) any {
 		paramsKeys = this.Sort(objectKeys)
 	}
 	for i := 0; i < GetArrayLength(paramsKeys); i++ {
-		var key *string = SafeStringPtr(GetValue(paramsKeys, i))
+		var key *string = this.SafeString(paramsKeys, i, "")
 		returnString = Add(returnString, key)
 		var value any = GetValue(object, key)
 		if value == "undefined" {
@@ -4913,7 +4913,7 @@ func NewCryptocom(userConfig map[string]any) *Cryptocom {
 func (this *Cryptocom) Init(userConfig map[string]any) {
 	this.Exchange = Exchange{}
 	this.Exchange.DerivedExchange = this
-	this.Exchange.InitParent(userConfig, this.Describe().(map[string]any), this)
+	this.Exchange.InitParent(userConfig, this.Describe(), this)
 }
 
 // typed methods

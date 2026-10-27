@@ -18,7 +18,7 @@ func newDeepcoin() *Deepcoin {
 	return p
 }
 
-func (this *Deepcoin) Describe() any {
+func (this *Deepcoin) Describe() map[string]any {
 	return this.DeepExtend(this.base.Describe(), map[string]any{
 		"has": map[string]any{
 			"ws":                            true,
@@ -209,12 +209,12 @@ func (this *Deepcoin) unWatchPublicBody(ch chan ccxt.AsyncResult[bool], market m
 	ch <- ccxt.AsyncResult[bool]{Value: resolved}
 	return nil
 }
-func (this *Deepcoin) WatchPrivateAsync(messageHash any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]any] {
+func (this *Deepcoin) WatchPrivateAsync(messageHash string, optionalArgs ...any) <-chan ccxt.AsyncResult[[]any] {
 	ch := make(chan ccxt.AsyncResult[[]any], 1)
 	go this.watchPrivateBody(ch, messageHash, optionalArgs...)
 	return ch
 }
-func (this *Deepcoin) watchPrivateBody(ch chan ccxt.AsyncResult[[]any], messageHash any, optionalArgs ...any) any {
+func (this *Deepcoin) watchPrivateBody(ch chan ccxt.AsyncResult[[]any], messageHash string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1208,7 +1208,7 @@ func (this *Deepcoin) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], 
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	var messageHash any = "myTrades"
+	var messageHash string = "myTrades"
 	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
@@ -1219,9 +1219,7 @@ func (this *Deepcoin) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], 
 	var symbolResolved any = nil
 	if symbol != nil {
 		symbolResolved = this.Symbol(symbol)
-	}
-	if symbolResolved != nil {
-		messageHash = ccxt.Add("myTrades"+"::", symbolResolved)
+		messageHash = "myTrades" + "::" + *this.SafeString(this.Market(symbol), "symbol", "")
 	}
 
 	r1 := <-this.WatchPrivateAsync(messageHash, params)
@@ -1320,7 +1318,7 @@ func (this *Deepcoin) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], op
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	var messageHash any = "orders"
+	var messageHash string = "orders"
 	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
@@ -1331,9 +1329,7 @@ func (this *Deepcoin) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], op
 	var symbolResolved any = nil
 	if symbol != nil {
 		symbolResolved = this.Symbol(symbol)
-	}
-	if symbolResolved != nil {
-		messageHash = ccxt.Add("orders"+"::", symbolResolved)
+		messageHash = "orders" + "::" + *this.SafeString(this.Market(symbol), "symbol", "")
 	}
 
 	r1 := <-this.WatchPrivateAsync(messageHash, params)

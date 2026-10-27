@@ -21,7 +21,7 @@ func newHtx() *Htx {
 	return p
 }
 
-func (this *Htx) Describe() any {
+func (this *Htx) Describe() map[string]any {
 	return this.DeepExtend(this.base.Describe(), map[string]any{
 		"has": map[string]any{
 			"ws":                    true,
@@ -631,21 +631,21 @@ func (this *Htx) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInter
 	// 150-levels/400-level incremental MBP feed is based on the gap
 	// between two snapshots at 100ms interval.
 	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchOrderBook")
-	var limitResolved any = func() any {
+	var limitResolved int64 = this.ParseToInt(func() any {
 		if limit == nil {
 			return this.SafeInteger(options, "depth", 150)
 		}
 		return limit
-	}()
+	}())
 	if !this.InArray(limitResolved, allowedLimits) {
 		panic(ccxt.ExchangeError(this.Id + " watchOrderBook market accepts limits of 5, 20, 150 or 400 only"))
 	}
-	var messageHash any = nil
+	var messageHash string = ""
 	var marketId *string = this.SafeString(market, "id", "")
 	if market["spot"] == true {
-		messageHash = ccxt.Add("market."+*marketId+".mbp.", this.NumberToString(limitResolved))
+		messageHash = "market." + *marketId + ".mbp." + strconv.FormatInt(limitResolved, 10)
 	} else {
-		messageHash = ccxt.Add(ccxt.Add("market."+*marketId+".depth.size_", this.NumberToString(limitResolved)), ".high_freq")
+		messageHash = "market." + *marketId + ".depth.size_" + strconv.FormatInt(limitResolved, 10) + ".high_freq"
 	}
 	var url any = this.GetUrlByMarketType(market["type"], market["linear"], false, true)
 	var method any = this.HandleOrderBookSubscription
@@ -701,13 +701,13 @@ func (this *Htx) unWatchOrderBookBody(ch chan ccxt.AsyncResult[bool], symbol str
 	var market map[string]any = this.Market(symbol)
 	var topic string = "orderbook"
 	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchOrderBook")
-	var depth *int64 = this.SafeInteger(options, "depth", 150)
+	var depth int64 = this.ParseToInt(this.SafeInteger(options, "depth", 150))
 	var marketId *string = this.SafeString(market, "id", "")
-	var subMessageHash any = nil
+	var subMessageHash string = ""
 	if market["spot"] == true {
-		subMessageHash = ccxt.Add("market."+*marketId+".mbp.", this.NumberToString(depth))
+		subMessageHash = "market." + *marketId + ".mbp." + strconv.FormatInt(depth, 10)
 	} else {
-		subMessageHash = ccxt.Add(ccxt.Add("market."+*marketId+".depth.size_", this.NumberToString(depth)), ".high_freq")
+		subMessageHash = "market." + *marketId + ".depth.size_" + strconv.FormatInt(depth, 10) + ".high_freq"
 	}
 	if market["spot"] != true {
 		params["data_type"] = "incremental"
@@ -805,7 +805,7 @@ func (this *Htx) HandleOrderBookSnapshot(client any, message map[string]any, sub
 						this.Delay(delayTime, this.WatchOrderBookSnapshotAsync, client, message, subscription)
 					}
 				} else {
-					panic(ccxt.InvalidNonce(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(this.Id+" failed to synchronize WebSocket feed with the snapshot for symbol ", symbol), " in "), strconv.FormatInt(maxAttempts, 10)), " attempts")))
+					panic(ccxt.InvalidNonce(this.Id + " failed to synchronize WebSocket feed with the snapshot for symbol " + *this.SafeString(subscription, "symbol", "") + " in " + strconv.FormatInt(maxAttempts, 10) + " attempts"))
 				}
 			} else {
 				orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
@@ -3552,12 +3552,12 @@ func (this *Htx) subscribePublicBody(ch chan ccxt.AsyncResult[any], url any, sym
 	ch <- ccxt.AsyncResult[any]{Value: r.Value}
 	return nil
 }
-func (this *Htx) UnsubscribePublicAsync(market map[string]any, subMessageHash any, topic string, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+func (this *Htx) UnsubscribePublicAsync(market map[string]any, subMessageHash string, topic string, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.unsubscribePublicBody(ch, market, subMessageHash, topic, optionalArgs...)
 	return ch
 }
-func (this *Htx) unsubscribePublicBody(ch chan ccxt.AsyncResult[bool], market map[string]any, subMessageHash any, topic string, optionalArgs ...any) any {
+func (this *Htx) unsubscribePublicBody(ch chan ccxt.AsyncResult[bool], market map[string]any, subMessageHash string, topic string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3567,7 +3567,7 @@ func (this *Htx) unsubscribePublicBody(ch chan ccxt.AsyncResult[bool], market ma
 		"unsub": subMessageHash,
 		"id":    requestId,
 	}
-	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("unsubscribe::", subMessageHash))
+	var messageHash string = "unsubscribe::" + subMessageHash
 	var isFeed bool = (topic == "orderbook")
 	if market == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " unsubscribePublic() market is required"))

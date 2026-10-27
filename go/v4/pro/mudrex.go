@@ -20,7 +20,7 @@ func newMudrex() *Mudrex {
 	return p
 }
 
-func (this *Mudrex) Describe() any {
+func (this *Mudrex) Describe() map[string]any {
 	return this.DeepExtend(this.base.Describe(), map[string]any{
 		"has": map[string]any{
 			"ws":           true,

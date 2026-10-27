@@ -17,7 +17,7 @@ func newPoloniex() *Poloniex {
 	return p
 }
 
-func (this *Poloniex) Describe() any {
+func (this *Poloniex) Describe() map[string]any {
 	return this.DeepExtend(this.Exchange.Describe(), map[string]any{
 		"id":        "poloniex",
 		"name":      "Poloniex",
@@ -2732,7 +2732,7 @@ func (this *Poloniex) createOrdersBody(ch chan AsyncResult[[]Order], orders any,
 			if _, ok := merged["mgnMode"]; !ok {
 				merged["mgnMode"] = "CROSS"
 			}
-			if _, ok := merged["posSide"]; !ok {
+			if this.SafeString(merged, "posSide") == nil {
 				merged["posSide"] = "BOTH"
 			}
 		}
@@ -2821,7 +2821,7 @@ func (this *Poloniex) OrderRequest(symbol any, typeVar any, side any, amount any
 			if marginMode == nil {
 				panic(ArgumentsRequired(this.Id + " createOrder() requires a marginMode parameter \"cross\" or \"isolated\" for hedged orders"))
 			}
-			if !(InOp(query, "posSide")) {
+			if this.SafeString(query, "posSide") == nil {
 				panic(ArgumentsRequired(this.Id + " createOrder() requires a posSide parameter \"LONG\" or \"SHORT\" for hedged orders"))
 			}
 		}
@@ -5031,7 +5031,7 @@ func (this *Poloniex) setPositionModeBody(ch chan AsyncResult[map[string]any], h
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var mode string = "ONE_WAY"
-	if EvalTruthy(hedged) {
+	if hedged == true {
 		mode = "HEDGE"
 	}
 	var request map[string]any = map[string]any{
@@ -5455,7 +5455,7 @@ func NewPoloniex(userConfig map[string]any) *Poloniex {
 func (this *Poloniex) Init(userConfig map[string]any) {
 	this.Exchange = Exchange{}
 	this.Exchange.DerivedExchange = this
-	this.Exchange.InitParent(userConfig, this.Describe().(map[string]any), this)
+	this.Exchange.InitParent(userConfig, this.Describe(), this)
 }
 
 // typed methods

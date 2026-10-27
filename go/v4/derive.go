@@ -15,7 +15,7 @@ func newDerive() *Derive {
 	return p
 }
 
-func (this *Derive) Describe() any {
+func (this *Derive) Describe() map[string]any {
 	return this.DeepExtend(this.Exchange.Describe(), map[string]any{
 		"id":        "derive",
 		"name":      "Derive",
@@ -1241,7 +1241,9 @@ func (this *Derive) ParseMarket(market any) map[string]any {
 		expiry = this.SafeTimestamp(optionDetails, "expiry")
 		strike = this.SafeNumber(optionDetails, "strike") // strikes can be fractional, e.g. XRP-20261225-0_5-P is a 0.5 strike
 		optionLetter = this.SafeString(optionDetails, "option_type")
-		symbol = Add(Add(Add(Add(Add(Add(Add(*base+"/"+*quote+":", settle), "-"), this.Yymmdd(expiry)), "-"), this.NumberToString(strike)), "-"), optionLetter)
+		if settle != nil {
+			symbol = Add(Add(Add(*base+"/"+*quote+":"+*settle+"-"+this.Yymmdd(expiry)+"-", this.NumberToString(strike)), "-"), optionLetter)
+		}
 		if optionLetter != nil && *optionLetter == "P" {
 			optionType = SafeStringPtr("put")
 		} else {
@@ -1970,11 +1972,11 @@ func (this *Derive) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, op
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes141719 []any = r1.Value
-		if retRes141719 == nil {
+		var retRes141919 []any = r1.Value
+		if retRes141919 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes141719)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes141919)}
 		}
 		return nil
 	}
@@ -2193,11 +2195,11 @@ func (this *Derive) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes159219 []any = r1.Value
-		if retRes159219 == nil {
+		var retRes159419 []any = r1.Value
+		if retRes159419 == nil {
 			ch <- AsyncResult[[]OHLCV]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes159219)}
+			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes159419)}
 		}
 		return nil
 	}
@@ -3887,11 +3889,11 @@ func (this *Derive) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes296719 []any = r1.Value
-		if retRes296719 == nil {
+		var retRes296919 []any = r1.Value
+		if retRes296919 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes296719)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes296919)}
 		}
 		return nil
 	}
@@ -4211,11 +4213,11 @@ func (this *Derive) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes322519 []any = r1.Value
-		if retRes322519 == nil {
+		var retRes322719 []any = r1.Value
+		if retRes322719 == nil {
 			ch <- AsyncResult[[]FundingHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes322519)}
+			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes322719)}
 		}
 		return nil
 	}
@@ -5579,7 +5581,7 @@ func NewDerive(userConfig map[string]any) *Derive {
 func (this *Derive) Init(userConfig map[string]any) {
 	this.Exchange = Exchange{}
 	this.Exchange.DerivedExchange = this
-	this.Exchange.InitParent(userConfig, this.Describe().(map[string]any), this)
+	this.Exchange.InitParent(userConfig, this.Describe(), this)
 }
 
 // typed methods

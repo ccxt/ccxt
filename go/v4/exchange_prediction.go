@@ -15,7 +15,7 @@ type PredictionExchange struct {
 	EventsLoading   any
 }
 
-func (this *PredictionExchange) Describe() any {
+func (this *PredictionExchange) Describe() map[string]any {
 	return this.DeepExtend(this.BaseExchange.Describe(), map[string]any{
 		"has": map[string]any{
 			"prediction":                   true,
@@ -627,13 +627,12 @@ func (this *PredictionExchange) SlugToOutcomeSymbol(eventSlug any, marketSlug an
 	// removal so labels like "UP OR DOWN" survive intact) — venue labels with spaces or
 	// currency symbols ("JD Vance", a dollar-sign price) yield clean handles (JD_VANCE, 120)
 	// instead of leaking raw text into the outcome handle
-	var outcomeValue any = func() any {
+	var upper string = func() string {
 		if IsEqual(outcome, nil) {
 			return ""
 		}
-		return outcome
+		return ToUpper(outcome)
 	}()
-	var upper string = ToUpper(outcomeValue)
 	var allowed string = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 	var chars []string = this.StringToCharsArray(upper)
 	var label string = ""
@@ -1863,11 +1862,7 @@ func (this *PredictionExchange) SafePredictionOrder(outcomeOrder any, optionalAr
 	// own-line length reads so the regex transpiler emits count() (array), not strlen()
 	var feeListLength int = len(feeList)
 	if (fee == nil) && (feeListLength > 0) {
-		var reduced any = this.ReduceFeesByCurrency(feeList)
-		var reducedLength int = GetArrayLength(reduced)
-		if reducedLength > 0 {
-			fee = this.SafeDict(reduced, 0)
-		}
+		fee = this.SafeDict(this.ReduceFeesByCurrency(feeList), 0)
 	}
 	// derive timeInForce/postOnly the same way the crypto safeOrder does (prediction has no
 	// trigger orders, so the isTriggerOrSLTp guard collapses): a market order defaults to IOC

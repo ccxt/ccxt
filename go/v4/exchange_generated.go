@@ -9,7 +9,7 @@ import "strconv"
 
 import "math"
 
-func (this *BaseExchange) Describe() any {
+func (this *BaseExchange) Describe() map[string]any {
 	return map[string]any{
 		"id":                   this.Id,
 		"name":                 this.Name,
@@ -4869,12 +4869,10 @@ func (this *BaseExchange) HandleParamString(params any, paramName any, optionalA
 	var defaultValue *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = defaultValue
 	var value *string = this.SafeString(params, paramName, defaultValue)
-	var paramsOmitted any = func() any {
-		if value != nil {
-			return this.Omit(params, paramName)
-		}
-		return params
-	}()
+	var paramsOmitted any = params
+	if value != nil {
+		paramsOmitted = this.Omit(params, paramName)
+	}
 	return value, MapTyped(paramsOmitted)
 }
 
@@ -4884,60 +4882,50 @@ func (this *BaseExchange) HandleParamString2(params any, paramName1 any, paramNa
 	var defaultValue *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = defaultValue
 	var value *string = this.SafeString2(params, paramName1, paramName2, defaultValue)
-	var paramsOmitted any = func() any {
-		if value != nil {
-			return this.Omit(params, []any{paramName1, paramName2})
-		}
-		return params
-	}()
+	var paramsOmitted any = params
+	if value != nil {
+		paramsOmitted = this.Omit(params, []any{paramName1, paramName2})
+	}
 	return value, MapTyped(paramsOmitted)
 }
 func (this *BaseExchange) HandleParamInteger(params any, paramName any, optionalArgs ...any) (*int64, map[string]any) {
 	var defaultValue *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = defaultValue
 	var value *int64 = this.SafeInteger(params, paramName, defaultValue)
-	var paramsOmitted any = func() any {
-		if value != nil {
-			return this.Omit(params, paramName)
-		}
-		return params
-	}()
+	var paramsOmitted any = params
+	if value != nil {
+		paramsOmitted = this.Omit(params, paramName)
+	}
 	return value, MapTyped(paramsOmitted)
 }
 func (this *BaseExchange) HandleParamInteger2(params any, paramName1 any, paramName2 any, optionalArgs ...any) (*int64, map[string]any) {
 	defaultValue := GetArg(optionalArgs, 0, nil)
 	_ = defaultValue
 	var value *int64 = this.SafeInteger2(params, paramName1, paramName2, defaultValue)
-	var paramsOmitted any = func() any {
-		if value != nil {
-			return this.Omit(params, []any{paramName1, paramName2})
-		}
-		return params
-	}()
+	var paramsOmitted any = params
+	if value != nil {
+		paramsOmitted = this.Omit(params, []any{paramName1, paramName2})
+	}
 	return value, MapTyped(paramsOmitted)
 }
 func (this *BaseExchange) HandleParamBool(params any, paramName any, optionalArgs ...any) (*bool, map[string]any) {
 	var defaultValue *bool = GetArgBoolPtr(optionalArgs, 0, nil)
 	_ = defaultValue
 	var value *bool = this.SafeBool(params, paramName, defaultValue)
-	var paramsOmitted any = func() any {
-		if value != nil {
-			return this.Omit(params, paramName)
-		}
-		return params
-	}()
+	var paramsOmitted any = params
+	if value != nil {
+		paramsOmitted = this.Omit(params, paramName)
+	}
 	return value, MapTyped(paramsOmitted)
 }
 func (this *BaseExchange) HandleParamBool2(params any, paramName1 any, paramName2 any, optionalArgs ...any) (*bool, map[string]any) {
 	var defaultValue *bool = GetArgBoolPtr(optionalArgs, 0, nil)
 	_ = defaultValue
 	var value *bool = this.SafeBool2(params, paramName1, paramName2, defaultValue)
-	var paramsOmitted any = func() any {
-		if value != nil {
-			return this.Omit(params, []any{paramName1, paramName2})
-		}
-		return params
-	}()
+	var paramsOmitted any = params
+	if value != nil {
+		paramsOmitted = this.Omit(params, []any{paramName1, paramName2})
+	}
 	return value, MapTyped(paramsOmitted)
 }
 func (this *BaseExchange) ResolvePath(path any, params any) any {
@@ -5703,11 +5691,11 @@ func (this *BaseExchange) fetchTransactionFeeBody(ch chan AsyncResult[map[string
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes703915 map[string]any = r.Value
-	if retRes703915 == nil {
+	var retRes705715 map[string]any = r.Value
+	if retRes705715 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes703915}
+		ch <- AsyncResult[map[string]any]{Value: retRes705715}
 	}
 	return nil
 }
@@ -5899,12 +5887,9 @@ func (this *BaseExchange) HandleOptionAndParams(params any, methodName any, opti
 			value = this.SafeValue2(this.Options, optionName, defaultOptionName)
 		}
 		// if it's still undefined, use the default value
-		value = func() any {
-			if !IsEqual(value, nil) {
-				return value
-			}
-			return defaultValue
-		}()
+		if IsEqual(value, nil) {
+			value = defaultValue
+		}
 		return []any{value, paramsCallerMethodName}
 	}
 }
@@ -11595,12 +11580,12 @@ func (this *Exchange) cancelOrdersWithClientOrderIdsBody(ch chan AsyncResult[[]O
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listRecv11219, _ := OrdersToList(r.Value), r.Value != nil
-	var retRes1046615 []any = listRecv11219
-	if retRes1046615 == nil {
+	listRecv11204, _ := OrdersToList(r.Value), r.Value != nil
+	var retRes1048615 []any = listRecv11204
+	if retRes1048615 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes1046615)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes1048615)}
 	}
 	return nil
 }

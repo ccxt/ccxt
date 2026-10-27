@@ -21,7 +21,7 @@ func newApex() *Apex {
 	return p
 }
 
-func (this *Apex) Describe() any {
+func (this *Apex) Describe() map[string]any {
 	return this.DeepExtend(this.base.Describe(), map[string]any{
 		"has": map[string]any{
 			"ws":                       true,

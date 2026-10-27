@@ -20,7 +20,7 @@ func newBitrue() *Bitrue {
 	return p
 }
 
-func (this *Bitrue) Describe() any {
+func (this *Bitrue) Describe() map[string]any {
 	return this.DeepExtend(this.base.Describe(), map[string]any{
 		"has": map[string]any{
 			"ws":             true,
@@ -812,6 +812,9 @@ func (this *Bitrue) HandleOHLCV(client any, message map[string]any) {
 	var wsInterval *string = this.SafeString(parts, 4)
 	var futuresTimeframes any = this.SafeDict(this.Options, "futuresTimeframes", map[string]any{})
 	var timeframe *string = this.FindTimeframe(wsInterval, futuresTimeframes)
+	if timeframe == nil {
+		return
+	}
 	var tick map[string]any = ccxt.SafeMapTyped(message, "tick")
 	if tick == nil {
 		return
@@ -831,7 +834,7 @@ func (this *Bitrue) HandleOHLCV(client any, message map[string]any) {
 		stored = this.Ohlcvs[*symbol][*timeframe]
 	}
 	stored.(ccxt.Appender).Append(parsed)
-	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ohlcv:"+*symbol+":", timeframe))
+	var messageHash string = "ohlcv:" + *symbol + ":" + *timeframe
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
 func (this *Bitrue) ParseWsOHLCV(tick any, optionalArgs ...any) any {

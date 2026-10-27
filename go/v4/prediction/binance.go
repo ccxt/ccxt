@@ -16,7 +16,7 @@ func newBinance() *Binance {
 	return p
 }
 
-func (this *Binance) Describe() any {
+func (this *Binance) Describe() map[string]any {
 	return this.DeepExtend(this.BaseExchange.Describe(), map[string]any{
 		"id":        "binance",
 		"name":      "Binance",
@@ -2657,7 +2657,7 @@ func NewBinance(userConfig map[string]any) *Binance {
 func (this *Binance) Init(userConfig map[string]any) {
 	this.BaseExchange = ccxt.BaseExchange{}
 	this.BaseExchange.DerivedExchange = this
-	this.BaseExchange.InitParent(userConfig, this.Describe().(map[string]any), this)
+	this.BaseExchange.InitParent(userConfig, this.Describe(), this)
 }
 
 // typed methods

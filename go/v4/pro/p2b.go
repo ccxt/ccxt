@@ -20,7 +20,7 @@ func newP2b() *P2b {
 	return p
 }
 
-func (this *P2b) Describe() any {
+func (this *P2b) Describe() map[string]any {
 	return this.DeepExtend(this.base.Describe(), map[string]any{
 		"has": map[string]any{
 			"ws":                    true,

@@ -17,7 +17,7 @@ func newOpinion() *Opinion {
 	return p
 }
 
-func (this *Opinion) Describe() any {
+func (this *Opinion) Describe() map[string]any {
 	return this.DeepExtend(this.BaseExchange.Describe(), map[string]any{
 		"id":        "opinion",
 		"name":      "Opinion",
@@ -382,13 +382,8 @@ func (this *Opinion) ParseOpinionMarket(raw any, optionalArgs ...any) any {
 	var outcomes []any = []any{}
 	var resolvedOutcome any = nil
 	for i := 0; i < len(outcomeLabels); i++ {
-		var label *string = ccxt.SafeStringPtr(ccxt.DerefScalar(outcomeLabels[i]))
-		var tokenId *string = ccxt.SafeStringPtr(func() any {
-			if i >= 0 && i < len(outcomeTokenIds) {
-				return ccxt.DerefScalar(outcomeTokenIds[i])
-			}
-			return nil
-		}())
+		var label *string = this.SafeString(outcomeLabels, i)
+		var tokenId *string = this.SafeString(outcomeTokenIds, i)
 		var outcomeHandle any = this.SlugToOutcomeSymbol(effectiveEventSlug, slug, label)
 		var winner any = nil
 		var settleFraction any = nil
@@ -963,8 +958,8 @@ func (this *Opinion) fetchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.P
 	for i := 0; i < outcomesLength; i++ {
 		var outcomeObj map[string]any = this.Outcome(outcomes[i])
 		var priceIndex int64 = int64(i) * 2
-		var priceResponse any = ccxt.GetValue(responses, priceIndex)
-		var bookResponse any = ccxt.GetValue(responses, this.Sum(priceIndex, 1))
+		var priceResponse any = this.SafeValue(responses, priceIndex)
+		var bookResponse any = this.SafeValue(responses, this.Sum(priceIndex, 1))
 		var response map[string]any = map[string]any{
 			"price": priceResponse,
 			"book":  bookResponse,
@@ -1278,7 +1273,7 @@ func (this *Opinion) SignOpinionOrder(order map[string]any, exchangeAddress stri
 	}
 	var encoded any = this.EthEncodeStructuredData(domain, messageTypes, order)
 	var sig any = this.SignMessage(encoded, this.PrivateKey)
-	return "0x" + this.Remove0xPrefix(ccxt.GetValue(sig, "r")) + this.Remove0xPrefix(ccxt.GetValue(sig, "s")) + this.IntToBase16(ccxt.GetValue(sig, "v"))
+	return "0x" + this.Remove0xPrefix(this.SafeString(sig, "r")) + this.Remove0xPrefix(this.SafeString(sig, "s")) + this.IntToBase16(this.SafeInteger(sig, "v"))
 }
 func (this *Opinion) OpinionOrderRawAmounts(isMarket bool, side string, amount any, price any, decimals *int64) map[string]any {
 	var decimalsStr string = "1"
@@ -2247,7 +2242,7 @@ func (this *Opinion) SignApiKeyAuth(walletAddress any, action string, timestamp 
 	}
 	var encoded any = this.EthEncodeStructuredData(domain, messageTypes, messageData)
 	var sig any = this.SignMessage(encoded, this.PrivateKey)
-	return "0x" + this.Remove0xPrefix(ccxt.GetValue(sig, "r")) + this.Remove0xPrefix(ccxt.GetValue(sig, "s")) + this.IntToBase16(ccxt.GetValue(sig, "v"))
+	return "0x" + this.Remove0xPrefix(this.SafeString(sig, "r")) + this.Remove0xPrefix(this.SafeString(sig, "s")) + this.IntToBase16(this.SafeInteger(sig, "v"))
 }
 
 /**
@@ -3242,7 +3237,7 @@ func NewOpinion(userConfig map[string]any) *Opinion {
 func (this *Opinion) Init(userConfig map[string]any) {
 	this.BaseExchange = ccxt.BaseExchange{}
 	this.BaseExchange.DerivedExchange = this
-	this.BaseExchange.InitParent(userConfig, this.Describe().(map[string]any), this)
+	this.BaseExchange.InitParent(userConfig, this.Describe(), this)
 }
 
 // typed methods

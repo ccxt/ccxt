@@ -13,7 +13,7 @@ func newDeepcoin() *Deepcoin {
 	return p
 }
 
-func (this *Deepcoin) Describe() any {
+func (this *Deepcoin) Describe() map[string]any {
 	return this.DeepExtend(this.Exchange.Describe(), map[string]any{
 		"id":        "deepcoin",
 		"name":      "DeepCoin",
@@ -567,7 +567,7 @@ func (this *Deepcoin) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 	var promises []any = []any{}
 	var result []any = []any{}
 	for i := 0; i < GetArrayLength(types); i++ {
-		promises = append(promises, this.FetchMarketsByTypeAsync(GetValue(types, i), params))
+		promises = append(promises, this.FetchMarketsByTypeAsync(this.SafeString(types, i), params))
 	}
 
 	r := <-promiseAll(promises)
@@ -2340,7 +2340,7 @@ func (this *Deepcoin) HandleTypePostOnlyAndTimeInForce(typeVar string, params an
 	var timeInForce any = this.HandleTimeInForce(paramsPostOnly)
 	var paramsOmitted map[string]any = this.OmitDict(paramsPostOnly, "timeInForce")
 	var typeValue string = typePostOnly
-	if (timeInForce != nil) && (IsEqual(timeInForce, "IOC")) {
+	if IsEqual(timeInForce, "IOC") {
 		typeValue = "ioc"
 	}
 	return []any{typeValue, paramsOmitted}
@@ -2661,14 +2661,8 @@ func (this *Deepcoin) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]Ord
 		return nil
 	}
 	var trigger *bool = this.SafeBool(paramsPaginate, "trigger", false)
-	var methodNamePtr *string = nil
-	methodNamePtr, paramsMethodName := this.HandleParamString(paramsPaginate, "methodName", "fetchCanceledAndClosedOrders")
-	methodName := func() any {
-		if methodNamePtr != nil {
-			return *methodNamePtr
-		}
-		return nil
-	}()
+	var methodName *string = this.SafeString(paramsPaginate, "methodName", "fetchCanceledAndClosedOrders")
+	var paramsMethodName map[string]any = this.OmitDict(paramsPaginate, "methodName")
 	var market map[string]any = nil
 	var request map[string]any = map[string]any{}
 	if symbol != nil {
@@ -2682,8 +2676,8 @@ func (this *Deepcoin) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]Ord
 	}
 	var response map[string]any = nil
 	if trigger != nil && *trigger {
-		if methodName != "fetchCanceledAndClosedOrders" {
-			panic(BadRequest(Add(Add(this.Id+" ", methodName), "() does not support trigger orders")))
+		if methodName == nil || *methodName != "fetchCanceledAndClosedOrders" {
+			panic(BadRequest(this.Id + " " + *methodName + "() does not support trigger orders"))
 		}
 		if market == nil {
 			panic(ArgumentsRequired(this.Id + " fetchCanceledAndClosedOrders() requires a symbol argument for trigger orders"))
@@ -2823,11 +2817,11 @@ func (this *Deepcoin) fetchCanceledOrdersBody(ch chan AsyncResult[[]Order], opti
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes209615 []any = OrdersToList(r.Value)
-	if retRes209615 == nil {
+	var retRes209715 []any = OrdersToList(r.Value)
+	if retRes209715 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes209615)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes209715)}
 	}
 	return nil
 }
@@ -2872,11 +2866,11 @@ func (this *Deepcoin) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], option
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes211515 []any = OrdersToList(r.Value)
-	if retRes211515 == nil {
+	var retRes211615 []any = OrdersToList(r.Value)
+	if retRes211615 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes211515)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes211615)}
 	}
 	return nil
 }
@@ -4066,11 +4060,11 @@ func (this *Deepcoin) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalAr
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes298319 []any = r1.Value
-		if retRes298319 == nil {
+		var retRes298419 []any = r1.Value
+		if retRes298419 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes298319)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes298419)}
 		}
 		return nil
 	}
@@ -4186,11 +4180,11 @@ func (this *Deepcoin) fetchOrderTradesBody(ch chan AsyncResult[[]Trade], id stri
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes305915 []any = TradesToList(r1.Value)
-	if retRes305915 == nil {
+	var retRes306015 []any = TradesToList(r1.Value)
+	if retRes306015 == nil {
 		ch <- AsyncResult[[]Trade]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes305915)}
+		ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes306015)}
 	}
 	return nil
 }
@@ -4296,13 +4290,9 @@ func (this *Deepcoin) Sign(path string, optionalArgs ...any) any {
 			"DC-ACCESS-PASSPHRASE": this.Password,
 			"appid":                "200103",
 		}
-		var requestBody any = func() any {
-			if method != "GET" {
-				return this.Json(params)
-			}
-			return nil
-		}()
+		var requestBody any = nil
 		if method != "GET" {
+			requestBody = this.Json(params)
 			privateHeaders["Content-Type"] = "application/json"
 			payload = Add(payload, requestBody)
 		}
@@ -4371,7 +4361,7 @@ func NewDeepcoin(userConfig map[string]any) *Deepcoin {
 func (this *Deepcoin) Init(userConfig map[string]any) {
 	this.Exchange = Exchange{}
 	this.Exchange.DerivedExchange = this
-	this.Exchange.InitParent(userConfig, this.Describe().(map[string]any), this)
+	this.Exchange.InitParent(userConfig, this.Describe(), this)
 }
 
 // typed methods

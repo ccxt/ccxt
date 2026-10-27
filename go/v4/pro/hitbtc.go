@@ -20,7 +20,7 @@ func newHitbtc() *Hitbtc {
 	return p
 }
 
-func (this *Hitbtc) Describe() any {
+func (this *Hitbtc) Describe() map[string]any {
 	return this.DeepExtend(this.base.Describe(), this.DescribeData())
 }
 func (this *Hitbtc) DescribeData() any {
@@ -183,7 +183,8 @@ func (this *Hitbtc) subscribePublicBody(ch chan ccxt.AsyncResult[any], name any,
 	var messageHashes []any = []any{}
 	if (symbolsNormalized != nil) && resolvedPerSymbol {
 		for i := 0; i < len(symbolsNormalized); i++ {
-			messageHashes = append(messageHashes, ccxt.Add(messageHashPrefix+"::", symbolsNormalized[i]))
+			var symbolId string = symbolsNormalized[i]
+			messageHashes = append(messageHashes, messageHashPrefix+"::"+symbolId)
 		}
 	} else {
 		messageHashes = append(messageHashes, messageHashPrefix)

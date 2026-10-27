@@ -15,7 +15,7 @@ func newZaif() *Zaif {
 	return p
 }
 
-func (this *Zaif) Describe() any {
+func (this *Zaif) Describe() map[string]any {
 	return this.DeepExtend(this.Exchange.Describe(), map[string]any{
 		"id":        "zaif",
 		"name":      "Zaif",
@@ -1221,7 +1221,7 @@ func NewZaif(userConfig map[string]any) *Zaif {
 func (this *Zaif) Init(userConfig map[string]any) {
 	this.Exchange = Exchange{}
 	this.Exchange.DerivedExchange = this
-	this.Exchange.InitParent(userConfig, this.Describe().(map[string]any), this)
+	this.Exchange.InitParent(userConfig, this.Describe(), this)
 }
 
 // typed methods

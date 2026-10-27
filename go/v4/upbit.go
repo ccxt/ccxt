@@ -17,7 +17,7 @@ func newUpbit() *Upbit {
 	return p
 }
 
-func (this *Upbit) Describe() any {
+func (this *Upbit) Describe() map[string]any {
 	return this.DeepExtend(this.Exchange.Describe(), map[string]any{
 		"id":        "upbit",
 		"name":      "Upbit",
@@ -1654,10 +1654,12 @@ func (this *Upbit) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, o
 	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(ohlcvs, market, timeframe, since, limitResolved))}
 	return nil
 }
-func (this *Upbit) CalcOrderPrice(symbol any, amount any, optionalArgs ...any) any {
-	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
+func (this *Upbit) CalcOrderPrice(symbol any, optionalArgs ...any) any {
+	amount := GetArg(optionalArgs, 0, nil)
+	_ = amount
+	var price *float64 = GetArgFloat64Ptr(optionalArgs, 1, nil)
 	_ = price
-	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 	var quoteAmount any = nil
 	var createMarketBuyOrderRequiresPrice *bool = this.SafeBool(this.Options, "createMarketBuyOrderRequiresPrice")
@@ -1665,7 +1667,7 @@ func (this *Upbit) CalcOrderPrice(symbol any, amount any, optionalArgs ...any) a
 	if cost != nil {
 		quoteAmount = this.CostToPrecision(symbol, cost)
 	} else if createMarketBuyOrderRequiresPrice != nil && *createMarketBuyOrderRequiresPrice == true {
-		if (price == nil) || IsEqual(amount, nil) {
+		if (price == nil) || (amount == nil) {
 			panic(InvalidOrder(this.Id + " createOrder() requires the price and amount argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument"))
 		}
 		var amountString *string = this.NumberToString(amount)
@@ -1673,7 +1675,7 @@ func (this *Upbit) CalcOrderPrice(symbol any, amount any, optionalArgs ...any) a
 		var costRequest *string = Precise.StringMul(amountString, priceString)
 		quoteAmount = this.CostToPrecision(symbol, costRequest)
 	} else {
-		if IsEqual(amount, nil) {
+		if amount == nil {
 			panic(ArgumentsRequired(this.Id + " When createMarketBuyOrderRequiresPrice is false, \"amount\" is required and should be the total quote amount to spend."))
 		}
 		quoteAmount = this.CostToPrecision(symbol, amount)
@@ -1937,7 +1939,7 @@ func (this *Upbit) EditOrderAsync(id string, symbol any, typeVar any, side any, 
 func (this *Upbit) editOrderBody(ch chan AsyncResult[Order], id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	amount := GetArg(optionalArgs, 0, nil)
+	var amount *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = amount
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 1, nil)
 	_ = price
@@ -2111,11 +2113,11 @@ func (this *Upbit) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optiona
 		request["limit"] = limit // default is 100
 	}
 
-	listEp1991 := <-this.PrivateGetDeposits(this.Extend(request, params))
-	if listEp1991.Err != nil {
-		panic(listEp1991.Err)
+	listEp1993 := <-this.PrivateGetDeposits(this.Extend(request, params))
+	if listEp1993.Err != nil {
+		panic(listEp1993.Err)
 	}
-	var response []any = listEp1991.Value
+	var response []any = listEp1993.Value
 
 	//
 	//     [
@@ -2247,11 +2249,11 @@ func (this *Upbit) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], opti
 		request["limit"] = limit // default is 100
 	}
 
-	listEp2113 := <-this.PrivateGetWithdraws(this.Extend(request, params))
-	if listEp2113.Err != nil {
-		panic(listEp2113.Err)
+	listEp2115 := <-this.PrivateGetWithdraws(this.Extend(request, params))
+	if listEp2115.Err != nil {
+		panic(listEp2115.Err)
 	}
-	var response []any = listEp2113.Value
+	var response []any = listEp2115.Value
 
 	//
 	//     [
@@ -2636,11 +2638,11 @@ func (this *Upbit) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArg
 		request["limit"] = limit
 	}
 
-	listEp2488 := <-this.PrivateGetOrdersOpen(this.Extend(request, params))
-	if listEp2488.Err != nil {
-		panic(listEp2488.Err)
+	listEp2490 := <-this.PrivateGetOrdersOpen(this.Extend(request, params))
+	if listEp2490.Err != nil {
+		panic(listEp2490.Err)
 	}
-	var response []any = listEp2488.Value
+	var response []any = listEp2490.Value
 
 	//
 	//     [
@@ -2720,11 +2722,11 @@ func (this *Upbit) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optionalA
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("end_time", request, params)
 
-	listEp2565 := <-this.PrivateGetOrdersClosed(this.Extend(requestUntil, paramsUntil))
-	if listEp2565.Err != nil {
-		panic(listEp2565.Err)
+	listEp2567 := <-this.PrivateGetOrdersClosed(this.Extend(requestUntil, paramsUntil))
+	if listEp2567.Err != nil {
+		panic(listEp2567.Err)
 	}
-	var response []any = listEp2565.Value
+	var response []any = listEp2567.Value
 
 	//
 	//     [
@@ -2805,11 +2807,11 @@ func (this *Upbit) fetchCanceledOrdersBody(ch chan AsyncResult[[]Order], optiona
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("end_time", request, params)
 
-	listEp2643 := <-this.PrivateGetOrdersClosed(this.Extend(requestUntil, paramsUntil))
-	if listEp2643.Err != nil {
-		panic(listEp2643.Err)
+	listEp2645 := <-this.PrivateGetOrdersClosed(this.Extend(requestUntil, paramsUntil))
+	if listEp2645.Err != nil {
+		panic(listEp2645.Err)
 	}
-	var response []any = listEp2643.Value
+	var response []any = listEp2645.Value
 
 	//
 	//     [
@@ -2955,11 +2957,11 @@ func (this *Upbit) fetchDepositAddressesBody(ch chan AsyncResult[[]DepositAddres
 		}
 	}
 
-	listEp2779 := <-this.PrivateGetDepositsCoinAddresses(params)
-	if listEp2779.Err != nil {
-		panic(listEp2779.Err)
+	listEp2781 := <-this.PrivateGetDepositsCoinAddresses(params)
+	if listEp2781.Err != nil {
+		panic(listEp2781.Err)
 	}
-	var response []any = listEp2779.Value
+	var response []any = listEp2781.Value
 
 	//
 	//     [
@@ -3314,7 +3316,7 @@ func NewUpbit(userConfig map[string]any) *Upbit {
 func (this *Upbit) Init(userConfig map[string]any) {
 	this.Exchange = Exchange{}
 	this.Exchange.DerivedExchange = this
-	this.Exchange.InitParent(userConfig, this.Describe().(map[string]any), this)
+	this.Exchange.InitParent(userConfig, this.Describe(), this)
 }
 
 // typed methods

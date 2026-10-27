@@ -15,7 +15,7 @@ func newWeex() *Weex {
 	return p
 }
 
-func (this *Weex) Describe() any {
+func (this *Weex) Describe() map[string]any {
 	return this.DeepExtend(this.Exchange.Describe(), map[string]any{
 		"id":        "weex",
 		"name":      "Weex",
@@ -1526,7 +1526,7 @@ func (this *Weex) fetchBidsAsksBody(ch chan AsyncResult[map[string]Ticker], opti
 	}
 	var results []any = []any{}
 	for i := 0; i < len(response); i++ {
-		var rawTicker any = GetValue(response, i)
+		var rawTicker any = this.SafeValue(response, i)
 		// book tickers have no markPrice, so resolve the market from the endpoint type to disambiguate the spot/swap market id in parseTicker
 		var marketId *string = this.SafeString(rawTicker, "symbol")
 		var tickerMarket map[string]any = this.SafeMarket(marketId, nil, nil, marketType)
@@ -2114,23 +2114,23 @@ func (this *Weex) fetchContractOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol st
 		var endTime any = until
 		var now int64 = this.Milliseconds()
 		if (since == nil) || (until == nil) {
-			var duration int64 = this.ParseTimeframe(timeframe) * 1000
+			var duration int64 = this.ParseToInt(this.ParseTimeframe(timeframe) * 1000)
 			// the history endpoint returns at most maxHistoricalLimit candles and serves the
 			// newest ones inside the window, so a wider window would silently drop the candles
 			// right after since, keep the window at what one call can return
-			var historyLimit any = maxHistoricalLimit
+			var historyLimit int64 = this.ParseToInt(maxHistoricalLimit)
 			if (limit != nil) && (limit == nil || *limit != 0) {
-				historyLimit = mathMin(limit, maxHistoricalLimit)
+				historyLimit = this.ParseToInt(mathMin(limit, maxHistoricalLimit))
 			}
-			var timeDelta any = Multiply(historyLimit, duration)
+			var timeDelta int64 = this.ParseToInt(historyLimit * duration)
 			if (since == nil) && (until == nil) {
 				endTime = now
-				startTime = Subtract(now, timeDelta)
+				startTime = now - timeDelta
 			} else if since == nil {
 				if until == nil {
 					panic(ArgumentsRequired(this.Id + " fetchOHLCV() requires a since or until argument"))
 				}
-				startTime = Subtract(until, timeDelta)
+				startTime = *until - timeDelta
 			} else {
 				// this.sum, a bare + is string concatenation in the php port
 				endTime = this.Sum(since, timeDelta)
@@ -6128,7 +6128,7 @@ func NewWeex(userConfig map[string]any) *Weex {
 func (this *Weex) Init(userConfig map[string]any) {
 	this.Exchange = Exchange{}
 	this.Exchange.DerivedExchange = this
-	this.Exchange.InitParent(userConfig, this.Describe().(map[string]any), this)
+	this.Exchange.InitParent(userConfig, this.Describe(), this)
 }
 
 // typed methods

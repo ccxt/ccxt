@@ -20,7 +20,7 @@ func newGemini() *Gemini {
 	return p
 }
 
-func (this *Gemini) Describe() any {
+func (this *Gemini) Describe() map[string]any {
 	return this.DeepExtend(this.base.Describe(), map[string]any{
 		"has": map[string]any{
 			"ws":                       true,
@@ -292,7 +292,7 @@ func (this *Gemini) HandleTrades(client any, message map[string]any) {
 			}
 		}
 		for i := 0; i < len(trades); i++ {
-			var trade map[string]any = this.ParseWsTrade(trades[i], market)
+			var trade map[string]any = this.ParseWsTrade(this.SafeValue(trades, i), market)
 			stored.(ccxt.Appender).Append(trade)
 		}
 		var messageHash string = "trades:" + *symbol
@@ -745,8 +745,8 @@ func (this *Gemini) helperForWatchMultipleConstructBody(ch chan ccxt.AsyncResult
 	var messageHashes []any = []any{}
 	var marketIds []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var symbol string = symbolsNormalized[i]
-		var messageHash string = itemHashName + ":" + symbol
+		var symbol *string = this.SafeString(symbolsNormalized, i, "")
+		var messageHash string = itemHashName + ":" + *symbol
 		messageHashes = append(messageHashes, messageHash)
 		var market map[string]any = this.Market(symbol)
 		marketIds = append(marketIds, market["id"])
@@ -1169,7 +1169,7 @@ func (this *Gemini) HandleMessage(client any, message any) {
 		var collectedEventsOfTrades []any = []any{}
 		var eventsLength int = len(events)
 		for i := 0; i < len(events); i++ {
-			var event any = events[i]
+			var event any = this.SafeValue(events, i)
 			var eventType *string = this.SafeString(event, "type")
 			var side *string = this.SafeString(event, "side")
 			var isOrderBook bool = (eventType != nil && *eventType == "change") && (side != nil) && this.InArray(side, []any{"ask", "bid"})
@@ -1180,7 +1180,7 @@ func (this *Gemini) HandleMessage(client any, message any) {
 			} else if isOrderBook {
 				orderBookItems = append(orderBookItems, event)
 			} else if eventType != nil && *eventType == "trade" {
-				collectedEventsOfTrades = append(collectedEventsOfTrades, events[i])
+				collectedEventsOfTrades = append(collectedEventsOfTrades, event)
 			}
 		}
 		var lengthBa int = len(bidaskItems)

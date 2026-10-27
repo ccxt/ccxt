@@ -22,7 +22,7 @@ func newDerive() *Derive {
 	return p
 }
 
-func (this *Derive) Describe() any {
+func (this *Derive) Describe() map[string]any {
 	return this.DeepExtend(this.base.Describe(), map[string]any{
 		"has": map[string]any{
 			"ws":                    true,

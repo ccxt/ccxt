@@ -16,7 +16,7 @@ func newDeribit() *Deribit {
 	return p
 }
 
-func (this *Deribit) Describe() any {
+func (this *Deribit) Describe() map[string]any {
 	return this.DeepExtend(this.Exchange.Describe(), map[string]any{
 		"id":        "deribit",
 		"name":      "Deribit",
@@ -4497,12 +4497,10 @@ func (this *Deribit) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRa
 		}
 		return *since
 	}()
-	var time any = func() any {
-		if since == nil {
-			return now
-		}
-		return this.ParseToInt(*since + month)
-	}()
+	var time int64 = now
+	if since != nil {
+		time = this.ParseToInt(*since + month)
+	}
 	var request map[string]any = map[string]any{
 		"instrument_name": market["id"],
 		"start_timestamp": (sinceResolved - 1),
@@ -4514,12 +4512,10 @@ func (this *Deribit) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRa
 		}
 		return paramsPaginate
 	}()
-	var endTimestamp any = func() any {
-		if until != nil {
-			return until
-		}
-		return time
-	}()
+	var endTimestamp int64 = time
+	if until != nil {
+		endTimestamp = this.ParseToInt(until)
+	}
 	request["end_timestamp"] = endTimestamp
 	var isPaginationCall *bool = this.SafeBool(paramsUntil, "isDeribitPaginationCall", false)
 	var paramsOmitted any = paramsUntil
@@ -4531,8 +4527,8 @@ func (this *Deribit) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRa
 			panic(ArgumentsRequired(this.Id + " fetchFundingRateHistory() requires a limit argument"))
 		}
 		var maxUntil int64 = this.ParseToInt(this.Sum(sinceResolved, *limit*duration))
-		request["end_timestamp"] = func() any {
-			if IsLessThan(endTimestamp, maxUntil) {
+		request["end_timestamp"] = func() int64 {
+			if endTimestamp < maxUntil {
 				return endTimestamp
 			}
 			return maxUntil
@@ -4656,11 +4652,11 @@ func (this *Deribit) fetchLiquidationsBody(ch chan AsyncResult[[]Liquidation], s
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes344519 []any = r1.Value
-		if retRes344519 == nil {
+		var retRes345119 []any = r1.Value
+		if retRes345119 == nil {
 			ch <- AsyncResult[[]Liquidation]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Liquidation]{Value: LiquidationsFromList(retRes344519)}
+			ch <- AsyncResult[[]Liquidation]{Value: LiquidationsFromList(retRes345119)}
 		}
 		return nil
 	}
@@ -5431,7 +5427,7 @@ func NewDeribit(userConfig map[string]any) *Deribit {
 func (this *Deribit) Init(userConfig map[string]any) {
 	this.Exchange = Exchange{}
 	this.Exchange.DerivedExchange = this
-	this.Exchange.InitParent(userConfig, this.Describe().(map[string]any), this)
+	this.Exchange.InitParent(userConfig, this.Describe(), this)
 }
 
 // typed methods

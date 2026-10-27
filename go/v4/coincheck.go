@@ -13,7 +13,7 @@ func newCoincheck() *Coincheck {
 	return p
 }
 
-func (this *Coincheck) Describe() any {
+func (this *Coincheck) Describe() map[string]any {
 	return this.DeepExtend(this.Exchange.Describe(), map[string]any{
 		"id":        "coincheck",
 		"name":      "Coincheck",
@@ -362,10 +362,11 @@ func (this *Coincheck) ParseBalance(response any) map[string]any {
 		var code string = codes[i]
 		var currency map[string]any = this.Currency(code)
 		var currencyId *string = SafeStringPtr(currency["id"])
-		if InOp(response, currencyId) {
+		var free *string = this.SafeString(response, currencyId)
+		if free != nil {
 			var account map[string]any = this.Account()
 			var reserved string = *currencyId + "_reserved"
-			account["free"] = this.SafeString(response, currencyId)
+			account["free"] = free
 			account["used"] = this.SafeString(response, reserved)
 			result[code] = account
 		}
@@ -766,10 +767,11 @@ func (this *Coincheck) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var side *string = nil
 	var fee map[string]any = nil
 	var orderId *string = nil
-	if InOp(trade, "liquidity") {
-		if this.SafeString(trade, "liquidity") != nil && *this.SafeString(trade, "liquidity") == "T" {
+	var liquidity *string = this.SafeString(trade, "liquidity")
+	if liquidity != nil {
+		if liquidity != nil && *liquidity == "T" {
 			takerOrMaker = SafeStringPtr("taker")
-		} else if this.SafeString(trade, "liquidity") != nil && *this.SafeString(trade, "liquidity") == "M" {
+		} else if liquidity != nil && *liquidity == "M" {
 			takerOrMaker = SafeStringPtr("maker")
 		}
 		var funds map[string]any = SafeMapTyped(trade, "funds")
@@ -1439,7 +1441,7 @@ func NewCoincheck(userConfig map[string]any) *Coincheck {
 func (this *Coincheck) Init(userConfig map[string]any) {
 	this.Exchange = Exchange{}
 	this.Exchange.DerivedExchange = this
-	this.Exchange.InitParent(userConfig, this.Describe().(map[string]any), this)
+	this.Exchange.InitParent(userConfig, this.Describe(), this)
 }
 
 // typed methods

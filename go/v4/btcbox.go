@@ -15,7 +15,7 @@ func newBtcbox() *Btcbox {
 	return p
 }
 
-func (this *Btcbox) Describe() any {
+func (this *Btcbox) Describe() map[string]any {
 	return this.DeepExtend(this.Exchange.Describe(), map[string]any{
 		"id":        "btcbox",
 		"name":      "BtcBox",
@@ -1242,7 +1242,7 @@ func NewBtcbox(userConfig map[string]any) *Btcbox {
 func (this *Btcbox) Init(userConfig map[string]any) {
 	this.Exchange = Exchange{}
 	this.Exchange.DerivedExchange = this
-	this.Exchange.InitParent(userConfig, this.Describe().(map[string]any), this)
+	this.Exchange.InitParent(userConfig, this.Describe(), this)
 }
 
 // typed methods

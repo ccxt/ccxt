@@ -17,7 +17,7 @@ func newHyperliquid() *Hyperliquid {
 	return p
 }
 
-func (this *Hyperliquid) Describe() any {
+func (this *Hyperliquid) Describe() map[string]any {
 	return this.DeepExtend(this.BaseExchange.Describe(), map[string]any{
 		"id":        "hyperliquid",
 		"name":      "Hyperliquid",
@@ -3059,7 +3059,7 @@ func NewHyperliquid(userConfig map[string]any) *Hyperliquid {
 func (this *Hyperliquid) Init(userConfig map[string]any) {
 	this.BaseExchange = ccxt.BaseExchange{}
 	this.BaseExchange.DerivedExchange = this
-	this.BaseExchange.InitParent(userConfig, this.Describe().(map[string]any), this)
+	this.BaseExchange.InitParent(userConfig, this.Describe(), this)
 }
 
 // typed methods

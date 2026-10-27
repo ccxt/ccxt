@@ -20,7 +20,7 @@ func newBitfinex() *Bitfinex {
 	return p
 }
 
-func (this *Bitfinex) Describe() any {
+func (this *Bitfinex) Describe() map[string]any {
 	return this.DeepExtend(this.base.Describe(), map[string]any{
 		"has": map[string]any{
 			"ws":                    true,

@@ -20,7 +20,7 @@ func newKraken() *Kraken {
 	return p
 }
 
-func (this *Kraken) Describe() any {
+func (this *Kraken) Describe() map[string]any {
 	return this.DeepExtend(this.base.Describe(), map[string]any{
 		"has": map[string]any{
 			"ws":                       true,
@@ -1385,32 +1385,20 @@ func (this *Kraken) HandleOrderBook(client any, message map[string]any) {
 			// const checkBids = bids.map ((elem) => [ elem['price'], elem['qty'] ])
 			for i := 0; i < 10; i++ {
 				var currentAsk []any = ccxt.SafeListTyped(checkAsks, i)
-				var formattedAsk string = this.FormatNumber(func() any {
-					if 0 >= 0 && 0 < len(currentAsk) {
-						return currentAsk[0]
-					}
-					return nil
-				}()) + this.FormatNumber(func() any {
-					if 1 >= 0 && 1 < len(currentAsk) {
-						return currentAsk[1]
-					}
-					return nil
-				}())
+				var currentAskLength int = len(currentAsk)
+				var formattedAsk string = ""
+				if currentAskLength > 1 {
+					formattedAsk = this.FormatNumber(currentAsk[0]) + this.FormatNumber(currentAsk[1])
+				}
 				payloadArray = append(payloadArray, formattedAsk)
 			}
 			for i := 0; i < 10; i++ {
 				var currentBid []any = ccxt.SafeListTyped(checkBids, i)
-				var formattedBid string = this.FormatNumber(func() any {
-					if 0 >= 0 && 0 < len(currentBid) {
-						return currentBid[0]
-					}
-					return nil
-				}()) + this.FormatNumber(func() any {
-					if 1 >= 0 && 1 < len(currentBid) {
-						return currentBid[1]
-					}
-					return nil
-				}())
+				var currentBidLength int = len(currentBid)
+				var formattedBid string = ""
+				if currentBidLength > 1 {
+					formattedBid = this.FormatNumber(currentBid[0]) + this.FormatNumber(currentBid[1])
+				}
 				payloadArray = append(payloadArray, formattedBid)
 			}
 		}
@@ -1847,8 +1835,8 @@ func (this *Kraken) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opti
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	retRes136215 := r.Value
-	ch <- ccxt.AsyncResult[[]ccxt.Order]{Value: ccxt.OrdersFromList(retRes136215)}
+	retRes137015 := r.Value
+	ch <- ccxt.AsyncResult[[]ccxt.Order]{Value: ccxt.OrdersFromList(retRes137015)}
 	return nil
 }
 func (this *Kraken) HandleOrders(client any, message map[string]any, optionalArgs ...any) {

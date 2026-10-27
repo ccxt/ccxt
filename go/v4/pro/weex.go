@@ -20,7 +20,7 @@ func newWeex() *Weex {
 	return p
 }
 
-func (this *Weex) Describe() any {
+func (this *Weex) Describe() map[string]any {
 	return this.DeepExtend(this.base.Describe(), map[string]any{
 		"has": map[string]any{
 			"watchBalance":               true,

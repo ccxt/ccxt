@@ -16,7 +16,7 @@ func newDigifinex() *Digifinex {
 	return p
 }
 
-func (this *Digifinex) Describe() any {
+func (this *Digifinex) Describe() map[string]any {
 	return this.DeepExtend(this.Exchange.Describe(), map[string]any{
 		"id":        "digifinex",
 		"name":      "DigiFinex",
@@ -2310,8 +2310,8 @@ func (this *Digifinex) createOrdersBody(ch chan AsyncResult[[]Order], orders any
 		}
 		var typeVar *string = this.SafeString(rawOrder, "type")
 		var side *string = this.SafeString(rawOrder, "side")
-		var amount any = this.SafeValue(rawOrder, "amount")
-		var price any = this.SafeValue(rawOrder, "price")
+		var amount *float64 = this.SafeNumber(rawOrder, "amount")
+		var price *float64 = this.SafeNumber(rawOrder, "price")
 		var orderParams map[string]any = this.SafeDictMap(rawOrder, "params", map[string]any{})
 		var currentMarginMode *string = nil
 		currentMarginMode, _ = this.HandleMarginModeAndParams("createOrders", orderParams)
@@ -2384,7 +2384,7 @@ func (this *Digifinex) createOrdersBody(ch chan AsyncResult[[]Order], orders any
 	for i := 0; i < GetArrayLength(orders); i++ {
 		var rawOrder map[string]any = SafeMapTyped(orders, i)
 		var individualOrder map[string]any = map[string]any{}
-		individualOrder["order_id"] = this.SafeValue(data, i)
+		individualOrder["order_id"] = this.SafeString(data, i)
 		individualOrder["instrument_id"] = market["id"]
 		individualOrder["amount"] = this.SafeNumber(rawOrder, "amount")
 		individualOrder["price"] = this.SafeNumber(rawOrder, "price")
@@ -5890,7 +5890,7 @@ func (this *Digifinex) ParseDepositWithdrawFees(response any, optionalArgs ...an
 			var depositWithdrawInfo any = GetValue(depositWithdrawFee, "info")
 			AppendToArray(&depositWithdrawInfo, entry)
 			var networkId *string = this.SafeString(entry, "chain")
-			var withdrawFee any = this.SafeValue(entry, "min_withdraw_fee")
+			var withdrawFee *float64 = this.SafeNumber(entry, "min_withdraw_fee")
 			var withdrawResult map[string]any = map[string]any{
 				"fee": withdrawFee,
 				"percentage": func() any {
@@ -6348,7 +6348,7 @@ func NewDigifinex(userConfig map[string]any) *Digifinex {
 func (this *Digifinex) Init(userConfig map[string]any) {
 	this.Exchange = Exchange{}
 	this.Exchange.DerivedExchange = this
-	this.Exchange.InitParent(userConfig, this.Describe().(map[string]any), this)
+	this.Exchange.InitParent(userConfig, this.Describe(), this)
 }
 
 // typed methods

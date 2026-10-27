@@ -15,7 +15,7 @@ func newPaymium() *Paymium {
 	return p
 }
 
-func (this *Paymium) Describe() any {
+func (this *Paymium) Describe() map[string]any {
 	return this.DeepExtend(this.Exchange.Describe(), map[string]any{
 		"id":        "paymium",
 		"name":      "Paymium",
@@ -225,10 +225,10 @@ func (this *Paymium) ParseBalance(response any) map[string]any {
 		var code string = currencies[i]
 		var currency map[string]any = this.Currency(code)
 		var currencyId *string = SafeStringPtr(currency["id"])
-		var free string = "balance_" + *currencyId
-		if InOp(response, free) {
+		var freeAmount *string = this.SafeString(response, "balance_"+*currencyId)
+		if freeAmount != nil {
 			var account map[string]any = this.Account()
-			account["free"] = this.SafeString(response, free)
+			account["free"] = freeAmount
 			account["used"] = this.SafeString(response, "locked_"+*currencyId)
 			result[code] = account
 		}
@@ -981,7 +981,7 @@ func NewPaymium(userConfig map[string]any) *Paymium {
 func (this *Paymium) Init(userConfig map[string]any) {
 	this.Exchange = Exchange{}
 	this.Exchange.DerivedExchange = this
-	this.Exchange.InitParent(userConfig, this.Describe().(map[string]any), this)
+	this.Exchange.InitParent(userConfig, this.Describe(), this)
 }
 
 // typed methods

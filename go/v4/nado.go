@@ -15,7 +15,7 @@ func newNado() *Nado {
 	return p
 }
 
-func (this *Nado) Describe() any {
+func (this *Nado) Describe() map[string]any {
 	return this.DeepExtend(this.Exchange.Describe(), map[string]any{
 		"id":            "nado",
 		"name":          "Nado",
@@ -1303,7 +1303,7 @@ func (this *Nado) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ...
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		productIds = append(productIds, this.ParseToInt(market["id"]))
+		productIds = append(productIds, this.ParseToInt(this.SafeString(market, "id")))
 	}
 	subaccount, paramsSubaccount := this.HandleOptionStringAndParams(params, "fetchOrders", "subaccount", "default")
 	var sender string = this.CreateSubaccount(this.WalletAddress, subaccount)
@@ -1315,7 +1315,7 @@ func (this *Nado) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ...
 	recvWindow, paramsRecvWindow := this.HandleOptionIntegerAndParams(paramsOmitted, "fetchOrders", "recvWindow", 5000)
 	var tx map[string]any = map[string]any{
 		"sender":   sender,
-		"recvTime": this.NumberToString(Add(this.Milliseconds(), recvWindow)),
+		"recvTime": this.NumberToString(this.Sum(this.Milliseconds(), recvWindow)),
 	}
 	var request map[string]any = map[string]any{
 		"tx":          tx,
@@ -1551,7 +1551,7 @@ func (this *Nado) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 		"subaccounts": []any{sender},
 	}
 	if market != nil {
-		ordersRequest["product_ids"] = []any{this.ParseToInt(market["id"])}
+		ordersRequest["product_ids"] = []any{this.ParseToInt(this.SafeString(market, "id"))}
 	}
 	if limit != nil {
 		ordersRequest["limit"] = mathMin(limit, 500)
@@ -1734,7 +1734,7 @@ func (this *Nado) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs .
 		"subaccounts": []any{this.CreateSubaccount(this.WalletAddress, subaccount)},
 	}
 	if market != nil {
-		matchesRequest["product_ids"] = []any{this.ParseToInt(market["id"])}
+		matchesRequest["product_ids"] = []any{this.ParseToInt(this.SafeString(market, "id"))}
 	}
 	if limit != nil {
 		matchesRequest["limit"] = mathMin(limit, 500)
@@ -4211,7 +4211,7 @@ func NewNado(userConfig map[string]any) *Nado {
 func (this *Nado) Init(userConfig map[string]any) {
 	this.Exchange = Exchange{}
 	this.Exchange.DerivedExchange = this
-	this.Exchange.InitParent(userConfig, this.Describe().(map[string]any), this)
+	this.Exchange.InitParent(userConfig, this.Describe(), this)
 }
 
 // typed methods

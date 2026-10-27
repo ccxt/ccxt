@@ -15,7 +15,7 @@ func newBitfinex() *Bitfinex {
 	return p
 }
 
-func (this *Bitfinex) Describe() any {
+func (this *Bitfinex) Describe() map[string]any {
 	return this.DeepExtend(this.Exchange.Describe(), map[string]any{
 		"id":        "bitfinex",
 		"name":      "Bitfinex",
@@ -2344,7 +2344,7 @@ func (this *Bitfinex) CreateOrderRequest(symbol *string, typeVar *string, side *
 	var timeInForce *string = this.SafeString(params, "timeInForce")
 	var postOnlyParam *bool = this.SafeBool(params, "postOnly", false)
 	var reduceOnly *bool = this.SafeBool(params, "reduceOnly", false)
-	var clientOrderId any = this.SafeValue2(params, "cid", "clientOrderId")
+	var clientOrderId *int64 = this.SafeInteger2(params, "cid", "clientOrderId")
 	var orderType string = strings.ToUpper(*typeVar)
 	if trailingAmount != nil {
 		orderType = "TRAILING STOP"
@@ -2675,7 +2675,7 @@ func (this *Bitfinex) cancelOrderBody(ch chan AsyncResult[Order], id any, option
 			panic(r.Err)
 		}
 	}
-	var cid any = this.SafeValue2(params, "cid", "clientOrderId") // client order id
+	var cid *int64 = this.SafeInteger2(params, "cid", "clientOrderId") // client order id
 	var request map[string]any = nil
 	var market map[string]any = nil
 	if symbol != nil {
@@ -5498,7 +5498,7 @@ func NewBitfinex(userConfig map[string]any) *Bitfinex {
 func (this *Bitfinex) Init(userConfig map[string]any) {
 	this.Exchange = Exchange{}
 	this.Exchange.DerivedExchange = this
-	this.Exchange.InitParent(userConfig, this.Describe().(map[string]any), this)
+	this.Exchange.InitParent(userConfig, this.Describe(), this)
 }
 
 // typed methods

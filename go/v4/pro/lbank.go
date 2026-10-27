@@ -20,7 +20,7 @@ func newLbank() *Lbank {
 	return p
 }
 
-func (this *Lbank) Describe() any {
+func (this *Lbank) Describe() map[string]any {
 	return this.DeepExtend(this.base.Describe(), map[string]any{
 		"has": map[string]any{
 			"ws":                    true,

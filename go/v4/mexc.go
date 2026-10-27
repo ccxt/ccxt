@@ -15,7 +15,7 @@ func newMexc() *Mexc {
 	return p
 }
 
-func (this *Mexc) Describe() any {
+func (this *Mexc) Describe() map[string]any {
 	return this.DeepExtend(this.Exchange.Describe(), map[string]any{
 		"id":        "mexc",
 		"name":      "MEXC Global",
@@ -5245,9 +5245,7 @@ func (this *Mexc) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs .
 			var symbols []any = SafeListTyped(paramsOmitted2, "symbols")
 			if symbols != nil {
 				var symbolIds any = this.MarketIds(symbols)
-				if !IsEqual(symbolIds, nil) {
-					parsedSymbols = Join(symbolIds, ",")
-				}
+				parsedSymbols = Join(symbolIds, ",")
 			}
 		} else {
 			var market map[string]any = this.Market(symbol)
@@ -5643,11 +5641,11 @@ func (this *Mexc) reduceMarginBody(ch chan AsyncResult[map[string]any], symbol s
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes445815 map[string]any = r.Value
-	if retRes445815 == nil {
+	var retRes445615 map[string]any = r.Value
+	if retRes445615 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes445815}
+		ch <- AsyncResult[map[string]any]{Value: retRes445615}
 	}
 	return nil
 }
@@ -5677,11 +5675,11 @@ func (this *Mexc) addMarginBody(ch chan AsyncResult[map[string]any], symbol stri
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes447215 map[string]any = r.Value
-	if retRes447215 == nil {
+	var retRes447015 map[string]any = r.Value
+	if retRes447015 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes447215}
+		ch <- AsyncResult[map[string]any]{Value: retRes447015}
 	}
 	return nil
 }
@@ -5924,11 +5922,11 @@ func (this *Mexc) fetchFundingIntervalBody(ch chan AsyncResult[FundingRate], sym
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes465615 map[string]any = StructResultMap(r.Value, FundingRateToMap)
-	if retRes465615 == nil {
+	var retRes465415 map[string]any = StructResultMap(r.Value, FundingRateToMap)
+	if retRes465415 == nil {
 		ch <- AsyncResult[FundingRate]{}
 	} else {
-		ch <- AsyncResult[FundingRate]{Value: FundingRateFromMap(retRes465615)}
+		ch <- AsyncResult[FundingRate]{Value: FundingRateFromMap(retRes465415)}
 	}
 	return nil
 }
@@ -6345,11 +6343,11 @@ func (this *Mexc) fetchDepositAddressesByNetworkBody(ch chan AsyncResult[map[str
 	}
 	var paramsOmitted map[string]any = this.OmitDict(params, "network")
 
-	listEp5980 := <-this.SpotPrivateGetCapitalDepositAddress(this.Extend(request, paramsOmitted))
-	if listEp5980.Err != nil {
-		panic(listEp5980.Err)
+	listEp5978 := <-this.SpotPrivateGetCapitalDepositAddress(this.Extend(request, paramsOmitted))
+	if listEp5978.Err != nil {
+		panic(listEp5978.Err)
 	}
-	var response []any = listEp5980.Value
+	var response []any = listEp5978.Value
 	//
 	//    [
 	//        {
@@ -6567,11 +6565,11 @@ func (this *Mexc) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optional
 		return params
 	}()
 
-	listEp6178 := <-this.SpotPrivateGetCapitalDepositHisrec(this.Extend(request, paramsOmitted))
-	if listEp6178.Err != nil {
-		panic(listEp6178.Err)
+	listEp6176 := <-this.SpotPrivateGetCapitalDepositHisrec(this.Extend(request, paramsOmitted))
+	if listEp6176.Err != nil {
+		panic(listEp6176.Err)
 	}
-	var response []any = listEp6178.Value
+	var response []any = listEp6176.Value
 
 	//
 	// [
@@ -6646,11 +6644,11 @@ func (this *Mexc) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], optio
 		request["limit"] = limit
 	}
 
-	listEp6250 := <-this.SpotPrivateGetCapitalWithdrawHistory(this.Extend(request, params))
-	if listEp6250.Err != nil {
-		panic(listEp6250.Err)
+	listEp6248 := <-this.SpotPrivateGetCapitalWithdrawHistory(this.Extend(request, params))
+	if listEp6248.Err != nil {
+		panic(listEp6248.Err)
 	}
-	var response []any = listEp6250.Value
+	var response []any = listEp6248.Value
 
 	//
 	// [
@@ -6746,7 +6744,8 @@ func (this *Mexc) ParseTransaction(transaction any, optionalArgs ...any) Transac
 	var currencyId any = nil
 	var currencyWithNetwork *string = this.SafeString(transaction, "coin")
 	if currencyWithNetwork != nil {
-		currencyId = GetValue(strings.Split(*currencyWithNetwork, "-"), 0)
+		var currencyParts []string = strings.Split(*currencyWithNetwork, "-")
+		currencyId = currencyParts[0]
 	}
 	var code *string = this.SafeCurrencyCode(currencyId, currency)
 	var network *string = nil
@@ -7717,11 +7716,11 @@ func (this *Mexc) fetchTransactionFeesBody(ch chan AsyncResult[map[string]any], 
 		}
 	}
 
-	listEp7243 := <-this.SpotPrivateGetCapitalConfigGetall(params)
-	if listEp7243.Err != nil {
-		panic(listEp7243.Err)
+	listEp7247 := <-this.SpotPrivateGetCapitalConfigGetall(params)
+	if listEp7247.Err != nil {
+		panic(listEp7247.Err)
 	}
-	var response []any = listEp7243.Value
+	var response []any = listEp7247.Value
 
 	//
 	//    [
@@ -7844,11 +7843,11 @@ func (this *Mexc) fetchDepositWithdrawFeesBody(ch chan AsyncResult[map[string]De
 		}
 	}
 
-	listEp7363 := <-this.SpotPrivateGetCapitalConfigGetall(params)
-	if listEp7363.Err != nil {
-		panic(listEp7363.Err)
+	listEp7367 := <-this.SpotPrivateGetCapitalConfigGetall(params)
+	if listEp7367.Err != nil {
+		panic(listEp7367.Err)
 	}
-	var response []any = listEp7363.Value
+	var response []any = listEp7367.Value
 
 	//
 	//    [
@@ -8380,7 +8379,7 @@ func NewMexc(userConfig map[string]any) *Mexc {
 func (this *Mexc) Init(userConfig map[string]any) {
 	this.Exchange = Exchange{}
 	this.Exchange.DerivedExchange = this
-	this.Exchange.InitParent(userConfig, this.Describe().(map[string]any), this)
+	this.Exchange.InitParent(userConfig, this.Describe(), this)
 }
 
 // typed methods

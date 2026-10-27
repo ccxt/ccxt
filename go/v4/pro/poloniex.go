@@ -20,7 +20,7 @@ func newPoloniex() *Poloniex {
 	return p
 }
 
-func (this *Poloniex) Describe() any {
+func (this *Poloniex) Describe() map[string]any {
 	return this.DeepExtend(this.base.Describe(), map[string]any{
 		"has": map[string]any{
 			"ws":                    true,

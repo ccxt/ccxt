@@ -20,7 +20,7 @@ func newIndependentreserve() *Independentreserve {
 	return p
 }
 
-func (this *Independentreserve) Describe() any {
+func (this *Independentreserve) Describe() map[string]any {
 	return this.DeepExtend(this.base.Describe(), map[string]any{
 		"has": map[string]any{
 			"ws":                    true,

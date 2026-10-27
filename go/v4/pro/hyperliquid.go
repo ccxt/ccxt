@@ -20,7 +20,7 @@ func newHyperliquid() *Hyperliquid {
 	return p
 }
 
-func (this *Hyperliquid) Describe() any {
+func (this *Hyperliquid) Describe() map[string]any {
 	return this.DeepExtend(this.base.Describe(), map[string]any{
 		"has": map[string]any{
 			"ws":                            true,

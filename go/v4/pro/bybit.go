@@ -21,7 +21,7 @@ func newBybit() *Bybit {
 	return p
 }
 
-func (this *Bybit) Describe() any {
+func (this *Bybit) Describe() map[string]any {
 	var superDescribe any = this.base.Describe()
 	return this.DeepExtend(superDescribe, this.DescribeData())
 }
@@ -324,7 +324,7 @@ func (this *Bybit) createOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], symbo
 		}
 	}
 	var orderRequest map[string]any = ccxt.MapTyped(this.CreateOrderRequest(symbol, typeVar, ccxt.SafeStringPtr(side), amount, price, params, true))
-	var url string = this.ImplodeHostname(ccxt.GetValue(this.UrlsApiSections["ws"]["private"], "trade"))
+	var url string = this.ImplodeHostname(this.SafeString(this.UrlsApiSections["ws"]["private"], "trade", ""))
 
 	r1 := <-this.AuthenticateAsync(url)
 	if r1.Err != nil {
@@ -396,7 +396,7 @@ func (this *Bybit) editOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id stri
 		}
 	}
 	var orderRequest any = this.EditOrderRequest(ccxt.SafeStringPtr(id), symbol, typeVar, side, amount, price, params)
-	var url string = this.ImplodeHostname(ccxt.GetValue(this.UrlsApiSections["ws"]["private"], "trade"))
+	var url string = this.ImplodeHostname(this.SafeString(this.UrlsApiSections["ws"]["private"], "trade", ""))
 
 	r1 := <-this.AuthenticateAsync(url)
 	if r1.Err != nil {
@@ -457,7 +457,7 @@ func (this *Bybit) cancelOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id st
 		panic(ccxt.ArgumentsRequired(this.Id + " cancelOrderWs() requires a symbol argument"))
 	}
 	var orderRequest any = this.CancelOrderRequest(id, symbol, params)
-	var url string = this.ImplodeHostname(ccxt.GetValue(this.UrlsApiSections["ws"]["private"], "trade"))
+	var url string = this.ImplodeHostname(this.SafeString(this.UrlsApiSections["ws"]["private"], "trade", ""))
 
 	r1 := <-this.AuthenticateAsync(url)
 	if r1.Err != nil {
@@ -580,7 +580,7 @@ func (this *Bybit) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Tic
 	var marketIds any = this.MarketIds(symbolsValue)
 	var topics []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(marketIds); i++ {
-		var marketId *string = ccxt.SafeStringPtr(ccxt.GetValue(marketIds, i))
+		var marketId *string = this.SafeString(marketIds, i, "")
 		topics = append(topics, *topic+"."+*marketId)
 		messageHashes = append(messageHashes, "ticker:"+*this.SafeString(symbolsValue, i, ""))
 	}
@@ -642,7 +642,7 @@ func (this *Bybit) unWatchTickersBody(ch chan ccxt.AsyncResult[bool], optionalAr
 	var marketIds any = this.MarketIds(symbolsValue)
 	var topics []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(marketIds); i++ {
-		var marketId *string = ccxt.SafeStringPtr(ccxt.GetValue(marketIds, i))
+		var marketId *string = this.SafeString(marketIds, i, "")
 		var symbol *string = ccxt.SafeStringPtr(func() any {
 			if i >= 0 && i < len(symbolsValue) {
 				return symbolsValue[i]
@@ -887,7 +887,7 @@ func (this *Bybit) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccxt.Ti
 	var marketIds any = this.MarketIds(symbolsValue)
 	var topics []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(marketIds); i++ {
-		var marketId *string = ccxt.SafeStringPtr(ccxt.GetValue(marketIds, i))
+		var marketId *string = this.SafeString(marketIds, i, "")
 		var topic string = "orderbook.1." + *marketId
 		topics = append(topics, topic)
 		messageHashes = append(messageHashes, "bidask:"+*this.SafeString(symbolsValue, i, ""))

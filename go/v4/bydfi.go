@@ -16,7 +16,7 @@ func newBydfi() *Bydfi {
 	return p
 }
 
-func (this *Bydfi) Describe() any {
+func (this *Bydfi) Describe() map[string]any {
 	return this.DeepExtend(this.Exchange.Describe(), map[string]any{
 		"id":        "bydfi",
 		"name":      "BYDFi",
@@ -629,11 +629,11 @@ func (this *Bydfi) ParseMarket(market any) map[string]any {
 	var settleId *string = this.SafeString(market, "marginAsset")
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
-	if (base == nil) || (quote == nil) {
+	var settle *string = this.SafeCurrencyCode(settleId)
+	if (base == nil) || (quote == nil) || (settle == nil) {
 		return nil
 	}
-	var settle *string = this.SafeCurrencyCode(settleId)
-	var symbol *string = SafeStringPtr(Add(*base+"/"+*quote+":", settle))
+	var symbol string = *base + "/" + *quote + ":" + *settle
 	var inverse *bool = this.SafeBool(market, "reverse")
 	var limitMaxQty *string = this.SafeString(market, "limitMaxQty")
 	var marketMaxQty *string = this.SafeString(market, "marketMaxQty")
@@ -4090,7 +4090,7 @@ func NewBydfi(userConfig map[string]any) *Bydfi {
 func (this *Bydfi) Init(userConfig map[string]any) {
 	this.Exchange = Exchange{}
 	this.Exchange.DerivedExchange = this
-	this.Exchange.InitParent(userConfig, this.Describe().(map[string]any), this)
+	this.Exchange.InitParent(userConfig, this.Describe(), this)
 }
 
 // typed methods

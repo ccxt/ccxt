@@ -15,7 +15,7 @@ func newBtcturk() *Btcturk {
 	return p
 }
 
-func (this *Btcturk) Describe() any {
+func (this *Btcturk) Describe() map[string]any {
 	return this.DeepExtend(this.Exchange.Describe(), map[string]any{
 		"id":        "btcturk",
 		"name":      "BTCTurk",
@@ -1489,7 +1489,7 @@ func NewBtcturk(userConfig map[string]any) *Btcturk {
 func (this *Btcturk) Init(userConfig map[string]any) {
 	this.Exchange = Exchange{}
 	this.Exchange.DerivedExchange = this
-	this.Exchange.InitParent(userConfig, this.Describe().(map[string]any), this)
+	this.Exchange.InitParent(userConfig, this.Describe(), this)
 }
 
 // typed methods

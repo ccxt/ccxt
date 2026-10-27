@@ -20,7 +20,7 @@ func newExtended() *Extended {
 	return p
 }
 
-func (this *Extended) Describe() any {
+func (this *Extended) Describe() map[string]any {
 	return this.DeepExtend(this.base.Describe(), map[string]any{
 		"has": map[string]any{
 			"ws":               true,

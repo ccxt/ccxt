@@ -21,7 +21,7 @@ func newGate() *Gate {
 	return p
 }
 
-func (this *Gate) Describe() any {
+func (this *Gate) Describe() map[string]any {
 	var superDescribe any = this.base.Describe()
 	return this.DeepExtend(superDescribe, this.DescribeData())
 }

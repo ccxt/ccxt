@@ -18,7 +18,7 @@ func newBitstamp() *Bitstamp {
 	return p
 }
 
-func (this *Bitstamp) Describe() any {
+func (this *Bitstamp) Describe() map[string]any {
 	return this.DeepExtend(this.Exchange.Describe(), map[string]any{
 		"id":        "bitstamp",
 		"name":      "Bitstamp",
@@ -4084,12 +4084,12 @@ func (this *Bitstamp) Sign(path string, optionalArgs ...any) any {
 	var isPrivatePost bool = (apiName != "public") && (method == "POST")
 	// an empty POST triggers an API0020 error, so empty requests send a dummy object
 	// https://github.com/ccxt/ccxt/issues/6846
-	var emptyPostBody string = this.Urlencode(map[string]any{
+	var queryString string = this.Urlencode(query)
+	var postBody string = this.Urlencode(map[string]any{
 		"foo": "bar",
 	})
-	var postBody string = emptyPostBody
-	if len(ObjectKeys(query)) > 0 {
-		postBody = this.Urlencode(query)
+	if queryString != "" {
+		postBody = queryString
 	}
 	var requestBody *string = nil
 	if isPrivatePost {
@@ -4097,8 +4097,8 @@ func (this *Bitstamp) Sign(path string, optionalArgs ...any) any {
 	}
 	var privateHeaders map[string]any = map[string]any{}
 	if apiName == "public" {
-		if len(ObjectKeys(query)) > 0 {
-			url += "?" + this.Urlencode(query)
+		if queryString != "" {
+			url += "?" + queryString
 		}
 	} else {
 		this.CheckRequiredCredentials()
@@ -4198,7 +4198,7 @@ func NewBitstamp(userConfig map[string]any) *Bitstamp {
 func (this *Bitstamp) Init(userConfig map[string]any) {
 	this.Exchange = Exchange{}
 	this.Exchange.DerivedExchange = this
-	this.Exchange.InitParent(userConfig, this.Describe().(map[string]any), this)
+	this.Exchange.InitParent(userConfig, this.Describe(), this)
 }
 
 // typed methods

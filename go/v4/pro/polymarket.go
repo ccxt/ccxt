@@ -21,7 +21,7 @@ func newPolymarket() *Polymarket {
 	return p
 }
 
-func (this *Polymarket) Describe() any {
+func (this *Polymarket) Describe() map[string]any {
 	return this.DeepExtend(this.base.Describe(), map[string]any{
 		"has": map[string]any{
 			"ws":                    true,

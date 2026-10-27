@@ -18,7 +18,7 @@ func newWhitebit() *Whitebit {
 	return p
 }
 
-func (this *Whitebit) Describe() any {
+func (this *Whitebit) Describe() map[string]any {
 	return this.DeepExtend(this.Exchange.Describe(), map[string]any{
 		"id":        "whitebit",
 		"name":      "WhiteBit",
@@ -1014,7 +1014,7 @@ func (this *Whitebit) ParseCurrency(rawCurrency any) map[string]any {
 	var withdrawLimits map[string]any = SafeMapTyped(networkLimits, "withdraw")
 	var allNetworks []any = this.ArrayConcat(depositsNetworks, withdrawsNetworks)
 	for j := 0; j < len(allNetworks); j++ {
-		var networkId any = DerefScalar(allNetworks[j])
+		var networkId *string = this.SafeString(allNetworks, j, "")
 		var networkCode *string = this.NetworkIdToCode(networkId, code)
 		var networkDepositLimits map[string]any = SafeMapTyped(depositLimits, networkId)
 		var networkWithdrawLimits map[string]any = SafeMapTyped(withdrawLimits, networkId)
@@ -2333,11 +2333,11 @@ func (this *Whitebit) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, 
 		"market": market["id"],
 	}
 
-	listEp2270 := <-this.V4PublicGetTradesMarket(this.Extend(request, params))
-	if listEp2270.Err != nil {
-		panic(listEp2270.Err)
+	listEp2265 := <-this.V4PublicGetTradesMarket(this.Extend(request, params))
+	if listEp2265.Err != nil {
+		panic(listEp2265.Err)
 	}
-	var response []any = listEp2270.Value
+	var response []any = listEp2265.Value
 
 	//
 	//      [
@@ -3191,11 +3191,11 @@ func (this *Whitebit) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optional
 	}
 	request["type"] = requestType
 
-	listEp3045 := <-this.V4PrivatePostOrderCancelAll(this.Extend(request, requestParams))
-	if listEp3045.Err != nil {
-		panic(listEp3045.Err)
+	listEp3040 := <-this.V4PrivatePostOrderCancelAll(this.Extend(request, requestParams))
+	if listEp3040.Err != nil {
+		panic(listEp3040.Err)
 	}
-	var response []any = listEp3045.Value
+	var response []any = listEp3040.Value
 
 	//
 	// []
@@ -3483,11 +3483,11 @@ func (this *Whitebit) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optional
 		request["limit"] = mathMin(limit, 100)
 	}
 
-	listEp3296 := <-this.V4PrivatePostOrders(this.Extend(request, params))
-	if listEp3296.Err != nil {
-		panic(listEp3296.Err)
+	listEp3291 := <-this.V4PrivatePostOrders(this.Extend(request, params))
+	if listEp3291.Err != nil {
+		panic(listEp3291.Err)
 	}
-	var response []any = listEp3296.Value
+	var response []any = listEp3291.Value
 
 	//
 	//     [
@@ -4323,11 +4323,11 @@ func (this *Whitebit) transferBody(ch chan AsyncResult[TransferEntry], code stri
 		"to":     toAccountId,
 	}
 
-	listEp4074 := <-this.V4PrivatePostMainAccountTransfer(this.Extend(request, params))
-	if listEp4074.Err != nil {
-		panic(listEp4074.Err)
+	listEp4069 := <-this.V4PrivatePostMainAccountTransfer(this.Extend(request, params))
+	if listEp4069.Err != nil {
+		panic(listEp4069.Err)
 	}
-	var response []any = listEp4074.Value
+	var response []any = listEp4069.Value
 
 	//
 	//    []
@@ -4763,11 +4763,11 @@ func (this *Whitebit) fetchBorrowInterestBody(ch chan AsyncResult[[]BorrowIntere
 		request["market"] = market["id"]
 	}
 
-	listEp4488 := <-this.V4PrivatePostCollateralAccountPositionsOpen(this.Extend(request, params))
-	if listEp4488.Err != nil {
-		panic(listEp4488.Err)
+	listEp4483 := <-this.V4PrivatePostCollateralAccountPositionsOpen(this.Extend(request, params))
+	if listEp4483.Err != nil {
+		panic(listEp4483.Err)
 	}
-	var response []any = listEp4488.Value
+	var response []any = listEp4483.Value
 	//
 	//     [
 	//         {
@@ -5549,11 +5549,11 @@ func (this *Whitebit) fetchPositionHistoryBody(ch chan AsyncResult[[]Position], 
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("endDate", request, params)
 
-	listEp5218 := <-this.V4PrivatePostCollateralAccountPositionsHistory(this.Extend(requestUntil, paramsUntil))
-	if listEp5218.Err != nil {
-		panic(listEp5218.Err)
+	listEp5213 := <-this.V4PrivatePostCollateralAccountPositionsHistory(this.Extend(requestUntil, paramsUntil))
+	if listEp5213.Err != nil {
+		panic(listEp5213.Err)
 	}
-	var response []any = listEp5218.Value
+	var response []any = listEp5213.Value
 	//
 	//     [
 	//         {
@@ -5613,11 +5613,11 @@ func (this *Whitebit) fetchPositionsBody(ch chan AsyncResult[[]Position], option
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
-	listEp5275 := <-this.V4PrivatePostCollateralAccountPositionsOpen(params)
-	if listEp5275.Err != nil {
-		panic(listEp5275.Err)
+	listEp5270 := <-this.V4PrivatePostCollateralAccountPositionsOpen(params)
+	if listEp5270.Err != nil {
+		panic(listEp5270.Err)
 	}
-	var response []any = listEp5275.Value
+	var response []any = listEp5270.Value
 
 	//
 	//     [
@@ -5675,11 +5675,11 @@ func (this *Whitebit) fetchPositionBody(ch chan AsyncResult[Position], symbol an
 		"symbol": market["id"],
 	}
 
-	listEp5330 := <-this.V4PrivatePostCollateralAccountPositionsOpen(this.Extend(request, params))
-	if listEp5330.Err != nil {
-		panic(listEp5330.Err)
+	listEp5325 := <-this.V4PrivatePostCollateralAccountPositionsOpen(this.Extend(request, params))
+	if listEp5325.Err != nil {
+		panic(listEp5325.Err)
 	}
-	var response []any = listEp5330.Value
+	var response []any = listEp5325.Value
 	//
 	//     [
 	//         {
@@ -5858,11 +5858,11 @@ func (this *Whitebit) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingR
 		requestUntil["limit"] = *limit
 	}
 
-	listEp5502 := <-this.V4PublicGetFundingHistoryMarket(this.Extend(requestUntil, paramsUntil))
-	if listEp5502.Err != nil {
-		panic(listEp5502.Err)
+	listEp5497 := <-this.V4PublicGetFundingHistoryMarket(this.Extend(requestUntil, paramsUntil))
+	if listEp5497.Err != nil {
+		panic(listEp5497.Err)
 	}
-	var response []any = listEp5502.Value
+	var response []any = listEp5497.Value
 
 	//
 	//     [
@@ -5904,7 +5904,7 @@ func (this *Whitebit) Sign(path string, optionalArgs ...any) any {
 	_ = params
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var version string = api[0]
-	var accessibility *string = this.SafeString(api, 1)
+	var accessibility string = api[1]
 	var publicHeaders map[string]any = map[string]any{}
 	publicHeaders["User-Agent"] = "ccxt/" + this.Id + "-" + this.Version
 	var pathWithParams string = "/" + this.ImplodeParams(path, params)
@@ -5913,14 +5913,14 @@ func (this *Whitebit) Sign(path string, optionalArgs ...any) any {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var url string = *apiUrl + pathWithParams
-	if accessibility != nil && *accessibility == "public" {
+	if accessibility == "public" {
 		if len(ObjectKeys(query)) > 0 {
 			url += "?" + this.Urlencode(query)
 		}
 	}
 	var privateBody any = nil
 	var privateHeaders map[string]any = map[string]any{}
-	if accessibility != nil && *accessibility == "private" {
+	if accessibility == "private" {
 		this.CheckRequiredCredentials()
 		// whitebit requires each nonce to be greater than the previous one unless nonceWindow is enabled
 		var nonce string = ToString(this.IncrementingNonce())
@@ -5941,7 +5941,7 @@ func (this *Whitebit) Sign(path string, optionalArgs ...any) any {
 			"X-TXC-SIGNATURE": signature,
 		}
 	}
-	var isPrivate bool = (accessibility != nil && *accessibility == "private")
+	var isPrivate bool = (accessibility == "private")
 	var requestBody any = nil
 	if isPrivate {
 		requestBody = privateBody
@@ -5977,7 +5977,7 @@ func (this *Whitebit) HandleErrors(code int64, reason any, url string, method an
 		var hasErrorStatus bool = (status != nil) && (status == nil || *status != "200") && (errors != nil)
 		if hasErrorStatus || (codeNew != nil) {
 			var feedback string = this.Id + " " + body
-			var errorInfo any = message
+			var errorInfo *string = message
 			if hasErrorStatus {
 				errorInfo = status
 			} else {
@@ -5991,25 +5991,9 @@ func (this *Whitebit) HandleErrors(code int64, reason any, url string, method an
 				}
 				var errorsLength int = len(errorKeys)
 				if errorsLength > 0 {
-					var errorKey *string = SafeStringPtr(func() any {
-						if 0 >= 0 && 0 < len(errorKeys) {
-							return errorKeys[0]
-						}
-						return nil
-					}())
+					var errorKey *string = this.SafeString(errorKeys, 0, "")
 					var errorMessageArray []any = SafeListTyped(errorObject, errorKey)
-					var errorMessageLength int = len(errorMessageArray)
-					errorInfo = func() any {
-						if errorMessageLength > 0 {
-							return func() any {
-								if 0 >= 0 && 0 < len(errorMessageArray) {
-									return DerefScalar(errorMessageArray[0])
-								}
-								return nil
-							}()
-						}
-						return body
-					}()
+					errorInfo = this.SafeString(errorMessageArray, 0, body)
 				}
 			}
 			this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorInfo, feedback)
@@ -6030,25 +6014,9 @@ func (this *Whitebit) HandleErrors(code int64, reason any, url string, method an
 			var errKeysLength int = len(errKeys)
 			var errorInfo any = body
 			if errKeysLength > 0 {
-				var errorKey *string = SafeStringPtr(func() any {
-					if 0 >= 0 && 0 < len(errKeys) {
-						return errKeys[0]
-					}
-					return nil
-				}())
+				var errorKey *string = this.SafeString(errKeys, 0, "")
 				var errorMessageArray []any = SafeListTyped(errMsg, errorKey)
-				var errorMessageLength int = len(errorMessageArray)
-				errorInfo = func() any {
-					if errorMessageLength > 0 {
-						return func() any {
-							if 0 >= 0 && 0 < len(errorMessageArray) {
-								return DerefScalar(errorMessageArray[0])
-							}
-							return nil
-						}()
-					}
-					return body
-				}()
+				errorInfo = this.SafeString(errorMessageArray, 0, body)
 			}
 			var feedback string = this.Id + " " + body
 			this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorInfo, feedback)
@@ -6068,7 +6036,7 @@ func NewWhitebit(userConfig map[string]any) *Whitebit {
 func (this *Whitebit) Init(userConfig map[string]any) {
 	this.Exchange = Exchange{}
 	this.Exchange.DerivedExchange = this
-	this.Exchange.InitParent(userConfig, this.Describe().(map[string]any), this)
+	this.Exchange.InitParent(userConfig, this.Describe(), this)
 }
 
 // typed methods

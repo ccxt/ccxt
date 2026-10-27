@@ -13,7 +13,7 @@ func newMyokx() *Myokx {
 	return p
 }
 
-func (this *Myokx) Describe() any {
+func (this *Myokx) Describe() map[string]any {
 	return this.DeepExtend(this.Okx.Describe(), map[string]any{
 		"id":        "myokx",
 		"name":      "MyOKX (EEA)",

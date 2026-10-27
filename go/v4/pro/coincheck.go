@@ -18,7 +18,7 @@ func newCoincheck() *Coincheck {
 	return p
 }
 
-func (this *Coincheck) Describe() any {
+func (this *Coincheck) Describe() map[string]any {
 	return this.DeepExtend(this.base.Describe(), map[string]any{
 		"has": map[string]any{
 			"ws":                    true,
@@ -122,7 +122,7 @@ func (this *Coincheck) HandleOrderBook(client any, message any) {
 	//         }
 	//     ]
 	//
-	var symbol any = this.Symbol(this.SafeString(message, 0))
+	var symbol *string = this.SafeString(this.Market(this.SafeString(message, 0)), "symbol", "")
 	var data map[string]any = this.SafeDictMap(message, 1, map[string]any{})
 	var timestamp *int64 = this.SafeTimestamp(data, "last_update_at")
 	var snapshot map[string]any = this.ParseOrderBook(data, symbol, timestamp)
@@ -133,7 +133,7 @@ func (this *Coincheck) HandleOrderBook(client any, message any) {
 	} else {
 		orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
 	}
-	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("orderbook:", symbol))
+	var messageHash string = "orderbook:" + *symbol
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
 
@@ -207,19 +207,21 @@ func (this *Coincheck) HandleTrades(client any, message any) {
 	//     ]
 	//
 	var first []any = ccxt.SafeListTyped(message, 0)
-	var symbol any = this.Symbol(this.SafeString(first, 2))
+	var symbol *string = this.SafeString(this.Market(this.SafeString(first, 2)), "symbol", "")
 	var stored any = this.SafeValue(this.Trades, symbol)
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		stored = ccxt.NewArrayCache(limit)
-		ccxt.AddElementToObject(this.Trades, symbol, stored)
+		if symbol != nil {
+			this.Trades[*symbol] = stored
+		}
 	}
 	for i := 0; i < ccxt.GetArrayLength(message); i++ {
 		var data any = this.SafeValue(message, i)
 		var trade map[string]any = this.ParseWsTrade(data)
 		stored.(ccxt.Appender).Append(trade)
 	}
-	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("trade:", symbol))
+	var messageHash string = "trade:" + *symbol
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
 func (this *Coincheck) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {

@@ -19,7 +19,7 @@ func newKalshi() *Kalshi {
 	return p
 }
 
-func (this *Kalshi) Describe() any {
+func (this *Kalshi) Describe() map[string]any {
 	return this.DeepExtend(this.BaseExchange.Describe(), map[string]any{
 		"id":        "kalshi",
 		"name":      "Kalshi",
@@ -446,12 +446,10 @@ func (this *Kalshi) fetchMarketsBody(ch chan ccxt.AsyncResult[[]ccxt.MarketInter
 			var parsed []any = ccxt.ArrayTyped(this.ParseBinaryMarketToOutcomes(raw))
 			var eventTicker *string = this.SafeString(raw, "event_ticker")
 			var eventTitle *string = this.SafeString(raw, "title", eventTicker)
-			var eventKey any = func() any {
-				if (eventTitle != nil) && (eventTitle == nil || *eventTitle != "") {
-					return this.ShortenSlug(eventTitle)
-				}
-				return ""
-			}()
+			var eventKey any = ""
+			if (eventTitle != nil) && (eventTitle == nil || *eventTitle != "") {
+				eventKey = this.ShortenSlug(eventTitle)
+			}
 			for j := 0; j < len(parsed); j++ {
 				var m any = ccxt.DerefScalar(parsed[j])
 				flatMarkets = append(flatMarkets, m)
@@ -2867,7 +2865,7 @@ func (this *Kalshi) createOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrde
 	var filledCount *float64 = this.SafeNumber(response, "fill_count")
 	if filledCount != nil {
 		order["filled"] = filledCount
-	} else if (remainingCount != nil) && (!ccxt.IsEqual(amount, nil)) {
+	} else if remainingCount != nil {
 		order["filled"] = ccxt.Subtract(amount, remainingCount)
 	}
 	if remainingCount != nil {
@@ -2938,11 +2936,11 @@ func (this *Kalshi) editOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrder]
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	var retRes210015 map[string]any = ccxt.StructResultMap(r2.Value, ccxt.PredictionOrderToMap)
-	if retRes210015 == nil {
+	var retRes210315 map[string]any = ccxt.StructResultMap(r2.Value, ccxt.PredictionOrderToMap)
+	if retRes210315 == nil {
 		ch <- ccxt.AsyncResult[ccxt.PredictionOrder]{}
 	} else {
-		ch <- ccxt.AsyncResult[ccxt.PredictionOrder]{Value: ccxt.PredictionOrderFromMap(retRes210015)}
+		ch <- ccxt.AsyncResult[ccxt.PredictionOrder]{Value: ccxt.PredictionOrderFromMap(retRes210315)}
 	}
 	return nil
 }
@@ -3794,7 +3792,7 @@ func NewKalshi(userConfig map[string]any) *Kalshi {
 func (this *Kalshi) Init(userConfig map[string]any) {
 	this.BaseExchange = ccxt.BaseExchange{}
 	this.BaseExchange.DerivedExchange = this
-	this.BaseExchange.InitParent(userConfig, this.Describe().(map[string]any), this)
+	this.BaseExchange.InitParent(userConfig, this.Describe(), this)
 }
 
 // typed methods

@@ -18,7 +18,7 @@ func newBybit() *Bybit {
 	return p
 }
 
-func (this *Bybit) Describe() any {
+func (this *Bybit) Describe() map[string]any {
 	return this.DeepExtend(this.Exchange.Describe(), map[string]any{
 		"id":        "bybit",
 		"name":      "Bybit",
@@ -5747,8 +5747,8 @@ func (this *Bybit) CreateOrderRequest(symbol any, typeVar any, side *string, amo
 	var hedged *bool = this.SafeBool(params, "hedged", false)
 	var reduceOnly *bool = this.SafeBool(params, "reduceOnly")
 	var triggerPrice any = this.SafeValue2(params, "triggerPrice", "stopPrice")
-	var stopLossTriggerPrice any = this.SafeValue(params, "stopLossPrice")
-	var takeProfitTriggerPrice any = this.SafeValue(params, "takeProfitPrice")
+	var stopLossTriggerPrice *string = this.SafeString(params, "stopLossPrice")
+	var takeProfitTriggerPrice *string = this.SafeString(params, "takeProfitPrice")
 	var stopLoss any = this.SafeValue(params, "stopLoss")
 	var takeProfit any = this.SafeValue(params, "takeProfit")
 	var trailingTriggerPrice *string = this.SafeString2(params, "trailingTriggerPrice", "activePrice", this.NumberToString(price))
@@ -13693,7 +13693,7 @@ func NewBybit(userConfig map[string]any) *Bybit {
 func (this *Bybit) Init(userConfig map[string]any) {
 	this.Exchange = Exchange{}
 	this.Exchange.DerivedExchange = this
-	this.Exchange.InitParent(userConfig, this.Describe().(map[string]any), this)
+	this.Exchange.InitParent(userConfig, this.Describe(), this)
 }
 
 // typed methods

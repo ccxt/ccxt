@@ -15,7 +15,7 @@ func newBitflyer() *Bitflyer {
 	return p
 }
 
-func (this *Bitflyer) Describe() any {
+func (this *Bitflyer) Describe() map[string]any {
 	return this.DeepExtend(this.Exchange.Describe(), map[string]any{
 		"id":        "bitflyer",
 		"name":      "bitFlyer",
@@ -1878,7 +1878,7 @@ func NewBitflyer(userConfig map[string]any) *Bitflyer {
 func (this *Bitflyer) Init(userConfig map[string]any) {
 	this.Exchange = Exchange{}
 	this.Exchange.DerivedExchange = this
-	this.Exchange.InitParent(userConfig, this.Describe().(map[string]any), this)
+	this.Exchange.InitParent(userConfig, this.Describe(), this)
 }
 
 // typed methods
