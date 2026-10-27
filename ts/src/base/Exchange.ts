@@ -4606,7 +4606,7 @@ export class BaseExchange {
         for (let i = 0; i < marketValues.length; i++) {
             const value = this.safeDict (marketValues, i, {});
             if (value['id'] in marketsById) {
-                const marketsByIdArray = (marketsById[value['id']] as any);
+                const marketsByIdArray = marketsById[value['id']];
                 marketsByIdArray.push (value);
                 marketsById[value['id']] = marketsByIdArray;
             } else {
@@ -4680,8 +4680,7 @@ export class BaseExchange {
             quoteCurrencies = this.sortBy (quoteCurrencies, 'code', false, '');
             this.baseCurrencies = this.mapToSafeMap (this.indexBy (baseCurrencies, 'code'));
             this.quoteCurrencies = this.mapToSafeMap (this.indexBy (quoteCurrencies, 'code'));
-            const allCurrencies = this.arrayConcat (baseCurrencies, quoteCurrencies);
-            const groupedCurrencies = this.groupBy (allCurrencies, 'code');
+            const groupedCurrencies = this.groupBy (this.arrayConcat (baseCurrencies, quoteCurrencies), 'code');
             const codes = Object.keys (groupedCurrencies);
             const resultingCurrencies: CurrencyInterface[] = [];
             for (let i = 0; i < codes.length; i++) {
@@ -4705,8 +4704,7 @@ export class BaseExchange {
                 }
                 resultingCurrencies.push (highestPrecisionCurrency);
             }
-            const sortedCurrencies = this.sortBy (resultingCurrencies, 'code');
-            this.currencies = this.mapToSafeMap (this.deepExtend (this.currencies, this.indexBy (sortedCurrencies, 'code')));
+            this.currencies = this.mapToSafeMap (this.deepExtend (this.currencies, this.indexBy (this.sortBy (resultingCurrencies, 'code'), 'code')));
         }
         this.currencies_by_id = this.indexBySafe (this.currencies, 'id');
         const currenciesSortedByCode = this.keysort (this.currencies);
