@@ -4694,12 +4694,12 @@ impl DeribitCore {
         let mut paramsUntil: Value = (if (until != Value::Null) { self.omit(paramsPaginate.clone(), Value::from(vec![Value::Str("until".into())]), &[]) } else { paramsPaginate });
         let mut endTimestamp: Value = (if (until != Value::Null) { until } else { time });
         request.insert("end_timestamp".into(), endTimestamp.clone());
-        let mut isPaginationCall: bool = matches!(&paramsUntil, Value::Dict(__d) if __d.contains_key("isDeribitPaginationCall"));
+        let mut isPaginationCall: Value = self.safe_bool_k(paramsUntil.clone(), "isDeribitPaginationCall", &[Value::Bool(false)]);
         let mut paramsOmitted: Value = paramsUntil.clone();
-        if isPaginationCall {
+        if isPaginationCall.as_bool() == Some(true) {
             paramsOmitted = self.omit(paramsUntil, Value::Str("isDeribitPaginationCall".into()), &[]);
         }
-        if isPaginationCall {
+        if isPaginationCall.as_bool() == Some(true) {
             if (limit == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingRateHistory() requires a limit argument".into()))));
             }

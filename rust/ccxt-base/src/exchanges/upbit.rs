@@ -124,7 +124,7 @@ impl crate::exchange_generated::ExchangeBase for UpbitCore {
                 "fetch_withdrawal" => self.fetch_withdrawal(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "fetch_withdrawals" => self.fetch_withdrawals(&args[..]).await,
                 "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
-                "ids_query_strings" => self.ids_query_strings(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+                "ids_query_strings" => self.ids_query_strings(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "nonce" => self.nonce(),
                 "parse_balance" => self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_deposit_address" => self.parse_deposit_address(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
@@ -1418,15 +1418,14 @@ impl UpbitCore {
         }  else {
             let mut ids: Value = self.market_ids(&[symbolsNormalized.clone()]);
             let mut promises: Vec<Value> = Vec::new();
-            let mut queries: Vec<Value> = self.ids_query_strings(ids, Value::Int(4000)).as_array().cloned().unwrap_or_default(); // the url is limited to about 8000 characters once the commas are percent-encoded
+            let mut queries: Value = self.ids_query_strings(ids); // the url is limited to about 8000 characters once the commas are percent-encoded
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_1128: bool = true;
                 while { if !__for_first_1128 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1128 = false; i.as_f64().unwrap_or(f64::NAN) < ((queries.len() as i64) as f64) } {
-                let mut idsQuery: Value = queries.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
                 let __ws_arg_4 = self.extend(Value::Map({
                     let mut m = indexmap::IndexMap::new();
-                        m.insert("markets".to_string(), idsQuery);
+                        m.insert("markets".to_string(), self.safe_string(queries.clone(), i.clone(), &[Value::Str("".into())]));
                     m
                 }), &[params.clone()]);
                 promises.push(self.public_get_ticker(&[__ws_arg_4]).await);
@@ -1440,10 +1439,7 @@ impl UpbitCore {
     Value::Null
 }
 
-    pub fn ids_query_strings(&self, mut ids: Value, mut maxQueryLength: Value) -> Value {
-        if (ids == Value::Null) {
-            return Value::from(vec![]);
-        }
+    pub fn ids_query_strings(&self, mut ids: Value) -> Value {
         let mut idsString: Value = Value::Str("".into());
         let mut queries: Vec<Value> = Vec::new();
         {
@@ -1454,7 +1450,7 @@ impl UpbitCore {
                 idsString = Value::Str(format!("{}{}", idsString, Value::Str(",".into())).into());
             }
             idsString = Value::Str(format!("{}{}", idsString, self.safe_string(ids.clone(), i.clone(), &[Value::Str("".into())])).into());
-            if ((idsString.len() as i64) as f64) >= maxQueryLength.as_f64().unwrap_or(f64::NAN) {
+            if ((idsString.len() as i64) as f64) >= ((4000i64) as f64) {
                 queries.push(idsString.clone());
                 idsString = Value::Str("".into());
             }
@@ -2517,8 +2513,7 @@ impl UpbitCore {
         let mut feeCost: Value = self.safe_string_k(order.clone(), "paid_fee", &[]);
         let mut marketId: Option<String> = self.safe_string_k_opt(order.clone(), "market", &[]);
         let mut marketResolved: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market]);
-        let mut trades: Value = self.safe_list_k(order.clone(), "trades", &[Value::from(vec![])]);
-        trades = self.parse_trades(trades.clone(), &[marketResolved.clone(), Value::Null, Value::Null, Value::Map({
+        let mut trades: Value = self.parse_trades(self.safe_list_k(order.clone(), "trades", &[Value::from(vec![])]), &[marketResolved.clone(), Value::Null, Value::Null, Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("order".to_string(), id.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), type_var.clone());

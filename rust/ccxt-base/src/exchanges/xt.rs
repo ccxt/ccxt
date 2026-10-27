@@ -7829,8 +7829,8 @@ impl XtCore {
         let mut signedBody: Value = Value::Null;
         if signed {
             self.check_required_credentials(&[]);
-            let mut defaultRecvWindow: Option<String> = self.safe_string_k_opt(self.options.clone(), "recvWindow", &[]);
-            let mut recvWindow: Value = self.safe_string_k(query.clone(), "recvWindow", &[defaultRecvWindow.map(Value::from).unwrap_or(Value::Null)]);
+            let mut defaultRecvWindow: Value = self.safe_string_k(self.options.clone(), "recvWindow", &[Value::Str("5000".into())]);
+            let mut recvWindow: Value = self.safe_string_k(query.clone(), "recvWindow", &[defaultRecvWindow]);
             let mut timestamp: Value = self.number_to_string(self.nonce());
             if (payload.as_str() == Some("/v4/order")) || (payload.as_str() == Some("/future/trade/v1/order/create")) || (payload.as_str() == Some("/future/trade/v1/entrust/create-plan")) || (payload.as_str() == Some("/future/trade/v1/entrust/create-profit")) || (payload.as_str() == Some("/future/trade/v1/order/create-batch")) {
                 let mut id: Value = Value::Str("CCXT".into());
@@ -7845,7 +7845,7 @@ impl XtCore {
                 isUndefinedBody = false;
             }
             signedBody = (if isUndefinedBody { Value::Null } else { json_stringify(&query) });
-            let mut payloadString: Value = Value::Null;
+            let mut payloadString: Value = Value::Str("".into());
             if (endpoint.as_str() == Some("spot")) || (endpoint.as_str() == Some("user")) {
                 payloadString = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("xt-validate-algorithms=HmacSHA256&xt-validate-appkey=".into()), self.apiKey.clone()).into()), Value::Str("&xt-validate-recvwindow=".into())).into()), recvWindow).into()), Value::Str("&xt-validate-t".into())).into()), Value::Str("imestamp=".into())).into()), timestamp).into());
                 if isUndefinedBody {

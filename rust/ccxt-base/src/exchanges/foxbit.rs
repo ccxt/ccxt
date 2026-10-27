@@ -2809,7 +2809,7 @@ impl FoxbitCore {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_677: bool = true;
                 while { if !__for_first_677 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_677 = false; i.as_f64().unwrap_or(f64::NAN) < ((details.len() as i64) as f64) } {
-                detailsString = Value::Str(format!("{}{}", Value::Str(format!("{}{}", detailsString, details.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null)).into()), Value::Str(" ".into())).into());
+                detailsString = Value::Str(format!("{}{}", Value::Str(format!("{}{}", detailsString, self.safe_string(details.clone(), i.clone(), &[Value::Str("".into())])).into()), Value::Str(" ".into())).into());
             }
             }
         }

@@ -1719,7 +1719,7 @@ impl IndependentreserveCore {
                 let mut __for_first_832: bool = true;
                 while { if !__for_first_832 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_832 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
                 let mut key: Value = keys.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
-                let mut value: Value = to_string_val(&get_value(&paramsDict, &key));
+                let value: String = self.safe_string_opt(paramsDict.clone(), key.clone(), &[Value::Str("".into())]).unwrap_or_default();
                 auth.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", key, Value::Str("=".into())).into()), value).into()));
             }
             }

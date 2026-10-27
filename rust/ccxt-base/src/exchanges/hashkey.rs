@@ -2658,7 +2658,7 @@ impl HashkeyCore {
         if (limit != Value::Null) {
             request.insert("limit".into(), limit.clone());
         }
-        let untilparamsUntilVariable: Vec<Value> = self.handle_option_and_params(params, methodName, Value::Str("until".into()), &[]).as_array().cloned().unwrap_or_default();
+        let untilparamsUntilVariable: Vec<Value> = self.handle_option_integer_and_params(params, methodName, Value::Str("until".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut until: Value = untilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsUntil: Value = untilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
         if (until != Value::Null) {
@@ -2714,7 +2714,7 @@ impl HashkeyCore {
         if (limit != Value::Null) {
             request.insert("limit".into(), limit.clone());
         }
-        let untilparamsUntilVariable: Vec<Value> = self.handle_option_and_params(params, methodName, Value::Str("until".into()), &[]).as_array().cloned().unwrap_or_default();
+        let untilparamsUntilVariable: Vec<Value> = self.handle_option_integer_and_params(params, methodName, Value::Str("until".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut until: Value = untilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsUntil: Value = untilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
         if (until != Value::Null) {
@@ -3075,7 +3075,7 @@ impl HashkeyCore {
         if (since == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), methodName).into()), Value::Str("() requires a since argument".into()))));
         }
-        let untilparamsUntilVariable: Vec<Value> = self.handle_option_and_params(params, methodName.clone(), Value::Str("until".into()), &[]).as_array().cloned().unwrap_or_default();
+        let untilparamsUntilVariable: Vec<Value> = self.handle_option_integer_and_params(params, methodName.clone(), Value::Str("until".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut until: Value = untilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsUntil: Value = untilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
         if (until == Value::Null) {
@@ -3650,7 +3650,7 @@ impl HashkeyCore {
             let __ws_arg_20 = self.extend(Value::Map(request.clone()), &[paramsMarketType.clone()]);
             response = self.private_delete_api_v1_spot_order(&[__ws_arg_20]).await;
         }  else if (marketType.as_str() == Some("swap")) {
-            let isTriggerparamsTriggerVariable: Vec<Value> = self.handle_trigger_option_and_params(paramsMarketType, methodName.clone(), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
+            let isTriggerparamsTriggerVariable: Vec<Value> = self.handle_option_bool_and_params2(paramsMarketType, methodName.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
             let mut isTrigger: Value = isTriggerparamsTriggerVariable.get(0).cloned().unwrap_or(Value::Null);
             let mut paramsTrigger: Value = isTriggerparamsTriggerVariable.get(1).cloned().unwrap_or(Value::Null);
             if (isTrigger.as_bool() == Some(true)) {
@@ -3826,7 +3826,7 @@ impl HashkeyCore {
             let __ws_arg_24 = self.extend(Value::Map(request.clone()), &[paramsMarketType.clone()]);
             response = self.private_get_api_v1_spot_order(&[__ws_arg_24]).await;
         }  else if (marketType.as_str() == Some("swap")) {
-            let isTriggerparamsTriggerVariable: Vec<Value> = self.handle_trigger_option_and_params(paramsMarketType, methodName.clone(), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
+            let isTriggerparamsTriggerVariable: Vec<Value> = self.handle_option_bool_and_params2(paramsMarketType, methodName.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
             let mut isTrigger: Value = isTriggerparamsTriggerVariable.get(0).cloned().unwrap_or(Value::Null);
             let mut paramsTrigger: Value = isTriggerparamsTriggerVariable.get(1).cloned().unwrap_or(Value::Null);
             if (isTrigger.as_bool() == Some(true)) {
@@ -3999,7 +3999,7 @@ impl HashkeyCore {
             m
         });
         let mut isTrigger: Value = Value::Bool(false);
-        let isTriggerTriggerparamsTriggerVariable: Vec<Value> = self.handle_trigger_option_and_params(paramsMethodName, methodNameOption.clone(), &[isTrigger]).as_array().cloned().unwrap_or_default();
+        let isTriggerTriggerparamsTriggerVariable: Vec<Value> = self.handle_option_bool_and_params2(paramsMethodName, methodNameOption.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[isTrigger]).as_array().cloned().unwrap_or_default();
         let mut isTriggerTrigger: Value = isTriggerTriggerparamsTriggerVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsTrigger: Value = isTriggerTriggerparamsTriggerVariable.get(1).cloned().unwrap_or(Value::Null);
         if (isTriggerTrigger.as_bool() == Some(true)) {
@@ -4071,7 +4071,7 @@ impl HashkeyCore {
         if (since != Value::Null) {
             request.insert("startTime".into(), since.clone());
         }
-        let untilparamsUntilVariable: Vec<Value> = self.handle_option_and_params(params, methodName.clone(), Value::Str("until".into()), &[]).as_array().cloned().unwrap_or_default();
+        let untilparamsUntilVariable: Vec<Value> = self.handle_option_integer_and_params(params, methodName.clone(), Value::Str("until".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut until: Value = untilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsUntil: Value = untilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
         if (until != Value::Null) {
@@ -4102,7 +4102,7 @@ impl HashkeyCore {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), methodName).into()), Value::Str("() requires a symbol argument for swap markets".into()))));
             }
             request.insert("symbol".into(), self.safe_string_k(market.clone(), "id", &[]));
-            let isTriggerparamsTriggerVariable: Vec<Value> = self.handle_trigger_option_and_params(paramsMarketType, methodName.clone(), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
+            let isTriggerparamsTriggerVariable: Vec<Value> = self.handle_option_bool_and_params2(paramsMarketType, methodName.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
             let mut isTrigger: Value = isTriggerparamsTriggerVariable.get(0).cloned().unwrap_or(Value::Null);
             let mut paramsTrigger: Value = isTriggerparamsTriggerVariable.get(1).cloned().unwrap_or(Value::Null);
             if (isTrigger.as_bool() == Some(true)) {

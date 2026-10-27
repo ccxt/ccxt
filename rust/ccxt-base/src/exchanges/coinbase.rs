@@ -2086,7 +2086,9 @@ impl CoinbaseCore {
             if (baseId.is_some()) && (quoteId.is_some()) {
                 let mut base: Value = self.safe_currency_code(baseId.map(Value::from).unwrap_or(Value::Null), &[]);
                 let mut quote: Value = self.safe_currency_code(quoteId.map(Value::from).unwrap_or(Value::Null), &[]);
-                symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into());
+                if (base != Value::Null) && (quote != Value::Null) {
+                    symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into());
+                }
             }
         }
         let mut sizeInQuote: Value = self.safe_bool_k(trade.clone(), "size_in_quote", &[]);
@@ -2227,7 +2229,7 @@ impl CoinbaseCore {
                     let mut quoteCurrency: Value = data.as_array().and_then(|__arr| match &j { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                     let mut quoteId: Option<String> = self.safe_string_k_opt(quoteCurrency.clone(), "id", &[]);
                     let mut quote: Value = self.safe_currency_code(quoteId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
-                    if (quote == Value::Null) {
+                    if (quote == Value::Null) || (quoteId.is_none()) {
                         continue;
                     }
                     result.push(self.safe_market_structure(&[Value::Map({

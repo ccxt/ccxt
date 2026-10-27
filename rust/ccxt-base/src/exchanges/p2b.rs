@@ -819,10 +819,7 @@ impl P2bCore {
         //    }
         //
         let mut timestamp: Value = self.safe_integer_product_k(ticker.clone(), "at", Value::Int(1000), &[]);
-        let mut tickerInner: Value = ticker.clone();
-        if (in_op(&ticker, &Value::Str("ticker".into()))) {
-            tickerInner = self.safe_dict_k(ticker.clone(), "ticker", &[]);
-        }
+        let mut tickerInner: Value = self.safe_dict_k(ticker.clone(), "ticker", &[ticker.clone()]);
         let mut last: Option<String> = self.safe_string_k_opt(tickerInner.clone(), "last", &[]);
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();

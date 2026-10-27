@@ -2995,23 +2995,24 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         self.load_markets_and_sign_in().await;
         let mut defaultFromAccountId: Option<String> = self.safe_string_k_opt(self.options.clone(), "userMainAccountId", &[]);
         let mut currency: Value = self.currency(code.clone());
+        let networkCodequeryVariable: Vec<Value> = self.handle_network_code_and_params(params).as_array().cloned().unwrap_or_default();
+        let mut networkCode: Value = networkCodequeryVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut query: Value = networkCodequeryVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut networkId: Value = self.network_code_to_id(networkCode, &[code.clone()]);
+        if (networkId == Value::Null) {
+            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" withdraw() requires a network parameter".into()))));
+        }
+        let mut withdrawSignature: indexmap::IndexMap<String, Value> = self.default_signature().as_map().cloned().unwrap_or_default();
+        withdrawSignature.insert("chain_id".into(), networkId);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("to_eth_address".to_string(), address);
                 m.insert("from_account_id".to_string(), defaultFromAccountId.map(Value::from).unwrap_or(Value::Null));
                 m.insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
-                m.insert("num_tokens".to_string(), self.currency_to_precision(code.clone(), amount, &[]));
-                m.insert("signature".to_string(), self.default_signature());
+                m.insert("num_tokens".to_string(), self.currency_to_precision(code, amount, &[]));
+                m.insert("signature".to_string(), Value::Map(withdrawSignature));
             m
         });
-        let networkCodequeryVariable: Vec<Value> = self.handle_network_code_and_params(params).as_array().cloned().unwrap_or_default();
-        let mut networkCode: Value = networkCodequeryVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut query: Value = networkCodequeryVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut networkId: Value = self.network_code_to_id(networkCode, &[code]);
-        if (networkId == Value::Null) {
-            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" withdraw() requires a network parameter".into()))));
-        }
-        if let Value::Dict(__d) = request.entry("signature".into()).or_default() { std::sync::Arc::make_mut(__d).insert("chain_id".into(), networkId); }
         let __ws_arg_15 = self.extend(self.create_signed_request(&mut request, Value::Str("EIP712_WITHDRAWAL_TYPE".into()), &[currency.clone()]), &[query]);
         let mut response: Value = self.private_trading_post_full_v1_withdrawal(&[__ws_arg_15]).await;
         //
@@ -4632,9 +4633,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             });
             // an empty params dict must serialize as an empty json object, not an empty json array,
             // php json_encode would produce [] here which the venue rejects with the same 1003 error
-            let mut paramsKeys: Vec<Value> = Value::Array(params.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
-            let mut paramsKeysLength: f64 = ((paramsKeys.len() as i64) as f64);
-            if (paramsKeysLength == 0.0) {
+            if (Value::Int(Value::Array(params.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64).as_f64() == Some(0.0)) {
                 requestBody = Value::Str("{}".into());
             }  else {
                 requestBody = json_stringify(&params);

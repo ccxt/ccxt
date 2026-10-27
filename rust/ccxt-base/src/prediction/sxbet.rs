@@ -465,8 +465,8 @@ impl SxbetCore {
         let mut rawMarketsLength: f64 = ((rawMarkets.len() as i64) as f64);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1479: bool = true;
-            while { if !__for_first_1479 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1479 = false; i.as_f64().unwrap_or(f64::NAN) < rawMarketsLength } {
+            let mut __for_first_1478: bool = true;
+            while { if !__for_first_1478 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1478 = false; i.as_f64().unwrap_or(f64::NAN) < rawMarketsLength } {
             markets.push(self.parse_sxbet_market(rawMarkets.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null)));
         }
         }
@@ -523,8 +523,8 @@ impl SxbetCore {
             let mut pageMarketsLength: f64 = ((pageMarkets.len() as i64) as f64);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1480: bool = true;
-                while { if !__for_first_1480 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1480 = false; i.as_f64().unwrap_or(f64::NAN) < pageMarketsLength } {
+                let mut __for_first_1479: bool = true;
+                while { if !__for_first_1479 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1479 = false; i.as_f64().unwrap_or(f64::NAN) < pageMarketsLength } {
                 rawMarkets.push(pageMarkets.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null));
             }
             }
@@ -556,8 +556,8 @@ impl SxbetCore {
         let mut rawMarketsLength: f64 = ((rawMarkets.len() as i64) as f64);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1481: bool = true;
-            while { if !__for_first_1481 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1481 = false; i.as_f64().unwrap_or(f64::NAN) < rawMarketsLength } {
+            let mut __for_first_1480: bool = true;
+            while { if !__for_first_1480 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1480 = false; i.as_f64().unwrap_or(f64::NAN) < rawMarketsLength } {
             let mut raw: Value = rawMarkets.get((i).as_i64().map_or(usize::MAX, |__n| __n as usize)).cloned().unwrap_or(Value::Null);
             if (self.safe_string_k(raw.clone(), "sportXeventId", &[]).as_str() == sportXeventId.as_str()) {
                 result.push(raw);
@@ -626,8 +626,8 @@ impl SxbetCore {
         let mut outcomes: Vec<Value> = Vec::new();
         {
                         let mut oi: Value = Value::Int(0);
-            let mut __for_first_1482: bool = true;
-            while { if !__for_first_1482 { if let Value::Int(n) = &mut oi { *n += 1; } } __for_first_1482 = false; oi.as_f64().unwrap_or(f64::NAN) < ((outcomeLabels.len() as i64) as f64) } {
+            let mut __for_first_1481: bool = true;
+            while { if !__for_first_1481 { if let Value::Int(n) = &mut oi { *n += 1; } } __for_first_1481 = false; oi.as_f64().unwrap_or(f64::NAN) < ((outcomeLabels.len() as i64) as f64) } {
             let mut label: Value = outcomeLabels.as_array().and_then(|__arr| match &oi { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut outcomeHandle: Value = self.slug_to_outcome_symbol(eventSlug.clone(), marketSlug.clone(), label.clone());
             outcomes.push(Value::Map({
@@ -753,8 +753,8 @@ impl SxbetCore {
         let mut tagsLength: f64 = ((tags.len() as i64) as f64);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1483: bool = true;
-            while { if !__for_first_1483 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1483 = false; i.as_f64().unwrap_or(f64::NAN) < tagsLength } {
+            let mut __for_first_1482: bool = true;
+            while { if !__for_first_1482 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1482 = false; i.as_f64().unwrap_or(f64::NAN) < tagsLength } {
             append_to_array(&mut queries, tags.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null));
         }
         }
@@ -795,8 +795,8 @@ impl SxbetCore {
             let mut preFilterLength: f64 = ((rawMarkets.len() as i64) as f64);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1484: bool = true;
-                while { if !__for_first_1484 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1484 = false; i.as_f64().unwrap_or(f64::NAN) < preFilterLength } {
+                let mut __for_first_1483: bool = true;
+                while { if !__for_first_1483 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1483 = false; i.as_f64().unwrap_or(f64::NAN) < preFilterLength } {
                 if self.matches_event_query(rawMarkets.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), queries.clone()).as_bool() == Some(true) {
                     if let Value::Arr(__a) = &mut filtered { std::sync::Arc::make_mut(__a).push(rawMarkets.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null)); }
                 }
@@ -812,8 +812,8 @@ impl SxbetCore {
         let mut rawMarketsLength: f64 = ((rawMarkets.len() as i64) as f64);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1485: bool = true;
-            while { if !__for_first_1485 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1485 = false; i.as_f64().unwrap_or(f64::NAN) < rawMarketsLength } {
+            let mut __for_first_1484: bool = true;
+            while { if !__for_first_1484 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1484 = false; i.as_f64().unwrap_or(f64::NAN) < rawMarketsLength } {
             let mut raw: Value = rawMarkets.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut sportXeventId: Option<String> = self.safe_string_k_opt(raw.clone(), "sportXeventId", &[]);
             if (sportXeventId.is_none()) {
@@ -833,16 +833,16 @@ impl SxbetCore {
         let mut orderLength: f64 = ((order.len() as i64) as f64);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1487: bool = true;
-            while { if !__for_first_1487 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1487 = false; i.as_f64().unwrap_or(f64::NAN) < orderLength } {
+            let mut __for_first_1486: bool = true;
+            while { if !__for_first_1486 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1486 = false; i.as_f64().unwrap_or(f64::NAN) < orderLength } {
             let mut fixtureId: Value = order.get((i).as_i64().map_or(usize::MAX, |__n| __n as usize)).cloned().unwrap_or(Value::Null);
             let mut event: Value = self.parse_event(fixtureId.clone(), grouped.as_map().and_then(|__m| fixtureId.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null));
             let mut evMarkets: Vec<Value> = self.safe_list_k(event.clone(), "markets", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
             let mut evMarketsLength: f64 = ((evMarkets.len() as i64) as f64);
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_1486: bool = true;
-                while { if !__for_first_1486 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_1486 = false; j.as_f64().unwrap_or(f64::NAN) < evMarketsLength } {
+                let mut __for_first_1485: bool = true;
+                while { if !__for_first_1485 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_1485 = false; j.as_f64().unwrap_or(f64::NAN) < evMarketsLength } {
                 let mut m: Value = evMarkets.get(j.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
                 add_element_to_object(&mut self.markets, &crate::value::get_value_k(&m, "market"), m.clone());
             }
@@ -910,16 +910,16 @@ impl SxbetCore {
         let mut queriesLength: f64 = ((queries.len() as i64) as f64);
         {
                         let mut qi: Value = Value::Int(0);
-            let mut __for_first_1489: bool = true;
-            while { if !__for_first_1489 { if let Value::Int(n) = &mut qi { *n += 1; } } __for_first_1489 = false; qi.as_f64().unwrap_or(f64::NAN) < queriesLength } {
+            let mut __for_first_1488: bool = true;
+            while { if !__for_first_1488 { if let Value::Int(n) = &mut qi { *n += 1; } } __for_first_1488 = false; qi.as_f64().unwrap_or(f64::NAN) < queriesLength } {
             let mut query: Value = (queries.get((qi).as_i64().map_or(usize::MAX, |__n| __n as usize)).cloned().unwrap_or(Value::Null)).as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
             if (query.as_str() == Some("")) {
                 continue;
             }
             {
                                 let mut fi: Value = Value::Int(0);
-                let mut __for_first_1488: bool = true;
-                while { if !__for_first_1488 { if let Value::Int(n) = &mut fi { *n += 1; } } __for_first_1488 = false; fi.as_f64().unwrap_or(f64::NAN) < ((fields.len() as i64) as f64) } {
+                let mut __for_first_1487: bool = true;
+                while { if !__for_first_1487 { if let Value::Int(n) = &mut fi { *n += 1; } } __for_first_1487 = false; fi.as_f64().unwrap_or(f64::NAN) < ((fields.len() as i64) as f64) } {
                 let mut field: Value = fields.as_array().and_then(|__arr| match &fi { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 if (field == Value::Null) {
                     continue;
@@ -959,8 +959,8 @@ impl SxbetCore {
         let mut rawMarketsLength: f64 = ((rawMarkets.len() as i64) as f64);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1490: bool = true;
-            while { if !__for_first_1490 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1490 = false; i.as_f64().unwrap_or(f64::NAN) < rawMarketsLength } {
+            let mut __for_first_1489: bool = true;
+            while { if !__for_first_1489 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1489 = false; i.as_f64().unwrap_or(f64::NAN) < rawMarketsLength } {
             let mut raw: Value = rawMarkets.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut parsed: Value = self.parse_sxbet_market(raw.clone());
             if (parsed == Value::Null) {
@@ -1139,8 +1139,8 @@ impl SxbetCore {
         let mut result: Value = self.parse_to_int(Value::Int(0));
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1491: bool = true;
-            while { if !__for_first_1491 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1491 = false; i.as_f64().unwrap_or(f64::NAN) < hexLength } {
+            let mut __for_first_1490: bool = true;
+            while { if !__for_first_1490 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1490 = false; i.as_f64().unwrap_or(f64::NAN) < hexLength } {
             let mut ch: Value = get_value(&lowerHex, &i);
             let mut ch: Value = get_value(&lowerHex, &i);
             let mut digitValue: Value = self.parse_to_int(Value::Int(digits.as_str().zip(ch.as_str()).and_then(|(__s, __n)| __s.find(__n)).map(|__i| __i as i64).unwrap_or(-1)));
@@ -1201,8 +1201,8 @@ impl SxbetCore {
             self.sxbet_private_post_user_deploy_proxy(&[]).await;
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1492: bool = true;
-                while { if !__for_first_1492 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1492 = false; i.as_f64().unwrap_or(f64::NAN) < ((30i64) as f64) } {
+                let mut __for_first_1491: bool = true;
+                while { if !__for_first_1491 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1491 = false; i.as_f64().unwrap_or(f64::NAN) < ((30i64) as f64) } {
                 self.sleep(Value::Int(2000)).await;
                 let mut state: Value = self.fetch_sxbet_proxy().await;
                 if matches!(self.safe_bool_k(state, "deployed", &[Value::Bool(false)]), Value::Bool(true)) {
@@ -1620,8 +1620,8 @@ impl SxbetCore {
         let mut cancelledLength: f64 = ((cancelled.len() as i64) as f64);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1493: bool = true;
-            while { if !__for_first_1493 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1493 = false; i.as_f64().unwrap_or(f64::NAN) < cancelledLength } {
+            let mut __for_first_1492: bool = true;
+            while { if !__for_first_1492 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1492 = false; i.as_f64().unwrap_or(f64::NAN) < cancelledLength } {
             result.push(self.safe_prediction_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string(cancelled.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), Value::Str("orderId".into()), &[]));
@@ -1635,8 +1635,8 @@ impl SxbetCore {
         let mut notCancelledLength: f64 = ((notCancelled.len() as i64) as f64);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1494: bool = true;
-            while { if !__for_first_1494 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1494 = false; i.as_f64().unwrap_or(f64::NAN) < notCancelledLength } {
+            let mut __for_first_1493: bool = true;
+            while { if !__for_first_1493 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1493 = false; i.as_f64().unwrap_or(f64::NAN) < notCancelledLength } {
             // the venue reports why (e.g. NOT_FOUND) - the order was not cancelled, report it honestly
             result.push(self.safe_prediction_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1651,8 +1651,8 @@ impl SxbetCore {
         let mut unconfirmedLength: f64 = ((unconfirmed.len() as i64) as f64);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1495: bool = true;
-            while { if !__for_first_1495 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1495 = false; i.as_f64().unwrap_or(f64::NAN) < unconfirmedLength } {
+            let mut __for_first_1494: bool = true;
+            while { if !__for_first_1494 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1494 = false; i.as_f64().unwrap_or(f64::NAN) < unconfirmedLength } {
             result.push(self.safe_prediction_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string(unconfirmed.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null), Value::Str("orderId".into()), &[]));
@@ -1730,8 +1730,8 @@ impl SxbetCore {
         let mut result: Value = Value::from(vec![]);
         {
                         let mut c: Value = Value::Int(0);
-            let mut __for_first_1497: bool = true;
-            while { if !__for_first_1497 { if let Value::Int(n) = &mut c { *n += 1; } } __for_first_1497 = false; c.as_f64().unwrap_or(f64::NAN) < chunkCount.as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_1496: bool = true;
+            while { if !__for_first_1496 { if let Value::Int(n) = &mut c { *n += 1; } } __for_first_1496 = false; c.as_f64().unwrap_or(f64::NAN) < chunkCount.as_f64().unwrap_or(f64::NAN) } {
             let mut chunkIndex: Value = self.parse_to_int(c.clone());
             let mut chunkWidth: Value = self.parse_to_int(chunkSize.clone());
             let mut start: Value = (match (&(chunkIndex), &(chunkWidth)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
@@ -1746,8 +1746,8 @@ impl SxbetCore {
             let mut chunkIdsLength: Value = get_array_length(&chunkIds);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1496: bool = true;
-                while { if !__for_first_1496 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1496 = false; i.as_f64().unwrap_or(f64::NAN) < chunkIdsLength.as_f64().unwrap_or(f64::NAN) } {
+                let mut __for_first_1495: bool = true;
+                while { if !__for_first_1495 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1495 = false; i.as_f64().unwrap_or(f64::NAN) < chunkIdsLength.as_f64().unwrap_or(f64::NAN) } {
                 orderItems.push(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("orderId".to_string(), get_value(&chunkIds, &i));
@@ -1814,8 +1814,8 @@ impl SxbetCore {
 })]), Value::Str("hasMore".into()), &[Value::Bool(false)]);
         {
                         let mut guard: Value = Value::Int(0);
-            let mut __for_first_1498: bool = true;
-            while { if !__for_first_1498 { if let Value::Int(n) = &mut guard { *n += 1; } } __for_first_1498 = false; guard.as_f64().unwrap_or(f64::NAN) < ((50i64) as f64) } {
+            let mut __for_first_1497: bool = true;
+            while { if !__for_first_1497 { if let Value::Int(n) = &mut guard { *n += 1; } } __for_first_1497 = false; guard.as_f64().unwrap_or(f64::NAN) < ((50i64) as f64) } {
             if !(hasMore.as_bool() == Some(true)) {
                 break;
             }
@@ -2112,8 +2112,8 @@ impl SxbetCore {
         let mut rawTradesLength: f64 = ((rawTrades.len() as i64) as f64);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1499: bool = true;
-            while { if !__for_first_1499 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1499 = false; i.as_f64().unwrap_or(f64::NAN) < rawTradesLength } {
+            let mut __for_first_1498: bool = true;
+            while { if !__for_first_1498 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1498 = false; i.as_f64().unwrap_or(f64::NAN) < rawTradesLength } {
             if let Value::Arr(__a) = &mut trades { std::sync::Arc::make_mut(__a).push(self.parse_sxbet_v3_public_trade(rawTrades.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null))); }
         }
         }
@@ -2173,8 +2173,8 @@ impl SxbetCore {
         let mut rawFillsLength: f64 = ((rawFills.len() as i64) as f64);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1500: bool = true;
-            while { if !__for_first_1500 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1500 = false; i.as_f64().unwrap_or(f64::NAN) < rawFillsLength } {
+            let mut __for_first_1499: bool = true;
+            while { if !__for_first_1499 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1499 = false; i.as_f64().unwrap_or(f64::NAN) < rawFillsLength } {
             if let Value::Arr(__a) = &mut trades { std::sync::Arc::make_mut(__a).push(self.parse_sxbet_v3_fill(rawFills.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null), &[])); }
         }
         }
@@ -2297,8 +2297,8 @@ impl SxbetCore {
         let mut balancesLength: f64 = ((balances.len() as i64) as f64);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1501: bool = true;
-            while { if !__for_first_1501 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1501 = false; i.as_f64().unwrap_or(f64::NAN) < balancesLength } {
+            let mut __for_first_1500: bool = true;
+            while { if !__for_first_1500 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1500 = false; i.as_f64().unwrap_or(f64::NAN) < balancesLength } {
             let mut row: Value = self.safe_dict(balances.clone(), i.clone(), &[]);
             let mut tokenAddress: Value = self.safe_string_lower_k(row.clone(), "tokenAddress", &[Value::Str("".into())]);
             // every sxbet market is denominated in the active base token, surfaced under 'USDC';
@@ -2350,8 +2350,8 @@ impl SxbetCore {
             self.load_outcomes(&[outcomesList.clone()]).await;
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1502: bool = true;
-                while { if !__for_first_1502 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1502 = false; i.as_f64().unwrap_or(f64::NAN) < outcomesLength } {
+                let mut __for_first_1501: bool = true;
+                while { if !__for_first_1501 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1501 = false; i.as_f64().unwrap_or(f64::NAN) < outcomesLength } {
                 let mut outcomeObj: Value = self.outcome(outcomesList.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
                 let mut hash: Value = self.safe_string(outcomeObj.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("marketHash".into()), &[Value::Str("".into())]);
                 wantedMarkets.insert(crate::runtime::stringify_param(&hash), Value::Bool(true));
@@ -2377,8 +2377,8 @@ impl SxbetCore {
         let mut rawPositionsLength: f64 = ((rawPositions.len() as i64) as f64);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1503: bool = true;
-            while { if !__for_first_1503 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1503 = false; i.as_f64().unwrap_or(f64::NAN) < rawPositionsLength } {
+            let mut __for_first_1502: bool = true;
+            while { if !__for_first_1502 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1502 = false; i.as_f64().unwrap_or(f64::NAN) < rawPositionsLength } {
             let mut raw: Value = rawPositions.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
             let mut marketHash: Value = self.safe_string_k(raw.clone(), "marketHash", &[Value::Str("".into())]);
             if outcomesLength > ((0i64) as f64) {
@@ -2511,8 +2511,8 @@ impl SxbetCore {
         let mut rawTradesLength: f64 = ((rawTrades.len() as i64) as f64);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1504: bool = true;
-            while { if !__for_first_1504 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1504 = false; i.as_f64().unwrap_or(f64::NAN) < rawTradesLength } {
+            let mut __for_first_1503: bool = true;
+            while { if !__for_first_1503 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1503 = false; i.as_f64().unwrap_or(f64::NAN) < rawTradesLength } {
             let mut settlement: Value = self.parse_settlement(rawTrades.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null), &[]);
             if (wantedOutcomeId == Value::Null) || (self.safe_string_k(settlement.clone(), "outcomeId", &[]).as_str() == wantedOutcomeId.as_str()) {
                 result.push(settlement);
@@ -2760,8 +2760,8 @@ impl SxbetCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1505: bool = true;
-            while { if !__for_first_1505 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1505 = false; i.as_f64().unwrap_or(f64::NAN) < outcomesLength } {
+            let mut __for_first_1504: bool = true;
+            while { if !__for_first_1504 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1504 = false; i.as_f64().unwrap_or(f64::NAN) < outcomesLength } {
             self.load_outcome(outcomesList.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), &[]).await;
             let mut outcomeObj: Value = self.outcome(outcomesList.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
             let mut marketHash: Value = self.safe_string(outcomeObj.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("marketHash".into()), &[Value::Str("".into())]);
@@ -2783,8 +2783,8 @@ impl SxbetCore {
         if !hasApiKey {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1506: bool = true;
-                while { if !__for_first_1506 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1506 = false; i.as_f64().unwrap_or(f64::NAN) < hashesLength.as_f64().unwrap_or(f64::NAN) } {
+                let mut __for_first_1505: bool = true;
+                while { if !__for_first_1505 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1505 = false; i.as_f64().unwrap_or(f64::NAN) < hashesLength.as_f64().unwrap_or(f64::NAN) } {
                 let mut marketHash: Value = hashesOrder.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 let mut snapshot: Value = self.fetch_sxbet_book_snapshot(marketHash.clone()).await;
                 rowsByHash.insert(crate::runtime::stringify_param(&marketHash), self.parse_sxbet_snapshot_best_odds(snapshot));
@@ -2796,8 +2796,8 @@ impl SxbetCore {
         let mut chunkCount: Value = self.parse_to_int((match ((self.sum(&[hashesLength.clone(), (match (&(chunkSize), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })])).as_f64(), (chunkSize).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
         {
                         let mut c: Value = Value::Int(0);
-            let mut __for_first_1508: bool = true;
-            while { if !__for_first_1508 { if let Value::Int(n) = &mut c { *n += 1; } } __for_first_1508 = false; c.as_f64().unwrap_or(f64::NAN) < chunkCount.as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_1507: bool = true;
+            while { if !__for_first_1507 { if let Value::Int(n) = &mut c { *n += 1; } } __for_first_1507 = false; c.as_f64().unwrap_or(f64::NAN) < chunkCount.as_f64().unwrap_or(f64::NAN) } {
             let mut chunkIndex: Value = self.parse_to_int(c.clone());
             let mut chunkWidth: Value = self.parse_to_int(chunkSize.clone());
             let mut start: Value = (match (&(chunkIndex), &(chunkWidth)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
@@ -2812,8 +2812,8 @@ impl SxbetCore {
             let mut rowsLength: f64 = ((rows.len() as i64) as f64);
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_1507: bool = true;
-                while { if !__for_first_1507 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_1507 = false; j.as_f64().unwrap_or(f64::NAN) < rowsLength } {
+                let mut __for_first_1506: bool = true;
+                while { if !__for_first_1506 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_1506 = false; j.as_f64().unwrap_or(f64::NAN) < rowsLength } {
                 let mut row: Value = rows.get(j.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
                 let mut rowHash: Option<String> = self.safe_string_k_opt(row.clone(), "marketHash", &[]);
                 if (rowHash.is_some()) {
@@ -2847,8 +2847,8 @@ impl SxbetCore {
         let mut outcomesLength: f64 = ((outcomesList.len() as i64) as f64);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1509: bool = true;
-            while { if !__for_first_1509 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1509 = false; i.as_f64().unwrap_or(f64::NAN) < outcomesLength } {
+            let mut __for_first_1508: bool = true;
+            while { if !__for_first_1508 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1508 = false; i.as_f64().unwrap_or(f64::NAN) < outcomesLength } {
             let mut outcomeObj: Value = self.outcome(outcomesList.get((i).as_i64().map_or(usize::MAX, |__n| __n as usize)).cloned().unwrap_or(Value::Null));
             let mut marketHash: Value = self.safe_string(outcomeObj.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("marketHash".into()), &[Value::Str("".into())]);
             let mut raw: Value = self.safe_dict(rowsByHash.clone(), marketHash, &[]);
@@ -3030,8 +3030,8 @@ impl SxbetCore {
         let mut ownLevelsLength: f64 = ((ownLevels.len() as i64) as f64);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1510: bool = true;
-            while { if !__for_first_1510 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1510 = false; i.as_f64().unwrap_or(f64::NAN) < ownLevelsLength } {
+            let mut __for_first_1509: bool = true;
+            while { if !__for_first_1509 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1509 = false; i.as_f64().unwrap_or(f64::NAN) < ownLevelsLength } {
             let mut level: Value = self.safe_dict(ownLevels.clone(), i.clone(), &[]);
             let mut percentageOdds: Option<String> = self.safe_string_k_opt(level.clone(), "percentageOdds", &[]);
             let mut size: Value = self.safe_string_k(level.clone(), "size", &[Value::Str("0".into())]);
@@ -3044,8 +3044,8 @@ impl SxbetCore {
         let mut oppositeLevelsLength: f64 = ((oppositeLevels.len() as i64) as f64);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1511: bool = true;
-            while { if !__for_first_1511 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1511 = false; i.as_f64().unwrap_or(f64::NAN) < oppositeLevelsLength } {
+            let mut __for_first_1510: bool = true;
+            while { if !__for_first_1510 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1510 = false; i.as_f64().unwrap_or(f64::NAN) < oppositeLevelsLength } {
             let mut level: Value = self.safe_dict(oppositeLevels.clone(), i.clone(), &[]);
             let mut percentageOdds: Option<String> = self.safe_string_k_opt(level.clone(), "percentageOdds", &[]);
             let mut size: Value = self.safe_string_k(level, "size", &[Value::Str("0".into())]);
@@ -3199,8 +3199,8 @@ impl SxbetCore {
             let mut linesLength: f64 = ((lines.len() as i64) as f64);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1512: bool = true;
-                while { if !__for_first_1512 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1512 = false; i.as_f64().unwrap_or(f64::NAN) < linesLength } {
+                let mut __for_first_1511: bool = true;
+                while { if !__for_first_1511 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1511 = false; i.as_f64().unwrap_or(f64::NAN) < linesLength } {
                 let mut line: Value = lines.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
                 if ((line.len() as i64) as f64) > ((0i64) as f64) {
                     let mut parsed: Value = json_parse(&line);
@@ -3406,8 +3406,8 @@ impl SxbetCore {
         let mut watchedSymsLength: f64 = ((watchedSyms.len() as i64) as f64);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1513: bool = true;
-            while { if !__for_first_1513 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1513 = false; i.as_f64().unwrap_or(f64::NAN) < watchedSymsLength } {
+            let mut __for_first_1512: bool = true;
+            while { if !__for_first_1512 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1512 = false; i.as_f64().unwrap_or(f64::NAN) < watchedSymsLength } {
             let mut sym: Value = watchedSyms.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
             if (self.safe_string(watchedBooks.clone(), sym.clone(), &[]).as_str() != marketHash.as_str()) {
                 continue;
@@ -3456,14 +3456,14 @@ impl SxbetCore {
         let mut rowsLength: f64 = ((rows.len() as i64) as f64);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1515: bool = true;
-            while { if !__for_first_1515 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1515 = false; i.as_f64().unwrap_or(f64::NAN) < rowsLength } {
+            let mut __for_first_1514: bool = true;
+            while { if !__for_first_1514 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1514 = false; i.as_f64().unwrap_or(f64::NAN) < rowsLength } {
             let mut refreshed: Value = self.apply_sxbet_ws_snapshot(rows.get((i).as_i64().map_or(usize::MAX, |__n| __n as usize)).cloned().unwrap_or(Value::Null));
             let mut refreshedLength: f64 = ((refreshed.len() as i64) as f64);
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_1514: bool = true;
-                while { if !__for_first_1514 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_1514 = false; j.as_f64().unwrap_or(f64::NAN) < refreshedLength } {
+                let mut __for_first_1513: bool = true;
+                while { if !__for_first_1513 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_1513 = false; j.as_f64().unwrap_or(f64::NAN) < refreshedLength } {
                 let mut sym: Value = refreshed.as_array().and_then(|__arr| match &j { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 client.resolve(&[self.safe_value(self.orderbooks.clone(), sym.clone(), &[]), Value::Str(format!("{}{}", Value::Str("orderbook::".into()), sym).into())]);
             }
@@ -3549,8 +3549,8 @@ impl SxbetCore {
         let mut rowsLength: f64 = ((rows.len() as i64) as f64);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1517: bool = true;
-            while { if !__for_first_1517 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1517 = false; i.as_f64().unwrap_or(f64::NAN) < rowsLength } {
+            let mut __for_first_1516: bool = true;
+            while { if !__for_first_1516 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1516 = false; i.as_f64().unwrap_or(f64::NAN) < rowsLength } {
             let mut entry: Value = self.safe_dict(rows.clone(), i.clone(), &[]);
             let mut marketHash: Value = self.safe_string_k(entry.clone(), "marketHash", &[]);
             if (marketHash == Value::Null) {
@@ -3584,8 +3584,8 @@ impl SxbetCore {
             let mut watchedSymsLength: f64 = ((watchedSyms.len() as i64) as f64);
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_1516: bool = true;
-                while { if !__for_first_1516 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_1516 = false; j.as_f64().unwrap_or(f64::NAN) < watchedSymsLength } {
+                let mut __for_first_1515: bool = true;
+                while { if !__for_first_1515 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_1515 = false; j.as_f64().unwrap_or(f64::NAN) < watchedSymsLength } {
                 let mut sym: Value = watchedSyms.get(j.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
                 if (self.safe_string(watchedTickers.clone(), sym.clone(), &[]).as_str() != marketHash.as_str()) {
                     continue;
@@ -3688,8 +3688,8 @@ impl SxbetCore {
         let mut rowsLength: f64 = ((rows.len() as i64) as f64);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1518: bool = true;
-            while { if !__for_first_1518 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1518 = false; i.as_f64().unwrap_or(f64::NAN) < rowsLength } {
+            let mut __for_first_1517: bool = true;
+            while { if !__for_first_1517 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1517 = false; i.as_f64().unwrap_or(f64::NAN) < rowsLength } {
             let mut rawRow: Value = rows.get((i).as_i64().map_or(usize::MAX, |__n| __n as usize)).cloned().unwrap_or(Value::Null);
             let mut row: Value = self.safe_dict_k(rawRow.clone(), "trade", &[rawRow.clone()]);
             let mut trade: Value = self.parse_sxbet_v3_public_trade(row);
@@ -3756,8 +3756,8 @@ impl SxbetCore {
         let mut rowsLength: f64 = ((rows.len() as i64) as f64);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1519: bool = true;
-            while { if !__for_first_1519 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1519 = false; i.as_f64().unwrap_or(f64::NAN) < rowsLength } {
+            let mut __for_first_1518: bool = true;
+            while { if !__for_first_1518 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1518 = false; i.as_f64().unwrap_or(f64::NAN) < rowsLength } {
             let mut rawRow: Value = rows.get((i).as_i64().map_or(usize::MAX, |__n| __n as usize)).cloned().unwrap_or(Value::Null);
             let mut row: Value = self.safe_dict_k(rawRow.clone(), "fill", &[rawRow.clone()]);
             let mut trade: Value = self.parse_sxbet_v3_fill(row, &[]);
@@ -3822,8 +3822,8 @@ impl SxbetCore {
         let mut rowsLength: f64 = ((rows.len() as i64) as f64);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1520: bool = true;
-            while { if !__for_first_1520 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1520 = false; i.as_f64().unwrap_or(f64::NAN) < rowsLength } {
+            let mut __for_first_1519: bool = true;
+            while { if !__for_first_1519 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1519 = false; i.as_f64().unwrap_or(f64::NAN) < rowsLength } {
             let mut rawRow: Value = rows.get((i).as_i64().map_or(usize::MAX, |__n| __n as usize)).cloned().unwrap_or(Value::Null);
             let mut row: Value = self.safe_dict_k(rawRow.clone(), "order", &[rawRow.clone()]);
             let mut order: Value = self.parse_prediction_order(row, &[]);

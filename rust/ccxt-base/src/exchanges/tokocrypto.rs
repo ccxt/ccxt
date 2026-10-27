@@ -2218,7 +2218,7 @@ impl TokocryptoCore {
         m.insert("type".to_string(), type_var);
         m.insert("timeInForce".to_string(), timeInForce);
         m.insert("postOnly".to_string(), postOnly);
-        m.insert("reduceOnly".to_string(), self.safe_value_k(order.clone(), "reduceOnly", &[]));
+        m.insert("reduceOnly".to_string(), self.safe_bool_k(order.clone(), "reduceOnly", &[]));
         m.insert("side".to_string(), side);
         m.insert("price".to_string(), price);
         m.insert("triggerPrice".to_string(), self.parse_number(self.omit_zero(self.safe_string_k(order, "stopPrice", &[])), &[]));
@@ -3429,27 +3429,26 @@ impl TokocryptoCore {
         // check success value for wapi endpoints
         // response in format {'msg': 'The coin does not exist.', 'success': true/false}
         let mut success: Value = self.safe_bool_k(response.clone(), "success", &[Value::Bool(true)]);
-        let mut parsedMessage: Value = Value::Null;
+        let mut responseParsed: Value = response.clone();
         if !(success.as_bool() == Some(true)) {
             let mut messageInner: Option<String> = self.safe_string_k_opt(response.clone(), "msg", &[]);
             if (messageInner.is_some()) {
                 let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-                    parsedMessage = json_parse(&messageInner.clone().map(Value::from).unwrap_or(Value::Null));
+                    responseParsed = json_parse(&messageInner.clone().map(Value::from).unwrap_or(Value::Null));
                  #[allow(unreachable_code)] { Value::Null }}));
 if _try_result.is_err() {
                     // do nothing
-                    parsedMessage = Value::Null;
+                    responseParsed = response;
                 }
             }
         }
-        let mut responseParsed: Value = (if (parsedMessage != Value::Null) { parsedMessage.clone() } else { response });
         let mut message: Option<String> = self.safe_string_k_opt(responseParsed.clone(), "msg", &[]);
         if (message.is_some()) {
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), message.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), message.clone().map(Value::from).unwrap_or(Value::Null)).into()));
             self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), message.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), message.clone().map(Value::from).unwrap_or(Value::Null)).into()));
         }
         // checks against error codes
-        let mut error: Option<String> = self.safe_string_k_opt(responseParsed, "code", &[]);
+        let mut error: Option<String> = self.safe_string_k_opt(responseParsed.clone(), "code", &[]);
         if (error.is_some()) {
             // https://github.com/ccxt/ccxt/issues/6501
             // https://github.com/ccxt/ccxt/issues/7742
@@ -3488,15 +3487,15 @@ if _try_result.is_err() {
             let mut m = indexmap::IndexMap::new();
             m
         }), &[params]);
+        let mut byLimit: Vec<Value> = (match config.get("byLimit") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
         if (matches!(&paramsDict, Value::Dict(__d) if __d.contains_key("noCoin"))) && !(matches!(&paramsDict, Value::Dict(__d) if __d.contains_key("coin"))) {
             return (match config.get("noCoin") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null });
         }  else if (matches!(&paramsDict, Value::Dict(__d) if __d.contains_key("noSymbol"))) && !(matches!(&paramsDict, Value::Dict(__d) if __d.contains_key("symbol"))) {
             return (match config.get("noSymbol") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null });
         }  else if (matches!(&paramsDict, Value::Dict(__d) if __d.contains_key("noPoolId"))) && !(matches!(&paramsDict, Value::Dict(__d) if __d.contains_key("poolId"))) {
             return (match config.get("noPoolId") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null });
-        }  else if (config.contains_key("byLimit")) && (matches!(&paramsDict, Value::Dict(__d) if __d.contains_key("limit"))) {
+        }  else if (matches!(&paramsDict, Value::Dict(__d) if __d.contains_key("limit"))) {
             let mut limit: Value = self.safe_integer_k(paramsDict.clone(), "limit", &[]);
-            let mut byLimit: Vec<Value> = (match config.get("byLimit") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_1115: bool = true;

@@ -1705,20 +1705,24 @@ impl BitvavoCore {
             self.load_markets(&[]).await;
         }
         let mut currency: Value = self.currency(code.clone());
-        let mut subaccountId: Value = self.safe_string_k(params.clone(), "subaccountId", &[]);
-        let mut paramsOmitted: Value = self.omit(params, Value::Str("subaccountId".into()), &[]);
+        let mut subaccountParam: Option<String> = self.safe_string_k_opt(params.clone(), "subaccountId", &[]);
         let mut direction: Value = Value::Null;
+        let mut subaccountId: Value = Value::Null;
         if (fromAccount.as_str() == Some("master")) && (toAccount.as_str() == Some("master")) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" transfer() requires fromAccount and toAccount to be different (one master and one subaccount id)".into()))));
         }  else if (fromAccount.as_str() == Some("master")) {
             direction = Value::Str("masterToSub".into());
-            if (subaccountId == Value::Null) {
+            if (subaccountParam.is_none()) {
                 subaccountId = toAccount.clone();
+            }  else {
+                subaccountId = subaccountParam.clone().map(Value::from).unwrap_or(Value::Null);
             }
         }  else if (toAccount.as_str() == Some("master")) {
             direction = Value::Str("subToMaster".into());
-            if (subaccountId == Value::Null) {
+            if (subaccountParam.is_none()) {
                 subaccountId = fromAccount;
+            }  else {
+                subaccountId = subaccountParam.map(Value::from).unwrap_or(Value::Null);
             }
         }  else {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" transfer() requires either fromAccount or toAccount to be master".into()))));
@@ -1734,7 +1738,7 @@ impl BitvavoCore {
                 m.insert("amount".to_string(), self.currency_to_precision(code, amount, &[]));
             m
         });
-        let __ws_arg_4 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_4 = self.extend(Value::Map(request), &[self.omit(params, Value::Str("subaccountId".into()), &[])]);
         let mut response: Value = self.private_post_subaccounts_transfers(&[__ws_arg_4]).await;
         return self.parse_transfer(response, &[currency]);
 

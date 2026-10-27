@@ -2461,7 +2461,6 @@ impl HollaexCore {
         if (network.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" withdraw() requires a network parameter".into()))));
         }
-        let mut paramsOmitted: Value = self.omit(paramsWithdrawTag, Value::Str("network".into()), &[]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
@@ -2470,7 +2469,7 @@ impl HollaexCore {
                 m.insert("network".to_string(), self.network_code_to_id(network.map(Value::from).unwrap_or(Value::Null), &[code]));
             m
         });
-        let __ws_arg_17 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_17 = self.extend(Value::Map(request), &[self.omit(paramsWithdrawTag, Value::Str("network".into()), &[])]);
         let mut response: Value = self.private_post_user_withdrawal(&[__ws_arg_17]).await;
         return self.parse_transaction(response, &[currency]);
 
@@ -2524,10 +2523,10 @@ impl HollaexCore {
         m.insert("percentage".to_string(), Value::Null);
     m
 }));
-                m.insert("networks".to_string(), Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}));
+            m
+        });
+        let mut networks: indexmap::IndexMap<String, Value> = ({
+            let mut m = indexmap::IndexMap::new();
             m
         });
         let mut allowWithdrawal: Value = self.safe_bool_k(fee.clone(), "allow_withdrawal", &[]);
@@ -2557,15 +2556,16 @@ impl HollaexCore {
                 }
                 let mut networkCodeUpper: Value = networkCode.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null); // default to the upper case network code
                 let mut withdrawalFee: Value = self.safe_number_k(value, "value", &[]);
-                if let Value::Dict(__d) = result.entry("networks".into()).or_default() { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&networkCodeUpper), Value::Map({
+                networks.insert(crate::runtime::stringify_param(&networkCodeUpper), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("deposit".to_string(), Value::Null);
         m.insert("withdraw".to_string(), withdrawalFee);
     m
-})); }
+}));
             }
             }
         }
+        result.insert("networks".into(), Value::Map(networks));
         return Value::Map(result);
 
     Value::Null
@@ -2659,7 +2659,7 @@ impl HollaexCore {
             let mut timeoutMs: Value = self.parse_to_int(self.timeout.clone());
             let mut defaultExpires: Value = self.safe_integer2(self.options.clone(), Value::Str("api-expires".into()), Value::Str("expires".into()), &[self.parse_to_int((match ((timeoutMs).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))]);
             let mut expires: Value = self.sum(&[self.seconds(), defaultExpires]);
-            let mut expiresString: Value = Value::Str(format!("{}", expires).into());
+            let mut expiresString: Value = self.number_to_string(expires);
             let mut auth: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", method, requestPath).into()), expiresString).into());
             requestHeaders = Value::Map({
                 let mut m = indexmap::IndexMap::new();

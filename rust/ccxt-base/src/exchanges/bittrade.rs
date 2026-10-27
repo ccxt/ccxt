@@ -1646,9 +1646,9 @@ impl BittradeCore {
         let mut type_var: Value = Value::Null;
         let mut typeRaw: Value = self.safe_string_k(trade.clone(), "type", &[]);
         if (typeRaw != Value::Null) {
-            let mut typeParts: Vec<Value> = Value::Array(typeRaw.as_str().map(|__s| __s.split("-").map(Value::from).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
-            side = typeParts.get(0).cloned().unwrap_or(Value::Null);
-            type_var = typeParts.get(1).cloned().unwrap_or(Value::Null);
+            let mut typeParts: Value = Value::Array(typeRaw.as_str().map(|__s| __s.split("-").map(Value::from).collect()).unwrap_or_default());
+            side = self.safe_string(typeParts.clone(), Value::Int(0), &[]);
+            type_var = self.safe_string(typeParts, Value::Int(1), &[]);
         }
         let mut takerOrMaker: Option<String> = self.safe_string_k_opt(trade.clone(), "role", &[]);
         let mut price: Option<String> = self.safe_string_k_opt(trade.clone(), "price", &[]);
@@ -2404,9 +2404,9 @@ impl BittradeCore {
         let mut status: Value = Value::Null;
         let mut orderTypeRaw: Value = self.safe_string_k(order.clone(), "type", &[]);
         if (orderTypeRaw != Value::Null) {
-            let mut orderType: Vec<Value> = Value::Array(orderTypeRaw.as_str().map(|__s| __s.split("-").map(Value::from).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
-            side = orderType.get(0).cloned().unwrap_or(Value::Null);
-            type_var = orderType.get(1).cloned().unwrap_or(Value::Null);
+            let mut orderType: Value = Value::Array(orderTypeRaw.as_str().map(|__s| __s.split("-").map(Value::from).collect()).unwrap_or_default());
+            side = self.safe_string(orderType.clone(), Value::Int(0), &[]);
+            type_var = self.safe_string(orderType, Value::Int(1), &[]);
             status = self.parse_order_status(self.safe_string_k(order.clone(), "state", &[])).map(Value::from).unwrap_or(Value::Null);
         }
         let mut marketId: Option<String> = self.safe_string_k_opt(order.clone(), "symbol", &[]);
