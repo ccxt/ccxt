@@ -529,23 +529,18 @@ public partial class hollaex : ccxt.hollaex
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
-        object expires = this.safeString(this.options, "ws-expires");
-        if ((expires == null))
+        string? expires = this.safeString(this.options, "ws-expires", "");
+        if (expires == "")
         {
             Int64? timeoutMs = this.parseToInt(this.timeout);
             Int64? timeout = this.parseToInt(((double?)timeoutMs / 1000));
-            expires = this.sum(this.seconds(), timeout);
-            if ((expires == null))
-            {
-                throw new ArgumentsRequired ((this.id + " watchPrivate() expires is required")) ;
-            }
-            expires = expires.ToString();
+            expires = this.numberToString(this.parseToInt(this.sum(this.seconds(), timeout)));
             // we need to memoize these values to avoid generating a new url on each method execution
             // that would trigger a new connection on each received message
             this.options["ws-expires"] = expires;
         }
         string url = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws", "");
-        string auth = (("CONNECT" + "/stream") + (expires));
+        string auth = (("CONNECT" + "/stream") + expires);
         string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
         Dictionary<string, object> authParams = new Dictionary<string, object>() {
             { "api-key", this.apiKey },

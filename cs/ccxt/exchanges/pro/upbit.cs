@@ -40,13 +40,8 @@ public partial class upbit : ccxt.upbit
         {
             await this.loadMarkets();
         }
-        object symbolsRequested = symbols;
-        if ((symbols == null))
-        {
-            symbolsRequested = this.symbols;
-        }
-        IList<object> symbolsMarket = this.marketSymbols(symbolsRequested);
-        IList<object> symbolsNormalized = ((symbolsMarket == null)) ? new List<object>() {} : symbolsMarket;
+        object symbolsRequested = ((symbols == null)) ? this.symbols : symbols;
+        IList<object> symbolsNormalized = this.marketSymbols(symbolsRequested);
         IList<object> marketIds = this.marketIds(symbolsNormalized);
         string? url = this.implodeParams(this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws"), new Dictionary<string, object>() {
             { "hostname", this.hostname },

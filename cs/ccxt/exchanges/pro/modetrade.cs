@@ -794,7 +794,7 @@ public partial class modetrade : ccxt.modetrade
         {
             Dictionary<string, object> market = this.market(symbol);
             symbolResolved = this.safeString(market, "symbol");
-            messageHash = ((topic + ":") + symbolResolved);
+            messageHash = ((topic + ":") + this.safeString(market, "symbol", ""));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "event", "subscribe" },
@@ -843,7 +843,7 @@ public partial class modetrade : ccxt.modetrade
         {
             Dictionary<string, object> market = this.market(symbol);
             symbolResolved = this.safeString(market, "symbol");
-            messageHash = (("myTrades" + ":") + symbolResolved);
+            messageHash = (("myTrades" + ":") + this.safeString(market, "symbol", ""));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "event", "subscribe" },

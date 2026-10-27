@@ -1136,14 +1136,14 @@ public partial class bittrade : Exchange
         string? symbol = this.safeSymbol(marketId, market);
         Int64? timestamp = this.safeInteger2(trade, "ts", "created-at");
         string? order = this.safeString(trade, "order-id");
-        object side = this.safeString(trade, "direction");
-        object type = null;
+        string? side = this.safeString(trade, "direction");
+        string? type = null;
         string? typeRaw = this.safeString(trade, "type");
         if ((typeRaw != null))
         {
             List<object> typeParts = typeRaw.Split(new [] {"-"}, StringSplitOptions.None).ToList<object>();
-            side = (typeParts != null && 0 < typeParts.Count ? typeParts[0] : null);
-            type = (typeParts != null && 1 < typeParts.Count ? typeParts[1] : null);
+            side = this.safeString(typeParts, 0);
+            type = this.safeString(typeParts, 1);
         }
         string? takerOrMaker = this.safeString(trade, "role");
         string? price = this.safeString(trade, "price");
@@ -1801,15 +1801,15 @@ public partial class bittrade : Exchange
         //             "canceled-at":  0                      }
         //
         string? id = this.safeString(order, "id");
-        object side = null;
-        object type = null;
+        string? side = null;
+        string? type = null;
         string? status = null;
         string? orderTypeRaw = this.safeString(order, "type");
         if ((orderTypeRaw != null))
         {
             List<object> orderType = orderTypeRaw.Split(new [] {"-"}, StringSplitOptions.None).ToList<object>();
-            side = (orderType != null && 0 < orderType.Count ? orderType[0] : null);
-            type = (orderType != null && 1 < orderType.Count ? orderType[1] : null);
+            side = this.safeString(orderType, 0);
+            type = this.safeString(orderType, 1);
             status = this.parseOrderStatus(this.safeString(order, "state"));
         }
         string? marketId = this.safeString(order, "symbol");
@@ -1825,7 +1825,7 @@ public partial class bittrade : Exchange
         if ((feeCost != null))
         {
             object feeCurrency = null;
-            if ((side is "sell"))
+            if (side == "sell")
             {
                 feeCurrency = (marketResolved != null && marketResolved.ContainsKey("quote") ? marketResolved["quote"] : null);
             } else

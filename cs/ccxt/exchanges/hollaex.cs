@@ -2069,14 +2069,13 @@ public partial class hollaex : Exchange
         {
             throw new ArgumentsRequired ((this.id + " withdraw() requires a network parameter")) ;
         }
-        Dictionary<string, object> paramsOmitted = this.omit(paramsWithdrawTag, "network");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
             { "amount", amount },
             { "address", addressWithTag },
             { "network", this.networkCodeToId(network, code) },
         };
-        Dictionary<string, object> response = await this.privatePostUserWithdrawal(this.extend(request, paramsOmitted));
+        Dictionary<string, object> response = await this.privatePostUserWithdrawal(this.extend(request, this.omit(paramsWithdrawTag, "network")));
         //
         //     {
         //         "message": "Withdrawal request is in the queue and will be processed.",
@@ -2132,8 +2131,8 @@ public partial class hollaex : Exchange
                 { "fee", null },
                 { "percentage", null },
             } },
-            { "networks", new Dictionary<string, object>() {} },
         };
+        Dictionary<string, object> networks = new Dictionary<string, object>() {};
         bool? allowWithdrawal = this.safeBool(fee, "allow_withdrawal");
         if ((allowWithdrawal == true))
         {
@@ -2160,12 +2159,13 @@ public partial class hollaex : Exchange
                 }
                 string networkCodeUpper = networkCode.ToUpper(); // default to the upper case network code
                 double? withdrawalFee = this.safeNumber(value, "value");
-                ((IDictionary<string,object>)result["networks"])[networkCodeUpper] = new Dictionary<string, object>() {
+                networks[(string)networkCodeUpper] = new Dictionary<string, object>() {
                     { "deposit", null },
                     { "withdraw", withdrawalFee },
                 };
             }
         }
+        result["networks"] = networks;
         return result;
     }
 
@@ -2249,7 +2249,7 @@ public partial class hollaex : Exchange
             Int64? timeoutMs = this.parseToInt(this.timeout);
             Int64? defaultExpires = this.safeInteger2(this.options, "api-expires", "expires", this.parseToInt(((double?)timeoutMs / 1000)));
             Int64 expires = this.sum(this.seconds(), defaultExpires);
-            string expiresString = expires.ToString();
+            string? expiresString = this.numberToString(expires);
             string auth = ((method + requestPath) + expiresString);
             requestHeaders = new Dictionary<string, object>() {
                 { "api-key", this.apiKey },

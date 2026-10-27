@@ -6814,7 +6814,7 @@ public partial class xt : Exchange
         if (signed)
         {
             this.checkRequiredCredentials();
-            string? defaultRecvWindow = this.safeString(this.options, "recvWindow");
+            string? defaultRecvWindow = this.safeString(this.options, "recvWindow", "5000");
             string? recvWindow = this.safeString(query, "recvWindow", defaultRecvWindow);
             string? timestamp = this.numberToString(this.nonce());
             if ((payload == "/v4/order") || (payload == "/future/trade/v1/order/create") || (payload == "/future/trade/v1/entrust/create-plan") || (payload == "/future/trade/v1/entrust/create-profit") || (payload == "/future/trade/v1/order/create-batch"))
@@ -6834,7 +6834,7 @@ public partial class xt : Exchange
                 isUndefinedBody = false;
             }
             signedBody = isUndefinedBody ? null : this.json(query);
-            object payloadString = null;
+            string payloadString = "";
             if ((endpoint == "spot") || (endpoint == "user"))
             {
                 payloadString = (((((("xt-validate-algorithms=HmacSHA256&xt-validate-appkey=" + this.apiKey) + "&xt-validate-recvwindow=") + recvWindow) + "&xt-validate-t") + "imestamp=") + timestamp);
@@ -6843,14 +6843,14 @@ public partial class xt : Exchange
                     if (urlencoded != "")
                     {
                         url = (((apiUrl + payload) + "?") + urlencoded);
-                        payloadString = add(payloadString, ((((("#" + method) + "#") + payload) + "#") + this.rawencode(this.keysort(query))));
+                        payloadString = payloadString + ((((("#" + method) + "#") + payload) + "#") + this.rawencode(this.keysort(query)));
                     } else
                     {
-                        payloadString = add(payloadString, ((("#" + method) + "#") + payload));
+                        payloadString = payloadString + ((("#" + method) + "#") + payload);
                     }
                 } else
                 {
-                    payloadString = add(payloadString, ((((("#" + method) + "#") + payload) + "#") + signedBody));
+                    payloadString = payloadString + ((((("#" + method) + "#") + payload) + "#") + signedBody);
                 }
                 headersValue["xt-validate-algorithms"] = "HmacSHA256";
                 headersValue["xt-validate-recvwindow"] = recvWindow;
@@ -6862,14 +6862,14 @@ public partial class xt : Exchange
                     if (urlencoded != "")
                     {
                         url = (((apiUrl + payload) + "?") + urlencoded);
-                        payloadString = add(payloadString, ((("#" + payload) + "#") + urlencoded));
+                        payloadString = payloadString + ((("#" + payload) + "#") + urlencoded);
                     } else
                     {
-                        payloadString = add(payloadString, ("#" + payload));
+                        payloadString = payloadString + ("#" + payload);
                     }
                 } else
                 {
-                    payloadString = add(payloadString, ((("#" + payload) + "#") + signedBody));
+                    payloadString = payloadString + ((("#" + payload) + "#") + signedBody);
                 }
             }
             string signature = this.hmac(this.encode(payloadString), this.encode(this.secret), sha256);

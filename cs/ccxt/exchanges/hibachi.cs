@@ -919,14 +919,6 @@ public partial class hibachi : Exchange
 
     public virtual object orderMessage(IDictionary<string, object> market, object nonce, object feeRate, string? type, string? side, object amount, object price = null)
     {
-        if ((type == null))
-        {
-            throw new ArgumentsRequired ((this.id + " requires a type argument")) ;
-        }
-        if ((side == null))
-        {
-            throw new ArgumentsRequired ((this.id + " requires a side argument")) ;
-        }
         int sideInternal = 0;
         if ((side == "sell"))
         {

@@ -1467,7 +1467,7 @@ public partial class coinbase : Exchange
         //         "side": "BUY"
         //     }
         //
-        object symbol = null;
+        string? symbol = null;
         IDictionary<string, object> totalObject = this.safeDict(trade, "total", new Dictionary<string, object>() {});
         IDictionary<string, object> amountObject = this.safeDict(trade, "amount", new Dictionary<string, object>() {});
         IDictionary<string, object> subtotalObject = this.safeDict(trade, "subtotal", new Dictionary<string, object>() {});
@@ -1476,16 +1476,19 @@ public partial class coinbase : Exchange
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, "-");
         if ((marketResolved != null))
         {
-            symbol = (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null);
+            symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
         } else
         {
             string? baseId = this.safeString(amountObject, "currency");
             string? quoteId = this.safeString(totalObject, "currency");
             if (((baseId != null)) && ((quoteId != null)))
             {
-                object bs = this.safeCurrencyCode(baseId);
+                string? bs = this.safeCurrencyCode(baseId);
                 string? quote = this.safeCurrencyCode(quoteId);
-                symbol = add(add(bs, "/"), quote);
+                if (((bs != null)) && ((quote != null)))
+                {
+                    symbol = ((bs + "/") + quote);
+                }
             }
         }
         bool? sizeInQuote = this.safeBool(trade, "size_in_quote");
@@ -1610,7 +1613,7 @@ public partial class coinbase : Exchange
                     object quoteCurrency = data[j];
                     string? quoteId = this.safeString(quoteCurrency, "id");
                     string? quote = this.safeCurrencyCode(quoteId);
-                    if ((quote == null))
+                    if (((quote == null)) || ((quoteId == null)))
                     {
                         continue;
                     }

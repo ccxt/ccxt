@@ -950,12 +950,11 @@ public partial class upbit : Exchange
         {
             IList<object> ids = this.marketIds(symbolsNormalized);
             List<Task<List<object>>> promises = new List<Task<List<object>>>() {};
-            List<object> queries = this.idsQueryStrings(ids, 4000); // the url is limited to about 8000 characters once the commas are percent-encoded
+            List<object> queries = this.idsQueryStrings(ids); // the url is limited to about 8000 characters once the commas are percent-encoded
             for (int i = 0; i < (queries?.Count ?? 0); i++)
             {
-                object idsQuery = queries[i];
                 promises.Add(this.publicGetTicker(this.extend(new Dictionary<string, object>() {
-                    { "markets", idsQuery },
+                    { "markets", this.safeString(queries, i, "") },
                 }, parameters)));
             }
             List<object> responses = new List<object>(await Task.WhenAll(promises));
@@ -992,12 +991,8 @@ public partial class upbit : Exchange
         return ccxt.BaseExchange.ToTickers(this.parseTickers(tickers, symbolsNormalized));
     }
 
-    public virtual List<object> idsQueryStrings(IList<object> ids, object maxQueryLength)
+    public virtual List<object> idsQueryStrings(IList<object> ids)
     {
-        if ((ids == null))
-        {
-            return new List<object>() {};
-        }
         string idsString = "";
         List<object> queries = new List<object>() {};
         for (int i = 0; i < (ids?.Count ?? 0); i++)
@@ -1007,7 +1002,7 @@ public partial class upbit : Exchange
                 idsString = (idsString + ",");
             }
             idsString = (idsString + this.safeString(ids, i, ""));
-            if (isGreaterThanOrEqual(idsString.Length, maxQueryLength))
+            if (idsString.Length >= 4000)
             {
                 queries.Add(idsString);
                 idsString = "";
@@ -2148,8 +2143,7 @@ public partial class upbit : Exchange
         string? feeCost = this.safeString(order, "paid_fee");
         string? marketId = this.safeString(order, "market");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
-        IList<object> trades = this.safeList(order, "trades", new List<object>() {});
-        trades = ccxt.BaseExchange.FromTradeList(this.parseTrades(trades, marketResolved, null, null, new Dictionary<string, object>() {
+        IList<object> trades = ccxt.BaseExchange.FromTradeList(this.parseTrades(this.safeList(order, "trades", new List<object>() {}), marketResolved, null, null, new Dictionary<string, object>() {
             { "order", id },
             { "type", type },
         }));

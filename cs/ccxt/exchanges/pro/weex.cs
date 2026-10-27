@@ -1210,7 +1210,7 @@ public partial class weex : ccxt.weex
             return;
         }
         Dictionary<string, object> ticker = this.parseWsBidAsk(message, market);
-        string? symbol = ((string)(ticker != null && ticker.ContainsKey("symbol") ? ticker["symbol"] : null));
+        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         if ((symbol != null))
         {
             this.bidsasks[(string)symbol] = ticker;

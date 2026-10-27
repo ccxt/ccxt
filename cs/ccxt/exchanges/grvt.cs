@@ -2328,13 +2328,6 @@ public partial class grvt : Exchange
         await this.loadMarketsAndSignIn();
         string? defaultFromAccountId = this.safeString(this.options, "userMainAccountId");
         Dictionary<string, object> currency = this.currency(code);
-        Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "to_eth_address", address },
-            { "from_account_id", defaultFromAccountId },
-            { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
-            { "num_tokens", this.currencyToPrecision(code, amount) },
-            { "signature", this.defaultSignature() },
-        };
         (string?, object) networkCodequeryVariable = this.handleNetworkCodeAndParams(parameters);
         string? networkCode = networkCodequeryVariable.Item1;
         IDictionary<string, object> query = ((IDictionary<string, object>)networkCodequeryVariable.Item2);
@@ -2343,7 +2336,15 @@ public partial class grvt : Exchange
         {
             throw new BadRequest ((this.id + " withdraw() requires a network parameter")) ;
         }
-        ((IDictionary<string,object>)request["signature"])["chain_id"] = networkId;
+        Dictionary<string, object> withdrawSignature = this.defaultSignature();
+        withdrawSignature["chain_id"] = networkId;
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "to_eth_address", address },
+            { "from_account_id", defaultFromAccountId },
+            { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
+            { "num_tokens", this.currencyToPrecision(code, amount) },
+            { "signature", withdrawSignature },
+        };
         Dictionary<string, object> response = await this.privateTradingPostFullV1Withdrawal(this.extend(this.createSignedRequest(request, "EIP712_WITHDRAWAL_TYPE", currency), query));
         //
         // {
@@ -3822,9 +3823,7 @@ public partial class grvt : Exchange
             };
             // an empty params dict must serialize as an empty json object, not an empty json array,
             // php json_encode would produce [] here which the venue rejects with the same 1003 error
-            List<object> paramsKeys = new List<object>(((IDictionary<string,object>)parameters).Keys);
-            int paramsKeysLength = paramsKeys.Count;
-            if ((paramsKeysLength == 0))
+            if (((new List<object>(((IDictionary<string,object>)parameters).Keys)).Count == 0))
             {
                 requestBody = "{}";
             } else

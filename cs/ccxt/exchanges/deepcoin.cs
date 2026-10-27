@@ -869,7 +869,7 @@ public partial class deepcoin : Exchange
                 // we calculate until (after) for correct pagination
                 int duration = this.parseTimeframe(timeframeVar);
                 Int64? numberOfCandles = ((limit == null)) ? maxLimit : limit;
-                object endTime = add(since, (((duration * numberOfCandles)) * 1000));
+                object endTime = this.parseToInt(add(since, (((duration * numberOfCandles)) * 1000)));
                 if ((until != null))
                 {
                     endTime = mathMin(endTime, until);

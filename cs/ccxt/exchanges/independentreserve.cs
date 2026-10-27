@@ -1359,7 +1359,7 @@ public partial class independentreserve : Exchange
             for (int i = 0; i < keys.Count; i++)
             {
                 object key = keys[i];
-                string value = ((object)(paramsDict != null && key != null && paramsDict.ContainsKey((string)key) ? paramsDict[(string)key] : null)).ToString();
+                string? value = this.safeString(paramsDict, key, "");
                 auth.Add(add(add(key, "="), value));
             }
             string message = String.Join(",", auth.ToArray());

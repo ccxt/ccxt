@@ -328,7 +328,7 @@ public partial class deribit : ccxt.deribit
         for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
         {
             Dictionary<string, object> market = this.market((symbolsNormalized != null && i < symbolsNormalized.Count ? symbolsNormalized[i] : null));
-            channels.Add(("quote." + ((market.ContainsKey("id") ? market["id"] : null))));
+            channels.Add(("quote." + this.safeString(market, "id", "")));
         }
         Dictionary<string, object> message = new Dictionary<string, object>() {
             { "jsonrpc", "2.0" },
@@ -713,8 +713,7 @@ public partial class deribit : ccxt.deribit
             descriptor = ((((this.safeString(parts, 2, "") + ".") + this.safeString(parts, 3, "")) + ".") + interval);
         } else
         {
-            string? interval = this.safeString(parts, 2, "");
-            descriptor = interval;
+            descriptor = this.safeString(parts, 2, "");
         }
         string? marketId = this.safeString(data, "instrument_name");
         string? symbol = this.safeSymbol(marketId);
@@ -1029,18 +1028,17 @@ public partial class deribit : ccxt.deribit
             {
                 throw new ArgumentsRequired ((this.id + " watchMultipleWrapper() symbolsArray is required")) ;
             }
-            object current = getValue(symbolsArray, i);
             IDictionary<string, object> market = null;
             object currentDescriptor = null;
             if (isOHLCV)
             {
                 List<object> currentPair = this.safeList(symbolsArray, i, new List<object>() {});
-                market = this.market((currentPair != null && 0 < currentPair.Count ? currentPair[0] : null));
-                object unifiedTf = (currentPair != null && 1 < currentPair.Count ? currentPair[1] : null);
+                market = this.market(this.safeString(currentPair, 0));
+                string? unifiedTf = this.safeString(currentPair, 1);
                 currentDescriptor = this.safeString(this.timeframes, unifiedTf, unifiedTf);
             } else
             {
-                market = this.market(current);
+                market = this.market(this.safeString(symbolsArray, i));
                 currentDescriptor = channelDescriptor;
             }
             object message = add(add(add(add(channelName, "."), this.safeString(market, "id", "")), "."), currentDescriptor);

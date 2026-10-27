@@ -2063,9 +2063,10 @@ public partial class alpaca : Exchange
         }
         Dictionary<string, object> currency = this.currency(code);
         object addressValue = address;
-        if (((tagWithdrawTag != null)) && (!(tagWithdrawTag == "")))
+        string? tagSuffix = this.safeString(parameters, "tag", "");
+        if (tagSuffix != "")
         {
-            addressValue = ((address + ":") + tagWithdrawTag);
+            addressValue = ((address + ":") + tagSuffix);
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "asset", (currency.ContainsKey("id") ? currency["id"] : null) },

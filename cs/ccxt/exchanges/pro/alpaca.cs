@@ -309,14 +309,6 @@ public partial class alpaca : ccxt.alpaca
         (bookside as IOrderBookSide).storeArray(bidAsk);
     }
 
-    public override void handleDeltas(object bookside, IList<object> deltas)
-    {
-        for (int i = 0; i < (deltas?.Count ?? 0); i++)
-        {
-            this.handleDelta(bookside, (deltas != null && i < deltas.Count ? deltas[i] : null));
-        }
-    }
-
     /**
      * @method
      * @name alpaca#watchTrades

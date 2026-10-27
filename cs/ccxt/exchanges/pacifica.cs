@@ -4221,11 +4221,10 @@ public partial class pacifica : Exchange
         string host = this.implodeHostname(baseApiUrl);
         string url = ((((host + "/api/") + this.version) + "/") + this.implodeParams(path, parameters));
         object paramsOmitted = this.omit(parameters, this.extractParams(path));
-        int paramsLen = (new List<object>(((IDictionary<string,object>)paramsOmitted).Keys)).Count;
         Dictionary<string, object> headersValue = new Dictionary<string, object>() {
             { "Content-Type", "application/json" },
         };
-        if (((method == "GET")) && (paramsLen > 0))
+        if (((method == "GET")) && ((new List<object>(((IDictionary<string,object>)paramsOmitted).Keys)).Count > 0))
         {
             url = url + ("?" + this.urlencode(paramsOmitted));
             headersValue["Accept"] = "*/*";

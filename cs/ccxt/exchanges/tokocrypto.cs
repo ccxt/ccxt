@@ -1914,7 +1914,7 @@ public partial class tokocrypto : Exchange
             { "type", type },
             { "timeInForce", timeInForce },
             { "postOnly", postOnly },
-            { "reduceOnly", this.safeValue(order, "reduceOnly") },
+            { "reduceOnly", this.safeBool(order, "reduceOnly") },
             { "side", side },
             { "price", price },
             { "triggerPrice", this.parseNumber(this.omitZero(this.safeString(order, "stopPrice"))) },
@@ -3041,7 +3041,7 @@ public partial class tokocrypto : Exchange
         // check success value for wapi endpoints
         // response in format {'msg': 'The coin does not exist.', 'success': true/false}
         bool? success = this.safeBool(response, "success", true);
-        object parsedMessage = null;
+        object responseParsed = response;
         if (success != true)
         {
             string? messageInner = this.safeString(response, "msg");
@@ -3049,15 +3049,14 @@ public partial class tokocrypto : Exchange
             {
                 try
                 {
-                    parsedMessage = JsonHelper.Deserialize(messageInner);
+                    responseParsed = JsonHelper.Deserialize(messageInner);
                 } catch(Exception e)
                 {
                     // do nothing
-                    parsedMessage = null;
+                    responseParsed = response;
                 }
             }
         }
-        object responseParsed = ((parsedMessage != null)) ? parsedMessage : response;
         string? message = this.safeString(responseParsed, "msg");
         if ((message != null))
         {
@@ -3100,6 +3099,7 @@ public partial class tokocrypto : Exchange
     {
         config ??= new Dictionary<string, object>();
         Dictionary<string, object> paramsDict = this.extend(new Dictionary<string, object>() {}, parameters);
+        List<object> byLimit = this.safeList(config, "byLimit", new List<object>() {});
         if ((paramsDict.ContainsKey("noCoin")) && !(paramsDict.ContainsKey("coin")))
         {
             return this.safeInteger(config, "noCoin");
@@ -3109,10 +3109,9 @@ public partial class tokocrypto : Exchange
         } else if ((paramsDict.ContainsKey("noPoolId")) && !(paramsDict.ContainsKey("poolId")))
         {
             return this.safeInteger(config, "noPoolId");
-        } else if ((((IDictionary<string, object>)config).ContainsKey("byLimit")) && (paramsDict.ContainsKey("limit")))
+        } else if (paramsDict.ContainsKey("limit"))
         {
             Int64? limit = this.safeInteger(paramsDict, "limit");
-            List<object> byLimit = this.safeList(config, "byLimit", new List<object>() {});
             for (int i = 0; i < byLimit.Count; i++)
             {
                 object entry = byLimit[i];

@@ -574,11 +574,7 @@ public partial class p2b : Exchange
         //    }
         //
         Int64? timestamp = this.safeIntegerProduct(ticker, "at", 1000);
-        object tickerInner = ticker;
-        if (inOp(ticker, "ticker"))
-        {
-            tickerInner = this.safeDict(ticker, "ticker");
-        }
+        IDictionary<string, object> tickerInner = this.safeDict(ticker, "ticker", ticker);
         string? last = this.safeString(tickerInner, "last");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", this.safeString(market, "symbol") },

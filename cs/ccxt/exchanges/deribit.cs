@@ -3828,13 +3828,13 @@ public partial class deribit : Exchange
         object paramsUntil = ((until != null)) ? this.omit(paramsPaginate, new List<object>() {"until"}) : paramsPaginate;
         Int64? endTimestamp = ((until != null)) ? until : time;
         request["end_timestamp"] = endTimestamp;
-        bool isPaginationCall = ((paramsUntil is IDictionary<string, object> inOpDict0 && inOpDict0.ContainsKey("isDeribitPaginationCall")));
+        bool? isPaginationCall = this.safeBool(paramsUntil, "isDeribitPaginationCall", false);
         object paramsOmitted = paramsUntil;
-        if (isPaginationCall)
+        if ((isPaginationCall == true))
         {
             paramsOmitted = this.omit(paramsUntil, "isDeribitPaginationCall");
         }
-        if (isPaginationCall)
+        if ((isPaginationCall == true))
         {
             if ((limit == null))
             {

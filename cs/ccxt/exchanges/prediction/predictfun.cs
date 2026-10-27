@@ -665,7 +665,7 @@ public partial class predictfun : PredictionExchange
         for (int i = 0; i < queriesLength; i++)
         {
             Dictionary<string, object> request = new Dictionary<string, object>() {
-                { "query", (queries != null && i < queries.Count ? queries[i] : null) },
+                { "query", this.safeString(queries, i, "") },
                 { "limit", limit },
                 { "includeResolved", includeResolved },
             };
@@ -1834,7 +1834,7 @@ public partial class predictfun : PredictionExchange
     {
         // read before the flag is overwritten: only an actual switch touches the token, so calling
         // this twice with the same value is a no-op rather than a forced re-authentication
-        bool? wasSandbox = this.safeBool(this.options, "sandboxMode", false);
+        bool wasSandbox = ((this.safeBool(this.options, "sandboxMode", false) == true));
         base.setSandboxMode(enable);
         // the testnet is a different chain, so the EIP-712 chainId and every verifying contract
         // change with it - and the venue serves the testnet without an api key
@@ -2311,7 +2311,7 @@ public partial class predictfun : PredictionExchange
         IList<object> wantedOutcomes = this.toArray(outcomes);
         for (int i = 0; i < outcomesLength; i++)
         {
-            IDictionary<string, object> outcomeObj = this.outcome((wantedOutcomes != null && i < wantedOutcomes.Count ? wantedOutcomes[i] : null));
+            IDictionary<string, object> outcomeObj = this.outcome(this.safeString(wantedOutcomes, i));
             string? wantedId = this.safeString(outcomeObj, "outcomeId", "");
             wanted[(string)wantedId] = true;
         }
@@ -2995,14 +2995,7 @@ public partial class predictfun : PredictionExchange
         rHex = this.padHexToEven(rHex);
         sHex = this.padHexToEven(sHex);
         Int64? yParity = this.safeInteger(signature, "v");
-        List<object> signedFields = new List<object>() {};
-        for (int i = 0; i < (fields?.Count ?? 0); i++)
-        {
-            signedFields.Add(fields[i]);
-        }
-        signedFields.Add(this.rlpEncodeBytes(this.intToRlpHex(yParity)));
-        signedFields.Add(this.rlpEncodeBytes(rHex));
-        signedFields.Add(this.rlpEncodeBytes(sHex));
+        List<object> signedFields = this.arrayConcat(fields, new List<object> {this.rlpEncodeBytes(this.intToRlpHex(yParity)), this.rlpEncodeBytes(rHex), this.rlpEncodeBytes(sHex)});
         return ("0x02" + this.rlpEncodeList(signedFields));
     }
 
@@ -3303,7 +3296,7 @@ public partial class predictfun : PredictionExchange
         }
         for (int i = 0; i < messageHashesLength; i++)
         {
-            client.reject(error, getValue(messageHashes, i));
+            client.reject(error, this.safeString(messageHashes, i, ""));
         }
     }
 
@@ -3654,11 +3647,11 @@ public partial class predictfun : PredictionExchange
     public virtual List<object> outcomesByMarketId(string? marketId)
     {
         List<object> result = new List<object>() {};
-        object cached = this.outcomes;
-        if (((marketId == null)) || ((cached == null)))
+        if (((marketId == null)) || ((this.outcomes == null)))
         {
             return result;
         }
+        object cached = this.outcomes;
         List<object> handles = new List<object>(((IDictionary<string,object>)cached).Keys);
         int handlesLength = handles.Count;
         for (int i = 0; i < handlesLength; i++)

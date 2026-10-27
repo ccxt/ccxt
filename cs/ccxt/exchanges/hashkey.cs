@@ -2154,10 +2154,10 @@ public partial class hashkey : Exchange
         {
             request["limit"] = limit;
         }
-        IList<object> untilparamsUntilVariable = (IList<object>)this.handleOptionAndParams(parameters, methodName, "until");
-        var until = untilparamsUntilVariable[0];
-        IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)untilparamsUntilVariable[1]);
-        if ((until != null))
+        (Int64?, object) untilparamsUntilVariable = this.handleOptionIntegerAndParams(parameters, methodName, "until");
+        Int64? until = untilparamsUntilVariable.Item1;
+        IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)untilparamsUntilVariable.Item2);
+        if (!(until == null))
         {
             request["endTime"] = until;
         }
@@ -2214,10 +2214,10 @@ public partial class hashkey : Exchange
         {
             request["limit"] = limit;
         }
-        IList<object> untilparamsUntilVariable = (IList<object>)this.handleOptionAndParams(parameters, methodName, "until");
-        var until = untilparamsUntilVariable[0];
-        IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)untilparamsUntilVariable[1]);
-        if ((until != null))
+        (Int64?, object) untilparamsUntilVariable = this.handleOptionIntegerAndParams(parameters, methodName, "until");
+        Int64? until = untilparamsUntilVariable.Item1;
+        IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)untilparamsUntilVariable.Item2);
+        if (!(until == null))
         {
             request["endTime"] = until;
         }
@@ -2587,9 +2587,9 @@ public partial class hashkey : Exchange
         {
             throw new ArgumentsRequired ((((this.id + " ") + methodName) + "() requires a since argument")) ;
         }
-        IList<object> untilparamsUntilVariable = (IList<object>)this.handleOptionAndParams(parameters, methodName, "until");
-        var until = untilparamsUntilVariable[0];
-        IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)untilparamsUntilVariable[1]);
+        (Int64?, object) untilparamsUntilVariable = this.handleOptionIntegerAndParams(parameters, methodName, "until");
+        Int64? until = untilparamsUntilVariable.Item1;
+        IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)untilparamsUntilVariable.Item2);
         if ((until == null))
         {
             throw new ArgumentsRequired ((((this.id + " ") + methodName) + "() requires an until argument")) ;
@@ -3162,9 +3162,9 @@ public partial class hashkey : Exchange
             response = await this.privateDeleteApiV1SpotOrder(this.extend(request, paramsMarketType));
         } else if ((marketType == "swap"))
         {
-            IList<object> isTriggerparamsTriggerVariable = (IList<object>)this.handleTriggerOptionAndParams(paramsMarketType, methodName, false);
-            bool? isTrigger = (bool?)isTriggerparamsTriggerVariable[0];
-            IDictionary<string, object> paramsTrigger = ((IDictionary<string, object>)isTriggerparamsTriggerVariable[1]);
+            (bool?, object) isTriggerparamsTriggerVariable = this.handleOptionBoolAndParams2(paramsMarketType, methodName, "stop", "trigger", false);
+            bool? isTrigger = isTriggerparamsTriggerVariable.Item1;
+            IDictionary<string, object> paramsTrigger = ((IDictionary<string, object>)isTriggerparamsTriggerVariable.Item2);
             if ((isTrigger == true))
             {
                 request["type"] = "STOP";
@@ -3332,9 +3332,9 @@ public partial class hashkey : Exchange
             response = await this.privateGetApiV1SpotOrder(this.extend(request, paramsMarketType));
         } else if ((marketType == "swap"))
         {
-            IList<object> isTriggerparamsTriggerVariable = (IList<object>)this.handleTriggerOptionAndParams(paramsMarketType, methodName, false);
-            bool? isTrigger = (bool?)isTriggerparamsTriggerVariable[0];
-            IDictionary<string, object> paramsTrigger = ((IDictionary<string, object>)isTriggerparamsTriggerVariable[1]);
+            (bool?, object) isTriggerparamsTriggerVariable = this.handleOptionBoolAndParams2(paramsMarketType, methodName, "stop", "trigger", false);
+            bool? isTrigger = isTriggerparamsTriggerVariable.Item1;
+            IDictionary<string, object> paramsTrigger = ((IDictionary<string, object>)isTriggerparamsTriggerVariable.Item2);
             if ((isTrigger == true))
             {
                 request["type"] = "STOP";
@@ -3487,10 +3487,10 @@ public partial class hashkey : Exchange
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         bool isTrigger = false;
-        IList<object> isTriggerTriggerparamsTriggerVariable = (IList<object>)this.handleTriggerOptionAndParams(paramsMethodName, methodNameOption, isTrigger);
-        var isTriggerTrigger = isTriggerTriggerparamsTriggerVariable[0];
-        IDictionary<string, object> paramsTrigger = ((IDictionary<string, object>)isTriggerTriggerparamsTriggerVariable[1]);
-        if ((isTriggerTrigger is true))
+        (bool?, object) isTriggerTriggerparamsTriggerVariable = this.handleOptionBoolAndParams2(paramsMethodName, methodNameOption, "stop", "trigger", isTrigger);
+        bool? isTriggerTrigger = isTriggerTriggerparamsTriggerVariable.Item1;
+        IDictionary<string, object> paramsTrigger = ((IDictionary<string, object>)isTriggerTriggerparamsTriggerVariable.Item2);
+        if ((isTriggerTrigger == true))
         {
             request["type"] = "STOP";
         } else
@@ -3555,10 +3555,10 @@ public partial class hashkey : Exchange
         {
             request["startTime"] = since;
         }
-        IList<object> untilparamsUntilVariable = (IList<object>)this.handleOptionAndParams(parameters, methodName, "until");
-        var until = untilparamsUntilVariable[0];
-        IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)untilparamsUntilVariable[1]);
-        if ((until != null))
+        (Int64?, object) untilparamsUntilVariable = this.handleOptionIntegerAndParams(parameters, methodName, "until");
+        Int64? until = untilparamsUntilVariable.Item1;
+        IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)untilparamsUntilVariable.Item2);
+        if (!(until == null))
         {
             request["endTime"] = until;
         }
@@ -3592,9 +3592,9 @@ public partial class hashkey : Exchange
                 throw new ArgumentsRequired ((((this.id + " ") + methodName) + "() requires a symbol argument for swap markets")) ;
             }
             request["symbol"] = this.safeString(market, "id");
-            IList<object> isTriggerparamsTriggerVariable = (IList<object>)this.handleTriggerOptionAndParams(paramsMarketType, methodName, false);
-            bool? isTrigger = (bool?)isTriggerparamsTriggerVariable[0];
-            IDictionary<string, object> paramsTrigger = ((IDictionary<string, object>)isTriggerparamsTriggerVariable[1]);
+            (bool?, object) isTriggerparamsTriggerVariable = this.handleOptionBoolAndParams2(paramsMarketType, methodName, "stop", "trigger", false);
+            bool? isTrigger = isTriggerparamsTriggerVariable.Item1;
+            IDictionary<string, object> paramsTrigger = ((IDictionary<string, object>)isTriggerparamsTriggerVariable.Item2);
             if ((isTrigger == true))
             {
                 request["type"] = "STOP";

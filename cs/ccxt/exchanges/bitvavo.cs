@@ -1396,25 +1396,31 @@ public partial class bitvavo : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> currency = this.currency(code);
-        object subaccountId = this.safeString(parameters, "subaccountId");
-        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "subaccountId"));
+        string? subaccountParam = this.safeString(parameters, "subaccountId");
         string? direction = null;
+        object subaccountId = null;
         if (((fromAccount == "master")) && ((toAccount == "master")))
         {
             throw new ArgumentsRequired ((this.id + " transfer() requires fromAccount and toAccount to be different (one master and one subaccount id)")) ;
         } else if ((fromAccount == "master"))
         {
             direction = "masterToSub";
-            if ((subaccountId == null))
+            if ((subaccountParam == null))
             {
                 subaccountId = toAccount;
+            } else
+            {
+                subaccountId = subaccountParam;
             }
         } else if ((toAccount == "master"))
         {
             direction = "subToMaster";
-            if ((subaccountId == null))
+            if ((subaccountParam == null))
             {
                 subaccountId = fromAccount;
+            } else
+            {
+                subaccountId = subaccountParam;
             }
         } else
         {
@@ -1430,7 +1436,7 @@ public partial class bitvavo : Exchange
             { "symbol", (currency.ContainsKey("id") ? currency["id"] : null) },
             { "amount", this.currencyToPrecision(code, amount) },
         };
-        Dictionary<string, object> response = await this.privatePostSubaccountsTransfers(this.extend(request, paramsOmitted));
+        Dictionary<string, object> response = await this.privatePostSubaccountsTransfers(this.extend(request, this.omit(parameters, "subaccountId")));
         //
         //     {
         //         "transferId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",

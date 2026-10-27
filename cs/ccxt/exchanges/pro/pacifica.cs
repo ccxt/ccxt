@@ -776,7 +776,7 @@ public partial class pacifica : ccxt.pacifica
         if ((symbol != null))
         {
             symbolResolved = this.symbol(symbol);
-            messageHash = messageHash + (":" + symbolResolved);
+            messageHash = ("myTrades:" + symbolResolved);
         }
         bool isTestnet = this.isSandboxModeEnabled;
         string urlKey = "api";

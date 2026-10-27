@@ -1368,7 +1368,7 @@ public partial class bitvavo : ccxt.bitvavo
         string ts = this.milliseconds().ToString();
         int randomNumber = this.randNumber(4);
         string randomPart = randomNumber.ToString();
-        return parseInt((ts + randomPart));
+        return this.parseToInt((ts + randomPart));
     }
 
     public async virtual Task<object> watchRequest(string? action, object request)

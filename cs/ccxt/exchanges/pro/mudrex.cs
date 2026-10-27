@@ -212,7 +212,7 @@ public partial class mudrex : ccxt.mudrex
     {
         IDictionary<string, object> error = this.safeDict(message, "error", new Dictionary<string, object>() {});
         string? code = this.safeString(error, "code");
-        string? msg = this.safeString(error, "msg");
+        string? msg = this.safeString(error, "msg", "");
         string feedback = ((this.id + " ") + msg);
         if (code == "429")
         {

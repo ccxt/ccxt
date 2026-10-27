@@ -1096,7 +1096,8 @@ public partial class modetrade : Exchange
         //         "is_maker": "1"
         //     }
         //
-        bool isFromFetchOrder = ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("id")));
+        string? id = this.safeString(trade, "id");
+        bool isFromFetchOrder = (id != null);
         Int64? timestamp = this.safeInteger(trade, "executed_timestamp");
         string? marketId = this.safeString(trade, "symbol");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
@@ -1107,7 +1108,6 @@ public partial class modetrade : Exchange
         Dictionary<string, object> fee = this.parseTokenAndFeeTemp(trade, "fee_asset", "fee");
         string? cost = Precise.stringMul(price, amount);
         string? side = this.safeStringLower(trade, "side");
-        string? id = this.safeString(trade, "id");
         string? takerOrMaker = null;
         if (isFromFetchOrder)
         {

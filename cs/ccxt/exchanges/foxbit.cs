@@ -2340,7 +2340,7 @@ public partial class foxbit : Exchange
         {
             for (int i = 0; i < details.Count; i++)
             {
-                detailsString = ((detailsString + (details[i])) + " ");
+                detailsString = ((detailsString + this.safeString(details, i, "")) + " ");
             }
         }
         if ((error != null))

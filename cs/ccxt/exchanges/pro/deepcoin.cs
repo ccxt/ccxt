@@ -792,7 +792,7 @@ public partial class deepcoin : ccxt.deepcoin
         // itself was accepted on 116 and 117 of them, and the handful whose
         // tick was rejected accepted the next coarser level
         parameters ??= new Dictionary<string, object>();
-        string? symbol = this.safeString(market, "symbol");
+        string? symbol = this.safeString(market, "symbol", "");
         string? aggregation = null;
         object paramsAggregation = null;
         (string?, object) aggregationparamsAggregationVariable = this.handleOptionStringAndParams(parameters, methodName, "aggregation");
@@ -972,7 +972,11 @@ public partial class deepcoin : ccxt.deepcoin
         {
             await this.loadMarkets();
         }
-        string? symbolResolved = ((symbol != null)) ? this.symbol(symbol) : null;
+        string? symbolResolved = null;
+        if ((symbol != null))
+        {
+            symbolResolved = this.symbol(symbol);
+        }
         if ((symbolResolved != null))
         {
             messageHash = (("myTrades" + "::") + symbolResolved);
@@ -1060,7 +1064,11 @@ public partial class deepcoin : ccxt.deepcoin
         {
             await this.loadMarkets();
         }
-        string? symbolResolved = ((symbol != null)) ? this.symbol(symbol) : null;
+        string? symbolResolved = null;
+        if ((symbol != null))
+        {
+            symbolResolved = this.symbol(symbol);
+        }
         if ((symbolResolved != null))
         {
             messageHash = (("orders" + "::") + symbolResolved);

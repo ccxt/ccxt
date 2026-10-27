@@ -472,14 +472,6 @@ public partial class bittrade : ccxt.bittrade
         (bookside as IOrderBookSide).store(price, amount);
     }
 
-    public override void handleDeltas(object bookside, IList<object> deltas)
-    {
-        for (int i = 0; i < (deltas?.Count ?? 0); i++)
-        {
-            this.handleDelta(bookside, (deltas != null && i < deltas.Count ? deltas[i] : null));
-        }
-    }
-
     public virtual object handleOrderBookMessage(WebSocketClient client, object message, object orderbook)
     {
         //
