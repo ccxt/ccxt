@@ -3935,7 +3935,7 @@ public partial class kucoin : ccxt.kucoin
             }
             ((IDictionary<string,object>)(this.options.ContainsKey("urls") ? this.options["urls"] : null))[type] = null;
         }
-        this.handleErrors(ccxt.BaseExchange.ToInt64Arg(1), "",((string)client.url), "", new Dictionary<string, object>() {}, data, message, new Dictionary<string, object>() {}, new Dictionary<string, object>() {});
+        this.handleErrors(1L, "",((string)client.url), "", new Dictionary<string, object>() {}, data, message, new Dictionary<string, object>() {}, new Dictionary<string, object>() {});
         return ((bool?)((object)(false)));
     }
 

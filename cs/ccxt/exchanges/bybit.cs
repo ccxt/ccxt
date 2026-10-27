@@ -5224,7 +5224,7 @@ public partial class bybit : Exchange
         Dictionary<string, object> req = new Dictionary<string, object>() {
             { "cost", cost },
         };
-        return await this.CreateOrder(symbol, "market", "buy",ccxt.BaseExchange.ToDoubleArgRequired(-1), null, this.extend(req, parameters));
+        return await this.CreateOrder(symbol, "market", "buy", -1d, null, this.extend(req, parameters));
     }
 
     /**
@@ -5258,7 +5258,7 @@ public partial class bybit : Exchange
         Dictionary<string, object> req = new Dictionary<string, object>() {
             { "cost", cost },
         };
-        return await this.CreateOrder(symbol, "market", "sell",ccxt.BaseExchange.ToDoubleArgRequired(-1), null, this.extend(req, parameters));
+        return await this.CreateOrder(symbol, "market", "sell", -1d, null, this.extend(req, parameters));
     }
 
     /**

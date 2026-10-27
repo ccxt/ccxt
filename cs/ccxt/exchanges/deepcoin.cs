@@ -2117,7 +2117,7 @@ public partial class deepcoin : Exchange
         Dictionary<string, object> paramsExtended = this.extend(parameters, new Dictionary<string, object>() {
             { "cost", cost },
         });
-        return await this.CreateOrder(symbol, "market",side,ccxt.BaseExchange.ToDoubleArgRequired(0), null, paramsExtended);
+        return await this.CreateOrder(symbol, "market",side, 0d, null, paramsExtended);
     }
 
     /**
@@ -2135,7 +2135,7 @@ public partial class deepcoin : Exchange
         Dictionary<string, object> paramsExtended = this.extend(parameters, new Dictionary<string, object>() {
             { "cost", cost },
         });
-        return await this.CreateOrder(symbol, "market", "buy",ccxt.BaseExchange.ToDoubleArgRequired(0), null, paramsExtended);
+        return await this.CreateOrder(symbol, "market", "buy", 0d, null, paramsExtended);
     }
 
     /**
@@ -2153,7 +2153,7 @@ public partial class deepcoin : Exchange
         Dictionary<string, object> paramsExtended = this.extend(parameters, new Dictionary<string, object>() {
             { "cost", cost },
         });
-        return await this.CreateOrder(symbol, "market", "sell",ccxt.BaseExchange.ToDoubleArgRequired(0), null, paramsExtended);
+        return await this.CreateOrder(symbol, "market", "sell", 0d, null, paramsExtended);
     }
 
     /**

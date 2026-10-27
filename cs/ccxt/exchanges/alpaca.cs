@@ -1299,7 +1299,7 @@ public partial class alpaca : Exchange
         Dictionary<string, object> req = new Dictionary<string, object>() {
             { "cost", cost },
         };
-        return await this.CreateOrder(symbol, "market",side,ccxt.BaseExchange.ToDoubleArgRequired(0), null, this.extend(req, parameters));
+        return await this.CreateOrder(symbol, "market",side, 0d, null, this.extend(req, parameters));
     }
 
     /**
@@ -1322,7 +1322,7 @@ public partial class alpaca : Exchange
         Dictionary<string, object> req = new Dictionary<string, object>() {
             { "cost", cost },
         };
-        return await this.CreateOrder(symbol, "market", "buy",ccxt.BaseExchange.ToDoubleArgRequired(0), null, this.extend(req, parameters));
+        return await this.CreateOrder(symbol, "market", "buy", 0d, null, this.extend(req, parameters));
     }
 
     /**

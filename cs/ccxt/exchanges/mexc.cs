@@ -2675,7 +2675,7 @@ public partial class mexc : Exchange
         Dictionary<string, object> req = new Dictionary<string, object>() {
             { "cost", cost },
         };
-        return await this.CreateOrder(symbol, "market", "buy",ccxt.BaseExchange.ToDoubleArgRequired(0), null, this.extend(req, parameters));
+        return await this.CreateOrder(symbol, "market", "buy", 0d, null, this.extend(req, parameters));
     }
 
     /**
@@ -2703,7 +2703,7 @@ public partial class mexc : Exchange
         Dictionary<string, object> req = new Dictionary<string, object>() {
             { "cost", cost },
         };
-        return await this.CreateOrder(symbol, "market", "sell",ccxt.BaseExchange.ToDoubleArgRequired(0), null, this.extend(req, parameters));
+        return await this.CreateOrder(symbol, "market", "sell", 0d, null, this.extend(req, parameters));
     }
 
     /**

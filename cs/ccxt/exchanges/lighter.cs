@@ -675,7 +675,7 @@ public partial class lighter : Exchange
         var accountIndexparamsAccountIndexVariable = await this.handleAccountIndex(paramsApiKeyIndex, "createSubAccount", "accountIndex", "account_index");
         var accountIndex = ((IList<object>) accountIndexparamsAccountIndexVariable)[0];
         var paramsAccountIndex = ((IList<object>) accountIndexparamsAccountIndexVariable)[1];
-        Int64 nonce = ccxt.BaseExchange.FromInt64(await this.FetchNonce(accountIndex, apiKeyIndex, paramsAccountIndex));
+        Int64 nonce = await this.FetchNonce(accountIndex, apiKeyIndex, paramsAccountIndex);
         Dictionary<string, object> signRaw = new Dictionary<string, object>() {
             { "nonce", nonce },
             { "api_key_index", apiKeyIndex },
@@ -865,7 +865,9 @@ public partial class lighter : Exchange
         string? strAccountIndex = this.numberToString(accountIndex);
         string? strApiKeyIndex = this.numberToString(apiKeyIndex);
         object signer = await this.loadAccount(this.safeInteger(this.options, "chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, parameters);
-        Int64 nonce = ccxt.BaseExchange.FromInt64(await this.FetchNonce(accountIndex, apiKeyIndex, this.extend(parameters, new Dictionary<string, object>() { { "skipNonce", false }, })));
+        Int64 nonce = await this.FetchNonce(accountIndex, apiKeyIndex, this.extend(parameters, new Dictionary<string, object>() {
+            { "skipNonce", false },
+        }));
         Int64 expiry = (this.milliseconds() + (365L * 864000L));
         Dictionary<string, object> signRaw = new Dictionary<string, object>() {
             { "integrator_account_index", builder },
@@ -904,7 +906,9 @@ public partial class lighter : Exchange
         var privateKeypublicKeyVariable = this.lighterGenerateApiKey(signerNotLoad);
         var privateKey = ((IList<object>) privateKeypublicKeyVariable)[0];
         var publicKey = ((IList<object>) privateKeypublicKeyVariable)[1];
-        Int64 nonce = ccxt.BaseExchange.FromInt64(await this.FetchNonce(accountIndex, apiKeyIndex, this.extend(paramsAccountIndex, new Dictionary<string, object>() { { "skipNonce", false }, })));
+        Int64 nonce = await this.FetchNonce(accountIndex, apiKeyIndex, this.extend(paramsAccountIndex, new Dictionary<string, object>() {
+            { "skipNonce", false },
+        }));
         Dictionary<string, object> signRaw = new Dictionary<string, object>() {
             { "pubkey", this.encode(publicKey) },
             { "nonce", nonce },
@@ -1221,7 +1225,7 @@ public partial class lighter : Exchange
         // the nonce could be updated
         if ((this.safeInteger(order, "nonce") == null))
         {
-            ((IDictionary<string,object>)order)["nonce"] = ccxt.BaseExchange.FromInt64(await this.FetchNonce(accountIndex, apiKeyIndex));
+            ((IDictionary<string,object>)order)["nonce"] = await this.FetchNonce(accountIndex, apiKeyIndex);
         }
         object txType = null;
         object txInfo = null;
@@ -1344,7 +1348,7 @@ public partial class lighter : Exchange
         {
             amountStr = this.amountToPrecision(symbol, amount);
         }
-        Int64 nonce = ccxt.BaseExchange.FromInt64(await this.FetchNonce(accountIndex, apiKeyIndex, paramsOmitted));
+        Int64 nonce = await this.FetchNonce(accountIndex, apiKeyIndex, paramsOmitted);
         Dictionary<string, object> signRaw = new Dictionary<string, object>() {
             { "market_index", this.parseToInt((market.ContainsKey("id") ? market["id"] : null)) },
             { "index", this.parseToInt(id) },
@@ -2940,7 +2944,7 @@ public partial class lighter : Exchange
         int toRouteType = ((toAccount == "perp")) ? 0 : 1;
         string? memo = this.safeString(paramsToAccountIndex, "memo", "0x000000000000000000000000000000");
         Dictionary<string, object> paramsOmitted = this.omit(paramsToAccountIndex, new List<object>() {"memo"});
-        Int64 nonce = ccxt.BaseExchange.FromInt64(await this.FetchNonce(accountIndex, apiKeyIndex, paramsOmitted));
+        Int64 nonce = await this.FetchNonce(accountIndex, apiKeyIndex, paramsOmitted);
         Dictionary<string, object> signRaw = new Dictionary<string, object>() {
             { "to_account_index", toAccountIndex },
             { "asset_index", this.parseToInt((currency.ContainsKey("id") ? currency["id"] : null)) },
@@ -3341,7 +3345,7 @@ public partial class lighter : Exchange
         Int64? amountScaled = this.parseToInt(Precise.stringMul(this.pow("10", amountDecimals), this.currencyToPrecision(code, amount)));
         Int64? routeType = this.safeInteger(paramsAccountIndex, "routeType", 0); // 0: perp, 1: spot
         object paramsOmitted = this.omit(paramsAccountIndex, "routeType");
-        Int64 nonce = ccxt.BaseExchange.FromInt64(await this.FetchNonce(accountIndex, apiKeyIndex, paramsOmitted));
+        Int64 nonce = await this.FetchNonce(accountIndex, apiKeyIndex, paramsOmitted);
         Dictionary<string, object> signRaw = new Dictionary<string, object>() {
             { "asset_index", this.parseToInt((currency.ContainsKey("id") ? currency["id"] : null)) },
             { "route_type", routeType },
@@ -3679,7 +3683,7 @@ public partial class lighter : Exchange
         string strApiKeyIndex = this.numberToString(apiKeyIndex);
         object signer = await this.loadAccount(this.safeInteger(this.options, "chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsAccountIndex);
         Dictionary<string, object> market = this.market(symbol);
-        Int64 nonce = ccxt.BaseExchange.FromInt64(await this.FetchNonce(accountIndex, apiKeyIndex, paramsAccountIndex));
+        Int64 nonce = await this.FetchNonce(accountIndex, apiKeyIndex, paramsAccountIndex);
         Dictionary<string, object> signRaw = new Dictionary<string, object>() {
             { "market_index", this.parseToInt((market.ContainsKey("id") ? market["id"] : null)) },
             { "initial_margin_fraction", this.parseToInt(divide(10000, leverage)) },
@@ -3721,7 +3725,7 @@ public partial class lighter : Exchange
         string strAccountIndex = this.numberToString(accountIndex);
         string strApiKeyIndex = this.numberToString(apiKeyIndex);
         object signer = await this.loadAccount(this.safeInteger(this.options, "chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsOmitted);
-        Int64 nonce = ccxt.BaseExchange.FromInt64(await this.FetchNonce(accountIndex, apiKeyIndex, paramsOmitted));
+        Int64 nonce = await this.FetchNonce(accountIndex, apiKeyIndex, paramsOmitted);
         Dictionary<string, object> signRaw = new Dictionary<string, object>() {
             { "market_index", this.parseToInt((market.ContainsKey("id") ? market["id"] : null)) },
             { "nonce", nonce },
@@ -3786,7 +3790,7 @@ public partial class lighter : Exchange
         string strAccountIndex = this.numberToString(accountIndex);
         string strApiKeyIndex = this.numberToString(apiKeyIndex);
         object signer = await this.loadAccount(this.safeInteger(this.options, "chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsAccountIndex);
-        Int64 nonce = ccxt.BaseExchange.FromInt64(await this.FetchNonce(accountIndex, apiKeyIndex, paramsAccountIndex));
+        Int64 nonce = await this.FetchNonce(accountIndex, apiKeyIndex, paramsAccountIndex);
         Dictionary<string, object> signRaw = new Dictionary<string, object>() {
             { "time_in_force", 0 },
             { "time", 0 },
@@ -3862,7 +3866,7 @@ public partial class lighter : Exchange
         string strAccountIndex = this.numberToString(accountIndex);
         string strApiKeyIndex = this.numberToString(apiKeyIndex);
         object signer = await this.loadAccount(this.safeInteger(this.options, "chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsAccountIndex);
-        Int64 nonce = ccxt.BaseExchange.FromInt64(await this.FetchNonce(accountIndex, apiKeyIndex, paramsAccountIndex));
+        Int64 nonce = await this.FetchNonce(accountIndex, apiKeyIndex, paramsAccountIndex);
         int timeInForce = 2; // 0: IMMEDIATE 1: SCHEDULED 2: ABORT
         object cancelTime = 0;
         if (isScheduled)
@@ -3965,7 +3969,7 @@ public partial class lighter : Exchange
         string strApiKeyIndex = this.numberToString(apiKeyIndex);
         object signer = await this.loadAccount(this.safeInteger(this.options, "chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsAccountIndex);
         Dictionary<string, object> market = this.market(symbol);
-        Int64 nonce = ccxt.BaseExchange.FromInt64(await this.FetchNonce(accountIndex, apiKeyIndex, paramsAccountIndex));
+        Int64 nonce = await this.FetchNonce(accountIndex, apiKeyIndex, paramsAccountIndex);
         Dictionary<string, object> signRaw = new Dictionary<string, object>() {
             { "market_index", this.parseToInt((market.ContainsKey("id") ? market["id"] : null)) },
             { "usdc_amount", this.parseToInt(Precise.stringMul(this.pow("10", "6"), this.currencyToPrecision("USDC", amount))) },

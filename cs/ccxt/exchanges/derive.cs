@@ -2150,7 +2150,7 @@ public partial class derive : Exchange
     public async override Task<ccxt.FundingRate> FetchFundingRate(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        List<object> response = ccxt.BaseExchange.FromFundingRateHistoryList(await this.FetchFundingRateHistory(symbol, null,ccxt.BaseExchange.ToInt64Arg(1), parameters));
+        List<object> response = ccxt.BaseExchange.FromFundingRateHistoryList(await this.FetchFundingRateHistory(symbol, null, 1L, parameters));
         //
         //     [
         //         {

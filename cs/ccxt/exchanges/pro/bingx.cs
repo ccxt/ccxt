@@ -1910,7 +1910,7 @@ public partial class bingx : ccxt.bingx
             }
         }
         stored.append(parsedOrder);
-        string? symbol = this.safeString(parsedOrder, "symbol");
+        string? symbol = this.safeString(parsedOrder, "symbol", "");
         string spotHash = "spot:order";
         string swapHash = "swap:order";
         string messageHash = swapHash;

@@ -951,10 +951,10 @@ public partial class BaseExchange
                 // safeValue (not entry[field]) so a missing field is a non-match, not a
                 // KeyError in python/php — prediction structures key on outcome, not symbol
                 bool entryFiledEqualValue = isEqual(this.safeValue(entry, field), value);
-                bool firstCondition = valueIsDefined ? entryFiledEqualValue : true;
+                bool firstCondition = !valueIsDefined || entryFiledEqualValue;
                 Int64? entryKeyValue = this.safeInteger(entry, key);
                 bool entryKeyGESince = ((entryKeyValue != null)) && ((entryKeyValue != 0)) && ((since != null)) && (isGreaterThanOrEqual(entryKeyValue, since));
-                bool secondCondition = sinceIsDefined ? entryKeyGESince : true;
+                bool secondCondition = !sinceIsDefined || entryKeyGESince;
                 if (firstCondition && secondCondition)
                 {
                     result.Add(entry);
@@ -6290,7 +6290,7 @@ public partial class BaseExchange
     public async virtual Task<object> loadTimeDifference(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        Int64 serverTime = ccxt.BaseExchange.FromInt64(await this.FetchTime(parameters));
+        Int64 serverTime = await this.FetchTime(parameters);
         Int64 after = this.milliseconds();
         if ((((object)(serverTime)) == null))
         {

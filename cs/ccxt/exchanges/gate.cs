@@ -9944,7 +9944,7 @@ public partial class gate : Exchange
         Dictionary<string, object> paramsExtended = this.extend(request, parameters);
         // side is not used but needs to be present, otherwise crashes in php
         object sideResolved = ((side == null)) ? "" : side;
-        return await this.CreateOrder(symbol, "market",((string)sideResolved),ccxt.BaseExchange.ToDoubleArgRequired(0), null, paramsExtended);
+        return await this.CreateOrder(symbol, "market",((string)sideResolved), 0d, null, paramsExtended);
     }
 
     /**

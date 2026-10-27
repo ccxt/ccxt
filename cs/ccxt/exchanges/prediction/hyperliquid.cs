@@ -249,13 +249,14 @@ public partial class hyperliquid : PredictionExchange
     public virtual string? buildOutcomeSymbol(IDictionary<string, object> desc, string? side, object outcomeId)
     {
         string? underlying = this.safeString(desc, "underlying", ("OUTCOME" + outcomeId.ToString()));
-        string? targetPrice = this.safeString(desc, "targetPrice");
+        string? targetPrice = this.safeString(desc, "targetPrice", "");
         string? expiry = this.safeString(desc, "expiry", "");
         // Parse expiry: "20260503-0600" → "20260503"
         object expiryDate = "";
         if (expiry != "")
         {
-            expiryDate = getValue(expiry.Split(new [] {"-"}, StringSplitOptions.None).ToList<object>(), 0);
+            List<object> expiryParts = expiry.Split(new [] {"-"}, StringSplitOptions.None).ToList<object>();
+            expiryDate = (expiryParts != null && 0 < expiryParts.Count ? expiryParts[0] : null);
         }
         string label = "NO";
         if (isEqual(side, 0))
@@ -263,11 +264,11 @@ public partial class hyperliquid : PredictionExchange
             label = "YES";
         }
         string bs = underlying.ToUpper();
-        if (((targetPrice != null)) && (targetPrice != ""))
+        if (targetPrice != "")
         {
             bs = ((bs + "_ABOVE_") + targetPrice);
         }
-        if (((expiryDate != null)) && (!(expiryDate is "")))
+        if (!(expiryDate is ""))
         {
             bs = ((bs + "_") + (expiryDate));
         }
@@ -289,22 +290,23 @@ public partial class hyperliquid : PredictionExchange
     {
         name ??= "";
         question ??= new Dictionary<string, object>();
-        string? underlying = this.safeString(desc, "underlying");
-        if (((underlying != null)) && (underlying != ""))
+        string? underlying = this.safeString(desc, "underlying", "");
+        if (underlying != "")
         {
-            string? targetPrice = this.safeString(desc, "targetPrice");
+            string? targetPrice = this.safeString(desc, "targetPrice", "");
             string? expiry = this.safeString(desc, "expiry", "");
             object expiryDate = "";
             if (expiry != "")
             {
-                expiryDate = getValue(expiry.Split(new [] {"-"}, StringSplitOptions.None).ToList<object>(), 0);
+                List<object> expiryParts = expiry.Split(new [] {"-"}, StringSplitOptions.None).ToList<object>();
+                expiryDate = (expiryParts != null && 0 < expiryParts.Count ? expiryParts[0] : null);
             }
             object bs = underlying.ToUpper();
-            if (((targetPrice != null)) && (targetPrice != ""))
+            if (targetPrice != "")
             {
                 bs = add(add(bs, "_ABOVE_"), targetPrice);
             }
-            if (((expiryDate != null)) && (!(expiryDate is "")))
+            if (!(expiryDate is ""))
             {
                 bs = add(add(bs, "_"), expiryDate);
             }
@@ -319,10 +321,11 @@ public partial class hyperliquid : PredictionExchange
             {
                 string? questionUnderlying = this.safeString(questionDesc, "underlying");
                 string? questionExpiry = this.safeString(questionDesc, "expiry", "");
-                object expiryDate = "";
+                object questionExpiryDate = "";
                 if (questionExpiry != "")
                 {
-                    expiryDate = getValue(questionExpiry.Split(new [] {"-"}, StringSplitOptions.None).ToList<object>(), 0);
+                    List<object> questionExpiryParts = questionExpiry.Split(new [] {"-"}, StringSplitOptions.None).ToList<object>();
+                    questionExpiryDate = (questionExpiryParts != null && 0 < questionExpiryParts.Count ? questionExpiryParts[0] : null);
                 }
                 string? thresholdsRaw = this.safeString(questionDesc, "priceThresholds", "");
                 string? indexStr = this.safeString(desc, "index");
@@ -357,9 +360,9 @@ public partial class hyperliquid : PredictionExchange
                             bucketLabel = ((("BETWEEN_" + (getValue(thresholds, (index - 1)))) + "_") + ((thresholds != null && index != null && index < thresholds.Count ? thresholds[(int)index] : null)));
                         }
                         string bs = ((questionUnderlying.ToUpper() + "_") + bucketLabel);
-                        if (((expiryDate != null)) && (!(expiryDate is "")))
+                        if (!(questionExpiryDate is ""))
                         {
-                            bs = ((bs + "_") + (expiryDate));
+                            bs = ((bs + "_") + (questionExpiryDate));
                         }
                         return ((string?)((object)(bs)));
                     }
@@ -368,9 +371,9 @@ public partial class hyperliquid : PredictionExchange
                 if (((questionUnderlying != null) && questionUnderlying != "") && isFallbackLike)
                 {
                     string bs = (questionUnderlying.ToUpper() + "_OTHER");
-                    if (((expiryDate != null)) && (!(expiryDate is "")))
+                    if (!(questionExpiryDate is ""))
                     {
-                        bs = ((bs + "_") + (expiryDate));
+                        bs = ((bs + "_") + (questionExpiryDate));
                     }
                     return ((string?)((object)(bs)));
                 }

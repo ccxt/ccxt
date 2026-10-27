@@ -1743,7 +1743,7 @@ public partial class dydx : Exchange
         }
         IDictionary<string, object> credentials = this.retrieveCredentials();
         object account = await this.FetchDydxAccount();
-        Int64 lastBlockHeight = ccxt.BaseExchange.FromInt64(await this.FetchLatestBlockHeight());
+        Int64 lastBlockHeight = await this.FetchLatestBlockHeight();
         // params['latestBlockHeight'] = lastBlockHeight;
         Dictionary<string, object> newParams = this.extend(parameters, new Dictionary<string, object>() {
             { "latestBlockHeight", lastBlockHeight },
@@ -1850,7 +1850,7 @@ public partial class dydx : Exchange
         {
             if ((goodTillBlock == null))
             {
-                Int64 latestBlockHeight = ccxt.BaseExchange.FromInt64(await this.FetchLatestBlockHeight());
+                Int64 latestBlockHeight = await this.FetchLatestBlockHeight();
                 goodTillBlock = (latestBlockHeight + 20);
             }
         }
@@ -1929,7 +1929,7 @@ public partial class dydx : Exchange
         Int64? goodTillBlock = this.safeInteger(paramsSubAccountId, "goodTillBlock");
         if ((goodTillBlock == null))
         {
-            Int64 latestBlockHeight = ccxt.BaseExchange.FromInt64(await this.FetchLatestBlockHeight());
+            Int64 latestBlockHeight = await this.FetchLatestBlockHeight();
             goodTillBlock = (latestBlockHeight + 20);
         }
         IDictionary<string, object> credentials = this.retrieveCredentials();

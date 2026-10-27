@@ -1195,9 +1195,9 @@ public partial class kraken : ccxt.kraken
             // size the book from the subscribed depth (10 by default), not from
             // the level count of this snapshot: a thin market's snapshot can
             // carry fewer levels than the subscription and must not cap the book
-            Int64? limit = this.safeInteger(subscription, "limit", 10);
+            Int64? limit = this.parseToInt(this.safeInteger(subscription, "limit", 10));
             int asksLength = a.Count;
-            Int64? depth = (((limit == null || asksLength > limit))) ? asksLength : limit;
+            Int64? depth = this.parseToInt((((limit == null || asksLength > limit))) ? asksLength : limit);
             IDictionary<string, object> depths = this.safeDict(this.options, "wsOrderBookDepths", new Dictionary<string, object>() {});
             Int64? storedDepth = this.safeInteger(depths, symbol);
             if (!((this.orderbooks != null && this.orderbooks.ContainsKey(symbol))) || ((storedDepth != depth)))

@@ -1377,7 +1377,7 @@ public partial class PredictionExchange : BaseExchange
         parameters ??= new Dictionary<string, object>();
         if ((this.safeBool(this.options, "createMarketBuyOrderRequiresPrice", false) == true) || (this.safeBool(this.has, "createMarketBuyOrderWithCost", false) == true))
         {
-            return await this.CreateOrder(outcome, "market", "buy", cost,ccxt.BaseExchange.ToDoubleArg(1), parameters);
+            return await this.CreateOrder(outcome, "market", "buy", cost, 1d, parameters);
         }
         throw new NotSupported ((this.id + " createMarketBuyOrderWithCost() is not supported yet")) ;
     }
@@ -1396,7 +1396,7 @@ public partial class PredictionExchange : BaseExchange
         parameters ??= new Dictionary<string, object>();
         if ((this.safeBool(this.options, "createMarketSellOrderRequiresPrice", false) == true) || (this.safeBool(this.has, "createMarketSellOrderWithCost", false) == true))
         {
-            return await this.CreateOrder(outcome, "market", "sell", cost,ccxt.BaseExchange.ToDoubleArg(1), parameters);
+            return await this.CreateOrder(outcome, "market", "sell", cost, 1d, parameters);
         }
         throw new NotSupported ((this.id + " createMarketSellOrderWithCost() is not supported yet")) ;
     }

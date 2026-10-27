@@ -581,7 +581,8 @@ public partial class kalshi : PredictionExchange
     {
         List<object> tickers = new List<object>() {};
         Dictionary<string, object> seen = new Dictionary<string, object>() {};
-        for (int i = 0; i < (outcomeSymbols?.Count ?? 0); i++)
+        int outcomeSymbolsLength = (outcomeSymbols?.Count ?? 0);
+        for (int i = 0; i < outcomeSymbolsLength; i++)
         {
             object outcomeSymbol = (outcomeSymbols != null && i < outcomeSymbols.Count ? outcomeSymbols[i] : null);
             if (getIndexOf(outcomeSymbol, ":") >= 0)
@@ -634,7 +635,7 @@ public partial class kalshi : PredictionExchange
                 this.indexMarketOutcomes(parsed);
             }
         }
-        for (int i = 0; i < (outcomeSymbols?.Count ?? 0); i++)
+        for (int i = 0; i < outcomeSymbolsLength; i++)
         {
             if (!this.hasOutcome((outcomeSymbols != null && i < outcomeSymbols.Count ? outcomeSymbols[i] : null)))
             {

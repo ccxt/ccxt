@@ -1367,24 +1367,24 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         bool? useDepthEndpoint = useDepthEndpointparamsDepthEndpointVariable.Item1;
         IDictionary<string, object> paramsDepthEndpoint = ((IDictionary<string, object>)useDepthEndpointparamsDepthEndpointVariable.Item2);
         IDictionary<string, object> paramsChannel = paramsDepthEndpoint;
-        object descriptor = interval;
+        string descriptor = ("." + interval);
         if ((useDepthEndpoint == true))
         {
             (string?, object) depthparamsDepthVariable = this.handleOptionStringAndParams(paramsDepthEndpoint, "watchOrderBookForSymbols", "depth", "20");
             string? depth = depthparamsDepthVariable.Item1;
             IDictionary<string, object> paramsDepth = ((IDictionary<string, object>)depthparamsDepthVariable.Item2);
             (string?, object) groupKeyparamsGroupVariable = this.handleOptionStringAndParams(paramsDepth, "watchOrderBookForSymbols", "group", "none");
-            object groupKey = groupKeyparamsGroupVariable.Item1;
+            string? groupKey = groupKeyparamsGroupVariable.Item1;
             IDictionary<string, object> paramsGroup = ((IDictionary<string, object>)groupKeyparamsGroupVariable.Item2);
             paramsChannel = paramsGroup;
-            descriptor = add(add(add(add(groupKey, "."), depth), "."), interval);
+            descriptor = ((((("." + groupKey) + ".") + depth) + ".") + interval);
         }
         List<object> channels = new List<object>() {};
         int symbolsLength = symbols?.Count ?? 0;
         for (int i = 0; i < symbolsLength; i++)
         {
             Dictionary<string, object> market = this.market(this.safeString(symbols, i, ""));
-            channels.Add(((("book." + this.safeString(market, "id", "")) + ".") + (descriptor)));
+            channels.Add((("book." + this.safeString(market, "id", "")) + descriptor));
         }
         ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.subscribe(channels, channels, isPrivate, paramsChannel));
         return (orderbook as IOrderBook).limit().Copy();
@@ -1434,23 +1434,23 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         bool? useDepthEndpoint = useDepthEndpointparamsDepthEndpointVariable.Item1;
         IDictionary<string, object> paramsDepthEndpoint = ((IDictionary<string, object>)useDepthEndpointparamsDepthEndpointVariable.Item2);
         object paramsChannel = paramsDepthEndpoint;
-        object descriptor = interval;
+        string descriptor = ("." + interval);
         if ((useDepthEndpoint == true))
         {
             (string?, object) depthparamsDepthVariable = this.handleOptionStringAndParams(paramsDepthEndpoint, "watchOrderBookForSymbols", "depth", "20");
             string? depth = depthparamsDepthVariable.Item1;
             IDictionary<string, object> paramsDepth = ((IDictionary<string, object>)depthparamsDepthVariable.Item2);
             (string?, object) groupKeyparamsGroupVariable = this.handleOptionStringAndParams(paramsDepth, "watchOrderBookForSymbols", "group", "none");
-            object groupKey = groupKeyparamsGroupVariable.Item1;
+            string? groupKey = groupKeyparamsGroupVariable.Item1;
             IDictionary<string, object> paramsGroup = ((IDictionary<string, object>)groupKeyparamsGroupVariable.Item2);
             paramsChannel = paramsGroup;
-            descriptor = add(add(add(add(groupKey, "."), depth), "."), interval);
+            descriptor = ((((("." + groupKey) + ".") + depth) + ".") + interval);
         }
         List<object> channels = new List<object>() {};
         int symbolsLength = symbols?.Count ?? 0;
         for (int i = 0; i < symbolsLength; i++)
         {
-            channels.Add(((("book." + this.safeString(this.market(this.safeString(symbols, i, "")), "id", "")) + ".") + (descriptor)));
+            channels.Add((("book." + this.safeString(this.market(this.safeString(symbols, i, "")), "id", "")) + descriptor));
         }
         return await this.unSubscribe(channels, (interval == "raw"), paramsChannel);
     }
@@ -1473,18 +1473,18 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = isGrouped ? this.orderBook(new Dictionary<string, object>() {}, limit) : this.countedOrderBook(new Dictionary<string, object>() {}, limit);
         }
         ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
-        if (!isGrouped && (type != "snapshot") && ((this.safeInteger(orderbook, "nonce") == null)))
+        Int64? nonce = this.safeInteger(orderbook, "nonce");
+        if (!isGrouped && (type != "snapshot") && ((nonce == null)))
         {
             return;
         }
         if (isGrouped)
         {
-            ccxt.OrderBook parsedSnapshot = this.parseOrderBook(data, symbol, timestamp, "bids", "asks");
-            (orderbook as IOrderBook).reset(ccxt.BaseExchange.FromOrderBook(parsedSnapshot));
+            (orderbook as IOrderBook).reset(ccxt.BaseExchange.FromOrderBook(this.parseOrderBook(data, symbol, timestamp, "bids", "asks")));
         } else
         {
             Int64? previousChangeId = this.safeInteger(data, "prev_change_id");
-            if ((type != "snapshot") && (!(this.safeInteger(orderbook, "nonce") == null)) && ((previousChangeId != this.safeInteger(orderbook, "nonce"))))
+            if ((type != "snapshot") && ((nonce != null)) && ((previousChangeId != nonce)))
             {
                 // drop the stale book and reject only this channels future
                 ((IDictionary<string,object>)this.orderbooks).Remove(symbol);
