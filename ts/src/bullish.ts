@@ -1410,8 +1410,7 @@ export default class bullish extends Exchange {
         //         }, ...
         //     ]
         //
-        const ohlcvs = this.toArray (response);
-        return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
+        return this.parseOHLCVs (this.toArray (response), market, timeframe, since, limit);
     }
 
     override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
@@ -1486,8 +1485,7 @@ export default class bullish extends Exchange {
                 'datetime': datetime,
             });
         }
-        const sorted = this.sortBy (rates, 'timestamp');
-        return this.filterBySymbolSinceLimit (sorted, this.safeString (market, 'symbol'), since, limit) as FundingRateHistory[];
+        return this.filterBySymbolSinceLimit (this.sortBy (rates, 'timestamp'), this.safeString (market, 'symbol'), since, limit) as FundingRateHistory[];
     }
 
     /**
@@ -2577,8 +2575,7 @@ export default class bullish extends Exchange {
         //         }
         //     ]
         //
-        const results = this.parsePositions (response, symbols);
-        return this.filterByArrayPositions (results, 'symbol', symbols);
+        return this.filterByArrayPositions (this.parsePositions (response, symbols), 'symbol', symbols);
     }
 
     override parsePosition (position: Dict, market: Market = undefined): Position {
@@ -3015,8 +3012,7 @@ export default class bullish extends Exchange {
             } else if (method === 'POST') {
                 requestBody = this.json (params);
                 const payload = timestamp + nonce + method + '/trading-api/' + path + requestBody;
-                const digest = this.hash (this.encode (payload), sha256, 'hex');
-                const signature = this.hmac (this.encode (digest), this.encode (this.secret), sha256, 'hex');
+                const signature = this.hmac (this.encode (this.hash (this.encode (payload), sha256, 'hex')), this.encode (this.secret), sha256, 'hex');
                 headers = {
                     'BX-TIMESTAMP': timestamp,
                     'BX-NONCE': nonce,
@@ -3067,8 +3063,7 @@ export default class bullish extends Exchange {
         //     }
         //
         const token = this.safeString (response, 'token');
-        const authorizer = this.safeString (response, 'authorizer');
-        this.options['authorizer'] = authorizer;
+        this.options['authorizer'] = this.safeString (response, 'authorizer');
         this.token = token as string;
         this.options['tokenExpires'] = this.sum (this.milliseconds (), 1000 * 60 * 60 * 24); // token expires in 24 hours
         return token as string;
