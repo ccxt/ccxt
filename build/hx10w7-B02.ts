@@ -153,7 +153,7 @@ function b02HolderEscapes (maskedLines: string[], holder: string, from: number, 
 
 // where a read lands: a deref consumer (any slot), an `any` sink (slot must be plain), or a box
 function b02ReadSink (maskedLines: string[], funcStart: number, line: number, at: number): string {
-    const before = maskedLines[line].slice (0, at).trim ();
+    const before = maskedLines[line].slice (0, at).replace (/ccxt\.$/, '').trim ();
     const assign = /^([A-Za-z_]\w*) ?(:?=)$/.exec (before);
     if (assign !== null) {
         if (assign[2] === ':=') {
@@ -232,8 +232,9 @@ export function b02TupleSliceSlotReads (content: string): string {
         }
         for (let k = 0; k < targets.length; k++) {
             const [ line, slot ] = targets[k];
-            const spaced = 'GetValue(' + name + ', ' + slot + ')';
-            const compact = 'GetValue(' + name + ',' + slot + ')';
+            const prefix = (lines[line].indexOf ('ccxt.GetValue(' + name + ',') >= 0) ? 'ccxt.' : '';
+            const spaced = prefix + 'GetValue(' + name + ', ' + slot + ')';
+            const compact = prefix + 'GetValue(' + name + ',' + slot + ')';
             const replacement = name + '[' + slot + ']';
             if (lines[line].indexOf (spaced) >= 0) {
                 lines[line] = lines[line].split (spaced).join (replacement);
@@ -274,6 +275,8 @@ export function b02TupleSliceSlotSelfTest (): string[] {
     ok (b02TupleSliceSlotReads (sameFile).indexOf ('GetValue(v, 1)') >= 0, 'an in-file producer keeps GetValue');
     const own = 'package ccxt\n\nfunc (this *X) GetMarginMode (t any, p any) []any {\n\treturn []any{nil, p}\n}\n\nfunc (this *X) g (p map[string]any) any {\n\tvar q any = nil\n\tv := this.GetMarginMode(true, p)\n\tq = GetValue(v, 1)\n\treturn q\n}\n';
     ok (b02TupleSliceSlotReads (own).indexOf ('q = v[1]') >= 0, 'an own-file exchange producer reads by index');
+    const pro = own.replace ('q = GetValue(v, 1)', 'q = ccxt.GetValue(v, 1)');
+    ok (b02TupleSliceSlotReads (pro).indexOf ('q = v[1]') >= 0, 'a ccxt-qualified read takes the index');
     // a string or comment that looks like a read is not one
     ok (f (held + '\t_ = "GetValue(queryparamsQueryVariable, 1)"\n').indexOf ('paramsQuery') >= 0, 'a literal is untouched');
     // no removable read: the holder annotation is left alone too
