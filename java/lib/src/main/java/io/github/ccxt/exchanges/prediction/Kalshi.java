@@ -804,17 +804,16 @@ public class Kalshi extends KalshiApi
         Double liquidity = this.safeNumber2(raw, "liquidity_dollars", "liquidity", (Object) null);
         Double openInt = this.safeNumber2(raw, "open_interest_fp", "open_interest", (Object) null);
         // Derive series ticker: drop last hyphen-segment from event_ticker
-        Object eventParts = new ArrayList<Object>(Arrays.asList());
+        Object seriesTicker = eventTicker;
         if ((!java.util.Objects.equals(eventTicker, null)) && (!java.util.Objects.equals(eventTicker, "")))
         {
-            eventParts = new ArrayList<Object>(Arrays.asList(((String)eventTicker).split(java.util.regex.Pattern.quote("-"))));
-        }
-        Object seriesTicker = eventTicker;
-        Integer eventPartsLength = ((List<?>)eventParts).size();
-        if ((eventPartsLength != null && eventPartsLength > 1))
-        {
-            Object seriesParts = this.arraySlice(eventParts, 0, (((long) eventPartsLength) - 1L));
-            seriesTicker = String.join("-", (List<String>)seriesParts);
+            List<Object> eventParts = new ArrayList<Object>(Arrays.asList(((String)eventTicker).split(java.util.regex.Pattern.quote("-"))));
+            Integer eventPartsLength = ((List<?>)eventParts).size();
+            if ((eventPartsLength != null && eventPartsLength > 1))
+            {
+                Object seriesParts = this.arraySlice(eventParts, 0, (((long) eventPartsLength) - 1L));
+                seriesTicker = String.join("-", (List<String>)seriesParts);
+            }
         }
         // market symbol (no outcome suffix)
         String subtitleOrTicker = ticker;
@@ -3262,7 +3261,7 @@ public class Kalshi extends KalshiApi
     public Object sign(Object path, Object api, Object method, Object parameters)
     {
         String apiGroup = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
-        String access = this.safeString(api, 1, "public");
+        String access = (String) (api == null || 1 >= ((List<?>)api).size() ? null : ((List<?>)api).get(1));
         Object baseUrls = this.urls.get("api");
         String baseUrl = this.safeString(baseUrls, apiGroup, ((Map<String, Object>)baseUrls).get("kalshi"));
         String implodedPath = (String) this.implodeParams(path, parameters);

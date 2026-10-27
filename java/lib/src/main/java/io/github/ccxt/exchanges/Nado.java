@@ -3523,10 +3523,6 @@ public class Nado extends NadoApi
 
     public String padHex(String value, Object length, Boolean left)
     {
-        if (java.util.Objects.equals(length, null))
-        {
-            throw new ArgumentsRequired((this.id + " padHex() requires length")) ;
-        }
         String zeros = "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
         if (java.util.Objects.requireNonNullElse(left, true))
         {
@@ -3568,8 +3564,7 @@ public class Nado extends NadoApi
 }})) );
         }};
         Object encoded = this.ethEncodeStructuredData(domain, messageTypes, order);
-        String hash = ("0x" + this.hash(encoded, keccak(), "hex"));
-        return this.signHash(hash, (String) (this.privateKey));
+        return this.signHash((String) (this.hash(encoded, keccak(), "hex")), (String) (this.privateKey));
     }
 
     public String signCancellation(Map<String, Object> cancellation, String chainId, String endpointAddress)
@@ -3596,8 +3591,7 @@ public class Nado extends NadoApi
 }})) );
         }};
         Object encoded = this.ethEncodeStructuredData(domain, messageTypes, cancellation);
-        String hash = ("0x" + this.hash(encoded, keccak(), "hex"));
-        return this.signHash(hash, (String) (this.privateKey));
+        return this.signHash((String) (this.hash(encoded, keccak(), "hex")), (String) (this.privateKey));
     }
 
     public String signCancellationProducts(Map<String, Object> cancellation, String chainId, String endpointAddress)
@@ -3621,8 +3615,7 @@ public class Nado extends NadoApi
 }})) );
         }};
         Object encoded = this.ethEncodeStructuredData(domain, messageTypes, cancellation);
-        String hash = ("0x" + this.hash(encoded, keccak(), "hex"));
-        return this.signHash(hash, (String) (this.privateKey));
+        return this.signHash((String) (this.hash(encoded, keccak(), "hex")), (String) (this.privateKey));
     }
 
     public String signFetchTriggerOrders(Map<String, Object> tx, String chainId, String endpointAddress)
@@ -3643,8 +3636,7 @@ public class Nado extends NadoApi
 }})) );
         }};
         Object encoded = this.ethEncodeStructuredData(domain, messageTypes, tx);
-        String hash = ("0x" + this.hash(encoded, keccak(), "hex"));
-        return this.signHash(hash, (String) (this.privateKey));
+        return this.signHash((String) (this.hash(encoded, keccak(), "hex")), (String) (this.privateKey));
     }
 
     public String signHash(String hash, String privateKey)
@@ -3653,7 +3645,7 @@ public class Nado extends NadoApi
         {
             throw new ArgumentsRequired((this.id + " signHash() requires privateKey")) ;
         }
-        Map<String,Object> signature = ecdsa((hash == null ? null : ((String)hash).substring(Math.max(((String)hash).length() - 64, 0))), (privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0))), secp256k1(), null);
+        Map<String,Object> signature = ecdsa(hash, (privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0))), secp256k1(), null);
         Object r = signature.get("r");
         Object s = signature.get("s");
         String v = ((String)this.intToBase16(this.sum(27, signature.get("v")))).toLowerCase();

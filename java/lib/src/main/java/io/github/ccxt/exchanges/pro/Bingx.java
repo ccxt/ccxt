@@ -1017,9 +1017,9 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             // when handleMessage routes a non-OHLCV-originated subscription here (or the
             // subscription dict was reset on reconnect), fall back to the OHLCVLimit option.
             Long limit = this.safeInteger(subscription, "limit", this.safeInteger(this.options, "OHLCVLimit", 1000));
-            Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), ((String)unifiedTimeframe), new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue()));
+            Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), unifiedTimeframe, new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue()));
         }
-        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(((Map<?, ?>)this.ohlcvs).get(symbol), ((String)unifiedTimeframe));
+        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(((Map<?, ?>)this.ohlcvs).get(symbol), unifiedTimeframe);
         for (var i = 0; i < ((List<?>)candles).size(); i++)
         {
             Object candle = (candles == null || i < 0 || i >= candles.size() ? null : candles.get(i));

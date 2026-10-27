@@ -5139,7 +5139,7 @@ public class Whitebit extends WhitebitApi
     public Object sign(Object path, Object api, Object method, Object parameters)
     {
         Object query = this.omit(parameters, this.extractParams(path));
-        String version = this.safeString(api, 0, "");
+        String version = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String accessibility = this.safeString(api, 1);
         Map<String, Object> publicHeaders = new HashMap<String, Object>() {{}};
         publicHeaders.put("User-Agent", ((("ccxt/" + this.id) + "-") + this.version));

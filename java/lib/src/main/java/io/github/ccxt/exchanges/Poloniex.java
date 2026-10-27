@@ -1119,7 +1119,7 @@ public class Poloniex extends PoloniexApi
 
     public MarketInterface parseMarket(Object market)
     {
-        if (((Map<?, ?>)market).containsKey("ctType"))
+        if (!java.util.Objects.equals(this.safeString(market, "ctType"), null))
         {
             return this.parseSwapMarket((Map<String, Object>) (market));
         } else
@@ -4213,7 +4213,7 @@ public class Poloniex extends PoloniexApi
         status = this.parseTransactionStatus(status);
         String txid = this.safeString(transactionValue, "txid");
         String type = "deposit";
-        if (transactionValue.containsKey("withdrawalRequestsId"))
+        if (!java.util.Objects.equals(this.safeString(transactionValue, "withdrawalRequestsId"), null))
         {
             type = "withdrawal";
         }
@@ -4290,7 +4290,7 @@ public class Poloniex extends PoloniexApi
             Map<String, Object> paramsHedged = (Map<String, Object>) ((List<Object>) hedgedparamsHedgedVariable).get(1);
             if (java.util.Objects.equals(hedged, true))
             {
-                if (!((paramsHedged != null && paramsHedged.containsKey("posSide"))))
+                if (java.util.Objects.equals(this.safeString(paramsHedged, "posSide"), null))
                 {
                     throw new ArgumentsRequired((this.id + " setLeverage() requires a posSide parameter for hedged mode: \"LONG\" or \"SHORT\"")) ;
                 }
@@ -4731,17 +4731,17 @@ public class Poloniex extends PoloniexApi
     {
         String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         Boolean isArray = (parameters instanceof List);
-        Object url = ((Map<String, Object>)this.urls.get("api")).get("spot");
-        if (this.inArray(apiName, new ArrayList<Object>(Arrays.asList("swapPublic", "swapPrivate"))))
-        {
-            url = ((Map<String, Object>)this.urls.get("api")).get("swap");
-        }
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET") && (((Map<?, ?>)parameters).containsKey("symbol")))
         {
             ((Map<String, Object>)parameters).put("symbol", this.encodeURIComponent(((Map<String, Object>)parameters).get("symbol"))); // handle symbols like 索拉拉/USDT'
         }
         Object query = this.omit(parameters, this.extractParams(path));
         String implodedPath = (String) this.implodeParams(path, parameters);
+        String url = ((this.safeString(this.urls.get("api"), "spot", "") + "/") + implodedPath);
+        if (this.inArray(apiName, new ArrayList<Object>(Arrays.asList("swapPublic", "swapPrivate"))))
+        {
+            url = ((this.safeString(this.urls.get("api"), "swap", "") + "/") + implodedPath);
+        }
         // keep `Object.keys (query).length` inline and evaluated lazily: PHP only rewrites that exact
         // shape into count(x) (a hoisted key list becomes strlen() on an array) and the C#/Java key-list
         // cast throws on a bare-list params (the batch endpoints pass one), so `isArray ||` guards it.
@@ -4749,17 +4749,15 @@ public class Poloniex extends PoloniexApi
         Map<String, Object> signedHeaders = null;
         if (java.util.Objects.equals(apiName, "public") || java.util.Objects.equals(apiName, "swapPublic"))
         {
-            url = (url + ("/" + implodedPath));
             if (((Map<String, Object>)query).size() > 0)
             {
-                url = (url + ("?" + this.urlencode(query)));
+                url = ((url + "?") + this.urlencode(query));
             }
         } else
         {
             this.checkRequiredCredentials(true);
             String timestamp = this.numberToString(this.nonce());
             String auth = (java.util.Objects.requireNonNullElse(method, "GET") + "\n"); // eslint-disable-line quotes
-            url = (url + ("/" + implodedPath));
             auth = (auth + ("/" + implodedPath));
             if ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "PUT")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE")))
             {
@@ -4779,7 +4777,7 @@ public class Poloniex extends PoloniexApi
                 auth = (auth + ("\n" + this.urlencode(sortedQuery))); // eslint-disable-line quotes
                 if (((Map<String, Object>)query).size() > 0)
                 {
-                    url = (url + ("?" + this.urlencode(query)));
+                    url = ((url + "?") + this.urlencode(query));
                 }
             }
             {

@@ -1450,8 +1450,10 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
                     {
                         throw new AuthenticationError((this.id + " authenticate() received an empty listenKey")) ;
                     }
-                    Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("ws")), "listenKey", listenKey);
-                    Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("ws")), "lastAuthenticatedTime", time);
+                    HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+                    mapLiteral4.put("listenKey", listenKey);
+                    mapLiteral4.put("lastAuthenticatedTime", time);
+                    this.setWsOptions(mapLiteral4);
                     this.scheduleCallback(listenKeyRefreshRate, "keepAliveListenKey", parameters);
                     // settle the flight: client.resolve () removes the future from
                     // client.futures and wakes every waiter
@@ -1471,6 +1473,11 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
 
     }
 
+    public void setWsOptions(Map<String, Object> entry)
+    {
+        this.options.put("ws", this.extend(this.safeDict(this.options, "ws", new HashMap<String, Object>() {{}}), entry));
+    }
+
     public CompletableFuture<Object> keepAliveListenKey(Map<String, Object> parameters)
     {
 
@@ -1486,8 +1493,10 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             try
             {
                 Map<String, Object> response = (this.privatePostApiV1UserDataStream(parameters)).join();
-                Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("ws")), "listenKey", this.safeString(response, "listenKey"));
-                Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("ws")), "lastAuthenticatedTime", this.milliseconds());
+                this.setWsOptions(new HashMap<String, Object>() {{
+                    put( "listenKey", Toobit.this.safeString(response, "listenKey") );
+                    put( "lastAuthenticatedTime", Toobit.this.milliseconds() );
+                }});
             } catch(Exception error)
             {
                 String url = this.getUserStreamUrl();
@@ -1498,8 +1507,10 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
                     Object messageHash = (messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i));
                     client.reject(error, messageHash);
                 }
-                Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("ws")), "listenKey", null);
-                Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("ws")), "lastAuthenticatedTime", 0);
+                this.setWsOptions(new HashMap<String, Object>() {{
+                    put( "listenKey", null );
+                    put( "lastAuthenticatedTime", 0 );
+                }});
                 return null;
             }
             // whether or not to schedule another listenKey keepAlive request

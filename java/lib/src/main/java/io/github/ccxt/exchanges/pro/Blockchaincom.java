@@ -244,7 +244,7 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
             String messageHash = ("ohlcv:" + symbol);
             Map<String, Object> request = (Map<String, Object>) this.safeDict(client.subscriptions, messageHash, (Object) null);
             String timeframeId = this.safeString(request, "granularity");
-            Object timeframe = this.findTimeframe(timeframeId, (Object) null);
+            String timeframe = this.findTimeframe(timeframeId, (Object) null);
             List<Object> ohlcv = (List<Object>) this.safeList(message, "price", new ArrayList<Object>(Arrays.asList()));
             this.ohlcvs.put(symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
             io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe);
@@ -252,7 +252,7 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
             {
                 Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
                 stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
-                Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), ((String)timeframe), stored);
+                Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, stored);
             }
             stored.append(ohlcv);
             client.resolve(stored, messageHash);

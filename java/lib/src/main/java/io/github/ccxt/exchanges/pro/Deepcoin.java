@@ -738,17 +738,17 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, "/", (String) null);
         String symbol = this.safeSymbol(marketId, market, (String) null, (String) null);
         String interval = this.safeString(data, "P");
-        Object timeframe = this.findTimeframe(interval, (Object) null);
+        String timeframe = this.findTimeframe(interval, (Object) null);
         if (!(((Map<?, ?>)this.ohlcvs).containsKey(symbol)))
         {
             this.ohlcvs.put(symbol, new HashMap<String, Object>() {{}});
         }
-        if (!(((Map<?, ?>)((Map<?, ?>)this.ohlcvs).get(symbol)).containsKey(((String)timeframe))))
+        if (!(((Map<?, ?>)((Map<?, ?>)this.ohlcvs).get(symbol)).containsKey(timeframe)))
         {
             Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
-            Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), ((String)timeframe), new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue()));
+            Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue()));
         }
-        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(((Map<?, ?>)this.ohlcvs).get(symbol), ((String)timeframe));
+        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe);
         if (!java.util.Objects.equals(data, null))
         {
             List<Object> ohlcv = (List<Object>) this.parseWsOHLCV(data, market);

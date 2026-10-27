@@ -673,7 +673,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         List<Object> topicParts = new ArrayList<Object>(Arrays.asList(((String)topic).split(java.util.regex.Pattern.quote("."))));
         Integer topicLength = ((List<?>)topicParts).size();
         String timeframeId = this.safeString(topicParts, 1);
-        Object timeframe = this.findTimeframe(timeframeId, (Object) null);
+        String timeframe = this.findTimeframe(timeframeId, (Object) null);
         String marketId = this.safeString(topicParts, (((long) topicLength) - 1L));
         Boolean isSpot = ((String)client.url).indexOf("spot") > -1;
         String marketType = "contract";
@@ -684,12 +684,12 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, marketType);
         String symbol = this.safeString(market, "symbol", "");
         this.ohlcvs.put(symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
-        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.safeDict(this.ohlcvs, symbol, (Object) null), ((String)timeframe));
+        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.safeDict(this.ohlcvs, symbol, (Object) null), timeframe);
         if (java.util.Objects.equals(stored, null))
         {
             Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
-            Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), ((String)timeframe), stored);
+            Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, stored);
         }
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {

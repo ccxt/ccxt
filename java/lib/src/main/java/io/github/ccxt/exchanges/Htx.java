@@ -9374,7 +9374,7 @@ public class Htx extends HtxApi
         {
             // signing implementation for the new endpoints
             // const [ type, access ] = api;
-            String type = this.safeString(api, 0);
+            String type = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
             String access = this.safeString(api, 1);
             String levelOneNestedPath = this.safeString(api, 2);
             String levelTwoNestedPath = this.safeString(api, 3);

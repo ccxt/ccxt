@@ -4976,7 +4976,7 @@ public Object describe()
     {
         for (var i = 0; i < ((List<?>)deltas).size(); i++)
         {
-            this.handleDelta(bookside, (deltas == null || i < 0 || i >= ((List<?>)deltas).size() ? null : ((List<?>)deltas).get(i)));
+            this.handleDelta(bookside, this.safeValue(deltas, i));
         }
     }
 
@@ -4989,7 +4989,7 @@ public Object describe()
     {
         for (var i = 0; i < (switch ((Object)(deltas)) { case null -> 0; case List<?> j39v1 -> j39v1.size(); case String j39v2 -> j39v2.length(); case Object j39v3 -> j39v3.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v3) : 0; }); i++)
         {
-            this.handleBookDelta(orderbook, Helpers.GetValue(deltas, i));
+            this.handleBookDelta(orderbook, this.safeValue(deltas, i));
         }
     }
 
@@ -5002,7 +5002,7 @@ public Object describe()
     {
         for (var i = 0; i < ((List<?>)deltas).size(); i++)
         {
-            List<Object> bidAsk = (List<Object>) this.parseOrderBookBidAsk((deltas == null || i < 0 || i >= ((List<?>)deltas).size() ? null : ((List<?>)deltas).get(i)), java.util.Objects.requireNonNullElse(priceKey, 0), java.util.Objects.requireNonNullElse(amountKey, 1), java.util.Objects.requireNonNullElse(countOrIdKey, 2));
+            List<Object> bidAsk = (List<Object>) this.parseOrderBookBidAsk(this.safeValue(deltas, i), java.util.Objects.requireNonNullElse(priceKey, 0), java.util.Objects.requireNonNullElse(amountKey, 1), java.util.Objects.requireNonNullElse(countOrIdKey, 2));
             ((IOrderBookSide)bookSide).storeArray(bidAsk);
         }
     }
@@ -6298,7 +6298,7 @@ public Object describe()
         {
             throw new ArgumentsRequired((this.id + " orderbookChecksumMessage() requires a symbol argument")) ;
         }
-        return ((symbol + " : ") + "orderbook data checksum validation failed. You can reconnect by calling watchOrderBook again or you can mute the error by setting exchange.options[\"watchOrderBook\"][\"checksum\"] = false");
+        return (symbol + " : orderbook data checksum validation failed. You can reconnect by calling watchOrderBook again or you can mute the error by setting exchange.options[\"watchOrderBook\"][\"checksum\"] = false");
     }
 
     public Object getDefaultOptions()
@@ -6550,7 +6550,7 @@ public Object describe()
         {
             Map<String, Object> result = this.extend(cleanStructure, market);
             // set undefined swap/future/etc
-            if (java.util.Objects.equals(result.get("spot"), true))
+            if (java.util.Objects.equals(this.safeBool(result, "spot", (Object) null), true))
             {
                 if (java.util.Objects.equals(result.get("contract"), null))
                 {
@@ -6615,10 +6615,10 @@ public Object describe()
                 put( "precision", BaseExchange.this.precision );
                 put( "limits", BaseExchange.this.limits );
             }}, (this.fees == null ? null : ((Map<?, ?>)this.fees).get("trading")), valueDefined);
-            if (java.util.Objects.equals(market.get("linear"), true))
+            if (java.util.Objects.equals(this.safeBool(market, "linear", (Object) null), true))
             {
                 market.put("subType", "linear");
-            } else if (java.util.Objects.equals(market.get("inverse"), true))
+            } else if (java.util.Objects.equals(this.safeBool(market, "inverse", (Object) null), true))
             {
                 market.put("subType", "inverse");
             } else
@@ -8060,7 +8060,7 @@ public Object describe()
                 throw new BadRequest((((this.id + " symbols must be of the same type ") + type) + ". If the type is incorrect you can change it in options or the params of the request")) ;
             }
             marketType = this.safeString(market, "type");
-            if (!java.util.Objects.equals(market.get("spot"), true))
+            if (!java.util.Objects.equals(this.safeBool(market, "spot", (Object) null), true))
             {
                 isLinearSubType = this.safeBool(market, "linear", (Object) null);
             }
@@ -9491,7 +9491,7 @@ public Object describe()
                     for (var i = 0; i < (markets == null ? 0 : ((List<?>)markets).size()); i++)
                     {
                         Object currentMarket = (markets == null || i < 0 || i >= markets.size() ? null : markets.get(i));
-                        if (java.util.Objects.equals(Helpers.GetValue(currentMarket, marketTypeResolved), true))
+                        if (java.util.Objects.equals(this.safeBool(currentMarket, marketTypeResolved, (Object) null), true))
                         {
                             return (Map<String, Object>) (currentMarket);
                         }
@@ -10422,7 +10422,7 @@ public Object describe()
             for (var i = 0; i < (switch ((Object)(marketsList)) { case null -> 0; case List<?> j39v59 -> j39v59.size(); case String j39v60 -> j39v60.length(); case Object j39v61 -> j39v61.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v61) : 0; }); i++)
             {
                 Object market = Helpers.GetValue(marketsList, i);
-                if (java.util.Objects.equals(Helpers.GetValue(market, defaultType), true))
+                if (java.util.Objects.equals(this.safeBool(market, defaultType, (Object) null), true))
                 {
                     return (Map<String, Object>) (market);
                 }
@@ -11541,7 +11541,7 @@ public Object describe()
         List<Object> results = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)ohlcvs).size(); i++)
         {
-            ((List<Object>)results).add(this.parseWsOHLCV((ohlcvs == null || i < 0 || i >= ((List<?>)ohlcvs).size() ? null : ((List<?>)ohlcvs).get(i)), market));
+            ((List<Object>)results).add(this.parseWsOHLCV(this.safeValue(ohlcvs, i), market));
         }
         return results;
     }
@@ -11674,7 +11674,7 @@ public Object describe()
                         Integer responseLength = (switch ((Object)(response)) { case null -> 0; case List<?> j39v102 -> j39v102.size(); case String j39v103 -> j39v103.length(); case Object j39v104 -> j39v104.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v104) : 0; });
                         if (this.verbose)
                         {
-                            String backwardMessage = ((((("Dynamic pagination call " + this.numberToString(calls)) + " method ") + method) + " response length ") + this.numberToString(responseLength));
+                            String backwardMessage = ((((("Dynamic pagination call " + this.numberToString(calls)) + " method ") + method) + " response length ") + String.valueOf(responseLength));
                             if (!java.util.Objects.equals(paginationTimestamp, null))
                             {
                                 backwardMessage = (backwardMessage + (" timestamp " + this.numberToString(paginationTimestamp)));
@@ -11707,7 +11707,7 @@ public Object describe()
                         Integer responseLength = (switch ((Object)(response)) { case null -> 0; case List<?> j39v99 -> j39v99.size(); case String j39v100 -> j39v100.length(); case Object j39v101 -> j39v101.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v101) : 0; });
                         if (this.verbose)
                         {
-                            String forwardMessage = ((((("Dynamic pagination call " + this.numberToString(calls)) + " method ") + method) + " response length ") + this.numberToString(responseLength));
+                            String forwardMessage = ((((("Dynamic pagination call " + this.numberToString(calls)) + " method ") + method) + " response length ") + String.valueOf(responseLength));
                             if (!java.util.Objects.equals(paginationTimestamp, null))
                             {
                                 forwardMessage = (forwardMessage + (" timestamp " + this.numberToString(paginationTimestamp)));
@@ -12576,36 +12576,39 @@ public Object describe()
         {
             client.subscriptions.remove((String)unsubHash);
         }
-        if (!Boolean.TRUE.equals(java.util.Objects.requireNonNullElse(subHashIsPrefix, false)))
+        if (!java.util.Objects.equals(subHash, null))
         {
-            if ((!java.util.Objects.equals(subHash, null)) && ((subHash != null && client.subscriptions.containsKey(subHash))))
+            if (!Boolean.TRUE.equals(java.util.Objects.requireNonNullElse(subHashIsPrefix, false)))
             {
-                client.subscriptions.remove((String)subHash);
-            }
-            if ((!java.util.Objects.equals(subHash, null)) && ((subHash != null && client.futures.containsKey(subHash))))
-            {
-                var error = new UnsubscribeError(((this.id + " ") + subHash));
-                client.reject(error, subHash);
-            }
-        } else
-        {
-            List<Object> clientSubscriptions = new ArrayList<Object>(client.subscriptions.keySet());
-            for (var i = 0; i < ((List<?>)clientSubscriptions).size(); i++)
-            {
-                Object sub = (clientSubscriptions == null || i < 0 || i >= clientSubscriptions.size() ? null : clientSubscriptions.get(i));
-                if ((!java.util.Objects.equals(sub, null)) && (!java.util.Objects.equals(subHash, null)) && ((String)sub).startsWith(((String)subHash)))
+                if ((subHash != null && client.subscriptions.containsKey(subHash)))
                 {
-                    client.subscriptions.remove((String)sub);
+                    client.subscriptions.remove((String)subHash);
                 }
-            }
-            List<Object> clientFutures = new ArrayList<Object>(client.futures.keySet());
-            for (var i = 0; i < ((List<?>)clientFutures).size(); i++)
-            {
-                Object future = (clientFutures == null || i < 0 || i >= clientFutures.size() ? null : clientFutures.get(i));
-                if ((!java.util.Objects.equals(future, null)) && (!java.util.Objects.equals(subHash, null)) && ((String)future).startsWith(((String)subHash)))
+                if ((subHash != null && client.futures.containsKey(subHash)))
                 {
-                    var error = new UnsubscribeError(((this.id + " ") + future));
-                    client.reject(error, future);
+                    var error = new UnsubscribeError(((this.id + " ") + subHash));
+                    client.reject(error, subHash);
+                }
+            } else
+            {
+                List<Object> clientSubscriptions = new ArrayList<Object>(client.subscriptions.keySet());
+                for (var i = 0; i < ((List<?>)clientSubscriptions).size(); i++)
+                {
+                    Object sub = (clientSubscriptions == null || i < 0 || i >= clientSubscriptions.size() ? null : clientSubscriptions.get(i));
+                    if (((String)sub).startsWith(((String)subHash)))
+                    {
+                        client.subscriptions.remove((String)sub);
+                    }
+                }
+                List<Object> clientFutures = new ArrayList<Object>(client.futures.keySet());
+                for (var i = 0; i < ((List<?>)clientFutures).size(); i++)
+                {
+                    Object future = (clientFutures == null || i < 0 || i >= clientFutures.size() ? null : clientFutures.get(i));
+                    if (((String)future).startsWith(((String)subHash)))
+                    {
+                        var error = new UnsubscribeError(((this.id + " ") + future));
+                        client.reject(error, future);
+                    }
                 }
             }
         }
@@ -12645,39 +12648,39 @@ public Object describe()
         {
             for (var i = 0; i < (symbols == null ? 0 : ((List<?>)symbols).size()); i++)
             {
-                Object symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
+                String symbol = this.safeString(symbols, i, "");
                 if (java.util.Objects.equals(topic, "trades"))
                 {
-                    if ((symbol != null && ((Map<?, ?>)this.trades).containsKey(symbol)))
+                    if (((Map<?, ?>)this.trades).containsKey(symbol))
                     {
-                        ((Map<String,Object>)this.trades).remove((String)symbol);
+                        ((Map<String,Object>)this.trades).remove(symbol);
                     }
                 } else if (java.util.Objects.equals(topic, "orderbook"))
                 {
-                    if ((symbol != null && ((Map<?, ?>)this.orderbooks).containsKey(symbol)))
+                    if (((Map<?, ?>)this.orderbooks).containsKey(symbol))
                     {
-                        ((Map<String,Object>)this.orderbooks).remove((String)symbol);
+                        ((Map<String,Object>)this.orderbooks).remove(symbol);
                     }
                 } else if (java.util.Objects.equals(topic, "ticker"))
                 {
-                    if ((symbol != null && ((Map<?, ?>)this.tickers).containsKey(symbol)))
+                    if (((Map<?, ?>)this.tickers).containsKey(symbol))
                     {
-                        ((Map<String,Object>)this.tickers).remove((String)symbol);
+                        ((Map<String,Object>)this.tickers).remove(symbol);
                     }
                 } else if (java.util.Objects.equals(topic, "bidsasks"))
                 {
-                    if ((symbol != null && ((Map<?, ?>)this.bidsasks).containsKey(symbol)))
+                    if (((Map<?, ?>)this.bidsasks).containsKey(symbol))
                     {
-                        ((Map<String,Object>)this.bidsasks).remove((String)symbol);
+                        ((Map<String,Object>)this.bidsasks).remove(symbol);
                     }
                 }
             }
         } else
         {
-            if (java.util.Objects.equals(topic, "myTrades") && (!java.util.Objects.equals(this.myTrades, null)))
+            if (java.util.Objects.equals(topic, "myTrades"))
             {
                 this.myTrades = null;
-            } else if (java.util.Objects.equals(topic, "orders") && (!java.util.Objects.equals(this.orders, null)))
+            } else if (java.util.Objects.equals(topic, "orders"))
             {
                 this.orders = null;
             } else if (java.util.Objects.equals(topic, "positions") && (!java.util.Objects.equals(this.positions, null)))

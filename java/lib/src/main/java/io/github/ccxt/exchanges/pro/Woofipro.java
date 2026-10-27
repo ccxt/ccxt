@@ -837,7 +837,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
             String symbolResolved = (((!java.util.Objects.equals(market, null)))) ? this.safeString(market, "symbol") : null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                messageHash = (messageHash + (":" + symbolResolved));
+                messageHash = (messageHash + (":" + this.safeString(this.market(symbol), "symbol", "")));
             }
             Map<String, Object> request = new HashMap<String, Object>();
             request.put("event", "subscribe");
@@ -892,7 +892,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
             String symbolResolved = (((!java.util.Objects.equals(market, null)))) ? this.safeString(market, "symbol") : null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                messageHash = (messageHash + (":" + symbolResolved));
+                messageHash = (messageHash + (":" + this.safeString(this.market(symbol), "symbol", "")));
             }
             Map<String, Object> request = new HashMap<String, Object>();
             request.put("event", "subscribe");

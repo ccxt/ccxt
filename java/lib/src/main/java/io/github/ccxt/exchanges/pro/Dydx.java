@@ -455,7 +455,7 @@ public class Dydx extends io.github.ccxt.exchanges.Dydx
         String id = this.safeString(message, "id", "");
         List<Object> part = new ArrayList<Object>(Arrays.asList(((String)id).split(java.util.regex.Pattern.quote("/"))));
         String interval = this.safeString(part, 1);
-        Object timeframe = this.findTimeframe(interval, (Object) null);
+        String timeframe = this.findTimeframe(interval, (Object) null);
         String marketId = this.safeString(part, 0);
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = this.safeString(market, "symbol", "");
@@ -470,7 +470,7 @@ public class Dydx extends io.github.ccxt.exchanges.Dydx
         {
             Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
-            Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), ((String)timeframe), stored);
+            Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, stored);
         }
         stored.append(parsed);
         client.resolve(stored, messageHash);

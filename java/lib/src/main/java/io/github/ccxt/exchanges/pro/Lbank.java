@@ -253,7 +253,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
             List<Object> rawOHLCV = (List<Object>) this.safeList(records, 0, new ArrayList<Object>(Arrays.asList()));
             List<Object> parsed = new ArrayList<Object>(Arrays.asList(this.safeInteger(rawOHLCV, 0), this.safeNumber(rawOHLCV, 1, (Object) null), this.safeNumber(rawOHLCV, 2, (Object) null), this.safeNumber(rawOHLCV, 3, (Object) null), this.safeNumber(rawOHLCV, 4, (Object) null), this.safeNumber(rawOHLCV, 5, (Object) null)));
             String timeframeId = this.safeString(message, "kbar", "");
-            Object timeframe = this.findTimeframe(timeframeId, timeframes);
+            String timeframe = this.findTimeframe(timeframeId, timeframes);
             Map<String, Object> ohlcvsForSymbol = (Map<String, Object>) this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}});
             this.ohlcvs.put(symbol, ohlcvsForSymbol);
             Object stored = this.safeValue(ohlcvsForSymbol, timeframe);
@@ -261,7 +261,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
             {
                 Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
                 stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
-                Helpers.addElementToObject(ohlcvsForSymbol, ((String)timeframe), stored);
+                Helpers.addElementToObject(ohlcvsForSymbol, timeframe, stored);
             }
             ((io.github.ccxt.ws.ArrayCache) stored).append(parsed);
             String messageHash = ((("fetchOHLCV:" + symbol) + ":") + timeframeId);
@@ -272,7 +272,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
             String timeframeId = this.safeString(rawOHLCV, "slot", "");
             String datetime = this.safeString(rawOHLCV, "t");
             List<Object> parsed = new ArrayList<Object>(Arrays.asList(this.parse8601(datetime), this.safeNumber(rawOHLCV, "o", (Object) null), this.safeNumber(rawOHLCV, "h", (Object) null), this.safeNumber(rawOHLCV, "l", (Object) null), this.safeNumber(rawOHLCV, "c", (Object) null), this.safeNumber(rawOHLCV, "v", (Object) null)));
-            Object timeframe = this.findTimeframe(timeframeId, timeframes);
+            String timeframe = this.findTimeframe(timeframeId, timeframes);
             Map<String, Object> ohlcvsForSymbol = (Map<String, Object>) this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}});
             this.ohlcvs.put(symbol, ohlcvsForSymbol);
             Object stored = this.safeValue(ohlcvsForSymbol, timeframe);
@@ -280,7 +280,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
             {
                 Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
                 stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
-                Helpers.addElementToObject(ohlcvsForSymbol, ((String)timeframe), stored);
+                Helpers.addElementToObject(ohlcvsForSymbol, timeframe, stored);
             }
             ((io.github.ccxt.ws.ArrayCache) stored).append(parsed);
             String messageHash = ((("ohlcv:" + symbol) + ":") + timeframeId);

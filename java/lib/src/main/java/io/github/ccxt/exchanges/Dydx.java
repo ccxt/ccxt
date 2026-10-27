@@ -1520,8 +1520,12 @@ public class Dydx extends DydxApi
             Map<String, Object> signature = this.signOnboardingAction();
             credentials = this.retrieveDydxCredentials((String) (this.hashMessage(this.base16ToBinary((this.safeString(signature, "r", "") + this.safeString(signature, "s", ""))))));
         }
-        ((Map<String, Object>)credentials).put("privateKey", this.binaryToBase16(((Map<String, Object>)credentials).get("privateKey")));
-        ((Map<String, Object>)credentials).put("publicKey", this.binaryToBase16(((Map<String, Object>)credentials).get("publicKey")));
+        {
+            HashMap<String, Object> hx4NewMap0 = new HashMap<String, Object>();
+            hx4NewMap0.put("privateKey", this.binaryToBase16(((Map<String, Object>)credentials).get("privateKey")));
+            hx4NewMap0.put("publicKey", this.binaryToBase16(((Map<String, Object>)credentials).get("publicKey")));
+            credentials = hx4NewMap0;
+        }
         this.options.put("dydxCredentials", credentials);
         return credentials;
     }
@@ -2337,26 +2341,26 @@ public class Dydx extends DydxApi
                     throw new ArgumentsRequired((this.id + " transfer() requeire toSubaccoutnId.")) ;
                 }
                 {
-                    HashMap<String, Object> hx4NewMap0 = new HashMap<String, Object>();
-                    hx4NewMap0.put("sender", this.getWalletAddress());
+                    HashMap<String, Object> hx4NewMap1 = new HashMap<String, Object>();
+                    hx4NewMap1.put("sender", this.getWalletAddress());
                     HashMap<String, Object> mapLiteral8 = new HashMap<String, Object>();
                     mapLiteral8.put("owner", this.getWalletAddress());
                     mapLiteral8.put("number", toSubaccountId);
-                    hx4NewMap0.put("recipient", mapLiteral8);
-                    hx4NewMap0.put("assetId", 0);
-                    hx4NewMap0.put("quantums", usd);
-                    payload = hx4NewMap0;
+                    hx4NewMap1.put("recipient", mapLiteral8);
+                    hx4NewMap1.put("assetId", 0);
+                    hx4NewMap1.put("quantums", usd);
+                    payload = hx4NewMap1;
                 }
                 {
-                    HashMap<String, Object> hx4NewMap1 = new HashMap<String, Object>();
-                    hx4NewMap1.put("typeUrl", "/dydxprotocol.sending.MsgDepositToSubaccount");
-                    hx4NewMap1.put("value", payload);
-                    signingPayload = hx4NewMap1;
+                    HashMap<String, Object> hx4NewMap2 = new HashMap<String, Object>();
+                    hx4NewMap2.put("typeUrl", "/dydxprotocol.sending.MsgDepositToSubaccount");
+                    hx4NewMap2.put("value", payload);
+                    signingPayload = hx4NewMap2;
                 }
             } else
             {
                 {
-                    HashMap<String, Object> hx4NewMap2 = new HashMap<String, Object>();
+                    HashMap<String, Object> hx4NewMap3 = new HashMap<String, Object>();
                     HashMap<String, Object> mapLiteral9 = new HashMap<String, Object>();
                     HashMap<String, Object> mapLiteral10 = new HashMap<String, Object>();
                     mapLiteral10.put("owner", fromAccount);
@@ -2368,14 +2372,14 @@ public class Dydx extends DydxApi
                     mapLiteral9.put("recipient", mapLiteral11);
                     mapLiteral9.put("assetId", 0);
                     mapLiteral9.put("amount", usd);
-                    hx4NewMap2.put("transfer", mapLiteral9);
-                    payload = hx4NewMap2;
+                    hx4NewMap3.put("transfer", mapLiteral9);
+                    payload = hx4NewMap3;
                 }
                 {
-                    HashMap<String, Object> hx4NewMap3 = new HashMap<String, Object>();
-                    hx4NewMap3.put("typeUrl", "/dydxprotocol.sending.MsgCreateTransfer");
-                    hx4NewMap3.put("value", payload);
-                    signingPayload = hx4NewMap3;
+                    HashMap<String, Object> hx4NewMap4 = new HashMap<String, Object>();
+                    hx4NewMap4.put("typeUrl", "/dydxprotocol.sending.MsgCreateTransfer");
+                    hx4NewMap4.put("value", payload);
+                    signingPayload = hx4NewMap4;
                 }
             }
             Map<String, Object> txFee = (this.estimateTxFee((Map<String, Object>) (signingPayload), "", (Map<String, Object>) (account))).join();

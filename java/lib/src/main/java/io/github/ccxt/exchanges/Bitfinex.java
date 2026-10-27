@@ -860,14 +860,14 @@ public class Bitfinex extends BitfinexApi
         // Anything exceeding this will be rounded to the 8th decimal.
         String symbolValue = this.safeSymbol(symbol, (Map<String, Object>) null, (String) null, (String) null);
         Map<String, Object> market = this.market(symbolValue);
-        return this.decimalToPrecision(amount, TRUNCATE, ((Map<String, Object>)market.get("precision")).get("amount"), DECIMAL_PLACES);
+        return this.decimalToPrecision(amount, TRUNCATE, this.safeValue(market.get("precision"), "amount"), DECIMAL_PLACES);
     }
 
     public String priceToPrecision(Object symbol, Object price)
     {
         String symbolValue = this.safeSymbol(symbol, (Map<String, Object>) null, (String) null, (String) null);
         Map<String, Object> market = this.market(symbolValue);
-        String priceValue = this.decimalToPrecision(price, ROUND, ((Map<String, Object>)market.get("precision")).get("price"), this.precisionMode);
+        String priceValue = this.decimalToPrecision(price, ROUND, this.safeValue(market.get("precision"), "price"), this.precisionMode);
         // https://docs.bitfinex.com/docs/introduction#price-precision
         // The precision level of all trading prices is based on significant figures.
         // All pairs on Bitfinex use up to 5 significant digits and up to 8 decimals (e.g. 1.2345, 123.45, 1234.5, 0.00012345).
@@ -2057,7 +2057,7 @@ public class Bitfinex extends BitfinexApi
             put( "4096", new ArrayList<Object>(Arrays.asList("postOnly")) );
             put( "5120", new ArrayList<Object>(Arrays.asList("reduceOnly", "postOnly")) );
         }};
-        return this.safeList(flagValues, flags, (Object) null);
+        return this.safeList(flagValues, flags, new ArrayList<Object>(Arrays.asList()));
     }
 
     public String parseTimeInForce(String orderType)
@@ -2094,14 +2094,11 @@ public class Bitfinex extends BitfinexApi
         String rawFlags = this.safeString(orderList, 12);
         Object flags = this.parseOrderFlags(rawFlags);
         Boolean postOnly = false;
-        if (!java.util.Objects.equals(flags, null))
+        for (var i = 0; i < ((List<?>)flags).size(); i++)
         {
-            for (var i = 0; i < ((List<?>)flags).size(); i++)
+            if (java.util.Objects.equals(this.safeString(flags, i), "postOnly"))
             {
-                if (java.util.Objects.equals(this.safeString(flags, i), "postOnly"))
-                {
-                    postOnly = true;
-                }
+                postOnly = true;
             }
         }
         String price = this.safeString(orderList, 16);

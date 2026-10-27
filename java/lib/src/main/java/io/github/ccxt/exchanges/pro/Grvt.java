@@ -574,15 +574,15 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
         String symbol = this.safeString(market, "symbol", "");
         String secondPart = this.safeString(parts, 1, "");
         String timeframeId = secondPart.replaceFirst("-TRADE", "");
-        Object timeframe = this.findTimeframe(timeframeId, (Object) null);
+        String timeframe = this.findTimeframe(timeframeId, (Object) null);
         String messageHash = ((("ohlcv::" + symbol) + "::") + timeframe);
         this.ohlcvs.put(symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
-        if (!(((Map<?, ?>)((Map<?, ?>)this.ohlcvs).get(symbol)).containsKey(((String)timeframe))))
+        if (!(((Map<?, ?>)((Map<?, ?>)this.ohlcvs).get(symbol)).containsKey(timeframe)))
         {
             Object limit = this.handleOption("watchOHLCV", "limit", 1000);
-            Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), ((String)timeframe), new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue()));
+            Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue()));
         }
-        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(((Map<?, ?>)this.ohlcvs).get(symbol), ((String)timeframe));
+        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe);
         Object parsed = this.parseWsOHLCV(data, market);
         stored.append(parsed);
         List<Object> resolveData = new ArrayList<Object>(Arrays.asList(symbol, timeframe, stored));

@@ -780,7 +780,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         }
         String wsInterval = this.safeString(parts, 4);
         Map<String, Object> futuresTimeframes = (Map<String, Object>) this.safeDict(this.options, "futuresTimeframes", new HashMap<String, Object>() {{}});
-        Object timeframe = this.findTimeframe(wsInterval, futuresTimeframes);
+        String timeframe = this.findTimeframe(wsInterval, futuresTimeframes);
         Map<String, Object> tick = (Map<String, Object>) this.safeDict(message, "tick", (Object) null);
         if (java.util.Objects.equals(tick, null))
         {
@@ -791,12 +791,12 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         {
             this.ohlcvs.put(symbol, new HashMap<String, Object>() {{}});
         }
-        if (!(((Map<?, ?>)((Map<?, ?>)this.ohlcvs).get(symbol)).containsKey(((String)timeframe))))
+        if (!(((Map<?, ?>)((Map<?, ?>)this.ohlcvs).get(symbol)).containsKey(timeframe)))
         {
             Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
-            Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), ((String)timeframe), new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue()));
+            Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue()));
         }
-        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(((Map<?, ?>)this.ohlcvs).get(symbol), ((String)timeframe));
+        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe);
         stored.append(parsed);
         String messageHash = ((("ohlcv:" + symbol) + ":") + timeframe);
         client.resolve(stored, messageHash);

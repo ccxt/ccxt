@@ -195,7 +195,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
                 mapLiteral2.put("stock", marketStock);
                 mapLiteral2.put("source", source);
                 Map<String, Object> requestParams = this.extend(marketParams, mapLiteral2);
-                Map<String, Object> request = this.stockDataRequest(methodName, (Map<String, Object>) (requestParams), market);
+                Object request = this.stockDataRequest(methodName, (Map<String, Object>) (requestParams), market);
                 String tickerSymbol = this.safeString(request, "symbol", "");
                 String topic = ("ticker." + tickerSymbol);
                 if (!java.util.Objects.equals(channel, null))
@@ -225,7 +225,8 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
                         topic = ((quoteChannel + ".") + ticker);
                     } else
                     {
-                        topic = ("bookTicker." + this.wsVenueMarketId(methodName, (Map<String, Object>) (market), (Map<String, Object>) (query)));
+                        this.wsVenueMarketId(methodName, (Map<String, Object>) (market), (Map<String, Object>) (query));
+                        topic = ("bookTicker." + this.safeString(market, "id", ""));
                     }
                 } else if (java.util.Objects.equals(source, "External"))
                 {
@@ -921,7 +922,8 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
                 Map<String, Object> market = this.market(marketId);
                 String tf = this.safeString(symbolAndTimeframe, 1);
                 String interval = this.safeString(this.timeframes, tf, tf);
-                topics.add(((("kline." + interval) + ".") + this.wsVenueMarketId("watchOHLCVForSymbols", (Map<String, Object>) (market), (Map<String, Object>) (query))));
+                this.wsVenueMarketId("watchOHLCVForSymbols", (Map<String, Object>) (market), (Map<String, Object>) (query));
+                topics.add(((("kline." + interval) + ".") + this.safeString(market, "id", "")));
                 messageHashes.add(((("candles:" + market.get("symbol")) + ":") + interval));
             }
             var symboltimeframecandlesVariable = (this.watchPublic(topics, messageHashes, this.omit(query, new ArrayList<Object>(Arrays.asList("stock", "source"))), false)).join();
@@ -974,7 +976,8 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
                 Map<String, Object> market = this.market(marketId);
                 String tf = this.safeString(symbolAndTimeframe, 1);
                 String interval = this.safeString(this.timeframes, tf, tf);
-                topics.add(((("kline." + interval) + ".") + this.wsVenueMarketId("watchOHLCVForSymbols", (Map<String, Object>) (market), (Map<String, Object>) (query))));
+                this.wsVenueMarketId("watchOHLCVForSymbols", (Map<String, Object>) (market), (Map<String, Object>) (query));
+                topics.add(((("kline." + interval) + ".") + this.safeString(market, "id", "")));
                 messageHashes.add(((("unsubscribe:candles:" + market.get("symbol")) + ":") + interval));
             }
             return (this.watchPublic(topics, messageHashes, this.omit(query, new ArrayList<Object>(Arrays.asList("stock", "source"))), true)).join();
@@ -1567,7 +1570,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
                 {
                     topic = ("account.rfqUpdate." + this.safeString(market, "id", ""));
                 }
-                messageHash = ("orders:" + symbolResolved);
+                messageHash = ("orders:" + this.safeString(market, "symbol", ""));
             }
             List<Object> topics = new ArrayList<Object>(Arrays.asList(topic));
             if (java.util.Objects.equals(market, null))
@@ -2214,7 +2217,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         {
             if (!java.util.Objects.equals(code, null))
             {
-                String msg = this.safeString(error, "message");
+                String msg = this.safeString(error, "message", "");
                 throw new ExchangeError(((this.id + " ") + msg)) ;
             }
             return true;

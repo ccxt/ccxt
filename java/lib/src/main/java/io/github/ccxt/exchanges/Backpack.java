@@ -871,7 +871,7 @@ public class Backpack extends BackpackApi
             List<String> marketTypes = new ArrayList<String>(Arrays.asList());
             for (var i = 0; i < ((List<?>)requestedTypes).size(); i++)
             {
-                Object requestedType = (requestedTypes == null || i < 0 || i >= ((List<?>)requestedTypes).size() ? null : ((List<?>)requestedTypes).get(i));
+                String requestedType = this.safeString(requestedTypes, i, "");
                 String normalizedType = this.safeString(aliases, requestedType, requestedType);
                 if (!this.inArray(normalizedType, supportedTypes))
                 {
@@ -1773,7 +1773,7 @@ public class Backpack extends BackpackApi
                     }
                 }
             }
-            Boolean stockExplicitlyDisabled = java.util.Objects.equals(this.safeValue2(parameters, "stock", "defaultStock"), false);
+            Boolean stockExplicitlyDisabled = !Boolean.TRUE.equals(this.safeBool2(parameters, "stock", "defaultStock", true));
             Boolean needsExternalRfqTickers = (java.util.Objects.equals(source, "Venue")) && (java.util.Objects.equals(this.safeString(query, "source"), null)) && Boolean.TRUE.equals(hasRfqSymbol) && !Boolean.TRUE.equals(stockExplicitlyDisabled);
             Map<String, Object> requestParams = query;
             if ((java.util.Objects.equals(source, "External")) && (Boolean.TRUE.equals(stockOnly) || Boolean.TRUE.equals(hasStockSymbol)) && !Boolean.TRUE.equals(stockExplicitlyDisabled))
@@ -3264,7 +3264,6 @@ public class Backpack extends BackpackApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             List<Object> ordersRequests = new ArrayList<Object>(Arrays.asList());
-            Object stockOption = this.safeValue2(parameters, "stock", "defaultStock");
             Boolean stock = (Boolean) this.safeBool(selection, 0, false);
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
@@ -3276,7 +3275,7 @@ public class Backpack extends BackpackApi
                 Double price = this.safeNumber(rawOrder, "price", (Object) null);
                 Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
                 Map<String, Object> baseParams = new HashMap<String, Object>() {{}};
-                if (Boolean.TRUE.equals(stock) || (java.util.Objects.equals(stockOption, false)))
+                if (Boolean.TRUE.equals(stock) || !Boolean.TRUE.equals(this.safeBool2(parameters, "stock", "defaultStock", true)))
                 {
                     baseParams.put("stock", stock);
                 }

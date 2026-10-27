@@ -7733,9 +7733,9 @@ public class Bingx extends BingxApi
         url = (url + ((("/" + version) + "/") + pathValue));
         Map<String, Object> requestHeaders = null;
         String requestBody = null;
-        Object paramsOmitted = this.omit(parameters, this.extractParams(pathValue));
-        ((Map<String, Object>)paramsOmitted).put("timestamp", this.nonce());
-        Map<String,Object> paramsSorted = this.keysort(paramsOmitted);
+        Map<String,Object> paramsSorted = this.keysort(this.extend(this.omit(parameters, this.extractParams(pathValue)), new HashMap<String, Object>() {{
+            put( "timestamp", Bingx.this.nonce() );
+        }}));
         if (java.util.Objects.equals(access, "public"))
         {
             if (paramsSorted.size() > 0)
@@ -7764,7 +7764,9 @@ public class Bingx extends BingxApi
             }};
             if (Boolean.TRUE.equals(isJsonContentType))
             {
-                requestHeaders.put("Content-Type", "application/json");
+                requestHeaders = this.extend(requestHeaders, new HashMap<String, Object>() {{
+                    put( "Content-Type", "application/json" );
+                }});
                 paramsSorted.put("signature", signature);
                 requestBody = this.json(paramsSorted);
             } else

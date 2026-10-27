@@ -317,7 +317,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         String interval = this.safeString(keyParts, 1, "");
         String marketId = this.safeString(keyParts, 2, "");
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
-        Object timeframe = this.findTimeframe(interval, (Object) null);
+        String timeframe = this.findTimeframe(interval, (Object) null);
         String symbol = (String) market.get("symbol");
         String messageHash = ((((channel + ":") + interval) + ":") + marketId);
         this.ohlcvs.put(symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
@@ -326,7 +326,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         {
             Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
-            Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), ((String)timeframe), stored);
+            Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, stored);
         }
         Integer ohlcvsLength = ((List<?>)ohlcvs).size();
         for (var i = 0; (ohlcvsLength != null && i < ohlcvsLength); i++)
@@ -899,7 +899,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         } else
         {
             io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
-            Object deltas = (message == null || 1 >= ((List<?>)message).size() ? null : ((List<?>)message).get(1));
+            Object deltas = this.safeValue(message, 1);
             io.github.ccxt.ws.WsOrderBook orderbookItem = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
             if (Boolean.TRUE.equals(isRaw))
             {

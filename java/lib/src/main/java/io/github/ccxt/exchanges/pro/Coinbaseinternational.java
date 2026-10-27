@@ -134,7 +134,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         return requestId;
     }
 
-    public Object getWsUrl(Object isPrivate)
+    public String getWsUrl(Object isPrivate)
     {
         if (java.util.Objects.equals(this.isNativeDeribitCredentials(), true))
         {
@@ -142,9 +142,9 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         }
         if (Boolean.TRUE.equals(java.util.Objects.requireNonNullElse(isPrivate, false)))
         {
-            return ((Map<String, Object>)this.urls.get("api")).get("wsPrivate");
+            return (String) (((Map<String, Object>)this.urls.get("api")).get("wsPrivate"));
         }
-        return ((Map<String, Object>)this.urls.get("api")).get("ws");
+        return (String) (((Map<String, Object>)this.urls.get("api")).get("ws"));
     }
 
     public Object ping(Client client)
@@ -1292,14 +1292,14 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         String resolution = this.safeString(parts, 3);
         Map<String, Object> wsOptions = (Map<String, Object>) this.safeDict(this.options, "ws", new HashMap<String, Object>() {{}});
         Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(wsOptions, "timeframes", new HashMap<String, Object>() {{}});
-        Object timeframe = this.findTimeframe(resolution, timeframes);
+        String timeframe = this.findTimeframe(resolution, timeframes);
         this.ohlcvs.put(symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
         if (java.util.Objects.equals(this.safeValue(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe), null))
         {
             Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
-            Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), ((String)timeframe), new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue()));
+            Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue()));
         }
-        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(((Map<?, ?>)this.ohlcvs).get(symbol), ((String)timeframe));
+        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe);
         Map<String, Object> data = (Map<String, Object>) this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
         List<Object> parsed = (List<Object>) this.parseWsOHLCV(data, market);
         stored.append(parsed);
@@ -1685,7 +1685,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             List<Object> channelParts = new ArrayList<Object>(Arrays.asList(((String)channel).split(java.util.regex.Pattern.quote("."))));
             Integer channelPartsLength = ((List<?>)channelParts).size();
             Boolean isPrivate = java.util.Objects.equals(this.safeString(channelParts, (((long) channelPartsLength) - 1L)), "raw");
-            Object url = this.getWsUrl(isPrivate);
+            String url = this.getWsUrl(isPrivate);
             if (Boolean.TRUE.equals(isPrivate))
             {
                 (this.authenticate(new HashMap<String, Object>() {{}})).join();
@@ -1884,7 +1884,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         return BaseExchange.supplyAsync(() -> {
 
             Map<String, Object> paramsResolved = (Map<String, Object>) this.handleRouteAndParams("authenticate", parameters);
-            Object url = this.getWsUrl(true);
+            String url = this.getWsUrl(true);
             Client client = this.client(url);
             String messageHash = "authenticated";
             Object future = this.safeValue(client.subscriptions, messageHash);
@@ -1945,7 +1945,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         return BaseExchange.supplyAsync(() -> {
 
             Map<String, Object> paramsResolved = (Map<String, Object>) this.handleRouteAndParams("requestWs", parameters);
-            Object url = this.getWsUrl(true);
+            String url = this.getWsUrl(true);
             if (Boolean.TRUE.equals(java.util.Objects.requireNonNullElse(isPrivate, false)))
             {
                 (this.authenticate(new HashMap<String, Object>() {{}})).join();
@@ -2553,7 +2553,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
 
             Map<String, Object> paramsResolved = (Map<String, Object>) this.handleRouteAndParams("logoutWs", parameters);
             (this.authenticate(new HashMap<String, Object>() {{}})).join();
-            Object url = this.getWsUrl(true);
+            String url = this.getWsUrl(true);
             Client client = this.client(url);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "jsonrpc", "2.0" );

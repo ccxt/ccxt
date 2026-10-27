@@ -4072,7 +4072,7 @@ public class Woo extends WooApi
         Map<String, Object> requestHeaders = null;
         String requestBody = null;
         String version = (String) (section == null || 0 >= ((List<?>)section).size() ? null : ((List<?>)section).get(0));
-        String access = this.safeString(section, 1);
+        String access = (String) (section == null || 1 >= ((List<?>)section).size() ? null : ((List<?>)section).get(1));
         String pathWithParams = (String) this.implodeParams(path, parameters);
         String baseApiUrl = this.safeString(this.urls.get("api"), access);
         if (java.util.Objects.equals(baseApiUrl, null))

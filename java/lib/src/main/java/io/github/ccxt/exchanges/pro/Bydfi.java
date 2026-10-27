@@ -545,19 +545,19 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         String symbol = this.safeString(market, "symbol", "");
         String interval = this.safeString(message, "i");
         Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(this.options, "timeframes", new HashMap<String, Object>() {{}});
-        Object timeframe = this.findTimeframe(interval, timeframes);
+        String timeframe = this.findTimeframe(interval, timeframes);
         String messageHash = ((("ohlcv::" + symbol) + "::") + timeframe);
         if (!(((Map<?, ?>)this.ohlcvs).containsKey(symbol)))
         {
             this.ohlcvs.put(symbol, new HashMap<String, Object>() {{}});
         }
-        if (!(((Map<?, ?>)((Map<?, ?>)this.ohlcvs).get(symbol)).containsKey(((String)timeframe))))
+        if (!(((Map<?, ?>)((Map<?, ?>)this.ohlcvs).get(symbol)).containsKey(timeframe)))
         {
             Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             var stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
-            Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), ((String)timeframe), stored);
+            Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, stored);
         }
-        io.github.ccxt.ws.ArrayCache ohlcv = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(((Map<?, ?>)this.ohlcvs).get(symbol), ((String)timeframe));
+        io.github.ccxt.ws.ArrayCache ohlcv = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe);
         Object parsed = this.parseWsOHLCV(message, (Map<String, Object>) null);
         ohlcv.append(parsed);
         client.resolve(new ArrayList<Object>(Arrays.asList(symbol, timeframe, ohlcv)), messageHash);

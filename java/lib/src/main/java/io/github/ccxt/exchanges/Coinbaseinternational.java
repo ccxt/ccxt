@@ -869,12 +869,12 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             type = "option";
         }
         String symbol = instrumentName;
-        if (!Boolean.TRUE.equals(isComboMarket))
+        if (!Boolean.TRUE.equals(isComboMarket) && (!java.util.Objects.equals(base, null)) && (!java.util.Objects.equals(quote, null)))
         {
             symbol = ((base + "/") + quote);
-            if (!Boolean.TRUE.equals(isSpot))
+            if (!Boolean.TRUE.equals(isSpot) && (!java.util.Objects.equals(settle, null)))
             {
-                symbol = ((symbol + ":") + settle);
+                symbol = ((((base + "/") + quote) + ":") + settle);
             }
         }
         Boolean linear = ((Boolean.TRUE.equals(isSpot))) ? null : (java.util.Objects.equals(settle, quote));
@@ -3818,7 +3818,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             Long now = this.milliseconds();
             Object token = this.getV2AccessToken();
             Long tokenExpires = this.safeInteger(this.options, "v2TokenExpires");
-            if (!Boolean.TRUE.equals(forceRefresh) && (!java.util.Objects.equals(token, null)) && (!java.util.Objects.equals(token, "")) && (!java.util.Objects.equals(tokenExpires, null)) && ((tokenExpires != null && (now == null || now < tokenExpires))))
+            if (!Boolean.TRUE.equals(forceRefresh) && (!java.util.Objects.equals(token, null)) && (!java.util.Objects.equals(tokenExpires, null)) && ((tokenExpires != null && (now == null || now < tokenExpires))))
             {
                 return token;
             }
@@ -3869,7 +3869,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         {
             return token;
         }
-        if ((java.util.Objects.equals(this.token, null)) || (java.util.Objects.equals(this.token, "")))
+        if (java.util.Objects.equals(this.token, ""))
         {
             return null;
         }
@@ -3914,7 +3914,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         {
             this.checkRequiredCredentials(true);
             String timestamp = String.valueOf(this.milliseconds());
-            String nonce = String.valueOf(this.nonce());
+            String nonce = this.numberToString(this.nonce());
             String signedRequest = (((((("/" + "api/") + this.version) + "/") + access) + "/") + path);
             if (requestParams.size() > 0)
             {

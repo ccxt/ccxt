@@ -1044,19 +1044,19 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         String symbol = (String) market.get("symbol");
         Map<String, Object> wsOptions = (Map<String, Object>) this.safeDict(this.options, "ws", new HashMap<String, Object>() {{}});
         Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(wsOptions, "timeframes", new HashMap<String, Object>() {{}});
-        Object unifiedTimeframe = this.findTimeframe(rawTimeframe, timeframes);
+        String unifiedTimeframe = this.findTimeframe(rawTimeframe, timeframes);
         this.ohlcvs.put(symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
         if (java.util.Objects.equals(this.safeDict(((Map<?, ?>)this.ohlcvs).get(symbol), unifiedTimeframe, (Object) null), null))
         {
             Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
-            Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), ((String)unifiedTimeframe), new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue()));
+            Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), unifiedTimeframe, new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue()));
         }
-        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(((Map<?, ?>)this.ohlcvs).get(symbol), ((String)unifiedTimeframe));
+        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(((Map<?, ?>)this.ohlcvs).get(symbol), unifiedTimeframe);
         Map<String, Object> ohlcv = (Map<String, Object>) this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
         // data contains a single OHLCV candle
         List<Object> parsed = (List<Object>) this.parseWsOHLCV(ohlcv, market);
         stored.append(parsed);
-        Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), ((String)unifiedTimeframe), stored);
+        Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), unifiedTimeframe, stored);
         List<Object> resolveData = new ArrayList<Object>(Arrays.asList(symbol, unifiedTimeframe, stored));
         String messageHash = ((("chart.trades|" + symbol) + "|") + rawTimeframe);
         client.resolve(resolveData, messageHash);

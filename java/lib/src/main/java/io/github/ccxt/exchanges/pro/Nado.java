@@ -1301,10 +1301,6 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             // the v2 gateway dispatches requests concurrently, so responses arrive
             // in completion order, not send order — every execute carries a unique
             // request id and its response is correlated by the echoed id
-            if (java.util.Objects.equals(requestIdString, null))
-            {
-                throw new ArgumentsRequired((this.id + " watchExecuteRequest() requires requestIdString")) ;
-            }
             String url = this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), "gateway");
             String messageHash = ("execute:" + requestIdString);
             return (this.watch(url, messageHash, request, messageHash, null)).join();
@@ -1476,8 +1472,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
 }})) );
         }};
         Object encoded = this.ethEncodeStructuredData(domain, messageTypes, tx);
-        String hash = ("0x" + this.hash(encoded, keccak(), "hex"));
-        return this.signHash(hash, (String) (this.privateKey));
+        return this.signHash((String) (this.hash(encoded, keccak(), "hex")), (String) (this.privateKey));
     }
 
     public Map<String, Object> createPublicSubscriptionRequest(String method, String streamType, Map<String, Object> market, Long id, Map<String, Object> parameters)

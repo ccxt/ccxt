@@ -5602,8 +5602,8 @@ public class Digifinex extends DigifinexApi
 
     public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        Boolean signed = java.util.Objects.equals(this.safeString(api, 0), "private");
-        String endpoint = this.safeString(api, 1);
+        Boolean signed = java.util.Objects.equals((api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0)), "private");
+        String endpoint = (String) (api == null || 1 >= ((List<?>)api).size() ? null : ((List<?>)api).get(1));
         String pathPart = "/swap/v2";
         if (java.util.Objects.equals(endpoint, "spot"))
         {

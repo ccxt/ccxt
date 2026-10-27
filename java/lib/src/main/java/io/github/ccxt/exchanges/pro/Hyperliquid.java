@@ -2095,15 +2095,15 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         String marketId = this.coinToMarketId((String) (coin));
         String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String interval = this.safeString(subscription, "interval", "");
-        Object timeframe = this.findTimeframe(interval, (Object) null);
+        String timeframe = this.findTimeframe(interval, (Object) null);
         String subMessageHash = ((("candles:" + timeframe) + ":") + symbol);
         String messageHash = ("unsubscribe:" + subMessageHash);
         this.cleanUnsubscription(client, subMessageHash, messageHash, false);
         if (((Map<?, ?>)this.ohlcvs).containsKey(symbol))
         {
-            if (((Map<?, ?>)((Map<?, ?>)this.ohlcvs).get(symbol)).containsKey(((String)timeframe)))
+            if (((Map<?, ?>)((Map<?, ?>)this.ohlcvs).get(symbol)).containsKey(timeframe))
             {
-                ((Map<String,Object>)((Map<?, ?>)this.ohlcvs).get(symbol)).remove((String)((String)timeframe));
+                ((Map<String,Object>)((Map<?, ?>)this.ohlcvs).get(symbol)).remove((String)timeframe);
             }
         }
     }

@@ -1234,7 +1234,7 @@ public class Toobit extends ToobitApi
         Map<String, Object> lotSizeFilter = (Map<String, Object>) this.safeDict(filtersByType, "LOT_SIZE", new HashMap<String, Object>() {{}});
         Map<String, Object> minNotionalFilter = (Map<String, Object>) this.safeDict(filtersByType, "MIN_NOTIONAL", new HashMap<String, Object>() {{}});
         String symbol = ((base + "/") + quote);
-        Boolean isContract = (((Map<?, ?>)market).containsKey("contractMultiplier"));
+        Boolean isContract = (!java.util.Objects.equals(this.safeString(market, "contractMultiplier"), null));
         Boolean inverse = (Boolean) this.safeBool2(market, "isInverse", "inverse", (Object) null);
         if (Boolean.TRUE.equals(isContract))
         {
@@ -2252,7 +2252,7 @@ public class Toobit extends ToobitApi
             }
         }
         Object paramsOmitted = this.omit(paramsTrigger, new ArrayList<Object>(Arrays.asList("stopLoss", "takeProfit")));
-        if (!((switch ((Object)(paramsOmitted)) { case List<?> j39v2 -> j39v2.contains("newClientOrderId"); case Map<?, ?> j39v1 -> j39v1.containsKey("newClientOrderId"); case null, default -> false; })))
+        if (java.util.Objects.equals(this.safeString(paramsOmitted, "newClientOrderId"), null))
         {
             request.put("newClientOrderId", this.uuid());
         }
@@ -2773,7 +2773,7 @@ public class Toobit extends ToobitApi
             }
             for (var i = 0; i < ((List<?>)responseList).size(); i++)
             {
-                ((List<Object>)ordersList).add((switch (0) { default -> { HashMap<String, Object> j39v3 = new HashMap<String, Object>(); j39v3.put("result", (responseList == null || i < 0 || i >= responseList.size() ? null : responseList.get(i))); yield j39v3; } }));
+                ((List<Object>)ordersList).add((switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>(); j39v1.put("result", (responseList == null || i < 0 || i >= responseList.size() ? null : responseList.get(i))); yield j39v1; } }));
             }
             return this.parseOrders(ordersList, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));

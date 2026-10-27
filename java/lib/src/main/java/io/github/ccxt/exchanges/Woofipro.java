@@ -1631,7 +1631,7 @@ public class Woofipro extends WoofiproApi
             {
                 Object row = (rows == null || i < 0 || i >= rows.size() ? null : rows.get(i));
                 String marketId = this.safeString(row, "symbol", "");
-                if ((java.util.Objects.equals(this.markets_by_id, null)) || !(((Map<?, ?>)this.markets_by_id).containsKey(marketId)))
+                if (java.util.Objects.equals(this.safeValue(this.markets_by_id, marketId), null))
                 {
                     continue;
                 }
@@ -1763,7 +1763,7 @@ public class Woofipro extends WoofiproApi
             {
                 Object row = (rows == null || i < 0 || i >= rows.size() ? null : rows.get(i));
                 String marketId = this.safeString(row, "symbol", "");
-                if ((java.util.Objects.equals(this.markets_by_id, null)) || !(((Map<?, ?>)this.markets_by_id).containsKey(marketId)))
+                if (java.util.Objects.equals(this.safeValue(this.markets_by_id, marketId), null))
                 {
                     continue;
                 }
@@ -4339,19 +4339,16 @@ public class Woofipro extends WoofiproApi
             {
                 apiKey = ("ed25519:" + this.apiKey);
             }
-            {
-                HashMap<String, Object> hx4NewMap1 = new HashMap<String, Object>();
-                hx4NewMap1.put("orderly-account-id", this.accountId);
-                hx4NewMap1.put("orderly-key", apiKey);
-                hx4NewMap1.put("orderly-timestamp", ts);
-                requestHeaders = hx4NewMap1;
-            }
+            Map<String, Object> authHeaders = new HashMap<String, Object>();
+            authHeaders.put("orderly-account-id", this.accountId);
+            authHeaders.put("orderly-key", apiKey);
+            authHeaders.put("orderly-timestamp", ts);
             auth = (((((ts + java.util.Objects.requireNonNullElse(method, "GET")) + "/") + version) + "/") + pathWithParams);
             if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST") || java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "PUT"))
             {
                 requestBody = this.json(requestParams);
                 auth = (auth + requestBody);
-                requestHeaders.put("content-type", "application/json");
+                authHeaders.put("content-type", "application/json");
             } else
             {
                 if (requestParams.size() > 0)
@@ -4359,7 +4356,7 @@ public class Woofipro extends WoofiproApi
                     url = (url + ("?" + this.urlencode(requestParams)));
                     auth = (auth + ("?" + this.rawencode(requestParams)));
                 }
-                requestHeaders.put("content-type", "application/x-www-form-urlencoded");
+                authHeaders.put("content-type", "application/x-www-form-urlencoded");
                 if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE"))
                 {
                     requestBody = "";
@@ -4372,16 +4369,15 @@ public class Woofipro extends WoofiproApi
                 secret = (parts == null || 1 >= parts.size() ? null : parts.get(1));
             }
             Object signature = eddsa(this.encode(auth), this.base58ToBinary(secret), ed25519());
-            requestHeaders.put("orderly-signature", this.urlencodeBase64(this.base64ToBinary(signature)));
+            authHeaders.put("orderly-signature", this.urlencodeBase64(this.base64ToBinary(signature)));
+            requestHeaders = authHeaders;
         }
-        String bodyResult = requestBody;
-        Map<String, Object> headersResult = requestHeaders;
         {
             HashMap<String, Object> h2kMap3 = new HashMap<String, Object>();
             h2kMap3.put("url", url);
             h2kMap3.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
-            h2kMap3.put("body", bodyResult);
-            h2kMap3.put("headers", headersResult);
+            h2kMap3.put("body", requestBody);
+            h2kMap3.put("headers", requestHeaders);
             return h2kMap3;
         }
     }

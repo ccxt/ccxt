@@ -1871,29 +1871,20 @@ public class Delta extends DeltaApi
                 windowSeconds = (limit * ((long) duration));
             }
             Long until = this.safeIntegerProduct(parameters, "until", 0.001);
-            Boolean untilIsDefined = !java.util.Objects.equals(until, null);
-            if (Boolean.TRUE.equals(untilIsDefined))
-            {
-                until = this.parseToInt(until);
-            }
             if (java.util.Objects.equals(since, null))
             {
                 Long end = this.seconds();
-                if (Boolean.TRUE.equals(untilIsDefined))
+                if (!java.util.Objects.equals(until, null))
                 {
                     end = this.parseToInt(until);
                 }
                 request.put("end", end);
-                if (java.util.Objects.equals(end, null))
-                {
-                    throw new ExchangeError((this.id + " fetchOHLCV() missing end")) ;
-                }
                 request.put("start", (end - windowSeconds));
             } else
             {
                 Long start = this.parseToInt((((double) since) / ((double) 1000)));
                 request.put("start", start);
-                request.put("end", ((Boolean.TRUE.equals(untilIsDefined))) ? until : this.sum(start, windowSeconds));
+                request.put("end", (((!java.util.Objects.equals(until, null)))) ? until : this.sum(start, windowSeconds));
             }
             String price = this.safeString(parameters, "price");
             String marketId = this.safeString(market, "id", "");
@@ -2667,7 +2658,7 @@ public class Delta extends DeltaApi
             }
             if (!java.util.Objects.equals(since, null))
             {
-                request.put("start_time", (String.valueOf(since) + "000"));
+                request.put("start_time", this.numberToString((since * 1000L)));
             }
             if (!java.util.Objects.equals(limit, null))
             {
@@ -2736,7 +2727,7 @@ public class Delta extends DeltaApi
             }
             if (!java.util.Objects.equals(since, null))
             {
-                request.put("start_time", (String.valueOf(since) + "000"));
+                request.put("start_time", this.numberToString((since * 1000L)));
             }
             if (!java.util.Objects.equals(limit, null))
             {
@@ -4624,7 +4615,7 @@ public class Delta extends DeltaApi
         {
             this.checkRequiredCredentials(true);
             String timestamp = String.valueOf(this.seconds());
-            requestHeaders = new HashMap<String, Object>() {{
+            Map<String, Object> privateHeaders = new HashMap<String, Object>() {{
                 put( "api-key", Delta.this.apiKey );
                 put( "timestamp", timestamp );
             }};
@@ -4641,10 +4632,11 @@ public class Delta extends DeltaApi
             {
                 requestBody = this.json(query);
                 auth = (auth + requestBody);
-                requestHeaders.put("Content-Type", "application/json");
+                privateHeaders.put("Content-Type", "application/json");
             }
             String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256());
-            requestHeaders.put("signature", signature);
+            privateHeaders.put("signature", signature);
+            requestHeaders = privateHeaders;
         }
         String bodyResult = requestBody;
         Map<String, Object> headersResult = requestHeaders;

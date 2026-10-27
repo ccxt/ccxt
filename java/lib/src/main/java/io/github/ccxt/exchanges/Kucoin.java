@@ -13859,7 +13859,7 @@ public class Kucoin extends KucoinApi
 
     public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        String apiName = this.safeString(api, 0);
+        String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         //
         // the v2 URL is https://openapi-v2.kucoin.com/api/v1/endpoint
         //                                ↑                 ↑

@@ -3654,9 +3654,9 @@ public class Bitrue extends BitrueApi
     {
         Object requestBody = null;
         Map<String, Object> requestHeaders = null;
-        String type = this.safeString(api, 0);
-        String version = this.safeString(api, 1, "");
-        String access = this.safeString(api, 2);
+        String type = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        String version = (String) (api == null || 1 >= ((List<?>)api).size() ? null : ((List<?>)api).get(1));
+        String access = (String) (api == null || 2 >= ((List<?>)api).size() ? null : ((List<?>)api).get(2));
         String apiUrl = this.safeString(this.urls.get("api"), type);
         if (java.util.Objects.equals(apiUrl, null))
         {

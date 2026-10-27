@@ -3298,8 +3298,8 @@ public class Aster extends AsterApi
                 ((List<Object>)orderSymbols).add(currentMarket.get("symbol"));
                 String type = this.safeString(rawOrder, "type");
                 String side = this.safeString(rawOrder, "side");
-                Object amount = this.safeValue(rawOrder, "amount");
-                Object price = this.safeValue(rawOrder, "price");
+                Double amount = this.safeNumber(rawOrder, "amount", (Object) null);
+                Double price = this.safeNumber(rawOrder, "price", (Object) null);
                 Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
                 Map<String, Object> orderRequest = this.createOrderRequest(marketId, type, side, amount, price, orderParams);
                 ((List<Object>)ordersRequests).add(orderRequest);
@@ -4140,17 +4140,17 @@ public class Aster extends AsterApi
                 market = this.market(symbol);
                 request.put("symbol", market.get("id"));
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
-            Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
-            Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)requestUntil).put("startTime", since);
+                request.put("startTime", since);
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)requestUntil).put("limit", Math.min(limit, 1000)); // max 1000
+                request.put("limit", Math.min(limit, 1000)); // max 1000
             }
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
+            Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
+            Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             List<Object> response = (this.fapiPrivateGetV3Income(this.extend(requestUntil, paramsUntil))).join();
             return this.parseIncomes(response, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(FundingHistory::new).collect(Collectors.toList()));

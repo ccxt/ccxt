@@ -75,15 +75,15 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         }});
     }
 
-    public Object getWsUrl()
+    public String getWsUrl()
     {
         Object url = ((Map<String, Object>)this.urls.get("api")).get("ws");
         if (!Boolean.TRUE.equals(this.safeBool(this.options, "sbe", true)))
         {
-            return url;
+            return (String) (url);
         }
         String schemaVersion = this.safeString(this.options, "sbeSchemaVersion", "3");
-        return ((java.util.function.BinaryOperator<Object>) (hx4J40v1A, hx4J40v1B) -> { Object hx4J40v1P = hx4J40v1A instanceof Integer hx4J40v1i ? (Object) Long.valueOf(hx4J40v1i.longValue()) : hx4J40v1A; Object hx4J40v1Q = hx4J40v1B instanceof Integer hx4J40v1i ? (Object) Long.valueOf(hx4J40v1i.longValue()) : hx4J40v1B; if (hx4J40v1P instanceof Long hx4J40v1l && hx4J40v1Q instanceof Long hx4J40v1r) { return hx4J40v1l + hx4J40v1r; } if (hx4J40v1P instanceof Double || hx4J40v1Q instanceof Double) { java.util.function.ToDoubleFunction<Object> hx4J40v1D = hx4J40v1o -> { if (hx4J40v1o instanceof Double || hx4J40v1o instanceof Float || hx4J40v1o instanceof Long || hx4J40v1o instanceof Integer || hx4J40v1o instanceof java.math.BigDecimal) { return ((Number) hx4J40v1o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v1o)); } catch (NumberFormatException hx4J40v1e) { return 0.0; } }; return hx4J40v1D.applyAsDouble(hx4J40v1P) + hx4J40v1D.applyAsDouble(hx4J40v1Q); } if (hx4J40v1P instanceof String || hx4J40v1Q instanceof String) { return String.valueOf(hx4J40v1P) + String.valueOf(hx4J40v1Q); } return null; }).apply(((Object) (switch ((Object) (url)) { case null -> (Object) ("null" + ("?sbeSchemaId=1&sbeSchemaVersion=")); case Double hx4J40v0 -> (Object) (hx4J40v0 + 0.0); case Object hx4J40v0 -> (Object) (String.valueOf(hx4J40v0) + ("?sbeSchemaId=1&sbeSchemaVersion=")); })), schemaVersion);
+        return (String) (((java.util.function.BinaryOperator<Object>) (hx4J40v1A, hx4J40v1B) -> { Object hx4J40v1P = hx4J40v1A instanceof Integer hx4J40v1i ? (Object) Long.valueOf(hx4J40v1i.longValue()) : hx4J40v1A; Object hx4J40v1Q = hx4J40v1B instanceof Integer hx4J40v1i ? (Object) Long.valueOf(hx4J40v1i.longValue()) : hx4J40v1B; if (hx4J40v1P instanceof Long hx4J40v1l && hx4J40v1Q instanceof Long hx4J40v1r) { return hx4J40v1l + hx4J40v1r; } if (hx4J40v1P instanceof Double || hx4J40v1Q instanceof Double) { java.util.function.ToDoubleFunction<Object> hx4J40v1D = hx4J40v1o -> { if (hx4J40v1o instanceof Double || hx4J40v1o instanceof Float || hx4J40v1o instanceof Long || hx4J40v1o instanceof Integer || hx4J40v1o instanceof java.math.BigDecimal) { return ((Number) hx4J40v1o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v1o)); } catch (NumberFormatException hx4J40v1e) { return 0.0; } }; return hx4J40v1D.applyAsDouble(hx4J40v1P) + hx4J40v1D.applyAsDouble(hx4J40v1Q); } if (hx4J40v1P instanceof String || hx4J40v1Q instanceof String) { return String.valueOf(hx4J40v1P) + String.valueOf(hx4J40v1Q); } return null; }).apply(((Object) (switch ((Object) (url)) { case null -> (Object) ("null" + ("?sbeSchemaId=1&sbeSchemaVersion=")); case Double hx4J40v0 -> (Object) (hx4J40v0 + 0.0); case Object hx4J40v0 -> (Object) (String.valueOf(hx4J40v0) + ("?sbeSchemaId=1&sbeSchemaVersion=")); })), schemaVersion));
     }
 
     public String getOrderBookChannel(String marketId)
@@ -103,7 +103,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object url = this.getWsUrl();
+            String url = this.getWsUrl();
             Client client = this.client(url);
             String messageHash = "authenticated";
             Object future = client.reusableFuture("authenticated");
@@ -173,7 +173,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
                 Map<String, Object> market = this.market(symbol);
                 messageHash = ("trades." + market.get("id"));
             }
-            Object url = this.getWsUrl();
+            String url = this.getWsUrl();
             Map<String, Object> request = new HashMap<String, Object>();
             request.put("jsonrpc", "2.0");
             request.put("method", "subscribe");
@@ -255,7 +255,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             }
             Map<String, Object> market = this.market(symbol);
             String messageHash = this.getOrderBookChannel((String) (market.get("id")));
-            Object url = this.getWsUrl();
+            String url = this.getWsUrl();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "jsonrpc", "2.0" );
                 put( "method", "subscribe" );
@@ -362,7 +362,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             // the per-market channel: the all-markets one carries a summary for every listed
             // option too, thousands of messages a second, all decoded only to be filtered out
             String channel = ("markets_summary." + market.get("id"));
-            Object url = this.getWsUrl();
+            String url = this.getWsUrl();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "jsonrpc", "2.0" );
                 put( "method", "subscribe" );
@@ -396,7 +396,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
             String channel = "markets_summary";
-            Object url = this.getWsUrl();
+            String url = this.getWsUrl();
             Map<String, Object> request = new HashMap<String, Object>();
             request.put("jsonrpc", "2.0");
             request.put("method", "subscribe");
@@ -461,7 +461,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
                 channel = ("orders." + market.get("id"));
                 messageHash = ("orders:" + symbolResolved);
             }
-            Object url = this.getWsUrl();
+            String url = this.getWsUrl();
             Map<String, Object> request = new HashMap<String, Object>();
             request.put("jsonrpc", "2.0");
             request.put("method", "subscribe");
@@ -557,7 +557,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
                 channel = ("fills." + market.get("id"));
                 messageHash = ("myTrades:" + symbolResolved);
             }
-            Object url = this.getWsUrl();
+            String url = this.getWsUrl();
             Map<String, Object> request = new HashMap<String, Object>();
             request.put("jsonrpc", "2.0");
             request.put("method", "subscribe");
@@ -644,7 +644,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
             // one channel carries every market
             String channel = "positions";
-            Object url = this.getWsUrl();
+            String url = this.getWsUrl();
             Map<String, Object> request = new HashMap<String, Object>();
             request.put("jsonrpc", "2.0");
             request.put("method", "subscribe");
@@ -758,7 +758,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             }
             (this.authenticate(new HashMap<String, Object>() {{}})).join();
             String channel = "account";
-            Object url = this.getWsUrl();
+            String url = this.getWsUrl();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "jsonrpc", "2.0" );
                 put( "method", "subscribe" );
@@ -908,7 +908,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             }
             String symbolValue = this.symbol(symbol);
             String channel = "funding_data";
-            Object url = this.getWsUrl();
+            String url = this.getWsUrl();
             Map<String, Object> request = new HashMap<String, Object>();
             request.put("jsonrpc", "2.0");
             request.put("method", "subscribe");
@@ -941,7 +941,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
             String channel = "funding_data";
-            Object url = this.getWsUrl();
+            String url = this.getWsUrl();
             Map<String, Object> request = new HashMap<String, Object>();
             request.put("jsonrpc", "2.0");
             request.put("method", "subscribe");

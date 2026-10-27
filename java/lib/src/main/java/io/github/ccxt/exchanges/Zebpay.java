@@ -2387,7 +2387,7 @@ public class Zebpay extends ZebpayApi
         Object signature = "";
         Object query = this.omit(paramsOmitted, this.extractParams(path));
         Integer queryLength = ((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v3 -> { synchronized (j39v3) { yield new ArrayList<Object>(j39v3.keySet()); } } case null, default -> new ArrayList<Object>(); }).size();
-        String access = this.safeString(api, 0, "public");
+        String access = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         if (java.util.Objects.equals(access, "public"))
         {
             if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET") || java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE"))

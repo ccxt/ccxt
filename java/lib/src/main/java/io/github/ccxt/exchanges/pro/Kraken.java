@@ -1162,12 +1162,12 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         List<Object> b = (List<Object>) this.safeList(first, "bids", new ArrayList<Object>(Arrays.asList()));
         Long c = this.safeInteger(first, "checksum");
         String messageHash = this.getMessageHash("orderbook", (String) null, symbol);
-        Object orderbook = null;
+        io.github.ccxt.ws.WsOrderBook orderbook = null;
         if (java.util.Objects.equals(type, "update"))
         {
-            orderbook = ((Map<?, ?>)this.orderbooks).get(symbol);
-            io.github.ccxt.ws.OrderBookSide storedAsks = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, "asks");
-            io.github.ccxt.ws.OrderBookSide storedBids = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, "bids");
+            orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
+            io.github.ccxt.ws.OrderBookSide storedAsks = (io.github.ccxt.ws.OrderBookSide) (orderbook == null ? null : orderbook.get("asks"));
+            io.github.ccxt.ws.OrderBookSide storedBids = (io.github.ccxt.ws.OrderBookSide) (orderbook == null ? null : orderbook.get("bids"));
             if (!java.util.Objects.equals(a, null))
             {
                 this.customHandleDeltas(storedAsks, a);
@@ -1177,9 +1177,9 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
                 this.customHandleDeltas(storedBids, b);
             }
             String datetime = this.safeString(first, "timestamp");
-            Helpers.addElementToObject(orderbook, "symbol", symbol);
-            Helpers.addElementToObject(orderbook, "timestamp", this.parse8601(datetime));
-            Helpers.addElementToObject(orderbook, "datetime", datetime);
+            orderbook.put("symbol", symbol);
+            orderbook.put("timestamp", this.parse8601(datetime));
+            orderbook.put("datetime", datetime);
         } else
         {
             // snapshot
@@ -1202,13 +1202,13 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             }
             // reset in place so that references held by users keep receiving
             // updates after a reconnect snapshot (a new object would orphan them)
-            orderbook = ((Map<?, ?>)this.orderbooks).get(symbol);
-            Helpers.callDynamically(orderbook, "reset", new Object[]{new HashMap<String, Object>() {{}}});
+            orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
+            orderbook.reset(new HashMap<String, Object>() {{}});
             List<String> keys = new ArrayList<String>(Arrays.asList("asks", "bids"));
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
                 String key = (String) (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-                Object bookside = Helpers.GetValue(orderbook, key);
+                Object bookside = (orderbook == null || key == null || !orderbook.containsKey(key) ? null : orderbook.get(key));
                 List<Object> deltas = (List<Object>) this.safeList(first, key, new ArrayList<Object>(Arrays.asList()));
                 Integer deltasLength = ((List<?>)deltas).size();
                 if ((deltasLength != null && deltasLength > 0))
@@ -1216,9 +1216,9 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
                     this.customHandleDeltas(bookside, deltas);
                 }
             }
-            Helpers.addElementToObject(orderbook, "symbol", symbol);
+            orderbook.put("symbol", symbol);
         }
-        Helpers.callDynamically(orderbook, "limit", new Object[]{});
+        orderbook.limit();
         // checksum temporarily disabled because the exchange checksum was not reliable
         Object checksum = this.handleOption("watchOrderBook", "checksum", false);
         if (java.util.Objects.equals(checksum, true))
@@ -1226,8 +1226,8 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             Object payloadArray = new ArrayList<Object>(Arrays.asList());
             if (!java.util.Objects.equals(c, null))
             {
-                io.github.ccxt.ws.OrderBookSide checkAsks = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, "asks");
-                io.github.ccxt.ws.OrderBookSide checkBids = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, "bids");
+                io.github.ccxt.ws.OrderBookSide checkAsks = (io.github.ccxt.ws.OrderBookSide) (orderbook == null ? null : orderbook.get("asks"));
+                io.github.ccxt.ws.OrderBookSide checkBids = (io.github.ccxt.ws.OrderBookSide) (orderbook == null ? null : orderbook.get("bids"));
                 // const checkAsks = asks.map ((elem) => [ elem['price'], elem['qty'] ]);
                 // const checkBids = bids.map ((elem) => [ elem['price'], elem['qty'] ]);
                 for (var i = 0; i < 10; i++)

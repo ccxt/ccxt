@@ -194,7 +194,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             String messageHash = (String) this.implodeParams(topic, new HashMap<String, Object>() {{
                 put( "marketId", market.get("id") );
             }});
-            Object url = this.getUrlByMarketType(market.get("type"), market.get("linear"), false, false, false);
+            String url = this.getUrlByMarketType(market.get("type"), market.get("linear"), false, false, false);
             return (this.subscribePublic((String) (url), symbolValue, (String) (messageHash), (Object) null, parameters)).join();
         }).thenApply(Ticker::new);
 
@@ -317,7 +317,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             String symbolValue = (String) market.get("symbol");
             String marketId = this.safeString(market, "id", "");
             String messageHash = (("market." + marketId) + ".trade.detail");
-            Object url = this.getUrlByMarketType(market.get("type"), market.get("linear"), false, false, false);
+            String url = this.getUrlByMarketType(market.get("type"), market.get("linear"), false, false, false);
             List<Object> trades = (List<Object>) (this.subscribePublic((String) (url), symbolValue, messageHash, (Object) null, parameters)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
@@ -438,7 +438,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             String interval = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
             String marketId = this.safeString(market, "id", "");
             String messageHash = ((("market." + marketId) + ".kline.") + interval);
-            Object url = this.getUrlByMarketType(market.get("type"), market.get("linear"), false, false, false);
+            String url = this.getUrlByMarketType(market.get("type"), market.get("linear"), false, false, false);
             List<Object> ohlcv = (List<Object>) (this.subscribePublic((String) (url), symbolValue, messageHash, (Object) null, parameters)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
@@ -572,7 +572,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             {
                 messageHash = (((("market." + marketId) + ".depth.size_") + this.numberToString(limitResolved)) + ".high_freq");
             }
-            Object url = this.getUrlByMarketType(market.get("type"), market.get("linear"), false, true, false);
+            String url = this.getUrlByMarketType(market.get("type"), market.get("linear"), false, true, false);
             Object method = "handleOrderBookSubscription";
             Map<String, Object> paramsExtended = parameters;
             if (!java.util.Objects.equals(market.get("spot"), true))
@@ -750,7 +750,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             Map<String, Object> parameters = (Map<String, Object>) this.safeDict(subscription, "params", (Object) null);
             Long attempts = this.safeInteger(subscription, "numAttempts", 0);
             Map<String, Object> market = this.market(symbol);
-            Object url = this.getUrlByMarketType(market.get("type"), market.get("linear"), false, true, false);
+            String url = this.getUrlByMarketType(market.get("type"), market.get("linear"), false, true, false);
             String requestId = this.requestId();
             Map<String, Object> request = new HashMap<String, Object>();
             request.put("req", messageHash);
@@ -1899,7 +1899,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             Boolean future = (java.util.Objects.equals(type, "future"));
             Boolean isV5Linear = (Boolean.TRUE.equals(linear) && (Boolean.TRUE.equals(swap) || Boolean.TRUE.equals(future)));
             Boolean isLinear = (java.util.Objects.equals(subType, "linear"));
-            Object url = this.getUrlByMarketType(type, isLinear, true, false, isV5Linear);
+            String url = this.getUrlByMarketType(type, isLinear, true, false, isV5Linear);
             messageHash = ((marginMode + ":positions") + messageHash);
             String channel = "positions.*";
             if (java.util.Objects.equals(marginMode, "cross"))
@@ -3266,7 +3266,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         return this.safeTrade(mapLiteral5, marketResolved);
     }
 
-    public Object getUrlByMarketType(Object type, Object isLinear, Boolean isPrivate, Boolean isFeed, Boolean isV5)
+    public String getUrlByMarketType(Object type, Object isLinear, Boolean isPrivate, Boolean isFeed, Boolean isV5)
     {
         String api = this.safeString(this.options, "api", "api");
         Map<String, Object> hostname = new HashMap<String, Object>() {{
@@ -3319,7 +3319,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 url = subTypeUrl.get("public");
             }
         }
-        return url;
+        return (String) (url);
     }
 
     public CompletableFuture<Object> subscribePublic(String url, String symbol, String messageHash, Object method, Map<String, Object> parameters)
@@ -3363,7 +3363,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             {
                 throw new ArgumentsRequired((this.id + " unsubscribePublic() market is required")) ;
             }
-            Object url = this.getUrlByMarketType(market.get("type"), market.get("linear"), false, isFeed, false);
+            String url = this.getUrlByMarketType(market.get("type"), market.get("linear"), false, isFeed, false);
             Map<String, Object> subscription = new HashMap<String, Object>();
             subscription.put("unsubscribe", true);
             subscription.put("id", requestId);
@@ -3411,7 +3411,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             }
             Boolean isLinear = java.util.Objects.equals(subtype, "linear");
             Boolean isV5 = (Boolean) this.safeBool(subscriptionParams, "isV5", false);
-            Object url = this.getUrlByMarketType(type, isLinear, true, false, isV5);
+            String url = this.getUrlByMarketType(type, isLinear, true, false, isV5);
             Map<String, Object> hostnames = (Map<String, Object>) this.safeDict(this.urls, "hostnames", new HashMap<String, Object>() {{}});
             Object hostname = null;
             if (java.util.Objects.equals(type, "spot"))

@@ -1250,7 +1250,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)topic).split(java.util.regex.Pattern.quote("_"))));
         String interval = this.safeString(parts, 1);
         // use a reverse lookup in a static map instead
-        Object timeframe = this.findTimeframe(interval, (Object) null);
+        String timeframe = this.findTimeframe(interval, (Object) null);
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = this.safeString(market, "symbol", "");
         String messageHash = ((("candles:" + symbol) + ":") + timeframe);
@@ -1260,7 +1260,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         {
             Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
-            Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), ((String)timeframe), stored);
+            Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, stored);
         }
         Boolean isContractMarket = (((String)topic).indexOf("contractMarket") >= 0);
         Integer baseVolumeIndex = 5;
@@ -1299,7 +1299,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = this.safeString(market, "symbol", "");
         String interval = this.safeString(data, "i");
-        Object timeframe = this.findTimeframe(interval, (Object) null);
+        String timeframe = this.findTimeframe(interval, (Object) null);
         String messageHash = ((("uta:candles:" + symbol) + ":") + timeframe);
         this.ohlcvs.put(symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe);
@@ -1307,7 +1307,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         {
             Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
-            Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), ((String)timeframe), stored);
+            Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, stored);
         }
         List<Object> parsed = new ArrayList<Object>(Arrays.asList(this.safeIntegerProduct(data, "O", 1000), this.safeNumber(data, "o", (Object) null), this.safeNumber(data, "h", (Object) null), this.safeNumber(data, "l", (Object) null), this.safeNumber(data, "c", (Object) null), this.safeNumber(data, "v", (Object) null)));
         stored.append(parsed);

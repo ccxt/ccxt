@@ -189,14 +189,14 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         }
         Map<String, Object> parameters = (Map<String, Object>) this.safeDict(message, "params", (Object) null);
         String klineType = this.safeString(parameters, "klineType");
-        Object timeframe = this.findTimeframe(klineType, (Object) null);
-        if (!(((Map<?, ?>)((Map<?, ?>)this.ohlcvs).get(symbol)).containsKey(((String)timeframe))))
+        String timeframe = this.findTimeframe(klineType, (Object) null);
+        if (!(((Map<?, ?>)((Map<?, ?>)this.ohlcvs).get(symbol)).containsKey(timeframe)))
         {
             Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
-            Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), ((String)timeframe), new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue()));
+            Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue()));
         }
         List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
-        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(((Map<?, ?>)this.ohlcvs).get(symbol), ((String)timeframe));
+        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe);
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
             Map<String, Object> candle = (Map<String, Object>) this.safeDict(data, i, new HashMap<String, Object>() {{}});

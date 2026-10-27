@@ -284,14 +284,14 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         return stream;
     }
 
-    public Object getWsUrl(String type, String category)
+    public String getWsUrl(String type, String category)
     {
         Map<String, Object> wsUrls = (Map<String, Object>) this.safeDict(this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}}), "ws", new HashMap<String, Object>() {{}});
         if ((java.util.Objects.equals(type, "option")) || (java.util.Objects.equals(type, "optionMarket")) || (java.util.Objects.equals(type, "optionPrivate")))
         {
             // eOptions urls are stored as full public/market/private paths, no category rewrite needed,
             // see https://github.com/ccxt/ccxt/pull/27982 and https://github.com/ccxt/ccxt/issues/26333
-            return (wsUrls == null || !(type instanceof String) ? null : wsUrls.get(type));
+            return (String) ((wsUrls == null || !(type instanceof String) ? null : wsUrls.get(type)));
         }
         Object baseUrl = (wsUrls == null || type == null ? null : wsUrls.get(type));
         if (java.util.Objects.equals(type, "linear"))
@@ -305,18 +305,18 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Integer baseUrlSplitLength = ((List<?>)baseUrlSplit).size();
             if ((baseUrlSplitLength != null && baseUrlSplitLength > 2))
             {
-                return baseUrl;
+                return (String) (baseUrl);
             }
             // only rewrite when the URL ends with exactly "/ws"
             // this avoids matching "/wss", "/ws-api", "/ws-fapi/v1", etc.
             if (((String)baseUrl).endsWith("/ws"))
             {
                 String prefix = (baseUrl == null ? null : ((String)baseUrl).substring(0, (int) Math.min(((((long) ((String)baseUrl).length()) - 3L)) < 0 ? ((String)baseUrl).length() + ((((long) ((String)baseUrl).length()) - 3L)) : ((((long) ((String)baseUrl).length()) - 3L)), ((String)baseUrl).length())));
-                return (((prefix + "/") + category) + "/ws");
+                return (String) ((((prefix + "/") + category) + "/ws"));
             }
-            return baseUrl;
+            return (String) (baseUrl);
         }
-        return baseUrl;
+        return (String) (baseUrl);
     }
 
     public String getFutureWsCategory(String channel)
@@ -4805,7 +4805,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 payload = (Map<String, Object>) this.editSpotOrderRequest((String) (id), (String) (symbol), (String) (type), (String) (side), amount, price, parameters);
             } else
             {
-                payload = (Map<String, Object>) this.editContractOrderRequest((String) (id), (String) (symbol), (String) (type), (String) (side), amount, price, parameters);
+                payload = this.editContractOrderRequest((String) (id), (String) (symbol), (String) (type), (String) (side), amount, price, parameters);
             }
             Pair<Boolean, Map<String, Object>> returnRateLimitsparamsReturnRateLimitsVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "editOrderWs", "returnRateLimits", false);
             Boolean returnRateLimits = returnRateLimitsparamsReturnRateLimitsVariable.first();

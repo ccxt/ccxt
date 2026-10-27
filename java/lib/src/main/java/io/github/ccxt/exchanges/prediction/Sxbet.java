@@ -3366,7 +3366,7 @@ public class Sxbet extends SxbetApi
     public Object sign(Object path, Object api, Object method, Object parameters)
     {
         String apiGroup = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
-        String accessLevel = this.safeString(api, 1, "public");
+        String accessLevel = (String) (api == null || 1 >= ((List<?>)api).size() ? null : ((List<?>)api).get(1));
         if ((java.util.Objects.equals(accessLevel, "private")) && (java.util.Objects.equals(this.apiKey, null)))
         {
             throw new AuthenticationError((((this.id + " ") + path) + " is a private endpoint and requires the apiKey credential (the x-sx-api-key header)")) ;

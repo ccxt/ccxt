@@ -3473,7 +3473,7 @@ public class Polymarket extends PolymarketApi
     public Object sign(Object path, Object api, Object method, Object parameters)
     {
         String apiGroup = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
-        String access = this.safeString(api, 1, "public");
+        String access = (String) (api == null || 1 >= ((List<?>)api).size() ? null : ((List<?>)api).get(1));
         Object baseUrls = this.urls.get("api");
         String baseUrl = this.safeString(baseUrls, apiGroup, ((Map<String, Object>)baseUrls).get("gamma"));
         String url = ((baseUrl + "/") + this.implodeParams(path, parameters));

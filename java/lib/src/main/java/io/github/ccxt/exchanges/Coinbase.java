@@ -6161,8 +6161,8 @@ public class Coinbase extends CoinbaseApi
     {
         String requestBody = null;
         Map<String, Object> requestHeaders = null;
-        String version = this.safeString(api, 0);
-        Boolean signed = java.util.Objects.equals(this.safeString(api, 1), "private");
+        String version = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        Boolean signed = java.util.Objects.equals((api == null || 1 >= ((List<?>)api).size() ? null : ((List<?>)api).get(1)), "private");
         Boolean isV3 = java.util.Objects.equals(version, "v3");
         String pathPart = "v2";
         if (Boolean.TRUE.equals(isV3))

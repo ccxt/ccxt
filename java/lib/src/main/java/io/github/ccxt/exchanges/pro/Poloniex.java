@@ -185,7 +185,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         return BaseExchange.supplyAsync(() -> {
 
             String publicOrPrivate = "public";
-            if (Boolean.TRUE.equals(isPrivate))
+            if (java.util.Objects.equals(isPrivate, true))
             {
                 publicOrPrivate = "private";
             }

@@ -565,7 +565,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         String symbol = (String) market.get("symbol");
         String interval = this.safeString(message, "interval", "");
         // use a reverse lookup in a static map instead
-        Object timeframe = this.findTimeframe(interval, (Object) null);
+        String timeframe = this.findTimeframe(interval, (Object) null);
         String messageHash = ((((name + "@") + this.safeString(message, "market", "")) + "_") + interval);
         List<Object> candles = (List<Object>) this.safeList(message, "candle", new ArrayList<Object>(Arrays.asList()));
         this.ohlcvs.put(symbol, this.safeValue(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
@@ -574,7 +574,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         {
             Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
-            Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), ((String)timeframe), stored);
+            Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, stored);
         }
         for (var i = 0; i < ((List<?>)candles).size(); i++)
         {
@@ -1904,7 +1904,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         //
         String messageHash = this.safeString(message, "requestId");
         Map<String, Object> response = (Map<String, Object>) this.safeDict(message, "response", (Object) null);
-        Map<String, Object> fees = (Map<String, Object>) this.parseTradingFees(response, (Map<String, Object>) null);
+        Map<String, Object> fees = this.parseTradingFees(response, (Map<String, Object>) null);
         client.resolve(fees, messageHash);
     }
 

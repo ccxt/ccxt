@@ -216,7 +216,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             String symbolValue = (String) market.get("symbol");
             String messageType = this.getTypeByMarket((Map<String, Object>) (market));
             String channel = (messageType + ".order_place");
-            Object url = this.getUrlByMarket(market);
+            String url = this.getUrlByMarket(market);
             parameters.put("textIsRequired", true);
             Map<String, Object> request = this.createOrderRequest(symbolValue, (String) (type), (String) (side), amount, price, parameters);
             (this.authenticate((String) (url), (String) (messageType))).join();
@@ -255,7 +255,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             // todo add swap support
             String messageType = this.getTypeByMarket((Map<String, Object>) (market));
             String channel = (messageType + ".order_batch_place");
-            Object url = this.getUrlByMarket(market);
+            String url = this.getUrlByMarket(market);
             (this.authenticate((String) (url), (String) (messageType))).join();
             Object rawOrders = (this.requestPrivate((String) (url), (Map<String, Object>) (request), channel, (String) null)).join();
             return this.parseOrders(rawOrders, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
@@ -301,7 +301,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             Pair<String, Map<String, Object>> channelOptionparamsChannelVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "cancelAllOrdersWs", "channel", channel);
             var channelOption = ((List<Object>) channelOptionparamsChannelVariable).get(0);
             Map<String, Object> paramsChannel = channelOptionparamsChannelVariable.second();
-            Object url = this.getUrlByMarket(market);
+            String url = this.getUrlByMarket(market);
             Map<String, Object> paramsOmitted = this.omit(paramsChannel, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
             Pair<String, Map<String, Object>> typequeryVariable = this.handleMarketTypeAndParams("cancelAllOrders", market, paramsOmitted, (String) null);
             String type = typequeryVariable.first();
@@ -355,7 +355,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             var requestParams = ((List<Object>) requestrequestParamsVariable).get(1);
             String messageType = this.getTypeByMarket((Map<String, Object>) (market));
             String channel = (messageType + ".order_cancel");
-            Object url = this.getUrlByMarket(market);
+            String url = this.getUrlByMarket(market);
             (this.authenticate((String) (url), (String) (messageType))).join();
             ((Map<String, Object>)request).put("order_id", String.valueOf(id));
             Object res = (this.requestPrivate((String) (url), (Map<String, Object>) (this.extend(request, requestParams)), channel, (String) null)).join();
@@ -392,7 +392,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             Map<String, Object> extendedRequest = this.editOrderRequest((String) (id), (String) (symbol), (String) (type), (String) (side), amount, price, parameters);
             String messageType = this.getTypeByMarket((Map<String, Object>) (market));
             String channel = (messageType + ".order_amend");
-            Object url = this.getUrlByMarket(market);
+            String url = this.getUrlByMarket(market);
             (this.authenticate((String) (url), (String) (messageType))).join();
             Object rawOrder = (this.requestPrivate((String) (url), (Map<String, Object>) (extendedRequest), channel, (String) null)).join();
             return this.parseOrder(rawOrder, market);
@@ -437,7 +437,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             var requestParams = ((List<Object>) requestrequestParamsVariable).get(1);
             String messageType = this.getTypeByMarket((Map<String, Object>) (market));
             String channel = (messageType + ".order_status");
-            Object url = this.getUrlByMarket(market);
+            String url = this.getUrlByMarket(market);
             (this.authenticate((String) (url), (String) (messageType))).join();
             Object rawOrder = (this.requestPrivate((String) (url), (Map<String, Object>) (this.extend(request, requestParams)), channel, (String) null)).join();
             return this.parseOrder(rawOrder, market);
@@ -527,7 +527,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             Object newRequest = this.omit(request, new ArrayList<Object>(Arrays.asList("settle")));
             String messageType = this.getTypeByMarket((Map<String, Object>) (market));
             String channel = (messageType + ".order_list");
-            Object url = this.getUrlByMarket(market);
+            String url = this.getUrlByMarket(market);
             (this.authenticate((String) (url), (String) (messageType))).join();
             Object rawOrders = (this.requestPrivate((String) (url), (Map<String, Object>) (this.extend(newRequest, requestParams)), channel, (String) null)).join();
             List<Object> orders = this.parseOrders(rawOrders, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
@@ -563,7 +563,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             Map<String, Object> market = this.market(symbol);
             String symbolValue = this.safeString(market, "symbol", "");
             String marketId = this.safeString(market, "id", "");
-            Object url = this.getUrlByMarket(market);
+            String url = this.getUrlByMarket(market);
             Boolean isEuUrl = ((String)url).indexOf("gateeu") >= 0;
             Boolean isNonEuSpot = (java.util.Objects.equals(market.get("spot"), true)) && !Boolean.TRUE.equals(isEuUrl);
             String intervalDefault = "100ms";
@@ -638,7 +638,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            Object url = this.getUrlByMarket(market);
+            String url = this.getUrlByMarket(market);
             String symbolValue = this.safeString(market, "symbol", "");
             String marketId = this.safeString(market, "id", "");
             Boolean isEuUrl = ((String)url).indexOf("gateeu") >= 0;
@@ -1081,7 +1081,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             Pair<String, Map<String, Object>> channelNameparamsMethodVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsCallerMethodName), callerMethodNameOption, "method", (String) null);
             String channelName = channelNameparamsMethodVariable.first();
             Map<String, Object> paramsMethod = channelNameparamsMethodVariable.second();
-            Object url = this.getUrlByMarket(market);
+            String url = this.getUrlByMarket(market);
             String channel = ((messageType + ".") + channelName);
             if (java.util.Objects.equals(callerMethodNameOption, null))
             {
@@ -1220,7 +1220,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
                 messageHashes.add(("trades:" + symbol));
             }
-            Object url = this.getUrlByMarket(market);
+            String url = this.getUrlByMarket(market);
             List<Object> trades = (List<Object>) (this.subscribePublicMultiple((String) (url), messageHashes, marketIds, channel, parameters)).join();
             Map<String, Object> first = (Map<String, Object>) this.safeDict(trades, 0, (Object) null);
             String tradeSymbol = this.safeString(first, "symbol");
@@ -1264,7 +1264,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 subMessageHashes.add(("trades:" + symbol));
                 messageHashes.add(("unsubscribe:trades:" + symbol));
             }
-            Object url = this.getUrlByMarket(market);
+            String url = this.getUrlByMarket(market);
             return (this.unSubscribePublicMultiple((String) (url), "trades", symbolsNormalized, messageHashes, subMessageHashes, marketIds, channel, parameters)).join();
         });
 
@@ -1367,7 +1367,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             String messageType = this.getTypeByMarket((Map<String, Object>) (market));
             String channel = (messageType + ".candlesticks");
             String messageHash = ((("candles:" + interval) + ":") + market.get("symbol"));
-            Object url = this.getUrlByMarket(market);
+            String url = this.getUrlByMarket(market);
             List<Object> payload = new ArrayList<Object>(Arrays.asList(interval, marketId));
             List<Object> ohlcv = (List<Object>) (this.subscribePublic((String) (url), messageHash, payload, channel, parameters, (Object) null)).join();
             Long limitResolved = limit;
@@ -1409,7 +1409,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             String channel = (messageType + ".candlesticks");
             String subMessageHash = ((("candles:" + interval) + ":") + symbolValue);
             String messageHash = ((("unsubscribe:candles:" + interval) + ":") + symbolValue);
-            Object url = this.getUrlByMarket(market);
+            String url = this.getUrlByMarket(market);
             Long requestId = this.requestId();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "id", requestId );
@@ -1564,7 +1564,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 messageHash = (messageHash + (":" + symbol));
             }
             Boolean isInverse = (java.util.Objects.equals(subType, "inverse"));
-            Object url = this.getUrlByMarketType(type, isInverse);
+            String url = this.getUrlByMarketType(type, isInverse);
             List<Object> payload = new ArrayList<Object>(Arrays.asList(marketId));
             // uid required for non spot markets
             Boolean requiresUid = (!java.util.Objects.equals(type, "spot"));
@@ -1663,7 +1663,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             var paramsSubType = ((List<Object>) subTypeparamsSubTypeVariable).get(1);
             Boolean isInverse = (java.util.Objects.equals(subType, "inverse"));
-            Object url = this.getUrlByMarketType(type, isInverse);
+            String url = this.getUrlByMarketType(type, isInverse);
             Boolean requiresUid = (!java.util.Objects.equals(type, "spot"));
             Object channelType = this.getSupportedMapping(type, new HashMap<String, Object>() {{
                 put( "spot", "spot" );
@@ -1836,7 +1836,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             subType = (String) ((List<Object>) subTypequeryVariable).get(0);
             query = subTypequeryVariable.second();
             Boolean isInverse = (java.util.Objects.equals(subType, "inverse"));
-            Object url = this.getUrlByMarketType(type, isInverse);
+            String url = this.getUrlByMarketType(type, isInverse);
             Client client = this.client(url);
             this.setPositionsCache(client, type, symbolsNormalized);
             Object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", true);
@@ -2087,7 +2087,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             subType = (String) ((List<Object>) subTypequeryVariable).get(0);
             query = subTypequeryVariable.second();
             Boolean isInverse = (java.util.Objects.equals(subType, "inverse"));
-            Object url = this.getUrlByMarketType(type, isInverse);
+            String url = this.getUrlByMarketType(type, isInverse);
             // uid required for non spot markets
             Boolean requiresUid = (!java.util.Objects.equals(type, "spot"));
             List<Object> orders = (List<Object>) (this.subscribePrivate((String) (url), messageHash, payload, channel, (Map<String, Object>) (query), requiresUid)).join();
@@ -2259,7 +2259,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             subType = (String) ((List<Object>) subTypequeryVariable).get(0);
             query = subTypequeryVariable.second();
             Boolean isInverse = (java.util.Objects.equals(subType, "inverse"));
-            Object url = this.getUrlByMarketType(type, isInverse);
+            String url = this.getUrlByMarketType(type, isInverse);
             List<Object> payload = new ArrayList<Object>(Arrays.asList());
             String messageHash = "";
             if (this.isEmpty(symbolsNormalized))
@@ -2752,15 +2752,15 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         }
     }
 
-    public Object getUrlByMarket(Object market)
+    public String getUrlByMarket(Object market)
     {
         Object baseUrl = Helpers.GetValue(this.urls.get("api"), Helpers.GetValue(market, "type"));
         if (Boolean.TRUE.equals(this.safeBool(market, "contract", false)))
         {
-            return ((Boolean.TRUE.equals((this.safeBool(market, "linear", false))))) ? Helpers.GetValue(baseUrl, "usdt") : Helpers.GetValue(baseUrl, "btc");
+            return (String) (((Boolean.TRUE.equals((this.safeBool(market, "linear", false))))) ? Helpers.GetValue(baseUrl, "usdt") : Helpers.GetValue(baseUrl, "btc"));
         } else
         {
-            return baseUrl;
+            return (String) (baseUrl);
         }
     }
 
@@ -2782,16 +2782,16 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         }
     }
 
-    public Object getUrlByMarketType(String type, Boolean isInverse)
+    public String getUrlByMarketType(String type, Boolean isInverse)
     {
         Object api = this.urls.get("api");
         Object url = this.safeValue(api, type);
         if ((java.util.Objects.equals(type, "swap")) || (java.util.Objects.equals(type, "future")))
         {
-            return ((java.util.Objects.requireNonNullElse(isInverse, false))) ? Helpers.GetValue(url, "btc") : Helpers.GetValue(url, "usdt");
+            return (String) (((java.util.Objects.requireNonNullElse(isInverse, false))) ? Helpers.GetValue(url, "btc") : Helpers.GetValue(url, "usdt"));
         } else
         {
-            return url;
+            return (String) (url);
         }
     }
 

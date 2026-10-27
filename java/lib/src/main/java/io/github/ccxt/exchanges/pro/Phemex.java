@@ -70,7 +70,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         }});
     }
 
-    public String fromEn(Object en, Object scale)
+    public String fromEn(String en, Object scale)
     {
         if (java.util.Objects.equals(en, null))
         {
@@ -88,7 +88,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         {
             return ep;
         }
-        return this.fromEn(ep, this.safeInteger(market, "priceScale"));
+        return this.fromEn((String) (ep), this.safeInteger(market, "priceScale"));
     }
 
     public Object fromEv(Object ev, Map<String, Object> market)
@@ -97,7 +97,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         {
             return ev;
         }
-        return this.fromEn(ev, this.safeInteger(market, "valueScale"));
+        return this.fromEn((String) (ev), this.safeInteger(market, "valueScale"));
     }
 
     public Object fromEr(Object er, Map<String, Object> market)
@@ -106,7 +106,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         {
             return er;
         }
-        return this.fromEn(er, this.safeInteger(market, "ratioScale"));
+        return this.fromEn((String) (er), this.safeInteger(market, "ratioScale"));
     }
 
     public Long requestId()
@@ -444,13 +444,13 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
                     String lockedWithdrawEv = this.safeString2(balance, "lockedWithdrawEv", "lockedWithdrawRv");
                     usedEv = Precise.stringAdd(lockedTradingBalanceEv, lockedWithdrawEv);
                 }
-                used = this.fromEn(usedEv, scale);
+                used = this.fromEn((String) (usedEv), scale);
             }
             String total = this.safeString(balance, "accountBalanceRv");
             if (java.util.Objects.equals(total, null))
             {
                 String totalEv = this.safeString2(balance, "accountBalanceEv", "balanceEv");
-                total = this.fromEn(totalEv, scale);
+                total = this.fromEn((String) (totalEv), scale);
             }
             account.put("used", used);
             account.put("total", total);
@@ -905,7 +905,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         if (java.util.Objects.equals(type, "snapshot"))
         {
             Map<String, Object> book = (Map<String, Object>) this.safeDict2(message, "book", "orderbook_p", new HashMap<String, Object>() {{}});
-            Map<String, Object> snapshot = (Map<String, Object>) this.customParseOrderBook((Map<String, Object>) (book), symbol, timestamp, "bids", "asks", 0, 1, market);
+            Map<String, Object> snapshot = this.customParseOrderBook((Map<String, Object>) (book), symbol, timestamp, "bids", "asks", 0, 1, market);
             Helpers.addElementToObject(snapshot, "nonce", nonce);
             // reset the existing orderbook instead of replacing it: a consumer
             // holds a reference to the old object and would never see updates

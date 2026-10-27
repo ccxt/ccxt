@@ -3784,8 +3784,7 @@ public class Myriad extends MyriadApi
             // connection and resolves when the connect reply arrives (see handleCentrifugoFrame). The base
             // clears client.subscriptions on reconnect, so an absent 'connect' marker means a fresh handshake.
             Client client = this.client(url);
-            Object connectSent = this.safeValue(client.subscriptions, "connect");
-            if (java.util.Objects.equals(connectSent, null))
+            if (!(client.subscriptions.containsKey("connect")))
             {
                 this.options.put("wsConnected", false);
                 Long requestId = this.requestId((String) (url));
@@ -3939,7 +3938,7 @@ public class Myriad extends MyriadApi
             // finish the connect handshake first so the client exists and the subscribe follows the connect reply
             (this.connectCentrifugo((String) (url))).join();
             Client client = this.client(url);
-            Boolean isNewSubscription = java.util.Objects.equals(this.safeValue(client.subscriptions, channel), null);
+            Boolean isNewSubscription = !(client.subscriptions.containsKey(channel));
             if (Boolean.TRUE.equals(isNewSubscription))
             {
                 // the channel only streams deltas, so (re)seed the live book from the REST snapshot on a
@@ -3947,12 +3946,11 @@ public class Myriad extends MyriadApi
                 (this.seedOrderBook((String) (outcome), (String) (sym), limit)).join();
             }
             Long requestId = this.requestId((String) (url));
-            Map<String, Object> subscribeMsg = new HashMap<String, Object>() {{
-                put( "subscribe", new HashMap<String, Object>() {{
-                    put( "channel", channel );
-                }} );
-                put( "id", requestId );
-            }};
+            Map<String, Object> subscribeMsg = new HashMap<String, Object>();
+            HashMap<String, Object> mapLiteral14 = new HashMap<String, Object>();
+            mapLiteral14.put("channel", channel);
+            subscribeMsg.put("subscribe", mapLiteral14);
+            subscribeMsg.put("id", requestId);
             Object future = this.watch(url, messageHash, subscribeMsg, channel, null);
             if (Boolean.TRUE.equals(isNewSubscription))
             {
@@ -4115,27 +4113,27 @@ public class Myriad extends MyriadApi
         // the trades channel reports human-decimal values (averagePrice "0.14", totalAmount "1"),
         // unlike the orders channel which is 1e18-scaled — so read them directly without fromWei
         Map<String, Object> fees = (Map<String, Object>) this.safeDict(taker, "totalFees", new HashMap<String, Object>() {{}});
-        HashMap<String, Object> mapLiteral14 = new HashMap<String, Object>();
-        mapLiteral14.put("id", txHash);
-        mapLiteral14.put("info", data);
-        mapLiteral14.put("timestamp", ts);
-        mapLiteral14.put("datetime", this.iso8601(ts));
-        mapLiteral14.put("outcome", sym);
-        mapLiteral14.put("outcomeId", this.safeString2(outcomeObj, "outcomeId", "id"));
-        mapLiteral14.put("label", this.safeString(outcomeObj, "label"));
-        mapLiteral14.put("market", this.safeString(outcomeObj, "market"));
-        mapLiteral14.put("order", this.safeString(taker, "orderHash"));
-        mapLiteral14.put("type", null);
-        mapLiteral14.put("side", this.safeStringLower(taker, "side"));
-        mapLiteral14.put("takerOrMaker", "taker");
-        mapLiteral14.put("price", this.safeNumber(taker, "averagePrice", (Object) null));
-        mapLiteral14.put("amount", this.safeNumber(taker, "totalAmount", (Object) null));
-        mapLiteral14.put("cost", null);
-        mapLiteral14.put("fee", new HashMap<String, Object>() {{
+        HashMap<String, Object> mapLiteral15 = new HashMap<String, Object>();
+        mapLiteral15.put("id", txHash);
+        mapLiteral15.put("info", data);
+        mapLiteral15.put("timestamp", ts);
+        mapLiteral15.put("datetime", this.iso8601(ts));
+        mapLiteral15.put("outcome", sym);
+        mapLiteral15.put("outcomeId", this.safeString2(outcomeObj, "outcomeId", "id"));
+        mapLiteral15.put("label", this.safeString(outcomeObj, "label"));
+        mapLiteral15.put("market", this.safeString(outcomeObj, "market"));
+        mapLiteral15.put("order", this.safeString(taker, "orderHash"));
+        mapLiteral15.put("type", null);
+        mapLiteral15.put("side", this.safeStringLower(taker, "side"));
+        mapLiteral15.put("takerOrMaker", "taker");
+        mapLiteral15.put("price", this.safeNumber(taker, "averagePrice", (Object) null));
+        mapLiteral15.put("amount", this.safeNumber(taker, "totalAmount", (Object) null));
+        mapLiteral15.put("cost", null);
+        mapLiteral15.put("fee", new HashMap<String, Object>() {{
                 put( "cost", Myriad.this.safeNumber(fees, "total", (Object) null) );
                 put( "currency", Myriad.this.safeString(market, "quote") );
             }});
-        Object trade = this.safePredictionTrade(mapLiteral14, market);
+        Object trade = this.safePredictionTrade(mapLiteral15, market);
         if (java.util.Objects.equals(this.trades, null))
         {
             this.trades = this.createSafeDictionary();
@@ -4276,9 +4274,9 @@ public class Myriad extends MyriadApi
                     seenChannels.put(channel, true);
                     Long requestId = this.requestId((String) (url));
                     Map<String, Object> subscribeMsg = new HashMap<String, Object>();
-                    HashMap<String, Object> mapLiteral15 = new HashMap<String, Object>();
-                    mapLiteral15.put("channel", channel);
-                    subscribeMsg.put("subscribe", mapLiteral15);
+                    HashMap<String, Object> mapLiteral16 = new HashMap<String, Object>();
+                    mapLiteral16.put("channel", channel);
+                    subscribeMsg.put("subscribe", mapLiteral16);
                     subscribeMsg.put("id", requestId);
                     this.watch(url, "tickers", subscribeMsg, channel, null);
                 }
@@ -4344,31 +4342,31 @@ public class Myriad extends MyriadApi
             Map<String, Object> market = this.safeMarket(sym, (Map<String, Object>) null, (String) null, (String) null);
             Map<String, Object> outcomeObj = this.safeOutcome((String) (sym), (Object) null);
             Double last = this.fromWei(this.safeString(oc, "last"));
-            HashMap<String, Object> mapLiteral16 = new HashMap<String, Object>();
-            mapLiteral16.put("outcome", sym);
-            mapLiteral16.put("outcomeId", this.safeString2(outcomeObj, "outcomeId", "id"));
-            mapLiteral16.put("label", this.safeString(outcomeObj, "label"));
-            mapLiteral16.put("market", this.safeString(outcomeObj, "market"));
-            mapLiteral16.put("timestamp", ts);
-            mapLiteral16.put("datetime", this.iso8601(ts));
-            mapLiteral16.put("high", null);
-            mapLiteral16.put("low", null);
-            mapLiteral16.put("bid", this.fromWei(this.safeString(oc, "bestBid")));
-            mapLiteral16.put("bidVolume", null);
-            mapLiteral16.put("ask", this.fromWei(this.safeString(oc, "bestAsk")));
-            mapLiteral16.put("askVolume", null);
-            mapLiteral16.put("vwap", null);
-            mapLiteral16.put("open", null);
-            mapLiteral16.put("close", last);
-            mapLiteral16.put("last", last);
-            mapLiteral16.put("previousClose", null);
-            mapLiteral16.put("change", null);
-            mapLiteral16.put("percentage", null);
-            mapLiteral16.put("average", null);
-            mapLiteral16.put("baseVolume", null);
-            mapLiteral16.put("quoteVolume", null);
-            mapLiteral16.put("info", oc);
-            Object ticker = this.safePredictionTicker(mapLiteral16, market);
+            HashMap<String, Object> mapLiteral17 = new HashMap<String, Object>();
+            mapLiteral17.put("outcome", sym);
+            mapLiteral17.put("outcomeId", this.safeString2(outcomeObj, "outcomeId", "id"));
+            mapLiteral17.put("label", this.safeString(outcomeObj, "label"));
+            mapLiteral17.put("market", this.safeString(outcomeObj, "market"));
+            mapLiteral17.put("timestamp", ts);
+            mapLiteral17.put("datetime", this.iso8601(ts));
+            mapLiteral17.put("high", null);
+            mapLiteral17.put("low", null);
+            mapLiteral17.put("bid", this.fromWei(this.safeString(oc, "bestBid")));
+            mapLiteral17.put("bidVolume", null);
+            mapLiteral17.put("ask", this.fromWei(this.safeString(oc, "bestAsk")));
+            mapLiteral17.put("askVolume", null);
+            mapLiteral17.put("vwap", null);
+            mapLiteral17.put("open", null);
+            mapLiteral17.put("close", last);
+            mapLiteral17.put("last", last);
+            mapLiteral17.put("previousClose", null);
+            mapLiteral17.put("change", null);
+            mapLiteral17.put("percentage", null);
+            mapLiteral17.put("average", null);
+            mapLiteral17.put("baseVolume", null);
+            mapLiteral17.put("quoteVolume", null);
+            mapLiteral17.put("info", oc);
+            Object ticker = this.safePredictionTicker(mapLiteral17, market);
             this.tickers.put(sym, ((Object)ticker));
             client.resolve(ticker, ("ticker::" + sym));
         }
@@ -4428,29 +4426,29 @@ public class Myriad extends MyriadApi
         String tif = this.safeStringUpper(data, "timeInForce");
         Boolean isMarketTif = (java.util.Objects.equals(tif, "FOK")) || (java.util.Objects.equals(tif, "FAK"));
         Long timestamp = this.parse8601(this.safeString2(data, "updatedAt", "createdAt"));
-        HashMap<String, Object> mapLiteral17 = new HashMap<String, Object>();
-        mapLiteral17.put("id", this.safeString(data, "orderHash"));
-        mapLiteral17.put("clientOrderId", null);
-        mapLiteral17.put("info", data);
-        mapLiteral17.put("timestamp", timestamp);
-        mapLiteral17.put("datetime", this.iso8601(timestamp));
-        mapLiteral17.put("outcome", sym);
-        mapLiteral17.put("outcomeId", this.safeString2(outcomeObj, "outcomeId", "id"));
-        mapLiteral17.put("label", this.safeString(outcomeObj, "label"));
-        mapLiteral17.put("market", this.safeString(outcomeObj, "market"));
-        mapLiteral17.put("type", ((Boolean.TRUE.equals(isMarketTif))) ? "market" : "limit");
-        mapLiteral17.put("timeInForce", tif);
-        mapLiteral17.put("side", this.safeStringLower(data, "side"));
-        mapLiteral17.put("price", price);
-        mapLiteral17.put("amount", amount);
-        mapLiteral17.put("filled", filled);
-        mapLiteral17.put("remaining", null);
-        mapLiteral17.put("average", null);
-        mapLiteral17.put("cost", null);
-        mapLiteral17.put("status", status);
-        mapLiteral17.put("fee", null);
-        mapLiteral17.put("trades", null);
-        Object parsed = this.safePredictionOrder(mapLiteral17, (Object) null);
+        HashMap<String, Object> mapLiteral18 = new HashMap<String, Object>();
+        mapLiteral18.put("id", this.safeString(data, "orderHash"));
+        mapLiteral18.put("clientOrderId", null);
+        mapLiteral18.put("info", data);
+        mapLiteral18.put("timestamp", timestamp);
+        mapLiteral18.put("datetime", this.iso8601(timestamp));
+        mapLiteral18.put("outcome", sym);
+        mapLiteral18.put("outcomeId", this.safeString2(outcomeObj, "outcomeId", "id"));
+        mapLiteral18.put("label", this.safeString(outcomeObj, "label"));
+        mapLiteral18.put("market", this.safeString(outcomeObj, "market"));
+        mapLiteral18.put("type", ((Boolean.TRUE.equals(isMarketTif))) ? "market" : "limit");
+        mapLiteral18.put("timeInForce", tif);
+        mapLiteral18.put("side", this.safeStringLower(data, "side"));
+        mapLiteral18.put("price", price);
+        mapLiteral18.put("amount", amount);
+        mapLiteral18.put("filled", filled);
+        mapLiteral18.put("remaining", null);
+        mapLiteral18.put("average", null);
+        mapLiteral18.put("cost", null);
+        mapLiteral18.put("status", status);
+        mapLiteral18.put("fee", null);
+        mapLiteral18.put("trades", null);
+        Object parsed = this.safePredictionOrder(mapLiteral18, (Object) null);
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.orders;
         stored.append(parsed);
         client.resolve(stored, "orders");
@@ -4487,7 +4485,7 @@ public class Myriad extends MyriadApi
             String url = this.safeString(this.urls.get("api"), "ws");
             (this.connectCentrifugo((String) (url))).join();
             Client client = this.client(url);
-            Boolean isNewSubscription = java.util.Objects.equals(this.safeValue(client.subscriptions, channel), null);
+            Boolean isNewSubscription = !(client.subscriptions.containsKey(channel));
             if (Boolean.TRUE.equals(isNewSubscription))
             {
                 // the channel pushes only signed deltas; seed absolute share balances from REST so
@@ -4495,12 +4493,11 @@ public class Myriad extends MyriadApi
                 (this.seedPositionBalances((String) (trader))).join();
             }
             Long requestId = this.requestId((String) (url));
-            Map<String, Object> subscribeMsg = new HashMap<String, Object>() {{
-                put( "subscribe", new HashMap<String, Object>() {{
-                    put( "channel", channel );
-                }} );
-                put( "id", requestId );
-            }};
+            Map<String, Object> subscribeMsg = new HashMap<String, Object>();
+            HashMap<String, Object> mapLiteral19 = new HashMap<String, Object>();
+            mapLiteral19.put("channel", channel);
+            subscribeMsg.put("subscribe", mapLiteral19);
+            subscribeMsg.put("id", requestId);
             List<Object> positions = (List<Object>) (this.watch(url, messageHash, subscribeMsg, channel, null)).join();
             if (this.newUpdates)
             {
@@ -4573,23 +4570,23 @@ public class Myriad extends MyriadApi
             this.options.put("positionBalances", balances);
             contracts = this.parseNumber(updated);
         }
-        HashMap<String, Object> mapLiteral18 = new HashMap<String, Object>();
-        mapLiteral18.put("info", data);
-        mapLiteral18.put("id", posId);
-        mapLiteral18.put("outcome", sym);
-        mapLiteral18.put("outcomeId", posId);
-        mapLiteral18.put("label", this.safeString(outcomeObj, "label"));
-        mapLiteral18.put("market", this.safeString(outcomeObj, "market"));
-        mapLiteral18.put("timestamp", ts);
-        mapLiteral18.put("datetime", this.iso8601(ts));
-        mapLiteral18.put("side", "long");
-        mapLiteral18.put("contracts", contracts);
-        mapLiteral18.put("entryPrice", null);
-        mapLiteral18.put("markPrice", null);
-        mapLiteral18.put("notional", null);
-        mapLiteral18.put("collateral", null);
-        mapLiteral18.put("unrealizedPnl", null);
-        Object parsed = this.safePredictionPosition(mapLiteral18);
+        HashMap<String, Object> mapLiteral20 = new HashMap<String, Object>();
+        mapLiteral20.put("info", data);
+        mapLiteral20.put("id", posId);
+        mapLiteral20.put("outcome", sym);
+        mapLiteral20.put("outcomeId", posId);
+        mapLiteral20.put("label", this.safeString(outcomeObj, "label"));
+        mapLiteral20.put("market", this.safeString(outcomeObj, "market"));
+        mapLiteral20.put("timestamp", ts);
+        mapLiteral20.put("datetime", this.iso8601(ts));
+        mapLiteral20.put("side", "long");
+        mapLiteral20.put("contracts", contracts);
+        mapLiteral20.put("entryPrice", null);
+        mapLiteral20.put("markPrice", null);
+        mapLiteral20.put("notional", null);
+        mapLiteral20.put("collateral", null);
+        mapLiteral20.put("unrealizedPnl", null);
+        Object parsed = this.safePredictionPosition(mapLiteral20);
         Object stored = this.positions;
         ((io.github.ccxt.ws.ArrayCache) stored).append(parsed);
         client.resolve(stored, "positions");
@@ -4667,9 +4664,7 @@ public class Myriad extends MyriadApi
         String bodyValue = null;
         if (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
         {
-            List<Object> queryKeys = ((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v5 -> { synchronized (j39v5) { yield new ArrayList<Object>(j39v5.keySet()); } } case null, default -> new ArrayList<Object>(); });
-            Integer queryKeysLength = ((List<?>)queryKeys).size();
-            if ((queryKeysLength != null && queryKeysLength > 0))
+            if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v5 -> { synchronized (j39v5) { yield new ArrayList<Object>(j39v5.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
             {
                 bodyValue = this.json(query);
             }

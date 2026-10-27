@@ -362,7 +362,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
         String marketId = this.safeString(data, 7);
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(this.options, "timeframes", new HashMap<String, Object>() {{}});
-        Object timeframe = this.findTimeframe(channel, timeframes);
+        String timeframe = this.findTimeframe(channel, timeframes);
         String symbol = this.safeString(market, "symbol");
         List<Object> parsed = (List<Object>) this.parseOHLCV(data, market);
         this.ohlcvs.put(symbol, this.safeValue(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
@@ -373,7 +373,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
             {
                 Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
                 stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
-                Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), ((String)timeframe), stored);
+                Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, stored);
             }
             stored.append(parsed);
             if (!java.util.Objects.equals(channel, null))
