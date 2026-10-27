@@ -6797,7 +6797,7 @@ func (this *Gate) CreateOrderRequest(symbol any, typeVar any, side *string, amou
 			var marginMode any = nil
 			marginModequeryVariable := this.GetMarginMode(true, query)
 			marginMode = GetValue(marginModequeryVariable, 0)
-			query = GetValue(marginModequeryVariable, 1)
+			query = marginModequeryVariable[1]
 			if IsEqual(timeInForce, nil) {
 				timeInForce = "gtc"
 			}

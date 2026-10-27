@@ -9327,7 +9327,7 @@ func (this *Kucoin) fetchMySpotTradesBody(ch chan AsyncResult[[]Trade], optional
 	var hf any = nil
 	hfparamsRequestVariable := this.HandleHfAndParams(paramsRequest)
 	hf = hfparamsRequestVariable[0]
-	paramsRequest = GetValue(hfparamsRequestVariable, 1)
+	paramsRequest = hfparamsRequestVariable[1]
 	var marginMode any = nil
 	var marginModePtr *string = nil
 	marginModePtr, paramsRequest = this.HandleMarginModeAndParams("fetchMyTrades", paramsRequest)
@@ -12283,7 +12283,7 @@ func (this *Kucoin) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optional
 	var hf any = nil
 	hfparamsRequestVariable := this.HandleHfAndParams(paramsRequest)
 	hf = hfparamsRequestVariable[0]
-	paramsRequest = GetValue(hfparamsRequestVariable, 1)
+	paramsRequest = hfparamsRequestVariable[1]
 	var requestedType any = nil
 	if uta == true {
 		requestedType = "UNIFIED"

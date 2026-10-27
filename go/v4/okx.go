@@ -2748,7 +2748,7 @@ func (this *Okx) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], option
 	}
 	var responses []any = ListTyped(r1.Value)
 	for i := 0; i < len(responses); i++ {
-		result = this.ArrayConcat(result, GetValue(responses, i))
+		result = this.ArrayConcat(result, responses[i])
 	}
 
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(result)}

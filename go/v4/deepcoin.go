@@ -576,7 +576,7 @@ func (this *Deepcoin) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 	}
 	var responses []any = ListTyped(r.Value)
 	for i := 0; i < len(responses); i++ {
-		result = this.ArrayConcat(result, GetValue(responses, i))
+		result = this.ArrayConcat(result, responses[i])
 	}
 
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(result)}

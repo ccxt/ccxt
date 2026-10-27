@@ -2523,8 +2523,7 @@ func (this *BaseExchange) SetMarkets(markets any, optionalArgs ...any) any {
 		quoteCurrencies = this.SortBy(quoteCurrencies, "code", false, "")
 		this.PublishBaseCurrencies(this.IndexBy(baseCurrencies, "code"))
 		this.PublishQuoteCurrencies(this.IndexBy(quoteCurrencies, "code"))
-		var allCurrencies []any = this.ArrayConcat(baseCurrencies, quoteCurrencies)
-		var groupedCurrencies map[string]any = this.GroupBy(allCurrencies, "code")
+		var groupedCurrencies map[string]any = this.GroupBy(this.ArrayConcat(baseCurrencies, quoteCurrencies), "code")
 		var codes []string = nil
 		if groupedCurrencies != nil {
 			codes = make([]string, 0, len(groupedCurrencies))
@@ -2559,8 +2558,7 @@ func (this *BaseExchange) SetMarkets(markets any, optionalArgs ...any) any {
 			}
 			resultingCurrencies = append(resultingCurrencies, highestPrecisionCurrency)
 		}
-		var sortedCurrencies []any = this.SortBy(resultingCurrencies, "code")
-		this.PublishCurrencies(this.DeepExtend(this.Currencies(), this.IndexBy(sortedCurrencies, "code")))
+		this.PublishCurrencies(this.DeepExtend(this.Currencies(), this.IndexBy(this.SortBy(resultingCurrencies, "code"), "code")))
 	}
 	this.PublishCurrenciesById(this.IndexBy(this.Currencies(), "id"))
 	var currenciesSortedByCode map[string]any = this.Keysort(this.Currencies())
@@ -2632,15 +2630,15 @@ func (this *BaseExchange) SafeBalance(balance any) any {
 		if (used == nil) && (total != nil) && (free != nil) {
 			used = Precise.StringSub(total, free)
 		}
-		AddElementToObject(GetValue(balance, code), "free", this.ParseNumber(free))
-		AddElementToObject(GetValue(balance, code), "used", this.ParseNumber(used))
-		AddElementToObject(GetValue(balance, code), "total", this.ParseNumber(total))
-		freeBalance[code] = GetValue(GetValue(balance, code), "free")
-		usedBalance[code] = GetValue(GetValue(balance, code), "used")
-		totalBalance[code] = GetValue(GetValue(balance, code), "total")
+		freeBalance[code] = this.ParseNumber(free)
+		usedBalance[code] = this.ParseNumber(used)
+		totalBalance[code] = this.ParseNumber(total)
+		AddElementToObject(GetValue(balance, code), "free", freeBalance[code])
+		AddElementToObject(GetValue(balance, code), "used", usedBalance[code])
+		AddElementToObject(GetValue(balance, code), "total", totalBalance[code])
 		if debt != nil {
-			AddElementToObject(GetValue(balance, code), "debt", this.ParseNumber(debt))
-			debtBalance[code] = GetValue(GetValue(balance, code), "debt")
+			debtBalance[code] = this.ParseNumber(debt)
+			AddElementToObject(GetValue(balance, code), "debt", debtBalance[code])
 		}
 	}
 	AddElementToObject(balance, "free", freeBalance)
@@ -4245,7 +4243,7 @@ func (this *BaseExchange) ParseLeverageTiers(response any, optionalArgs ...any) 
 
 			var market any = this.DerivedExchange.SafeMarket(id, nil, nil, "swap")
 			PanicOnError(market)
-			var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
+			var symbol *string = this.SafeString(market, "symbol", "")
 			var contract *bool = this.SafeBool(market, "contract", false)
 			if (contract != nil && *contract) && (noSymbols || ((symbolsNormalized != nil) && this.InArray(symbol, symbolsNormalized))) {
 				AddElementToObject(tiers, symbol, this.DerivedExchange.ParseMarketLeverageTiers(item, market))
@@ -4259,7 +4257,7 @@ func (this *BaseExchange) ParseLeverageTiers(response any, optionalArgs ...any) 
 
 			var market any = this.DerivedExchange.SafeMarket(marketId, nil, nil, "swap")
 			PanicOnError(market)
-			var symbol *string = SafeStringPtr(GetValue(market, "symbol"))
+			var symbol *string = this.SafeString(market, "symbol", "")
 			var contract *bool = this.SafeBool(market, "contract", false)
 			if (contract != nil && *contract) && (noSymbols || ((symbolsNormalized != nil) && this.InArray(symbol, symbolsNormalized))) {
 				AddElementToObject(tiers, symbol, this.DerivedExchange.ParseMarketLeverageTiers(item, market))
@@ -5691,11 +5689,11 @@ func (this *BaseExchange) fetchTransactionFeeBody(ch chan AsyncResult[map[string
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes705715 map[string]any = r.Value
-	if retRes705715 == nil {
+	var retRes705515 map[string]any = r.Value
+	if retRes705515 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes705715}
+		ch <- AsyncResult[map[string]any]{Value: retRes705515}
 	}
 	return nil
 }
@@ -6191,16 +6189,6 @@ func (this *BaseExchange) SetTakeProfitAndStopLossParams(symbol any, typeVar str
 	if (takeProfit == nil) && (stopLoss == nil) {
 		panic(ArgumentsRequired(this.Id + " createOrderWithTakeProfitAndStopLoss() requires either a takeProfit or stopLoss argument"))
 	}
-	if takeProfit != nil {
-		params["takeProfit"] = map[string]any{
-			"triggerPrice": takeProfit,
-		}
-	}
-	if stopLoss != nil {
-		params["stopLoss"] = map[string]any{
-			"triggerPrice": stopLoss,
-		}
-	}
 	var takeProfitType *string = this.SafeString(params, "takeProfitType")
 	var takeProfitPriceType *string = this.SafeString(params, "takeProfitPriceType")
 	var takeProfitLimitPrice *string = this.SafeString(params, "takeProfitLimitPrice")
@@ -6209,29 +6197,41 @@ func (this *BaseExchange) SetTakeProfitAndStopLossParams(symbol any, typeVar str
 	var stopLossPriceType *string = this.SafeString(params, "stopLossPriceType")
 	var stopLossLimitPrice *string = this.SafeString(params, "stopLossLimitPrice")
 	var stopLossAmount *string = this.SafeString(params, "stopLossAmount")
-	if takeProfitType != nil {
-		AddElementToObject(params["takeProfit"], "type", takeProfitType)
+	if takeProfit != nil {
+		var takeProfitRequest map[string]any = map[string]any{
+			"triggerPrice": takeProfit,
+		}
+		if takeProfitType != nil {
+			takeProfitRequest["type"] = takeProfitType
+		}
+		if takeProfitPriceType != nil {
+			takeProfitRequest["priceType"] = takeProfitPriceType
+		}
+		if takeProfitLimitPrice != nil {
+			takeProfitRequest["price"] = this.ParseToNumeric(takeProfitLimitPrice)
+		}
+		if takeProfitAmount != nil {
+			takeProfitRequest["amount"] = this.ParseToNumeric(takeProfitAmount)
+		}
+		params["takeProfit"] = takeProfitRequest
 	}
-	if takeProfitPriceType != nil {
-		AddElementToObject(params["takeProfit"], "priceType", takeProfitPriceType)
-	}
-	if takeProfitLimitPrice != nil {
-		AddElementToObject(params["takeProfit"], "price", this.ParseToNumeric(takeProfitLimitPrice))
-	}
-	if takeProfitAmount != nil {
-		AddElementToObject(params["takeProfit"], "amount", this.ParseToNumeric(takeProfitAmount))
-	}
-	if stopLossType != nil {
-		AddElementToObject(params["stopLoss"], "type", stopLossType)
-	}
-	if stopLossPriceType != nil {
-		AddElementToObject(params["stopLoss"], "priceType", stopLossPriceType)
-	}
-	if stopLossLimitPrice != nil {
-		AddElementToObject(params["stopLoss"], "price", this.ParseToNumeric(stopLossLimitPrice))
-	}
-	if stopLossAmount != nil {
-		AddElementToObject(params["stopLoss"], "amount", this.ParseToNumeric(stopLossAmount))
+	if stopLoss != nil {
+		var stopLossRequest map[string]any = map[string]any{
+			"triggerPrice": stopLoss,
+		}
+		if stopLossType != nil {
+			stopLossRequest["type"] = stopLossType
+		}
+		if stopLossPriceType != nil {
+			stopLossRequest["priceType"] = stopLossPriceType
+		}
+		if stopLossLimitPrice != nil {
+			stopLossRequest["price"] = this.ParseToNumeric(stopLossLimitPrice)
+		}
+		if stopLossAmount != nil {
+			stopLossRequest["amount"] = this.ParseToNumeric(stopLossAmount)
+		}
+		params["stopLoss"] = stopLossRequest
 	}
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"takeProfitType", "takeProfitPriceType", "takeProfitLimitPrice", "takeProfitAmount", "stopLossType", "stopLossPriceType", "stopLossLimitPrice", "stopLossAmount"})
 	return paramsOmitted
@@ -8046,7 +8046,6 @@ func (this *BaseExchange) fetchPaginatedCallDynamicBody(ch chan AsyncResult[[]an
 	var removeRepeatedOptionparamsRemoveRepeatedVariable []any = this.HandleOptionAndParams(paramsPaginationDirection, method, "removeRepeated", removeRepeated)
 	removeRepeatedOption := GetValue(removeRepeatedOptionparamsRemoveRepeatedVariable, 0)
 	paramsRemoveRepeated := removeRepeatedOptionparamsRemoveRepeatedVariable[1]
-	var calls any = 0
 	var result []any = []any{}
 	var errors any = 0
 	var until *int64 = this.SafeIntegerN(paramsRemoveRepeated, []any{"until", "untill", "till"}) // do not omit it from params here
@@ -8060,8 +8059,7 @@ func (this *BaseExchange) fetchPaginatedCallDynamicBody(ch chan AsyncResult[[]an
 		paginationTimestamp = since
 	}
 	var shouldBreak bool = false
-	for maxCallsPaginationCalls.(*int64) != nil && int64(calls.(int)) < *maxCallsPaginationCalls.(*int64) {
-		calls = Add(calls, 1)
+	for i := 0; maxCallsPaginationCalls.(*int64) != nil && int64(i) < *maxCallsPaginationCalls.(*int64); i++ {
 
 		{
 			func(this *BaseExchange) (ret_ any) {
@@ -8095,7 +8093,7 @@ func (this *BaseExchange) fetchPaginatedCallDynamicBody(ch chan AsyncResult[[]an
 					response := r.Value
 					var responseLength int = GetArrayLength(response)
 					if this.Verbose {
-						var backwardMessage any = Add(Add(Add(Add(Add("Dynamic pagination call ", this.NumberToString(calls)), " method "), method), " response length "), strconv.Itoa(responseLength))
+						var backwardMessage any = Add(Add(Add(Add(Add("Dynamic pagination call ", this.NumberToString(i+1)), " method "), method), " response length "), strconv.Itoa(responseLength))
 						if !IsEqual(paginationTimestamp, nil) {
 							backwardMessage = Add(backwardMessage, Add(" timestamp ", this.NumberToString(paginationTimestamp)))
 						}
@@ -8127,7 +8125,7 @@ func (this *BaseExchange) fetchPaginatedCallDynamicBody(ch chan AsyncResult[[]an
 					response := r1.Value
 					var responseLength int = GetArrayLength(response)
 					if this.Verbose {
-						var forwardMessage any = Add(Add(Add(Add(Add("Dynamic pagination call ", this.NumberToString(calls)), " method "), method), " response length "), strconv.Itoa(responseLength))
+						var forwardMessage any = Add(Add(Add(Add(Add("Dynamic pagination call ", this.NumberToString(i+1)), " method "), method), " response length "), strconv.Itoa(responseLength))
 						if !IsEqual(paginationTimestamp, nil) {
 							forwardMessage = Add(forwardMessage, Add(" timestamp ", this.NumberToString(paginationTimestamp)))
 						}
@@ -8276,8 +8274,12 @@ func (this *BaseExchange) fetchPaginatedCallDeterministicBody(ch chan AsyncResul
 	_ = maxEntriesPerRequest
 	var maxCalls int = 10
 	var maxCallsPaginationCallsparamsPaginationCallsVariable []any = this.HandleOptionIntegerAndParamsNullable(params, method, "paginationCalls", maxCalls)
-	maxCallsPaginationCalls := maxCallsPaginationCallsparamsPaginationCallsVariable[0]
+	var maxCallsPaginationCalls *int64 = nil
+	if p, ok := maxCallsPaginationCallsparamsPaginationCallsVariable[0].(*int64); ok {
+		maxCallsPaginationCalls = p
+	}
 	paramsPaginationCalls := maxCallsPaginationCallsparamsPaginationCallsVariable[1]
+	var maxCallsLimit int64 = this.ParseToInt(maxCallsPaginationCalls)
 	maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable := this.HandleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, paramsPaginationCalls)
 	maxEntriesPerRequestOption := GetValue(maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable, 0)
 	paramsMaxEntriesPerRequest := GetValue(maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable, 1)
@@ -8291,7 +8293,7 @@ func (this *BaseExchange) fetchPaginatedCallDeterministicBody(ch chan AsyncResul
 	var maxEntriesPerRequestValue any = this.RequireValue(maxEntriesPerRequestOption, "fetchPaginatedCallDeterministic() maxEntriesPerRequest is required")
 	var step int64 = time * this.ParseToInt(maxEntriesPerRequestValue)
 	var until *int64 = this.SafeInteger2(paramsOmitted, "until", "till") // do not omit it here
-	var currentSince any = Subtract(Subtract(current, (Multiply(maxCallsPaginationCalls, step))), 1)
+	var currentSince any = current - (maxCallsLimit * step) - 1
 	if since != nil {
 		if until != nil {
 			// the recent-window floor below would jump past a fully-historical [ since, until ]
@@ -8310,11 +8312,11 @@ func (this *BaseExchange) fetchPaginatedCallDeterministicBody(ch chan AsyncResul
 			panic(ArgumentsRequired(this.Id + " fetchPaginatedCallDeterministic() requires a since argument when until is set"))
 		}
 		var requiredCalls float64 = math.Ceil(float64((*until - *since)) / float64(step))
-		if maxCallsPaginationCalls.(*int64) == nil || requiredCalls > float64(*maxCallsPaginationCalls.(*int64)) {
-			panic(BadRequest(this.Id + " the number of required calls is greater than the max number of calls allowed, either increase the paginationCalls or decrease the since-until gap. Current paginationCalls limit is " + ToString(maxCallsPaginationCalls) + " required calls is " + ToString(requiredCalls)))
+		if requiredCalls > float64(maxCallsLimit) {
+			panic(BadRequest(this.Id + " the number of required calls is greater than the max number of calls allowed, either increase the paginationCalls or decrease the since-until gap. Current paginationCalls limit is " + strconv.FormatInt(maxCallsLimit, 10) + " required calls is " + ToString(requiredCalls)))
 		}
 	}
-	for i := 0; maxCallsPaginationCalls.(*int64) != nil && int64(i) < *maxCallsPaginationCalls.(*int64); i++ {
+	for i := 0; int64(i) < maxCallsLimit; i++ {
 		if (until != nil) && (IsGreaterThanOrEqual(currentSince, until)) {
 			break
 		}
@@ -8333,7 +8335,7 @@ func (this *BaseExchange) fetchPaginatedCallDeterministicBody(ch chan AsyncResul
 	var results []any = ListTyped(r.Value)
 	var result []any = []any{}
 	for i := 0; i < len(results); i++ {
-		result = this.ArrayConcat(result, GetValue(results, i))
+		result = this.ArrayConcat(result, results[i])
 	}
 	var uniqueResults any = this.RemoveRepeatedElementsFromArray(result)
 	var key any = func() any {
@@ -8385,13 +8387,12 @@ func (this *BaseExchange) fetchPaginatedCallCursorBody(ch chan AsyncResult[[]any
 	maxEntriesPerRequestOption := GetValue(maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable, 0)
 	paramsMaxEntriesPerRequest := GetValue(maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable, 1)
 	var cursorValue any = nil
-	var i any = 0
 	var errors any = 0
 	var result []any = []any{}
 	var timeframe *string = this.SafeString(paramsMaxEntriesPerRequest, "timeframe")
 	var paramsOmitted any = this.Omit(paramsMaxEntriesPerRequest, "timeframe") // reading the timeframe from the method arguments to avoid changing the signature
 	var shouldBreak bool = false
-	for maxCallsPaginationCalls.(*int64) != nil && int64(i.(int)) < *maxCallsPaginationCalls.(*int64) {
+	for i := 0; maxCallsPaginationCalls.(*int64) != nil && int64(i) < *maxCallsPaginationCalls.(*int64); i++ {
 
 		{
 			func(this *BaseExchange) (ret_ any) {
@@ -8465,7 +8466,7 @@ func (this *BaseExchange) fetchPaginatedCallCursorBody(ch chan AsyncResult[[]any
 						}
 						return cursorValue
 					}()
-					var iteration any = (Add(i, 1))
+					var iteration any = (i + 1)
 					var cursorMessage *string = SafeStringPtr(Add(Add(Add(Add(Add("Cursor pagination call "+ToString(iteration)+" method ", method), " response length "), strconv.Itoa(responseLength)), " cursor "), cursorString))
 					this.Log(cursorMessage)
 				}
@@ -8510,7 +8511,6 @@ func (this *BaseExchange) fetchPaginatedCallCursorBody(ch chan AsyncResult[[]any
 		if shouldBreak {
 			break // go turns a break inside try into a panic that only ends the iteration
 		}
-		i = Add(i, 1)
 	}
 	var sorted any = this.SortCursorPaginatedResult(result)
 	var key any = func() any {
@@ -8545,8 +8545,12 @@ func (this *BaseExchange) fetchPaginatedCallIncrementalBody(ch chan AsyncResult[
 	_ = maxEntriesPerRequest
 	var maxCalls int = 10
 	var maxCallsPaginationCallsparamsPaginationCallsVariable []any = this.HandleOptionIntegerAndParamsNullable(params, method, "paginationCalls", maxCalls)
-	maxCallsPaginationCalls := maxCallsPaginationCallsparamsPaginationCallsVariable[0]
+	var maxCallsPaginationCalls *int64 = nil
+	if p, ok := maxCallsPaginationCallsparamsPaginationCallsVariable[0].(*int64); ok {
+		maxCallsPaginationCalls = p
+	}
 	paramsPaginationCalls := maxCallsPaginationCallsparamsPaginationCallsVariable[1]
+	var maxCallsLimit int64 = this.ParseToInt(maxCallsPaginationCalls)
 	var maxRetries int = 3
 	var maxRetriesOptionparamsMaxRetriesVariable []any = this.HandleOptionIntegerAndParamsNullable(paramsPaginationCalls, method, "maxRetries", maxRetries)
 	maxRetriesOption := maxRetriesOptionparamsMaxRetriesVariable[0]
@@ -8554,11 +8558,10 @@ func (this *BaseExchange) fetchPaginatedCallIncrementalBody(ch chan AsyncResult[
 	maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable := this.HandleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, paramsMaxRetries)
 	maxEntriesPerRequestOption := GetValue(maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable, 0)
 	paramsMaxEntriesPerRequest := GetValue(maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable, 1)
-	var i any = 0
 	var errors any = 0
 	var result []any = []any{}
 	var shouldBreak bool = false
-	for maxCallsPaginationCalls.(*int64) != nil && int64(i.(int)) < *maxCallsPaginationCalls.(*int64) {
+	for i := 0; int64(i) < maxCallsLimit; i++ {
 
 		{
 			func(this *BaseExchange) (ret_ any) {
@@ -8578,7 +8581,7 @@ func (this *BaseExchange) fetchPaginatedCallIncrementalBody(ch chan AsyncResult[
 					}
 				}()
 				// try block:
-				AddElementToObject(paramsMaxEntriesPerRequest, pageKey, Add(i, 1))
+				AddElementToObject(paramsMaxEntriesPerRequest, pageKey, i+1)
 
 				r := <-this.CallDynamically(method, symbol, since, maxEntriesPerRequestOption, paramsMaxEntriesPerRequest)
 				if r.Err != nil {
@@ -8588,7 +8591,7 @@ func (this *BaseExchange) fetchPaginatedCallIncrementalBody(ch chan AsyncResult[
 				errors = 0
 				var responseLength int = GetArrayLength(response)
 				if this.Verbose {
-					var iteration any = (Add(i, 1))
+					var iteration any = (i + 1)
 					var incrementalMessage *string = SafeStringPtr(Add(Add(Add("Incremental pagination call "+ToString(iteration)+" method ", method), " response length "), strconv.Itoa(responseLength)))
 					this.Log(incrementalMessage)
 				}
@@ -8604,17 +8607,14 @@ func (this *BaseExchange) fetchPaginatedCallIncrementalBody(ch chan AsyncResult[
 		if shouldBreak {
 			break // go turns a break inside try into a panic that only ends the iteration
 		}
-		i = Add(i, 1)
 	}
-	var sorted any = this.SortCursorPaginatedResult(result)
-	var key any = func() any {
+
+	ch <- AsyncResult[[]any]{Value: this.FilterBySinceLimit(this.SortCursorPaginatedResult(result), since, limit, func() any {
 		if method == "fetchOHLCV" {
 			return 0
 		}
 		return "timestamp"
-	}()
-
-	ch <- AsyncResult[[]any]{Value: this.FilterBySinceLimit(sorted, since, limit, key)}
+	}())}
 	return nil
 }
 func (this *BaseExchange) SortCursorPaginatedResult(result any) any {
@@ -11561,12 +11561,12 @@ func (this *Exchange) cancelOrdersWithClientOrderIdsBody(ch chan AsyncResult[[]O
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listRecv11183, _ := OrdersToList(r.Value), r.Value != nil
-	var retRes1047315 []any = listRecv11183
-	if retRes1047315 == nil {
+	listRecv11177, _ := OrdersToList(r.Value), r.Value != nil
+	var retRes1046715 []any = listRecv11177
+	if retRes1046715 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes1047315)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes1046715)}
 	}
 	return nil
 }

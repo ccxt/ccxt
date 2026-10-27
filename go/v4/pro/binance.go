@@ -5087,11 +5087,9 @@ func (this *Binance) GetMarketType(method string, market any, optionalArgs ...an
 	_ = params
 	var typeVar any = nil
 	var paramsMarketType map[string]any = map[string]any{}
-	var typeVarPtr *string = nil
-	typeVarPtr, paramsMarketType = this.HandleMarketTypeAndParams(method, market, params)
-	if typeVarPtr != nil {
-		typeVar = *typeVarPtr
-	}
+	typeVarparamsMarketTypeVariable := ccxt.TupleSlice(this.HandleMarketTypeAndParams(method, market, params))
+	typeVar = ccxt.GetValue(typeVarparamsMarketTypeVariable, 0)
+	paramsMarketType = typeVarparamsMarketTypeVariable[1].(map[string]any)
 	var subType *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.TupleSlice(this.HandleSubTypeAndParams(method, market, paramsMarketType)), 0))
 	if this.IsLinear(typeVar, subType) {
 		typeVar = "linear"
@@ -6694,7 +6692,7 @@ func (this *Binance) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position
 	var paramsAuth any = nil
 	typeVarsubTypeparamsAuthVariable := this.ResolveAuthType("watchPositions", market, params)
 	typeVar = ccxt.GetValue(typeVarsubTypeparamsAuthVariable, 0)
-	subType = ccxt.GetValue(typeVarsubTypeparamsAuthVariable, 1)
+	subType = typeVarsubTypeparamsAuthVariable[1]
 	paramsAuth = typeVarsubTypeparamsAuthVariable[2]
 	// spot and margin have no positions - whatever still RESOLVES to spot
 	// or margin after the helper falls through to the derivatives stream
@@ -6720,8 +6718,8 @@ func (this *Binance) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position
 		panic(r1.Err)
 	}
 	messageHash = ccxt.Add(ccxt.Add(typeVar, ":positions"), messageHash)
-	var portfolioMarginAndParams any = ccxt.TupleSlice(this.HandleOptionBoolAndParams2(paramsAuth, "watchPositions", "papi", "portfolioMargin", false))
-	var isPortfolioMargin *bool = ccxt.SafeBoolPtr(ccxt.GetValue(portfolioMarginAndParams, 0))
+	isPortfolioMarginValue, _ := this.HandleOptionBoolAndParams2(paramsAuth, "watchPositions", "papi", "portfolioMargin", false)
+	isPortfolioMargin := &isPortfolioMarginValue
 	var urlType any = typeVar
 	if isPortfolioMargin != nil && *isPortfolioMargin {
 		urlType = "papi"
@@ -7299,8 +7297,8 @@ func (this *Binance) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], o
 	if typeVar == "margin" {
 		urlType = "spot" // spot-margin shares the same stream as regular spot
 	}
-	var portfolioMarginAndParams any = ccxt.TupleSlice(this.HandleOptionBoolAndParams2(paramsSymbol, "watchMyTrades", "papi", "portfolioMargin", false))
-	var isPortfolioMargin *bool = ccxt.SafeBoolPtr(ccxt.GetValue(portfolioMarginAndParams, 0))
+	isPortfolioMarginValue, _ := this.HandleOptionBoolAndParams2(paramsSymbol, "watchMyTrades", "papi", "portfolioMargin", false)
+	isPortfolioMargin := &isPortfolioMarginValue
 	var url any = ""
 	if (typeVar == "spot") || (typeVar == "margin") {
 		var wsApiUrls map[string]any = ccxt.SafeMapTyped(this.SafeDict(this.Urls, "api", map[string]any{}), "ws")

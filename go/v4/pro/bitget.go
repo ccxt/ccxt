@@ -750,8 +750,8 @@ func (this *Bitget) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol stri
 	var channel any = nil
 	var market map[string]any = this.Market(symbol)
 	var messageHash any = nil
-	var values any = ccxt.TupleSlice(this.HandleOptionBoolAndParams(params, "watchOHLCV", "uta", false))
-	var uta *bool = ccxt.SafeBoolPtr(ccxt.GetValue(values, 0))
+	utaValue, _ := this.HandleOptionBoolAndParams(params, "watchOHLCV", "uta", false)
+	uta := &utaValue
 	var stockDefault *bool = this.SafeBool(market, "stock", false)
 	var stockparamsStockVariable []any = this.HandleOptionBoolAndParamsNullable(params, "watchOHLCV", "stock", stockDefault)
 	var stock *bool = nil
@@ -1571,8 +1571,8 @@ func (this *Bitget) unWatchTradesBody(ch chan ccxt.AsyncResult[bool], symbol str
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var values any = ccxt.TupleSlice(this.HandleOptionBoolAndParams(params, "watchTrades", "uta", false))
-	var uta *bool = ccxt.SafeBoolPtr(ccxt.GetValue(values, 0))
+	utaValue, _ := this.HandleOptionBoolAndParams(params, "watchTrades", "uta", false)
+	uta := &utaValue
 	var channelTopic string = "trade"
 	if uta != nil && *uta {
 		channelTopic = "publicTrade"
@@ -1851,7 +1851,7 @@ func (this *Bitget) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position]
 	if hasSymbols {
 		instTypeparamsInstTypeVariable := this.GetInstType("watchPositions", market, uta, paramsUta)
 		instType = ccxt.GetValue(instTypeparamsInstTypeVariable, 0)
-		paramsInstType = ccxt.GetValue(instTypeparamsInstTypeVariable, 1)
+		paramsInstType = instTypeparamsInstTypeVariable[1]
 	}
 	if uta {
 		instType = "UTA"
@@ -2212,7 +2212,7 @@ func (this *Bitget) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opti
 	if !useSpotInstType {
 		instTypeparamsInstTypeVariable := this.GetInstType("watchOrders", market, uta, paramsSubType)
 		instType = ccxt.GetValue(instTypeparamsInstTypeVariable, 0)
-		paramsInstType = ccxt.GetValue(instTypeparamsInstTypeVariable, 1)
+		paramsInstType = instTypeparamsInstTypeVariable[1]
 	}
 	if (typeVar != nil && *typeVar == "spot") && (symbolResolved != nil) {
 		subscriptionHash = ccxt.Add(ccxt.Add(subscriptionHash, ":"), symbolResolved)
@@ -2793,7 +2793,7 @@ func (this *Bitget) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], op
 	if !useSpotInstType {
 		instTypeparamsInstTypeVariable := this.GetInstType("watchMyTrades", market, uta, paramsUta)
 		instType = ccxt.GetValue(instTypeparamsInstTypeVariable, 0)
-		paramsInstType = ccxt.GetValue(instTypeparamsInstTypeVariable, 1)
+		paramsInstType = instTypeparamsInstTypeVariable[1]
 	}
 	if uta {
 		instType = "UTA"

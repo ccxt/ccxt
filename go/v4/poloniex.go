@@ -2725,7 +2725,7 @@ func (this *Poloniex) createOrdersBody(ch chan AsyncResult[[]Order], orders any,
 		}
 		requestextendedParamsVariable := this.OrderRequest(symbol, typeVar, side, amount, request, price, extendedParams)
 		request = requestextendedParamsVariable[0]
-		extendedParams = GetValue(requestextendedParamsVariable, 1)
+		extendedParams = requestextendedParamsVariable[1]
 		var merged map[string]any = this.Extend(request, extendedParams)
 		if isContract {
 			// unlike the single-order endpoint, the batch endpoint refuses to apply server-side defaults: "Param error mgnMode and posSide must be present and not empty"
