@@ -1,6 +1,7 @@
 // ===== hx11 w8 M43: SafeDict-seeded `var x any` locals become typed maps =====
 // `var x any = this.SafeDict(a, k, map[string]any{})` (REST files) can only hold the decoded
 // dictionary or the never-nil literal default, so `var x map[string]any = this.SafeDictMap(..)`
+// A call with no default may answer nil: it types the local too when its only uses are `x != nil` / `x == nil` and the receiver of a plain safe read (a nil map reads and tests the same); the receiver may be `this.Options` (a map field) there.
 // (exchange_safe.go: MapTyped of the same call) holds the same map. Every later use of the local
 // that compiled against the `any` box still compiles against the map and answers the same
 // (call arguments, composite values, `return`, `= x` copies, nil tests), and the existing typed-map
@@ -91,6 +92,16 @@ function m43UseKeepsMap (s: string, col: number, name: string): boolean {
     return true;
 }
 
+// no-default locals may be a nil map: only `x != nil` / `x == nil` and the receiver of a plain safe read
+function m43UseIsNilTestOrRead (s: string, col: number, name: string): boolean {
+    const before = s.slice (0, col);
+    const after = s.slice (col + name.length);
+    if (/^\s*[!=]=\s*nil\b/.test (after) && /(?:\bif\s*|&&\s*\(?|\|\|\s*\(?|\(\s*)$/.test (before)) {
+        return true;
+    }
+    return /(?:\bthis\.Safe\w+|\bccxt\.GetValue|\bccxt\.Safe\w+Typed\w*)\($/.test (before) && /^\s*,/.test (after);
+}
+
 function m43Func (lines: string[], masked: string[], start: number, end: number, ws: boolean): void {
     const maskedFunc = masked.slice (start, end + 1).join ('\n');
     for (let k = start + 1; k < end; k++) {
@@ -105,8 +116,9 @@ function m43Func (lines: string[], masked: string[], start: number, end: number,
         }
         const args = m43SplitArgs (decl[4], maskedDecl[4]);
         const wanted = (decl[3] === 'SafeDict2') ? 4 : 3;
-        if ((args === undefined) || (args.length !== wanted) || (args[wanted - 1] !== 'map[string]any{}')
-            || args.slice (0, wanted - 1).some ((a) => a === '') || args[0].indexOf ('this.') >= 0
+        const noDefault = (args !== undefined) && (args.length === wanted - 1);  // nil map reads are safe: only nil tests and plain reads may use it
+        if ((args === undefined) || !(noDefault || ((args.length === wanted) && (args[wanted - 1] === 'map[string]any{}')))
+            || args.slice (0, wanted - 1).some ((a) => a === '') || ((args[0].indexOf ('this.') >= 0) && !(noDefault && (args[0] === 'this.Options')))
             || (ws && /\.\(|Client|Cache|Snapshot|[Oo]rderbook/.test (args[0]))) {
             continue;
         }
@@ -120,7 +132,7 @@ function m43Func (lines: string[], masked: string[], start: number, end: number,
                 if ((j === k) && (m.index === decl[1].length + 4)) {
                     continue; // the declaration itself
                 }
-                if (!m43UseKeepsMap (masked[j], m.index, name)) {
+                if (!m43UseKeepsMap (masked[j], m.index, name) || (noDefault && !m43UseIsNilTestOrRead (masked[j], m.index, name))) {
                     keeps = false;
                     break;
                 }
@@ -182,6 +194,11 @@ export function hx11M43Check (): string[] {
     ok (!run ('\tvar d any = this.SafeDict(cached.(*ccxt.ArrayCache).Hashmap, \"k\", map[string]any{})\n', 'go/v4/pro/x.go').includes ('SafeDictMap'), 'ws cache receivers keep the box');
     ok (!run (decl, 'go/v4/prediction/x.go').includes ('SafeDictMap'), 'prediction files keep the box');
     ok (!run (decl, 'go/v4/exchange_generated.go').includes ('SafeDictMap'), 'base files keep the box');
+    ok (run ('\tvar d any = this.SafeDict(p, \"data\")\n\tif d != nil {\n\t\t_ = this.SafeString(d, \"k\")\n\t}\n').includes ('var d map[string]any = this.SafeDictMap(p, \"data\")'), 'no default: nil test + plain read type the local');
+    ok (run ('\tvar d any = this.SafeDict(this.Options, \"data\")\n\tif d == nil {\n\t}\n').includes ('SafeDictMap(this.Options, \"data\")'), 'no default: this.Options receiver');
+    ok (!run ('\tvar d any = this.SafeDict(p, \"data\")\n\treturn d\n').includes ('SafeDictMap'), 'no default: a bare return keeps the box');
+    ok (!run ('\tvar d any = this.SafeDict(p, \"data\")\n\tAddElementToObject(d, \"a\", 1)\n').includes ('SafeDictMap'), 'no default: a write keeps the box');
+    ok (!run ('\tvar d any = this.SafeDict(this.Markets(), \"data\")\n\t_ = d == nil\n').includes ('SafeDictMap'), 'no default: other this.* receivers keep the box');
     const once = run (decl);
     ok (hx11M43SafeDictLocals (once, 'go/v4/x.go') === once, 'idempotent');
     return problems;
