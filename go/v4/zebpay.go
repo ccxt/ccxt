@@ -2369,7 +2369,7 @@ func (this *Zebpay) fetchSpotMarketsBody(ch chan AsyncResult[[]MarketInterface],
 	var data map[string]any = SafeMapTyped(response, "data")
 	var markets []any = SafeListTyped(data, "symbols")
 	for i := 0; i < len(markets); i++ {
-		var market any = DerefScalar(markets[i])
+		var market any = markets[i]
 		var id *string = this.SafeString(market, "symbol")
 		var baseId *string = this.SafeString(market, "baseAsset")
 		var quoteId *string = this.SafeString(market, "quoteAsset")

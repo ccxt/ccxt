@@ -558,7 +558,7 @@ func (this *Nado) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[string]m
 	var markets []any = []any{}
 	var messageHashes []any = []any{}
 	var subscriptionParams []any = []any{}
-	for i := 0; i < ccxt.GetArrayLength(symbolsAndTimeframes); i++ {
+	for i := 0; i < symbolsLength; i++ {
 		var symbolAndTimeframe []any = ccxt.SafeListTyped(symbolsAndTimeframes, i)
 		var marketSymbol *string = this.SafeString(symbolAndTimeframe, 0)
 		var timeframe *string = this.SafeString(symbolAndTimeframe, 1, "1m")
@@ -654,7 +654,7 @@ func (this *Nado) unWatchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[bool], sym
 	var markets []any = []any{}
 	var messageHashes []any = []any{}
 	var subscriptionParams []any = []any{}
-	for i := 0; i < ccxt.GetArrayLength(symbolsAndTimeframes); i++ {
+	for i := 0; i < symbolsLength; i++ {
 		var symbolAndTimeframe []any = ccxt.SafeListTyped(symbolsAndTimeframes, i)
 		var marketSymbol *string = this.SafeString(symbolAndTimeframe, 0)
 		var timeframe *string = this.SafeString(symbolAndTimeframe, 1, "1m")
@@ -2808,12 +2808,12 @@ func (this *Nado) HandleUnsubscriptionCache(messageHash string) {
 	if strings.Index(messageHash, "trade:") == 0 {
 		var symbol string = strings.Replace(messageHash, "trade:", "", 1)
 		if _, ok := this.Trades[symbol]; ok {
-			ccxt.Remove(this.Trades, symbol)
+			delete(this.Trades, symbol)
 		}
 	} else if strings.Index(messageHash, "orderbook:") == 0 {
 		var symbol string = strings.Replace(messageHash, "orderbook:", "", 1)
-		if ccxt.InOp(this.Orderbooks, symbol) {
-			ccxt.Remove(this.Orderbooks, symbol)
+		if _, ok := this.Orderbooks[symbol]; ok {
+			delete(this.Orderbooks, symbol)
 		}
 	} else if strings.Index(messageHash, "ohlcv:") == 0 {
 		var parts []string = strings.Split(messageHash, ":")

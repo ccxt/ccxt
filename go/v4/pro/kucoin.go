@@ -2500,7 +2500,7 @@ func (this *Kucoin) HandleOrderBook(client any, message map[string]any) {
 		}
 		ccxt.AddElementToObject(this.Orderbooks[*symbol], "symbol", symbol)
 	} else {
-		if !(ccxt.InOp(this.Orderbooks, symbol)) {
+		if _, ok := this.Orderbooks[*symbol]; !ok {
 			this.Orderbooks[*symbol] = this.OrderBook()
 		}
 		var orderbook any
@@ -3150,7 +3150,7 @@ func (this *Kucoin) HandleOrder(client any, message map[string]any) {
 		return this.Orders
 	}()
 	var orders map[string]any = ccxt.SafeMapTyped(cachedOrders.(*ccxt.ArrayCache).Hashmap, symbol)
-	var order any = this.SafeDict(orders, orderId)
+	var order map[string]any = this.SafeDictMap(orders, orderId)
 	if order != nil {
 		if this.SafeString(order, "status") != nil && *this.SafeString(order, "status") == "closed" {
 			parsed["status"] = "closed"
@@ -3160,7 +3160,7 @@ func (this *Kucoin) HandleOrder(client any, message map[string]any) {
 		// derives cost from the order price otherwise, which is wrong for
 		// orders filled at better prices, so the accumulated values win on
 		// the non match messages, see https://github.com/ccxt/ccxt/issues/19083
-		if !ccxt.IsEqual(ccxt.GetValue(order, "average"), nil) {
+		if !ccxt.IsEqual(order["average"], nil) {
 			parsed["average"] = this.SafeNumber(order, "average")
 			parsed["cost"] = this.SafeNumber(order, "cost")
 		}

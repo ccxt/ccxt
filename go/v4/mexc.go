@@ -4975,7 +4975,7 @@ func (this *Mexc) fetchAccountsBody(ch chan AsyncResult[[]Account], optionalArgs
 	var data []any = SafeListTyped(response, "balances")
 	var result []any = []any{}
 	for i := 0; i < len(data); i++ {
-		var account any = DerefScalar(data[i])
+		var account any = data[i]
 		var currencyId *string = this.SafeString2(account, "asset", "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		result = append(result, map[string]any{

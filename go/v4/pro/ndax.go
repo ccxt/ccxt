@@ -365,8 +365,10 @@ func (this *Ndax) HandleOHLCV(client any, message map[string]any) {
 		var market map[string]any = this.SafeMarket(marketId)
 		var symbol *string = this.SafeString(market, "symbol", "")
 		var marketUpdates map[string]any = map[string]any{}
-		if symbol != nil && this.Ohlcvs[*symbol] == nil {
-			this.Ohlcvs[*symbol] = map[string]any{}
+		if symbol != nil {
+			if this.Ohlcvs[*symbol] == nil {
+				this.Ohlcvs[*symbol] = map[string]any{}
+			}
 		}
 		var keys []string = ccxt.ObjectKeys(this.Timeframes)
 		for j := 0; j < len(keys); j++ {
@@ -379,7 +381,10 @@ func (this *Ndax) HandleOHLCV(client any, message map[string]any) {
 			}
 			var candleTimestamp int64 = this.ParseToInt(ccxt.Multiply((float64(*timestamp) / float64(duration)), duration))
 			var parsed []any = []any{candleTimestamp, this.SafeFloat(ohlcv, 3), this.SafeFloat(ohlcv, 1), this.SafeFloat(ohlcv, 2), this.SafeFloat(ohlcv, 4), this.SafeFloat(ohlcv, 5)}
-			var stored any = this.SafeValue(this.Ohlcvs[*symbol], timeframe, []any{})
+			var stored any
+			if symbol != nil {
+				stored = this.SafeValue(this.Ohlcvs[*symbol], timeframe, []any{})
+			}
 			var length int = ccxt.GetArrayLength(stored)
 			var previous any = this.SafeValue(stored, length-1)
 			var previousTimestamp *int64 = this.SafeInteger(previous, 0)

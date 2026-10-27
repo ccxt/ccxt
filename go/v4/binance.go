@@ -15858,7 +15858,7 @@ func (this *Binance) fetchPositionsBody(ch chan AsyncResult[[]Position], optiona
 	defaultMethod, paramsMethod = this.HandleOptionStringAndParams(params, "fetchPositions", "method") // check if there is a key in options|params
 	if defaultMethod == nil {
 		// check if .options['fetchPositions'] dict exist at all
-		var options any = this.SafeDict(this.Options, "fetchPositions")
+		var options map[string]any = this.SafeDictMap(this.Options, "fetchPositions")
 		if options == nil {
 			// if undefined, for backward compatibility, check if it is a string
 			defaultMethod = this.SafeString(this.Options, "fetchPositions", "positionRisk")

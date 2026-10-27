@@ -1485,7 +1485,7 @@ func (this *Bittrade) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, 
 	var data []any = SafeListTyped(response, "data")
 	var result []any = []any{}
 	for i := 0; i < len(data); i++ {
-		var trades []any = SafeListTyped(DerefScalar(data[i]), "data")
+		var trades []any = SafeListTyped(data[i], "data")
 		for j := 0; j < len(trades); j++ {
 			var trade map[string]any = TradeToMap(this.ParseTrade(trades[j], market))
 			result = append(result, trade)

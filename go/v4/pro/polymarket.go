@@ -1634,7 +1634,7 @@ func (this *Polymarket) HandleAck(client any, message any) {
 		var symbol *string = this.SafeString(pending, "symbol")
 		if symbol != nil {
 			if topic != nil && *topic == "orderbook" {
-				if ccxt.InOp(this.Orderbooks, symbol) {
+				if _, ok := this.Orderbooks[*symbol]; ok {
 					delete(this.Orderbooks, *symbol)
 				}
 			} else if topic != nil && *topic == "trades" {

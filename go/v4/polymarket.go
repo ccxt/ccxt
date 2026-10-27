@@ -3024,7 +3024,7 @@ func (this *Polymarket) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHis
 	var data []any = SafeListTyped(response, "data")
 	var result []any = []any{}
 	for i := 0; i < len(data); i++ {
-		var entry any = DerefScalar(data[i])
+		var entry any = data[i]
 		var marketId *string = this.SafeString(entry, "instrument_id")
 		var timestamp *int64 = this.SafeInteger(entry, "timestamp")
 		result = append(result, map[string]any{

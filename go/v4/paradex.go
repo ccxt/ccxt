@@ -3078,7 +3078,7 @@ func (this *Paradex) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any, opt
 	var results []any = SafeListTyped(response, "results")
 	var orders []any = []any{}
 	for i := 0; i < len(results); i++ {
-		var result any = DerefScalar(results[i])
+		var result any = results[i]
 		var marketId *string = this.SafeString(result, "market")
 		var market map[string]any = this.SafeMarket(marketId)
 		var status *string = this.SafeString(result, "status")
@@ -4007,7 +4007,7 @@ func (this *Paradex) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optio
 	var rows []any = SafeListTyped(response, "results")
 	var deposits []any = []any{}
 	for i := 0; i < len(rows); i++ {
-		var row any = DerefScalar(rows[i])
+		var row any = rows[i]
 		if this.SafeString(row, "kind") != nil && *this.SafeString(row, "kind") == "DEPOSIT" {
 			deposits = append(deposits, row)
 		}
@@ -4111,7 +4111,7 @@ func (this *Paradex) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], op
 	var rows []any = SafeListTyped(response, "results")
 	var deposits []any = []any{}
 	for i := 0; i < len(rows); i++ {
-		var row any = DerefScalar(rows[i])
+		var row any = rows[i]
 		if this.SafeString(row, "kind") != nil && *this.SafeString(row, "kind") == "WITHDRAWAL" {
 			deposits = append(deposits, row)
 		}

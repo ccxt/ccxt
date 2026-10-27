@@ -730,7 +730,7 @@ func (this *Lbank) fetchSpotMarketsBody(ch chan AsyncResult[[]MarketInterface], 
 	var data []any = SafeListTyped(response, "data")
 	var result []any = []any{}
 	for i := 0; i < len(data); i++ {
-		var market any = DerefScalar(data[i])
+		var market any = data[i]
 		var marketId *string = this.SafeString(market, "symbol")
 		var parts []string = strings.Split(*marketId, "_")
 		var baseId *string = SafeStringPtr(parts[0])
@@ -850,7 +850,7 @@ func (this *Lbank) fetchSwapMarketsBody(ch chan AsyncResult[[]MarketInterface], 
 	var data []any = SafeListTyped(response, "data")
 	var result []any = []any{}
 	for i := 0; i < len(data); i++ {
-		var market any = DerefScalar(data[i])
+		var market any = data[i]
 		var marketId *string = this.SafeString(market, "symbol")
 		var baseId *string = this.SafeString(market, "baseCurrency")
 		var settleId *string = this.SafeString(market, "clearCurrency")

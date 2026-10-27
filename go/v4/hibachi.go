@@ -1239,7 +1239,7 @@ func (this *Hibachi) createOrdersBody(ch chan AsyncResult[[]Order], orders any, 
 	var ret []any = []any{}
 	var responseOrders []any = SafeListTyped(response, "orders")
 	for i := 0; i < len(responseOrders); i++ {
-		var responseOrder any = DerefScalar(responseOrders[i])
+		var responseOrder any = responseOrders[i]
 		ret = append(ret, OrderToMap(this.SafeOrder(map[string]any{
 			"info":   responseOrder,
 			"id":     this.SafeString(responseOrder, "orderId"),
@@ -1408,7 +1408,7 @@ func (this *Hibachi) editOrdersBody(ch chan AsyncResult[[]Order], orders any, op
 	var ret []any = []any{}
 	var responseOrders []any = SafeListTyped(response, "orders")
 	for i := 0; i < len(responseOrders); i++ {
-		var responseOrder any = DerefScalar(responseOrders[i])
+		var responseOrder any = responseOrders[i]
 		ret = append(ret, OrderToMap(this.SafeOrder(map[string]any{
 			"info":   responseOrder,
 			"id":     this.SafeString(responseOrder, "orderId"),

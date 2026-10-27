@@ -2566,9 +2566,9 @@ func (this *Lighter) fetchFundingRatesBody(ch chan AsyncResult[map[string]Fundin
 	var data []any = SafeListTyped(response, "funding_rates")
 	var result []any = []any{}
 	for i := 0; i < len(data); i++ {
-		var exchange *string = this.SafeString(DerefScalar(data[i]), "exchange")
+		var exchange *string = this.SafeString(data[i], "exchange")
 		if exchange != nil && *exchange == "lighter" {
-			result = append(result, DerefScalar(data[i]))
+			result = append(result, data[i])
 		}
 	}
 

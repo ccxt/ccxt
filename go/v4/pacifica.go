@@ -2420,7 +2420,7 @@ func (this *Pacifica) createOrdersBody(ch chan AsyncResult[[]Order], orders any,
 	var results []any = SafeListTyped(data, "results")
 	var ordersToReturn []any = []any{}
 	for i := 0; i < len(results); i++ {
-		var order any = DerefScalar(results[i])
+		var order any = results[i]
 		var error *string = this.SafeString(order, "error")
 		var success *bool = this.SafeBool(order, "success", false)
 		var status string
@@ -3009,7 +3009,7 @@ func (this *Pacifica) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], o
 	var data []any = SafeListTyped(response, "data")
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(data); i++ {
-		var info any = DerefScalar(data[i])
+		var info any = data[i]
 		var ticker map[string]any = TickerToMap(this.ParseTicker(info))
 		var symbol *string = this.SafeString(ticker, "symbol")
 		if symbol != nil {
@@ -3776,7 +3776,7 @@ func (this *Pacifica) fetchPositionsBody(ch chan AsyncResult[[]Position], option
 	var data []any = SafeListTyped(response, "data")
 	var result []any = []any{}
 	for i := 0; i < len(data); i++ {
-		result = append(result, PositionToMap(this.ParsePosition(DerefScalar(data[i]), nil)))
+		result = append(result, PositionToMap(this.ParsePosition(data[i], nil)))
 	}
 
 	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.FilterByArrayPositions(result, "symbol", symbolsNormalized))}

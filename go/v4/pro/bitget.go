@@ -3728,7 +3728,7 @@ func (this *Bitget) HandleOrderBookUnSubscription(client any, message any) {
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var messageHash string = "unsubscribe:orderbook:" + *this.SafeString(market, "symbol", "")
 	var subMessageHash string = "orderbook:" + *symbol
-	if ccxt.InOp(this.Orderbooks, symbol) {
+	if _, ok := this.Orderbooks[*symbol]; ok {
 		delete(this.Orderbooks, *symbol)
 	}
 	if client.(ccxt.ClientInterface).SubscriptionHas(subMessageHash) {
@@ -3758,7 +3758,7 @@ func (this *Bitget) HandleTradesUnSubscription(client any, message any) {
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var messageHash string = "unsubscribe:trade:" + *this.SafeString(market, "symbol", "")
 	var subMessageHash string = "trade:" + *symbol
-	if ccxt.InOp(this.Trades, symbol) {
+	if _, ok := this.Trades[*symbol]; ok {
 		delete(this.Trades, *symbol)
 	}
 	if client.(ccxt.ClientInterface).SubscriptionHas(subMessageHash) {

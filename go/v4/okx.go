@@ -2681,7 +2681,7 @@ func (this *Okx) fetchAccountsBody(ch chan AsyncResult[[]Account], optionalArgs 
 	var data []any = SafeListTyped(response, "data")
 	var result []any = []any{}
 	for i := 0; i < len(data); i++ {
-		var account any = DerefScalar(data[i])
+		var account any = data[i]
 		var accountId *string = this.SafeString(account, "uid")
 		var typeVar *string = this.SafeString(account, "acctLv")
 		result = append(result, map[string]any{
@@ -4222,7 +4222,7 @@ func (this *Okx) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRateHi
 	var rates []any = []any{}
 	var data []any = SafeListTyped(response, "data")
 	for i := 0; i < len(data); i++ {
-		var rate any = DerefScalar(data[i])
+		var rate any = data[i]
 		var timestamp *int64 = this.SafeInteger(rate, "fundingTime")
 		rates = append(rates, map[string]any{
 			"info":        rate,
@@ -10062,7 +10062,7 @@ func (this *Okx) fetchCrossBorrowRatesBody(ch chan AsyncResult[map[string]CrossB
 	// code-keyed dict (CrossBorrowRates); base fetchCrossBorrowRate looks up by code
 	var rates map[string]any = map[string]any{}
 	for i := 0; i < len(data); i++ {
-		var rate map[string]any = this.ParseBorrowRate(DerefScalar(data[i]))
+		var rate map[string]any = this.ParseBorrowRate(data[i])
 		var code *string = this.SafeString(rate, "currency")
 		if code != nil {
 			rates[*code] = rate
@@ -12803,7 +12803,7 @@ func (this *Okx) fetchConvertCurrenciesBody(ch chan AsyncResult[Currencies], opt
 	var result map[string]any = map[string]any{}
 	var data []any = SafeListTyped(response, "data")
 	for i := 0; i < len(data); i++ {
-		var entry any = DerefScalar(data[i])
+		var entry any = data[i]
 		var id *string = this.SafeString(entry, "ccy")
 		var code *string = this.SafeCurrencyCode(id)
 		if code != nil {

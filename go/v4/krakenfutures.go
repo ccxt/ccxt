@@ -3283,7 +3283,7 @@ func (this *Krakenfutures) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], o
 	// a position-size leg(asset equals the contract id) - keep the cash legs only
 	var rows []any = []any{}
 	for i := 0; i < len(logs); i++ {
-		var row any = DerefScalar(logs[i])
+		var row any = logs[i]
 		var asset *string = this.SafeString(row, "asset")
 		var contract *string = this.SafeString(row, "contract")
 		if (asset != nil) && (asset != contract && (asset == nil || contract == nil || *asset != *contract)) {

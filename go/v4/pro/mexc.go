@@ -2474,18 +2474,18 @@ func (this *Mexc) HandleUnsubscriptions(client any, messageHashes any) {
 			}
 		} else if strings.Index(*messageHash, "orderbook") >= 0 {
 			var symbol string = strings.Replace(*messageHash, "unsubscribe:orderbook:", "", 1)
-			if ccxt.InOp(this.Orderbooks, symbol) {
-				ccxt.Remove(this.Orderbooks, symbol)
+			if _, ok := this.Orderbooks[symbol]; ok {
+				delete(this.Orderbooks, symbol)
 			}
 		} else if strings.Index(*messageHash, "trades") >= 0 {
 			var symbol string = strings.Replace(*messageHash, "unsubscribe:trades:", "", 1)
 			if _, ok := this.Trades[symbol]; ok {
-				ccxt.Remove(this.Trades, symbol)
+				delete(this.Trades, symbol)
 			}
 		} else if strings.Index(*messageHash, "fundingRate") >= 0 {
 			var symbol string = strings.Replace(*messageHash, "unsubscribe:fundingRate:", "", 1)
-			if ccxt.InOp(this.FundingRates, symbol) {
-				ccxt.Remove(this.FundingRates, symbol)
+			if _, ok := this.FundingRates[symbol]; ok {
+				delete(this.FundingRates, symbol)
 			}
 		}
 	}

@@ -4584,7 +4584,7 @@ func (this *Digifinex) fetchCrossBorrowRateBody(ch chan AsyncResult[CrossBorrowR
 	var data []any = SafeListTyped(response, "list")
 	var result any = nil
 	for i := 0; i < len(data); i++ {
-		var entry any = DerefScalar(data[i])
+		var entry any = data[i]
 		if this.SafeString(entry, "currency") != nil && *this.SafeString(entry, "currency") == code {
 			result = entry
 		}

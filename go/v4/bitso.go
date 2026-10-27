@@ -1622,7 +1622,7 @@ func (this *Bitso) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any, optio
 	var payload []any = SafeListTyped(response, "payload")
 	var orders []any = []any{}
 	for i := 0; i < len(payload); i++ {
-		var id any = DerefScalar(payload[i])
+		var id any = payload[i]
 		orders = append(orders, OrderToMap(this.ParseOrder(id, market)))
 	}
 
@@ -1669,7 +1669,7 @@ func (this *Bitso) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalArg
 	var payload []any = SafeListTyped(response, "payload")
 	var canceledOrders []any = []any{}
 	for i := 0; i < len(payload); i++ {
-		var order map[string]any = OrderToMap(this.ParseOrder(DerefScalar(payload[i])))
+		var order map[string]any = OrderToMap(this.ParseOrder(payload[i]))
 		canceledOrders = append(canceledOrders, order)
 	}
 

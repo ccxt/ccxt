@@ -4488,7 +4488,7 @@ func (this *Polymarket) HandleOrderBookDelta(client any, event any) {
 	}
 	for k := 0; k < len(updatedSymbols); k++ {
 		var outcome string = updatedSymbols[k]
-		var orderbook any = ccxt.GetValue(this.Orderbooks, outcome)
+		var orderbook any = this.Orderbooks[outcome]
 		client.(ccxt.ClientInterface).Resolve(orderbook, "orderbook::"+outcome)
 		client.(ccxt.ClientInterface).Resolve(orderbook, "ticker::"+outcome)
 	}

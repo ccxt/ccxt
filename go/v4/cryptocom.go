@@ -1082,7 +1082,7 @@ func (this *Cryptocom) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], 
 	var data []any = SafeListTyped(resultResponse, "data")
 	var result []any = []any{}
 	for i := 0; i < len(data); i++ {
-		var market any = DerefScalar(data[i])
+		var market any = data[i]
 		var inst_type *string = this.SafeString(market, "inst_type")
 		var spot bool = (inst_type != nil && *inst_type == "CCY_PAIR")
 		var swap bool = (inst_type != nil && *inst_type == "PERPETUAL_SWAP")

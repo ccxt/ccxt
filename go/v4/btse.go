@@ -1779,7 +1779,7 @@ func (this *Btse) fetchOpenInterestsBody(ch chan AsyncResult[map[string]OpenInte
 	var data []any = SafeListTyped(response, "data")
 	var rows []any = []any{}
 	for i := 0; i < len(data); i++ {
-		var row any = DerefScalar(data[i])
+		var row any = data[i]
 		// spot rows do not carry an open interest
 		if this.SafeString(row, "openInterest") != nil {
 			rows = append(rows, row)
@@ -1888,7 +1888,7 @@ func (this *Btse) fetchFundingRatesBody(ch chan AsyncResult[map[string]FundingRa
 	var data []any = SafeListTyped(response, "data")
 	var rows []any = []any{}
 	for i := 0; i < len(data); i++ {
-		var row any = DerefScalar(data[i])
+		var row any = data[i]
 		// spot rows do not carry a funding rate
 		if this.SafeString(row, "fundingRate") != nil {
 			rows = append(rows, row)

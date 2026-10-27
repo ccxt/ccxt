@@ -1066,7 +1066,7 @@ func (this *Dydx) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRateH
 	var rates []any = []any{}
 	var rows []any = SafeListTyped(response, "historicalFunding")
 	for i := 0; i < len(rows); i++ {
-		var entry any = DerefScalar(rows[i])
+		var entry any = rows[i]
 		var timestamp *int64 = this.Parse8601(this.SafeString(entry, "effectiveAt"))
 		var marketId *string = this.SafeString(entry, "ticker")
 		rates = append(rates, map[string]any{

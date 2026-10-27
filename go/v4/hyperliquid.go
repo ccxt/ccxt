@@ -2967,7 +2967,7 @@ func (this *Hyperliquid) createOrdersBody(ch chan AsyncResult[[]Order], orders a
 	var statuses []any = SafeListTyped(data, "statuses")
 	var ordersToBeParsed []any = []any{}
 	for i := 0; i < len(statuses); i++ {
-		var order any = DerefScalar(statuses[i])
+		var order any = statuses[i]
 		if IsEqual(order, "waitingForTrigger") {
 			ordersToBeParsed = append(ordersToBeParsed, map[string]any{
 				"status": order,
@@ -3322,7 +3322,7 @@ func (this *Hyperliquid) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any,
 	var statuses []any = SafeListTyped(data, "statuses")
 	var orders []any = []any{}
 	for i := 0; i < len(statuses); i++ {
-		var status any = DerefScalar(statuses[i])
+		var status any = statuses[i]
 		orders = append(orders, OrderToMap(this.SafeOrder(map[string]any{
 			"info":   status,
 			"status": status,

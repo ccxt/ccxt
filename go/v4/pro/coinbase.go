@@ -1348,7 +1348,7 @@ func (this *Coinbase) HandleOrderBook(client any, message map[string]any) {
 			if _, ok := this.Orderbooks[*symbol]; !ok {
 				this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
 			}
-		} else if !(ccxt.InOp(this.Orderbooks, symbol)) {
+		} else if _, ok := this.Orderbooks[*symbol]; !ok {
 			continue
 		}
 		var orderbook any

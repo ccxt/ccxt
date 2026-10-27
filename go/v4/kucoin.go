@@ -2524,7 +2524,7 @@ func (this *Kucoin) fetchContractMarketsBody(ch chan AsyncResult[[]MarketInterfa
 	var result []any = []any{}
 	var data []any = SafeListTyped(response, "data")
 	for i := 0; i < len(data); i++ {
-		var market any = DerefScalar(data[i])
+		var market any = data[i]
 		var id *string = this.SafeString(market, "symbol")
 		var expiry *int64 = this.SafeInteger(market, "expireDate")
 		var future bool = (this.SafeString(market, "nextFundingRateTime") == nil)
@@ -13854,7 +13854,7 @@ func (this *Kucoin) fetchFundingRatesBody(ch chan AsyncResult[map[string]Funding
 	var data []any = SafeListTyped(response, "data")
 	var rates []any = []any{}
 	for i := 0; i < len(data); i++ {
-		var entry any = DerefScalar(data[i])
+		var entry any = data[i]
 		var marketId *string = this.SafeString(entry, "symbol")
 		// kucoin returns funding index symbols (e.g. .ETHUSDTMFPI8H) alongside tradeable contracts
 		var isFundingIndex bool = (marketId != nil) && (strings.HasPrefix(*marketId, "."))

@@ -5115,7 +5115,7 @@ func (this *Aster) fetchPositionsBody(ch chan AsyncResult[[]Position], optionalA
 	methodOption, paramsMethod := this.HandleOptionStringAndParams(params, "fetchPositions", "method")
 	var defaultMethod *string = methodOption
 	if defaultMethod == nil {
-		var options any = this.SafeDict(this.Options, "fetchPositions")
+		var options map[string]any = this.SafeDictMap(this.Options, "fetchPositions")
 		if options == nil {
 			defaultMethod = this.SafeString(this.Options, "fetchPositions", "positionRisk")
 		} else {

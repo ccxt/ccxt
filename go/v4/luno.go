@@ -763,7 +763,7 @@ func (this *Luno) fetchAccountsBody(ch chan AsyncResult[[]Account], optionalArgs
 	var wallets []any = SafeListTyped(response, "balance")
 	var result []any = []any{}
 	for i := 0; i < len(wallets); i++ {
-		var account any = DerefScalar(wallets[i])
+		var account any = wallets[i]
 		var accountId *string = this.SafeString(account, "account_id")
 		var currencyId *string = this.SafeString(account, "asset")
 		var code *string = this.SafeCurrencyCode(currencyId)

@@ -6994,7 +6994,7 @@ func (this *Bitget) fetchTradingFeesBody(ch chan AsyncResult[map[string]TradingF
 		var rows []any = SafeListTyped(utaResponse, "data")
 		var utaResult map[string]any = map[string]any{}
 		for i := 0; i < len(rows); i++ {
-			var entry any = DerefScalar(rows[i])
+			var entry any = rows[i]
 			var entryMarketId *string = this.SafeString(entry, "symbol")
 			if (entryMarketId == nil) || (this.Markets_by_id() == nil) || !(InOp(this.Markets_by_id(), entryMarketId)) {
 				continue
@@ -16338,7 +16338,7 @@ func (this *Bitget) fetchConvertCurrenciesBody(ch chan AsyncResult[Currencies], 
 	var result map[string]any = map[string]any{}
 	var data []any = SafeListTyped(response, "data")
 	for i := 0; i < len(data); i++ {
-		var entry any = DerefScalar(data[i])
+		var entry any = data[i]
 		var id *string = this.SafeString(entry, "coin")
 		var code *string = this.SafeCurrencyCode(id)
 		if code != nil {

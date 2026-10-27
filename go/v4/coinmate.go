@@ -529,7 +529,7 @@ func (this *Coinmate) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 	var data []any = SafeListTyped(response, "data")
 	var result []any = []any{}
 	for i := 0; i < len(data); i++ {
-		var market any = DerefScalar(data[i])
+		var market any = data[i]
 		var id *string = this.SafeString(market, "name")
 		var baseId *string = this.SafeString(market, "firstCurrency")
 		var quoteId *string = this.SafeString(market, "secondCurrency")

@@ -4368,7 +4368,7 @@ func (this *Bybit) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRate
 	var result map[string]any = SafeMapTyped(response, "result")
 	var resultList []any = SafeListTyped(result, "list")
 	for i := 0; i < len(resultList); i++ {
-		var entry any = DerefScalar(resultList[i])
+		var entry any = resultList[i]
 		var timestamp *int64 = this.SafeInteger(entry, "fundingRateTimestamp")
 		rates = append(rates, map[string]any{
 			"info":        entry,
@@ -6109,7 +6109,7 @@ func (this *Bybit) createOrdersBody(ch chan AsyncResult[[]Order], orders any, op
 	var codes []any = SafeListTyped(retInfo, "list")
 	// extend the error with the unsuccessful orders
 	for i := 0; i < len(codes); i++ {
-		var code any = DerefScalar(codes[i])
+		var code any = codes[i]
 		var retCode *int64 = this.SafeInteger(code, "code")
 		if retCode == nil || *retCode != 0 {
 			AddElementToObject(data, i, this.Extend(GetValue(data, i), code))
