@@ -614,7 +614,7 @@ export default class predictfun extends Exchange {
         const orphanSlugs: string[] = [];
         for (let i = 0; i < queriesLength; i++) {
             const request: Dict = {
-                'query': queries[i],
+                'query': this.safeString (queries, i, ''),
                 'limit': limit,
                 'includeResolved': includeResolved,
             };
@@ -1710,7 +1710,7 @@ export default class predictfun extends Exchange {
     override setSandboxMode (enable: boolean) {
         // read before the flag is overwritten: only an actual switch touches the token, so calling
         // this twice with the same value is a no-op rather than a forced re-authentication
-        const wasSandbox = this.safeBool (this.options, 'sandboxMode', false);
+        const wasSandbox = (this.safeBool (this.options, 'sandboxMode', false) === true);
         super.setSandboxMode (enable);
         // the testnet is a different chain, so the EIP-712 chainId and every verifying contract
         // change with it - and the venue serves the testnet without an api key
@@ -2143,7 +2143,7 @@ export default class predictfun extends Exchange {
         const wanted: Dict = {};
         const wantedOutcomes = this.toArray (outcomes);
         for (let i = 0; i < outcomesLength; i++) {
-            const outcomeObj = this.outcome (wantedOutcomes[i]);
+            const outcomeObj = this.outcome (this.safeString (wantedOutcomes, i));
             const wantedId = this.safeString (outcomeObj, 'outcomeId', '');
             wanted[wantedId] = true;
         }
@@ -2780,13 +2780,7 @@ export default class predictfun extends Exchange {
         rHex = this.padHexToEven (rHex);
         sHex = this.padHexToEven (sHex);
         const yParity = this.safeInteger (signature, 'v');
-        const signedFields: string[] = [];
-        for (let i = 0; i < fields.length; i++) {
-            signedFields.push (fields[i]);
-        }
-        signedFields.push (this.rlpEncodeBytes (this.intToRlpHex (yParity)));
-        signedFields.push (this.rlpEncodeBytes (rHex));
-        signedFields.push (this.rlpEncodeBytes (sHex));
+        const signedFields: string[] = this.arrayConcat (fields, [ this.rlpEncodeBytes (this.intToRlpHex (yParity)), this.rlpEncodeBytes (rHex), this.rlpEncodeBytes (sHex) ]);
         return '0x02' + this.rlpEncodeList (signedFields);
     }
 
@@ -3055,7 +3049,7 @@ export default class predictfun extends Exchange {
             throw error;
         }
         for (let i = 0; i < messageHashesLength; i++) {
-            client.reject (error, messageHashes[i]);
+            client.reject (error, this.safeString (messageHashes, i, ''));
         }
     }
 
@@ -3375,10 +3369,10 @@ export default class predictfun extends Exchange {
      */
     outcomesByMarketId (marketId: Str): any[] {
         const result: any[] = [];
-        const cached = this.outcomes;
-        if ((marketId === undefined) || (cached === undefined)) {
+        if ((marketId === undefined) || (this.outcomes === undefined)) {
             return result;
         }
+        const cached = this.outcomes;
         const handles = Object.keys (cached);
         const handlesLength = handles.length;
         for (let i = 0; i < handlesLength; i++) {
