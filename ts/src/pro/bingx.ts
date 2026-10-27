@@ -1694,7 +1694,7 @@ export default class bingx extends bingxRest {
             }
         }
         stored.append (parsedOrder);
-        const symbol = this.safeString (parsedOrder, 'symbol');
+        const symbol = this.safeString (parsedOrder, 'symbol', '');
         const spotHash = 'spot:order';
         const swapHash = 'swap:order';
         let messageHash: Str = swapHash;
