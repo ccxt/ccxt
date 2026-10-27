@@ -95,7 +95,7 @@ export default class hashkey extends hashkeyRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const symbolValue: string = market['symbol'];
+        const symbolValue: string = this.safeString (market, 'symbol', '');
         const interval = this.safeString (this.timeframes, timeframe, timeframe);
         const topic = 'kline_' + interval;
         const messageHash = 'ohlcv:' + symbolValue + ':' + timeframe;
@@ -196,7 +196,7 @@ export default class hashkey extends hashkeyRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const symbolValue: string = market['symbol'];
+        const symbolValue: string = this.safeString (market, 'symbol', '');
         const topic = 'realtimes';
         const messageHash = 'ticker:' + symbolValue;
         return await this.wathPublic (market, topic, messageHash, params);
@@ -256,7 +256,7 @@ export default class hashkey extends hashkeyRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const symbolValue: string = market['symbol'];
+        const symbolValue: string = this.safeString (market, 'symbol', '');
         const topic = 'trade';
         const messageHash = 'trades:' + symbolValue;
         const trades = await this.wathPublic (market, topic, messageHash, params);
@@ -328,7 +328,7 @@ export default class hashkey extends hashkeyRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const symbolValue: string = market['symbol'];
+        const symbolValue: string = this.safeString (market, 'symbol', '');
         const topic = 'depth';
         const messageHash = 'orderbook:' + symbolValue;
         const orderbook: WsOrderBook = await this.wathPublic (market, topic, messageHash, params);
@@ -752,8 +752,8 @@ export default class hashkey extends hashkeyRest {
         const url = this.getPrivateUrl (listenKey);
         const client = this.client (url);
         this.setBalanceCache (client, typeMarketType, messageHash);
-        const fetchBalanceSnapshot = this.handleOptionBoolAndParams (this.options, 'watchBalance', 'fetchBalanceSnapshot', true)[0];
-        const awaitBalanceSnapshot = this.handleOptionBoolAndParams (this.options, 'watchBalance', 'awaitBalanceSnapshot', false)[0];
+        const [ fetchBalanceSnapshot ] = this.handleOptionBoolAndParams (this.options, 'watchBalance', 'fetchBalanceSnapshot', true);
+        const [ awaitBalanceSnapshot ] = this.handleOptionBoolAndParams (this.options, 'watchBalance', 'awaitBalanceSnapshot', false);
         if (fetchBalanceSnapshot && awaitBalanceSnapshot) {
             await client.future (typeMarketType + ':fetchBalanceSnapshot');
         }
