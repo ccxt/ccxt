@@ -2010,7 +2010,7 @@ export default class hashkey extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const [ until, paramsUntil ] = this.handleOptionAndParams (params, methodName, 'until');
+        const [ until, paramsUntil ] = this.handleOptionIntegerAndParams (params, methodName, 'until');
         if (until !== undefined) {
             request['endTime'] = until;
         }
@@ -2061,7 +2061,7 @@ export default class hashkey extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const [ until, paramsUntil ] = this.handleOptionAndParams (params, methodName, 'until');
+        const [ until, paramsUntil ] = this.handleOptionIntegerAndParams (params, methodName, 'until');
         if (until !== undefined) {
             request['endTime'] = until;
         }
@@ -2398,7 +2398,7 @@ export default class hashkey extends Exchange {
         if (since === undefined) {
             throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a since argument');
         }
-        const [ until, paramsUntil ] = this.handleOptionAndParams (params, methodName, 'until');
+        const [ until, paramsUntil ] = this.handleOptionIntegerAndParams (params, methodName, 'until');
         if (until === undefined) {
             throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires an until argument');
         }
@@ -3038,7 +3038,7 @@ export default class hashkey extends Exchange {
             //     }
             //
         } else if (marketType === 'swap') {
-            const [ isTrigger, paramsTrigger ] = this.handleTriggerOptionAndParams (paramsMarketType, methodName, false);
+            const [ isTrigger, paramsTrigger ] = this.handleOptionBoolAndParams2 (paramsMarketType, methodName, 'stop', 'trigger', false);
             if (isTrigger === true) {
                 request['type'] = 'STOP';
             } else {
@@ -3238,7 +3238,7 @@ export default class hashkey extends Exchange {
             //     }
             //
         } else if (marketType === 'swap') {
-            const [ isTrigger, paramsTrigger ] = this.handleTriggerOptionAndParams (paramsMarketType, methodName, false);
+            const [ isTrigger, paramsTrigger ] = this.handleOptionBoolAndParams2 (paramsMarketType, methodName, 'stop', 'trigger', false);
             if (isTrigger === true) {
                 request['type'] = 'STOP';
             }
@@ -3413,7 +3413,7 @@ export default class hashkey extends Exchange {
             'symbol': market['id'],
         };
         const isTrigger: Bool = false;
-        const [ isTriggerTrigger, paramsTrigger ] = this.handleTriggerOptionAndParams (paramsMethodName, methodNameOption, isTrigger);
+        const [ isTriggerTrigger, paramsTrigger ] = this.handleOptionBoolAndParams2 (paramsMethodName, methodNameOption, 'stop', 'trigger', isTrigger);
         if (isTriggerTrigger === true) {
             request['type'] = 'STOP';
         } else {
@@ -3510,7 +3510,7 @@ export default class hashkey extends Exchange {
         if (since !== undefined) {
             request['startTime'] = since;
         }
-        const [ until, paramsUntil ] = this.handleOptionAndParams (params, methodName, 'until');
+        const [ until, paramsUntil ] = this.handleOptionIntegerAndParams (params, methodName, 'until');
         if (until !== undefined) {
             request['endTime'] = until;
         }
@@ -3563,7 +3563,7 @@ export default class hashkey extends Exchange {
                 throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a symbol argument for swap markets');
             }
             request['symbol'] = this.safeString (market, 'id');
-            const [ isTrigger, paramsTrigger ] = this.handleTriggerOptionAndParams (paramsMarketType, methodName, false);
+            const [ isTrigger, paramsTrigger ] = this.handleOptionBoolAndParams2 (paramsMarketType, methodName, 'stop', 'trigger', false);
             if (isTrigger === true) {
                 request['type'] = 'STOP';
             } else {
