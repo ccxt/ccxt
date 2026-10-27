@@ -214,7 +214,6 @@ export default class revolutx extends Exchange {
 
     override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
         let requestHeaders: NullableDict = undefined;
-        let requestBody: Str = undefined;
         const implodedPath = this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         const apiName = api[0];
@@ -225,6 +224,7 @@ export default class revolutx extends Exchange {
         const baseUrl: string = baseApiUrl;
         let url = baseUrl + '/' + implodedPath;
         let queryString = '';
+        let bodyString = '';
         if (apiName === 'private') {
             this.checkRequiredCredentials ();
             const timestamp = this.milliseconds ().toString ();
@@ -239,11 +239,9 @@ export default class revolutx extends Exchange {
                     url += '?' + queryString;
                 }
             } else {
-                requestBody = this.json (query);
+                bodyString = this.json (query);
             }
             const requestPath = '/api/' + implodedPath;
-            const bodyValue = requestBody;
-            const bodyString = (bodyValue !== undefined) ? bodyValue : '';
             const message = timestamp + method.toUpperCase () + requestPath + queryString + bodyString;
             const signature = eddsa (this.encode (message), this.privateKey, ed25519);
             requestHeaders = {
@@ -261,12 +259,12 @@ export default class revolutx extends Exchange {
                     url += '?' + queryString;
                 }
             } else {
-                requestBody = this.json (query);
+                bodyString = this.json (query);
                 requestHeaders = { 'Content-Type': 'application/json' };
             }
         }
         const headersResult = requestHeaders;
-        const bodyResult = requestBody;
+        const bodyResult = (bodyString !== '') ? bodyString : undefined;
         return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult };
     }
 
