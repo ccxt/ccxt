@@ -2060,7 +2060,7 @@ func (this *Pacifica) HandleMessage(client any, message any) {
 	//     }
 	// }
 	//
-	if ccxt.IsEqual(this.HandleErrorMessage(client, message), true) {
+	if this.HandleErrorMessage(client, message) == true {
 		return
 	}
 	var postType *string = this.SafeString(message, "type")

@@ -4127,7 +4127,7 @@ func (this *Lbank) Sign(path string, optionalArgs ...any) any {
 		url = *contractUrl + "/" + this.ImplodeParams(path, params)
 	}
 	if api[1] == "public" {
-		if len(ObjectKeys(paramsOmitted)) > 0 {
+		if paramsOmittedMap, _ := paramsOmitted.(map[string]any); len(paramsOmittedMap) > 0 {
 			url += "?" + this.Urlencode(this.Keysort(paramsOmitted))
 		}
 	} else {

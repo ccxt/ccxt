@@ -1565,7 +1565,7 @@ func (this *Polymarket) HandleAck(client any, message any) {
 					if authStatus != nil && *authStatus == "ok" {
 						// resolve the future object directly so it stays
 						// cached and later authenticate calls reuse it
-						var future any = this.SafeValue(client.(ccxt.ClientInterface).GetFutures(), "authenticated")
+						var future any = client.(ccxt.ClientInterface).GetFutures()["authenticated"]
 						if future != nil {
 							future.(*ccxt.Future).Resolve(true)
 						}

@@ -4972,7 +4972,7 @@ func (this *Btse) Sign(path string, optionalArgs ...any) any {
 	var isBodyDelete bool = (method == "DELETE") && (strings.HasPrefix(path, "futures/api/v3/"))
 	var queryString string = ""
 	if ((method == "GET") || (method == "DELETE")) && !isBodyDelete {
-		if len(ObjectKeys(query)) > 0 {
+		if queryMap, _ := query.(map[string]any); len(queryMap) > 0 {
 			queryString = this.Urlencode(query)
 			url += "?" + queryString
 		}

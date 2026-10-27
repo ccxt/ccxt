@@ -16610,7 +16610,7 @@ func (this *Bitget) Sign(path string, optionalArgs ...any) any {
 	var url string = this.ImplodeHostname(apiUrl) + payload
 	var query any = this.Omit(params, this.ExtractParams(path))
 	if !signed && (method == "GET") {
-		if len(ObjectKeys(query)) > 0 {
+		if queryMap, _ := query.(map[string]any); len(queryMap) > 0 {
 			url = url + "?" + this.Urlencode(query)
 		}
 	}
@@ -16624,7 +16624,7 @@ func (this *Bitget) Sign(path string, optionalArgs ...any) any {
 			requestBody = this.Json(params)
 			auth = Add(auth, requestBody)
 		} else {
-			if len(ObjectKeys(params)) > 0 {
+			if paramsMap, _ := params.(map[string]any); len(paramsMap) > 0 {
 				var sortedParams map[string]any = this.Keysort(params)
 				var queryInner string = "?" + this.Urlencode(sortedParams, true)
 				// check #21169 pr

@@ -1547,7 +1547,7 @@ func (this *Onetrading) HandleAuthenticationMessage(client any, message map[stri
 	//        "time": "2022-06-24T20:45:25.447488Z"
 	//    }
 	//
-	var future any = this.SafeValue(client.(ccxt.ClientInterface).GetFutures(), "authenticated")
+	var future any = client.(ccxt.ClientInterface).GetFutures()["authenticated"]
 	if future != nil {
 		future.(*ccxt.Future).Resolve(true)
 	}

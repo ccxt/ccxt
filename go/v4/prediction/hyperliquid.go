@@ -1506,7 +1506,7 @@ func (this *Hyperliquid) ResolveOutcomeInput(outcomeInput any) any {
 			sideHintOrDefault = sideHint
 		}
 		var found any = this.FindOutcomeInMarket(market, sideHintOrDefault)
-		if len(ccxt.ObjectKeys(found)) > 0 {
+		if foundMap, _ := found.(map[string]any); len(foundMap) > 0 {
 			return found
 		}
 	}

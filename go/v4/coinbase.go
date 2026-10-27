@@ -3360,8 +3360,10 @@ func (this *Coinbase) ParseCustomBalance(response any, optionalArgs ...any) map[
 						"total": total,
 					})
 				} else {
-					AddElementToObject(account, "free", Precise.StringAdd(this.SafeString(account, "free"), total))
-					AddElementToObject(account, "total", Precise.StringAdd(this.SafeString(account, "total"), total))
+					account = this.Extend(account, map[string]any{
+						"free":  Precise.StringAdd(this.SafeString(account, "free"), total),
+						"total": Precise.StringAdd(this.SafeString(account, "total"), total),
+					})
 				}
 				if code != nil {
 					result[*code] = account
@@ -3384,9 +3386,11 @@ func (this *Coinbase) ParseCustomBalance(response any, optionalArgs ...any) map[
 						"total": total,
 					})
 				} else {
-					AddElementToObject(account, "free", Precise.StringAdd(this.SafeString(account, "free"), free))
-					AddElementToObject(account, "used", Precise.StringAdd(this.SafeString(account, "used"), used))
-					AddElementToObject(account, "total", Precise.StringAdd(this.SafeString(account, "total"), total))
+					account = this.Extend(account, map[string]any{
+						"free":  Precise.StringAdd(this.SafeString(account, "free"), free),
+						"used":  Precise.StringAdd(this.SafeString(account, "used"), used),
+						"total": Precise.StringAdd(this.SafeString(account, "total"), total),
+					})
 				}
 				if code != nil {
 					result[*code] = account
@@ -3603,11 +3607,11 @@ func (this *Coinbase) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], option
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes268019 []any = r1.Value
-		if retRes268019 == nil {
+		var retRes268419 []any = r1.Value
+		if retRes268419 == nil {
 			ch <- AsyncResult[[]LedgerEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes268019)}
+			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes268419)}
 		}
 		return nil
 	}
@@ -3619,8 +3623,8 @@ func (this *Coinbase) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], option
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	listRecv3431, _ := r2.Value, r2.Value != nil
-	var requestparamsValueVariable []any = listRecv3431
+	listRecv3435, _ := r2.Value, r2.Value != nil
+	var requestparamsValueVariable []any = listRecv3435
 	var request map[string]any = MapTyped(requestparamsValueVariable[0])
 	var paramsValue map[string]any = MapTyped(requestparamsValueVariable[1])
 	// for pagination use parameter 'starting_after'
@@ -4109,11 +4113,11 @@ func (this *Coinbase) createMarketBuyOrderWithCostBody(ch chan AsyncResult[Order
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes310815 map[string]any = StructResultMap(r1.Value, OrderToMap)
-	if retRes310815 == nil {
+	var retRes311215 map[string]any = StructResultMap(r1.Value, OrderToMap)
+	if retRes311215 == nil {
 		ch <- AsyncResult[Order]{}
 	} else {
-		ch <- AsyncResult[Order]{Value: OrderFromMap(retRes310815)}
+		ch <- AsyncResult[Order]{Value: OrderFromMap(retRes311215)}
 	}
 	return nil
 }
@@ -4182,11 +4186,11 @@ func (this *Coinbase) createOrderBody(ch chan AsyncResult[Order], symbol string,
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes315319 map[string]any = StructResultMap(r1.Value, OrderToMap)
-		if retRes315319 == nil {
+		var retRes315719 map[string]any = StructResultMap(r1.Value, OrderToMap)
+		if retRes315719 == nil {
 			ch <- AsyncResult[Order]{}
 		} else {
-			ch <- AsyncResult[Order]{Value: OrderFromMap(retRes315319)}
+			ch <- AsyncResult[Order]{Value: OrderFromMap(retRes315719)}
 		}
 		return nil
 	}
@@ -4921,11 +4925,11 @@ func (this *Coinbase) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes372719 []any = r1.Value
-		if retRes372719 == nil {
+		var retRes373119 []any = r1.Value
+		if retRes373119 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes372719)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes373119)}
 		}
 		return nil
 	}
@@ -5168,11 +5172,11 @@ func (this *Coinbase) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optional
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes389319 []any = r1.Value
-		if retRes389319 == nil {
+		var retRes389719 []any = r1.Value
+		if retRes389719 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes389319)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes389719)}
 		}
 		return nil
 	}
@@ -5181,11 +5185,11 @@ func (this *Coinbase) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optional
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	var retRes389515 []any = OrdersToList(r2.Value)
-	if retRes389515 == nil {
+	var retRes389915 []any = OrdersToList(r2.Value)
+	if retRes389915 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes389515)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes389915)}
 	}
 	return nil
 }
@@ -5233,11 +5237,11 @@ func (this *Coinbase) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], option
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes391719 []any = r1.Value
-		if retRes391719 == nil {
+		var retRes392119 []any = r1.Value
+		if retRes392119 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes391719)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes392119)}
 		}
 		return nil
 	}
@@ -5246,11 +5250,11 @@ func (this *Coinbase) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], option
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	var retRes391915 []any = OrdersToList(r2.Value)
-	if retRes391915 == nil {
+	var retRes392315 []any = OrdersToList(r2.Value)
+	if retRes392315 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes391915)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes392315)}
 	}
 	return nil
 }
@@ -5287,11 +5291,11 @@ func (this *Coinbase) fetchCanceledOrdersBody(ch chan AsyncResult[[]Order], opti
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes393415 []any = OrdersToList(r.Value)
-	if retRes393415 == nil {
+	var retRes393815 []any = OrdersToList(r.Value)
+	if retRes393815 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes393415)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes393815)}
 	}
 	return nil
 }
@@ -5347,11 +5351,11 @@ func (this *Coinbase) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes396419 []any = r1.Value
-		if retRes396419 == nil {
+		var retRes396819 []any = r1.Value
+		if retRes396819 == nil {
 			ch <- AsyncResult[[]OHLCV]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes396419)}
+			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes396819)}
 		}
 		return nil
 	}
@@ -5566,11 +5570,11 @@ func (this *Coinbase) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalAr
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes411619 []any = r1.Value
-		if retRes411619 == nil {
+		var retRes412019 []any = r1.Value
+		if retRes412019 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes411619)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes412019)}
 		}
 		return nil
 	}
@@ -5947,8 +5951,8 @@ func (this *Coinbase) fetchDepositAddressesByNetworkBody(ch chan AsyncResult[map
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv5586, _ := r1.Value, r1.Value != nil
-	var requestparamsValueVariable []any = listRecv5586
+	listRecv5590, _ := r1.Value, r1.Value != nil
+	var requestparamsValueVariable []any = listRecv5590
 	var request map[string]any = MapTyped(requestparamsValueVariable[0])
 	var paramsValue map[string]any = MapTyped(requestparamsValueVariable[1])
 
@@ -7184,7 +7188,8 @@ func (this *Coinbase) Sign(path string, optionalArgs ...any) any {
 	var fullPath string = "/" + pathPart + "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var savedPath string = fullPath
-	var queryLength int = len(ObjectKeys(query))
+	queryMap, _ := query.(map[string]any)
+	var queryLength int = len(queryMap)
 	if method == "GET" {
 		if queryLength > 0 {
 			fullPath += "?" + this.UrlencodeWithArrayRepeat(query)

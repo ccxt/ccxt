@@ -13528,7 +13528,7 @@ func (this *Bybit) Sign(path string, optionalArgs ...any) any {
 	}
 	var url any = this.ImplodeHostname(apiUrl) + "/" + path
 	if apiName == "public" {
-		if len(ObjectKeys(params)) > 0 {
+		if paramsMap, _ := params.(map[string]any); len(paramsMap) > 0 {
 			url = this.ImplodeHostname(apiUrl) + "/" + path + "?" + this.Rawencode(params)
 		}
 	} else if apiName == "private" {
@@ -13539,7 +13539,7 @@ func (this *Bybit) Sign(path string, optionalArgs ...any) any {
 		var isV5UnifiedAccount bool = (GetIndexOf(url, "v5") >= 0)
 		var timestamp string = ToString(this.Nonce())
 		if isOpenapi {
-			if len(ObjectKeys(params)) > 0 {
+			if paramsMap, _ := params.(map[string]any); len(paramsMap) > 0 {
 				requestBody = SafeStringPtr(this.Json(params))
 			} else {
 				// this fix for PHP is required otherwise it generates

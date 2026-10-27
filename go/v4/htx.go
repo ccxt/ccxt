@@ -10241,7 +10241,7 @@ func (this *Htx) Sign(path string, optionalArgs ...any) any {
 				}
 			}
 		} else {
-			if len(ObjectKeys(query)) > 0 {
+			if queryMap, _ := query.(map[string]any); len(queryMap) > 0 {
 				url += "?" + this.Urlencode(query)
 			}
 		}
@@ -10270,7 +10270,7 @@ func (this *Htx) Sign(path string, optionalArgs ...any) any {
 		hostname = hostnames
 		url += this.ImplodeParams(path, params)
 		if access != nil && *access == "public" {
-			if len(ObjectKeys(query)) > 0 {
+			if queryMap, _ := query.(map[string]any); len(queryMap) > 0 {
 				url += "?" + this.Urlencode(query)
 			}
 		} else if access != nil && *access == "private" {

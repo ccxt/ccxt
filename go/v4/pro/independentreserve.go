@@ -277,7 +277,7 @@ func (this *Independentreserve) HandleOrderBook(client any, message map[string]a
 	if _, ok := this.Orderbooks[symbol]; !ok {
 		this.Orderbooks[symbol] = this.OrderBook(map[string]any{})
 	}
-	var orderbook ccxt.OrderBookInterface = ccxt.OrderBookTyped(this.Orderbooks[symbol])
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks[symbol].(ccxt.OrderBookInterface)
 	if event != nil && *event == "OrderBookSnapshot" {
 		var snapshot map[string]any = this.ParseOrderBook(orderBook, symbol, timestamp, "Bids", "Offers", "Price", "Volume")
 		orderbook.(ccxt.OrderBookInterface).Reset(snapshot)

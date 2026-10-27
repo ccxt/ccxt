@@ -896,7 +896,7 @@ func (this *Deribit) HandleOrderBook(client any, message map[string]any) {
 	}
 	var storedOrderBook ccxt.OrderBookInterface
 	if symbol != nil {
-		storedOrderBook = ccxt.OrderBookTyped(this.Orderbooks[*symbol])
+		storedOrderBook = this.Orderbooks[*symbol].(ccxt.OrderBookInterface)
 	}
 	var asks []any = ccxt.SafeListTypedDefault(data, "asks", []any{})
 	var bids []any = ccxt.SafeListTypedDefault(data, "bids", []any{})

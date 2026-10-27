@@ -2718,7 +2718,7 @@ func (this *Hollaex) Sign(path string, optionalArgs ...any) any {
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var requestPath string = "/" + this.Version + "/" + this.ImplodeParams(path, params)
 	if (method == "GET") || (method == "DELETE") {
-		if len(ObjectKeys(query)) > 0 {
+		if queryMap, _ := query.(map[string]any); len(queryMap) > 0 {
 			requestPath += "?" + this.Urlencode(query)
 		}
 	}
@@ -2742,7 +2742,7 @@ func (this *Hollaex) Sign(path string, optionalArgs ...any) any {
 		}
 		if method == "POST" {
 			AddElementToObject(requestHeaders, "Content-type", "application/json")
-			if len(ObjectKeys(query)) > 0 {
+			if queryMap, _ := query.(map[string]any); len(queryMap) > 0 {
 				requestBody = this.Json(query)
 				auth = Add(auth, requestBody)
 			}

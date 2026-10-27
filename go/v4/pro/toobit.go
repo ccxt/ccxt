@@ -820,7 +820,7 @@ func (this *Toobit) HandleOrderBook(client any, message map[string]any) {
 		}
 		var orderBook ccxt.OrderBookInterface
 		if symbol != nil {
-			orderBook = ccxt.OrderBookTyped(this.Orderbooks[*symbol])
+			orderBook = this.Orderbooks[*symbol].(ccxt.OrderBookInterface)
 		}
 		var timestamp *int64 = this.SafeInteger(entry, "t")
 		var bids []any = ccxt.SafeListTypedDefault(entry, "b", []any{})

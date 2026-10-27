@@ -1399,7 +1399,7 @@ func (this *Weex) HandleOrderBook(client any, message map[string]any) {
 	}
 	var orderbook ccxt.OrderBookInterface
 	if symbol != nil {
-		orderbook = ccxt.OrderBookTyped(this.Orderbooks[*symbol])
+		orderbook = this.Orderbooks[*symbol].(ccxt.OrderBookInterface)
 	}
 	var timestamp *int64 = this.SafeInteger(message, "E")
 	var event *string = this.SafeString(message, "e")

@@ -4878,7 +4878,7 @@ func (this *Kraken) Sign(path string, optionalArgs ...any) any {
 	var apiName string = api[0]
 	var url string = "/" + this.Version + "/" + apiName + "/" + path
 	if apiName == "public" {
-		if len(ObjectKeys(params)) > 0 {
+		if paramsMap, _ := params.(map[string]any); len(paramsMap) > 0 {
 			// rawencode is used to address https://github.com/ccxt/ccxt/issues/12872
 			url += "?" + this.UrlencodeNested(params)
 		}

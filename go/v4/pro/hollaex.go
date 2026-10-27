@@ -808,7 +808,7 @@ func (this *Hollaex) HandleMessage(client any, message map[string]any) {
 	//         }
 	//     }
 	//
-	if !ccxt.IsEqual(this.HandleErrorMessage(client, message), true) {
+	if this.HandleErrorMessage(client, message) != true {
 		return
 	}
 	var content *string = this.SafeString(message, "message")

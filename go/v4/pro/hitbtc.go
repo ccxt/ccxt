@@ -428,7 +428,7 @@ func (this *Hitbtc) HandleOrderBook(client any, message map[string]any) {
 		}
 		var orderbook ccxt.OrderBookInterface
 		if symbol != nil {
-			orderbook = ccxt.OrderBookTyped(this.Orderbooks[*symbol])
+			orderbook = this.Orderbooks[*symbol].(ccxt.OrderBookInterface)
 		}
 		var timestamp *int64 = this.SafeInteger(item, "t")
 		var nonce *int64 = this.SafeInteger(item, "s")
@@ -1955,7 +1955,7 @@ func (this *Hitbtc) HandleAuthenticate(client any, message map[string]any) any {
 	var success *bool = this.SafeBool(message, "result")
 	var messageHash string = "authenticated"
 	if success != nil && *success == true {
-		var future any = this.SafeValue(client.(ccxt.ClientInterface).GetFutures(), messageHash)
+		var future any = client.(ccxt.ClientInterface).GetFutures()[messageHash]
 		future.(*ccxt.Future).Resolve(true)
 	} else {
 		error := ccxt.AuthenticationError(this.Id + " " + this.Json(message))

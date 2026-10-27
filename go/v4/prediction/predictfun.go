@@ -4822,7 +4822,7 @@ func (this *Predictfun) Sign(path string, optionalArgs ...any) any {
 	var url string = *baseUrl + "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
 	if method == "GET" {
-		if len(ccxt.ObjectKeys(query)) > 0 {
+		if queryMap, _ := query.(map[string]any); len(queryMap) > 0 {
 			url += "?" + this.Urlencode(query)
 		}
 	}

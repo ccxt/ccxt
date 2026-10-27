@@ -5384,7 +5384,7 @@ func (this *Poloniex) Sign(path string, optionalArgs ...any) any {
 	var bodyJson *string = nil
 	var signedHeaders any = nil
 	if (apiName == "public") || (apiName == "swapPublic") {
-		if len(ObjectKeys(query)) > 0 {
+		if queryMap, _ := query.(map[string]any); len(queryMap) > 0 {
 			url = url + "?" + this.Urlencode(query)
 		}
 	} else {
@@ -5394,7 +5394,7 @@ func (this *Poloniex) Sign(path string, optionalArgs ...any) any {
 		auth += "/" + implodedPath
 		if (method == "POST") || (method == "PUT") || (method == "DELETE") {
 			auth += "\n" // eslint-disable-line quotes
-			if isArray || (len(ObjectKeys(query)) > 0) {
+			if queryMap, _ := query.(map[string]any); isArray || (len(queryMap) > 0) {
 				bodyJson = SafeStringPtr(this.Json(query))
 				auth += "requestBody=" + *bodyJson + "&"
 			}
@@ -5405,7 +5405,7 @@ func (this *Poloniex) Sign(path string, optionalArgs ...any) any {
 			}, query)
 			sortedQuery = this.Keysort(sortedQuery)
 			auth += "\n" + this.Urlencode(sortedQuery) // eslint-disable-line quotes
-			if len(ObjectKeys(query)) > 0 {
+			if queryMap, _ := query.(map[string]any); len(queryMap) > 0 {
 				url = url + "?" + this.Urlencode(query)
 			}
 		}

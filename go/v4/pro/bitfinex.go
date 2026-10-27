@@ -1496,7 +1496,7 @@ func (this *Bitfinex) HandleAuthenticationMessage(client any, message map[string
 	var status *string = this.SafeString(message, "status")
 	if status != nil && *status == "OK" {
 		// we resolve the future here permanently so authentication only happens once
-		var future any = this.SafeValue(client.(ccxt.ClientInterface).GetFutures(), messageHash)
+		var future any = client.(ccxt.ClientInterface).GetFutures()[messageHash]
 		future.(*ccxt.Future).Resolve(true)
 	} else {
 		error := ccxt.AuthenticationError(this.Json(message))

@@ -2485,7 +2485,7 @@ func (this *Onetrading) Sign(path string, optionalArgs ...any) any {
 	var url string = *apiUrl + "/" + this.Version + "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
 	if apiName == "public" {
-		if len(ObjectKeys(query)) > 0 {
+		if queryMap, _ := query.(map[string]any); len(queryMap) > 0 {
 			url += "?" + this.Urlencode(query)
 		}
 	} else if apiName == "private" {
@@ -2503,7 +2503,7 @@ func (this *Onetrading) Sign(path string, optionalArgs ...any) any {
 		if method == "POST" {
 			headersSigned["Content-Type"] = "application/json"
 		} else {
-			if len(ObjectKeys(query)) > 0 {
+			if queryMap, _ := query.(map[string]any); len(queryMap) > 0 {
 				url += "?" + this.Urlencode(query)
 			}
 		}

@@ -5955,7 +5955,7 @@ func (this *Phemex) Sign(path string, optionalArgs ...any) any {
 	var url string = requestPath
 	var queryString string = ""
 	if (method == "GET") || (method == "DELETE") || (method == "PUT") || (url == "/positions/assign") {
-		if len(ObjectKeys(query)) > 0 {
+		if queryMap, _ := query.(map[string]any); len(queryMap) > 0 {
 			queryString = this.UrlencodeWithArrayRepeat(query)
 			url += "?" + queryString
 		}

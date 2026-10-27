@@ -4162,7 +4162,7 @@ func (this *Nado) Sign(path string, optionalArgs ...any) any {
 		headersValue["Accept-Encoding"] = "gzip, br, deflate"
 	}
 	if method == "GET" {
-		if len(ObjectKeys(query)) > 0 {
+		if queryMap, _ := query.(map[string]any); len(queryMap) > 0 {
 			url = *baseApiUrl + pathSuffix + "?" + this.Urlencode(query)
 		}
 	} else {

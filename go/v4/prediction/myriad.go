@@ -5585,7 +5585,7 @@ func (this *Myriad) Sign(path string, optionalArgs ...any) any {
 	// included — the previous logic only sent a body for authenticated requests)
 	var bodyValue *string = nil
 	if method != "GET" {
-		if len(ccxt.ObjectKeys(query)) > 0 {
+		if queryMap, _ := query.(map[string]any); len(queryMap) > 0 {
 			bodyValue = ccxt.SafeStringPtr(this.Json(query))
 		}
 	}

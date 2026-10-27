@@ -3004,7 +3004,7 @@ func (this *Htx) HandleAuthenticate(client any, message map[string]any) {
 	//        "data": { "user-id": "35930539" }
 	//    }
 	//
-	var promise any = ccxt.GetValue(client.(ccxt.ClientInterface).GetFutures(), "auth")
+	var promise any = client.(ccxt.ClientInterface).GetFutures()["auth"]
 	promise.(*ccxt.Future).Resolve(ccxt.ToGetsLimit(message))
 }
 func (this *Htx) HandleErrorMessage(client any, message map[string]any) any {
@@ -3127,7 +3127,7 @@ func (this *Htx) HandleErrorMessage(client any, message map[string]any) any {
 	return true
 }
 func (this *Htx) HandleMessage(client any, message map[string]any) {
-	if ccxt.IsEqual(this.HandleErrorMessage(client, message), true) {
+	if this.HandleErrorMessage(client, message) == true {
 		//
 		//     {"id":1583414227,"status":"ok","subbed":"market.btcusdt.mbp.150","ts":1583414229143}
 		//

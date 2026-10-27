@@ -2687,7 +2687,7 @@ func (this *Opinion) HandleOrderBook(client any, message any) {
 	}
 	var orderbook ccxt.OrderBookInterface
 	if sym != nil {
-		orderbook = ccxt.OrderBookTyped(this.Orderbooks[*sym])
+		orderbook = this.Orderbooks[*sym].(ccxt.OrderBookInterface)
 	}
 	var sideStr *string = this.SafeString(message, "side")
 	var bookSide any = func() any {
@@ -3214,7 +3214,7 @@ func (this *Opinion) Sign(path string, optionalArgs ...any) any {
 	}
 	var bodyValue *string = nil
 	if method == "GET" {
-		if len(ccxt.ObjectKeys(query)) > 0 {
+		if queryMap, _ := query.(map[string]any); len(queryMap) > 0 {
 			url += "?" + this.Urlencode(query)
 		}
 	} else {

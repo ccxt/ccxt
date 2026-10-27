@@ -1849,13 +1849,13 @@ func (this *Blockchaincom) Sign(path string, optionalArgs ...any) any {
 		requestBody = SafeStringPtr(this.Json(query))
 	}
 	if apiName == "public" {
-		if len(ObjectKeys(query)) > 0 {
+		if queryMap, _ := query.(map[string]any); len(queryMap) > 0 {
 			url += "?" + this.Urlencode(query)
 		}
 	} else if isPrivate {
 		this.CheckRequiredCredentials()
 		if method == "GET" {
-			if len(ObjectKeys(query)) > 0 {
+			if queryMap, _ := query.(map[string]any); len(queryMap) > 0 {
 				url += "?" + this.Urlencode(query)
 			}
 		} else {

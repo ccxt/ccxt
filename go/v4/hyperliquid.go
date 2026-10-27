@@ -5818,7 +5818,7 @@ func (this *Hyperliquid) transferBody(ch chan AsyncResult[TransferEntry], code s
 		listRecv5480, _ := r2.Value, r2.Value != nil
 		var isUnifiedqueryVariable []any = listRecv5480
 		isUnified = GetValue(isUnifiedqueryVariable, 0)
-		query = GetValue(isUnifiedqueryVariable, 1)
+		query = isUnifiedqueryVariable[1]
 		useSendAsset = (isUnified == true)
 	}
 	if useSendAsset {

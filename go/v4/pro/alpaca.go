@@ -366,7 +366,7 @@ func (this *Alpaca) HandleOrderBook(client any, message map[string]any) {
 	}
 	var orderbook ccxt.OrderBookInterface
 	if symbol != nil {
-		orderbook = ccxt.OrderBookTyped(this.Orderbooks[*symbol])
+		orderbook = this.Orderbooks[*symbol].(ccxt.OrderBookInterface)
 	}
 	if isSnapshot != nil && *isSnapshot {
 		var snapshot map[string]any = this.ParseOrderBook(message, symbol, timestamp, "b", "a", "p", "s")
@@ -976,7 +976,7 @@ func (this *Alpaca) HandleAuthenticate(client any, message any) {
 	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	var status *string = this.SafeString(data, "status")
 	if (T != nil && *T == "success") || (status != nil && *status == "authorized") {
-		var promise any = ccxt.GetValue(client.(ccxt.ClientInterface).GetFutures(), "authenticated")
+		var promise any = client.(ccxt.ClientInterface).GetFutures()["authenticated"]
 		promise.(*ccxt.Future).Resolve(ccxt.ToGetsLimit(message))
 		return
 	}

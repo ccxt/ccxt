@@ -5207,7 +5207,7 @@ func (this *Pacifica) Sign(path string, optionalArgs ...any) any {
 	var headersValue map[string]any = map[string]any{
 		"Content-Type": "application/json",
 	}
-	if (method == "GET") && (len(ObjectKeys(paramsOmitted)) > 0) {
+	if paramsOmittedMap, _ := paramsOmitted.(map[string]any); (method == "GET") && (len(paramsOmittedMap) > 0) {
 		url += "?" + this.Urlencode(paramsOmitted)
 		headersValue["Accept"] = "*/*"
 	}

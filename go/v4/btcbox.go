@@ -1148,7 +1148,7 @@ func (this *Btcbox) Sign(path string, optionalArgs ...any) any {
 	}
 	var url string = *apiUrl + "/" + this.Version + "/" + path
 	if apiName == "public" {
-		if len(ObjectKeys(params)) > 0 {
+		if paramsMap, _ := params.(map[string]any); len(paramsMap) > 0 {
 			url = *apiUrl + "/" + this.Version + "/" + path + "?" + this.Urlencode(params)
 		}
 	} else if apiName == "webApi" {

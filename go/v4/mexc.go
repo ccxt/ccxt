@@ -8307,7 +8307,7 @@ func (this *Mexc) Sign(path string, optionalArgs ...any) any {
 		url = *apiUrl + "/" + this.ImplodeParams(pathValue, paramsValue)
 		var paramsOmitted any = this.Omit(paramsValue, this.ExtractParams(pathValue))
 		if access == "public" {
-			if len(ObjectKeys(paramsOmitted)) > 0 {
+			if paramsOmittedMap, _ := paramsOmitted.(map[string]any); len(paramsOmittedMap) > 0 {
 				url += "?" + this.Urlencode(paramsOmitted)
 			}
 		} else {

@@ -283,14 +283,16 @@ func (this *Luno) HandleOrderBook(client any, message map[string]any, subscripti
 	//         "timestamp": 1660598775360
 	//     }
 	//
-	var symbol any = subscription["symbol"]
-	var symbolValue *string = this.SafeString(subscription, "symbol", "")
-	var messageHash string = "orderbook:" + *symbolValue
+	var symbol *string = this.SafeString(subscription, "symbol", "")
+	var messageHash string = "orderbook:" + *symbol
 	var timestamp *int64 = this.SafeInteger(message, "timestamp")
-	if !(ccxt.InOp(this.Orderbooks, symbol)) {
-		ccxt.AddElementToObject(this.Orderbooks, symbol, this.IndexedOrderBook(map[string]any{}))
+	if _, ok := this.Orderbooks[*symbol]; !ok {
+		this.Orderbooks[*symbol] = this.IndexedOrderBook(map[string]any{})
 	}
-	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
+	var orderbook ccxt.OrderBookInterface
+	if symbol != nil {
+		orderbook = this.Orderbooks[*symbol].(ccxt.OrderBookInterface)
+	}
 	var asks []any = ccxt.SafeListTyped(message, "asks")
 	if asks == nil {
 		var inSequence bool = this.IsOrderBookDeltaInSequence(client, message, symbol)
@@ -310,7 +312,7 @@ func (this *Luno) HandleOrderBook(client any, message map[string]any, subscripti
 	ccxt.AddElementToObject(orderbook, "nonce", nonce)
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
-func (this *Luno) CustomParseOrderBook(orderbook map[string]any, symbol any, optionalArgs ...any) any {
+func (this *Luno) CustomParseOrderBook(orderbook map[string]any, symbol *string, optionalArgs ...any) any {
 	var timestamp *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = timestamp
 	var bidsKey string = ccxt.GetArgString(optionalArgs, 1, "bids")
@@ -485,8 +487,11 @@ func (this *Luno) ReduceOrderVolume(orderSide any, orderId *string, tradedAmount
  * @param {string} symbol unified market symbol of the book
  * @returns {boolean} true if the delta can be applied to the stored book, false if it must be discarded
  */
-func (this *Luno) IsOrderBookDeltaInSequence(client any, message map[string]any, symbol any) bool {
-	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
+func (this *Luno) IsOrderBookDeltaInSequence(client any, message map[string]any, symbol *string) bool {
+	var orderbook any
+	if symbol != nil {
+		orderbook = this.Orderbooks[*symbol]
+	}
 	var storedNonce *int64 = this.SafeInteger(orderbook, "nonce")
 	if storedNonce == nil {
 		// no snapshot was received yet, deltas cannot be applied to an

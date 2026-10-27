@@ -2233,8 +2233,8 @@ func (this *Toobit) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 	var response any = map[string]any{}
 	if market["spot"] == true {
 		requestparamsRequestVariable := this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
-		request := GetValue(requestparamsRequestVariable, 0)
-		paramsRequest := GetValue(requestparamsRequestVariable, 1)
+		request := requestparamsRequestVariable[0]
+		paramsRequest := requestparamsRequestVariable[1]
 
 		r1 := <-this.PrivatePostApiV1SpotOrder(this.Extend(request, paramsRequest))
 		if r1.Err != nil {
@@ -2243,7 +2243,7 @@ func (this *Toobit) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 		response = r1.Raw
 	} else {
 		requestparamsRequestVariable := this.CreateContractOrderRequest(symbol, typeVar, side, amount, price, params)
-		request := GetValue(requestparamsRequestVariable, 0)
+		request := requestparamsRequestVariable[0]
 		paramsRequest := requestparamsRequestVariable[1]
 
 		r2 := <-this.PrivatePostApiV1FuturesOrder(this.Extend(request, paramsRequest))

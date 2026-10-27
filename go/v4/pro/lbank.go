@@ -117,7 +117,7 @@ func (this *Lbank) fetchOHLCVWsBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symb
 	var watchOHLCVOptions map[string]any = ccxt.SafeMapTyped(this.Options, "watchOHLCV")
 	var timeframes map[string]any = ccxt.SafeMapTyped(watchOHLCVOptions, "timeframes")
 	var timeframeId *string = this.SafeString(timeframes, timeframe, timeframe)
-	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("fetchOHLCV:"+market["symbol"].(string)+":", timeframeId))
+	var messageHash *string = ccxt.SafeStringPtr("fetchOHLCV:" + market["symbol"].(string) + ":" + *timeframeId)
 	var message map[string]any = map[string]any{
 		"action":  "request",
 		"request": "kbar",
@@ -182,7 +182,7 @@ func (this *Lbank) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbol
 	var watchOHLCVOptions map[string]any = ccxt.SafeMapTyped(this.Options, "watchOHLCV")
 	var timeframes map[string]any = ccxt.SafeMapTyped(watchOHLCVOptions, "timeframes")
 	var timeframeId *string = this.SafeString(timeframes, timeframe, timeframe)
-	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ohlcv:"+market["symbol"].(string)+":", timeframeId))
+	var messageHash *string = ccxt.SafeStringPtr("ohlcv:" + market["symbol"].(string) + ":" + *timeframeId)
 	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 	var subscribe map[string]any = map[string]any{
 		"action":    "subscribe",

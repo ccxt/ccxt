@@ -2763,7 +2763,7 @@ func (this *Apex) Sign(path string, optionalArgs ...any) any {
 	var signPath string = "/api/" + path
 	var signBody *string = nil
 	if strings.ToUpper(method) != "POST" {
-		if len(ObjectKeys(params)) > 0 {
+		if paramsMap, _ := params.(map[string]any); len(paramsMap) > 0 {
 			signPath += "?" + this.Rawencode(params)
 			url += "?" + this.Rawencode(params)
 		}

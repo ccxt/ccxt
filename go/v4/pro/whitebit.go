@@ -280,7 +280,7 @@ func (this *Whitebit) HandleOrderBook(client any, message map[string]any) {
 	}
 	var orderbook ccxt.OrderBookInterface
 	if symbol != nil {
-		orderbook = ccxt.OrderBookTyped(this.Orderbooks[*symbol])
+		orderbook = this.Orderbooks[*symbol].(ccxt.OrderBookInterface)
 	}
 	ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
 	ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))
@@ -1410,7 +1410,7 @@ func (this *Whitebit) HandleAuthenticate(client any, message map[string]any) any
 	//
 	//     { error: null, result: { status: "success" }, id: 1656084550 }
 	//
-	var future any = ccxt.GetValue(client.(ccxt.ClientInterface).GetFutures(), "authenticated")
+	var future any = client.(ccxt.ClientInterface).GetFutures()["authenticated"]
 	future.(*ccxt.Future).Resolve(1)
 	return message
 }
@@ -1464,7 +1464,7 @@ func (this *Whitebit) HandleMessage(client any, message map[string]any) {
 	// pong
 	//    { error: null, result: "pong", id: 0 }
 	//
-	if !ccxt.IsEqual(this.HandleErrorMessage(client, message), true) {
+	if this.HandleErrorMessage(client, message) != true {
 		return
 	}
 	var result *string = this.SafeString(message, "result")

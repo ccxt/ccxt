@@ -2718,7 +2718,8 @@ func (this *Zebpay) Sign(path string, optionalArgs ...any) any {
 	var timestamp string = strconv.FormatInt(this.Milliseconds(), 10)
 	var signature string = ""
 	var query any = this.Omit(paramsOmitted, this.ExtractParams(path))
-	var queryLength int = len(ObjectKeys(query))
+	queryMap, _ := query.(map[string]any)
+	var queryLength int = len(queryMap)
 	var access string = api[0]
 	if access == "public" {
 		if (method == "GET") || (method == "DELETE") {

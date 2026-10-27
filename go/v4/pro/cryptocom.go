@@ -378,7 +378,7 @@ func (this *Cryptocom) HandleOrderBook(client any, message map[string]any) {
 	}
 	var orderbook ccxt.OrderBookInterface
 	if symbol != nil {
-		orderbook = ccxt.OrderBookTyped(this.Orderbooks[*symbol])
+		orderbook = this.Orderbooks[*symbol].(ccxt.OrderBookInterface)
 	}
 	var channel *string = this.SafeString(message, "channel")
 	var nonce *int64 = this.SafeInteger2(data, "u", "s")
@@ -2203,7 +2203,7 @@ func (this *Cryptocom) HandleAuthenticate(client any, message map[string]any) {
 	//
 	//  { id: 1648132625434, method: "public/auth", code: 0 }
 	//
-	var future any = this.SafeValue(client.(ccxt.ClientInterface).GetFutures(), "authenticated")
+	var future any = client.(ccxt.ClientInterface).GetFutures()["authenticated"]
 	future.(*ccxt.Future).Resolve(true)
 }
 func (this *Cryptocom) HandleUnsubscribe(client any, message map[string]any) {

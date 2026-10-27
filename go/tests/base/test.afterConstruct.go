@@ -33,7 +33,7 @@ func TestOptionsNetworks(exchange ccxt.ICoreExchange, skippedProperties any) {
 		}
 		// 1) ensure 'networks' dictionary exists in options
 		Assert(exchange.IsDictionary(networks), "exchange.options[\"networks\"] is not a dict")
-		if len(ObjectKeys(networks)) == 0 {
+		if networksMap, _ := networks.(map[string]any); len(networksMap) == 0 {
 			return
 		}
 		// 2) ensure 'networksById' dictionary exists in options

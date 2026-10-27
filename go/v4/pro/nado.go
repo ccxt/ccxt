@@ -1939,7 +1939,7 @@ func (this *Nado) authenticateBody(ch chan ccxt.AsyncResult[*string], optionalAr
 	var messageHash string = "authenticated"
 	var authenticated any = this.SafeValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), messageHash)
 	if authenticated != nil {
-		var future any = this.SafeValue(client.(ccxt.ClientInterface).GetFutures(), messageHash)
+		var future any = client.(ccxt.ClientInterface).GetFutures()[messageHash]
 		if future != nil {
 
 			r := <-future.(*ccxt.Future).Await()
@@ -2690,7 +2690,7 @@ func (this *Nado) HandleOrderBook(client any, message map[string]any) {
 	}
 	var orderbook ccxt.OrderBookInterface
 	if symbol != nil {
-		orderbook = ccxt.OrderBookTyped(this.Orderbooks[*symbol])
+		orderbook = this.Orderbooks[*symbol].(ccxt.OrderBookInterface)
 	}
 	var messageHash string = "orderbook:" + *symbol
 	var maxTimestamp *string = this.SafeString(orderbook, "maxTimestamp")

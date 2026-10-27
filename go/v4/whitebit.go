@@ -5914,7 +5914,7 @@ func (this *Whitebit) Sign(path string, optionalArgs ...any) any {
 	}
 	var url string = *apiUrl + pathWithParams
 	if accessibility == "public" {
-		if len(ObjectKeys(query)) > 0 {
+		if queryMap, _ := query.(map[string]any); len(queryMap) > 0 {
 			url += "?" + this.Urlencode(query)
 		}
 	}

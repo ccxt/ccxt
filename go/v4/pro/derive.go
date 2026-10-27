@@ -1628,7 +1628,7 @@ func (this *Derive) HandleAuth(client any, message map[string]any) {
 	var idsLength int = len(ids)
 	if idsLength > 0 {
 		// client.resolve (message, messageHash)
-		var future any = this.SafeValue(client.(ccxt.ClientInterface).GetFutures(), "authenticated")
+		var future any = client.(ccxt.ClientInterface).GetFutures()["authenticated"]
 		future.(*ccxt.Future).Resolve(true)
 	} else {
 		error := ccxt.AuthenticationError(this.Json(message))

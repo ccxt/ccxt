@@ -1744,7 +1744,8 @@ func (this *Bitbns) Sign(path string, optionalArgs ...any) any {
 	var url string = baseUrl + "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var nonce *string = this.NumberToString(this.Nonce())
-	var queryLength int = len(ObjectKeys(query))
+	queryMap, _ := query.(map[string]any)
+	var queryLength int = len(queryMap)
 	var postBody string = "{}"
 	if queryLength > 0 {
 		postBody = this.Json(query)

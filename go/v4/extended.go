@@ -4916,7 +4916,7 @@ func (this *Extended) Sign(path string, optionalArgs ...any) any {
 		}
 	}
 	var url string = this.ImplodeHostname(baseApiUrl) + "/api/" + api[0] + endpoint
-	if ((method == "GET") || (method == "DELETE") || queryPost) && (len(ObjectKeys(query)) > 0) {
+	if queryMap, _ := query.(map[string]any); ((method == "GET") || (method == "DELETE") || queryPost) && (len(queryMap) > 0) {
 		url += "?" + this.UrlencodeWithArrayRepeat(query)
 	}
 	return map[string]any{

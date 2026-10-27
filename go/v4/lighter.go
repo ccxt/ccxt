@@ -5138,7 +5138,7 @@ func (this *Lighter) Sign(path string, optionalArgs ...any) any {
 			"Authorization": this.CreateAuth(params),
 		}
 	}
-	if len(ObjectKeys(params)) > 0 {
+	if paramsMap, _ := params.(map[string]any); len(paramsMap) > 0 {
 		if method == "POST" {
 			var multipartHeaders map[string]any = map[string]any{
 				"Content-Type": "multipart/form-data",

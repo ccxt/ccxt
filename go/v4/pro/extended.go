@@ -139,7 +139,7 @@ func (this *Extended) HandleOrderBook(client any, message map[string]any) {
 	}
 	var orderbook ccxt.OrderBookInterface
 	if symbol != nil {
-		orderbook = ccxt.OrderBookTyped(this.Orderbooks[*symbol])
+		orderbook = this.Orderbooks[*symbol].(ccxt.OrderBookInterface)
 	}
 	if typeVar != nil && *typeVar == "SNAPSHOT" {
 		var snapshot map[string]any = this.ParseOrderBook(data, symbol, timestamp, "b", "a", "p", "q")

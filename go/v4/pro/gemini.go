@@ -806,7 +806,7 @@ func (this *Gemini) HandleOrderBookForMultidata(client any, rawOrderBookChanges 
 	}
 	var orderbook ccxt.OrderBookInterface
 	if symbol != nil {
-		orderbook = ccxt.OrderBookTyped(this.Orderbooks[*symbol])
+		orderbook = this.Orderbooks[*symbol].(ccxt.OrderBookInterface)
 	}
 	var bids any = orderbook.GetBids()
 	var asks any = orderbook.GetAsks()

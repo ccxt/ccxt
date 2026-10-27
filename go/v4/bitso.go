@@ -2603,7 +2603,7 @@ func (this *Bitso) Sign(path string, optionalArgs ...any) any {
 	var endpoint string = "/" + this.Version + "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
 	if (method == "GET") || (method == "DELETE") {
-		if len(ObjectKeys(query)) > 0 {
+		if queryMap, _ := query.(map[string]any); len(queryMap) > 0 {
 			endpoint += "?" + this.Urlencode(query)
 		}
 	}
@@ -2619,7 +2619,7 @@ func (this *Bitso) Sign(path string, optionalArgs ...any) any {
 		endpoint = "/api" + endpoint
 		var request string = nonce + method + endpoint
 		if (method != "GET") && (method != "DELETE") {
-			if len(ObjectKeys(query)) > 0 {
+			if queryMap, _ := query.(map[string]any); len(queryMap) > 0 {
 				var jsonBody string = this.Json(query)
 				requestBody = SafeStringPtr(jsonBody)
 				request += jsonBody

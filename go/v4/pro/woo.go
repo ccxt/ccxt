@@ -2238,7 +2238,7 @@ func (this *Woo) HandleUnSubscription(client any, message map[string]any) {
 	this.CleanCache(subscription)
 }
 func (this *Woo) HandleMessage(client any, message map[string]any) {
-	if ccxt.IsEqual(this.HandleErrorMessage(client, message), true) {
+	if this.HandleErrorMessage(client, message) == true {
 		return
 	}
 	var methods map[string]any = map[string]any{
@@ -2358,7 +2358,7 @@ func (this *Woo) HandleAuth(client any, message map[string]any) {
 	var success *bool = this.SafeBool(message, "success")
 	if success != nil && *success == true {
 		// client.resolve (message, messageHash)
-		var future any = this.SafeValue(client.(ccxt.ClientInterface).GetFutures(), "authenticated")
+		var future any = client.(ccxt.ClientInterface).GetFutures()["authenticated"]
 		future.(*ccxt.Future).Resolve(true)
 	} else {
 		error := ccxt.AuthenticationError(this.Json(message))

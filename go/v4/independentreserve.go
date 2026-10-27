@@ -1605,7 +1605,7 @@ func (this *Independentreserve) Sign(path string, optionalArgs ...any) any {
 	}
 	var url string = *apiUrl + "/" + path
 	if apiName == "public" {
-		if len(ObjectKeys(params)) > 0 {
+		if paramsMap, _ := params.(map[string]any); len(paramsMap) > 0 {
 			url += "?" + this.Urlencode(params)
 		}
 	} else {

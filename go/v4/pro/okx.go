@@ -3559,7 +3559,7 @@ func (this *Okx) HandleAuthenticate(client any, message map[string]any) {
 	//
 	//     { event: "login", success: true }
 	//
-	var future any = this.SafeValue(client.(ccxt.ClientInterface).GetFutures(), "authenticated")
+	var future any = client.(ccxt.ClientInterface).GetFutures()["authenticated"]
 	future.(*ccxt.Future).Resolve(true)
 }
 func (this *Okx) Ping(client any) any {
@@ -3642,7 +3642,7 @@ func (this *Okx) HandleErrorMessage(client any, message any) any {
 	return true
 }
 func (this *Okx) HandleMessage(client any, message any) {
-	if !ccxt.IsEqual(this.HandleErrorMessage(client, message), true) {
+	if this.HandleErrorMessage(client, message) != true {
 		return
 	}
 	//

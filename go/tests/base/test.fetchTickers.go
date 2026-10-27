@@ -130,7 +130,8 @@ func FetchTickersAmountsTest(exchange ccxt.ICoreExchange, skippedProperties any,
 		if IsEqual(allMarkets, nil) {
 			return
 		}
-		var allMarketsLength int = len(ObjectKeys(allMarkets))
+		allMarketsMap, _ := allMarkets.(map[string]any)
+		var allMarketsLength int = len(allMarketsMap)
 		Assert((obtainedTickersLength <= allMarketsLength), Add(Add(Add(Add(Add(Add(Add(exchange.GetId(), " "), "fetchTickers"), " must return <= than all markets, but returned: "), strconv.Itoa(obtainedTickersLength)), " tickers, "), strconv.Itoa(allMarketsLength)), " markets"))
 	}
 }

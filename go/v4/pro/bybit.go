@@ -1544,7 +1544,7 @@ func (this *Bybit) HandleOrderBook(client any, message map[string]any) {
 	}
 	var orderbook ccxt.OrderBookInterface
 	if symbol != nil {
-		orderbook = ccxt.OrderBookTyped(this.Orderbooks[*symbol])
+		orderbook = this.Orderbooks[*symbol].(ccxt.OrderBookInterface)
 	}
 	ccxt.AddElementToObject(orderbook, "symbol", symbol)
 	if isSnapshot {
@@ -3606,7 +3606,7 @@ func (this *Bybit) HandleErrorMessage(client any, message map[string]any) any {
 }
 func (this *Bybit) HandleMessage(client any, message map[string]any) {
 	var topic *string = this.SafeString2(message, "topic", "op", "")
-	if ccxt.IsEqual(this.HandleErrorMessage(client, message), true) {
+	if this.HandleErrorMessage(client, message) == true {
 		return
 	}
 	// contract pong
@@ -3741,7 +3741,7 @@ func (this *Bybit) HandleAuthenticate(client any, message map[string]any) any {
 	var code *int64 = this.SafeInteger(message, "retCode")
 	var messageHash string = "authenticated"
 	if (success != nil && *success == true) || (code != nil && *code == 0) {
-		var future any = this.SafeValue(client.(ccxt.ClientInterface).GetFutures(), messageHash)
+		var future any = client.(ccxt.ClientInterface).GetFutures()[messageHash]
 		future.(*ccxt.Future).Resolve(true)
 	} else {
 		error := ccxt.AuthenticationError(this.Id + " " + this.Json(message))

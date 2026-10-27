@@ -1009,12 +1009,12 @@ func (this *Phemex) HandleOrderBook(client any, message any) {
 		if _, ok := this.Orderbooks[*symbol]; !ok {
 			this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, depth)
 		}
-		var orderbook ccxt.OrderBookInterface = ccxt.OrderBookTyped(this.Orderbooks[*symbol])
+		var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol].(ccxt.OrderBookInterface)
 		orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
 		client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 	} else {
 		if ccxt.InOp(this.Orderbooks, symbol) {
-			var orderbook ccxt.OrderBookInterface = ccxt.OrderBookTyped(this.Orderbooks[*symbol])
+			var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol].(ccxt.OrderBookInterface)
 			var changes map[string]any = ccxt.SafeDict2Typed(message, "book", "orderbook_p")
 			var asks []any = ccxt.SafeListTypedDefault(changes, "asks", []any{})
 			var bids []any = ccxt.SafeListTypedDefault(changes, "bids", []any{})

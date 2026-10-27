@@ -4818,13 +4818,13 @@ func (this *Krakenfutures) Sign(path string, optionalArgs ...any) any {
 	var apiAccess map[string]any = SafeMapTyped(this.Options["access"], apiName)
 	var methodAccess map[string]any = SafeMapTyped(apiAccess, method)
 	var access *string = this.SafeString(methodAccess, path, "public")
-	var endpoint any = Add(Add(version, "/"), this.ImplodeParams(path, paramsOmitted))
+	var endpoint any = *version + "/" + this.ImplodeParams(path, paramsOmitted)
 	var paramsOmitted2 any = this.Omit(paramsOmitted, this.ExtractParams(path))
 	var query any = endpoint
 	var postData string = ""
 	if path == "batchorder" {
 		postData = "json=" + this.Json(paramsOmitted2)
-	} else if len(ObjectKeys(paramsOmitted2)) > 0 {
+	} else if paramsOmitted2Map, _ := paramsOmitted2.(map[string]any); len(paramsOmitted2Map) > 0 {
 		if InOp(paramsOmitted2, "orderIds") {
 			postData = this.UrlencodeWithArrayRepeat(paramsOmitted2)
 		} else {

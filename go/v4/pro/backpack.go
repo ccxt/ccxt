@@ -2593,7 +2593,7 @@ func (this *Backpack) ParseWsPosition(position map[string]any, optionalArgs ...a
 	}))
 }
 func (this *Backpack) HandleMessage(client any, message any) {
-	if !ccxt.IsEqual(this.HandleErrorMessage(client, message), true) {
+	if this.HandleErrorMessage(client, message) != true {
 		return
 	}
 	var data map[string]any = ccxt.SafeMapTyped(message, "data")

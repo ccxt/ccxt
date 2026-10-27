@@ -1704,7 +1704,7 @@ func (this *P2b) Sign(path string, optionalArgs ...any) any {
 	var url string = *baseUrl + "/" + this.ImplodeParams(path, params)
 	var paramsOmitted any = this.Omit(params, this.ExtractParams(path))
 	if method == "GET" {
-		if len(ObjectKeys(paramsOmitted)) > 0 {
+		if paramsOmittedMap, _ := paramsOmitted.(map[string]any); len(paramsOmittedMap) > 0 {
 			url += "?" + this.Urlencode(paramsOmitted)
 		}
 	}

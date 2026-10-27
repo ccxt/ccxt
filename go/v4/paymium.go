@@ -916,7 +916,8 @@ func (this *Paymium) Sign(path string, optionalArgs ...any) any {
 	var baseUrl *string = baseApiUrl
 	var url string = *baseUrl + "/" + this.Version + "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
-	var hasQuery bool = (len(ObjectKeys(query)) > 0)
+	queryMap, _ := query.(map[string]any)
+	var hasQuery bool = (len(queryMap) > 0)
 	if api[0] == "public" {
 		if hasQuery {
 			url += "?" + this.Urlencode(query)

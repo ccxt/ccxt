@@ -3997,7 +3997,7 @@ func (this *Sxbet) Sign(path string, optionalArgs ...any) any {
 			url += "?" + querystring
 		}
 	} else {
-		if len(ccxt.ObjectKeys(query)) > 0 {
+		if queryMap, _ := query.(map[string]any); len(queryMap) > 0 {
 			bodyValue = ccxt.SafeStringPtr(this.Json(query))
 		}
 	}

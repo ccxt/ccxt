@@ -4463,7 +4463,7 @@ func (this *Grvt) Sign(path string, optionalArgs ...any) any {
 	var url string = *apiUrl + requestPath
 	var queryString string = ""
 	if method == "GET" {
-		if len(ObjectKeys(query)) > 0 {
+		if queryMap, _ := query.(map[string]any); len(queryMap) > 0 {
 			queryString = this.Urlencode(query)
 			url += "?" + queryString
 		}
@@ -4475,7 +4475,7 @@ func (this *Grvt) Sign(path string, optionalArgs ...any) any {
 		}
 		// an empty params dict must serialize as an empty json object, not an empty json array,
 		// php json_encode would produce [] here which the venue rejects with the same 1003 error
-		if len(ObjectKeys(params)) == 0 {
+		if paramsMap, _ := params.(map[string]any); len(paramsMap) == 0 {
 			requestBody = SafeStringPtr("{}")
 		} else {
 			requestBody = SafeStringPtr(this.Json(params))

@@ -2027,7 +2027,7 @@ func (this *Indodax) Sign(path string, optionalArgs ...any) any {
 		var query any = this.Omit(params, this.ExtractParams(path))
 		var requestPath string = "/" + this.ImplodeParams(path, params)
 		url = SafeStringPtr(*apiUrl + requestPath)
-		if len(ObjectKeys(query)) > 0 {
+		if queryMap, _ := query.(map[string]any); len(queryMap) > 0 {
 			url = SafeStringPtr(*apiUrl + requestPath + "?" + this.UrlencodeWithArrayRepeat(query))
 		}
 	} else {

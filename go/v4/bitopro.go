@@ -2485,7 +2485,8 @@ func (this *Bitopro) Sign(path string, optionalArgs ...any) any {
 	var query any = this.Omit(params, this.ExtractParams(path))
 	// keep `Object.keys (x).length` in one expression: the PHP transpiler rewrites that exact shape into
 	// count(x), while a hoisted key list is printed as an array and `.length` then becomes strlen(array)
-	var queryLength int = len(ObjectKeys(query))
+	queryMap, _ := query.(map[string]any)
+	var queryLength int = len(queryMap)
 	var requestHeaders map[string]any = map[string]any{}
 	var isSignedBody bool = (apiName == "private") && ((method == "POST") || (method == "PUT"))
 	var signedBody string = this.Json(params)

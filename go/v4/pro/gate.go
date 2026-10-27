@@ -3397,7 +3397,7 @@ func (this *Gate) authenticateBody(ch chan ccxt.AsyncResult[*string], url any, m
 }
 func (this *Gate) HandleAuthenticationMessage(client any, message map[string]any) {
 	var messageHash string = "authenticated"
-	var future any = this.SafeValue(client.(ccxt.ClientInterface).GetFutures(), messageHash)
+	var future any = client.(ccxt.ClientInterface).GetFutures()[messageHash]
 	future.(*ccxt.Future).Resolve(true)
 }
 func (this *Gate) RequestPrivateAsync(url any, reqParams any, channel any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {

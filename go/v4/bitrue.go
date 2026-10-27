@@ -4072,7 +4072,7 @@ func (this *Bitrue) Sign(path string, optionalArgs ...any) any {
 			}
 			var signMessage any = timestamp + method + (signPrefix + "/" + version + "/" + path)
 			if method == "GET" {
-				if len(ObjectKeys(paramsOmitted)) > 0 {
+				if paramsOmittedMap, _ := paramsOmitted.(map[string]any); len(paramsOmittedMap) > 0 {
 					signMessage = Add(signMessage, "?"+this.Urlencode(paramsOmitted))
 				}
 				var signature string = this.Hmac(this.Encode(signMessage), this.Encode(this.Secret), sha256)
@@ -4098,7 +4098,7 @@ func (this *Bitrue) Sign(path string, optionalArgs ...any) any {
 			}
 		}
 	} else {
-		if len(ObjectKeys(paramsOmitted)) > 0 {
+		if paramsOmittedMap, _ := paramsOmitted.(map[string]any); len(paramsOmittedMap) > 0 {
 			url += "?" + this.Urlencode(paramsOmitted)
 		}
 	}

@@ -5348,7 +5348,7 @@ func (this *Deribit) Sign(path string, optionalArgs ...any) any {
 	var apiName string = api[0]
 	var request string = "/" + "api/" + this.Version + "/" + apiName + "/" + path
 	if apiName == "public" {
-		if len(ObjectKeys(params)) > 0 {
+		if paramsMap, _ := params.(map[string]any); len(paramsMap) > 0 {
 			request += "?" + this.Urlencode(params)
 		}
 	}
@@ -5357,7 +5357,7 @@ func (this *Deribit) Sign(path string, optionalArgs ...any) any {
 		var nonce string = ToString(this.Nonce())
 		var timestamp string = strconv.FormatInt(this.Milliseconds(), 10)
 		var requestBody string = ""
-		if len(ObjectKeys(params)) > 0 {
+		if paramsMap, _ := params.(map[string]any); len(paramsMap) > 0 {
 			request += "?" + this.Urlencode(params)
 		}
 		var requestData string = method + "\n" + request + "\n" + requestBody + "\n" // eslint-disable-line quotes

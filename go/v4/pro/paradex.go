@@ -134,7 +134,7 @@ func (this *Paradex) HandleAuthenticationMessage(client any, message any) {
 	var result map[string]any = ccxt.SafeMapTyped(message, "result")
 	if result != nil {
 		// client.resolve (true, messageHash)
-		var future any = this.SafeValue(client.(ccxt.ClientInterface).GetFutures(), "authenticated")
+		var future any = client.(ccxt.ClientInterface).GetFutures()["authenticated"]
 		if future != nil {
 			future.(*ccxt.Future).Resolve(true)
 		}

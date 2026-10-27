@@ -3598,7 +3598,7 @@ func (this *Ndax) Sign(path string, optionalArgs ...any) any {
 				query = this.Omit(query, "pending2faToken")
 			}
 		}
-		if len(ObjectKeys(query)) > 0 {
+		if queryMap, _ := query.(map[string]any); len(queryMap) > 0 {
 			url += "?" + this.Urlencode(query)
 		}
 	} else if apiName == "private" {
@@ -3623,7 +3623,7 @@ func (this *Ndax) Sign(path string, optionalArgs ...any) any {
 			AddElementToObject(headersSigned, "Content-Type", "application/json")
 			bodySigned = SafeStringPtr(this.Json(query))
 		} else {
-			if len(ObjectKeys(query)) > 0 {
+			if queryMap, _ := query.(map[string]any); len(queryMap) > 0 {
 				url += "?" + this.Urlencode(query)
 			}
 		}

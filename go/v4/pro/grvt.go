@@ -832,7 +832,7 @@ func (this *Grvt) HandleOrderBook(client any, message map[string]any) {
 	}
 	var orderbook ccxt.OrderBookInterface
 	if symbol != nil {
-		orderbook = ccxt.OrderBookTyped(this.Orderbooks[*symbol])
+		orderbook = this.Orderbooks[*symbol].(ccxt.OrderBookInterface)
 	}
 	var sequenceNumber *int64 = this.SafeInteger(message, "sequence_number", 0)
 	var stream *string = this.SafeString(message, "stream")

@@ -1281,7 +1281,7 @@ func (this *Bitget) HandleOrderBook(client any, message any) {
 		}
 		var storedOrderBook ccxt.OrderBookInterface
 		if symbol != nil {
-			storedOrderBook = ccxt.OrderBookTyped(this.Orderbooks[*symbol])
+			storedOrderBook = this.Orderbooks[*symbol].(ccxt.OrderBookInterface)
 		}
 		var isSnapshot bool = (this.SafeString(message, "action") != nil && *this.SafeString(message, "action") == "snapshot") // snapshot does not have a checksum
 		if isSnapshot {
@@ -3501,7 +3501,7 @@ func (this *Bitget) HandleAuthenticate(client any, message any) {
 	//  { event: "login", code: 0 }
 	//
 	var messageHash string = "authenticated"
-	var future any = this.SafeValue(client.(ccxt.ClientInterface).GetFutures(), messageHash)
+	var future any = client.(ccxt.ClientInterface).GetFutures()[messageHash]
 	future.(*ccxt.Future).Resolve(true)
 }
 func (this *Bitget) HandleErrorMessage(client any, message any) any {
@@ -3639,7 +3639,7 @@ func (this *Bitget) HandleMessage(client any, message any) {
 		}
 		return
 	}
-	if ccxt.IsEqual(this.HandleErrorMessage(client, message), true) {
+	if this.HandleErrorMessage(client, message) == true {
 		return
 	}
 	var content *string = this.SafeString(message, "message")

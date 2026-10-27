@@ -2032,7 +2032,7 @@ func (this *Coinbaseinternational) HandleOrderBook(client any, message map[strin
 	}
 	var orderbook ccxt.OrderBookInterface
 	if symbol != nil {
-		orderbook = ccxt.OrderBookTyped(this.Orderbooks[*symbol])
+		orderbook = this.Orderbooks[*symbol].(ccxt.OrderBookInterface)
 	}
 	if !isGrouped && (typeVar == nil || *typeVar != "snapshot") && (this.SafeInteger(orderbook, "nonce") == nil) {
 		return

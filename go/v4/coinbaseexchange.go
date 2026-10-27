@@ -3081,7 +3081,7 @@ func (this *Coinbaseexchange) Sign(path string, optionalArgs ...any) any {
 	var request string = "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
 	if method == "GET" {
-		if len(ObjectKeys(query)) > 0 {
+		if queryMap, _ := query.(map[string]any); len(queryMap) > 0 {
 			request += "?" + this.Urlencode(query)
 		}
 	}
@@ -3095,7 +3095,7 @@ func (this *Coinbaseexchange) Sign(path string, optionalArgs ...any) any {
 		var nonce string = ToString(this.Nonce())
 		var payload string = ""
 		if method != "GET" {
-			if len(ObjectKeys(query)) > 0 {
+			if queryMap, _ := query.(map[string]any); len(queryMap) > 0 {
 				payload = this.Json(query)
 				requestBody = SafeStringPtr(payload)
 			}

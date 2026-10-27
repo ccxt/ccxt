@@ -5815,7 +5815,7 @@ func (this *Aster) Sign(path string, optionalArgs ...any) any {
 	}
 	var url string = *baseApiUrl + "/" + path
 	if (apiName == "fapiPublic") || (apiName == "sapiPublic") {
-		if len(ObjectKeys(params)) > 0 {
+		if paramsMap, _ := params.(map[string]any); len(paramsMap) > 0 {
 			url += "?" + this.Rawencode(params)
 		}
 	} else if (apiName == "fapiPrivate") || (apiName == "sapiPrivate") {

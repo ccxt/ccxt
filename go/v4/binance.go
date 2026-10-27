@@ -17509,7 +17509,7 @@ func (this *Binance) Sign(path string, optionalArgs ...any) any {
 			AddElementToObject(signedHeaders, "Content-Type", "application/x-www-form-urlencoded")
 		}
 	} else {
-		if len(ObjectKeys(params)) > 0 {
+		if paramsMap, _ := params.(map[string]any); len(paramsMap) > 0 {
 			url = url + "?" + this.Urlencode(params)
 		}
 	}

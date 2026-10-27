@@ -2460,7 +2460,7 @@ func (this *Cex) Sign(path string, optionalArgs ...any) any {
 	var query any = this.Omit(params, this.ExtractParams(path))
 	if apiName == "public" {
 		if method == "GET" {
-			if len(ObjectKeys(query)) > 0 {
+			if queryMap, _ := query.(map[string]any); len(queryMap) > 0 {
 				url += "?" + this.Urlencode(query)
 			}
 		} else {

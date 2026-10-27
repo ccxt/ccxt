@@ -2039,7 +2039,7 @@ func (this *Cex) HandleAuthenticationMessage(client any, message map[string]any)
 	//         "timestamp":1448034593
 	//     }
 	//
-	var future any = this.SafeValue(client.(ccxt.ClientInterface).GetFutures(), "authenticated")
+	var future any = client.(ccxt.ClientInterface).GetFutures()["authenticated"]
 	if future != nil {
 		future.(*ccxt.Future).Resolve(true)
 	}

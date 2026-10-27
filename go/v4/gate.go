@@ -9985,7 +9985,7 @@ func (this *Gate) Sign(path string, optionalArgs ...any) any {
 	}
 	var url string = *baseUrl + entirePath
 	if authentication == "public" {
-		if len(ObjectKeys(query)) > 0 {
+		if queryMap, _ := query.(map[string]any); len(queryMap) > 0 {
 			url += "?" + this.Urlencode(query)
 		}
 	} else {
@@ -9999,7 +9999,7 @@ func (this *Gate) Sign(path string, optionalArgs ...any) any {
 			requiresURLEncoding = (strings.Index(*secondPart, "dual") >= 0) || (strings.Index(*secondPart, "positions") >= 0)
 		}
 		if (method == "GET") || (method == "DELETE") || requiresURLEncoding || (method == "PATCH") {
-			if len(ObjectKeys(query)) > 0 {
+			if queryMap, _ := query.(map[string]any); len(queryMap) > 0 {
 				// https://github.com/ccxt/ccxt/issues/27663
 				// sort explicitly (true) so the signed order matches the url order in Go,
 				// where map iteration is not ordered (keysort's order is otherwise lost)

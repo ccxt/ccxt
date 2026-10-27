@@ -887,7 +887,7 @@ func (this *Blockchaincom) HandleOrderBook(client any, message map[string]any) {
 	}
 	var orderbook ccxt.OrderBookInterface
 	if symbol != nil {
-		orderbook = ccxt.OrderBookTyped(this.Orderbooks[*symbol])
+		orderbook = this.Orderbooks[*symbol].(ccxt.OrderBookInterface)
 	}
 	if event != nil && *event == "snapshot" {
 		var snapshot map[string]any = this.ParseOrderBook(message, symbol, timestamp, "bids", "asks", "px", "qty", "num")
@@ -946,7 +946,7 @@ func (this *Blockchaincom) HandleAuthenticationMessage(client any, message map[s
 	if event == nil || *event != "subscribed" {
 		panic(ccxt.AuthenticationError(this.Id + " received an authentication error: " + this.Json(message)))
 	}
-	var future any = this.SafeValue(client.(ccxt.ClientInterface).GetFutures(), "authenticated")
+	var future any = client.(ccxt.ClientInterface).GetFutures()["authenticated"]
 	if future != nil {
 		future.(*ccxt.Future).Resolve(true)
 	}

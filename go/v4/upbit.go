@@ -3231,7 +3231,8 @@ func (this *Upbit) Sign(path string, optionalArgs ...any) any {
 	})
 	url += "/" + this.Version + "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
-	var numQueryKeys int = len(ObjectKeys(query))
+	queryMap, _ := query.(map[string]any)
+	var numQueryKeys int = len(queryMap)
 	if method != "POST" {
 		if numQueryKeys > 0 {
 			url += "?" + this.Urlencode(query)

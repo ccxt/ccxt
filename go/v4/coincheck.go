@@ -1377,7 +1377,8 @@ func (this *Coincheck) Sign(path string, optionalArgs ...any) any {
 	}
 	var url string = *apiUrl + "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
-	var hasQuery bool = (len(ObjectKeys(query)) > 0)
+	queryMap, _ := query.(map[string]any)
+	var hasQuery bool = (len(queryMap) > 0)
 	if apiName == "public" {
 		if hasQuery {
 			url += "?" + this.Urlencode(query)

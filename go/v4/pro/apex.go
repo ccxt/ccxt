@@ -451,7 +451,7 @@ func (this *Apex) HandleOrderBook(client any, message map[string]any) {
 	}
 	var orderbook ccxt.OrderBookInterface
 	if symbol != nil {
-		orderbook = ccxt.OrderBookTyped(this.Orderbooks[*symbol])
+		orderbook = this.Orderbooks[*symbol].(ccxt.OrderBookInterface)
 	}
 	if isSnapshot {
 		var snapshot map[string]any = this.ParseOrderBook(data, symbol, timestamp, "b", "a")
@@ -1413,7 +1413,7 @@ func (this *Apex) HandleErrorMessage(client any, message any) any {
 	}
 }
 func (this *Apex) HandleMessage(client any, message any) {
-	if ccxt.IsEqual(this.HandleErrorMessage(client, message), true) {
+	if this.HandleErrorMessage(client, message) == true {
 		return
 	}
 	var ret_msg *string = this.SafeString(message, "ret_msg")
@@ -1560,7 +1560,7 @@ func (this *Apex) HandleAuthenticate(client any, message any) any {
 	var code *int64 = this.SafeInteger(message, "retCode")
 	var messageHash string = "authenticated"
 	if (success != nil && *success == true) || (code != nil && *code == 0) {
-		var future any = this.SafeValue(client.(ccxt.ClientInterface).GetFutures(), messageHash)
+		var future any = client.(ccxt.ClientInterface).GetFutures()[messageHash]
 		future.(*ccxt.Future).Resolve(true)
 	} else {
 		error := ccxt.AuthenticationError(this.Id + " " + this.Json(message))

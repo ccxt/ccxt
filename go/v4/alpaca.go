@@ -3073,7 +3073,7 @@ func (this *Alpaca) Sign(path string, optionalArgs ...any) any {
 	}
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var bodyJson *string = nil
-	if len(ObjectKeys(query)) > 0 {
+	if queryMap, _ := query.(map[string]any); len(queryMap) > 0 {
 		if (method == "GET") || (method == "DELETE") {
 			endpoint += "?" + this.Urlencode(query)
 		} else {

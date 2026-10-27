@@ -4328,7 +4328,7 @@ func (this *Coinbaseinternational) Sign(path string, optionalArgs ...any) any {
 		var timestamp string = strconv.FormatInt(this.Milliseconds(), 10)
 		var nonce *string = this.NumberToString(this.Nonce())
 		var signedRequest string = "/" + "api/" + this.Version + "/" + access + "/" + path
-		if len(ObjectKeys(requestParams)) > 0 {
+		if requestParamsMap, _ := requestParams.(map[string]any); len(requestParamsMap) > 0 {
 			signedRequest += "?" + this.Urlencode(requestParams)
 		}
 		var requestData string = method + "\n" + signedRequest + "\n" + "\n" // eslint-disable-line quotes
@@ -4350,7 +4350,7 @@ func (this *Coinbaseinternational) Sign(path string, optionalArgs ...any) any {
 	}
 	if method == "GET" {
 		var requestUrl string = url
-		if len(ObjectKeys(requestParams)) > 0 {
+		if requestParamsMap, _ := requestParams.(map[string]any); len(requestParamsMap) > 0 {
 			requestUrl += "?" + this.Urlencode(requestParams)
 		}
 		return map[string]any{

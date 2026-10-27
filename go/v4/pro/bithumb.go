@@ -1389,7 +1389,7 @@ func (this *Bithumb) HandleMessage(client any, message any) {
 		this.HandlePing(client, message)
 		return
 	}
-	if !ccxt.IsEqual(this.HandleErrorMessage(client, message), true) {
+	if this.HandleErrorMessage(client, message) != true {
 		return
 	}
 	var topic *string = this.SafeString(message, "type")

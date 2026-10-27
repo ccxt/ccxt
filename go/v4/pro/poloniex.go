@@ -1751,7 +1751,7 @@ func (this *Poloniex) HandlePong(client any) {
 	client.(ccxt.ClientInterface).SetLastPong(this.Milliseconds())
 }
 func (this *Poloniex) HandleMessage(client any, message map[string]any) {
-	if ccxt.IsEqual(this.HandleErrorMessage(client, message), true) {
+	if this.HandleErrorMessage(client, message) == true {
 		return
 	}
 	var typeVar *string = this.SafeString(message, "channel")

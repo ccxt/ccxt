@@ -321,7 +321,7 @@ func (this *Blofin) HandleOrderBook(client any, message map[string]any) {
 	}
 	var orderbook ccxt.OrderBookInterface
 	if symbol != nil {
-		orderbook = ccxt.OrderBookTyped(this.Orderbooks[*symbol])
+		orderbook = this.Orderbooks[*symbol].(ccxt.OrderBookInterface)
 	}
 	var timestamp *int64 = this.SafeInteger(data, "ts")
 	var action *string = this.SafeString(message, "action")
@@ -1242,7 +1242,7 @@ func (this *Blofin) HandleMessage(client any, message any) {
 		if event != nil && *event == "subscribe" {
 			return
 		} else if event != nil && *event == "login" {
-			var future any = this.SafeValue(client.(ccxt.ClientInterface).GetFutures(), "authenticate_hash")
+			var future any = client.(ccxt.ClientInterface).GetFutures()["authenticate_hash"]
 			future.(*ccxt.Future).Resolve(true)
 			return
 		} else if event != nil && *event == "error" {

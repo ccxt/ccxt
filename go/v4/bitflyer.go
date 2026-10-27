@@ -1831,7 +1831,7 @@ func (this *Bitflyer) Sign(path string, optionalArgs ...any) any {
 		this.CheckRequiredCredentials()
 		var nonce string = ToString(this.Nonce())
 		var auth string = nonce + method + request
-		if len(ObjectKeys(params)) > 0 {
+		if paramsMap, _ := params.(map[string]any); len(paramsMap) > 0 {
 			if method != "GET" {
 				var body string = this.Json(params)
 				bodySigned = SafeStringPtr(body)

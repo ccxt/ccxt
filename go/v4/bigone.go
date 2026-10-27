@@ -2476,7 +2476,7 @@ func (this *Bigone) Sign(path string, optionalArgs ...any) any {
 	var url string = baseUrl + "/" + this.ImplodeParams(path, params)
 	var headersValue map[string]any = map[string]any{}
 	if (apiName == "public") || (apiName == "webExchange") || (apiName == "contractPublic") {
-		if len(ObjectKeys(query)) > 0 {
+		if queryMap, _ := query.(map[string]any); len(queryMap) > 0 {
 			url += "?" + this.Urlencode(query)
 		}
 	} else {
@@ -2490,7 +2490,7 @@ func (this *Bigone) Sign(path string, optionalArgs ...any) any {
 		var token string = Jwt(request, this.Encode(this.Secret), sha256)
 		headersValue["Authorization"] = "Bearer " + token
 		if method == "GET" {
-			if len(ObjectKeys(query)) > 0 {
+			if queryMap, _ := query.(map[string]any); len(queryMap) > 0 {
 				url += "?" + this.Urlencode(query)
 			}
 		} else if method == "POST" {
