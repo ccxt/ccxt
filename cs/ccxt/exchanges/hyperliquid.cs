@@ -1818,16 +1818,16 @@ public partial class hyperliquid : Exchange
         object data = add(add(dataHex, "00000"), this.intToBase16(nonce));
         if ((vaultAddress == null))
         {
-            data = add(data, "00");
+            data = (data + "00");
         } else
         {
-            data = add(data, "01");
+            data = (data + "01");
             data = add(data, vaultAddress);
         }
         if ((expiresAfter != null))
         {
-            data = add(data, "00");
-            data = add(data, ("00000" + this.intToBase16(expiresAfter)));
+            data = (data + "00");
+            data = (data + ("00000" + this.intToBase16(expiresAfter)));
         }
         return this.hash(this.base16ToBinary(data), keccak, "binary");
     }

@@ -2419,13 +2419,13 @@ public partial class hyperliquid : PredictionExchange
         object dataBinary = this.packb(action);
         object dataHex = this.binaryToBase16(dataBinary);
         object data = dataHex;
-        data = add(data, ("00000" + this.intToBase16(nonce)));
+        data = (data + ("00000" + this.intToBase16(nonce)));
         if ((vaultAddress == null))
         {
-            data = add(data, "00");
+            data = (data + "00");
         } else
         {
-            data = add(data, "01");
+            data = (data + "01");
             data = add(data, vaultAddress);
         }
         return this.hash(this.base16ToBinary(data), keccak, "binary");

@@ -2349,10 +2349,10 @@ public partial class BaseExchange
         for (int i = 0; i < codes.Count; i++)
         {
             string? code = ((string)codes[i]);
-            string? total = this.safeString(getValue(balance, code), "total");
-            string? free = this.safeString(getValue(balance, code), "free");
-            string? used = this.safeString(getValue(balance, code), "used");
-            string? debt = this.safeString(getValue(balance, code), "debt");
+            string? total = this.safeString(getValue(balances, code), "total");
+            string? free = this.safeString(getValue(balances, code), "free");
+            string? used = this.safeString(getValue(balances, code), "used");
+            string? debt = this.safeString(getValue(balances, code), "debt");
             if (((total == null)) && ((free != null)) && ((used != null)))
             {
                 total = Precise.stringAdd(free, used);
@@ -2444,19 +2444,19 @@ public partial class BaseExchange
             if (isArray && (tradesLength > 0))
             {
                 // move properties that are defined in trades up into the order
-                if ((getValue(orderDict, "symbol") == null))
+                if (parseSymbol)
                 {
                     ((IDictionary<string,object>)orderDict)["symbol"] = getValue(getValue(trades, 0), "symbol");
                 }
-                if ((getValue(orderDict, "side") == null))
+                if (parseSide)
                 {
                     ((IDictionary<string,object>)orderDict)["side"] = getValue(getValue(trades, 0), "side");
                 }
-                if ((getValue(orderDict, "type") == null))
+                if ((this.safeString(orderDict, "type") == null))
                 {
                     ((IDictionary<string,object>)orderDict)["type"] = getValue(getValue(trades, 0), "type");
                 }
-                if ((getValue(orderDict, "id") == null))
+                if ((this.safeString(orderDict, "id") == null))
                 {
                     ((IDictionary<string,object>)orderDict)["id"] = getValue(getValue(trades, 0), "order");
                 }
@@ -2489,7 +2489,7 @@ public partial class BaseExchange
                     {
                         side = this.safeString(trade, "side");
                     }
-                    object tradeTimestamp = this.safeValue(trade, "timestamp");
+                    Int64? tradeTimestamp = this.safeInteger(trade, "timestamp");
                     if (parseLastTradeTimeTimestamp && ((tradeTimestamp != null)))
                     {
                         if ((lastTradeTimeTimestamp == null))
@@ -2640,9 +2640,9 @@ public partial class BaseExchange
             }
         }
         // support for market orders
-        object orderType = this.safeValue(orderDict, "type");
+        string? orderType = this.safeString(orderDict, "type");
         bool emptyPrice = ((price == null)) || Precise.stringEquals(price, "0");
-        if (emptyPrice && ((orderType is "market")))
+        if (emptyPrice && (orderType == "market"))
         {
             price = average;
         }
