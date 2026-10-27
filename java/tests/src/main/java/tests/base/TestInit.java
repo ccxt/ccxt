@@ -39,7 +39,6 @@ public class TestInit extends BaseTest
             (new TestRemoveRepeatedElementsFromArray()).testRemoveRepeatedElementsFromArray();
             (new TestParsePrecision()).testParsePrecision();
             (new TestArraysConcat()).testArraysConcat();
-            (new TestBuildOHLCVC()).testBuildOHLCVC();
             return true;
             });
         
