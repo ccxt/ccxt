@@ -296,6 +296,7 @@
             {
                 "description": "swap ohlcv unsubscribe for two symbol/timeframe pairs in one request, acknowledged per topic",
                 "disabledCS": "the c# base leaves the unsubscribe future unresolved - cs/ccxt/base/Exchange.BaseMethods.cs cleanUnsubscription ends with a commented-out `// client.resolve(true, unsubHash);` while ts/src/base/Exchange.ts resolves, so every unWatch* fixture hangs in c# only - pre-existing on master, see lighter.json",
+                "disabledPHP": "the php __call camelCase to snake_case fallback splits only on [a-z0-9][A-Z], so unWatchOHLCVForSymbols is looked up as un_watch_ohlcvfor_symbols instead of the transpiled un_watch_ohlcv_for_symbols - pre-existing harness limitation, no other ws fixture covers *OHLCVForSymbols",
                 "input": [
                     [
                         [

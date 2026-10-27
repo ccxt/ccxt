@@ -143,7 +143,7 @@ export default class blofin extends blofinRest {
      * @returns {any} status of the unwatch request
      */
     override async unWatchTradesForSymbols (symbols: string[], params: Dict = {}): Promise<any> {
-        return await this.unWatchMultipleWrapper ('trades', 'unWatchTradesForSymbols', symbols, params);
+        return await this.unsubscribeMultipleWrapper ('trades', 'unWatchTradesForSymbols', symbols, params);
     }
 
     handleTrades (client: Client, message: Dict) {
@@ -494,7 +494,7 @@ export default class blofin extends blofinRest {
         if (symbolsLength === 0 || !Array.isArray (symbolsAndTimeframes[0])) {
             throw new ArgumentsRequired (this.id + " unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]");
         }
-        return await this.unWatchMultipleWrapper ('candle', 'unWatchOHLCVForSymbols', symbolsAndTimeframes, params);
+        return await this.unsubscribeMultipleWrapper ('candle', 'unWatchOHLCVForSymbols', symbolsAndTimeframes, params);
     }
 
     handleOHLCV (client: Client, message: Dict) {
@@ -857,7 +857,7 @@ export default class blofin extends blofinRest {
         return await this.watchMultiple (url, messageHashes, this.deepExtend (request, paramsMarketType), messageHashes);
     }
 
-    async unWatchMultipleWrapper (channelName: string, callerMethodName: string, symbolsArray: any, params: Dict = {}): Promise<any> {
+    async unsubscribeMultipleWrapper (channelName: string, callerMethodName: string, symbolsArray: any, params: Dict = {}): Promise<any> {
         // underlier method for the public unWatch* methods, sends the same topics as watchMultipleWrapper
         if (this.markets === undefined) {
             await this.loadMarkets ();
