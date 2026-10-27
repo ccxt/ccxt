@@ -226,19 +226,20 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         :returns str: the outcome
         """
         underlying = self.safe_string(desc, 'underlying', 'OUTCOME' + str(outcomeId))
-        targetPrice = self.safe_string(desc, 'targetPrice')
+        targetPrice = self.safe_string(desc, 'targetPrice', '')
         expiry = self.safe_string(desc, 'expiry', '')
         # Parse expiry: "20260503-0600" → "20260503"
         expiryDate = ''
         if expiry != '':
-            expiryDate = expiry.split('-')[0]
+            expiryParts = expiry.split('-')
+            expiryDate = expiryParts[0]
         label = 'NO'
         if side == 0:
             label = 'YES'
         base = underlying.upper()
-        if (targetPrice is not None) and (targetPrice != ''):
+        if targetPrice != '':
             base = base + '_ABOVE_' + targetPrice
-        if (expiryDate is not None) and (expiryDate != ''):
+        if expiryDate != '':
             base = base + '_' + expiryDate
         return base + ':' + label
 
@@ -252,17 +253,18 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         :param dict [question]: linked question object from outcomeMeta
         :returns str: the parent market outcome
         """
-        underlying = self.safe_string(desc, 'underlying')
-        if (underlying is not None) and (underlying != ''):
-            targetPrice = self.safe_string(desc, 'targetPrice')
+        underlying = self.safe_string(desc, 'underlying', '')
+        if underlying != '':
+            targetPrice = self.safe_string(desc, 'targetPrice', '')
             expiry = self.safe_string(desc, 'expiry', '')
             expiryDate = ''
             if expiry != '':
-                expiryDate = expiry.split('-')[0]
+                expiryParts = expiry.split('-')
+                expiryDate = expiryParts[0]
             base = underlying.upper()
-            if (targetPrice is not None) and (targetPrice != ''):
+            if targetPrice != '':
                 base = base + '_ABOVE_' + targetPrice
-            if (expiryDate is not None) and (expiryDate != ''):
+            if expiryDate != '':
                 base = base + '_' + expiryDate
             return base
         questionDescription = self.safe_string(question, 'description')
@@ -272,9 +274,10 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
             if questionClass == 'pricebucket':
                 questionUnderlying = self.safe_string(questionDesc, 'underlying')
                 questionExpiry = self.safe_string(questionDesc, 'expiry', '')
-                expiryDate = ''
+                questionExpiryDate = ''
                 if questionExpiry != '':
-                    expiryDate = questionExpiry.split('-')[0]
+                    questionExpiryParts = questionExpiry.split('-')
+                    questionExpiryDate = questionExpiryParts[0]
                 thresholdsRaw = self.safe_string(questionDesc, 'priceThresholds', '')
                 indexStr = self.safe_string(desc, 'index')
                 rawDescription = self.safe_string_lower(desc, 'description', '')
@@ -298,14 +301,14 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
                         else:
                             bucketLabel = 'BETWEEN_' + thresholds[index - 1] + '_' + thresholds[index]
                         base = questionUnderlying.upper() + '_' + bucketLabel
-                        if (expiryDate is not None) and (expiryDate != ''):
-                            base = base + '_' + expiryDate
+                        if questionExpiryDate != '':
+                            base = base + '_' + questionExpiryDate
                         return base
                 isFallbackLike = (rawDescription == 'other') or (nameLower.find('fallback') >= 0) or (nameLower.find('other') >= 0)
                 if (questionUnderlying is not None and questionUnderlying != '') and isFallbackLike:
                     base = questionUnderlying.upper() + '_OTHER'
-                    if (expiryDate is not None) and (expiryDate != ''):
-                        base = base + '_' + expiryDate
+                    if questionExpiryDate != '':
+                        base = base + '_' + questionExpiryDate
                     return base
         questionName = self.safe_string(question, 'name')
         if (questionName is not None) and (questionName != ''):

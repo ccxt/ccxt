@@ -383,7 +383,8 @@ class kalshi(PredictionExchange, ImplicitAPI):
         """
         tickers = []
         seen = {}
-        for i in range(0, len(outcomeSymbols)):
+        outcomeSymbolsLength = len(outcomeSymbols)
+        for i in range(0, outcomeSymbolsLength):
             outcomeSymbol = outcomeSymbols[i]
             if outcomeSymbol.find(':') >= 0:
                 continue
@@ -418,7 +419,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
                     raise ExchangeError(self.id + ' fetchOutcomes() could not resolve parsed')
                 self.markets[parsed['market']] = parsed
                 self.index_market_outcomes(parsed)
-        for i in range(0, len(outcomeSymbols)):
+        for i in range(0, outcomeSymbolsLength):
             if not self.has_outcome(outcomeSymbols[i]):
                 await self.fetch_outcome(outcomeSymbols[i])
         return self.outcomes

@@ -1074,17 +1074,17 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         isPrivate = interval == 'raw'
         useDepthEndpoint, paramsDepthEndpoint = self.handle_option_bool_and_params(paramsInterval, 'watchOrderBookForSymbols', 'useDepthEndpoint', False)
         paramsChannel = paramsDepthEndpoint
-        descriptor = interval
+        descriptor = '.' + interval
         if useDepthEndpoint:
             depth, paramsDepth = self.handle_option_string_and_params(paramsDepthEndpoint, 'watchOrderBookForSymbols', 'depth', '20')
             groupKey, paramsGroup = self.handle_option_string_and_params(paramsDepth, 'watchOrderBookForSymbols', 'group', 'none')
             paramsChannel = paramsGroup
-            descriptor = groupKey + '.' + depth + '.' + interval
+            descriptor = '.' + groupKey + '.' + depth + '.' + interval
         channels = []
         symbolsLength = len(symbols)
         for i in range(0, symbolsLength):
             market = self.market(self.safe_string(symbols, i, ''))
-            channels.append('book.' + self.safe_string(market, 'id', '') + '.' + descriptor)
+            channels.append('book.' + self.safe_string(market, 'id', '') + descriptor)
         orderbook = await self.subscribe(channels, channels, isPrivate, paramsChannel)
         return orderbook.limit()
 
@@ -1121,16 +1121,16 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         interval, paramsInterval = self.handle_option_string_and_params(paramsResolved, 'watchOrderBookForSymbols', 'interval', '100ms')
         useDepthEndpoint, paramsDepthEndpoint = self.handle_option_bool_and_params(paramsInterval, 'watchOrderBookForSymbols', 'useDepthEndpoint', False)
         paramsChannel = paramsDepthEndpoint
-        descriptor = interval
+        descriptor = '.' + interval
         if useDepthEndpoint:
             depth, paramsDepth = self.handle_option_string_and_params(paramsDepthEndpoint, 'watchOrderBookForSymbols', 'depth', '20')
             groupKey, paramsGroup = self.handle_option_string_and_params(paramsDepth, 'watchOrderBookForSymbols', 'group', 'none')
             paramsChannel = paramsGroup
-            descriptor = groupKey + '.' + depth + '.' + interval
+            descriptor = '.' + groupKey + '.' + depth + '.' + interval
         channels = []
         symbolsLength = len(symbols)
         for i in range(0, symbolsLength):
-            channels.append('book.' + self.safe_string(self.market(self.safe_string(symbols, i, '')), 'id', '') + '.' + descriptor)
+            channels.append('book.' + self.safe_string(self.market(self.safe_string(symbols, i, '')), 'id', '') + descriptor)
         return await self.un_subscribe(channels, interval == 'raw', paramsChannel)
 
     def handle_order_book(self, client: Client, message: dict):
@@ -1148,14 +1148,14 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
             limit = self.safe_integer(self.options, 'watchOrderBookLimit', 1000)
             self.orderbooks[symbol] = self.order_book({}, limit) if isGrouped else self.counted_order_book({}, limit)
         orderbook = self.orderbooks[symbol]
-        if not isGrouped and (type != 'snapshot') and (self.safe_integer(orderbook, 'nonce') is None):
+        nonce = self.safe_integer(orderbook, 'nonce')
+        if not isGrouped and (type != 'snapshot') and (nonce is None):
             return
         if isGrouped:
-            parsedSnapshot = self.parse_order_book(data, symbol, timestamp, 'bids', 'asks')
-            orderbook.reset(parsedSnapshot)
+            orderbook.reset(self.parse_order_book(data, symbol, timestamp, 'bids', 'asks'))
         else:
             previousChangeId = self.safe_integer(data, 'prev_change_id')
-            if (type != 'snapshot') and (self.safe_integer(orderbook, 'nonce') is not None) and (previousChangeId != self.safe_integer(orderbook, 'nonce')):
+            if (type != 'snapshot') and (nonce is not None) and (previousChangeId != nonce):
                 # drop the stale book and reject only this channels future
                 del self.orderbooks[symbol]
                 if channel in client.subscriptions:

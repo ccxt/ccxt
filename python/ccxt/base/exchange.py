@@ -3485,10 +3485,10 @@ class BaseExchange(object):
                 # safeValue (not entry[field]) so a missing field is a non-match, not a
                 # KeyError in python/php — prediction structures key on outcome, not symbol
                 entryFiledEqualValue = self.safe_value(entry, field) == value
-                firstCondition = entryFiledEqualValue if valueIsDefined else True
+                firstCondition = not valueIsDefined or entryFiledEqualValue
                 entryKeyValue = self.safe_integer(entry, key)
                 entryKeyGESince = (entryKeyValue is not None) and (entryKeyValue != 0) and (since is not None) and (entryKeyValue >= since)
-                secondCondition = entryKeyGESince if sinceIsDefined else True
+                secondCondition = not sinceIsDefined or entryKeyGESince
                 if firstCondition and secondCondition:
                     result.append(entry)
         if tail and limit is not None:

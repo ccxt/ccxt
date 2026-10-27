@@ -1001,9 +1001,9 @@ class kraken(ccxt.async_support.kraken):
             # size the book from the subscribed depth (10 by default), not from
             # the level count of this snapshot: a thin market's snapshot can
             # carry fewer levels than the subscription and must not cap the book
-            limit = self.safe_integer(subscription, 'limit', 10)
+            limit = self.parse_to_int(self.safe_integer(subscription, 'limit', 10))
             asksLength = len(a)
-            depth = asksLength if (asksLength > limit) else limit
+            depth = self.parse_to_int(asksLength if (asksLength > limit) else limit)
             depths = self.safe_dict(self.options, 'wsOrderBookDepths', {})
             storedDepth = self.safe_integer(depths, symbol)
             if not (symbol in self.orderbooks) or (storedDepth != depth):

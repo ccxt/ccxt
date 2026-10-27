@@ -1546,7 +1546,7 @@ class bingx(ccxt.async_support.bingx):
                             break
                 parsedOrder['lastUpdateTimestamp'] = updateTimestamp
         stored.append(parsedOrder)
-        symbol = self.safe_string(parsedOrder, 'symbol')
+        symbol = self.safe_string(parsedOrder, 'symbol', '')
         spotHash = 'spot:order'
         swapHash = 'swap:order'
         messageHash = swapHash
