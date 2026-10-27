@@ -2428,15 +2428,14 @@ func (this *Bybit) upgradeUnifiedTradeAccountBody(ch chan AsyncResult[map[string
 }
 func (this *Bybit) CreateExpiredOptionMarket(symbol any) any {
 	// support expired option contracts
-	var quote *string = nil
-	var settle any = nil
+	var quote any = nil
 	var optionParts []string = Split(symbol, "-")
 	var symbolBase []string = Split(symbol, "/")
 	var expiry any = nil
 	var hasSlash bool = (GetIndexOf(symbol, "/") > -1)
-	var baseName *string = this.SafeString(optionParts, 0)
+	var baseName *string = this.SafeString(optionParts, 0, "")
 	if hasSlash {
-		baseName = this.SafeString(symbolBase, 0)
+		baseName = this.SafeString(symbolBase, 0, "")
 		if derefPtr := this.SafeString(optionParts, 1); derefPtr != nil {
 			expiry = *derefPtr
 		} else {
@@ -2449,15 +2448,12 @@ func (this *Bybit) CreateExpiredOptionMarket(symbol any) any {
 		var splitQuote []string = strings.Split(*symbolQuoteAndSettle, ":")
 		var quoteAndSettle *string = this.SafeString(splitQuote, 0)
 		quote = quoteAndSettle
-		settle = quoteAndSettle
 	} else {
 		expiry = this.ConvertMarketIdExpireDate(this.SafeString(optionParts, 1))
 		if EndsWith(symbol, "-USDT") {
-			quote = SafeStringPtr("USDT")
-			settle = "USDT"
+			quote = "USDT"
 		} else {
-			quote = SafeStringPtr("USDC")
-			settle = "USDC"
+			quote = "USDC"
 		}
 	}
 	var strike *string = this.SafeString(optionParts, 2)
@@ -2479,24 +2475,24 @@ func (this *Bybit) CreateExpiredOptionMarket(symbol any) any {
 	}
 	var convertedExpireDate any = this.ConvertExpireDateToMarketIdDate(expiry)
 	return map[string]any{
-		"id":       Add(Add(Add(Add(Add(Add(baseName, "-"), convertedExpireDate), "-"), strike), "-"), optionType),
-		"symbol":   Add(Add(Add(Add(Add(Add(Add(Add(Add(Add(baseName, "/"), quote), ":"), settle), "-"), expiry), "-"), strike), "-"), optionType),
+		"id":       Add(Add(Add(Add(Add(*baseName+"-", convertedExpireDate), "-"), strike), "-"), optionType),
+		"symbol":   Add(Add(Add(Add(Add(Add(Add(Add(Add(*baseName+"/", quote), ":"), quote), "-"), expiry), "-"), strike), "-"), optionType),
 		"base":     baseName,
 		"quote":    quote,
-		"settle":   settle,
+		"settle":   quote,
 		"baseId":   baseName,
 		"quoteId":  quote,
-		"settleId": settle,
+		"settleId": quote,
 		"active":   false,
 		"type":     "option",
 		"subType": func() string {
-			if IsEqual(baseName, settle) {
+			if IsEqual(baseName, quote) {
 				return "inverse"
 			}
 			return "linear"
 		}(),
-		"linear":         (!IsEqual(baseName, settle)),
-		"inverse":        (IsEqual(baseName, settle)),
+		"linear":         (!IsEqual(baseName, quote)),
+		"inverse":        (IsEqual(baseName, quote)),
 		"spot":           false,
 		"swap":           false,
 		"future":         false,
@@ -3953,11 +3949,11 @@ func (this *Bybit) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, o
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes284119 []any = r1.Value
-		if retRes284119 == nil {
+		var retRes283719 []any = r1.Value
+		if retRes283719 == nil {
 			ch <- AsyncResult[[]OHLCV]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes284119)}
+			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes283719)}
 		}
 		return nil
 	}
@@ -4294,11 +4290,11 @@ func (this *Bybit) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRate
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes309719 []any = r1.Value
-		if retRes309719 == nil {
+		var retRes309319 []any = r1.Value
+		if retRes309319 == nil {
 			ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes309719)}
+			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes309319)}
 		}
 		return nil
 	}
@@ -5045,8 +5041,8 @@ func (this *Bybit) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs 
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv4899, _ := r1.Value, r1.Value != nil
-	var unifiedEnabled []any = listRecv4899
+	listRecv4895, _ := r1.Value, r1.Value != nil
+	var unifiedEnabled []any = listRecv4895
 	var enableUnifiedMargin *bool = this.SafeBool(unifiedEnabled, 0, false)
 	var enableUnifiedAccount *bool = this.SafeBool(unifiedEnabled, 1, false)
 	var isUnifiedAccount bool = (enableUnifiedMargin != nil && *enableUnifiedMargin == true) || (enableUnifiedAccount != nil && *enableUnifiedAccount == true)
@@ -5569,8 +5565,8 @@ func (this *Bybit) createMarketSellOrderWithCostBody(ch chan AsyncResult[Order],
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv5401, _ := r1.Value, r1.Value != nil
-	var types []any = listRecv5401
+	listRecv5397, _ := r1.Value, r1.Value != nil
+	var types []any = listRecv5397
 	var enableUnifiedAccount *bool = SafeBoolPtr(func() any {
 		if 1 >= 0 && 1 < len(types) {
 			return types[1]
@@ -5657,8 +5653,8 @@ func (this *Bybit) createOrderBody(ch chan AsyncResult[Order], symbol string, ty
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv5482, _ := r1.Value, r1.Value != nil
-	var parts []any = listRecv5482
+	listRecv5478, _ := r1.Value, r1.Value != nil
+	var parts []any = listRecv5478
 	var enableUnifiedAccount *bool = SafeBoolPtr(func() any {
 		if 1 >= 0 && 1 < len(parts) {
 			return parts[1]
@@ -6065,8 +6061,8 @@ func (this *Bybit) createOrdersBody(ch chan AsyncResult[[]Order], orders any, op
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv5874, _ := r1.Value, r1.Value != nil
-	var accounts []any = listRecv5874
+	listRecv5870, _ := r1.Value, r1.Value != nil
+	var accounts []any = listRecv5870
 	var isUta *bool = SafeBoolPtr(func() any {
 		if 1 >= 0 && 1 < len(accounts) {
 			return accounts[1]
@@ -6575,8 +6571,8 @@ func (this *Bybit) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any, optio
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv6372, _ := r1.Value, r1.Value != nil
-	var types []any = listRecv6372
+	listRecv6368, _ := r1.Value, r1.Value != nil
+	var types []any = listRecv6368
 	var enableUnifiedAccount *bool = SafeBoolPtr(func() any {
 		if 1 >= 0 && 1 < len(types) {
 			return types[1]
@@ -6748,8 +6744,8 @@ func (this *Bybit) cancelOrdersForSymbolsBody(ch chan AsyncResult[[]Order], orde
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv6527, _ := r1.Value, r1.Value != nil
-	var types []any = listRecv6527
+	listRecv6523, _ := r1.Value, r1.Value != nil
+	var types []any = listRecv6523
 	var enableUnifiedAccount *bool = SafeBoolPtr(func() any {
 		if 1 >= 0 && 1 < len(types) {
 			return types[1]
@@ -6886,8 +6882,8 @@ func (this *Bybit) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalArg
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv6653, _ := r1.Value, r1.Value != nil
-	var unifiedEnabled []any = listRecv6653
+	listRecv6649, _ := r1.Value, r1.Value != nil
+	var unifiedEnabled []any = listRecv6649
 	var enableUnifiedMargin *bool = this.SafeBool(unifiedEnabled, 0, false)
 	var enableUnifiedAccount *bool = this.SafeBool(unifiedEnabled, 1, false)
 	var isUnifiedAccount bool = (enableUnifiedMargin != nil && *enableUnifiedMargin == true) || (enableUnifiedAccount != nil && *enableUnifiedAccount == true)
@@ -7064,8 +7060,8 @@ func (this *Bybit) fetchOrderBody(ch chan AsyncResult[Order], id any, optionalAr
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv6813, _ := r1.Value, r1.Value != nil
-	var unifiedEnabled []any = listRecv6813
+	listRecv6809, _ := r1.Value, r1.Value != nil
+	var unifiedEnabled []any = listRecv6809
 	var enableUnifiedMargin *bool = this.SafeBool(unifiedEnabled, 0, false)
 	var enableUnifiedAccount *bool = this.SafeBool(unifiedEnabled, 1, false)
 	var isUnifiedAccount bool = (enableUnifiedMargin != nil && *enableUnifiedMargin == true) || (enableUnifiedAccount != nil && *enableUnifiedAccount == true)
@@ -7217,11 +7213,11 @@ func (this *Bybit) fetchOrdersClassicBody(ch chan AsyncResult[[]Order], optional
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes543319 []any = r1.Value
-		if retRes543319 == nil {
+		var retRes542919 []any = r1.Value
+		if retRes542919 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes543319)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes542919)}
 		}
 		return nil
 	}
@@ -7360,8 +7356,8 @@ func (this *Bybit) fetchClosedOrderBody(ch chan AsyncResult[Order], id any, opti
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv7088, _ := OrdersToList(r1.Value), r1.Value != nil
-	var result []any = listRecv7088
+	listRecv7084, _ := OrdersToList(r1.Value), r1.Value != nil
+	var result []any = listRecv7084
 	var length int = len(result)
 	if length == 0 {
 		var isTrigger *bool = this.SafeBool2(params, "trigger", "stop", false)
@@ -7495,11 +7491,11 @@ func (this *Bybit) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]Order]
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes561719 []any = r1.Value
-		if retRes561719 == nil {
+		var retRes561319 []any = r1.Value
+		if retRes561319 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes561719)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes561319)}
 		}
 		return nil
 	}
@@ -7656,11 +7652,11 @@ func (this *Bybit) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optionalA
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes573915 []any = OrdersToList(r1.Value)
-	if retRes573915 == nil {
+	var retRes573515 []any = OrdersToList(r1.Value)
+	if retRes573515 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes573915)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes573515)}
 	}
 	return nil
 }
@@ -7714,11 +7710,11 @@ func (this *Bybit) fetchCanceledOrdersBody(ch chan AsyncResult[[]Order], optiona
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes576715 []any = OrdersToList(r1.Value)
-	if retRes576715 == nil {
+	var retRes576315 []any = OrdersToList(r1.Value)
+	if retRes576315 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes576715)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes576315)}
 	}
 	return nil
 }
@@ -7772,11 +7768,11 @@ func (this *Bybit) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArg
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes579519 []any = r1.Value
-		if retRes579519 == nil {
+		var retRes579119 []any = r1.Value
+		if retRes579119 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes579519)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes579119)}
 		}
 		return nil
 	}
@@ -7924,11 +7920,11 @@ func (this *Bybit) fetchOrderTradesBody(ch chan AsyncResult[[]Trade], id string,
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes591215 []any = TradesToList(r.Value)
-	if retRes591215 == nil {
+	var retRes590815 []any = TradesToList(r.Value)
+	if retRes590815 == nil {
 		ch <- AsyncResult[[]Trade]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes591215)}
+		ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes590815)}
 	}
 	return nil
 }
@@ -7977,11 +7973,11 @@ func (this *Bybit) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs 
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes593519 []any = r1.Value
-		if retRes593519 == nil {
+		var retRes593119 []any = r1.Value
+		if retRes593119 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes593519)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes593119)}
 		}
 		return nil
 	}
@@ -8246,11 +8242,11 @@ func (this *Bybit) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optiona
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes611419 []any = r1.Value
-		if retRes611419 == nil {
+		var retRes611019 []any = r1.Value
+		if retRes611019 == nil {
 			ch <- AsyncResult[[]Transaction]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes611419)}
+			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes611019)}
 		}
 		return nil
 	}
@@ -8349,11 +8345,11 @@ func (this *Bybit) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], opti
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes618419 []any = r1.Value
-		if retRes618419 == nil {
+		var retRes618019 []any = r1.Value
+		if retRes618019 == nil {
 			ch <- AsyncResult[[]Transaction]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes618419)}
+			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes618019)}
 		}
 		return nil
 	}
@@ -8568,11 +8564,11 @@ func (this *Bybit) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalA
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes637219 []any = r1.Value
-		if retRes637219 == nil {
+		var retRes636819 []any = r1.Value
+		if retRes636819 == nil {
 			ch <- AsyncResult[[]LedgerEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes637219)}
+			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes636819)}
 		}
 		return nil
 	}
@@ -8582,8 +8578,8 @@ func (this *Bybit) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalA
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	listRecv8199, _ := r2.Value, r2.Value != nil
-	var unifiedEnabled []any = listRecv8199
+	listRecv8195, _ := r2.Value, r2.Value != nil
+	var unifiedEnabled []any = listRecv8195
 	var enableUnified *bool = this.SafeBool(unifiedEnabled, 1, false)
 	var currency map[string]any = nil
 	var currencyKey string = "coin"
@@ -8881,8 +8877,8 @@ func (this *Bybit) withdrawBody(ch chan AsyncResult[Transaction], code string, a
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listRecv8482, _ := r.Value, r.Value != nil
-	var accounts []any = listRecv8482
+	listRecv8478, _ := r.Value, r.Value != nil
+	var accounts []any = listRecv8478
 	var isUta *bool = SafeBoolPtr(func() any {
 		if 1 >= 0 && 1 < len(accounts) {
 			return accounts[1]
@@ -9085,11 +9081,11 @@ func (this *Bybit) fetchPositionsBody(ch chan AsyncResult[[]Position], optionalA
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes679519 []any = r1.Value
-		if retRes679519 == nil {
+		var retRes679119 []any = r1.Value
+		if retRes679119 == nil {
 			ch <- AsyncResult[[]Position]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Position]{Value: PositionsFromList(retRes679519)}
+			ch <- AsyncResult[[]Position]{Value: PositionsFromList(retRes679119)}
 		}
 		return nil
 	}
@@ -9572,8 +9568,8 @@ func (this *Bybit) setMarginModeBody(ch chan AsyncResult[map[string]any], margin
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv9133, _ := r1.Value, r1.Value != nil
-	var unifiedEnabled []any = listRecv9133
+	listRecv9129, _ := r1.Value, r1.Value != nil
+	var unifiedEnabled []any = listRecv9129
 	var enableUnifiedMargin *bool = this.SafeBool(unifiedEnabled, 0, false)
 	var enableUnifiedAccount *bool = this.SafeBool(unifiedEnabled, 1, false)
 	var isUnifiedAccount bool = (enableUnifiedMargin != nil && *enableUnifiedMargin == true) || (enableUnifiedAccount != nil && *enableUnifiedAccount == true)
@@ -10051,11 +10047,11 @@ func (this *Bybit) fetchOpenInterestHistoryBody(ch chan AsyncResult[[]OpenIntere
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes754619 []any = r1.Value
-		if retRes754619 == nil {
+		var retRes754219 []any = r1.Value
+		if retRes754219 == nil {
 			ch <- AsyncResult[[]OpenInterest]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]OpenInterest]{Value: OpenInterestsFromList(retRes754619)}
+			ch <- AsyncResult[[]OpenInterest]{Value: OpenInterestsFromList(retRes754219)}
 		}
 		return nil
 	}
@@ -10074,11 +10070,11 @@ func (this *Bybit) fetchOpenInterestHistoryBody(ch chan AsyncResult[[]OpenIntere
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	var retRes755815 []any = OpenInterestsToList(r2.Value)
-	if retRes755815 == nil {
+	var retRes755415 []any = OpenInterestsToList(r2.Value)
+	if retRes755415 == nil {
 		ch <- AsyncResult[[]OpenInterest]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]OpenInterest]{Value: OpenInterestsFromList(retRes755815)}
+		ch <- AsyncResult[[]OpenInterest]{Value: OpenInterestsFromList(retRes755415)}
 	}
 	return nil
 }
@@ -10538,11 +10534,11 @@ func (this *Bybit) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], opti
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes787719 []any = r1.Value
-		if retRes787719 == nil {
+		var retRes787319 []any = r1.Value
+		if retRes787319 == nil {
 			ch <- AsyncResult[[]TransferEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(retRes787719)}
+			ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(retRes787319)}
 		}
 		return nil
 	}
@@ -10882,12 +10878,12 @@ func (this *Bybit) fetchMarketLeverageTiersBody(ch chan AsyncResult[[]LeverageTi
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv10326, _ := LeverageTiersToList(r1.Value), r1.Value != nil
-	var retRes813015 []any = listRecv10326
-	if retRes813015 == nil {
+	listRecv10322, _ := LeverageTiersToList(r1.Value), r1.Value != nil
+	var retRes812615 []any = listRecv10322
+	if retRes812615 == nil {
 		ch <- AsyncResult[[]LeverageTier]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]LeverageTier]{Value: LeverageTiersFromList(retRes813015)}
+		ch <- AsyncResult[[]LeverageTier]{Value: LeverageTiersFromList(retRes812615)}
 	}
 	return nil
 }
@@ -11802,11 +11798,11 @@ func (this *Bybit) fetchMyLiquidationsBody(ch chan AsyncResult[[]Liquidation], o
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes882219 []any = r1.Value
-		if retRes882219 == nil {
+		var retRes881819 []any = r1.Value
+		if retRes881819 == nil {
 			ch <- AsyncResult[[]Liquidation]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Liquidation]{Value: LiquidationsFromList(retRes882219)}
+			ch <- AsyncResult[[]Liquidation]{Value: LiquidationsFromList(retRes881819)}
 		}
 		return nil
 	}
@@ -11961,11 +11957,11 @@ func (this *Bybit) getLeverageTiersPaginatedBody(ch chan AsyncResult[[]LeverageT
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes894619 []any = r1.Value
-		if retRes894619 == nil {
+		var retRes894219 []any = r1.Value
+		if retRes894219 == nil {
 			ch <- AsyncResult[[]LeverageTier]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]LeverageTier]{Value: LeverageTiersFromList(retRes894619)}
+			ch <- AsyncResult[[]LeverageTier]{Value: LeverageTiersFromList(retRes894219)}
 		}
 		return nil
 	}
@@ -12188,11 +12184,11 @@ func (this *Bybit) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory]
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes908319 []any = r1.Value
-		if retRes908319 == nil {
+		var retRes907919 []any = r1.Value
+		if retRes907919 == nil {
 			ch <- AsyncResult[[]FundingHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes908319)}
+			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes907919)}
 		}
 		return nil
 	}
@@ -12662,8 +12658,8 @@ func (this *Bybit) fetchConvertCurrenciesBody(ch chan AsyncResult[Currencies], o
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv11987, _ := r1.Value, r1.Value != nil
-	var unifiedEnabled []any = listRecv11987
+	listRecv11983, _ := r1.Value, r1.Value != nil
+	var unifiedEnabled []any = listRecv11983
 	var enableUnifiedMargin *bool = this.SafeBool(unifiedEnabled, 0, false)
 	var enableUnifiedAccount *bool = this.SafeBool(unifiedEnabled, 1, false)
 	var isUnifiedAccount bool = (enableUnifiedMargin != nil && *enableUnifiedMargin == true) || (enableUnifiedAccount != nil && *enableUnifiedAccount == true)
@@ -12796,8 +12792,8 @@ func (this *Bybit) fetchConvertQuoteBody(ch chan AsyncResult[Conversion], fromCo
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv12114, _ := r1.Value, r1.Value != nil
-	var unifiedEnabled []any = listRecv12114
+	listRecv12110, _ := r1.Value, r1.Value != nil
+	var unifiedEnabled []any = listRecv12110
 	var enableUnifiedMargin *bool = this.SafeBool(unifiedEnabled, 0, false)
 	var enableUnifiedAccount *bool = this.SafeBool(unifiedEnabled, 1, false)
 	var isUnifiedAccount bool = (enableUnifiedMargin != nil && *enableUnifiedMargin == true) || (enableUnifiedAccount != nil && *enableUnifiedAccount == true)
@@ -12942,8 +12938,8 @@ func (this *Bybit) fetchConvertTradeBody(ch chan AsyncResult[Conversion], id str
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv12241, _ := r1.Value, r1.Value != nil
-	var unifiedEnabled []any = listRecv12241
+	listRecv12237, _ := r1.Value, r1.Value != nil
+	var unifiedEnabled []any = listRecv12237
 	var enableUnifiedMargin *bool = this.SafeBool(unifiedEnabled, 0, false)
 	var enableUnifiedAccount *bool = this.SafeBool(unifiedEnabled, 1, false)
 	var isUnifiedAccount bool = (enableUnifiedMargin != nil && *enableUnifiedMargin == true) || (enableUnifiedAccount != nil && *enableUnifiedAccount == true)

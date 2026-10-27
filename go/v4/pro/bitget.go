@@ -1261,7 +1261,7 @@ func (this *Bitget) HandleOrderBook(client any, message any) {
 	}
 	var marketId *string = this.SafeString2(arg, "instId", "symbol")
 	var market map[string]any = this.SafeMarket(marketId, nil, nil, marketType)
-	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
+	var symbol *string = this.SafeString(market, "symbol", "")
 	var messageHash string = "orderbook:" + *symbol
 	var data any = this.SafeValue(message, "data")
 	// tokenized stock snapshots arrive as a plain dict instead of a list
@@ -3159,7 +3159,7 @@ func (this *Bitget) HandleBalance(client any, message map[string]any) {
 				var account any = this.Account()
 				if code != nil {
 					if _, ok := this.Balance[*code]; ok {
-						account = ccxt.GetValue(this.Balance, code)
+						account = this.SafeDict(this.Balance, code, account)
 					}
 				}
 				var borrow *string = this.SafeString(entry, "borrow")
@@ -3180,7 +3180,7 @@ func (this *Bitget) HandleBalance(client any, message map[string]any) {
 			var account any = this.Account()
 			if code != nil {
 				if _, ok := this.Balance[*code]; ok {
-					account = ccxt.GetValue(this.Balance, code)
+					account = this.SafeDict(this.Balance, code, account)
 				}
 			}
 			var borrow *string = this.SafeString(rawBalance, "borrow")

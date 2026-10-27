@@ -4376,9 +4376,9 @@ func (this *Binance) Market(symbol any) map[string]any {
 				if isLegacyLinear {
 					settle = this.SafeString(market, "quote", "")
 				}
-				var futuresSymbol any = Add(Add(symbol, ":"), settle)
-				if (this.Markets() != nil) && (InOp(this.Markets(), futuresSymbol)) {
-					return MarketTyped(GetValue(this.Markets(), futuresSymbol))
+				var legacySymbol string = *this.SafeString(market, "symbol", "") + ":" + *settle
+				if _, ok := this.Markets()[legacySymbol]; (this.Markets() != nil) && ok {
+					return MarketTyped(this.Markets()[legacySymbol])
 				}
 			} else {
 				return MarketTyped(market)
@@ -7988,9 +7988,9 @@ func (this *Binance) EditSpotOrderRequest(id *string, symbol any, typeVar any, s
 	var validOrderTypes []any = SafeListTypedDefault(market["info"], "orderTypes", []any{})
 	if !this.InArray(uppercaseType, validOrderTypes) {
 		if initialUppercaseType != uppercaseType {
-			panic(InvalidOrder(Add(Add(Add(Add(this.Id+" triggerPrice parameter is not allowed for ", symbol), " "), typeVar), " orders")))
+			panic(InvalidOrder(Add(Add(this.Id+" triggerPrice parameter is not allowed for "+*this.SafeString(market, "symbol", "")+" ", typeVar), " orders")))
 		} else {
-			panic(InvalidOrder(Add(Add(Add(Add(this.Id+" ", typeVar), " is not a valid order type for the "), symbol), " market")))
+			panic(InvalidOrder(Add(Add(Add(Add(this.Id+" ", typeVar), " is not a valid order type for the "), this.SafeString(market, "symbol", "")), " market")))
 		}
 	}
 	if clientOrderId == nil {
@@ -9742,7 +9742,7 @@ func (this *Binance) CreateOrderRequest(symbol any, typeVar any, side *string, a
 				var stopLossOrTakeProfit *string = this.SafeString(paramsPapi, "stopLossOrTakeProfit")
 				omitKeys = append(omitKeys, "stopLossOrTakeProfit")
 				if (stopLossOrTakeProfit == nil || *stopLossOrTakeProfit != "stopLoss") && (stopLossOrTakeProfit == nil || *stopLossOrTakeProfit != "takeProfit") {
-					panic(InvalidOrder(Add(Add(this.Id, symbol), " trailingPercent orders require a stopLossOrTakeProfit parameter of either stopLoss or takeProfit")))
+					panic(InvalidOrder(this.Id + *this.SafeString(market, "symbol", "") + " trailingPercent orders require a stopLossOrTakeProfit parameter of either stopLoss or takeProfit"))
 				}
 				if isMarketOrder {
 					if stopLossOrTakeProfit != nil && *stopLossOrTakeProfit == "stopLoss" {
@@ -9806,7 +9806,7 @@ func (this *Binance) CreateOrderRequest(symbol any, typeVar any, side *string, a
 	}
 	if market["option"] == true {
 		if IsEqual(typeVar, "market") {
-			panic(InvalidOrder(Add(Add(Add(Add(this.Id+" ", typeVar), " is not a valid order type for the "), symbol), " market")))
+			panic(InvalidOrder(Add(Add(Add(Add(this.Id+" ", typeVar), " is not a valid order type for the "), this.SafeString(market, "symbol", "")), " market")))
 		}
 	} else {
 		var validOrderTypes any = this.SafeList(market["info"], "orderTypes", []any{})
@@ -9815,9 +9815,9 @@ func (this *Binance) CreateOrderRequest(symbol any, typeVar any, side *string, a
 		}
 		if !this.InArray(uppercaseType, validOrderTypes) {
 			if initialUppercaseType != uppercaseType {
-				panic(InvalidOrder(Add(Add(Add(Add(this.Id+" triggerPrice parameter is not allowed for ", symbol), " "), typeVar), " orders")))
+				panic(InvalidOrder(Add(Add(this.Id+" triggerPrice parameter is not allowed for "+*this.SafeString(market, "symbol", "")+" ", typeVar), " orders")))
 			} else {
-				panic(InvalidOrder(Add(Add(Add(Add(this.Id+" ", typeVar), " is not a valid order type for the "), symbol), " market")))
+				panic(InvalidOrder(Add(Add(Add(Add(this.Id+" ", typeVar), " is not a valid order type for the "), this.SafeString(market, "symbol", "")), " market")))
 			}
 		}
 	}

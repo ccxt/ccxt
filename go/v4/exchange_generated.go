@@ -4233,7 +4233,7 @@ func (this *BaseExchange) ParseLeverageTiers(response any, optionalArgs ...any) 
 	var noSymbols bool = (symbolsNormalized == nil) || (symbolsLength == 0)
 	if IsArray(response) {
 		for i := 0; i < GetArrayLength(response); i++ {
-			var item any = GetValue(response, i)
+			var item any = this.SafeValue(response, i)
 			var id *string = func() *string {
 				if marketIdKey == nil {
 					return nil
@@ -4253,7 +4253,7 @@ func (this *BaseExchange) ParseLeverageTiers(response any, optionalArgs ...any) 
 		var keys []string = ObjectKeys(response)
 		for i := 0; i < len(keys); i++ {
 			var marketId string = keys[i]
-			var item any = GetValue(response, marketId)
+			var item any = this.SafeValue(response, marketId)
 
 			var market any = this.DerivedExchange.SafeMarket(marketId, nil, nil, "swap")
 			PanicOnError(market)

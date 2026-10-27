@@ -1126,9 +1126,9 @@ func (this *Mexc) HandleOrderBook(client any, message any) {
 	var nonce *int64 = this.SafeInteger(storedOrderBook, "nonce")
 	var shouldReturn bool = false
 	if nonce == nil {
-		var cacheLength int = ccxt.GetArrayLength(storedOrderBook.(ccxt.OrderBookInterface).GetCache())
-		var snapshotDelay any = this.HandleOption("watchOrderBook", "snapshotDelay", 25)
-		if ccxt.IsEqual(cacheLength, snapshotDelay) {
+		var cacheLength int64 = this.ParseToInt(ccxt.GetArrayLength(storedOrderBook.(ccxt.OrderBookInterface).GetCache()))
+		var snapshotDelay int64 = this.ParseToInt(this.HandleOption("watchOrderBook", "snapshotDelay", 25))
+		if cacheLength == snapshotDelay {
 			this.Spawn(this.LoadOrderBookAsync, client, messageHash, symbol, limit, map[string]any{})
 		}
 		ccxt.AppendToArray(storedOrderBook.(ccxt.OrderBookInterface).GetCache(), data)
