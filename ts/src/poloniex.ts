@@ -2172,7 +2172,7 @@ export default class poloniex extends Exchange {
                 if (!('mgnMode' in merged)) {
                     merged['mgnMode'] = 'CROSS';
                 }
-                if (!('posSide' in merged)) {
+                if (this.safeString (merged, 'posSide') === undefined) {
                     merged['posSide'] = 'BOTH';
                 }
             }
@@ -2236,7 +2236,7 @@ export default class poloniex extends Exchange {
                 if (marginMode === undefined) {
                     throw new ArgumentsRequired (this.id + ' createOrder() requires a marginMode parameter "cross" or "isolated" for hedged orders');
                 }
-                if (!('posSide' in query)) {
+                if (this.safeString (query, 'posSide') === undefined) {
                     throw new ArgumentsRequired (this.id + ' createOrder() requires a posSide parameter "LONG" or "SHORT" for hedged orders');
                 }
             }
@@ -3772,7 +3772,7 @@ export default class poloniex extends Exchange {
      */
     override async setPositionMode (hedged: boolean, symbol: Str = undefined, params: Dict = {}) {
         let mode: Str = 'ONE_WAY';
-        if (hedged) {
+        if (hedged === true) {
             mode = 'HEDGE';
         }
         const request: Dict = {
