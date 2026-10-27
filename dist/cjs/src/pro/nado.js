@@ -312,7 +312,7 @@ class nado extends nado$1["default"] {
         const markets = [];
         const messageHashes = [];
         const subscriptionParams = [];
-        for (let i = 0; i < symbolsAndTimeframes.length; i++) {
+        for (let i = 0; i < symbolsLength; i++) {
             const symbolAndTimeframe = this.safeList(symbolsAndTimeframes, i);
             const marketSymbol = this.safeString(symbolAndTimeframe, 0);
             const timeframe = this.safeString(symbolAndTimeframe, 1, '1m');
@@ -363,7 +363,7 @@ class nado extends nado$1["default"] {
         const markets = [];
         const messageHashes = [];
         const subscriptionParams = [];
-        for (let i = 0; i < symbolsAndTimeframes.length; i++) {
+        for (let i = 0; i < symbolsLength; i++) {
             const symbolAndTimeframe = this.safeList(symbolsAndTimeframes, i);
             const marketSymbol = this.safeString(symbolAndTimeframe, 0);
             const timeframe = this.safeString(symbolAndTimeframe, 1, '1m');

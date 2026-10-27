@@ -597012,7 +597012,7 @@ class nado extends _nado_js__rspack_import_0/* ["default"] */.A {
         const markets = [];
         const messageHashes = [];
         const subscriptionParams = [];
-        for(let i = 0; i < symbolsAndTimeframes.length; i++){
+        for(let i = 0; i < symbolsLength; i++){
             const symbolAndTimeframe = this.safeList(symbolsAndTimeframes, i);
             const marketSymbol = this.safeString(symbolAndTimeframe, 0);
             const timeframe = this.safeString(symbolAndTimeframe, 1, '1m');
@@ -597066,7 +597066,7 @@ class nado extends _nado_js__rspack_import_0/* ["default"] */.A {
         const markets = [];
         const messageHashes = [];
         const subscriptionParams = [];
-        for(let i = 0; i < symbolsAndTimeframes.length; i++){
+        for(let i = 0; i < symbolsLength; i++){
             const symbolAndTimeframe = this.safeList(symbolsAndTimeframes, i);
             const marketSymbol = this.safeString(symbolAndTimeframe, 0);
             const timeframe = this.safeString(symbolAndTimeframe, 1, '1m');
