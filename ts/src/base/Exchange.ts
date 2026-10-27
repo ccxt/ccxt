@@ -4443,46 +4443,43 @@ export class BaseExchange {
                 }
                 // limits
                 const limits = this.safeDict (network, 'limits');
-                const limitsMain = this.safeDict (currency, 'limits');
-                if (limitsMain === undefined) {
-                    currency['limits'] = {};
-                }
+                const limitsMain: Dict = this.safeDict (currency, 'limits', {});
                 // deposits
                 const limitsDeposit = this.safeDict (limits, 'deposit');
-                const limitsDepositMain = this.safeDict (limitsMain, 'deposit');
-                if (limitsDepositMain === undefined) {
-                    currency['limits']['deposit'] = {};
-                }
+                const limitsDepositMain: Dict = this.safeDict (limitsMain, 'deposit', {});
+                const limitsDepositNew: Dict = {};
                 const limitsDepositMin = this.safeString (limitsDeposit, 'min');
                 const limitsDepositMax = this.safeString (limitsDeposit, 'max');
                 const limitsDepositMinMain = this.safeString (limitsDepositMain, 'min');
                 const limitsDepositMaxMain = this.safeString (limitsDepositMain, 'max');
                 // find min
                 if (limitsDepositMinMain === undefined || Precise.stringLt (limitsDepositMin, limitsDepositMinMain)) {
-                    currency['limits']['deposit']['min'] = this.parseNumber (limitsDepositMin);
+                    limitsDepositNew['min'] = this.parseNumber (limitsDepositMin);
                 }
                 // find max
                 if (limitsDepositMaxMain === undefined || Precise.stringGt (limitsDepositMax, limitsDepositMaxMain)) {
-                    currency['limits']['deposit']['max'] = this.parseNumber (limitsDepositMax);
+                    limitsDepositNew['max'] = this.parseNumber (limitsDepositMax);
                 }
                 // withdrawals
                 const limitsWithdraw = this.safeDict (limits, 'withdraw');
-                const limitsWithdrawMain = this.safeDict (limitsMain, 'withdraw');
-                if (limitsWithdrawMain === undefined) {
-                    currency['limits']['withdraw'] = {};
-                }
+                const limitsWithdrawMain: Dict = this.safeDict (limitsMain, 'withdraw', {});
+                const limitsWithdrawNew: Dict = {};
                 const limitsWithdrawMin = this.safeString (limitsWithdraw, 'min');
                 const limitsWithdrawMax = this.safeString (limitsWithdraw, 'max');
                 const limitsWithdrawMinMain = this.safeString (limitsWithdrawMain, 'min');
                 const limitsWithdrawMaxMain = this.safeString (limitsWithdrawMain, 'max');
                 // find min
                 if (limitsWithdrawMinMain === undefined || Precise.stringLt (limitsWithdrawMin, limitsWithdrawMinMain)) {
-                    currency['limits']['withdraw']['min'] = this.parseNumber (limitsWithdrawMin);
+                    limitsWithdrawNew['min'] = this.parseNumber (limitsWithdrawMin);
                 }
                 // find max
                 if (limitsWithdrawMaxMain === undefined || Precise.stringGt (limitsWithdrawMax, limitsWithdrawMaxMain)) {
-                    currency['limits']['withdraw']['max'] = this.parseNumber (limitsWithdrawMax);
+                    limitsWithdrawNew['max'] = this.parseNumber (limitsWithdrawMax);
                 }
+                currency['limits'] = this.extend (limitsMain, {
+                    'deposit': this.extend (limitsDepositMain, limitsDepositNew),
+                    'withdraw': this.extend (limitsWithdrawMain, limitsWithdrawNew),
+                });
             }
         }
         return this.extend ({
