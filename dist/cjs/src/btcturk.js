@@ -1122,13 +1122,13 @@ class btcturk extends btcturk$1["default"] {
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         const errorCode = this.safeString(response, 'code', '0');
         const message = this.safeString(response, 'message');
-        let output = message;
-        if (message === undefined) {
-            output = body;
+        let feedback = this.id + ' ' + body;
+        if (message !== undefined) {
+            feedback = this.id + ' ' + message;
         }
-        this.throwExactlyMatchedException(this.exceptions['exact'], message, this.id + ' ' + output);
+        this.throwExactlyMatchedException(this.exceptions['exact'], message, feedback);
         if ((errorCode !== '0') && (errorCode !== 'SUCCESS')) {
-            throw new errors.ExchangeError(this.id + ' ' + output);
+            throw new errors.ExchangeError(feedback);
         }
         return undefined;
     }

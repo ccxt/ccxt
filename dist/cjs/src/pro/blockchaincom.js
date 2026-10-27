@@ -109,9 +109,6 @@ class blockchaincom extends blockchaincom$1["default"] {
         // nobody is awaiting, so a replaced object would make updates landing
         // in that window invisible to the consumer forever (same class as
         // issue #26773)
-        if (this.balance === undefined) {
-            this.balance = {};
-        }
         this.balance['info'] = message;
         const balances = this.safeList(message, 'balances', []);
         for (let i = 0; i < balances.length; i++) {
@@ -186,8 +183,7 @@ class blockchaincom extends blockchaincom$1["default"] {
         //
         const event = this.safeString(message, 'event');
         if (event === 'rejected') {
-            const jsonMessage = this.json(message);
-            throw new errors.ExchangeError(this.id + ' ' + jsonMessage);
+            throw new errors.ExchangeError(this.id + ' ' + this.json(message));
         }
         else if (event === 'updated') {
             const marketId = this.safeString(message, 'symbol');
@@ -713,7 +709,7 @@ class blockchaincom extends blockchaincom$1["default"] {
         const messageHash = 'orderbook:' + symbol + ':' + type;
         const datetime = this.safeString(message, 'timestamp');
         const timestamp = this.parse8601(datetime);
-        if (this.safeValue(this.orderbooks, symbol) === undefined) {
+        if (!(symbol in this.orderbooks)) {
             this.orderbooks[symbol] = this.countedOrderBook();
         }
         const orderbook = this.orderbooks[symbol];
@@ -745,22 +741,30 @@ class blockchaincom extends blockchaincom$1["default"] {
     }
     handleMessage(client, message) {
         const channel = this.safeString(message, 'channel');
-        const handlers = {
-            'ticker': this.handleTicker,
-            'trades': this.handleTrades,
-            'prices': this.handleOHLCV,
-            'l2': this.handleOrderBook,
-            'l3': this.handleOrderBook,
-            'auth': this.handleAuthenticationMessage,
-            'balances': this.handleBalance,
-            'trading': this.handleOrders,
-        };
-        const handler = this.safeValue(handlers, channel);
-        if (handler !== undefined) {
-            handler.call(this, client, message);
-            return;
+        if (channel === 'ticker') {
+            this.handleTicker(client, message);
         }
-        throw new errors.NotSupported(this.id + ' received an unsupported message: ' + this.json(message));
+        else if (channel === 'trades') {
+            this.handleTrades(client, message);
+        }
+        else if (channel === 'prices') {
+            this.handleOHLCV(client, message);
+        }
+        else if (channel === 'l2' || channel === 'l3') {
+            this.handleOrderBook(client, message);
+        }
+        else if (channel === 'auth') {
+            this.handleAuthenticationMessage(client, message);
+        }
+        else if (channel === 'balances') {
+            this.handleBalance(client, message);
+        }
+        else if (channel === 'trading') {
+            this.handleOrders(client, message);
+        }
+        else {
+            throw new errors.NotSupported(this.id + ' received an unsupported message: ' + this.json(message));
+        }
     }
     handleAuthenticationMessage(client, message) {
         //

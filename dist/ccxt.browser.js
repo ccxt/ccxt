@@ -198272,7 +198272,7 @@ class bigone extends _abstract_bigone_js__rspack_import_0/* ["default"] */.A {
         ];
         const promisesResult = await Promise.all(promises);
         const response = this.safeDict(promisesResult, 0);
-        const contractResponse = promisesResult[1];
+        const contractResponse = this.safeValue(promisesResult, 1);
         //
         //     {
         //         "code":0,
@@ -198502,7 +198502,7 @@ class bigone extends _abstract_bigone_js__rspack_import_0/* ["default"] */.A {
         //    }
         //
         let marketType = 'swap';
-        if ('asset_pair_name' in ticker) {
+        if (this.safeString(ticker, 'asset_pair_name') !== undefined) {
             marketType = 'spot';
         }
         const marketId = this.safeString2(ticker, 'asset_pair_name', 'symbol');
@@ -199787,7 +199787,7 @@ class bigone extends _abstract_bigone_js__rspack_import_0/* ["default"] */.A {
         const address = this.safeString(transaction, 'target_address');
         const tag = this.safeString(transaction, 'memo');
         let type = 'deposit';
-        if ('customer_id' in transaction) {
+        if (this.safeString(transaction, 'customer_id') !== undefined) {
             type = 'withdrawal';
         }
         const internal = this.safeBool(transaction, 'is_internal');
@@ -227123,7 +227123,7 @@ class bit2c extends _abstract_bit2c_js__rspack_import_0/* ["default"] */.A {
         }
         const market = this.market(symbol);
         const optionValue = this.safeString(this.options, 'fetchTradesMethod'); // kept here for backward compatibility #29154
-        const method = this.handleOption('fetchTrades', 'method', optionValue); // publicGetExchangesPairTrades or publicGetExchangesPairLasttrades
+        const method = this.safeString(this.handleOptionAndParams({}, 'fetchTrades', 'method', optionValue), 0); // publicGetExchangesPairTrades or publicGetExchangesPairLasttrades
         const request = {
             'pair': market['id']
         };
@@ -227354,8 +227354,9 @@ class bit2c extends _abstract_bit2c_js__rspack_import_0/* ["default"] */.A {
         //
         let orderUnified = undefined;
         let isNewOrder = false;
-        if ('NewOrder' in order) {
-            orderUnified = order['NewOrder'];
+        const newOrder = this.safeValue(order, 'NewOrder');
+        if (newOrder !== undefined) {
+            orderUnified = newOrder;
             isNewOrder = true;
         } else {
             orderUnified = order;
@@ -230366,7 +230367,8 @@ class bitbns extends _abstract_bitbns_js__rspack_import_0/* ["default"] */.A {
         'www'
     ], method = 'GET', params = {}) {
         const apiName = api[0];
-        if (!(apiName in this.urls['api'])) {
+        const baseApiUrl = this.safeString(this.urls['api'], apiName);
+        if (baseApiUrl === undefined) {
             throw new _base_errors_js__rspack_import_2.ExchangeError(this.id + ' does not have a testnet/sandbox URL for ' + apiName + ' endpoints');
         }
         if (apiName !== 'www') {
@@ -230375,10 +230377,6 @@ class bitbns extends _abstract_bitbns_js__rspack_import_0/* ["default"] */.A {
         const requestHeaders = {};
         if (apiName !== 'www') {
             requestHeaders['X-BITBNS-APIKEY'] = this.apiKey;
-        }
-        const baseApiUrl = this.safeString(this.urls['api'], apiName);
-        if (baseApiUrl === undefined) {
-            throw new _base_errors_js__rspack_import_2.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
         const baseUrl = this.implodeHostname(baseApiUrl);
         let url = baseUrl + '/' + this.implodeParams(path, params);
@@ -235197,7 +235195,7 @@ class bitflyer extends _abstract_bitflyer_js__rspack_import_0/* ["default"] */.A
     parseExpiryDate(expiry) {
         const day = expiry.slice(0, 2);
         const monthName = expiry.slice(2, 5);
-        const year = expiry.slice(5, 9);
+        const expiryYear = expiry.slice(5, 9);
         const months = {
             'JAN': '01',
             'FEB': '02',
@@ -235216,7 +235214,7 @@ class bitflyer extends _abstract_bitflyer_js__rspack_import_0/* ["default"] */.A
         if (month === undefined) {
             return undefined;
         }
-        return this.parse8601(year + '-' + month + '-' + day + 'T00:00:00Z');
+        return this.parse8601(expiryYear + '-' + month + '-' + day + 'T00:00:00Z');
     }
     safeMarket(marketId = undefined, market = undefined, delimiter = undefined, marketType = undefined) {
         // Bitflyer has a different type of conflict in markets, because
@@ -236183,16 +236181,16 @@ class bitflyer extends _abstract_bitflyer_js__rspack_import_0/* ["default"] */.A
         }
         request += path;
         if (method === 'GET') {
-            if (Object.keys(params).length > 0) {
-                request += '?' + this.urlencode(params);
+            const query = this.urlencode(params);
+            if (query !== '') {
+                request += '?' + query;
             }
         }
         const apiUrl = this.safeString(this.urls['api'], 'rest');
         if (apiUrl === undefined) {
             throw new _base_errors_js__rspack_import_2.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
-        const baseUrl = this.implodeHostname(apiUrl);
-        const url = baseUrl + request;
+        const url = this.implodeHostname(apiUrl) + request;
         if (apiName === 'private') {
             this.checkRequiredCredentials();
             const nonce = this.nonce().toString();
@@ -279448,8 +279446,8 @@ class btcmarkets extends _abstract_btcmarkets_js__rspack_import_0/* ["default"] 
             'contract': false,
             'linear': undefined,
             'inverse': undefined,
-            'taker': fees['taker'],
-            'maker': fees['maker'],
+            'taker': this.safeNumber(fees, 'taker'),
+            'maker': this.safeNumber(fees, 'maker'),
             'contractSize': undefined,
             'expiry': undefined,
             'expiryDatetime': undefined,
@@ -279999,10 +279997,7 @@ class btcmarkets extends _abstract_btcmarkets_js__rspack_import_0/* ["default"] 
         let cost = undefined;
         if (market['quote'] === 'AUD') {
             currency = this.safeString(market, 'quote');
-            const amountString = this.numberToString(amount);
-            const priceString = this.numberToString(price);
-            const otherUnitsAmount = _base_Precise_js__rspack_import_3/* .Precise.stringMul */.Y.stringMul(amountString, priceString);
-            cost = this.costToPrecision(symbol, otherUnitsAmount);
+            cost = this.costToPrecision(symbol, _base_Precise_js__rspack_import_3/* .Precise.stringMul */.Y.stringMul(this.numberToString(amount), this.numberToString(price)));
         } else {
             currency = this.safeString(market, 'base');
             cost = this.amountToPrecision(symbol, amount);
@@ -280244,7 +280239,8 @@ class btcmarkets extends _abstract_btcmarkets_js__rspack_import_0/* ["default"] 
      * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */ async withdraw(code, amount, address, params = {}) {
-        const [tagWithdrawTag, paramsWithdrawTag] = this.handleParamString(params, 'tag');
+        const tagWithdrawTag = this.safeString(params, 'tag');
+        const paramsWithdrawTag = this.omit(params, 'tag');
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
@@ -281523,13 +281519,13 @@ class btcturk extends _abstract_btcturk_js__rspack_import_0/* ["default"] */.A {
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         const errorCode = this.safeString(response, 'code', '0');
         const message = this.safeString(response, 'message');
-        let output = message;
-        if (message === undefined) {
-            output = body;
+        let feedback = this.id + ' ' + body;
+        if (message !== undefined) {
+            feedback = this.id + ' ' + message;
         }
-        this.throwExactlyMatchedException(this.exceptions['exact'], message, this.id + ' ' + output);
+        this.throwExactlyMatchedException(this.exceptions['exact'], message, feedback);
         if (errorCode !== '0' && errorCode !== 'SUCCESS') {
-            throw new _base_errors_js__rspack_import_1.ExchangeError(this.id + ' ' + output);
+            throw new _base_errors_js__rspack_import_1.ExchangeError(feedback);
         }
         return undefined;
     }
@@ -322575,13 +322571,14 @@ class coinsph extends _abstract_coinsph_js__rspack_import_0/* ["default"] */.A {
             'side': orderSide
         };
         const options = this.safeDict(this.options, 'createOrder', {});
-        let newOrderRespType = this.safeValue(options, 'newOrderRespType', {});
+        const newOrderRespTypes = this.safeValue(options, 'newOrderRespType', {});
+        let newOrderRespType = 'FULL';
         // if limit order
         if (orderType === 'LIMIT' || orderType === 'STOP_LOSS_LIMIT' || orderType === 'TAKE_PROFIT_LIMIT' || orderType === 'LIMIT_MAKER') {
             if (price === undefined) {
                 throw new _base_errors_js__rspack_import_2.ArgumentsRequired(this.id + ' createOrder() requires a price argument for a ' + type + ' order');
             }
-            newOrderRespType = this.safeString(newOrderRespType, 'limit', 'FULL');
+            newOrderRespType = this.safeString(newOrderRespTypes, 'limit', 'FULL');
             request['price'] = this.priceToPrecision(symbol, price);
             request['quantity'] = this.amountToPrecision(symbol, amount);
             if (orderType !== 'LIMIT_MAKER') {
@@ -322589,7 +322586,7 @@ class coinsph extends _abstract_coinsph_js__rspack_import_0/* ["default"] */.A {
             }
         // if market order
         } else if (orderType === 'MARKET' || orderType === 'STOP_LOSS' || orderType === 'TAKE_PROFIT') {
-            newOrderRespType = this.safeString(newOrderRespType, 'market', 'FULL');
+            newOrderRespType = this.safeString(newOrderRespTypes, 'market', 'FULL');
             if (orderSide === 'SELL') {
                 request['quantity'] = this.amountToPrecision(symbol, amount);
             } else if (orderSide === 'BUY') {
@@ -323408,7 +323405,7 @@ class coinsph extends _abstract_coinsph_js__rspack_import_0/* ["default"] */.A {
         if (apiUrl === undefined) {
             throw new _base_errors_js__rspack_import_2.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
-        const query = this.omit(params, this.extractParams(path));
+        const query = this.extend({}, this.omit(params, this.extractParams(path)));
         const endpoint = this.implodeParams(path, params);
         let url = apiUrl + '/' + endpoint;
         if (apiName === 'private') {
@@ -324517,12 +324514,11 @@ class coinspot extends _abstract_coinspot_js__rspack_import_0/* ["default"] */.A
         let requestBody = undefined;
         const apiLength = api.length;
         const isVersionedApi = apiLength > 1;
-        const version = isVersionedApi ? api[0] : undefined;
         const accessType = isVersionedApi ? api[1] : api[0];
         const endpoint = '/' + this.implodeParams(path, params);
         let fullPath = endpoint;
-        if (version !== undefined) {
-            fullPath = '/' + version + endpoint;
+        if (isVersionedApi) {
+            fullPath = '/' + api[0] + endpoint;
         }
         const apiUrl = this.safeString(this.urls['api'], accessType);
         if (apiUrl === undefined) {
@@ -328979,8 +328975,8 @@ class cryptomus extends _abstract_cryptomus_js__rspack_import_0/* ["default"] */
             throw new _base_errors_js__rspack_import_1.ExchangeError(this.id + ' parseMarket() missing marketId');
         }
         const parts = marketId.split('_');
-        const baseId = parts[0];
-        const quoteId = parts[1];
+        const baseId = this.safeString(parts, 0);
+        const quoteId = this.safeString(parts, 1);
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
         if (base === undefined || quote === undefined) {
@@ -329522,8 +329518,7 @@ class cryptomus extends _abstract_cryptomus_js__rspack_import_0/* ["default"] */
         const result = this.safeList(response, 'result', []);
         const orders = [];
         for(let i = 0; i < result.length; i++){
-            const order = result[i];
-            orders.push(this.parseOrder(order, market));
+            orders.push(this.parseOrder(result[i], market));
         }
         return orders;
     }
@@ -408153,10 +408148,10 @@ class indodax extends _abstract_indodax_js__rspack_import_0/* ["default"] */.A {
             symbol = marketResolved['symbol'];
             let quoteId = this.safeString(marketResolved, 'quoteId', '');
             let baseId = this.safeString(marketResolved, 'baseId', '');
-            if (marketResolved['quoteId'] === 'idr' && 'order_rp' in order) {
+            if (marketResolved['quoteId'] === 'idr' && this.safeString(order, 'order_rp') !== undefined) {
                 quoteId = 'rp';
             }
-            if (marketResolved['baseId'] === 'idr' && 'remain_rp' in order) {
+            if (marketResolved['baseId'] === 'idr' && this.safeString(order, 'remain_rp') !== undefined) {
                 baseId = 'rp';
             }
             cost = this.safeString(order, 'order_' + quoteId);
@@ -408884,10 +408879,10 @@ class indodax extends _abstract_indodax_js__rspack_import_0/* ["default"] */.A {
             return undefined; // public endpoints may return []-arrays
         }
         const error = this.safeString(response, 'error', '');
-        if (!('success' in response) && error === '') {
+        const status = this.safeString(response, 'success');
+        if (status === undefined && error === '') {
             return undefined; // no 'success' property on public responses
         }
-        const status = this.safeString(response, 'success');
         if (status === 'approved') {
             return undefined;
         }
@@ -441794,7 +441789,7 @@ class mercado extends _abstract_mercado_js__rspack_import_0/* ["default"] */.A {
         const id = this.safeString(order, 'order_id');
         const order_type = this.safeString(order, 'order_type');
         let side = undefined;
-        if ('order_type' in order) {
+        if (order_type !== undefined) {
             side = order_type === '1' ? 'buy' : 'sell';
         }
         const status = this.parseOrderStatus(this.safeString(order, 'status'));
@@ -549813,9 +549808,6 @@ class blockchaincom extends _blockchaincom_js__rspack_import_0/* ["default"] */.
         // nobody is awaiting, so a replaced object would make updates landing
         // in that window invisible to the consumer forever (same class as
         // issue #26773)
-        if (this.balance === undefined) {
-            this.balance = {};
-        }
         this.balance['info'] = message;
         const balances = this.safeList(message, 'balances', []);
         for(let i = 0; i < balances.length; i++){
@@ -549889,8 +549881,7 @@ class blockchaincom extends _blockchaincom_js__rspack_import_0/* ["default"] */.
         //
         const event = this.safeString(message, 'event');
         if (event === 'rejected') {
-            const jsonMessage = this.json(message);
-            throw new _base_errors_js__rspack_import_1.ExchangeError(this.id + ' ' + jsonMessage);
+            throw new _base_errors_js__rspack_import_1.ExchangeError(this.id + ' ' + this.json(message));
         } else if (event === 'updated') {
             const marketId = this.safeString(message, 'symbol');
             const symbol = this.safeSymbol(marketId, undefined, '-');
@@ -550407,7 +550398,7 @@ class blockchaincom extends _blockchaincom_js__rspack_import_0/* ["default"] */.
         const messageHash = 'orderbook:' + symbol + ':' + type;
         const datetime = this.safeString(message, 'timestamp');
         const timestamp = this.parse8601(datetime);
-        if (this.safeValue(this.orderbooks, symbol) === undefined) {
+        if (!(symbol in this.orderbooks)) {
             this.orderbooks[symbol] = this.countedOrderBook();
         }
         const orderbook = this.orderbooks[symbol];
@@ -550437,22 +550428,23 @@ class blockchaincom extends _blockchaincom_js__rspack_import_0/* ["default"] */.
     }
     handleMessage(client, message) {
         const channel = this.safeString(message, 'channel');
-        const handlers = {
-            'ticker': this.handleTicker,
-            'trades': this.handleTrades,
-            'prices': this.handleOHLCV,
-            'l2': this.handleOrderBook,
-            'l3': this.handleOrderBook,
-            'auth': this.handleAuthenticationMessage,
-            'balances': this.handleBalance,
-            'trading': this.handleOrders
-        };
-        const handler = this.safeValue(handlers, channel);
-        if (handler !== undefined) {
-            handler.call(this, client, message);
-            return;
+        if (channel === 'ticker') {
+            this.handleTicker(client, message);
+        } else if (channel === 'trades') {
+            this.handleTrades(client, message);
+        } else if (channel === 'prices') {
+            this.handleOHLCV(client, message);
+        } else if (channel === 'l2' || channel === 'l3') {
+            this.handleOrderBook(client, message);
+        } else if (channel === 'auth') {
+            this.handleAuthenticationMessage(client, message);
+        } else if (channel === 'balances') {
+            this.handleBalance(client, message);
+        } else if (channel === 'trading') {
+            this.handleOrders(client, message);
+        } else {
+            throw new _base_errors_js__rspack_import_1.NotSupported(this.id + ' received an unsupported message: ' + this.json(message));
         }
-        throw new _base_errors_js__rspack_import_1.NotSupported(this.id + ' received an unsupported message: ' + this.json(message));
     }
     handleAuthenticationMessage(client, message) {
         //

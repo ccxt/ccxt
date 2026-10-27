@@ -1425,13 +1425,14 @@ class coinsph extends coinsph$1["default"] {
             'side': orderSide,
         };
         const options = this.safeDict(this.options, 'createOrder', {});
-        let newOrderRespType = this.safeValue(options, 'newOrderRespType', {});
+        const newOrderRespTypes = this.safeValue(options, 'newOrderRespType', {});
+        let newOrderRespType = 'FULL';
         // if limit order
         if (orderType === 'LIMIT' || orderType === 'STOP_LOSS_LIMIT' || orderType === 'TAKE_PROFIT_LIMIT' || orderType === 'LIMIT_MAKER') {
             if (price === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' createOrder() requires a price argument for a ' + type + ' order');
             }
-            newOrderRespType = this.safeString(newOrderRespType, 'limit', 'FULL');
+            newOrderRespType = this.safeString(newOrderRespTypes, 'limit', 'FULL');
             request['price'] = this.priceToPrecision(symbol, price);
             request['quantity'] = this.amountToPrecision(symbol, amount);
             if (orderType !== 'LIMIT_MAKER') {
@@ -1440,7 +1441,7 @@ class coinsph extends coinsph$1["default"] {
             // if market order
         }
         else if (orderType === 'MARKET' || orderType === 'STOP_LOSS' || orderType === 'TAKE_PROFIT') {
-            newOrderRespType = this.safeString(newOrderRespType, 'market', 'FULL');
+            newOrderRespType = this.safeString(newOrderRespTypes, 'market', 'FULL');
             if (orderSide === 'SELL') {
                 request['quantity'] = this.amountToPrecision(symbol, amount);
             }
@@ -2269,7 +2270,7 @@ class coinsph extends coinsph$1["default"] {
         if (apiUrl === undefined) {
             throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
-        const query = this.omit(params, this.extractParams(path));
+        const query = this.extend({}, this.omit(params, this.extractParams(path)));
         const endpoint = this.implodeParams(path, params);
         let url = apiUrl + '/' + endpoint;
         if (apiName === 'private') {

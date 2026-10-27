@@ -481,7 +481,7 @@ export default class bit2c extends Exchange {
         }
         const market = this.market(symbol);
         const optionValue = this.safeString(this.options, 'fetchTradesMethod'); // kept here for backward compatibility #29154
-        const method = this.handleOption('fetchTrades', 'method', optionValue); // publicGetExchangesPairTrades or publicGetExchangesPairLasttrades
+        const method = this.safeString(this.handleOptionAndParams({}, 'fetchTrades', 'method', optionValue), 0); // publicGetExchangesPairTrades or publicGetExchangesPairLasttrades
         const request = {
             'pair': market['id'],
         };
@@ -720,8 +720,9 @@ export default class bit2c extends Exchange {
         //
         let orderUnified = undefined;
         let isNewOrder = false;
-        if ('NewOrder' in order) {
-            orderUnified = order['NewOrder'];
+        const newOrder = this.safeValue(order, 'NewOrder');
+        if (newOrder !== undefined) {
+            orderUnified = newOrder;
             isNewOrder = true;
         }
         else {

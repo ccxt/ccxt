@@ -826,10 +826,10 @@ export default class indodax extends Exchange {
             symbol = marketResolved['symbol'];
             let quoteId = this.safeString(marketResolved, 'quoteId', '');
             let baseId = this.safeString(marketResolved, 'baseId', '');
-            if ((marketResolved['quoteId'] === 'idr') && ('order_rp' in order)) {
+            if ((marketResolved['quoteId'] === 'idr') && (this.safeString(order, 'order_rp') !== undefined)) {
                 quoteId = 'rp';
             }
-            if ((marketResolved['baseId'] === 'idr') && ('remain_rp' in order)) {
+            if ((marketResolved['baseId'] === 'idr') && (this.safeString(order, 'remain_rp') !== undefined)) {
                 baseId = 'rp';
             }
             cost = this.safeString(order, 'order_' + quoteId);
@@ -1560,10 +1560,10 @@ export default class indodax extends Exchange {
             return undefined; // public endpoints may return []-arrays
         }
         const error = this.safeString(response, 'error', '');
-        if (!('success' in response) && error === '') {
+        const status = this.safeString(response, 'success');
+        if ((status === undefined) && (error === '')) {
             return undefined; // no 'success' property on public responses
         }
-        const status = this.safeString(response, 'success');
         if (status === 'approved') {
             return undefined;
         }

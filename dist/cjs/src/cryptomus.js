@@ -333,8 +333,8 @@ class cryptomus extends cryptomus$1["default"] {
             throw new errors.ExchangeError(this.id + ' parseMarket() missing marketId');
         }
         const parts = marketId.split('_');
-        const baseId = parts[0];
-        const quoteId = parts[1];
+        const baseId = this.safeString(parts, 0);
+        const quoteId = this.safeString(parts, 1);
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
         if ((base === undefined) || (quote === undefined)) {
@@ -887,8 +887,7 @@ class cryptomus extends cryptomus$1["default"] {
         const result = this.safeList(response, 'result', []);
         const orders = [];
         for (let i = 0; i < result.length; i++) {
-            const order = result[i];
-            orders.push(this.parseOrder(order, market));
+            orders.push(this.parseOrder(result[i], market));
         }
         return orders;
     }

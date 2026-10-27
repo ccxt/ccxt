@@ -705,7 +705,7 @@ class mercado extends mercado$1["default"] {
         const id = this.safeString(order, 'order_id');
         const order_type = this.safeString(order, 'order_type');
         let side = undefined;
-        if ('order_type' in order) {
+        if (order_type !== undefined) {
             side = (order_type === '1') ? 'buy' : 'sell';
         }
         const status = this.parseOrderStatus(this.safeString(order, 'status'));

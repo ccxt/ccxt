@@ -551,8 +551,8 @@ class btcmarkets extends btcmarkets$1["default"] {
             'contract': false,
             'linear': undefined,
             'inverse': undefined,
-            'taker': fees['taker'],
-            'maker': fees['maker'],
+            'taker': this.safeNumber(fees, 'taker'),
+            'maker': this.safeNumber(fees, 'maker'),
             'contractSize': undefined,
             'expiry': undefined,
             'expiryDatetime': undefined,
@@ -1128,10 +1128,7 @@ class btcmarkets extends btcmarkets$1["default"] {
         let cost = undefined;
         if (market['quote'] === 'AUD') {
             currency = this.safeString(market, 'quote');
-            const amountString = this.numberToString(amount);
-            const priceString = this.numberToString(price);
-            const otherUnitsAmount = Precise["default"].stringMul(amountString, priceString);
-            cost = this.costToPrecision(symbol, otherUnitsAmount);
+            cost = this.costToPrecision(symbol, Precise["default"].stringMul(this.numberToString(amount), this.numberToString(price)));
         }
         else {
             currency = this.safeString(market, 'base');
@@ -1379,7 +1376,8 @@ class btcmarkets extends btcmarkets$1["default"] {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async withdraw(code, amount, address, params = {}) {
-        const [tagWithdrawTag, paramsWithdrawTag] = this.handleParamString(params, 'tag');
+        const tagWithdrawTag = this.safeString(params, 'tag');
+        const paramsWithdrawTag = this.omit(params, 'tag');
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
