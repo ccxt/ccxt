@@ -185,7 +185,7 @@ export default class mudrex extends mudrexRest {
     handleErrorMessage (client: Client, message: Dict) {
         const error = this.safeDict (message, 'error', {});
         const code = this.safeString (error, 'code');
-        const msg = this.safeString (error, 'msg');
+        const msg = this.safeString (error, 'msg', '');
         const feedback = this.id + ' ' + msg;
         if (code === '429') {
             throw new RateLimitExceeded (feedback);
