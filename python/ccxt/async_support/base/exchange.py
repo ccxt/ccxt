@@ -1413,7 +1413,6 @@ class BaseExchange(SyncExchange):
         paginationDirection, paramsPaginationDirection = self.handle_option_and_params(paramsMaxRetries, method, 'paginationDirection', 'backward')
         paginationTimestamp = None
         removeRepeatedOption, paramsRemoveRepeated = self.handle_option_and_params(paramsPaginationDirection, method, 'removeRepeated', removeRepeated)
-        calls = 0
         result = []
         errors = 0
         until = self.safe_integer_n(paramsRemoveRepeated, ['until', 'untill', 'till'])  # do not omit it from params here
@@ -1423,8 +1422,7 @@ class BaseExchange(SyncExchange):
                 raise ArgumentsRequired(self.id + ' pagination requires a since argument when paginationDirection set to forward')
             paginationTimestamp = since
         shouldBreak = False
-        while((calls < maxCallsPaginationCalls)):
-            calls += 1
+        for i in range(0, maxCallsPaginationCalls):
             try:
                 if paginationDirection == 'backward':
                     # do it backwards, starting from the last
@@ -1434,7 +1432,7 @@ class BaseExchange(SyncExchange):
                     response = await getattr(self, method)(symbol, None, maxEntriesPerRequestOption, paramsMaxEntriesPerRequest)
                     responseLength = len(response)
                     if self.verbose:
-                        backwardMessage = 'Dynamic pagination call ' + self.number_to_string(calls) + ' method ' + method + ' response length ' + str(responseLength)
+                        backwardMessage = 'Dynamic pagination call ' + self.number_to_string(i + 1) + ' method ' + method + ' response length ' + str(responseLength)
                         if paginationTimestamp is not None:
                             backwardMessage += ' timestamp ' + self.number_to_string(paginationTimestamp)
                         self.log(backwardMessage)
@@ -1456,7 +1454,7 @@ class BaseExchange(SyncExchange):
                     response = await getattr(self, method)(symbol, paginationTimestamp, maxEntriesPerRequestOption, paramsMaxEntriesPerRequest)
                     responseLength = len(response)
                     if self.verbose:
-                        forwardMessage = 'Dynamic pagination call ' + self.number_to_string(calls) + ' method ' + method + ' response length ' + str(responseLength)
+                        forwardMessage = 'Dynamic pagination call ' + self.number_to_string(i + 1) + ' method ' + method + ' response length ' + str(responseLength)
                         if paginationTimestamp is not None:
                             forwardMessage += ' timestamp ' + self.number_to_string(paginationTimestamp)
                         self.log(forwardMessage)
@@ -1509,6 +1507,7 @@ class BaseExchange(SyncExchange):
     async def fetch_paginated_call_deterministic(self, method: str, symbol: Str = None, since: Int = None, limit: Int = None, timeframe: Str = None, params: dict = {}, maxEntriesPerRequest: Int = None):
         maxCalls = 10
         maxCallsPaginationCalls, paramsPaginationCalls = self.handle_option_integer_and_params(params, method, 'paginationCalls', maxCalls)
+        maxCallsLimit = self.parse_to_int(maxCallsPaginationCalls)
         maxEntriesPerRequestOption, paramsMaxEntriesPerRequest = self.handle_max_entries_per_request_and_params(method, maxEntriesPerRequest, paramsPaginationCalls)
         # paginationDirection is only relevant to fetchPaginatedCallDynamic/Cursor; deterministic
         # pagination always walks forward internally, so strip it here to avoid leaking an
@@ -1520,7 +1519,7 @@ class BaseExchange(SyncExchange):
         maxEntriesPerRequestValue = self.require_value(maxEntriesPerRequestOption, 'fetchPaginatedCallDeterministic() maxEntriesPerRequest is required')
         step = time * self.parse_to_int(maxEntriesPerRequestValue)
         until = self.safe_integer_2(paramsOmitted, 'until', 'till')  # do not omit it here
-        currentSince = current - (maxCallsPaginationCalls * step) - 1
+        currentSince = current - (maxCallsLimit * step) - 1
         if since is not None:
             if until is not None:
                 # the recent-window floor below would jump past a fully-historical [ since, until ]
@@ -1536,9 +1535,9 @@ class BaseExchange(SyncExchange):
             if since is None:
                 raise ArgumentsRequired(self.id + ' fetchPaginatedCallDeterministic() requires a since argument when until is set')
             requiredCalls = int(math.ceil((until - since)) / step)
-            if requiredCalls > maxCallsPaginationCalls:
-                raise BadRequest(self.id + ' the number of required calls is greater than the max number of calls allowed, either increase the paginationCalls or decrease the since-until gap. Current paginationCalls limit is ' + str(maxCallsPaginationCalls) + ' required calls is ' + str(requiredCalls))
-        for i in range(0, maxCallsPaginationCalls):
+            if requiredCalls > maxCallsLimit:
+                raise BadRequest(self.id + ' the number of required calls is greater than the max number of calls allowed, either increase the paginationCalls or decrease the since-until gap. Current paginationCalls limit is ' + str(maxCallsLimit) + ' required calls is ' + str(requiredCalls))
+        for i in range(0, maxCallsLimit):
             if (until is not None) and (currentSince >= until):
                 break
             if currentSince >= current:
@@ -1561,13 +1560,12 @@ class BaseExchange(SyncExchange):
         maxRetriesOption, paramsMaxRetries = self.handle_option_integer_and_params(paramsPaginationCalls, method, 'maxRetries', maxRetries)
         maxEntriesPerRequestOption, paramsMaxEntriesPerRequest = self.handle_max_entries_per_request_and_params(method, maxEntriesPerRequest, paramsMaxRetries)
         cursorValue = None
-        i = 0
         errors = 0
         result = []
         timeframe = self.safe_string(paramsMaxEntriesPerRequest, 'timeframe')
         paramsOmitted = self.omit(paramsMaxEntriesPerRequest, 'timeframe')  # reading the timeframe from the method arguments to avoid changing the signature
         shouldBreak = False
-        while(i < maxCallsPaginationCalls):
+        for i in range(0, maxCallsPaginationCalls):
             try:
                 if cursorValue is not None:
                     if cursorIncrement is not None:
@@ -1625,7 +1623,6 @@ class BaseExchange(SyncExchange):
                     raise e
             if shouldBreak:
                 break  # go turns a break inside try into a panic that only ends the iteration
-            i += 1
         sorted = self.sort_cursor_paginated_result(result)
         key = 0 if (method == 'fetchOHLCV') else 'timestamp'
         return self.filter_by_since_limit(sorted, since, limit, key)
@@ -1633,14 +1630,14 @@ class BaseExchange(SyncExchange):
     async def fetch_paginated_call_incremental(self, method: str, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}, pageKey: Str = None, maxEntriesPerRequest: Int = None):
         maxCalls = 10
         maxCallsPaginationCalls, paramsPaginationCalls = self.handle_option_integer_and_params(params, method, 'paginationCalls', maxCalls)
+        maxCallsLimit = self.parse_to_int(maxCallsPaginationCalls)
         maxRetries = 3
         maxRetriesOption, paramsMaxRetries = self.handle_option_integer_and_params(paramsPaginationCalls, method, 'maxRetries', maxRetries)
         maxEntriesPerRequestOption, paramsMaxEntriesPerRequest = self.handle_max_entries_per_request_and_params(method, maxEntriesPerRequest, paramsMaxRetries)
-        i = 0
         errors = 0
         result = []
         shouldBreak = False
-        while(i < maxCallsPaginationCalls):
+        for i in range(0, maxCallsLimit):
             try:
                 paramsMaxEntriesPerRequest[pageKey] = i + 1
                 response = await getattr(self, method)(symbol, since, maxEntriesPerRequestOption, paramsMaxEntriesPerRequest)
@@ -1660,10 +1657,7 @@ class BaseExchange(SyncExchange):
                     raise e
             if shouldBreak:
                 break  # go turns a break inside try into a panic that only ends the iteration
-            i += 1
-        sorted = self.sort_cursor_paginated_result(result)
-        key = 0 if (method == 'fetchOHLCV') else 'timestamp'
-        return self.filter_by_since_limit(sorted, since, limit, key)
+        return self.filter_by_since_limit(self.sort_cursor_paginated_result(result), since, limit, 0 if (method == 'fetchOHLCV') else 'timestamp')
 
     async def load_markets_and_sign_in(self):
         await asyncio.gather(*[self.load_markets(), self.sign_in()])

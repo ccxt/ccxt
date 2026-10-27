@@ -4263,7 +4263,7 @@ class BaseExchange(object):
         for i in range(0, len(marketValues)):
             value = self.safe_dict(marketValues, i, {})
             if value['id'] in marketsById:
-                marketsByIdArray = (marketsById[value['id']])
+                marketsByIdArray = marketsById[value['id']]
                 marketsByIdArray.append(value)
                 marketsById[value['id']] = marketsByIdArray
             else:
@@ -4328,8 +4328,7 @@ class BaseExchange(object):
             quoteCurrencies = self.sort_by(quoteCurrencies, 'code', False, '')
             self.baseCurrencies = self.map_to_safe_map(self.index_by(baseCurrencies, 'code'))
             self.quoteCurrencies = self.map_to_safe_map(self.index_by(quoteCurrencies, 'code'))
-            allCurrencies = self.array_concat(baseCurrencies, quoteCurrencies)
-            groupedCurrencies = self.group_by(allCurrencies, 'code')
+            groupedCurrencies = self.group_by(self.array_concat(baseCurrencies, quoteCurrencies), 'code')
             codes = list(groupedCurrencies.keys())
             resultingCurrencies = []
             for i in range(0, len(codes)):
@@ -4348,8 +4347,7 @@ class BaseExchange(object):
                     elif currentPrecision > highestPrecision:
                         highestPrecisionCurrency = currentCurrency
                 resultingCurrencies.append(highestPrecisionCurrency)
-            sortedCurrencies = self.sort_by(resultingCurrencies, 'code')
-            self.currencies = self.map_to_safe_map(self.deep_extend(self.currencies, self.index_by(sortedCurrencies, 'code')))
+            self.currencies = self.map_to_safe_map(self.deep_extend(self.currencies, self.index_by(self.sort_by(resultingCurrencies, 'code'), 'code')))
         self.currencies_by_id = self.index_by_safe(self.currencies, 'id')
         currenciesSortedByCode = self.keysort(self.currencies)
         self.codes = list(currenciesSortedByCode.keys())
@@ -4406,15 +4404,15 @@ class BaseExchange(object):
                 free = Precise.string_sub(total, used)
             if (used is None) and (total is not None) and (free is not None):
                 used = Precise.string_sub(total, free)
-            balance[code]['free'] = self.parse_number(free)
-            balance[code]['used'] = self.parse_number(used)
-            balance[code]['total'] = self.parse_number(total)
-            freeBalance[code] = balance[code]['free']
-            usedBalance[code] = balance[code]['used']
-            totalBalance[code] = balance[code]['total']
+            freeBalance[code] = self.parse_number(free)
+            usedBalance[code] = self.parse_number(used)
+            totalBalance[code] = self.parse_number(total)
+            balance[code]['free'] = freeBalance[code]
+            balance[code]['used'] = usedBalance[code]
+            balance[code]['total'] = totalBalance[code]
             if debt is not None:
-                balance[code]['debt'] = self.parse_number(debt)
-                debtBalance[code] = balance[code]['debt']
+                debtBalance[code] = self.parse_number(debt)
+                balance[code]['debt'] = debtBalance[code]
         balance['free'] = freeBalance
         balance['used'] = usedBalance
         balance['total'] = totalBalance
@@ -5455,7 +5453,7 @@ class BaseExchange(object):
                 item = response[i]
                 id = None if (marketIdKey is None) else self.safe_string(item, marketIdKey)
                 market = self.safe_market(id, None, None, 'swap')
-                symbol = market['symbol']
+                symbol = self.safe_string(market, 'symbol', '')
                 contract = self.safe_bool(market, 'contract', False)
                 if (contract) and (noSymbols or ((symbolsNormalized is not None) and self.in_array(symbol, symbolsNormalized))):
                     tiers[symbol] = self.parse_market_leverage_tiers(item, market)
@@ -5465,7 +5463,7 @@ class BaseExchange(object):
                 marketId = keys[i]
                 item = response[marketId]
                 market = self.safe_market(marketId, None, None, 'swap')
-                symbol = market['symbol']
+                symbol = self.safe_string(market, 'symbol', '')
                 contract = self.safe_bool(market, 'contract', False)
                 if (contract) and (noSymbols or ((symbolsNormalized is not None) and self.in_array(symbol, symbolsNormalized))):
                     tiers[symbol] = self.parse_market_leverage_tiers(item, market)
@@ -6519,14 +6517,6 @@ class BaseExchange(object):
     def set_take_profit_and_stop_loss_params(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, takeProfit: Num = None, stopLoss: Num = None, params: dict = {}):
         if (takeProfit is None) and (stopLoss is None):
             raise ArgumentsRequired(self.id + ' createOrderWithTakeProfitAndStopLoss() requires either a takeProfit or stopLoss argument')
-        if takeProfit is not None:
-            params['takeProfit'] = {
-                'triggerPrice': takeProfit,
-            }
-        if stopLoss is not None:
-            params['stopLoss'] = {
-                'triggerPrice': stopLoss,
-            }
         takeProfitType = self.safe_string(params, 'takeProfitType')
         takeProfitPriceType = self.safe_string(params, 'takeProfitPriceType')
         takeProfitLimitPrice = self.safe_string(params, 'takeProfitLimitPrice')
@@ -6535,22 +6525,32 @@ class BaseExchange(object):
         stopLossPriceType = self.safe_string(params, 'stopLossPriceType')
         stopLossLimitPrice = self.safe_string(params, 'stopLossLimitPrice')
         stopLossAmount = self.safe_string(params, 'stopLossAmount')
-        if takeProfitType is not None:
-            params['takeProfit']['type'] = takeProfitType
-        if takeProfitPriceType is not None:
-            params['takeProfit']['priceType'] = takeProfitPriceType
-        if takeProfitLimitPrice is not None:
-            params['takeProfit']['price'] = self.parse_to_numeric(takeProfitLimitPrice)
-        if takeProfitAmount is not None:
-            params['takeProfit']['amount'] = self.parse_to_numeric(takeProfitAmount)
-        if stopLossType is not None:
-            params['stopLoss']['type'] = stopLossType
-        if stopLossPriceType is not None:
-            params['stopLoss']['priceType'] = stopLossPriceType
-        if stopLossLimitPrice is not None:
-            params['stopLoss']['price'] = self.parse_to_numeric(stopLossLimitPrice)
-        if stopLossAmount is not None:
-            params['stopLoss']['amount'] = self.parse_to_numeric(stopLossAmount)
+        if takeProfit is not None:
+            takeProfitRequest = {
+                'triggerPrice': takeProfit,
+            }
+            if takeProfitType is not None:
+                takeProfitRequest['type'] = takeProfitType
+            if takeProfitPriceType is not None:
+                takeProfitRequest['priceType'] = takeProfitPriceType
+            if takeProfitLimitPrice is not None:
+                takeProfitRequest['price'] = self.parse_to_numeric(takeProfitLimitPrice)
+            if takeProfitAmount is not None:
+                takeProfitRequest['amount'] = self.parse_to_numeric(takeProfitAmount)
+            params['takeProfit'] = takeProfitRequest
+        if stopLoss is not None:
+            stopLossRequest = {
+                'triggerPrice': stopLoss,
+            }
+            if stopLossType is not None:
+                stopLossRequest['type'] = stopLossType
+            if stopLossPriceType is not None:
+                stopLossRequest['priceType'] = stopLossPriceType
+            if stopLossLimitPrice is not None:
+                stopLossRequest['price'] = self.parse_to_numeric(stopLossLimitPrice)
+            if stopLossAmount is not None:
+                stopLossRequest['amount'] = self.parse_to_numeric(stopLossAmount)
+            params['stopLoss'] = stopLossRequest
         paramsOmitted = self.omit(params, ['takeProfitType', 'takeProfitPriceType', 'takeProfitLimitPrice', 'takeProfitAmount', 'stopLossType', 'stopLossPriceType', 'stopLossLimitPrice', 'stopLossAmount'])
         return paramsOmitted
 
@@ -7497,7 +7497,6 @@ class BaseExchange(object):
         paginationDirection, paramsPaginationDirection = self.handle_option_and_params(paramsMaxRetries, method, 'paginationDirection', 'backward')
         paginationTimestamp = None
         removeRepeatedOption, paramsRemoveRepeated = self.handle_option_and_params(paramsPaginationDirection, method, 'removeRepeated', removeRepeated)
-        calls = 0
         result = []
         errors = 0
         until = self.safe_integer_n(paramsRemoveRepeated, ['until', 'untill', 'till'])  # do not omit it from params here
@@ -7507,8 +7506,7 @@ class BaseExchange(object):
                 raise ArgumentsRequired(self.id + ' pagination requires a since argument when paginationDirection set to forward')
             paginationTimestamp = since
         shouldBreak = False
-        while((calls < maxCallsPaginationCalls)):
-            calls += 1
+        for i in range(0, maxCallsPaginationCalls):
             try:
                 if paginationDirection == 'backward':
                     # do it backwards, starting from the last
@@ -7518,7 +7516,7 @@ class BaseExchange(object):
                     response = getattr(self, method)(symbol, None, maxEntriesPerRequestOption, paramsMaxEntriesPerRequest)
                     responseLength = len(response)
                     if self.verbose:
-                        backwardMessage = 'Dynamic pagination call ' + self.number_to_string(calls) + ' method ' + method + ' response length ' + str(responseLength)
+                        backwardMessage = 'Dynamic pagination call ' + self.number_to_string(i + 1) + ' method ' + method + ' response length ' + str(responseLength)
                         if paginationTimestamp is not None:
                             backwardMessage += ' timestamp ' + self.number_to_string(paginationTimestamp)
                         self.log(backwardMessage)
@@ -7540,7 +7538,7 @@ class BaseExchange(object):
                     response = getattr(self, method)(symbol, paginationTimestamp, maxEntriesPerRequestOption, paramsMaxEntriesPerRequest)
                     responseLength = len(response)
                     if self.verbose:
-                        forwardMessage = 'Dynamic pagination call ' + self.number_to_string(calls) + ' method ' + method + ' response length ' + str(responseLength)
+                        forwardMessage = 'Dynamic pagination call ' + self.number_to_string(i + 1) + ' method ' + method + ' response length ' + str(responseLength)
                         if paginationTimestamp is not None:
                             forwardMessage += ' timestamp ' + self.number_to_string(paginationTimestamp)
                         self.log(forwardMessage)
@@ -7593,6 +7591,7 @@ class BaseExchange(object):
     def fetch_paginated_call_deterministic(self, method: str, symbol: Str = None, since: Int = None, limit: Int = None, timeframe: Str = None, params: dict = {}, maxEntriesPerRequest: Int = None):
         maxCalls = 10
         maxCallsPaginationCalls, paramsPaginationCalls = self.handle_option_integer_and_params(params, method, 'paginationCalls', maxCalls)
+        maxCallsLimit = self.parse_to_int(maxCallsPaginationCalls)
         maxEntriesPerRequestOption, paramsMaxEntriesPerRequest = self.handle_max_entries_per_request_and_params(method, maxEntriesPerRequest, paramsPaginationCalls)
         # paginationDirection is only relevant to fetchPaginatedCallDynamic/Cursor; deterministic
         # pagination always walks forward internally, so strip it here to avoid leaking an
@@ -7604,7 +7603,7 @@ class BaseExchange(object):
         maxEntriesPerRequestValue = self.require_value(maxEntriesPerRequestOption, 'fetchPaginatedCallDeterministic() maxEntriesPerRequest is required')
         step = time * self.parse_to_int(maxEntriesPerRequestValue)
         until = self.safe_integer_2(paramsOmitted, 'until', 'till')  # do not omit it here
-        currentSince = current - (maxCallsPaginationCalls * step) - 1
+        currentSince = current - (maxCallsLimit * step) - 1
         if since is not None:
             if until is not None:
                 # the recent-window floor below would jump past a fully-historical [ since, until ]
@@ -7620,9 +7619,9 @@ class BaseExchange(object):
             if since is None:
                 raise ArgumentsRequired(self.id + ' fetchPaginatedCallDeterministic() requires a since argument when until is set')
             requiredCalls = int(math.ceil((until - since)) / step)
-            if requiredCalls > maxCallsPaginationCalls:
-                raise BadRequest(self.id + ' the number of required calls is greater than the max number of calls allowed, either increase the paginationCalls or decrease the since-until gap. Current paginationCalls limit is ' + str(maxCallsPaginationCalls) + ' required calls is ' + str(requiredCalls))
-        for i in range(0, maxCallsPaginationCalls):
+            if requiredCalls > maxCallsLimit:
+                raise BadRequest(self.id + ' the number of required calls is greater than the max number of calls allowed, either increase the paginationCalls or decrease the since-until gap. Current paginationCalls limit is ' + str(maxCallsLimit) + ' required calls is ' + str(requiredCalls))
+        for i in range(0, maxCallsLimit):
             if (until is not None) and (currentSince >= until):
                 break
             if currentSince >= current:
@@ -7645,13 +7644,12 @@ class BaseExchange(object):
         maxRetriesOption, paramsMaxRetries = self.handle_option_integer_and_params(paramsPaginationCalls, method, 'maxRetries', maxRetries)
         maxEntriesPerRequestOption, paramsMaxEntriesPerRequest = self.handle_max_entries_per_request_and_params(method, maxEntriesPerRequest, paramsMaxRetries)
         cursorValue = None
-        i = 0
         errors = 0
         result = []
         timeframe = self.safe_string(paramsMaxEntriesPerRequest, 'timeframe')
         paramsOmitted = self.omit(paramsMaxEntriesPerRequest, 'timeframe')  # reading the timeframe from the method arguments to avoid changing the signature
         shouldBreak = False
-        while(i < maxCallsPaginationCalls):
+        for i in range(0, maxCallsPaginationCalls):
             try:
                 if cursorValue is not None:
                     if cursorIncrement is not None:
@@ -7709,7 +7707,6 @@ class BaseExchange(object):
                     raise e
             if shouldBreak:
                 break  # go turns a break inside try into a panic that only ends the iteration
-            i += 1
         sorted = self.sort_cursor_paginated_result(result)
         key = 0 if (method == 'fetchOHLCV') else 'timestamp'
         return self.filter_by_since_limit(sorted, since, limit, key)
@@ -7717,14 +7714,14 @@ class BaseExchange(object):
     def fetch_paginated_call_incremental(self, method: str, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}, pageKey: Str = None, maxEntriesPerRequest: Int = None):
         maxCalls = 10
         maxCallsPaginationCalls, paramsPaginationCalls = self.handle_option_integer_and_params(params, method, 'paginationCalls', maxCalls)
+        maxCallsLimit = self.parse_to_int(maxCallsPaginationCalls)
         maxRetries = 3
         maxRetriesOption, paramsMaxRetries = self.handle_option_integer_and_params(paramsPaginationCalls, method, 'maxRetries', maxRetries)
         maxEntriesPerRequestOption, paramsMaxEntriesPerRequest = self.handle_max_entries_per_request_and_params(method, maxEntriesPerRequest, paramsMaxRetries)
-        i = 0
         errors = 0
         result = []
         shouldBreak = False
-        while(i < maxCallsPaginationCalls):
+        for i in range(0, maxCallsLimit):
             try:
                 paramsMaxEntriesPerRequest[pageKey] = i + 1
                 response = getattr(self, method)(symbol, since, maxEntriesPerRequestOption, paramsMaxEntriesPerRequest)
@@ -7744,10 +7741,7 @@ class BaseExchange(object):
                     raise e
             if shouldBreak:
                 break  # go turns a break inside try into a panic that only ends the iteration
-            i += 1
-        sorted = self.sort_cursor_paginated_result(result)
-        key = 0 if (method == 'fetchOHLCV') else 'timestamp'
-        return self.filter_by_since_limit(sorted, since, limit, key)
+        return self.filter_by_since_limit(self.sort_cursor_paginated_result(result), since, limit, 0 if (method == 'fetchOHLCV') else 'timestamp')
 
     def sort_cursor_paginated_result(self, result: object):
         first = self.safe_dict(result, 0)
@@ -7772,7 +7766,7 @@ class BaseExchange(object):
             return uniqueResult
         return input
 
-    def remove_repeated_trades_from_array(self, input: object):
+    def remove_repeated_trades_from_array(self, input: list[dict]):
         uniqueResult = {}
         for i in range(0, len(input)):
             entry = input[i]

@@ -157,8 +157,8 @@ class p2b(ccxt.async_support.p2b):
         nameOption, paramsName = self.handle_option_string_and_params(params, 'watchTickers', 'name', name)
         messageHashes = []
         args = []
-        for i in range(0, len((symbolsNormalized))):
-            market = self.market((symbolsNormalized)[i])
+        for i in range(0, len(symbolsNormalized)):
+            market = self.market(symbolsNormalized[i])
             messageHashes.append(nameOption + '::' + self.safe_string(market, 'symbol', ''))
             args.append(market['id'])
         url = self.urls['api']['ws']
