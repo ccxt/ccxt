@@ -2914,9 +2914,9 @@ export default class binance extends Exchange {
                     if (isLegacyLinear) {
                         settle = this.safeString (market, 'quote', '');
                     }
-                    const futuresSymbol = this.safeString (market, 'symbol', '') + ':' + settle;
-                    if ((this.markets !== undefined) && (futuresSymbol in this.markets)) {
-                        return this.markets[futuresSymbol];
+                    const legacySymbol = this.safeString (market, 'symbol', '') + ':' + settle;
+                    if ((this.markets !== undefined) && (legacySymbol in this.markets)) {
+                        return this.markets[legacySymbol];
                     }
                 } else {
                     return market;
