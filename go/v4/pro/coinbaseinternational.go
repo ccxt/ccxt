@@ -1903,18 +1903,18 @@ func (this *Coinbaseinternational) watchOrderBookForSymbolsBody(ch chan ccxt.Asy
 	var isPrivate bool = (interval != nil && *interval == "raw")
 	useDepthEndpoint, paramsDepthEndpoint := this.HandleOptionBoolAndParams(paramsInterval, "watchOrderBookForSymbols", "useDepthEndpoint", false)
 	var paramsChannel any = paramsDepthEndpoint
-	var descriptor any = interval
+	var descriptor string = "." + *interval
 	if useDepthEndpoint {
 		depth, paramsDepth := this.HandleOptionStringAndParams(paramsDepthEndpoint, "watchOrderBookForSymbols", "depth", "20")
 		groupKey, paramsGroup := this.HandleOptionStringAndParams(paramsDepth, "watchOrderBookForSymbols", "group", "none")
 		paramsChannel = paramsGroup
-		descriptor = ccxt.Add(*groupKey+"."+*depth+".", interval)
+		descriptor = "." + *groupKey + "." + *depth + "." + *interval
 	}
 	var channels []any = []any{}
 	var symbolsLength int = ccxt.GetArrayLength(symbols)
 	for i := 0; i < symbolsLength; i++ {
 		var market map[string]any = this.Market(this.SafeString(symbols, i, ""))
-		channels = append(channels, ccxt.Add("book."+*this.SafeString(market, "id", "")+".", descriptor))
+		channels = append(channels, "book."+*this.SafeString(market, "id", "")+descriptor)
 	}
 
 	r1 := <-this.SubscribeAsync(channels, channels, isPrivate, paramsChannel)
@@ -1990,17 +1990,17 @@ func (this *Coinbaseinternational) unWatchOrderBookForSymbolsBody(ch chan ccxt.A
 	interval, paramsInterval := this.HandleOptionStringAndParams(paramsResolved, "watchOrderBookForSymbols", "interval", "100ms")
 	useDepthEndpoint, paramsDepthEndpoint := this.HandleOptionBoolAndParams(paramsInterval, "watchOrderBookForSymbols", "useDepthEndpoint", false)
 	var paramsChannel any = paramsDepthEndpoint
-	var descriptor any = interval
+	var descriptor string = "." + *interval
 	if useDepthEndpoint {
 		depth, paramsDepth := this.HandleOptionStringAndParams(paramsDepthEndpoint, "watchOrderBookForSymbols", "depth", "20")
 		groupKey, paramsGroup := this.HandleOptionStringAndParams(paramsDepth, "watchOrderBookForSymbols", "group", "none")
 		paramsChannel = paramsGroup
-		descriptor = ccxt.Add(*groupKey+"."+*depth+".", interval)
+		descriptor = "." + *groupKey + "." + *depth + "." + *interval
 	}
 	var channels []any = []any{}
 	var symbolsLength int = len(symbols)
 	for i := 0; i < symbolsLength; i++ {
-		channels = append(channels, ccxt.Add("book."+*this.SafeString(this.Market(this.SafeString(symbols, i, "")), "id", "")+".", descriptor))
+		channels = append(channels, "book."+*this.SafeString(this.Market(this.SafeString(symbols, i, "")), "id", "")+descriptor)
 	}
 
 	r1 := <-this.UnSubscribeAsync(channels, (interval != nil && *interval == "raw"), paramsChannel)
@@ -2034,15 +2034,15 @@ func (this *Coinbaseinternational) HandleOrderBook(client any, message map[strin
 	if symbol != nil {
 		orderbook = this.Orderbooks[*symbol].(ccxt.OrderBookInterface)
 	}
-	if !isGrouped && (typeVar == nil || *typeVar != "snapshot") && (this.SafeInteger(orderbook, "nonce") == nil) {
+	var nonce *int64 = this.SafeInteger(orderbook, "nonce")
+	if !isGrouped && (typeVar == nil || *typeVar != "snapshot") && (nonce == nil) {
 		return
 	}
 	if isGrouped {
-		var parsedSnapshot map[string]any = this.ParseOrderBook(data, symbol, timestamp, "bids", "asks")
-		orderbook.(ccxt.OrderBookInterface).Reset(parsedSnapshot)
+		orderbook.(ccxt.OrderBookInterface).Reset(this.ParseOrderBook(data, symbol, timestamp, "bids", "asks"))
 	} else {
 		var previousChangeId *int64 = this.SafeInteger(data, "prev_change_id")
-		if (typeVar == nil || *typeVar != "snapshot") && (this.SafeInteger(orderbook, "nonce") != nil) && (!ccxt.IsEqual(previousChangeId, this.SafeInteger(orderbook, "nonce"))) {
+		if (typeVar == nil || *typeVar != "snapshot") && (nonce != nil) && (previousChangeId != nonce && (previousChangeId == nil || nonce == nil || *previousChangeId != *nonce)) {
 			// drop the stale book and reject only this channels future
 			if symbol != nil {
 				delete(this.Orderbooks, *symbol)

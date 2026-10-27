@@ -2274,7 +2274,7 @@ func (this *Bingx) HandleOrder(client any, message any) {
 		}
 	}
 	stored.(ccxt.Appender).Append(parsedOrder)
-	var symbol *string = this.SafeString(parsedOrder, "symbol")
+	var symbol *string = this.SafeString(parsedOrder, "symbol", "")
 	var spotHash string = "spot:order"
 	var swapHash string = "swap:order"
 	var messageHash string = swapHash
@@ -2282,7 +2282,7 @@ func (this *Bingx) HandleOrder(client any, message any) {
 		messageHash = spotHash
 	}
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
-	client.(ccxt.ClientInterface).Resolve(stored, ccxt.Add(messageHash+":", symbol))
+	client.(ccxt.ClientInterface).Resolve(stored, messageHash+":"+*symbol)
 }
 func (this *Bingx) HandleMyTrades(client any, message any) {
 	//

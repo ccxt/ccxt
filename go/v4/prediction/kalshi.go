@@ -655,7 +655,8 @@ func (this *Kalshi) fetchOutcomesBody(ch chan ccxt.AsyncResult[map[string]ccxt.P
 	defer ccxt.ReturnPanicError(ch)
 	var tickers []any = []any{}
 	var seen map[string]any = map[string]any{}
-	for i := 0; i < ccxt.GetArrayLength(outcomeSymbols); i++ {
+	var outcomeSymbolsLength int = ccxt.GetArrayLength(outcomeSymbols)
+	for i := 0; i < outcomeSymbolsLength; i++ {
 		var outcomeSymbol *string = ccxt.SafeStringPtr(ccxt.GetValue(outcomeSymbols, i))
 		if strings.Index(*outcomeSymbol, ":") >= 0 {
 			continue
@@ -718,7 +719,7 @@ func (this *Kalshi) fetchOutcomesBody(ch chan ccxt.AsyncResult[map[string]ccxt.P
 			this.IndexMarketOutcomes(parsed)
 		}
 	}
-	for i := 0; i < ccxt.GetArrayLength(outcomeSymbols); i++ {
+	for i := 0; i < outcomeSymbolsLength; i++ {
 		if !this.HasOutcome(ccxt.GetValue(outcomeSymbols, i)) {
 
 			r1 := <-this.FetchOutcomeAsync(ccxt.GetValue(outcomeSymbols, i))

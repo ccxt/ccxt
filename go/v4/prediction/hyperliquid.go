@@ -246,22 +246,23 @@ func (this *Hyperliquid) ParseOutcomeDescription(description *string) map[string
  */
 func (this *Hyperliquid) BuildOutcomeSymbol(desc any, side any, outcomeId any) any {
 	var underlying *string = this.SafeString(desc, "underlying", "OUTCOME"+ccxt.ToString(outcomeId))
-	var targetPrice *string = this.SafeString(desc, "targetPrice")
+	var targetPrice *string = this.SafeString(desc, "targetPrice", "")
 	var expiry *string = this.SafeString(desc, "expiry", "")
 	// Parse expiry: "20260503-0600" → "20260503"
 	var expiryDate any = ""
 	if expiry == nil || *expiry != "" {
-		expiryDate = ccxt.GetValue(strings.Split(*expiry, "-"), 0)
+		var expiryParts []string = strings.Split(*expiry, "-")
+		expiryDate = expiryParts[0]
 	}
 	var label string = "NO"
 	if ccxt.IsEqual(side, 0) {
 		label = "YES"
 	}
 	var base any = strings.ToUpper(*underlying)
-	if (targetPrice != nil) && (targetPrice == nil || *targetPrice != "") {
+	if targetPrice == nil || *targetPrice != "" {
 		base = ccxt.Add(ccxt.Add(base, "_ABOVE_"), targetPrice)
 	}
-	if (expiryDate != nil) && (expiryDate != "") {
+	if expiryDate != "" {
 		base = ccxt.Add(ccxt.Add(base, "_"), expiryDate)
 	}
 	return ccxt.Add(ccxt.Add(base, ":"), label)
@@ -283,19 +284,20 @@ func (this *Hyperliquid) BuildOutcomeParentSymbol(desc map[string]any, outcomeId
 	_ = name
 	var question map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = question
-	var underlying *string = this.SafeString(desc, "underlying")
-	if (underlying != nil) && (underlying == nil || *underlying != "") {
-		var targetPrice *string = this.SafeString(desc, "targetPrice")
+	var underlying *string = this.SafeString(desc, "underlying", "")
+	if underlying == nil || *underlying != "" {
+		var targetPrice *string = this.SafeString(desc, "targetPrice", "")
 		var expiry *string = this.SafeString(desc, "expiry", "")
 		var expiryDate any = ""
 		if expiry == nil || *expiry != "" {
-			expiryDate = ccxt.GetValue(strings.Split(*expiry, "-"), 0)
+			var expiryParts []string = strings.Split(*expiry, "-")
+			expiryDate = expiryParts[0]
 		}
 		var base any = strings.ToUpper(*underlying)
-		if (targetPrice != nil) && (targetPrice == nil || *targetPrice != "") {
+		if targetPrice == nil || *targetPrice != "" {
 			base = ccxt.Add(ccxt.Add(base, "_ABOVE_"), targetPrice)
 		}
-		if (expiryDate != nil) && (!ccxt.IsEqual(expiryDate, "")) {
+		if expiryDate != "" {
 			base = ccxt.Add(ccxt.Add(base, "_"), expiryDate)
 		}
 		return base
@@ -307,9 +309,10 @@ func (this *Hyperliquid) BuildOutcomeParentSymbol(desc map[string]any, outcomeId
 		if questionClass != nil && *questionClass == "pricebucket" {
 			var questionUnderlying *string = this.SafeString(questionDesc, "underlying")
 			var questionExpiry *string = this.SafeString(questionDesc, "expiry", "")
-			var expiryDate any = ""
+			var questionExpiryDate any = ""
 			if questionExpiry == nil || *questionExpiry != "" {
-				expiryDate = ccxt.GetValue(strings.Split(*questionExpiry, "-"), 0)
+				var questionExpiryParts []string = strings.Split(*questionExpiry, "-")
+				questionExpiryDate = questionExpiryParts[0]
 			}
 			var thresholdsRaw *string = this.SafeString(questionDesc, "priceThresholds", "")
 			var indexStr *string = this.SafeString(desc, "index")
@@ -342,8 +345,8 @@ func (this *Hyperliquid) BuildOutcomeParentSymbol(desc map[string]any, outcomeId
 						bucketLabel = ccxt.Add(ccxt.Add(ccxt.Add("BETWEEN_", ccxt.GetValue(thresholds, index-1)), "_"), ccxt.GetValue(thresholds, index))
 					}
 					var base any = ccxt.Add(strings.ToUpper(*questionUnderlying)+"_", bucketLabel)
-					if (expiryDate != nil) && (!ccxt.IsEqual(expiryDate, "")) {
-						base = ccxt.Add(ccxt.Add(base, "_"), expiryDate)
+					if questionExpiryDate != "" {
+						base = ccxt.Add(ccxt.Add(base, "_"), questionExpiryDate)
 					}
 					return base
 				}
@@ -351,8 +354,8 @@ func (this *Hyperliquid) BuildOutcomeParentSymbol(desc map[string]any, outcomeId
 			var isFallbackLike bool = (rawDescription != nil && *rawDescription == "other") || (strings.Index(nameLower, "fallback") >= 0) || (strings.Index(nameLower, "other") >= 0)
 			if ((questionUnderlying != nil) && (questionUnderlying == nil || *questionUnderlying != "")) && isFallbackLike {
 				var base any = strings.ToUpper(*questionUnderlying) + "_OTHER"
-				if (expiryDate != nil) && (!ccxt.IsEqual(expiryDate, "")) {
-					base = ccxt.Add(ccxt.Add(base, "_"), expiryDate)
+				if questionExpiryDate != "" {
+					base = ccxt.Add(ccxt.Add(base, "_"), questionExpiryDate)
 				}
 				return base
 			}

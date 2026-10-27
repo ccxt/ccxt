@@ -902,20 +902,10 @@ func (this *BaseExchange) FilterByValueSinceLimit(array any, field any, optional
 			// safeValue (not entry[field]) so a missing field is a non-match, not a
 			// KeyError in python/php — prediction structures key on outcome, not symbol
 			var entryFiledEqualValue bool = IsEqual(this.SafeValue(entry, field), value)
-			var firstCondition bool = func() bool {
-				if valueIsDefined {
-					return entryFiledEqualValue
-				}
-				return true
-			}()
+			var firstCondition bool = !valueIsDefined || entryFiledEqualValue
 			var entryKeyValue *int64 = this.SafeInteger(entry, key)
 			var entryKeyGESince bool = (entryKeyValue != nil) && (entryKeyValue == nil || *entryKeyValue != 0) && (since != nil) && (IsGreaterThanOrEqual(entryKeyValue, since))
-			var secondCondition bool = func() bool {
-				if sinceIsDefined {
-					return entryKeyGESince
-				}
-				return true
-			}()
+			var secondCondition bool = !sinceIsDefined || entryKeyGESince
 			if firstCondition && secondCondition {
 				result = append(result, entry)
 			}
@@ -11563,8 +11553,8 @@ func (this *Exchange) cancelOrdersWithClientOrderIdsBody(ch chan AsyncResult[[]O
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listRecv11177, _ := OrdersToList(r.Value), r.Value != nil
-	var retRes1046715 []any = listRecv11177
+	listRecv11167, _ := OrdersToList(r.Value), r.Value != nil
+	var retRes1046715 []any = listRecv11167
 	if retRes1046715 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {

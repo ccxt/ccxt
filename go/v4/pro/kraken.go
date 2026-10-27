@@ -1493,17 +1493,17 @@ func (this *Kraken) HandleOrderBook(client any, message map[string]any) {
 		// size the book from the subscribed depth (10 by default), not from
 		// the level count of this snapshot: a thin market's snapshot can
 		// carry fewer levels than the subscription and must not cap the book
-		var limit *int64 = this.SafeInteger(subscription, "limit", 10)
+		var limit int64 = this.ParseToInt(this.SafeInteger(subscription, "limit", 10))
 		var asksLength int = len(a)
-		var depth any = func() any {
-			if limit == nil || int64(asksLength) > *limit {
+		var depth int64 = this.ParseToInt(func() any {
+			if int64(asksLength) > limit {
 				return asksLength
 			}
 			return limit
-		}()
+		}())
 		var depths any = this.SafeDict(this.Options, "wsOrderBookDepths", map[string]any{})
 		var storedDepth *int64 = this.SafeInteger(depths, symbol)
-		if !(ccxt.InOp(this.Orderbooks, symbol)) || (!ccxt.IsEqual(storedDepth, depth)) {
+		if !(ccxt.InOp(this.Orderbooks, symbol)) || (storedDepth == nil || *storedDepth != depth) {
 			// rebuild only on the first snapshot or when the depth changes,
 			// e.g. a re-subscription with a different limit
 			if symbol != nil {
