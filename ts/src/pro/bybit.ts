@@ -426,7 +426,7 @@ export default class bybit extends bybitRest {
         const marketIds = this.marketIds (symbolsValue);
         const topics: string[] = [];
         for (let i = 0; i < marketIds.length; i++) {
-            const marketId = marketIds[i];
+            const marketId = this.safeString (marketIds, i, '');
             topics.push (topic + '.' + marketId);
             messageHashes.push ('ticker:' + this.safeString (symbolsValue, i, ''));
         }
@@ -464,7 +464,7 @@ export default class bybit extends bybitRest {
         const marketIds = this.marketIds (symbolsValue);
         const topics: string[] = [];
         for (let i = 0; i < marketIds.length; i++) {
-            const marketId = marketIds[i];
+            const marketId = this.safeString (marketIds, i, '');
             const symbol = symbolsValue[i];
             topics.push (topic + '.' + marketId);
             subMessageHashes.push ('ticker:' + symbol);
@@ -659,7 +659,7 @@ export default class bybit extends bybitRest {
         const marketIds = this.marketIds (symbolsValue);
         const topics: string[] = [];
         for (let i = 0; i < marketIds.length; i++) {
-            const marketId = marketIds[i];
+            const marketId = this.safeString (marketIds, i, '');
             const topic = 'orderbook.1.' + marketId;
             topics.push (topic);
             messageHashes.push ('bidask:' + this.safeString (symbolsValue, i, ''));
