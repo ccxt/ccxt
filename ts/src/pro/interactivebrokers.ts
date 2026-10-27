@@ -221,6 +221,7 @@ export default class interactivebrokers extends interactivebrokersRest {
         }
         this.cleanCache (subscription);
         if (request !== undefined) {
+            await client.connected;
             await client.send (request);
         }
         return true;
@@ -247,6 +248,7 @@ export default class interactivebrokers extends interactivebrokersRest {
                 }
             }
         }
+        await client.connected;
         await client.send ('umd+' + marketId + '+{}');
         return undefined;
     }
