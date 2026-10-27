@@ -619,7 +619,7 @@ export default class bigone extends Exchange {
         const promises = [ this.publicGetAssetPairs (params), this.contractPublicGetSymbols (params) ];
         const promisesResult = await Promise.all (promises);
         const response = this.safeDict (promisesResult, 0);
-        const contractResponse = promisesResult[1];
+        const contractResponse = this.safeValue (promisesResult, 1);
         //
         //     {
         //         "code":0,
@@ -850,7 +850,7 @@ export default class bigone extends Exchange {
         //    }
         //
         let marketType: Str = 'swap';
-        if ('asset_pair_name' in ticker) {
+        if (this.safeString (ticker, 'asset_pair_name') !== undefined) {
             marketType = 'spot';
         }
         const marketId = this.safeString2 (ticker, 'asset_pair_name', 'symbol');
@@ -2153,7 +2153,7 @@ export default class bigone extends Exchange {
         const address = this.safeString (transaction, 'target_address');
         const tag = this.safeString (transaction, 'memo');
         let type: Str = 'deposit';
-        if ('customer_id' in transaction) {
+        if (this.safeString (transaction, 'customer_id') !== undefined) {
             type = 'withdrawal';
         }
         const internal = this.safeBool (transaction, 'is_internal');
