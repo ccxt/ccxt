@@ -9218,116 +9218,6 @@ function installTypedDictElementAccess (csharp) {
     csharp._typedDictElementAccessPatched = true;
 }
 
-// ===== C04: element-row locals the code only ever reads as dictionaries =====
-//
-// `const row = list[i]` prints `object row = getValue (list, i)`: the helper's box is unknown, so
-// every `row['key']` read on it keeps the helper. When EVERY use of the local in the enclosing
-// function treats the box as a string-keyed dictionary (a string-keyed element read or write, a
-// `safe*` reader, a null test), the box the code reads IS a dictionary: the declaration names it
-// behind the exact cast back, and those reads print the native ContainsKey-guarded indexer.
-// Any other use — a rebind, a return, a list index, an arithmetic or string operand — keeps
-// `object`.
-const ELEMENT_ROW_SAFE_READERS = [ 'safeString', 'safeInteger', 'safeNumber', 'safeFloat', 'safeBool', 'safeDict', 'safeList', 'safeValue', 'safeStringLower', 'safeStringUpper', 'safeIntegerProduct' ];
-
-// the printer's market-row read arms own these names and emit a read with no null test, so a
-// local of that name stays out of this family
-const ELEMENT_ROW_RESERVED_NAMES = [ 'market', 'currency' ];
-
-function elementRowStringKeyNode (node) {
-    return node !== undefined && (node.kind === ts.SyntaxKind.StringLiteral || node.kind === ts.SyntaxKind.NoSubstitutionTemplateLiteral);
-}
-
-// the initializer is an element read with a NON-string key (`list[i]`, never `map['k']`)
-function elementRowElementRead (initializer) {
-    let node = initializer;
-    while (node?.kind === ts.SyntaxKind.ParenthesizedExpression) {
-        node = node.expression;
-    }
-    return node?.kind === ts.SyntaxKind.ElementAccessExpression && !elementRowStringKeyNode (node.argumentExpression);
-}
-
-function elementRowStringKeyedRead (use) {
-    const parent = use.parent;
-    return parent?.kind === ts.SyntaxKind.ElementAccessExpression && parent.expression === use && elementRowStringKeyNode (parent.argumentExpression);
-}
-
-// one use of the local: only the shapes that read the box as a dictionary answer true
-function elementRowUseIsDictionaryShaped (use) {
-    const parent = use.parent;
-    if (parent === undefined) {
-        return false;
-    }
-    if (parent.kind === ts.SyntaxKind.ElementAccessExpression && parent.expression === use) {
-        return elementRowStringKeyNode (parent.argumentExpression);
-    }
-    if (parent.kind === ts.SyntaxKind.CallExpression && parent.arguments?.[0] === use) {
-        const callee = parent.expression;
-        return callee?.kind === ts.SyntaxKind.PropertyAccessExpression && callee.expression?.kind === ts.SyntaxKind.ThisKeyword && ELEMENT_ROW_SAFE_READERS.indexOf (callee.name?.text) >= 0;
-    }
-    if (parent.kind === ts.SyntaxKind.BinaryExpression) {
-        const op = parent.operatorToken?.kind;
-        return op === ts.SyntaxKind.EqualsEqualsEqualsToken || op === ts.SyntaxKind.ExclamationEqualsEqualsToken || op === ts.SyntaxKind.EqualsEqualsToken || op === ts.SyntaxKind.ExclamationEqualsToken;
-    }
-    return false;
-}
-
-function elementRowLocalBox (csharp, declaration) {
-    if (declaration.name?.kind !== ts.SyntaxKind.Identifier || !elementRowElementRead (declaration.initializer)) {
-        return undefined;
-    }
-    const name = declaration.name.text;
-    if (ELEMENT_ROW_RESERVED_NAMES.indexOf (name) >= 0) {
-        return undefined; // the market-row families own these read shapes (no null test)
-    }
-    // the generated test/example tiers print element reads against the bridge helpers, where the
-    // receiver of a native read is not the exchange's own dictionary: those tiers keep `object`
-    const fileName = (declaration.getSourceFile?.()?.fileName ?? '').replace (/\\/g, '/');
-    if (!fileName.includes ('ts/src/') || fileName.includes ('ts/src/test/') || fileName.includes ('examples/')) {
-        return undefined;
-    }
-    const scope = (typeof csharp.csharpEnclosingFunction === 'function') ? csharp.csharpEnclosingFunction (declaration) : enclosingFunction (declaration);
-    if (scope === undefined) {
-        return undefined;
-    }
-    let bindings = 0;
-    let reads = 0;
-    let bad = false;
-    const visit = (n) => {
-        if (bad || n === undefined) {
-            return;
-        }
-        if (n !== scope && isFunctionScope (n)) {
-            return;
-        }
-        if (n.kind === ts.SyntaxKind.Parameter || n.kind === ts.SyntaxKind.VariableDeclaration) {
-            if (bindingNamesOf (n.name).includes (name)) {
-                bindings += 1;
-            }
-        }
-        const memberName = n.parent?.kind === ts.SyntaxKind.PropertyAccessExpression && n.parent.name === n;
-        if (n !== declaration.name && !memberName && n.kind === ts.SyntaxKind.Identifier && n.text === name) {
-            if (!elementRowUseIsDictionaryShaped (n)) {
-                bad = true;
-                return;
-            }
-            if (elementRowStringKeyedRead (n)) {
-                reads += 1;
-            }
-        }
-        n.forEachChild (visit);
-    };
-    scope.forEachChild (visit);
-    if (bad || bindings !== 1 || reads === 0) {
-        return undefined;
-    }
-    // the printer answers a read's receiver type from its own table; a post-print retype is
-    // invisible to it, so the declaration is recorded here for the native read arm
-    if (csharp.csharpTypedLocals instanceof WeakMap) {
-        csharp.csharpTypedLocals.set (declaration, 'IDictionary<string, object>');
-    }
-    return 'IDictionary<string, object>';
-}
-
 // an initializer that hands back a market row (or null): the this.market / this.safeMarket /
 // this.safeMarketStructure sync cores (SYNC_TYPED_CORES declares all three
 // Dictionary<string, object>, so the local that holds the result is a typed Dictionary row),
@@ -11162,9 +11052,6 @@ function csharpLocalTypeOf (csharp, declaration, context) {
         // is `object`, so the declaration needs the cast the printer does not emit by itself.
         // Nullable when the box is a string (it is null off the end of the list).
         const elementType = (integerBox === undefined) ? elementAccessElementType (csharp, declaration.initializer, ctx) : undefined;
-        // C04: `const row = list[i]` whose every use reads a string-keyed dictionary (see
-        // elementRowLocalBox): the box those reads take is the dictionary, named behind the cast
-        const elementRowBox = (elementType === undefined) ? elementRowLocalBox (csharp, declaration) : undefined;
         // `const key = keys[i]` over a receiver whose PRINTED declaration head is a scalar list
         // (`const keys = this.sort (…)` -> `List<string> keys = …`): the element box is that scalar or
         // null, so the declaration names it behind the exact cast back
@@ -11203,9 +11090,6 @@ function csharpLocalTypeOf (csharp, declaration, context) {
         } else if (elementType !== undefined) {
             csharpType = (elementType === 'string') ? 'string?' : elementType;
             cast = elementType;
-        } else if (elementRowBox !== undefined) {
-            csharpType = 'IDictionary<string, object>';
-            cast = 'IDictionary<string, object>';
         } else if (typedListElement !== undefined) {
             // the string arm keeps the nullable spelling with the identity `(string)` cast of
             // elementAccessElementType's own arm (getValue answers null off the end of the list); the
