@@ -270,7 +270,7 @@ export default class bybit extends bybitRest {
             await this.loadMarkets ();
         }
         const orderRequest = this.createOrderRequest (symbol, type, side, amount, price, params, true);
-        const url = this.implodeHostname (this.urls['api']['ws']['private']['trade']);
+        const url = this.implodeHostname (this.safeString (this.urls['api']['ws']['private'], 'trade', ''));
         await this.authenticate (url);
         const requestId = this.requestId ().toString ();
         const request: Dict = {
@@ -317,7 +317,7 @@ export default class bybit extends bybitRest {
             await this.loadMarkets ();
         }
         const orderRequest = this.editOrderRequest (id, symbol, type, side, amount, price, params);
-        const url = this.implodeHostname (this.urls['api']['ws']['private']['trade']);
+        const url = this.implodeHostname (this.safeString (this.urls['api']['ws']['private'], 'trade', ''));
         await this.authenticate (url);
         const requestId = this.requestId ().toString ();
         const request: Dict = {
@@ -355,7 +355,7 @@ export default class bybit extends bybitRest {
             throw new ArgumentsRequired (this.id + ' cancelOrderWs() requires a symbol argument');
         }
         const orderRequest = this.cancelOrderRequest (id, symbol, params);
-        const url = this.implodeHostname (this.urls['api']['ws']['private']['trade']);
+        const url = this.implodeHostname (this.safeString (this.urls['api']['ws']['private'], 'trade', ''));
         await this.authenticate (url);
         const requestId = this.requestId ().toString ();
         if ('orderFilter' in orderRequest) {
