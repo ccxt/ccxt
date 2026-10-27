@@ -1141,18 +1141,18 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
         const isPrivate = interval === 'raw';
         const [useDepthEndpoint, paramsDepthEndpoint] = this.handleOptionBoolAndParams(paramsInterval, 'watchOrderBookForSymbols', 'useDepthEndpoint', false);
         let paramsChannel = paramsDepthEndpoint;
-        let descriptor = interval;
+        let descriptor = '.' + interval;
         if (useDepthEndpoint) {
             const [depth, paramsDepth] = this.handleOptionStringAndParams(paramsDepthEndpoint, 'watchOrderBookForSymbols', 'depth', '20');
             const [groupKey, paramsGroup] = this.handleOptionStringAndParams(paramsDepth, 'watchOrderBookForSymbols', 'group', 'none');
             paramsChannel = paramsGroup;
-            descriptor = groupKey + '.' + depth + '.' + interval;
+            descriptor = '.' + groupKey + '.' + depth + '.' + interval;
         }
         const channels = [];
         const symbolsLength = symbols.length;
         for (let i = 0; i < symbolsLength; i++) {
             const market = this.market(this.safeString(symbols, i, ''));
-            channels.push('book.' + this.safeString(market, 'id', '') + '.' + descriptor);
+            channels.push('book.' + this.safeString(market, 'id', '') + descriptor);
         }
         const orderbook = await this.subscribe(channels, channels, isPrivate, paramsChannel);
         return orderbook.limit();
@@ -1191,17 +1191,17 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
         const [interval, paramsInterval] = this.handleOptionStringAndParams(paramsResolved, 'watchOrderBookForSymbols', 'interval', '100ms');
         const [useDepthEndpoint, paramsDepthEndpoint] = this.handleOptionBoolAndParams(paramsInterval, 'watchOrderBookForSymbols', 'useDepthEndpoint', false);
         let paramsChannel = paramsDepthEndpoint;
-        let descriptor = interval;
+        let descriptor = '.' + interval;
         if (useDepthEndpoint) {
             const [depth, paramsDepth] = this.handleOptionStringAndParams(paramsDepthEndpoint, 'watchOrderBookForSymbols', 'depth', '20');
             const [groupKey, paramsGroup] = this.handleOptionStringAndParams(paramsDepth, 'watchOrderBookForSymbols', 'group', 'none');
             paramsChannel = paramsGroup;
-            descriptor = groupKey + '.' + depth + '.' + interval;
+            descriptor = '.' + groupKey + '.' + depth + '.' + interval;
         }
         const channels = [];
         const symbolsLength = symbols.length;
         for (let i = 0; i < symbolsLength; i++) {
-            channels.push('book.' + this.safeString(this.market(this.safeString(symbols, i, '')), 'id', '') + '.' + descriptor);
+            channels.push('book.' + this.safeString(this.market(this.safeString(symbols, i, '')), 'id', '') + descriptor);
         }
         return await this.unSubscribe(channels, interval === 'raw', paramsChannel);
     }
@@ -1221,16 +1221,16 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
             this.orderbooks[symbol] = isGrouped ? this.orderBook({}, limit) : this.countedOrderBook({}, limit);
         }
         const orderbook = this.orderbooks[symbol];
-        if (!isGrouped && (type !== 'snapshot') && (this.safeInteger(orderbook, 'nonce') === undefined)) {
+        const nonce = this.safeInteger(orderbook, 'nonce');
+        if (!isGrouped && (type !== 'snapshot') && (nonce === undefined)) {
             return;
         }
         if (isGrouped) {
-            const parsedSnapshot = this.parseOrderBook(data, symbol, timestamp, 'bids', 'asks');
-            orderbook.reset(parsedSnapshot);
+            orderbook.reset(this.parseOrderBook(data, symbol, timestamp, 'bids', 'asks'));
         }
         else {
             const previousChangeId = this.safeInteger(data, 'prev_change_id');
-            if ((type !== 'snapshot') && (this.safeInteger(orderbook, 'nonce') !== undefined) && (previousChangeId !== this.safeInteger(orderbook, 'nonce'))) {
+            if ((type !== 'snapshot') && (nonce !== undefined) && (previousChangeId !== nonce)) {
                 // drop the stale book and reject only this channels future
                 delete this.orderbooks[symbol];
                 if (channel in client.subscriptions) {

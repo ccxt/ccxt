@@ -410,7 +410,8 @@ export default class kalshi extends Exchange {
     async fetchOutcomes(outcomeSymbols) {
         const tickers = [];
         const seen = {};
-        for (let i = 0; i < outcomeSymbols.length; i++) {
+        const outcomeSymbolsLength = outcomeSymbols.length;
+        for (let i = 0; i < outcomeSymbolsLength; i++) {
             const outcomeSymbol = outcomeSymbols[i];
             if (outcomeSymbol.indexOf(':') >= 0) {
                 continue;
@@ -454,7 +455,7 @@ export default class kalshi extends Exchange {
                 this.indexMarketOutcomes(parsed);
             }
         }
-        for (let i = 0; i < outcomeSymbols.length; i++) {
+        for (let i = 0; i < outcomeSymbolsLength; i++) {
             if (!this.hasOutcome(outcomeSymbols[i])) {
                 await this.fetchOutcome(outcomeSymbols[i]);
             }

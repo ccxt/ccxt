@@ -3090,10 +3090,10 @@ class BaseExchange {
                 // safeValue (not entry[field]) so a missing field is a non-match, not a
                 // KeyError in python/php — prediction structures key on outcome, not symbol
                 const entryFiledEqualValue = this.safeValue(entry, field) === value;
-                const firstCondition = valueIsDefined ? entryFiledEqualValue : true;
+                const firstCondition = !valueIsDefined || entryFiledEqualValue;
                 const entryKeyValue = this.safeInteger(entry, key);
                 const entryKeyGESince = (entryKeyValue !== undefined) && (entryKeyValue !== 0) && (since !== undefined) && (entryKeyValue >= since);
-                const secondCondition = sinceIsDefined ? entryKeyGESince : true;
+                const secondCondition = !sinceIsDefined || entryKeyGESince;
                 if (firstCondition && secondCondition) {
                     result.push(entry);
                 }

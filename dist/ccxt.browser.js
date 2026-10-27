@@ -179400,10 +179400,10 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
                 // safeValue (not entry[field]) so a missing field is a non-match, not a
                 // KeyError in python/php — prediction structures key on outcome, not symbol
                 const entryFiledEqualValue = this.safeValue(entry, field) === value;
-                const firstCondition = valueIsDefined ? entryFiledEqualValue : true;
+                const firstCondition = !valueIsDefined || entryFiledEqualValue;
                 const entryKeyValue = this.safeInteger(entry, key);
                 const entryKeyGESince = entryKeyValue !== undefined && entryKeyValue !== 0 && since !== undefined && entryKeyValue >= since;
-                const secondCondition = sinceIsDefined ? entryKeyGESince : true;
+                const secondCondition = !sinceIsDefined || entryKeyGESince;
                 if (firstCondition && secondCondition) {
                     result.push(entry);
                 }
@@ -499018,22 +499018,23 @@ class hyperliquid extends _abstract_prediction_hyperliquid_js__rspack_import_0/*
      * @returns {string} the outcome
      */ buildOutcomeSymbol(desc, side, outcomeId) {
         const underlying = this.safeString(desc, 'underlying', 'OUTCOME' + outcomeId.toString());
-        const targetPrice = this.safeString(desc, 'targetPrice');
+        const targetPrice = this.safeString(desc, 'targetPrice', '');
         const expiry = this.safeString(desc, 'expiry', '');
         // Parse expiry: "20260503-0600" → "20260503"
         let expiryDate = '';
         if (expiry !== '') {
-            expiryDate = expiry.split('-')[0];
+            const expiryParts = expiry.split('-');
+            expiryDate = expiryParts[0];
         }
         let label = 'NO';
         if (side === 0) {
             label = 'YES';
         }
         let base = underlying.toUpperCase();
-        if (targetPrice !== undefined && targetPrice !== '') {
+        if (targetPrice !== '') {
             base = base + '_ABOVE_' + targetPrice;
         }
-        if (expiryDate !== undefined && expiryDate !== '') {
+        if (expiryDate !== '') {
             base = base + '_' + expiryDate;
         }
         return base + ':' + label;
@@ -499049,19 +499050,20 @@ class hyperliquid extends _abstract_prediction_hyperliquid_js__rspack_import_0/*
      * @param {object} [question] linked question object from outcomeMeta
      * @returns {string} the parent market outcome
      */ buildOutcomeParentSymbol(desc, outcomeId, name = '', question = {}) {
-        const underlying = this.safeString(desc, 'underlying');
-        if (underlying !== undefined && underlying !== '') {
-            const targetPrice = this.safeString(desc, 'targetPrice');
+        const underlying = this.safeString(desc, 'underlying', '');
+        if (underlying !== '') {
+            const targetPrice = this.safeString(desc, 'targetPrice', '');
             const expiry = this.safeString(desc, 'expiry', '');
             let expiryDate = '';
             if (expiry !== '') {
-                expiryDate = expiry.split('-')[0];
+                const expiryParts = expiry.split('-');
+                expiryDate = expiryParts[0];
             }
             let base = underlying.toUpperCase();
-            if (targetPrice !== undefined && targetPrice !== '') {
+            if (targetPrice !== '') {
                 base = base + '_ABOVE_' + targetPrice;
             }
-            if (expiryDate !== undefined && expiryDate !== '') {
+            if (expiryDate !== '') {
                 base = base + '_' + expiryDate;
             }
             return base;
@@ -499073,9 +499075,10 @@ class hyperliquid extends _abstract_prediction_hyperliquid_js__rspack_import_0/*
             if (questionClass === 'pricebucket') {
                 const questionUnderlying = this.safeString(questionDesc, 'underlying');
                 const questionExpiry = this.safeString(questionDesc, 'expiry', '');
-                let expiryDate = '';
+                let questionExpiryDate = '';
                 if (questionExpiry !== '') {
-                    expiryDate = questionExpiry.split('-')[0];
+                    const questionExpiryParts = questionExpiry.split('-');
+                    questionExpiryDate = questionExpiryParts[0];
                 }
                 const thresholdsRaw = this.safeString(questionDesc, 'priceThresholds', '');
                 const indexStr = this.safeString(desc, 'index');
@@ -499103,8 +499106,8 @@ class hyperliquid extends _abstract_prediction_hyperliquid_js__rspack_import_0/*
                             bucketLabel = 'BETWEEN_' + thresholds[index - 1] + '_' + thresholds[index];
                         }
                         let base = questionUnderlying.toUpperCase() + '_' + bucketLabel;
-                        if (expiryDate !== undefined && expiryDate !== '') {
-                            base = base + '_' + expiryDate;
+                        if (questionExpiryDate !== '') {
+                            base = base + '_' + questionExpiryDate;
                         }
                         return base;
                     }
@@ -499112,8 +499115,8 @@ class hyperliquid extends _abstract_prediction_hyperliquid_js__rspack_import_0/*
                 const isFallbackLike = rawDescription === 'other' || nameLower.indexOf('fallback') >= 0 || nameLower.indexOf('other') >= 0;
                 if (questionUnderlying !== undefined && questionUnderlying !== '' && isFallbackLike) {
                     let base = questionUnderlying.toUpperCase() + '_OTHER';
-                    if (expiryDate !== undefined && expiryDate !== '') {
-                        base = base + '_' + expiryDate;
+                    if (questionExpiryDate !== '') {
+                        base = base + '_' + questionExpiryDate;
                     }
                     return base;
                 }
@@ -501733,7 +501736,8 @@ class kalshi extends _abstract_prediction_kalshi_js__rspack_import_0/* ["default
      */ async fetchOutcomes(outcomeSymbols) {
         const tickers = [];
         const seen = {};
-        for(let i = 0; i < outcomeSymbols.length; i++){
+        const outcomeSymbolsLength = outcomeSymbols.length;
+        for(let i = 0; i < outcomeSymbolsLength; i++){
             const outcomeSymbol = outcomeSymbols[i];
             if (outcomeSymbol.indexOf(':') >= 0) {
                 continue;
@@ -501777,7 +501781,7 @@ class kalshi extends _abstract_prediction_kalshi_js__rspack_import_0/* ["default
                 this.indexMarketOutcomes(parsed);
             }
         }
-        for(let i = 0; i < outcomeSymbols.length; i++){
+        for(let i = 0; i < outcomeSymbolsLength; i++){
             if (!this.hasOutcome(outcomeSymbols[i])) {
                 await this.fetchOutcome(outcomeSymbols[i]);
             }
@@ -538702,7 +538706,7 @@ class bingx extends _bingx_js__rspack_import_0/* ["default"] */.A {
             }
         }
         stored.append(parsedOrder);
-        const symbol = this.safeString(parsedOrder, 'symbol');
+        const symbol = this.safeString(parsedOrder, 'symbol', '');
         const spotHash = 'spot:order';
         const swapHash = 'swap:order';
         let messageHash = swapHash;
@@ -561308,18 +561312,18 @@ class coinbaseinternational extends _coinbaseinternational_js__rspack_import_0/*
         const isPrivate = interval === 'raw';
         const [useDepthEndpoint, paramsDepthEndpoint] = this.handleOptionBoolAndParams(paramsInterval, 'watchOrderBookForSymbols', 'useDepthEndpoint', false);
         let paramsChannel = paramsDepthEndpoint;
-        let descriptor = interval;
+        let descriptor = '.' + interval;
         if (useDepthEndpoint) {
             const [depth, paramsDepth] = this.handleOptionStringAndParams(paramsDepthEndpoint, 'watchOrderBookForSymbols', 'depth', '20');
             const [groupKey, paramsGroup] = this.handleOptionStringAndParams(paramsDepth, 'watchOrderBookForSymbols', 'group', 'none');
             paramsChannel = paramsGroup;
-            descriptor = groupKey + '.' + depth + '.' + interval;
+            descriptor = '.' + groupKey + '.' + depth + '.' + interval;
         }
         const channels = [];
         const symbolsLength = symbols.length;
         for(let i = 0; i < symbolsLength; i++){
             const market = this.market(this.safeString(symbols, i, ''));
-            channels.push('book.' + this.safeString(market, 'id', '') + '.' + descriptor);
+            channels.push('book.' + this.safeString(market, 'id', '') + descriptor);
         }
         const orderbook = await this.subscribe(channels, channels, isPrivate, paramsChannel);
         return orderbook.limit();
@@ -561358,17 +561362,17 @@ class coinbaseinternational extends _coinbaseinternational_js__rspack_import_0/*
         const [interval, paramsInterval] = this.handleOptionStringAndParams(paramsResolved, 'watchOrderBookForSymbols', 'interval', '100ms');
         const [useDepthEndpoint, paramsDepthEndpoint] = this.handleOptionBoolAndParams(paramsInterval, 'watchOrderBookForSymbols', 'useDepthEndpoint', false);
         let paramsChannel = paramsDepthEndpoint;
-        let descriptor = interval;
+        let descriptor = '.' + interval;
         if (useDepthEndpoint) {
             const [depth, paramsDepth] = this.handleOptionStringAndParams(paramsDepthEndpoint, 'watchOrderBookForSymbols', 'depth', '20');
             const [groupKey, paramsGroup] = this.handleOptionStringAndParams(paramsDepth, 'watchOrderBookForSymbols', 'group', 'none');
             paramsChannel = paramsGroup;
-            descriptor = groupKey + '.' + depth + '.' + interval;
+            descriptor = '.' + groupKey + '.' + depth + '.' + interval;
         }
         const channels = [];
         const symbolsLength = symbols.length;
         for(let i = 0; i < symbolsLength; i++){
-            channels.push('book.' + this.safeString(this.market(this.safeString(symbols, i, '')), 'id', '') + '.' + descriptor);
+            channels.push('book.' + this.safeString(this.market(this.safeString(symbols, i, '')), 'id', '') + descriptor);
         }
         return await this.unSubscribe(channels, interval === 'raw', paramsChannel);
     }
@@ -561388,15 +561392,15 @@ class coinbaseinternational extends _coinbaseinternational_js__rspack_import_0/*
             this.orderbooks[symbol] = isGrouped ? this.orderBook({}, limit) : this.countedOrderBook({}, limit);
         }
         const orderbook = this.orderbooks[symbol];
-        if (!isGrouped && type !== 'snapshot' && this.safeInteger(orderbook, 'nonce') === undefined) {
+        const nonce = this.safeInteger(orderbook, 'nonce');
+        if (!isGrouped && type !== 'snapshot' && nonce === undefined) {
             return;
         }
         if (isGrouped) {
-            const parsedSnapshot = this.parseOrderBook(data, symbol, timestamp, 'bids', 'asks');
-            orderbook.reset(parsedSnapshot);
+            orderbook.reset(this.parseOrderBook(data, symbol, timestamp, 'bids', 'asks'));
         } else {
             const previousChangeId = this.safeInteger(data, 'prev_change_id');
-            if (type !== 'snapshot' && this.safeInteger(orderbook, 'nonce') !== undefined && previousChangeId !== this.safeInteger(orderbook, 'nonce')) {
+            if (type !== 'snapshot' && nonce !== undefined && previousChangeId !== nonce) {
                 // drop the stale book and reject only this channels future
                 delete this.orderbooks[symbol];
                 if (channel in client.subscriptions) {
@@ -583293,9 +583297,9 @@ class kraken extends _kraken_js__rspack_import_0/* ["default"] */.A {
             // size the book from the subscribed depth (10 by default), not from
             // the level count of this snapshot: a thin market's snapshot can
             // carry fewer levels than the subscription and must not cap the book
-            const limit = this.safeInteger(subscription, 'limit', 10);
+            const limit = this.parseToInt(this.safeInteger(subscription, 'limit', 10));
             const asksLength = a.length;
-            const depth = asksLength > limit ? asksLength : limit;
+            const depth = this.parseToInt(asksLength > limit ? asksLength : limit);
             const depths = this.safeDict(this.options, 'wsOrderBookDepths', {});
             const storedDepth = this.safeInteger(depths, symbol);
             if (!(symbol in this.orderbooks) || storedDepth !== depth) {

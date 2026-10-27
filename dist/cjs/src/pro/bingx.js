@@ -1684,7 +1684,7 @@ class bingx extends bingx$1["default"] {
             }
         }
         stored.append(parsedOrder);
-        const symbol = this.safeString(parsedOrder, 'symbol');
+        const symbol = this.safeString(parsedOrder, 'symbol', '');
         const spotHash = 'spot:order';
         const swapHash = 'swap:order';
         let messageHash = swapHash;

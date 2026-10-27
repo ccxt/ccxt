@@ -1060,9 +1060,9 @@ class kraken extends kraken$1["default"] {
             // size the book from the subscribed depth (10 by default), not from
             // the level count of this snapshot: a thin market's snapshot can
             // carry fewer levels than the subscription and must not cap the book
-            const limit = this.safeInteger(subscription, 'limit', 10);
+            const limit = this.parseToInt(this.safeInteger(subscription, 'limit', 10));
             const asksLength = a.length;
-            const depth = (asksLength > limit) ? asksLength : limit;
+            const depth = this.parseToInt((asksLength > limit) ? asksLength : limit);
             const depths = this.safeDict(this.options, 'wsOrderBookDepths', {});
             const storedDepth = this.safeInteger(depths, symbol);
             if (!(symbol in this.orderbooks) || (storedDepth !== depth)) {
