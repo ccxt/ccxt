@@ -3992,20 +3992,20 @@ class BaseExchange(object):
         # if marketType (e.g. 'option') does not exist in features
         if not (marketType in self.features):
             return defaultValue  # unsupported marketType, check "exchange.features" for details
-        # if marketType dict undefined
-        if self.features[marketType] is None:
-            return defaultValue
         methodsContainer = self.features[marketType]
+        # if marketType dict undefined
+        if methodsContainer is None:
+            return defaultValue
         if subType is None:
             if marketType != 'spot':
                 return defaultValue  # subType is required for non-spot markets
         else:
-            if not (subType in self.features[marketType]):
+            if not (subType in methodsContainer):
                 return defaultValue  # unsupported subType, check "exchange.features" for details
+            methodsContainer = methodsContainer[subType]
             # if subType dict undefined
-            if self.features[marketType][subType] is None:
+            if methodsContainer is None:
                 return defaultValue
-            methodsContainer = self.features[marketType][subType]
         # if user wanted only marketType and didn't provide methodName, eg: featureIsSupported('spot')
         if methodName is None:
             return defaultValue if (defaultValue is not None) else methodsContainer
@@ -6097,15 +6097,14 @@ class BaseExchange(object):
                 ])
             else:
                 # still processing the same timeframe -> update opening trade
-                prevHigh = ohlcvs[candle][i_high]
-                prevLow = ohlcvs[candle][i_low]
-                prevHighValue = price if (prevHigh is None) else prevHigh
-                prevLowValue = price if (prevLow is None) else prevLow
-                ohlcvs[candle][i_high] = max(prevHighValue, price)
-                ohlcvs[candle][i_low] = min(prevLowValue, price)
+                prevCandle = self.safe_value(ohlcvs, candle)
+                prevHigh = self.safe_value(prevCandle, i_high)
+                prevLow = self.safe_value(prevCandle, i_low)
+                ohlcvs[candle][i_high] = max(price if (prevHigh is None) else prevHigh, price)
+                ohlcvs[candle][i_low] = min(price if (prevLow is None) else prevLow, price)
                 ohlcvs[candle][i_close] = price
-                ohlcvs[candle][i_volume] = self.sum(ohlcvs[candle][i_volume], trade['amount'])
-                ohlcvs[candle][i_count] = self.sum(ohlcvs[candle][i_count], 1)
+                ohlcvs[candle][i_volume] = self.sum(self.safe_value(prevCandle, i_volume), trade['amount'])
+                ohlcvs[candle][i_count] = self.sum(self.safe_value(prevCandle, i_count), 1)
         return ohlcvs
 
     def parse_trading_view_ohlcv(self, ohlcvs: object, market: Market = None, timeframe='1m', since: Int = None, limit: Int = None):
@@ -6924,17 +6923,14 @@ class BaseExchange(object):
         results = []
         if isinstance(pricesData, list):
             for i in range(0, len(pricesData)):
-                priceData = self.extend(self.parse_last_price(pricesData[i]), params)
-                results.append(priceData)
+                results.append(self.extend(self.parse_last_price(pricesData[i]), params))
         else:
             marketIds = list(pricesData.keys())
             for i in range(0, len(marketIds)):
                 marketId = marketIds[i]
                 market = self.safe_market(marketId)
-                priceData = self.extend(self.parse_last_price(pricesData[marketId], market), params)
-                results.append(priceData)
-        symbolsNormalized = self.market_symbols(symbols)
-        return self.index_by(self.filter_by_array(results, 'symbol', symbolsNormalized, False), 'symbol')
+                results.append(self.extend(self.parse_last_price(pricesData[marketId], market), params))
+        return self.index_by(self.filter_by_array(results, 'symbol', self.market_symbols(symbols), False), 'symbol')
 
     def parse_tickers(self, tickers: object, symbols: Strings = None, params: dict = {}):
         #
@@ -6962,19 +6958,14 @@ class BaseExchange(object):
         results = []
         if isinstance(tickers, list):
             for i in range(0, len(tickers)):
-                parsedTicker = self.parse_ticker(tickers[i])
-                ticker = self.extend(parsedTicker, params)
-                results.append(ticker)
+                results.append(self.extend(self.parse_ticker(tickers[i]), params))
         else:
             marketIds = list(tickers.keys())
             for i in range(0, len(marketIds)):
                 marketId = marketIds[i]
                 market = self.safe_market(marketId)
-                parsed = self.parse_ticker(tickers[marketId], market)
-                ticker = self.extend(parsed, params)
-                results.append(ticker)
-        symbolsNormalized = self.market_symbols(symbols)
-        return self.filter_by_array_tickers(results, 'symbol', symbolsNormalized)
+                results.append(self.extend(self.parse_ticker(tickers[marketId], market), params))
+        return self.filter_by_array_tickers(results, 'symbol', self.market_symbols(symbols))
 
     def parse_deposit_addresses(self, addresses: object, codes: Strings = None, indexed=True, params: dict = {}):
         result = []
@@ -7865,19 +7856,14 @@ class BaseExchange(object):
         results = []
         if isinstance(greeks, list):
             for i in range(0, len(greeks)):
-                parsedTicker = self.parse_greeks(greeks[i])
-                greek = self.extend(parsedTicker, params)
-                results.append(greek)
+                results.append(self.extend(self.parse_greeks(greeks[i]), params))
         else:
             marketIds = list(greeks.keys())
             for i in range(0, len(marketIds)):
                 marketId = marketIds[i]
                 market = self.safe_market(marketId)
-                parsed = self.parse_greeks(greeks[marketId], market)
-                greek = self.extend(parsed, params)
-                results.append(greek)
-        symbolsNormalized = self.market_symbols(symbols)
-        return self.index_by(self.filter_by_array(results, 'symbol', symbolsNormalized, False), 'symbol')
+                results.append(self.extend(self.parse_greeks(greeks[marketId], market), params))
+        return self.index_by(self.filter_by_array(results, 'symbol', self.market_symbols(symbols), False), 'symbol')
 
     def parse_option(self, chain: dict, currency: Currency = None, market: Market = None):
         raise NotSupported(self.id + ' parseOption () is not supported yet')
