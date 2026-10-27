@@ -1046,7 +1046,7 @@ export default class kraken extends krakenRest {
         const type = this.safeString (message, 'type');
         const data = this.safeList (message, 'data', []);
         const first = this.safeDict (data, 0, {});
-        const symbol = this.safeString (first, 'symbol', '');
+        const symbol = this.safeString (first, 'symbol') as string;
         const a = this.safeList (first, 'asks', []);
         const b = this.safeList (first, 'bids', []);
         const c = this.safeInteger (first, 'checksum');
