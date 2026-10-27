@@ -860,7 +860,9 @@ export default class derive extends Exchange {
             expiry = this.safeTimestamp (optionDetails, 'expiry');
             strike = this.safeNumber (optionDetails, 'strike'); // strikes can be fractional, e.g. XRP-20261225-0_5-P is a 0.5 strike
             optionLetter = this.safeString (optionDetails, 'option_type');
-            symbol = base + '/' + quote + ':' + settle + '-' + this.yymmdd (expiry) + '-' + this.numberToString (strike) + '-' + optionLetter;
+            if (settle !== undefined) {
+                symbol = base + '/' + quote + ':' + settle + '-' + this.yymmdd (expiry) + '-' + this.numberToString (strike) + '-' + optionLetter;
+            }
             if (optionLetter === 'P') {
                 optionType = 'put';
             } else {
