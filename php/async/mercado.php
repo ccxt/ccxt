@@ -1075,7 +1075,7 @@ class mercado extends Exchange {
         $url = $apiUrl . '/';
         $query = $this->omit($params, $this->extract_params($path));
         $isPublic = ($apiName === 'public') || ($apiName === 'v4Public') || ($apiName === 'v4PublicNet');
-        $privateBody = null;
+        $privateBody = '';
         $privateHeaders = null;
         if ($isPublic) {
             $url .= $this->implode_params($path, $params);

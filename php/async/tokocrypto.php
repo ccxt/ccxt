@@ -1088,24 +1088,24 @@ class tokocrypto extends Exchange {
         if ($buyerMaker !== null) {
             $side = ($buyerMaker) ? 'sell' : 'buy'; // this is reversed intentionally
             $takerOrMaker = 'taker';
-        } elseif (is_array($trade) && array_key_exists('side' ?? '', $trade)) {
+        } elseif ($this->safe_string($trade, 'side') !== null) {
             $side = $this->safe_string_lower($trade, 'side');
         } else {
-            if (is_array($trade) && array_key_exists('isBuyer' ?? '', $trade)) {
+            if ($this->safe_string($trade, 'isBuyer') !== null) {
                 $side = ($this->safe_bool($trade, 'isBuyer', false)) ? 'buy' : 'sell'; // this is a true side
             }
         }
         $fee = null;
-        if (is_array($trade) && array_key_exists('commission' ?? '', $trade)) {
+        if ($this->safe_string($trade, 'commission') !== null) {
             $fee = array(
                 'cost' => $this->safe_string($trade, 'commission'),
                 'currency' => $this->safe_currency_code($this->safe_string($trade, 'commissionAsset')),
             );
         }
-        if (is_array($trade) && array_key_exists('isMaker' ?? '', $trade)) {
+        if ($this->safe_string($trade, 'isMaker') !== null) {
             $takerOrMaker = ($this->safe_bool($trade, 'isMaker', false)) ? 'maker' : 'taker';
         }
-        if (is_array($trade) && array_key_exists('maker' ?? '', $trade)) {
+        if ($this->safe_string($trade, 'maker') !== null) {
             $takerOrMaker = ($this->safe_bool($trade, 'maker', false)) ? 'maker' : 'taker';
         }
         return $this->safe_trade(array(
@@ -1295,7 +1295,7 @@ class tokocrypto extends Exchange {
         $marketId = $this->safe_string($ticker, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
         $last = $this->safe_string($ticker, 'lastPrice');
-        $isCoinm = (is_array($ticker) && array_key_exists('baseVolume' ?? '', $ticker));
+        $isCoinm = ($this->safe_string($ticker, 'baseVolume') !== null);
         $baseVolume = null;
         $quoteVolume = null;
         if ($isCoinm) {
@@ -2033,7 +2033,10 @@ class tokocrypto extends Exchange {
         }
         if ($timeInForceIsRequired) {
             $defaultTimeInForce = $this->safe_string($this->options, 'defaultTimeInForce', 'GTC');
-            $timeInForce = ($timeInForceResolved === null) ? $defaultTimeInForce : $timeInForceResolved;
+            $timeInForce = $defaultTimeInForce;
+            if ($timeInForceResolved !== null) {
+                $timeInForce = $timeInForceResolved;
+            }
             // the endpoint takes the time force as a numeric code, post only is
             // placed as a LIMIT_MAKER order rather than as the GTX code
             $timeInForceCodes = array(

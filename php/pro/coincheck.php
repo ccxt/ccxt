@@ -102,13 +102,8 @@ class coincheck extends \ccxt\async\coincheck {
         $data = $this->safe_dict($message, 1, array());
         $timestamp = $this->safe_timestamp($data, 'last_update_at');
         $snapshot = $this->parse_order_book($data, $symbol, $timestamp);
-        $orderbook = $this->safe_value($this->orderbooks, $symbol);
-        if ($orderbook === null) {
-            $orderbook = $this->order_book($snapshot);
-            $this->orderbooks[$symbol] = $orderbook;
-        } else {
-            $orderbook->reset($snapshot);
-        }
+        $orderbook = $this->order_book($snapshot);
+        $this->orderbooks[$symbol] = $orderbook;
         $messageHash = 'orderbook:' . $symbol;
         $client->resolve($orderbook, $messageHash);
     }
