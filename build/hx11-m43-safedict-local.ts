@@ -9,7 +9,7 @@
 // is rebound (any `x =`, `x, y =`, `:=`, range), its address is taken, it is type-asserted, indexed,
 // used as a selector, compared with anything but nil, or declared more than once in the function.
 // ws (pro) files only type receivers that are plain decoded values (no client/cache/orderbook
-// expression, no type assertion); prediction files keep the box.
+// expression, no type assertion), plus the this.Options / this.Balance map fields; prediction files keep the box.
 
 const M43_DECL = /^(\s*)var (\w+) any = this\.(SafeDict2?)\((.*)\)$/;
 
@@ -118,7 +118,7 @@ function m43Func (lines: string[], masked: string[], start: number, end: number,
         const wanted = (decl[3] === 'SafeDict2') ? 4 : 3;
         const noDefault = (args !== undefined) && (args.length === wanted - 1);  // nil map reads are safe: only nil tests and plain reads may use it
         if ((args === undefined) || !(noDefault || ((args.length === wanted) && (args[wanted - 1] === 'map[string]any{}')))
-            || args.slice (0, wanted - 1).some ((a) => a === '') || ((args[0].indexOf ('this.') >= 0) && !(noDefault && (args[0] === 'this.Options')))
+            || args.slice (0, wanted - 1).some ((a) => a === '') || ((args[0].indexOf ('this.') >= 0) && (args[0] !== 'this.Options') && (args[0] !== 'this.Balance'))
             || (ws && /\.\(|Client|Cache|Snapshot|[Oo]rderbook/.test (args[0]))) {
             continue;
         }
@@ -186,8 +186,10 @@ export function hx11M43Check (): string[] {
     ok (!run (decl + '\tif d == p {\n\t}\n').includes (typed), 'a compare with a non-nil operand keeps the box');
     ok (!run (decl + '\tvar q any = &d\n').includes (typed), 'an address keeps the box');
     ok (!run (decl + '\tfor i := 0; i < 2; i++ {\n\t\tvar d any = nil\n\t\t_ = d\n\t}\n').includes (typed), 'a second declaration keeps the box');
-    ok (!run ('\tvar d any = this.SafeDict(p, "data")\n').includes ('SafeDictMap'), 'no literal default keeps the box');
-    ok (!run ('\tvar d any = this.SafeDict(this.Options, "data", map[string]any{})\n').includes ('SafeDictMap'), 'a field receiver (may hold a sync.Map) keeps the box');
+    ok (!run ('\tvar d any = this.SafeDict(p, "data")\n\treturn d\n').includes ('SafeDictMap'), 'no literal default keeps the box');
+    ok (run ('\tvar d any = this.SafeDict(this.Options, "data", map[string]any{})\n\treturn d\n').includes ('SafeDictMap(this.Options, "data", map[string]any{})'), 'this.Options and this.Balance are plain map fields: a literal default types the local');
+    ok (run ('\tvar d any = this.SafeDict(this.Balance, k, map[string]any{})\n\treturn d\n').includes ('var d map[string]any = this.SafeDictMap(this.Balance, k, map[string]any{})'), 'this.Balance receiver');
+    ok (!run ('\tvar d any = this.SafeDict(this.Fees, "data", map[string]any{})\n').includes ('SafeDictMap'), 'other field receivers keep the box');
     ok (!run ('\tvar d any = this.SafeDict(p, "data", this.Fees)\n').includes ('SafeDictMap'), 'a computed default keeps the box');
     ok (run (decl, 'go/v4/pro/x.go').includes (typed), 'ws files type a plain decoded-message receiver');
     ok (!run ('\tvar d any = this.SafeDict(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), \"k\", map[string]any{})\n', 'go/v4/pro/x.go').includes ('SafeDictMap'), 'ws client/cache receivers keep the box');
