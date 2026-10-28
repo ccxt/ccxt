@@ -860,8 +860,11 @@ public class Backpack extends BackpackApi
             Boolean stock = (Boolean) this.safeBool(selection, 0, false);
             Map<String, Object> query = (Map<String, Object>) this.safeDict(selection, 1, new HashMap<String, Object>() {{}});
             String marketType = this.safeString(query, "marketType");
-            List<String> defaultTypes = (((java.util.Objects.equals(marketType, null)))) ? new ArrayList<String>(Arrays.asList("SPOT", "PERP", "RFQ")) : new ArrayList<String>(Arrays.asList(marketType));
-            Object requestedTypes = this.safeList(query, "marketType", defaultTypes);
+            List<Object> requestedTypes = (List<Object>) this.safeList(query, "marketType", new ArrayList<Object>(Arrays.asList("SPOT", "PERP", "RFQ")));
+            if (!java.util.Objects.equals(marketType, null))
+            {
+                requestedTypes = new ArrayList<Object>(Arrays.asList(marketType));
+            }
             Map<String, Object> aliases = new HashMap<String, Object>() {{
                 put( "spot", "SPOT" );
                 put( "swap", "PERP" );
@@ -1325,8 +1328,13 @@ public class Backpack extends BackpackApi
         {
             throw new NotSupported((this.id + " conversion requires exactly one stock currency")) ;
         }
-        String stockCode = ((Boolean.TRUE.equals(fromIsStock))) ? fromCode : toCode;
-        String quoteCode = ((Boolean.TRUE.equals(fromIsStock))) ? toCode : fromCode;
+        String stockCode = fromCode;
+        String quoteCode = toCode;
+        if (!Boolean.TRUE.equals(fromIsStock))
+        {
+            stockCode = toCode;
+            quoteCode = fromCode;
+        }
         String symbol = ((stockCode + ".RFQ/") + quoteCode);
         Map<String, Object> market = (Map<String, Object>) this.safeDict(this.markets, symbol, (Object) null);
         if ((java.util.Objects.equals(market, null)) || (!java.util.Objects.equals(this.safeString(market, "executionModel"), "rfq")) || !Boolean.TRUE.equals(this.safeBool(market, "stock", false)))
@@ -2016,7 +2024,7 @@ public class Backpack extends BackpackApi
             int duration = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
             Map<String, Object> dataRequest = this.stockDataRequest("fetchOHLCV", (Map<String, Object>) (parameters), market);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "symbol", dataRequest.get("symbol") );
+                put( "symbol", Backpack.this.safeString(dataRequest, "symbol") );
                 put( "interval", interval );
             }};
             List<Object> untilparamsUntilVariable = (List<Object>) this.handleOptionIntegerAndParams(this.omit(dataRequest, "symbol"), "fetchOHLCV", "until", (Long) null);
@@ -2037,7 +2045,7 @@ public class Backpack extends BackpackApi
             if (java.util.Objects.equals(since, null))
             {
                 Long endTime = this.seconds();
-                if (!java.util.Objects.equals(until, null) && !java.util.Objects.equals(until, null) && (until != 0))
+                if (!java.util.Objects.equals(until, null) && (until != 0))
                 {
                     endTime = this.parseToInt((((double) until) / ((double) 1000)));
                 }

@@ -985,7 +985,7 @@ public class Paradex extends ParadexApi
         }
         String settle = this.safeCurrencyCode(settleId, (Map<String, Object>) null);
         String symbol = ((base + "/") + quote);
-        if (!Boolean.TRUE.equals(isSpot))
+        if (!Boolean.TRUE.equals(isSpot) && (!java.util.Objects.equals(settle, null)))
         {
             symbol = ((symbol + ":") + settle);
         }
@@ -1002,7 +1002,10 @@ public class Paradex extends ParadexApi
             {
                 deliveryValue = (this.yymmdd(expiry) + "-");
             }
-            symbol = (((((symbol + "-") + deliveryValue) + strikePrice) + "-") + optionTypeSuffix);
+            if (!java.util.Objects.equals(strikePrice, null))
+            {
+                symbol = (((((symbol + "-") + deliveryValue) + strikePrice) + "-") + optionTypeSuffix);
+            }
             makerFee = this.parseNumber("0.0003");
         } else
         {

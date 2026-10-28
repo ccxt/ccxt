@@ -1577,10 +1577,9 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             {
                 String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
                 ((List<Object>)messageHashes).add(((depth + ":") + symbol));
-                String marketId = this.marketId(symbol);
                 Map<String, Object> topic = new HashMap<String, Object>();
                 topic.put("channel", depth);
-                topic.put("instId", marketId);
+                topic.put("instId", this.marketId(symbol));
                 ((List<Object>)topics).add(topic);
             }
             Map<String, Object> request = new HashMap<String, Object>() {{

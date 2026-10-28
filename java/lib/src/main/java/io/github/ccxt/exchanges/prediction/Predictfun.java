@@ -429,11 +429,9 @@ public class Predictfun extends PredictfunApi
             {
                 Map<String, Object> request = new HashMap<String, Object>() {{}};
                 Object tags = this.safeList(paramsValue, "tags", new ArrayList<Object>(Arrays.asList()));
-                Integer tagsLength = ((List<?>)tags).size();
-                if ((tagsLength != null && tagsLength > 0))
+                if (((List<?>)tags).size() > 0)
                 {
-                    String tagsString = String.join(",", (List<String>)tags);
-                    request.put("tagIds", tagsString);
+                    request.put("tagIds", String.join(",", (List<String>)tags));
                 }
                 ((List<Object>)postOmitKeys).add("limit");
                 Object paramsCategories = this.omit(paramsValue, new ArrayList<Object>(Arrays.asList("limit", "tags")));

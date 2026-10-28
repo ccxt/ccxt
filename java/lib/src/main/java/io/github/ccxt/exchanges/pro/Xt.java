@@ -467,6 +467,10 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "watchTickers", (Object) null);
             String defaultMethod = this.safeString(options, "method", "tickers");
             String name = this.safeString(parameters, "method", defaultMethod);
+            if (java.util.Objects.equals(name, null))
+            {
+                return this.filterByArray(this.tickers, "symbol", symbols, true);
+            }
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbols, null))
             {
@@ -508,6 +512,10 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "unWatchTickers", (Object) null);
             String defaultMethod = this.safeString(options, "method", "tickers");
             String name = this.safeString(parameters, "method", defaultMethod);
+            if (java.util.Objects.equals(name, null))
+            {
+                return null;
+            }
             if (!java.util.Objects.equals(symbols, null))
             {
                 throw new NotSupported((this.id + " unWatchTickers() does not support symbols argument, unsubscribtion is for all tickers at once only")) ;

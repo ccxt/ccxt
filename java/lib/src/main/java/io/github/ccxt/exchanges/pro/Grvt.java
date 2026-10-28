@@ -575,6 +575,10 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
         String secondPart = this.safeString(parts, 1, "");
         String timeframeId = secondPart.replaceFirst("-TRADE", "");
         String timeframe = this.findTimeframe(timeframeId, (Object) null);
+        if (java.util.Objects.equals(timeframe, null))
+        {
+            return;
+        }
         String messageHash = ((("ohlcv::" + symbol) + "::") + timeframe);
         this.ohlcvs.put(symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
         if (!(((Map<?, ?>)((Map<?, ?>)this.ohlcvs).get(symbol)).containsKey(timeframe)))

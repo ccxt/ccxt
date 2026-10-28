@@ -527,7 +527,6 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
             String side = (((java.util.Objects.equals(this.safeString(delta, 0), "buy")))) ? "bids" : "asks";
             io.github.ccxt.ws.OrderBookSide bookside = (io.github.ccxt.ws.OrderBookSide) (orderbook == null || side == null || !orderbook.containsKey(side) ? null : orderbook.get(side));
             bookside.store(price, size);
-            orderbook.put(side, bookside);
         }
         orderbook.put("symbol", symbol);
         this.orderbooks.put(symbol, orderbook);
@@ -740,8 +739,6 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
                 asks.store(price, size);
             }
         }
-        orderbook.put("bids", bids);
-        orderbook.put("asks", asks);
         orderbook.put("symbol", symbol);
         orderbook.put("nonce", nonce);
         orderbook.put("timestamp", timestamp);

@@ -613,8 +613,8 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             for (var i = 0; i < ((List<?>)symbolsAndTimeframes).size(); i++)
             {
                 Object symbolAndTimeframe = (symbolsAndTimeframes == null || i < 0 || i >= ((List<?>)symbolsAndTimeframes).size() ? null : ((List<?>)symbolsAndTimeframes).get(i));
-                Map<String, Object> market = this.market((symbolAndTimeframe == null || 0 >= ((List<?>)symbolAndTimeframe).size() ? null : ((List<?>)symbolAndTimeframe).get(0)));
-                Object timeframeString = (symbolAndTimeframe == null || 1 >= ((List<?>)symbolAndTimeframe).size() ? null : ((List<?>)symbolAndTimeframe).get(1));
+                Map<String, Object> market = this.market(this.safeString(symbolAndTimeframe, 0, ""));
+                String timeframeString = this.safeString(symbolAndTimeframe, 1, "");
                 String interval = this.safeString(this.timeframes, timeframeString, timeframeString);
                 if (!(marketIdsByInterval.containsKey(interval)))
                 {
@@ -700,8 +700,8 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             for (var i = 0; i < ((List<?>)symbolsAndTimeframes).size(); i++)
             {
                 Object symbolAndTimeframe = (symbolsAndTimeframes == null || i < 0 || i >= ((List<?>)symbolsAndTimeframes).size() ? null : ((List<?>)symbolsAndTimeframes).get(i));
-                Map<String, Object> market = this.market((symbolAndTimeframe == null || 0 >= ((List<?>)symbolAndTimeframe).size() ? null : ((List<?>)symbolAndTimeframe).get(0)));
-                Object timeframeString = (symbolAndTimeframe == null || 1 >= ((List<?>)symbolAndTimeframe).size() ? null : ((List<?>)symbolAndTimeframe).get(1));
+                Map<String, Object> market = this.market(this.safeString(symbolAndTimeframe, 0, ""));
+                String timeframeString = this.safeString(symbolAndTimeframe, 1, "");
                 String interval = this.safeString(this.timeframes, timeframeString, timeframeString);
                 if (!(marketIdsByInterval.containsKey(interval)))
                 {

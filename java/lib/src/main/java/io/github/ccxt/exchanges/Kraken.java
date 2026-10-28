@@ -1747,7 +1747,7 @@ public class Kraken extends KrakenApi
         } else if ((trade instanceof String))
         {
             id = trade;
-        } else if (((Map<?, ?>)trade).containsKey("ordertxid"))
+        } else if (Boolean.TRUE.equals(isOrderTrade))
         {
             orderId = this.safeString(trade, "ordertxid");
             id = this.safeString2(trade, "id", "postxid");
@@ -2185,12 +2185,13 @@ public class Kraken extends KrakenApi
         Integer baseIdEnd = 3;
         Integer quoteIdStart = 3;
         Integer quoteIdEnd = 6;
-        if ((((String)id).length() == 8))
+        Integer idLength = ((String)id).length();
+        if (java.util.Objects.equals(idLength, 8))
         {
             baseIdEnd = 4;
             quoteIdStart = 4;
             quoteIdEnd = 8;
-        } else if ((((String)id).length() == 7))
+        } else if (java.util.Objects.equals(idLength, 7))
         {
             baseIdEnd = 4;
             quoteIdStart = 4;
