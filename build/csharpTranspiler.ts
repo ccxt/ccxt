@@ -8833,7 +8833,7 @@ class NewTranspiler {
 
 async function runMain () {
     if (process.argv.includes ('--self-test')) {
-        const problems = [ ...csharpHx4SelfTest (), ...hx4C14SelfTest (), ...hx4C16SelfTest (), ...hx4C21SelfTest (), ...hx4C22SelfTest (), ...hx4C23SelfTest (), ...hx4C24SelfTest (), ...c01SnippetChecks (), ...c01ChainChecks (nativeDeclaredHelperCalls), ...hx10w3C01SnippetChecks (), ...hx10w3C01ChainChecks (nativeDeclaredHelperCalls), ...hx10w2C02SnippetChecks (), ...hx10W2C04SelfTest (), ...hx10C05SelfTest (), ...hx10C06SnippetChecks (), ...hx10C07SelfTest (), ...hxC08RuntimeStateSnippetChecks (), ...w3checks (), ...hx10w3C03SnippetChecks (), ...hx10w3C03ChainChecks (nativeDeclaredHelperCalls), ...c04SnippetChecks (), ...bf01SnippetChecks (), ...hx10w10SnippetChecks (), ...hx10C08SnippetChecks (), ...c12SnippetChecks (), ...cp04SnippetChecks (), ...cp06SnippetChecks (), ...hx10C05SnippetChecks (), ...c06w3Checks (CSHARP_METHOD_RETURN_TYPES, CSHARP_LOCAL_THIS_RETURN_TYPES), ...hx10W3C07SnippetChecks ((src) => { const snippet = new Transpiler ({ verbose: false, csharp: { parser: { NUM_LINES_END_FILE: 0 } } }); setupCsharpPrinter (snippet); return (snippet as any).transpileCSharp (src).content }) ];
+        const problems = [ ...csharpHx4SelfTest (), ...hx4C14SelfTest (), ...hx4C16SelfTest (), ...hx4C21SelfTest (), ...hx4C22SelfTest (), ...hx4C23SelfTest (), ...hx4C24SelfTest (), ...c01SnippetChecks (), ...c01ChainChecks (nativeDeclaredHelperCalls), ...hx10w3C01SnippetChecks (), ...hx10w3C01ChainChecks (nativeDeclaredHelperCalls), ...hx10w2C02SnippetChecks (), ...hx10W2C04SelfTest (), ...hx10C05SelfTest (), ...hx10C06SnippetChecks (), ...hx10C07SelfTest (), ...hxC08RuntimeStateSnippetChecks (), ...w3checks (), ...hx10w3C03SnippetChecks (), ...hx10w3C03ChainChecks (nativeDeclaredHelperCalls), ...c04SnippetChecks (), ...bf01SnippetChecks (), ...hx10w10SnippetChecks (), ...hx10C08SnippetChecks (), ...c12SnippetChecks (), ...cp04SnippetChecks (), ...cp06SnippetChecks (), ...hx10C05SnippetChecks (), ...c06w3Checks (CSHARP_METHOD_RETURN_TYPES, CSHARP_LOCAL_THIS_RETURN_TYPES), ...hx11w8ParseSnippetChecks (), ...hx10W3C07SnippetChecks ((src) => { const snippet = new Transpiler ({ verbose: false, csharp: { parser: { NUM_LINES_END_FILE: 0 } } }); setupCsharpPrinter (snippet); return (snippet as any).transpileCSharp (src).content }) ];
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);
@@ -9425,7 +9425,7 @@ export function nativeDeclaredHelperCalls (content: string, objectNull = true, c
     const w3c02Out = hx10w3C02CandidateReads (c02Out); // hx10w3 C02
     const c06Out = c06_apply (objectNull, w3c02Out); // hx10w2 C06
     const c06w3Out = c06w3ParseJson (c06Out); // hx10w3 C06
-    return hx10w10Bs04Apply (hx10C05NativeArithmeticEquality (bf01Apply (c04Apply (hx10w3C03WsStateReads (hx10C08PromiseAll (hx10C07PromiseAll (c06w3Out))))))); // hx10w2 C07, hx10w3 C03/C04/C06, hx10w4 BF01, hx10w7 C05, hx10w10 BS04
+    return hx11w8ParseNative (objectNull, hx10w10Bs04Apply (hx10C05NativeArithmeticEquality (bf01Apply (c04Apply (hx10w3C03WsStateReads (hx10C08PromiseAll (hx10C07PromiseAll (c06w3Out)))))))); // hx10w2 C07, hx10w3 C03/C04/C06, hx10w4 BF01, hx10w7 C05, hx10w10 BS04, hx11w8 parse
 }
 
 function nativeC07HelperCalls (content: string): string {
@@ -13899,4 +13899,119 @@ function x05TypedIsEqual (regionOf: (line: number) => any, line: number, args: s
     const n = hx4C05StripParens (lit);
     if (type.startsWith ('int') && (Math.abs (Number (n)) > 2147483647)) return undefined;
     return '(' + bare + ' == ' + n + ')';
+}
+
+// hx11 w8 retype-cs-parseint-parsefloat — parseInt / parseFloat on a proven C# string -> typed JsParse call.
+// `parseInt (s)` / `parseFloat (s)` (TS globals) bind the hand-written object helpers (Convert.ToDouble +
+// try/catch). When the operand is PRINTED as a C# string (an identifier the emitted signature/declarations
+// type `string` / `string?`, a `((string)ident)` cast the printer already emitted, or `ident.Replace("lit",
+// (string)"lit")` on such an identifier) the call becomes `JsParse.parseInt (s)` / `JsParse.parseFloat (s)`
+// (cs/ccxt/base/Exchange.JsParse.cs): typed `Int64?` / `double?`, never throws, ECMAScript prefix parsing
+// (no closure, no pasted body, no Convert.To*/Parse). parseInt keeps its `Int64?` type; parseFloat's `double?`
+// is only substituted in positions that already hold an object box (assignment / return / ternary arm /
+// `(object)` cast), where the double box is unchanged. Every other operand keeps the plain helper call.
+function hx11w8ParseInner (inner: string, typeOf: (name: string) => string | undefined): boolean {
+    const text = inner.trim ();
+    let m = /^([A-Za-z_]\w*)$/.exec (text);
+    if (m !== null) {
+        const t = typeOf (m[1]);
+        return (t === 'string') || (t === 'string?');
+    }
+    if (/^\(\(string\)[A-Za-z_]\w*\)$/.test (text)) {
+        return true;
+    }
+    m = /^([A-Za-z_]\w*)\.Replace\("[^"\\]*", \(string\)"[^"\\]*"\)$/.exec (text);
+    if (m !== null) {
+        const t = typeOf (m[1]);
+        return (t === 'string') || (t === 'string?');
+    }
+    return false;
+}
+
+export function hx11w8ParseNative (objectNull: boolean, content: string): string {
+    if (!objectNull || !/\bparse(?:Int|Float)\s*\(/.test (content) || /^namespace Tests;/m.test (content)) {
+        return content;
+    }
+    const lines = content.split ('\n');
+    const masked = lines.map (csharpHelperMaskLine);
+    const signatures: number[] = [];
+    for (let i = 0; i < masked.length; i++) {
+        if (CSHARP_HELPER_SIGNATURE_RE.test (masked[i]) && !masked[i].trimEnd ().endsWith (';')) {
+            signatures.push (i);
+        }
+    }
+    if (signatures.length === 0) {
+        return content;
+    }
+    const regions = signatures.map ((start, n) => {
+        const end = (n + 1 < signatures.length) ? signatures[n + 1] : lines.length;
+        const declarations = [];
+        for (let i = start; i < end; i++) {
+            const declaration = csharpHelperDeclarationOfLine (masked[i]);
+            if (declaration !== undefined) {
+                declarations.push ({ line: i, name: declaration.name, type: declaration.type, value: declaration.value });
+            }
+        }
+        return { start, end, params: csharpHelperSignatureParams (masked, start), declarations, lines: masked };
+    });
+    let changed = false;
+    const out = lines.map ((line, i) => {
+        if (!/\bparse(?:Int|Float)\s*\(/.test (masked[i])) {
+            return line;
+        }
+        let region = regions[0];
+        for (const r of regions) {
+            if (r.start <= i) region = r;
+        }
+        if ((i <= region.start) || (i >= region.end)) {
+            return line;
+        }
+        const typeOf = (name: string) => csharpHelperReceiverType (region, name, i, region.params)?.type;
+        let result = '';
+        let from = 0;
+        const re = /(?<![\w.])parse(Int|Float)\(/g;
+        let m: RegExpExecArray | null;
+        while ((m = re.exec (masked[i])) !== null) {
+            const open = m.index + m[0].length - 1;
+            const close = csharpHelperCallEnd (masked[i], open);
+            if ((close === undefined) || (m.index < from)) continue;
+            if (!hx11w8ParseInner (line.slice (open + 1, close), typeOf)) continue;
+            if (m[1] === 'Float') {
+                const before = masked[i].slice (0, m.index);
+                const after = masked[i].slice (close + 1);
+                const holdsBox = /(?:[^=!<>]=|\breturn|\?|:|\(object\))[ ]*$/.test (before) && /^[ ]*(?:\)*[ ]*;|\)+[ ]*;)/.test (after);
+                if (!holdsBox) continue;
+            }
+            result += line.slice (from, m.index) + 'JsParse.parse' + m[1] + line.slice (open, close + 1);
+            from = close + 1;
+        }
+        if (from === 0) {
+            return line;
+        }
+        changed = true;
+        return result + line.slice (from);
+    });
+    return changed ? out.join ('\n') : content;
+}
+
+export function hx11w8ParseSnippetChecks (): string[] {
+    const problems: string[] = [];
+    const wrap = (body: string, sig = 'public void Target (object o)') => `namespace ccxt;\n\npublic partial class BaseExchange\n{\n    ${sig}\n    {\n${body}\n    }\n}\n`;
+    const check = (name: string, body: string, expected: string, sig?: string) => {
+        const input = wrap (body, sig);
+        const output = hx11w8ParseNative (true, input);
+        if (output !== wrap (expected, sig)) problems.push (`hx11w8 parse: ${name}: ${output.replace (/\n/g, ' | ').slice (0, 300)}`);
+        if (hx11w8ParseNative (true, output) !== output) problems.push (`hx11w8 parse: ${name}: not idempotent`);
+    };
+    check ('string? local parseInt', '        string? s = this.safeString(o, "a");\n        Int64? n = parseInt(s);', '        string? s = this.safeString(o, "a");\n        Int64? n = JsParse.parseInt(s);');
+    check ('string param parseFloat assign', '        o = parseFloat(s);', '        o = JsParse.parseFloat(s);', 'public void Target (string s, object o)');
+    check ('object operand keeps helper', '        Int64? n = parseInt(o);', '        Int64? n = parseInt(o);');
+    check ('ambiguous object local keeps helper', '        object s = o;\n        Int64? n = parseInt(s);', '        object s = o;\n        Int64? n = parseInt(s);');
+    check ('parseFloat as operand keeps helper', '        string s = "1";\n        object r = add(parseFloat(s), 1);', '        string s = "1";\n        object r = add(parseFloat(s), 1);');
+    check ('parseFloat ternary arm', '        string? s = null;\n        o[0] = ((s == null)) ? null : parseFloat(s);', '        string? s = null;\n        o[0] = ((s == null)) ? null : JsParse.parseFloat(s);');
+    check ('Replace operand', '        string? s = this.safeString(o, "a");\n        Int64? n = parseInt(s.Replace(".", (string)""));', '        string? s = this.safeString(o, "a");\n        Int64? n = JsParse.parseInt(s.Replace(".", (string)""));');
+    check ('string cast operand', '        object s = o;\n        o = parseInt(((string)s));', '        object s = o;\n        o = JsParse.parseInt(((string)s));');
+    check ('arithmetic parent keeps type', '        string s = "1";\n        Int64? t = (parseInt(s) * 1000);', '        string s = "1";\n        Int64? t = (JsParse.parseInt(s) * 1000);');
+    if (hx11w8ParseNative (false, wrap ('        string s = "1"; Int64? n = parseInt(s);')) !== wrap ('        string s = "1"; Int64? n = parseInt(s);')) problems.push ('hx11w8 parse: fired in a non-final pass');
+    return problems;
 }
