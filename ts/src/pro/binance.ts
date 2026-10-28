@@ -1809,7 +1809,7 @@ export default class binance extends binanceRest {
                 utcSuffix = suffix;
             }
             rawHashes.push (marketId + '@' + klineType + '_' + interval + utcSuffix);
-            messageHashes.push ('ohlcv::' + market['symbol'] + '::' + timeframeString);
+            messageHashes.push ('ohlcv::' + this.safeString (market, 'symbol', '') + '::' + timeframeString);
         }
         const url = this.getWsUrl (wsUrlType, this.getFutureWsCategory (klineType)) + '/' + this.stream (wsUrlType, 'multipleOHLCV');
         const requestId = this.requestId (url);
@@ -1890,8 +1890,8 @@ export default class binance extends binanceRest {
                 utcSuffix = suffix;
             }
             rawHashes.push (marketId + '@' + klineType + '_' + interval + utcSuffix);
-            subMessageHashes.push ('ohlcv::' + market['symbol'] + '::' + timeframeString);
-            messageHashes.push ('unsubscribe::ohlcv::' + market['symbol'] + '::' + timeframeString);
+            subMessageHashes.push ('ohlcv::' + this.safeString (market, 'symbol', '') + '::' + timeframeString);
+            messageHashes.push ('unsubscribe::ohlcv::' + this.safeString (market, 'symbol', '') + '::' + timeframeString);
         }
         const url = this.getWsUrl (wsUrlType, this.getFutureWsCategory (klineType)) + '/' + this.stream (wsUrlType, 'multipleOHLCV');
         const requestId = this.requestId (url);
@@ -2406,14 +2406,14 @@ export default class binance extends binanceRest {
         return this.filterByArray (this.bidsasks, 'symbol', symbolsNormalized);
     }
 
-    async watchMultiTickerHelper (methodName: string, channelName: Str, symbols: Strings = undefined, params: Dict = {}, isUnsubscribe: boolean = false) {
+    async watchMultiTickerHelper (methodName: string, channelName: string, symbols: Strings = undefined, params: Dict = {}, isUnsubscribe: boolean = false) {
+        const channel = this.safeString ({ 'name': channelName }, 'name', '');
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const symbolsNormalized: Strings = this.marketSymbols (symbols, undefined, true, false, true);
-        const isBidAsk = (channelName === 'bookTicker');
-        const isMarkPrice = (channelName === 'markPrice');
-        const use1sFreq = this.safeBool (params, 'use1sFreq', true);
+        const isBidAsk = (channel === 'bookTicker');
+        const isMarkPrice = (channel === 'markPrice');
         let firstMarket: Market = undefined;
         const symbolsDefined = (symbolsNormalized !== undefined);
         if (symbolsNormalized !== undefined) {
@@ -2443,7 +2443,7 @@ export default class binance extends binanceRest {
             throw new NotSupported (this.id + ' ' + methodName + '() does not support options markets');
         }
         // eOptions tickers have a different stream name (@optionTicker) but the same event type (24hrTicker)
-        // so only the subscription arg changes — channelName stays as-is to keep messageHashes aligned
+        // so only the subscription arg changes — channel stays as-is to keep messageHashes aligned
         const isOptionTicker = (marketType === 'option' && !isMarkPrice && !isBidAsk);
         if (isMarkPrice && !this.inArray (marketType, [ 'swap', 'future', 'option' ])) {
             throw new NotSupported (this.id + ' ' + methodName + '() does not support ' + marketType + ' markets yet');
@@ -2453,24 +2453,22 @@ export default class binance extends binanceRest {
         const unsubscribeMessageHashes: string[] = [];
         let suffix = '';
         if (isMarkPrice && !isOptionMarkPrice) {
-            suffix = (use1sFreq) ? '@1s' : '';
+            suffix = (this.safeBool (params, 'use1sFreq', true)) ? '@1s' : '';
         }
-        let unifiedPrefix: Str = undefined;
+        let unifiedPrefix = 'ticker';
         if (isBidAsk) {
             unifiedPrefix = 'bidask';
         } else if (isMarkPrice) {
             unifiedPrefix = 'markPrice';
-        } else {
-            unifiedPrefix = 'ticker';
         }
         if (symbolsNormalized !== undefined) {
             const seenUnderlyings: Dict = {};
             for (let i = 0; i < symbolsNormalized.length; i++) {
                 const symbol = symbolsNormalized[i];
                 const market = this.market (symbol);
-                messageHashes.push (unifiedPrefix + ':' + channelName + '@' + symbol);
+                messageHashes.push (unifiedPrefix + ':' + channel + '@' + symbol);
                 if (isUnsubscribe) {
-                    unsubscribeMessageHashes.push ('unsubscribe::' + unifiedPrefix + ':' + channelName + '@' + symbol);
+                    unsubscribeMessageHashes.push ('unsubscribe::' + unifiedPrefix + ':' + channel + '@' + symbol);
                 }
                 if (isOptionMarkPrice) {
                     // subscribe per underlying, not per contract
@@ -2496,7 +2494,7 @@ export default class binance extends binanceRest {
                         subscriptionArgs.push (subscriptionArg);
                     }
                 } else {
-                    subscriptionArgs.push (this.safeString (market, 'lowercaseId', '') + '@' + channelName + suffix);
+                    subscriptionArgs.push (this.safeString (market, 'lowercaseId', '') + '@' + channel + suffix);
                 }
             }
         } else {
@@ -2516,30 +2514,30 @@ export default class binance extends binanceRest {
                     // isOptionMarkPrice: one stream covers all contracts for the underlying
                     subscriptionArgs.push (underlying + '@optionMarkPrice');
                 }
-                messageHashes.push (unifiedPrefix + 's:' + channelName);
-                unsubscribeMessageHashes.push ('unsubscribe::' + channelName);
+                messageHashes.push (unifiedPrefix + 's:' + channel);
+                unsubscribeMessageHashes.push ('unsubscribe::' + channel);
             } else if (isBidAsk) {
                 if (marketType === 'spot') {
                     throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires symbols for this channel for spot markets');
                 }
-                subscriptionArgs.push ('!' + channelName);
-                messageHashes.push (unifiedPrefix + 's:' + channelName);
-                unsubscribeMessageHashes.push ('unsubscribe::' + channelName);
+                subscriptionArgs.push ('!' + channel);
+                messageHashes.push (unifiedPrefix + 's:' + channel);
+                unsubscribeMessageHashes.push ('unsubscribe::' + channel);
             } else if (isMarkPrice) {
-                subscriptionArgs.push ('!' + channelName + '@arr' + suffix);
-                messageHashes.push (unifiedPrefix + 's:' + channelName);
-                unsubscribeMessageHashes.push ('unsubscribe::' + channelName);
+                subscriptionArgs.push ('!' + channel + '@arr' + suffix);
+                messageHashes.push (unifiedPrefix + 's:' + channel);
+                unsubscribeMessageHashes.push ('unsubscribe::' + channel);
             } else {
-                subscriptionArgs.push ('!' + channelName + '@arr');
-                messageHashes.push (unifiedPrefix + 's:' + channelName);
-                unsubscribeMessageHashes.push ('unsubscribe::' + channelName);
+                subscriptionArgs.push ('!' + channel + '@arr');
+                messageHashes.push (unifiedPrefix + 's:' + channel);
+                unsubscribeMessageHashes.push ('unsubscribe::' + channel);
             }
         }
         let streamHash = channelName;
         if (symbolsNormalized !== undefined) {
-            streamHash = channelName + '::' + symbolsNormalized.join (',');
+            streamHash = channel + '::' + symbolsNormalized.join (',');
         }
-        const url = this.getWsUrl (rawMarketType, this.getFutureWsCategory (channelName)) + '/' + this.stream (rawMarketType, streamHash);
+        const url = this.getWsUrl (rawMarketType, this.getFutureWsCategory (channel)) + '/' + this.stream (rawMarketType, streamHash);
         const requestId = this.requestId (url);
         const request: Dict = {
             'method': isUnsubscribe ? 'UNSUBSCRIBE' : 'SUBSCRIBE',
@@ -2565,7 +2563,7 @@ export default class binance extends binanceRest {
         // wait on the batch hash so the resolved value is the full dict of new tickers
         let waitHashes = hashes;
         if (isOptionMarkPrice && !isUnsubscribe) {
-            waitHashes = [ unifiedPrefix + 's:' + channelName ];
+            waitHashes = [ unifiedPrefix + 's:' + channel ];
         }
         const result = await this.watchMultiple (url, waitHashes, this.deepExtend (request, paramsSubType), hashes, subscription);
         if (isUnsubscribe) {
