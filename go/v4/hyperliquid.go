@@ -376,7 +376,7 @@ func (this *Hyperliquid) Market(symbol any) map[string]any {
 	if this.Markets() == nil {
 		panic(ExchangeError(this.Id + " markets not loaded"))
 	}
-	if (!IsEqual(symbol, nil)) && !(InOp(this.Markets(), symbol)) {
+	if !(InOp(this.Markets(), symbol)) {
 		var symbolParts []string = Split(symbol, "/")
 		var baseName *string = this.SafeString(symbolParts, 0)
 		var spotCurrencyMapping map[string]any = SafeMapTyped(this.Options, "spotCurrencyMapping")
@@ -727,7 +727,7 @@ func (this *Hyperliquid) fetchHip3MarketsBody(ch chan AsyncResult[[]MarketInterf
 	var markets []any = []any{}
 	for i := 0; i < len(promises); i++ {
 		var dexName any = GetValue(fetchDexesList, i)
-		var offset any = GetValue(perpDexesOffset, dexName)
+		var offset *int64 = this.SafeInteger(perpDexesOffset, dexName)
 		var response []any = SafeListTyped(promises, i)
 		var meta map[string]any = SafeMapTyped(response, 0)
 		var collateralToken *string = this.SafeString(meta, "collateralToken")
@@ -2048,8 +2048,7 @@ func (this *Hyperliquid) ActionHash(action any, vaultAddress any, nonce any, opt
 		data = Add(data, vaultAddress)
 	}
 	if expiresAfter != nil {
-		data = Add(data, "00")
-		data = Add(data, "00000"+this.IntToBase16(expiresAfter))
+		data = Add(data, "0000000"+this.IntToBase16(expiresAfter))
 	}
 	return this.Hash(this.Base16ToBinary(data), keccak, "binary")
 }
@@ -3247,8 +3246,8 @@ func (this *Hyperliquid) cancelOrderBody(ch chan AsyncResult[Order], id any, opt
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	listRecv3086, _ := OrdersToList(r1.Value), r1.Value != nil
-	var orders []any = listRecv3086
+	listRecv3085, _ := OrdersToList(r1.Value), r1.Value != nil
+	var orders []any = listRecv3085
 	var canceled map[string]any = SafeMapTyped(orders, 0)
 
 	ch <- AsyncResult[Order]{Value: OrderFromMap(canceled)}
@@ -5800,8 +5799,8 @@ func (this *Hyperliquid) transferBody(ch chan AsyncResult[TransferEntry], code s
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		listRecv5480, _ := r2.Value, r2.Value != nil
-		var isUnifiedqueryVariable []any = listRecv5480
+		listRecv5479, _ := r2.Value, r2.Value != nil
+		var isUnifiedqueryVariable []any = listRecv5479
 		isUnified = GetValue(isUnifiedqueryVariable, 0)
 		query = isUnifiedqueryVariable[1]
 		useSendAsset = (isUnified == true)

@@ -8289,12 +8289,6 @@ func (this *Mexc) Sign(path string, optionalArgs ...any) any {
 			this.CheckRequiredCredentials()
 			var timestamp string = ToString(this.Nonce())
 			var auth string = ""
-			requestHeaders = map[string]any{
-				"ApiKey":       this.ApiKey,
-				"Request-Time": timestamp,
-				"Content-Type": "application/json",
-				"source":       this.SafeString(this.Options, "broker", "CCXT"),
-			}
 			if method == "POST" {
 				auth = this.Json(paramsOmitted)
 				requestBody = SafeStringPtr(auth)
@@ -8307,7 +8301,13 @@ func (this *Mexc) Sign(path string, optionalArgs ...any) any {
 			}
 			auth = this.ApiKey + timestamp + auth
 			var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256)
-			AddElementToObject(requestHeaders, "Signature", signature)
+			requestHeaders = map[string]any{
+				"ApiKey":       this.ApiKey,
+				"Request-Time": timestamp,
+				"Content-Type": "application/json",
+				"source":       this.SafeString(this.Options, "broker", "CCXT"),
+				"Signature":    signature,
+			}
 		}
 	}
 	return map[string]any{
