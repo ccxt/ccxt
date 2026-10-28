@@ -560,5 +560,5 @@ export default class backpack extends Exchange {
     nonce(): int;
     sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
     generateBatchPayload(params: any, ts: string, recvWindow: string, instruction: string): string;
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
 }

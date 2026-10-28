@@ -724,10 +724,9 @@ class backpack extends backpack$1["default"] {
         const topics = [];
         const messageHashes = [];
         for (let i = 0; i < symbolsLength; i++) {
-            const symbolAndTimeframe = this.safeList(symbolsAndTimeframes, i);
-            const marketId = this.safeString(symbolAndTimeframe, 0);
+            const marketId = this.safeString(this.safeList(symbolsAndTimeframes, i), 0);
             const market = this.market(marketId);
-            const tf = this.safeString(symbolAndTimeframe, 1);
+            const tf = this.safeString(this.safeList(symbolsAndTimeframes, i), 1, '');
             const interval = this.safeString(this.timeframes, tf, tf);
             this.wsVenueMarketId('watchOHLCVForSymbols', market, query);
             topics.push('kline.' + interval + '.' + this.safeString(market, 'id', ''));
@@ -764,10 +763,9 @@ class backpack extends backpack$1["default"] {
         const topics = [];
         const messageHashes = [];
         for (let i = 0; i < symbolsLength; i++) {
-            const symbolAndTimeframe = this.safeList(symbolsAndTimeframes, i);
-            const marketId = this.safeString(symbolAndTimeframe, 0);
+            const marketId = this.safeString(this.safeList(symbolsAndTimeframes, i), 0);
             const market = this.market(marketId);
-            const tf = this.safeString(symbolAndTimeframe, 1);
+            const tf = this.safeString(this.safeList(symbolsAndTimeframes, i), 1, '');
             const interval = this.safeString(this.timeframes, tf, tf);
             this.wsVenueMarketId('watchOHLCVForSymbols', market, query);
             topics.push('kline.' + interval + '.' + this.safeString(market, 'id', ''));

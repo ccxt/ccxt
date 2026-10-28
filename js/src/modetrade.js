@@ -3329,7 +3329,7 @@ export default class modetrade extends Exchange {
         }
         return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if ((response === undefined) || (response === null)) {
             return undefined; // fallback to default error handler
         }

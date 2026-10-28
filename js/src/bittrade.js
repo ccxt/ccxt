@@ -2133,7 +2133,7 @@ export default class bittrade extends Exchange {
         const bodyResult = requestBody;
         return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult };
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }
@@ -2143,10 +2143,10 @@ export default class bittrade extends Exchange {
             //
             const status = this.safeString(response, 'status');
             if (status === 'error') {
-                const code = this.safeString(response, 'err-code');
+                const codeError = this.safeString(response, 'err-code');
                 const feedback = this.id + ' ' + body;
                 this.throwBroadlyMatchedException(this.exceptions['broad'], body, feedback);
-                this.throwExactlyMatchedException(this.exceptions['exact'], code, feedback);
+                this.throwExactlyMatchedException(this.exceptions['exact'], codeError, feedback);
                 const message = this.safeString(response, 'err-msg');
                 this.throwExactlyMatchedException(this.exceptions['exact'], message, feedback);
                 throw new ExchangeError(feedback);

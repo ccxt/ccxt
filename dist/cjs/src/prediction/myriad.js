@@ -1028,7 +1028,7 @@ class myriad extends myriad$1["default"] {
         // would silently size `amount` as dollars (inconsistent with every other venue and the wiki).
         // route dollar-sizing through createMarketBuyOrderWithCost (which sets costDenominated); a
         // plain createOrder buy on the AMM is rejected so it can't misinterpret shares as collateral
-        const sideLower = (side !== undefined) ? side.toLowerCase() : undefined;
+        const sideLower = side.toLowerCase();
         const isCostDenominated = this.safeBool(params, 'costDenominated', false);
         if ((sideLower === 'buy') && (!isCostDenominated)) {
             throw new errors.NotSupported(this.id + ' createOrder() market buy on the AMM sizes by collateral, not shares — use createMarketBuyOrderWithCost(outcome, collateral) for a dollar buy, or the default order book (omit enableAmm) for a share-denominated order');

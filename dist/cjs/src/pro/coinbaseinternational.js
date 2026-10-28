@@ -1087,7 +1087,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
         const marketId = this.safeString(parts, 1);
         const market = this.safeMarket(marketId);
         const symbol = this.safeString(market, 'symbol', '');
-        if (!(symbol in this.trades)) {
+        if (symbol !== undefined && !(symbol in this.trades)) {
             const limit = this.safeInteger(this.options, 'tradesLimit', 1000);
             const tradesArrayCache = new Cache.ArrayCache(limit);
             this.trades[symbol] = tradesArrayCache;

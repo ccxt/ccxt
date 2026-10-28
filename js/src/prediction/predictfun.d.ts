@@ -1,5 +1,5 @@
 import Exchange from '../abstract/prediction/predictfun.js';
-import type { Dict, fetchEventsParams, Int, int, Market, Num, OrderSide, OrderType, PredictionEvent, PredictionOrder, PredictionOrderBook, PredictionPosition, PredictionTicker, PredictionTrade, Str, Strings } from '../base/types.js';
+import type { Dict, fetchEventsParams, Int, int, Market, Num, NullableDict, OrderSide, OrderType, PredictionEvent, PredictionOrder, PredictionOrderBook, PredictionPosition, PredictionTicker, PredictionTrade, Str, Strings } from '../base/types.js';
 import type Client from '../base/ws/Client.js';
 /**
  * @class predictfun
@@ -383,18 +383,18 @@ export default class predictfun extends Exchange {
      * @method
      * @name predictfun#handleErrors
      * @description maps the venue's error slugs and messages onto the unified exceptions
-     * @param {int} statusCode the http status code
-     * @param {string} statusText the http status text
+     * @param {int} code the http status code
+     * @param {string} reason the http status text
      * @param {string} url the request url
      * @param {string} method the http method
-     * @param {object} responseHeaders the response headers
-     * @param {string} responseBody the raw response body
+     * @param {object} headers the response headers
+     * @param {string} body the raw response body
      * @param {object} response the parsed response
      * @param {object} requestHeaders the request headers
      * @param {object} requestBody the request body
      * @returns {undefined} nothing, it throws when the venue reported a failure
      */
-    handleErrors(statusCode: Int, statusText: string, url: string, method: string, responseHeaders: Dict, responseBody: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
     /**
      * @ignore
      * @method

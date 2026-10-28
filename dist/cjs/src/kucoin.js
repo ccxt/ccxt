@@ -1867,8 +1867,7 @@ class kucoin extends kucoin$1["default"] {
             });
         }
         if (fetchContractMarkets) {
-            const contractMarkets = this.safeList(responses, contractIndex, []);
-            result = this.arrayConcat(result, contractMarkets);
+            result = this.arrayConcat(result, this.safeList(responses, contractIndex, []));
         }
         if (this.safeBool(this.options, 'adjustForTimeDifference', false)) {
             await this.loadTimeDifference();
@@ -2346,9 +2345,8 @@ class kucoin extends kucoin$1["default"] {
             //
             response = await this.publicGetCurrencies(paramsUta);
         }
-        const currenciesData = this.safeList(response, 'data', []);
         const brokenCurrencies = this.handleOption('fetchCurrencies', 'brokenCurrencies', []);
-        const filteredCurrencies = this.filterOutByArray(currenciesData, 'currency', brokenCurrencies); // remove broken entries
+        const filteredCurrencies = this.filterOutByArray(this.safeList(response, 'data', []), 'currency', brokenCurrencies); // remove broken entries
         return this.parseCurrencies(filteredCurrencies);
     }
     parseCurrency(currency) {
@@ -2436,8 +2434,7 @@ class kucoin extends kucoin$1["default"] {
             //         }
             //     }
             //
-            const dataDict = this.safeDict(response, 'data', {});
-            data = [dataDict];
+            data = [this.safeDict(response, 'data', {})];
         }
         else {
             //
@@ -4736,8 +4733,9 @@ class kucoin extends kucoin$1["default"] {
         }
         let isSpot = false;
         let isContract = false;
-        for (let i = 0; i < orders.length; i++) {
-            const order = this.safeDict(orders, i);
+        const ordersList = this.toArray(orders);
+        for (let i = 0; i < ordersList.length; i++) {
+            const order = this.safeDict(ordersList, i);
             const symbol = this.safeString(order, 'symbol');
             if (symbol === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' createOrders() requires a symbol for each order');
@@ -4782,8 +4780,9 @@ class kucoin extends kucoin$1["default"] {
         }
         const ordersRequests = [];
         let symbol = undefined;
-        for (let i = 0; i < orders.length; i++) {
-            const rawOrder = this.safeDict(orders, i);
+        const ordersList = this.toArray(orders);
+        for (let i = 0; i < ordersList.length; i++) {
+            const rawOrder = this.safeDict(ordersList, i);
             const marketId = this.safeString(rawOrder, 'symbol');
             if (marketId === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' createOrders() requires a symbol for each order');
@@ -4875,8 +4874,9 @@ class kucoin extends kucoin$1["default"] {
             await this.loadMarkets();
         }
         const ordersRequests = [];
-        for (let i = 0; i < orders.length; i++) {
-            const rawOrder = this.safeDict(orders, i);
+        const ordersList = this.toArray(orders);
+        for (let i = 0; i < ordersList.length; i++) {
+            const rawOrder = this.safeDict(ordersList, i);
             const symbol = this.safeString(rawOrder, 'symbol');
             if (symbol === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' createOrders() requires a symbol for each order');
@@ -11130,8 +11130,9 @@ class kucoin extends kucoin$1["default"] {
                 'clientOid': this.safeString(clientOrderIds, i),
             });
         }
-        for (let i = 0; i < ids.length; i++) {
-            const orderId = this.safeString(ids, i);
+        const idsList = this.toArray(ids);
+        for (let i = 0; i < idsList.length; i++) {
+            const orderId = this.safeString(idsList, i);
             if (uta) {
                 ordersRequests.push({
                     'orderId': orderId,
@@ -11974,9 +11975,8 @@ class kucoin extends kucoin$1["default"] {
         //     { code: '200000', data: { ... }}
         //
         const errorCode = this.safeString(response, 'code');
-        const message = this.safeString2(response, 'msg', 'data', '');
         const feedback = this.id + ' ' + body;
-        this.throwExactlyMatchedException(this.exceptions['exact'], message, feedback);
+        this.throwExactlyMatchedException(this.exceptions['exact'], this.safeString2(response, 'msg', 'data', ''), feedback);
         this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
         this.throwBroadlyMatchedException(this.exceptions['broad'], body, feedback);
         if (errorCode !== '200000' && errorCode !== '200') {

@@ -7934,7 +7934,7 @@ class htx extends htx$1["default"] {
         const bodyResolved = signedBody;
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }
@@ -7945,10 +7945,10 @@ class htx extends htx$1["default"] {
             //
             const status = this.safeString(response, 'status');
             if (status === 'error') {
-                const code = this.safeString2(response, 'err-code', 'err_code');
+                const codeError = this.safeString2(response, 'err-code', 'err_code');
                 const feedback = this.id + ' ' + body;
                 this.throwBroadlyMatchedException(this.exceptions['broad'], body, feedback);
-                this.throwExactlyMatchedException(this.exceptions['exact'], code, feedback);
+                this.throwExactlyMatchedException(this.exceptions['exact'], codeError, feedback);
                 const message = this.safeString2(response, 'err-msg', 'err_msg');
                 this.throwExactlyMatchedException(this.exceptions['exact'], message, feedback);
                 throw new errors.ExchangeError(feedback);
@@ -7957,8 +7957,8 @@ class htx extends htx$1["default"] {
         if ('code' in response) {
             // {code: '1003', message: 'invalid signature'}
             const feedback = this.id + ' ' + body;
-            const code = this.safeString(response, 'code');
-            this.throwExactlyMatchedException(this.exceptions['exact'], code, feedback);
+            const codeError = this.safeString(response, 'code');
+            this.throwExactlyMatchedException(this.exceptions['exact'], codeError, feedback);
         }
         const data = this.safeDict(response, 'data');
         const errorsList = this.safeList(data, 'errors');

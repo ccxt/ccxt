@@ -2623,18 +2623,18 @@ export default class predictfun extends Exchange {
      * @method
      * @name predictfun#handleErrors
      * @description maps the venue's error slugs and messages onto the unified exceptions
-     * @param {int} statusCode the http status code
-     * @param {string} statusText the http status text
+     * @param {int} code the http status code
+     * @param {string} reason the http status text
      * @param {string} url the request url
      * @param {string} method the http method
-     * @param {object} responseHeaders the response headers
-     * @param {string} responseBody the raw response body
+     * @param {object} headers the response headers
+     * @param {string} body the raw response body
      * @param {object} response the parsed response
      * @param {object} requestHeaders the request headers
      * @param {object} requestBody the request body
      * @returns {undefined} nothing, it throws when the venue reported a failure
      */
-    handleErrors(statusCode, statusText, url, method, responseHeaders, responseBody, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined;
         }
@@ -2642,7 +2642,7 @@ export default class predictfun extends Exchange {
         if (success) {
             return undefined;
         }
-        const feedback = this.id + ' ' + responseBody;
+        const feedback = this.id + ' ' + body;
         // the message is matched first because it is the more specific of the two: several
         // distinct failures share a generic slug, notably 'unauthorized', which the venue also
         // returns for a hash belonging to another wallet, and 'not_found' for an unknown market
@@ -2652,7 +2652,7 @@ export default class predictfun extends Exchange {
         // order - that case is matched above and has already thrown, so reaching here with a 401
         // means the credential itself was refused. drop the cached JWT, otherwise a token revoked
         // or aged out before its window closes is replayed for the life of the process
-        if (statusCode === 401) {
+        if (code === 401) {
             this.options['jwtToken'] = undefined;
             this.options['jwtTokenExpiresAt'] = 0;
         }
@@ -2660,7 +2660,7 @@ export default class predictfun extends Exchange {
         this.throwExactlyMatchedException(this.exceptions['exact'], error, feedback);
         // a 400 is a rejected request or a business rule, not a transport outage - the base would
         // otherwise map the bare status onto a retryable network error
-        if (statusCode === 400) {
+        if (code === 400) {
             throw new BadRequest(feedback);
         }
         throw new ExchangeError(feedback);

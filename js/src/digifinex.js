@@ -4768,20 +4768,20 @@ export default class digifinex extends Exchange {
         }
         return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
-    handleErrors(statusCode, statusText, url, method, responseHeaders, responseBody, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined; // fall back to default error handler
         }
-        const code = this.safeString(response, 'code');
-        if ((code === '0') || (code === '200')) {
+        const codeError = this.safeString(response, 'code');
+        if ((codeError === '0') || (codeError === '200')) {
             return undefined; // no error
         }
-        const feedback = this.id + ' ' + responseBody;
-        if (code === undefined) {
+        const feedback = this.id + ' ' + body;
+        if (codeError === undefined) {
             throw new BadResponse(feedback);
         }
         const unknownError = [ExchangeError, feedback];
-        const [ExceptionClass, message] = this.safeValue(this.exceptions['exact'], code, unknownError);
+        const [ExceptionClass, message] = this.safeValue(this.exceptions['exact'], codeError, unknownError);
         throw new ExceptionClass(message);
     }
 }

@@ -1,5 +1,5 @@
 import Exchange from '../abstract/prediction/polymarket.js';
-import type { OrderSide, OrderType, Int, int, Str, Num, Dict, Market, PredictionTickers, PredictionOrderBook, OHLCV, PredictionOrderRequest, Balances, Strings, PredictionOpenInterest, PredictionTradingFee, PredictionEvent, PredictionTicker, PredictionOrder, PredictionTrade, PredictionPosition, fetchEventsParams } from '../base/types.js';
+import type { OrderSide, OrderType, Int, int, Str, Num, Dict, Market, PredictionTickers, PredictionOrderBook, OHLCV, PredictionOrderRequest, Balances, Strings, PredictionOpenInterest, PredictionTradingFee, PredictionEvent, PredictionTicker, PredictionOrder, PredictionTrade, PredictionPosition, fetchEventsParams, NullableDict } from '../base/types.js';
 import type Client from '../base/ws/Client.js';
 /**
  * @class polymarket
@@ -443,7 +443,7 @@ export default class polymarket extends Exchange {
      * @returns {object[]} a list of event structures
      */
     parseEvents(rawEvents: any[]): Dict[];
-    handleErrors(code: Int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
     nonce(): int;
     /**
      * @ignore

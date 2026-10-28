@@ -1,5 +1,5 @@
 import Exchange from './abstract/tokocrypto.js';
-import type { Balances, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int, DepositAddress } from './base/types.js';
+import type { Balances, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int, DepositAddress, NullableDict } from './base/types.js';
 /**
  * @class tokocrypto
  * @augments Exchange
@@ -271,6 +271,6 @@ export default class tokocrypto extends Exchange {
      */
     withdraw(code: string, amount: number, address: string, params?: Dict): Promise<Transaction>;
     sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
     calculateRateLimiterCost(api: string[], method: string, path: string, params: any, config?: Dict): Int;
 }

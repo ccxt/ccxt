@@ -1,5 +1,5 @@
 import Exchange from './abstract/hibachi.js';
-import type { Balances, Currencies, Dict, Market, Str, Ticker, Trade, Int, Num, OrderSide, OrderType, OrderBook, TradingFees, Transaction, DepositAddress, OHLCV, Order, LedgerEntry, Currency, int, Position, Strings, FundingRate, FundingRateHistory, OrderRequest } from './base/types.js';
+import type { Balances, Currencies, Dict, Market, Str, Ticker, Trade, Int, Num, OrderSide, OrderType, OrderBook, TradingFees, Transaction, DepositAddress, OHLCV, Order, LedgerEntry, Currency, int, Position, Strings, FundingRate, FundingRateHistory, OrderRequest, NullableDict } from './base/types.js';
 import type { OpenInterest } from './base/types.js';
 /**
  * @class hibachi
@@ -283,7 +283,7 @@ export default class hibachi extends Exchange {
     fetchPositions(symbols?: Strings, params?: Dict): Promise<Position[]>;
     parsePosition(position: Dict, market?: Market): Position;
     sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
-    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
     parseTransactionType(type: Str): Str;
     parseTransactionStatus(status: Str): Str;
     parseLedgerEntry(item: Dict, currency?: Currency): LedgerEntry;

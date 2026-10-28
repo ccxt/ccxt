@@ -3527,19 +3527,19 @@ export default class blofin extends Exchange {
             'datetime': this.iso8601(timestamp),
         };
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }
         //
         // {"code":"152002","msg":"Parameter bar error."}
         //
-        const code = this.safeString(response, 'code');
+        const codeError = this.safeString(response, 'code');
         const message = this.safeString(response, 'msg');
         const feedback = this.id + ' ' + body;
-        if (code !== undefined && code !== '0') {
+        if (codeError !== undefined && codeError !== '0') {
             this.throwExactlyMatchedException(this.exceptions['exact'], message, feedback);
-            this.throwExactlyMatchedException(this.exceptions['exact'], code, feedback);
+            this.throwExactlyMatchedException(this.exceptions['exact'], codeError, feedback);
             this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
             throw new ExchangeError(feedback); // unknown message
         }

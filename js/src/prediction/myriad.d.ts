@@ -127,7 +127,7 @@ export default class myriad extends Exchange {
      * @param {float} [params.slippage] maximum slippage tolerance (default 0.005)
      * @returns {object} a quote object with price, shares, fees and the on-chain calldata
      */
-    fetchTradeQuote(outcome: Str, side: Str, amount: Num, params?: Dict): Promise<Dict>;
+    fetchTradeQuote(outcome: string, side: string, amount: Num, params?: Dict): Promise<Dict>;
     /**
      * @ignore
      * @method
@@ -221,7 +221,7 @@ export default class myriad extends Exchange {
      * @param {boolean} [params.skipWaitForReceipt] optional override to skip the post-send receipt wait; implied true when params.transactionHash is provided
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    createAmmOrder(outcome: string, type: Str, side: Str, amount: Num, price?: Num, params?: Dict): Promise<PredictionOrder>;
+    createAmmOrder(outcome: string, type: Str, side: string, amount: Num, price?: Num, params?: Dict): Promise<PredictionOrder>;
     /**
      * @method
      * @name myriad#createMarketBuyOrderWithCost
@@ -433,7 +433,7 @@ export default class myriad extends Exchange {
     fetchBalance(params?: Dict): Promise<Balances>;
     hexToDecimalString(hexValue: string): Str;
     fromWeiWithDecimals(hexValue: string, decimals: Int): Str;
-    parseTradeTx(txHash: Str, quote: Dict, market: Dict, side: Str): PredictionOrder;
+    parseTradeTx(txHash: Str, quote: Dict, market: Dict, side: string): PredictionOrder;
     /**
      * @ignore
      * @method
@@ -694,7 +694,7 @@ export default class myriad extends Exchange {
     seedPositionBalances(trader: string): Promise<void>;
     handlePosition(client: Client, data: Dict): void;
     walletAddressFromKeys(): string;
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
     /**
      * @ignore
      * @method

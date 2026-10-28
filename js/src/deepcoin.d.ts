@@ -1,5 +1,5 @@
 import Exchange from './abstract/deepcoin.js';
-import type { Balances, Currency, DepositAddress, Dict, FundingRate, FundingRateHistory, FundingRates, int, Int, LedgerEntry, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry } from './base/types.js';
+import type { Balances, Currency, DepositAddress, Dict, NullableDict, FundingRate, FundingRateHistory, FundingRates, int, Int, LedgerEntry, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry } from './base/types.js';
 /**
  * @class deepcoin
  * @augments Exchange
@@ -483,5 +483,5 @@ export default class deepcoin extends Exchange {
      */
     closePosition(symbol: string, side?: Str, params?: Dict): Promise<Order>;
     sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
 }

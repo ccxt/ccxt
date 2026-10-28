@@ -3142,7 +3142,7 @@ class lbank extends lbank$1["default"] {
         }
         return pem + '-----END PRIVATE KEY-----';
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             throw new errors.NullResponse(this.id + ' parseBalance() returned empty response');
         }

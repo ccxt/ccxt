@@ -2810,7 +2810,7 @@ class bitstamp extends bitstamp$1["default"] {
         const requestHeaders = (apiName === 'public') ? undefined : privateHeaders;
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined;
         }
@@ -2849,8 +2849,8 @@ class bitstamp extends bitstamp$1["default"] {
                     errors$1.push(all[i]);
                 }
             }
-            const code = this.safeString(response, 'code');
-            if (code === 'API0005') {
+            const codeError = this.safeString(response, 'code');
+            if (codeError === 'API0005') {
                 throw new errors.AuthenticationError(this.id + ' invalid signature, use the uid for the main account if you have subaccounts');
             }
             const feedback = this.id + ' ' + body;

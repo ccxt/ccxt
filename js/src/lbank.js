@@ -3143,7 +3143,7 @@ export default class lbank extends Exchange {
         }
         return pem + '-----END PRIVATE KEY-----';
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             throw new NullResponse(this.id + ' parseBalance() returned empty response');
         }

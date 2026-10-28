@@ -3505,7 +3505,7 @@ export default class kucoin extends kucoinRest {
             }
             this.options['urls'][type] = undefined;
         }
-        this.handleErrors(1, '', client.url, '', {}, data, message, {}, {});
+        this.handleErrors(1, '', client.url, '', {}, data, message, {}, '');
         return false;
     }
     handleMessage(client, message) {

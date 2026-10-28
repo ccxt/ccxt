@@ -3087,7 +3087,7 @@ class bitfinex extends bitfinex$1["default"] {
         const headersResolved = requestHeaders;
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
-    handleErrors(statusCode, statusText, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         // ["error", 11010, "ratelimit: error"]
         if (response !== undefined) {
             if (!Array.isArray(response)) {
@@ -3101,10 +3101,10 @@ class bitfinex extends bitfinex$1["default"] {
         else if (response === '') {
             throw new errors.ExchangeError(this.id + ' returned empty response');
         }
-        if (statusCode === 429) {
+        if (code === 429) {
             throw new errors.RateLimitExceeded(this.id + ' ' + body);
         }
-        if (statusCode === 500) {
+        if (code === 500) {
             // See https://docs.bitfinex.com/docs/abbreviations-glossary#section-errorinfo-codes
             const errorCode = this.safeString(response, 1, '');
             const errorText = this.safeString(response, 2, '');

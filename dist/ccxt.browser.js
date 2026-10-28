@@ -172832,7 +172832,7 @@ class aster extends _abstract_aster_js__rspack_import_0/* ["default"] */.A {
         }
         return undefined; // just c#
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }
@@ -172842,12 +172842,12 @@ class aster extends _abstract_aster_js__rspack_import_0/* ["default"] */.A {
         //        "msg": "Invalid symbol.",
         //    }
         //
-        const code = this.safeString(response, 'code');
+        const codeError = this.safeString(response, 'code');
         const message = this.safeString(response, 'msg');
-        if (code !== undefined && code !== '200') {
+        if (codeError !== undefined && codeError !== '200') {
             const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException(this.exceptions['exact'], message, feedback);
-            this.throwExactlyMatchedException(this.exceptions['exact'], code, feedback);
+            this.throwExactlyMatchedException(this.exceptions['exact'], codeError, feedback);
             this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
             throw new _base_errors_js__rspack_import_2.ExchangeError(feedback); // unknown message
         }
@@ -183029,7 +183029,7 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
         }
         return undefined;
     }
-    handleErrors(statusCode, statusText, url, method, responseHeaders, responseBody, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         // it is a stub method that must be overrided in the derived exchange classes
         // throw new NotSupported (this.id + ' handleErrors() not implemented yet');
         return undefined;
@@ -200041,7 +200041,7 @@ class bigone extends _abstract_bigone_js__rspack_import_0/* ["default"] */.A {
         const data = this.safeDict(response, 'data', {});
         return this.parseTransaction(data, currency);
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }
@@ -200049,12 +200049,12 @@ class bigone extends _abstract_bigone_js__rspack_import_0/* ["default"] */.A {
         //      {"code":10013,"message":"Resource not found"}
         //      {"code":40004,"message":"invalid jwt"}
         //
-        const code = this.safeString(response, 'code');
+        const codeError = this.safeString(response, 'code');
         const message = this.safeString(response, 'message');
-        if (code !== '0' && code !== undefined) {
+        if (codeError !== '0' && codeError !== undefined) {
             const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException(this.exceptions['exact'], message, feedback);
-            this.throwExactlyMatchedException(this.exceptions['exact'], code, feedback);
+            this.throwExactlyMatchedException(this.exceptions['exact'], codeError, feedback);
             this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
             throw new _base_errors_js__rspack_import_2.ExchangeError(feedback); // unknown message
         }
@@ -226453,7 +226453,7 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
         super.setSandboxMode(enable);
         this.options['sandboxMode'] = enable;
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }
@@ -226465,16 +226465,16 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
         //        }
         //    }
         //
-        const code = this.safeString(response, 'code');
+        const codeError = this.safeString(response, 'code');
         let message = this.safeString(response, 'msg');
         const transferErrorMsg = this.safeString(response, 'transferErrorMsg'); // handling with errors from transfer endpoint
-        if (transferErrorMsg !== undefined || code !== undefined && code !== '0') {
+        if (transferErrorMsg !== undefined || codeError !== undefined && codeError !== '0') {
             if (transferErrorMsg !== undefined) {
                 message = transferErrorMsg;
             }
             const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException(this.exceptions['exact'], message, feedback);
-            this.throwExactlyMatchedException(this.exceptions['exact'], code, feedback);
+            this.throwExactlyMatchedException(this.exceptions['exact'], codeError, feedback);
             this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
             throw new _base_errors_js__rspack_import_2.ExchangeError(feedback); // unknown message
         }
@@ -227716,7 +227716,7 @@ class bit2c extends _abstract_bit2c_js__rspack_import_0/* ["default"] */.A {
             'headers': headersResult
         };
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }
@@ -228934,7 +228934,7 @@ class bitbank extends _abstract_bitbank_js__rspack_import_0/* ["default"] */.A {
             'headers': headersResolved
         };
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined;
         }
@@ -229003,9 +229003,9 @@ class bitbank extends _abstract_bitbank_js__rspack_import_0/* ["default"] */.A {
                 '70009': 'We are currently temporarily restricting orders to be carried out. Please use the limit order.',
                 '70010': 'We are temporarily raising the minimum order quantity as the system load is now rising.'
             };
-            const code = this.safeString(data, 'code');
-            const message = this.safeString(errorMessages, code, 'Error');
-            this.throwExactlyMatchedException(this.exceptions['exact'], code, message);
+            const codeError = this.safeString(data, 'code');
+            const message = this.safeString(errorMessages, codeError, 'Error');
+            this.throwExactlyMatchedException(this.exceptions['exact'], codeError, message);
             throw new _base_errors_js__rspack_import_2.ExchangeError(this.id + ' ' + this.json(response));
         }
         return undefined;
@@ -230418,7 +230418,7 @@ class bitbns extends _abstract_bitbns_js__rspack_import_0/* ["default"] */.A {
             'headers': requestHeaders
         };
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }
@@ -230426,12 +230426,12 @@ class bitbns extends _abstract_bitbns_js__rspack_import_0/* ["default"] */.A {
         //     {"msg":"Invalid Request","status":-1,"code":400}
         //     {"data":[],"status":0,"error":"Nothing to show","code":417}
         //
-        const code = this.safeString(response, 'code');
+        const codeError = this.safeString(response, 'code');
         const message = this.safeString(response, 'msg');
-        const error = code !== undefined && code !== '200' && code !== '204';
+        const error = codeError !== undefined && codeError !== '200' && codeError !== '204';
         if (error || message !== undefined) {
             const feedback = this.id + ' ' + body;
-            this.throwExactlyMatchedException(this.exceptions['exact'], code, feedback);
+            this.throwExactlyMatchedException(this.exceptions['exact'], codeError, feedback);
             this.throwExactlyMatchedException(this.exceptions['exact'], message, feedback);
             this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
             throw new _base_errors_js__rspack_import_2.ExchangeError(feedback); // unknown message
@@ -233905,7 +233905,7 @@ class bitfinex extends _abstract_bitfinex_js__rspack_import_0/* ["default"] */.A
             'headers': headersResolved
         };
     }
-    handleErrors(statusCode, statusText, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         // ["error", 11010, "ratelimit: error"]
         if (response !== undefined) {
             if (!Array.isArray(response)) {
@@ -233918,10 +233918,10 @@ class bitfinex extends _abstract_bitfinex_js__rspack_import_0/* ["default"] */.A
         } else if (response === '') {
             throw new _base_errors_js__rspack_import_2.ExchangeError(this.id + ' returned empty response');
         }
-        if (statusCode === 429) {
+        if (code === 429) {
             throw new _base_errors_js__rspack_import_2.RateLimitExceeded(this.id + ' ' + body);
         }
-        if (statusCode === 500) {
+        if (code === 500) {
             // See https://docs.bitfinex.com/docs/abbreviations-glossary#section-errorinfo-codes
             const errorCode = this.safeString(response, 1, '');
             const errorText = this.safeString(response, 2, '');
@@ -253791,7 +253791,7 @@ class bithumb extends _abstract_bithumb_js__rspack_import_0/* ["default"] */.A {
             'headers': headersResult
         };
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }
@@ -261568,7 +261568,7 @@ class bitso extends _abstract_bitso_js__rspack_import_0/* ["default"] */.A {
             'headers': requestHeaders
         };
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }
@@ -261583,8 +261583,8 @@ class bitso extends _abstract_bitso_js__rspack_import_0/* ["default"] */.A {
                 if (error === undefined) {
                     throw new _base_errors_js__rspack_import_2.ExchangeError(feedback);
                 }
-                const code = this.safeString(error, 'code');
-                this.throwExactlyMatchedException(this.exceptions, code, feedback);
+                const codeError = this.safeString(error, 'code');
+                this.throwExactlyMatchedException(this.exceptions, codeError, feedback);
                 throw new _base_errors_js__rspack_import_2.ExchangeError(feedback);
             }
         }
@@ -264992,7 +264992,7 @@ class bitstamp extends _abstract_bitstamp_js__rspack_import_0/* ["default"] */.A
             'headers': requestHeaders
         };
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined;
         }
@@ -265028,8 +265028,8 @@ class bitstamp extends _abstract_bitstamp_js__rspack_import_0/* ["default"] */.A
                     errors.push(all[i]);
                 }
             }
-            const code = this.safeString(response, 'code');
-            if (code === 'API0005') {
+            const codeError = this.safeString(response, 'code');
+            if (codeError === 'API0005') {
                 throw new _base_errors_js__rspack_import_2.AuthenticationError(this.id + ' invalid signature, use the uid for the main account if you have subaccounts');
             }
             const feedback = this.id + ' ' + body;
@@ -269903,7 +269903,7 @@ class bittrade extends _abstract_bittrade_js__rspack_import_0/* ["default"] */.A
             'headers': headersResult
         };
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }
@@ -269913,10 +269913,10 @@ class bittrade extends _abstract_bittrade_js__rspack_import_0/* ["default"] */.A
             //
             const status = this.safeString(response, 'status');
             if (status === 'error') {
-                const code = this.safeString(response, 'err-code');
+                const codeError = this.safeString(response, 'err-code');
                 const feedback = this.id + ' ' + body;
                 this.throwBroadlyMatchedException(this.exceptions['broad'], body, feedback);
-                this.throwExactlyMatchedException(this.exceptions['exact'], code, feedback);
+                this.throwExactlyMatchedException(this.exceptions['exact'], codeError, feedback);
                 const message = this.safeString(response, 'err-msg');
                 this.throwExactlyMatchedException(this.exceptions['exact'], message, feedback);
                 throw new _base_errors_js__rspack_import_2.ExchangeError(feedback);
@@ -272724,7 +272724,7 @@ class bitvavo extends _abstract_bitvavo_js__rspack_import_0/* ["default"] */.A {
             'headers': requestHeaders
         };
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }
@@ -277923,19 +277923,19 @@ class blofin extends _abstract_blofin_js__rspack_import_0/* ["default"] */.A {
             'datetime': this.iso8601(timestamp)
         };
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }
         //
         // {"code":"152002","msg":"Parameter bar error."}
         //
-        const code = this.safeString(response, 'code');
+        const codeError = this.safeString(response, 'code');
         const message = this.safeString(response, 'msg');
         const feedback = this.id + ' ' + body;
-        if (code !== undefined && code !== '0') {
+        if (codeError !== undefined && codeError !== '0') {
             this.throwExactlyMatchedException(this.exceptions['exact'], message, feedback);
-            this.throwExactlyMatchedException(this.exceptions['exact'], code, feedback);
+            this.throwExactlyMatchedException(this.exceptions['exact'], codeError, feedback);
             this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
             throw new _base_errors_js__rspack_import_1.ExchangeError(feedback); // unknown message
         }
@@ -278886,21 +278886,21 @@ class btcbox extends _abstract_btcbox_js__rspack_import_0/* ["default"] */.A {
             'headers': undefined
         };
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined; // resort to defaultErrorHandler
         }
         // typical error response: {"result":false,"code":"401"}
-        if (httpCode >= 400) {
+        if (code >= 400) {
             return undefined; // resort to defaultErrorHandler
         }
         const result = this.safeBool(response, 'result');
         if (result === undefined || result) {
             return undefined; // either public API (no error codes expected) or success
         }
-        const code = this.safeString(response, 'code');
+        const codeError = this.safeString(response, 'code');
         const feedback = this.id + ' ' + body;
-        this.throwExactlyMatchedException(this.exceptions, code, feedback);
+        this.throwExactlyMatchedException(this.exceptions, codeError, feedback);
         throw new _base_errors_js__rspack_import_2.ExchangeError(feedback); // unknown message
     }
     async request(path, api = [
@@ -288726,7 +288726,7 @@ class bullish extends _abstract_bullish_js__rspack_import_0/* ["default"] */.A {
             return this.token;
         }
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }
@@ -288743,9 +288743,9 @@ class bullish extends _abstract_bullish_js__rspack_import_0/* ["default"] */.A {
         //             "errorCodeName": "ORDER_SIZE_OUTSIDE_VALID_RANGE"
         //         }
         //
-        const code = this.safeString(response, 'errorCode');
+        const codeError = this.safeString(response, 'errorCode');
         const type = this.safeString(response, 'type');
-        if (code !== undefined && code !== '0' && code !== '1001' || type !== undefined && type === 'HttpInvalidParameterException') {
+        if (codeError !== undefined && codeError !== '0' && codeError !== '1001' || type !== undefined && type === 'HttpInvalidParameterException') {
             let message = '';
             const errorCodeName = this.safeString(response, 'errorCodeName');
             if (errorCodeName !== undefined) {
@@ -288756,7 +288756,7 @@ class bullish extends _abstract_bullish_js__rspack_import_0/* ["default"] */.A {
             const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException(this.exceptions['exact'], message, feedback);
             this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
-            this.throwExactlyMatchedException(this.exceptions['exact'], code, feedback);
+            this.throwExactlyMatchedException(this.exceptions['exact'], codeError, feedback);
             throw new _base_errors_js__rspack_import_2.ExchangeError(feedback); // unknown message
         }
         return undefined;
@@ -299734,7 +299734,7 @@ class bybit extends _abstract_bybit_js__rspack_import_0/* ["default"] */.A {
             'headers': headersResolved
         };
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }
@@ -302985,7 +302985,7 @@ class bydfi extends _abstract_bydfi_js__rspack_import_0/* ["default"] */.A {
             'headers': headersResolved
         };
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }
@@ -302995,13 +302995,13 @@ class bydfi extends _abstract_bydfi_js__rspack_import_0/* ["default"] */.A {
         //         "message": "Requires transaction permissions"
         //     }
         //
-        const code = this.safeString(response, 'code');
+        const codeError = this.safeString(response, 'code');
         const message = this.safeString(response, 'message');
-        if (code !== '200') {
+        if (codeError !== '200') {
             const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException(this.exceptions['exact'], message, feedback);
             this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
-            this.throwExactlyMatchedException(this.exceptions['exact'], code, feedback);
+            this.throwExactlyMatchedException(this.exceptions['exact'], codeError, feedback);
             throw new _base_errors_js__rspack_import_2.ExchangeError(feedback); // unknown message
         }
         return undefined;
@@ -317996,7 +317996,7 @@ class coincheck extends _abstract_coincheck_js__rspack_import_0/* ["default"] */
             'headers': headersResolved
         };
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined;
         }
@@ -324585,7 +324585,7 @@ class coinspot extends _abstract_coinspot_js__rspack_import_0/* ["default"] */.A
             'info': response
         });
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }
@@ -329943,15 +329943,15 @@ class cryptomus extends _abstract_cryptomus_js__rspack_import_0/* ["default"] */
             'headers': undefined
         };
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined;
         }
-        const code = this.safeString(response, 'code');
+        const codeError = this.safeString(response, 'code');
         const message = this.safeString(response, 'message');
-        if (code !== undefined) {
+        if (codeError !== undefined) {
             const feedback = this.id + ' ' + body;
-            this.throwExactlyMatchedException(this.exceptions['exact'], code, feedback);
+            this.throwExactlyMatchedException(this.exceptions['exact'], codeError, feedback);
             throw new _base_errors_js__rspack_import_1.ExchangeError(feedback);
         } else if (message !== undefined) {
             //
@@ -341782,7 +341782,7 @@ class deribit extends _abstract_deribit_js__rspack_import_0/* ["default"] */.A {
             'headers': undefined
         };
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined || response === null) {
             return undefined; // fallback to default error handler
         }
@@ -346360,7 +346360,7 @@ class derive extends _abstract_derive_js__rspack_import_0/* ["default"] */.A {
         }
         throw new _base_errors_js__rspack_import_1.ArgumentsRequired(this.id + ' ' + methodName + '() requires the walletAddress credential, a deriveWalletAddress parameter inside \'params\', or exchange.options[\'deriveWalletAddress\'] = ADDRESS.');
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }
@@ -351428,23 +351428,23 @@ class digifinex extends _abstract_digifinex_js__rspack_import_0/* ["default"] */
             'headers': undefined
         };
     }
-    handleErrors(statusCode, statusText, url, method, responseHeaders, responseBody, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined; // fall back to default error handler
         }
-        const code = this.safeString(response, 'code');
-        if (code === '0' || code === '200') {
+        const codeError = this.safeString(response, 'code');
+        if (codeError === '0' || codeError === '200') {
             return undefined; // no error
         }
-        const feedback = this.id + ' ' + responseBody;
-        if (code === undefined) {
+        const feedback = this.id + ' ' + body;
+        if (codeError === undefined) {
             throw new _base_errors_js__rspack_import_2.BadResponse(feedback);
         }
         const unknownError = [
             _base_errors_js__rspack_import_2.ExchangeError,
             feedback
         ];
-        const [ExceptionClass, message] = this.safeValue(this.exceptions['exact'], code, unknownError);
+        const [ExceptionClass, message] = this.safeValue(this.exceptions['exact'], codeError, unknownError);
         throw new ExceptionClass(message);
     }
 }
@@ -354108,7 +354108,7 @@ class dydx extends _abstract_dydx_js__rspack_import_0/* ["default"] */.A {
             'headers': headersResult
         };
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined || response === null) {
             return undefined; // fallback to default error handler
         }
@@ -357888,7 +357888,7 @@ class extended extends _abstract_extended_js__rspack_import_0/* ["default"] */.A
             transferHash
         ]);
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }
@@ -360103,12 +360103,12 @@ class foxbit extends _abstract_foxbit_js__rspack_import_0/* ["default"] */.A {
             'headers': headersValue
         };
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined;
         }
         const error = this.safeDict(response, 'error');
-        const code = this.safeString(error, 'code');
+        const codeError = this.safeString(error, 'code');
         const details = this.safeList(error, 'details');
         const message = this.safeString(error, 'message', '');
         let detailsString = '';
@@ -360121,7 +360121,7 @@ class foxbit extends _abstract_foxbit_js__rspack_import_0/* ["default"] */.A {
             const feedback = this.id + ' ' + message + ' details: ' + detailsString;
             this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
             this.throwBroadlyMatchedException(this.exceptions['broad'], detailsString, feedback);
-            this.throwExactlyMatchedException(this.exceptions['exact'], code, feedback);
+            this.throwExactlyMatchedException(this.exceptions['exact'], codeError, feedback);
             throw new _base_errors_js__rspack_import_2.ExchangeError(feedback);
         }
         return undefined;
@@ -372287,7 +372287,7 @@ class gemini extends _abstract_gemini_js__rspack_import_0/* ["default"] */.A {
             'headers': headersResolved
         };
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             if (typeof body === 'string') {
                 const feedback = this.id + ' ' + body;
@@ -382781,7 +382781,7 @@ class hibachi extends _abstract_hibachi_js__rspack_import_0/* ["default"] */.A {
             'headers': headersValue
         };
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }
@@ -382791,10 +382791,10 @@ class hibachi extends _abstract_hibachi_js__rspack_import_0/* ["default"] */.A {
         //
         if (status !== undefined) {
             if (status === 'failed') {
-                const code = this.safeString(response, 'errorCode');
+                const codeError = this.safeString(response, 'errorCode');
                 const feedback = this.id + ' ' + body;
                 this.throwBroadlyMatchedException(this.exceptions['broad'], body, feedback);
-                this.throwExactlyMatchedException(this.exceptions['exact'], code, feedback);
+                this.throwExactlyMatchedException(this.exceptions['exact'], codeError, feedback);
                 const message = this.safeString(response, 'message');
                 this.throwExactlyMatchedException(this.exceptions['exact'], message, feedback);
                 throw new _base_errors_js__rspack_import_1.ExchangeError(feedback);
@@ -398374,7 +398374,7 @@ class htx extends _abstract_htx_js__rspack_import_0/* ["default"] */.A {
             'headers': headersResolved
         };
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }
@@ -398385,10 +398385,10 @@ class htx extends _abstract_htx_js__rspack_import_0/* ["default"] */.A {
             //
             const status = this.safeString(response, 'status');
             if (status === 'error') {
-                const code = this.safeString2(response, 'err-code', 'err_code');
+                const codeError = this.safeString2(response, 'err-code', 'err_code');
                 const feedback = this.id + ' ' + body;
                 this.throwBroadlyMatchedException(this.exceptions['broad'], body, feedback);
-                this.throwExactlyMatchedException(this.exceptions['exact'], code, feedback);
+                this.throwExactlyMatchedException(this.exceptions['exact'], codeError, feedback);
                 const message = this.safeString2(response, 'err-msg', 'err_msg');
                 this.throwExactlyMatchedException(this.exceptions['exact'], message, feedback);
                 throw new _base_errors_js__rspack_import_1.ExchangeError(feedback);
@@ -398397,8 +398397,8 @@ class htx extends _abstract_htx_js__rspack_import_0/* ["default"] */.A {
         if ('code' in response) {
             // {code: '1003', message: 'invalid signature'}
             const feedback = this.id + ' ' + body;
-            const code = this.safeString(response, 'code');
-            this.throwExactlyMatchedException(this.exceptions['exact'], code, feedback);
+            const codeError = this.safeString(response, 'code');
+            this.throwExactlyMatchedException(this.exceptions['exact'], codeError, feedback);
         }
         const data = this.safeDict(response, 'data');
         const errorsList = this.safeList(data, 'errors');
@@ -419803,8 +419803,7 @@ class kucoin extends _abstract_kucoin_js__rspack_import_0/* ["default"] */.A {
             });
         }
         if (fetchContractMarkets) {
-            const contractMarkets = this.safeList(responses, contractIndex, []);
-            result = this.arrayConcat(result, contractMarkets);
+            result = this.arrayConcat(result, this.safeList(responses, contractIndex, []));
         }
         if (this.safeBool(this.options, 'adjustForTimeDifference', false)) {
             await this.loadTimeDifference();
@@ -420283,9 +420282,8 @@ class kucoin extends _abstract_kucoin_js__rspack_import_0/* ["default"] */.A {
             //
             response = await this.publicGetCurrencies(paramsUta);
         }
-        const currenciesData = this.safeList(response, 'data', []);
         const brokenCurrencies = this.handleOption('fetchCurrencies', 'brokenCurrencies', []);
-        const filteredCurrencies = this.filterOutByArray(currenciesData, 'currency', brokenCurrencies); // remove broken entries
+        const filteredCurrencies = this.filterOutByArray(this.safeList(response, 'data', []), 'currency', brokenCurrencies); // remove broken entries
         return this.parseCurrencies(filteredCurrencies);
     }
     parseCurrency(currency) {
@@ -420374,9 +420372,8 @@ class kucoin extends _abstract_kucoin_js__rspack_import_0/* ["default"] */.A {
             //         }
             //     }
             //
-            const dataDict = this.safeDict(response, 'data', {});
             data = [
-                dataDict
+                this.safeDict(response, 'data', {})
             ];
         } else {
             //
@@ -422645,8 +422642,9 @@ class kucoin extends _abstract_kucoin_js__rspack_import_0/* ["default"] */.A {
         }
         let isSpot = false;
         let isContract = false;
-        for(let i = 0; i < orders.length; i++){
-            const order = this.safeDict(orders, i);
+        const ordersList = this.toArray(orders);
+        for(let i = 0; i < ordersList.length; i++){
+            const order = this.safeDict(ordersList, i);
             const symbol = this.safeString(order, 'symbol');
             if (symbol === undefined) {
                 throw new _base_errors_js__rspack_import_2.ArgumentsRequired(this.id + ' createOrders() requires a symbol for each order');
@@ -422686,8 +422684,9 @@ class kucoin extends _abstract_kucoin_js__rspack_import_0/* ["default"] */.A {
         }
         const ordersRequests = [];
         let symbol = undefined;
-        for(let i = 0; i < orders.length; i++){
-            const rawOrder = this.safeDict(orders, i);
+        const ordersList = this.toArray(orders);
+        for(let i = 0; i < ordersList.length; i++){
+            const rawOrder = this.safeDict(ordersList, i);
             const marketId = this.safeString(rawOrder, 'symbol');
             if (marketId === undefined) {
                 throw new _base_errors_js__rspack_import_2.ArgumentsRequired(this.id + ' createOrders() requires a symbol for each order');
@@ -422775,8 +422774,9 @@ class kucoin extends _abstract_kucoin_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const ordersRequests = [];
-        for(let i = 0; i < orders.length; i++){
-            const rawOrder = this.safeDict(orders, i);
+        const ordersList = this.toArray(orders);
+        for(let i = 0; i < ordersList.length; i++){
+            const rawOrder = this.safeDict(ordersList, i);
             const symbol = this.safeString(rawOrder, 'symbol');
             if (symbol === undefined) {
                 throw new _base_errors_js__rspack_import_2.ArgumentsRequired(this.id + ' createOrders() requires a symbol for each order');
@@ -428947,8 +428947,9 @@ class kucoin extends _abstract_kucoin_js__rspack_import_0/* ["default"] */.A {
                 'clientOid': this.safeString(clientOrderIds, i)
             });
         }
-        for(let i = 0; i < ids.length; i++){
-            const orderId = this.safeString(ids, i);
+        const idsList = this.toArray(ids);
+        for(let i = 0; i < idsList.length; i++){
+            const orderId = this.safeString(idsList, i);
             if (uta) {
                 ordersRequests.push({
                     'orderId': orderId,
@@ -429789,9 +429790,8 @@ class kucoin extends _abstract_kucoin_js__rspack_import_0/* ["default"] */.A {
         //     { code: '200000', data: { ... }}
         //
         const errorCode = this.safeString(response, 'code');
-        const message = this.safeString2(response, 'msg', 'data', '');
         const feedback = this.id + ' ' + body;
-        this.throwExactlyMatchedException(this.exceptions['exact'], message, feedback);
+        this.throwExactlyMatchedException(this.exceptions['exact'], this.safeString2(response, 'msg', 'data', ''), feedback);
         this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
         this.throwBroadlyMatchedException(this.exceptions['broad'], body, feedback);
         if (errorCode !== '200000' && errorCode !== '200') {
@@ -435509,7 +435509,7 @@ class lbank extends _abstract_lbank_js__rspack_import_0/* ["default"] */.A {
         }
         return pem + '-----END PRIVATE KEY-----';
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             throw new _base_errors_js__rspack_import_2.NullResponse(this.id + ' parseBalance() returned empty response');
         }
@@ -439250,7 +439250,7 @@ class lighter extends _abstract_lighter_js__rspack_import_0/* ["default"] */.A {
             'headers': undefined
         };
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined || response === null) {
             return undefined; // fallback to default error handler
         }
@@ -439260,12 +439260,12 @@ class lighter extends _abstract_lighter_js__rspack_import_0/* ["default"] */.A {
         //         "message": "string"
         //     }
         //
-        const code = this.safeString(response, 'code');
+        const codeError = this.safeString(response, 'code');
         const message = this.safeString(response, 'message');
-        if (code !== undefined && code !== '0' && code !== '200') {
+        if (codeError !== undefined && codeError !== '0' && codeError !== '200') {
             const feedback = this.id + ' ' + body;
             this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
-            this.throwExactlyMatchedException(this.exceptions['exact'], code, feedback);
+            this.throwExactlyMatchedException(this.exceptions['exact'], codeError, feedback);
             throw new _base_errors_js__rspack_import_1.ExchangeError(feedback); // unknown message
         }
         return undefined;
@@ -441138,7 +441138,7 @@ class luno extends _abstract_luno_js__rspack_import_0/* ["default"] */.A {
             'headers': headersResolved
         };
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined;
         }
@@ -442267,7 +442267,7 @@ class mercado extends _abstract_mercado_js__rspack_import_0/* ["default"] */.A {
             'headers': requestHeaders
         };
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined;
         }
@@ -452746,7 +452746,7 @@ class modetrade extends _abstract_modetrade_js__rspack_import_0/* ["default"] */
             'headers': undefined
         };
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined || response === null) {
             return undefined; // fallback to default error handler
         }
@@ -457714,7 +457714,7 @@ class nado extends _abstract_nado_js__rspack_import_0/* ["default"] */.A {
             'headers': headersValue
         };
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined || response === null) {
             return undefined; // fallback to default error handler
         }
@@ -471021,7 +471021,7 @@ class okx extends _abstract_okx_js__rspack_import_0/* ["default"] */.A {
         }
         return result;
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }
@@ -471045,8 +471045,8 @@ class okx extends _abstract_okx_js__rspack_import_0/* ["default"] */.A {
         //        "msg": "Incorrect trade password"
         //    }
         //
-        const code = this.safeString(response, 'code');
-        if (code !== '0' && code !== '2') {
+        const codeError = this.safeString(response, 'code');
+        if (codeError !== '0' && codeError !== '2') {
             const feedback = this.id + ' ' + body;
             const data = this.safeList(response, 'data', []);
             for(let i = 0; i < data.length; i++){
@@ -471056,7 +471056,7 @@ class okx extends _abstract_okx_js__rspack_import_0/* ["default"] */.A {
                 this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
                 this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
             }
-            this.throwExactlyMatchedException(this.exceptions['exact'], code, feedback);
+            this.throwExactlyMatchedException(this.exceptions['exact'], codeError, feedback);
             throw new _base_errors_js__rspack_import_1.ExchangeError(feedback); // unknown message
         }
         return undefined;
@@ -482758,7 +482758,7 @@ class paradex extends _abstract_paradex_js__rspack_import_0/* ["default"] */.A {
             'headers': undefined
         };
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }
@@ -482770,7 +482770,7 @@ class paradex extends _abstract_paradex_js__rspack_import_0/* ["default"] */.A {
         //     }
         //
         let errorCode = this.safeString(response, 'error');
-        if (errorCode === undefined && httpCode === 400) {
+        if (errorCode === undefined && code === 400) {
             //
             // a batch where every order was rejected, errors are index-aligned with the request
             //
@@ -483534,7 +483534,7 @@ class paymium extends _abstract_paymium_js__rspack_import_0/* ["default"] */.A {
             'headers': undefined
         };
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined;
         }
@@ -489632,7 +489632,7 @@ class phemex extends _abstract_phemex_js__rspack_import_0/* ["default"] */.A {
             'datetime': undefined
         };
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }
@@ -507659,21 +507659,21 @@ class limitless extends _abstract_prediction_limitless_js__rspack_import_0/* ["d
      * @method
      * @name limitless#handleErrors
      * @description maps limitless error responses to ccxt exceptions
-     */ handleErrors(statusCode, statusText, url, method, responseHeaders, responseBody, response, requestHeaders, requestBody) {
+     */ handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined;
         }
-        const statusCodeInt = this.parseToInt(statusCode);
+        const statusCodeInt = this.parseToInt(code);
         if (statusCodeInt >= 200 && statusCodeInt < 300) {
             return undefined;
         }
-        const feedback = this.id + ' ' + responseBody;
+        const feedback = this.id + ' ' + body;
         // the API returns either a string message or an array of field-validation errors
         const message = this.safeString(response, 'message');
         if (message !== undefined) {
             this.throwExactlyMatchedException(this.exceptions['exact'], message, feedback);
         }
-        this.throwBroadlyMatchedException(this.exceptions['broad'], responseBody, feedback);
+        this.throwBroadlyMatchedException(this.exceptions['broad'], body, feedback);
         // a 400 is a client-side bad request (bad params, or a business rule like "market not
         // resolved"), not a transport outage — throw BadRequest with the exchange message instead
         // of letting the base map the bare 400 to a retryable network-unavailable error
@@ -508837,7 +508837,7 @@ class myriad extends _abstract_prediction_myriad_js__rspack_import_0/* ["default
         // would silently size `amount` as dollars (inconsistent with every other venue and the wiki).
         // route dollar-sizing through createMarketBuyOrderWithCost (which sets costDenominated); a
         // plain createOrder buy on the AMM is rejected so it can't misinterpret shares as collateral
-        const sideLower = side !== undefined ? side.toLowerCase() : undefined;
+        const sideLower = side.toLowerCase();
         const isCostDenominated = this.safeBool(params, 'costDenominated', false);
         if (sideLower === 'buy' && !isCostDenominated) {
             throw new _base_errors_js__rspack_import_1.NotSupported(this.id + ' createOrder() market buy on the AMM sizes by collateral, not shares — use createMarketBuyOrderWithCost(outcome, collateral) for a dollar buy, or the default order book (omit enableAmm) for a share-denominated order');
@@ -520803,17 +520803,17 @@ class predictfun extends _abstract_prediction_predictfun_js__rspack_import_0/* [
      * @method
      * @name predictfun#handleErrors
      * @description maps the venue's error slugs and messages onto the unified exceptions
-     * @param {int} statusCode the http status code
-     * @param {string} statusText the http status text
+     * @param {int} code the http status code
+     * @param {string} reason the http status text
      * @param {string} url the request url
      * @param {string} method the http method
-     * @param {object} responseHeaders the response headers
-     * @param {string} responseBody the raw response body
+     * @param {object} headers the response headers
+     * @param {string} body the raw response body
      * @param {object} response the parsed response
      * @param {object} requestHeaders the request headers
      * @param {object} requestBody the request body
      * @returns {undefined} nothing, it throws when the venue reported a failure
-     */ handleErrors(statusCode, statusText, url, method, responseHeaders, responseBody, response, requestHeaders, requestBody) {
+     */ handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined;
         }
@@ -520821,7 +520821,7 @@ class predictfun extends _abstract_prediction_predictfun_js__rspack_import_0/* [
         if (success) {
             return undefined;
         }
-        const feedback = this.id + ' ' + responseBody;
+        const feedback = this.id + ' ' + body;
         // the message is matched first because it is the more specific of the two: several
         // distinct failures share a generic slug, notably 'unauthorized', which the venue also
         // returns for a hash belonging to another wallet, and 'not_found' for an unknown market
@@ -520831,7 +520831,7 @@ class predictfun extends _abstract_prediction_predictfun_js__rspack_import_0/* [
         // order - that case is matched above and has already thrown, so reaching here with a 401
         // means the credential itself was refused. drop the cached JWT, otherwise a token revoked
         // or aged out before its window closes is replayed for the life of the process
-        if (statusCode === 401) {
+        if (code === 401) {
             this.options['jwtToken'] = undefined;
             this.options['jwtTokenExpiresAt'] = 0;
         }
@@ -520839,7 +520839,7 @@ class predictfun extends _abstract_prediction_predictfun_js__rspack_import_0/* [
         this.throwExactlyMatchedException(this.exceptions['exact'], error, feedback);
         // a 400 is a rejected request or a business rule, not a transport outage - the base would
         // otherwise map the bare status onto a retryable network error
-        if (statusCode === 400) {
+        if (code === 400) {
             throw new _base_errors_js__rspack_import_1.BadRequest(feedback);
         }
         throw new _base_errors_js__rspack_import_1.ExchangeError(feedback);
@@ -529843,10 +529843,9 @@ class backpack extends _backpack_js__rspack_import_0/* ["default"] */.A {
         const topics = [];
         const messageHashes = [];
         for(let i = 0; i < symbolsLength; i++){
-            const symbolAndTimeframe = this.safeList(symbolsAndTimeframes, i);
-            const marketId = this.safeString(symbolAndTimeframe, 0);
+            const marketId = this.safeString(this.safeList(symbolsAndTimeframes, i), 0);
             const market = this.market(marketId);
-            const tf = this.safeString(symbolAndTimeframe, 1);
+            const tf = this.safeString(this.safeList(symbolsAndTimeframes, i), 1, '');
             const interval = this.safeString(this.timeframes, tf, tf);
             this.wsVenueMarketId('watchOHLCVForSymbols', market, query);
             topics.push('kline.' + interval + '.' + this.safeString(market, 'id', ''));
@@ -529885,10 +529884,9 @@ class backpack extends _backpack_js__rspack_import_0/* ["default"] */.A {
         const topics = [];
         const messageHashes = [];
         for(let i = 0; i < symbolsLength; i++){
-            const symbolAndTimeframe = this.safeList(symbolsAndTimeframes, i);
-            const marketId = this.safeString(symbolAndTimeframe, 0);
+            const marketId = this.safeString(this.safeList(symbolsAndTimeframes, i), 0);
             const market = this.market(marketId);
-            const tf = this.safeString(symbolAndTimeframe, 1);
+            const tf = this.safeString(this.safeList(symbolsAndTimeframes, i), 1, '');
             const interval = this.safeString(this.timeframes, tf, tf);
             this.wsVenueMarketId('watchOHLCVForSymbols', market, query);
             topics.push('kline.' + interval + '.' + this.safeString(market, 'id', ''));
@@ -536873,7 +536871,7 @@ class binance extends _binance_js__rspack_import_0/* ["default"] */.A {
         const msg = this.safeString(error, 'msg');
         const codeValue = code === undefined ? 0 : code;
         try {
-            this.handleErrors(codeValue, msg, client.url, '', {}, this.json(error), error, {}, {});
+            this.handleErrors(codeValue, msg, client.url, '', {}, this.json(error), error, {}, '');
         } catch (e) {
             rejected = true;
             // private endpoint uses id as messageHash
@@ -549866,7 +549864,7 @@ class bitvavo extends _bitvavo_js__rspack_import_0/* ["default"] */.A {
         const messageHash = this.safeString(message, 'requestId', buildMessage);
         let rejected = false;
         try {
-            this.handleErrors(code, error, client.url, '', {}, error, message, {}, {});
+            this.handleErrors(code, error, client.url, '', {}, error, message, {}, '');
         } catch (e) {
             rejected = true;
             client.reject(e, messageHash);
@@ -561591,7 +561589,7 @@ class coinbaseinternational extends _coinbaseinternational_js__rspack_import_0/*
         const marketId = this.safeString(parts, 1);
         const market = this.safeMarket(marketId);
         const symbol = this.safeString(market, 'symbol', '');
-        if (!(symbol in this.trades)) {
+        if (symbol !== undefined && !(symbol in this.trades)) {
             const limit = this.safeInteger(this.options, 'tradesLimit', 1000);
             const tradesArrayCache = new _base_ws_Cache_js__rspack_import_2/* .ArrayCache */.I3(limit);
             this.trades[symbol] = tradesArrayCache;
@@ -581926,7 +581924,7 @@ class hyperliquid extends _hyperliquid_js__rspack_import_0/* ["default"] */.A {
             return true;
         }
         try {
-            this.handleErrors(0, '', '', '', {}, this.json(payload), payload, {}, {});
+            this.handleErrors(0, '', '', '', {}, this.json(payload), payload, {}, '');
         } catch (e) {
             client.reject(e, id);
             return true;
@@ -589771,7 +589769,7 @@ class kucoin extends _kucoin_js__rspack_import_0/* ["default"] */.A {
             }
             this.options['urls'][type] = undefined;
         }
-        this.handleErrors(1, '', client.url, '', {}, data, message, {}, {});
+        this.handleErrors(1, '', client.url, '', {}, data, message, {}, '');
         return false;
     }
     handleMessage(client, message) {
@@ -601958,7 +601956,7 @@ class okx extends _okx_js__rspack_import_0/* ["default"] */.A {
         if (this.isEmpty(args)) {
             const method = this.safeString(message, 'op');
             const stringMsg = this.json(message);
-            this.handleErrors(1, '', client.url, method, {}, stringMsg, message, {}, {});
+            this.handleErrors(1, '', client.url, method, {}, stringMsg, message, {}, '');
         }
         const orders = this.parseOrders(args, undefined, undefined, undefined);
         const first = this.safeDict(orders, 0, {});
@@ -602145,7 +602143,7 @@ class okx extends _okx_js__rspack_import_0/* ["default"] */.A {
         if (this.isEmpty(args)) {
             const method = this.safeString(message, 'op');
             const stringMsg = this.json(message);
-            this.handleErrors(1, '', client.url, method, {}, stringMsg, message, {}, {});
+            this.handleErrors(1, '', client.url, method, {}, stringMsg, message, {}, '');
         }
         const orders = this.parseOrders(args, undefined, undefined, undefined);
         client.resolve(orders, messageHash);
@@ -605756,7 +605754,7 @@ class pacifica extends _pacifica_js__rspack_import_0/* ["default"] */.A {
         const wsHeaders = this.safeDict(wsOptions, 'options', {});
         const wsHeadersFinal = this.safeDict(wsHeaders, 'headers', {});
         try {
-            this.handleErrors(0, error, '', postType, wsHeadersFinal, this.json(data), message, {}, {});
+            this.handleErrors(0, error, '', postType, wsHeadersFinal, this.json(data), message, {}, '');
         } catch (e) {
             client.reject(e, id);
             return true;
@@ -636633,7 +636631,7 @@ class upbit extends _abstract_upbit_js__rspack_import_0/* ["default"] */.A {
             'headers': requestHeaders
         };
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }
@@ -649903,7 +649901,7 @@ class woo extends _abstract_woo_js__rspack_import_0/* ["default"] */.A {
             'headers': requestHeaders
         };
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }
@@ -654994,7 +654992,7 @@ class woofipro extends _abstract_woofipro_js__rspack_import_0/* ["default"] */.A
             'headers': requestHeaders
         };
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }
@@ -662402,7 +662400,7 @@ class zaif extends _abstract_zaif_js__rspack_import_0/* ["default"] */.A {
             'headers': undefined
         };
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined;
         }

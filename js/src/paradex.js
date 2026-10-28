@@ -3517,7 +3517,7 @@ export default class paradex extends Exchange {
         }
         return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }
@@ -3529,7 +3529,7 @@ export default class paradex extends Exchange {
         //     }
         //
         let errorCode = this.safeString(response, 'error');
-        if ((errorCode === undefined) && (httpCode === 400)) {
+        if ((errorCode === undefined) && (code === 400)) {
             //
             // a batch where every order was rejected, errors are index-aligned with the request
             //

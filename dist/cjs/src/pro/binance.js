@@ -5811,7 +5811,7 @@ class binance extends binance$1["default"] {
         const msg = this.safeString(error, 'msg');
         const codeValue = (code === undefined) ? 0 : code;
         try {
-            this.handleErrors(codeValue, msg, client.url, '', {}, this.json(error), error, {}, {});
+            this.handleErrors(codeValue, msg, client.url, '', {}, this.json(error), error, {}, '');
         }
         catch (e) {
             rejected = true;

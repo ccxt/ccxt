@@ -2997,7 +2997,7 @@ export default class bydfi extends Exchange {
         const headersResolved = requestHeaders;
         return { 'url': apiUrl + endpoint, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }
@@ -3007,13 +3007,13 @@ export default class bydfi extends Exchange {
         //         "message": "Requires transaction permissions"
         //     }
         //
-        const code = this.safeString(response, 'code');
+        const codeError = this.safeString(response, 'code');
         const message = this.safeString(response, 'message');
-        if (code !== '200') {
+        if (codeError !== '200') {
             const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException(this.exceptions['exact'], message, feedback);
             this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
-            this.throwExactlyMatchedException(this.exceptions['exact'], code, feedback);
+            this.throwExactlyMatchedException(this.exceptions['exact'], codeError, feedback);
             throw new ExchangeError(feedback); // unknown message
         }
         return undefined;

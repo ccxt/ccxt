@@ -1,5 +1,5 @@
 import Exchange from './abstract/dydx.js';
-import type { Account, Balances, Currency, Dict, FundingRateHistory, Int, LedgerEntry, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Trade, Transaction, TransferEntry, int } from './base/types.js';
+import type { Account, Balances, Currency, Dict, FundingRateHistory, Int, LedgerEntry, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Trade, Transaction, TransferEntry, int } from './base/types.js';
 /**
  * @class dydx
  * @augments Exchange
@@ -346,6 +346,6 @@ export default class dydx extends Exchange {
     nonce(): int;
     getWalletAddress(): string;
     sign(path: string, section?: string[], method?: string, params?: Dict): Dict;
-    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
     setSandboxMode(enable: boolean): void;
 }

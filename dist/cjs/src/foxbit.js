@@ -2070,12 +2070,12 @@ class foxbit extends foxbit$1["default"] {
         }
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': headersValue };
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined;
         }
         const error = this.safeDict(response, 'error');
-        const code = this.safeString(error, 'code');
+        const codeError = this.safeString(error, 'code');
         const details = this.safeList(error, 'details');
         const message = this.safeString(error, 'message', '');
         let detailsString = '';
@@ -2088,7 +2088,7 @@ class foxbit extends foxbit$1["default"] {
             const feedback = this.id + ' ' + message + ' details: ' + detailsString;
             this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
             this.throwBroadlyMatchedException(this.exceptions['broad'], detailsString, feedback);
-            this.throwExactlyMatchedException(this.exceptions['exact'], code, feedback);
+            this.throwExactlyMatchedException(this.exceptions['exact'], codeError, feedback);
             throw new errors.ExchangeError(feedback);
         }
         return undefined;

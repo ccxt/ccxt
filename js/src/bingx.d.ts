@@ -813,5 +813,5 @@ export default class bingx extends Exchange {
     sign(path: string, section?: string[], method?: string, params?: Dict): Dict;
     nonce(): int;
     setSandboxMode(enable: boolean): void;
-    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
 }

@@ -334,5 +334,5 @@ export default class lbank extends Exchange {
     parseDepositWithdrawFee(fee: NullableDict, currency?: Currency): any;
     sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
     convertSecretToPem(secret: any): string;
-    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
 }

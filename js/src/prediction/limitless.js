@@ -3207,21 +3207,21 @@ export default class limitless extends Exchange {
      * @name limitless#handleErrors
      * @description maps limitless error responses to ccxt exceptions
      */
-    handleErrors(statusCode, statusText, url, method, responseHeaders, responseBody, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined;
         }
-        const statusCodeInt = this.parseToInt(statusCode);
+        const statusCodeInt = this.parseToInt(code);
         if ((statusCodeInt >= 200) && (statusCodeInt < 300)) {
             return undefined;
         }
-        const feedback = this.id + ' ' + responseBody;
+        const feedback = this.id + ' ' + body;
         // the API returns either a string message or an array of field-validation errors
         const message = this.safeString(response, 'message');
         if (message !== undefined) {
             this.throwExactlyMatchedException(this.exceptions['exact'], message, feedback);
         }
-        this.throwBroadlyMatchedException(this.exceptions['broad'], responseBody, feedback);
+        this.throwBroadlyMatchedException(this.exceptions['broad'], body, feedback);
         // a 400 is a client-side bad request (bad params, or a business rule like "market not
         // resolved"), not a transport outage — throw BadRequest with the exchange message instead
         // of letting the base map the bare 400 to a retryable network-unavailable error

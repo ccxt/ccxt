@@ -1,5 +1,5 @@
 import Exchange from './abstract/hashkey.js';
-import type { Account, Balances, Bool, Currencies, Currency, CurrencyInterface, Dict, FundingRateHistory, LastPrice, LastPrices, Leverage, LeverageTier, LeverageTiers, MarginModification, Int, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, LedgerEntry, FundingRate, FundingRates, DepositAddress, int, Status } from './base/types.js';
+import type { Account, Balances, Bool, Currencies, Currency, CurrencyInterface, Dict, NullableDict, FundingRateHistory, LastPrice, LastPrices, Leverage, LeverageTier, LeverageTiers, MarginModification, Int, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, LedgerEntry, FundingRate, FundingRates, DepositAddress, int, Status } from './base/types.js';
 /**
  * @class hashkey
  * @augments Exchange
@@ -636,5 +636,5 @@ export default class hashkey extends Exchange {
     parseTradingFee(fee: Dict, market?: Market): TradingFeeInterface;
     sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
     customUrlencode(params?: Dict): Str;
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
 }

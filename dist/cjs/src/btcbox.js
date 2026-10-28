@@ -828,21 +828,21 @@ class btcbox extends btcbox$1["default"] {
         }
         return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined; // resort to defaultErrorHandler
         }
         // typical error response: {"result":false,"code":"401"}
-        if (httpCode >= 400) {
+        if (code >= 400) {
             return undefined; // resort to defaultErrorHandler
         }
         const result = this.safeBool(response, 'result');
         if (result === undefined || result) {
             return undefined; // either public API (no error codes expected) or success
         }
-        const code = this.safeString(response, 'code');
+        const codeError = this.safeString(response, 'code');
         const feedback = this.id + ' ' + body;
-        this.throwExactlyMatchedException(this.exceptions, code, feedback);
+        this.throwExactlyMatchedException(this.exceptions, codeError, feedback);
         throw new errors.ExchangeError(feedback); // unknown message
     }
     async request(path, api = ['public'], method = 'GET', params = {}, config = {}) {

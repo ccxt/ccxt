@@ -1714,7 +1714,7 @@ class luno extends luno$1["default"] {
         const headersResolved = requestHeaders;
         return { 'url': url, 'method': method, 'body': undefined, 'headers': headersResolved };
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined;
         }

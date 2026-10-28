@@ -3040,7 +3040,7 @@ class bullish extends bullish$1["default"] {
             return this.token;
         }
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }
@@ -3057,9 +3057,9 @@ class bullish extends bullish$1["default"] {
         //             "errorCodeName": "ORDER_SIZE_OUTSIDE_VALID_RANGE"
         //         }
         //
-        const code = this.safeString(response, 'errorCode');
+        const codeError = this.safeString(response, 'errorCode');
         const type = this.safeString(response, 'type');
-        if ((code !== undefined && code !== '0' && code !== '1001') || (type !== undefined && type === 'HttpInvalidParameterException')) {
+        if ((codeError !== undefined && codeError !== '0' && codeError !== '1001') || (type !== undefined && type === 'HttpInvalidParameterException')) {
             let message = '';
             const errorCodeName = this.safeString(response, 'errorCodeName');
             if (errorCodeName !== undefined) {
@@ -3071,7 +3071,7 @@ class bullish extends bullish$1["default"] {
             const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException(this.exceptions['exact'], message, feedback);
             this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
-            this.throwExactlyMatchedException(this.exceptions['exact'], code, feedback);
+            this.throwExactlyMatchedException(this.exceptions['exact'], codeError, feedback);
             throw new errors.ExchangeError(feedback); // unknown message
         }
         return undefined;

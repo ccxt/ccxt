@@ -1,5 +1,5 @@
 import Exchange from './abstract/foxbit.js';
-import type { Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Dict, Int, LedgerEntry, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, int, Status } from './base/types.js';
+import type { Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Dict, Int, LedgerEntry, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, int, NullableDict, Status } from './base/types.js';
 /**
  * @class foxbit
  * @augments Exchange
@@ -313,5 +313,5 @@ export default class foxbit extends Exchange {
     parseLedgerEntryType(type: Str): Str;
     parseLedgerEntry(item: Dict, currency?: Currency): LedgerEntry;
     sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
-    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
 }

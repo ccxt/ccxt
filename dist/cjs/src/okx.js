@@ -9553,7 +9553,7 @@ class okx extends okx$1["default"] {
         }
         return result;
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }
@@ -9577,8 +9577,8 @@ class okx extends okx$1["default"] {
         //        "msg": "Incorrect trade password"
         //    }
         //
-        const code = this.safeString(response, 'code');
-        if ((code !== '0') && (code !== '2')) { // 2 means that bulk operation partially succeeded
+        const codeError = this.safeString(response, 'code');
+        if ((codeError !== '0') && (codeError !== '2')) { // 2 means that bulk operation partially succeeded
             const feedback = this.id + ' ' + body;
             const data = this.safeList(response, 'data', []);
             for (let i = 0; i < data.length; i++) {
@@ -9588,7 +9588,7 @@ class okx extends okx$1["default"] {
                 this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
                 this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
             }
-            this.throwExactlyMatchedException(this.exceptions['exact'], code, feedback);
+            this.throwExactlyMatchedException(this.exceptions['exact'], codeError, feedback);
             throw new errors.ExchangeError(feedback); // unknown message
         }
         return undefined;

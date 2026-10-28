@@ -1975,7 +1975,7 @@ export default class bitso extends Exchange {
         }
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }
@@ -1990,8 +1990,8 @@ export default class bitso extends Exchange {
                 if (error === undefined) {
                     throw new ExchangeError(feedback);
                 }
-                const code = this.safeString(error, 'code');
-                this.throwExactlyMatchedException(this.exceptions, code, feedback);
+                const codeError = this.safeString(error, 'code');
+                this.throwExactlyMatchedException(this.exceptions, codeError, feedback);
                 throw new ExchangeError(feedback);
             }
         }

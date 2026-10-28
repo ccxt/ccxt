@@ -533,6 +533,6 @@ export default class extended extends Exchange {
     getExtendedOrderMsgHash(settlement: Dict): string;
     getExtendedWithdrawalMsgHash(settlement: Dict, starkKey: string): string;
     getExtendedTransferMsgHash(settlement: Dict): string;
-    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
     sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
 }

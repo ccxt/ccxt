@@ -1339,7 +1339,7 @@ class pacifica extends pacifica$1["default"] {
         const wsHeaders = this.safeDict(wsOptions, 'options', {});
         const wsHeadersFinal = this.safeDict(wsHeaders, 'headers', {});
         try {
-            this.handleErrors(0, error, '', postType, wsHeadersFinal, this.json(data), message, {}, {});
+            this.handleErrors(0, error, '', postType, wsHeadersFinal, this.json(data), message, {}, '');
         }
         catch (e) {
             client.reject(e, id);

@@ -1,5 +1,5 @@
 import Exchange from './abstract/nado.js';
-import type { Balances, Currencies, Currency, Dict, NullableDict, FundingHistory, FundingRate, FundingRates, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, Status, OpenInterest, OpenInterests } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, NullableDict, FundingHistory, FundingRate, FundingRates, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, Status, OpenInterest, OpenInterests, int } from './base/types.js';
 /**
  * @class nado
  * @augments Exchange
@@ -483,5 +483,5 @@ export default class nado extends Exchange {
     signHash(hash: string, privateKey: Str): string;
     removeMarketSuffix(marketId: Str): Str;
     sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
-    handleErrors(httpCode: Int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
 }

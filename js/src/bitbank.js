@@ -1133,7 +1133,7 @@ export default class bitbank extends Exchange {
         const headersResolved = requestHeaders;
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined;
         }
@@ -1202,9 +1202,9 @@ export default class bitbank extends Exchange {
                 '70009': 'We are currently temporarily restricting orders to be carried out. Please use the limit order.',
                 '70010': 'We are temporarily raising the minimum order quantity as the system load is now rising.',
             };
-            const code = this.safeString(data, 'code');
-            const message = this.safeString(errorMessages, code, 'Error');
-            this.throwExactlyMatchedException(this.exceptions['exact'], code, message);
+            const codeError = this.safeString(data, 'code');
+            const message = this.safeString(errorMessages, codeError, 'Error');
+            this.throwExactlyMatchedException(this.exceptions['exact'], codeError, message);
             throw new ExchangeError(this.id + ' ' + this.json(response));
         }
         return undefined;

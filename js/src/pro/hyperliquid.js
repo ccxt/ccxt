@@ -1623,7 +1623,7 @@ export default class hyperliquid extends hyperliquidRest {
             return true;
         }
         try {
-            this.handleErrors(0, '', '', '', {}, this.json(payload), payload, {}, {});
+            this.handleErrors(0, '', '', '', {}, this.json(payload), payload, {}, '');
         }
         catch (e) {
             client.reject(e, id);

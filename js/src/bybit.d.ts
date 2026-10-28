@@ -1129,5 +1129,5 @@ export default class bybit extends Exchange {
     parseMarginMode(marginMode: Dict, market?: Market): MarginMode;
     parseMarginModeType(marginMode: Str): Str;
     sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
-    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
 }

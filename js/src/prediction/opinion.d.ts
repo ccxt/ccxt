@@ -1,6 +1,6 @@
 import Exchange from '../abstract/prediction/opinion.js';
 import type Client from '../base/ws/Client.js';
-import type { OrderSide, OrderType, Balances, Dict, Int, Market, NullableDict, Num, OHLCV, PredictionEvent, PredictionOrder, PredictionOrderBook, PredictionPosition, PredictionTicker, PredictionTickers, PredictionTrade, Str, Strings, fetchEventsParams } from '../base/types.js';
+import type { OrderSide, OrderType, Balances, Dict, Int, Market, NullableDict, Num, OHLCV, PredictionEvent, PredictionOrder, PredictionOrderBook, PredictionPosition, PredictionTicker, PredictionTickers, PredictionTrade, Str, Strings, fetchEventsParams, int } from '../base/types.js';
 /**
  * @class opinion
  * @augments Exchange
@@ -460,7 +460,7 @@ export default class opinion extends Exchange {
      */
     watchMyTrades(outcome?: Str, since?: Int, limit?: Int, params?: Dict): Promise<PredictionTrade[]>;
     handleMyTrade(client: Client, message: Dict): void;
-    handleErrors(code: Int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
     /**
      * @ignore
      * @method

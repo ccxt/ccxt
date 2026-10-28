@@ -388,6 +388,6 @@ export default class hyperliquid extends Exchange {
         body: Str;
         headers: NullableDict;
     };
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
     calculateRateLimiterCost(api: string[], method: string, path: string, params: any, config?: Dict): any;
 }

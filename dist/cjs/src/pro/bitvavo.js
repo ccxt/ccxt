@@ -1798,7 +1798,7 @@ class bitvavo extends bitvavo$1["default"] {
         const messageHash = this.safeString(message, 'requestId', buildMessage);
         let rejected = false;
         try {
-            this.handleErrors(code, error, client.url, '', {}, error, message, {}, {});
+            this.handleErrors(code, error, client.url, '', {}, error, message, {}, '');
         }
         catch (e) {
             rejected = true;

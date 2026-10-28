@@ -1243,7 +1243,7 @@ export default class binance extends Exchange {
     getBaseDomainFromUrl(url: Str): Str;
     sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
     getExceptionsByUrl(url: string, exactOrBroad: string): Dict;
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
     calculateRateLimiterCost(api: any, method: string, path: string, params: any, config?: Dict): any;
     request(path: string, api?: string[], method?: any, params?: Dict, config?: Dict): Promise<any>;
     modifyMarginHelper(symbol: string, amount: number, addOrReduce: number, params?: Dict): Promise<MarginModification>;

@@ -1807,7 +1807,7 @@ export default class hibachi extends Exchange {
         }
         return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersValue };
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }
@@ -1817,10 +1817,10 @@ export default class hibachi extends Exchange {
         //
         if (status !== undefined) {
             if (status === 'failed') {
-                const code = this.safeString(response, 'errorCode');
+                const codeError = this.safeString(response, 'errorCode');
                 const feedback = this.id + ' ' + body;
                 this.throwBroadlyMatchedException(this.exceptions['broad'], body, feedback);
-                this.throwExactlyMatchedException(this.exceptions['exact'], code, feedback);
+                this.throwExactlyMatchedException(this.exceptions['exact'], codeError, feedback);
                 const message = this.safeString(response, 'message');
                 this.throwExactlyMatchedException(this.exceptions['exact'], message, feedback);
                 throw new ExchangeError(feedback);
