@@ -1012,7 +1012,7 @@ export default class xt extends xtRest {
             }
             newTickers.push (ticker);
         }
-        const messageHashStart = this.safeString (message, 'topic') + '::' + tradeType;
+        const messageHashStart = this.safeString (message, 'topic', '') + '::' + tradeType;
         const messageHashes = this.findMessageHashes (client, messageHashStart + '::');
         for (let i = 0; i < messageHashes.length; i++) {
             const messageHash = messageHashes[i];
