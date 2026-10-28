@@ -744,7 +744,7 @@ public partial class delta : Exchange
         for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)keys[i]);
-            object item = getValue(input, key);
+            IDictionary<string, object> item = this.safeDict(input, key, new Dictionary<string, object>() {});
             string? numericIdString = this.safeString(item, "numericId");
             if ((numericIdString == null))
             {

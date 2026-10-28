@@ -1119,7 +1119,7 @@ public partial class derive : ccxt.derive
         //     }
         //
         IDictionary<string, object> parameters = this.safeDict(message, "params");
-        string? topic = this.safeString(parameters, "channel");
+        string? topic = this.safeString(parameters, "channel", "");
         List<object> topicParts = topic.Split(new [] {"."}, StringSplitOptions.None).ToList<object>();
         string subaccountIdKey = this.safeString(topicParts, 0);
         List<object> data = this.safeList(parameters, "data", new List<object>() {});

@@ -1142,7 +1142,7 @@ public partial class xt : ccxt.xt
             }
             newTickers.Add(ccxt.BaseExchange.FromTicker(ticker));
         }
-        string messageHashStart = ((this.safeString(message, "topic") + "::") + tradeType);
+        string messageHashStart = ((this.safeString(message, "topic", "") + "::") + tradeType);
         List<object> messageHashes = this.findMessageHashes(client, (messageHashStart + "::"));
         for (int i = 0; i < (messageHashes?.Count ?? 0); i++)
         {

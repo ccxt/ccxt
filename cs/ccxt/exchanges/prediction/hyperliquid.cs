@@ -301,16 +301,17 @@ public partial class hyperliquid : PredictionExchange
                 List<object> expiryParts = expiry.Split(new [] {"-"}, StringSplitOptions.None).ToList<object>();
                 expiryDate = (expiryParts != null && 0 < expiryParts.Count ? expiryParts[0] : null);
             }
-            object bs = underlying.ToUpper();
+            string targetPart = "";
             if (targetPrice != "")
             {
-                bs = add(add(bs, "_ABOVE_"), targetPrice);
+                targetPart = ("_ABOVE_" + targetPrice);
             }
+            string expiryPart = "";
             if (!(expiryDate is ""))
             {
-                bs = add(add(bs, "_"), expiryDate);
+                expiryPart = ("_" + (expiryDate));
             }
-            return ((string?)((object)(bs)));
+            return ((underlying.ToUpper() + targetPart) + expiryPart);
         }
         string? questionDescription = this.safeString(question, "description");
         if (((questionDescription != null)) && (questionDescription != ""))
@@ -326,6 +327,11 @@ public partial class hyperliquid : PredictionExchange
                 {
                     List<object> questionExpiryParts = questionExpiry.Split(new [] {"-"}, StringSplitOptions.None).ToList<object>();
                     questionExpiryDate = (questionExpiryParts != null && 0 < questionExpiryParts.Count ? questionExpiryParts[0] : null);
+                }
+                string questionExpiryPart = "";
+                if (!(questionExpiryDate is ""))
+                {
+                    questionExpiryPart = ("_" + (questionExpiryDate));
                 }
                 string? thresholdsRaw = this.safeString(questionDesc, "priceThresholds", "");
                 string? indexStr = this.safeString(desc, "index");
@@ -359,23 +365,13 @@ public partial class hyperliquid : PredictionExchange
                         {
                             bucketLabel = ((("BETWEEN_" + (getValue(thresholds, (index - 1)))) + "_") + ((thresholds != null && index != null && index < thresholds.Count ? thresholds[(int)index] : null)));
                         }
-                        string bs = ((questionUnderlying.ToUpper() + "_") + bucketLabel);
-                        if (!(questionExpiryDate is ""))
-                        {
-                            bs = ((bs + "_") + (questionExpiryDate));
-                        }
-                        return ((string?)((object)(bs)));
+                        return (((questionUnderlying.ToUpper() + "_") + bucketLabel) + questionExpiryPart);
                     }
                 }
                 bool isFallbackLike = (rawDescription == "other") || (nameLower.IndexOf("fallback", StringComparison.Ordinal) >= 0) || (nameLower.IndexOf("other", StringComparison.Ordinal) >= 0);
                 if (((questionUnderlying != null) && questionUnderlying != "") && isFallbackLike)
                 {
-                    string bs = (questionUnderlying.ToUpper() + "_OTHER");
-                    if (!(questionExpiryDate is ""))
-                    {
-                        bs = ((bs + "_") + (questionExpiryDate));
-                    }
-                    return ((string?)((object)(bs)));
+                    return ((questionUnderlying.ToUpper() + "_OTHER") + questionExpiryPart);
                 }
             }
         }

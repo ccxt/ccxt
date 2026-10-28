@@ -1966,7 +1966,7 @@ public partial class bitso : Exchange
             object entry = depositResponse[i];
             string? currencyId = this.safeString(entry, "currency");
             string? code = this.safeCurrencyCode(currencyId);
-            if (((codes == null)) || (((code != null)) && (inOp(codes, code))))
+            if (((codes == null)) || (((code != null)) && this.inArray(code, codes)))
             {
                 if ((code != null))
                 {
@@ -1990,7 +1990,7 @@ public partial class bitso : Exchange
         {
             string? currencyId = ((string)withdrawalKeys[i]);
             string? code = this.safeCurrencyCode(currencyId);
-            if (((code != null)) && (((codes == null)) || (inOp(codes, code))))
+            if (((code != null)) && (((codes == null)) || this.inArray(code, codes)))
             {
                 double? withdrawFee = this.parseNumber((currencyId != null && withdrawalResponse.ContainsKey(currencyId) ? withdrawalResponse[currencyId] : null));
                 IDictionary<string, object> resultValue = this.safeDict(result, code);

@@ -1220,17 +1220,12 @@ public partial class kalshi : PredictionExchange
         }
         // batch-resolve the uncached outcomes (one markets request per 100 tickers)
         await this.loadOutcomes(outcomes);
-        List<object> targets = new List<object>() {};
-        for (int i = 0; i < (outcomes?.Count ?? 0); i++)
-        {
-            targets.Add((outcomes != null && i < outcomes.Count ? outcomes[i] : null));
-        }
         // group requested outcomes by their market ticker, yes and no outcomes share one market
         Dictionary<string, object> outcomesByTicker = new Dictionary<string, object>() {};
         List<object> tickers = new List<object>() {};
-        for (int i = 0; i < (targets?.Count ?? 0); i++)
+        for (int i = 0; i < (outcomes?.Count ?? 0); i++)
         {
-            IDictionary<string, object> outcomeObj = this.outcome(targets[i]);
+            IDictionary<string, object> outcomeObj = this.outcome((outcomes != null && i < outcomes.Count ? outcomes[i] : null));
             string? ticker = this.safeString((outcomeObj != null && outcomeObj.ContainsKey("info") ? outcomeObj["info"] : null), "ticker");
             if ((ticker == null))
             {

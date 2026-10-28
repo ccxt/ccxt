@@ -985,7 +985,7 @@ public partial class deribit : ccxt.deribit
         stored.append(parsed);
         ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[(string)unifiedTimeframe] = stored;
         List<object> resolveData = new List<object>() {symbol, unifiedTimeframe, stored};
-        string messageHash = ((("chart.trades|" + symbol) + "|") + rawTimeframe);
+        string messageHash = ((("chart.trades|" + symbol) + "|") + this.safeString(parts, 3, ""));
         client.resolve(resolveData, messageHash);
     }
 

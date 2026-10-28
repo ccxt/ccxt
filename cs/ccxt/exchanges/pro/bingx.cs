@@ -1997,7 +1997,7 @@ public partial class bingx : ccxt.bingx
         string? marketId = this.safeString(result, "s");
         Dictionary<string, object> market = this.safeMarket(marketId, null, "-", type);
         ccxt.Trade parsed = this.parseTrade(result, market);
-        string? symbol = parsed.symbol;
+        string? symbol = this.safeString(ccxt.BaseExchange.FromTrade(parsed), "symbol", "");
         string spotHash = "spot:mytrades";
         string swapHash = "swap:mytrades";
         string messageHash = swapHash;

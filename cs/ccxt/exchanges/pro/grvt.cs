@@ -670,6 +670,7 @@ public partial class grvt : ccxt.grvt
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = this.safeString(market, "symbol", "");
         Int64? timestamp = this.safeIntegerProduct(data, "event_time", 0.000001);
+        string messageHash = ("orderbook::" + symbol);
         if (!(((symbol != null) && ((IDictionary<string, object>)this.orderbooks).ContainsKey(symbol))))
         {
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook();
@@ -701,7 +702,6 @@ public partial class grvt : ccxt.grvt
         // unconditional assignment is correct for every language.
         orderbook["symbol"] = symbol;
         orderbook["nonce"] = sequenceNumber;
-        string messageHash = ("orderbook::" + symbol);
         ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
         client.resolve(orderbook, messageHash);
     }

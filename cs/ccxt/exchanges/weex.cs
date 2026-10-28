@@ -1840,9 +1840,13 @@ public partial class weex : Exchange
             {
                 request["priceType"] = priceType;
             }
-            object startTime = since;
-            object endTime = until;
             Int64 now = this.milliseconds();
+            object startTime = since;
+            object endTime = now;
+            if ((until != null))
+            {
+                endTime = until;
+            }
             if (((since == null)) || ((until == null)))
             {
                 Int64? duration = this.parseToInt((this.parseTimeframe(timeframeVar) * 1000L));
@@ -1873,7 +1877,7 @@ public partial class weex : Exchange
                 }
             }
             // the endpoint rejects an endTime in the future (-1142), which a recent since would produce
-            if ((!(endTime == null)) && (isGreaterThan(endTime, now)))
+            if (isGreaterThan(endTime, now))
             {
                 endTime = now;
             }
