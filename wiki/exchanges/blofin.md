@@ -47,6 +47,8 @@
 * [fetchPositionsADLRank](#fetchpositionsadlrank)
 * [watchTrades](#watchtrades)
 * [watchTradesForSymbols](#watchtradesforsymbols)
+* [unWatchTrades](#unwatchtrades)
+* [unWatchTradesForSymbols](#unwatchtradesforsymbols)
 * [watchOrderBook](#watchorderbook)
 * [watchOrderBookForSymbols](#watchorderbookforsymbols)
 * [watchTicker](#watchticker)
@@ -54,6 +56,8 @@
 * [watchBidsAsks](#watchbidsasks)
 * [watchOHLCV](#watchohlcv)
 * [watchOHLCVForSymbols](#watchohlcvforsymbols)
+* [unWatchOHLCV](#unwatchohlcv)
+* [unWatchOHLCVForSymbols](#unwatchohlcvforsymbols)
 * [watchBalance](#watchbalance)
 * [watchOrdersForSymbols](#watchordersforsymbols)
 * [watchPositions](#watchpositions)
@@ -1073,6 +1077,48 @@ blofin.watchTradesForSymbols (symbols, since?, limit?, params?)
 ```
 
 
+<a name="unWatchTrades" id="unwatchtrades"></a>
+
+### unWatchTrades{docsify-ignore}
+unWatches the list of most recent trades for a particular symbol
+
+**Kind**: instance method of [<code>blofin</code>](#blofin)  
+**Returns**: <code>any</code> - status of the unwatch request
+
+**See**: https://docs.blofin.com/index.html#ws-trades-channel  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to unwatch trades for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+blofin.unWatchTrades (symbol, params?)
+```
+
+
+<a name="unWatchTradesForSymbols" id="unwatchtradesforsymbols"></a>
+
+### unWatchTradesForSymbols{docsify-ignore}
+unWatches the list of most recent trades for a list of symbols
+
+**Kind**: instance method of [<code>blofin</code>](#blofin)  
+**Returns**: <code>any</code> - status of the unwatch request
+
+**See**: https://docs.blofin.com/index.html#ws-trades-channel  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | Yes | unified symbols of the markets to unwatch trades for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+blofin.unWatchTradesForSymbols (symbols, params?)
+```
+
+
 <a name="watchOrderBook" id="watchorderbook"></a>
 
 ### watchOrderBook{docsify-ignore}
@@ -1224,6 +1270,49 @@ watches historical candlestick data containing the open, high, low, and close pr
 
 ```javascript
 blofin.watchOHLCVForSymbols (symbolsAndTimeframes, since?, limit?, params?)
+```
+
+
+<a name="unWatchOHLCV" id="unwatchohlcv"></a>
+
+### unWatchOHLCV{docsify-ignore}
+unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+
+**Kind**: instance method of [<code>blofin</code>](#blofin)  
+**Returns**: <code>any</code> - status of the unwatch request
+
+**See**: https://docs.blofin.com/index.html#ws-candlesticks-channel  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to unwatch OHLCV data for |
+| timeframe | <code>string</code> | Yes | the length of time each candle represents |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+blofin.unWatchOHLCV (symbol, timeframe, params?)
+```
+
+
+<a name="unWatchOHLCVForSymbols" id="unwatchohlcvforsymbols"></a>
+
+### unWatchOHLCVForSymbols{docsify-ignore}
+unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+
+**Kind**: instance method of [<code>blofin</code>](#blofin)  
+**Returns**: <code>any</code> - status of the unwatch request
+
+**See**: https://docs.blofin.com/index.html#ws-candlesticks-channel  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbolsAndTimeframes | <code>Array&lt;Array&lt;string&gt;&gt;</code> | Yes | array of arrays containing unified symbols and timeframes to unwatch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']] |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+blofin.unWatchOHLCVForSymbols (symbolsAndTimeframes, params?)
 ```
 
 

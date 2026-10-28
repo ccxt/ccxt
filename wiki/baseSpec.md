@@ -4587,6 +4587,7 @@ retrieves the open interest of a contract trading pair
 * [hitbtc](/exchanges/hitbtc.md#fetchopeninterest)
 * [htx](/exchanges/htx.md#fetchopeninterest)
 * [hyperliquid](/exchanges/hyperliquid.md#fetchopeninterest)
+* [modetrade](/exchanges/modetrade.md#fetchopeninterest)
 * [nado](/exchanges/nado.md#fetchopeninterest)
 * [okx](/exchanges/okx.md#fetchopeninterest)
 * [pacifica](/exchanges/pacifica.md#fetchopeninterest)
@@ -4651,6 +4652,7 @@ Retrieves the open interest for a list of symbols
 * [htx](/exchanges/htx.md#fetchopeninterests)
 * [hyperliquid](/exchanges/hyperliquid.md#fetchopeninterests)
 * [kucoin](/exchanges/kucoin.md#fetchopeninterests)
+* [modetrade](/exchanges/modetrade.md#fetchopeninterests)
 * [nado](/exchanges/nado.md#fetchopeninterests)
 * [okx](/exchanges/okx.md#fetchopeninterests)
 * [pacifica](/exchanges/pacifica.md#fetchopeninterests)
@@ -7018,6 +7020,24 @@ calculates the presumptive fee that would be charged for an order
 
 ---
 
+<a name="parseMarket" id="parsemarket"></a>
+
+## parseMarket
+parses a classic or uta instrument into a unified market
+
+**Kind**: instance   
+**Returns**: <code>object</code> - a [market structure](https://docs.ccxt.com/?id=market-structure)
+
+
+| Param | Type | Description |
+| --- | --- | --- |
+| market | <code>object</code> | the exchange instrument |
+
+##### Supported exchanges
+* [bitget](/exchanges/bitget.md#parsemarket)
+
+---
+
 <a name="preLoadLighterLibrary" id="preloadlighterlibrary"></a>
 
 ## preLoadLighterLibrary
@@ -7811,6 +7831,7 @@ unWatches historical candlestick data containing the open, high, low, and close 
 * [bitfinex](/exchanges/bitfinex.md#unwatchohlcv)
 * [bitget](/exchanges/bitget.md#unwatchohlcv)
 * [bitvavo](/exchanges/bitvavo.md#unwatchohlcv)
+* [blofin](/exchanges/blofin.md#unwatchohlcv)
 * [bybit](/exchanges/bybit.md#unwatchohlcv)
 * [bydfi](/exchanges/bydfi.md#unwatchohlcv)
 * [coinbaseinternational](/exchanges/coinbaseinternational.md#unwatchohlcv)
@@ -7849,6 +7870,7 @@ unWatches historical candlestick data containing the open, high, low, and close 
 * [backpack](/exchanges/backpack.md#unwatchohlcvforsymbols)
 * [binance](/exchanges/binance.md#unwatchohlcvforsymbols)
 * [bitvavo](/exchanges/bitvavo.md#unwatchohlcvforsymbols)
+* [blofin](/exchanges/blofin.md#unwatchohlcvforsymbols)
 * [bybit](/exchanges/bybit.md#unwatchohlcvforsymbols)
 * [bydfi](/exchanges/bydfi.md#unwatchohlcvforsymbols)
 * [coinbaseinternational](/exchanges/coinbaseinternational.md#unwatchohlcvforsymbols)
@@ -8078,6 +8100,7 @@ unsubscribe from the trades channel
 * [bitfinex](/exchanges/bitfinex.md#unwatchtrades)
 * [bitget](/exchanges/bitget.md#unwatchtrades)
 * [bitvavo](/exchanges/bitvavo.md#unwatchtrades)
+* [blofin](/exchanges/blofin.md#unwatchtrades)
 * [bybit](/exchanges/bybit.md#unwatchtrades)
 * [coinbaseinternational](/exchanges/coinbaseinternational.md#unwatchtrades)
 * [cryptocom](/exchanges/cryptocom.md#unwatchtrades)
@@ -8117,6 +8140,7 @@ unsubscribe from the trades channel
 * [backpack](/exchanges/backpack.md#unwatchtradesforsymbols)
 * [binance](/exchanges/binance.md#unwatchtradesforsymbols)
 * [bitvavo](/exchanges/bitvavo.md#unwatchtradesforsymbols)
+* [blofin](/exchanges/blofin.md#unwatchtradesforsymbols)
 * [bybit](/exchanges/bybit.md#unwatchtradesforsymbols)
 * [coinbaseinternational](/exchanges/coinbaseinternational.md#unwatchtradesforsymbols)
 * [cryptocom](/exchanges/cryptocom.md#unwatchtradesforsymbols)
