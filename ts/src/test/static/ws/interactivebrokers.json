@@ -3,6 +3,758 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "watchOrderBook": [
+            {
+                "description": "crypto spot",
+                "input": [
+                    "BTC/USD"
+                ],
+                "url": "wss://api.ibkr.com/v1/api/ws?oauth_token=84270d7070618c28432c",
+                "messages": [
+                    {
+                        "topic": "system",
+                        "success": "todua1991",
+                        "isFT": false,
+                        "isPaper": false
+                    },
+                    {
+                        "topic": "act",
+                        "args": {
+                            "accounts": [
+                                "U3448646"
+                            ],
+                            "acctProps": {
+                                "U3448646": {
+                                    "hasChildAccounts": false,
+                                    "supportsCashQty": true,
+                                    "liteUnderPro": false,
+                                    "noFXConv": false,
+                                    "isProp": false,
+                                    "supportsFractions": true,
+                                    "allowCustomerTime": false,
+                                    "autoFx": false
+                                }
+                            },
+                            "aliases": {
+                                "U3448646": "U3448646"
+                            },
+                            "allowFeatures": {
+                                "showGFIS": true,
+                                "showEUCostReport": false,
+                                "allowEventContract": true,
+                                "allowFXConv": true,
+                                "allowFinancialLens": false,
+                                "allowMTA": true,
+                                "allowTypeAhead": true,
+                                "allowEventTrading": true,
+                                "snapshotRefreshTimeout": 30,
+                                "liteUser": false,
+                                "showWebNews": true,
+                                "research": true,
+                                "debugPnl": true,
+                                "showTaxOpt": true,
+                                "showImpactDashboard": true,
+                                "allowDynAccount": false,
+                                "allowCrypto": false,
+                                "allowFA": false,
+                                "allowLiteUnderPro": false,
+                                "allowedAssetTypes": "STK,CFD,OPT,FOP,WAR,FUT,BAG,PDC,CASH,IND,BOND,BILL,FUND,SLB,News,CMDTY,IOPT,ICU,ICS,PHYSS,CRYPTO",
+                                "restrictTradeSubscription": false,
+                                "showUkUserLabels": true,
+                                "sideBySide": true
+                            },
+                            "chartPeriods": {
+                                "STK": [
+                                    "*"
+                                ],
+                                "CFD": [
+                                    "*"
+                                ],
+                                "OPT": [
+                                    "2h",
+                                    "1d",
+                                    "2d",
+                                    "1w",
+                                    "1m"
+                                ],
+                                "FOP": [
+                                    "2h",
+                                    "1d",
+                                    "2d",
+                                    "1w",
+                                    "1m"
+                                ],
+                                "WAR": [
+                                    "*"
+                                ],
+                                "IOPT": [
+                                    "*"
+                                ],
+                                "FUT": [
+                                    "*"
+                                ],
+                                "CASH": [
+                                    "*"
+                                ],
+                                "IND": [
+                                    "*"
+                                ],
+                                "BOND": [
+                                    "*"
+                                ],
+                                "FUND": [
+                                    "*"
+                                ],
+                                "CMDTY": [
+                                    "*"
+                                ],
+                                "PHYSS": [
+                                    "*"
+                                ],
+                                "CRYPTO": [
+                                    "*"
+                                ]
+                            },
+                            "groups": [],
+                            "profiles": [],
+                            "selectedAccount": "U3448646",
+                            "serverInfo": {
+                                "serverName": "JifZ24131",
+                                "serverVersion": "Build 10.50.1d, Oct 15, 2026 12:58:27 PM"
+                            },
+                            "sessionId": "6ae1768f.00000144",
+                            "isFT": false,
+                            "isPaper": false
+                        }
+                    },
+                    {
+                        "topic": "sts",
+                        "args": {
+                            "connected": true,
+                            "authenticated": true,
+                            "established": true,
+                            "competing": false,
+                            "message": "",
+                            "fail": "",
+                            "serverName": "JifZ24131",
+                            "serverVersion": "Build 10.50.1d, Oct 15, 2026 12:58:27 PM",
+                            "username": "todua1991"
+                        }
+                    },
+                    {
+                        "topic": "sbd+U3448646+479624278",
+                        "data": [
+                            {
+                                "row": 0,
+                                "focus": 0,
+                                "price": "2.50"
+                            },
+                            {
+                                "row": 1,
+                                "focus": 0,
+                                "price": "81364.25"
+                            },
+                            {
+                                "row": 2,
+                                "focus": 0,
+                                "price": "81364.00"
+                            },
+                            {
+                                "row": 3,
+                                "focus": 0,
+                                "price": "81363.75"
+                            },
+                            {
+                                "row": 4,
+                                "focus": 0,
+                                "price": "81363.50"
+                            },
+                            {
+                                "row": 5,
+                                "focus": 0,
+                                "price": "81363.25"
+                            },
+                            {
+                                "row": 6,
+                                "focus": 0,
+                                "price": "81363.00"
+                            },
+                            {
+                                "row": 7,
+                                "focus": 0,
+                                "price": "81362.75"
+                            },
+                            {
+                                "row": 8,
+                                "focus": 0,
+                                "price": "81362.50"
+                            },
+                            {
+                                "row": 9,
+                                "focus": 0,
+                                "price": "81362.25"
+                            },
+                            {
+                                "row": 10,
+                                "focus": 1,
+                                "price": "0.00002348 @ 81362.00",
+                                "ask": "0.5"
+                            },
+                            {
+                                "row": 11,
+                                "focus": 0,
+                                "price": "81361.75",
+                                "bid": "0.02458156"
+                            },
+                            {
+                                "row": 12,
+                                "focus": 0,
+                                "price": "81361.50"
+                            },
+                            {
+                                "row": 13,
+                                "focus": 0,
+                                "price": "81361.25"
+                            },
+                            {
+                                "row": 14,
+                                "focus": 0,
+                                "price": "81361.00"
+                            },
+                            {
+                                "row": 15,
+                                "focus": 0,
+                                "price": "81360.75"
+                            },
+                            {
+                                "row": 16,
+                                "focus": 0,
+                                "price": "81360.50"
+                            },
+                            {
+                                "row": 17,
+                                "focus": 0,
+                                "price": "81360.25"
+                            },
+                            {
+                                "row": 18,
+                                "focus": 0,
+                                "price": "81360.00"
+                            },
+                            {
+                                "row": 19,
+                                "focus": 0,
+                                "price": "81359.75"
+                            },
+                            {
+                                "row": 20,
+                                "focus": 0,
+                                "price": "81359.50"
+                            }
+                        ]
+                    },
+                    {
+                        "topic": "sbd+U3448646+479624278",
+                        "data": [
+                            {
+                                "row": 0,
+                                "focus": 0,
+                                "price": "81364.50"
+                            },
+                            {
+                                "row": 6,
+                                "focus": 0,
+                                "price": "81363.00",
+                                "ask": "0.01787114"
+                            },
+                            {
+                                "row": 8,
+                                "focus": 0,
+                                "price": "81362.50",
+                                "ask": "0.00194251"
+                            }
+                        ]
+                    },
+                    {
+                        "topic": "act",
+                        "args": {
+                            "accounts": [
+                                "U3448646"
+                            ],
+                            "acctProps": {
+                                "U3448646": {
+                                    "hasChildAccounts": false,
+                                    "supportsCashQty": true,
+                                    "liteUnderPro": false,
+                                    "noFXConv": false,
+                                    "isProp": false,
+                                    "supportsFractions": true,
+                                    "allowCustomerTime": false,
+                                    "autoFx": false
+                                }
+                            },
+                            "aliases": {
+                                "U3448646": "U3448646"
+                            },
+                            "allowFeatures": {
+                                "showGFIS": true,
+                                "showEUCostReport": false,
+                                "allowEventContract": true,
+                                "allowFXConv": true,
+                                "allowFinancialLens": false,
+                                "allowMTA": true,
+                                "allowTypeAhead": true,
+                                "allowEventTrading": true,
+                                "snapshotRefreshTimeout": 30,
+                                "liteUser": false,
+                                "showWebNews": true,
+                                "research": true,
+                                "debugPnl": true,
+                                "showTaxOpt": true,
+                                "showImpactDashboard": true,
+                                "allowDynAccount": false,
+                                "allowCrypto": false,
+                                "allowFA": false,
+                                "allowLiteUnderPro": false,
+                                "allowedAssetTypes": "STK,CFD,OPT,FOP,WAR,FUT,BAG,PDC,CASH,IND,BOND,BILL,FUND,SLB,News,CMDTY,IOPT,ICU,ICS,PHYSS,CRYPTO",
+                                "restrictTradeSubscription": false,
+                                "showUkUserLabels": true,
+                                "sideBySide": true
+                            },
+                            "chartPeriods": {
+                                "STK": [
+                                    "*"
+                                ],
+                                "CFD": [
+                                    "*"
+                                ],
+                                "OPT": [
+                                    "2h",
+                                    "1d",
+                                    "2d",
+                                    "1w",
+                                    "1m"
+                                ],
+                                "FOP": [
+                                    "2h",
+                                    "1d",
+                                    "2d",
+                                    "1w",
+                                    "1m"
+                                ],
+                                "WAR": [
+                                    "*"
+                                ],
+                                "IOPT": [
+                                    "*"
+                                ],
+                                "FUT": [
+                                    "*"
+                                ],
+                                "CASH": [
+                                    "*"
+                                ],
+                                "IND": [
+                                    "*"
+                                ],
+                                "BOND": [
+                                    "*"
+                                ],
+                                "FUND": [
+                                    "*"
+                                ],
+                                "CMDTY": [
+                                    "*"
+                                ],
+                                "PHYSS": [
+                                    "*"
+                                ],
+                                "CRYPTO": [
+                                    "*"
+                                ]
+                            },
+                            "groups": [],
+                            "profiles": [],
+                            "selectedAccount": "U3448646",
+                            "serverInfo": {
+                                "serverName": "JifZ24131",
+                                "serverVersion": "Build 10.50.1d, Oct 15, 2026 12:58:27 PM"
+                            },
+                            "sessionId": "6ae1768f.00000144",
+                            "isFT": false,
+                            "isPaper": false
+                        }
+                    },
+                    {
+                        "topic": "sbd+U3448646+479624278",
+                        "data": [
+                            {
+                                "row": 8,
+                                "focus": 0,
+                                "price": "81362.50",
+                                "ask": "0.00194251"
+                            },
+                            {
+                                "row": 10,
+                                "focus": 1,
+                                "price": "0.00002348 @ 81362.00"
+                            },
+                            {
+                                "row": 11,
+                                "focus": 0,
+                                "price": "81361.75",
+                                "bid": "0.0245815"
+                            },
+                            {
+                                "row": 12,
+                                "focus": 0,
+                                "price": "81361.50",
+                                "bid": "0.02458161"
+                            }
+                        ]
+                    },
+                    {
+                        "topic": "sbd+U3448646+479624278",
+                        "data": [
+                            {
+                                "row": 10,
+                                "focus": 1,
+                                "price": "0.00000023 @ 81362.00"
+                            }
+                        ]
+                    },
+                    {
+                        "topic": "sbd+U3448646+479624278",
+                        "data": [
+                            {
+                                "row": 11,
+                                "focus": 0,
+                                "price": "81361.75"
+                            },
+                            {
+                                "row": 12,
+                                "focus": 0,
+                                "price": "81361.50",
+                                "bid": "0.0245816"
+                            }
+                        ]
+                    },
+                    {
+                        "topic": "sbd+U3448646+479624278",
+                        "data": [
+                            {
+                                "row": 6,
+                                "focus": 1,
+                                "price": "0.00614837 @ 81363.00",
+                                "ask": "0.01787114"
+                            },
+                            {
+                                "row": 10,
+                                "focus": 0,
+                                "price": "81362.00"
+                            }
+                        ]
+                    },
+                    {
+                        "topic": "sbd+U3448646+479624278",
+                        "data": [
+                            {
+                                "row": 8,
+                                "focus": 0,
+                                "price": "81362.50"
+                            },
+                            {
+                                "row": 9,
+                                "focus": 0,
+                                "price": "81362.25",
+                                "ask": "0.5"
+                            },
+                            {
+                                "row": 12,
+                                "focus": 0,
+                                "price": "81361.50",
+                                "bid": "0.02458157"
+                            }
+                        ]
+                    },
+                    {
+                        "topic": "sbd+U3448646+479624278",
+                        "data": [
+                            {
+                                "row": 0,
+                                "focus": 0,
+                                "price": "81364.50",
+                                "ask": "0.11605478"
+                            },
+                            {
+                                "row": 6,
+                                "focus": 1,
+                                "price": "0.00614837 @ 81363.00"
+                            },
+                            {
+                                "row": 7,
+                                "focus": 0,
+                                "price": "81362.75",
+                                "ask": "0.01787114"
+                            },
+                            {
+                                "row": 8,
+                                "focus": 0,
+                                "price": "81362.50",
+                                "ask": "0.00194251"
+                            }
+                        ]
+                    },
+                    {
+                        "topic": "sbd+U3448646+479624278",
+                        "data": [
+                            {
+                                "row": 9,
+                                "focus": 0,
+                                "price": "81362.25",
+                                "ask": "0.50010773"
+                            },
+                            {
+                                "row": 12,
+                                "focus": 0,
+                                "price": "81361.50",
+                                "bid": "0.02458164"
+                            }
+                        ]
+                    }
+                ],
+                "httpResponse": {
+                    "session": "9d08ed7efae1c18acfb1d5da3f1db19d",
+                    "hmds": {
+                        "error": "no bridge"
+                    },
+                    "iserver": {
+                        "authStatus": {
+                            "authenticated": true,
+                            "established": true,
+                            "competing": false,
+                            "connected": true,
+                            "message": "",
+                            "MAC": "06:61:A2:5D:8E:CE",
+                            "serverInfo": {
+                                "serverName": "JifZ24131",
+                                "serverVersion": "Build 10.50.1d, Oct 15, 2026 12:58:27 PM"
+                            },
+                            "hardware_info": "d6d1cd6f|06:61:A2:5D:8E:CE"
+                        }
+                    }
+                },
+                "sentMessages": [
+                    "sbd+U3448646+479624278"
+                ],
+                "parsedResponses": [
+                    {
+                        "bids": [
+                            [
+                                81361.75,
+                                0.02458156
+                            ]
+                        ],
+                        "asks": [
+                            [
+                                81362,
+                                0.5
+                            ],
+                            [
+                                81362.5,
+                                0.00194251
+                            ],
+                            [
+                                81363,
+                                0.01787114
+                            ]
+                        ],
+                        "timestamp": 1793182292057,
+                        "datetime": "2026-10-28T10:11:32.057Z",
+                        "nonce": null,
+                        "symbol": "BTC/USD"
+                    },
+                    {
+                        "bids": [
+                            [
+                                81361.75,
+                                0.0245815
+                            ],
+                            [
+                                81361.5,
+                                0.02458161
+                            ]
+                        ],
+                        "asks": [
+                            [
+                                81362.5,
+                                0.00194251
+                            ],
+                            [
+                                81363,
+                                0.01787114
+                            ]
+                        ],
+                        "timestamp": 1793182292332,
+                        "datetime": "2026-10-28T10:11:32.332Z",
+                        "nonce": null,
+                        "symbol": "BTC/USD"
+                    },
+                    {
+                        "bids": [
+                            [
+                                81361.75,
+                                0.0245815
+                            ],
+                            [
+                                81361.5,
+                                0.02458161
+                            ]
+                        ],
+                        "asks": [
+                            [
+                                81362.5,
+                                0.00194251
+                            ],
+                            [
+                                81363,
+                                0.01787114
+                            ]
+                        ],
+                        "timestamp": 1793182292992,
+                        "datetime": "2026-10-28T10:11:32.992Z",
+                        "nonce": null,
+                        "symbol": "BTC/USD"
+                    },
+                    {
+                        "bids": [
+                            [
+                                81361.5,
+                                0.0245816
+                            ]
+                        ],
+                        "asks": [
+                            [
+                                81362.5,
+                                0.00194251
+                            ],
+                            [
+                                81363,
+                                0.01787114
+                            ]
+                        ],
+                        "timestamp": 1793182293234,
+                        "datetime": "2026-10-28T10:11:33.234Z",
+                        "nonce": null,
+                        "symbol": "BTC/USD"
+                    },
+                    {
+                        "bids": [
+                            [
+                                81361.5,
+                                0.0245816
+                            ]
+                        ],
+                        "asks": [
+                            [
+                                81362.5,
+                                0.00194251
+                            ],
+                            [
+                                81363,
+                                0.01787114
+                            ]
+                        ],
+                        "timestamp": 1793182293537,
+                        "datetime": "2026-10-28T10:11:33.537Z",
+                        "nonce": null,
+                        "symbol": "BTC/USD"
+                    },
+                    {
+                        "bids": [
+                            [
+                                81361.5,
+                                0.02458157
+                            ]
+                        ],
+                        "asks": [
+                            [
+                                81362.25,
+                                0.5
+                            ],
+                            [
+                                81363,
+                                0.01787114
+                            ]
+                        ],
+                        "timestamp": 1793182293837,
+                        "datetime": "2026-10-28T10:11:33.837Z",
+                        "nonce": null,
+                        "symbol": "BTC/USD"
+                    },
+                    {
+                        "bids": [
+                            [
+                                81361.5,
+                                0.02458157
+                            ]
+                        ],
+                        "asks": [
+                            [
+                                81362.25,
+                                0.5
+                            ],
+                            [
+                                81362.5,
+                                0.00194251
+                            ],
+                            [
+                                81362.75,
+                                0.01787114
+                            ],
+                            [
+                                81364.5,
+                                0.11605478
+                            ]
+                        ],
+                        "timestamp": 1793182294443,
+                        "datetime": "2026-10-28T10:11:34.443Z",
+                        "nonce": null,
+                        "symbol": "BTC/USD"
+                    },
+                    {
+                        "bids": [
+                            [
+                                81361.5,
+                                0.02458164
+                            ]
+                        ],
+                        "asks": [
+                            [
+                                81362.25,
+                                0.50010773
+                            ],
+                            [
+                                81362.5,
+                                0.00194251
+                            ],
+                            [
+                                81362.75,
+                                0.01787114
+                            ],
+                            [
+                                81364.5,
+                                0.11605478
+                            ]
+                        ],
+                        "timestamp": 1793182294737,
+                        "datetime": "2026-10-28T10:11:34.737Z",
+                        "nonce": null,
+                        "symbol": "BTC/USD"
+                    }
+                ]
+            }
+        ],
         "watchOHLCV": [
             {
                 "description": "crypto spot",

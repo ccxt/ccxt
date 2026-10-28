@@ -62,6 +62,10 @@ export default class interactivebrokers extends interactivebrokersRest {
                     'source': 'trades', // 'midpoint', 'trades', 'bid_ask', 'bid', 'ask'
                     'outsideRth': false,
                 },
+                'watchOrderBook': {
+                    'skipFirstItem': true, // skip the first ladders that carry only the best bid and ask, the deeper sizes arrive a few seconds after subscribing
+                    'skipFirstItemTimeout': 10000, // ms, the top-of-book-only ladder is emitted anyway after this time (e.g. illiquid markets)
+                },
                 'watchMyTrades': {
                     'realtimeUpdatesOnly': false,
                     'days': 1,
@@ -873,6 +877,23 @@ export default class interactivebrokers extends interactivebrokersRest {
         if (isEmpty && !emitted) {
             client.subscriptions[messageHash] = subscription;
             return;
+        }
+        // the first filled ladders carry only the best bid and ask, the deeper sizes arrive a few seconds later,
+        // the top-of-book-only ladders are skipped until a deeper level arrives or skipFirstItemTimeout elapses
+        if (!emitted) {
+            const options = this.safeDict (this.options, 'watchOrderBook', {});
+            const skipFirstItem = this.safeBool (options, 'skipFirstItem', true);
+            const isTopOfBookOnly = (bids.length <= 1) && (asks.length <= 1);
+            if (skipFirstItem && isTopOfBookOnly) {
+                const now = this.milliseconds ();
+                const firstFilled = this.safeInteger (subscription, 'firstFilled', now);
+                subscription['firstFilled'] = firstFilled;
+                client.subscriptions[messageHash] = subscription;
+                const skipTimeout = this.safeInteger (options, 'skipFirstItemTimeout', 10000);
+                if ((now - firstFilled) < skipTimeout) {
+                    return;
+                }
+            }
         }
         subscription['emitted'] = true;
         client.subscriptions[messageHash] = subscription;
