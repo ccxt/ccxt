@@ -675,7 +675,7 @@ class paradex(Exchange, ImplicitAPI):
             return None
         settle = self.safe_currency_code(settleId)
         symbol = base + '/' + quote
-        if not isSpot:
+        if not isSpot and (settle is not None):
             symbol = symbol + ':' + settle
         expiry = self.safe_integer(market, 'expiry_at')
         optionType = self.safe_string(market, 'option_type')
@@ -687,7 +687,8 @@ class paradex(Exchange, ImplicitAPI):
             deliveryValue = ''
             if expiry != 0:
                 deliveryValue = self.yymmdd(expiry) + '-'
-            symbol = symbol + '-' + deliveryValue + strikePrice + '-' + optionTypeSuffix
+            if strikePrice is not None:
+                symbol = symbol + '-' + deliveryValue + strikePrice + '-' + optionTypeSuffix
             makerFee = self.parse_number('0.0003')
         else:
             expiry = None

@@ -449,6 +449,8 @@ class grvt(ccxt.async_support.grvt):
         secondPart = self.safe_string(parts, 1, '')
         timeframeId = secondPart.replace('-TRADE', '')
         timeframe = self.find_timeframe(timeframeId)
+        if timeframe is None:
+            return
         messageHash = 'ohlcv::' + symbol + '::' + timeframe
         self.ohlcvs[symbol] = self.safe_dict(self.ohlcvs, symbol, {})
         if not (timeframe in self.ohlcvs[symbol]):

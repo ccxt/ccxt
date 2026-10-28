@@ -1197,10 +1197,9 @@ class okx(ccxt.async_support.okx):
         for i in range(0, len(symbolsNormalized)):
             symbol = symbolsNormalized[i]
             messageHashes.append(depth + ':' + symbol)
-            marketId = self.market_id(symbol)
             topic = {
                 'channel': depth,
-                'instId': marketId,
+                'instId': self.market_id(symbol),
             }
             topics.append(topic)
         request = {

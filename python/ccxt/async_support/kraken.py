@@ -1459,7 +1459,7 @@ class kraken(Exchange, ImplicitAPI):
                 id = self.safe_string(trade, 6)  # artificially added as per #1794
         elif isinstance(trade, str):
             id = trade
-        elif 'ordertxid' in trade:
+        elif isOrderTrade:
             orderId = self.safe_string(trade, 'ordertxid')
             id = self.safe_string_2(trade, 'id', 'postxid')
             timestamp = self.safe_timestamp(trade, 'time')
@@ -1792,11 +1792,12 @@ class kraken(Exchange, ImplicitAPI):
         baseIdEnd = 3
         quoteIdStart = 3
         quoteIdEnd = 6
-        if len(id) == 8:
+        idLength = len(id)
+        if idLength == 8:
             baseIdEnd = 4
             quoteIdStart = 4
             quoteIdEnd = 8
-        elif len(id) == 7:
+        elif idLength == 7:
             baseIdEnd = 4
             quoteIdStart = 4
             quoteIdEnd = 7

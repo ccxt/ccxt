@@ -205,7 +205,9 @@ class binance(PredictionExchange, ImplicitAPI):
         :returns dict[]: raw market topic objects
         """
         maxTopicsOption = self.safe_integer(self.options, 'maxFetchMarketsLimit', 200)
-        maxTopicsResolved = maxTopics if (maxTopics is not None) else maxTopicsOption
+        maxTopicsResolved = self.parse_to_int(maxTopicsOption)
+        if maxTopics is not None:
+            maxTopicsResolved = self.parse_to_int(maxTopics)
         pageLimitOption = self.safe_integer(self.options, 'marketsPageLimit', 100)
         pageLimit = 100 if (pageLimitOption > 100) else pageLimitOption
         collected = []
@@ -1728,15 +1730,13 @@ class binance(PredictionExchange, ImplicitAPI):
         failedOrders = self.safe_list(response, 'failed', [])
         failedOrdersLength = len(failedOrders)
         if failedOrdersLength > 0:
-            failedDetails = ''
+            failedDetails = []
             for i in range(0, failedOrdersLength):
                 failedOrder = self.safe_dict(failedOrders, i)
-                failedOrderId = self.safe_string(failedOrder, 'orderId')
-                failedReason = self.safe_string(failedOrder, 'reason')
-                if i > 0:
-                    failedDetails = failedDetails + ', '
-                failedDetails = failedDetails + failedOrderId + ': ' + failedReason
-            raise OrderNotFound(self.id + ' cancelOrders() failed for ' + failedDetails)
+                failedOrderId = self.safe_string(failedOrder, 'orderId', '')
+                failedReason = self.safe_string(failedOrder, 'reason', '')
+                failedDetails.append(failedOrderId + ': ' + failedReason)
+            raise OrderNotFound(self.id + ' cancelOrders() failed for ' + ', '.join(failedDetails))
         orders = []
         canceledOrdersLength = len(canceledOrders)
         for i in range(0, canceledOrdersLength):

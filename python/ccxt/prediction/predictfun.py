@@ -356,10 +356,8 @@ class predictfun(PredictionExchange, ImplicitAPI):
         else:
             request = {}
             tags = self.safe_list(paramsValue, 'tags', [])
-            tagsLength = len(tags)
-            if tagsLength > 0:
-                tagsString = ','.join(tags)
-                request['tagIds'] = tagsString
+            if len(tags) > 0:
+                request['tagIds'] = ','.join(tags)
             postOmitKeys.append('limit')
             paramsCategories = self.omit(paramsValue, ['limit', 'tags'])
             extendedRequest = self.extend(request, paramsCategories)

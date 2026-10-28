@@ -348,6 +348,8 @@ class xt(ccxt.async_support.xt):
         options = self.safe_dict(self.options, 'watchTickers')
         defaultMethod = self.safe_string(options, 'method', 'tickers')
         name = self.safe_string(params, 'method', defaultMethod)
+        if name is None:
+            return self.filter_by_array(self.tickers, 'symbol', symbols)
         market = None
         if symbols is not None:
             market = self.market(symbols[0])
@@ -374,6 +376,8 @@ class xt(ccxt.async_support.xt):
         options = self.safe_dict(self.options, 'unWatchTickers')
         defaultMethod = self.safe_string(options, 'method', 'tickers')
         name = self.safe_string(params, 'method', defaultMethod)
+        if name is None:
+            return None
         if symbols is not None:
             raise NotSupported(self.id + ' unWatchTickers() does not support symbols argument, unsubscribtion is for all tickers at once only')
         if name is not None:

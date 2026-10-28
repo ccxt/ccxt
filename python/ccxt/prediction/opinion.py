@@ -1656,7 +1656,7 @@ class opinion(PredictionExchange, ImplicitAPI):
         sym = self.safe_string(outcomeObj, 'outcome')
         if sym is None:
             return
-        if self.safe_value(self.orderbooks, sym) is None:
+        if not (sym in self.orderbooks):
             # the delta belongs to the market's other token, whose book is not being watched
             return
         orderbook = self.orderbooks[sym]

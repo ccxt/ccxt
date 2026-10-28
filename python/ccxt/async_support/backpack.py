@@ -671,8 +671,9 @@ class backpack(Exchange, ImplicitAPI):
         stock = self.safe_bool(selection, 0, False)
         query = self.safe_dict(selection, 1, {})
         marketType = self.safe_string(query, 'marketType')
-        defaultTypes = ['SPOT', 'PERP', 'RFQ'] if (marketType is None) else [marketType]
-        requestedTypes = self.safe_list(query, 'marketType', defaultTypes)
+        requestedTypes = self.safe_list(query, 'marketType', ['SPOT', 'PERP', 'RFQ'])
+        if marketType is not None:
+            requestedTypes = [marketType]
         aliases = {'spot': 'SPOT', 'swap': 'PERP', 'stock': 'RFQ'}
         supportedTypes = ['SPOT', 'PERP', 'RFQ']
         marketTypes = []
@@ -1035,8 +1036,11 @@ class backpack(Exchange, ImplicitAPI):
         toIsStock = toCode.endswith('.US') or toCode.endswith('.HK')
         if fromIsStock == toIsStock:
             raise NotSupported(self.id + ' conversion requires exactly one stock currency')
-        stockCode = fromCode if (fromIsStock) else toCode
-        quoteCode = toCode if (fromIsStock) else fromCode
+        stockCode = fromCode
+        quoteCode = toCode
+        if not fromIsStock:
+            stockCode = toCode
+            quoteCode = fromCode
         symbol = stockCode + '.RFQ/' + quoteCode
         market = self.safe_dict(self.markets, symbol)
         if (market is None) or (self.safe_string(market, 'executionModel') != 'rfq') or not self.safe_bool(market, 'stock', False):
@@ -1513,7 +1517,7 @@ class backpack(Exchange, ImplicitAPI):
         interval = self.safe_string(self.timeframes, timeframe, timeframe)
         duration = self.parse_timeframe(timeframe)
         dataRequest = self.stock_data_request('fetchOHLCV', params, market)
-        request = {'symbol': dataRequest['symbol'], 'interval': interval}
+        request = {'symbol': self.safe_string(dataRequest, 'symbol'), 'interval': interval}
         until, paramsUntil = self.handle_option_integer_and_params(self.omit(dataRequest, 'symbol'), 'fetchOHLCV', 'until')
         if until is not None:
             request['endTime'] = self.parse_to_int(until / 1000)  # convert milliseconds to seconds
@@ -1525,7 +1529,7 @@ class backpack(Exchange, ImplicitAPI):
         startTime = None
         if since is None:
             endTime = self.seconds()
-            if until is not None and until is not None and until != 0:
+            if until is not None and until != 0:
                 endTime = self.parse_to_int(until / 1000)
             startTime = endTime - (windowLimit * duration)
         else:
