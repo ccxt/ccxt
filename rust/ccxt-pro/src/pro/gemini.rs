@@ -510,8 +510,8 @@ impl GeminiCore {
             }
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_353: bool = true;
-                while { if !__for_first_353 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_353 = false; i.as_f64().unwrap_or(f64::NAN) < ((trades.len() as i64) as f64) } {
+                let mut __for_first_354: bool = true;
+                while { if !__for_first_354 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_354 = false; i.as_f64().unwrap_or(f64::NAN) < ((trades.len() as i64) as f64) } {
                 let mut trade: Value = self.parse_ws_trade(self.safe_value(trades.clone(), i.clone(), &[]), &[market.clone()]);
                 stored.append(trade);
             }
@@ -529,8 +529,8 @@ impl GeminiCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_354: bool = true;
-            while { if !__for_first_354 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_354 = false; i.as_f64().unwrap_or(f64::NAN) < ((trades.len() as i64) as f64) } {
+            let mut __for_first_355: bool = true;
+            while { if !__for_first_355 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_355 = false; i.as_f64().unwrap_or(f64::NAN) < ((trades.len() as i64) as f64) } {
             let mut rawTrade: Value = self.safe_value(trades.clone(), i.clone(), &[]);
             let mut marketId: Value = (self.safe_string_k(rawTrade.clone(), "symbol", &[Value::Str("".into())])).as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
             let mut market: Value = self.safe_market(&[marketId]);
@@ -550,8 +550,8 @@ impl GeminiCore {
         let mut symbols: Vec<Value> = Value::Array(storesForSymbols.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_355: bool = true;
-            while { if !__for_first_355 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_355 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
+            let mut __for_first_356: bool = true;
+            while { if !__for_first_356 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_356 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
             let mut symbol: Value = symbols.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
             let mut stored: Value = storesForSymbols.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("trades:".into()), symbol).into());
@@ -670,8 +670,8 @@ impl GeminiCore {
         let mut changesLength: Value = Value::Int(changes.len() as i64);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_356: bool = true;
-            while { if !__for_first_356 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_356 = false; i.as_f64().unwrap_or(f64::NAN) < changesLength.as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_357: bool = true;
+            while { if !__for_first_357 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_357 = false; i.as_f64().unwrap_or(f64::NAN) < changesLength.as_f64().unwrap_or(f64::NAN) } {
             let mut index: Value = (match (&((match (&(changesLength), &(i)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })),
                 &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
             let mut parsed: Value = self.parse_ohlcv(self.safe_value(changes.clone(), index, &[]), &[market.clone()]);
@@ -752,8 +752,8 @@ impl GeminiCore {
             let mut asksSnapshot: Vec<Value> = Vec::new();
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_357: bool = true;
-                while { if !__for_first_357 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_357 = false; i.as_f64().unwrap_or(f64::NAN) < ((changes.len() as i64) as f64) } {
+                let mut __for_first_358: bool = true;
+                while { if !__for_first_358 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_358 = false; i.as_f64().unwrap_or(f64::NAN) < ((changes.len() as i64) as f64) } {
                 let mut delta: Value = changes.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
                 let mut bidAsk: Value = Value::from(vec![self.safe_number(delta.clone(), Value::Int(1), &[]), self.safe_number(delta.clone(), Value::Int(2), &[])]);
                 if (self.safe_string(delta.clone(), Value::Int(0), &[]).as_str() == Some("buy")) {
@@ -775,8 +775,8 @@ impl GeminiCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_358: bool = true;
-            while { if !__for_first_358 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_358 = false; i.as_f64().unwrap_or(f64::NAN) < ((changes.len() as i64) as f64) } {
+            let mut __for_first_359: bool = true;
+            while { if !__for_first_359 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_359 = false; i.as_f64().unwrap_or(f64::NAN) < ((changes.len() as i64) as f64) } {
             let mut delta: Value = changes.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
             let mut price: Value = self.safe_number(delta.clone(), Value::Int(1), &[]);
             let mut size: Value = self.safe_number(delta.clone(), Value::Int(2), &[]);
@@ -876,8 +876,8 @@ impl GeminiCore {
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("bidsasks:".into()), symbol).into());
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_359: bool = true;
-            while { if !__for_first_359 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_359 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawBidAskChanges.len() as i64) as f64) } {
+            let mut __for_first_360: bool = true;
+            while { if !__for_first_360 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_360 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawBidAskChanges.len() as i64) as f64) } {
             let mut entry: Value = self.safe_dict(rawBidAskChanges.clone(), i.clone(), &[]);
             let mut rawSide: Option<String> = self.safe_string_k(entry.clone(), "side", &[]).as_str().map(str::to_owned);
             let mut price: Value = self.safe_number_k(entry.clone(), "price", &[]);
@@ -928,8 +928,8 @@ impl GeminiCore {
         let mut marketIds: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_360: bool = true;
-            while { if !__for_first_360 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_360 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
+            let mut __for_first_361: bool = true;
+            while { if !__for_first_361 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_361 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
             let mut symbol: Value = self.safe_string(symbolsNormalized.clone(), i.clone(), &[Value::Str("".into())]);
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", itemHashName, Value::Str(":".into())).into()), symbol).into());
             messageHashes.push(messageHash);
@@ -985,8 +985,8 @@ impl GeminiCore {
         let mut asks: Value = get_value(&orderbook, &Value::Str("asks".into()));
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_361: bool = true;
-            while { if !__for_first_361 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_361 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawOrderBookChanges.len() as i64) as f64) } {
+            let mut __for_first_362: bool = true;
+            while { if !__for_first_362 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_362 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawOrderBookChanges.len() as i64) as f64) } {
             let mut entry: Value = self.safe_dict(rawOrderBookChanges.clone(), i.clone(), &[]);
             let mut price: Value = self.safe_number_k(entry.clone(), "price", &[]);
             let mut size: Value = self.safe_number_k(entry.clone(), "remaining", &[]);
@@ -1151,8 +1151,8 @@ impl GeminiCore {
         let mut orders: Value = self.orders.clone();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_362: bool = true;
-            while { if !__for_first_362 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_362 = false; i.as_f64().unwrap_or(f64::NAN) < ((message.len() as i64) as f64) } {
+            let mut __for_first_363: bool = true;
+            while { if !__for_first_363 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_363 = false; i.as_f64().unwrap_or(f64::NAN) < ((message.len() as i64) as f64) } {
             let mut order: Value = self.parse_ws_order(self.safe_value(message.clone(), i.clone(), &[]), &[]);
             orders.append(order);
         }
@@ -1332,8 +1332,8 @@ impl GeminiCore {
             let mut eventsLength: f64 = ((events.len() as i64) as f64);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_363: bool = true;
-                while { if !__for_first_363 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_363 = false; i.as_f64().unwrap_or(f64::NAN) < ((events.len() as i64) as f64) } {
+                let mut __for_first_364: bool = true;
+                while { if !__for_first_364 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_364 = false; i.as_f64().unwrap_or(f64::NAN) < ((events.len() as i64) as f64) } {
                 let mut event: Value = self.safe_value(events.clone(), i.clone(), &[]);
                 let mut eventType: Option<String> = self.safe_string_k(event.clone(), "type", &[]).as_str().map(str::to_owned);
                 let mut side: Option<String> = self.safe_string_k_opt(event.clone(), "side", &[]);

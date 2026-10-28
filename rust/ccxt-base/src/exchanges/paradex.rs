@@ -1707,8 +1707,8 @@ impl ParadexCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1054: bool = true;
-            while { if !__for_first_1054 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1054 = false; i.as_f64().unwrap_or(f64::NAN) < ((fees.len() as i64) as f64) } {
+            let mut __for_first_1055: bool = true;
+            while { if !__for_first_1055 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1055 = false; i.as_f64().unwrap_or(f64::NAN) < ((fees.len() as i64) as f64) } {
             let mut fee: indexmap::IndexMap<String, Value> = self.parse_trading_fee(fees.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null), &[]).as_map().cloned().unwrap_or_default();
             let mut symbol: Value = fee.get("symbol").cloned().unwrap_or(Value::Null);
             if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map(fee)); }
@@ -2234,8 +2234,8 @@ impl ParadexCore {
         let mut trades: Value = self.safe_list_k(response.clone(), "results", &[Value::from(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1055: bool = true;
-            while { if !__for_first_1055 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1055 = false; i.as_f64().unwrap_or(f64::NAN) < ((trades.len() as i64) as f64) } {
+            let mut __for_first_1056: bool = true;
+            while { if !__for_first_1056 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1056 = false; i.as_f64().unwrap_or(f64::NAN) < ((trades.len() as i64) as f64) } {
             add_element_to_object(get_value_mut(&mut trades, &i), &Value::Str("next".into()), self.safe_string_k(response.clone(), "next", &[]));
         }
         }
@@ -3078,8 +3078,8 @@ impl ParadexCore {
         let mut ordersRequests: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1056: bool = true;
-            while { if !__for_first_1056 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1056 = false; i.as_f64().unwrap_or(f64::NAN) < ((orders.len() as i64) as f64) } {
+            let mut __for_first_1057: bool = true;
+            while { if !__for_first_1057 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1057 = false; i.as_f64().unwrap_or(f64::NAN) < ((orders.len() as i64) as f64) } {
             let mut rawOrder: Value = self.safe_dict(orders.clone(), i.clone(), &[]);
             let mut symbol: Option<String> = self.safe_string_k_opt(rawOrder.clone(), "symbol", &[]);
             let mut type_var: Option<String> = self.safe_string_k_opt(rawOrder.clone(), "type", &[]);
@@ -3127,8 +3127,8 @@ impl ParadexCore {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1057: bool = true;
-            while { if !__for_first_1057 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1057 = false; i.as_f64().unwrap_or(f64::NAN) < ((orders.len() as i64) as f64) } {
+            let mut __for_first_1058: bool = true;
+            while { if !__for_first_1058 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1058 = false; i.as_f64().unwrap_or(f64::NAN) < ((orders.len() as i64) as f64) } {
             let mut responseOrder: Value = self.safe_dict(responseOrders.clone(), i.clone(), &[]);
             if (responseOrder != Value::Null) {
                 result.push(self.parse_order(responseOrder, &[]));
@@ -3258,8 +3258,8 @@ impl ParadexCore {
         let mut orders: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1058: bool = true;
-            while { if !__for_first_1058 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1058 = false; i.as_f64().unwrap_or(f64::NAN) < ((results.len() as i64) as f64) } {
+            let mut __for_first_1059: bool = true;
+            while { if !__for_first_1059 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1059 = false; i.as_f64().unwrap_or(f64::NAN) < ((results.len() as i64) as f64) } {
             let mut result: Value = results.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
             let mut marketId: Option<String> = self.safe_string_k_opt(result.clone(), "market", &[]);
             let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
@@ -3584,8 +3584,8 @@ impl ParadexCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1059: bool = true;
-            while { if !__for_first_1059 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1059 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&response).as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_1060: bool = true;
+            while { if !__for_first_1060 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1060 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&response).as_f64().unwrap_or(f64::NAN) } {
             let mut balance: Value = self.safe_dict(response.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3681,8 +3681,8 @@ impl ParadexCore {
         let mut trades: Value = self.safe_list_k(response.clone(), "results", &[Value::from(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1060: bool = true;
-            while { if !__for_first_1060 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1060 = false; i.as_f64().unwrap_or(f64::NAN) < ((trades.len() as i64) as f64) } {
+            let mut __for_first_1061: bool = true;
+            while { if !__for_first_1061 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1061 = false; i.as_f64().unwrap_or(f64::NAN) < ((trades.len() as i64) as f64) } {
             add_element_to_object(get_value_mut(&mut trades, &i), &Value::Str("next".into()), self.safe_string_k(response.clone(), "next", &[]));
         }
         }
@@ -3996,8 +3996,8 @@ impl ParadexCore {
         let mut deposits: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1061: bool = true;
-            while { if !__for_first_1061 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1061 = false; i.as_f64().unwrap_or(f64::NAN) < ((rows.len() as i64) as f64) } {
+            let mut __for_first_1062: bool = true;
+            while { if !__for_first_1062 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1062 = false; i.as_f64().unwrap_or(f64::NAN) < ((rows.len() as i64) as f64) } {
             let mut row: Value = rows.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
             if (self.safe_string_k(row.clone(), "kind", &[]).as_str() == Some("DEPOSIT")) {
                 deposits.push(row);
@@ -4080,8 +4080,8 @@ impl ParadexCore {
         let mut deposits: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1062: bool = true;
-            while { if !__for_first_1062 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1062 = false; i.as_f64().unwrap_or(f64::NAN) < ((rows.len() as i64) as f64) } {
+            let mut __for_first_1063: bool = true;
+            while { if !__for_first_1063 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1063 = false; i.as_f64().unwrap_or(f64::NAN) < ((rows.len() as i64) as f64) } {
             let mut row: Value = rows.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
             if (self.safe_string_k(row.clone(), "kind", &[]).as_str() == Some("WITHDRAWAL")) {
                 deposits.push(row);
@@ -4881,8 +4881,8 @@ impl ParadexCore {
         let mut rates: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1063: bool = true;
-            while { if !__for_first_1063 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1063 = false; i.as_f64().unwrap_or(f64::NAN) < ((results.len() as i64) as f64) } {
+            let mut __for_first_1064: bool = true;
+            while { if !__for_first_1064 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1064 = false; i.as_f64().unwrap_or(f64::NAN) < ((results.len() as i64) as f64) } {
             let mut rate: Value = results.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
             let mut timestamp: Value = self.safe_integer_k(rate.clone(), "created_at", &[]);
             let mut datetime: Value = self.iso8601(timestamp.clone());
@@ -5027,8 +5027,8 @@ impl ParadexCore {
             let mut batchErrors: Vec<Value> = self.safe_list_k(response, "errors", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1064: bool = true;
-                while { if !__for_first_1064 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1064 = false; i.as_f64().unwrap_or(f64::NAN) < ((batchErrors.len() as i64) as f64) } {
+                let mut __for_first_1065: bool = true;
+                while { if !__for_first_1065 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1065 = false; i.as_f64().unwrap_or(f64::NAN) < ((batchErrors.len() as i64) as f64) } {
                 let mut batchErrorCode: Option<String> = self.safe_string_opt(batchErrors.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null), Value::Str("error".into()), &[]);
                 if (batchErrorCode.is_some()) {
                     errorCode = batchErrorCode.map(Value::from).unwrap_or(Value::Null);

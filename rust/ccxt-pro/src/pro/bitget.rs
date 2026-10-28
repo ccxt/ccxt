@@ -938,7 +938,6 @@ impl BitgetCore {
  * @param {int} [limit] the maximum amount of candles to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
- * @param {boolean} [params.stock] set to true for tokenized stock symbols, defaults to market['stock']
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
     pub async fn watch_ohlcv(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
@@ -960,11 +959,10 @@ impl BitgetCore {
         let utaparamsUtaVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("watchOHLCV".into()), Value::Str("uta".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut uta: Value = utaparamsUtaVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsUta: Value = utaparamsUtaVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut stockDefault: Value = self.safe_bool_k(market.clone(), "stock", &[Value::Bool(false)]);
-        let stockparamsStockVariable: Vec<Value> = self.handle_option_bool_and_params(paramsUta, Value::Str("watchOHLCV".into()), Value::Str("stock".into()), &[stockDefault]).as_array().cloned().unwrap_or_default();
-        let mut stock: Value = stockparamsStockVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsStock: Value = stockparamsStockVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut isStockOrUta: Value = (Value::Bool((stock.as_bool() == Some(true)) || (uta.as_bool() == Some(true))));
+        let mut isStock: Value = market.as_map().and_then(|__m| __m.get("stock")).cloned().unwrap_or(Value::Null);
+        let mut paramsStock: Value = self.omit(paramsUta, Value::Str("stock".into()), &[]);
+        let mut isStockSpot: bool = is_true(&isStock) && is_true(&market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null));
+        let mut isStockOrUta: Value = (Value::Bool(isStockSpot || (uta.as_bool() == Some(true))));
         let instTypeparamsInstTypeVariable: Vec<Value> = self.get_inst_type(Value::Str("watchOHLCV".into()), market.clone(), &[isStockOrUta.clone(), paramsStock]).as_array().cloned().unwrap_or_default();
         let mut instType: Value = instTypeparamsInstTypeVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsInstType: Value = instTypeparamsInstTypeVariable.get(1).cloned().unwrap_or(Value::Null);
@@ -1012,7 +1010,6 @@ impl BitgetCore {
  * @param {string} [timeframe] the period for the ratio, default is 1 minute
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
- * @param {boolean} [params.stock] set to true for tokenized stock symbols, defaults to market['stock']
  * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn un_watch_ohlcv(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
@@ -1031,11 +1028,10 @@ impl BitgetCore {
         let mut messageHash: Value = Value::Null;
         let mut values: Value = self.handle_option_bool_and_params(params.clone(), Value::Str("watchOHLCV".into()), Value::Str("uta".into()), &[Value::Bool(false)]);
         let mut uta: Value = values.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-        let mut stockDefault: Value = self.safe_bool_k(market.clone(), "stock", &[Value::Bool(false)]);
-        let stockparamsStockVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("watchOHLCV".into()), Value::Str("stock".into()), &[stockDefault]).as_array().cloned().unwrap_or_default();
-        let mut stock: Value = stockparamsStockVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsStock: Value = stockparamsStockVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut isStockOrUta: Value = (Value::Bool((stock.as_bool() == Some(true)) || (uta.as_bool() == Some(true))));
+        let mut isStock: Value = market.as_map().and_then(|__m| __m.get("stock")).cloned().unwrap_or(Value::Null);
+        let mut paramsStock: Value = self.omit(params, Value::Str("stock".into()), &[]);
+        let mut isStockSpot: bool = is_true(&isStock) && is_true(&market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null));
+        let mut isStockOrUta: Value = (Value::Bool(isStockSpot || (uta.as_bool() == Some(true))));
         let instTypeparamsInstTypeVariable: Vec<Value> = self.get_inst_type(Value::Str("watchOHLCV".into()), market.clone(), &[isStockOrUta.clone(), paramsStock]).as_array().cloned().unwrap_or_default();
         let mut instType: Value = instTypeparamsInstTypeVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsInstType: Value = instTypeparamsInstTypeVariable.get(1).cloned().unwrap_or(Value::Null);
@@ -1218,8 +1214,13 @@ impl BitgetCore {
         if (isInverse.as_bool() == Some(true)) {
             volumeIndex = Value::Int(6);
         }
-        return Value::from(vec![self.safe_integer2(ohlcv.clone(), Value::Str("start".into()), Value::Int(0), &[]), self.safe_number2(ohlcv.clone(), Value::Str("open".into()), Value::Int(1), &[]), self.safe_number2(ohlcv.clone(), Value::Str("high".into()), Value::Int(2), &[]), self.safe_number2(ohlcv.clone(), Value::Str("low".into()), Value::Int(3), &[]),
-            self.safe_number2(ohlcv.clone(), Value::Str("close".into()), Value::Int(4), &[]), self.safe_number2(ohlcv, Value::Str("volume".into()), volumeIndex, &[])]);
+        let mut timestamp: Value = self.safe_integer2(ohlcv.clone(), Value::Str("start".into()), Value::Int(0), &[]);
+        let mut open: Value = self.safe_number2(ohlcv.clone(), Value::Str("open".into()), Value::Int(1), &[]);
+        let mut high: Value = self.safe_number2(ohlcv.clone(), Value::Str("high".into()), Value::Int(2), &[]);
+        let mut low: Value = self.safe_number2(ohlcv.clone(), Value::Str("low".into()), Value::Int(3), &[]);
+        let mut close: Value = self.safe_number2(ohlcv.clone(), Value::Str("close".into()), Value::Int(4), &[]);
+        let mut volume: Value = self.safe_number2(ohlcv, Value::Str("volume".into()), volumeIndex, &[]);
+        return Value::from(vec![timestamp, open, high, low, close, volume]);
 
     Value::Null
 }
@@ -1235,7 +1236,6 @@ impl BitgetCore {
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
- * @param {boolean} [params.stock] set to true for tokenized stock symbols, defaults to market['stock']
  * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn watch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
@@ -1260,7 +1260,6 @@ impl BitgetCore {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.limit] orderbook limit, default is undefined
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
- * @param {boolean} [params.stock] set to true for tokenized stock symbols, defaults to market['stock']
  * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn un_watch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
@@ -1271,15 +1270,14 @@ impl BitgetCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut market: Value = self.market(symbol.clone());
-        let mut stockDefault: Value = self.safe_bool_k(market, "stock", &[Value::Bool(false)]);
-        let stockparamsStockVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("unWatchOrderBook".into()), Value::Str("stock".into()), &[stockDefault]).as_array().cloned().unwrap_or_default();
-        let mut stock: Value = stockparamsStockVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsStock: Value = stockparamsStockVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut market: indexmap::IndexMap<String, Value> = self.market(symbol.clone()).as_map().cloned().unwrap_or_default();
+        let mut isStock: Value = market.get("stock").cloned().unwrap_or(Value::Null);
+        let mut paramsStock: Value = self.omit(params, Value::Str("stock".into()), &[]);
         let utaparamsUtaVariable: Vec<Value> = self.handle_option_bool_and_params(paramsStock, Value::Str("unWatchOrderBook".into()), Value::Str("uta".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut uta: Value = utaparamsUtaVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsUta: Value = utaparamsUtaVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut isStockOrUta: bool = (stock.as_bool() == Some(true)) || (uta.as_bool() == Some(true));
+        let mut isStockSpot: bool = is_true(&isStock) && is_true(&market.get("spot").cloned().unwrap_or(Value::Null));
+        let mut isStockOrUta: bool = isStockSpot || (uta.as_bool() == Some(true));
         let mut paramsRequest: Value = paramsUta.clone();
         if isStockOrUta {
             paramsRequest = self.extend(paramsUta, &[Value::Map({
@@ -1365,7 +1363,6 @@ impl BitgetCore {
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
- * @param {boolean} [params.stock] set to true for tokenized stock symbols, defaults to market['stock']
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
     pub async fn watch_order_book_for_symbols(&mut self, mut symbols: Value, optional_args: &[Value]) -> Value {
@@ -1379,18 +1376,17 @@ impl BitgetCore {
         }
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
         let mut symbolsLength: f64 = ((symbolsNormalized.len() as i64) as f64);
-        let mut firstMarket: Value = Value::Null;
+        let mut isStockSpot: bool = false;
         if symbolsLength > ((0i64) as f64) {
-            firstMarket = self.market(symbolsNormalized.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null));
+            let mut market: Value = self.market(symbolsNormalized.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null));
+            let mut isStock: Value = market.as_map().and_then(|__m| __m.get("stock")).cloned().unwrap_or(Value::Null);
+            isStockSpot = is_true(&isStock) && is_true(&market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null));
         }
-        let mut stockDefault: Value = self.safe_bool_k(firstMarket, "stock", &[Value::Bool(false)]);
-        let stockparamsStockVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("watchOrderBookForSymbols".into()), Value::Str("stock".into()), &[stockDefault]).as_array().cloned().unwrap_or_default();
-        let mut stock: Value = stockparamsStockVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsStock: Value = stockparamsStockVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsStock: Value = self.omit(params, Value::Str("stock".into()), &[]);
         let utaparamsUtaVariable: Vec<Value> = self.handle_option_bool_and_params(paramsStock, Value::Str("watchOrderBookForSymbols".into()), Value::Str("uta".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut uta: Value = utaparamsUtaVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsUta: Value = utaparamsUtaVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut isStockOrUta: Value = (Value::Bool((stock.as_bool() == Some(true)) || (uta.as_bool() == Some(true))));
+        let mut isStockOrUta: Value = (Value::Bool(isStockSpot || (uta.as_bool() == Some(true))));
         let mut channel: Value = Value::Str("books".into());
         let mut incrementalFeed: bool = true;
         if (limit.as_f64() == Some(1.0)) || (limit.as_f64() == Some(5.0)) || (limit.as_f64() == Some(15.0)) || (limit.as_f64() == Some(50.0)) {
@@ -1522,7 +1518,8 @@ impl BitgetCore {
                 if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ob); }
             }
             let mut storedOrderBook: Value = self.orderbooks.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
-            let mut isSnapshot: bool = (match message.get("action") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str() == Some("snapshot"); // snapshot does not have a checksum
+            let mut action: Option<String> = (match message.get("action") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
+            let mut isSnapshot: bool = action.as_deref() == Some("snapshot"); // snapshot does not have a checksum
             if isSnapshot {
                 // a snapshot replaces the book, e.g. after a reconnect, levels absent from it must not survive
                 storedOrderBook.reset(Value::Map({
@@ -1964,9 +1961,10 @@ impl BitgetCore {
         if (first != Value::Null) {
             let mut feeCurrencyId: Option<String> = self.safe_string_k_opt(first.clone(), "feeCoin", &[]);
             let mut feeCurrencyCode: Value = self.safe_currency_code(feeCurrencyId.map(Value::from).unwrap_or(Value::Null), &[]);
+            let mut feeCost: Value = self.safe_string2(first, Value::Str("totalFee".into()), Value::Str("fee".into()), &[]);
             fee = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("cost".to_string(), crate::precise::Precise::stringAbs(&self.safe_string2(first, Value::Str("totalFee".into()), Value::Str("fee".into()), &[])));
+                    m.insert("cost".to_string(), crate::precise::Precise::stringAbs(&feeCost));
                     m.insert("currency".to_string(), feeCurrencyCode);
                 m
             });
@@ -2818,8 +2816,10 @@ impl BitgetCore {
         let mut avgPrice: Value = (if (avgPriceString == Value::Null) { Value::Null } else { self.omit_zero(avgPriceString) });
         let mut side: Option<String> = self.safe_string_k_opt(order.clone(), "side", &[]);
         let mut type_var: Option<String> = self.safe_string_k_opt(order.clone(), "orderType", &[]);
-        let mut accBaseVolume: Value = self.omit_zero(self.safe_string2(order.clone(), Value::Str("accBaseVolume".into()), Value::Str("cumExecQty".into()), &[]));
-        let mut newSizeValue: Value = self.omit_zero(self.safe_string2(order.clone(), Value::Str("newSize".into()), Value::Str("cumExecValue".into()), &[]));
+        let mut accBaseVolumeString: Value = self.safe_string2(order.clone(), Value::Str("accBaseVolume".into()), Value::Str("cumExecQty".into()), &[]);
+        let mut accBaseVolume: Value = self.omit_zero(accBaseVolumeString);
+        let mut newSizeString: Value = self.safe_string2(order.clone(), Value::Str("newSize".into()), Value::Str("cumExecValue".into()), &[]);
+        let mut newSizeValue: Value = self.omit_zero(newSizeString);
         let mut isMarketOrder: bool = type_var.as_deref() == Some("market");
         let mut isBuy: bool = side.as_deref() == Some("buy");
         let mut totalAmount: Value = Value::Null;
@@ -3978,10 +3978,11 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //
         let mut argsList: Value = (match __pro_message.get("args").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::Null });
         if (argsList == Value::Null) {
-            argsList = Value::from(vec![(match __pro_message.get("arg").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Map({
+            let mut arg: Value = (match __pro_message.get("arg").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}) })]);
+}) });
+            argsList = Value::from(vec![arg.clone()]);
         }
         {
                         let mut i: Value = Value::Int(0);

@@ -681,6 +681,7 @@ impl LighterCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("exact".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
+        m.insert("20001".to_string(), Value::Str("BadRequest".into()).clone());
         m.insert("21146".to_string(), Value::Str("ExchangeError".into()).clone());
         m.insert("21500".to_string(), Value::Str("ExchangeError".into()).clone());
         m.insert("21501".to_string(), Value::Str("ExchangeError".into()).clone());
@@ -753,10 +754,12 @@ impl LighterCore {
         m.insert("21904".to_string(), Value::Str("InvalidOrder".into()).clone());
         m.insert("21905".to_string(), Value::Str("InvalidOrder".into()).clone());
         m.insert("21906".to_string(), Value::Str("InvalidOrder".into()).clone());
+        m.insert("22400".to_string(), Value::Str("BadRequest".into()).clone());
         m.insert("23000".to_string(), Value::Str("RateLimitExceeded".into()).clone());
         m.insert("23001".to_string(), Value::Str("RateLimitExceeded".into()).clone());
         m.insert("23002".to_string(), Value::Str("RateLimitExceeded".into()).clone());
         m.insert("23003".to_string(), Value::Str("RateLimitExceeded".into()).clone());
+        m.insert("29404".to_string(), Value::Str("BadRequest".into()).clone());
     m
 }));
         m.insert("broad".to_string(), Value::Map({
@@ -4792,7 +4795,7 @@ if _try_result.is_err() {
         //     }
         //
         let mut code: Option<String> = self.safe_string_k_opt(response.clone(), "code", &[]);
-        let mut message: Option<String> = self.safe_string_k_opt(response, "msg", &[]);
+        let mut message: Option<String> = self.safe_string_k_opt(response, "message", &[]);
         if (code.is_some()) && (code.as_deref() != Some("0")) && (code.as_deref() != Some("200")) {
             let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body).into());
             self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), message.map(Value::from).unwrap_or(Value::Null), feedback.clone());

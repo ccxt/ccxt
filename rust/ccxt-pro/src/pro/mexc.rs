@@ -646,8 +646,8 @@ impl MexcCore {
         let mut result: Vec<Value> = vec![];
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_493: bool = true;
-            while { if !__for_first_493 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_493 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
+            let mut __for_first_494: bool = true;
+            while { if !__for_first_494 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_494 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             let mut entry: Value = data.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut ticker: Value = Value::Null;
             if (isSpot.as_bool() == Some(true)) {
@@ -766,8 +766,8 @@ impl MexcCore {
         let mut topics: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_494: bool = true;
-            while { if !__for_first_494 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_494 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
+            let mut __for_first_495: bool = true;
+            while { if !__for_first_495 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_495 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
             if isSpot {
                 let mut market: Value = self.market(symbolsNormalized.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
                 topics.push(Value::Str(format!("{}{}", Value::Str("spot@public.aggre.bookTicker.v3.api.pb@100ms@".into()), self.safe_string_k(market, "id", &[Value::Str("".into())])).into()));
@@ -878,11 +878,16 @@ impl MexcCore {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), method);
-                m.insert("params".to_string(), Value::from(vec![channel]));
+                m.insert("params".to_string(), Value::from(vec![channel.clone()]));
+            m
+        });
+        let mut subscription: indexmap::IndexMap<String, Value> = ({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("channel".to_string(), channel);
             m
         });
         let __ws_arg_2 = self.extend(Value::Map(request), &[paramsOmitted]);
-        return self.watch(url, messageHash.clone(), &[__ws_arg_2, messageHash.clone()]).await;
+        return self.watch(url, messageHash.clone(), &[__ws_arg_2, messageHash.clone(), Value::Map(subscription)]).await;
 
     Value::Null
 }
@@ -1233,12 +1238,15 @@ impl MexcCore {
     pub fn handle_order_book_subscription(&mut self, mut client: Value, mut message: Value) {
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
-        // spot
+        // the ack echoes the subscribed channel, the market id is always its last segment
+        //
+        //     { id: 0, code: 0, msg: "spot@public.aggre.depth.v3.api.pb@100ms@BTCUSDT" }
         //     { id: 0, code: 0, msg: "spot@public.increase.depth.v3.api@BTCUSDT" }
         //
         let mut msg: Value = (match message.get("msg") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) });
         let mut parts: Value = Value::Array(msg.as_str().map(|__s| __s.split("@").map(Value::from).collect()).unwrap_or_default());
-        let mut marketId: Option<String> = self.safe_string_opt(parts, Value::Int(2), &[]);
+        let mut partsLength: Value = Value::Int(parts.len() as i64); // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
+        let mut marketId: Option<String> = self.safe_string_opt(parts, (match (&(partsLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[]);
         let mut symbol: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[]);
         if !(matches!((&self.orderbooks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             { let __be_tmp = self.order_book(&[Value::Map({
@@ -1265,8 +1273,8 @@ impl MexcCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_495: bool = true;
-            while { if !__for_first_495 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_495 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&cache).as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_496: bool = true;
+            while { if !__for_first_496 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_496 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&cache).as_f64().unwrap_or(f64::NAN) } {
             let mut delta: Value = self.safe_dict(cache.clone(), i.clone(), &[]);
             let mut deltaNonce: Value = self.safe_integer_n(delta, Value::from(vec![Value::Str("r".into()), Value::Str("version".into()), Value::Str("fromVersion".into())]), &[]);
             if (deltaNonce == Value::Null) {
@@ -1398,8 +1406,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let bidasks = bidasks.as_array().unwrap_or(&__bidasks_empty);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_496: bool = true;
-            while { if !__for_first_496 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_496 = false; i.as_f64().unwrap_or(f64::NAN) < ((bidasks.len() as i64) as f64) } {
+            let mut __for_first_497: bool = true;
+            while { if !__for_first_497 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_497 = false; i.as_f64().unwrap_or(f64::NAN) < ((bidasks.len() as i64) as f64) } {
             let mut bidask: Value = bidasks.get((i).as_i64().map_or(usize::MAX, |__n| __n as usize)).cloned().unwrap_or(Value::Null);
             if (matches!(&bidask, Value::Arr(_))) {
                 bookside.store_array(bidask.clone());
@@ -1545,8 +1553,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_497: bool = true;
-            while { if !__for_first_497 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_497 = false; j.as_f64().unwrap_or(f64::NAN) < ((trades.len() as i64) as f64) } {
+            let mut __for_first_498: bool = true;
+            while { if !__for_first_498 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_498 = false; j.as_f64().unwrap_or(f64::NAN) < ((trades.len() as i64) as f64) } {
             let mut parsedTrade: Value = Value::Null;
             if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
                 parsedTrade = self.parse_ws_trade(trades.as_array().and_then(|__arr| match &j { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), &[market.clone()]);
@@ -2407,8 +2415,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut topics: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_498: bool = true;
-            while { if !__for_first_498 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_498 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
+            let mut __for_first_499: bool = true;
+            while { if !__for_first_499 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_499 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
             if isSpot {
                 let mut market: Value = self.market(symbolsNormalized.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
                 topics.push(Value::Str(format!("{}{}", Value::Str("spot@public.aggre.bookTicker.v3.api.pb@100ms@".into()), self.safe_string_k(market, "id", &[Value::Str("".into())])).into()));
@@ -2572,8 +2580,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     pub fn handle_unsubscriptions(&mut self, mut client: Value, mut messageHashes: Value) {
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_500: bool = true;
-            while { if !__for_first_500 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_500 = false; i.as_f64().unwrap_or(f64::NAN) < ((messageHashes.len() as i64) as f64) } {
+            let mut __for_first_501: bool = true;
+            while { if !__for_first_501 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_501 = false; i.as_f64().unwrap_or(f64::NAN) < ((messageHashes.len() as i64) as f64) } {
             let mut messageHash: Value = self.safe_string(messageHashes.clone(), i.clone(), &[Value::Str("".into())]);
             let mut subMessageHash: Value = messageHash.as_str().map(|__s| Value::Str(__s.replace("unsubscribe:", "").into())).unwrap_or_else(|| messageHash.clone());
             self.clean_unsubscription(client.clone(), subMessageHash, messageHash.clone(), &[]);
@@ -2584,8 +2592,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     let mut symbols: Vec<Value> = Value::Array(self.tickers.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
                     {
                                                 let mut j: Value = Value::Int(0);
-                        let mut __for_first_499: bool = true;
-                        while { if !__for_first_499 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_499 = false; j.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
+                        let mut __for_first_500: bool = true;
+                        while { if !__for_first_500 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_500 = false; j.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
                         if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.tickers, &symbols.get(j.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null)) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
                     }
                     }
@@ -2718,6 +2726,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
 }
 
     pub fn handle_subscription_status(&mut self, mut client: Value, mut message: Value) {
+        let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         //
@@ -2726,10 +2735,45 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         //        "code": 0,
         //        "msg": "spot@public.increase.depth.v3.api@BTCUSDT"
         //    }
+        //
+        // a rejected subscription answers with code 0 as well, the failure is only in the text
+        //
+        //    {
+        //        "id": 0,
+        //        "code": 0,
+        //        "msg": "Not Subscribed successfully! [spot@public.aggre.depth.v3.api.pb@999ms@BTCUSDT].  Reason： Blocked! "
+        //    }
+        //
         // Set the default to an empty string if the message is empty during the test.
         let mut msg: Value = (match __pro_message.get("msg").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) });
         if (msg.as_str() == Some("PONG")) {
             self.handle_pong(client.clone(), message.clone());
+        }  else if Value::Int(msg.as_str().and_then(|__s| __s.find("Not Subscribed successfully")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64) {
+            // the venue names the refused channel between brackets, reject only that watcher
+            // and drop its subscription so a corrected retry sends a new frame
+            let mut error = Value::from(crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), msg)));
+            let mut subscriptionHashes: Vec<Value> = object_keys(&__ch.subscriptions.clone()).as_array().cloned().unwrap_or_default();
+            let mut rejected: bool = false;
+            {
+                                let mut i: Value = Value::Int(0);
+                let mut __for_first_502: bool = true;
+                while { if !__for_first_502 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_502 = false; i.as_f64().unwrap_or(f64::NAN) < ((subscriptionHashes.len() as i64) as f64) } {
+                let mut subscriptionHash: Value = subscriptionHashes.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+                let mut subscribedChannel: Option<String> = self.safe_string_opt(get_value(&__ch.subscriptions.clone(), &subscriptionHash), Value::Str("channel".into()), &[]);
+                if (subscribedChannel.is_some()) && ((match (&(msg), &(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("[".into()), subscribedChannel.map(Value::from).unwrap_or(Value::Null)).into()), Value::Str("]".into())).into()))) { (Value::Arr(__a), __nd) => Value::Int(__a.iter().position(|__it| match (__it, __nd) { (Value::Null,
+                    Value::Null) => true, (Value::Bool(__x), Value::Bool(__y)) => __x == __y, (Value::Str(__x), Value::Str(__y)) => __x == __y, (Value::Int(__x), Value::Int(__y)) => __x == __y, (Value::Float(__x), Value::Float(__y)) => __x == __y, (__p, __q) => match ((match __p { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f),
+                    Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), (match __q { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None })) { (Some(__x),
+                    Some(__y)) => __x == __y, _ => false } }).map(|__i| __i as i64).unwrap_or(-1)), (Value::Str(__s), Value::Str(__nd)) => Value::Int(__s.find(&**__nd).map(|__i| __i as i64).unwrap_or(-1)), _ => Value::Int(-1) }).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64)) {
+                    __ch.remove_subscription(&subscriptionHash);
+                    client.reject(&[Value::from(error.clone()), subscriptionHash]);
+                    rejected = true;
+                }
+            }
+            }
+            if !(rejected) {
+                // nothing matched, the caller would hang otherwise
+                client.reject(&[Value::from(error)]);
+            }
         }  else if Value::Int(msg.as_str().and_then(|__s| __s.find("@")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64) {
             let mut parts: Value = Value::Array(msg.as_str().map(|__s| __s.split("@").map(Value::from).collect()).unwrap_or_default());
             let mut channel: Option<String> = self.safe_string_opt(parts, Value::Int(1), &[]);

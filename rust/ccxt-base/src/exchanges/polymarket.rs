@@ -827,8 +827,8 @@ impl PolymarketCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1089: bool = true;
-            while { if !__for_first_1089 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1089 = false; i.as_f64().unwrap_or(f64::NAN) < ((instruments.len() as i64) as f64) } {
+            let mut __for_first_1090: bool = true;
+            while { if !__for_first_1090 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1090 = false; i.as_f64().unwrap_or(f64::NAN) < ((instruments.len() as i64) as f64) } {
             let mut instrument: Value = instruments.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
             let mut baseId: Option<String> = self.safe_string_k_opt(instrument.clone(), "base_asset", &[]);
             if (baseId.is_none()) {
@@ -886,8 +886,8 @@ impl PolymarketCore {
 }))); }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1090: bool = true;
-            while { if !__for_first_1090 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1090 = false; i.as_f64().unwrap_or(f64::NAN) < ((assets.len() as i64) as f64) } {
+            let mut __for_first_1091: bool = true;
+            while { if !__for_first_1091 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1091 = false; i.as_f64().unwrap_or(f64::NAN) < ((assets.len() as i64) as f64) } {
             let mut asset: Value = assets.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
             let mut currencyId: Option<String> = self.safe_string_k_opt(asset.clone(), "asset", &[]);
             if (currencyId.is_none()) {
@@ -1124,8 +1124,8 @@ impl PolymarketCore {
         let mut statistics: Vec<Value> = self.safe_list(responses.clone(), Value::Int(1), &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1091: bool = true;
-            while { if !__for_first_1091 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1091 = false; i.as_f64().unwrap_or(f64::NAN) < ((statistics.len() as i64) as f64) } {
+            let mut __for_first_1092: bool = true;
+            while { if !__for_first_1092 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1092 = false; i.as_f64().unwrap_or(f64::NAN) < ((statistics.len() as i64) as f64) } {
             let mut entry: Value = statistics.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
             let mut instrumentId: Option<String> = self.safe_string_k_opt(entry.clone(), "instrument_id", &[]);
             // the 24 hourly kline rows are dropped from the merged payload to keep tickers light, candles are served by fetchOHLCV
@@ -1135,8 +1135,8 @@ impl PolymarketCore {
         let mut bbos: Vec<Value> = self.safe_list(responses.clone(), Value::Int(2), &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1092: bool = true;
-            while { if !__for_first_1092 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1092 = false; i.as_f64().unwrap_or(f64::NAN) < ((bbos.len() as i64) as f64) } {
+            let mut __for_first_1093: bool = true;
+            while { if !__for_first_1093 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1093 = false; i.as_f64().unwrap_or(f64::NAN) < ((bbos.len() as i64) as f64) } {
             let mut entry: Value = bbos.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
             let mut instrumentId: Option<String> = self.safe_string_k_opt(entry.clone(), "instrument_id", &[]);
             let mut previous: Value = self.safe_dict(Value::Map(merged.clone()), instrumentId.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Map({
@@ -1151,8 +1151,8 @@ impl PolymarketCore {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1093: bool = true;
-            while { if !__for_first_1093 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1093 = false; i.as_f64().unwrap_or(f64::NAN) < ((tickers.len() as i64) as f64) } {
+            let mut __for_first_1094: bool = true;
+            while { if !__for_first_1094 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1094 = false; i.as_f64().unwrap_or(f64::NAN) < ((tickers.len() as i64) as f64) } {
             let mut entry: Value = tickers.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
             let mut instrumentId: Option<String> = self.safe_string_k_opt(entry.clone(), "instrument_id", &[]);
             let mut previous: Value = self.safe_dict(Value::Map(merged.clone()), instrumentId.map(Value::from).unwrap_or(Value::Null), &[Value::Map({
@@ -1647,8 +1647,8 @@ impl PolymarketCore {
         let mut rates: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1094: bool = true;
-            while { if !__for_first_1094 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1094 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
+            let mut __for_first_1095: bool = true;
+            while { if !__for_first_1095 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1095 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             let mut entry: Value = data.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
             let mut timestamp: Value = self.safe_integer_k(entry.clone(), "timestamp", &[]);
             rates.push(Value::Map({
@@ -1790,8 +1790,8 @@ impl PolymarketCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1095: bool = true;
-            while { if !__for_first_1095 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1095 = false; i.as_f64().unwrap_or(f64::NAN) < ((schedule.len() as i64) as f64) } {
+            let mut __for_first_1096: bool = true;
+            while { if !__for_first_1096 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1096 = false; i.as_f64().unwrap_or(f64::NAN) < ((schedule.len() as i64) as f64) } {
             let mut entry: Value = schedule.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut category: Option<String> = self.safe_string_k_opt(entry.clone(), "category", &[]);
             byCategory.insert(category.as_deref().unwrap_or("null").to_string(), entry.clone());
@@ -1807,8 +1807,8 @@ impl PolymarketCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1096: bool = true;
-            while { if !__for_first_1096 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1096 = false; i.as_f64().unwrap_or(f64::NAN) < ((self.symbols.len() as i64) as f64) } {
+            let mut __for_first_1097: bool = true;
+            while { if !__for_first_1097 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1097 = false; i.as_f64().unwrap_or(f64::NAN) < ((self.symbols.len() as i64) as f64) } {
             let mut symbol: Value = self.safe_string(self.symbols.clone(), i.clone(), &[Value::Str("".into())]);
             let mut market: indexmap::IndexMap<String, Value> = self.market(symbol.clone()).as_map().cloned().unwrap_or_default();
             let mut category: Option<String> = self.safe_string_k_opt(market.get("info").cloned().unwrap_or(Value::Null), "category", &[]);
@@ -2004,8 +2004,8 @@ impl PolymarketCore {
         let mut ordersEntries: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1097: bool = true;
-            while { if !__for_first_1097 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1097 = false; i.as_f64().unwrap_or(f64::NAN) < ((orders.len() as i64) as f64) } {
+            let mut __for_first_1098: bool = true;
+            while { if !__for_first_1098 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1098 = false; i.as_f64().unwrap_or(f64::NAN) < ((orders.len() as i64) as f64) } {
             let mut rawOrder: Value = orders.get((i).as_i64().map_or(usize::MAX, |__n| __n as usize)).cloned().unwrap_or(Value::Null);
             let mut symbol: Option<String> = self.safe_string_k_opt(rawOrder.clone(), "symbol", &[]);
             let mut market: Value = self.market(symbol.map(Value::from).unwrap_or(Value::Null));
@@ -2041,8 +2041,8 @@ impl PolymarketCore {
         let mut results: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1098: bool = true;
-            while { if !__for_first_1098 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1098 = false; i.as_f64().unwrap_or(f64::NAN) < ((response.len() as i64) as f64) } {
+            let mut __for_first_1099: bool = true;
+            while { if !__for_first_1099 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1099 = false; i.as_f64().unwrap_or(f64::NAN) < ((response.len() as i64) as f64) } {
             let mut ack: Value = self.safe_dict(response.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2143,8 +2143,8 @@ impl PolymarketCore {
             let mut numericIds: Value = Value::from(vec![]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1099: bool = true;
-                while { if !__for_first_1099 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1099 = false; i.as_f64().unwrap_or(f64::NAN) < ((ids.len() as i64) as f64) } {
+                let mut __for_first_1100: bool = true;
+                while { if !__for_first_1100 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1100 = false; i.as_f64().unwrap_or(f64::NAN) < ((ids.len() as i64) as f64) } {
                 if let Value::Arr(__a) = &mut numericIds { std::sync::Arc::make_mut(__a).push(self.parse_to_int(self.safe_string(ids.clone(), i.clone(), &[]))); };
             }
             }
@@ -2166,8 +2166,8 @@ impl PolymarketCore {
         let mut results: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1100: bool = true;
-            while { if !__for_first_1100 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1100 = false; i.as_f64().unwrap_or(f64::NAN) < ((response.len() as i64) as f64) } {
+            let mut __for_first_1101: bool = true;
+            while { if !__for_first_1101 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1101 = false; i.as_f64().unwrap_or(f64::NAN) < ((response.len() as i64) as f64) } {
             let mut ack: Value = self.safe_dict(response.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2563,8 +2563,8 @@ impl PolymarketCore {
         let mut positions: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1101: bool = true;
-            while { if !__for_first_1101 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1101 = false; i.as_f64().unwrap_or(f64::NAN) < ((rows.len() as i64) as f64) } {
+            let mut __for_first_1102: bool = true;
+            while { if !__for_first_1102 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1102 = false; i.as_f64().unwrap_or(f64::NAN) < ((rows.len() as i64) as f64) } {
             // the wrapper timestamp flows into the parser through the merged input
             let mut extended: Value = self.extend(rows.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -2796,8 +2796,8 @@ impl PolymarketCore {
         let mut response: Value = self.private_get_account_orders(&[__ws_arg_8]).await;
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1102: bool = true;
-            while { if !__for_first_1102 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1102 = false; i.as_f64().unwrap_or(f64::NAN) < ((response.len() as i64) as f64) } {
+            let mut __for_first_1103: bool = true;
+            while { if !__for_first_1103 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1103 = false; i.as_f64().unwrap_or(f64::NAN) < ((response.len() as i64) as f64) } {
             let mut row: Value = self.safe_dict(response.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2950,8 +2950,8 @@ impl PolymarketCore {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1103: bool = true;
-            while { if !__for_first_1103 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1103 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
+            let mut __for_first_1104: bool = true;
+            while { if !__for_first_1104 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1104 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             let mut entry: Value = data.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
             let mut marketId: Option<String> = self.safe_string_k_opt(entry.clone(), "instrument_id", &[]);
             let mut timestamp: Value = self.safe_integer_k(entry.clone(), "timestamp", &[]);
@@ -3314,8 +3314,8 @@ impl PolymarketCore {
         let mut response: Value = self.private_get_account_config(&[__ws_arg_14]).await;
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1104: bool = true;
-            while { if !__for_first_1104 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1104 = false; i.as_f64().unwrap_or(f64::NAN) < ((response.len() as i64) as f64) } {
+            let mut __for_first_1105: bool = true;
+            while { if !__for_first_1105 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1105 = false; i.as_f64().unwrap_or(f64::NAN) < ((response.len() as i64) as f64) } {
             let mut row: Value = self.safe_dict(response.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3825,8 +3825,8 @@ impl PolymarketCore {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1105: bool = true;
-            while { if !__for_first_1105 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1105 = false; i.as_f64().unwrap_or(f64::NAN) < ((row.len() as i64) as f64) } {
+            let mut __for_first_1106: bool = true;
+            while { if !__for_first_1106 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1106 = false; i.as_f64().unwrap_or(f64::NAN) < ((row.len() as i64) as f64) } {
             if (row.get((i).as_i64().map_or(usize::MAX, |__n| __n as usize)).cloned().unwrap_or(Value::Null) != Value::Null) {
                 result.push(row.get((i).as_i64().map_or(usize::MAX, |__n| __n as usize)).cloned().unwrap_or(Value::Null));
             }
