@@ -106,6 +106,16 @@ func SafeValueN(obj any, keys []any, defaultValue ...any) any {
 			}
 		}
 		return defVal
+	} else if futures, ok := obj.(map[string]*Future); ok {
+		for _, key := range keys {
+			if key == nil {
+				continue
+			}
+			if future, found := futures[fmt.Sprintf("%v", key)]; found && future != nil {
+				return future
+			}
+		}
+		return defVal
 	} else if bookMap, ok := obj.(map[string]map[string]any); ok {
 		// the ohlcv book is two-level: a symbol key answers its timeframe map
 		for _, key := range keys {

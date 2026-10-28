@@ -368,7 +368,7 @@ func (this *WSClient) GetKeepAlive() any {
 func (this *WSClient) SetKeepAlive(keepAlive any) {
 	this.Client.SetKeepAlive(keepAlive)
 }
-func (this *WSClient) GetFutures() map[string]any {
+func (this *WSClient) GetFutures() map[string]*Future {
 	return this.Client.GetFutures()
 }
 

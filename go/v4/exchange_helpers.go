@@ -286,6 +286,10 @@ func getValue(collection any, key any) any {
 		if ok {
 			return val
 		}
+	case map[string]*Future:
+		if future, ok := v[keyStr]; isStr && ok && future != nil {
+			return future
+		}
 	case map[string]map[string]any:
 		// the ohlcv book is two-level: a symbol key answers its timeframe map
 		if !isStr {
@@ -1138,6 +1142,11 @@ func InOp(dict any, key any) bool {
 		if ok {
 			return true
 		}
+	case map[string]*Future:
+		_, ok := v[key.(string)]
+		if ok {
+			return true
+		}
 	case OrderBookInterface:
 		// WsOrderBook is a typed struct, not a map - without this case every key-presence
 		// check on ws orderbooks is false and shared structure tests fail with
@@ -1604,6 +1613,13 @@ func ObjectKeys(v any) []string {
 	if mapObject, ok := v.(map[string]any); ok {
 		keys := make([]string, 0, len(mapObject))
 		for key := range mapObject {
+			keys = append(keys, key)
+		}
+		return keys
+	}
+	if futures, ok := v.(map[string]*Future); ok {
+		keys := make([]string, 0, len(futures))
+		for key := range futures {
 			keys = append(keys, key)
 		}
 		return keys
@@ -2881,6 +2897,9 @@ func Remove(dict any, key any) {
 		return
 	case map[string]map[string]any:
 		// the ohlcv book is two-level; the javascript delete is a no-op on a missing key
+		delete(v, keyStr)
+		return
+	case map[string]*Future:
 		delete(v, keyStr)
 		return
 	case map[string]any:

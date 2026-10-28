@@ -43,12 +43,16 @@ type ClientInterface interface {
 	SubscriptionKeys() []string
 	SubscriptionValues() []any
 	SubscriptionsSnapshot() map[string]any
+	SubscriptionSafe(key any) any
 	GetRejections() map[string]any
 	GetLastPong() any
 	SetLastPong(lastPong any)
 	GetKeepAlive() any
 	SetKeepAlive(keepAlive any)
-	GetFutures() map[string]any
+	GetFutures() map[string]*Future
+	FutureHas(key any) bool
+	FutureGet(key any) any
+	FutureKeys() []string
 }
 
 // Client is a thin wrapper around a single ws:// or wss:// connection.
@@ -59,7 +63,7 @@ type Client struct {
 
 	// Futures is the published snapshot of the pending futures: the store owner builds
 	// a whole map and swaps it in, so a reader never sees a map being mutated
-	Futures map[string]any
+	Futures map[string]*Future
 
 	// every piece of shared client state below is owned by exactly one goroutine and
 	// reached only through its request channel: futures/rejections/pong by the store,
@@ -189,7 +193,7 @@ func NewClient(url string, onMessageCallback func(client any, err any), onErrorC
 		"Verbose":               false,
 		"Protocols":             nil,
 		"Options":               nil,
-		"Futures":               make(map[string]any),
+		"Futures":               make(map[string]*Future),
 		"Rejections":            make(map[string]any),
 		"Connected":             nil,
 		"Error":                 nil,
@@ -222,7 +226,7 @@ func NewClient(url string, onMessageCallback func(client any, err any), onErrorC
 	// Create the client with all properties from TypeScript constructor
 	c := &Client{
 		Url:                   url,
-		Futures:               finalConfig["Futures"].(map[string]any),
+		Futures:               finalConfig["Futures"].(map[string]*Future),
 		subscriptions:         newSubscriptionMap(),
 		Verbose:               derefScalar(finalConfig["Verbose"]).(bool),
 		KeepAlive:             ParseInt(finalConfig["keepAlive"]),
@@ -677,6 +681,19 @@ func (this *Client) SubscriptionsSnapshot() map[string]any {
 	return snapshot
 }
 
+// SubscriptionSafe reads a subscription like SafeValue: nil and the empty string are absent.
+func (this *Client) SubscriptionSafe(key any) any {
+	key = derefScalar(key)
+	if key == nil {
+		return nil
+	}
+	value := this.subsTable().call(subsGet, fmt.Sprintf("%v", key), nil).value
+	if value == nil || value == "" {
+		return nil
+	}
+	return value
+}
+
 // GetRejections copies the retained rejections for read-only inspection.
 func (this *Client) GetRejections() map[string]any {
 	rejections, _ := this.storeCall(storeRejections, "", nil).value.(map[string]any)
@@ -698,9 +715,41 @@ func (this *Client) GetKeepAlive() any {
 
 // GetFutures is the published snapshot of the pending futures; the map is never
 // mutated after publication, so generated ws code can read it without a lock.
-func (this *Client) GetFutures() map[string]any {
+func (this *Client) GetFutures() map[string]*Future {
 	this.storeTable()
 	return this.Futures
+}
+
+// FutureHas reports whether a future is pending for the hash; a nil or non-string key is never pending.
+func (this *Client) FutureHas(key any) bool {
+	keyStr, ok := subsKey(key)
+	if !ok {
+		return false
+	}
+	_, found := this.GetFutures()[keyStr]
+	return found
+}
+
+// FutureGet is the pending future for the hash, an untyped nil when none (never a typed-nil *Future).
+func (this *Client) FutureGet(key any) any {
+	keyStr, ok := subsKey(key)
+	if !ok {
+		return nil
+	}
+	if future, found := this.GetFutures()[keyStr]; found {
+		return future
+	}
+	return nil
+}
+
+// FutureKeys lists the hashes of the pending futures.
+func (this *Client) FutureKeys() []string {
+	futures := this.GetFutures()
+	keys := make([]string, 0, len(futures))
+	for hash := range futures {
+		keys = append(keys, hash)
+	}
+	return keys
 }
 
 // AwaitExistingFuture is the pending consumer channel for a hash, nil when none.
@@ -728,7 +777,7 @@ type wsMessageHandler interface {
 type clientStore struct {
 	client  *Client
 	req     chan storeOp
-	initial map[string]any
+	initial map[string]*Future
 }
 
 type storeKind int
@@ -759,7 +808,7 @@ type storeReply struct {
 }
 
 func newClientStore(client *Client) *clientStore {
-	initial := map[string]any{}
+	initial := map[string]*Future{}
 	// adopt a futures map handed in through the client config; from here on the
 	// store goroutine is its only writer
 	for hash, future := range client.Futures {
@@ -775,8 +824,8 @@ func newClientStore(client *Client) *clientStore {
 
 // publish swaps in a whole new snapshot of the pending futures; the store goroutine
 // is the only writer of the field, and no reader can observe a map being mutated.
-func (this *clientStore) publish(futures map[string]any) {
-	snapshot := make(map[string]any, len(futures))
+func (this *clientStore) publish(futures map[string]*Future) {
+	snapshot := make(map[string]*Future, len(futures))
 	for hash, future := range futures {
 		snapshot[hash] = future
 	}

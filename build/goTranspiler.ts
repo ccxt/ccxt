@@ -867,7 +867,7 @@ function goAnyNilSafeWrite (rhs: string, scalarLocals: Set<string>, safeLocal: (
         return scalarLocals.has (text) || safeLocal (text);
     }
     // the ws subscriptions table (exchange_client.go) hands back a dereferenced scalar, a dictionary or nil
-    if (/^[\w.()*\[\]]+\.(?:SubscriptionGet|SubscriptionDict|SubscriptionsSnapshot)\(.*\)$/.test (text)) {
+    if (/^[\w.()*\[\]]+\.(?:SubscriptionGet|SubscriptionDict|SubscriptionSafe|SubscriptionsSnapshot|FutureGet)\(.*\)$/.test (text)) {
         return true;
     }
     // Exchange.MyTrades only ever holds an ArrayCache* constructor result or an untyped nil (exchange.go, close()),
@@ -3543,7 +3543,7 @@ export function formatGoSource (filePath: string, content: string): string {
     content = hx4G29Pass (content);  // hx4 G29
     hx4G34TupleSlotNeverNil.file = undefined;  // hx4 G34
     content = g01SubsHandOff (content);  // hx10w3 G01
-    content = w8ClientFuturesReads (w8FuturesPairInOp (g10kInopClientMaps (content)));
+    content = w8ClientTableCalls (w8ClientFuturesReads (w8FuturesPairInOp (g10kInopClientMaps (content))));
     content = hx4G07FieldInOp (content);
     content = g09w3Pass (content);  // hx10w3 G09: prediction caches are typed maps
     content = hx5P28BaseFieldReads (content);  // hx5 P28
@@ -12870,8 +12870,8 @@ function g10kTypepredSelfTest (): string[] {
 }
 
 // ===== w8 futures reads: GetValue/SafeValue on a client's futures map -> `futures[key]` =====
-// GetFutures() is statically map[string]any holding only *Future values (never nil, never ""),
-// so a string-literal / string-local key reads exactly what GetValue/SafeValue answered, nil when absent.
+// GetValue/SafeValue on a client's futures read the typed client method FutureGet: it answers the *Future
+// or an untyped nil (never a typed-nil box), exactly what the helper answered, for any key kind.
 function w8ClientFuturesReads (content: string): string {
     if (!/(?:GetValue|SafeValue)\(client\.\((?:ccxt\.)?ClientInterface\)\.GetFutures\(\), /.test (content)) {
         return content;
@@ -12913,16 +12913,10 @@ function w8ClientFuturesReads (content: string): string {
         let m: RegExpExecArray | null;
         while ((m = re.exec (lines[k])) !== null) {
             const key = m[3];
-            if (!key.startsWith ('"')) {
-                const decl = goAccessSingleDeclaration (maskedFunc, lines[start], key);
-                if ((decl === undefined) || (decl.type !== 'string') || ((decl.index !== undefined) && (decl.index >= offsets[k - start]))) {
-                    continue;
-                }
-            }
             if (masked[k].substring (m.index, m.index + 4) !== lines[k].substring (m.index, m.index + 4)) {
                 continue;
             }
-            out += lines[k].substring (last, m.index) + m[2] + '[' + key + ']';
+            out += lines[k].substring (last, m.index) + m[2].replace ('GetFutures()', 'FutureGet(' + key + ')');
             last = m.index + m[0].length;
         }
         if (last > 0) {
@@ -12933,18 +12927,55 @@ function w8ClientFuturesReads (content: string): string {
     return lines.join ('\n');
 }
 
+// InOp / ObjectKeys on the client's futures and SafeValue on its subscriptions become typed client methods.
+function w8ClientTableCalls (content: string): string {
+    if (!/(?:(?:InOp|ObjectKeys|SafeValue)\(|= )client\.\((?:ccxt\.)?ClientInterface\)\.(?:GetFutures|SubscriptionsSnapshot)\(\)/.test (content)) {
+        return content;
+    }
+    const lines = content.split ('\n');
+    const masked = goTextMaskLiteralsAndComments (content).split ('\n');
+    if (lines.length !== masked.length) {
+        return content;
+    }
+    const recv = 'client\\.\\((?:ccxt\\.)?ClientInterface\\)\\.';
+    const rules: [ RegExp, string ][] = [
+        [ new RegExp ('(?<![\\w.])(?:ccxt\\.)?InOp\\((' + recv + ')GetFutures\\(\\), (\\w+)\\)', 'g'), '$1FutureHas($2)' ],
+        [ new RegExp ('(var \\w+ any = )(' + recv + ')GetFutures\\(\\)\\[(\\w+|"[^"\\\\\\n]*")\\]$', 'g'), '$1$2FutureGet($3)' ],
+        [ new RegExp ('(?<![\\w.])(?:ccxt\\.)?ObjectKeys\\((' + recv + ')GetFutures\\(\\)\\)', 'g'), '$1FutureKeys()' ],
+        [ new RegExp ('(?<![\\w.])this\\.SafeValue\\((' + recv + ')SubscriptionsSnapshot\\(\\), (\\w+)\\)', 'g'), '$1SubscriptionSafe($2)' ],
+    ];
+    for (let k = 0; k < lines.length; k++) {
+        for (const [ re, to ] of rules) {
+            const line = lines[k];
+            lines[k] = line.replace (re, (all: string, ...g: string[]) => {
+                const at = g[g.length - 2] as unknown as number;
+                return (masked[k].substring (at, at + 4) !== line.substring (at, at + 4)) ? all : all.replace (new RegExp (re.source), to);
+            });
+        }
+        masked[k] = lines[k];
+    }
+    return lines.join ('\n');
+}
+
 function w8ClientFuturesSelfTest (): string[] {
     const problems: string[] = [];
     const f = (body: string) => w8ClientFuturesReads ('func (this *X) H(client any, p any) {\n' + body + '}\n');
     const c = 'client.(ccxt.ClientInterface).GetFutures()';
-    if (!f ('\tvar future any = this.SafeValue(' + c + ', "authenticated")\n').includes ('var future any = ' + c + '["authenticated"]')) {
+    if (!f ('\tvar future any = this.SafeValue(' + c + ', "authenticated")\n').includes ('var future any = client.(ccxt.ClientInterface).FutureGet("authenticated")')) {
         problems.push ('w8-futures: literal SafeValue not converted');
     }
-    if (!f ('\tvar h string = "a"\n\tvar future any = ccxt.GetValue(' + c + ', h)\n').includes ('= ' + c + '[h]')) {
+    if (!f ('\tvar h string = "a"\n\tvar future any = ccxt.GetValue(' + c + ', h)\n').includes ('= client.(ccxt.ClientInterface).FutureGet(h)')) {
         problems.push ('w8-futures: string local GetValue not converted');
     }
-    if (!f ('\tvar future any = ccxt.GetValue(' + c + ', p)\n').includes ('GetValue(')) {
-        problems.push ('w8-futures: any key must keep GetValue');
+    if (f ('\tvar future any = ccxt.GetValue(' + c + ', p)\n').includes ('GetValue(')) {
+        problems.push ('w8-futures: any key reads FutureGet');
+    }
+    const t = w8ClientTableCalls ('func (this *X) H(client any, p any) {\n\tif ccxt.InOp(' + c + ', p) {\n\t}\n\tvar k []string = ccxt.ObjectKeys(' + c + ')\n\tvar a any = this.SafeValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), p)\n}\n');
+    if (!t.includes ('if client.(ccxt.ClientInterface).FutureHas(p) {') || !t.includes ('= client.(ccxt.ClientInterface).FutureKeys()') || !t.includes ('= client.(ccxt.ClientInterface).SubscriptionSafe(p)')) {
+        problems.push ('w8-tables: InOp/ObjectKeys/SafeValue not converted: ' + t);
+    }
+    if (!w8ClientTableCalls ('\tvar a any = this.SafeValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), p, 1)\n').includes ('SafeValue(')) {
+        problems.push ('w8-tables: SafeValue with a default keeps the helper');
     }
     return problems;
 }
@@ -14789,7 +14820,7 @@ function hx4G20BaseNativePasses (content: string): string {
     content = hx4G25Pass (content);  // hx4 G25
     content = hx4G29Pass (content);  // hx4 G29
     hx4G34TupleSlotNeverNil.file = undefined;  // hx4 G34
-    content = h2kG13NativeKeysAndRemove (hx4G07FieldInOp (w8ClientFuturesReads (w8FuturesPairInOp (g10kInopClientMaps (content)))));
+    content = h2kG13NativeKeysAndRemove (hx4G07FieldInOp (w8ClientTableCalls (w8ClientFuturesReads (w8FuturesPairInOp (g10kInopClientMaps (content))))));
     content = g09w3Pass (content);  // hx10w3 G09: prediction caches are typed maps
     content = hx5P28BaseFieldReads (content);  // hx5 P28
     content = hx4G38Pass (hx4G33IsEqual (hx4G28IsEqualSafe (content)));  // hx4 G28, G33, G38
