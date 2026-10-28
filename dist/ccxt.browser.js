@@ -435878,6 +435878,7 @@ class lighter extends _abstract_lighter_js__rspack_import_0/* ["default"] */.A {
             'httpExceptions': {},
             'exceptions': {
                 'exact': {
+                    '20001': _base_errors_js__rspack_import_1.BadRequest,
                     '21146': _base_errors_js__rspack_import_1.ExchangeError,
                     '21500': _base_errors_js__rspack_import_1.ExchangeError,
                     '21501': _base_errors_js__rspack_import_1.ExchangeError,
@@ -435950,10 +435951,12 @@ class lighter extends _abstract_lighter_js__rspack_import_0/* ["default"] */.A {
                     '21904': _base_errors_js__rspack_import_1.InvalidOrder,
                     '21905': _base_errors_js__rspack_import_1.InvalidOrder,
                     '21906': _base_errors_js__rspack_import_1.InvalidOrder,
+                    '22400': _base_errors_js__rspack_import_1.BadRequest,
                     '23000': _base_errors_js__rspack_import_1.RateLimitExceeded,
                     '23001': _base_errors_js__rspack_import_1.RateLimitExceeded,
                     '23002': _base_errors_js__rspack_import_1.RateLimitExceeded,
-                    '23003': _base_errors_js__rspack_import_1.RateLimitExceeded
+                    '23003': _base_errors_js__rspack_import_1.RateLimitExceeded,
+                    '29404': _base_errors_js__rspack_import_1.BadRequest
                 },
                 'broad': {}
             },
@@ -439105,7 +439108,7 @@ class lighter extends _abstract_lighter_js__rspack_import_0/* ["default"] */.A {
         //     }
         //
         const code = this.safeString(response, 'code');
-        const message = this.safeString(response, 'msg');
+        const message = this.safeString(response, 'message');
         if (code !== undefined && code !== '0' && code !== '200') {
             const feedback = this.id + ' ' + body;
             this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
