@@ -647,7 +647,9 @@ export const CORE_NUMERIC_ARGS = {
     'fetchLedgerByEntries': { 2: 'Int64?' },
     'fetchLiquidations': { 1: 'Int64?', 2: 'Int64?' },
     'fetchLongShortRatioHistory': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchMarginAdjustmentHistory': { 2: 'Int64?', 3: 'Int64?' },
     'fetchMarkOHLCV': { 2: 'Int64?', 3: 'Int64?' },
+    'handleTradingStatisticsWindow': { 2: 'Int64?', 3: 'Int64?' },
     'fetchMyBuys': { 1: 'Int64?', 2: 'Int64?' },
     'fetchMyContractTrades': { 1: 'Int64?', 2: 'Int64?' },
     'fetchMyDustTrades': { 1: 'Int64?', 2: 'Int64?' },
@@ -17362,7 +17364,37 @@ function nativeComparisonOperand (csharp, node, symbol, comparison) {
     if (!numeric || (nullable && !nativeComparisonOperandIsIdentifier (node, symbol))) {
         return undefined;
     }
-    return { nullable, text: csharp.printNode (node, 0).trim () };
+    return { nullable, text: csharp.printNode (node, 0).trim (), viaParameter: nullable && retypeNullableCompareIsParameter (csharp, node),
+        admitted: nullable && (typeof csharp.csharpNullGuardAdmitsRead === 'function') && csharp.csharpNullGuardAdmitsRead (comparison, nativeComparisonUnwrap (node)) };
+}
+
+// ===== retype-cs-nullable-compare (hx11 w8) =====
+// A nullable operand that is a narrowed core PARAMETER (`Int64? since`) is new to the native path:
+// it printed `object` (helper call) before the parameter table typed it. For these the emitted
+// comparison follows the TS source, where `undefined <op> x` is false for all four operators:
+// an explicit `x != null &&` per nullable side (the helper's one-sided null answers are not
+// reproduced). Locals keep the legacy helper-compatible forms below, so no other site moves.
+// Scoped to the (method, position) pairs THIS unit added to CORE_NUMERIC_ARGS, so every
+// comparison that already printed natively keeps its text.
+const RETYPE_NULLABLE_COMPARE_METHODS = [ 'fetchMarginAdjustmentHistory', 'handleTradingStatisticsWindow' ];
+
+function retypeNullableCompareIsParameter (csharp, node) {
+    const inner = nativeComparisonUnwrap (node);
+    if (inner?.kind !== ts.SyntaxKind.Identifier || coreArgParamType (csharp, inner) === undefined) {
+        return false;
+    }
+    let declaration;
+    try {
+        declaration = csharp.getChecker ().getSymbolAtLocation (inner)?.valueDeclaration?.resolve ();
+    } catch (e) {
+        return false;
+    }
+    return RETYPE_NULLABLE_COMPARE_METHODS.includes (declaration?.parent?.name?.text);
+}
+
+function retypeNullableCompareTsForm (left, right, core) {
+    const guards = [ left, right ].filter ((side) => side.nullable && !side.admitted).map ((side) => side.text + ' != null');
+    return '(' + guards.concat ([ core ]).join (' && ') + ')';
 }
 
 function nativeComparisonExpression (csharp, node) {
@@ -17380,6 +17412,9 @@ function nativeComparisonExpression (csharp, node) {
     const core = L + ' ' + symbol + ' ' + R;
     if (!left.nullable && !right.nullable) {
         return '(' + core + ')';
+    }
+    if ((left.viaParameter && left.nullable) || (right.viaParameter && right.nullable)) {
+        return retypeNullableCompareTsForm (left, right, core);
     }
     // the lifted operator is false when either side is null; the helper's answer differs only
     // for (value, null) under `>`/`>=` and (null, *) under `<`/`<=`
