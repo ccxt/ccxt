@@ -1005,7 +1005,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         //     }
         //
         const errMsg = this.safeString (message, 'message');
-        const reason = this.safeString (message, 'reason');
+        const reason = this.safeString (message, 'reason', '');
         try {
             if (errMsg === 'Authentication Failed') {
                 throw new AuthenticationError ('Authentication failed: ' + reason);
