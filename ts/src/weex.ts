@@ -1626,9 +1626,12 @@ export default class weex extends Exchange {
             if (priceType !== undefined) {
                 request['priceType'] = priceType;
             }
-            let startTime: Int = since;
-            let endTime: Int = until;
             const now = this.milliseconds ();
+            let startTime: Int = since;
+            let endTime = now;
+            if (until !== undefined) {
+                endTime = until;
+            }
             if ((since === undefined) || (until === undefined)) {
                 const duration = this.parseToInt (this.parseTimeframe (timeframe) * 1000);
                 // the history endpoint returns at most maxHistoricalLimit candles and serves the
@@ -1653,7 +1656,7 @@ export default class weex extends Exchange {
                 }
             }
             // the endpoint rejects an endTime in the future (-1142), which a recent since would produce
-            if ((endTime !== undefined) && (endTime > now)) {
+            if (endTime > now) {
                 endTime = now;
             }
             request['startTime'] = startTime;
