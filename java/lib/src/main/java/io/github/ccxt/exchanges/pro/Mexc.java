@@ -594,7 +594,10 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             Map<String, Object> request = new HashMap<String, Object>();
             request.put("method", method);
             request.put("params", new ArrayList<Object>(Arrays.asList(channel)));
-            return (this.watch(url, messageHash, this.extend(request, paramsOmitted), messageHash, null)).join();
+            Map<String, Object> subscription = new HashMap<String, Object>() {{
+                put( "channel", channel );
+            }};
+            return (this.watch(url, messageHash, this.extend(request, paramsOmitted), messageHash, subscription)).join();
         });
 
     }
@@ -922,12 +925,15 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
 
     public void handleOrderBookSubscription(Client client, Map<String, Object> message)
     {
-        // spot
+        // the ack echoes the subscribed channel, the market id is always its last segment
+        //
+        //     { id: 0, code: 0, msg: "spot@public.aggre.depth.v3.api.pb@100ms@BTCUSDT" }
         //     { id: 0, code: 0, msg: "spot@public.increase.depth.v3.api@BTCUSDT" }
         //
         String msg = this.safeString(message, "msg", "");
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)msg).split(java.util.regex.Pattern.quote("@"))));
-        String marketId = this.safeString(parts, 2);
+        Integer partsLength = ((List<?>)parts).size(); // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
+        String marketId = this.safeString(parts, (((long) partsLength) - 1L));
         String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null);
         if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
         {
@@ -2425,11 +2431,43 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         //        "code": 0,
         //        "msg": "spot@public.increase.depth.v3.api@BTCUSDT"
         //    }
+        //
+        // a rejected subscription answers with code 0 as well, the failure is only in the text
+        //
+        //    {
+        //        "id": 0,
+        //        "code": 0,
+        //        "msg": "Not Subscribed successfully! [spot@public.aggre.depth.v3.api.pb@999ms@BTCUSDT].  Reason： Blocked! "
+        //    }
+        //
         // Set the default to an empty string if the message is empty during the test.
         String msg = this.safeString(message, "msg", "");
         if (java.util.Objects.equals(msg, "PONG"))
         {
             this.handlePong(client, (Map<String, Object>) (message));
+        } else if (((String)msg).indexOf("Not Subscribed successfully") > -1)
+        {
+            // the venue names the refused channel between brackets, reject only that watcher
+            // and drop its subscription so a corrected retry sends a new frame
+            var error = new ExchangeError(((this.id + " ") + msg));
+            List<Object> subscriptionHashes = ((List<Object>) switch ((Object)(client.subscriptions)) { case Map<?, ?> j39v8 -> { synchronized (j39v8) { yield new ArrayList<Object>(j39v8.keySet()); } } case null, default -> new ArrayList<Object>(); });
+            Boolean rejected = false;
+            for (var i = 0; i < ((List<?>)subscriptionHashes).size(); i++)
+            {
+                Object subscriptionHash = (subscriptionHashes == null || i < 0 || i >= subscriptionHashes.size() ? null : subscriptionHashes.get(i));
+                String subscribedChannel = this.safeString(Helpers.GetValue(client.subscriptions, subscriptionHash), "channel");
+                if ((!java.util.Objects.equals(subscribedChannel, null)) && (((String)msg).indexOf((("[" + subscribedChannel) + "]")) >= 0))
+                {
+                    ((Map<String,Object>)client.subscriptions).remove((String)subscriptionHash);
+                    client.reject(error, subscriptionHash);
+                    rejected = true;
+                }
+            }
+            if (!Boolean.TRUE.equals(rejected))
+            {
+                // nothing matched, the caller would hang otherwise
+                client.reject(error);
+            }
         } else if (((String)msg).indexOf("@") > -1)
         {
             List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)msg).split(java.util.regex.Pattern.quote("@"))));
@@ -2511,7 +2549,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             this.handleProtobufMessage(client, (Map<String, Object>) (decodedMessage));
             return;
         }
-        if ((switch ((Object)(message)) { case List<?> j39v9 -> j39v9.contains("msg"); case Map<?, ?> j39v8 -> j39v8.containsKey("msg"); case null, default -> false; }))
+        if ((switch ((Object)(message)) { case List<?> j39v10 -> j39v10.contains("msg"); case Map<?, ?> j39v9 -> j39v9.containsKey("msg"); case null, default -> false; }))
         {
             this.handleSubscriptionStatus(client, (Map<String, Object>) (message));
             return;
