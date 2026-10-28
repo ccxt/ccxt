@@ -448,10 +448,10 @@ export default class bitopro extends bitoproRest {
             'X-BITOPRO-PAYLOAD': payload,
             'X-BITOPRO-SIGNATURE': signature,
         };
-        this.options['ws']['options']['headers'] = headers;
+        wsInnerOptions['headers'] = headers;
         // instantiate client
         this.client (url);
-        this.options['ws']['options']['headers'] = originalHeaders;
+        wsInnerOptions['headers'] = originalHeaders;
     }
 
     /**
