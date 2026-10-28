@@ -126,7 +126,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
         String channel = this.safeString(message, "topic");
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String marketIdValue = this.safeString(market, "id", "");
-        String symbol = (String) market.get("symbol");
+        String symbol = this.safeString(market, "symbol");
         if (!java.util.Objects.equals(symbol, null))
         {
             Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", (Object) null);
