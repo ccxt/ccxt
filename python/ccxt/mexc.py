@@ -6074,12 +6074,6 @@ class mexc(Exchange, ImplicitAPI):
                 self.check_required_credentials()
                 timestamp = str(self.nonce())
                 auth = ''
-                requestHeaders = {
-                    'ApiKey': self.apiKey,
-                    'Request-Time': timestamp,
-                    'Content-Type': 'application/json',
-                    'source': self.safe_string(self.options, 'broker', 'CCXT'),
-                }
                 if method == 'POST':
                     auth = self.json(paramsOmitted)
                     requestBody = auth
@@ -6090,7 +6084,13 @@ class mexc(Exchange, ImplicitAPI):
                         url += '?' + auth
                 auth = self.apiKey + timestamp + auth
                 signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
-                requestHeaders['Signature'] = signature
+                requestHeaders = {
+                    'ApiKey': self.apiKey,
+                    'Request-Time': timestamp,
+                    'Content-Type': 'application/json',
+                    'source': self.safe_string(self.options, 'broker', 'CCXT'),
+                    'Signature': signature,
+                }
         return {'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders}
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):

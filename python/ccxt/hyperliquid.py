@@ -386,7 +386,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' market() requires a symbol argument')
         if self.markets is None:
             raise ExchangeError(self.id + ' markets not loaded')
-        if (symbol is not None) and not (symbol in self.markets):
+        if not (symbol in self.markets):
             symbolParts = symbol.split('/')
             baseName = self.safe_string(symbolParts, 0)
             spotCurrencyMapping = self.safe_dict(self.options, 'spotCurrencyMapping', {})
@@ -619,7 +619,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         markets = []
         for i in range(0, len(promises)):
             dexName = fetchDexesList[i]
-            offset = perpDexesOffset[dexName]
+            offset = self.safe_integer(perpDexesOffset, dexName)
             response = self.safe_list(promises, i)
             meta = self.safe_dict(response, 0, {})
             collateralToken = self.safe_string(meta, 'collateralToken')
@@ -1639,8 +1639,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             data += '01'
             data += vaultAddress
         if expiresAfter is not None:
-            data += '00'
-            data += '00000' + self.int_to_base16(expiresAfter)
+            data += '0000000' + self.int_to_base16(expiresAfter)
         return self.hash(self.base16_to_binary(data), 'keccak', 'binary')
 
     def sign_l1_action(self, action: object, nonce: object, vaultAdress: Str = None, expiresAfter: Int = None) -> dict:

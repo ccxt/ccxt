@@ -425,20 +425,20 @@ class lighter(Exchange, ImplicitAPI):
         return signer
 
     def set_auth_entry(self, accIdx: str, keyIdx: str, entry: dict):
-        self.options['auths'][accIdx][keyIdx] = self.extend(self.safe_dict(self.safe_dict(self.safe_dict(self.options, 'auths', {}), accIdx, {}), keyIdx, {}), entry)
+        updated = {}
+        updated[keyIdx] = self.extend(self.safe_dict(self.safe_dict(self.safe_dict(self.options, 'auths', {}), accIdx, {}), keyIdx, {}), entry)
+        auths = {}
+        auths[accIdx] = self.extend(self.safe_dict(self.safe_dict(self.options, 'auths', {}), accIdx, {}), updated)
+        self.options['auths'] = self.extend(self.safe_dict(self.options, 'auths', {}), auths)
 
     def init_auth_object(self, strAccountIndex: str, strApiKeyIndex: str):
-        if not ('auths' in self.options):
-            self.options['auths'] = {}
-        if not (strAccountIndex in self.options['auths']):
-            self.options['auths'][strAccountIndex] = {}
-        if not (strApiKeyIndex in self.options['auths'][strAccountIndex]):
-            self.options['auths'][strAccountIndex][strApiKeyIndex] = {
+        if self.safe_dict(self.safe_dict(self.safe_dict(self.options, 'auths', {}), strAccountIndex, {}), strApiKeyIndex) is None:
+            self.set_auth_entry(strAccountIndex, strApiKeyIndex, {
                 'signer': None,
                 'lighterPrivateKey': None,
                 'deadline': None,
                 'token': None,
-            }
+            })
 
     def get_lighter_private_key(self, strAccountIndex: str, strApiKeyIndex: str):
         auths = self.safe_dict(self.options, 'auths')
