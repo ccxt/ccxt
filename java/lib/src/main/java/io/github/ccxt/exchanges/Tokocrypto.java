@@ -1195,29 +1195,29 @@ public class Tokocrypto extends TokocryptoApi
         {
             side = ((Boolean.TRUE.equals(buyerMaker))) ? "sell" : "buy"; // this is reversed intentionally
             takerOrMaker = "taker";
-        } else if (((Map<?, ?>)trade).containsKey("side"))
+        } else if (!java.util.Objects.equals(this.safeString(trade, "side"), null))
         {
             side = this.safeStringLower(trade, "side");
         } else
         {
-            if (((Map<?, ?>)trade).containsKey("isBuyer"))
+            if (!java.util.Objects.equals(this.safeString(trade, "isBuyer"), null))
             {
                 side = ((Boolean.TRUE.equals((this.safeBool(trade, "isBuyer", false))))) ? "buy" : "sell"; // this is a true side
             }
         }
         Map<String, Object> fee = null;
-        if (((Map<?, ?>)trade).containsKey("commission"))
+        if (!java.util.Objects.equals(this.safeString(trade, "commission"), null))
         {
             fee = new HashMap<String, Object>() {{
                 put( "cost", Tokocrypto.this.safeString(trade, "commission") );
                 put( "currency", Tokocrypto.this.safeCurrencyCode(Tokocrypto.this.safeString(trade, "commissionAsset"), (Map<String, Object>) null) );
             }};
         }
-        if (((Map<?, ?>)trade).containsKey("isMaker"))
+        if (!java.util.Objects.equals(this.safeString(trade, "isMaker"), null))
         {
             takerOrMaker = ((Boolean.TRUE.equals((this.safeBool(trade, "isMaker", false))))) ? "maker" : "taker";
         }
-        if (((Map<?, ?>)trade).containsKey("maker"))
+        if (!java.util.Objects.equals(this.safeString(trade, "maker"), null))
         {
             takerOrMaker = ((Boolean.TRUE.equals((this.safeBool(trade, "maker", false))))) ? "maker" : "taker";
         }
@@ -1412,7 +1412,7 @@ public class Tokocrypto extends TokocryptoApi
         String marketId = this.safeString(ticker, "symbol");
         String symbol = this.safeSymbol(marketId, market, (String) null, (String) null);
         String last = this.safeString(ticker, "lastPrice");
-        Boolean isCoinm = (((Map<?, ?>)ticker).containsKey("baseVolume"));
+        Boolean isCoinm = (!java.util.Objects.equals(this.safeString(ticker, "baseVolume"), null));
         String baseVolume = null;
         String quoteVolume = null;
         if (Boolean.TRUE.equals(isCoinm))
@@ -2229,7 +2229,11 @@ public class Tokocrypto extends TokocryptoApi
             if (Boolean.TRUE.equals(timeInForceIsRequired))
             {
                 String defaultTimeInForce = this.safeString(this.options, "defaultTimeInForce", "GTC");
-                String timeInForce = (((java.util.Objects.equals(timeInForceResolved, null)))) ? defaultTimeInForce : timeInForceResolved;
+                String timeInForce = defaultTimeInForce;
+                if (!java.util.Objects.equals(timeInForceResolved, null))
+                {
+                    timeInForce = timeInForceResolved;
+                }
                 // the endpoint takes the time force as a numeric code, post only is
                 // placed as a LIMIT_MAKER order rather than as the GTX code
                 Map<String, Object> timeInForceCodes = new HashMap<String, Object>() {{

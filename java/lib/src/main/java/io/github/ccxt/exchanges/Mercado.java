@@ -1247,7 +1247,7 @@ public class Mercado extends MercadoApi
         String url = (apiUrl + "/");
         Object query = this.omit(parameters, this.extractParams(path));
         Boolean isPublic = (java.util.Objects.equals(apiName, "public")) || (java.util.Objects.equals(apiName, "v4Public")) || (java.util.Objects.equals(apiName, "v4PublicNet"));
-        String privateBody = null;
+        String privateBody = "";
         Map<String, Object> privateHeaders = null;
         if (Boolean.TRUE.equals(isPublic))
         {

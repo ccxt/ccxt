@@ -124,15 +124,8 @@ public class Coincheck extends io.github.ccxt.exchanges.Coincheck
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, 1, new HashMap<String, Object>() {{}});
         Long timestamp = this.safeTimestamp(data, "last_update_at");
         Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(data, symbol, timestamp, "bids", "asks", 0, 1, 2);
-        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) this.safeValue(this.orderbooks, symbol);
-        if (java.util.Objects.equals(orderbook, null))
-        {
-            orderbook = this.orderBook(snapshot);
-            this.orderbooks.put(symbol, orderbook);
-        } else
-        {
-            orderbook.reset(snapshot);
-        }
+        io.github.ccxt.ws.WsOrderBook orderbook = this.orderBook(snapshot);
+        this.orderbooks.put(symbol, orderbook);
         String messageHash = ("orderbook:" + symbol);
         client.resolve(orderbook, messageHash);
     }
