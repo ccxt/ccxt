@@ -1775,7 +1775,7 @@ impl ParadexCore {
                     (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null })), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })); }
             }
         }  else {
-            let mut endAtRaw: Value = (if hasEnd { self.safe_integer_k(requestUntil.clone(), "end_at", &[Value::Int(0)]) } else { self.milliseconds() });
+            let mut endAtRaw: Value = self.safe_integer_k(requestUntil.clone(), "end_at", &[self.milliseconds()]);
             let mut endAt: Value = self.parse_to_int(endAtRaw);
             if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("end_at".into(), endAt.clone()); }
             if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("start_at".into(), (match (&((match (&(endAt), &(windowLength)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64),

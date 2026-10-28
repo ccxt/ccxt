@@ -1596,7 +1596,7 @@ impl DeriveCore {
         //     }
         //
         let mut params: Value = (match message.get("params") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Null });
-        let mut topic: Value = self.safe_string_k(params.clone(), "channel", &[]);
+        let mut topic: Value = self.safe_string_k(params.clone(), "channel", &[Value::Str("".into())]);
         let mut topicParts: Value = Value::Array(topic.as_str().map(|__s| __s.split(".").map(Value::from).collect()).unwrap_or_default());
         let mut subaccountIdKey: Value = self.safe_string(topicParts, Value::Int(0), &[]);
         let mut data: Value = self.safe_list_k(params, "data", &[Value::from(vec![])]);

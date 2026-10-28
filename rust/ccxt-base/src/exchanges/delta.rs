@@ -1210,7 +1210,10 @@ impl DeltaCore {
             let mut __for_first_614: bool = true;
             while { if !__for_first_614 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_614 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
             let mut key: Value = keys.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
-            let mut item: Value = input.as_map().and_then(|__m| key.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+            let mut item: Value = self.safe_dict(input.clone(), key, &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
             let mut numericIdString: Option<String> = self.safe_string_k_opt(item.clone(), "numericId", &[]);
             if (numericIdString.is_none()) {
                 continue;

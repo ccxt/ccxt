@@ -1108,7 +1108,11 @@ impl BullishCore {
                 let mut __for_first_182: bool = true;
                 while { if !__for_first_182 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_182 = false; i.as_f64().unwrap_or(f64::NAN) < ((parsedKeys.len() as i64) as f64) } {
                 let mut parsedKey: Value = parsedKeys.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
-                if let Value::Dict(__r05d) = get_value_mut(&mut self.balance, &tradingAccountId) { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&parsedKey), parsed.as_map().and_then(|__m| parsedKey.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null)); }
+                if let Value::Dict(__bf03d0) = &mut self.balance {
+                    let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(crate::runtime::stringify_param(&tradingAccountId)).or_insert(Value::Null);
+                    if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&parsedKey), parsed.as_map().and_then(|__m| parsedKey.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null));
+                    }
+                }
             }
             }
             { let __be_tmp = self.safe_balance(self.balance.as_map().and_then(|__m| tradingAccountId.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null)); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&tradingAccountId), __be_tmp); } }
@@ -1123,9 +1127,9 @@ impl BullishCore {
             account.insert("used".into(), self.safe_string_k(data, "lockedQuantity", &[]));
             let mut code: Value = self.safe_currency_code(assetId.map(Value::from).unwrap_or(Value::Null), &[]);
             if (tradingAccountId != Value::Null) && (code != Value::Null) {
-                if let Value::Dict(__r05d) = get_value_mut(&mut self.balance, &tradingAccountId) { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&code), Value::Map(account)); }
+                if let Value::Dict(__bf03d0) = &mut self.balance { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(crate::runtime::stringify_param(&tradingAccountId)).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&code), Value::Map(account)); } }
             }
-            if let Value::Dict(__r05d) = get_value_mut(&mut self.balance, &tradingAccountId) { std::sync::Arc::make_mut(__r05d).insert("info".to_string(), message); }
+            if let Value::Dict(__bf03d0) = &mut self.balance { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(crate::runtime::stringify_param(&tradingAccountId)).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert("info".to_string(), message); } }
             { let __be_tmp = self.safe_balance(self.balance.as_map().and_then(|__m| tradingAccountId.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null)); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&tradingAccountId), __be_tmp); } }
         }
         let mut messageHash: Value = Value::Str("balance".into());

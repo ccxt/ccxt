@@ -2374,9 +2374,12 @@ impl WeexCore {
             if (priceType.is_some()) {
                 request.insert("priceType".into(), priceType.clone().map(Value::from).unwrap_or(Value::Null));
             }
-            let mut startTime: Value = since.clone();
-            let mut endTime: Value = until.clone();
             let mut now: Value = self.milliseconds();
+            let mut startTime: Value = since.clone();
+            let mut endTime: Value = now.clone();
+            if (until != Value::Null) {
+                endTime = until.clone();
+            }
             if (since == Value::Null) || (until == Value::Null) {
                 let mut duration: Value = self.parse_to_int((match (&(self.parse_timeframe(timeframe.clone())), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }));
                 // the history endpoint returns at most maxHistoricalLimit candles and serves the
@@ -2401,7 +2404,7 @@ impl WeexCore {
                 }
             }
             // the endpoint rejects an endTime in the future (-1142), which a recent since would produce
-            if (endTime != Value::Null) && (endTime.as_f64().unwrap_or(f64::NAN) > now.as_f64().unwrap_or(f64::NAN)) {
+            if endTime.as_f64().unwrap_or(f64::NAN) > now.as_f64().unwrap_or(f64::NAN) {
                 endTime = now;
             }
             request.insert("startTime".into(), startTime);

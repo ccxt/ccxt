@@ -2272,7 +2272,7 @@ impl WoofiproCore {
             while { if !__for_first_1170 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1170 = false; i.as_f64().unwrap_or(f64::NAN) < ((rows.len() as i64) as f64) } {
             let mut row: Value = rows.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
             let mut marketId: Value = self.safe_string_k(row.clone(), "symbol", &[Value::Str("".into())]);
-            if (self.safe_value(self.markets_by_id.clone(), marketId, &[]) == Value::Null) {
+            if (self.markets_by_id.clone() == Value::Null) || !(matches!((&self.markets_by_id, &marketId), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 continue;
             }
             let mut ticker: Value = self.extend(Value::Map({
@@ -2420,7 +2420,7 @@ impl WoofiproCore {
             while { if !__for_first_1171 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1171 = false; i.as_f64().unwrap_or(f64::NAN) < ((rows.len() as i64) as f64) } {
             let mut row: Value = rows.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
             let mut marketId: Value = self.safe_string_k(row.clone(), "symbol", &[Value::Str("".into())]);
-            if (self.safe_value(self.markets_by_id.clone(), marketId, &[]) == Value::Null) {
+            if (self.markets_by_id.clone() == Value::Null) || !(matches!((&self.markets_by_id, &marketId), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 continue;
             }
             let mut interest: Value = self.extend(Value::Map({
