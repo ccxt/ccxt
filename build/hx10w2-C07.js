@@ -415,7 +415,8 @@ function hx10C07Site (content, mask, span, callAt, open, close, apiTable, declar
     let mm
     while ((mm = mention.exec (body)) !== null) {
         const at = span.start + mm.index + mm[0].indexOf (name)
-        if (!allowed.some (r => (at >= r.start) && (at < r.end))) {
+        const countRead = mask.startsWith ('?.Count ?? 0)', at + name.length) // List<Task<T>> keeps .Count
+        if (!countRead && !allowed.some (r => (at >= r.start) && (at < r.end))) {
             return undefined
         }
     }
@@ -494,6 +495,11 @@ export function hx10C07SelfTest () {
     check ('local',
         wrap ('    public async Task<object> fetchB(object parameters = null)\n    {\n        List<object> promises = new List<object>() {};\n        for (int i = 0; i < 2; i++)\n        {\n            promises.Add(this.publicGetA(parameters));\n        }\n        List<object> responses = await promiseAll(promises);\n        return responses;\n    }\n'),
         wrap ('    public async Task<object> fetchB(object parameters = null)\n    {\n        List<Task<Dictionary<string, object>>> promises = new List<Task<Dictionary<string, object>>>() {};\n        for (int i = 0; i < 2; i++)\n        {\n            promises.Add(this.publicGetA(parameters));\n        }\n        List<object> responses = new List<object>(await Task.WhenAll(promises));\n        return responses;\n    }\n'),
+        { publicGetA: 'Task<Dictionary<string, object>>' })
+    // 2b: the list's own `.Count` read keeps the typed declaration
+    check ('countRead',
+        wrap ('    public async Task<object> fetchM(object parameters = null)\n    {\n        List<object> promises = new List<object>() {};\n        promises.Add(this.publicGetA(parameters));\n        int n = (promises?.Count ?? 0);\n        List<object> responses = await promiseAll(promises);\n        return responses;\n    }\n'),
+        wrap ('    public async Task<object> fetchM(object parameters = null)\n    {\n        List<Task<Dictionary<string, object>>> promises = new List<Task<Dictionary<string, object>>>() {};\n        promises.Add(this.publicGetA(parameters));\n        int n = (promises?.Count ?? 0);\n        List<object> responses = new List<object>(await Task.WhenAll(promises));\n        return responses;\n    }\n'),
         { publicGetA: 'Task<Dictionary<string, object>>' })
     // 3: `object` task locals retyped from their single-call initializer
     check ('objectLocal',
