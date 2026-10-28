@@ -641,14 +641,14 @@ export default class myriad extends Exchange {
      * @param {float} [params.slippage] maximum slippage tolerance (default 0.005)
      * @returns {object} a quote object with price, shares, fees and the on-chain calldata
      */
-    async fetchTradeQuote (outcome: Str, side: Str, amount: Num, params: Dict = {}): Promise<Dict> {
+    async fetchTradeQuote (outcome: string, side: string, amount: Num, params: Dict = {}): Promise<Dict> {
         await this.loadOutcome (outcome);
         const outcomeObj = this.outcome (outcome);
         const info = this.safeDict (outcomeObj, 'info', {});
         const networkId = this.safeString (info, 'networkId');
         const marketId = this.safeString (info, 'marketId');
         const outcomeId = this.safeInteger (info, 'outcomeId');
-        const sideStr = (side as string).toLowerCase ();
+        const sideStr = side.toLowerCase ();
         const request: Dict = {
             'market_id': this.parseToInt (marketId),
             'network_id': this.parseToInt (networkId),
@@ -1044,12 +1044,12 @@ export default class myriad extends Exchange {
      * @param {boolean} [params.skipWaitForReceipt] optional override to skip the post-send receipt wait; implied true when params.transactionHash is provided
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    async createAmmOrder (outcome: string, type: Str, side: Str, amount: Num, price: Num = undefined, params: Dict = {}): Promise<PredictionOrder> {
+    async createAmmOrder (outcome: string, type: Str, side: string, amount: Num, price: Num = undefined, params: Dict = {}): Promise<PredictionOrder> {
         // the AMM buy endpoint is priced in COLLATERAL, not shares — so a bare createOrder market buy
         // would silently size `amount` as dollars (inconsistent with every other venue and the wiki).
         // route dollar-sizing through createMarketBuyOrderWithCost (which sets costDenominated); a
         // plain createOrder buy on the AMM is rejected so it can't misinterpret shares as collateral
-        const sideLower = (side !== undefined) ? (side as string).toLowerCase () : undefined;
+        const sideLower = side.toLowerCase ();
         const isCostDenominated = this.safeBool (params, 'costDenominated', false);
         if ((sideLower === 'buy') && (!isCostDenominated)) {
             throw new NotSupported (this.id + ' createOrder() market buy on the AMM sizes by collateral, not shares — use createMarketBuyOrderWithCost(outcome, collateral) for a dollar buy, or the default order book (omit enableAmm) for a share-denominated order');
@@ -2013,7 +2013,7 @@ export default class myriad extends Exchange {
         return Precise.stringDiv (decimalString, scale);
     }
 
-    parseTradeTx (txHash: Str, quote: Dict, market: Dict, side: Str): PredictionOrder {
+    parseTradeTx (txHash: Str, quote: Dict, market: Dict, side: string): PredictionOrder {
         return this.safePredictionOrder ({
             'id': txHash,
             'clientOrderId': undefined,
