@@ -2805,12 +2805,12 @@ func (this *Foxbit) Sign(path string, optionalArgs ...any) map[string]any {
 		"headers": headersValue,
 	}
 }
-func (this *Foxbit) HandleErrors(httpCode int64, reason any, url string, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Foxbit) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
 		return nil
 	}
 	var error map[string]any = SafeMapTyped(response, "error")
-	var code *string = this.SafeString(error, "code")
+	var codeError *string = this.SafeString(error, "code")
 	var details []any = SafeListTyped(error, "details")
 	var message *string = this.SafeString(error, "message", "")
 	var detailsString string = ""
@@ -2823,7 +2823,7 @@ func (this *Foxbit) HandleErrors(httpCode int64, reason any, url string, method 
 		var feedback string = this.Id + " " + *message + " details: " + detailsString
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], detailsString, feedback)
-		this.ThrowExactlyMatchedException(this.Exceptions["exact"], code, feedback)
+		this.ThrowExactlyMatchedException(this.Exceptions["exact"], codeError, feedback)
 		panic(ExchangeError(feedback))
 	}
 	return nil

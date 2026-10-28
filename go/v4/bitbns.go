@@ -1778,7 +1778,7 @@ func (this *Bitbns) Sign(path string, optionalArgs ...any) map[string]any {
 		"headers": requestHeaders,
 	}
 }
-func (this *Bitbns) HandleErrors(httpCode int64, reason any, url string, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Bitbns) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
 		return nil // fallback to default error handler
 	}
@@ -1786,12 +1786,12 @@ func (this *Bitbns) HandleErrors(httpCode int64, reason any, url string, method 
 	//     {"msg":"Invalid Request","status":-1,"code":400}
 	//     {"data":[],"status":0,"error":"Nothing to show","code":417}
 	//
-	var code *string = this.SafeString(response, "code")
+	var codeError *string = this.SafeString(response, "code")
 	var message *string = this.SafeString(response, "msg")
-	var error bool = (code != nil) && (code == nil || *code != "200") && (code == nil || *code != "204")
+	var error bool = (codeError != nil) && (codeError == nil || *codeError != "200") && (codeError == nil || *codeError != "204")
 	if error || (message != nil) {
 		var feedback string = this.Id + " " + body
-		this.ThrowExactlyMatchedException(this.Exceptions["exact"], code, feedback)
+		this.ThrowExactlyMatchedException(this.Exceptions["exact"], codeError, feedback)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
 		panic(ExchangeError(feedback))

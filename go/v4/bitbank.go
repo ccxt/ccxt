@@ -1544,7 +1544,7 @@ func (this *Bitbank) Sign(path string, optionalArgs ...any) map[string]any {
 		"headers": headersResolved,
 	}
 }
-func (this *Bitbank) HandleErrors(httpCode int64, reason any, url string, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Bitbank) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
 		return nil
 	}
@@ -1613,9 +1613,9 @@ func (this *Bitbank) HandleErrors(httpCode int64, reason any, url string, method
 			"70009": "We are currently temporarily restricting orders to be carried out. Please use the limit order.",
 			"70010": "We are temporarily raising the minimum order quantity as the system load is now rising.",
 		}
-		var code *string = this.SafeString(data, "code")
-		var message *string = this.SafeString(errorMessages, code, "Error")
-		this.ThrowExactlyMatchedException(this.Exceptions["exact"], code, message)
+		var codeError *string = this.SafeString(data, "code")
+		var message *string = this.SafeString(errorMessages, codeError, "Error")
+		this.ThrowExactlyMatchedException(this.Exceptions["exact"], codeError, message)
 		panic(ExchangeError(this.Id + " " + this.Json(response)))
 	}
 	return nil

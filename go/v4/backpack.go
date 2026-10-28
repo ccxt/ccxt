@@ -4698,7 +4698,7 @@ func (this *Backpack) GenerateBatchPayload(params any, ts *string, recvWindow *s
 	}
 	return payload
 }
-func (this *Backpack) HandleErrors(code int64, reason any, url string, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Backpack) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
 		return nil // fallback to default error handler
 	}

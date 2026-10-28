@@ -4060,7 +4060,7 @@ func (this *Bydfi) Sign(path string, optionalArgs ...any) map[string]any {
 		"headers": headersResolved,
 	}
 }
-func (this *Bydfi) HandleErrors(httpCode int64, reason any, url string, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Bydfi) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
 		return nil // fallback to default error handler
 	}
@@ -4070,13 +4070,13 @@ func (this *Bydfi) HandleErrors(httpCode int64, reason any, url string, method a
 	//         "message": "Requires transaction permissions"
 	//     }
 	//
-	var code *string = this.SafeString(response, "code")
+	var codeError *string = this.SafeString(response, "code")
 	var message *string = this.SafeString(response, "message")
-	if code == nil || *code != "200" {
+	if codeError == nil || *codeError != "200" {
 		var feedback string = this.Id + " " + body
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
-		this.ThrowExactlyMatchedException(this.Exceptions["exact"], code, feedback)
+		this.ThrowExactlyMatchedException(this.Exceptions["exact"], codeError, feedback)
 		panic(ExchangeError(feedback))
 	}
 	return nil

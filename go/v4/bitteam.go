@@ -2959,13 +2959,13 @@ func (this *Bitteam) Sign(path string, optionalArgs ...any) map[string]any {
 		"headers": headersResolved,
 	}
 }
-func (this *Bitteam) HandleErrors(code int64, reason any, url string, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Bitteam) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
 		return nil
 	}
 	if code != 200 {
 		if code == 404 {
-			if (strings.Index(url, "/ccxt/order/") >= 0) && (IsEqual(method, "GET")) {
+			if (strings.Index(url, "/ccxt/order/") >= 0) && (method == "GET") {
 				var parts []string = strings.Split(url, "/order/")
 				var orderId *string = this.SafeString(parts, 1, "")
 				panic(OrderNotFound(this.Id + " order " + *orderId + " not found"))

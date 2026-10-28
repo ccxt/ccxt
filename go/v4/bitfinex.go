@@ -4138,7 +4138,7 @@ func (this *Bitfinex) Sign(path string, optionalArgs ...any) map[string]any {
 		"headers": headersResolved,
 	}
 }
-func (this *Bitfinex) HandleErrors(statusCode int64, statusText any, url string, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Bitfinex) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	// ["error", 11010, "ratelimit: error"]
 	if response != nil {
 		if !IsArray(response) {
@@ -4151,10 +4151,10 @@ func (this *Bitfinex) HandleErrors(statusCode int64, statusText any, url string,
 	} else if IsEqual(response, "") {
 		panic(ExchangeError(this.Id + " returned empty response"))
 	}
-	if statusCode == 429 {
+	if code == 429 {
 		panic(RateLimitExceeded(this.Id + " " + body))
 	}
-	if statusCode == 500 {
+	if code == 500 {
 		// See https://docs.bitfinex.com/docs/abbreviations-glossary#section-errorinfo-codes
 		var errorCode *string = this.SafeString(response, 1, "")
 		var errorText *string = this.SafeString(response, 2, "")

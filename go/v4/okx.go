@@ -12841,7 +12841,7 @@ func (this *Okx) fetchConvertCurrenciesBody(ch chan AsyncResult[Currencies], opt
 	ch <- AsyncResult[Currencies]{Value: CurrenciesFromMap(result)}
 	return nil
 }
-func (this *Okx) HandleErrors(httpCode int64, reason any, url string, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Okx) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
 		return nil // fallback to default error handler
 	}
@@ -12865,8 +12865,8 @@ func (this *Okx) HandleErrors(httpCode int64, reason any, url string, method any
 	//        "msg": "Incorrect trade password"
 	//    }
 	//
-	var code *string = this.SafeString(response, "code")
-	if (code == nil || *code != "0") && (code == nil || *code != "2") {
+	var codeError *string = this.SafeString(response, "code")
+	if (codeError == nil || *codeError != "0") && (codeError == nil || *codeError != "2") {
 		var feedback string = this.Id + " " + body
 		var data []any = SafeListTyped(response, "data")
 		for i := 0; i < len(data); i++ {
@@ -12876,7 +12876,7 @@ func (this *Okx) HandleErrors(httpCode int64, reason any, url string, method any
 			this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
 			this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
 		}
-		this.ThrowExactlyMatchedException(this.Exceptions["exact"], code, feedback)
+		this.ThrowExactlyMatchedException(this.Exceptions["exact"], codeError, feedback)
 		panic(ExchangeError(feedback))
 	}
 	return nil

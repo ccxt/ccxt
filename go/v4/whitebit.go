@@ -5952,9 +5952,9 @@ func (this *Whitebit) Sign(path string, optionalArgs ...any) map[string]any {
 		"headers": requestHeaders,
 	}
 }
-func (this *Whitebit) HandleErrors(code int64, reason any, url string, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Whitebit) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if (code == 418) || (code == 429) {
-		panic(DDoSProtection(Add(Add(Add(this.Id+" "+strconv.FormatInt(code, 10)+" ", reason), " "), body)))
+		panic(DDoSProtection(this.Id + " " + strconv.FormatInt(code, 10) + " " + reason + " " + body))
 	}
 	if code == 404 {
 		panic(ExchangeError(this.Id + " " + strconv.FormatInt(code, 10) + " endpoint not found"))

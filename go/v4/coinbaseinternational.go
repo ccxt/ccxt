@@ -4463,7 +4463,7 @@ func (this *Coinbaseinternational) ResolveRoute(optionalArgs ...any) bool {
 	}
 	return (GetLength(this.ApiKey) == 8) && (GetLength(this.Secret) == 43)
 }
-func (this *Coinbaseinternational) HandleErrors(code int64, reason any, url string, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Coinbaseinternational) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	//
 	//     { "jsonrpc": "2.0", "id": 1, "error": { "code": 13004, "message": "invalid_credentials" } }
 	//

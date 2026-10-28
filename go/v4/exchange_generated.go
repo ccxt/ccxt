@@ -5947,7 +5947,7 @@ func (this *BaseExchange) FindBroadlyMatchedKey(broad any, string any) any {
 	}
 	return nil
 }
-func (this *BaseExchange) HandleErrors(statusCode int64, statusText any, url string, method any, responseHeaders any, responseBody string, response any, requestHeaders any, requestBody any) any {
+func (this *BaseExchange) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	// it is a stub method that must be overrided in the derived exchange classes
 	// throw new NotSupported (this.id + ' handleErrors() not implemented yet');
 	return nil
@@ -7698,7 +7698,7 @@ func (this *BaseExchange) ConvertTypeToAccount(account any) any {
 		return account
 	}
 }
-func (this *BaseExchange) CheckRequiredArgument(methodName any, argument any, argumentName any, optionalArgs ...any) {
+func (this *BaseExchange) CheckRequiredArgument(methodName string, argument any, argumentName string, optionalArgs ...any) {
 	/**
 	 * @ignore
 	 * @method
@@ -7713,9 +7713,9 @@ func (this *BaseExchange) CheckRequiredArgument(methodName any, argument any, ar
 	var optionsLength int = GetArrayLength(options)
 	if (IsEqual(argument, nil)) || ((optionsLength > 0) && (!(this.InArray(argument, options)))) {
 		var messageOptions string = Join(options, ", ")
-		var message any = Add(Add(Add(Add(this.Id+" ", methodName), "() requires a "), argumentName), " argument")
+		var message string = this.Id + " " + methodName + "() requires a " + argumentName + " argument"
 		if messageOptions != "" {
-			message = Add(message, ", one of "+"("+messageOptions+")")
+			message += ", one of " + "(" + messageOptions + ")"
 		}
 		panic(ArgumentsRequired(message))
 	}

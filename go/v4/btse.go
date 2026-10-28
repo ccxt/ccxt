@@ -4864,7 +4864,7 @@ func (this *Btse) setLeverageBody(ch chan AsyncResult[map[string]any], leverage 
 	ch <- AsyncResult[map[string]any]{Value: response}
 	return nil
 }
-func (this *Btse) HandleErrors(code int64, reason any, url string, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Btse) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
 		return nil // fallback to default error handler
 	}

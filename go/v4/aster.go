@@ -6097,7 +6097,7 @@ func (this *Aster) initializeClientBody(ch chan AsyncResult[bool], optionalArgs 
 	ch <- AsyncResult[bool]{} // just c#
 	return nil
 }
-func (this *Aster) HandleErrors(httpCode int64, reason any, url string, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Aster) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
 		return nil // fallback to default error handler
 	}
@@ -6107,12 +6107,12 @@ func (this *Aster) HandleErrors(httpCode int64, reason any, url string, method a
 	//        "msg": "Invalid symbol.",
 	//    }
 	//
-	var code *string = this.SafeString(response, "code")
+	var codeError *string = this.SafeString(response, "code")
 	var message *string = this.SafeString(response, "msg")
-	if (code != nil) && (code == nil || *code != "200") {
+	if (codeError != nil) && (codeError == nil || *codeError != "200") {
 		var feedback string = this.Id + " " + body
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, feedback)
-		this.ThrowExactlyMatchedException(this.Exceptions["exact"], code, feedback)
+		this.ThrowExactlyMatchedException(this.Exceptions["exact"], codeError, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
 		panic(ExchangeError(feedback))
 	}

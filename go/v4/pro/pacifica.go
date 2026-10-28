@@ -1930,7 +1930,7 @@ func (this *Pacifica) HandleErrorMessage(client any, message any) any {
 				}
 			}()
 			// try block:
-			this.HandleErrors(0, error, "", postType, wsHeadersFinal, this.Json(data), message, map[string]any{}, map[string]any{})
+			this.HandleErrors(0, *error, "", *postType, wsHeadersFinal, this.Json(data), message, map[string]any{}, "")
 			return nil
 		}(this)
 

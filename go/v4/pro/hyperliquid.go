@@ -2511,7 +2511,7 @@ func (this *Hyperliquid) HandleErrorMessage(client any, message map[string]any) 
 				}
 			}()
 			// try block:
-			this.HandleErrors(0, "", "", "", map[string]any{}, this.Json(payload), payload, map[string]any{}, map[string]any{})
+			this.HandleErrors(0, "", "", "", map[string]any{}, this.Json(payload), payload, map[string]any{}, "")
 			return nil
 		}(this)
 

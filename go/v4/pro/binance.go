@@ -7588,7 +7588,7 @@ func (this *Binance) HandleWsError(client any, message any) {
 				}
 			}()
 			// try block:
-			this.HandleErrors(this.ParseToInt(codeValue), msg, client.(ccxt.ClientInterface).GetUrl(), "", map[string]any{}, this.Json(error), error, map[string]any{}, map[string]any{})
+			this.HandleErrors(this.ParseToInt(codeValue), *msg, client.(ccxt.ClientInterface).GetUrl(), "", map[string]any{}, this.Json(error), error, map[string]any{}, "")
 			return nil
 		}(this)
 

@@ -4138,7 +4138,7 @@ func (this *Bitstamp) Sign(path string, optionalArgs ...any) map[string]any {
 		"headers": requestHeaders,
 	}
 }
-func (this *Bitstamp) HandleErrors(httpCode int64, reason any, url string, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Bitstamp) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
 		return nil
 	}
@@ -4174,8 +4174,8 @@ func (this *Bitstamp) HandleErrors(httpCode int64, reason any, url string, metho
 				errors = append(errors, all[i])
 			}
 		}
-		var code *string = this.SafeString(response, "code")
-		if code != nil && *code == "API0005" {
+		var codeError *string = this.SafeString(response, "code")
+		if codeError != nil && *codeError == "API0005" {
 			panic(AuthenticationError(this.Id + " invalid signature, use the uid for the main account if you have subaccounts"))
 		}
 		var feedback string = this.Id + " " + body

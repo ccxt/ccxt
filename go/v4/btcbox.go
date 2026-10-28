@@ -1181,21 +1181,21 @@ func (this *Btcbox) Sign(path string, optionalArgs ...any) map[string]any {
 		"headers": nil,
 	}
 }
-func (this *Btcbox) HandleErrors(httpCode int64, reason any, url string, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Btcbox) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
 		return nil // resort to defaultErrorHandler
 	}
 	// typical error response: {"result":false,"code":"401"}
-	if httpCode >= 400 {
+	if code >= 400 {
 		return nil // resort to defaultErrorHandler
 	}
 	var result *bool = this.SafeBool(response, "result")
 	if (result == nil) || (result != nil && *result) {
 		return nil // either public API (no error codes expected) or success
 	}
-	var code *string = this.SafeString(response, "code")
+	var codeError *string = this.SafeString(response, "code")
 	var feedback string = this.Id + " " + body
-	this.ThrowExactlyMatchedException(this.Exceptions, code, feedback)
+	this.ThrowExactlyMatchedException(this.Exceptions, codeError, feedback)
 	panic(ExchangeError(feedback))
 }
 func (this *Btcbox) RequestAsync(path any, optionalArgs ...any) <-chan AsyncResult[any] {

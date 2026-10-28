@@ -2824,7 +2824,7 @@ func (this *Bitvavo) HandleErrorMessage(client any, message map[string]any) any 
 				}
 			}()
 			// try block:
-			this.HandleErrors(this.ParseToInt(code), error, client.(ccxt.ClientInterface).GetUrl(), "", map[string]any{}, *error, message, map[string]any{}, map[string]any{})
+			this.HandleErrors(this.ParseToInt(code), *error, client.(ccxt.ClientInterface).GetUrl(), "", map[string]any{}, *error, message, map[string]any{}, "")
 			return nil
 		}(this)
 

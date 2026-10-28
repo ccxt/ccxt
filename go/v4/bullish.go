@@ -4260,7 +4260,7 @@ func (this *Bullish) handleTokenBody(ch chan AsyncResult[*string], optionalArgs 
 		return nil
 	}
 }
-func (this *Bullish) HandleErrors(httpCode int64, reason any, url string, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Bullish) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
 		return nil // fallback to default error handler
 	}
@@ -4277,9 +4277,9 @@ func (this *Bullish) HandleErrors(httpCode int64, reason any, url string, method
 	//             "errorCodeName": "ORDER_SIZE_OUTSIDE_VALID_RANGE"
 	//         }
 	//
-	var code *string = this.SafeString(response, "errorCode")
+	var codeError *string = this.SafeString(response, "errorCode")
 	var typeVar *string = this.SafeString(response, "type")
-	if ((code != nil) && (code == nil || *code != "0") && (code == nil || *code != "1001")) || (typeVar != nil && *typeVar == "HttpInvalidParameterException") {
+	if ((codeError != nil) && (codeError == nil || *codeError != "0") && (codeError == nil || *codeError != "1001")) || (typeVar != nil && *typeVar == "HttpInvalidParameterException") {
 		var message any = ""
 		var errorCodeName *string = this.SafeString(response, "errorCodeName")
 		if errorCodeName != nil {
@@ -4290,7 +4290,7 @@ func (this *Bullish) HandleErrors(httpCode int64, reason any, url string, method
 		var feedback string = this.Id + " " + body
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
-		this.ThrowExactlyMatchedException(this.Exceptions["exact"], code, feedback)
+		this.ThrowExactlyMatchedException(this.Exceptions["exact"], codeError, feedback)
 		panic(ExchangeError(feedback))
 	}
 	return nil

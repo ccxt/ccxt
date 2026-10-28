@@ -3014,7 +3014,7 @@ func (this *Bigone) withdrawBody(ch chan AsyncResult[Transaction], code string, 
 	ch <- AsyncResult[Transaction]{Value: this.ParseTransaction(data, currency)}
 	return nil
 }
-func (this *Bigone) HandleErrors(httpCode int64, reason any, url string, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Bigone) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
 		return nil // fallback to default error handler
 	}
@@ -3022,12 +3022,12 @@ func (this *Bigone) HandleErrors(httpCode int64, reason any, url string, method 
 	//      {"code":10013,"message":"Resource not found"}
 	//      {"code":40004,"message":"invalid jwt"}
 	//
-	var code *string = this.SafeString(response, "code")
+	var codeError *string = this.SafeString(response, "code")
 	var message *string = this.SafeString(response, "message")
-	if (code == nil || *code != "0") && (code != nil) {
+	if (codeError == nil || *codeError != "0") && (codeError != nil) {
 		var feedback string = this.Id + " " + body
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, feedback)
-		this.ThrowExactlyMatchedException(this.Exceptions["exact"], code, feedback)
+		this.ThrowExactlyMatchedException(this.Exceptions["exact"], codeError, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
 		panic(ExchangeError(feedback))
 	}

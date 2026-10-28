@@ -5128,7 +5128,7 @@ func (this *Paradex) Sign(path string, optionalArgs ...any) map[string]any {
 		"headers": nil,
 	}
 }
-func (this *Paradex) HandleErrors(httpCode int64, reason any, url string, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Paradex) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
 		return nil // fallback to default error handler
 	}
@@ -5140,7 +5140,7 @@ func (this *Paradex) HandleErrors(httpCode int64, reason any, url string, method
 	//     }
 	//
 	var errorCode *string = this.SafeString(response, "error")
-	if (errorCode == nil) && (httpCode == 400) {
+	if (errorCode == nil) && (code == 400) {
 		//
 		// a batch where every order was rejected, errors are index-aligned with the request
 		//

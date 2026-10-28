@@ -2640,7 +2640,7 @@ func (this *Bitso) Sign(path string, optionalArgs ...any) map[string]any {
 		"headers": requestHeaders,
 	}
 }
-func (this *Bitso) HandleErrors(httpCode int64, reason any, url string, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Bitso) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
 		return nil // fallback to default error handler
 	}
@@ -2655,8 +2655,8 @@ func (this *Bitso) HandleErrors(httpCode int64, reason any, url string, method a
 			if error == nil {
 				panic(ExchangeError(feedback))
 			}
-			var code *string = this.SafeString(error, "code")
-			this.ThrowExactlyMatchedException(this.Exceptions, code, feedback)
+			var codeError *string = this.SafeString(error, "code")
+			this.ThrowExactlyMatchedException(this.Exceptions, codeError, feedback)
 			panic(ExchangeError(feedback))
 		}
 	}

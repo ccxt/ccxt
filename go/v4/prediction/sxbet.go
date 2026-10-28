@@ -3916,7 +3916,7 @@ func (this *Sxbet) HandleOrder(client any, rows []any) {
 		}
 	}
 }
-func (this *Sxbet) HandleErrors(code int64, reason any, url string, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Sxbet) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	// sx.bet returns { "error": "Bad Request", "message": <code or [strings]>, "statusCode": 4xx }
 	// map the known codes to ccxt errors so callers can distinguish a rejected order or a
 	// validation problem from a transport outage (the base otherwise maps a bare 4xx to the

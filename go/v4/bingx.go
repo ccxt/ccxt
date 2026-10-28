@@ -8682,7 +8682,7 @@ func (this *Bingx) SetSandboxMode(enable bool) {
 	this.Exchange.SetSandboxMode(enable)
 	this.Options["sandboxMode"] = enable
 }
-func (this *Bingx) HandleErrors(httpCode int64, reason any, url string, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Bingx) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
 		return nil // fallback to default error handler
 	}
@@ -8694,16 +8694,16 @@ func (this *Bingx) HandleErrors(httpCode int64, reason any, url string, method a
 	//        }
 	//    }
 	//
-	var code *string = this.SafeString(response, "code")
+	var codeError *string = this.SafeString(response, "code")
 	var message *string = this.SafeString(response, "msg")
 	var transferErrorMsg *string = this.SafeString(response, "transferErrorMsg") // handling with errors from transfer endpoint
-	if (transferErrorMsg != nil) || ((code != nil) && (code == nil || *code != "0")) {
+	if (transferErrorMsg != nil) || ((codeError != nil) && (codeError == nil || *codeError != "0")) {
 		if transferErrorMsg != nil {
 			message = transferErrorMsg
 		}
 		var feedback string = this.Id + " " + body
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, feedback)
-		this.ThrowExactlyMatchedException(this.Exceptions["exact"], code, feedback)
+		this.ThrowExactlyMatchedException(this.Exceptions["exact"], codeError, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
 		panic(ExchangeError(feedback))
 	}

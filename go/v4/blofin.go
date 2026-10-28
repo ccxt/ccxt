@@ -4937,19 +4937,19 @@ func (this *Blofin) ParseADLRank(info any, optionalArgs ...any) map[string]any {
 		"datetime":   this.Iso8601(timestamp),
 	}
 }
-func (this *Blofin) HandleErrors(httpCode int64, reason any, url string, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Blofin) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
 		return nil // fallback to default error handler
 	}
 	//
 	// {"code":"152002","msg":"Parameter bar error."}
 	//
-	var code *string = this.SafeString(response, "code")
+	var codeError *string = this.SafeString(response, "code")
 	var message *string = this.SafeString(response, "msg")
 	var feedback string = this.Id + " " + body
-	if (code != nil) && (code == nil || *code != "0") {
+	if (codeError != nil) && (codeError == nil || *codeError != "0") {
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, feedback)
-		this.ThrowExactlyMatchedException(this.Exceptions["exact"], code, feedback)
+		this.ThrowExactlyMatchedException(this.Exceptions["exact"], codeError, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
 		panic(ExchangeError(feedback))
 	}

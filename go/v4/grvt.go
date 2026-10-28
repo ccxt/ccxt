@@ -4513,7 +4513,7 @@ func (this *Grvt) Sign(path string, optionalArgs ...any) map[string]any {
 		"headers": requestHeaders,
 	}
 }
-func (this *Grvt) HandleErrors(code int64, reason any, url string, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Grvt) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if strings.HasSuffix(url, "auth/api_key/login") || strings.HasSuffix(url, "auth/wallet/login") {
 		var accountId *string = this.SafeString2(headers, "X-Grvt-Account-Id", "x-grvt-account-id")
 		this.Options["AuthAccountId"] = DerefScalar(accountId)

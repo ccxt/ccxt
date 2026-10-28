@@ -10344,7 +10344,7 @@ func (this *Htx) Sign(path string, optionalArgs ...any) map[string]any {
 		"headers": headersResolved,
 	}
 }
-func (this *Htx) HandleErrors(httpCode int64, reason any, url string, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Htx) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
 		return nil // fallback to default error handler
 	}
@@ -10355,10 +10355,10 @@ func (this *Htx) HandleErrors(httpCode int64, reason any, url string, method any
 		//
 		var status *string = this.SafeString(response, "status")
 		if status != nil && *status == "error" {
-			var code *string = this.SafeString2(response, "err-code", "err_code")
+			var codeError *string = this.SafeString2(response, "err-code", "err_code")
 			var feedback string = this.Id + " " + body
 			this.ThrowBroadlyMatchedException(this.Exceptions["broad"], body, feedback)
-			this.ThrowExactlyMatchedException(this.Exceptions["exact"], code, feedback)
+			this.ThrowExactlyMatchedException(this.Exceptions["exact"], codeError, feedback)
 			var message *string = this.SafeString2(response, "err-msg", "err_msg")
 			this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, feedback)
 			panic(ExchangeError(feedback))
@@ -10367,8 +10367,8 @@ func (this *Htx) HandleErrors(httpCode int64, reason any, url string, method any
 	if InOp(response, "code") {
 		// {code: '1003', message: 'invalid signature'}
 		var feedback string = this.Id + " " + body
-		var code *string = this.SafeString(response, "code")
-		this.ThrowExactlyMatchedException(this.Exceptions["exact"], code, feedback)
+		var codeError *string = this.SafeString(response, "code")
+		this.ThrowExactlyMatchedException(this.Exceptions["exact"], codeError, feedback)
 	}
 	var data map[string]any = SafeMapTyped(response, "data")
 	var errorsList []any = SafeListTyped(data, "errors")

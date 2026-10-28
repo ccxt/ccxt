@@ -1978,7 +1978,7 @@ func (this *Revolutx) editOrderBody(ch chan AsyncResult[Order], id string, symbo
 	ch <- AsyncResult[Order]{Value: OrderFromMap(order)}
 	return nil
 }
-func (this *Revolutx) HandleErrors(code int64, reason any, url string, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Revolutx) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	var statusCode int64 = this.ParseToInt(code)
 	if statusCode >= 400 {
 		if response == nil {

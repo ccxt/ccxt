@@ -3069,7 +3069,7 @@ func (this *Bittrade) Sign(path string, optionalArgs ...any) map[string]any {
 		"headers": headersResult,
 	}
 }
-func (this *Bittrade) HandleErrors(httpCode int64, reason any, url string, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Bittrade) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
 		return nil // fallback to default error handler
 	}
@@ -3079,10 +3079,10 @@ func (this *Bittrade) HandleErrors(httpCode int64, reason any, url string, metho
 		//
 		var status *string = this.SafeString(response, "status")
 		if status != nil && *status == "error" {
-			var code *string = this.SafeString(response, "err-code")
+			var codeError *string = this.SafeString(response, "err-code")
 			var feedback string = this.Id + " " + body
 			this.ThrowBroadlyMatchedException(this.Exceptions["broad"], body, feedback)
-			this.ThrowExactlyMatchedException(this.Exceptions["exact"], code, feedback)
+			this.ThrowExactlyMatchedException(this.Exceptions["exact"], codeError, feedback)
 			var message *string = this.SafeString(response, "err-msg")
 			this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, feedback)
 			panic(ExchangeError(feedback))

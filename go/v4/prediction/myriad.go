@@ -934,12 +934,12 @@ func (this *Myriad) ParsePredictionPosition(position any, optionalArgs ...any) a
  * @param {float} [params.slippage] maximum slippage tolerance (default 0.005)
  * @returns {object} a quote object with price, shares, fees and the on-chain calldata
  */
-func (this *Myriad) FetchTradeQuoteAsync(outcome any, side any, amount any, optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]any] {
+func (this *Myriad) FetchTradeQuoteAsync(outcome string, side string, amount any, optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]any] {
 	ch := make(chan ccxt.AsyncResult[map[string]any], 1)
 	go this.fetchTradeQuoteBody(ch, outcome, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Myriad) fetchTradeQuoteBody(ch chan ccxt.AsyncResult[map[string]any], outcome any, side any, amount any, optionalArgs ...any) any {
+func (this *Myriad) fetchTradeQuoteBody(ch chan ccxt.AsyncResult[map[string]any], outcome string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -954,7 +954,7 @@ func (this *Myriad) fetchTradeQuoteBody(ch chan ccxt.AsyncResult[map[string]any]
 	var networkId *string = this.SafeString(info, "networkId")
 	var marketId *string = this.SafeString(info, "marketId")
 	var outcomeId *int64 = this.SafeInteger(info, "outcomeId")
-	var sideStr string = ccxt.ToLower(side)
+	var sideStr string = strings.ToLower(side)
 	var request map[string]any = map[string]any{
 		"market_id":  this.ParseToInt(marketId),
 		"network_id": this.ParseToInt(networkId),
@@ -1535,12 +1535,12 @@ func (this *Myriad) editOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrder]
  * @param {boolean} [params.skipWaitForReceipt] optional override to skip the post-send receipt wait; implied true when params.transactionHash is provided
  * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-func (this *Myriad) CreateAmmOrderAsync(outcome string, typeVar string, side any, amount any, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.PredictionOrder] {
+func (this *Myriad) CreateAmmOrderAsync(outcome string, typeVar string, side string, amount any, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.PredictionOrder] {
 	ch := make(chan ccxt.AsyncResult[ccxt.PredictionOrder], 1)
 	go this.createAmmOrderBody(ch, outcome, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Myriad) createAmmOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrder], outcome string, typeVar string, side any, amount any, optionalArgs ...any) any {
+func (this *Myriad) createAmmOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrder], outcome string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	// the AMM buy endpoint is priced in COLLATERAL, not shares — so a bare createOrder market buy
@@ -1551,14 +1551,9 @@ func (this *Myriad) createAmmOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionO
 	_ = price
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var sideLower any = func() any {
-		if !ccxt.IsEqual(side, nil) {
-			return ccxt.ToLower(side)
-		}
-		return nil
-	}()
+	var sideLower string = strings.ToLower(side)
 	var isCostDenominated *bool = this.SafeBool(params, "costDenominated", false)
-	if (ccxt.IsEqual(sideLower, "buy")) && (!(isCostDenominated != nil && *isCostDenominated)) {
+	if (sideLower == "buy") && (!(isCostDenominated != nil && *isCostDenominated)) {
 		panic(ccxt.NotSupported(this.Id + " createOrder() market buy on the AMM sizes by collateral, not shares — use createMarketBuyOrderWithCost(outcome, collateral) for a dollar buy, or the default order book (omit enableAmm) for a share-denominated order"))
 	}
 	if this.PrivateKey == "" {
@@ -1581,7 +1576,7 @@ func (this *Myriad) createAmmOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionO
 	var predictionMarket *string = this.SafeString(chainConfig, "predictionMarket")
 	var tokenAddress *string = this.SafeString2(params, "token", "tokenAddress", this.SafeString(info, "tokenAddress"))
 	var gasLimit *string = this.SafeString(params, "gasLimit", "0xaae60")
-	var sideStr any = sideLower
+	var sideStr string = sideLower
 	var quoteParams map[string]any = this.OmitDict(params, []any{"rpcUrl", "rpc", "token", "tokenAddress", "gasLimit", "costDenominated", "quote", "transactionHash", "txHash", "skipAllowance", "skipWaitForReceipt"})
 	var quote any = this.SafeDict(params, "quote")
 	if ccxt.IsEqual(quote, nil) {
@@ -1604,7 +1599,7 @@ func (this *Myriad) createAmmOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionO
 	var txHashParam *string = this.SafeString2(params, "transactionHash", "txHash")
 	var hasPreBroadcastTxHash bool = (txHashParam != nil)
 	var skipAllowance *bool = this.SafeBool(params, "skipAllowance", hasPreBroadcastTxHash)
-	if (ccxt.IsEqual(sideStr, "buy")) && (tokenAddress != nil) && (!(skipAllowance != nil && *skipAllowance)) {
+	if (sideStr == "buy") && (tokenAddress != nil) && (!(skipAllowance != nil && *skipAllowance)) {
 
 		r2 := <-this.EnsureErc20AllowanceAsync(rpcUrl, networkId, tokenAddress, fromAddress, predictionMarket)
 		if r2.Err != nil {
@@ -2969,7 +2964,7 @@ func (this *Myriad) FromWeiWithDecimals(hexValue any, decimals *int64) any {
 	}
 	return ccxt.Precise.StringDiv(decimalString, scale)
 }
-func (this *Myriad) ParseTradeTx(txHash any, quote any, market map[string]any, side any) map[string]any {
+func (this *Myriad) ParseTradeTx(txHash any, quote any, market map[string]any, side string) map[string]any {
 	return this.SafePredictionOrder(map[string]any{
 		"id":            txHash,
 		"clientOrderId": nil,
@@ -5527,7 +5522,7 @@ func (this *Myriad) WalletAddressFromKeys() string {
 	}
 	return strings.ToLower(this.EthGetAddressFromPrivateKey(this.PrivateKey))
 }
-func (this *Myriad) HandleErrors(code int64, reason any, url string, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Myriad) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	// Myriad error responses are { "error": "<message>", "details": [...] } with a 4xx status
 	if response == nil {
 		return nil

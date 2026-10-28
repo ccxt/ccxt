@@ -6299,20 +6299,20 @@ func (this *Digifinex) Sign(path string, optionalArgs ...any) map[string]any {
 		"headers": nil,
 	}
 }
-func (this *Digifinex) HandleErrors(statusCode int64, statusText any, url string, method any, responseHeaders any, responseBody string, response any, requestHeaders any, requestBody any) any {
+func (this *Digifinex) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
 		return nil // fall back to default error handler
 	}
-	var code *string = this.SafeString(response, "code")
-	if (code != nil && *code == "0") || (code != nil && *code == "200") {
+	var codeError *string = this.SafeString(response, "code")
+	if (codeError != nil && *codeError == "0") || (codeError != nil && *codeError == "200") {
 		return nil // no error
 	}
-	var feedback string = this.Id + " " + responseBody
-	if code == nil {
+	var feedback string = this.Id + " " + body
+	if codeError == nil {
 		panic(BadResponse(feedback))
 	}
 	var unknownError []any = []any{ExchangeError, feedback}
-	ExceptionClassmessageVariable := this.SafeValue(this.Exceptions["exact"], code, unknownError)
+	ExceptionClassmessageVariable := this.SafeValue(this.Exceptions["exact"], codeError, unknownError)
 	ExceptionClass := GetValue(ExceptionClassmessageVariable, 0)
 	message := GetValue(ExceptionClassmessageVariable, 1)
 	ThrowDynamicException(ExceptionClass, message)

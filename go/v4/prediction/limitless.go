@@ -4167,21 +4167,21 @@ func (this *Limitless) Sign(path string, optionalArgs ...any) map[string]any {
  * @name limitless#handleErrors
  * @description maps limitless error responses to ccxt exceptions
  */
-func (this *Limitless) HandleErrors(statusCode int64, statusText any, url string, method any, responseHeaders any, responseBody string, response any, requestHeaders any, requestBody any) any {
+func (this *Limitless) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
 		return nil
 	}
-	var statusCodeInt int64 = this.ParseToInt(statusCode)
+	var statusCodeInt int64 = this.ParseToInt(code)
 	if (statusCodeInt >= 200) && (statusCodeInt < 300) {
 		return nil
 	}
-	var feedback string = this.Id + " " + responseBody
+	var feedback string = this.Id + " " + body
 	// the API returns either a string message or an array of field-validation errors
 	var message *string = this.SafeString(response, "message")
 	if message != nil {
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, feedback)
 	}
-	this.ThrowBroadlyMatchedException(this.Exceptions["broad"], responseBody, feedback)
+	this.ThrowBroadlyMatchedException(this.Exceptions["broad"], body, feedback)
 	// a 400 is a client-side bad request (bad params, or a business rule like "market not
 	// resolved"), not a transport outage — throw ccxt.BadRequest with the exchange message instead
 	// of letting the base map the bare 400 to a retryable network-unavailable error

@@ -4894,7 +4894,7 @@ func (this *Cryptocom) Sign(path string, optionalArgs ...any) map[string]any {
 		"headers": requestHeaders,
 	}
 }
-func (this *Cryptocom) HandleErrors(code int64, reason any, url string, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Cryptocom) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	var errorCode *string = this.SafeString(response, "code")
 	if errorCode == nil || *errorCode != "0" {
 		var feedback string = this.Id + " " + body

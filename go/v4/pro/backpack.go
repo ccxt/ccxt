@@ -1050,14 +1050,13 @@ func (this *Backpack) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[stri
 	var topics []any = []any{}
 	var messageHashes []any = []any{}
 	for i := 0; i < symbolsLength; i++ {
-		var symbolAndTimeframe []any = ccxt.SafeListTyped(symbolsAndTimeframes, i)
-		var marketId *string = this.SafeString(symbolAndTimeframe, 0)
+		var marketId *string = this.SafeString(this.SafeList(symbolsAndTimeframes, i), 0)
 		var market map[string]any = this.Market(marketId)
-		var tf *string = this.SafeString(symbolAndTimeframe, 1)
+		var tf *string = this.SafeString(this.SafeList(symbolsAndTimeframes, i), 1, "")
 		var interval *string = this.SafeString(this.Timeframes, tf, tf)
 		this.WsVenueMarketId("watchOHLCVForSymbols", market, query)
-		topics = append(topics, ccxt.Add(ccxt.Add(ccxt.Add("kline.", interval), "."), this.SafeString(market, "id", "")))
-		messageHashes = append(messageHashes, ccxt.Add("candles:"+market["symbol"].(string)+":", interval))
+		topics = append(topics, "kline."+*interval+"."+*this.SafeString(market, "id", ""))
+		messageHashes = append(messageHashes, "candles:"+market["symbol"].(string)+":"+*interval)
 	}
 	r2 := <-this.WatchPublicAsync(topics, messageHashes, this.Omit(query, []any{"stock", "source"}))
 	if r2.Err != nil {
@@ -1118,14 +1117,13 @@ func (this *Backpack) unWatchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[bool],
 	var topics []any = []any{}
 	var messageHashes []any = []any{}
 	for i := 0; i < symbolsLength; i++ {
-		var symbolAndTimeframe []any = ccxt.SafeListTyped(symbolsAndTimeframes, i)
-		var marketId *string = this.SafeString(symbolAndTimeframe, 0)
+		var marketId *string = this.SafeString(this.SafeList(symbolsAndTimeframes, i), 0)
 		var market map[string]any = this.Market(marketId)
-		var tf *string = this.SafeString(symbolAndTimeframe, 1)
+		var tf *string = this.SafeString(this.SafeList(symbolsAndTimeframes, i), 1, "")
 		var interval *string = this.SafeString(this.Timeframes, tf, tf)
 		this.WsVenueMarketId("watchOHLCVForSymbols", market, query)
-		topics = append(topics, ccxt.Add(ccxt.Add(ccxt.Add("kline.", interval), "."), this.SafeString(market, "id", "")))
-		messageHashes = append(messageHashes, ccxt.Add("unsubscribe:candles:"+market["symbol"].(string)+":", interval))
+		topics = append(topics, "kline."+*interval+"."+*this.SafeString(market, "id", ""))
+		messageHashes = append(messageHashes, "unsubscribe:candles:"+market["symbol"].(string)+":"+*interval)
 	}
 
 	r2 := <-this.WatchPublicAsync(topics, messageHashes, this.Omit(query, []any{"stock", "source"}), true)

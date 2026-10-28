@@ -3131,7 +3131,7 @@ func (this *Opinion) HandleMyTrade(client any, message any) {
 	stored.(ccxt.Appender).Append(trade)
 	client.(ccxt.ClientInterface).Resolve(stored, "myTrades")
 }
-func (this *Opinion) HandleErrors(code int64, reason any, url string, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Opinion) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
 		return nil
 	}
