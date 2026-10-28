@@ -946,7 +946,7 @@ func (this *Blockchaincom) HandleAuthenticationMessage(client any, message map[s
 	if event == nil || *event != "subscribed" {
 		panic(ccxt.AuthenticationError(this.Id + " received an authentication error: " + this.Json(message)))
 	}
-	var future any = client.(ccxt.ClientInterface).GetFutures()["authenticated"]
+	var future any = client.(ccxt.ClientInterface).FutureGet("authenticated")
 	if future != nil {
 		future.(*ccxt.Future).Resolve(true)
 	}
@@ -965,7 +965,7 @@ func (this *Blockchaincom) authenticateBody(ch chan ccxt.AsyncResult[*string], o
 	var client ccxt.ClientInterface = this.Client(url)
 	var messageHash string = "authenticated"
 	var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
-	var isAuthenticated any = this.SafeValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), messageHash)
+	var isAuthenticated any = client.(ccxt.ClientInterface).SubscriptionSafe(messageHash)
 	if isAuthenticated == nil {
 		this.CheckRequiredCredentials()
 		var request map[string]any = map[string]any{

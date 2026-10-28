@@ -3699,8 +3699,8 @@ func (this *Kucoin) loadBalanceSnapshotBody(ch chan ccxt.AsyncResult[bool], clie
 	}
 	this.WsCacheSetScalar("Balance", typeVar, this.Extend(response, this.SafeDict(this.WsCacheSnapshot("Balance"), typeVar, map[string]any{})))
 	// don't remove the future from the .futures cache
-	if ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash) {
-		var future any = ccxt.GetValue(client.(ccxt.ClientInterface).GetFutures(), messageHash)
+	if client.(ccxt.ClientInterface).FutureHas(messageHash) {
+		var future any = client.(ccxt.ClientInterface).FutureGet(messageHash)
 		future.(*ccxt.Future).Resolve()
 		client.(ccxt.ClientInterface).Resolve(this.WsCacheGetScalar("Balance", typeVar), ccxt.Add(typeVar, ":balance"))
 	}
@@ -4094,8 +4094,8 @@ func (this *Kucoin) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], cl
 		}
 	}
 	// don't remove the future from the .futures cache
-	if ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash) {
-		var future any = ccxt.GetValue(client.(ccxt.ClientInterface).GetFutures(), messageHash)
+	if client.(ccxt.ClientInterface).FutureHas(messageHash) {
+		var future any = client.(ccxt.ClientInterface).FutureGet(messageHash)
 		future.(*ccxt.Future).Resolve(cache)
 		client.(ccxt.ClientInterface).Resolve(cache, "positions")
 	}
@@ -4105,7 +4105,7 @@ func (this *Kucoin) SetPositionCache(client any, symbol any) {
 	var fetchPositionSnapshot any = this.HandleOption("watchPosition", "fetchPositionSnapshot", false)
 	if fetchPositionSnapshot == true {
 		var messageHash any = ccxt.Add("fetchPositionSnapshot:", symbol)
-		if !(ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash)) {
+		if !(client.(ccxt.ClientInterface).FutureHas(messageHash)) {
 			client.(ccxt.ClientInterface).Future(messageHash)
 			this.Spawn(this.LoadPositionSnapshotAsync, client, messageHash, symbol)
 		}
@@ -4132,8 +4132,8 @@ func (this *Kucoin) loadPositionSnapshotBody(ch chan ccxt.AsyncResult[bool], cli
 	var cache any = this.WsCacheObjGet("Positions")
 	cache.(ccxt.Appender).Append(position)
 	// don't remove the future from the .futures cache
-	if ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash) {
-		var future any = ccxt.GetValue(client.(ccxt.ClientInterface).GetFutures(), messageHash)
+	if client.(ccxt.ClientInterface).FutureHas(messageHash) {
+		var future any = client.(ccxt.ClientInterface).FutureGet(messageHash)
 		future.(*ccxt.Future).Resolve(cache)
 		client.(ccxt.ClientInterface).Resolve(position, ccxt.Add("position:", symbol))
 	}

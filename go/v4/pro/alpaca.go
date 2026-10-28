@@ -835,7 +835,7 @@ func (this *Alpaca) authenticateBody(ch chan ccxt.AsyncResult[*string], url any,
 	var messageHash string = "authenticated"
 	var client ccxt.ClientInterface = this.Client(url)
 	var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
-	var authenticated any = this.SafeValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), messageHash)
+	var authenticated any = client.(ccxt.ClientInterface).SubscriptionSafe(messageHash)
 	if authenticated == nil {
 		var request any = map[string]any{
 			"action": "auth",
@@ -976,7 +976,7 @@ func (this *Alpaca) HandleAuthenticate(client any, message any) {
 	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	var status *string = this.SafeString(data, "status")
 	if (T != nil && *T == "success") || (status != nil && *status == "authorized") {
-		var promise any = client.(ccxt.ClientInterface).GetFutures()["authenticated"]
+		var promise any = client.(ccxt.ClientInterface).FutureGet("authenticated")
 		promise.(*ccxt.Future).Resolve(ccxt.ToGetsLimit(message))
 		return
 	}

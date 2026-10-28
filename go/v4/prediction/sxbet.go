@@ -3389,7 +3389,7 @@ func (this *Sxbet) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInt
 		panic(r1.Err)
 	}
 	var client any = this.Client(url)
-	var isNewSubscription bool = ccxt.IsEqual(this.SafeValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), channel), nil)
+	var isNewSubscription bool = ccxt.IsEqual(client.(ccxt.ClientInterface).SubscriptionSafe(channel), nil)
 	if ccxt.IsEqual(this.WsCacheGet("Orderbooks", sym), nil) {
 		// seed from the REST snapshot so the book is served before the first publication
 		this.SetWsOption("wsWatchedBooks", sym, marketHash)

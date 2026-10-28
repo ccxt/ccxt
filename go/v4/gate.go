@@ -1934,7 +1934,7 @@ func (this *Gate) Describe() map[string]any {
 		"rollingWindowSize": 5000,
 	})
 }
-func (this *Gate) SetSandboxMode(enable any) {
+func (this *Gate) SetSandboxMode(enable bool) {
 	this.Exchange.SetSandboxMode(enable)
 	this.Options["sandboxMode"] = enable
 }
@@ -10960,12 +10960,12 @@ func (this *Gate) ParseLedgerEntryType(typeVar *string) *string {
  * @param {string} params.settle settle currency
  * @returns {object} response from the exchange
  */
-func (this *Gate) SetPositionModeAsync(hedged any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+func (this *Gate) SetPositionModeAsync(hedged bool, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
 	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.setPositionModeBody(ch, hedged, optionalArgs...)
 	return ch
 }
-func (this *Gate) setPositionModeBody(ch chan AsyncResult[map[string]any], hedged any, optionalArgs ...any) any {
+func (this *Gate) setPositionModeBody(ch chan AsyncResult[map[string]any], hedged bool, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -10979,7 +10979,7 @@ func (this *Gate) setPositionModeBody(ch chan AsyncResult[map[string]any], hedge
 	requestqueryVariable := this.PrepareRequest(market, "swap", params)
 	var request map[string]any = requestqueryVariable[0].(map[string]any)
 	var query map[string]any = requestqueryVariable[1].(map[string]any)
-	AddElementToObject(request, "dual_mode", hedged)
+	request["dual_mode"] = hedged
 
 	r := <-this.PrivateFuturesPostSettleDualMode(this.Extend(request, query))
 	if r.Err != nil {

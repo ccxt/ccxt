@@ -3405,7 +3405,7 @@ func (this *Bitget) authenticateBody(ch chan ccxt.AsyncResult[*string], optional
 	var client ccxt.ClientInterface = this.Client(url)
 	var messageHash string = "authenticated"
 	var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
-	var authenticated any = this.SafeValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), messageHash)
+	var authenticated any = client.(ccxt.ClientInterface).SubscriptionSafe(messageHash)
 	if authenticated == nil {
 		var timestamp string = strconv.FormatInt(this.Seconds(), 10)
 		var auth string = timestamp + "GET" + "/user/verify"
@@ -3492,7 +3492,7 @@ func (this *Bitget) HandleAuthenticate(client any, message any) {
 	//  { event: "login", code: 0 }
 	//
 	var messageHash string = "authenticated"
-	var future any = client.(ccxt.ClientInterface).GetFutures()[messageHash]
+	var future any = client.(ccxt.ClientInterface).FutureGet(messageHash)
 	future.(*ccxt.Future).Resolve(true)
 }
 func (this *Bitget) HandleErrorMessage(client any, message any) any {

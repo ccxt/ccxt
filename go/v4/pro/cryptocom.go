@@ -1452,8 +1452,8 @@ func (this *Cryptocom) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool],
 		}
 	}
 	// don't remove the future from the .futures cache
-	if ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash) {
-		var future any = ccxt.GetValue(client.(ccxt.ClientInterface).GetFutures(), messageHash)
+	if client.(ccxt.ClientInterface).FutureHas(messageHash) {
+		var future any = client.(ccxt.ClientInterface).FutureGet(messageHash)
 		future.(*ccxt.Future).Resolve(cache)
 		client.(ccxt.ClientInterface).Resolve(cache, "positions")
 	}
@@ -2162,7 +2162,7 @@ func (this *Cryptocom) authenticateBody(ch chan ccxt.AsyncResult[*string], optio
 	var client ccxt.ClientInterface = this.Client(url)
 	var messageHash string = "authenticated"
 	var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
-	var authenticated any = this.SafeValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), messageHash)
+	var authenticated any = client.(ccxt.ClientInterface).SubscriptionSafe(messageHash)
 	if authenticated == nil {
 		var method string = "public/auth"
 		var nonceValue any = this.IncrementingNonce()
@@ -2203,7 +2203,7 @@ func (this *Cryptocom) HandleAuthenticate(client any, message map[string]any) {
 	//
 	//  { id: 1648132625434, method: "public/auth", code: 0 }
 	//
-	var future any = client.(ccxt.ClientInterface).GetFutures()["authenticated"]
+	var future any = client.(ccxt.ClientInterface).FutureGet("authenticated")
 	future.(*ccxt.Future).Resolve(true)
 }
 func (this *Cryptocom) HandleUnsubscribe(client any, message map[string]any) {
@@ -2215,7 +2215,7 @@ func (this *Cryptocom) HandleUnsubscribe(client any, message map[string]any) {
 			continue
 		}
 		if strings.HasPrefix(messageHash, "unsubscribe") {
-			var subscription any = this.SafeValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), messageHash)
+			var subscription any = client.(ccxt.ClientInterface).SubscriptionSafe(messageHash)
 			var subId *string = this.SafeString(subscription, "id")
 			if id != subId && (id == nil || subId == nil || *id != *subId) {
 				continue

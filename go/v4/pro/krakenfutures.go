@@ -96,7 +96,7 @@ func (this *Krakenfutures) authenticateBody(ch chan ccxt.AsyncResult[*string], o
 	var messageHash string = "challenge"
 	var client ccxt.ClientInterface = this.Client(url)
 	var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
-	var authenticated any = this.SafeValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), messageHash)
+	var authenticated any = client.(ccxt.ClientInterface).SubscriptionSafe(messageHash)
 	if authenticated == nil {
 		var request map[string]any = map[string]any{
 			"event":   "challenge",
@@ -2248,7 +2248,7 @@ func (this *Krakenfutures) HandleAuthenticate(client any, message map[string]any
 		var signature string = this.Hmac(hashedChallenge, base64Secret, ccxt.Sha512, "base64")
 		this.Options["challenge"] = challenge
 		this.Options["signedChallenge"] = signature
-		var future any = client.(ccxt.ClientInterface).GetFutures()[messageHash]
+		var future any = client.(ccxt.ClientInterface).FutureGet(messageHash)
 		future.(*ccxt.Future).Resolve(true)
 	} else {
 		error := ccxt.AuthenticationError(this.Id + " " + this.Json(message))

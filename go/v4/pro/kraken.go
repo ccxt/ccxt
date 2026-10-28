@@ -1634,7 +1634,7 @@ func (this *Kraken) authenticateBody(ch chan ccxt.AsyncResult[*string], optional
 	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["private"])
 	var client ccxt.ClientInterface = this.Client(url)
 	var authenticated string = "authenticated"
-	var subscription any = this.SafeValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), authenticated)
+	var subscription any = client.(ccxt.ClientInterface).SubscriptionSafe(authenticated)
 	var now int64 = this.Seconds()
 	var start *int64 = this.SafeInteger(subscription, "start")
 	var expires *int64 = this.SafeInteger(subscription, "expires", int64(-1))

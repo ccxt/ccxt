@@ -1055,8 +1055,8 @@ func (this *Toobit) loadBalanceSnapshotBody(ch chan ccxt.AsyncResult[bool], clie
 	}
 	this.WsCacheSetScalar("Balance", typeVar, this.Extend(response, this.SafeDict(this.WsCacheSnapshot("Balance"), typeVar, map[string]any{})))
 	// don't remove the future from the .futures cache
-	if ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash) {
-		var future any = ccxt.GetValue(client.(ccxt.ClientInterface).GetFutures(), messageHash)
+	if client.(ccxt.ClientInterface).FutureHas(messageHash) {
+		var future any = client.(ccxt.ClientInterface).FutureGet(messageHash)
 		future.(*ccxt.Future).Resolve()
 		client.(ccxt.ClientInterface).Resolve(this.WsCacheGetScalar("Balance", typeVar), typeVar+":fetchBalanceSnapshot")
 		client.(ccxt.ClientInterface).Resolve(this.WsCacheGetScalar("Balance", typeVar), typeVar+":balance") // we should also resolve right away after snapshot, so user doesn't double-fetch balance
@@ -1473,8 +1473,8 @@ func (this *Toobit) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], cl
 		cache.(ccxt.Appender).Append(position)
 	}
 	// don't remove the future from the .futures cache
-	if ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash) {
-		var future any = ccxt.GetValue(client.(ccxt.ClientInterface).GetFutures(), messageHash)
+	if client.(ccxt.ClientInterface).FutureHas(messageHash) {
+		var future any = client.(ccxt.ClientInterface).FutureGet(messageHash)
 		future.(*ccxt.Future).Resolve(cache)
 		client.(ccxt.ClientInterface).Resolve(cache, ccxt.Add(typeVar, ":positions"))
 	}
@@ -1698,7 +1698,7 @@ func (this *Toobit) keepAliveListenKeyBody(ch chan ccxt.AsyncResult[bool], optio
 						// catch block:
 						var url string = this.GetUserStreamUrl()
 						var client ccxt.ClientInterface = this.Client(url)
-						var messageHashes []string = ccxt.ObjectKeys(client.(ccxt.ClientInterface).GetFutures())
+						var messageHashes []string = client.(ccxt.ClientInterface).FutureKeys()
 						for i := 0; i < len(messageHashes); i++ {
 							var messageHash string = messageHashes[i]
 							client.(ccxt.ClientInterface).Reject(error, messageHash)

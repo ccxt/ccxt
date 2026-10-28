@@ -1457,7 +1457,7 @@ func (this *Bitfinex) authenticateBody(ch chan ccxt.AsyncResult[*string], option
 	var client ccxt.ClientInterface = this.Client(url)
 	var messageHash string = "authenticated"
 	var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
-	var authenticated any = this.SafeValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), messageHash)
+	var authenticated any = client.(ccxt.ClientInterface).SubscriptionSafe(messageHash)
 	if authenticated == nil {
 		// the auth nonce shares the increasing-nonce requirement (and the counter) with REST requests signed by the same key
 		var nonce any = this.IncrementingNonce()
@@ -1496,7 +1496,7 @@ func (this *Bitfinex) HandleAuthenticationMessage(client any, message map[string
 	var status *string = this.SafeString(message, "status")
 	if status != nil && *status == "OK" {
 		// we resolve the future here permanently so authentication only happens once
-		var future any = client.(ccxt.ClientInterface).GetFutures()[messageHash]
+		var future any = client.(ccxt.ClientInterface).FutureGet(messageHash)
 		future.(*ccxt.Future).Resolve(true)
 	} else {
 		error := ccxt.AuthenticationError(this.Json(message))

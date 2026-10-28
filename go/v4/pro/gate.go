@@ -2222,7 +2222,7 @@ func (this *Gate) SetPositionsCache(client any, typeVar any, optionalArgs ...any
 	var fetchPositionsSnapshot any = this.HandleOption("watchPositions", "fetchPositionsSnapshot", false)
 	if fetchPositionsSnapshot == true {
 		var messageHash any = ccxt.Add(typeVar, ":fetchPositionsSnapshot")
-		if !(ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash)) {
+		if !(client.(ccxt.ClientInterface).FutureHas(messageHash)) {
 			client.(ccxt.ClientInterface).Future(messageHash)
 			this.Spawn(this.LoadPositionsSnapshotAsync, client, messageHash, typeVar)
 		}
@@ -2259,8 +2259,8 @@ func (this *Gate) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], clie
 		}
 	}
 	// don't remove the future from the .futures cache
-	if ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash) {
-		var future any = ccxt.GetValue(client.(ccxt.ClientInterface).GetFutures(), messageHash)
+	if client.(ccxt.ClientInterface).FutureHas(messageHash) {
+		var future any = client.(ccxt.ClientInterface).FutureGet(messageHash)
 		future.(*ccxt.Future).Resolve(cache)
 		client.(ccxt.ClientInterface).Resolve(cache, ccxt.Add(typeVar, ":position"))
 	}
@@ -2960,7 +2960,7 @@ func (this *Gate) HandleSubscriptionStatus(client any, message map[string]any) {
 		return ok
 	}() {
 		var subscriptionHash *string = this.SafeString(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), id)
-		var subscription any = this.SafeValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), subscriptionHash)
+		var subscription any = client.(ccxt.ClientInterface).SubscriptionSafe(subscriptionHash)
 		var method any = func() any {
 			if channel == nil {
 				return nil
@@ -3361,7 +3361,7 @@ func (this *Gate) authenticateBody(ch chan ccxt.AsyncResult[*string], url any, m
 	var client ccxt.ClientInterface = this.Client(url)
 	var messageHash string = "authenticated"
 	var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
-	var authenticated any = this.SafeValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), messageHash)
+	var authenticated any = client.(ccxt.ClientInterface).SubscriptionSafe(messageHash)
 	if authenticated == nil {
 
 		r := <-this.RequestPrivateAsync(url, map[string]any{}, channel, messageHash)
@@ -3395,7 +3395,7 @@ func (this *Gate) authenticateBody(ch chan ccxt.AsyncResult[*string], url any, m
 }
 func (this *Gate) HandleAuthenticationMessage(client any, message map[string]any) {
 	var messageHash string = "authenticated"
-	var future any = client.(ccxt.ClientInterface).GetFutures()[messageHash]
+	var future any = client.(ccxt.ClientInterface).FutureGet(messageHash)
 	future.(*ccxt.Future).Resolve(true)
 }
 func (this *Gate) RequestPrivateAsync(url any, reqParams any, channel any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {

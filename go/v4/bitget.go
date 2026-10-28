@@ -3582,7 +3582,7 @@ func (this *Bitget) Describe() map[string]any {
  * @description enables or disables demo trading mode, if enabled will send PAPTRADING=1 in headers
  * @param enabled
  */
-func (this *Bitget) SetSandboxMode(enabled any) {
+func (this *Bitget) SetSandboxMode(enabled bool) {
 	this.Options["sandboxMode"] = enabled
 }
 
@@ -3592,7 +3592,7 @@ func (this *Bitget) SetSandboxMode(enabled any) {
  * @description enables or disables demo trading mode, if enabled will send PAPTRADING=1 in headers
  * @param enabled
  */
-func (this *Bitget) EnableDemoTrading(enabled any) {
+func (this *Bitget) EnableDemoTrading(enabled bool) {
 	this.SetSandboxMode(enabled)
 }
 func (this *Bitget) HandleProductTypeAndParams(optionalArgs ...any) []any {
@@ -14186,12 +14186,12 @@ func (this *Bitget) setMarginModeBody(ch chan AsyncResult[map[string]any], margi
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @returns {object} response from the exchange
  */
-func (this *Bitget) SetPositionModeAsync(hedged any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+func (this *Bitget) SetPositionModeAsync(hedged bool, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
 	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.setPositionModeBody(ch, hedged, optionalArgs...)
 	return ch
 }
-func (this *Bitget) setPositionModeBody(ch chan AsyncResult[map[string]any], hedged any, optionalArgs ...any) any {
+func (this *Bitget) setPositionModeBody(ch chan AsyncResult[map[string]any], hedged bool, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)

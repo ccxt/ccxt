@@ -1102,11 +1102,11 @@ func (this *Lighter) changeApiKeyBody(ch chan AsyncResult[any], optionalArgs ...
 	ch <- AsyncResult[any]{Value: signer}
 	return nil
 }
-func (this *Lighter) SetSandboxMode(enable any) {
+func (this *Lighter) SetSandboxMode(enable bool) {
 	this.Exchange.SetSandboxMode(enable)
 	this.Options["sandboxMode"] = enable
 	this.Options["chainId"] = func() int {
-		if EvalTruthy(enable) {
+		if enable {
 			return 300
 		}
 		return 304

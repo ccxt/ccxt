@@ -115,7 +115,7 @@ func (this *Poloniex) authenticateBody(ch chan ccxt.AsyncResult[*string], option
 	var url *string = this.SafeString(this.UrlsApi["ws"], "private", "")
 	var messageHash string = "authenticated"
 	var client ccxt.ClientInterface = this.Client(url)
-	var future any = this.SafeValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), messageHash)
+	var future any = client.(ccxt.ClientInterface).SubscriptionSafe(messageHash)
 	if ccxt.IsEqual(future, nil) {
 		var accessPath string = "/ws"
 		var requestString string = "GET\n" + accessPath + "\nsignTimestamp=" + *timestamp
@@ -1218,8 +1218,8 @@ func (this *Poloniex) loadBalanceSnapshotBody(ch chan ccxt.AsyncResult[bool], cl
 	}
 	this.WsCacheReplace("Balance", this.SafeBalance(this.WsCacheSnapshot("Balance")))
 	// don't remove the future from the .futures cache
-	if ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash) {
-		var future any = ccxt.GetValue(client.(ccxt.ClientInterface).GetFutures(), messageHash)
+	if client.(ccxt.ClientInterface).FutureHas(messageHash) {
+		var future any = client.(ccxt.ClientInterface).FutureGet(messageHash)
 		future.(*ccxt.Future).Resolve()
 		client.(ccxt.ClientInterface).Resolve(this.WsCacheSnapshot("Balance"), typeVar)
 	}

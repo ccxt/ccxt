@@ -8102,12 +8102,12 @@ func (this *Bingx) fetchPositionModeBody(ch chan AsyncResult[PositionModeInfo], 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} response from the exchange
  */
-func (this *Bingx) SetPositionModeAsync(hedged any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+func (this *Bingx) SetPositionModeAsync(hedged bool, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
 	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.setPositionModeBody(ch, hedged, optionalArgs...)
 	return ch
 }
-func (this *Bingx) setPositionModeBody(ch chan AsyncResult[map[string]any], hedged any, optionalArgs ...any) any {
+func (this *Bingx) setPositionModeBody(ch chan AsyncResult[map[string]any], hedged bool, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -8128,7 +8128,7 @@ func (this *Bingx) setPositionModeBody(ch chan AsyncResult[map[string]any], hedg
 		panic(NotSupported(this.Id + " setPositionMode() is not supported for inverse swap markets"))
 	}
 	var dualSidePosition string
-	if EvalTruthy(hedged) {
+	if hedged {
 		dualSidePosition = "true"
 	} else {
 		dualSidePosition = "false"
@@ -8678,7 +8678,7 @@ func (this *Bingx) Sign(path string, optionalArgs ...any) any {
 func (this *Bingx) Nonce() int64 {
 	return this.Milliseconds()
 }
-func (this *Bingx) SetSandboxMode(enable any) {
+func (this *Bingx) SetSandboxMode(enable bool) {
 	this.Exchange.SetSandboxMode(enable)
 	this.Options["sandboxMode"] = enable
 }

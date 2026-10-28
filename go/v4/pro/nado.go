@@ -1817,7 +1817,7 @@ func (this *Nado) watchPublicBody(ch chan ccxt.AsyncResult[any], streamType stri
 		"symbol":     this.SafeString(market, "symbol"),
 	}
 	var client ccxt.ClientInterface = this.Client(url)
-	var clientSubscription any = this.SafeValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), subscribeHash)
+	var clientSubscription any = client.(ccxt.ClientInterface).SubscriptionSafe(subscribeHash)
 	if clientSubscription == nil {
 		client.(ccxt.ClientInterface).SubscriptionSet("subscription:"+*this.SafeString(request, "id", ""), map[string]any{
 			"subscribeHash": subscribeHash,
@@ -1844,7 +1844,7 @@ func (this *Nado) watchPrivateBody(ch chan ccxt.AsyncResult[[]any], streamType s
 	_ = params
 	var url *string = this.SafeString(this.UrlsApi["ws"], "subscriptions")
 	var client ccxt.ClientInterface = this.Client(url)
-	var clientSubscription any = this.SafeValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), messageHash)
+	var clientSubscription any = client.(ccxt.ClientInterface).SubscriptionSafe(messageHash)
 	if clientSubscription != nil {
 
 		r := <-this.WatchList(url, messageHash)
@@ -1937,9 +1937,9 @@ func (this *Nado) authenticateBody(ch chan ccxt.AsyncResult[*string], optionalAr
 	var url *string = this.SafeString(this.UrlsApi["ws"], "subscriptions")
 	var client ccxt.ClientInterface = this.Client(url)
 	var messageHash string = "authenticated"
-	var authenticated any = this.SafeValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), messageHash)
+	var authenticated any = client.(ccxt.ClientInterface).SubscriptionSafe(messageHash)
 	if authenticated != nil {
-		var future any = client.(ccxt.ClientInterface).GetFutures()[messageHash]
+		var future any = client.(ccxt.ClientInterface).FutureGet(messageHash)
 		if future != nil {
 
 			r := <-future.(*ccxt.Future).Await()
@@ -2070,7 +2070,7 @@ func (this *Nado) watchPublicMultipleBody(ch chan ccxt.AsyncResult[any], streamT
 	var client ccxt.ClientInterface = this.Client(url)
 	for i := 0; i < ccxt.GetArrayLength(messageHashes); i++ {
 		var messageHash *string = this.SafeString(messageHashes, i, "")
-		var clientSubscription any = this.SafeValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), messageHash)
+		var clientSubscription any = client.(ccxt.ClientInterface).SubscriptionSafe(messageHash)
 		if clientSubscription == nil {
 			var market any = ccxt.GetValue(markets, i)
 			var id int64 = this.RequestId()
@@ -2082,7 +2082,7 @@ func (this *Nado) watchPublicMultipleBody(ch chan ccxt.AsyncResult[any], streamT
 			}()
 			var request map[string]any = this.CreatePublicSubscriptionRequest("subscribe", streamType, market, id, requestParams)
 			var subscribeHash string = "subscribe:" + this.Json(request["stream"])
-			var streamSubscription any = this.SafeValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), subscribeHash)
+			var streamSubscription any = client.(ccxt.ClientInterface).SubscriptionSafe(subscribeHash)
 			if streamSubscription == nil {
 				var subscription map[string]any = map[string]any{
 					"streamType": streamType,
@@ -2706,7 +2706,7 @@ func (this *Nado) HandleOrderBook(client any, message map[string]any) {
 				client.(ccxt.ClientInterface).SubscriptionDel(subscriptionHash)
 			}
 		}
-		var subscriptionMsg any = this.SafeValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), messageHash)
+		var subscriptionMsg any = client.(ccxt.ClientInterface).SubscriptionSafe(messageHash)
 		if subscriptionMsg != nil {
 			client.(ccxt.ClientInterface).SubscriptionDel(messageHash)
 		}
@@ -2743,7 +2743,7 @@ func (this *Nado) HandleExecuteResponse(client any, message any) {
 		return
 	}
 	var messageHash string = "execute:" + *id
-	var subscription any = this.SafeValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), messageHash)
+	var subscription any = client.(ccxt.ClientInterface).SubscriptionSafe(messageHash)
 	if subscription != nil {
 		client.(ccxt.ClientInterface).SubscriptionDel(messageHash)
 	}
@@ -2890,7 +2890,7 @@ func (this *Nado) HandleErrorMessage(client any, message any) bool {
 	var id *string = this.SafeString(message, "id", "")
 	if id != nil {
 		var executeHash string = "execute:" + *id
-		var executeSubscription any = this.SafeValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), executeHash)
+		var executeSubscription any = client.(ccxt.ClientInterface).SubscriptionSafe(executeHash)
 		if executeSubscription != nil {
 			client.(ccxt.ClientInterface).SubscriptionDel(executeHash)
 			client.(ccxt.ClientInterface).Reject(feedback, executeHash)

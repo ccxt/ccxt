@@ -5134,12 +5134,12 @@ func (this *Woo) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRateHi
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} response from the exchange
  */
-func (this *Woo) SetPositionModeAsync(hedged any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+func (this *Woo) SetPositionModeAsync(hedged bool, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
 	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.setPositionModeBody(ch, hedged, optionalArgs...)
 	return ch
 }
-func (this *Woo) setPositionModeBody(ch chan AsyncResult[map[string]any], hedged any, optionalArgs ...any) any {
+func (this *Woo) setPositionModeBody(ch chan AsyncResult[map[string]any], hedged bool, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -5147,7 +5147,7 @@ func (this *Woo) setPositionModeBody(ch chan AsyncResult[map[string]any], hedged
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var hedgeMode string
-	if EvalTruthy(hedged) {
+	if hedged {
 		hedgeMode = "HEDGE_MODE"
 	} else {
 		hedgeMode = "ONE_WAY"
@@ -6251,7 +6251,7 @@ func (this *Woo) DefaultNetworkCodeForCurrency(code any) any {
 	// if it was not returned according to above options, then return the first network of currency
 	return this.SafeString(networkKeys, 0)
 }
-func (this *Woo) SetSandboxMode(enable any) {
+func (this *Woo) SetSandboxMode(enable bool) {
 	this.Exchange.SetSandboxMode(enable)
 	this.Options["sandboxMode"] = enable
 }

@@ -4483,12 +4483,12 @@ func (this *Btse) fetchPositionModeBody(ch chan AsyncResult[PositionModeInfo], o
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} response from the exchange
  */
-func (this *Btse) SetPositionModeAsync(hedged any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+func (this *Btse) SetPositionModeAsync(hedged bool, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
 	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.setPositionModeBody(ch, hedged, optionalArgs...)
 	return ch
 }
-func (this *Btse) setPositionModeBody(ch chan AsyncResult[map[string]any], hedged any, optionalArgs ...any) any {
+func (this *Btse) setPositionModeBody(ch chan AsyncResult[map[string]any], hedged bool, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	// NB!!! This method also sets margin mode to cross on btse
@@ -4510,7 +4510,7 @@ func (this *Btse) setPositionModeBody(ch chan AsyncResult[map[string]any], hedge
 	}
 	var market map[string]any = this.Market(symbol)
 	var positionMode string = "ONE_WAY"
-	if EvalTruthy(hedged) {
+	if hedged {
 		positionMode = "HEDGE"
 	}
 	var request map[string]any = map[string]any{

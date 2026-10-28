@@ -1963,7 +1963,7 @@ func (this *Cex) HandleErrorMessage(client any, message map[string]any) any {
 					ret_ = func(this *Cex) any {
 						// catch block:
 						var messageHash *string = this.SafeString(message, "oid")
-						var future any = this.SafeValue(client.(ccxt.ClientInterface).GetFutures(), messageHash)
+						var future any = client.(ccxt.ClientInterface).FutureGet(messageHash)
 						if future != nil {
 							client.(ccxt.ClientInterface).Reject(error, messageHash)
 							return true
@@ -2036,7 +2036,7 @@ func (this *Cex) HandleAuthenticationMessage(client any, message map[string]any)
 	//         "timestamp":1448034593
 	//     }
 	//
-	var future any = client.(ccxt.ClientInterface).GetFutures()["authenticated"]
+	var future any = client.(ccxt.ClientInterface).FutureGet("authenticated")
 	if future != nil {
 		future.(*ccxt.Future).Resolve(true)
 	}
@@ -2055,7 +2055,7 @@ func (this *Cex) authenticateBody(ch chan ccxt.AsyncResult[*string], optionalArg
 	var client ccxt.ClientInterface = this.Client(url)
 	var messageHash string = "authenticated"
 	var future any = client.(ccxt.ClientInterface).ReusableFuture("authenticated")
-	var authenticated any = this.SafeValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), messageHash)
+	var authenticated any = client.(ccxt.ClientInterface).SubscriptionSafe(messageHash)
 	if authenticated == nil {
 		this.CheckRequiredCredentials()
 		var nonce string = strconv.FormatInt(this.Seconds(), 10)

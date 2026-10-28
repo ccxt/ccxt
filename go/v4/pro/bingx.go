@@ -1599,7 +1599,7 @@ func (this *Bingx) SetBalanceCache(client any, typeVar any, subType any, subscri
 	fetchBalanceSnapshot, _ := this.HandleOptionBoolAndParams(params, "watchBalance", "fetchBalanceSnapshot", true)
 	if fetchBalanceSnapshot {
 		var messageHash any = ccxt.Add(typeVar, ":fetchBalanceSnapshot")
-		if !(ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash)) {
+		if !(client.(ccxt.ClientInterface).FutureHas(messageHash)) {
 			client.(ccxt.ClientInterface).Future(messageHash)
 			this.Spawn(this.LoadBalanceSnapshotAsync, client, messageHash, typeVar, subType)
 		}
@@ -1629,8 +1629,8 @@ func (this *Bingx) loadBalanceSnapshotBody(ch chan ccxt.AsyncResult[bool], clien
 	}
 	this.WsCacheSetScalar("Balance", typeVar, this.Extend(response, this.SafeDict(this.WsCacheSnapshot("Balance"), typeVar, map[string]any{})))
 	// don't remove the future from the .futures cache
-	if ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash) {
-		var future any = ccxt.GetValue(client.(ccxt.ClientInterface).GetFutures(), messageHash)
+	if client.(ccxt.ClientInterface).FutureHas(messageHash) {
+		var future any = client.(ccxt.ClientInterface).FutureGet(messageHash)
 		future.(*ccxt.Future).Resolve()
 		client.(ccxt.ClientInterface).Resolve(this.WsCacheGetScalar("Balance", typeVar), ccxt.Add(typeVar, ":balance"))
 	}
@@ -1753,7 +1753,7 @@ func (this *Bingx) SetPositionsCache(client any, typeVar any, optionalArgs ...an
 	var fetchPositionsSnapshot any = this.HandleOption("watchPositions", "fetchPositionsSnapshot", true)
 	if fetchPositionsSnapshot == true {
 		var messageHash any = ccxt.Add(typeVar, ":fetchPositionsSnapshot")
-		if !(ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash)) {
+		if !(client.(ccxt.ClientInterface).FutureHas(messageHash)) {
 			client.(ccxt.ClientInterface).Future(messageHash)
 			this.Spawn(this.LoadPositionsSnapshotAsync, client, messageHash, typeVar)
 		}
@@ -1791,8 +1791,8 @@ func (this *Bingx) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], cli
 		}
 	}
 	// don't remove the future from the .futures cache
-	if ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash) {
-		var future any = ccxt.GetValue(client.(ccxt.ClientInterface).GetFutures(), messageHash)
+	if client.(ccxt.ClientInterface).FutureHas(messageHash) {
+		var future any = client.(ccxt.ClientInterface).FutureGet(messageHash)
 		future.(*ccxt.Future).Resolve(cache)
 		client.(ccxt.ClientInterface).Resolve(cache, "swap:positions")
 	}
@@ -1994,7 +1994,7 @@ func (this *Bingx) keepAliveListenKeyBody(ch chan ccxt.AsyncResult[bool], option
 							}
 							var url string = *baseUrl + "?listenKey=" + *listenKey
 							var client ccxt.ClientInterface = this.Client(url)
-							var messageHashes []string = ccxt.ObjectKeys(client.(ccxt.ClientInterface).GetFutures())
+							var messageHashes []string = client.(ccxt.ClientInterface).FutureKeys()
 							for j := 0; j < len(messageHashes); j++ {
 								var messageHash string = messageHashes[j]
 								client.(ccxt.ClientInterface).Reject(error, messageHash)

@@ -431,7 +431,7 @@ func (this *Whitebit) HandleTicker(client any, message map[string]any) any {
 	// watchTicker
 	client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
 	// watchTickers
-	var messageHashes []string = ccxt.ObjectKeys(client.(ccxt.ClientInterface).GetFutures())
+	var messageHashes []string = client.(ccxt.ClientInterface).FutureKeys()
 	for i := 0; i < len(messageHashes); i++ {
 		var currentMessageHash string = messageHashes[i]
 		if (strings.Index(currentMessageHash, "tickers") >= 0) && (strings.Index(currentMessageHash, *symbol) >= 0) {
@@ -1000,7 +1000,7 @@ func (this *Whitebit) SetBalanceCache(client any, typeVar any, subscriptionHash 
 	var fetchBalanceSnapshot any = this.HandleOption("watchBalance", "fetchBalanceSnapshot", true)
 	if fetchBalanceSnapshot == true {
 		var messageHash any = ccxt.Add(typeVar, ":fetchBalanceSnapshot")
-		if !(ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash)) {
+		if !(client.(ccxt.ClientInterface).FutureHas(messageHash)) {
 			client.(ccxt.ClientInterface).Future(messageHash)
 			this.Spawn(this.LoadBalanceSnapshotAsync, client, messageHash, typeVar, subscriptionHash)
 		}
@@ -1027,8 +1027,8 @@ func (this *Whitebit) loadBalanceSnapshotBody(ch chan ccxt.AsyncResult[bool], cl
 	}
 	this.WsCacheReplace("Balance", this.Extend(response, this.WsCacheSnapshot("Balance")))
 	// don't remove the future from the .futures cache
-	if ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash) {
-		var future any = ccxt.GetValue(client.(ccxt.ClientInterface).GetFutures(), messageHash)
+	if client.(ccxt.ClientInterface).FutureHas(messageHash) {
+		var future any = client.(ccxt.ClientInterface).FutureGet(messageHash)
 		future.(*ccxt.Future).Resolve()
 		client.(ccxt.ClientInterface).Resolve(this.WsCacheSnapshot("Balance"), subscriptionHash)
 	}
@@ -1315,7 +1315,7 @@ func (this *Whitebit) authenticateBody(ch chan ccxt.AsyncResult[int], optionalAr
 		ch <- ccxt.AsyncResult[int]{Value: authorized}
 		return nil
 	}
-	var authenticated any = this.SafeValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), subscribeHash)
+	var authenticated any = client.(ccxt.ClientInterface).SubscriptionSafe(subscribeHash)
 	if authenticated != nil {
 
 		// a previous flight already completed the handshake on the client
@@ -1410,7 +1410,7 @@ func (this *Whitebit) HandleAuthenticate(client any, message map[string]any) any
 	//
 	//     { error: null, result: { status: "success" }, id: 1656084550 }
 	//
-	var future any = client.(ccxt.ClientInterface).GetFutures()["authenticated"]
+	var future any = client.(ccxt.ClientInterface).FutureGet("authenticated")
 	future.(*ccxt.Future).Resolve(1)
 	return message
 }

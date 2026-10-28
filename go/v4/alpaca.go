@@ -2483,7 +2483,7 @@ func (this *Alpaca) withdrawBody(ch chan AsyncResult[Transaction], code string, 
 	ch <- AsyncResult[Transaction]{Value: this.ParseTransaction(response, currency)}
 	return nil
 }
-func (this *Alpaca) SetSandboxMode(enable any) {
+func (this *Alpaca) SetSandboxMode(enable bool) {
 	this.Exchange.SetSandboxMode(enable)
 	this.Options["sandboxMode"] = enable
 }

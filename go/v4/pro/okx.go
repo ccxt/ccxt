@@ -2318,7 +2318,7 @@ func (this *Okx) authenticateBody(ch chan ccxt.AsyncResult[*string], optionalArg
 	var messageHash string = "authenticated"
 	var client ccxt.ClientInterface = this.Client(url)
 	var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
-	var authenticated any = this.SafeValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), messageHash)
+	var authenticated any = client.(ccxt.ClientInterface).SubscriptionSafe(messageHash)
 	if authenticated == nil {
 		var timestamp string = strconv.FormatInt(this.Seconds(), 10)
 		var method string = "GET"
@@ -3558,7 +3558,7 @@ func (this *Okx) HandleAuthenticate(client any, message map[string]any) {
 	//
 	//     { event: "login", success: true }
 	//
-	var future any = client.(ccxt.ClientInterface).GetFutures()["authenticated"]
+	var future any = client.(ccxt.ClientInterface).FutureGet("authenticated")
 	future.(*ccxt.Future).Resolve(true)
 }
 func (this *Okx) Ping(client any) any {

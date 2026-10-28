@@ -148,7 +148,7 @@ func (this *Hyperliquid) Describe() map[string]any {
 		},
 	})
 }
-func (this *Hyperliquid) SetSandboxMode(enabled any) {
+func (this *Hyperliquid) SetSandboxMode(enabled bool) {
 	this.BaseExchange.SetSandboxMode(enabled)
 	this.Options["sandboxMode"] = enabled
 }

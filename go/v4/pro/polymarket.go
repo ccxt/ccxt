@@ -955,7 +955,7 @@ func (this *Polymarket) authenticateBody(ch chan ccxt.AsyncResult[*string], opti
 	var client ccxt.ClientInterface = this.Client(url)
 	var messageHash string = "authenticated"
 	var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
-	var authenticated any = this.SafeValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), messageHash)
+	var authenticated any = client.(ccxt.ClientInterface).SubscriptionSafe(messageHash)
 	if authenticated == nil {
 		var id int64 = this.RequestId()
 		var pending map[string]any = map[string]any{
@@ -1362,8 +1362,8 @@ func (this *Polymarket) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool]
 		cache.(ccxt.Appender).Append(ccxt.GetValue(positions, i))
 	}
 	// don't remove the future from the .futures cache
-	if ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash) {
-		var future any = ccxt.GetValue(client.(ccxt.ClientInterface).GetFutures(), messageHash)
+	if client.(ccxt.ClientInterface).FutureHas(messageHash) {
+		var future any = client.(ccxt.ClientInterface).FutureGet(messageHash)
 		future.(*ccxt.Future).Resolve(cache)
 	}
 	client.(ccxt.ClientInterface).Resolve(cache, "positions")
@@ -1460,8 +1460,8 @@ func (this *Polymarket) loadBalanceSnapshotBody(ch chan ccxt.AsyncResult[bool], 
 	}
 	this.WsCacheReplace("Balance", this.Extend(this.WsCacheSnapshot("Balance"), balance))
 	// don't remove the future from the .futures cache
-	if ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash) {
-		var future any = ccxt.GetValue(client.(ccxt.ClientInterface).GetFutures(), messageHash)
+	if client.(ccxt.ClientInterface).FutureHas(messageHash) {
+		var future any = client.(ccxt.ClientInterface).FutureGet(messageHash)
 		future.(*ccxt.Future).Resolve(this.WsCacheSnapshot("Balance"))
 	}
 	client.(ccxt.ClientInterface).Resolve(this.WsCacheSnapshot("Balance"), "balance")
@@ -1565,7 +1565,7 @@ func (this *Polymarket) HandleAck(client any, message any) {
 					if authStatus != nil && *authStatus == "ok" {
 						// resolve the future object directly so it stays
 						// cached and later authenticate calls reuse it
-						var future any = client.(ccxt.ClientInterface).GetFutures()["authenticated"]
+						var future any = client.(ccxt.ClientInterface).FutureGet("authenticated")
 						if future != nil {
 							future.(*ccxt.Future).Resolve(true)
 						}

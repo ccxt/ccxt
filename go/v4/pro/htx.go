@@ -3004,7 +3004,7 @@ func (this *Htx) HandleAuthenticate(client any, message map[string]any) {
 	//        "data": { "user-id": "35930539" }
 	//    }
 	//
-	var promise any = client.(ccxt.ClientInterface).GetFutures()["auth"]
+	var promise any = client.(ccxt.ClientInterface).FutureGet("auth")
 	promise.(*ccxt.Future).Resolve(ccxt.ToGetsLimit(message))
 }
 func (this *Htx) HandleErrorMessage(client any, message map[string]any) any {
@@ -3696,7 +3696,7 @@ func (this *Htx) authenticateBody(ch chan ccxt.AsyncResult[*string], optionalArg
 	var relativePath string = strings.Replace(*url, "wss://"+*hostname, "", 1)
 	var client ccxt.ClientInterface = this.Client(url)
 	var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
-	var authenticated any = this.SafeValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), messageHash)
+	var authenticated any = client.(ccxt.ClientInterface).SubscriptionSafe(messageHash)
 	if authenticated == nil {
 		var timestamp string = this.Ymdhms(this.Milliseconds(), "T")
 		var signatureParams map[string]any = nil

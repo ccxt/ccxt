@@ -1310,7 +1310,7 @@ func (this *Bitvavo) HandleOrderBookSubscriptions(client any, message map[string
 		var symbol *string = this.SafeSymbol(marketId, nil, "-")
 		var messageHash string = name + "@" + *this.SafeString(marketIds, i, "")
 		if !(ccxt.InOp(this.Orderbooks, symbol)) {
-			var subscription any = this.SafeValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), messageHash)
+			var subscription any = client.(ccxt.ClientInterface).SubscriptionSafe(messageHash)
 			var method any = this.SafeValue(subscription, "method")
 			if method != nil {
 				ccxt.CallDynamically(method, client, message, subscription)
@@ -1388,7 +1388,7 @@ func (this *Bitvavo) HandleUnsubscriptionStatus(client any, message map[string]a
 		if !strings.HasPrefix(key, "unsubscribe:") {
 			continue
 		}
-		var subscription any = this.SafeValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), key)
+		var subscription any = client.(ccxt.ClientInterface).SubscriptionSafe(key)
 		var subHash string = strings.Replace(key, "unsubscribe:", "", 1)
 		this.CleanCache(subscription)
 		this.CleanUnsubscription(ccxt.AsClient(client), subHash, key)
@@ -2726,7 +2726,7 @@ func (this *Bitvavo) authenticateBody(ch chan ccxt.AsyncResult[*string], optiona
 	var url *string = this.SafeString(this.Urls["api"], "ws")
 	var client ccxt.ClientInterface = this.Client(url)
 	var messageHash string = "authenticated"
-	var future any = this.SafeValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), messageHash)
+	var future any = client.(ccxt.ClientInterface).SubscriptionSafe(messageHash)
 	if ccxt.IsEqual(future, nil) {
 		var timestamp int64 = this.Milliseconds()
 		var stringTimestamp string = strconv.FormatInt(timestamp, 10)

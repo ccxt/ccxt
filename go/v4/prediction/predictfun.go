@@ -1984,7 +1984,7 @@ func (this *Predictfun) ParsePredictionTrade(trade any, optionalArgs ...any) any
  * @param {bool} enable whether to use the testnet
  * @returns {undefined}
  */
-func (this *Predictfun) SetSandboxMode(enable any) {
+func (this *Predictfun) SetSandboxMode(enable bool) {
 	// read before the flag is overwritten: only an actual switch touches the token, so calling
 	// this twice with the same value is a no-op rather than a forced re-authentication
 	var wasSandbox bool = (this.SafeBool(this.Options, "sandboxMode", false) != nil && *this.SafeBool(this.Options, "sandboxMode", false) == true)
@@ -1993,17 +1993,17 @@ func (this *Predictfun) SetSandboxMode(enable any) {
 	// change with it - and the venue serves the testnet without an api key
 	this.Options["sandboxMode"] = enable
 	this.Options["chainId"] = func() int {
-		if ccxt.EvalTruthy((enable)) {
+		if enable {
 			return 97
 		}
 		return 56
 	}()
-	this.RequiredCredentials["apiKey"] = !ccxt.EvalTruthy(enable)
+	this.RequiredCredentials["apiKey"] = !enable
 	if wasSandbox != enable {
 		// a token minted for one host is not valid on the other, so the live one is set aside
 		// on the way in and taken back on the way out - a round trip through the sandbox then
 		// costs no re-authentication. the sandbox token is not kept: it dies with the switch
-		if ccxt.EvalTruthy(enable) {
+		if enable {
 			this.Options["backupJwtToken"] = ccxt.DerefScalar(this.SafeString(this.Options, "jwtToken"))
 			this.Options["backupJwtTokenExpiresAt"] = ccxt.DerefScalar(this.SafeInteger(this.Options, "jwtTokenExpiresAt", 0))
 			this.Options["jwtToken"] = nil
@@ -4085,7 +4085,7 @@ func (this *Predictfun) WalletEventMessageHashes(client any, optionalArgs ...any
 	messageHash := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = messageHash
 	var hashes []any = []any{"orders", "myTrades"}
-	var futures []string = ccxt.ObjectKeys(client.(ccxt.ClientInterface).GetFutures())
+	var futures []string = client.(ccxt.ClientInterface).FutureKeys()
 	var futuresLength int = len(futures)
 	for i := 0; i < futuresLength; i++ {
 		var future *string = ccxt.SafeStringPtr(futures[i])

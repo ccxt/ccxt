@@ -156,7 +156,7 @@ func (this *Bydfi) watchPrivateBody(ch chan ccxt.AsyncResult[any], messageHashes
 	var url *string = this.SafeString(this.Urls["api"], "ws", "")
 	var subHash string = "private"
 	var client ccxt.ClientInterface = this.Client(url)
-	var privateSubscription any = this.SafeValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), subHash)
+	var privateSubscription any = client.(ccxt.ClientInterface).SubscriptionSafe(subHash)
 	var subscription map[string]any = map[string]any{}
 	var paramsLogin any = nil
 	if privateSubscription == nil {
@@ -1418,7 +1418,7 @@ func (this *Bydfi) loadBalanceSnapshotBody(ch chan ccxt.AsyncResult[bool], clien
 	}
 	this.WsCacheReplace("Balance", this.SafeBalance(this.WsCacheSnapshot("Balance")))
 	// don't remove the future from the .futures cache
-	var future any = ccxt.GetValue(client.(ccxt.ClientInterface).GetFutures(), messageHash)
+	var future any = client.(ccxt.ClientInterface).FutureGet(messageHash)
 	future.(*ccxt.Future).Resolve()
 	client.(ccxt.ClientInterface).Resolve(this.WsCacheSnapshot("Balance"), "balance")
 	return nil

@@ -12643,12 +12643,12 @@ func (this *Htx) closePositionBody(ch chan AsyncResult[Order], symbol string, op
  * @param {string} [params.marginMode] "cross" (default) or "isolated"
  * @returns {object} response from the exchange
  */
-func (this *Htx) SetPositionModeAsync(hedged any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+func (this *Htx) SetPositionModeAsync(hedged bool, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
 	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.setPositionModeBody(ch, hedged, optionalArgs...)
 	return ch
 }
-func (this *Htx) setPositionModeBody(ch chan AsyncResult[map[string]any], hedged any, optionalArgs ...any) any {
+func (this *Htx) setPositionModeBody(ch chan AsyncResult[map[string]any], hedged bool, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -12663,7 +12663,7 @@ func (this *Htx) setPositionModeBody(ch chan AsyncResult[map[string]any], hedged
 		}
 	}
 	var posMode string = "single_side"
-	if EvalTruthy(hedged) {
+	if hedged {
 		posMode = "dual_side"
 	}
 	var market map[string]any = nil

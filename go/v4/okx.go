@@ -9897,12 +9897,12 @@ func (this *Okx) fetchPositionModeBody(ch chan AsyncResult[PositionModeInfo], op
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} response from the exchange
  */
-func (this *Okx) SetPositionModeAsync(hedged any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+func (this *Okx) SetPositionModeAsync(hedged bool, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
 	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.setPositionModeBody(ch, hedged, optionalArgs...)
 	return ch
 }
-func (this *Okx) setPositionModeBody(ch chan AsyncResult[map[string]any], hedged any, optionalArgs ...any) any {
+func (this *Okx) setPositionModeBody(ch chan AsyncResult[map[string]any], hedged bool, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -9910,7 +9910,7 @@ func (this *Okx) setPositionModeBody(ch chan AsyncResult[map[string]any], hedged
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var hedgeMode string
-	if EvalTruthy(hedged) {
+	if hedged {
 		hedgeMode = "long_short_mode"
 	} else {
 		hedgeMode = "net_mode"
@@ -11376,10 +11376,10 @@ func (this *Okx) ParseOpenInterest(interest any, optionalArgs ...any) OpenIntere
 		"info":               interest,
 	}, marketResolved)
 }
-func (this *Okx) SetSandboxMode(enable any) {
+func (this *Okx) SetSandboxMode(enable bool) {
 	this.Exchange.SetSandboxMode(enable)
 	this.Options["sandboxMode"] = enable
-	if EvalTruthy(enable) {
+	if enable {
 		AddElementToObject(this.Headers, "x-simulated-trading", "1")
 	} else if InOp(this.Headers, "x-simulated-trading") {
 		this.Headers = this.Omit(this.Headers, "x-simulated-trading")

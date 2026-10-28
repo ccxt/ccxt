@@ -7584,12 +7584,12 @@ func (this *Mexc) withdrawBody(ch chan AsyncResult[Transaction], code string, am
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} response from the exchange
  */
-func (this *Mexc) SetPositionModeAsync(hedged any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+func (this *Mexc) SetPositionModeAsync(hedged bool, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
 	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.setPositionModeBody(ch, hedged, optionalArgs...)
 	return ch
 }
-func (this *Mexc) setPositionModeBody(ch chan AsyncResult[map[string]any], hedged any, optionalArgs ...any) any {
+func (this *Mexc) setPositionModeBody(ch chan AsyncResult[map[string]any], hedged bool, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -7598,7 +7598,7 @@ func (this *Mexc) setPositionModeBody(ch chan AsyncResult[map[string]any], hedge
 	_ = params
 	var request map[string]any = map[string]any{
 		"positionMode": func() int {
-			if EvalTruthy(hedged) {
+			if hedged {
 				return 1
 			}
 			return 2

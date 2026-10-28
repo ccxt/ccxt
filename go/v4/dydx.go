@@ -3486,7 +3486,7 @@ func (this *Dydx) HandleErrors(httpCode int64, reason any, url string, method an
 	}
 	return nil
 }
-func (this *Dydx) SetSandboxMode(enable any) {
+func (this *Dydx) SetSandboxMode(enable bool) {
 	this.Exchange.SetSandboxMode(enable)
 	// rewrite testnet parameters
 	this.Options["chainName"] = "dydx-testnet-4"

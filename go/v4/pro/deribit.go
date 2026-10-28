@@ -1476,7 +1476,7 @@ func (this *Deribit) authenticateBody(ch chan ccxt.AsyncResult[*string], optiona
 	var timeString *string = this.NumberToString(time)
 	var nonce *string = timeString
 	var messageHash string = "authenticated"
-	var future any = this.SafeValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), messageHash)
+	var future any = client.(ccxt.ClientInterface).SubscriptionSafe(messageHash)
 	if ccxt.IsEqual(future, nil) {
 		this.CheckRequiredCredentials()
 		var requestId int64 = this.RequestId()

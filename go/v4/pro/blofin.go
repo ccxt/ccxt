@@ -1497,7 +1497,7 @@ func (this *Blofin) HandleMessage(client any, message any) {
 			this.HandleUnsubscription(client, message)
 			return
 		} else if event != nil && *event == "login" {
-			var future any = client.(ccxt.ClientInterface).GetFutures()["authenticate_hash"]
+			var future any = client.(ccxt.ClientInterface).FutureGet("authenticate_hash")
 			future.(*ccxt.Future).Resolve(true)
 			return
 		} else if event != nil && *event == "error" {

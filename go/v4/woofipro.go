@@ -781,7 +781,7 @@ func (this *Woofipro) Describe() map[string]any {
 		"precisionMode": TICK_SIZE,
 	})
 }
-func (this *Woofipro) SetSandboxMode(enable any) {
+func (this *Woofipro) SetSandboxMode(enable bool) {
 	this.Exchange.SetSandboxMode(enable)
 	this.Options["sandboxMode"] = enable
 }

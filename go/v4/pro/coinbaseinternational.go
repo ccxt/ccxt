@@ -2305,7 +2305,7 @@ func (this *Coinbaseinternational) authenticateBody(ch chan ccxt.AsyncResult[*st
 	var url any = this.GetWsUrl(true)
 	var client ccxt.ClientInterface = this.Client(url)
 	var messageHash string = "authenticated"
-	var future any = this.SafeValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), messageHash)
+	var future any = client.(ccxt.ClientInterface).SubscriptionSafe(messageHash)
 	if !ccxt.IsEqual(future, nil) {
 		var refreshAt *int64 = this.SafeInteger(this.Options, "wsAuthRefreshAt")
 		if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; (refreshAt != nil) && (this.Milliseconds() >= *refreshAt) && !ok {

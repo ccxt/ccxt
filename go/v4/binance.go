@@ -4281,7 +4281,7 @@ func (this *Binance) IsLinear(typeVar any, optionalArgs ...any) bool {
 		return (subType != nil && *subType == "linear")
 	}
 }
-func (this *Binance) SetSandboxMode(enable any) {
+func (this *Binance) SetSandboxMode(enable bool) {
 	this.Exchange.SetSandboxMode(enable)
 	this.Options["sandboxMode"] = enable
 }
@@ -4625,11 +4625,11 @@ func (this *Binance) TokenizedConvertHistory(optionalArgs ...any) any {
  * @see https://demo.binance.com/en/my/settings/api-management
  * @param {boolean} [enable] true if demo trading should be enabled, false otherwise
  */
-func (this *Binance) EnableDemoTrading(enable any) {
+func (this *Binance) EnableDemoTrading(enable bool) {
 	if this.IsSandboxModeEnabled {
 		panic(NotSupported(this.Id + " demo trading is not supported in the sandbox environment. Please check https://www.binance.com/en/support/faq/detail/9be58f73e5e14338809e3b705b9687dd to see the differences"))
 	}
-	if EvalTruthy(enable) {
+	if enable {
 		this.Urls["apiBackupDemoTrading"] = this.Urls["api"]
 		this.RefreshUrlsViews()
 		this.Urls["api"] = this.Urls["demo"]
@@ -16547,12 +16547,12 @@ func (this *Binance) setMarginModeBody(ch chan AsyncResult[map[string]any], marg
  * @param {string} [params.subType] "linear" or "inverse"
  * @returns {object} response from the exchange
  */
-func (this *Binance) SetPositionModeAsync(hedged any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+func (this *Binance) SetPositionModeAsync(hedged bool, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
 	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.setPositionModeBody(ch, hedged, optionalArgs...)
 	return ch
 }
-func (this *Binance) setPositionModeBody(ch chan AsyncResult[map[string]any], hedged any, optionalArgs ...any) any {
+func (this *Binance) setPositionModeBody(ch chan AsyncResult[map[string]any], hedged bool, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -16567,7 +16567,7 @@ func (this *Binance) setPositionModeBody(ch chan AsyncResult[map[string]any], he
 	subType, paramsSubType := this.HandleSubTypeAndParams("setPositionMode", market, paramsMarketType)
 	isPortfolioMargin, paramsPapi := this.HandleOptionBoolAndParams2(paramsSubType, "setPositionMode", "papi", "portfolioMargin", false)
 	var dualSidePosition string
-	if EvalTruthy(hedged) {
+	if hedged {
 		dualSidePosition = "true"
 	} else {
 		dualSidePosition = "false"

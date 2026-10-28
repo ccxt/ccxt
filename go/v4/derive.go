@@ -751,7 +751,7 @@ func (this *Derive) Describe() map[string]any {
 		},
 	})
 }
-func (this *Derive) SetSandboxMode(enable any) {
+func (this *Derive) SetSandboxMode(enable bool) {
 	this.Exchange.SetSandboxMode(enable)
 	this.Options["sandboxMode"] = enable
 }

@@ -757,7 +757,7 @@ func (this *Derive) authenticateBody(ch chan ccxt.AsyncResult[*string], optional
 	var client ccxt.ClientInterface = this.Client(url)
 	var messageHash string = "authenticated"
 	var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
-	var authenticated any = this.SafeValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), messageHash)
+	var authenticated any = client.(ccxt.ClientInterface).SubscriptionSafe(messageHash)
 	if authenticated == nil {
 		var requestId int64 = this.RequestId(url)
 		var now *string = this.NumberToString(this.Nonce())
@@ -1630,7 +1630,7 @@ func (this *Derive) HandleAuth(client any, message map[string]any) {
 	var idsLength int = len(ids)
 	if idsLength > 0 {
 		// client.resolve (message, messageHash)
-		var future any = client.(ccxt.ClientInterface).GetFutures()["authenticated"]
+		var future any = client.(ccxt.ClientInterface).FutureGet("authenticated")
 		future.(*ccxt.Future).Resolve(true)
 	} else {
 		error := ccxt.AuthenticationError(this.Json(message))

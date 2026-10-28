@@ -803,7 +803,7 @@ func (this *Modetrade) HandleAuth(client any, message map[string]any) {
 	var success *bool = this.SafeBool(message, "success")
 	if success != nil && *success == true {
 		// client.resolve (message, messageHash)
-		var future any = client.(ccxt.ClientInterface).GetFutures()["authenticated"]
+		var future any = client.(ccxt.ClientInterface).FutureGet("authenticated")
 		future.(*ccxt.Future).Resolve(true)
 	} else {
 		error := ccxt.AuthenticationError(this.Json(message))
@@ -836,7 +836,7 @@ func (this *Modetrade) authenticateBody(ch chan ccxt.AsyncResult[*string], optio
 	var messageHash string = "authenticated"
 	var event string = "auth"
 	var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
-	var authenticated any = this.SafeValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), messageHash)
+	var authenticated any = client.(ccxt.ClientInterface).SubscriptionSafe(messageHash)
 	if authenticated == nil {
 		var ts string = strconv.FormatInt(this.Nonce(), 10)
 		var auth string = ts
@@ -1489,7 +1489,7 @@ func (this *Modetrade) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool],
 		}
 	}
 	// don't remove the future from the .futures cache
-	var future any = this.SafeValue(client.(ccxt.ClientInterface).GetFutures(), messageHash)
+	var future any = client.(ccxt.ClientInterface).FutureGet(messageHash)
 	if future != nil {
 		future.(*ccxt.Future).Resolve(cache)
 		client.(ccxt.ClientInterface).Resolve(cache, "positions")

@@ -740,7 +740,7 @@ func (this *Modetrade) Describe() map[string]any {
 		"precisionMode": TICK_SIZE,
 	})
 }
-func (this *Modetrade) SetSandboxMode(enable any) {
+func (this *Modetrade) SetSandboxMode(enable bool) {
 	this.Exchange.SetSandboxMode(enable)
 	this.Options["sandboxMode"] = enable
 }

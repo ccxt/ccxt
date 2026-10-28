@@ -1825,7 +1825,7 @@ func (this *Phemex) HandleMessage(client any, message any) {
 	// }
 	var id *string = this.SafeString(message, "id", "")
 	if client.(ccxt.ClientInterface).SubscriptionHas(id) {
-		var method any = this.SafeValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), id)
+		var method any = client.(ccxt.ClientInterface).SubscriptionSafe(id)
 		client.(ccxt.ClientInterface).SubscriptionDel(id)
 		if method != true {
 			ccxt.CallDynamically(method, client, message)
@@ -1947,7 +1947,7 @@ func (this *Phemex) authenticateBody(ch chan ccxt.AsyncResult[*string], optional
 	var client ccxt.ClientInterface = this.Client(url)
 	var requestId int64 = this.RequestId()
 	var messageHash string = "authenticated"
-	var future any = this.SafeValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), messageHash)
+	var future any = client.(ccxt.ClientInterface).SubscriptionSafe(messageHash)
 	if ccxt.IsEqual(future, nil) {
 		var expiryDelta int64 = *this.SafeInteger(this.Options, "expires", 120)
 		var expiration int64 = this.Seconds() + expiryDelta

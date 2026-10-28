@@ -923,8 +923,8 @@ func (this *BaseExchange) FilterByValueSinceLimit(array any, field any, optional
  * @description set the sandbox mode for the exchange
  * @param {boolean} enabled true to enable sandbox mode, false to disable it
  */
-func (this *BaseExchange) SetSandboxMode(enabled any) {
-	if EvalTruthy(enabled) {
+func (this *BaseExchange) SetSandboxMode(enabled bool) {
+	if enabled {
 		if _, ok := this.Urls["test"]; ok {
 			if IsString(this.Urls["api"]) {
 				this.Urls["apiBackup"] = this.Urls["api"]
@@ -964,11 +964,11 @@ func (this *BaseExchange) SetSandboxMode(enabled any) {
  * @description enables or disables demo trading mode
  * @param {boolean} [enable] true if demo trading should be enabled, false otherwise
  */
-func (this *BaseExchange) EnableDemoTrading(enable any) {
+func (this *BaseExchange) EnableDemoTrading(enable bool) {
 	if this.IsSandboxModeEnabled {
 		panic(NotSupported(this.Id + " demo trading does not support in sandbox environment. Please check https://www.binance.com/en/support/faq/detail/9be58f73e5e14338809e3b705b9687dd to see the differences"))
 	}
-	if EvalTruthy(enable) {
+	if enable {
 		this.Urls["apiBackupDemoTrading"] = this.Urls["api"]
 		this.RefreshUrlsViews()
 		this.Urls["api"] = this.Urls["demo"]
@@ -1646,12 +1646,12 @@ func (this *BaseExchange) fetchLeveragesBody(ch chan AsyncResult[map[string]Leve
 	_ = params
 	panic(NotSupported(this.Id + " fetchLeverages() is not supported yet"))
 }
-func (this *BaseExchange) SetPositionModeAsync(hedged any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+func (this *BaseExchange) SetPositionModeAsync(hedged bool, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
 	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.setPositionModeBody(ch, hedged, optionalArgs...)
 	return ch
 }
-func (this *BaseExchange) setPositionModeBody(ch chan AsyncResult[map[string]any], hedged any, optionalArgs ...any) any {
+func (this *BaseExchange) setPositionModeBody(ch chan AsyncResult[map[string]any], hedged bool, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1888,7 +1888,7 @@ func (this *BaseExchange) AfterConstruct(optionalArgs ...any) {
 	// sanbox mode
 	var isSandbox *bool = this.SafeBool2(this.Options, "sandbox", "testnet", false)
 	if isSandbox != nil && *isSandbox {
-		this.DerivedExchange.SetSandboxMode(isSandbox)
+		this.DerivedExchange.SetSandboxMode(true)
 	}
 	// compatibility for sandbox/testnet options in userConfig
 	if (this.SafeBool(userConfig, "sandbox", false) != nil && *this.SafeBool(userConfig, "sandbox", false)) || (this.SafeBool(userConfig, "testnet", false) != nil && *this.SafeBool(userConfig, "testnet", false)) {

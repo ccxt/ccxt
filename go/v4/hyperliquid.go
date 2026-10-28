@@ -360,7 +360,7 @@ func (this *Hyperliquid) Describe() map[string]any {
 		"rollingWindowSize": 0,
 	})
 }
-func (this *Hyperliquid) SetSandboxMode(enabled any) {
+func (this *Hyperliquid) SetSandboxMode(enabled bool) {
 	this.Exchange.SetSandboxMode(enabled)
 	this.Options["sandboxMode"] = enabled
 }
