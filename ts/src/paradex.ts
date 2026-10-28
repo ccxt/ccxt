@@ -678,7 +678,7 @@ export default class paradex extends Exchange {
         }
         const settle = this.safeCurrencyCode (settleId);
         let symbol: string = base + '/' + quote;
-        if (!isSpot) {
+        if (!isSpot && (settle !== undefined)) {
             symbol = symbol + ':' + settle;
         }
         let expiry = this.safeInteger (market, 'expiry_at');
@@ -692,7 +692,9 @@ export default class paradex extends Exchange {
             if (expiry !== 0) {
                 deliveryValue = this.yymmdd (expiry) + '-';
             }
-            symbol = symbol + '-' + deliveryValue + strikePrice + '-' + optionTypeSuffix;
+            if (strikePrice !== undefined) {
+                symbol = symbol + '-' + deliveryValue + strikePrice + '-' + optionTypeSuffix;
+            }
             makerFee = this.parseNumber ('0.0003');
         } else {
             expiry = undefined;
