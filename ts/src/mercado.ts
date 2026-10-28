@@ -1047,7 +1047,7 @@ export default class mercado extends Exchange {
         let url = apiUrl + '/';
         const query: Dict = this.omit (params, this.extractParams (path));
         const isPublic = (apiName === 'public') || (apiName === 'v4Public') || (apiName === 'v4PublicNet');
-        let privateBody: Str = undefined;
+        let privateBody = '';
         let privateHeaders: NullableDict = undefined;
         if (isPublic) {
             url += this.implodeParams (path, params);
@@ -1063,7 +1063,7 @@ export default class mercado extends Exchange {
                 'tapi_method': path,
                 'tapi_nonce': nonce,
             }, params));
-            const auth = '/tapi/' + this.version + '/' + '?' + privateBody;
+            const auth: string = '/tapi/' + this.version + '/' + '?' + privateBody;
             privateHeaders = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'TAPI-ID': this.apiKey,
