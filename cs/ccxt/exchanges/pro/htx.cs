@@ -1007,7 +1007,8 @@ public partial class htx : ccxt.htx
         bool isV5Linear = (linear && (swap || future));
         if (type == "spot")
         {
-            string? mode = this.safeString(paramsRequest, "mode", this.safeString2(this.options, "watchMyTrades", "mode", "0"));
+            string? mode = this.safeString2(this.options, "watchMyTrades", "mode", "0");
+            mode = this.safeString(paramsRequest, "mode", mode);
             paramsRequest = this.omit(paramsRequest, "mode");
             messageHash = (((("trade.clearing" + "#") + (marketId)) + "#") + mode);
             channel = messageHash;
@@ -3387,7 +3388,7 @@ public partial class htx : ccxt.htx
             }
             signatureParams = this.keysort(signatureParams);
             string auth = this.urlencode(signatureParams, true); // true required in go
-            string payload = String.Join("\n", ((IList<object>)new List<object>() {"GET", hostname, relativePath, auth}).ToArray()); // eslint-disable-line quotes
+            string payload = (((((("GET" + "\n") + hostname) + "\n") + relativePath) + "\n") + auth); // eslint-disable-line quotes
             string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, "base64");
             Dictionary<string, object> request = null;
             if (type == "spot")

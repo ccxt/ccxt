@@ -2120,7 +2120,7 @@ public partial class nado : ccxt.nado
     public override object ping(WebSocketClient client)
     {
         string? gatewayUrl = this.safeString((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "gateway");
-        if (isEqual(client.url, gatewayUrl))
+        if ((client.url == gatewayUrl))
         {
             // the v2 gateway is kept alive with protocol-level ping frames,
             // returning undefined makes the client send one instead of a message

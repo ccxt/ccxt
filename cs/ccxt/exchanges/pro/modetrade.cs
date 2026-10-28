@@ -1429,20 +1429,12 @@ public partial class modetrade : ccxt.modetrade
             string? key = ((string)keys[i]);
             IDictionary<string, object> value = this.safeDict(balances, key);
             string? code = this.safeCurrencyCode(key);
-            object account = this.account();
-            if (((code != null)) && ((this.balance != null && code != null && this.balance.ContainsKey(code))))
-            {
-                IDictionary<string, object> cachedAccount = this.safeDict(this.balance, code);
-                if ((cachedAccount != null))
-                {
-                    account = cachedAccount;
-                }
-            }
+            Dictionary<string, object> account = this.account();
             string? total = this.safeString(value, "holding");
             string? used = this.safeString(value, "frozen");
-            ((IDictionary<string,object>)account)["total"] = total;
-            ((IDictionary<string,object>)account)["used"] = used;
-            ((IDictionary<string,object>)account)["free"] = Precise.stringSub(total, used);
+            account["total"] = total;
+            account["used"] = used;
+            account["free"] = Precise.stringSub(total, used);
             if ((code != null))
             {
                 this.balance[(string)code] = account;

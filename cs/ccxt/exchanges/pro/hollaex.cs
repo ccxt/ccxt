@@ -147,7 +147,7 @@ public partial class hollaex : ccxt.hollaex
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbolValue = this.safeString(market, "symbol", "");
         string? marketId = this.safeString(market, "id", "");
         string messageHash = (("trade" + ":") + marketId);
         object trades = await this.watchPublic(messageHash, parameters);
@@ -180,7 +180,7 @@ public partial class hollaex : ccxt.hollaex
         string? marketId = this.safeString(message, "symbol");
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? marketIdValue = this.safeString(market, "id", "");
-        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbol = this.safeString(market, "symbol", "");
         ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
         if ((stored == null))
         {
@@ -285,7 +285,7 @@ public partial class hollaex : ccxt.hollaex
             stored.append(ccxt.BaseExchange.FromTrade(parsed));
             string? symbol = this.safeString(trade, "symbol");
             Dictionary<string, object> market = this.market(symbol);
-            string? marketId = ((string)(market.ContainsKey("id") ? market["id"] : null));
+            string? marketId = this.safeString(market, "id");
             if ((marketId != null))
             {
                 marketIds[(string)marketId] = true;
@@ -430,7 +430,7 @@ public partial class hollaex : ccxt.hollaex
             stored.append(ccxt.BaseExchange.FromOrder(parsed));
             string? symbol = this.safeString(order, "symbol");
             Dictionary<string, object> market = this.market(symbol);
-            string? marketId = ((string)(market.ContainsKey("id") ? market["id"] : null));
+            string? marketId = this.safeString(market, "id");
             if ((marketId != null))
             {
                 marketIds[(string)marketId] = true;

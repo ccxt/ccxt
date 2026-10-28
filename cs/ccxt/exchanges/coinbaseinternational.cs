@@ -3690,9 +3690,9 @@ public partial class coinbaseinternational : Exchange
         bool? forceRefresh = this.safeBool(paramsResolved, "forceRefresh", false);
         object paramsOmitted = this.omit(paramsResolved, "forceRefresh");
         Int64 now = this.milliseconds();
-        object token = this.getV2AccessToken();
+        string? token = this.getV2AccessToken();
         Int64? tokenExpires = this.safeInteger(this.options, "v2TokenExpires");
-        if (forceRefresh != true && ((token != null)) && ((tokenExpires != null)) && ((now < tokenExpires)))
+        if (forceRefresh != true && ((token != null)) && (token != "") && ((tokenExpires != null)) && ((now < tokenExpires)))
         {
             return token;
         }
@@ -3736,16 +3736,7 @@ public partial class coinbaseinternational : Exchange
      */
     public virtual string? getV2AccessToken()
     {
-        string? token = this.safeString(this.options, "v2AccessToken");
-        if (((token != null)) && (token != ""))
-        {
-            return token;
-        }
-        if ((this.token is ""))
-        {
-            return null;
-        }
-        return ((string?)((object)(this.token)));
+        return this.safeString(this.options, "v2AccessToken", this.token);
     }
 
     public override Dictionary<string, object> sign(string path, IList<object> api = null, string method = null, object parameters = null)
@@ -3804,14 +3795,14 @@ public partial class coinbaseinternational : Exchange
             };
         } else if (access == "private")
         {
-            object accessToken = this.getV2AccessToken();
-            if ((accessToken == null))
+            string? accessToken = this.getV2AccessToken();
+            if (((accessToken == null)) || (accessToken == ""))
             {
                 throw new AuthenticationError ((this.id + " requires an access token from public/auth")) ;
             }
             requestHeaders = new Dictionary<string, object>() {
                 { "Content-Type", "application/json" },
-                { "Authorization", ("Bearer " + (accessToken)) },
+                { "Authorization", ("Bearer " + accessToken) },
             };
         }
         if ((method == "GET"))
@@ -3882,7 +3873,8 @@ public partial class coinbaseinternational : Exchange
         bool deribit = this.resolveRoute(route);
         bool? previousBackend = this.safeBool(this.options, "routeBackend");
         bool configuredBackend = this.isNativeDeribitCredentials();
-        bool hasToken = !(this.getV2AccessToken() == null);
+        string? currentToken = this.getV2AccessToken();
+        bool hasToken = ((currentToken != null)) && (currentToken != "");
         bool hasWsState = !(this.safeInteger(this.options, "wsAuthRefreshAt") == null);
         if (((previousBackend != null)) && ((previousBackend != deribit)))
         {
