@@ -2708,7 +2708,7 @@ func (this *Hollaex) fetchDepositWithdrawFeesBody(ch chan AsyncResult[map[string
 	ch <- AsyncResult[map[string]DepositWithdrawFee]{Value: DepositWithdrawFeeMapFromMap(this.ParseDepositWithdrawFees(coins, codes, "symbol"))}
 	return nil
 }
-func (this *Hollaex) Sign(path string, optionalArgs ...any) any {
+func (this *Hollaex) Sign(path string, optionalArgs ...any) map[string]any {
 	var api []string = GetArgStringSlice(optionalArgs, 0, []string{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")

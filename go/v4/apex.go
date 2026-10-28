@@ -2742,7 +2742,7 @@ func (this *Apex) ParsePosition(position any, optionalArgs ...any) Position {
 		"percentage":                  nil,
 	})
 }
-func (this *Apex) Sign(path string, optionalArgs ...any) any {
+func (this *Apex) Sign(path string, optionalArgs ...any) map[string]any {
 	var api []string = GetArgStringSlice(optionalArgs, 0, []string{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")

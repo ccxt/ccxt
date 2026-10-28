@@ -2453,7 +2453,7 @@ func (this *Bigone) Nonce() int64 {
 	var exchangeTimeCorrection int64 = exchangeMillisecondsCorrection * 1000000
 	return this.Microseconds()*1000 + exchangeTimeCorrection
 }
-func (this *Bigone) Sign(path string, optionalArgs ...any) any {
+func (this *Bigone) Sign(path string, optionalArgs ...any) map[string]any {
 	var api []string = GetArgStringSlice(optionalArgs, 0, []string{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")

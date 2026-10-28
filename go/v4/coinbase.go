@@ -7151,7 +7151,7 @@ func (this *Coinbase) Nonce() int64 {
 	}
 	return this.Milliseconds() - *timeDifference
 }
-func (this *Coinbase) Sign(path string, optionalArgs ...any) any {
+func (this *Coinbase) Sign(path string, optionalArgs ...any) map[string]any {
 	var api []string = GetArgStringSlice(optionalArgs, 0, []string{})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")

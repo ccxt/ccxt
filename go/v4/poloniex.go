@@ -5350,7 +5350,7 @@ func (this *Poloniex) addMarginBody(ch chan AsyncResult[MarginModification], sym
 func (this *Poloniex) Nonce() int64 {
 	return this.Milliseconds()
 }
-func (this *Poloniex) Sign(path string, optionalArgs ...any) any {
+func (this *Poloniex) Sign(path string, optionalArgs ...any) map[string]any {
 	var api []string = GetArgStringSlice(optionalArgs, 0, []string{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")

@@ -4004,7 +4004,7 @@ func (this *Bydfi) ParseTransactionStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Bydfi) Sign(path string, optionalArgs ...any) any {
+func (this *Bydfi) Sign(path string, optionalArgs ...any) map[string]any {
 	var api []string = GetArgStringSlice(optionalArgs, 0, []string{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")

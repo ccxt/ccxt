@@ -5261,7 +5261,7 @@ func (this *Hitbtc) HandleErrors(code int64, reason any, url string, method any,
 	}
 	return nil
 }
-func (this *Hitbtc) Sign(path string, optionalArgs ...any) any {
+func (this *Hitbtc) Sign(path string, optionalArgs ...any) map[string]any {
 	var api []string = GetArgStringSlice(optionalArgs, 0, []string{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")

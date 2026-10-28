@@ -5524,7 +5524,7 @@ func (this *Derive) Nonce() int64 {
 	// signs the auth timestamp and feeds incrementingNonce (), which nonceString () extends to the nanosecond-scale action nonce; must be unique per wallet (error 11017) while staying a valid date (error 11018)
 	return this.Milliseconds() - *this.SafeInteger(this.Options, "timeDifference", 0)
 }
-func (this *Derive) Sign(path string, optionalArgs ...any) any {
+func (this *Derive) Sign(path string, optionalArgs ...any) map[string]any {
 	var api []string = GetArgStringSlice(optionalArgs, 0, []string{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")

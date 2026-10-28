@@ -580,7 +580,7 @@ func (this *BaseExchange) CheckProxyUrlSettings(optionalArgs ...any) any {
 	_ = headers
 	body := GetArg(optionalArgs, 3, nil)
 	_ = body
-	var usedProxies []any = []any{}
+	var usedProxies []string = []string{}
 	var proxyUrl any = nil
 	if this.ProxyUrl != nil {
 		usedProxies = append(usedProxies, "proxyUrl")
@@ -609,7 +609,7 @@ func (this *BaseExchange) CheckProxyUrlSettings(optionalArgs ...any) any {
 	}
 	var length int = len(usedProxies)
 	if length > 1 {
-		var joinedProxyNames string = Join(usedProxies, ",")
+		var joinedProxyNames string = strings.Join(usedProxies, ",")
 		panic(InvalidProxySettings(this.Id + " you have multiple conflicting proxy settings (" + joinedProxyNames + "), please use only one from : proxyUrl, proxy_url, proxyUrlCallback, proxy_url_callback"))
 	}
 	return proxyUrl
@@ -634,7 +634,7 @@ func (this *BaseExchange) CheckProxySettings(optionalArgs ...any) any {
 	_ = headers
 	body := GetArg(optionalArgs, 3, nil)
 	_ = body
-	var usedProxies []any = []any{}
+	var usedProxies []string = []string{}
 	var httpProxy any = nil
 	var httpsProxy any = nil
 	var socksProxy any = nil
@@ -710,13 +710,13 @@ func (this *BaseExchange) CheckProxySettings(optionalArgs ...any) any {
 	// check
 	var length int = len(usedProxies)
 	if length > 1 {
-		var joinedProxyNames string = Join(usedProxies, ",")
+		var joinedProxyNames string = strings.Join(usedProxies, ",")
 		panic(InvalidProxySettings(this.Id + " you have multiple conflicting proxy settings (" + joinedProxyNames + "), please use only one from: httpProxy, httpsProxy, httpProxyCallback, httpsProxyCallback, socksProxy, socksProxyCallback"))
 	}
 	return []any{httpProxy, httpsProxy, socksProxy}
 }
 func (this *BaseExchange) CheckWsProxySettings() any {
-	var usedProxies []any = []any{}
+	var usedProxies []string = []string{}
 	var wsProxy any = nil
 	var wssProxy any = nil
 	var wsSocksProxy any = nil
@@ -759,7 +759,7 @@ func (this *BaseExchange) CheckWsProxySettings() any {
 	// check
 	var length int = len(usedProxies)
 	if length > 1 {
-		var joinedProxyNames string = Join(usedProxies, ",")
+		var joinedProxyNames string = strings.Join(usedProxies, ",")
 		panic(InvalidProxySettings(this.Id + " you have multiple conflicting proxy settings (" + joinedProxyNames + "), please use only one from: wsProxy, wssProxy, wsSocksProxy"))
 	}
 	return []any{wsProxy, wssProxy, wsSocksProxy}
@@ -982,7 +982,7 @@ func (this *BaseExchange) EnableDemoTrading(enable bool) {
 	}
 	this.Options["enableDemoTrading"] = enable
 }
-func (this *BaseExchange) Sign(path string, optionalArgs ...any) any {
+func (this *BaseExchange) Sign(path string, optionalArgs ...any) map[string]any {
 	var api []string = GetArgStringSlice(optionalArgs, 0, []string{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
@@ -5095,14 +5095,13 @@ func (this *BaseExchange) fetch2Body(ch chan AsyncResult[any], path any, optiona
 				// try block:
 				this.SetLastRestRequestTimestamp()
 
-				var request any = this.DerivedExchange.Sign(StringArg(path), api, method, paramsMaxRetriesOnFailureDelay)
-				PanicOnError(request)
+				var request map[string]any = this.DerivedExchange.Sign(StringArg(path), api, method, paramsMaxRetriesOnFailureDelay)
 				if fetchData != nil {
 					AddElementToObject(fetchData, "request", request)
 				}
 				this.SetLastRequest(request)
 
-				r := <-this.FetchAsync(GetValue(request, "url"), GetValue(request, "method"), GetValue(request, "headers"), GetValue(request, "body"))
+				r := <-this.FetchAsync(request["url"], request["method"], request["headers"], request["body"])
 				if r.Err != nil {
 					panic(r.Err)
 				}

@@ -3006,7 +3006,7 @@ func (this *Coinsph) ParseArrayParam(array any, key string) any {
 	var urlEncodedParam string = key + "=" + stringifiedArray
 	return urlEncodedParam
 }
-func (this *Coinsph) Sign(path string, optionalArgs ...any) any {
+func (this *Coinsph) Sign(path string, optionalArgs ...any) map[string]any {
 	var api []string = GetArgStringSlice(optionalArgs, 0, []string{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")

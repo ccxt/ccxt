@@ -4444,7 +4444,7 @@ func (this *Grvt) RequestId() int64 {
 	this.Options["requestId"] = requestId
 	return requestId
 }
-func (this *Grvt) Sign(path string, optionalArgs ...any) any {
+func (this *Grvt) Sign(path string, optionalArgs ...any) map[string]any {
 	var api []string = GetArgStringSlice(optionalArgs, 0, []string{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")

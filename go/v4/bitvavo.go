@@ -3517,7 +3517,7 @@ func (this *Bitvavo) fetchDepositWithdrawFeesBody(ch chan AsyncResult[map[string
 	ch <- AsyncResult[map[string]DepositWithdrawFee]{Value: DepositWithdrawFeeMapFromMap(this.ParseDepositWithdrawFees(response, codes, "symbol"))}
 	return nil
 }
-func (this *Bitvavo) Sign(path string, optionalArgs ...any) any {
+func (this *Bitvavo) Sign(path string, optionalArgs ...any) map[string]any {
 	var api []string = GetArgStringSlice(optionalArgs, 0, []string{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")

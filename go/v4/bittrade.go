@@ -2995,7 +2995,7 @@ func (this *Bittrade) withdrawBody(ch chan AsyncResult[Transaction], code string
 	ch <- AsyncResult[Transaction]{Value: this.ParseTransaction(response, currency)}
 	return nil
 }
-func (this *Bittrade) Sign(path string, optionalArgs ...any) any {
+func (this *Bittrade) Sign(path string, optionalArgs ...any) map[string]any {
 	var api []string = GetArgStringSlice(optionalArgs, 0, []string{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")

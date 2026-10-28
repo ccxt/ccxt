@@ -2444,7 +2444,7 @@ func (this *Cex) ParseDepositAddress(depositAddress any, optionalArgs ...any) De
 		"tag":      nil,
 	})
 }
-func (this *Cex) Sign(path string, optionalArgs ...any) any {
+func (this *Cex) Sign(path string, optionalArgs ...any) map[string]any {
 	var api []string = GetArgStringSlice(optionalArgs, 0, []string{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")

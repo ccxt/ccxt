@@ -4799,7 +4799,7 @@ func (this *Predictfun) Nonce() int64 {
  * @param {object} [params] request parameters
  * @returns {object} a dictionary with url, method, body and headers
  */
-func (this *Predictfun) Sign(path string, optionalArgs ...any) any {
+func (this *Predictfun) Sign(path string, optionalArgs ...any) map[string]any {
 	// the venue authenticates every endpoint, so the key is required up front rather than
 	// per access level - a key-less request is answered with a 401 by the API gateway.
 	// the testnet is the exception, it is served without an API key at all

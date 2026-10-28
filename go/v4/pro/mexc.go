@@ -2473,7 +2473,7 @@ func (this *Mexc) HandleUnsubscriptions(client any, messageHashes any) {
 			}
 			var splitHashesLength int = len(splitHashes) // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
 			if splitHashesLength > 4 {
-				candlesSymbol = ccxt.Add(ccxt.Add(candlesSymbol, ":"), this.SafeString(splitHashes, 3, ""))
+				candlesSymbol = ccxt.Add(candlesSymbol, ":"+*this.SafeString(splitHashes, 3, ""))
 			}
 			if ccxt.InOp(this.Ohlcvs, candlesSymbol) {
 				ccxt.Remove(this.Ohlcvs, candlesSymbol)

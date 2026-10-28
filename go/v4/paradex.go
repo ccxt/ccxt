@@ -5039,7 +5039,7 @@ func (this *Paradex) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRa
 	ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(this.FilterBySymbolSinceLimit(sorted, this.SafeString(market, "symbol"), since, limit))}
 	return nil
 }
-func (this *Paradex) Sign(path string, optionalArgs ...any) any {
+func (this *Paradex) Sign(path string, optionalArgs ...any) map[string]any {
 	var api []string = GetArgStringSlice(optionalArgs, 0, []string{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")

@@ -1534,7 +1534,7 @@ func (this *Kraken) HandleOrderBook(client any, message map[string]any) {
 	// checksum temporarily disabled because the exchange checksum was not reliable
 	var checksum any = this.HandleOption("watchOrderBook", "checksum", false)
 	if checksum == true {
-		var payloadArray []any = []any{}
+		var payloadArray []string = []string{}
 		if c != nil {
 			var checkAsks any = ccxt.GetValue(orderbook, "asks")
 			var checkBids any = ccxt.GetValue(orderbook, "bids")
@@ -1559,7 +1559,7 @@ func (this *Kraken) HandleOrderBook(client any, message map[string]any) {
 				payloadArray = append(payloadArray, formattedBid)
 			}
 		}
-		var payload string = ccxt.Join(payloadArray, "")
+		var payload string = strings.Join(payloadArray, "")
 		var localChecksum int64 = this.Crc32(payload, false)
 		if c == nil || *c != localChecksum {
 			error := ccxt.ChecksumError(ccxt.Add(this.Id+" ", this.OrderbookChecksumMessage(symbol)))

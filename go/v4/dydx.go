@@ -3422,7 +3422,7 @@ func (this *Dydx) GetWalletAddress() any {
 	}
 	panic(ArgumentsRequired(this.Id + " getWalletAddress() requires a wallet address. Set `walletAddress` or `dydxAccount` in exchange options."))
 }
-func (this *Dydx) Sign(path string, optionalArgs ...any) any {
+func (this *Dydx) Sign(path string, optionalArgs ...any) map[string]any {
 	var section []string = GetArgStringSlice(optionalArgs, 0, []string{"public"})
 	_ = section
 	var method string = GetArgString(optionalArgs, 1, "GET")

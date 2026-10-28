@@ -1688,7 +1688,7 @@ func (this *P2b) ParseOrder(order any, optionalArgs ...any) Order {
 		"trades": nil,
 	}, marketResolved)
 }
-func (this *P2b) Sign(path string, optionalArgs ...any) any {
+func (this *P2b) Sign(path string, optionalArgs ...any) map[string]any {
 	var api []string = GetArgStringSlice(optionalArgs, 0, []string{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")

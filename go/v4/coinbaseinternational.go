@@ -4224,9 +4224,9 @@ func (this *Coinbaseinternational) authenticateV2Body(ch chan AsyncResult[any], 
 	var forceRefresh *bool = this.SafeBool(paramsResolved, "forceRefresh", false)
 	var paramsOmitted any = this.Omit(paramsResolved, "forceRefresh")
 	var now int64 = this.Milliseconds()
-	var token any = this.GetV2AccessToken()
+	var token *string = this.GetV2AccessToken()
 	var tokenExpires *int64 = this.SafeInteger(this.Options, "v2TokenExpires")
-	if !(forceRefresh != nil && *forceRefresh) && (token != nil) && (tokenExpires != nil) && (now < *tokenExpires) {
+	if !(forceRefresh != nil && *forceRefresh) && (token != nil) && (token == nil || *token != "") && (tokenExpires != nil) && (now < *tokenExpires) {
 
 		ch <- AsyncResult[any]{Value: token}
 		return nil
@@ -4279,17 +4279,10 @@ func (this *Coinbaseinternational) authenticateV2Body(ch chan AsyncResult[any], 
  * @description the cached gateway access token, options.v2AccessToken takes precedence over exchange.token
  * @returns {string|undefined} the access token
  */
-func (this *Coinbaseinternational) GetV2AccessToken() any {
-	var token *string = this.SafeString(this.Options, "v2AccessToken")
-	if (token != nil) && (token == nil || *token != "") {
-		return token
-	}
-	if this.Token == "" {
-		return nil
-	}
-	return this.Token
+func (this *Coinbaseinternational) GetV2AccessToken() *string {
+	return this.SafeString(this.Options, "v2AccessToken", this.Token)
 }
-func (this *Coinbaseinternational) Sign(path string, optionalArgs ...any) any {
+func (this *Coinbaseinternational) Sign(path string, optionalArgs ...any) map[string]any {
 	var api []string = GetArgStringSlice(optionalArgs, 0, []string{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
@@ -4339,13 +4332,13 @@ func (this *Coinbaseinternational) Sign(path string, optionalArgs ...any) any {
 			"Authorization": "deri-hmac-sha256 id=" + this.ApiKey + ",ts=" + timestamp + ",sig=" + signature + ",nonce=" + *nonce,
 		}
 	} else if access == "private" {
-		var accessToken any = this.GetV2AccessToken()
-		if accessToken == nil {
+		var accessToken *string = this.GetV2AccessToken()
+		if (accessToken == nil) || (accessToken != nil && *accessToken == "") {
 			panic(AuthenticationError(this.Id + " requires an access token from public/auth"))
 		}
 		requestHeaders = map[string]any{
 			"Content-Type":  "application/json",
-			"Authorization": Add("Bearer ", accessToken),
+			"Authorization": "Bearer " + *accessToken,
 		}
 	}
 	if method == "GET" {
@@ -4410,7 +4403,8 @@ func (this *Coinbaseinternational) HandleRouteAndParams(methodName string, optio
 	var deribit bool = this.ResolveRoute(route)
 	var previousBackend *bool = this.SafeBool(this.Options, "routeBackend")
 	var configuredBackend bool = this.IsNativeDeribitCredentials()
-	var hasToken bool = !IsEqual(this.GetV2AccessToken(), nil)
+	var currentToken *string = this.GetV2AccessToken()
+	var hasToken bool = (currentToken != nil) && (currentToken == nil || *currentToken != "")
 	var hasWsState bool = (this.SafeInteger(this.Options, "wsAuthRefreshAt") != nil)
 	if (previousBackend != nil) && (previousBackend == nil || *previousBackend != deribit) {
 		panic(BadRequest(this.Id + " cannot switch route backend on an initialized instance; use a separate exchange instance"))

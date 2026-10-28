@@ -3563,7 +3563,7 @@ func (this *Ndax) withdrawBody(ch chan AsyncResult[Transaction], code string, am
 func (this *Ndax) Nonce() int64 {
 	return this.Milliseconds()
 }
-func (this *Ndax) Sign(path string, optionalArgs ...any) any {
+func (this *Ndax) Sign(path string, optionalArgs ...any) map[string]any {
 	var api []string = GetArgStringSlice(optionalArgs, 0, []string{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")

@@ -1815,7 +1815,7 @@ func (this *Blockchaincom) fetchOrderBody(ch chan AsyncResult[Order], id any, op
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(response)}
 	return nil
 }
-func (this *Blockchaincom) Sign(path string, optionalArgs ...any) any {
+func (this *Blockchaincom) Sign(path string, optionalArgs ...any) map[string]any {
 	var api []string = GetArgStringSlice(optionalArgs, 0, []string{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")

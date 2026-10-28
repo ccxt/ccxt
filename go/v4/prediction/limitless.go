@@ -4109,7 +4109,7 @@ func (this *Limitless) Nonce() int64 {
  * @param {object} [params] request parameters
  * @returns {object} a dictionary with url, method, body and headers
  */
-func (this *Limitless) Sign(path string, optionalArgs ...any) any {
+func (this *Limitless) Sign(path string, optionalArgs ...any) map[string]any {
 	var api []string = ccxt.GetArgStringSlice(optionalArgs, 0, []string{"limitless"})
 	_ = api
 	var method string = ccxt.GetArgString(optionalArgs, 1, "GET")

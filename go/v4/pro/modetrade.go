@@ -1709,22 +1709,14 @@ func (this *Modetrade) HandleBalance(client any, message map[string]any) {
 		var key string = keys[i]
 		var value map[string]any = ccxt.SafeMapTyped(balances, key)
 		var code *string = this.SafeCurrencyCode(key)
-		var account any = this.Account()
-		if code != nil {
-			if _, ok := this.Balance[*code]; ok {
-				var cachedAccount any = this.SafeDict(this.Balance, code)
-				if cachedAccount != nil {
-					account = cachedAccount
-				}
-			}
-		}
+		var account map[string]any = this.Account()
 		var total *string = this.SafeString(value, "holding")
 		var used *string = this.SafeString(value, "frozen")
-		ccxt.AddElementToObject(account, "total", total)
-		ccxt.AddElementToObject(account, "used", used)
-		ccxt.AddElementToObject(account, "free", ccxt.Precise.StringSub(total, used))
+		account["total"] = total
+		account["used"] = used
+		account["free"] = ccxt.Precise.StringSub(total, used)
 		if code != nil {
-			ccxt.AddElementToObject(this.Balance, code, account)
+			this.Balance[*code] = account
 		}
 	}
 	this.WsBalanceReplace(this.SafeBalance(this.Balance))

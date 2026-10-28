@@ -185,7 +185,7 @@ func (this *Hollaex) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], sym
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
+	var symbolValue *string = this.SafeString(market, "symbol", "")
 	var marketId *string = this.SafeString(market, "id", "")
 	var messageHash string = "trade" + ":" + *marketId
 
@@ -222,7 +222,7 @@ func (this *Hollaex) HandleTrades(client any, message map[string]any) {
 	var marketId *string = this.SafeString(message, "symbol")
 	var market map[string]any = this.SafeMarket(marketId)
 	var marketIdValue *string = this.SafeString(market, "id", "")
-	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
+	var symbol *string = this.SafeString(market, "symbol", "")
 	var stored any = this.SafeValue(this.Trades, symbol)
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
@@ -348,7 +348,7 @@ func (this *Hollaex) HandleMyTrades(client any, message map[string]any, optional
 		stored.(ccxt.Appender).Append(parsed)
 		var symbol *string = this.SafeString(trade, "symbol")
 		var market map[string]any = this.Market(symbol)
-		var marketId *string = ccxt.SafeStringPtr(market["id"])
+		var marketId *string = this.SafeString(market, "id")
 		if marketId != nil {
 			marketIds[*marketId] = true
 		}
@@ -516,7 +516,7 @@ func (this *Hollaex) HandleOrder(client any, message map[string]any, optionalArg
 		stored.(ccxt.Appender).Append(parsed)
 		var symbol *string = this.SafeString(order, "symbol")
 		var market map[string]any = this.Market(symbol)
-		var marketId *string = ccxt.SafeStringPtr(market["id"])
+		var marketId *string = this.SafeString(market, "id")
 		if marketId != nil {
 			marketIds[*marketId] = true
 		}

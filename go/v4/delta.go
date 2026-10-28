@@ -5130,7 +5130,7 @@ func (this *Delta) ParseADLRank(info any, optionalArgs ...any) map[string]any {
 		"datetime":   datetime,
 	}
 }
-func (this *Delta) Sign(path string, optionalArgs ...any) any {
+func (this *Delta) Sign(path string, optionalArgs ...any) map[string]any {
 	var api []string = GetArgStringSlice(optionalArgs, 0, []string{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")

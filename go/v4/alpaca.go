@@ -3038,7 +3038,7 @@ func (this *Alpaca) ParseBalance(response map[string]any) map[string]any {
 	}
 	return this.SafeBalance(result).(map[string]any)
 }
-func (this *Alpaca) Sign(path string, optionalArgs ...any) any {
+func (this *Alpaca) Sign(path string, optionalArgs ...any) map[string]any {
 	var api []string = GetArgStringSlice(optionalArgs, 0, []string{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")

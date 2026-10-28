@@ -3957,7 +3957,7 @@ func (this *Sxbet) HandleErrors(code int64, reason any, url string, method any, 
  * @param {object} params the request parameters
  * @returns {object} a dict with url, method, body and headers
  */
-func (this *Sxbet) Sign(path string, optionalArgs ...any) any {
+func (this *Sxbet) Sign(path string, optionalArgs ...any) map[string]any {
 	var api []string = ccxt.GetArgStringSlice(optionalArgs, 0, []string{"sxbet"})
 	_ = api
 	var method string = ccxt.GetArgString(optionalArgs, 1, "GET")

@@ -5942,7 +5942,7 @@ func (this *Phemex) ParseMarketLeverageTiers(info any, optionalArgs ...any) []an
 	}
 	return tiers
 }
-func (this *Phemex) Sign(path string, optionalArgs ...any) any {
+func (this *Phemex) Sign(path string, optionalArgs ...any) map[string]any {
 	var api []string = GetArgStringSlice(optionalArgs, 0, []string{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")

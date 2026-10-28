@@ -1470,7 +1470,7 @@ func (this *Bitbank) ParseTransaction(transaction any, optionalArgs ...any) Tran
 func (this *Bitbank) Nonce() int64 {
 	return this.Milliseconds()
 }
-func (this *Bitbank) Sign(path string, optionalArgs ...any) any {
+func (this *Bitbank) Sign(path string, optionalArgs ...any) map[string]any {
 	var api []string = GetArgStringSlice(optionalArgs, 0, []string{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")

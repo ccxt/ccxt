@@ -4983,7 +4983,7 @@ func (this *Woofipro) fetchPositionsBody(ch chan AsyncResult[[]Position], option
 func (this *Woofipro) Nonce() int64 {
 	return this.Milliseconds()
 }
-func (this *Woofipro) Sign(path string, optionalArgs ...any) any {
+func (this *Woofipro) Sign(path string, optionalArgs ...any) map[string]any {
 	var section []string = GetArgStringSlice(optionalArgs, 0, []string{"public"})
 	_ = section
 	var method string = GetArgString(optionalArgs, 1, "GET")

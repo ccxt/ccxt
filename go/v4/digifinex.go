@@ -6221,7 +6221,7 @@ func (this *Digifinex) setMarginModeBody(ch chan AsyncResult[map[string]any], ma
 	ch <- AsyncResult[map[string]any]{Value: r1.Value}
 	return nil
 }
-func (this *Digifinex) Sign(path string, optionalArgs ...any) any {
+func (this *Digifinex) Sign(path string, optionalArgs ...any) map[string]any {
 	var api []string = GetArgStringSlice(optionalArgs, 0, []string{})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")

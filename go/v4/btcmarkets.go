@@ -1983,7 +1983,7 @@ func (this *Btcmarkets) withdrawBody(ch chan AsyncResult[Transaction], code stri
 func (this *Btcmarkets) Nonce() int64 {
 	return this.Milliseconds()
 }
-func (this *Btcmarkets) Sign(path string, optionalArgs ...any) any {
+func (this *Btcmarkets) Sign(path string, optionalArgs ...any) map[string]any {
 	var api []string = GetArgStringSlice(optionalArgs, 0, []string{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")

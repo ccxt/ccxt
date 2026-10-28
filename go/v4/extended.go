@@ -4877,7 +4877,7 @@ func (this *Extended) HandleErrors(httpCode int64, reason any, url string, metho
 	}
 	return nil
 }
-func (this *Extended) Sign(path string, optionalArgs ...any) any {
+func (this *Extended) Sign(path string, optionalArgs ...any) map[string]any {
 	var api []string = GetArgStringSlice(optionalArgs, 0, []string{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")

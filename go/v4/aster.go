@@ -5791,7 +5791,7 @@ func (this *Aster) SignHash(hash any, privateKey string) string {
 	var v string = this.IntToBase16(this.Sum(27, signature["v"]))
 	return "0x" + PadStart(r, 64, "0") + PadStart(s, 64, "0") + v
 }
-func (this *Aster) Sign(path string, optionalArgs ...any) any {
+func (this *Aster) Sign(path string, optionalArgs ...any) map[string]any {
 	var api []string = GetArgStringSlice(optionalArgs, 0, []string{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")

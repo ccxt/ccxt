@@ -9279,7 +9279,7 @@ func (this *Okx) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], option
 	ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(this.ParseTransfers(transfers, currency, since, limit, params))}
 	return nil
 }
-func (this *Okx) Sign(path string, optionalArgs ...any) any {
+func (this *Okx) Sign(path string, optionalArgs ...any) map[string]any {
 	var api []string = GetArgStringSlice(optionalArgs, 0, []string{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")

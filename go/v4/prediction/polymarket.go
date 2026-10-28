@@ -3965,7 +3965,7 @@ func (this *Polymarket) Nonce() int64 {
  * @param {object} params the request parameters
  * @returns {object} a dict with url, method, body and headers
  */
-func (this *Polymarket) Sign(path string, optionalArgs ...any) any {
+func (this *Polymarket) Sign(path string, optionalArgs ...any) map[string]any {
 	var api []string = ccxt.GetArgStringSlice(optionalArgs, 0, []string{"gamma"})
 	_ = api
 	var method string = ccxt.GetArgString(optionalArgs, 1, "GET")

@@ -4138,7 +4138,7 @@ func (this *Nado) RemoveMarketSuffix(marketId *string) any {
 	}
 	return marketId
 }
-func (this *Nado) Sign(path string, optionalArgs ...any) any {
+func (this *Nado) Sign(path string, optionalArgs ...any) map[string]any {
 	var api []string = GetArgStringSlice(optionalArgs, 0, []string{})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")

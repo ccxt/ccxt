@@ -1591,7 +1591,7 @@ func (this *Independentreserve) Nonce() int64 {
 	// the venue accepts any strictly-increasing integer, so use milliseconds: with the second-resolution base nonce a burst of N calls would leave incrementingNonce N seconds ahead of the clock
 	return this.Milliseconds()
 }
-func (this *Independentreserve) Sign(path string, optionalArgs ...any) any {
+func (this *Independentreserve) Sign(path string, optionalArgs ...any) map[string]any {
 	var api []string = GetArgStringSlice(optionalArgs, 0, []string{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")

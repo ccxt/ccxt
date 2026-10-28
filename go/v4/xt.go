@@ -7827,7 +7827,7 @@ func (this *Xt) HandleErrors(code int64, reason any, url string, method any, hea
 	}
 	return nil
 }
-func (this *Xt) Sign(path string, optionalArgs ...any) any {
+func (this *Xt) Sign(path string, optionalArgs ...any) map[string]any {
 	var api []string = GetArgStringSlice(optionalArgs, 0, []string{})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")

@@ -2473,7 +2473,7 @@ func (this *Bitopro) fetchDepositWithdrawFeesBody(ch chan AsyncResult[map[string
 	ch <- AsyncResult[map[string]DepositWithdrawFee]{Value: DepositWithdrawFeeMapFromMap(this.ParseDepositWithdrawFees(data, codes, "currency"))}
 	return nil
 }
-func (this *Bitopro) Sign(path string, optionalArgs ...any) any {
+func (this *Bitopro) Sign(path string, optionalArgs ...any) map[string]any {
 	var api []string = GetArgStringSlice(optionalArgs, 0, []string{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")

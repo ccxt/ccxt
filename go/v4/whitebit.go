@@ -5890,7 +5890,7 @@ func (this *Whitebit) ParseFundingRateHistory(info any, optionalArgs ...any) any
 func (this *Whitebit) Nonce() int64 {
 	return this.Milliseconds() - *this.SafeInteger(this.Options, "timeDifference", 0)
 }
-func (this *Whitebit) Sign(path string, optionalArgs ...any) any {
+func (this *Whitebit) Sign(path string, optionalArgs ...any) map[string]any {
 	var api []string = GetArgStringSlice(optionalArgs, 0, []string{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")

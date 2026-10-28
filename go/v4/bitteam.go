@@ -2914,7 +2914,7 @@ func (this *Bitteam) ParseTransactionStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Bitteam) Sign(path string, optionalArgs ...any) any {
+func (this *Bitteam) Sign(path string, optionalArgs ...any) map[string]any {
 	var api []string = GetArgStringSlice(optionalArgs, 0, []string{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")

@@ -8215,7 +8215,7 @@ func (this *Mexc) setMarginModeBody(ch chan AsyncResult[Leverage], marginMode st
 func (this *Mexc) Nonce() int64 {
 	return this.Milliseconds() - *this.SafeInteger(this.Options, "timeDifference", 0)
 }
-func (this *Mexc) Sign(path string, optionalArgs ...any) any {
+func (this *Mexc) Sign(path string, optionalArgs ...any) map[string]any {
 	var api []string = GetArgStringSlice(optionalArgs, 0, []string{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")

@@ -1197,7 +1197,8 @@ func (this *Htx) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], optio
 	var future bool = (typeVar == "future")
 	var isV5Linear bool = (linear && (swap || future))
 	if typeVar == "spot" {
-		var mode *string = this.SafeString(paramsRequest, "mode", this.SafeString2(this.Options, "watchMyTrades", "mode", "0"))
+		var mode *string = this.SafeString2(this.Options, "watchMyTrades", "mode", "0")
+		mode = this.SafeString(paramsRequest, "mode", mode)
 		paramsRequest = this.Omit(paramsRequest, "mode")
 		messageHash = ccxt.Add(ccxt.Add(ccxt.Add("trade.clearing"+"#", marketId), "#"), mode)
 		channel = messageHash
@@ -2269,13 +2270,13 @@ func (this *Htx) HandlePositions(client any, message map[string]any) {
 		}
 		newPositions = append(newPositions, position)
 		ccxt.AddElementToObject(positionsByMarginMode, marginMode, this.SafeList(positionsByMarginMode, marginMode, []any{}))
-		retRes181412 := func() any {
+		retRes181512 := func() any {
 			if marginMode == nil {
 				return nil
 			}
 			return positionsByMarginMode[*marginMode]
 		}()
-		ccxt.AppendToArray(&retRes181412, position)
+		ccxt.AppendToArray(&retRes181512, position)
 		cache.(ccxt.Appender).Append(position)
 	}
 	var marginModes []string = nil
@@ -3716,8 +3717,8 @@ func (this *Htx) authenticateBody(ch chan ccxt.AsyncResult[*string], optionalArg
 			}
 		}
 		signatureParams = this.Keysort(signatureParams)
-		var auth string = this.Urlencode(signatureParams, true)                          // true required in go
-		var payload string = ccxt.Join([]any{"GET", hostname, relativePath, auth}, "\n") // eslint-disable-line quotes
+		var auth string = this.Urlencode(signatureParams, true)                           // true required in go
+		var payload string = "GET" + "\n" + *hostname + "\n" + relativePath + "\n" + auth // eslint-disable-line quotes
 		var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), ccxt.Sha256, "base64")
 		var request map[string]any = nil
 		if typeVar != nil && *typeVar == "spot" {

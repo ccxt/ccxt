@@ -4054,7 +4054,7 @@ func (this *Polymarket) CalculateRateLimiterCost(api any, method string, path st
 	}
 	return this.SafeValue(config, "cost", 1)
 }
-func (this *Polymarket) Sign(path string, optionalArgs ...any) any {
+func (this *Polymarket) Sign(path string, optionalArgs ...any) map[string]any {
 	var api []string = GetArgStringSlice(optionalArgs, 0, []string{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")

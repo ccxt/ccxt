@@ -9931,7 +9931,7 @@ func (this *Gate) Nonce() int64 {
 	}
 	return this.Milliseconds() - *timeDifference
 }
-func (this *Gate) Sign(path string, optionalArgs ...any) any {
+func (this *Gate) Sign(path string, optionalArgs ...any) map[string]any {
 	var api []string = GetArgStringSlice(optionalArgs, 0, []string{})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")

@@ -4088,7 +4088,7 @@ func (this *Lbank) ParseDepositWithdrawFee(fee any, optionalArgs ...any) map[str
 	}
 	return result
 }
-func (this *Lbank) Sign(path string, optionalArgs ...any) any {
+func (this *Lbank) Sign(path string, optionalArgs ...any) map[string]any {
 	var api []string = GetArgStringSlice(optionalArgs, 0, []string{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")

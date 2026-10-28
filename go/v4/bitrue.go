@@ -4013,7 +4013,7 @@ func (this *Bitrue) setMarginBody(ch chan AsyncResult[MarginModification], symbo
 	ch <- AsyncResult[MarginModification]{Value: MarginModificationFromMap(this.ParseMarginModification(response, market))}
 	return nil
 }
-func (this *Bitrue) Sign(path string, optionalArgs ...any) any {
+func (this *Bitrue) Sign(path string, optionalArgs ...any) map[string]any {
 	var api []string = GetArgStringSlice(optionalArgs, 0, []string{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")

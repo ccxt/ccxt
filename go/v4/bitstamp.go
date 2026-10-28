@@ -4065,7 +4065,7 @@ func (this *Bitstamp) ParseTransferStatus(status *string) *string {
 func (this *Bitstamp) Nonce() int64 {
 	return this.Milliseconds()
 }
-func (this *Bitstamp) Sign(path string, optionalArgs ...any) any {
+func (this *Bitstamp) Sign(path string, optionalArgs ...any) map[string]any {
 	var api []string = GetArgStringSlice(optionalArgs, 0, []string{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")

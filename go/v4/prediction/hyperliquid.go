@@ -2977,7 +2977,7 @@ func (this *Hyperliquid) FormatVaultAddress(optionalArgs ...any) any {
 	}
 	return ccxt.ToLower(normalized)
 }
-func (this *Hyperliquid) Sign(path string, optionalArgs ...any) any {
+func (this *Hyperliquid) Sign(path string, optionalArgs ...any) map[string]any {
 	var api []string = ccxt.GetArgStringSlice(optionalArgs, 0, []string{"public"})
 	_ = api
 	var method string = ccxt.GetArgString(optionalArgs, 1, "POST")

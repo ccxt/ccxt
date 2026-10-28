@@ -8587,7 +8587,7 @@ func (this *Bingx) ParseMarketLeverageTiers(info any, optionalArgs ...any) []any
 	}
 	return tiers
 }
-func (this *Bingx) Sign(path string, optionalArgs ...any) any {
+func (this *Bingx) Sign(path string, optionalArgs ...any) map[string]any {
 	var section []string = GetArgStringSlice(optionalArgs, 0, []string{"public"})
 	_ = section
 	var method string = GetArgString(optionalArgs, 1, "GET")

@@ -5183,7 +5183,7 @@ func (this *Pacifica) HandleErrors(code int64, reason any, url string, method an
 	}
 	return nil
 }
-func (this *Pacifica) Sign(path string, optionalArgs ...any) any {
+func (this *Pacifica) Sign(path string, optionalArgs ...any) map[string]any {
 	var api []string = GetArgStringSlice(optionalArgs, 0, []string{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")

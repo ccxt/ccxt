@@ -2595,7 +2595,7 @@ func (this *Binance) HandleErrors(code int64, reason any, url string, method any
  * @param {object} [params] request parameters
  * @returns {object} a dictionary with url, method, body and headers
  */
-func (this *Binance) Sign(path string, optionalArgs ...any) any {
+func (this *Binance) Sign(path string, optionalArgs ...any) map[string]any {
 	var api []string = ccxt.GetArgStringSlice(optionalArgs, 0, []string{"sapi"})
 	_ = api
 	var method string = ccxt.GetArgString(optionalArgs, 1, "GET")

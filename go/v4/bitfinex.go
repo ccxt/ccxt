@@ -897,8 +897,8 @@ func (this *Bitfinex) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var labels []any = []any{"pub:info:pair", "pub:info:pair:futures", "pub:list:pair:securities", "pub:list:pair:margin"}
-	var config string = Join(labels, ",")
+	var labels []string = []string{"pub:info:pair", "pub:info:pair:futures", "pub:list:pair:securities", "pub:list:pair:margin"}
+	var config string = strings.Join(labels, ",")
 	var request map[string]any = map[string]any{
 		"config": config,
 	}
@@ -1062,8 +1062,8 @@ func (this *Bitfinex) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], o
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var labels []any = []any{"pub:list:currency", "pub:map:currency:sym", "pub:map:currency:label", "pub:map:currency:unit", "pub:map:currency:undl", "pub:map:currency:pool", "pub:map:currency:explorer", "pub:map:currency:tx:fee", "pub:map:tx:method", "pub:info:tx:status", "pub:list:currency:margin"}
-	var config string = Join(labels, ",")
+	var labels []string = []string{"pub:list:currency", "pub:map:currency:sym", "pub:map:currency:label", "pub:map:currency:unit", "pub:map:currency:undl", "pub:map:currency:pool", "pub:map:currency:explorer", "pub:map:currency:tx:fee", "pub:map:tx:method", "pub:info:tx:status", "pub:list:currency:margin"}
+	var config string = strings.Join(labels, ",")
 	var request map[string]any = map[string]any{
 		"config": config,
 	}
@@ -4087,7 +4087,7 @@ func (this *Bitfinex) ParsePosition(position any, optionalArgs ...any) Position 
 func (this *Bitfinex) Nonce() int64 {
 	return this.Milliseconds()
 }
-func (this *Bitfinex) Sign(path string, optionalArgs ...any) any {
+func (this *Bitfinex) Sign(path string, optionalArgs ...any) map[string]any {
 	var api []string = GetArgStringSlice(optionalArgs, 0, []string{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")

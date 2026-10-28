@@ -1140,7 +1140,7 @@ func (this *Zaif) CustomNonce() any {
 	var nonce float64 = float64(this.Milliseconds()) / 1000
 	return ToFixed(nonce, 8)
 }
-func (this *Zaif) Sign(path string, optionalArgs ...any) any {
+func (this *Zaif) Sign(path string, optionalArgs ...any) map[string]any {
 	var api []string = GetArgStringSlice(optionalArgs, 0, []string{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")

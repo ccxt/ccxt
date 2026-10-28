@@ -1982,7 +1982,7 @@ func (this *Pacifica) HandleOHLCVUnsubscription(client any, subscription any) {
 	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
 	if symbol != nil {
 		if _, ok := this.Ohlcvs[*symbol]; ok {
-			if (timeframe != nil) && (ccxt.InOp(this.Ohlcvs[*symbol], timeframe)) {
+			if _, ok := this.Ohlcvs[*symbol][*timeframe]; ok {
 				delete(this.Ohlcvs[*symbol], *timeframe)
 			}
 		}
