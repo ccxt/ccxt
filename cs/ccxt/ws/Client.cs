@@ -404,10 +404,32 @@ public partial class BaseExchange
         // ---- settle api: every caller hands off, the owner answers ----
         public Future getFuture(string messageHash)
         {
+            if (messageHash == null)
+            {
+                return null;
+            }
             return (Future)ask(() =>
             {
                 Future existing;
                 if (this.futuresState.TryGetValue(messageHash, out existing))
+                {
+                    return existing;
+                }
+                return null;
+            });
+        }
+
+        // the subscription value under a key; null when absent, null or an empty string
+        public object getSubscription(string messageHash)
+        {
+            if (messageHash == null)
+            {
+                return null;
+            }
+            return ask(() =>
+            {
+                object existing;
+                if (this.subscriptionsState.TryGetValue(messageHash, out existing) && existing != null && existing.ToString().Length > 0)
                 {
                     return existing;
                 }

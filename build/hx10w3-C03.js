@@ -136,10 +136,10 @@ function nativeRead (masked, line, receiver, member, keyText) {
 }
 
 export function hx10w3C03WsStateReads (content) {
-    if (!/(?:getValue|GetValue)[ ]*\(/.test (content) || /^namespace Tests;/m.test (content)) return content;
+    if (!/(?:getValue|GetValue|this\.safeValue)[ ]*\(/.test (content) || /^namespace Tests;/m.test (content)) return content;
     const lines = content.split ('\n');
     const masked = lines.map (mask);
-    let changed = false;
+    let changed = typedClientReads (lines, masked);
     for (let i = 0; i < masked.length; i++) {
         if (!/(?:getValue|GetValue)[ ]*\(/.test (masked[i])) continue;
         if (/^[ ]*(?:\/\/|\*|\/\*)/.test (masked[i])) continue;
@@ -176,6 +176,61 @@ export function hx10w3C03WsStateReads (content) {
     return changed ? lines.join ('\n') : content;
 }
 
+// hx11 M173: `safeValue(client.futures|subscriptions, key)` reads bind the typed client members
+// (getFuture / getSubscription in cs/ccxt/ws/Client.cs). Same answer as the helper: null for a
+// missing key, a null key and (subscriptions) a null or empty value; a Future is the declared type.
+const SAFE_VALUE = /(?<![\w.])this\.safeValue\(/g;
+const CLIENT_READERS = new Map ([ [ 'futures', 'getFuture' ], [ 'subscriptions', 'getSubscription' ] ]);
+
+function typedClientReads (lines, masked) {
+    let changed = false;
+    for (let i = 0; i < masked.length; i++) {
+        if (!masked[i].includes ('this.safeValue(client.')) continue;
+        if (/^[ ]*(?:\/\/|\*|\/\*)/.test (masked[i])) continue;
+        const edits = [];
+        SAFE_VALUE.lastIndex = 0;
+        let match;
+        while ((match = SAFE_VALUE.exec (masked[i])) !== null) {
+            const open = match.index + match[0].length - 1;
+            const close = callEnd (masked[i], open);
+            if (close === undefined) continue;
+            const spans = argumentsOf (masked[i], open + 1, close);
+            if (spans.length !== 2) continue;
+            const receiver = /^client\.(futures|subscriptions)$/.exec (masked[i].substring (spans[0].from, spans[0].to));
+            if (receiver === null) continue;
+            if (!WS_CLIENT_TYPES.has (provenType (masked, i, 'client') ?? '')) continue;
+            const keyText = lines[i].substring (spans[1].from, spans[1].to);
+            let key = undefined;
+            if (/^\"(?:[^\"\\]|\\.)*\"$/.test (keyText)) {
+                key = keyText;
+            } else if (/^[A-Za-z_]\w*$/.test (keyText)) {
+                const keyType = provenType (masked, i, keyText);
+                if ((keyType === 'string') || (keyType === 'string?')) key = keyText;
+                else if (keyType === 'object') key = keyText + '?.ToString()';
+            }
+            if (key === undefined) continue;
+            const text = 'client.' + CLIENT_READERS.get (receiver[1]) + '(' + key + ')';
+            const end = close + 1;
+            const cast = '((Future)';
+            const head = lines[i].substring (0, match.index);
+            if ((receiver[1] === 'futures') && head.endsWith (cast) && (lines[i][end] === ')')) {
+                edits.push ({ start: match.index - cast.length, end: end + 1, text });
+            } else if (receiver[1] === 'futures') {
+                continue; // an uncast futures read keeps its object-typed binding
+            } else {
+                edits.push ({ start: match.index, end, text });
+            }
+        }
+        if (edits.length === 0) continue;
+        let out = lines[i];
+        for (const edit of edits.sort ((a, b) => b.start - a.start)) out = out.substring (0, edit.start) + edit.text + out.substring (edit.end);
+        lines[i] = out;
+        masked[i] = mask (out);
+        changed = true;
+    }
+    return changed;
+}
+
 // snippet checks for `csharpTranspiler.ts --self-test`
 export function hx10w3C03SnippetChecks () {
     const problems = [];
@@ -191,8 +246,19 @@ export function hx10w3C03SnippetChecks () {
         [ 'ws client subscriptions + string key',
             '        object s = getValue(client.subscriptions, hash);',
             'object s = (client.subscriptions != null && hash != null && client.subscriptions.ContainsKey(hash) ? client.subscriptions[hash] : null);' ],
+        [ 'safeValue futures cast + object key',
+            '        Future future = ((Future)this.safeValue(client.futures, messageHash));',
+            'Future future = client.getFuture(messageHash?.ToString());' ],
+        [ 'safeValue subscriptions + string key',
+            '        object s = this.safeValue(client.subscriptions, hash);',
+            'object s = client.getSubscription(hash);' ],
+        [ 'safeValue subscriptions + literal key',
+            '        object s = this.safeValue(client.subscriptions, \"authenticated\");',
+            'object s = client.getSubscription(\"authenticated\");' ],
     ];
     const keeps = [
+        [ 'safeValue default argument', '        object s = this.safeValue(client.subscriptions, hash, new Dictionary<string, object>() {});' ],
+        [ 'safeValue Int64 key', '        object s = this.safeValue(client.subscriptions, n);' ],
         [ 'object receiver', '        object c = this.safeValue(parameters, "client");\n        Future future = ((Future)getValue(c.futures, messageHash));' ],
         [ 'non-ws local of that name', '        Dictionary<string, object> client = new Dictionary<string, object>() {};\n        object s = getValue(client.futures, messageHash);' ],
         [ 'Int64 key', '        object s = getValue(client.subscriptions, n);' ],
