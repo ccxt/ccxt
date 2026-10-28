@@ -1860,7 +1860,7 @@ class binance extends \ccxt\async\binance {
                 $utcSuffix = $suffix;
             }
             $rawHashes[] = $marketId . '@' . $klineType . '_' . $interval . $utcSuffix;
-            $messageHashes[] = 'ohlcv::' . $market['symbol'] . '::' . $timeframeString;
+            $messageHashes[] = 'ohlcv::' . $this->safe_string($market, 'symbol', '') . '::' . $timeframeString;
         }
         $url = $this->get_ws_url($wsUrlType, $this->get_future_ws_category($klineType)) . '/' . $this->stream($wsUrlType, 'multipleOHLCV');
         $requestId = $this->request_id($url);
@@ -1945,8 +1945,8 @@ class binance extends \ccxt\async\binance {
                 $utcSuffix = $suffix;
             }
             $rawHashes[] = $marketId . '@' . $klineType . '_' . $interval . $utcSuffix;
-            $subMessageHashes[] = 'ohlcv::' . $market['symbol'] . '::' . $timeframeString;
-            $messageHashes[] = 'unsubscribe::ohlcv::' . $market['symbol'] . '::' . $timeframeString;
+            $subMessageHashes[] = 'ohlcv::' . $this->safe_string($market, 'symbol', '') . '::' . $timeframeString;
+            $messageHashes[] = 'unsubscribe::ohlcv::' . $this->safe_string($market, 'symbol', '') . '::' . $timeframeString;
         }
         $url = $this->get_ws_url($wsUrlType, $this->get_future_ws_category($klineType)) . '/' . $this->stream($wsUrlType, 'multipleOHLCV');
         $requestId = $this->request_id($url);
@@ -2503,18 +2503,18 @@ class binance extends \ccxt\async\binance {
         return $this->filter_by_array($this->bidsasks, 'symbol', $symbolsNormalized);
     }
 
-    public function watch_multi_ticker_helper(string $methodName, ?string $channelName, ?array $symbols = null, $params = array(), bool $isUnsubscribe = false) {
+    public function watch_multi_ticker_helper(string $methodName, string $channelName, ?array $symbols = null, $params = array(), bool $isUnsubscribe = false) {
         return Async\async(self::do_watch_multi_ticker_helper(...))($methodName, $channelName, $symbols, $params, $isUnsubscribe);
     }
 
-    private function do_watch_multi_ticker_helper(string $methodName, ?string $channelName, ?array $symbols = null, $params = array(), bool $isUnsubscribe = false) {
+    private function do_watch_multi_ticker_helper(string $methodName, string $channelName, ?array $symbols = null, $params = array(), bool $isUnsubscribe = false) {
+        $channel = $this->safe_string(array( 'name' => $channelName ), 'name', '');
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
         $symbolsNormalized = $this->market_symbols($symbols, null, true, false, true);
-        $isBidAsk = ($channelName === 'bookTicker');
-        $isMarkPrice = ($channelName === 'markPrice');
-        $use1sFreq = $this->safe_bool($params, 'use1sFreq', true);
+        $isBidAsk = ($channel === 'bookTicker');
+        $isMarkPrice = ($channel === 'markPrice');
         $firstMarket = null;
         $symbolsDefined = ($symbolsNormalized !== null);
         if ($symbolsNormalized !== null) {
@@ -2544,7 +2544,7 @@ class binance extends \ccxt\async\binance {
             throw new NotSupported($this->id . ' ' . $methodName . '() does not support options markets');
         }
         // eOptions tickers have a different stream name (@optionTicker) but the same event type (24hrTicker)
-        // so only the subscription arg changes — channelName stays as-is to keep messageHashes aligned
+        // so only the subscription arg changes — channel stays as-is to keep messageHashes aligned
         $isOptionTicker = ($marketType === 'option' && !$isMarkPrice && !$isBidAsk);
         if ($isMarkPrice && !$this->in_array($marketType, array( 'swap', 'future', 'option' ))) {
             throw new NotSupported($this->id . ' ' . $methodName . '() does not support ' . $marketType . ' markets yet');
@@ -2554,24 +2554,22 @@ class binance extends \ccxt\async\binance {
         $unsubscribeMessageHashes = array();
         $suffix = '';
         if ($isMarkPrice && !$isOptionMarkPrice) {
-            $suffix = ($use1sFreq) ? '@1s' : '';
+            $suffix = ($this->safe_bool($params, 'use1sFreq', true)) ? '@1s' : '';
         }
-        $unifiedPrefix = null;
+        $unifiedPrefix = 'ticker';
         if ($isBidAsk) {
             $unifiedPrefix = 'bidask';
         } elseif ($isMarkPrice) {
             $unifiedPrefix = 'markPrice';
-        } else {
-            $unifiedPrefix = 'ticker';
         }
         if ($symbolsNormalized !== null) {
             $seenUnderlyings = array();
             for ($i = 0; $i < count($symbolsNormalized); $i++) {
                 $symbol = $symbolsNormalized[$i];
                 $market = $this->market($symbol);
-                $messageHashes[] = $unifiedPrefix . ':' . $channelName . '@' . $symbol;
+                $messageHashes[] = $unifiedPrefix . ':' . $channel . '@' . $symbol;
                 if ($isUnsubscribe) {
-                    $unsubscribeMessageHashes[] = 'unsubscribe::' . $unifiedPrefix . ':' . $channelName . '@' . $symbol;
+                    $unsubscribeMessageHashes[] = 'unsubscribe::' . $unifiedPrefix . ':' . $channel . '@' . $symbol;
                 }
                 if ($isOptionMarkPrice) {
                     // subscribe per underlying, not per contract
@@ -2597,7 +2595,7 @@ class binance extends \ccxt\async\binance {
                         $subscriptionArgs[] = $subscriptionArg;
                     }
                 } else {
-                    $subscriptionArgs[] = $this->safe_string($market, 'lowercaseId', '') . '@' . $channelName . $suffix;
+                    $subscriptionArgs[] = $this->safe_string($market, 'lowercaseId', '') . '@' . $channel . $suffix;
                 }
             }
         } else {
@@ -2617,30 +2615,30 @@ class binance extends \ccxt\async\binance {
                     // isOptionMarkPrice: one stream covers all contracts for the underlying
                     $subscriptionArgs[] = $underlying . '@optionMarkPrice';
                 }
-                $messageHashes[] = $unifiedPrefix . 's:' . $channelName;
-                $unsubscribeMessageHashes[] = 'unsubscribe::' . $channelName;
+                $messageHashes[] = $unifiedPrefix . 's:' . $channel;
+                $unsubscribeMessageHashes[] = 'unsubscribe::' . $channel;
             } elseif ($isBidAsk) {
                 if ($marketType === 'spot') {
                     throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires symbols for this channel for spot markets');
                 }
-                $subscriptionArgs[] = '!' . $channelName;
-                $messageHashes[] = $unifiedPrefix . 's:' . $channelName;
-                $unsubscribeMessageHashes[] = 'unsubscribe::' . $channelName;
+                $subscriptionArgs[] = '!' . $channel;
+                $messageHashes[] = $unifiedPrefix . 's:' . $channel;
+                $unsubscribeMessageHashes[] = 'unsubscribe::' . $channel;
             } elseif ($isMarkPrice) {
-                $subscriptionArgs[] = '!' . $channelName . '@arr' . $suffix;
-                $messageHashes[] = $unifiedPrefix . 's:' . $channelName;
-                $unsubscribeMessageHashes[] = 'unsubscribe::' . $channelName;
+                $subscriptionArgs[] = '!' . $channel . '@arr' . $suffix;
+                $messageHashes[] = $unifiedPrefix . 's:' . $channel;
+                $unsubscribeMessageHashes[] = 'unsubscribe::' . $channel;
             } else {
-                $subscriptionArgs[] = '!' . $channelName . '@arr';
-                $messageHashes[] = $unifiedPrefix . 's:' . $channelName;
-                $unsubscribeMessageHashes[] = 'unsubscribe::' . $channelName;
+                $subscriptionArgs[] = '!' . $channel . '@arr';
+                $messageHashes[] = $unifiedPrefix . 's:' . $channel;
+                $unsubscribeMessageHashes[] = 'unsubscribe::' . $channel;
             }
         }
         $streamHash = $channelName;
         if ($symbolsNormalized !== null) {
-            $streamHash = $channelName . '::' . implode(',', $symbolsNormalized);
+            $streamHash = $channel . '::' . implode(',', $symbolsNormalized);
         }
-        $url = $this->get_ws_url($rawMarketType, $this->get_future_ws_category($channelName)) . '/' . $this->stream($rawMarketType, $streamHash);
+        $url = $this->get_ws_url($rawMarketType, $this->get_future_ws_category($channel)) . '/' . $this->stream($rawMarketType, $streamHash);
         $requestId = $this->request_id($url);
         $request = array(
             'method' => $isUnsubscribe ? 'UNSUBSCRIBE' : 'SUBSCRIBE',
@@ -2666,7 +2664,7 @@ class binance extends \ccxt\async\binance {
         // wait on the batch hash so the resolved value is the full dict of new tickers
         $waitHashes = $hashes;
         if ($isOptionMarkPrice && !$isUnsubscribe) {
-            $waitHashes = array( $unifiedPrefix . 's:' . $channelName );
+            $waitHashes = array( $unifiedPrefix . 's:' . $channel );
         }
         $result = Async\await($this->watch_multiple($url, $waitHashes, $this->deep_extend($request, $paramsSubType), $hashes, $subscription));
         if ($isUnsubscribe) {
