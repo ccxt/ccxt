@@ -1465,10 +1465,9 @@ public partial class okx : ccxt.okx
         {
             string? symbol = ((string)symbolsNormalized[i]);
             messageHashes.Add(add(add(depth, ":"), symbol));
-            string? marketId = this.marketId(symbol);
             Dictionary<string, object> topic = new Dictionary<string, object>() {
                 { "channel", depth },
-                { "instId", marketId },
+                { "instId", this.marketId(symbol) },
             };
             topics.Add(topic);
         }
@@ -1761,7 +1760,7 @@ public partial class okx : ccxt.okx
         string? messageHash = ((string)add(((object)(channel == null ? null : channel + ":")), symbol));
         if (action == "snapshot")
         {
-            for (int i = 0; i < (data?.Count ?? 0); i++)
+            for (int i = 0; i < data.Count; i++)
             {
                 object update = data[i];
                 // reset the existing orderbook instead of replacing it: a consumer
@@ -1790,7 +1789,7 @@ public partial class okx : ccxt.okx
             if ((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol)))
             {
                 ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
-                for (int i = 0; i < (data?.Count ?? 0); i++)
+                for (int i = 0; i < data.Count; i++)
                 {
                     object update = data[i];
                     this.handleOrderBookMessage(client, update, orderbook, messageHash, market);
@@ -1815,7 +1814,7 @@ public partial class okx : ccxt.okx
                     ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
                 }
                 ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
-                for (int i = 0; i < (data?.Count ?? 0); i++)
+                for (int i = 0; i < data.Count; i++)
                 {
                     object update = data[i];
                     Int64? timestamp = this.safeInteger(update, "ts");

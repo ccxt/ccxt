@@ -491,7 +491,6 @@ public partial class gemini : ccxt.gemini
             string side = ((this.safeString(delta, 0) == "buy")) ? "bids" : "asks";
             object bookside = (orderbook != null && side != null && orderbook.ContainsKey(side) ? orderbook[side] : null);
             (bookside as IOrderBookSide).store(price, size);
-            orderbook[side] = bookside;
         }
         orderbook["symbol"] = symbol;
         ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
@@ -692,8 +691,6 @@ public partial class gemini : ccxt.gemini
                 (asks as IOrderBookSide).store(price, size);
             }
         }
-        orderbook["bids"] = bids;
-        orderbook["asks"] = asks;
         orderbook["symbol"] = symbol;
         orderbook["nonce"] = nonce;
         orderbook["timestamp"] = timestamp;

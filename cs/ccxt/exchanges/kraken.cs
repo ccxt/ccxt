@@ -1665,7 +1665,7 @@ public partial class kraken : Exchange
         } else if ((trade is string))
         {
             id = ((string)trade);
-        } else if ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("ordertxid")))
+        } else if (isOrderTrade)
         {
             orderId = this.safeString(trade, "ordertxid");
             id = this.safeString2(trade, "id", "postxid");
@@ -2078,12 +2078,13 @@ public partial class kraken : Exchange
         int baseIdEnd = 3;
         int quoteIdStart = 3;
         int quoteIdEnd = 6;
-        if ((((string)id).Length == 8))
+        int idLength = ((string)id).Length;
+        if ((idLength == 8))
         {
             baseIdEnd = 4;
             quoteIdStart = 4;
             quoteIdEnd = 8;
-        } else if ((((string)id).Length == 7))
+        } else if ((idLength == 7))
         {
             baseIdEnd = 4;
             quoteIdStart = 4;

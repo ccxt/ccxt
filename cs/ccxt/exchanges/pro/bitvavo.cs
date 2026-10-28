@@ -547,8 +547,8 @@ public partial class bitvavo : ccxt.bitvavo
         for (int i = 0; i < (symbolsAndTimeframes?.Count ?? 0); i++)
         {
             object symbolAndTimeframe = (symbolsAndTimeframes != null && i < symbolsAndTimeframes.Count ? symbolsAndTimeframes[i] : null);
-            Dictionary<string, object> market = this.market(getValue(symbolAndTimeframe, 0));
-            object timeframeString = getValue(symbolAndTimeframe, 1);
+            Dictionary<string, object> market = this.market(this.safeString(symbolAndTimeframe, 0, ""));
+            string? timeframeString = this.safeString(symbolAndTimeframe, 1, "");
             string? interval = this.safeString(this.timeframes, timeframeString, timeframeString);
             if (!(((interval != null) && marketIdsByInterval.ContainsKey(interval))))
             {
@@ -628,8 +628,8 @@ public partial class bitvavo : ccxt.bitvavo
         for (int i = 0; i < (symbolsAndTimeframes?.Count ?? 0); i++)
         {
             object symbolAndTimeframe = (symbolsAndTimeframes != null && i < symbolsAndTimeframes.Count ? symbolsAndTimeframes[i] : null);
-            Dictionary<string, object> market = this.market(getValue(symbolAndTimeframe, 0));
-            object timeframeString = getValue(symbolAndTimeframe, 1);
+            Dictionary<string, object> market = this.market(this.safeString(symbolAndTimeframe, 0, ""));
+            string? timeframeString = this.safeString(symbolAndTimeframe, 1, "");
             string? interval = this.safeString(this.timeframes, timeframeString, timeframeString);
             if (!(((interval != null) && marketIdsByInterval.ContainsKey(interval))))
             {

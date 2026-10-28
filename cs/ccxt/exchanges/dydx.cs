@@ -1743,7 +1743,7 @@ public partial class dydx : Exchange
         }
         IDictionary<string, object> credentials = this.retrieveCredentials();
         object account = await this.FetchDydxAccount();
-        Int64 lastBlockHeight = await this.FetchLatestBlockHeight();
+        object lastBlockHeight = await this.FetchLatestBlockHeight();
         // params['latestBlockHeight'] = lastBlockHeight;
         Dictionary<string, object> newParams = this.extend(parameters, new Dictionary<string, object>() {
             { "latestBlockHeight", lastBlockHeight },
@@ -1819,7 +1819,7 @@ public partial class dydx : Exchange
             throw new NotSupported ((this.id + " cancelOrder() cancelling using id is not currently supported, please use provide the clientOrderId parameter.")) ;
         }
         Int64? goodTillBlockOption = this.safeInteger(paramsOmitted, "goodTillBlock");
-        Int64? goodTillBlock = goodTillBlockOption;
+        object goodTillBlock = goodTillBlockOption;
         int goodTillBlockTimeInSeconds = 2592000;
         // default is 30 days
         (Int64?, object) goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable = this.handleOptionIntegerAndParams(paramsOmitted, "cancelOrder", "goodTillBlockTimeInSeconds", goodTillBlockTimeInSeconds);
@@ -1850,8 +1850,8 @@ public partial class dydx : Exchange
         {
             if ((goodTillBlock == null))
             {
-                Int64 latestBlockHeight = await this.FetchLatestBlockHeight();
-                goodTillBlock = (latestBlockHeight + 20);
+                object latestBlockHeight = await this.FetchLatestBlockHeight();
+                goodTillBlock = add(latestBlockHeight, 20);
             }
         }
         IDictionary<string, object> credentials = this.retrieveCredentials();
@@ -1926,11 +1926,11 @@ public partial class dydx : Exchange
         (Int64?, object) subAccountIdOptionparamsSubAccountIdVariable = this.handleOptionIntegerAndParams(parameters, "cancelOrders", "subAccountId", subAccountId);
         Int64? subAccountIdOption = subAccountIdOptionparamsSubAccountIdVariable.Item1;
         IDictionary<string, object> paramsSubAccountId = ((IDictionary<string, object>)subAccountIdOptionparamsSubAccountIdVariable.Item2);
-        Int64? goodTillBlock = this.safeInteger(paramsSubAccountId, "goodTillBlock");
+        object goodTillBlock = this.safeInteger(paramsSubAccountId, "goodTillBlock");
         if ((goodTillBlock == null))
         {
-            Int64 latestBlockHeight = await this.FetchLatestBlockHeight();
-            goodTillBlock = (latestBlockHeight + 20);
+            object latestBlockHeight = await this.FetchLatestBlockHeight();
+            goodTillBlock = add(latestBlockHeight, 20);
         }
         IDictionary<string, object> credentials = this.retrieveCredentials();
         object account = await this.FetchDydxAccount();

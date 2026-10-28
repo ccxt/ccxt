@@ -921,7 +921,7 @@ public partial class paradex : Exchange
         }
         string? settle = this.safeCurrencyCode(settleId);
         string symbol = ((bs + "/") + quote);
-        if (!isSpot)
+        if (!isSpot && ((settle != null)))
         {
             symbol = ((symbol + ":") + settle);
         }
@@ -938,7 +938,10 @@ public partial class paradex : Exchange
             {
                 deliveryValue = (this.yymmdd(expiry) + "-");
             }
-            symbol = (((((symbol + "-") + deliveryValue) + strikePrice) + "-") + optionTypeSuffix);
+            if ((strikePrice != null))
+            {
+                symbol = (((((symbol + "-") + deliveryValue) + strikePrice) + "-") + optionTypeSuffix);
+            }
             makerFee = this.parseNumber("0.0003");
         } else
         {

@@ -416,6 +416,10 @@ public partial class xt : ccxt.xt
         IDictionary<string, object> options = this.safeDict(this.options, "watchTickers");
         string? defaultMethod = this.safeString(options, "method", "tickers");
         string? name = this.safeString(parameters, "method", defaultMethod);
+        if ((name == null))
+        {
+            return ccxt.BaseExchange.ToTickers(this.filterByArray(this.tickers, "symbol", symbols));
+        }
         IDictionary<string, object> market = null;
         if ((symbols != null))
         {
@@ -453,6 +457,10 @@ public partial class xt : ccxt.xt
         IDictionary<string, object> options = this.safeDict(this.options, "unWatchTickers");
         string? defaultMethod = this.safeString(options, "method", "tickers");
         string? name = this.safeString(parameters, "method", defaultMethod);
+        if ((name == null))
+        {
+            return null;
+        }
         if ((symbols != null))
         {
             throw new NotSupported ((this.id + " unWatchTickers() does not support symbols argument, unsubscribtion is for all tickers at once only")) ;

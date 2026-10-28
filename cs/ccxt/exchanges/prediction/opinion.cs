@@ -2079,7 +2079,7 @@ public partial class opinion : PredictionExchange
         {
             return;
         }
-        if ((this.safeOrderBook(this.orderbooks, sym) == null))
+        if (!(((sym != null) && ((IDictionary<string, object>)this.orderbooks).ContainsKey(sym))))
         {
             // the delta belongs to the market's other token, whose book is not being watched
             return;

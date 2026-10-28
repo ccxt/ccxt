@@ -523,6 +523,10 @@ public partial class grvt : ccxt.grvt
         string? secondPart = this.safeString(parts, 1, "");
         string timeframeId = secondPart.Replace("-TRADE", (string)"");
         string? timeframe = this.findTimeframe(timeframeId);
+        if ((timeframe == null))
+        {
+            return;
+        }
         string messageHash = ((("ohlcv::" + symbol) + "::") + timeframe);
         this.ohlcvs[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
         if (!(inOp((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), timeframe)))

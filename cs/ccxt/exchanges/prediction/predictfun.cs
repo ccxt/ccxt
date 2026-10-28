@@ -389,11 +389,9 @@ public partial class predictfun : PredictionExchange
         {
             Dictionary<string, object> request = new Dictionary<string, object>() {};
             List<object> tags = this.safeList(paramsValue, "tags", new List<object>() {});
-            int tagsLength = tags.Count;
-            if (tagsLength > 0)
+            if (tags.Count > 0)
             {
-                string tagsString = String.Join(",", tags.ToArray());
-                request["tagIds"] = tagsString;
+                request["tagIds"] = String.Join(",", tags.ToArray());
             }
             postOmitKeys.Add("limit");
             Dictionary<string, object> paramsCategories = this.omit(paramsValue, new List<object>() {"limit", "tags"});

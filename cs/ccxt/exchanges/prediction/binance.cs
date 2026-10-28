@@ -236,7 +236,11 @@ public partial class binance : PredictionExchange
     {
         rest ??= new Dictionary<string, object>();
         Int64? maxTopicsOption = this.safeInteger(this.options, "maxFetchMarketsLimit", 200);
-        object maxTopicsResolved = (!(maxTopics == null)) ? maxTopics : maxTopicsOption;
+        Int64? maxTopicsResolved = this.parseToInt(maxTopicsOption);
+        if (!(maxTopics == null))
+        {
+            maxTopicsResolved = this.parseToInt(maxTopics);
+        }
         Int64? pageLimitOption = this.safeInteger(this.options, "marketsPageLimit", 100);
         Int64? pageLimit = ((pageLimitOption > 100)) ? 100 : pageLimitOption;
         List<object> collected = new List<object>() {};
@@ -2046,19 +2050,15 @@ public partial class binance : PredictionExchange
         int failedOrdersLength = failedOrders.Count;
         if (failedOrdersLength > 0)
         {
-            string failedDetails = "";
+            List<object> failedDetails = new List<object>() {};
             for (int i = 0; i < failedOrdersLength; i++)
             {
                 IDictionary<string, object> failedOrder = this.safeDict(failedOrders, i);
-                string? failedOrderId = this.safeString(failedOrder, "orderId");
-                string? failedReason = this.safeString(failedOrder, "reason");
-                if (i > 0)
-                {
-                    failedDetails = (failedDetails + ", ");
-                }
-                failedDetails = (((failedDetails + failedOrderId) + ": ") + failedReason);
+                string failedOrderId = this.safeString(failedOrder, "orderId", "");
+                string? failedReason = this.safeString(failedOrder, "reason", "");
+                failedDetails.Add(((failedOrderId + ": ") + failedReason));
             }
-            throw new OrderNotFound (((this.id + " cancelOrders() failed for ") + failedDetails)) ;
+            throw new OrderNotFound (((this.id + " cancelOrders() failed for ") + String.Join(", ", failedDetails.ToArray()))) ;
         }
         List<object> orders = new List<object>() {};
         int canceledOrdersLength = canceledOrders.Count;
