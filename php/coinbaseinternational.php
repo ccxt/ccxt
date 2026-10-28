@@ -3221,7 +3221,7 @@ class coinbaseinternational extends Exchange {
         $now = $this->milliseconds();
         $token = $this->get_v2_access_token();
         $tokenExpires = $this->safe_integer($this->options, 'v2TokenExpires');
-        if (!$forceRefresh && ($token !== null) && ($tokenExpires !== null) && ($now < $tokenExpires)) {
+        if (!$forceRefresh && ($token !== null) && ($token !== '') && ($tokenExpires !== null) && ($now < $tokenExpires)) {
             return $token;
         }
         $response = $this->publicPostAuth($paramsOmitted);
@@ -3257,17 +3257,10 @@ class coinbaseinternational extends Exchange {
     public function get_v2_access_token(): ?string {
         /**
          * @ignore
-         * the cached gateway access $token, options.v2AccessToken takes precedence over exchange.token
-         * @return {string|null} the access $token
+         * the cached gateway access token, options.v2AccessToken takes precedence over exchange.token
+         * @return {string|null} the access token
          */
-        $token = $this->safe_string($this->options, 'v2AccessToken');
-        if (($token !== null) && ($token !== '')) {
-            return $token;
-        }
-        if ($this->token === '') {
-            return null;
-        }
-        return $this->token;
+        return $this->safe_string($this->options, 'v2AccessToken', $this->token);
     }
 
     public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
@@ -3315,7 +3308,7 @@ class coinbaseinternational extends Exchange {
             );
         } elseif ($access === 'private') {
             $accessToken = $this->get_v2_access_token();
-            if ($accessToken === null) {
+            if (($accessToken === null) || ($accessToken === '')) {
                 throw new AuthenticationError($this->id . ' requires an access token from public/auth');
             }
             $requestHeaders = array(
@@ -3368,7 +3361,8 @@ class coinbaseinternational extends Exchange {
         $deribit = $this->resolve_route($route);
         $previousBackend = $this->safe_bool($this->options, 'routeBackend');
         $configuredBackend = $this->is_native_deribit_credentials();
-        $hasToken = $this->get_v2_access_token() !== null;
+        $currentToken = $this->get_v2_access_token();
+        $hasToken = ($currentToken !== null) && ($currentToken !== '');
         $hasWsState = $this->safe_integer($this->options, 'wsAuthRefreshAt') !== null;
         if (($previousBackend !== null) && ($previousBackend !== $deribit)) {
             throw new BadRequest($this->id . ' cannot switch route backend on an initialized instance; use a separate exchange instance');

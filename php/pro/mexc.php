@@ -2110,7 +2110,7 @@ class mexc extends \ccxt\async\mexc {
                 $candlesSymbol = $this->safe_string($splitHashes, 2, '');
                 $splitHashesLength = count($splitHashes); // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
                 if ($splitHashesLength > 4) {
-                    $candlesSymbol = $candlesSymbol . ':' . $this->safe_string($splitHashes, 3, '');
+                    $candlesSymbol .= ':' . $this->safe_string($splitHashes, 3, '');
                 }
                 if (is_array($this->ohlcvs) && array_key_exists($candlesSymbol ?? '', $this->ohlcvs)) {
                     unset($this->ohlcvs[$candlesSymbol]);

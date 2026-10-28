@@ -957,7 +957,8 @@ class htx extends \ccxt\async\htx {
         $future = ($type === 'future');
         $isV5Linear = ($linear && ($swap || $future));
         if ($type === 'spot') {
-            $mode = $this->safe_string($paramsRequest, 'mode', $this->safe_string_2($this->options, 'watchMyTrades', 'mode', '0'));
+            $mode = $this->safe_string_2($this->options, 'watchMyTrades', 'mode', '0');
+            $mode = $this->safe_string($paramsRequest, 'mode', $mode);
             $paramsRequest = $this->omit($paramsRequest, 'mode');
             $messageHash = 'trade.clearing' . '#' . $marketId . '#' . $mode;
             $channel = $messageHash;
@@ -3114,7 +3115,7 @@ class htx extends \ccxt\async\htx {
             }
             $signatureParams = $this->keysort($signatureParams);
             $auth = $this->urlencode($signatureParams, true); // true required in go
-            $payload = implode("\n", array('GET', $hostname, $relativePath, $auth)); // eslint-disable-line quotes
+            $payload = 'GET' . "\n" . $hostname . "\n" . $relativePath . "\n" . $auth; // eslint-disable-line quotes
             $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256', 'base64');
             $request = null;
             if ($type === 'spot') {

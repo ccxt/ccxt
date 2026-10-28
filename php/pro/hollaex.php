@@ -152,7 +152,7 @@ class hollaex extends \ccxt\async\hollaex {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         $marketId = $this->safe_string($market, 'id', '');
         $messageHash = 'trade' . ':' . $marketId;
         $trades = Async\await($this->watch_public($messageHash, $params));
@@ -183,7 +183,7 @@ class hollaex extends \ccxt\async\hollaex {
         $marketId = $this->safe_string($message, 'symbol');
         $market = $this->safe_market($marketId);
         $marketIdValue = $this->safe_string($market, 'id', '');
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         $stored = $this->safe_value($this->trades, $symbol);
         if ($stored === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
@@ -280,7 +280,7 @@ class hollaex extends \ccxt\async\hollaex {
             $stored->append($parsed);
             $symbol = $this->safe_string($trade, 'symbol');
             $market = $this->market($symbol);
-            $marketId = $market['id'];
+            $marketId = $this->safe_string($market, 'id');
             if ($marketId !== null) {
                 $marketIds[$marketId] = true;
             }
@@ -415,7 +415,7 @@ class hollaex extends \ccxt\async\hollaex {
             $stored->append($parsed);
             $symbol = $this->safe_string($order, 'symbol');
             $market = $this->market($symbol);
-            $marketId = $market['id'];
+            $marketId = $this->safe_string($market, 'id');
             if ($marketId !== null) {
                 $marketIds[$marketId] = true;
             }
