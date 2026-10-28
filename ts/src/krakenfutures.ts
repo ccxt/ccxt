@@ -468,8 +468,8 @@ export default class krakenfutures extends Exchange {
             const future = (type === 'future');
             let symbol = id;
             const split = (id as string).split ('_');
-            const splitMarket = this.safeString (split, 1);
-            const baseId = (splitMarket as string).slice (0, (splitMarket as string).length - 3);
+            const splitMarket = this.safeString (split, 1, '');
+            const baseId = splitMarket.slice (0, splitMarket.length - 3);
             const quoteId = 'usd'; // always USD
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
@@ -3837,9 +3837,9 @@ export default class krakenfutures extends Exchange {
         const apiAccess = this.safeDict (this.options['access'], apiName, {});
         const methodAccess = this.safeDict (apiAccess, method, {});
         const access = this.safeString (methodAccess, path, 'public');
-        const endpoint = version + '/' + this.implodeParams (path, paramsOmitted);
+        const endpoint: string = version + '/' + this.implodeParams (path, paramsOmitted);
         const paramsOmitted2: Dict = this.omit (paramsOmitted, this.extractParams (path));
-        let query = endpoint;
+        let query: string = endpoint;
         let postData = '';
         if (path === 'batchorder') {
             postData = 'json=' + this.json (paramsOmitted2);
@@ -3860,7 +3860,7 @@ export default class krakenfutures extends Exchange {
         let privateHeaders: NullableDict = undefined;
         if (apiName === 'private' || access === 'private') {
             this.checkRequiredCredentials ();
-            let auth = postData + '/api/';
+            let auth: string = postData + '/api/';
             if (apiName !== 'private') {
                 auth += apiName + '/';
             }
