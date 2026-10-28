@@ -7930,14 +7930,6 @@ impl MexcCore {
                 self.check_required_credentials(&[]);
                 let mut timestamp: Value = Value::Str(format!("{}", self.nonce()).into());
                 let mut auth: Value = Value::Str("".into());
-                requestHeaders = Value::Map({
-                    let mut m = indexmap::IndexMap::new();
-                        m.insert("ApiKey".to_string(), self.apiKey.clone());
-                        m.insert("Request-Time".to_string(), timestamp.clone());
-                        m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
-                        m.insert("source".to_string(), self.safe_string_k(self.options.clone(), "broker", &[Value::Str("CCXT".into())]));
-                    m
-                });
                 if (method.as_str() == Some("POST")) {
                     auth = json_stringify(&paramsOmitted);
                     requestBody = auth.clone();
@@ -7950,7 +7942,15 @@ impl MexcCore {
                 }
                 auth = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.apiKey.clone(), timestamp).into()), auth).into());
                 let mut signature: Value = self.hmac(self.encode(auth), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
-                if let Value::Dict(__d) = &mut requestHeaders { std::sync::Arc::make_mut(__d).insert("Signature".into(), signature); }
+                requestHeaders = Value::Map({
+                    let mut m = indexmap::IndexMap::new();
+                        m.insert("ApiKey".to_string(), self.apiKey.clone());
+                        m.insert("Request-Time".to_string(), timestamp);
+                        m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
+                        m.insert("source".to_string(), self.safe_string_k(self.options.clone(), "broker", &[Value::Str("CCXT".into())]));
+                        m.insert("Signature".to_string(), signature);
+                    m
+                });
             }
         }
         return Value::Map({

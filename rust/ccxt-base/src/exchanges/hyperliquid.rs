@@ -714,7 +714,7 @@ impl HyperliquidCore {
         if (self.markets.clone() == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" markets not loaded".into()))));
         }
-        if (symbol != Value::Null) && !(matches!((&self.markets, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+        if !(matches!((&self.markets, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             let mut symbolParts: Value = Value::Array(symbol.as_str().map(|__s| __s.split("/").map(Value::from).collect()).unwrap_or_default());
             let mut baseName: Value = self.safe_string(symbolParts.clone(), Value::Int(0), &[]);
             let mut spotCurrencyMapping: Value = self.safe_dict_k(self.options.clone(), "spotCurrencyMapping", &[Value::Map({
@@ -1082,7 +1082,7 @@ impl HyperliquidCore {
             let mut __for_first_803: bool = true;
             while { if !__for_first_803 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_803 = false; i.as_f64().unwrap_or(f64::NAN) < ((promises.len() as i64) as f64) } {
             let mut dexName: Value = fetchDexesList.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-            let mut offset: Value = perpDexesOffset.as_map().and_then(|__m| dexName.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+            let mut offset: Value = self.safe_integer(perpDexesOffset.clone(), dexName.clone(), &[]);
             let mut response: Value = self.safe_list(promises.clone(), i.clone(), &[]);
             let mut meta: Value = self.safe_dict(response.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2383,8 +2383,7 @@ impl HyperliquidCore {
             data = Value::Str(format!("{}{}", data, vaultAddress).into());
         }
         if (expiresAfter != Value::Null) {
-            data = Value::Str(format!("{}{}", data, Value::Str("00".into())).into());
-            data = Value::Str(format!("{}{}", data, Value::Str(format!("{}{}", Value::Str("00000".into()), self.int_to_base16(expiresAfter, &[])).into())).into());
+            data = Value::Str(format!("{}{}", data, Value::Str(format!("{}{}", Value::Str("0000000".into()), self.int_to_base16(expiresAfter, &[])).into())).into());
         }
         return self.hash(self.base16_to_binary(data, &[]), Value::Str("keccak".into()), &[Value::Str("binary".into())]);
 
