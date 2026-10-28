@@ -374,6 +374,9 @@ export default class xt extends xtRest {
         const options = this.safeDict (this.options, 'watchTickers');
         const defaultMethod = this.safeString (options, 'method', 'tickers');
         const name = this.safeString (params, 'method', defaultMethod);
+        if (name === undefined) {
+            return this.filterByArray (this.tickers, 'symbol', symbols);
+        }
         let market: Market = undefined;
         if (symbols !== undefined) {
             market = this.market (symbols[0]);
@@ -405,6 +408,9 @@ export default class xt extends xtRest {
         const options = this.safeDict (this.options, 'unWatchTickers');
         const defaultMethod = this.safeString (options, 'method', 'tickers');
         const name = this.safeString (params, 'method', defaultMethod);
+        if (name === undefined) {
+            return undefined;
+        }
         if (symbols !== undefined) {
             throw new NotSupported (this.id + ' unWatchTickers() does not support symbols argument, unsubscribtion is for all tickers at once only');
         }
