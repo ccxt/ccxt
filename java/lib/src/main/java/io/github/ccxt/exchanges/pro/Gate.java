@@ -2923,7 +2923,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
     public void handleAuthenticationMessage(Client client, Map<String, Object> message)
     {
         String messageHash = "authenticated";
-        io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)this.safeValue(client.futures, messageHash);
+        io.github.ccxt.ws.Future future = client.futures.get(messageHash);
         future.resolve(true);
     }
 

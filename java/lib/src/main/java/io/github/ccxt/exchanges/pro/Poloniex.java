@@ -164,7 +164,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                 //        "channel": "auth"
                 //    }
                 //
-                Helpers.addElementToObject(client.subscriptions, messageHash, future);
+                client.subscriptions.put(messageHash, future);
             }
             return future;
         });

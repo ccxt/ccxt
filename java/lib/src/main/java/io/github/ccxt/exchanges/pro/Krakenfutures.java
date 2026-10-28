@@ -2067,7 +2067,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             String signature = (String) this.hmac(hashedChallenge, base64Secret, sha512(), "base64");
             this.options.put("challenge", challenge);
             this.options.put("signedChallenge", signature);
-            io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)this.safeValue(client.futures, messageHash);
+            io.github.ccxt.ws.Future future = client.futures.get(messageHash);
             future.resolve(true);
         } else
         {

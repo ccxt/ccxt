@@ -961,7 +961,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             if (java.util.Objects.equals(watchingOrderBookSnapshot, null))
             {
                 Helpers.addElementToObject(subscription, flagKey, true);
-                Helpers.addElementToObject(client.subscriptions, messageHash, subscription);
+                client.subscriptions.put(messageHash, subscription);
                 Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "watchOrderBookSnapshot", new HashMap<String, Object>() {{}});
                 Long delay = this.safeInteger(options, "delay", this.rateLimit);
                 // fetch the snapshot in a separate async call after a warmup delay
@@ -2170,7 +2170,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
                 }};
                 Map<String, Object> message = this.extend(request, parameters);
                 future = (this.watch(url, messageHash, message, messageHash, null)).join();
-                Helpers.addElementToObject(client.subscriptions, messageHash, future);
+                client.subscriptions.put(messageHash, future);
             }
             return future;
         });

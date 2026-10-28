@@ -1414,7 +1414,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             Object authenticated = this.safeValue(client.subscriptions, messageHash);
             if (!java.util.Objects.equals(authenticated, null))
             {
-                io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)this.safeValue(client.futures, messageHash);
+                io.github.ccxt.ws.Future future = client.futures.get(messageHash);
                 if (!java.util.Objects.equals(future, null))
                 {
                     return future.getFuture().join();

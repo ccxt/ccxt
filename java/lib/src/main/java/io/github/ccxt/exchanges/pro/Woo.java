@@ -2080,7 +2080,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         if (java.util.Objects.equals(success, true))
         {
             // client.resolve (message, messageHash);
-            io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)this.safeValue(client.futures, "authenticated");
+            io.github.ccxt.ws.Future future = client.futures.get("authenticated");
             future.resolve(true);
         } else
         {

@@ -1473,7 +1473,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
                         throw new AuthenticationError((this.id + " authenticate() received an empty token")) ;
                     }
                     Helpers.addElementToObject(subscription, "start", now);
-                    Helpers.addElementToObject(client.subscriptions, authenticated, subscription);
+                    client.subscriptions.put(authenticated, subscription);
                     // settle the flight and wake every waiter - resolve () also
                     // clears the registry entry, so the next refresh re-leads
                     client.resolve(token, messageHash);

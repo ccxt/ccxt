@@ -712,7 +712,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
         if (java.util.Objects.equals(success, true))
         {
             // client.resolve (message, messageHash);
-            io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)this.safeValue(client.futures, "authenticated");
+            io.github.ccxt.ws.Future future = client.futures.get("authenticated");
             future.resolve(true);
         } else
         {
@@ -1275,7 +1275,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
                 }
             }
             // don't remove the future from the .futures cache
-            io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)this.safeValue(client.futures, messageHash);
+            io.github.ccxt.ws.Future future = client.futures.get(messageHash);
             if (!java.util.Objects.equals(future, null))
             {
                 future.resolve(cache);

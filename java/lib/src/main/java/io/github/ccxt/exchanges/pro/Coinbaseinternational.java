@@ -1921,7 +1921,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
                 request.put("params", paramsAuth);
                 future = client.reusableFuture(messageHash);
                 this.watch(url, messageHash, this.extend(request, paramsResolved), messageHash, null);
-                Helpers.addElementToObject(client.subscriptions, messageHash, future);
+                client.subscriptions.put(messageHash, future);
             }
             return ((io.github.ccxt.ws.Future)future).getFuture().join();
         });

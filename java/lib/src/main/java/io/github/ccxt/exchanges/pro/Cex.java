@@ -1844,7 +1844,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         //         "timestamp":1448034593
         //     }
         //
-        io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)this.safeValue(client.futures, "authenticated");
+        io.github.ccxt.ws.Future future = client.futures.get("authenticated");
         if (!java.util.Objects.equals(future, null))
         {
             future.resolve(true);

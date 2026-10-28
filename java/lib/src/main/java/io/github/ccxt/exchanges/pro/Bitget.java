@@ -3252,7 +3252,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         //  { event: "login", code: 0 }
         //
         String messageHash = "authenticated";
-        io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)this.safeValue(client.futures, messageHash);
+        io.github.ccxt.ws.Future future = client.futures.get(messageHash);
         future.resolve(true);
     }
 

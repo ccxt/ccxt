@@ -160,7 +160,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         //     }
         //
         // the future stays resolved, so later private watches on this connection skip the auth request
-        io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)this.safeValue(client.futures, "authenticated");
+        io.github.ccxt.ws.Future future = client.futures.get("authenticated");
         if (!java.util.Objects.equals(future, null))
         {
             future.resolve(true);

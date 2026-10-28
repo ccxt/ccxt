@@ -901,7 +901,7 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
         {
             throw new AuthenticationError(((this.id + " received an authentication error: ") + this.json(message))) ;
         }
-        io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)this.safeValue(client.futures, "authenticated");
+        io.github.ccxt.ws.Future future = client.futures.get("authenticated");
         if (!java.util.Objects.equals(future, null))
         {
             future.resolve(true);

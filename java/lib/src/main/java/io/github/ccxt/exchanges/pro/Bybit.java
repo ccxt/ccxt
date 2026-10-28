@@ -3178,7 +3178,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         String messageHash = "authenticated";
         if ((java.util.Objects.equals(success, true)) || ((code != null && code == 0)))
         {
-            io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)this.safeValue(client.futures, messageHash);
+            io.github.ccxt.ws.Future future = client.futures.get(messageHash);
             future.resolve(true);
         } else
         {

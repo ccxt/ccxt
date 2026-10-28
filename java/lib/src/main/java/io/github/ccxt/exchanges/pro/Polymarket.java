@@ -1277,7 +1277,7 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
                         {
                             // resolve the future object directly so it stays
                             // cached and later authenticate calls reuse it
-                            io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)this.safeValue(client.futures, "authenticated");
+                            io.github.ccxt.ws.Future future = client.futures.get("authenticated");
                             if (!java.util.Objects.equals(future, null))
                             {
                                 future.resolve(true);

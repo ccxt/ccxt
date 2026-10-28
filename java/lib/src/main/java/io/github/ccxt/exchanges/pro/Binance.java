@@ -4019,7 +4019,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             // don't remove the future from the .futures cache
             if (client.futures.containsKey(messageHash))
             {
-                io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)this.safeValue(client.futures, messageHash);
+                io.github.ccxt.ws.Future future = client.futures.get(messageHash);
                 future.resolve();
                 client.resolve((this.balance == null ? null : ((Map<?, ?>)this.balance).get(type)), (type + ":balance"));
             }
@@ -6177,7 +6177,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             // don't remove the future from the .futures cache
             if (client.futures.containsKey(messageHash))
             {
-                io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)this.safeValue(client.futures, messageHash);
+                io.github.ccxt.ws.Future future = client.futures.get(messageHash);
                 future.resolve(cache);
                 client.resolve(cache, (type + ":position"));
             }

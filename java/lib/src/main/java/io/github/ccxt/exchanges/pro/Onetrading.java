@@ -1228,7 +1228,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
                     if (!Boolean.TRUE.equals(marketSubscribed))
                     {
                         type = "UPDATE_SUBSCRIPTION";
-                        Helpers.addElementToObject(client.subscriptions, subscriptionHash, null);
+                        client.subscriptions.put(subscriptionHash, null);
                     }
                 } else
                 {
@@ -1467,7 +1467,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         //        "time": "2022-06-24T20:45:25.447488Z"
         //    }
         //
-        io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)this.safeValue(client.futures, "authenticated");
+        io.github.ccxt.ws.Future future = client.futures.get("authenticated");
         if (!java.util.Objects.equals(future, null))
         {
             future.resolve(true);
@@ -1510,7 +1510,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
                         if (!Boolean.TRUE.equals(marketSubscribed))
                         {
                             type = "UPDATE_SUBSCRIPTION";
-                            Helpers.addElementToObject(client.subscriptions, subscriptionHash, null);
+                            client.subscriptions.put(subscriptionHash, null);
                         }
                     }
                 } else

@@ -1296,7 +1296,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
                     }} );
                 }};
                 future = (this.watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
-                Helpers.addElementToObject(client.subscriptions, messageHash, future);
+                client.subscriptions.put(messageHash, future);
             }
             return future;
         });

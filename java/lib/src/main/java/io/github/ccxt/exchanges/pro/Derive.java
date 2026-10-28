@@ -1407,7 +1407,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         if ((idsLength != null && idsLength > 0))
         {
             // client.resolve (message, messageHash);
-            io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)this.safeValue(client.futures, "authenticated");
+            io.github.ccxt.ws.Future future = client.futures.get("authenticated");
             future.resolve(true);
         } else
         {

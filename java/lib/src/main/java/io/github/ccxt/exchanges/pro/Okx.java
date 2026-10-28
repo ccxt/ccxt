@@ -3050,7 +3050,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         //
         //     { event: "login", success: true }
         //
-        io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)this.safeValue(client.futures, "authenticated");
+        io.github.ccxt.ws.Future future = client.futures.get("authenticated");
         future.resolve(true);
     }
 

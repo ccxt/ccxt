@@ -1258,7 +1258,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         if (java.util.Objects.equals(status, "OK"))
         {
             // we resolve the future here permanently so authentication only happens once
-            io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)this.safeValue(client.futures, messageHash);
+            io.github.ccxt.ws.Future future = client.futures.get(messageHash);
             future.resolve(true);
         } else
         {

@@ -6010,7 +6010,7 @@ public Map<String, Object> describe()
         Boolean isSandbox = (Boolean) this.safeBool2(this.options, "sandbox", "testnet", false);
         if (Boolean.TRUE.equals(isSandbox))
         {
-            this.setSandboxMode(isSandbox);
+            this.setSandboxMode(true);
         }
         // compatibility for sandbox/testnet options in userConfig
         if ((Boolean.TRUE.equals((this.safeBool(userConfig, "sandbox", false))) || Boolean.TRUE.equals((this.safeBool(userConfig, "testnet", false)))))

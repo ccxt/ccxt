@@ -1707,7 +1707,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         String messageHash = "authenticated";
         if (java.util.Objects.equals(success, true))
         {
-            io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)this.safeValue(client.futures, messageHash);
+            io.github.ccxt.ws.Future future = client.futures.get(messageHash);
             future.resolve(true);
         } else
         {

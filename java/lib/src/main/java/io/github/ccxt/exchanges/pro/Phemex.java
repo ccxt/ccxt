@@ -1842,7 +1842,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
                     client.subscriptions.put(subscriptionHash, "handleAuthenticate");
                 }
                 future = (this.watch(url, messageHash, message, messageHash, null)).join();
-                Helpers.addElementToObject(client.subscriptions, messageHash, future);
+                client.subscriptions.put(messageHash, future);
             }
             return future;
         });

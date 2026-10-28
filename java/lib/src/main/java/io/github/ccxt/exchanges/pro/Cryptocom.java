@@ -1819,7 +1819,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
         //
         //  { id: 1648132625434, method: "public/auth", code: 0 }
         //
-        io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)this.safeValue(client.futures, "authenticated");
+        io.github.ccxt.ws.Future future = client.futures.get("authenticated");
         future.resolve(true);
     }
 

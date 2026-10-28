@@ -1526,7 +1526,7 @@ public class TestMain extends BaseTest
                     tests.put("fetchPositions", new ArrayList<Object>(Arrays.asList(symbol))); // this test fetches all positions for 1 symbol
                     tests.put("fetchPosition", new ArrayList<Object>(Arrays.asList(symbol)));
                     tests.put("fetchPositionRisk", new ArrayList<Object>(Arrays.asList(symbol)));
-                    tests.put("setPositionMode", new ArrayList<Object>(Arrays.asList(symbol)));
+                    tests.put("setPositionMode", new ArrayList<Object>(Arrays.asList(false, symbol)));
                     tests.put("setMarginMode", new ArrayList<Object>(Arrays.asList(symbol)));
                     tests.put("fetchOpenInterestHistory", new ArrayList<Object>(Arrays.asList(symbol)));
                     tests.put("fetchFundingRateHistory", new ArrayList<Object>(Arrays.asList(symbol)));
