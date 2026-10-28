@@ -2115,7 +2115,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                     utcSuffix = suffix;
                 }
                 ((List<Object>)rawHashes).add((((((marketId + "@") + klineType) + "_") + interval) + utcSuffix));
-                messageHashes.add(((("ohlcv::" + market.get("symbol")) + "::") + timeframeString));
+                messageHashes.add(((("ohlcv::" + this.safeString(market, "symbol", "")) + "::") + timeframeString));
             }
             String url = ((this.getWsUrl(wsUrlType, (String) (this.getFutureWsCategory(klineType))) + "/") + this.stream(wsUrlType, "multipleOHLCV", 1L));
             Long requestId = this.requestId(url);
@@ -2217,8 +2217,8 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                     utcSuffix = suffix;
                 }
                 ((List<Object>)rawHashes).add((((((marketId + "@") + klineType) + "_") + interval) + utcSuffix));
-                subMessageHashes.add(((("ohlcv::" + market.get("symbol")) + "::") + timeframeString));
-                messageHashes.add(((("unsubscribe::ohlcv::" + market.get("symbol")) + "::") + timeframeString));
+                subMessageHashes.add(((("ohlcv::" + this.safeString(market, "symbol", "")) + "::") + timeframeString));
+                messageHashes.add(((("unsubscribe::ohlcv::" + this.safeString(market, "symbol", "")) + "::") + timeframeString));
             }
             String url = ((this.getWsUrl(wsUrlType, (String) (this.getFutureWsCategory(klineType))) + "/") + this.stream(wsUrlType, "multipleOHLCV", 1L));
             Long requestId = this.requestId(url);
@@ -2865,14 +2865,16 @@ public class Binance extends io.github.ccxt.exchanges.Binance
 
         return BaseExchange.supplyAsync(() -> {
 
+            String channel = this.safeString(new HashMap<String, Object>() {{
+                put( "name", channelName );
+            }}, "name", "");
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, true);
-            Boolean isBidAsk = (java.util.Objects.equals(channelName, "bookTicker"));
-            Boolean isMarkPrice = (java.util.Objects.equals(channelName, "markPrice"));
-            Boolean use1sFreq = (Boolean) this.safeBool(parameters, "use1sFreq", true);
+            Boolean isBidAsk = (java.util.Objects.equals(channel, "bookTicker"));
+            Boolean isMarkPrice = (java.util.Objects.equals(channel, "markPrice"));
             Map<String, Object> firstMarket = null;
             Boolean symbolsDefined = (!java.util.Objects.equals(symbolsNormalized, null));
             if (!java.util.Objects.equals(symbolsNormalized, null))
@@ -2913,7 +2915,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 throw new NotSupported((((this.id + " ") + methodName) + "() does not support options markets")) ;
             }
             // eOptions tickers have a different stream name (@optionTicker) but the same event type (24hrTicker)
-            // so only the subscription arg changes — channelName stays as-is to keep messageHashes aligned
+            // so only the subscription arg changes — channel stays as-is to keep messageHashes aligned
             Boolean isOptionTicker = (java.util.Objects.equals(marketType, "option") && !Boolean.TRUE.equals(isMarkPrice) && !Boolean.TRUE.equals(isBidAsk));
             if (Boolean.TRUE.equals(isMarkPrice) && !this.inArray(marketType, new ArrayList<Object>(Arrays.asList("swap", "future", "option"))))
             {
@@ -2925,18 +2927,15 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             String suffix = "";
             if (Boolean.TRUE.equals(isMarkPrice) && !Boolean.TRUE.equals(isOptionMarkPrice))
             {
-                suffix = ((Boolean.TRUE.equals(use1sFreq))) ? "@1s" : "";
+                suffix = ((Boolean.TRUE.equals((this.safeBool(parameters, "use1sFreq", true))))) ? "@1s" : "";
             }
-            String unifiedPrefix = null;
+            String unifiedPrefix = "ticker";
             if (Boolean.TRUE.equals(isBidAsk))
             {
                 unifiedPrefix = "bidask";
             } else if (Boolean.TRUE.equals(isMarkPrice))
             {
                 unifiedPrefix = "markPrice";
-            } else
-            {
-                unifiedPrefix = "ticker";
             }
             if (!java.util.Objects.equals(symbolsNormalized, null))
             {
@@ -2945,10 +2944,10 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 {
                     String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
                     Map<String, Object> market = this.market(symbol);
-                    ((List<Object>)messageHashes).add(((((unifiedPrefix + ":") + channelName) + "@") + symbol));
+                    ((List<Object>)messageHashes).add(((((unifiedPrefix + ":") + channel) + "@") + symbol));
                     if (java.util.Objects.requireNonNullElse(isUnsubscribe, false))
                     {
-                        ((List<Object>)unsubscribeMessageHashes).add(((((("unsubscribe::" + unifiedPrefix) + ":") + channelName) + "@") + symbol));
+                        ((List<Object>)unsubscribeMessageHashes).add(((((("unsubscribe::" + unifiedPrefix) + ":") + channel) + "@") + symbol));
                     }
                     if (Boolean.TRUE.equals(isOptionMarkPrice))
                     {
@@ -2979,7 +2978,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                         }
                     } else
                     {
-                        ((List<Object>)subscriptionArgs).add((((this.safeString(market, "lowercaseId", "") + "@") + channelName) + suffix));
+                        ((List<Object>)subscriptionArgs).add((((this.safeString(market, "lowercaseId", "") + "@") + channel) + suffix));
                     }
                 }
             } else
@@ -3005,35 +3004,35 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                         // isOptionMarkPrice: one stream covers all contracts for the underlying
                         ((List<Object>)subscriptionArgs).add((underlying + "@optionMarkPrice"));
                     }
-                    ((List<Object>)messageHashes).add(((unifiedPrefix + "s:") + channelName));
-                    ((List<Object>)unsubscribeMessageHashes).add(("unsubscribe::" + channelName));
+                    ((List<Object>)messageHashes).add(((unifiedPrefix + "s:") + channel));
+                    ((List<Object>)unsubscribeMessageHashes).add(("unsubscribe::" + channel));
                 } else if (Boolean.TRUE.equals(isBidAsk))
                 {
                     if (java.util.Objects.equals(marketType, "spot"))
                     {
                         throw new ArgumentsRequired((((this.id + " ") + methodName) + "() requires symbols for this channel for spot markets")) ;
                     }
-                    ((List<Object>)subscriptionArgs).add(("!" + channelName));
-                    ((List<Object>)messageHashes).add(((unifiedPrefix + "s:") + channelName));
-                    ((List<Object>)unsubscribeMessageHashes).add(("unsubscribe::" + channelName));
+                    ((List<Object>)subscriptionArgs).add(("!" + channel));
+                    ((List<Object>)messageHashes).add(((unifiedPrefix + "s:") + channel));
+                    ((List<Object>)unsubscribeMessageHashes).add(("unsubscribe::" + channel));
                 } else if (Boolean.TRUE.equals(isMarkPrice))
                 {
-                    ((List<Object>)subscriptionArgs).add(((("!" + channelName) + "@arr") + suffix));
-                    ((List<Object>)messageHashes).add(((unifiedPrefix + "s:") + channelName));
-                    ((List<Object>)unsubscribeMessageHashes).add(("unsubscribe::" + channelName));
+                    ((List<Object>)subscriptionArgs).add(((("!" + channel) + "@arr") + suffix));
+                    ((List<Object>)messageHashes).add(((unifiedPrefix + "s:") + channel));
+                    ((List<Object>)unsubscribeMessageHashes).add(("unsubscribe::" + channel));
                 } else
                 {
-                    ((List<Object>)subscriptionArgs).add((("!" + channelName) + "@arr"));
-                    ((List<Object>)messageHashes).add(((unifiedPrefix + "s:") + channelName));
-                    ((List<Object>)unsubscribeMessageHashes).add(("unsubscribe::" + channelName));
+                    ((List<Object>)subscriptionArgs).add((("!" + channel) + "@arr"));
+                    ((List<Object>)messageHashes).add(((unifiedPrefix + "s:") + channel));
+                    ((List<Object>)unsubscribeMessageHashes).add(("unsubscribe::" + channel));
                 }
             }
             String streamHash = channelName;
             if (!java.util.Objects.equals(symbolsNormalized, null))
             {
-                streamHash = ((channelName + "::") + String.join(",", (List<String>)symbolsNormalized));
+                streamHash = ((channel + "::") + String.join(",", (List<String>)symbolsNormalized));
             }
-            String url = ((this.getWsUrl(rawMarketType, (String) (this.getFutureWsCategory((String) (channelName)))) + "/") + this.stream(rawMarketType, streamHash, 1L));
+            String url = ((this.getWsUrl(rawMarketType, (String) (this.getFutureWsCategory((String) (channel)))) + "/") + this.stream(rawMarketType, streamHash, 1L));
             Long requestId = this.requestId(url);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", ((java.util.Objects.requireNonNullElse(isUnsubscribe, false))) ? "UNSUBSCRIBE" : "SUBSCRIBE" );
@@ -3063,7 +3062,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             List<Object> waitHashes = hashes;
             if (Boolean.TRUE.equals(isOptionMarkPrice) && !java.util.Objects.requireNonNullElse(isUnsubscribe, false))
             {
-                waitHashes = new ArrayList<Object>(Arrays.asList(((unifiedPrefix + "s:") + channelName)));
+                waitHashes = new ArrayList<Object>(Arrays.asList(((unifiedPrefix + "s:") + channel)));
             }
             Object result = (this.watchMultiple(url, waitHashes, this.deepExtend(request, paramsSubType), hashes, subscription)).join();
             if (java.util.Objects.requireNonNullElse(isUnsubscribe, false))
