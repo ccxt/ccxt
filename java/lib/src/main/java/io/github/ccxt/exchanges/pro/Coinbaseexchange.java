@@ -1170,7 +1170,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
         //     }
         //
         String errMsg = this.safeString(message, "message");
-        String reason = this.safeString(message, "reason");
+        String reason = this.safeString(message, "reason", "");
         try
         {
             if (java.util.Objects.equals(errMsg, "Authentication Failed"))

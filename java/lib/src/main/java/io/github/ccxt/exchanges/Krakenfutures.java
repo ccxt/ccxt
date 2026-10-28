@@ -595,8 +595,8 @@ public class Krakenfutures extends KrakenfuturesApi
                 Boolean future = (java.util.Objects.equals(type, "future"));
                 String symbol = id;
                 List<Object> split = new ArrayList<Object>(Arrays.asList(((String)id).split(java.util.regex.Pattern.quote("_"))));
-                String splitMarket = this.safeString(split, 1);
-                String baseId = (splitMarket == null ? null : ((String)splitMarket).substring(0, (int) Math.min(((((long) splitMarket.length()) - 3L)) < 0 ? ((String)splitMarket).length() + ((((long) splitMarket.length()) - 3L)) : ((((long) splitMarket.length()) - 3L)), ((String)splitMarket).length())));
+                String splitMarket = this.safeString(split, 1, "");
+                String baseId = (splitMarket == null ? null : splitMarket.substring(0, (int) Math.min(((((long) splitMarket.length()) - 3L)) < 0 ? splitMarket.length() + ((((long) splitMarket.length()) - 3L)) : ((((long) splitMarket.length()) - 3L)), splitMarket.length())));
                 String quoteId = "usd"; // always USD
                 String base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
                 String quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);

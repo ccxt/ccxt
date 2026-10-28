@@ -4214,10 +4214,10 @@ public class Deribit extends DeribitApi
             Integer dataLength = ((List<?>)data).size();
             if ((dataLength != null && dataLength > 0))
             {
-                Object first = (data == null || 0 >= ((List<?>)data).size() ? null : ((List<?>)data).get(0));
-                Object last = Helpers.GetValue(data, (((long) dataLength) - 1L));
-                Helpers.addElementToObject(first, "continuation", cursor);
-                Helpers.addElementToObject(last, "continuation", cursor);
+                Map<String, Object> first = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
+                Map<String, Object> last = (Map<String, Object>) this.safeDict(data, (((long) dataLength) - 1L), new HashMap<String, Object>() {{}});
+                first.put("continuation", cursor);
+                last.put("continuation", cursor);
                 Helpers.addElementToObject(data, 0, first);
                 Helpers.addElementToObject(data, (((long) dataLength) - 1L), last);
             }

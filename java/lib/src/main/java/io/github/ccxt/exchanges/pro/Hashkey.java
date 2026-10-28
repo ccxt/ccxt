@@ -183,14 +183,18 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         //
         String marketId = this.safeString(message, "symbol");
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
-        String symbol = this.safeSymbol(marketId, market, (String) null, (String) null);
+        String symbol = this.safeString(market, "symbol", "");
+        Map<String, Object> parameters = (Map<String, Object>) this.safeDict(message, "params", (Object) null);
+        String klineType = this.safeString(parameters, "klineType");
+        String timeframe = this.findTimeframe(klineType, (Object) null);
+        if (java.util.Objects.equals(timeframe, null))
+        {
+            return;
+        }
         if (!(((Map<?, ?>)this.ohlcvs).containsKey(symbol)))
         {
             this.ohlcvs.put(symbol, new HashMap<String, Object>() {{}});
         }
-        Map<String, Object> parameters = (Map<String, Object>) this.safeDict(message, "params", (Object) null);
-        String klineType = this.safeString(parameters, "klineType");
-        String timeframe = this.findTimeframe(klineType, (Object) null);
         if (!(((Map<?, ?>)((Map<?, ?>)this.ohlcvs).get(symbol)).containsKey(timeframe)))
         {
             Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);

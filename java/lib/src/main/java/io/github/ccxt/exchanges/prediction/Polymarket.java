@@ -1994,7 +1994,7 @@ public class Polymarket extends PolymarketApi
         return BaseExchange.supplyAsync(() -> {
 
             Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
-            String tokenId = this.safeString(outcomeObj, "outcomeId");
+            String tokenId = this.safeString(outcomeObj, "outcomeId", "");
             Map<String, Object> outcomeInfo = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
             String conditionId = this.safeString(outcomeInfo, "conditionId");
             if (java.util.Objects.equals(conditionId, null))
