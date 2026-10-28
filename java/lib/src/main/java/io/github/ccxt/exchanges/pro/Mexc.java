@@ -2446,15 +2446,15 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             // the venue names the refused channel between brackets, reject only that watcher
             // and drop its subscription so a corrected retry sends a new frame
             var error = new ExchangeError(((this.id + " ") + msg));
-            List<Object> subscriptionHashes = ((List<Object>) switch ((Object)(client.subscriptions)) { case Map<?, ?> j39v8 -> { synchronized (j39v8) { yield new ArrayList<Object>(j39v8.keySet()); } } case null, default -> new ArrayList<Object>(); });
+            List<Object> subscriptionHashes = new ArrayList<Object>(client.subscriptions.keySet());
             Boolean rejected = false;
             for (var i = 0; i < ((List<?>)subscriptionHashes).size(); i++)
             {
                 Object subscriptionHash = (subscriptionHashes == null || i < 0 || i >= subscriptionHashes.size() ? null : subscriptionHashes.get(i));
-                String subscribedChannel = this.safeString(Helpers.GetValue(client.subscriptions, subscriptionHash), "channel");
+                String subscribedChannel = this.safeString((client.subscriptions == null || subscriptionHash == null ? null : client.subscriptions.get(subscriptionHash)), "channel");
                 if ((!java.util.Objects.equals(subscribedChannel, null)) && (((String)msg).indexOf((("[" + subscribedChannel) + "]")) >= 0))
                 {
-                    ((Map<String,Object>)client.subscriptions).remove((String)subscriptionHash);
+                    client.subscriptions.remove((String)subscriptionHash);
                     client.reject(error, subscriptionHash);
                     rejected = true;
                 }

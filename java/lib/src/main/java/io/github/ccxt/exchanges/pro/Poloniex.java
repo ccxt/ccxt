@@ -241,12 +241,12 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
      * @param {object} [params] extra parameters specific to the poloniex api
      * @returns {object} true once the exchange acknowledges the unsubscribe
      */
-    public CompletableFuture<Object> unSubscribe(Object name, Object symbols, Object messageHashes, Map<String, Object> parameters)
+    public CompletableFuture<Object> unSubscribe(String name, Object symbols, Object messageHashes, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "public");
+            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("public");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "event", "unsubscribe" );
                 put( "channel", new ArrayList<Object>(Arrays.asList(name)) );
@@ -547,7 +547,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             }
             Map<String, Object> market = this.market(symbol);
             String messageHash = ((("unsubscribe:" + channel) + "::") + market.get("symbol"));
-            return (this.unSubscribe(channel, new ArrayList<Object>(Arrays.asList(market.get("symbol"))), new ArrayList<Object>(Arrays.asList(messageHash)), parameters)).join();
+            return (this.unSubscribe((String) (channel), new ArrayList<Object>(Arrays.asList(market.get("symbol"))), new ArrayList<Object>(Arrays.asList(messageHash)), parameters)).join();
         });
 
     }
