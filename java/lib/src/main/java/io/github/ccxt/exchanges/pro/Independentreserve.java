@@ -298,7 +298,7 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
             }
             Object calculatedChecksum = this.crc32(payload, false);
             Long responseChecksum = this.safeInteger(orderBook, "Crc32");
-            if (!Helpers.isEqual(calculatedChecksum, responseChecksum))
+            if (!java.util.Objects.equals(calculatedChecksum, responseChecksum))
             {
                 var error = new ChecksumError(((this.id + " ") + this.orderbookChecksumMessage(symbol)));
                 client.subscriptions.remove(messageHash);

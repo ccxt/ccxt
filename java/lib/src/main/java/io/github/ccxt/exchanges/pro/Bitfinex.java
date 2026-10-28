@@ -970,7 +970,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         String payload = String.join(":", (List<String>)stringArray);
         Object localChecksum = this.crc32(payload, true);
         Long responseChecksum = this.safeInteger(message, 2);
-        if (!Helpers.isEqual(responseChecksum, localChecksum))
+        if (!java.util.Objects.equals(responseChecksum, localChecksum))
         {
             client.subscriptions.remove(messageHash);
             ((Map<String,Object>)this.orderbooks).remove((String)symbol);
