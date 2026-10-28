@@ -1556,7 +1556,7 @@ class polymarket extends Exchange {
          * @return {array[]} a list of [prediction $trade structures](https://docs.ccxt.com/#/?id=prediction-$trade-structure)
          */
         $outcomeObj = Async\await($this->load_outcome($outcome));
-        $tokenId = $this->safe_string($outcomeObj, 'outcomeId');
+        $tokenId = $this->safe_string($outcomeObj, 'outcomeId', '');
         $outcomeInfo = $this->safe_dict($outcomeObj, 'info', array());
         $conditionId = $this->safe_string($outcomeInfo, 'conditionId');
         if ($conditionId === null) {

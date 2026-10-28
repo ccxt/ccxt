@@ -3495,8 +3495,8 @@ class deribit extends Exchange {
         if ($cursor !== null) {
             $dataLength = count($data);
             if ($dataLength > 0) {
-                $first = $data[0];
-                $last = $data[$dataLength - 1];
+                $first = $this->safe_dict($data, 0, array());
+                $last = $this->safe_dict($data, $dataLength - 1, array());
                 $first['continuation'] = $cursor;
                 $last['continuation'] = $cursor;
                 $data[0] = $first;

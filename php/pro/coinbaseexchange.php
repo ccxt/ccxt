@@ -1038,7 +1038,7 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
         //     }
         //
         $errMsg = $this->safe_string($message, 'message');
-        $reason = $this->safe_string($message, 'reason');
+        $reason = $this->safe_string($message, 'reason', '');
         try {
             if ($errMsg === 'Authentication Failed') {
                 throw new AuthenticationError('Authentication failed => ' . $reason);
