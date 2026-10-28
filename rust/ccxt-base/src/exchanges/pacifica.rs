@@ -1523,8 +1523,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut spotBalances: Value = self.safe_list_k(data.clone(), "spot_balances", &[Value::from(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1040: bool = true;
-            while { if !__for_first_1040 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1040 = false; i.as_f64().unwrap_or(f64::NAN) < ((spotBalances.len() as i64) as f64) } {
+            let mut __for_first_1041: bool = true;
+            while { if !__for_first_1041 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1041 = false; i.as_f64().unwrap_or(f64::NAN) < ((spotBalances.len() as i64) as f64) } {
             let mut balance: Value = self.safe_dict(spotBalances.clone(), i.clone(), &[]);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "symbol", &[]);
             let mut code: Value = self.safe_currency_code(currencyId, &[]);
@@ -1701,8 +1701,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1041: bool = true;
-            while { if !__for_first_1041 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1041 = false; i.as_f64().unwrap_or(f64::NAN) < ((settings.len() as i64) as f64) } {
+            let mut __for_first_1042: bool = true;
+            while { if !__for_first_1042 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1042 = false; i.as_f64().unwrap_or(f64::NAN) < ((settings.len() as i64) as f64) } {
             let mut marketId: Value = settings.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.safe_market(&[marketId]);
             let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
@@ -2565,8 +2565,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut timestamp: Value = self.milliseconds(); // unified sequence
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1042: bool = true;
-            while { if !__for_first_1042 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1042 = false; i.as_f64().unwrap_or(f64::NAN) < ((orders.len() as i64) as f64) } {
+            let mut __for_first_1043: bool = true;
+            while { if !__for_first_1043 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1043 = false; i.as_f64().unwrap_or(f64::NAN) < ((orders.len() as i64) as f64) } {
             let mut order: Value = self.safe_dict(orders.clone(), i.clone(), &[]);
             let mut symbol: Value = self.safe_string_k(order.clone(), "symbol", &[]);
             let mut side: Value = self.safe_string_k(order.clone(), "side", &[]);
@@ -2645,8 +2645,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut ordersToReturn: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1043: bool = true;
-            while { if !__for_first_1043 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1043 = false; i.as_f64().unwrap_or(f64::NAN) < ((results.len() as i64) as f64) } {
+            let mut __for_first_1044: bool = true;
+            while { if !__for_first_1044 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1044 = false; i.as_f64().unwrap_or(f64::NAN) < ((results.len() as i64) as f64) } {
             let mut order: Value = results.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut error: Option<String> = self.safe_string_k(order.clone(), "error", &[]).as_str().map(str::to_owned);
             let mut success: Value = self.safe_bool_k(order.clone(), "success", &[Value::Bool(false)]);
@@ -2727,8 +2727,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut ordersToReturn: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1044: bool = true;
-            while { if !__for_first_1044 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1044 = false; i.as_f64().unwrap_or(f64::NAN) < ((results.len() as i64) as f64) } {
+            let mut __for_first_1045: bool = true;
+            while { if !__for_first_1045 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1045 = false; i.as_f64().unwrap_or(f64::NAN) < ((results.len() as i64) as f64) } {
             let mut order: Value = results.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut error: Option<String> = self.safe_string_k(order.clone(), "error", &[]).as_str().map(str::to_owned);
             let mut success: Value = self.safe_bool_k(order.clone(), "success", &[Value::Bool(false)]);
@@ -2761,8 +2761,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut actions: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1045: bool = true;
-            while { if !__for_first_1045 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1045 = false; i.as_f64().unwrap_or(f64::NAN) < ((ids.len() as i64) as f64) } {
+            let mut __for_first_1046: bool = true;
+            while { if !__for_first_1046 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1046 = false; i.as_f64().unwrap_or(f64::NAN) < ((ids.len() as i64) as f64) } {
             let mut id: Value = ids.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut request: Value = self.cancel_order_request(id, &[symbol.clone(), params.clone()]);
             let mut action: Value = Value::Map({
@@ -2778,8 +2778,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut paramsOmitted: Value = self.omit(params, Value::Str("clientOrderIds".into()), &[]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1046: bool = true;
-            while { if !__for_first_1046 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1046 = false; i.as_f64().unwrap_or(f64::NAN) < ((clientOrderIds.len() as i64) as f64) } {
+            let mut __for_first_1047: bool = true;
+            while { if !__for_first_1047 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1047 = false; i.as_f64().unwrap_or(f64::NAN) < ((clientOrderIds.len() as i64) as f64) } {
             let mut cloid: Value = clientOrderIds.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut cloidParams: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -3117,8 +3117,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1047: bool = true;
-            while { if !__for_first_1047 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1047 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
+            let mut __for_first_1048: bool = true;
+            while { if !__for_first_1048 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1048 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             let mut entry: Value = data.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut timestamp: Value = self.safe_integer_k(entry.clone(), "created_at", &[]);
             result.push(Value::Map({
@@ -3186,8 +3186,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1048: bool = true;
-            while { if !__for_first_1048 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1048 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
+            let mut __for_first_1049: bool = true;
+            while { if !__for_first_1049 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1049 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             let mut info: Value = data.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut ticker: Value = self.parse_ticker(info, &[]);
             let mut symbol: Value = self.safe_string_k(ticker.clone(), "symbol", &[]);
@@ -3861,8 +3861,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1049: bool = true;
-            while { if !__for_first_1049 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1049 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
+            let mut __for_first_1050: bool = true;
+            while { if !__for_first_1050 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1050 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             result.push(self.parse_position(data.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), &[Value::Null]));
         }
         }
@@ -4148,8 +4148,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut symbols: Value = self.symbols.clone();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1050: bool = true;
-            while { if !__for_first_1050 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1050 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
+            let mut __for_first_1051: bool = true;
+            while { if !__for_first_1051 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1051 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
             let mut symbol: Value = symbols.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), self.parse_trading_fee(data.clone(), &[self.market(symbol)])); }
         }
@@ -5170,8 +5170,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut sortedKeys: Value = self.sort(keys, &[]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1051: bool = true;
-                while { if !__for_first_1051 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1051 = false; i.as_f64().unwrap_or(f64::NAN) < ((sortedKeys.len() as i64) as f64) } {
+                let mut __for_first_1052: bool = true;
+                while { if !__for_first_1052 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1052 = false; i.as_f64().unwrap_or(f64::NAN) < ((sortedKeys.len() as i64) as f64) } {
                 let mut key: Value = sortedKeys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&key), self.sort_json_keys(get_value(&value, &key))); }
             }
@@ -5181,8 +5181,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut result: Value = Value::from(vec![]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1052: bool = true;
-                while { if !__for_first_1052 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1052 = false; i.as_f64().unwrap_or(f64::NAN) < ((value.len() as i64) as f64) } {
+                let mut __for_first_1053: bool = true;
+                while { if !__for_first_1053 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1053 = false; i.as_f64().unwrap_or(f64::NAN) < ((value.len() as i64) as f64) } {
                 if let Value::Arr(__a) = &mut result { std::sync::Arc::make_mut(__a).push(self.sort_json_keys(value.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null))); }
             }
             }
