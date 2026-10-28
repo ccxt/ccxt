@@ -103,7 +103,7 @@ class hollaex(ccxt.async_support.hollaex):
         channel = self.safe_string(message, 'topic')
         market = self.safe_market(marketId)
         marketIdValue = self.safe_string(market, 'id', '')
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol')
         if symbol is not None:
             data = self.safe_dict(message, 'data')
             timestamp = self.safe_string(data, 'timestamp')
