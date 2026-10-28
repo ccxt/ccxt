@@ -210,7 +210,7 @@ public partial class poloniex : ccxt.poloniex
     public async virtual Task<object> unSubscribe(object name, object symbols, object messageHashes, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        string? url = ((string)getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"));
+        string? url = ((string)(this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("public") ? this.urlsApiSections["ws"]["public"] : null));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "event", "unsubscribe" },
             { "channel", new List<object>() {name} },
@@ -1625,7 +1625,7 @@ public partial class poloniex : ccxt.poloniex
         for (int i = 0; i < marketIds.Count; i++)
         {
             string? symbol = this.safeSymbol(this.safeString(marketIds, i));
-            string? subMessageHash = ((string)add(add(channel, "::"), symbol));
+            string? subMessageHash = ((string)add(((object)(channel == null ? null : channel + "::")), symbol));
             if ((channel is "trades"))
             {
                 this.cleanCache(new Dictionary<string, object>() {
