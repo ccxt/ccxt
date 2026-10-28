@@ -588,6 +588,12 @@ function csharpOperatorOperand (maskedArg: string, originalArg: string, takeType
     if (/^-?\d+\.\d+$/.test (maskedArg)) {
         return { kind: 'double-literal' };
     }
+    // `client.url` on a name declared `WebSocketClient`: the field is a plain `string`
+    const clientUrl = /^([A-Za-z_]\w*)\.url$/.exec (maskedArg);
+    if (clientUrl !== null) {
+        const owner = takeType (clientUrl[1]);
+        return ((owner !== undefined) && (owner.type === 'WebSocketClient')) ? { kind: 'name', type: 'string' } : undefined;
+    }
     if (!/^[A-Za-z_]\w*$/.test (maskedArg) || (maskedArg === 'null')) {
         return undefined;
     }
