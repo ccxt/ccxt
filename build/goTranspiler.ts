@@ -12454,6 +12454,34 @@ function g10kStrSafeStringArity (): Record<string, number> {  // function, not c
 }
 
 // the only write of `name` in the function is its declaration (no assignment, no address taken)
+// the Go kind of a local bound exactly once by `:=` from a typed producer and never written again:
+// slot 0 of the base HandleOptionInteger(AndParams|AndParams2) tuple is int64, NewPrecise returns *PreciseStruct
+function g10kBoundOnceKind (masked: string, name: string, file: string): string | undefined {
+    if (!/^[A-Za-z_]\w*$/.test (name) || (name === 'nil')) {
+        return undefined;
+    }
+    const bind = [ ...masked.matchAll (new RegExp ('^[ \\t]*' + name + '(?:, *[A-Za-z_]\\w*)* := ([^\\n]*)$', 'gm')) ];
+    const any = [ ...masked.matchAll (new RegExp ('(?<![\\w.])' + name + '\\b[^\\n=]*:=', 'g')) ];
+    if ((bind.length !== 1) || (any.length !== 1)) {
+        return undefined;
+    }
+    const rest = masked.replace (bind[0][0], '');
+    const n = name;
+    if (new RegExp ('(?<![\\w.])' + n + '\\s*(?:,\\s*[\\w.]+\\s*)*(?:[-+*/%|&^]?=(?!=)|\\+\\+|--)|,\\s*' + n + '\\s*(?:,\\s*[\\w.]+\\s*)*=(?!=)|&' + n + '\\b|\\bfunc\\b[^\\n]*\\b' + n + '\\b|\\bvar ' + n + '\\b|\\brange\\b[^\\n]*\\b' + n + '\\b').test (rest)) {
+        return undefined;
+    }
+    const first = new RegExp ('^' + n + '(?:,|\\s)').test (bind[0][0].trim ());
+    const call = bind[0][1];
+    const tuple = /^this\.(HandleOptionInteger(?:AndParams|AndParams2))\(/.exec (call);
+    if (first && (tuple !== null) && !g10kStrOverrides (file, tuple[1])) {
+        return 'int64';
+    }
+    if ((new RegExp ('^' + n + ' := ').test (bind[0][0].trim ())) && /^(?:ccxt\.)?NewPrecise\(/.test (call)) {
+        return 'precise';
+    }
+    return undefined;
+}
+
 function g10kStrWrittenOnce (maskedFunc: string, name: string): boolean {
     const writes = [ ...maskedFunc.matchAll (new RegExp ('(?<![\\w.*])' + name + '\\s*(?:[-+*/%|&^]?=(?!=)|\\+\\+|--)', 'g')) ];
     return (writes.length === 0) && !new RegExp ('&' + name + '\\b').test (maskedFunc);
@@ -12509,6 +12537,12 @@ function g10kStrOperand (arg: string, func: string, masked: string, file: string
         }
         return undefined;
     }
+    if (/^[A-Za-z_]\w*$/.test (arg) && (g16 === undefined)) {
+        const bound = g10kBoundOnceKind (masked, arg, file);
+        if (bound !== undefined) {
+            return { kind: bound, text: arg };
+        }
+    }
     if (arg === 'this.Id') {
         return { kind: 'string', text: arg };
     }
@@ -12552,6 +12586,8 @@ function g10kStrNative (helper: string, ops: ({ kind: string, text: string } | u
         if (str (0)) { return { text: t[0], pkg: '' }; }
         if (o[0].kind === 'int') { return { text: 'strconv.Itoa(' + t[0] + ')', pkg: 'strconv' }; }
         if (o[0].kind === 'int64') { return { text: 'strconv.FormatInt(' + t[0] + ', 10)', pkg: 'strconv' }; }
+        // fmt's %v of a *PreciseStruct is its String(), which is what the helper's default arm prints
+        if (o[0].kind === 'precise') { return { text: t[0] + '.String()', pkg: '' }; }
         return undefined;
     case 'ToUpper':
     case 'ToLower':
