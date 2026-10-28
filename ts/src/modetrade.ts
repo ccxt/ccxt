@@ -3338,8 +3338,8 @@ export default class modetrade extends Exchange {
             const ts = this.nonce ().toString ();
             url += pathWithParams;
             let apiKey = this.apiKey;
-            if (apiKey.indexOf ('ed25519:') < 0) {
-                apiKey = 'ed25519:' + apiKey;
+            if (this.apiKey.indexOf ('ed25519:') < 0) {
+                apiKey = 'ed25519:' + this.apiKey;
             }
             const signedHeaders: Dict = {
                 'orderly-account-id': this.accountId,
