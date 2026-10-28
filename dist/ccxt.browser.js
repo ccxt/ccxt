@@ -310384,6 +310384,16 @@ class coinbase extends _abstract_coinbase_js__rspack_import_0/* ["default"] */.A
         }
         return parsedPositions;
     }
+    /**
+     * @method
+     * @name coinbase#isEddsaApiKey
+     * @ignore
+     * @description checks whether the secret is a v2 (Ed25519) CDP api key secret
+     * @returns {boolean} true if the secret is an Ed25519 key
+     */ isEddsaApiKey() {
+        // using the size might be fragile, so we add an option to force v2 cloud api key if needed
+        return this.secret.length === 88 || this.safeBool(this.options, 'v2CloudAPiKey', false) || this.secret.endsWith('=');
+    }
     createAuthToken(seconds, method = undefined, url = undefined, useEddsa = false) {
         // v1 https://docs.cdp.coinbase.com/api-reference/authentication#php-2
         // v2  https://docs.cdp.coinbase.com/api-reference/v2/authentication
@@ -310501,8 +310511,7 @@ class coinbase extends _abstract_coinbase_js__rspack_import_0/* ["default"] */.A
                 // v2: 'GET' require payload in the signature
                 // https://docs.cdp.coinbase.com/coinbase-app/authentication-authorization/api-key-authentication
                 const isCloudAPiKey = this.apiKey.indexOf('organizations/') >= 0 || this.secret.startsWith('-----BEGIN');
-                // using the size might be fragile, so we add an option to force v2 cloud api key if needed
-                const isV2CloudAPiKey = this.secret.length === 88 || this.safeBool(this.options, 'v2CloudAPiKey', false) || this.secret.endsWith('=');
+                const isV2CloudAPiKey = this.isEddsaApiKey();
                 if (isCloudAPiKey || isV2CloudAPiKey) {
                     if (isCloudAPiKey && this.apiKey.startsWith('-----BEGIN')) {
                         throw new _base_errors_js__rspack_import_2.ArgumentsRequired(this.id + ' apiKey should contain the name (eg: organizations/3b910e93....) and not the public key');
@@ -558472,22 +558481,23 @@ class coinbase extends _coinbase_js__rspack_import_0/* ["default"] */.A {
         const timestamp = this.numberToString(this.seconds());
         this.checkRequiredCredentials();
         const isCloudAPiKey = this.apiKey.indexOf('organizations/') >= 0 || this.secret.startsWith('-----BEGIN');
+        const isV2CloudAPiKey = this.isEddsaApiKey();
         const auth = timestamp + name + productIds.join(',');
-        if (!isCloudAPiKey) {
+        if (!isCloudAPiKey && !isV2CloudAPiKey) {
             subscribe['api_key'] = this.apiKey;
             subscribe['timestamp'] = timestamp;
             subscribe['signature'] = this.hmac(this.encode(auth), this.encode(this.secret), _noble_hashes_sha2_js__rspack_import_2/* .sha256 */.sc);
         } else {
-            if (this.apiKey.startsWith('-----BEGIN')) {
+            if (isCloudAPiKey && this.apiKey.startsWith('-----BEGIN')) {
                 throw new _base_errors_js__rspack_import_1.ArgumentsRequired(this.id + ' apiKey should contain the name (eg: organizations/3b910e93....) and not the public key');
             }
             const currentToken = this.safeString(this.options, 'wsToken');
             const tokenTimestamp = this.safeInteger(this.options, 'wsTokenTimestamp', 0);
             const seconds = this.seconds();
-            const tokenExpiry = tokenTimestamp + 120;
+            const tokenExpiry = tokenTimestamp + 90;
             if (currentToken === undefined || tokenExpiry < seconds) {
                 // we should generate new token
-                const token = this.createAuthToken(seconds);
+                const token = this.createAuthToken(seconds, undefined, undefined, this.isEddsaApiKey());
                 this.options['wsToken'] = token;
                 this.options['wsTokenTimestamp'] = seconds;
             }
