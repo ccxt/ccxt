@@ -870,7 +870,7 @@ class deribit extends deribit$1["default"] {
         stored.append(parsed);
         this.ohlcvs[symbol][unifiedTimeframe] = stored;
         const resolveData = [symbol, unifiedTimeframe, stored];
-        const messageHash = 'chart.trades|' + symbol + '|' + rawTimeframe;
+        const messageHash = 'chart.trades|' + symbol + '|' + this.safeString(parts, 3, '');
         client.resolve(resolveData, messageHash);
     }
     parseWsOHLCV(ohlcv, market = undefined) {

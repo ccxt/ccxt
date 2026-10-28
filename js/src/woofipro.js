@@ -1196,7 +1196,7 @@ export default class woofipro extends Exchange {
         for (let i = 0; i < rows.length; i++) {
             const row = rows[i];
             const marketId = this.safeString(row, 'symbol', '');
-            if (this.safeValue(this.markets_by_id, marketId) === undefined) {
+            if ((this.markets_by_id === undefined) || !(marketId in this.markets_by_id)) {
                 continue; // the endpoint returns entries for markets missing from public/info, e.g. pre-TGE symbols
             }
             const ticker = this.extend({ 'timestamp': timestamp }, row);
@@ -1306,7 +1306,7 @@ export default class woofipro extends Exchange {
         for (let i = 0; i < rows.length; i++) {
             const row = rows[i];
             const marketId = this.safeString(row, 'symbol', '');
-            if (this.safeValue(this.markets_by_id, marketId) === undefined) {
+            if ((this.markets_by_id === undefined) || !(marketId in this.markets_by_id)) {
                 continue; // the endpoint returns entries for markets missing from public/info, e.g. pre-TGE symbols
             }
             const interest = this.extend({ 'timestamp': timestamp }, row);

@@ -1001,7 +1001,7 @@ export default class derive extends deriveRest {
         //     }
         //
         const params = this.safeDict(message, 'params');
-        const topic = this.safeString(params, 'channel');
+        const topic = this.safeString(params, 'channel', '');
         const topicParts = topic.split('.');
         const subaccountIdKey = this.safeString(topicParts, 0);
         const data = this.safeList(params, 'data', []);

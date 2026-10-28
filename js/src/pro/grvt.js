@@ -586,6 +586,7 @@ export default class grvt extends grvtRest {
         const market = this.safeMarket(marketId);
         const symbol = this.safeString(market, 'symbol', '');
         const timestamp = this.safeIntegerProduct(data, 'event_time', 0.000001);
+        const messageHash = 'orderbook::' + symbol;
         if (!(symbol in this.orderbooks)) {
             this.orderbooks[symbol] = this.orderBook();
         }
@@ -615,7 +616,6 @@ export default class grvt extends grvtRest {
         // unconditional assignment is correct for every language.
         orderbook['symbol'] = symbol;
         orderbook['nonce'] = sequenceNumber;
-        const messageHash = 'orderbook::' + symbol;
         this.orderbooks[symbol] = orderbook;
         client.resolve(orderbook, messageHash);
     }
