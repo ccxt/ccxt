@@ -1091,7 +1091,7 @@ export default class bitbank extends Exchange {
         } as Transaction;
     }
 
-    override nonce (): number {
+    override nonce (): int {
         return this.milliseconds ();
     }
 

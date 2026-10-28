@@ -25,10 +25,10 @@ type requestBookOp struct {
 	stamp      int64
 	key        string
 	seed       int64
-	current    any
+	current    int64
 	reply      chan requestBookSnapshot
 	idReply    chan int64
-	nonceReply chan any
+	nonceReply chan int64
 	done       chan any
 }
 
@@ -87,9 +87,9 @@ func (this *BaseExchange) NextRequestId(key string) int64 {
 }
 
 // nextNonce asks the owner for the next strictly-increasing nonce.
-func (this *BaseExchange) nextNonce(current any) any {
+func (this *BaseExchange) nextNonce(current int64) int64 {
 	seed := *this.SafeInteger(this.Options, "lastNonce", 0)
-	reply := make(chan any, 1)
+	reply := make(chan int64, 1)
 	this.requestBookChannel() <- requestBookOp{kind: requestBookNonce, current: current, seed: seed, nonceReply: reply}
 	return <-reply
 }
@@ -146,13 +146,11 @@ func (book *requestBook) apply(op requestBookOp) (recovered any) {
 			book.lastNonce = op.seed
 			book.nonceSet = true
 		}
-		var result any
-		if IsGreaterThan(op.current, book.lastNonce) {
+		result := book.lastNonce + 1
+		if op.current > book.lastNonce {
 			result = op.current
-		} else {
-			result = book.lastNonce + 1
 		}
-		book.lastNonce = requestBookInt64(result)
+		book.lastNonce = result
 		op.nonceReply <- result
 	case requestBookRead:
 		op.reply <- book.snapshot()
@@ -170,21 +168,4 @@ func (book *requestBook) snapshot() requestBookSnapshot {
 		responseHeaders: this.Last_response_headers,
 		httpResponse:    this.Last_http_response,
 	}
-}
-
-// requestBookInt64 is the numeric view of a nonce the owner keeps for the next comparison.
-func requestBookInt64(v any) int64 {
-	switch n := v.(type) {
-	case int64:
-		return n
-	case int:
-		return int64(n)
-	case float64:
-		return int64(n)
-	case *int64:
-		if n != nil {
-			return *n
-		}
-	}
-	return 0
 }

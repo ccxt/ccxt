@@ -3999,7 +3999,7 @@ export default class deribit extends Exchange {
         }, marketResolved);
     }
 
-    override nonce (): number {
+    override nonce (): int {
         return this.milliseconds ();
     }
 

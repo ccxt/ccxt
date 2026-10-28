@@ -1277,7 +1277,7 @@ export default class coinmate extends Exchange {
         return this.parseOrder (data);
     }
 
-    override nonce (): number {
+    override nonce (): int {
         return this.milliseconds ();
     }
 

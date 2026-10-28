@@ -1962,7 +1962,7 @@ export default class bitso extends Exchange {
         return this.safeString (statuses, status as string, status);
     }
 
-    override nonce (): number {
+    override nonce (): int {
         return this.milliseconds ();
     }
 

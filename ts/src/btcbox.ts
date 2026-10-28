@@ -811,7 +811,7 @@ export default class btcbox extends Exchange {
         return await this.fetchOrdersByType ('open', symbol, since, limit, params);
     }
 
-    override nonce (): number {
+    override nonce (): int {
         return this.milliseconds ();
     }
 

@@ -281,8 +281,8 @@ type ICoreExchange interface {
 	SetSandboxMode(enable any)
 	FeatureValue(symbol any, optionalArgs ...any) any
 	Market(symbol any) map[string]any
-	Nonce() any
-	IncrementingNonce() any
+	Nonce() int64
+	IncrementingNonce() int64
 	Unique(obj any) []any
 	FetchTimeAsync(optionalArgs ...any) <-chan AsyncResult[*int64]
 	FetchCurrenciesAsync(optionalArgs ...any) <-chan AsyncResult[map[string]any]
@@ -436,7 +436,7 @@ type ICoreExchange interface {
 }
 
 type IDerivedExchange interface {
-	Nonce() any
+	Nonce() int64
 	SignInAsync(optionalArgs ...any) <-chan AsyncResult[any]
 	HandleDelta(bookside any, delta any)
 	GetCacheIndex(orderbook any, deltas any) any

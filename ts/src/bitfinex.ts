@@ -3068,7 +3068,7 @@ export default class bitfinex extends Exchange {
         });
     }
 
-    override nonce (): number {
+    override nonce (): int {
         return this.milliseconds ();
     }
 

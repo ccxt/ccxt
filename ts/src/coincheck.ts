@@ -995,7 +995,7 @@ export default class coincheck extends Exchange {
         };
     }
 
-    override nonce (): number {
+    override nonce (): int {
         return this.milliseconds ();
     }
 

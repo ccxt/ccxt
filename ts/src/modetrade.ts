@@ -3292,7 +3292,7 @@ export default class modetrade extends Exchange {
         return this.parsePositions (positions, symbols);
     }
 
-    override nonce (): number {
+    override nonce (): int {
         return this.milliseconds ();
     }
 

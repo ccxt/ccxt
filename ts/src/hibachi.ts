@@ -1334,7 +1334,7 @@ export default class hibachi extends Exchange {
         } as Transaction;
     }
 
-    override nonce (): number {
+    override nonce (): int {
         return this.milliseconds ();
     }
 

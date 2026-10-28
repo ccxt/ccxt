@@ -1287,7 +1287,7 @@ export default class bitbns extends Exchange {
         } as DepositAddress;
     }
 
-    override nonce (): number {
+    override nonce (): int {
         return this.milliseconds ();
     }
 

@@ -6,7 +6,7 @@ import { ecdsa } from '../base/functions/crypto.js';
 import { TRUNCATE, ROUND, DECIMAL_PLACES } from '../base/functions/number.js';
 import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheByOutcomeById } from '../base/ws/Cache.js';
-import type { OrderSide, OrderType, Int, Str, Num, Dict,
+import type { OrderSide, OrderType, Int, int, Str, Num, Dict,
     Market, PredictionTickers, PredictionOrderBook, OHLCV,
     PredictionOrderRequest, Balances,
     Strings, PredictionOpenInterest, PredictionTradingFee,
@@ -2698,7 +2698,7 @@ export default class polymarket extends Exchange {
         return undefined;
     }
 
-    override nonce (): number {
+    override nonce (): int {
         // the order salt is a millisecond timestamp; incrementingNonce () reads this and keeps salts
         // unique when two identical orders are signed within the same millisecond
         return this.milliseconds ();

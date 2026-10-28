@@ -1976,7 +1976,7 @@ export default class bigone extends Exchange {
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
-    override nonce (): number {
+    override nonce (): int {
         const exchangeMillisecondsCorrection = this.safeInteger (this.options, 'exchangeMillisecondsCorrection', 0);
         const exchangeTimeCorrection = exchangeMillisecondsCorrection * 1000000;
         return this.sum (this.microseconds () * 1000, exchangeTimeCorrection);

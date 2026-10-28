@@ -6533,7 +6533,7 @@ export class BaseExchange {
         return this.filterByCurrencySinceLimit (result, code, since, limit);
     }
 
-    nonce (): number {
+    nonce (): int {
         return this.seconds ();
     }
 
@@ -6548,7 +6548,7 @@ export class BaseExchange {
      * so it narrows the duplicate-nonce race but does not remove it across instances or processes.
      * @returns {int} a strictly-increasing nonce in the unit returned by nonce ()
      */
-    incrementingNonce () {
+    incrementingNonce (): int {
         const currentNonce = this.nonce ();
         this.lockLastNonce ();
         const lastNonce = this.safeInteger (this.options, 'lastNonce', 0);

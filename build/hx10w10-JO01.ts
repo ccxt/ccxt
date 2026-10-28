@@ -14,7 +14,7 @@ const ASSIGN_SUM_READ = /^ {8}(\w+) = (?:\(Long\) )?this\.sum\(this\.safeInteger
 const PUT = /^ {8}this\.options\.put\("([^"]+)", (\w+)\);$/;
 
 // the base `incrementingNonce` guard: the clock floor is read outside, the sequence is owner-side
-const NONCE_SPAN = /^ {8}this\.lockLastNonce\(\);\n {8}Long (\w+) = this\.safeInteger\(this\.options, "lastNonce", 0\);\n {8}Object (\w+) = [^\n]*\? (\w+) : \(\1 \+ 1L\);[^\n]*\n {8}this\.options\.put\("lastNonce", \2\);\n {8}this\.unlockLastNonce\(\);\n/m;
+const NONCE_SPAN = /^ {8}this\.lockLastNonce\(\);\n {8}Long (\w+) = this\.safeInteger\(this\.options, "lastNonce", 0\);\n {8}(?:Object|Long) (\w+) = [^\n]*\? (\w+) : \(\1 \+ 1L\);[^\n]*\n {8}this\.options\.put\("lastNonce", \2\);\n {8}this\.unlockLastNonce\(\);\n/m;
 
 /** The counter body as a `[assignName, readKey, putKey, putName]` tuple, or undefined. */
 function counterBody (lines: string[]): string[] | undefined {
@@ -62,7 +62,7 @@ export function hx10w10JO01Counters (content: string): string {
 // `incrementingNonce`: the clock floor is read on the caller, the sequence on the owner
 export function hx10w10JO01Nonce (content: string): string {
     return content.replace (NONCE_SPAN, (_m: string, _last: string, result: string, floor: string) =>
-        '        Object ' + result + ' = this.nextCounterAbove("lastNonce", 1L, ' + floor + ');\n');
+        '        Long ' + result + ' = this.nextCounterAbove("lastNonce", 1L, ' + floor + ');\n');
 }
 
 export function hx10w10JO01 (content: string): string {
@@ -92,7 +92,7 @@ export function jo01SelfTest (): string[] {
     }
     const nonceBody = '    public Object incrementingNonce()\n    {\n        Long currentNonce = this.nonce();\n        this.lockLastNonce();\n        Long lastNonce = this.safeInteger(this.options, "lastNonce", 0);\n        Object result = ((((currentNonce != null && (lastNonce == null || currentNonce > lastNonce))))) ? currentNonce : (lastNonce + 1L);\n        this.options.put("lastNonce", result);\n        this.unlockLastNonce();\n        return result;\n    }';
     const nonceOut = run (nonceBody);
-    if (!nonceOut.includes ('Object result = this.nextCounterAbove("lastNonce", 1L, currentNonce);')) {
+    if (!nonceOut.includes ('Long result = this.nextCounterAbove("lastNonce", 1L, currentNonce);')) {
         problems.push ('hx10w10 JO01: incrementingNonce hand-off missing in\n' + nonceOut);
     }
     if (nonceOut.includes ('lockLastNonce')) problems.push ('hx10w10 JO01: incrementingNonce kept the lock bracket');

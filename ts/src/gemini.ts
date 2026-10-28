@@ -1883,7 +1883,7 @@ export default class gemini extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    override nonce (): number {
+    override nonce (): int {
         const nonceMethod = this.safeString (this.options, 'nonce', 'milliseconds');
         if (nonceMethod === 'milliseconds') {
             return this.milliseconds ();

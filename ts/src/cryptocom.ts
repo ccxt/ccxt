@@ -3412,7 +3412,7 @@ export default class cryptocom extends Exchange {
         });
     }
 
-    override nonce (): number {
+    override nonce (): int {
         return this.milliseconds ();
     }
 

@@ -6,7 +6,7 @@ import { Precise } from '../base/Precise.js';
 import { ArrayCacheByOutcomeById } from '../base/ws/Cache.js';
 import { TRUNCATE, DECIMAL_PLACES } from '../base/functions/number.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, InsufficientFunds, InvalidOrder, MarketClosed, NetworkError, NotSupported, OrderNotFound } from '../base/errors.js';
-import type { Bool, Dict, Endpoint, fetchEventsParams, Fee, Int, Market, Num, OrderSide, OrderType, PredictionEvent, PredictionOrder, PredictionOrderBook, PredictionPosition, PredictionTicker, PredictionTrade, Str, Strings } from '../base/types.js';
+import type { Bool, Dict, Endpoint, fetchEventsParams, Fee, Int, int, Market, Num, OrderSide, OrderType, PredictionEvent, PredictionOrder, PredictionOrderBook, PredictionPosition, PredictionTicker, PredictionTrade, Str, Strings } from '../base/types.js';
 import type Client from '../base/ws/Client.js';
 
 // ---------------------------------------------------------------------------
@@ -3879,7 +3879,7 @@ export default class predictfun extends Exchange {
         }
     }
 
-    override nonce (): number {
+    override nonce (): int {
         // the order salt is a millisecond timestamp; incrementingNonce () reads this and keeps salts
         // unique when two identical orders are signed within the same millisecond
         return this.milliseconds ();

@@ -3269,7 +3269,7 @@ export default class bithumb extends Exchange {
         return finalNumberStr;
     }
 
-    override nonce (): number {
+    override nonce (): int {
         return this.milliseconds ();
     }
 

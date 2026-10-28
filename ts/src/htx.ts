@@ -7599,7 +7599,7 @@ export default class htx extends Exchange {
         } as BorrowInterest;
     }
 
-    override nonce (): number {
+    override nonce (): int {
         return this.milliseconds () - this.safeInteger (this.options, 'timeDifference', 0);
     }
 

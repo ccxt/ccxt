@@ -6383,7 +6383,7 @@ export default class mexc extends Exchange {
         return this.parseLeverage (response, market) as Dict; // widened to Dict to match the base setMarginMode return ({}) — narrowing it to Leverage breaks the Go IExchange interface
     }
 
-    override nonce (): number {
+    override nonce (): int {
         return this.milliseconds () - this.safeInteger (this.options, 'timeDifference', 0);
     }
 

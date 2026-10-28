@@ -8188,6 +8188,7 @@ export function patchJavaLiteralLocalTypes (transpiler) {
 // `(Long)` cast predates the upstream retype and is a harmless no-op checkcast now).
 export const JAVA_NUMERIC_LOCAL_TYPES = {
     'safeInteger': 'Long',
+    'incrementingNonce': 'Long',  // hx11 w8 m172
     'safeInteger2': 'Long',
     'safeIntegerN': 'Long',
     'safeIntegerProduct': 'Long',
@@ -8225,6 +8226,7 @@ const JAVA_NUMERIC_RETYPED_CALLS = new Set ([
 // statically the named type (parseNumber -> Double, Helpers.parseInt -> Long).
 const JAVA_NUMERIC_METHOD_RETURN_TYPES = {
     'parseToInt': 'Long',
+    'incrementingNonce': 'Long',  // hx11 w8 m172: nextCounterAbove (): Long, nonce (): Long
     'safeNumber': 'Double',
     'safeNumber2': 'Double',
     'safeNumberN': 'Double',

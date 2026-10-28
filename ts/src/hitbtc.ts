@@ -770,7 +770,7 @@ export default class hitbtc extends Exchange {
         });
     }
 
-    override nonce (): number {
+    override nonce (): int {
         return this.milliseconds ();
     }
 

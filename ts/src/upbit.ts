@@ -2428,7 +2428,7 @@ export default class upbit extends Exchange {
         return this.parseTransaction (response);
     }
 
-    override nonce (): number {
+    override nonce (): int {
         return this.milliseconds ();
     }
 

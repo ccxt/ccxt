@@ -1046,7 +1046,7 @@ export default class bit2c extends Exchange {
         } as DepositAddress;
     }
 
-    override nonce (): number {
+    override nonce (): int {
         return this.milliseconds ();
     }
 

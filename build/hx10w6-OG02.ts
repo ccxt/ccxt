@@ -8,7 +8,7 @@
 //   var x int64 = this.Sum (this.SafeInteger (this.Options, 'k', 0), 1)  -> var x int64 = this.NextRequestId ('k')
 //   var p *int64 = this.SafeInteger (this.Options, 'k', 0) + Sum (p, 1)  -> var x int64 = this.NextRequestId ('k')
 //   this.Options['k'] = x                          -> dropped (the owner keeps the counter)
-//   func IncrementingNonce () { ...lock pair... }  -> var result any = this.nextNonce (currentNonce)
+//   func IncrementingNonce () { ...lock pair... }  -> var result int64 = this.nextNonce (currentNonce)
 //   this.Last_http_response = nil                  -> this.handOffRequestBook (requestBookOp{kind: requestBookReset})
 //   this.Last_http_response (read)                 -> this.GetLast_http_response ()
 // A span whose shape this file cannot prove is left byte for byte as the printer emitted it, so
@@ -27,9 +27,9 @@ const HTTP_HEADERS_LINE = /^\s*this\.Last_(?:response|request)_headers = nil\s*$
 const HTTP_WRITE_LINE = /^\s*this\.Last_http_response\s*=/;
 // a struct-literal field keeps the owner's own read (exchange_request_book.go snapshot)
 const HTTP_LITERAL_FIELD = /^\s*[A-Za-z_]\w*:\s*this\.Last_http_response,\s*$/;
-const NONCE_SIGNATURE = /func \(this \*BaseExchange\) IncrementingNonce ?\(\) any \{/;
+const NONCE_SIGNATURE = /func \(this \*BaseExchange\) IncrementingNonce ?\(\) (?:any|int64) \{/;
 // the nonce body must still be the compare this file knows how to hand off
-const NONCE_BODY = /this\.DerivedExchange\.Nonce ?\(\)[\s\S]*PanicOnError ?\([\s\S]*this\.Options\["lastNonce"\]/;
+const NONCE_BODY = /this\.DerivedExchange\.Nonce ?\(\)[\s\S]*this\.Options\["lastNonce"\]/;
 
 type Span = { 'decl': string, 'key': string };
 
@@ -118,7 +118,8 @@ function replaceIncrementingNonce (content: string): string {
     if ((body.indexOf ('LockLastNonce') < 0) || !NONCE_BODY.test (body)) {
         return content;
     }
-    const replacement = signature[0] + '\n\tvar currentNonce any = this.DerivedExchange.Nonce()\n\tPanicOnError(currentNonce)\n\tvar result any = this.nextNonce(currentNonce)\n\treturn result\n}';
+    // Nonce () and the owner's counter are int64 end to end, so no box and no PanicOnError on a plain number
+    const replacement = 'func (this *BaseExchange) IncrementingNonce() int64 {\n\tvar currentNonce int64 = this.DerivedExchange.Nonce()\n\tvar result int64 = this.nextNonce(currentNonce)\n\treturn result\n}';
     return content.substring (0, at) + replacement + content.substring (end);
 }
 
@@ -231,7 +232,7 @@ export function og02IdBookCheck (): string[] {
         };
         for (const spaced of [ false, true ]) {
             const out = nonce (spaced);
-            ok (out.includes ('\tvar result any = this.nextNonce(currentNonce)\n'), 'the nonce compare hands off to the owner (spaced=' + spaced + ')');
+            ok (out.includes ('func (this *BaseExchange) IncrementingNonce() int64 {\n\tvar currentNonce int64 = this.DerivedExchange.Nonce()\n\tvar result int64 = this.nextNonce(currentNonce)\n\treturn result\n}'), 'the nonce compare hands off to the owner (spaced=' + spaced + ')');
             ok ((out.indexOf ('LockLastNonce') < 0) && (out.indexOf ('"lastNonce"') < 0), 'the nonce lock pair and option are gone (spaced=' + spaced + ')');
             ok (out.includes ('// doc\n'), 'the doc comment above the function is kept');
             ok (og02IdBookPass (out) === out, 'the nonce rewrite is idempotent (spaced=' + spaced + ')');

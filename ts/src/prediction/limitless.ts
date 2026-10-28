@@ -3167,7 +3167,7 @@ export default class limitless extends Exchange {
         return allRaw;
     }
 
-    override nonce (): number {
+    override nonce (): int {
         // the order salt is a millisecond timestamp; incrementingNonce () reads this and keeps salts
         // unique when two orders are signed within the same millisecond
         return this.milliseconds ();

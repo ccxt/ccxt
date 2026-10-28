@@ -1434,7 +1434,7 @@ export default class btcmarkets extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    override nonce (): number {
+    override nonce (): int {
         return this.milliseconds ();
     }
 
