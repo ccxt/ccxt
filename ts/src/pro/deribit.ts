@@ -897,7 +897,7 @@ export default class deribit extends deribitRest {
         stored.append (parsed);
         this.ohlcvs[symbol][unifiedTimeframe as string] = stored;
         const resolveData = [ symbol, unifiedTimeframe, stored ];
-        const messageHash = 'chart.trades|' + symbol + '|' + rawTimeframe;
+        const messageHash = 'chart.trades|' + symbol + '|' + this.safeString (parts, 3, '');
         client.resolve (resolveData, messageHash);
     }
 
