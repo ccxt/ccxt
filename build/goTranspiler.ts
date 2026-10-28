@@ -3536,7 +3536,7 @@ export function formatGoSource (filePath: string, content: string): string {
     content = hx4G29Pass (content);  // hx4 G29
     hx4G34TupleSlotNeverNil.file = undefined;  // hx4 G34
     content = g01SubsHandOff (content);  // hx10w3 G01
-    content = w8ClientFuturesReads (g10kInopClientMaps (content));
+    content = w8ClientFuturesReads (w8FuturesPairInOp (g10kInopClientMaps (content)));
     content = hx4G07FieldInOp (content);
     content = g09w3Pass (content);  // hx10w3 G09: prediction caches are typed maps
     content = hx5P28BaseFieldReads (content);  // hx5 P28
@@ -9954,7 +9954,7 @@ async function runMain () {
         return;
     }
     if (process.argv.includes ('--self-test')) {
-        const problems = g10kArithSelfTest ().concat (hx4G17SelfTest ()).concat (goDerefWrapSelfTest ()).concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goTupleIndexSelfTest ()).concat (b02TupleSliceSlotSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (h2kG08SelfTest ()).concat (h2kG11SelfTest ()).concat (goEndpointListSelfTest ()).concat (goAsyncListSelfTest ()).concat (goG14SelfTest ()).concat (goDerefArgMapReadSelfTest ()).concat (goNativeStringAddSelfTest ()).concat (goChanSelfTest ()).concat (g10kDerefSelfTest ()).concat (g10kMaplistSelfTest ()).concat (g10kIsEqualSelfTest ()).concat (g10kGvMapSelfTest ()).concat (g10kStrSelfTest ()).concat (g10kLenSelfTest ()).concat (g10kTypepredSelfTest ()).concat (g10kInopSelfTest ()).concat (g10kArrSelfTest ()).concat (gvListSelfTest ()).concat (g10kMiscSelfTest ()).concat (goProvenParseSelfTest ()).concat (goErrSelfTest ()).concat (goStructReturnsSelfTest ()).concat (goChan3SelfTest ()).concat (goTickerCacheSelfTest ()).concat (hx4G05SelfTest ()).concat (hx4G07SelfTest ()).concat (hx4X01SelfTest ()).concat (hx4G10SelfTest ()).concat (g13AnnotatedSelfTest ()).concat (b02SafeBalanceSelfTest ()).concat (hx4G14MapWriteSelfTest ()).concat (g12SlotChecks ()).concat (g15StrReturnSelfTest ()).concat (hx4G16SelfTest ()).concat (hx4G18SelfTest ()).concat (hx4G19SelfTest ()).concat (hx4G20SelfTest ()).concat (hx4G21SelfTest ()).concat (hx4G22SelfTest ()).concat (hx4G23SelfTest ()).concat (hx4G24SelfTest ()).concat (hx4G25Check ()).concat (hx4G26SelfTest ()).concat (hx4G27SelfTest ()).concat (hx4G27Check ()).concat (hx4G28SelfTest ()).concat (hx4G29Check ()).concat (hx4G30SelfTest ()).concat (hx4G31Check ()).concat (hx4G32SelfTest ()).concat (hx4G33Check ()).concat (hx4G34Check ()).concat (hx4G35Check ()).concat (hx4G36Wired ()).concat (hx4G37Check ()).concat (hx4G38Check ()).concat (hx4G39Check ()).concat (hx4G40Check (hx4G36Aligner ())).concat (hx4G40Wired ()).concat (hx4G41Check ()).concat (hx4G42Check (hx4G36Aligner ())).concat (hx5X26Check ()).concat (hx4G43Wired ()).concat (hx5X27Check ()).concat (hx4G45Check (hx4G36Aligner ())).concat (hx4G45Wired ()).concat (hx5X29Check ()).concat (hx5X29Wired ()).concat (hx5X32StrParamSelfTest ()).concat (hx5P28Check ()).concat (hx10w2G01Check ()).concat (g02check ()).concat (hx10G03Check ()).concat (g04Check ()).concat (g04Wired ()).concat (hx10w2G05Check ()).concat (g06MapReadsSelfTest ()).concat (hx10w2G07SelfCheck ()).concat (hx10G08Check ()).concat (g09Check ()).concat (hx10G10SelfTest ()).concat (g01SubsCheck ()).concat (hx10w3G02SelfCheck ()).concat (g05Check (retypeGoProvenParseMethods)).concat (hx10G06Check ()).concat (hx10w3G07Check ()).concat (g08w3Check ()).concat (g09w3Check (formatGoSource)).concat (g10SelfCheck ()).concat (hx10w4OG01Check ()).concat (hx10OG02Check ()).concat (g10SelfCheck ()).concat (og03selfcheck ()).concat (g01Check ()).concat (g05check ()).concat (hx10G15Check ()).concat (og02IdBookCheck ()).concat (g21Check (formatGoSource)).concat (og03w6SelfCheck ()).concat (og05Check ()).concat (og03w6Wired (formatGoSource)).concat (hx10w6G01BalanceCheck ()).concat (g01BalanceWired (formatGoSource)).concat (hx10w9GB10Check ()).concat (hx10w9GB10Wired (formatGoSource)).concat (g04BookSidesCheck ()).concat (g04BookSidesWired ()).concat (hx10w6G11Check ()).concat (og06SelfCheck ()).concat (hx10w7G14SelfTest ()).concat (hx10w8GB01Check ()).concat (hx10w8GB05Check ()).concat (hx10w9GB11Check ()).concat (gb08Check ()).concat (gp19Check ()).concat (hx10w8Gp08SelfTest ()).concat (hx10w9Gp18SelfTest ()).concat (hx10w9Gp18Wired ()).concat (hx10w8GO04Check ()).concat (gp14SelfTest ()).concat (gb09Check ()).concat (hx10w9GO05Check ()).concat (hx11M43Check ()).concat (hx10w10GP27Check ()).concat (hx10w10Gp26Check ()).concat (hx10w10Gp28Check ()).concat (hx10w10Gp28Wired (formatGoSource)).concat (hx10w9Gp17SelfTest ()).concat (hx10w10GP24Check ()).concat (hx10w10GP24Wired ()).concat (nativeGuardedListElementReadsSelfTest ()).concat (goAnyObjectKeysLengthSelfTest ()).concat (goGofmtLayoutSelfTest ()).concat (w8ClientFuturesSelfTest ()).concat (g04NativeBookReadsCheck ()).concat (hx11IsEqualBoolMethodCheck ()).concat (hx11w8PromiseAllSlotSelfTest ()).concat (hx11m36SelfTest ()).concat (hx11w8TM01Check ()).concat (hx11w8TickerReadCheck ()).concat (goOrderBookSetterCheck ()).concat (hx11w8JsonOriginCheck ());
+        const problems = g10kArithSelfTest ().concat (hx4G17SelfTest ()).concat (goDerefWrapSelfTest ()).concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goTupleIndexSelfTest ()).concat (b02TupleSliceSlotSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (h2kG08SelfTest ()).concat (h2kG11SelfTest ()).concat (goEndpointListSelfTest ()).concat (goAsyncListSelfTest ()).concat (goG14SelfTest ()).concat (goDerefArgMapReadSelfTest ()).concat (goNativeStringAddSelfTest ()).concat (goChanSelfTest ()).concat (g10kDerefSelfTest ()).concat (g10kMaplistSelfTest ()).concat (g10kIsEqualSelfTest ()).concat (g10kGvMapSelfTest ()).concat (g10kStrSelfTest ()).concat (g10kLenSelfTest ()).concat (g10kTypepredSelfTest ()).concat (g10kInopSelfTest ()).concat (w8FuturesPairSelfTest ()).concat (g10kArrSelfTest ()).concat (gvListSelfTest ()).concat (g10kMiscSelfTest ()).concat (goProvenParseSelfTest ()).concat (goErrSelfTest ()).concat (goStructReturnsSelfTest ()).concat (goChan3SelfTest ()).concat (goTickerCacheSelfTest ()).concat (hx4G05SelfTest ()).concat (hx4G07SelfTest ()).concat (hx4X01SelfTest ()).concat (hx4G10SelfTest ()).concat (g13AnnotatedSelfTest ()).concat (b02SafeBalanceSelfTest ()).concat (hx4G14MapWriteSelfTest ()).concat (g12SlotChecks ()).concat (g15StrReturnSelfTest ()).concat (hx4G16SelfTest ()).concat (hx4G18SelfTest ()).concat (hx4G19SelfTest ()).concat (hx4G20SelfTest ()).concat (hx4G21SelfTest ()).concat (hx4G22SelfTest ()).concat (hx4G23SelfTest ()).concat (hx4G24SelfTest ()).concat (hx4G25Check ()).concat (hx4G26SelfTest ()).concat (hx4G27SelfTest ()).concat (hx4G27Check ()).concat (hx4G28SelfTest ()).concat (hx4G29Check ()).concat (hx4G30SelfTest ()).concat (hx4G31Check ()).concat (hx4G32SelfTest ()).concat (hx4G33Check ()).concat (hx4G34Check ()).concat (hx4G35Check ()).concat (hx4G36Wired ()).concat (hx4G37Check ()).concat (hx4G38Check ()).concat (hx4G39Check ()).concat (hx4G40Check (hx4G36Aligner ())).concat (hx4G40Wired ()).concat (hx4G41Check ()).concat (hx4G42Check (hx4G36Aligner ())).concat (hx5X26Check ()).concat (hx4G43Wired ()).concat (hx5X27Check ()).concat (hx4G45Check (hx4G36Aligner ())).concat (hx4G45Wired ()).concat (hx5X29Check ()).concat (hx5X29Wired ()).concat (hx5X32StrParamSelfTest ()).concat (hx5P28Check ()).concat (hx10w2G01Check ()).concat (g02check ()).concat (hx10G03Check ()).concat (g04Check ()).concat (g04Wired ()).concat (hx10w2G05Check ()).concat (g06MapReadsSelfTest ()).concat (hx10w2G07SelfCheck ()).concat (hx10G08Check ()).concat (g09Check ()).concat (hx10G10SelfTest ()).concat (g01SubsCheck ()).concat (hx10w3G02SelfCheck ()).concat (g05Check (retypeGoProvenParseMethods)).concat (hx10G06Check ()).concat (hx10w3G07Check ()).concat (g08w3Check ()).concat (g09w3Check (formatGoSource)).concat (g10SelfCheck ()).concat (hx10w4OG01Check ()).concat (hx10OG02Check ()).concat (g10SelfCheck ()).concat (og03selfcheck ()).concat (g01Check ()).concat (g05check ()).concat (hx10G15Check ()).concat (og02IdBookCheck ()).concat (g21Check (formatGoSource)).concat (og03w6SelfCheck ()).concat (og05Check ()).concat (og03w6Wired (formatGoSource)).concat (hx10w6G01BalanceCheck ()).concat (g01BalanceWired (formatGoSource)).concat (hx10w9GB10Check ()).concat (hx10w9GB10Wired (formatGoSource)).concat (g04BookSidesCheck ()).concat (g04BookSidesWired ()).concat (hx10w6G11Check ()).concat (og06SelfCheck ()).concat (hx10w7G14SelfTest ()).concat (hx10w8GB01Check ()).concat (hx10w8GB05Check ()).concat (hx10w9GB11Check ()).concat (gb08Check ()).concat (gp19Check ()).concat (hx10w8Gp08SelfTest ()).concat (hx10w9Gp18SelfTest ()).concat (hx10w9Gp18Wired ()).concat (hx10w8GO04Check ()).concat (gp14SelfTest ()).concat (gb09Check ()).concat (hx10w9GO05Check ()).concat (hx11M43Check ()).concat (hx10w10GP27Check ()).concat (hx10w10Gp26Check ()).concat (hx10w10Gp28Check ()).concat (hx10w10Gp28Wired (formatGoSource)).concat (hx10w9Gp17SelfTest ()).concat (hx10w10GP24Check ()).concat (hx10w10GP24Wired ()).concat (nativeGuardedListElementReadsSelfTest ()).concat (goAnyObjectKeysLengthSelfTest ()).concat (goGofmtLayoutSelfTest ()).concat (w8ClientFuturesSelfTest ()).concat (g04NativeBookReadsCheck ()).concat (hx11IsEqualBoolMethodCheck ()).concat (hx11w8PromiseAllSlotSelfTest ()).concat (hx11m36SelfTest ()).concat (hx11w8TM01Check ()).concat (hx11w8TickerReadCheck ()).concat (goOrderBookSetterCheck ()).concat (hx11w8JsonOriginCheck ());
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);
@@ -12778,6 +12778,75 @@ function w8ClientFuturesSelfTest (): string[] {
     return problems;
 }
 
+// ===== W8-futures-pair: `if InOp(F, a) || InOp(F, b) {` on string keys -> two comma-ok reads =====
+// GetFutures() is a map[string]any (nil reads ok=false like the helper); both keys must be string locals
+// declared once before the line. Reads go ahead of the if, they have no side effects.
+function w8FuturesPairInOp (content: string): string {
+    const recvRe = 'client\\.\\((?:ccxt\\.)?ClientInterface\\)\\.GetFutures\\(\\)';
+    const pairRe = new RegExp ('^(\\s*)if \\(?(?:ccxt\\.)?InOp\\((' + recvRe + '), (\\w+)\\)\\)? \\|\\| \\(?(?:ccxt\\.)?InOp\\(\\2, (\\w+)\\)\\)? \\{$');
+    if (!/\bInOp\(client\.\((?:ccxt\.)?ClientInterface\)\.GetFutures\(\), \w+\)\)? \|\| /.test (content)) {
+        return content;
+    }
+    const lines = content.split ('\n');
+    const masked = goTextMaskLiteralsAndComments (content).split ('\n');
+    if (lines.length !== masked.length) {
+        return content;
+    }
+    const out: string[] = [];
+    let start = -1;
+    let maskedFunc = '';
+    let offsets: number[] = [];
+    for (let k = 0; k < lines.length; k++) {
+        if (lines[k].startsWith ('func ')) {
+            start = k;
+            let end = k;
+            while ((end < lines.length) && (lines[end] !== '}')) {
+                end++;
+            }
+            maskedFunc = masked.slice (k, end + 1).join ('\n');
+            offsets = [];
+            let o = 0;
+            for (let j = k; (j <= end) && (j < lines.length); j++) {
+                offsets.push (o);
+                o += masked[j].length + 1;
+            }
+        } else if (lines[k] === '}') {
+            start = -1;
+        }
+        const m = ((start >= 0) && (k > start) && (lines[k] === masked[k])) ? pairRe.exec (lines[k]) : null;
+        const stringKey = (name: string): boolean => {
+            const decl = goAccessSingleDeclaration (maskedFunc, lines[start], name);
+            return (decl !== undefined) && (decl.type === 'string') && ((decl.index === undefined) || (decl.index < offsets[k - start]));
+        };
+        if ((m === null) || /\b(?:hasFuture|hasSymbolFuture)\b/.test (maskedFunc) || !stringKey (m[3]) || !stringKey (m[4])) {
+            out.push (lines[k]);
+            continue;
+        }
+        out.push (m[1] + '_, hasFuture := ' + m[2] + '[' + m[3] + ']');
+        out.push (m[1] + '_, hasSymbolFuture := ' + m[2] + '[' + m[4] + ']');
+        out.push (m[1] + 'if hasFuture || hasSymbolFuture {');
+    }
+    return out.join ('\n');
+}
+
+function w8FuturesPairSelfTest (): string[] {
+    const problems: string[] = [];
+    const c = 'client.(ccxt.ClientInterface).GetFutures()';
+    const f = (body: string) => w8FuturesPairInOp ('func (this *X) H(client any, p any) {\n' + body + '}\n');
+    const head = '\tvar a string = \"x\"\n\tvar b string = \"y\"\n';
+    const hit = f (head + '\tif (ccxt.InOp(' + c + ', a)) || (ccxt.InOp(' + c + ', b)) {\n\t}\n');
+    if (!hit.includes ('\t_, hasFuture := ' + c + '[a]\n\t_, hasSymbolFuture := ' + c + '[b]\n\tif hasFuture || hasSymbolFuture {')) {
+        problems.push ('w8-futures-pair: string keys not converted: ' + hit);
+    }
+    if (!f ('\tvar a string = \"x\"\n\tif (ccxt.InOp(' + c + ', a)) || (ccxt.InOp(' + c + ', p)) {\n\t}\n').includes ('InOp(')) {
+        problems.push ('w8-futures-pair: any key must keep InOp');
+    }
+    if (!f (head + '\tif (ccxt.InOp(' + c + ', a)) || (ccxt.InOp(' + c + ', \"z\")) {\n\t}\n').includes ('InOp(')) {
+        problems.push ('w8-futures-pair: literal key keeps InOp');
+    }
+    return problems;
+}
+
 // ===== G10K-inop: InOp on a client's map[string]any accessor -> `if _, ok := m[k]; ok {` =====
 // GetFutures()/GetRejections() are statically map[string]any: a nil map reads ok=false like the helper.
 // Only a lone InOp in an if condition with a string key; any other shape keeps the helper.
@@ -14544,7 +14613,7 @@ function hx4G20BaseNativePasses (content: string): string {
     content = hx4G25Pass (content);  // hx4 G25
     content = hx4G29Pass (content);  // hx4 G29
     hx4G34TupleSlotNeverNil.file = undefined;  // hx4 G34
-    content = h2kG13NativeKeysAndRemove (hx4G07FieldInOp (w8ClientFuturesReads (g10kInopClientMaps (content))));
+    content = h2kG13NativeKeysAndRemove (hx4G07FieldInOp (w8ClientFuturesReads (w8FuturesPairInOp (g10kInopClientMaps (content)))));
     content = g09w3Pass (content);  // hx10w3 G09: prediction caches are typed maps
     content = hx5P28BaseFieldReads (content);  // hx5 P28
     content = hx4G38Pass (hx4G33IsEqual (hx4G28IsEqualSafe (content)));  // hx4 G28, G33, G38
