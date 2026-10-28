@@ -159,7 +159,7 @@ export default class interactivebrokers extends Exchange {
                         'v1/api/iserver/exchangerate': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/api/iserver/contract/:conid/info': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/api/iserver/secdef/info': { 'cost': 1 } as Endpoint<Dict>,
-                        'v1/api/trsrv/secdef': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/api/trsrv/secdef': { 'cost': 1 } as Endpoint<List>,
                         'v1/api/iserver/contract/:conid/info-and-rules': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/api/trsrv/all-conids': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/api/iserver/contract/:conid/algos': { 'cost': 1 } as Endpoint<Dict>,
@@ -188,7 +188,7 @@ export default class interactivebrokers extends Exchange {
                         'v1/api/iserver/marketdata/snapshot': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/api/iserver/account/orders': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/api/iserver/account/order/status/:orderId': { 'cost': 1 } as Endpoint<Dict>,
-                        'v1/api/iserver/account/trades': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/api/iserver/account/trades': { 'cost': 1 } as Endpoint<List>,
                         'v1/api/portfolio/:accountId/allocation': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/api/portfolio/:accountId/meta': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/api/portfolio/:accountId/ledger': { 'cost': 1 } as Endpoint<Dict>,
@@ -707,7 +707,7 @@ export default class interactivebrokers extends Exchange {
      * @param {string} [params.accountId] the account id to use
      * @returns {Array} the account id and the params without accountId
      */
-    async loadAccountId (params: Dict = {}): Promise<any[]> {
+    async loadAccountId (params: Dict = {}): Promise<List> {
         const [ accountIdFromParams, query ] = this.handleOptionAndParams (params, 'loadAccountId', 'accountId');
         let accountId: Str = accountIdFromParams;
         if (accountId === undefined) {
@@ -1141,7 +1141,7 @@ export default class interactivebrokers extends Exchange {
             //     ]
             //
         }
-        const results = await Promise.all (promises);
+        const results: List = await Promise.all (promises);
         const neededSecTypes = [ 'CRYPTO' ]; // CFD, OPT - they should already be fetched in other calls
         for (let i = 0; i < results.length; i++) {
             const result = results[i];
@@ -1305,7 +1305,7 @@ export default class interactivebrokers extends Exchange {
             //     [ { "ticker": "AAPL", "conid": 120549942, "exchange": null } ]
             //
         }
-        const responses = await Promise.all (promises);
+        const responses: List = await Promise.all (promises);
         for (let i = 0; i < responses.length; i++) {
             const cfds = responses[i];
             for (let j = 0; j < cfds.length; j++) {
@@ -1339,7 +1339,7 @@ export default class interactivebrokers extends Exchange {
                 'exchange': exchange,
                 'assetClass': 'STK',
             };
-            const stocks = await this.webapiGetV1ApiTrsrvAllConids (this.extend (stockRequest, params));
+            const stocks: List = await this.webapiGetV1ApiTrsrvAllConids (this.extend (stockRequest, params));
             //
             //     [ { "ticker": "AAPL", "conid": 265598, "exchange": "NMS" } ]
             //
@@ -1576,7 +1576,7 @@ export default class interactivebrokers extends Exchange {
         }
         await this.loadMarkets ();
         const symbolsNormalized = this.marketSymbols (symbols);
-        const [ fields, query ] = this.handleOptionAndParams (params, 'fetchTickers', 'fields') as any[];
+        const [ fields, query ] = this.handleOptionAndParams (params, 'fetchTickers', 'fields') as List;
         const fieldsString = fields.join (',');
         const response = await this.ibkrFetchSnapshot (symbolsNormalized, fieldsString, query);
         //
@@ -2190,7 +2190,7 @@ export default class interactivebrokers extends Exchange {
      * @param {string} [params.method] 'privateGetPortfolioAccounts' (default) or 'privateGetPortfolioSubaccounts'
      * @returns {object[]} the raw response from the exchange
      */
-    async fetchPortfolioAccounts (params: Dict = {}): Promise<Dict[]> {
+    async fetchPortfolioAccounts (params: Dict = {}): Promise<List> {
         await this.authenticate ();
         const [ method, query ] = this.handleOptionAndParams (params, 'fetchPortfolioAccounts', 'method', 'privateGetPortfolioAccounts');
         let response = undefined;
@@ -3146,7 +3146,7 @@ export default class interactivebrokers extends Exchange {
         const request: Dict = {
             'accountId': accountId,
         };
-        const response = await this.webapiGetV1ApiPortfolio2AccountIdPositions (this.extend (request, query)) as any[];
+        const response = await this.webapiGetV1ApiPortfolio2AccountIdPositions (this.extend (request, query)) as List;
         //
         //     [
         //         {
