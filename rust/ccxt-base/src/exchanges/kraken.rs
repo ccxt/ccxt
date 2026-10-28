@@ -2204,7 +2204,7 @@ impl KrakenCore {
             }
         }  else if matches!(&trade, Value::Str(_)) {
             id = trade.clone();
-        }  else if (matches!(&trade, Value::Dict(__d) if __d.contains_key("ordertxid"))) {
+        }  else if isOrderTrade {
             orderId = self.safe_string_k(trade.clone(), "ordertxid", &[]);
             id = self.safe_string2(trade.clone(), Value::Str("id".into()), Value::Str("postxid".into()), &[]);
             timestamp = self.safe_timestamp_k(trade.clone(), "time", &[]);
@@ -2650,11 +2650,12 @@ impl KrakenCore {
         let mut baseIdEnd: Value = Value::Int(3);
         let mut quoteIdStart: Value = Value::Int(3);
         let mut quoteIdEnd: Value = Value::Int(6);
-        if (Value::Int(id.len() as i64).as_f64() == Some(8.0)) {
+        let mut idLength: f64 = ((id.len() as i64) as f64);
+        if (idLength == 8.0) {
             baseIdEnd = Value::Int(4);
             quoteIdStart = Value::Int(4);
             quoteIdEnd = Value::Int(8);
-        }  else if (Value::Int(id.len() as i64).as_f64() == Some(7.0)) {
+        }  else if (idLength == 7.0) {
             baseIdEnd = Value::Int(4);
             quoteIdStart = Value::Int(4);
             quoteIdEnd = Value::Int(7);

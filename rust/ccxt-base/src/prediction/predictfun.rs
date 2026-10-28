@@ -670,10 +670,8 @@ impl PredictfunCore {
                 m
             });
             let mut tags: Value = self.safe_list_k(paramsValue.clone(), "tags", &[Value::from(vec![])]);
-            let mut tagsLength: f64 = ((tags.len() as i64) as f64);
-            if tagsLength > ((0i64) as f64) {
-                let mut tagsString: Value = join(&tags, &Value::Str(",".into()));
-                request.insert("tagIds".into(), tagsString);
+            if ((tags.len() as i64) as f64) > ((0i64) as f64) {
+                request.insert("tagIds".into(), join(&tags, &Value::Str(",".into())));
             }
             postOmitKeys.push(Value::Str("limit".into()));
             let mut paramsCategories: Value = self.omit(paramsValue.clone(), Value::from(vec![Value::Str("limit".into()), Value::Str("tags".into())]), &[]);

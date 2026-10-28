@@ -455,7 +455,10 @@ impl BinanceCore {
     m
 }));
         let mut maxTopicsOption: Value = self.safe_integer_k(self.options.clone(), "maxFetchMarketsLimit", &[Value::Int(200)]);
-        let mut maxTopicsResolved: Value = (if (maxTopics != Value::Null) { maxTopics } else { maxTopicsOption });
+        let mut maxTopicsResolved: Value = self.parse_to_int(maxTopicsOption);
+        if (maxTopics != Value::Null) {
+            maxTopicsResolved = self.parse_to_int(maxTopics);
+        }
         let mut pageLimitOption: Value = self.safe_integer_k(self.options.clone(), "marketsPageLimit", &[Value::Int(100)]);
         let mut pageLimit: Value = (if (pageLimitOption.as_f64().unwrap_or(f64::NAN) > ((100i64) as f64)) { Value::Int(100) } else { pageLimitOption });
         let mut collected: Vec<Value> = Vec::new();
@@ -2469,21 +2472,18 @@ impl BinanceCore {
         let mut failedOrders: Value = self.safe_list_k(response, "failed", &[Value::from(vec![])]);
         let mut failedOrdersLength: f64 = ((failedOrders.len() as i64) as f64);
         if failedOrdersLength > ((0i64) as f64) {
-            let mut failedDetails: Value = Value::Str("".into());
+            let mut failedDetails: Vec<Value> = Vec::new();
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_1218: bool = true;
                 while { if !__for_first_1218 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1218 = false; i.as_f64().unwrap_or(f64::NAN) < failedOrdersLength } {
                 let mut failedOrder: Value = self.safe_dict(failedOrders.clone(), i.clone(), &[]);
-                let failedOrderId: String = self.safe_string_k_opt(failedOrder.clone(), "orderId", &[]).unwrap_or_default();
-                let failedReason: String = self.safe_string_k_opt(failedOrder, "reason", &[]).unwrap_or_default();
-                if i.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
-                    failedDetails = Value::Str(format!("{}{}", failedDetails, Value::Str(", ".into())).into());
-                }
-                failedDetails = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", failedDetails, failedOrderId).into()), Value::Str(": ".into())).into()), failedReason).into());
+                let failedOrderId: String = self.safe_string_k_opt(failedOrder.clone(), "orderId", &[Value::Str("".into())]).unwrap_or_default();
+                let failedReason: String = self.safe_string_k_opt(failedOrder, "reason", &[Value::Str("".into())]).unwrap_or_default();
+                failedDetails.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", failedOrderId, Value::Str(": ".into())).into()), failedReason).into()));
             }
             }
-            panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrders() failed for ".into())).into()), failedDetails)));
+            panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrders() failed for ".into())).into()), Value::Str(failedDetails.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(", ").into()))));
         }
         let mut orders: Vec<Value> = Vec::new();
         let mut canceledOrdersLength: f64 = ((canceledOrders.len() as i64) as f64);

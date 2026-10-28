@@ -1331,8 +1331,10 @@ impl BackpackCore {
     m
 })]);
         let mut marketType: Option<String> = self.safe_string_k_opt(query.clone(), "marketType", &[]);
-        let mut defaultTypes: Value = (if (marketType.is_none()) { Value::from(vec![Value::Str("SPOT".into()), Value::Str("PERP".into()), Value::Str("RFQ".into())]) } else { Value::from(vec![marketType.clone().map(Value::from).unwrap_or(Value::Null)]) });
-        let mut requestedTypes: Value = self.safe_list_k(query.clone(), "marketType", &[defaultTypes]);
+        let mut requestedTypes: Value = self.safe_list_k(query.clone(), "marketType", &[Value::from(vec![Value::Str("SPOT".into()), Value::Str("PERP".into()), Value::Str("RFQ".into())])]);
+        if (marketType.is_some()) {
+            requestedTypes = Value::from(vec![marketType.clone().map(Value::from).unwrap_or(Value::Null)]);
+        }
         let mut aliases: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("spot".to_string(), Value::Str("SPOT".into()));
@@ -1828,8 +1830,12 @@ impl BackpackCore {
         if (fromIsStock.as_bool() == toIsStock.as_bool()) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" conversion requires exactly one stock currency".into()))));
         }
-        let mut stockCode: Value = (if (fromIsStock).as_bool() == Some(true) { fromCode.clone() } else { toCode.clone() });
-        let mut quoteCode: Value = (if (fromIsStock).as_bool() == Some(true) { toCode } else { fromCode });
+        let mut stockCode: Value = fromCode.clone();
+        let mut quoteCode: Value = toCode.clone();
+        if !(matches!(&fromIsStock, Value::Bool(true))) {
+            stockCode = toCode;
+            quoteCode = fromCode;
+        }
         let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", stockCode, Value::Str(".RFQ/".into())).into()), quoteCode).into());
         let mut market: Value = self.safe_dict(self.markets.clone(), symbol.clone(), &[]);
         if (market == Value::Null) || (self.safe_string_k(market.clone(), "executionModel", &[]).as_str() != Some("rfq")) || !matches!(self.safe_bool_k(market.clone(), "stock", &[Value::Bool(false)]), Value::Bool(true)) {
@@ -2544,14 +2550,14 @@ impl BackpackCore {
         let mut market: Value = self.market(symbol);
         let mut interval: Value = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
         let mut duration: Value = self.parse_timeframe(timeframe.clone());
-        let mut dataRequest: indexmap::IndexMap<String, Value> = self.stock_data_request(Value::Str("fetchOHLCV".into()), params, &[market.clone()]).as_map().cloned().unwrap_or_default();
+        let mut dataRequest: Value = self.stock_data_request(Value::Str("fetchOHLCV".into()), params, &[market.clone()]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), dataRequest.get("symbol").cloned().unwrap_or(Value::Null));
+                m.insert("symbol".to_string(), self.safe_string_k(dataRequest.clone(), "symbol", &[]));
                 m.insert("interval".to_string(), interval);
             m
         });
-        let untilparamsUntilVariable: Vec<Value> = self.handle_option_integer_and_params(self.omit(Value::Map(dataRequest), Value::Str("symbol".into()), &[]), Value::Str("fetchOHLCV".into()), Value::Str("until".into()), &[]).as_array().cloned().unwrap_or_default();
+        let untilparamsUntilVariable: Vec<Value> = self.handle_option_integer_and_params(self.omit(dataRequest, Value::Str("symbol".into()), &[]), Value::Str("fetchOHLCV".into()), Value::Str("until".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut until: Value = untilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsUntil: Value = untilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
         if (until != Value::Null) {
@@ -2566,7 +2572,7 @@ impl BackpackCore {
         let mut startTime: Value = Value::Null;
         if (since == Value::Null) {
             let mut endTime: Value = self.seconds();
-            if (until != Value::Null) && (until != Value::Null) && (until.as_f64() != Some(0.0)) {
+            if (until != Value::Null) && (until.as_f64() != Some(0.0)) {
                 endTime = self.parse_to_int((match ((until).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
             }
             startTime = (match (&(endTime), &(((match (&(windowLimit), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y),

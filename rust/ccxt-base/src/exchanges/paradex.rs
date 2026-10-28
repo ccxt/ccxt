@@ -1463,7 +1463,7 @@ impl ParadexCore {
         }
         let mut settle: Value = self.safe_currency_code(settleId.clone(), &[]);
         let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into());
-        if !(matches!(&isSpot, Value::Bool(true))) {
+        if !(matches!(&isSpot, Value::Bool(true))) && (settle != Value::Null) {
             symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str(":".into())).into()), settle).into());
         }
         let mut expiry: Value = self.safe_integer_k(market.clone(), "expiry_at", &[]);
@@ -1477,7 +1477,9 @@ impl ParadexCore {
             if (expiry.as_f64() != Some(0.0)) {
                 deliveryValue = Value::Str(format!("{}{}", self.yymmdd(expiry.clone(), &[]), Value::Str("-".into())).into());
             }
-            symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str("-".into())).into()), deliveryValue).into()), strikePrice.clone().map(Value::from).unwrap_or(Value::Null)).into()), Value::Str("-".into())).into()), optionTypeSuffix).into());
+            if (strikePrice.is_some()) {
+                symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str("-".into())).into()), deliveryValue).into()), strikePrice.clone().map(Value::from).unwrap_or(Value::Null)).into()), Value::Str("-".into())).into()), optionTypeSuffix).into());
+            }
             makerFee = self.parse_number(Value::Str("0.0003".into()), &[]);
         }  else {
             expiry = Value::Null;

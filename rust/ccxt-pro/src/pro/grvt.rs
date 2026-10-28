@@ -856,6 +856,9 @@ impl GrvtCore {
         let mut secondPart: Value = self.safe_string(parts, Value::Int(1), &[Value::Str("".into())]);
         let mut timeframeId: Value = secondPart.as_str().map(|__s| Value::Str(__s.replace("-TRADE", "").into())).unwrap_or_else(|| secondPart.clone());
         let mut timeframe: Value = self.find_timeframe(timeframeId, &[]);
+        if (timeframe == Value::Null) {
+            return;
+        }
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv::".into()), symbol).into()), Value::Str("::".into())).into()), timeframe).into());
         { let __be_tmp = self.safe_dict(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();

@@ -2735,7 +2735,7 @@ if _try_result.is_err() {
         if (sym == Value::Null) {
             return;
         }
-        if (self.safe_value(self.orderbooks.clone(), sym.clone(), &[]) == Value::Null) {
+        if !(matches!((&self.orderbooks, &sym), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             return;
         }
         let mut orderbook: Value = self.orderbooks.as_map().and_then(|__m| sym.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);

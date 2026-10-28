@@ -784,7 +784,6 @@ impl GeminiCore {
             let mut bookside: Value = get_value(&orderbook, &side);
             let mut bookside: Value = get_value(&orderbook, &side);
             bookside.store(price, size);
-            add_element_to_object(&mut orderbook, &side, bookside);
         }
         }
         add_element_to_object(&mut orderbook, &Value::Str("symbol".into()), symbol.clone());
@@ -999,8 +998,6 @@ impl GeminiCore {
             }
         }
         }
-        add_element_to_object(&mut orderbook, &Value::Str("bids".into()), bids);
-        add_element_to_object(&mut orderbook, &Value::Str("asks".into()), asks);
         add_element_to_object(&mut orderbook, &Value::Str("symbol".into()), symbol.clone());
         add_element_to_object(&mut orderbook, &Value::Str("nonce".into()), nonce);
         add_element_to_object(&mut orderbook, &Value::Str("timestamp".into()), timestamp.clone());

@@ -739,6 +739,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut options: Value = self.safe_dict_k(self.options.clone(), "watchTickers", &[]);
         let mut defaultMethod: Value = self.safe_string_k(options, "method", &[Value::Str("tickers".into())]);
         let mut name: Value = self.safe_string_k(params.clone(), "method", &[defaultMethod]);
+        if (name == Value::Null) {
+            return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &[symbols.clone()]);
+        }
         let mut market: Value = Value::Null;
         if (symbols != Value::Null) {
             market = self.market(symbols.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null));
@@ -777,6 +780,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut options: Value = self.safe_dict_k(self.options.clone(), "unWatchTickers", &[]);
         let mut defaultMethod: Value = self.safe_string_k(options, "method", &[Value::Str("tickers".into())]);
         let mut name: Value = self.safe_string_k(params.clone(), "method", &[defaultMethod]);
+        if (name == Value::Null) {
+            return Value::Null;
+        }
         if (symbols != Value::Null) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" unWatchTickers() does not support symbols argument, unsubscribtion is for all tickers at once only".into()))));
         }
