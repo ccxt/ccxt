@@ -2833,7 +2833,7 @@ export default class bitstamp extends Exchange {
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
 
-    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
         if (response === undefined) {
             return undefined;
         }
@@ -2869,8 +2869,8 @@ export default class bitstamp extends Exchange {
                     errors.push (all[i]);
                 }
             }
-            const code = this.safeString (response, 'code');
-            if (code === 'API0005') {
+            const codeError = this.safeString (response, 'code');
+            if (codeError === 'API0005') {
                 throw new AuthenticationError (this.id + ' invalid signature, use the uid for the main account if you have subaccounts');
             }
             const feedback = this.id + ' ' + body;

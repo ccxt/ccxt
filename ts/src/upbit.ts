@@ -7,7 +7,7 @@ import { ExchangeError, BadRequest, AuthenticationError, InvalidOrder, Insuffici
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { jwt } from './base/functions/rsa.js';
-import type { Balances, Currency, Dict, FeeString, List, Dictionary, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, int, DepositAddress, OrderBooks, TradingFees, Endpoint } from './base/types.js';
+import type { Balances, Currency, Dict, FeeString, List, Dictionary, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, int, DepositAddress, OrderBooks, TradingFees, Endpoint, NullableDict } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -2481,7 +2481,7 @@ export default class upbit extends Exchange {
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
 
-    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }

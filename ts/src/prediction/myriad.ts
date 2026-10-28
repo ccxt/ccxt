@@ -3859,7 +3859,7 @@ export default class myriad extends Exchange {
         return this.ethGetAddressFromPrivateKey (this.privateKey).toLowerCase ();
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
         // Myriad error responses are { "error": "<message>", "details": [...] } with a 4xx status
         if (response === undefined) {
             return undefined;

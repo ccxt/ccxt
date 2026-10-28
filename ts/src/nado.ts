@@ -7,7 +7,7 @@ import { ecdsa } from './base/functions/crypto.js';
 import { keccak_256 as keccak } from '@noble/hashes/sha3.js';
 import { secp256k1 } from '@noble/curves/secp256k1.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, BadResponse, BadSymbol, DuplicateOrderId, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidAddress, InvalidNonce, InvalidOrder, NotSupported, OnMaintenance, OperationFailed, OperationRejected, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, PermissionDenied, RateLimitExceeded, RestrictedLocation } from './base/errors.js';
-import type { Balances, Bool, Currencies, Currency, Dict, Fee, NullableDict, FundingHistory, FundingRate, FundingRates, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, Status, Endpoint, List, OpenInterest, OpenInterests } from './base/types.js';
+import type { Balances, Bool, Currencies, Currency, Dict, Fee, NullableDict, FundingHistory, FundingRate, FundingRates, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, Status, Endpoint, List, OpenInterest, OpenInterests, int } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -3232,7 +3232,7 @@ export default class nado extends Exchange {
         return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersValue };
     }
 
-    override handleErrors (httpCode: Int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
         if ((response === undefined) || (response === null)) {
             return undefined; // fallback to default error handler
         }

@@ -9572,7 +9572,7 @@ export default class okx extends Exchange {
         return result;
     }
 
-    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }
@@ -9596,8 +9596,8 @@ export default class okx extends Exchange {
         //        "msg": "Incorrect trade password"
         //    }
         //
-        const code = this.safeString (response, 'code');
-        if ((code !== '0') && (code !== '2')) { // 2 means that bulk operation partially succeeded
+        const codeError = this.safeString (response, 'code');
+        if ((codeError !== '0') && (codeError !== '2')) { // 2 means that bulk operation partially succeeded
             const feedback = this.id + ' ' + body;
             const data = this.safeList (response, 'data', []) as List;
             for (let i = 0; i < data.length; i++) {
@@ -9607,7 +9607,7 @@ export default class okx extends Exchange {
                 this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
                 this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
             }
-            this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], codeError, feedback);
             throw new ExchangeError (feedback); // unknown message
         }
         return undefined;

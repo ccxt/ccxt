@@ -2004,7 +2004,7 @@ export default class bitso extends Exchange {
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
 
-    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }
@@ -2019,8 +2019,8 @@ export default class bitso extends Exchange {
                 if (error === undefined) {
                     throw new ExchangeError (feedback);
                 }
-                const code = this.safeString (error, 'code');
-                this.throwExactlyMatchedException (this.exceptions, code, feedback);
+                const codeError = this.safeString (error, 'code');
+                this.throwExactlyMatchedException (this.exceptions, codeError, feedback);
                 throw new ExchangeError (feedback);
             }
         }

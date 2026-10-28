@@ -6,7 +6,7 @@ import Exchange from './abstract/blofin.js';
 import { ExchangeError, ExchangeNotAvailable, ArgumentsRequired, BadRequest, InvalidOrder, AuthenticationError, RateLimitExceeded, InsufficientFunds, NullResponse, PermissionDenied, InvalidNonce, InvalidAddress, OrderNotFound, DuplicateOrderId } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Bool, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Strings, Currency, Currencies, CurrencyInterface, DepositAddress, DepositWithdrawFees, Position, TransferEntry, Leverage, Leverages, MarginMode, Num, TradingFeeInterface, Dict, int, LedgerEntry, FundingRate, ADL, Fee, FeeString, List, IndexType, PositionModeInfo, Endpoint } from './base/types.js';
+import type { Bool, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Strings, Currency, Currencies, CurrencyInterface, DepositAddress, DepositWithdrawFees, Position, TransferEntry, Leverage, Leverages, MarginMode, Num, TradingFeeInterface, Dict, int, LedgerEntry, FundingRate, ADL, Fee, FeeString, List, IndexType, PositionModeInfo, Endpoint, NullableDict } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -3564,19 +3564,19 @@ export default class blofin extends Exchange {
         } as ADL;
     }
 
-    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }
         //
         // {"code":"152002","msg":"Parameter bar error."}
         //
-        const code = this.safeString (response, 'code');
+        const codeError = this.safeString (response, 'code');
         const message = this.safeString (response, 'msg');
         const feedback = this.id + ' ' + body;
-        if (code !== undefined && code !== '0') {
+        if (codeError !== undefined && codeError !== '0') {
             this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
-            this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], codeError, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
             throw new ExchangeError (feedback); // unknown message
         }

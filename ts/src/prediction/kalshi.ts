@@ -3,7 +3,7 @@ import Exchange from '../abstract/prediction/kalshi.js';
 import { Precise } from '../base/Precise.js';
 import { rsa } from '../base/functions/rsa.js';
 import { BadSymbol, ArgumentsRequired, BadRequest, OrderNotFillable, InvalidOrder, ExchangeError } from '../base/errors.js';
-import type { OrderSide, OrderType, Int, int, Str, Num, Dict, Strings, Market, PredictionOrderBook, OHLCV, Balances, PredictionOpenInterest, PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, PredictionSettlement, fetchEventsParams,Bool, Fee, Endpoint } from '../base/types.js';
+import type { OrderSide, OrderType, Int, int, Str, Num, Dict, Strings, Market, PredictionOrderBook, OHLCV, Balances, PredictionOpenInterest, PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, PredictionSettlement, fetchEventsParams,Bool, Fee, Endpoint, NullableDict } from '../base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -458,7 +458,7 @@ export default class kalshi extends Exchange {
         return this.outcomes;
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
         // kalshi returns { "error": { "code": "...", ... } } with a 4xx; map known codes to ccxt
         // errors (e.g. not_found -> BadSymbol) so callers can distinguish them from a transport
         // outage (the base otherwise maps a bare 404 to the exchange-not-available error). unmapped codes fall

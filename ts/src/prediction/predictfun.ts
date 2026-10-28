@@ -6,7 +6,7 @@ import { Precise } from '../base/Precise.js';
 import { ArrayCacheByOutcomeById } from '../base/ws/Cache.js';
 import { TRUNCATE, DECIMAL_PLACES } from '../base/functions/number.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, InsufficientFunds, InvalidOrder, MarketClosed, NetworkError, NotSupported, OrderNotFound } from '../base/errors.js';
-import type { Bool, Dict, Endpoint, fetchEventsParams, Fee, Int, int, Market, Num, OrderSide, OrderType, PredictionEvent, PredictionOrder, PredictionOrderBook, PredictionPosition, PredictionTicker, PredictionTrade, Str, Strings } from '../base/types.js';
+import type { Bool, Dict, Endpoint, fetchEventsParams, Fee, Int, int, Market, Num, NullableDict, OrderSide, OrderType, PredictionEvent, PredictionOrder, PredictionOrderBook, PredictionPosition, PredictionTicker, PredictionTrade, Str, Strings } from '../base/types.js';
 import type Client from '../base/ws/Client.js';
 
 // ---------------------------------------------------------------------------
@@ -2638,18 +2638,18 @@ export default class predictfun extends Exchange {
      * @method
      * @name predictfun#handleErrors
      * @description maps the venue's error slugs and messages onto the unified exceptions
-     * @param {int} statusCode the http status code
-     * @param {string} statusText the http status text
+     * @param {int} code the http status code
+     * @param {string} reason the http status text
      * @param {string} url the request url
      * @param {string} method the http method
-     * @param {object} responseHeaders the response headers
-     * @param {string} responseBody the raw response body
+     * @param {object} headers the response headers
+     * @param {string} body the raw response body
      * @param {object} response the parsed response
      * @param {object} requestHeaders the request headers
      * @param {object} requestBody the request body
      * @returns {undefined} nothing, it throws when the venue reported a failure
      */
-    override handleErrors (statusCode: Int, statusText: string, url: string, method: string, responseHeaders: Dict, responseBody: string, response: any, requestHeaders: any, requestBody: any) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
         if (response === undefined) {
             return undefined;
         }
@@ -2657,7 +2657,7 @@ export default class predictfun extends Exchange {
         if (success) {
             return undefined;
         }
-        const feedback = this.id + ' ' + responseBody;
+        const feedback = this.id + ' ' + body;
         // the message is matched first because it is the more specific of the two: several
         // distinct failures share a generic slug, notably 'unauthorized', which the venue also
         // returns for a hash belonging to another wallet, and 'not_found' for an unknown market
@@ -2667,7 +2667,7 @@ export default class predictfun extends Exchange {
         // order - that case is matched above and has already thrown, so reaching here with a 401
         // means the credential itself was refused. drop the cached JWT, otherwise a token revoked
         // or aged out before its window closes is replayed for the life of the process
-        if (statusCode === 401) {
+        if (code === 401) {
             this.options['jwtToken'] = undefined;
             this.options['jwtTokenExpiresAt'] = 0;
         }
@@ -2675,7 +2675,7 @@ export default class predictfun extends Exchange {
         this.throwExactlyMatchedException (this.exceptions['exact'], error, feedback);
         // a 400 is a rejected request or a business rule, not a transport outage - the base would
         // otherwise map the bare status onto a retryable network error
-        if (statusCode === 400) {
+        if (code === 400) {
             throw new BadRequest (feedback);
         }
         throw new ExchangeError (feedback);

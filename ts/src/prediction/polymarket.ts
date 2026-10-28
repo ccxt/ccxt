@@ -2682,7 +2682,7 @@ export default class polymarket extends Exchange {
         return result;
     }
 
-    override handleErrors (code: Int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
         // the CLOB api returns { "error": "..." } (and createOrder variants use "errorMsg");
         // map the known messages so callers can distinguish a dead book or a rejected order
         // from a transport outage (the base otherwise maps a bare 404 to a retryable error)

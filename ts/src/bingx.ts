@@ -7361,7 +7361,7 @@ export default class bingx extends Exchange {
         this.options['sandboxMode'] = enable;
     }
 
-    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }
@@ -7373,16 +7373,16 @@ export default class bingx extends Exchange {
         //        }
         //    }
         //
-        const code = this.safeString (response, 'code');
+        const codeError = this.safeString (response, 'code');
         let message = this.safeString (response, 'msg');
         const transferErrorMsg = this.safeString (response, 'transferErrorMsg'); // handling with errors from transfer endpoint
-        if ((transferErrorMsg !== undefined) || (code !== undefined && code !== '0')) {
+        if ((transferErrorMsg !== undefined) || (codeError !== undefined && codeError !== '0')) {
             if (transferErrorMsg !== undefined) {
                 message = transferErrorMsg;
             }
             const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
-            this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], codeError, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
             throw new ExchangeError (feedback); // unknown message
         }

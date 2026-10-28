@@ -6,7 +6,7 @@ import { TRUNCATE, ROUND, DECIMAL_PLACES } from '../base/functions/number.js';
 import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheByOutcomeById } from '../base/ws/Cache.js';
 import type Client from '../base/ws/Client.js';
-import type { OrderSide, OrderType, Balances, Bool, Dict, Endpoint, Int, Market, NullableDict, Num, OHLCV, PredictionEvent, PredictionOrder, PredictionOrderBook, PredictionPosition, PredictionTicker, PredictionTickers, PredictionTrade, Str, Strings, fetchEventsParams } from '../base/types.js';
+import type { OrderSide, OrderType, Balances, Bool, Dict, Endpoint, Int, Market, NullableDict, Num, OHLCV, PredictionEvent, PredictionOrder, PredictionOrderBook, PredictionPosition, PredictionTicker, PredictionTickers, PredictionTrade, Str, Strings, fetchEventsParams, int } from '../base/types.js';
 import { AccountNotEnabled, AuthenticationError, ArgumentsRequired, BadRequest, ExchangeError, InsufficientFunds, InvalidOrder, PermissionDenied } from '../base/errors.js';
 
 // ---------------------------------------------------------------------------
@@ -2149,7 +2149,7 @@ export default class opinion extends Exchange {
         client.resolve (stored, 'myTrades');
     }
 
-    override handleErrors (code: Int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
         if (response === undefined) {
             return undefined;
         }

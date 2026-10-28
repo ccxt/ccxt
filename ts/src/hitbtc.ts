@@ -3870,7 +3870,7 @@ export default class hitbtc extends Exchange {
         return [ marginMode, paramsMarginMode ];
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
         //
         //     {
         //       "error": {

@@ -3080,7 +3080,7 @@ export default class bullish extends Exchange {
         }
     }
 
-    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }
@@ -3097,9 +3097,9 @@ export default class bullish extends Exchange {
         //             "errorCodeName": "ORDER_SIZE_OUTSIDE_VALID_RANGE"
         //         }
         //
-        const code = this.safeString (response, 'errorCode');
+        const codeError = this.safeString (response, 'errorCode');
         const type = this.safeString (response, 'type');
-        if ((code !== undefined && code !== '0' && code !== '1001') || (type !== undefined && type === 'HttpInvalidParameterException')) {
+        if ((codeError !== undefined && codeError !== '0' && codeError !== '1001') || (type !== undefined && type === 'HttpInvalidParameterException')) {
             let message = '';
             const errorCodeName = this.safeString (response, 'errorCodeName');
             if (errorCodeName !== undefined) {
@@ -3110,7 +3110,7 @@ export default class bullish extends Exchange {
             const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
-            this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], codeError, feedback);
             throw new ExchangeError (feedback); // unknown message
         }
         return undefined;

@@ -2706,7 +2706,7 @@ export default class sxbet extends Exchange {
         }
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
         // sx.bet returns { "error": "Bad Request", "message": <code or [strings]>, "statusCode": 4xx };
         // map the known codes to ccxt errors so callers can distinguish a rejected order or a
         // validation problem from a transport outage (the base otherwise maps a bare 4xx to the

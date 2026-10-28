@@ -7767,7 +7767,7 @@ export default class htx extends Exchange {
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
 
-    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }
@@ -7778,10 +7778,10 @@ export default class htx extends Exchange {
             //
             const status = this.safeString (response, 'status');
             if (status === 'error') {
-                const code = this.safeString2 (response, 'err-code', 'err_code');
+                const codeError = this.safeString2 (response, 'err-code', 'err_code');
                 const feedback = this.id + ' ' + body;
                 this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
-                this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
+                this.throwExactlyMatchedException (this.exceptions['exact'], codeError, feedback);
                 const message = this.safeString2 (response, 'err-msg', 'err_msg');
                 this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
                 throw new ExchangeError (feedback);
@@ -7790,8 +7790,8 @@ export default class htx extends Exchange {
         if ('code' in response) {
             // {code: '1003', message: 'invalid signature'}
             const feedback = this.id + ' ' + body;
-            const code = this.safeString (response, 'code');
-            this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
+            const codeError = this.safeString (response, 'code');
+            this.throwExactlyMatchedException (this.exceptions['exact'], codeError, feedback);
         }
         const data = this.safeDict (response, 'data');
         const errorsList = this.safeList (data, 'errors');

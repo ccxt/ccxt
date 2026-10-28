@@ -3366,7 +3366,7 @@ export default class grvt extends Exchange {
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
         if (url.endsWith ('auth/api_key/login') || url.endsWith ('auth/wallet/login')) {
             const accountId = this.safeString2 (headers, 'X-Grvt-Account-Id', 'x-grvt-account-id');
             this.options['AuthAccountId'] = accountId;

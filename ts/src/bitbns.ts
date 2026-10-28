@@ -1332,7 +1332,7 @@ export default class bitbns extends Exchange {
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
 
-    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }
@@ -1340,12 +1340,12 @@ export default class bitbns extends Exchange {
         //     {"msg":"Invalid Request","status":-1,"code":400}
         //     {"data":[],"status":0,"error":"Nothing to show","code":417}
         //
-        const code = this.safeString (response, 'code');
+        const codeError = this.safeString (response, 'code');
         const message = this.safeString (response, 'msg');
-        const error = (code !== undefined) && (code !== '200') && (code !== '204');
+        const error = (codeError !== undefined) && (codeError !== '200') && (codeError !== '204');
         if (error || (message !== undefined)) {
             const feedback = this.id + ' ' + body;
-            this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], codeError, feedback);
             this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
             throw new ExchangeError (feedback); // unknown message

@@ -6,7 +6,7 @@ import Exchange from './abstract/cryptomus.js';
 import { ArgumentsRequired, ExchangeError, InsufficientFunds, InvalidOrder } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type{ Balances, Currencies, Dict, int, Int, Market, Num, Order, OrderBook, OrderType, OrderSide, Str, Strings, Ticker, Tickers, Trade, TradingFees, CurrencyInterface, Fee, List, Endpoint } from './base/types.js';
+import type{ Balances, Currencies, Dict, int, Int, Market, Num, Order, OrderBook, OrderType, OrderSide, Str, Strings, Ticker, Tickers, Trade, TradingFees, CurrencyInterface, Fee, List, Endpoint, NullableDict } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -1220,15 +1220,15 @@ export default class cryptomus extends Exchange {
         return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
 
-    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
         if (response === undefined) {
             return undefined;
         }
-        const code = this.safeString (response, 'code');
+        const codeError = this.safeString (response, 'code');
         const message = this.safeString (response, 'message');
-        if (code !== undefined) {
+        if (codeError !== undefined) {
             const feedback = this.id + ' ' + body;
-            this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], codeError, feedback);
             throw new ExchangeError (feedback);
         } else if (message !== undefined) {
             //
