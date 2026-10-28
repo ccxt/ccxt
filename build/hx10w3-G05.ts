@@ -29,6 +29,7 @@ export const G05_GENERATED_RETURN_TYPES: { [callee: string]: string } = {
     'ParseOpenInterests': 'map[string]any',
     'ParseAccount': 'map[string]any',
     'Extend': 'map[string]any',
+    'Sign': 'map[string]any', // hx11 w8 r18: base + 103 overrides return a request map literal (retypeGoProvenParseMethods)
     // list producers (goProvenListMethods), including the three G05_PROVEN_LIST_METHODS retypes
     'ParseOrders': '[]any',
     'ParseTrades': '[]any',
@@ -56,7 +57,7 @@ const G05_LIST_SINKS = [ 'GetValue', 'GetArrayLength', 'SafeList', 'SafeList2', 
 // every return path of these prints a fresh container (no `return nil`, no parameter handed
 // back), so a local that holds it can never turn a nil box into a typed nil: every use may hold
 // the type, a hand-out included
-const G05_NEVER_ABSENT = [ 'ParseTickers', 'ParseFundingRates', 'ParseOpenInterests', 'ParseOrders', 'Extend', 'ParseOrderBookBidAsk', 'EventsList' ];
+const G05_NEVER_ABSENT = [ 'Sign', 'ParseTickers', 'ParseFundingRates', 'ParseOpenInterests', 'ParseOrders', 'Extend', 'ParseOrderBookBidAsk', 'EventsList' ];
 
 const isMapType = (type: string) => type === 'map[string]any';
 const isListType = (type: string) => type === '[]any';
@@ -168,7 +169,7 @@ function g05TypeIsFree (sig: string, funcLines: string[], type: string): boolean
 }
 
 export function g05Locals (content: string): string {
-    if (!/var \w+ any = (?:ccxt\.)?this\.(?:Parse|Filter|Reduce|Events|Extend)/.test (content)) {
+    if (!/var \w+ any = (?:ccxt\.)?this\.(?:DerivedExchange\.)?(?:Parse|Filter|Reduce|Events|Extend|Sign)/.test (content)) {
         return content;
     }
     const lines = content.split ('\n');
@@ -198,13 +199,13 @@ export function g05Locals (content: string): string {
         const sig = masked[from];
         const funcLines = masked.slice (from, to + 1);
         for (let k = from + 1; k < to; k++) {
-            const declaration = /^(\s*)var (\w+) any = ((?:ccxt\.)?this\.(\w+)\(.*\))\s*$/.exec (masked[k]);
+            const declaration = /^(\s*)var (\w+) any = ((?:ccxt\.)?this\.(?:DerivedExchange\.)?(\w+)\(.*\))\s*$/.exec (masked[k]);
             if (declaration === null) {
                 continue;
             }
             const [ , indent, name, initializer, callee ] = declaration;
             const type = G05_GENERATED_RETURN_TYPES[callee];
-            if (type === undefined || own.has (callee)) {
+            if (type === undefined || (own.has (callee) && (callee !== 'Sign'))) {
                 continue;
             }
             if (isMapType (type) ? (content.indexOf ('var ' + name + ' map[string]any = ' + initializer) >= 0) : false) {

@@ -4721,7 +4721,8 @@ function goProvenParseMapMethods (): string[] {
         'ParseMarginLoan', // U15
         'ParseADLRank', // U16
         'ParseEvent', 'ParseMarketToEvent', // W18
-        'SafePosition', 'ParsePosition', 'ParseOptionPosition' ]; // gochan32-U10
+        'SafePosition', 'ParsePosition', 'ParseOptionPosition', // gochan32-U10
+        'Sign' ]; // hx11 w8 r18: base + every override return a request map literal
 }
 
 // function-level `return` expressions of a Go body (func literal bodies skipped); undefined when unscannable
