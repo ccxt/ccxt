@@ -1431,7 +1431,7 @@ public class Independentreserve extends IndependentreserveApi
         {
             this.checkRequiredCredentials(true);
             // independentreserve requires an increasing nonce
-            Object rawNonce = this.incrementingNonce();
+            Long rawNonce = this.incrementingNonce();
             Long nonce = this.parseToInt(rawNonce);
             Object auth = new ArrayList<Object>(Arrays.asList(url, ("apiKey=" + this.apiKey), ("nonce=" + String.valueOf(nonce))));
             Map<String, Object> paramsDict = this.extend(new HashMap<String, Object>() {{}}, parameters);

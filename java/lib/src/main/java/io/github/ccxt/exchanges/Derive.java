@@ -2359,7 +2359,7 @@ public class Derive extends DeriveApi
     {
         // incrementingNonce guarantees unique milliseconds within one instance; the result matches the official derive-ts client nonce format (error 11017 = duplicate nonce)
         // the mutating calls stay hoisted out of other call arguments, nesting them breaks the rust borrow checker (E0502)
-        Object rawNonce = this.incrementingNonce();
+        Long rawNonce = this.incrementingNonce();
         Object randomPart = this.randNumber(6); // guards against collisions of different instances with the same wallet
         Object milliseconds = this.numberToString(rawNonce);
         String suffix = this.numberToString(randomPart);

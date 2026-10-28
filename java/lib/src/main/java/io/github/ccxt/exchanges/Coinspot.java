@@ -1188,7 +1188,7 @@ public class Coinspot extends CoinspotApi
         {
             this.checkRequiredCredentials(true);
             // coinspot requires an increasing nonce
-            Object nonce = this.incrementingNonce();
+            Long nonce = this.incrementingNonce();
             requestBody = this.json(this.extend(new HashMap<String, Object>() {{
                 put( "nonce", nonce );
             }}, parameters));

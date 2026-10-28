@@ -1261,7 +1261,7 @@ public class Mercado extends MercadoApi
             this.checkRequiredCredentials(true);
             url = (url + (this.version + "/"));
             // mercado requires each tonce to be greater than the previous one
-            Object nonce = this.incrementingNonce();
+            Long nonce = this.incrementingNonce();
             privateBody = this.urlencode(this.extend(new HashMap<String, Object>() {{
                 put( "tapi_method", path );
                 put( "tapi_nonce", nonce );

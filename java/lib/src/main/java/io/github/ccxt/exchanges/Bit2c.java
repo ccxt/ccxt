@@ -1273,7 +1273,7 @@ public class Bit2c extends Bit2cApi
         {
             this.checkRequiredCredentials(true);
             // bit2c requires an increasing nonce per key
-            Object nonce = this.incrementingNonce();
+            Long nonce = this.incrementingNonce();
             Map<String, Object> query = this.extend(new HashMap<String, Object>() {{
                 put( "nonce", nonce );
             }}, parameters);

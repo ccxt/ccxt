@@ -2162,7 +2162,7 @@ public class Hyperliquid extends HyperliquidApi
                 put( "type", "setReferrer" );
                 put( "code", Hyperliquid.this.safeString(Hyperliquid.this.options, "ref", "CCXT1") );
             }};
-            Object nonce = this.incrementingNonce();
+            Long nonce = this.incrementingNonce();
             Map<String, Object> signature = this.signL1Action(action, nonce, (String) null, (Long) null);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "action", action );
@@ -2188,7 +2188,7 @@ public class Hyperliquid extends HyperliquidApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object nonce = this.incrementingNonce();
+            Long nonce = this.incrementingNonce();
             Boolean isSandboxMode = (Boolean) this.safeBool(this.options, "sandboxMode", false);
             Map<String, Object> payload = new HashMap<String, Object>() {{
                 put( "hyperliquidChain", ((Boolean.TRUE.equals(isSandboxMode))) ? "Testnet" : "Mainnet" );
@@ -2361,7 +2361,7 @@ public class Hyperliquid extends HyperliquidApi
             List<Object> userAddressparamsPublicAddressVariable = (List<Object>) this.handlePublicAddress("setUserAbstraction", (Map<String, Object>) (parameters));
             String userAddress = (String) ((List<Object>) userAddressparamsPublicAddressVariable).get(0);
             Map<String, Object> paramsPublicAddress = (Map<String, Object>) ((List<Object>) userAddressparamsPublicAddressVariable).get(1);
-            Object nonce = this.incrementingNonce();
+            Long nonce = this.incrementingNonce();
             Boolean isSandboxMode = (Boolean) this.safeBool(this.options, "sandboxMode", false);
             String type = this.safeString(paramsPublicAddress, "type", "userSetAbstraction");
             Map<String, Object> payload = new HashMap<String, Object>() {{
@@ -2415,7 +2415,7 @@ public class Hyperliquid extends HyperliquidApi
             List<Object> userAddressparamsPublicAddressVariable = (List<Object>) this.handlePublicAddress("enableUserDexAbstraction", (Map<String, Object>) (parameters));
             String userAddress = (String) ((List<Object>) userAddressparamsPublicAddressVariable).get(0);
             Map<String, Object> paramsPublicAddress = (Map<String, Object>) ((List<Object>) userAddressparamsPublicAddressVariable).get(1);
-            Object nonce = this.incrementingNonce();
+            Long nonce = this.incrementingNonce();
             Boolean isSandboxMode = (Boolean) this.safeBool(this.options, "sandboxMode", false);
             String type = this.safeString(paramsPublicAddress, "type", "userDexAbstraction");
             Map<String, Object> payload = new HashMap<String, Object>() {{
@@ -2465,7 +2465,7 @@ public class Hyperliquid extends HyperliquidApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object nonce = this.incrementingNonce();
+            Long nonce = this.incrementingNonce();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "nonce", nonce );
             }};
@@ -2548,7 +2548,7 @@ public class Hyperliquid extends HyperliquidApi
             }
             (this.initializeClient()).join();
             Map<String, Object> market = this.market(symbol);
-            Object nonce = this.incrementingNonce();
+            Long nonce = this.incrementingNonce();
             Boolean isBuy = (java.util.Objects.equals(((String)side).toUpperCase(), "BUY"));
             Boolean randomize = (Boolean) this.safeBool(parameters, "randomize", false);
             Map<String, Object> paramsOmitted = this.omit(parameters, "randomize");
@@ -2800,7 +2800,7 @@ public class Hyperliquid extends HyperliquidApi
             }
         }
         Map<String, Object> params2 = this.omit(parameters, new ArrayList<Object>(Arrays.asList("slippage", "clientOrderId", "client_id", "slippage", "triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice", "timeInForce")));
-        Object nonce = this.incrementingNonce();
+        Long nonce = this.incrementingNonce();
         List<Object> orderReq = new ArrayList<Object>(Arrays.asList());
         String grouping = "na";
         for (var i = 0; (ordersLength != null && i < ordersLength); i++)
@@ -3040,7 +3040,7 @@ public class Hyperliquid extends HyperliquidApi
                 put( "a", Hyperliquid.this.parseToInt(market.get("baseId")) );
                 put( "t", Hyperliquid.this.parseToNumeric(id) );
             }};
-            Object nonce = this.incrementingNonce();
+            Long nonce = this.incrementingNonce();
             Map<String, Object> signature = this.signL1Action(action, nonce, vaultAddress, (Long) null);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "action", action );
@@ -3097,7 +3097,7 @@ public class Hyperliquid extends HyperliquidApi
         Map<String, Object> market = this.market(symbol);
         Object clientOrderId = this.safeValue2(parameters, "clientOrderId", "client_id");
         Map<String, Object> params2 = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "client_id")));
-        Object nonce = this.incrementingNonce();
+        Long nonce = this.incrementingNonce();
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "nonce", nonce );
         }};
@@ -3173,7 +3173,7 @@ public class Hyperliquid extends HyperliquidApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             (this.initializeClient()).join();
-            Object nonce = this.incrementingNonce();
+            Long nonce = this.incrementingNonce();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "nonce", nonce );
             }};
@@ -3263,7 +3263,7 @@ public class Hyperliquid extends HyperliquidApi
             }
             (this.initializeClient()).join();
             Map<String, Object> params2 = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "client_id")));
-            Object nonce = this.incrementingNonce();
+            Long nonce = this.incrementingNonce();
             Map<String, Object> request = new HashMap<String, Object>();
             request.put("nonce", nonce);
             Map<String, Object> cancelAction = new HashMap<String, Object>();
@@ -3418,7 +3418,7 @@ public class Hyperliquid extends HyperliquidApi
             }};
             ((List<Object>)modifies).add(modifyReq);
         }
-        Object nonce = this.incrementingNonce();
+        Long nonce = this.incrementingNonce();
         Map<String, Object> modifyAction = new HashMap<String, Object>() {{
             put( "type", "batchModify" );
             put( "modifies", modifies );
@@ -3569,7 +3569,7 @@ public class Hyperliquid extends HyperliquidApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object nonce = this.incrementingNonce();
+            Long nonce = this.incrementingNonce();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "nonce", nonce );
             }};
@@ -4776,7 +4776,7 @@ public class Hyperliquid extends HyperliquidApi
             }
             Long asset = this.parseToInt(market.get("baseId"));
             Boolean isCross = (java.util.Objects.equals(marginMode, "cross"));
-            Object nonce = this.incrementingNonce();
+            Long nonce = this.incrementingNonce();
             Map<String, Object> params2 = this.omit(parameters, new ArrayList<Object>(Arrays.asList("leverage")));
             Map<String, Object> updateAction = new HashMap<String, Object>();
             updateAction.put("type", "updateLeverage");
@@ -4845,7 +4845,7 @@ public class Hyperliquid extends HyperliquidApi
             String marginMode = this.safeString(parameters, "marginMode", "cross");
             Boolean isCross = (java.util.Objects.equals(marginMode, "cross"));
             Long asset = this.parseToInt(market.get("baseId"));
-            Object nonce = this.incrementingNonce();
+            Long nonce = this.incrementingNonce();
             Map<String, Object> params2 = this.omit(parameters, "marginMode");
             Map<String, Object> updateAction = new HashMap<String, Object>() {{
                 put( "type", "updateLeverage" );
@@ -4940,7 +4940,7 @@ public class Hyperliquid extends HyperliquidApi
             Long asset = this.parseToInt(market.get("baseId"));
             Long szAbs = this.parseToInt(Precise.stringMul(this.amountToPrecision(symbol, amount), "1000000"));
             Object sz = (((java.util.Objects.equals(type, "reduce")))) ? ((Object) (szAbs == null ? null : -szAbs)) : szAbs;
-            Object nonce = this.incrementingNonce();
+            Long nonce = this.incrementingNonce();
             Map<String, Object> updateAction = new HashMap<String, Object>() {{
                 put( "type", "updateIsolatedMargin" );
                 put( "asset", asset );
@@ -5028,7 +5028,7 @@ public class Hyperliquid extends HyperliquidApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Boolean isSandboxMode = (Boolean) this.safeBool(this.options, "sandboxMode", (Object) null);
-            Object nonce = this.incrementingNonce();
+            Long nonce = this.incrementingNonce();
             if (this.inArray(fromAccount, new ArrayList<Object>(Arrays.asList("spot", "swap", "perp"))))
             {
                 // handle swap <> spot account transfer
@@ -5251,7 +5251,7 @@ public class Hyperliquid extends HyperliquidApi
             }
             String vaultAddressOption = (String) ((List<Object>)this.handleOptionStringAndParams((Map<String, Object>) (parameters), "withdraw", "vaultAddress", (String) null)).get(0);
             String vaultAddress = this.formatVaultAddress(vaultAddressOption);
-            Object nonce = this.incrementingNonce();
+            Long nonce = this.incrementingNonce();
             Map<String, Object> action = new HashMap<String, Object>() {{}};
             Object sig = null;
             if (!java.util.Objects.equals(vaultAddress, null))
@@ -5975,7 +5975,7 @@ public class Hyperliquid extends HyperliquidApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object nonce = this.incrementingNonce();
+            Long nonce = this.incrementingNonce();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "nonce", nonce );
             }};
@@ -6006,7 +6006,7 @@ public class Hyperliquid extends HyperliquidApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object nonce = this.incrementingNonce();
+            Long nonce = this.incrementingNonce();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "nonce", nonce );
             }};

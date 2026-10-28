@@ -185,7 +185,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             {
                 ((List<Object>)messageHashes).add(messageHashPrefix);
             }
-            Object requestId = this.incrementingNonce();
+            Long requestId = this.incrementingNonce();
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "method", "subscribe" );
                 put( "id", requestId );
@@ -226,7 +226,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             {
                 messageHash = ((messageHashBase + "::") + symbol);
             }
-            Object requestId = this.incrementingNonce();
+            Long requestId = this.incrementingNonce();
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "method", name );
                 put( "params", parameters );
@@ -258,7 +258,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             (this.authenticate()).join();
             Map<String, Object> wsUrls = (Map<String, Object>) this.safeDict(this.urls.get("api"), "ws", (Object) null);
             String url = this.safeString(wsUrls, "private");
-            Object requestId = this.incrementingNonce();
+            Long requestId = this.incrementingNonce();
             String messageHash = this.numberToString(requestId);
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "method", name );

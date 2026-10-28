@@ -341,7 +341,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, false, false);
             String method = "market_subscribe";
             String url = this.safeString(this.urls.get("api"), "ws");
-            Object id = this.incrementingNonce();
+            Long id = this.incrementingNonce();
             List<String> messageHashes = new ArrayList<String>(Arrays.asList());
             List<Object> args = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
@@ -1050,7 +1050,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         return BaseExchange.supplyAsync(() -> {
 
             String url = this.safeString(this.urls.get("api"), "ws");
-            Object id = this.incrementingNonce();
+            Long id = this.incrementingNonce();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "id", id );
                 put( "method", method );
@@ -1072,7 +1072,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String url = this.safeString(this.urls.get("api"), "ws");
-            Object id = this.incrementingNonce();
+            Long id = this.incrementingNonce();
             Client client = (Client)this.safeValue(this.clients, url);
             Map<String, Object> request = null;
             List<Object> marketIds = new ArrayList<Object>(Arrays.asList());
@@ -1150,7 +1150,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             this.checkRequiredCredentials(true);
             (this.authenticate(new HashMap<String, Object>() {{}})).join();
             String url = this.safeString(this.urls.get("api"), "ws");
-            Object id = this.incrementingNonce();
+            Long id = this.incrementingNonce();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "id", id );
                 put( "method", method );
@@ -1215,7 +1215,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
                 {
                     throw new AuthenticationError((this.id + " authenticate() received an empty websocket_token")) ;
                 }
-                Object id = this.incrementingNonce();
+                Long id = this.incrementingNonce();
                 Map<String, Object> request = new HashMap<String, Object>();
                 request.put("id", id);
                 request.put("method", "authorize");

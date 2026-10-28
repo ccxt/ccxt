@@ -2491,7 +2491,7 @@ public class Limitless extends LimitlessApi
             {
                 throw new InvalidAddress((this.id + " createOrder requires a valid taker address. Set the \"taker\" parameter to a valid address or set the \"nullAddress\" property in the constructor options.")) ;
             }
-            Object nonce = this.incrementingNonce();
+            Long nonce = this.incrementingNonce();
             Map<String, Object> sides = new HashMap<String, Object>() {{
                 put( "buy", 0 );
                 put( "sell", 1 );

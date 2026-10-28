@@ -678,7 +678,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
                 messageHashes.add(("ticker." + this.safeString(this.market(symbol), "id", "")));
             }
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("public");
-            Object id = this.incrementingNonce();
+            Long id = this.incrementingNonce();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "subscribe" );
                 put( "params", new HashMap<String, Object>() {{
@@ -854,7 +854,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
                 topics.add(("ticker." + this.safeString(this.market(symbol), "id", "")));
             }
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("public");
-            Object id = this.incrementingNonce();
+            Long id = this.incrementingNonce();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "subscribe" );
                 put( "params", new HashMap<String, Object>() {{
@@ -1135,7 +1135,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
             }
             (this.authenticate(new HashMap<String, Object>() {{}})).join();
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("private");
-            Object id = this.incrementingNonce();
+            Long id = this.incrementingNonce();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "subscribe" );
                 put( "params", new HashMap<String, Object>() {{
@@ -1397,7 +1397,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
                 put( "method", "private/create-order" );
                 put( "params", paramsValue );
             }};
-            Object messageHash = this.incrementingNonce();
+            Long messageHash = this.incrementingNonce();
             return (this.watchPrivateRequest(messageHash, request)).join();
         }).thenApply(Order::new);
 
@@ -1432,7 +1432,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
                 put( "method", "private/amend-order" );
                 put( "params", paramsValue );
             }};
-            Object messageHash = this.incrementingNonce();
+            Long messageHash = this.incrementingNonce();
             return (this.watchPrivateRequest(messageHash, request)).join();
         }).thenApply(Order::new);
 
@@ -1483,7 +1483,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
                 put( "method", "private/cancel-order" );
                 put( "params", paramsExtended );
             }};
-            Object messageHash = this.incrementingNonce();
+            Long messageHash = this.incrementingNonce();
             return (this.watchPrivateRequest(messageHash, request)).join();
         }).thenApply(Order::new);
 
@@ -1517,7 +1517,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
                 market = this.market(symbol);
                 Helpers.addElementToObject(request.get("params"), "instrument_name", market.get("id"));
             }
-            Object messageHash = this.incrementingNonce();
+            Long messageHash = this.incrementingNonce();
             return (this.watchPrivateRequest(messageHash, request)).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -1542,7 +1542,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
         return BaseExchange.supplyAsync(() -> {
 
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("public");
-            Object id = this.incrementingNonce();
+            Long id = this.incrementingNonce();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "subscribe" );
                 put( "params", new HashMap<String, Object>() {{
@@ -1562,7 +1562,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
         return BaseExchange.supplyAsync(() -> {
 
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("public");
-            Object id = this.incrementingNonce();
+            Long id = this.incrementingNonce();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "subscribe" );
                 put( "params", new HashMap<String, Object>() {{
@@ -1582,7 +1582,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
         return BaseExchange.supplyAsync(() -> {
 
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("public");
-            Object id = this.incrementingNonce();
+            Long id = this.incrementingNonce();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "unsubscribe" );
                 put( "params", new HashMap<String, Object>() {{
@@ -1628,7 +1628,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
 
             (this.authenticate(new HashMap<String, Object>() {{}})).join();
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("private");
-            Object id = this.incrementingNonce();
+            Long id = this.incrementingNonce();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "subscribe" );
                 put( "params", new HashMap<String, Object>() {{
@@ -1791,7 +1791,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
             if (java.util.Objects.equals(authenticated, null))
             {
                 String method = "public/auth";
-                Object nonceValue = this.incrementingNonce();
+                Long nonceValue = this.incrementingNonce();
                 String nonce = this.numberToString(nonceValue);
                 String auth = (((method + nonce) + this.apiKey) + nonce);
                 String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256());

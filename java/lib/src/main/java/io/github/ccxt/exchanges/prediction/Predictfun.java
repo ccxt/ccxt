@@ -2229,7 +2229,7 @@ public class Predictfun extends PredictfunApi
                 Long now = this.seconds();
                 expiration = this.sum(now, expirationDelta);
             }
-            Object nonce = this.incrementingNonce();
+            Long nonce = this.incrementingNonce();
             String salt = this.safeString(paramsWarnOnMarketOrderWithoutPrice, "salt", this.numberToString(nonce));
             String taker = "0x0000000000000000000000000000000000000000";
             List<Object> takerOptionparamsTakerVariable = (List<Object>) this.handleOptionAndParams(paramsWarnOnMarketOrderWithoutPrice, "createOrder", "taker", taker);

@@ -352,7 +352,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             String subMessageHash = ("orderbook:" + symbolValue);
             String messageHash = ("unsubscribe:" + subMessageHash);
             String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("public");
-            Object nonce = this.incrementingNonce();
+            Long nonce = this.incrementingNonce();
             String id = this.numberToString(nonce);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "id", id );

@@ -8982,10 +8982,10 @@ public Map<String, Object> describe()
      * so it narrows the duplicate-nonce race but does not remove it across instances or processes.
      * @returns {int} a strictly-increasing nonce in the unit returned by nonce ()
      */
-    public Object incrementingNonce()
+    public Long incrementingNonce()
     {
         Long currentNonce = this.nonce();
-        Object result = this.nextCounterAbove("lastNonce", 1L, currentNonce);
+        Long result = this.nextCounterAbove("lastNonce", 1L, currentNonce);
         return result;
     }
 

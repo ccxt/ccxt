@@ -1462,7 +1462,7 @@ public class Hyperliquid extends HyperliquidApi
             String marketSymbol = this.safeString(outcomeObj, "market");
             Map<String, Object> market = this.market(marketSymbol);
             Map<String, Object> outcomeInfo = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
-            Object nonce = this.incrementingNonce();
+            Long nonce = this.incrementingNonce();
             Boolean isBuy = (java.util.Objects.equals(((String)side).toUpperCase(), "BUY"));
             Boolean isMarket = (java.util.Objects.equals(((String)type).toUpperCase(), "MARKET"));
             Long assetId = this.safeInteger(outcomeInfo, "assetId");
@@ -1649,7 +1649,7 @@ public class Hyperliquid extends HyperliquidApi
             Map<String, Object> outcomeObj = this.outcome((String) (outcome));
             Map<String, Object> outcomeInfo = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
             Long assetId = this.safeInteger(outcomeInfo, "assetId");
-            Object nonce = this.incrementingNonce();
+            Long nonce = this.incrementingNonce();
             Object clientOrderId = this.safeValue2(parameters, "clientOrderId", "client_id");
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "client_id")));
             List<Object> cancelReq = new ArrayList<Object>(Arrays.asList());
@@ -2616,7 +2616,7 @@ public class Hyperliquid extends HyperliquidApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object nonce = this.incrementingNonce();
+            Long nonce = this.incrementingNonce();
             Boolean isSandboxMode = (Boolean) this.safeBool(this.options, "sandboxMode", false);
             Map<String, Object> payload = new HashMap<String, Object>() {{
                 put( "hyperliquidChain", ((Boolean.TRUE.equals(isSandboxMode))) ? "Testnet" : "Mainnet" );
