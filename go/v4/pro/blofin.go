@@ -188,7 +188,7 @@ func (this *Blofin) unWatchTradesBody(ch chan ccxt.AsyncResult[bool], symbol str
 	_ = params
 	params["callerMethodName"] = "unWatchTrades"
 
-	r := <-this.UnWatchTradesForSymbolsAsync([]any{symbol}, params)
+	r := <-this.UnWatchTradesForSymbolsAsync([]string{symbol}, params)
 	if r.Err != nil {
 		panic(r.Err)
 	}
@@ -205,12 +205,12 @@ func (this *Blofin) unWatchTradesBody(ch chan ccxt.AsyncResult[bool], symbol str
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {any} status of the unwatch request
  */
-func (this *Blofin) UnWatchTradesForSymbolsAsync(symbols any, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+func (this *Blofin) UnWatchTradesForSymbolsAsync(symbols []string, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.unWatchTradesForSymbolsBody(ch, symbols, optionalArgs...)
 	return ch
 }
-func (this *Blofin) unWatchTradesForSymbolsBody(ch chan ccxt.AsyncResult[bool], symbols any, optionalArgs ...any) any {
+func (this *Blofin) unWatchTradesForSymbolsBody(ch chan ccxt.AsyncResult[bool], symbols []string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1362,21 +1362,21 @@ func (this *Blofin) unsubscribeMultipleWrapperBody(ch chan ccxt.AsyncResult[any]
 	// underlier method for the public unWatch* methods, sends the same topics as watchMultipleWrapper
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
 		if r.Err != nil {
 			panic(r.Err)
 		}
 	}
-	var callerMethodNameOptionparamsCallerMethodNameVariable []any = this.HandleParamString(params, "callerMethodName", callerMethodName)
+	var callerMethodNameOptionPtr *string = nil
+	callerMethodNameOptionPtr, paramsCallerMethodName := this.HandleParamString(params, "callerMethodName", callerMethodName)
 	callerMethodNameOption := func() any {
-		if p, _ := callerMethodNameOptionparamsCallerMethodNameVariable[0].(*string); p != nil {
-			return *p
+		if callerMethodNameOptionPtr != nil {
+			return *callerMethodNameOptionPtr
 		}
 		return nil
 	}()
-	var paramsCallerMethodName map[string]any = ccxt.MapTyped(callerMethodNameOptionparamsCallerMethodNameVariable[1])
 	var isOHLCV bool = (channelName == "candle")
 	var symbols any = func() any {
 		if isOHLCV {

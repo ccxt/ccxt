@@ -2658,13 +2658,13 @@ func (this *Mexc) HandleSubscriptionStatus(client any, message any) {
 		// the venue names the refused channel between brackets, reject only that watcher
 		// and drop its subscription so a corrected retry sends a new frame
 		error := ccxt.ExchangeError(this.Id + " " + *msg)
-		var subscriptionHashes []string = ccxt.ObjectKeys(client.(ccxt.ClientInterface).GetSubscriptions())
+		var subscriptionHashes []string = client.(ccxt.ClientInterface).SubscriptionKeys()
 		var rejected bool = false
 		for i := 0; i < len(subscriptionHashes); i++ {
 			var subscriptionHash string = subscriptionHashes[i]
-			var subscribedChannel *string = this.SafeString(ccxt.GetValue(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionHash), "channel")
+			var subscribedChannel *string = this.SafeString(client.(ccxt.ClientInterface).SubscriptionGet(subscriptionHash), "channel")
 			if (subscribedChannel != nil) && (strings.Index(*msg, "["+*subscribedChannel+"]") >= 0) {
-				ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionHash)
+				client.(ccxt.ClientInterface).SubscriptionDel(subscriptionHash)
 				client.(ccxt.ClientInterface).Reject(error, subscriptionHash)
 				rejected = true
 			}

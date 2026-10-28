@@ -367,22 +367,23 @@ func (this *Coinbase) CreateWSAuth(name string, productIds any) map[string]any {
 	var timestamp *string = this.NumberToString(this.Seconds())
 	this.CheckRequiredCredentials()
 	var isCloudAPiKey bool = (strings.Index(this.ApiKey, "organizations/") >= 0) || (strings.HasPrefix(this.Secret, "-----BEGIN"))
+	var isV2CloudAPiKey any = this.IsEddsaApiKey()
 	var auth string = *timestamp + name + ccxt.Join(productIds, ",")
-	if !isCloudAPiKey {
+	if !isCloudAPiKey && !(isV2CloudAPiKey == true) {
 		subscribe["api_key"] = this.ApiKey
 		subscribe["timestamp"] = timestamp
 		subscribe["signature"] = this.Hmac(this.Encode(auth), this.Encode(this.Secret), ccxt.Sha256)
 	} else {
-		if strings.HasPrefix(this.ApiKey, "-----BEGIN") {
+		if isCloudAPiKey && strings.HasPrefix(this.ApiKey, "-----BEGIN") {
 			panic(ccxt.ArgumentsRequired(this.Id + " apiKey should contain the name (eg: organizations/3b910e93....) and not the public key"))
 		}
 		var currentToken *string = this.SafeString(this.Options, "wsToken")
 		var tokenTimestamp int64 = this.ParseToInt(this.SafeInteger(this.Options, "wsTokenTimestamp", 0))
 		var seconds int64 = this.Seconds()
-		var tokenExpiry int64 = tokenTimestamp + 120
+		var tokenExpiry int64 = tokenTimestamp + 90
 		if (currentToken == nil) || (tokenExpiry < seconds) {
 			// we should generate new token
-			var token any = this.CreateAuthToken(seconds)
+			var token any = this.CreateAuthToken(seconds, nil, nil, this.IsEddsaApiKey())
 			this.Options["wsToken"] = token
 			this.Options["wsTokenTimestamp"] = seconds
 		}
