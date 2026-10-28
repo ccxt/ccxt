@@ -11886,7 +11886,7 @@ export function g10kDerefSelfTest (): string[] {
 // `a, x := this.HandleXAndParams(..)` declares x as map[string]any (hand-written pair results); when that
 // is x's only declaration in the function, Omit(x, ..) always yields a map, so MapTyped(Omit) == OmitDict.
 function g10kMaplistTupleMethods (): string {
-    return 'HandleMarketTypeAndParams|HandleSubTypeAndParams|HandleOptionStringAndParams2?|HandleUntilOption|HandleMarginModeAndParams|HandleOptionBoolAndParams2?|HandleOptionIntegerAndParams2?';
+    return 'HandleMarketTypeAndParams|HandleSubTypeAndParams|HandleOptionStringAndParams2?|HandleParamString2?|HandleUntilOption|HandleMarginModeAndParams|HandleOptionBoolAndParams2?|HandleOptionIntegerAndParams2?';
 }
 
 function g10kMaplistTupleMap (func: string, name: string): boolean {
@@ -11929,6 +11929,7 @@ function g10kMaplistSelfTest (): string[] {
     const fn = (decl: string, use: string) => 'package x\nfunc (this *X) f(params any) any {\n' + decl + '\tvar q map[string]any = MapTyped(this.Omit(p, \")\"))\n' + use + '\treturn q\n}\n';
     const good = fn ('\tt, p := this.HandleMarketTypeAndParams("f", nil, params)\n\t_ = t\n', '');
     ok (g10kMaplistOmitOfTupleMaps (good).indexOf ('var q map[string]any = this.OmitDict(p, ")")') > 0, 'tuple map converted');
+    ok (g10kMaplistOmitOfTupleMaps (fn ('\tt, p := this.HandleParamString(params, "k")\n', '')).indexOf ('this.OmitDict(p, ")")') > 0, 'param string tuple');
     for (const bad of [ fn ('\tvar p any = nil\n\tt, p := this.HandleMarketTypeAndParams("f", nil, params)\n', ''),
         fn ('\tp, t := this.HandleUntilOption("k", params, params)\n', ''), fn ('\tt, p := this.HandleOther("f")\n', ''),
         fn ('\tt, p := this.HandleMarketTypeAndParams("f", nil, params)\n', '\tfunc(p any) {}(nil)\n') ]) {
