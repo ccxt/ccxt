@@ -6,7 +6,6 @@ import { getStarkKey, ethSigToPrivate, sign as starknetCurveSign } from '@scure/
 import { sha256 } from '@noble/hashes/sha2.js';
 import { sha1 } from '@noble/hashes/legacy.js';
 import * as functions from './functions.js';
-
 // import {
 //     // keys as keysFunc,
 //     // values as valuesFunc,
@@ -2405,32 +2404,36 @@ export class BaseExchange {
         return dict;
     }
 
-    readDhParam(path: string) {
+    readDhParam (path: string) {
         const pem: any = readFile (path);
         const der = Buffer.from (pem.replace (/-----[^-]+-----|\s/g, ''), 'base64');
-
         let pos = 0;
         const readLen = () => {
             let len = der[pos++];
             if (len & 0x80) {
-            const n = len & 0x7f;
-            len = 0;
-            for (let i = 0; i < n; i++) len = (len << 8) | der[pos++];
+                const n = len & 0x7f;
+                len = 0;
+                for (let i = 0; i < n; i++) {
+                    len = (len << 8) | der[pos++];
+                }
             }
             return len;
         };
         const readInt = () => {
-            if (der[pos++] !== 0x02) throw new Error('expected INTEGER while reading DH_param file');
-            const len = readLen();
-            const hex = der.subarray(pos, pos + len).toString('hex');
+            if (der[pos++] !== 0x02) {
+                throw new Error ('expected INTEGER while reading DH_param file');
+            }
+            const len = readLen ();
+            const hex = der.subarray (pos, pos + len).toString ('hex');
             pos += len;
-            return hex.replace(/^00/, ''); // strip sign byte
+            return hex.replace (/^00/, ''); // strip sign byte
         };
-
-        if (der[pos++] !== 0x30) throw new Error('expected SEQUENCE');
-        readLen();
-        const result = { prime: readInt(), generator: BigInt('0x' + readInt()) };
-        return result.prime;
+        if (der[pos++] !== 0x30) {
+            throw new Error ('expected SEQUENCE');
+        }
+        readLen ();
+        const result = { 'prime': readInt (), 'generator': BigInt ('0x' + readInt ()) };
+        return result['prime'];
     }
 
     modPow (base: bigint, exponent: bigint, modulus: bigint): bigint {
