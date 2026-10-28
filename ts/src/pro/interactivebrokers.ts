@@ -66,6 +66,10 @@ export default class interactivebrokers extends interactivebrokersRest {
                     'skipFirstItem': true, // skip the first ladders that carry only the best bid and ask, the deeper sizes arrive a few seconds after subscribing
                     'skipFirstItemTimeout': 10000, // ms, the top-of-book-only ladder is emitted anyway after this time (e.g. illiquid markets)
                 },
+                'watchOrders': {
+                    'warnIfWithoutSymbol': true, // throw when watchOrders is called with a symbol, the updates of the orders not created on this connection can not be matched to a symbol, set to false to acknowledge and proceed
+                    'fetchOrdersSnapshot': true, // seed the full orders from GET /iserver/account/orders, the sor updates of the orders not created on this connection carry only the orderId and the status
+                },
                 'watchMyTrades': {
                     'realtimeUpdatesOnly': false,
                     'days': 1,
@@ -919,24 +923,47 @@ export default class interactivebrokers extends interactivebrokersRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string[]} [params.filters] order status filters, e.g. [ 'Submitted', 'Filled' ]
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-orders/get-live-orders
      */
     override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         await this.loadMarkets ();
         let messageHash = 'orders';
         let unifiedSymbol: Str = undefined;
         if (symbol !== undefined) {
+            const watchOrdersOptions = this.safeDict (this.options, 'watchOrders', {});
+            const warnIfWithoutSymbol = this.safeBool (watchOrdersOptions, 'warnIfWithoutSymbol', true);
+            if (warnIfWithoutSymbol) {
+                throw new ExchangeError (this.id + ' watchOrders() with a symbol argument can miss order updates: the orders from previous sessions are not fetched, and the sor updates of the orders not created on this connection carry only the orderId and the status (no conid), so they can not be matched to a symbol. It is recommended to call watchOrders() without the symbol argument and filter the results by symbol. To proceed with the symbol argument anyway and acknowledge this, set exchange.options["watchOrders"]["warnIfWithoutSymbol"] = false');
+            }
             unifiedSymbol = this.symbol (symbol);
             messageHash = messageHash + '::' + unifiedSymbol;
         }
         const url = await this.ibkrConnect ();
         const client = this.client (url);
+        // the sor updates of the orders that were not created on this connection carry only the orderId and the status,
+        // the full raw orders are seeded from the rest snapshot, the updates are merged into them by orderId
+        const rawOrders: Dict = {};
+        if (!('sor' in client.subscriptions)) {
+            const options = this.safeDict (this.options, 'watchOrders', {});
+            const fetchOrdersSnapshot = this.safeBool (options, 'fetchOrdersSnapshot', true);
+            if (fetchOrdersSnapshot) {
+                const snapshot = await this.fetchLiveOrdersRaw ();
+                for (let i = 0; i < snapshot.length; i++) {
+                    const rawOrder = snapshot[i];
+                    const orderId = this.safeString (rawOrder, 'orderId');
+                    if (orderId !== undefined) {
+                        rawOrders[orderId] = rawOrder;
+                    }
+                }
+            }
+        }
         const future = this.watch (url, messageHash);
         const filters = this.safeList (params, 'filters');
         const requestParams: Dict = {};
         if (filters !== undefined) {
             requestParams['filters'] = filters;
         }
-        await this.ibkrSubscribe (client, 'sor', 'sor+' + this.json (requestParams));
+        await this.ibkrSubscribe (client, 'sor', 'sor+' + this.json (requestParams), { 'rawOrders': rawOrders });
         const orders = await future;
         let resultLimit = limit;
         if (this.newUpdates) {
@@ -993,20 +1020,30 @@ export default class interactivebrokers extends interactivebrokersRest {
             this.orders = new ArrayCacheBySymbolById (limit);
         }
         const orders = this.orders;
+        // the updates are partial, e.g. { "acct": "U1234567", "orderId": 1911471157, "status": "Cancelled" } without the conid,
+        // they are merged into the previous raw order of the same orderId
+        const subscription = this.safeDict (client.subscriptions, 'sor');
+        const rawOrders = this.safeDict (subscription, 'rawOrders', {});
         const symbols: Dict = {};
         for (let i = 0; i < args.length; i++) {
             const rawOrder = args[i];
-            let parsed = this.parseOrder (rawOrder);
-            const orderSymbol = parsed['symbol'] as string;
-            // the updates may be partial, they are merged into the previous raw order
-            const previousOrders = this.safeDict (orders.hashmap, orderSymbol, {});
-            const previous = this.safeDict (previousOrders, parsed['id']);
-            if (previous !== undefined) {
-                const previousInfo = this.safeDict (previous, 'info', {});
-                parsed = this.parseOrder (this.extend (previousInfo, rawOrder));
+            const orderId = this.safeString (rawOrder, 'orderId');
+            let merged = rawOrder;
+            if (orderId !== undefined) {
+                const previous = this.safeDict (rawOrders, orderId, {});
+                merged = this.extend (previous, rawOrder);
+                rawOrders[orderId] = merged;
             }
+            const parsed = this.parseOrder (merged);
             orders.append (parsed);
-            symbols[orderSymbol] = true;
+            const orderSymbol = parsed['symbol'];
+            if (orderSymbol !== undefined) {
+                symbols[orderSymbol] = true;
+            }
+        }
+        if (subscription !== undefined) {
+            subscription['rawOrders'] = rawOrders;
+            client.subscriptions['sor'] = subscription;
         }
         client.resolve (orders, 'orders');
         const keys = Object.keys (symbols);

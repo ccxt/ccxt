@@ -3,6 +3,760 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "watchOrders": [
+            {
+                "description": "crypto spot",
+                "input": [],
+                "url": "wss://api.ibkr.com/v1/api/ws?oauth_token=84270d7070618c28432c",
+                "messages": [
+                    {
+                        "topic": "system",
+                        "success": "todua1991",
+                        "isFT": false,
+                        "isPaper": false
+                    },
+                    {
+                        "topic": "act",
+                        "args": {
+                            "accounts": [
+                                "U3448646"
+                            ],
+                            "acctProps": {
+                                "U3448646": {
+                                    "hasChildAccounts": false,
+                                    "supportsCashQty": true,
+                                    "supportsFractions": true
+                                }
+                            },
+                            "aliases": {
+                                "U3448646": "U3448646"
+                            },
+                            "allowFeatures": {
+                                "showGFIS": true,
+                                "showEUCostReport": false,
+                                "allowEventContract": true,
+                                "allowFXConv": true,
+                                "allowFinancialLens": false,
+                                "allowMTA": true,
+                                "allowTypeAhead": true,
+                                "allowEventTrading": true,
+                                "snapshotRefreshTimeout": 30,
+                                "liteUser": false,
+                                "showWebNews": true,
+                                "research": true,
+                                "debugPnl": true,
+                                "showTaxOpt": true,
+                                "showImpactDashboard": true,
+                                "allowDynAccount": false,
+                                "allowCrypto": false,
+                                "allowFA": false,
+                                "allowLiteUnderPro": false,
+                                "allowedAssetTypes": "STK,CFD,OPT,FOP,WAR,FUT,BAG,PDC,CASH,IND,BOND,BILL,FUND,SLB,News,CMDTY,IOPT,ICU,ICS,PHYSS,CRYPTO",
+                                "restrictTradeSubscription": false,
+                                "showUkUserLabels": true,
+                                "sideBySide": true
+                            },
+                            "chartPeriods": {
+                                "STK": [
+                                    "*"
+                                ],
+                                "CFD": [
+                                    "*"
+                                ],
+                                "OPT": [
+                                    "2h",
+                                    "1d",
+                                    "2d",
+                                    "1w",
+                                    "1m"
+                                ],
+                                "FOP": [
+                                    "2h",
+                                    "1d",
+                                    "2d",
+                                    "1w",
+                                    "1m"
+                                ],
+                                "WAR": [
+                                    "*"
+                                ],
+                                "IOPT": [
+                                    "*"
+                                ],
+                                "FUT": [
+                                    "*"
+                                ],
+                                "CASH": [
+                                    "*"
+                                ],
+                                "IND": [
+                                    "*"
+                                ],
+                                "BOND": [
+                                    "*"
+                                ],
+                                "FUND": [
+                                    "*"
+                                ],
+                                "CMDTY": [
+                                    "*"
+                                ],
+                                "PHYSS": [
+                                    "*"
+                                ],
+                                "CRYPTO": [
+                                    "*"
+                                ]
+                            },
+                            "groups": [],
+                            "profiles": [],
+                            "selectedAccount": "U3448646",
+                            "serverInfo": {
+                                "serverName": "JifZ06133",
+                                "serverVersion": "Build 10.50.1d, Oct 15, 2026 12:58:27 PM"
+                            },
+                            "sessionId": "6ae1768f.000001bf",
+                            "isFT": false,
+                            "isPaper": false
+                        }
+                    },
+                    {
+                        "topic": "sts",
+                        "args": {
+                            "connected": true,
+                            "authenticated": true,
+                            "established": true,
+                            "competing": false,
+                            "message": "",
+                            "fail": "",
+                            "serverName": "JifZ06133",
+                            "serverVersion": "Build 10.50.1d, Oct 15, 2026 12:58:27 PM",
+                            "username": "todua1991"
+                        }
+                    },
+                    {
+                        "topic": "system",
+                        "hb": 1793188636355
+                    },
+                    {
+                        "topic": "act",
+                        "args": {
+                            "acctProps": {
+                                "U3448646": {
+                                    "noFXConv": false,
+                                    "liteUnderPro": false,
+                                    "autoFx": false
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "topic": "act",
+                        "args": {
+                            "accounts": [
+                                "U3448646"
+                            ],
+                            "acctProps": {
+                                "U3448646": {
+                                    "hasChildAccounts": false,
+                                    "supportsCashQty": true,
+                                    "liteUnderPro": false,
+                                    "noFXConv": false,
+                                    "isProp": false,
+                                    "supportsFractions": true,
+                                    "allowCustomerTime": false,
+                                    "autoFx": false
+                                }
+                            },
+                            "aliases": {
+                                "U3448646": "U3448646"
+                            },
+                            "allowFeatures": {
+                                "showGFIS": true,
+                                "showEUCostReport": false,
+                                "allowEventContract": true,
+                                "allowFXConv": true,
+                                "allowFinancialLens": false,
+                                "allowMTA": true,
+                                "allowTypeAhead": true,
+                                "allowEventTrading": true,
+                                "snapshotRefreshTimeout": 30,
+                                "liteUser": false,
+                                "showWebNews": true,
+                                "research": true,
+                                "debugPnl": true,
+                                "showTaxOpt": true,
+                                "showImpactDashboard": true,
+                                "allowDynAccount": false,
+                                "allowCrypto": false,
+                                "allowFA": false,
+                                "allowLiteUnderPro": false,
+                                "allowedAssetTypes": "STK,CFD,OPT,FOP,WAR,FUT,BAG,PDC,CASH,IND,BOND,BILL,FUND,SLB,News,CMDTY,IOPT,ICU,ICS,PHYSS,CRYPTO",
+                                "restrictTradeSubscription": false,
+                                "showUkUserLabels": true,
+                                "sideBySide": true
+                            },
+                            "chartPeriods": {
+                                "STK": [
+                                    "*"
+                                ],
+                                "CFD": [
+                                    "*"
+                                ],
+                                "OPT": [
+                                    "2h",
+                                    "1d",
+                                    "2d",
+                                    "1w",
+                                    "1m"
+                                ],
+                                "FOP": [
+                                    "2h",
+                                    "1d",
+                                    "2d",
+                                    "1w",
+                                    "1m"
+                                ],
+                                "WAR": [
+                                    "*"
+                                ],
+                                "IOPT": [
+                                    "*"
+                                ],
+                                "FUT": [
+                                    "*"
+                                ],
+                                "CASH": [
+                                    "*"
+                                ],
+                                "IND": [
+                                    "*"
+                                ],
+                                "BOND": [
+                                    "*"
+                                ],
+                                "FUND": [
+                                    "*"
+                                ],
+                                "CMDTY": [
+                                    "*"
+                                ],
+                                "PHYSS": [
+                                    "*"
+                                ],
+                                "CRYPTO": [
+                                    "*"
+                                ]
+                            },
+                            "groups": [],
+                            "profiles": [],
+                            "selectedAccount": "U3448646",
+                            "serverInfo": {
+                                "serverName": "JifZ06133",
+                                "serverVersion": "Build 10.50.1d, Oct 15, 2026 12:58:27 PM"
+                            },
+                            "sessionId": "6ae1768f.000001bf",
+                            "isFT": false,
+                            "isPaper": false
+                        }
+                    },
+                    {
+                        "topic": "system",
+                        "hb": 1793188646355
+                    },
+                    {
+                        "topic": "system",
+                        "hb": 1793188656355
+                    },
+                    {
+                        "topic": "system",
+                        "hb": 1793188666355
+                    },
+                    {
+                        "topic": "tic",
+                        "alive": true,
+                        "id": "9d08ed7efae1c18acfb1d5da3f1db19d",
+                        "lastAccessed": 1793188666441
+                    },
+                    {
+                        "topic": "tic",
+                        "alive": true,
+                        "id": "9d08ed7efae1c18acfb1d5da3f1db19d",
+                        "lastAccessed": 1793188666441
+                    },
+                    {
+                        "topic": "tic",
+                        "alive": true,
+                        "id": "9d08ed7efae1c18acfb1d5da3f1db19d",
+                        "lastAccessed": 1793188666441
+                    },
+                    {
+                        "topic": "tic",
+                        "alive": true,
+                        "id": "9d08ed7efae1c18acfb1d5da3f1db19d",
+                        "lastAccessed": 1793188666441
+                    },
+                    {
+                        "topic": "sor",
+                        "args": [
+                            {
+                                "acct": "U3448646",
+                                "orderId": 224312491,
+                                "sizeAndFills": "0.01",
+                                "orderDesc": "Sold 0.01 ETH Crypto Limit 2358.70, GTC",
+                                "remainingQuantity": 0,
+                                "filledQuantity": 0.01,
+                                "status": "Filled",
+                                "order_ccp_status": "Filled",
+                                "avgPrice": "2358.731313",
+                                "bgColor": "#FFFFFF",
+                                "fgColor": "#000000"
+                            }
+                        ]
+                    },
+                    {
+                        "topic": "system",
+                        "hb": 1793188676355
+                    },
+                    {
+                        "topic": "system",
+                        "hb": 1793188686355
+                    },
+                    {
+                        "topic": "system",
+                        "hb": 1793188696355
+                    },
+                    {
+                        "topic": "tic",
+                        "alive": true,
+                        "id": "9d08ed7efae1c18acfb1d5da3f1db19d",
+                        "lastAccessed": 1793188696361
+                    },
+                    {
+                        "topic": "tic",
+                        "alive": true,
+                        "id": "9d08ed7efae1c18acfb1d5da3f1db19d",
+                        "lastAccessed": 1793188696361
+                    },
+                    {
+                        "topic": "tic",
+                        "alive": true,
+                        "id": "9d08ed7efae1c18acfb1d5da3f1db19d",
+                        "lastAccessed": 1793188696361
+                    },
+                    {
+                        "topic": "tic",
+                        "alive": true,
+                        "id": "9d08ed7efae1c18acfb1d5da3f1db19d",
+                        "lastAccessed": 1793188696361
+                    },
+                    {
+                        "topic": "system",
+                        "hb": 1793188706355
+                    }
+                ],
+                "httpResponse": {
+                    "orders": [
+                        {
+                            "acct": "U3448646",
+                            "exchange": "PAXOS",
+                            "conidex": "495759171@PAXOS",
+                            "conid": 495759171,
+                            "account": "U3448646",
+                            "orderId": 1089555012,
+                            "cashCcy": "USD",
+                            "sizeAndFills": "0.01",
+                            "orderDesc": "Sold 0.01 ETH Crypto Limit 2361.25, GTC",
+                            "description1": "ETH",
+                            "ticker": "ETH",
+                            "secType": "CRYPTO",
+                            "remainingQuantity": 0,
+                            "filledQuantity": 0.01,
+                            "totalSize": 0.01,
+                            "companyName": "Ethereum cryptocurrency",
+                            "status": "Filled",
+                            "order_ccp_status": "Filled",
+                            "avgPrice": "2361.530073",
+                            "origOrderType": "LIMIT",
+                            "supportsTaxOpt": "1",
+                            "lastExecutionTime": "261028112545",
+                            "orderType": "Limit",
+                            "bgColor": "#FFFFFF",
+                            "fgColor": "#000000",
+                            "order_ref": "47470880",
+                            "isEventTrading": "0",
+                            "price": "2361.25",
+                            "timeInForce": "GTC",
+                            "lastExecutionTime_r": 1793186745000,
+                            "side": "SELL"
+                        },
+                        {
+                            "acct": "U3448646",
+                            "exchange": "PAXOS",
+                            "conidex": "495759171@PAXOS",
+                            "conid": 495759171,
+                            "account": "U3448646",
+                            "orderId": 224312491,
+                            "cashCcy": "USD",
+                            "sizeAndFills": "0/0.01",
+                            "orderDesc": "Sell 0.01 ETH Crypto Limit 2358.70, GTC",
+                            "description1": "ETH",
+                            "ticker": "ETH",
+                            "secType": "CRYPTO",
+                            "remainingQuantity": 0.01,
+                            "filledQuantity": 0,
+                            "totalSize": 0.01,
+                            "companyName": "Ethereum cryptocurrency",
+                            "status": "Submitted",
+                            "order_ccp_status": "Submitted",
+                            "origOrderType": "LIMIT",
+                            "supportsTaxOpt": "1",
+                            "lastExecutionTime": "261028115706",
+                            "orderType": "Limit",
+                            "bgColor": "#000000",
+                            "fgColor": "#00F000",
+                            "order_ref": "15099117",
+                            "isEventTrading": "0",
+                            "price": "2358.70",
+                            "timeInForce": "GTC",
+                            "lastExecutionTime_r": 1793188626000,
+                            "side": "SELL"
+                        },
+                        {
+                            "acct": "U3448646",
+                            "exchange": "PAXOS",
+                            "conidex": "495759171@PAXOS",
+                            "conid": 495759171,
+                            "account": "U3448646",
+                            "orderId": 1911471160,
+                            "cashCcy": "USD",
+                            "sizeAndFills": "0/0.01",
+                            "orderDesc": "Buy 0.01 ETH Crypto Limit 2000.00, GTC",
+                            "description1": "ETH",
+                            "ticker": "ETH",
+                            "secType": "CRYPTO",
+                            "remainingQuantity": 0.01,
+                            "filledQuantity": 0,
+                            "totalSize": 0,
+                            "companyName": "Ethereum cryptocurrency",
+                            "status": "Cancelled",
+                            "order_ccp_status": "Cancelled",
+                            "origOrderType": "LIMIT",
+                            "supportsTaxOpt": "1",
+                            "lastExecutionTime": "261028113613",
+                            "orderType": "Limit",
+                            "bgColor": "#FFFFFF",
+                            "fgColor": "#AA0000",
+                            "order_ref": "ccxt4835f11a860949bea59c8e",
+                            "isEventTrading": "0",
+                            "price": "2000.00",
+                            "timeInForce": "GTC",
+                            "lastExecutionTime_r": 1793187373000,
+                            "side": "BUY"
+                        },
+                        {
+                            "acct": "U3448646",
+                            "exchange": "PAXOS",
+                            "conidex": "495759171@PAXOS",
+                            "conid": 495759171,
+                            "account": "U3448646",
+                            "orderId": 1524547414,
+                            "cashCcy": "USD",
+                            "sizeAndFills": "0.01",
+                            "orderDesc": "Bought 0.01 ETH Crypto Limit 2359.50, GTC",
+                            "description1": "ETH",
+                            "ticker": "ETH",
+                            "secType": "CRYPTO",
+                            "remainingQuantity": 0,
+                            "filledQuantity": 0.01,
+                            "totalSize": 0.01,
+                            "companyName": "Ethereum cryptocurrency",
+                            "status": "Filled",
+                            "order_ccp_status": "Filled",
+                            "avgPrice": "2359.40",
+                            "origOrderType": "LIMIT",
+                            "supportsTaxOpt": "1",
+                            "lastExecutionTime": "261028115615",
+                            "orderType": "Limit",
+                            "bgColor": "#FFFFFF",
+                            "fgColor": "#000000",
+                            "order_ref": "24513781",
+                            "isEventTrading": "0",
+                            "price": "2359.50",
+                            "timeInForce": "GTC",
+                            "lastExecutionTime_r": 1793188575000,
+                            "side": "BUY"
+                        },
+                        {
+                            "acct": "U3448646",
+                            "exchange": "PAXOS",
+                            "conidex": "495759171@PAXOS",
+                            "conid": 495759171,
+                            "account": "U3448646",
+                            "orderId": 1916715686,
+                            "cashCcy": "USD",
+                            "sizeAndFills": "0.01",
+                            "orderDesc": "Bought 0.01 ETH Crypto Limit 2360.00, GTC",
+                            "description1": "ETH",
+                            "ticker": "ETH",
+                            "secType": "CRYPTO",
+                            "remainingQuantity": 0,
+                            "filledQuantity": 0.01,
+                            "totalSize": 0.01,
+                            "companyName": "Ethereum cryptocurrency",
+                            "status": "Filled",
+                            "order_ccp_status": "Filled",
+                            "avgPrice": "2359.50",
+                            "origOrderType": "LIMIT",
+                            "supportsTaxOpt": "1",
+                            "lastExecutionTime": "261028115538",
+                            "orderType": "Limit",
+                            "bgColor": "#FFFFFF",
+                            "fgColor": "#000000",
+                            "order_ref": "48385731",
+                            "isEventTrading": "0",
+                            "price": "2360.00",
+                            "timeInForce": "GTC",
+                            "lastExecutionTime_r": 1793188538000,
+                            "side": "BUY"
+                        },
+                        {
+                            "acct": "U3448646",
+                            "exchange": "PAXOS",
+                            "conidex": "495759171@PAXOS",
+                            "conid": 495759171,
+                            "account": "U3448646",
+                            "orderId": 1654571893,
+                            "cashCcy": "USD",
+                            "sizeAndFills": "0/0.01",
+                            "orderDesc": "Sell 0.01 ETH Crypto Limit 2362.10, GTC",
+                            "description1": "ETH",
+                            "ticker": "ETH",
+                            "secType": "CRYPTO",
+                            "remainingQuantity": 0.01,
+                            "filledQuantity": 0,
+                            "totalSize": 0,
+                            "companyName": "Ethereum cryptocurrency",
+                            "status": "Cancelled",
+                            "order_ccp_status": "Cancelled",
+                            "origOrderType": "LIMIT",
+                            "supportsTaxOpt": "1",
+                            "lastExecutionTime": "261028115524",
+                            "orderType": "Limit",
+                            "bgColor": "#FFFFFF",
+                            "fgColor": "#AA0000",
+                            "order_ref": "39653621",
+                            "isEventTrading": "0",
+                            "price": "2362.10",
+                            "timeInForce": "GTC",
+                            "lastExecutionTime_r": 1793188524000,
+                            "side": "SELL"
+                        },
+                        {
+                            "acct": "U3448646",
+                            "exchange": "PAXOS",
+                            "conidex": "495759171@PAXOS",
+                            "conid": 495759171,
+                            "account": "U3448646",
+                            "orderId": 1911471157,
+                            "cashCcy": "USD",
+                            "sizeAndFills": "0/0.01",
+                            "orderDesc": "Buy 0.01 ETH Crypto Limit 2000.00, GTC",
+                            "description1": "ETH",
+                            "ticker": "ETH",
+                            "secType": "CRYPTO",
+                            "remainingQuantity": 0.01,
+                            "filledQuantity": 0,
+                            "totalSize": 0,
+                            "companyName": "Ethereum cryptocurrency",
+                            "status": "Cancelled",
+                            "order_ccp_status": "Cancelled",
+                            "origOrderType": "LIMIT",
+                            "supportsTaxOpt": "1",
+                            "lastExecutionTime": "261028113355",
+                            "orderType": "Limit",
+                            "bgColor": "#FFFFFF",
+                            "fgColor": "#AA0000",
+                            "order_ref": "ccxta4c2c52110f9491d8b3692",
+                            "isEventTrading": "0",
+                            "price": "2000.00",
+                            "timeInForce": "GTC",
+                            "lastExecutionTime_r": 1793187235000,
+                            "side": "BUY"
+                        },
+                        {
+                            "acct": "U3448646",
+                            "exchange": "PAXOS",
+                            "conidex": "495759171@PAXOS",
+                            "conid": 495759171,
+                            "account": "U3448646",
+                            "orderId": 1911471154,
+                            "cashCcy": "USD",
+                            "sizeAndFills": "0/0.01",
+                            "orderDesc": "Buy 0.01 ETH Crypto Limit 2000.00, GTC",
+                            "description1": "ETH",
+                            "ticker": "ETH",
+                            "secType": "CRYPTO",
+                            "remainingQuantity": 0.01,
+                            "filledQuantity": 0,
+                            "totalSize": 0,
+                            "companyName": "Ethereum cryptocurrency",
+                            "status": "Cancelled",
+                            "order_ccp_status": "Cancelled",
+                            "origOrderType": "LIMIT",
+                            "supportsTaxOpt": "1",
+                            "lastExecutionTime": "261028113219",
+                            "orderType": "Limit",
+                            "bgColor": "#FFFFFF",
+                            "fgColor": "#AA0000",
+                            "order_ref": "ccxt83ef94d5565c4c16a9118c",
+                            "isEventTrading": "0",
+                            "price": "2000.00",
+                            "timeInForce": "GTC",
+                            "lastExecutionTime_r": 1793187139000,
+                            "side": "BUY"
+                        },
+                        {
+                            "acct": "U3448646",
+                            "exchange": "PAXOS",
+                            "conidex": "495759171@PAXOS",
+                            "conid": 495759171,
+                            "account": "U3448646",
+                            "orderId": 1595851410,
+                            "cashCcy": "USD",
+                            "sizeAndFills": "0.01",
+                            "orderDesc": "Bought 0.01 ETH Crypto Limit 2358.40, GTC",
+                            "description1": "ETH",
+                            "ticker": "ETH",
+                            "secType": "CRYPTO",
+                            "remainingQuantity": 0,
+                            "filledQuantity": 0.01,
+                            "totalSize": 0.01,
+                            "companyName": "Ethereum cryptocurrency",
+                            "status": "Filled",
+                            "order_ccp_status": "Filled",
+                            "avgPrice": "2358.40",
+                            "origOrderType": "LIMIT",
+                            "supportsTaxOpt": "1",
+                            "lastExecutionTime": "261028105148",
+                            "orderType": "Limit",
+                            "bgColor": "#FFFFFF",
+                            "fgColor": "#000000",
+                            "order_ref": "93238035",
+                            "isEventTrading": "0",
+                            "price": "2358.40",
+                            "timeInForce": "GTC",
+                            "lastExecutionTime_r": 1793184708000,
+                            "side": "BUY"
+                        },
+                        {
+                            "acct": "U3448646",
+                            "exchange": "PAXOS",
+                            "conidex": "495759171@PAXOS",
+                            "conid": 495759171,
+                            "account": "U3448646",
+                            "orderId": 1654571888,
+                            "cashCcy": "USD",
+                            "sizeAndFills": "0.01",
+                            "orderDesc": "Bought 0.01 ETH Crypto Limit 2362.20, GTC",
+                            "description1": "ETH",
+                            "ticker": "ETH",
+                            "secType": "CRYPTO",
+                            "remainingQuantity": 0,
+                            "filledQuantity": 0.01,
+                            "totalSize": 0.01,
+                            "companyName": "Ethereum cryptocurrency",
+                            "status": "Filled",
+                            "order_ccp_status": "Filled",
+                            "avgPrice": "2361.90",
+                            "origOrderType": "LIMIT",
+                            "supportsTaxOpt": "1",
+                            "lastExecutionTime": "261028115149",
+                            "orderType": "Limit",
+                            "bgColor": "#FFFFFF",
+                            "fgColor": "#000000",
+                            "order_ref": "51592231",
+                            "isEventTrading": "0",
+                            "price": "2362.20",
+                            "timeInForce": "GTC",
+                            "lastExecutionTime_r": 1793188309000,
+                            "side": "BUY"
+                        }
+                    ],
+                    "snapshot": true
+                },
+                "sentMessages": [
+                    "sor+{}",
+                    "tic",
+                    "tic"
+                ],
+                "parsedResponses": [
+                    [
+                        {
+                            "id": "224312491",
+                            "clientOrderId": "15099117",
+                            "timestamp": 1793188626000,
+                            "datetime": "2026-10-28T11:57:06.000Z",
+                            "lastTradeTimestamp": null,
+                            "lastUpdateTimestamp": null,
+                            "symbol": "ETH/USD",
+                            "type": "limit",
+                            "timeInForce": "GTC",
+                            "postOnly": false,
+                            "reduceOnly": null,
+                            "side": "sell",
+                            "price": 2358.7,
+                            "triggerPrice": null,
+                            "amount": 0.01,
+                            "cost": 23.58731313,
+                            "average": 2358.731313,
+                            "filled": 0.01,
+                            "remaining": 0,
+                            "status": "closed",
+                            "fee": null,
+                            "trades": [],
+                            "info": {
+                                "acct": "U3448646",
+                                "exchange": "PAXOS",
+                                "conidex": "495759171@PAXOS",
+                                "conid": 495759171,
+                                "account": "U3448646",
+                                "orderId": 224312491,
+                                "cashCcy": "USD",
+                                "sizeAndFills": "0.01",
+                                "orderDesc": "Sold 0.01 ETH Crypto Limit 2358.70, GTC",
+                                "description1": "ETH",
+                                "ticker": "ETH",
+                                "secType": "CRYPTO",
+                                "remainingQuantity": 0,
+                                "filledQuantity": 0.01,
+                                "totalSize": 0.01,
+                                "companyName": "Ethereum cryptocurrency",
+                                "status": "Filled",
+                                "order_ccp_status": "Filled",
+                                "origOrderType": "LIMIT",
+                                "supportsTaxOpt": "1",
+                                "lastExecutionTime": "261028115706",
+                                "orderType": "Limit",
+                                "bgColor": "#FFFFFF",
+                                "fgColor": "#000000",
+                                "order_ref": "15099117",
+                                "isEventTrading": "0",
+                                "price": "2358.70",
+                                "timeInForce": "GTC",
+                                "lastExecutionTime_r": 1793188626000,
+                                "side": "SELL",
+                                "avgPrice": "2358.731313"
+                            },
+                            "fees": [],
+                            "stopPrice": null,
+                            "takeProfitPrice": null,
+                            "stopLossPrice": null
+                        }
+                    ]
+                ]
+            }
+        ],
         "watchOrderBook": [
             {
                 "description": "crypto spot",
