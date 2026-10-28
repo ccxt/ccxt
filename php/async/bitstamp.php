@@ -2949,7 +2949,7 @@ class bitstamp extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $requestHeaders );
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
         if ($response === null) {
             return null;
         }
@@ -2985,8 +2985,8 @@ class bitstamp extends Exchange {
                     $errors[] = $all[$i];
                 }
             }
-            $code = $this->safe_string($response, 'code');
-            if ($code === 'API0005') {
+            $codeError = $this->safe_string($response, 'code');
+            if ($codeError === 'API0005') {
                 throw new AuthenticationError($this->id . ' invalid signature, use the uid for the main account if you have subaccounts');
             }
             $feedback = $this->id . ' ' . $body;

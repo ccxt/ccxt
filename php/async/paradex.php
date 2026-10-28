@@ -3743,7 +3743,7 @@ class paradex extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => null, 'headers' => null );
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
         if ($response === null) {
             return null; // fallback to default error handler
         }
@@ -3755,7 +3755,7 @@ class paradex extends Exchange {
         //     }
         //
         $errorCode = $this->safe_string($response, 'error');
-        if (($errorCode === null) && ($httpCode === 400)) {
+        if (($errorCode === null) && ($code === 400)) {
             //
             // a batch where every order was rejected, errors are index-aligned with the request
             //

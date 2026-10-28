@@ -3101,7 +3101,7 @@ class bitfinex extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersResolved );
     }
 
-    public function handle_errors(int $statusCode, string $statusText, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
         // ["error", 11010, "ratelimit: error"]
         if ($response !== null) {
             if ((gettype($response) !== 'array' || array_keys($response) !== array_keys(array_keys($response)))) {
@@ -3114,10 +3114,10 @@ class bitfinex extends Exchange {
         } elseif ($response === '') {
             throw new ExchangeError($this->id . ' returned empty response');
         }
-        if ($statusCode === 429) {
+        if ($code === 429) {
             throw new RateLimitExceeded($this->id . ' ' . $body);
         }
-        if ($statusCode === 500) {
+        if ($code === 500) {
             // See https://docs.bitfinex.com/docs/abbreviations-glossary#section-errorinfo-codes
             $errorCode = $this->safe_string($response, 1, '');
             $errorText = $this->safe_string($response, 2, '');

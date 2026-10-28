@@ -3280,7 +3280,7 @@ class limitless extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyValue, 'headers' => $headersValue );
     }
 
-    public function handle_errors(int $statusCode, string $statusText, string $url, string $method, array $responseHeaders, string $responseBody, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
         /**
          * @ignore
          * maps limitless error responses to ccxt exceptions
@@ -3288,17 +3288,17 @@ class limitless extends Exchange {
         if ($response === null) {
             return null;
         }
-        $statusCodeInt = $this->parse_to_int($statusCode);
+        $statusCodeInt = $this->parse_to_int($code);
         if (($statusCodeInt >= 200) && ($statusCodeInt < 300)) {
             return null;
         }
-        $feedback = $this->id . ' ' . $responseBody;
+        $feedback = $this->id . ' ' . $body;
         // the API returns either a string message or an array of field-validation errors
         $message = $this->safe_string($response, 'message');
         if ($message !== null) {
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
         }
-        $this->throw_broadly_matched_exception($this->exceptions['broad'], $responseBody, $feedback);
+        $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $feedback);
         // a 400 is a client-side bad request (bad params, or a business rule like "market not
         // resolved"), not a transport outage — throw BadRequest with the exchange message instead
         // of letting the base map the bare 400 to a retryable network-unavailable error

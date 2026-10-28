@@ -1438,7 +1438,7 @@ class pacifica extends \ccxt\async\pacifica {
         $wsHeaders = $this->safe_dict($wsOptions, 'options', array());
         $wsHeadersFinal = $this->safe_dict($wsHeaders, 'headers', array());
         try {
-            $this->handle_errors(0, $error, '', $postType, $wsHeadersFinal, $this->json($data), $message, array(), array());
+            $this->handle_errors(0, $error, '', $postType, $wsHeadersFinal, $this->json($data), $message, array(), '');
         } catch (Exception $e) {
             $client->reject($e, $id);
             return true;

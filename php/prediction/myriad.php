@@ -656,11 +656,11 @@ class myriad extends Exchange {
         ));
     }
 
-    public function fetch_trade_quote(?string $outcome, ?string $side, ?float $amount, $params = array()): PromiseInterface {
+    public function fetch_trade_quote(string $outcome, string $side, ?float $amount, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_trade_quote(...))($outcome, $side, $amount, $params);
     }
 
-    private function do_fetch_trade_quote(?string $outcome, ?string $side, ?float $amount, $params = array()) {
+    private function do_fetch_trade_quote(string $outcome, string $side, ?float $amount, $params = array()) {
         /**
          * fetches a trade quote — price, shares, fees and the on-chain calldata — for buying or selling an $outcome-> Myriad settles trades on-chain, so this returns the calldata to submit to the prediction-market contract rather than placing an off-chain order
          *
@@ -1076,11 +1076,11 @@ class myriad extends Exchange {
         return Async\await($this->create_orderbook_order($outcome, $type, $side, $amount, $price, $params));
     }
 
-    public function create_amm_order(string $outcome, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): PromiseInterface {
+    public function create_amm_order(string $outcome, ?string $type, string $side, ?float $amount, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_create_amm_order(...))($outcome, $type, $side, $amount, $price, $params);
     }
 
-    private function do_create_amm_order(string $outcome, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
+    private function do_create_amm_order(string $outcome, ?string $type, string $side, ?float $amount, ?float $price = null, $params = array()) {
         /**
          * @ignore
          * buys or sells $outcome shares by submitting the quote's $calldata as an on-chain AMM transaction. Requires a privateKey with gas . collateral on the market's network
@@ -1100,7 +1100,7 @@ class myriad extends Exchange {
         // would silently size `amount` as dollars (inconsistent with every other venue and the wiki).
         // route dollar-sizing through createMarketBuyOrderWithCost (which sets costDenominated); a
         // plain createOrder buy on the AMM is rejected so it can't misinterpret shares as collateral
-        $sideLower = ($side !== null) ? strtolower($side) : null;
+        $sideLower = strtolower($side);
         $isCostDenominated = $this->safe_bool($params, 'costDenominated', false);
         if (($sideLower === 'buy') && (!$isCostDenominated)) {
             throw new NotSupported($this->id . ' createOrder() market buy on the AMM sizes by collateral, not shares — use createMarketBuyOrderWithCost(outcome, collateral) for a dollar buy, or the default order book (omit enableAmm) for a share-denominated order');
@@ -2096,7 +2096,7 @@ class myriad extends Exchange {
         return Precise::string_div($decimalString, $scale);
     }
 
-    public function parse_trade_tx(?string $txHash, array $quote, array $market, ?string $side): array {
+    public function parse_trade_tx(?string $txHash, array $quote, array $market, string $side): array {
         return $this->safe_prediction_order(array(
             'id' => $txHash,
             'clientOrderId' => null,
@@ -4008,7 +4008,7 @@ class myriad extends Exchange {
         return strtolower($this->eth_get_address_from_private_key($this->privateKey));
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
         // Myriad error responses are { "error": "<message>", "details": [...] } with a 4xx status
         if ($response === null) {
             return null;

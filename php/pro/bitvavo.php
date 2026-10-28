@@ -2006,7 +2006,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         $messageHash = $this->safe_string($message, 'requestId', $buildMessage);
         $rejected = false;
         try {
-            $this->handle_errors($code, $error, $client->url, '', array(), $error, $message, array(), array());
+            $this->handle_errors($code, $error, $client->url, '', array(), $error, $message, array(), '');
         } catch (Exception $e) {
             $rejected = true;
             $client->reject($e, $messageHash);

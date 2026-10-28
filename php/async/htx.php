@@ -7978,7 +7978,7 @@ class htx extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersResolved );
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
         if ($response === null) {
             return null; // fallback to default error handler
         }
@@ -7989,10 +7989,10 @@ class htx extends Exchange {
             //
             $status = $this->safe_string($response, 'status');
             if ($status === 'error') {
-                $code = $this->safe_string_2($response, 'err-code', 'err_code');
+                $codeError = $this->safe_string_2($response, 'err-code', 'err_code');
                 $feedback = $this->id . ' ' . $body;
                 $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $feedback);
-                $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);
+                $this->throw_exactly_matched_exception($this->exceptions['exact'], $codeError, $feedback);
                 $message = $this->safe_string_2($response, 'err-msg', 'err_msg');
                 $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
                 throw new ExchangeError($feedback);
@@ -8001,8 +8001,8 @@ class htx extends Exchange {
         if (is_array($response) && array_key_exists('code' ?? '', $response)) {
             // {code: '1003', message: 'invalid signature'}
             $feedback = $this->id . ' ' . $body;
-            $code = $this->safe_string($response, 'code');
-            $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);
+            $codeError = $this->safe_string($response, 'code');
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $codeError, $feedback);
         }
         $data = $this->safe_dict($response, 'data');
         $errorsList = $this->safe_list($data, 'errors');

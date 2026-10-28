@@ -2472,7 +2472,7 @@ class okx extends \ccxt\async\okx {
         if ($this->is_empty($args)) {
             $method = $this->safe_string($message, 'op');
             $stringMsg = $this->json($message);
-            $this->handle_errors(1, '', $client->url, $method, array(), $stringMsg, $message, array(), array());
+            $this->handle_errors(1, '', $client->url, $method, array(), $stringMsg, $message, array(), '');
         }
         $orders = $this->parse_orders($args, null, null, null);
         $first = $this->safe_dict($orders, 0, array());
@@ -2675,7 +2675,7 @@ class okx extends \ccxt\async\okx {
         if ($this->is_empty($args)) {
             $method = $this->safe_string($message, 'op');
             $stringMsg = $this->json($message);
-            $this->handle_errors(1, '', $client->url, $method, array(), $stringMsg, $message, array(), array());
+            $this->handle_errors(1, '', $client->url, $method, array(), $stringMsg, $message, array(), '');
         }
         $orders = $this->parse_orders($args, null, null, null);
         $client->resolve($orders, $messageHash);

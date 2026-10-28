@@ -7575,7 +7575,7 @@ class bingx extends Exchange {
         $this->options['sandboxMode'] = $enable;
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
         if ($response === null) {
             return null; // fallback to default error handler
         }
@@ -7587,16 +7587,16 @@ class bingx extends Exchange {
         //        }
         //    }
         //
-        $code = $this->safe_string($response, 'code');
+        $codeError = $this->safe_string($response, 'code');
         $message = $this->safe_string($response, 'msg');
         $transferErrorMsg = $this->safe_string($response, 'transferErrorMsg'); // handling with errors from transfer endpoint
-        if (($transferErrorMsg !== null) || ($code !== null && $code !== '0')) {
+        if (($transferErrorMsg !== null) || ($codeError !== null && $codeError !== '0')) {
             if ($transferErrorMsg !== null) {
                 $message = $transferErrorMsg;
             }
             $feedback = $this->id . ' ' . $body;
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
-            $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $codeError, $feedback);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
             throw new ExchangeError($feedback); // unknown message
         }

@@ -2091,7 +2091,7 @@ class bitso extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $requestHeaders );
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
         if ($response === null) {
             return null; // fallback to default error handler
         }
@@ -2106,8 +2106,8 @@ class bitso extends Exchange {
                 if ($error === null) {
                     throw new ExchangeError($feedback);
                 }
-                $code = $this->safe_string($error, 'code');
-                $this->throw_exactly_matched_exception($this->exceptions, $code, $feedback);
+                $codeError = $this->safe_string($error, 'code');
+                $this->throw_exactly_matched_exception($this->exceptions, $codeError, $feedback);
                 throw new ExchangeError($feedback);
             }
         }

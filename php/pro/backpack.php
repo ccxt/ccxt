@@ -778,10 +778,9 @@ class backpack extends \ccxt\async\backpack {
         $topics = array();
         $messageHashes = array();
         for ($i = 0; $i < $symbolsLength; $i++) {
-            $symbolAndTimeframe = $this->safe_list($symbolsAndTimeframes, $i);
-            $marketId = $this->safe_string($symbolAndTimeframe, 0);
+            $marketId = $this->safe_string($this->safe_list($symbolsAndTimeframes, $i), 0);
             $market = $this->market($marketId);
-            $tf = $this->safe_string($symbolAndTimeframe, 1);
+            $tf = $this->safe_string($this->safe_list($symbolsAndTimeframes, $i), 1, '');
             $interval = $this->safe_string($this->timeframes, $tf, $tf);
             $this->ws_venue_market_id('watchOHLCVForSymbols', $market, $query);
             $topics[] = 'kline.' . $interval . '.' . $this->safe_string($market, 'id', '');
@@ -823,10 +822,9 @@ class backpack extends \ccxt\async\backpack {
         $topics = array();
         $messageHashes = array();
         for ($i = 0; $i < $symbolsLength; $i++) {
-            $symbolAndTimeframe = $this->safe_list($symbolsAndTimeframes, $i);
-            $marketId = $this->safe_string($symbolAndTimeframe, 0);
+            $marketId = $this->safe_string($this->safe_list($symbolsAndTimeframes, $i), 0);
             $market = $this->market($marketId);
-            $tf = $this->safe_string($symbolAndTimeframe, 1);
+            $tf = $this->safe_string($this->safe_list($symbolsAndTimeframes, $i), 1, '');
             $interval = $this->safe_string($this->timeframes, $tf, $tf);
             $this->ws_venue_market_id('watchOHLCVForSymbols', $market, $query);
             $topics[] = 'kline.' . $interval . '.' . $this->safe_string($market, 'id', '');

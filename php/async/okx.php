@@ -9890,7 +9890,7 @@ class okx extends Exchange {
         return $result;
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
         if ($response === null) {
             return null; // fallback to default error handler
         }
@@ -9914,8 +9914,8 @@ class okx extends Exchange {
         //        "msg": "Incorrect trade password"
         //    }
         //
-        $code = $this->safe_string($response, 'code');
-        if (($code !== '0') && ($code !== '2')) { // 2 means that bulk operation partially succeeded
+        $codeError = $this->safe_string($response, 'code');
+        if (($codeError !== '0') && ($codeError !== '2')) { // 2 means that bulk operation partially succeeded
             $feedback = $this->id . ' ' . $body;
             $data = $this->safe_list($response, 'data', array());
             for ($i = 0; $i < count($data); $i++) {
@@ -9925,7 +9925,7 @@ class okx extends Exchange {
                 $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
                 $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
             }
-            $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $codeError, $feedback);
             throw new ExchangeError($feedback); // unknown message
         }
         return null;

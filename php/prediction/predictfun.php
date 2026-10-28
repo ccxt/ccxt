@@ -2687,19 +2687,19 @@ class predictfun extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function handle_errors(?int $statusCode, string $statusText, string $url, string $method, array $responseHeaders, string $responseBody, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
         /**
          * @ignore
          * maps the venue's $error slugs and messages onto the unified exceptions
-         * @param {int} $statusCode the http status code
-         * @param {string} $statusText the http status text
+         * @param {int} $code the http status $code
+         * @param {string} $reason the http status text
          * @param {string} $url the request $url
          * @param {string} $method the http $method
-         * @param {array} $responseHeaders the $response headers
-         * @param {string} $responseBody the raw $response body
+         * @param {array} $headers the $response $headers
+         * @param {string} $body the raw $response $body
          * @param {array} $response the parsed $response
-         * @param {array} $requestHeaders the request headers
-         * @param {array} $requestBody the request body
+         * @param {array} $requestHeaders the request $headers
+         * @param {array} $requestBody the request $body
          * @return {null} nothing, it throws when the venue reported a failure
          */
         if ($response === null) {
@@ -2709,7 +2709,7 @@ class predictfun extends Exchange {
         if ($success) {
             return null;
         }
-        $feedback = $this->id . ' ' . $responseBody;
+        $feedback = $this->id . ' ' . $body;
         // the message is matched first because it is the more specific of the two: several
         // distinct failures share a generic slug, notably 'unauthorized', which the venue also
         // returns for a hash belonging to another wallet, and 'not_found' for an unknown market
@@ -2719,7 +2719,7 @@ class predictfun extends Exchange {
         // order - that case is matched above and has already thrown, so reaching here with a 401
         // means the credential itself was refused. drop the cached JWT, otherwise a token revoked
         // or aged out before its window closes is replayed for the life of the process
-        if ($statusCode === 401) {
+        if ($code === 401) {
             $this->options['jwtToken'] = null;
             $this->options['jwtTokenExpiresAt'] = 0;
         }
@@ -2727,7 +2727,7 @@ class predictfun extends Exchange {
         $this->throw_exactly_matched_exception($this->exceptions['exact'], $error, $feedback);
         // a 400 is a rejected request or a business rule, not a transport outage - the base would
         // otherwise map the bare status onto a retryable network error
-        if ($statusCode === 400) {
+        if ($code === 400) {
             throw new BadRequest($feedback);
         }
         throw new ExchangeError($feedback);

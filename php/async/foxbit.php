@@ -2222,12 +2222,12 @@ class foxbit extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $headersValue );
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
         if ($response === null) {
             return null;
         }
         $error = $this->safe_dict($response, 'error');
-        $code = $this->safe_string($error, 'code');
+        $codeError = $this->safe_string($error, 'code');
         $details = $this->safe_list($error, 'details');
         $message = $this->safe_string($error, 'message', '');
         $detailsString = '';
@@ -2240,7 +2240,7 @@ class foxbit extends Exchange {
             $feedback = $this->id . ' ' . $message . ' details => ' . $detailsString;
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $detailsString, $feedback);
-            $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $codeError, $feedback);
             throw new ExchangeError($feedback);
         }
         return null;

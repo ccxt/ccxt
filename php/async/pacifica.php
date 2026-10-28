@@ -3853,7 +3853,7 @@ class pacifica extends Exchange {
         throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires address either as "exchange.walletAddress = ..." or as parameter or "address" in params');
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
         if ($response === null) {
             return null; // fallback to default error handler
         }

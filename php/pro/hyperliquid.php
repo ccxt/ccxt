@@ -1765,7 +1765,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
             return true;
         }
         try {
-            $this->handle_errors(0, '', '', '', array(), $this->json($payload), $payload, array(), array());
+            $this->handle_errors(0, '', '', '', array(), $this->json($payload), $payload, array(), '');
         } catch (Exception $e) {
             $client->reject($e, $id);
             return true;

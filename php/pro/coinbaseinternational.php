@@ -1265,7 +1265,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         $marketId = $this->safe_string($parts, 1);
         $market = $this->safe_market($marketId);
         $symbol = $this->safe_string($market, 'symbol', '');
-        if (!(is_array($this->trades) && array_key_exists($symbol ?? '', $this->trades))) {
+        if ($symbol !== null && !(is_array($this->trades) && array_key_exists($symbol ?? '', $this->trades))) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
             $tradesArrayCache = new ArrayCache($limit);
             $this->trades[$symbol] = $tradesArrayCache;

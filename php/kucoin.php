@@ -1860,8 +1860,7 @@ class kucoin extends Exchange {
             );
         }
         if ($fetchContractMarkets) {
-            $contractMarkets = $this->safe_list($responses, $contractIndex, array());
-            $result = $this->array_concat($result, $contractMarkets);
+            $result = $this->array_concat($result, $this->safe_list($responses, $contractIndex, array()));
         }
         if ($this->safe_bool($this->options, 'adjustForTimeDifference', false)) {
             $this->load_time_difference();
@@ -2340,9 +2339,8 @@ class kucoin extends Exchange {
             //
             $response = $this->publicGetCurrencies($paramsUta);
         }
-        $currenciesData = $this->safe_list($response, 'data', array());
         $brokenCurrencies = $this->handle_option('fetchCurrencies', 'brokenCurrencies', array());
-        $filteredCurrencies = $this->filter_out_by_array($currenciesData, 'currency', $brokenCurrencies); // remove broken entries
+        $filteredCurrencies = $this->filter_out_by_array($this->safe_list($response, 'data', array()), 'currency', $brokenCurrencies); // remove broken entries
         return $this->parse_currencies($filteredCurrencies);
     }
 
@@ -2431,8 +2429,7 @@ class kucoin extends Exchange {
             //         }
             //     }
             //
-            $dataDict = $this->safe_dict($response, 'data', array());
-            $data = array( $dataDict );
+            $data = array( $this->safe_dict($response, 'data', array()) );
         } else {
             //
             //     {
@@ -4701,8 +4698,9 @@ class kucoin extends Exchange {
         }
         $isSpot = false;
         $isContract = false;
-        for ($i = 0; $i < count($orders); $i++) {
-            $order = $this->safe_dict($orders, $i);
+        $ordersList = $this->to_array($orders);
+        for ($i = 0; $i < count($ordersList); $i++) {
+            $order = $this->safe_dict($ordersList, $i);
             $symbol = $this->safe_string($order, 'symbol');
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' createOrders() requires a symbol for each order');
@@ -4744,8 +4742,9 @@ class kucoin extends Exchange {
         }
         $ordersRequests = array();
         $symbol = null;
-        for ($i = 0; $i < count($orders); $i++) {
-            $rawOrder = $this->safe_dict($orders, $i);
+        $ordersList = $this->to_array($orders);
+        for ($i = 0; $i < count($ordersList); $i++) {
+            $rawOrder = $this->safe_dict($ordersList, $i);
             $marketId = $this->safe_string($rawOrder, 'symbol');
             if ($marketId === null) {
                 throw new ArgumentsRequired($this->id . ' createOrders() requires a symbol for each order');
@@ -4834,8 +4833,9 @@ class kucoin extends Exchange {
             $this->load_markets();
         }
         $ordersRequests = array();
-        for ($i = 0; $i < count($orders); $i++) {
-            $rawOrder = $this->safe_dict($orders, $i);
+        $ordersList = $this->to_array($orders);
+        for ($i = 0; $i < count($ordersList); $i++) {
+            $rawOrder = $this->safe_dict($ordersList, $i);
             $symbol = $this->safe_string($rawOrder, 'symbol');
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' createOrders() requires a symbol for each order');
@@ -11029,8 +11029,9 @@ class kucoin extends Exchange {
                 'clientOid' => $this->safe_string($clientOrderIds, $i),
             );
         }
-        for ($i = 0; $i < count($ids); $i++) {
-            $orderId = $this->safe_string($ids, $i);
+        $idsList = $this->to_array($ids);
+        for ($i = 0; $i < count($idsList); $i++) {
+            $orderId = $this->safe_string($idsList, $i);
             if ($uta) {
                 $ordersRequests[] = array(
                     'orderId' => $orderId,
@@ -11873,7 +11874,7 @@ class kucoin extends Exchange {
         return array( 'url' => $apiUrl . $endpoint, 'method' => $method, 'body' => $bodyJson, 'headers' => $headersResult );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
         if (($response === null) || ($response === null)) {
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $body);
             return null;
@@ -11885,9 +11886,8 @@ class kucoin extends Exchange {
         //     { code: '200000', data: { ... }}
         //
         $errorCode = $this->safe_string($response, 'code');
-        $message = $this->safe_string_2($response, 'msg', 'data', '');
         $feedback = $this->id . ' ' . $body;
-        $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
+        $this->throw_exactly_matched_exception($this->exceptions['exact'], $this->safe_string_2($response, 'msg', 'data', ''), $feedback);
         $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
         $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $feedback);
         if ($errorCode !== '200000' && $errorCode !== '200') {

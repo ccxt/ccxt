@@ -3223,7 +3223,7 @@ class bullish extends Exchange {
         }
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
         if ($response === null) {
             return null; // fallback to default error handler
         }
@@ -3240,9 +3240,9 @@ class bullish extends Exchange {
         //             "errorCodeName": "ORDER_SIZE_OUTSIDE_VALID_RANGE"
         //         }
         //
-        $code = $this->safe_string($response, 'errorCode');
+        $codeError = $this->safe_string($response, 'errorCode');
         $type = $this->safe_string($response, 'type');
-        if (($code !== null && $code !== '0' && $code !== '1001') || ($type !== null && $type === 'HttpInvalidParameterException')) {
+        if (($codeError !== null && $codeError !== '0' && $codeError !== '1001') || ($type !== null && $type === 'HttpInvalidParameterException')) {
             $message = '';
             $errorCodeName = $this->safe_string($response, 'errorCodeName');
             if ($errorCodeName !== null) {
@@ -3253,7 +3253,7 @@ class bullish extends Exchange {
             $feedback = $this->id . ' ' . $body;
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
-            $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $codeError, $feedback);
             throw new ExchangeError($feedback); // unknown message
         }
         return null;

@@ -3852,7 +3852,7 @@ class hitbtc extends Exchange {
         return array( $marginMode, $paramsMarginMode );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
         //
         //     {
         //       "error": {

@@ -4951,20 +4951,20 @@ class digifinex extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => null, 'headers' => null );
     }
 
-    public function handle_errors(int $statusCode, string $statusText, string $url, string $method, array $responseHeaders, string $responseBody, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
         if ($response === null) {
             return null; // fall back to default error handler
         }
-        $code = $this->safe_string($response, 'code');
-        if (($code === '0') || ($code === '200')) {
+        $codeError = $this->safe_string($response, 'code');
+        if (($codeError === '0') || ($codeError === '200')) {
             return null; // no error
         }
-        $feedback = $this->id . ' ' . $responseBody;
-        if ($code === null) {
+        $feedback = $this->id . ' ' . $body;
+        if ($codeError === null) {
             throw new BadResponse($feedback);
         }
         $unknownError = array( '\\ccxt\\ExchangeError', $feedback );
-        list($ExceptionClass, $message) = $this->safe_value($this->exceptions['exact'], $code, $unknownError);
+        list($ExceptionClass, $message) = $this->safe_value($this->exceptions['exact'], $codeError, $unknownError);
         throw new $ExceptionClass($message);
     }
 }

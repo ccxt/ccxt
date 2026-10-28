@@ -1210,7 +1210,7 @@ class bitbank extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersResolved );
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
         if ($response === null) {
             return null;
         }
@@ -1279,9 +1279,9 @@ class bitbank extends Exchange {
                 '70009' => 'We are currently temporarily restricting orders to be carried out. Please use the limit order.',
                 '70010' => 'We are temporarily raising the minimum order quantity as the system load is now rising.',
             );
-            $code = $this->safe_string($data, 'code');
-            $message = $this->safe_string($errorMessages, $code, 'Error');
-            $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $message);
+            $codeError = $this->safe_string($data, 'code');
+            $message = $this->safe_string($errorMessages, $codeError, 'Error');
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $codeError, $message);
             throw new ExchangeError($this->id . ' ' . $this->json($response));
         }
         return null;
