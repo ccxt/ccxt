@@ -1472,7 +1472,7 @@ func (this *Binance) HandleOrderBook(client any, message map[string]any) {
 						var conditional bool
 						if timestamp == nil {
 							// 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1
-							conditional = (ccxt.IsLessThanOrEqual((*U - 1), nonce)) && (ccxt.IsGreaterThanOrEqual((*u - 1), nonce))
+							conditional = ((*U - 1) <= *nonce) && ((*u - 1) >= *nonce)
 						} else {
 							// 6. While listening to the stream, each new event's U should be equal to the previous event's u+1.
 							conditional = (ccxt.IsEqual((*U - 1), nonce))
