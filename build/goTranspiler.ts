@@ -13379,6 +13379,8 @@ function g10kMiscSetDefaults (content: string): string {
 function g10kMiscFunc (fn: string): string {
     fn = fn.replace (/(?<![\w.])(?:ccxt\.)?ParseInt\("(\d{1,18})"\)/g, (_m: string, d: string) => 'int64(' + BigInt (d).toString () + ')');
     fn = fn.replace (/(?<![\w.])(?:ccxt\.)?StringArg\((\w+)\)/g, (m: string, x: string) => ((goG14DeclaredType (fn, x) === 'string') ? x : m));
+    // ClientInterface.GetUrl() is declared `string` (go/v4/exchange_client.go), so StringArg of it is the value itself
+    fn = fn.replace (/(?<![\w.])(?:ccxt\.)?StringArg\((client\.\((?:ccxt\.)?ClientInterface\)\.GetUrl\(\))\)/g, '$1');
     fn = fn.replace (/(?<![\w.])(?:ccxt\.)?EvalTruthy\(this\.SafeBool\(((?:[^()"]|"(?:[^"\\]|\\.)*"|\((?:[^()"]|"(?:[^"\\]|\\.)*")*\))*), (true|false)\)\)/g,
         (_m: string, args: string, def: string) => '*this.SafeBool(' + args + ', ' + def + ')');
     return fn;
@@ -13402,6 +13404,8 @@ function g10kMiscSelfTest (): string[] {
     ok (f ('', '\t_ = ParseInt(\"-1\")\n').includes ('ParseInt("-1")'), 'signed literal keeps ParseInt');
     ok (f ('side string', '\tthis.F(ccxt.StringArg(side))\n').includes ('this.F(side)'), 'string StringArg');
     ok (f ('side any', '\tthis.F(ccxt.StringArg(side))\n').includes ('StringArg(side)'), 'any StringArg kept');
+    ok (f ('client any', '\tthis.F(ccxt.StringArg(client.(ccxt.ClientInterface).GetUrl()))\n').includes ('this.F(client.(ccxt.ClientInterface).GetUrl())'), 'GetUrl StringArg');
+    ok (f ('client any', '\tthis.F(ccxt.StringArg(client.(ccxt.ClientInterface).GetName()))\n').includes ('StringArg(client.'), 'other client call kept');
     ok (f ('side string', '\tside := 1\n\tthis.F(StringArg(side))\n').includes ('StringArg(side)'), 'shadowed StringArg kept');
     ok (f ('', '\tif EvalTruthy(this.SafeBool(this.SafeDict(m, \"info\"), \"hip3\", false)) {\n\t}\n').includes ('if *this.SafeBool(this.SafeDict(m, "info"), "hip3", false) {'), 'defaulted SafeBool');
     ok (f ('', '\tif EvalTruthy(this.SafeBool(m, \"k\")) {\n\t}\n').includes ('EvalTruthy(this.SafeBool(m, "k"))'), 'nullable SafeBool kept');
