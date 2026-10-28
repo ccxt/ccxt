@@ -18,6 +18,9 @@ public partial class poloniex : ccxt.poloniex
                 { "watchTickers", true },
                 { "watchTrades", true },
                 { "watchTradesForSymbols", true },
+                { "unWatchOHLCV", true },
+                { "unWatchTrades", true },
+                { "unWatchTradesForSymbols", true },
                 { "watchBalance", true },
                 { "watchStatus", false },
                 { "watchOrders", true },
@@ -192,6 +195,28 @@ public partial class poloniex : ccxt.poloniex
         }
         Dictionary<string, object> request = this.extend(subscribe, parameters);
         return await this.watch(url, symbolsHash, request, symbolsHash);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @description unsubscribes from a public websocket channel
+     * @param {string} name name of the channel
+     * @param {string[]} symbols CCXT market symbols
+     * @param {string[]} messageHashes unique identifiers resolved once the exchange acknowledges the unsubscribe
+     * @param {object} [params] extra parameters specific to the poloniex api
+     * @returns {object} true once the exchange acknowledges the unsubscribe
+     */
+    public async virtual Task<object> unSubscribe(object name, object symbols, object messageHashes, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        string? url = ((string)getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"));
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "event", "unsubscribe" },
+            { "channel", new List<object>() {name} },
+            { "symbols", this.marketIds(symbols) },
+        };
+        return await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes);
     }
 
     /**
@@ -438,6 +463,36 @@ public partial class poloniex : ccxt.poloniex
 
     /**
      * @method
+     * @name poloniex#unWatchOHLCV
+     * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://api-docs.poloniex.com/spot/websocket/market-data#candlesticks
+     * @param {string} symbol unified symbol of the market to unwatch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    public async override Task<object> unWatchOHLCV(object symbol, string timeframe = null, object parameters = null)
+    {
+        string timeframeVar = timeframe;
+        timeframeVar ??= "1m";
+        parameters ??= new Dictionary<string, object>();
+        if ((this.markets == null))
+        {
+            await this.loadMarkets();
+        }
+        IDictionary<string, object> timeframes = this.safeDict(this.options, "timeframes", new Dictionary<string, object>() {});
+        string? channel = this.safeString(timeframes, timeframeVar, timeframeVar);
+        if ((channel == null))
+        {
+            throw new BadRequest ((string)((this.id + " unWatchOHLCV cannot take a timeframe of ") + (timeframeVar))) ;
+        }
+        Dictionary<string, object> market = this.market(symbol);
+        string messageHash = ((("unsubscribe:" + channel) + "::") + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
+        return await this.unSubscribe(channel, new List<object>() {(market.ContainsKey("symbol") ? market["symbol"] : null)}, new List<object>() {messageHash}, parameters);
+    }
+
+    /**
+     * @method
      * @name poloniex#watchTicker
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @see https://api-docs.poloniex.com/spot/websocket/market-data#ticker
@@ -545,6 +600,47 @@ public partial class poloniex : ccxt.poloniex
             limitResolved = ((Int64?)trades.getLimit(tradeSymbol, limit));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
+    }
+
+    /**
+     * @method
+     * @name poloniex#unWatchTrades
+     * @description unWatches the list of most recent trades for a particular symbol
+     * @see https://api-docs.poloniex.com/spot/websocket/market-data#trades
+     * @param {string} symbol unified symbol of the market to unwatch trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    public async override Task<object> unWatchTrades(string? symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        return await this.unWatchTradesForSymbols(new List<object>() {symbol}, parameters);
+    }
+
+    /**
+     * @method
+     * @name poloniex#unWatchTradesForSymbols
+     * @description unWatches the list of most recent trades for a list of symbols
+     * @see https://api-docs.poloniex.com/spot/websocket/market-data#trades
+     * @param {string[]} symbols unified symbols of the markets to unwatch trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    public async override Task<object> unWatchTradesForSymbols(IList<object> symbols, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if ((this.markets == null))
+        {
+            await this.loadMarkets();
+        }
+        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false, true, true);
+        string name = "trades";
+        List<object> messageHashes = new List<object>() {};
+        for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
+        {
+            messageHashes.Add(((("unsubscribe:" + name) + "::") + (symbolsNormalized[i])));
+        }
+        return await this.unSubscribe(name, symbolsNormalized, messageHashes, parameters);
     }
 
     /**
@@ -1465,6 +1561,11 @@ public partial class poloniex : ccxt.poloniex
         {
             client.lastPong = this.milliseconds();
         }
+        if (eventVar == "unsubscribe")
+        {
+            this.handleUnsubscription(client, message);
+            return;
+        }
         Dictionary<string, object> methods = new Dictionary<string, object>() {
             { "candles_minute_1", this.handleOHLCV },
             { "candles_minute_5", this.handleOHLCV },
@@ -1505,6 +1606,41 @@ public partial class poloniex : ccxt.poloniex
             if (dataLength > 0)
             {
                 DynamicInvoker.InvokeMethod(method, new object[] { client, message});
+            }
+        }
+    }
+
+    public virtual void handleUnsubscription(WebSocketClient client, object message)
+    {
+        //
+        //    {
+        //        "event": "unsubscribe",
+        //        "channel": "trades",
+        //        "symbols": [ "ETH_USDT", "BTC_USDT" ]
+        //    }
+        //
+        object channel = this.safeString(message, "channel");
+        List<object> marketIds = this.safeList(message, "symbols", new List<object>() {});
+        IDictionary<string, object> timeframes = this.safeDict(this.options, "timeframes", new Dictionary<string, object>() {});
+        string? timeframe = this.findTimeframe(channel, timeframes);
+        for (int i = 0; i < marketIds.Count; i++)
+        {
+            string? symbol = this.safeSymbol(this.safeString(marketIds, i));
+            string? subMessageHash = ((string)add(add(channel, "::"), symbol));
+            if ((channel is "trades"))
+            {
+                this.cleanCache(new Dictionary<string, object>() {
+                    { "topic", "trades" },
+                    { "symbols", new List<object>() {symbol} },
+                });
+                this.cleanUnsubscription(client, subMessageHash, ("unsubscribe:" + subMessageHash));
+            } else if ((timeframe != null))
+            {
+                this.cleanCache(new Dictionary<string, object>() {
+                    { "topic", "ohlcv" },
+                    { "symbolsAndTimeframes", new List<object>() {new List<object>() {symbol, timeframe}} },
+                });
+                this.cleanUnsubscription(client, subMessageHash, ("unsubscribe:" + subMessageHash));
             }
         }
     }
