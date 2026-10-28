@@ -573,22 +573,23 @@ impl CoinbaseCore {
         let mut timestamp: Value = self.number_to_string(self.seconds());
         self.check_required_credentials(&[]);
         let mut isCloudAPiKey: bool = (Value::Int(self.apiKey.as_str().and_then(|__s| __s.find("organizations/")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64)) || (self.secret.as_str().is_some_and(|__s| __s.starts_with("-----BEGIN")));
+        let mut isV2CloudAPiKey: Value = self.parent.is_eddsa_api_key();
         let mut auth: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", timestamp, name).into()), Value::Str(productIds.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into())).into());
-        if !isCloudAPiKey {
+        if !isCloudAPiKey && !is_true(&isV2CloudAPiKey) {
             if let Value::Dict(__d) = &mut subscribe { std::sync::Arc::make_mut(__d).insert("api_key".into(), self.apiKey.clone()); }
             if let Value::Dict(__d) = &mut subscribe { std::sync::Arc::make_mut(__d).insert("timestamp".into(), timestamp); }
             if let Value::Dict(__d) = &mut subscribe { std::sync::Arc::make_mut(__d).insert("signature".into(), self.hmac(self.encode(auth), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[])); }
         }  else {
-            if (self.apiKey.as_str().is_some_and(|__s| __s.starts_with("-----BEGIN"))) {
+            if isCloudAPiKey && (self.apiKey.as_str().is_some_and(|__s| __s.starts_with("-----BEGIN"))) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" apiKey should contain the name (eg: organizations/3b910e93....) and not the public key".into()))));
             }
             let mut currentToken: Option<String> = self.safe_string_k(self.options.clone(), "wsToken", &[]).as_str().map(str::to_owned);
             let mut tokenTimestamp: Value = self.safe_integer_k(self.options.clone(), "wsTokenTimestamp", &[Value::Int(0)]);
             let mut seconds: Value = self.seconds();
-            let mut tokenExpiry: Value = (match (&(tokenTimestamp), &(Value::Int(120))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
+            let mut tokenExpiry: Value = (match (&(tokenTimestamp), &(Value::Int(90))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
             if (currentToken.is_none()) || tokenExpiry.as_f64().unwrap_or(f64::NAN) < seconds.as_f64().unwrap_or(f64::NAN) {
                 // we should generate new token
-                let mut token: Value = self.parent.create_auth_token(seconds.clone(), &[]);
+                let mut token: Value = self.parent.create_auth_token(seconds.clone(), &[Value::Null, Value::Null, self.parent.is_eddsa_api_key()]);
                 if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsToken".into(), token); }
                 if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsTokenTimestamp".into(), seconds); }
             }
