@@ -128,6 +128,38 @@ function hx10G10NilGuarded (key: string, maskedBody: string[], siteLine: number)
     return false;
 }
 
+// an earlier `if k == nil {` (or `|| ...`) whose block ends in return/panic/continue and has closed before
+// the site proves k non-nil there, provided nothing in the func ever rebinds or address-takes k
+function hx10G10ExitGuarded (key: string, maskedBody: string[], siteLine: number, declLine: number): boolean {
+    const guard = new RegExp ('^\\s*if \\(?' + key + ' == nil\\)?(?: \\|\\| [^{]*)? \\{$');
+    const write = [ new RegExp ('(?<![\\w.*&])' + key + '\\s*(?:,\\s*\\w+\\s*)*:?=(?!=)'), new RegExp (',\\s*' + key + '\\s*:?=(?!=)'), new RegExp ('&' + key + '\\b'), new RegExp ('func\\([^)]*\\b' + key + '\\b') ];
+    if (maskedBody.some ((line, i) => (i !== declLine) && write.some (w => w.test (line)))) {
+        return false;
+    }
+    const siteDepth = hx10G10DepthBefore (maskedBody, siteLine);
+    for (let k = 1; k < siteLine; k++) {
+        const depth = hx10G10DepthBefore (maskedBody, k);
+        if ((depth > siteDepth) || !guard.test (maskedBody[k])) {
+            continue;
+        }
+        let close = k + 1;
+        while ((close < siteLine) && !(maskedBody[close].trimStart ().startsWith ('}') && (hx10G10DepthBefore (maskedBody, close) === depth + 1))) {
+            close++;
+        }
+        if ((close >= siteLine) || (maskedBody[close].trim () !== '}') || !hx10G10BlockStillOpen (maskedBody, close, siteLine, depth - 1)) {
+            continue; // the site sits inside the guard block, an else arm follows, or the enclosing block closed
+        }
+        let last = close - 1;
+        while ((last > k) && (maskedBody[last].trim () === '')) {
+            last--;
+        }
+        if ((hx10G10DepthBefore (maskedBody, last) === depth + 1) && /^\s*(?:return\b.*|panic\(.*\)|continue)$/.test (maskedBody[last])) {
+            return true;
+        }
+    }
+    return false;
+}
+
 // the key as Go prints it: a string literal, a `string` local, or a `*string` local some earlier
 // deref or enclosing nil guard proves non-nil (a nil key would have panicked or been skipped there)
 function hx10G10Key (maskedBody: string[], decls: Map<string, Decl>, key: string, siteLine: number): string | undefined {
@@ -144,7 +176,7 @@ function hx10G10Key (maskedBody: string[], decls: Map<string, Decl>, key: string
     if (decl.type !== '*string') {
         return undefined;
     }
-    if (hx10G10NilGuarded (key, maskedBody, siteLine)) {
+    if (hx10G10NilGuarded (key, maskedBody, siteLine) || hx10G10ExitGuarded (key, maskedBody, siteLine, decl.line)) {
         return '*' + key;
     }
     const deref = new RegExp ('(?<![\\w*.])[*]' + key + '\\b');
@@ -486,6 +518,15 @@ export function hx10G10SelfTest (): string[] {
     ok (f ('s string', '\tif _, ok := this.Trades[s]; ok {\n\t}\n\tif ccxt.InOp(this.Orderbooks, s) {\n\t}\n').indexOf ('if _, ok := this.Orderbooks[s]; ok {') >= 0, 'an if-local ok does not block the rewrite');
     ok (f ('s string', '\tvar ok bool = true\n\tif ccxt.InOp(this.Orderbooks, s) {\n\t}\n').indexOf ('InOp(this.Orderbooks, s)') >= 0, 'a func-level ok keeps the helper');
     ok (f ('symbol string, timeframe *string', '\tif (timeframe != nil) && (ccxt.InOp(this.Ohlcvs[symbol], timeframe)) {\n\t}\n').indexOf ('InOp(this.Ohlcvs[symbol], timeframe)') >= 0, 'a lookup ahead of its own nil guard keeps InOp');
+    // an earlier `if k == nil { return }` proves the key for later lookups; a rebind, a guard that falls
+    // through, or a site inside the guard block keeps the helper
+    const exitGuard = (guard: string, tail: string) => f ('', '\tvar symbol *string = this.SafeString(m, \"s\")\n' + guard + tail + '\tif ccxt.InOp(this.Orderbooks, symbol) {\n\t}\n');
+    ok (exitGuard ('\tif symbol == nil {\n\t\treturn\n\t}\n', '').indexOf ('if _, ok := this.Orderbooks[*symbol]; ok {') >= 0, 'an exiting nil guard proves the key');
+    ok (exitGuard ('\tif symbol == nil {\n\t\tcontinue\n\t}\n', '').indexOf ('if _, ok := this.Orderbooks[*symbol]; ok {') >= 0, 'a continue guard proves the key');
+    ok (exitGuard ('\tif symbol == nil {\n\t\tx()\n\t}\n', '').indexOf ('InOp(this.Orderbooks, symbol)') >= 0, 'a guard that falls through keeps InOp');
+    ok (exitGuard ('\tif symbol == nil {\n\t\treturn\n\t}\n', '\tsymbol = this.SafeString(m, \"t\")\n').indexOf ('InOp(this.Orderbooks, symbol)') >= 0, 'a rebound key keeps InOp');
+    ok (exitGuard ('\tif symbol == nil {\n\t\treturn\n\t} else {\n\t\tx()\n\t}\n', '').indexOf ('InOp(this.Orderbooks, symbol)') >= 0, 'a guard with an else arm keeps InOp');
+    ok (f ('symbol *string', '\tif symbol == nil {\n\t\tif ccxt.InOp(this.Orderbooks, symbol) {\n\t\t}\n\t\treturn\n\t}\n').indexOf ('InOp(this.Orderbooks, symbol)') >= 0, 'a site inside the guard block keeps InOp');
     // the printer's *sync.Map arms
     ok (f ('sym string', '\tthis.Orderbooks.Store(sym, this.OrderBook())\n').indexOf ('\tthis.Orderbooks[sym] = this.OrderBook()') >= 0, 'Store goes native');
     ok (f ('sym string', '\tthis.Orderbooks.Delete(sym)\n').indexOf ('\tdelete(this.Orderbooks, sym)') >= 0, 'Delete goes native');
