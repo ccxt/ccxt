@@ -6,7 +6,6 @@ import { getStarkKey, ethSigToPrivate, sign as starknetCurveSign } from '@scure/
 import { sha256 } from '@noble/hashes/sha2.js';
 import { sha1 } from '@noble/hashes/legacy.js';
 import * as functions from './functions.js';
-import crypto from 'node:crypto';
 
 // import {
 //     // keys as keysFunc,
@@ -50,6 +49,7 @@ import type { Market, Trade, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, B
 // move this elsewhere.
 import { ArrayCache, ArrayCacheByTimestamp } from './ws/Cache.js';
 import { totp } from './functions/totp.js';
+import { decryptPrivateKey } from './functions/crypto-decrypt.js';
 import { abiEncode, TypedDataEncoder } from './functions/ethabi.js';
 import init, * as zklink from '../static_dependencies/zklink/zklink-sdk-web.js';
 import * as Starknet from './functions/starknet.js';
@@ -528,6 +528,7 @@ export class BaseExchange {
     binaryToBase16 = binaryToBase16;
     numberToBE = numberToBE;
     base16ToBinary = base16ToBinary;
+    decryptPrivateKey = decryptPrivateKey;
     iso8601 = iso8601;
     omit = omit;
     isJsonEncodedObject = isJsonEncodedObject;
@@ -2443,11 +2444,6 @@ export class BaseExchange {
         }
         return this.base16ToBinary (hex);
     }
-
-    decryptPrivateKey (encryptionPrivKey: string, encryptionSecret: string) {
-        return crypto.privateDecrypt ({ 'key': encryptionPrivKey, 'padding': crypto.constants.RSA_PKCS1_PADDING }, this.base64ToBinary (encryptionSecret));
-    }
-
 
     intToBase16 (elem: any): string {
         return elem.toString (16);

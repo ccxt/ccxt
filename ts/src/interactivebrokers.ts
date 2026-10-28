@@ -951,14 +951,6 @@ export default class interactivebrokers extends Exchange {
         await this.authenticate ();
         return await super.loadMarkets (reload, params);
     }
- 
-    async test1() {
-        await this.loadServiceAccounts ();
-        // const res1 = await this.privateGetTrsrvSecdef ({conids:'479624278'});
-        // const res2 = await this.webapiGetV1ApiTrsrvAllConids ({exchange:'PAXOS'});
-        const res = await this.fetchFutureMarkets ();
-        return res;
-    }
 
     /**
      * @method
@@ -1351,8 +1343,8 @@ export default class interactivebrokers extends Exchange {
             //
             //     [ { "ticker": "AAPL", "conid": 265598, "exchange": "NMS" } ]
             //
-            for (let j = 0; j < stocks.length; j++) {
-                const stock = stocks[j];
+            for (let k = 0; k < stocks.length; k++) {
+                const stock = stocks[k];
                 const stockConid = this.safeString (stock, 'conid');
                 if (stockConid !== undefined) {
                     entries[stockConid] = stock;
@@ -1585,7 +1577,7 @@ export default class interactivebrokers extends Exchange {
         await this.loadMarkets ();
         const symbolsNormalized = this.marketSymbols (symbols);
         const [ fields, query ] = this.handleOptionAndParams (params, 'fetchTickers', 'fields') as any[];
-        const fieldsString = fields.join(',');
+        const fieldsString = fields.join (',');
         const response = await this.ibkrFetchSnapshot (symbolsNormalized, fieldsString, query);
         //
         //     [
