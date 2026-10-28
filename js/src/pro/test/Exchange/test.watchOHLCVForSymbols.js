@@ -12,7 +12,7 @@ async function testWatchOHLCVForSymbols(exchange, skippedProperties, symbol) {
     let now = exchange.milliseconds();
     const ends = now + 15000;
     const timeframeKeys = Object.keys(exchange.timeframes);
-    assert(timeframeKeys.length, exchange.id + ' ' + method + ' - no timeframes found');
+    assert(timeframeKeys.length > 0, exchange.id + ' ' + method + ' - no timeframes found');
     // prefer 1m timeframe if available, otherwise return the first one
     let chosenTimeframeKey = '1m';
     if (!exchange.inArray(chosenTimeframeKey, timeframeKeys)) {
@@ -40,7 +40,7 @@ async function testWatchOHLCVForSymbols(exchange, skippedProperties, symbol) {
             success = false;
         }
         now = exchange.milliseconds();
-        if ((success === true) && (response !== undefined)) {
+        if ((success) && (response !== undefined)) {
             const assertionMessage = exchange.id + ' ' + method + ' ' + symbol + ' ' + chosenTimeframeKey + ' | ' + exchange.json(response);
             assert(exchange.isDictionary(response), 'Response must be a dictionary. ' + assertionMessage);
             assert(symbol in response, 'Response should contain the symbol as key. ' + assertionMessage);

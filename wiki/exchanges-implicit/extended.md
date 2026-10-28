@@ -1,6 +1,6 @@
 Every endpoint in `extended`'s `api` definition is exposed as an **implicit method** — a thin, generated wrapper around the raw exchange endpoint. Use these for exchange-specific functionality the [CCXT API](/docs/exchanges/extended) does not cover.
 
-These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C#, Go and Java. Call them by the camelCase name shown in the tables below (e.g. `v1PublicGetInfoMarkets`); the snake_case alias (`v1_public_get_info_markets`) also works in JavaScript, Python and PHP, and Go uses the PascalCase form (`V1PublicGetInfoMarkets`). Switch tabs for the call in each language:
+These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C#, Go and Java. Call them by the camelCase name shown in the tables below (e.g. `v1PublicGetInfoMarkets`); Python and PHP use the snake_case form (`v1_public_get_info_markets`), and Go uses the PascalCase form (`V1PublicGetInfoMarkets`). Switch tabs for the call in each language:
 
 <!-- tabs:start -->
 
@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official extended API documentation:** [api.docs.extended.exchange](https://api.docs.extended.exchange)
 
-> 51 implicit endpoints across 1 access group.
+> 69 implicit endpoints across 1 access group.
 
 ## v1
 
@@ -71,6 +71,8 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `v1PublicGetInfoMarketFunding` | GET | `info/{market}/funding` | 1 |
 | `v1PublicGetInfoMarketOpenInterests` | GET | `info/{market}/open-interests` | 1 |
 | `v1PublicGetInfoBuilderDashboard` | GET | `info/builder/dashboard` | 1 |
+| `v1PublicGetInterestInfoRateCurves` | GET | `interest/info/rate-curves` | 1 |
+| `v1PublicGetInterestInfoLatestRateCurves` | GET | `interest/info/latest-rate-curves` | 1 |
 | `v1PrivateGetUserAccounts` | GET | `user/accounts` | 1 |
 | `v1PrivateGetUserAccountInfo` | GET | `user/account/info` | 1 |
 | `v1PrivateGetUserBalance` | GET | `user/balance` | 1 |
@@ -97,10 +99,26 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `v1PrivateGetUserRewardsLeaderboardStats` | GET | `user/rewards/leaderboard/stats` | 1 |
 | `v1PrivateGetPortfolioChartsEquities` | GET | `portfolio/charts/equities` | 1 |
 | `v1PrivateGetPortfolioChartsPnl` | GET | `portfolio/charts/pnl` | 1 |
+| `v1PrivateGetPortfolioChartsPnlPercentage` | GET | `portfolio/charts/pnl/percentage` | 1 |
+| `v1PrivateGetPortfolioChartsPnlCumulative` | GET | `portfolio/charts/pnl/cumulative` | 1 |
+| `v1PrivateGetPortfolioChartsPnlCumulativePercentage` | GET | `portfolio/charts/pnl/cumulative/percentage` | 1 |
+| `v1PrivateGetPortfolioChartsVaultEquities` | GET | `portfolio/charts/vault-equities` | 1 |
+| `v1PrivateGetPortfolioChartsMaxDrawdown` | GET | `portfolio/charts/max-drawdown` | 1 |
+| `v1PrivateGetPortfolioChartsFunding` | GET | `portfolio/charts/funding` | 1 |
+| `v1PrivateGetPortfolioAccountsSummary` | GET | `portfolio/accounts/summary` | 1 |
+| `v1PrivateGetPortfolioAccountsHealth` | GET | `portfolio/accounts/health` | 1 |
+| `v1PrivateGetPortfolioAccountsPerformance` | GET | `portfolio/accounts/performance` | 1 |
+| `v1PrivateGetPortfolioFundingStats` | GET | `portfolio/funding/stats` | 1 |
+| `v1PrivateGetPortfolioFundingHistory` | GET | `portfolio/funding/history` | 1 |
 | `v1PrivateGetVaultPublicPerformance` | GET | `vault/public/performance` | 1 |
 | `v1PrivateGetVaultPublicSummary` | GET | `vault/public/summary` | 1 |
 | `v1PrivateGetBuilderTrades` | GET | `builder/trades` | 1 |
+| `v1PrivateGetInterestKeyMetrics` | GET | `interest/key-metrics` | 1 |
+| `v1PrivateGetInterestDailyMetrics` | GET | `interest/daily-metrics` | 1 |
+| `v1PrivateGetInterestPaymentChart` | GET | `interest/payment-chart` | 1 |
+| `v1PrivateGetInterestPayments` | GET | `interest/payments` | 1 |
 | `v1PrivatePostUserOrder` | POST | `user/order` | 1 |
+| `v1PrivatePostUserOrderRfq` | POST | `user/order/rfq` | 1 |
 | `v1PrivatePostUserOrderMassCancel` | POST | `user/order/massCancel` | 1 |
 | `v1PrivatePostUserDeadmanswitch` | POST | `user/deadmanswitch` | 1 |
 | `v1PrivatePostUserBridgeQuote` | POST | `user/bridge/quote` | 1 |

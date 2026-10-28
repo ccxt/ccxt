@@ -1,6 +1,6 @@
 ---
 title: "CCXT 문서"
-description: "CCXT — JavaScript, Python, PHP, C#, Go 및 Java의 100개 이상 암호화폐 거래소를 위한 통합 API."
+description: "CCXT — JavaScript, Python, PHP, C#, Go, Java 및 Rust의 100개 이상 암호화폐 거래소를 위한 통합 API."
 ---
 
 CCXT 위키에 오신 것을 환영합니다!
@@ -21,6 +21,7 @@ CCXT 위키에 오신 것을 환영합니다!
   - [C#](/docs/install#netc)
   - [Go](/docs/install#go)
   - [Java](/docs/install#java)
+  - [Rust](/docs/install#rust)
   - [웹 브라우저](/docs/install#web-browsers)
   - [Docker](/docs/install#docker)
   - [프록시](/docs/install#proxy)

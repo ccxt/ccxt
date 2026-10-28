@@ -5,13 +5,14 @@ package io.github.ccxt.types;
 
 import java.util.Map;
 
-public final class CancellationRequest {
+public final class CancellationRequest extends TypedMap {
     public String id;
     public String clientOrderId;
     public String symbol;
 
     @SuppressWarnings("unchecked")
     public CancellationRequest(Object raw) {
+        super(raw);
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.id = TypeHelper.safeString(data, "id");
         this.clientOrderId = TypeHelper.safeString(data, "clientOrderId");

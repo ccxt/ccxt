@@ -3,7 +3,6 @@ import assert from 'assert';
 import ccxt from '../../../ccxt.js';
 import testSharedMethods from '../Exchange/base/test.sharedMethods.js';
 
-
 function helperTestInitThrottler () {
     const exchange = new ccxt.Exchange ({
         'id': 'sampleexchange',
@@ -31,11 +30,11 @@ function helperTestSandboxState (exchange: any, expectEnabled = true) {
     assert ('test' in exchange.urls);
     const isSandboxModeEnabled = testSharedMethods.exchangeProp (exchange, 'isSandboxModeEnabled');
     if (expectEnabled) {
-        assert (isSandboxModeEnabled);
+        assert (isSandboxModeEnabled === true);
         assert (exchange.urls['api']['public'] === 'https://testnet.org');
         assert (exchange.urls['apiBackup']['public'] === 'https://example.com');
     } else {
-        assert (!isSandboxModeEnabled);
+        assert (isSandboxModeEnabled !== true);
         assert (exchange.urls['api']['public'] === 'https://example.com');
         assert (exchange.urls['test']['public'] === 'https://testnet.org');
     }
@@ -72,6 +71,16 @@ function helperTestInitSandbox () {
     helperTestSandboxState (exchange4, true);
     exchange4.setSandboxMode (false);
     helperTestSandboxState (exchange4, false);
+    //
+    // CASE C: passed 'sandbox' within userConfig
+    //
+    opts['options']['sandbox'] = false;
+    // @ts-expect-error
+    opts['sandbox'] = true;
+    const exchange5 = new ccxt.Exchange (opts);
+    helperTestSandboxState (exchange5, true);
+    exchange5.setSandboxMode (false);
+    helperTestSandboxState (exchange5, false);
 }
 
 function helperTestInitMarket () {
@@ -104,13 +113,6 @@ function helperTestProperties () {
     // options
     //
     assert (exchange.options !== undefined);
-    // const defaultNetworkCodeReplacements = [
-    //     { 'baseCoin': 'ETH', 'primary': 'ETH', 'secondary': 'ERC20' },
-    //     { 'baseCoin': 'CRO', 'primary': 'CRONOS', 'secondary': 'CRC20' },
-    //     { 'baseCoin': 'TRX', 'primary': 'TRX', 'secondary': 'TRC20' },
-    //     { 'baseCoin': 'BTC', 'primary': 'BTC', 'secondary': 'BRC20' },
-    // ];
-    // testSharedMethods.assertDeepEqual (exchange, {}, 'options', exchange.options['defaultNetworkCodeReplacements'], defaultNetworkCodeReplacements);
 
     //
     // credentials
@@ -194,9 +196,9 @@ function helperTestProperties () {
     assert (testSharedMethods.exchangeProp (exchange, 'enableRateLimit') === true, 'enableRateLimit should be true');
     assert (testSharedMethods.exchangeProp (exchange, 'rateLimiterAlgorithm') === 'leakyBucket', 'rateLimiterAlgorithm should be "leakyBucket"');
     assert (testSharedMethods.exchangeProp (exchange, 'rateLimit') === 2000, 'rateLimit should be 2000');
-    assert (exchange.certified === false, 'certified should be false');
-    assert (exchange.pro === false, 'pro should be false');
-    assert (exchange.alias === false, 'alias should be false');
+    assert (!exchange.certified, 'certified should be false');
+    assert (!exchange.pro, 'pro should be false');
+    assert (!exchange.alias, 'alias should be false');
     const httpExceptionKeys = [ '400', '401', '403', '404', '405', '407', '408', '409', '410', '418', '422', '429', '451', '500', '501', '502', '503', '504', '511', '520', '521', '522', '525', '526', '530' ];
     // php errors with below, bcz integer key cast
     // testSharedMethods.assertDeepEqual (exchange, {}, 'httpExceptionKeys', Object.keys (testSharedMethods.exchangeProp (exchange, 'httpExceptions')), httpExceptionKeys); // todo: add better deepAssert with error classes
@@ -255,9 +257,9 @@ function helperTestProperties () {
     };
     testSharedMethods.assertDeepEqual (exchange, {}, 'status', exchange.status, status);
     assert (exchange.timeout === 10000, 'timeout should be 10000');
-    assert (exchange.verbose === false, 'verbose should be false');
+    assert (!exchange.verbose, 'verbose should be false');
     // assert (testSharedMethods.exchangeProp (exchange, 'newUpdates') === true, 'newUpdates should be true'); // todo WS
-    assert (!testSharedMethods.exchangeProp (exchange, 'reloadingMarkets'), 'reloadingMarkets should be false');
+    assert (testSharedMethods.exchangeProp (exchange, 'reloadingMarkets') !== true, 'reloadingMarkets should be false');
     assert (testSharedMethods.exchangeProp (exchange, 'marketsLoading') === undefined, 'marketsLoading should be undefined');
     // undefined or false
     assert (exchange.version === undefined, 'version should be undefined');

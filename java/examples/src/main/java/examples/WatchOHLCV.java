@@ -37,7 +37,7 @@ public class WatchOHLCV {
         System.out.println("-".repeat(82));
 
         for (int i = 0; i < 15; i++) {
-            List<OHLCV> candles = exchange.watchOHLCV(symbol, timeframe, null, null, null);
+            List<OHLCV> candles = exchange.watchOHLCV(symbol, timeframe, null, null, null).join();
 
             // Print the latest candle
             if (!candles.isEmpty()) {

@@ -31,7 +31,7 @@ public partial class BaseTest
             // AssertDeepEqual (exchange, undefined, 'sort', exchange.sort ([ 1.5, 0.5, 2.5 ]), [ 0.5, 1.5, 2.5 ]);
             // AssertDeepEqual (exchange, undefined, 'sort', exchange.sort ([ 3.3, 1.1, 2.2 ]), [ 1.1, 2.2, 3.3 ]);
             // immutability - original array should not be modified
-            object original = new List<object>() {"b", "a", "c"};
+            List<object> original = new List<object>() {"b", "a", "c"};
             exchange.sort(original);
             AssertDeepEqual(exchange, null, "sort", original, new List<object>() {"b", "a", "c"});
         }

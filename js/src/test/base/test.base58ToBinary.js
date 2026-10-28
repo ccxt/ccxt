@@ -4,6 +4,7 @@
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
+// AUTO_TRANSPILE_ENABLED
 import assert from 'assert';
 import ccxt from '../../../ccxt.js';
 function testBase58ToBinary() {

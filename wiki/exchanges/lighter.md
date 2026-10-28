@@ -17,6 +17,7 @@
 * [fetchTickers](#fetchtickers)
 * [fetchOHLCV](#fetchohlcv)
 * [fetchFundingRates](#fetchfundingrates)
+* [fetchBalance](#fetchbalance)
 * [fetchPosition](#fetchposition)
 * [fetchPositions](#fetchpositions)
 * [fetchAccounts](#fetchaccounts)
@@ -27,6 +28,7 @@
 * [fetchDeposits](#fetchdeposits)
 * [fetchWithdrawals](#fetchwithdrawals)
 * [withdraw](#withdraw)
+* [fetchTrades](#fetchtrades)
 * [fetchMyTrades](#fetchmytrades)
 * [setLeverage](#setleverage)
 * [setMarginMode](#setmarginmode)
@@ -325,6 +327,29 @@ lighter.fetchFundingRates (symbols?, params?)
 ```
 
 
+<a name="fetchBalance" id="fetchbalance"></a>
+
+### fetchBalance{docsify-ignore}
+query for balance and get the amount of funds available for trading or funds locked in orders
+
+**Kind**: instance method of [<code>lighter</code>](#lighter)  
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
+
+**See**: https://apidocs.lighter.xyz/reference/account-1  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.by | <code>string</code> | No | fetch balance by 'index' or 'l1_address', defaults to 'index' |
+| params.value | <code>string</code> | No | fetch balance value, account index or l1 address |
+| params.type | <code>string</code> | No | 'spot', 'swap', default is 'swap' |
+
+
+```javascript
+lighter.fetchBalance (params?)
+```
+
+
 <a name="fetchPosition" id="fetchposition"></a>
 
 ### fetchPosition{docsify-ignore}
@@ -558,15 +583,38 @@ make a withdrawal
 | code | <code>string</code> | Yes | unified currency code |
 | amount | <code>float</code> | Yes | the amount to withdraw |
 | address | <code>string</code> | Yes | the address to withdraw to |
-| tag | <code>string</code> | No |  |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.tag | <code>string</code> | No | memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies'] |
 | params.accountIndex | <code>string</code> | No | account index |
 | params.apiKeyIndex | <code>string</code> | No | api key index |
 | params.routeType | <code>int</code> | No | wallet type, 0: perp, 1: spot, default is 0 |
 
 
 ```javascript
-lighter.withdraw (code, amount, address, tag?, params?)
+lighter.withdraw (code, amount, address, params?)
+```
+
+
+<a name="fetchTrades" id="fetchtrades"></a>
+
+### fetchTrades{docsify-ignore}
+get the list of most recent trades for a particular symbol
+
+**Kind**: instance method of [<code>lighter</code>](#lighter)  
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
+
+**See**: https://apidocs.lighter.xyz/reference/recenttrades  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch trades for |
+| since | <code>int</code> | No | timestamp in ms of the earliest trade to fetch |
+| limit | <code>int</code> | No | the maximum amount of trades to fetch, default 100, max 100 |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+lighter.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -852,7 +900,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the ticker for |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the ticker for, swap markets only, the market_stats channel does not serve spot markets |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
@@ -873,7 +921,7 @@ unWatches a price ticker, a statistical calculation with the information calcula
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the ticker for |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the ticker for, swap markets only, the market_stats channel does not serve spot markets |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
@@ -894,9 +942,8 @@ watches a price ticker, a statistical calculation with the information calculate
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code> | No | unified symbol of the market to fetch the ticker for |
+| symbols | <code>Array&lt;string&gt;</code> | No | unified symbols of the markets to fetch the ticker for, swap markets only, the market_stats channel does not serve spot markets |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.channel | <code>string</code> | No | the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers |
 
 
 ```javascript
@@ -916,7 +963,7 @@ unWatches a price ticker, a statistical calculation with the information calcula
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code> | No | unified symbol of the market to fetch the ticker for |
+| symbols | <code>Array&lt;string&gt;</code> | No | unified symbols of the markets to fetch the ticker for, swap markets only, the market_stats channel does not serve spot markets |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
@@ -1082,14 +1129,15 @@ lighter.watchMyTrades (symbol?, since?, limit?, params?)
 unsubscribe from the account trades channel
 
 **Kind**: instance method of [<code>lighter</code>](#lighter)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
+**Returns**: <code>any</code> - status of the unwatch request
 
 **See**: https://apidocs.lighter.xyz/docs/websocket-reference#account-all-trades  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | No | unified market symbol |
+| symbol | <code>string</code> | No | not supported by lighter.unWatchMyTrades, the account trades channel covers every market |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.accountIndex | <code>string</code> | No | account index |
 
 
 ```javascript

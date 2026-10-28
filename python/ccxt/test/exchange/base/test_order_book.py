@@ -62,7 +62,7 @@ def test_order_book(exchange, skipped_properties, method, orderbook, symbol):
             test_shared_methods.assert_greater(exchange, skipped_properties, method, asks[i], 0, '0')
             test_shared_methods.assert_greater(exchange, skipped_properties, method, asks[i], 1, '0')
     if not ('spread' in skipped_properties):
-        if bids_length and asks_length:
+        if (bids_length > 0) and (asks_length > 0):
             first_bid = exchange.safe_string(bids[0], 0)
             first_ask = exchange.safe_string(asks[0], 0)
             # check bid-ask spread

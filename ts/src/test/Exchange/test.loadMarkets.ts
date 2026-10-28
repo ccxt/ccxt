@@ -30,7 +30,7 @@ async function testLoadMarkets (exchange: Exchange, skippedProperties: object) {
     }
     for (let i = 0; i < marketTypes.length; i++) {
         const mType = marketTypes[i];
-        if (exchange.has[mType]) {
+        if (exchange.has[mType] !== undefined && exchange.has[mType] !== false) {
             const skipMarketTypes = ('optionsNotLoadedByDefault' in skippedProperties) && mType === 'option';
             assert (exchange.inArray (mType, collectedTypes) || skipMarketTypes, 'exchange.has[' + mType + '] is true, but no markets of type ' + mType + ' were found in exchange.markets');
         } else if (exchange.has[mType] === false) {

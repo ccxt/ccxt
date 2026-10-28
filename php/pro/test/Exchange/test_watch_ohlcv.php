@@ -17,7 +17,7 @@ function test_watch_ohlcv($exchange, $skipped_properties, $symbol) {
         $now = $exchange->milliseconds();
         $ends = $now + 15000;
         $timeframe_keys = is_array($exchange->timeframes) ? array_keys($exchange->timeframes) : array();
-        assert(count($timeframe_keys), $exchange->id . ' ' . $method . ' - no timeframes found');
+        assert(count($timeframe_keys) > 0, $exchange->id . ' ' . $method . ' - no timeframes found');
         // prefer 1m timeframe if available, otherwise return the first one
         $chosen_timeframe_key = '1m';
         if (!$exchange->in_array($chosen_timeframe_key, $timeframe_keys)) {
@@ -44,7 +44,7 @@ function test_watch_ohlcv($exchange, $skipped_properties, $symbol) {
                 $success = false;
             }
             $now = $exchange->milliseconds();
-            if (($success === true) && ($response !== null)) {
+            if (($success) && ($response !== null)) {
                 assert_non_emtpy_array($exchange, $skipped_properties, $method, $response, $symbol);
                 for ($i = 0; $i < count($response); $i++) {
                     test_ohlcv($exchange, $skipped_properties, $method, $response[$i], $symbol, $now);

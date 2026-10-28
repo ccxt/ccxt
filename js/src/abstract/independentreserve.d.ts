@@ -1,6 +1,6 @@
 import { List, Dict } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
-interface Exchange {
+declare abstract class Exchange extends _Exchange {
     publicGetGetValidPrimaryCurrencyCodes(params?: {}): Promise<List>;
     publicGetGetValidSecondaryCurrencyCodes(params?: {}): Promise<List>;
     publicGetGetValidLimitOrderTypes(params?: {}): Promise<List>;
@@ -14,6 +14,8 @@ interface Exchange {
     publicGetGetRecentTrades(params?: {}): Promise<Dict>;
     publicGetGetFxRates(params?: {}): Promise<List>;
     publicGetGetOrderMinimumVolumes(params?: {}): Promise<Dict>;
+    publicGetGetDepositFees(params?: {}): Promise<List>;
+    publicGetGetFiatWithdrawalFees(params?: {}): Promise<List>;
     publicGetGetCryptoWithdrawalFees(params?: {}): Promise<Dict>;
     publicGetGetCryptoWithdrawalFees2(params?: {}): Promise<List>;
     publicGetGetNetworks(params?: {}): Promise<List>;
@@ -30,17 +32,20 @@ interface Exchange {
     privatePostGetDigitalCurrencyDepositAddresses(params?: {}): Promise<Dict>;
     privatePostGetDigitalCurrencyDepositAddresses2(params?: {}): Promise<Dict>;
     privatePostGetTrades(params?: {}): Promise<Dict>;
+    privatePostGetTradesByOrder(params?: {}): Promise<Dict>;
     privatePostGetBrokerageFees(params?: {}): Promise<List>;
     privatePostGetDigitalCurrencyWithdrawal(params?: {}): Promise<Dict>;
+    privatePostGetFiatWithdrawal(params?: {}): Promise<Dict>;
+    privatePostGetDepositLimits(params?: {}): Promise<Dict>;
+    privatePostGetWithdrawalLimits(params?: {}): Promise<Dict>;
     privatePostPlaceLimitOrder(params?: {}): Promise<Dict>;
     privatePostPlaceMarketOrder(params?: {}): Promise<Dict>;
     privatePostCancelOrder(params?: {}): Promise<Dict>;
+    privatePostCancelOrders(params?: {}): Promise<Dict>;
     privatePostSynchDigitalCurrencyDepositAddressWithBlockchain(params?: {}): Promise<Dict>;
     privatePostRequestFiatWithdrawal(params?: {}): Promise<Dict>;
     privatePostWithdrawFiatCurrency(params?: {}): Promise<Dict>;
     privatePostWithdrawDigitalCurrency(params?: {}): Promise<Dict>;
     privatePostWithdrawCrypto(params?: {}): Promise<Dict>;
-}
-declare abstract class Exchange extends _Exchange {
 }
 export default Exchange;

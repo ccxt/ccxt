@@ -6,7 +6,7 @@ import Exchange from './abstract/bydfi.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, ExchangeError, InsufficientFunds, NotSupported, PermissionDenied, RateLimitExceeded } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Bool, Currency, Dict, Fee, FeeString, FundingRate, FundingRateHistory, Int, int, Leverage, List, MarginMode, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Trade, Transaction, TransferEntry, Ticker, Tickers, PositionModeInfo, Endpoint } from './base/types.js';
+import type { Balances, Currency, Dict, Fee, FeeString, FundingRate, FundingRateHistory, Int, int, Leverage, List, MarginMode, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Trade, Transaction, TransferEntry, Ticker, Tickers, PositionModeInfo, Endpoint } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -226,6 +226,12 @@ export default class bydfi extends Exchange {
                         'v1/fapi/trade/history_trade': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/fapi/trade/position_history': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/fapi/trade/positions': { 'cost': 1 } as Endpoint<Dict>,
+                        'v2/fapi/trade/open_order': { 'cost': 1 } as Endpoint<Dict>,
+                        'v2/fapi/trade/plan_order': { 'cost': 1 } as Endpoint<Dict>,
+                        'v2/fapi/trade/history_order': { 'cost': 1 } as Endpoint<Dict>,
+                        'v2/fapi/trade/history_trade': { 'cost': 1 } as Endpoint<Dict>,
+                        'v2/fapi/trade/position_history': { 'cost': 1 } as Endpoint<Dict>,
+                        'v2/fapi/trade/positions': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/fapi/account/balance': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/fapi/user_data/assets_margin': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/fapi/user_data/position_side/dual': { 'cost': 1 } as Endpoint<Dict>,
@@ -248,6 +254,13 @@ export default class bydfi extends Exchange {
                         'v1/fapi/trade/cancel_all_order': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/fapi/trade/leverage': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/fapi/trade/batch_leverage_margin': { 'cost': 1 } as Endpoint<Dict>, // https://developers.bydfi.com/en/futures/trade#modify-leverage-and-margin-type-with-one-click
+                        'v2/fapi/trade/place_order': { 'cost': 1 } as Endpoint<Dict>,
+                        'v2/fapi/trade/batch_place_order': { 'cost': 1 } as Endpoint<Dict>,
+                        'v2/fapi/trade/edit_order': { 'cost': 1 } as Endpoint<Dict>,
+                        'v2/fapi/trade/batch_edit_order': { 'cost': 1 } as Endpoint<Dict>,
+                        'v2/fapi/trade/cancel_order': { 'cost': 1 } as Endpoint<Dict>,
+                        'v2/fapi/trade/batch_cancel_order': { 'cost': 1 } as Endpoint<Dict>,
+                        'v2/fapi/trade/cancel_all_order': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/fapi/user_data/margin_type': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/fapi/user_data/position_side/dual': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/agent/internal_withdrawal': { 'cost': 1 } as Endpoint<Dict>, // https://developers.bydfi.com/en/agent/#internal-withdrawal
@@ -404,7 +417,7 @@ export default class bydfi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    override async fetchMarkets (params = {}): Promise<Market[]> {
+    override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
         const response = await this.publicGetV1FapiMarketExchangeInfo (params);
         //
         //     {
@@ -486,6 +499,9 @@ export default class bydfi extends Exchange {
         const settleId = this.safeString (market, 'marginAsset');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         const settle = this.safeCurrencyCode (settleId);
         const symbol = base + '/' + quote + ':' + settle;
         const inverse = this.safeBool (market, 'reverse');
@@ -521,7 +537,7 @@ export default class bydfi extends Exchange {
             'option': false,
             'active': status === 'NORMAL',
             'contract': true,
-            'linear': !inverse,
+            'linear': inverse !== true,
             'inverse': inverse,
             'taker': taker,
             'maker': maker,
@@ -569,7 +585,7 @@ export default class bydfi extends Exchange {
      * @param {string} [params.loc] crypto location, default: us
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async fetchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -608,25 +624,29 @@ export default class bydfi extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        const timestamp = this.milliseconds ();
-        const orderBook = this.parseOrderBook (data, market['symbol'], timestamp, 'bids', 'asks', 'price', 'amount');
+        const orderBook = this.parseOrderBook (data, market['symbol'], undefined, 'bids', 'asks', 'price', 'amount');
         orderBook['nonce'] = this.safeInteger (data, 'lastUpdateId');
         return orderBook;
     }
 
     getClosestLimit (limit: Int): Int {
-        const limits = [ 5, 10, 20, 50, 100, 500, 1000 ];
-        let result = 1000;
-        for (let i = 0; i < limits.length; i++) {
-            if (limit === undefined) {
-                throw new ArgumentsRequired (this.id + ' getClosestLimit() requires a limit argument');
-            }
-            if (limit <= limits[i]) {
-                result = limits[i];
-                break;
-            }
+        if (limit === undefined) {
+            throw new ArgumentsRequired (this.id + ' getClosestLimit() requires a limit argument');
         }
-        return result;
+        if (limit <= 5) {
+            return 5;
+        } else if (limit <= 10) {
+            return 10;
+        } else if (limit <= 20) {
+            return 20;
+        } else if (limit <= 50) {
+            return 50;
+        } else if (limit <= 100) {
+            return 100;
+        } else if (limit <= 500) {
+            return 500;
+        }
+        return 1000;
     }
 
     /**
@@ -641,7 +661,7 @@ export default class bydfi extends Exchange {
      * @param {int} [params.fromId] retrieve from which trade ID to start. Default to retrieve the most recent trade records
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -689,20 +709,18 @@ export default class bydfi extends Exchange {
      * @param {string} [params.orderType] order type ('LIMIT', 'MARKET', 'LIQ', 'LIMIT_CLOSE', 'MARKET_CLOSE', 'STOP', 'TAKE_PROFIT', 'STOP_MARKET', 'TAKE_PROFIT_MARKET' or 'TRAILING_STOP_MARKET')
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const paginate = this.safeBool (params, 'paginate', false);
         if (paginate) {
             const maxLimit = 500;
-            params = this.omit (params, 'paginate');
-            params = this.extend (params, { 'paginationDirection': 'backward' });
-            const paginatedResponse = await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, params, maxLimit, true);
+            const paramsPaginate = this.extend (this.omit (params, 'paginate'), { 'paginationDirection': 'backward' });
+            const paginatedResponse = await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, paramsPaginate, maxLimit, true);
             return this.sortBy (paginatedResponse, 'timestamp');
         }
-        let contractType = 'FUTURE';
-        [ contractType, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'contractType', contractType);
+        const [ contractType, paramsContractType ] = this.handleOptionStringAndParams (params, 'fetchMyTrades', 'contractType', 'FUTURE');
         const request: Dict = {
             'contractType': contractType,
         };
@@ -711,11 +729,11 @@ export default class bydfi extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        params = this.handleSinceAndUntil ('fetchMyTrades', since, params);
+        const paramsSinceUntil = this.handleSinceAndUntil ('fetchMyTrades', since, paramsContractType);
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateGetV1FapiTradeHistoryTrade (this.extend (request, params));
+        const response = await this.privateGetV1FapiTradeHistoryTrade (this.extend (request, paramsSinceUntil));
         //
         //     {
         //         "code": 200,
@@ -778,7 +796,7 @@ export default class bydfi extends Exchange {
         //     }
         //
         const marketId = this.safeString (trade, 'symbol');
-        market = this.safeMarket (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger (trade, 'time');
         let fee: FeeString = undefined;
         const rawType = this.safeString (trade, 'type');
@@ -786,7 +804,7 @@ export default class bydfi extends Exchange {
         if (feeCost !== undefined) {
             fee = {
                 'cost': feeCost,
-                'currency': market['settle'],
+                'currency': marketResolved['settle'],
             };
         }
         const orderId = this.safeString (trade, 'orderId');
@@ -799,7 +817,7 @@ export default class bydfi extends Exchange {
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'id': this.safeString (trade, 'id'),
             'order': orderId,
             'type': this.parseTradeType (rawType),
@@ -809,7 +827,7 @@ export default class bydfi extends Exchange {
             'amount': this.safeString2 (trade, 'quantity', 'dealVolume'),
             'cost': undefined,
             'fee': fee,
-        }, market);
+        }, marketResolved);
     }
 
     parseTradeType (type: Str): Str {
@@ -834,15 +852,14 @@ export default class bydfi extends Exchange {
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const maxLimit = 500; // docs says max 1500, but in practice only 500 works
-        let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
+        const [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
-            return this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, maxLimit);
+            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, maxLimit) as OHLCV[];
         }
         const market = this.market (symbol);
         const interval = this.safeString (this.timeframes, timeframe, timeframe);
@@ -850,33 +867,38 @@ export default class bydfi extends Exchange {
             'symbol': market['id'],
             'interval': interval,
         };
-        let startTime = since;
-        const numberOfCandles = limit ? limit : maxLimit;
-        let until: Int = undefined;
-        [ until, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'until');
+        let numberOfCandles: Int = maxLimit;
+        if (limit !== undefined && limit !== null && limit !== 0) {
+            numberOfCandles = this.parseToInt (limit);
+        }
+        const [ untilParam, paramsUntil ] = this.handleOptionIntegerAndParams (paramsPaginate, 'fetchOHLCV', 'until');
         const now = this.milliseconds ();
         const duration = this.parseTimeframe (timeframe) * 1000;
         const timeDelta = duration * numberOfCandles;
-        if (startTime === undefined && until === undefined) {
+        let startTime: Int = since;
+        let until: Int = untilParam;
+        if (since === undefined && untilParam === undefined) {
             startTime = now - timeDelta;
             until = now;
-        } else if (until === undefined) {
-            if (startTime === undefined) {
+        } else if (untilParam !== undefined) {
+            if (since === undefined) {
+                const untilInt = this.parseToInt (untilParam);
+                startTime = untilInt - timeDelta;
+            }
+        } else {
+            if (since === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchOHLCV() requires a since or until argument');
             }
-            until = startTime + timeDelta;
-            if (until > now) {
-                until = now;
-            }
-        } else if (startTime === undefined) {
-            startTime = until - timeDelta;
+            const sinceInt = this.parseToInt (since);
+            const sinceEnd = sinceInt + timeDelta;
+            until = (sinceEnd > now) ? now : sinceEnd;
         }
         request['startTime'] = startTime;
         request['endTime'] = until;
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.publicGetV1FapiMarketKlines (this.extend (request, params));
+        const response = await this.publicGetV1FapiMarketKlines (this.extend (request, paramsUntil));
         //
         //     {
         //         "code": 200,
@@ -896,8 +918,7 @@ export default class bydfi extends Exchange {
         //     }
         //
         const data = this.safeList (response, 'data', []);
-        const result = this.parseOHLCVs (data, market, timeframe, since, limit);
-        return result;
+        return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
     override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
@@ -931,7 +952,7 @@ export default class bydfi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async fetchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -967,7 +988,7 @@ export default class bydfi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async fetchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -995,11 +1016,11 @@ export default class bydfi extends Exchange {
         //     }
         //
         const marketId = this.safeString2 (ticker, 'symbol', 's');
-        market = this.safeMarket (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger2 (ticker, 'time', 'E');
         const last = this.safeString2 (ticker, 'last', 'c');
         return this.safeTicker ({
-            'symbol': this.safeSymbol (marketId, market),
+            'symbol': this.safeSymbol (marketId, marketResolved),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': this.safeString2 (ticker, 'high', 'h'),
@@ -1021,7 +1042,7 @@ export default class bydfi extends Exchange {
             'markPrice': undefined,
             'indexPrice': undefined,
             'info': ticker,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -1033,7 +1054,7 @@ export default class bydfi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    override async fetchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
+    override async fetchFundingRate (symbol: string, params: Dict = {}): Promise<FundingRate> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1106,7 +1127,7 @@ export default class bydfi extends Exchange {
      * @param {int} [params.until] timestamp in ms of the latest funding rate to fetch
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
-    override async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<FundingRateHistory[]> {
+    override async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<FundingRateHistory[]> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
@@ -1123,12 +1144,11 @@ export default class bydfi extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let until: Int = undefined;
-        [ until, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'until');
+        const [ until, paramsUntil ] = this.handleOptionIntegerAndParams (params, 'fetchFundingRateHistory', 'until');
         if (until !== undefined) {
             request['endTime'] = until;
         }
-        const response = await this.publicGetV1FapiMarketFundingRateHistory (this.extend (request, params));
+        const response = await this.publicGetV1FapiMarketFundingRateHistory (this.extend (request, paramsUntil));
         //
         //     {
         //         "code": 200,
@@ -1148,7 +1168,7 @@ export default class bydfi extends Exchange {
         return this.parseFundingRateHistories (data, market, since, limit);
     }
 
-    override parseFundingRateHistory (contract: any, market: Market = undefined) {
+    override parseFundingRateHistory (contract: any, market: Market = undefined): FundingRateHistory {
         //
         //     {
         //         "symbol": "ETH-USDT",
@@ -1193,15 +1213,15 @@ export default class bydfi extends Exchange {
      * @param {bool} [params.closePosition] true or false, whether to close all positions after triggering, only supported in STOP_MARKET and TAKE_PROFIT_MARKET; not used with quantity;
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
+    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
         let orderRequest = this.createOrderRequest (symbol, type, side, amount, price, params);
-        let wallet = 'W001';
-        [ wallet, params ] = this.handleOptionAndParams (params, 'createOrder', 'wallet', wallet);
-        orderRequest = this.extend (orderRequest, { 'wallet': wallet });
+        const wallet = 'W001';
+        const walletOption = this.handleOptionStringAndParams (params, 'createOrder', 'wallet', wallet)[0];
+        orderRequest = this.extend (orderRequest, { 'wallet': walletOption });
         const response = await this.privatePostV1FapiTradePlaceOrder (orderRequest);
         //
         //     {
@@ -1237,7 +1257,7 @@ export default class bydfi extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    createOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}) {
+    createOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params: Dict = {}): Dict {
         if (type === undefined) {
             throw new ArgumentsRequired (this.id + ' requires a type argument');
         }
@@ -1271,78 +1291,82 @@ export default class bydfi extends Exchange {
         const trailingPercent = this.safeString (params, 'trailingPercent');
         const isTailingStopOrder = (trailingPercent !== undefined);
         let stopPrice: Str = undefined;
-        if (isStopLossOrder || isTakeProfitOrder) {
+        const isStopOrTakeProfit = isStopLossOrder || isTakeProfitOrder;
+        let query: Dict = params;
+        if (isStopOrTakeProfit) {
+            query = this.omit (params, [ 'stopLossPrice', 'takeProfitPrice' ]);
+        }
+        if (isStopOrTakeProfit) {
             stopPrice = isStopLossOrder ? stopLossPrice : takeProfitPrice;
-            params = this.omit (params, [ 'stopLossPrice', 'takeProfitPrice' ]);
             request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
         } else if (isTailingStopOrder) {
-            params = this.omit (params, [ 'trailingPercent' ]);
+            query = this.omit (query, [ 'trailingPercent' ]);
             request['callbackRate'] = trailingPercent;
             let trailingTriggerPrice = this.numberToString (price);
-            [ trailingTriggerPrice, params ] = this.handleParamString (params, 'trailingTriggerPrice', trailingTriggerPrice);
+            [ trailingTriggerPrice, query ] = this.handleParamString (query, 'trailingTriggerPrice', trailingTriggerPrice);
             if (trailingTriggerPrice !== undefined) {
                 request['activationPrice'] = this.priceToPrecision (symbol, trailingTriggerPrice);
-                params = this.omit (params, [ 'trailingTriggerPrice' ]);
+                query = this.omit (query, [ 'trailingTriggerPrice' ]);
             }
         }
-        type = type.toUpperCase ();
-        const isMarketOrder = ((type === 'MARKET') || (type === 'STOP_MARKET') || (type === 'TAKE_PROFIT_MARKET') || (type === 'TRAILING_STOP_MARKET'));
+        let typeValue = type.toUpperCase ();
+        const isMarketOrder = ((typeValue === 'MARKET') || (typeValue === 'STOP_MARKET') || (typeValue === 'TAKE_PROFIT_MARKET') || (typeValue === 'TRAILING_STOP_MARKET'));
         if (isMarketOrder) {
-            if (type === 'MARKET') {
+            if (typeValue === 'MARKET') {
                 if (isStopLossOrder) {
-                    type = 'STOP_MARKET';
+                    typeValue = 'STOP_MARKET';
                 } else if (isTakeProfitOrder) {
-                    type = 'TAKE_PROFIT_MARKET';
+                    typeValue = 'TAKE_PROFIT_MARKET';
                 } else if (isTailingStopOrder) {
-                    type = 'TRAILING_STOP_MARKET';
+                    typeValue = 'TRAILING_STOP_MARKET';
                 }
             }
         } else {
             if (price === undefined) {
-                throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument for a ' + type + ' order');
+                throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument for a ' + typeValue + ' order');
             }
             request['price'] = this.priceToPrecision (symbol, price);
             if (isStopLossOrder) {
-                type = 'STOP';
+                typeValue = 'STOP';
             } else if (isTakeProfitOrder) {
-                type = 'TAKE_PROFIT';
+                typeValue = 'TAKE_PROFIT';
             }
         }
-        request['type'] = type;
+        request['type'] = typeValue;
         let hedged = false;
-        [ hedged, params ] = this.handleOptionAndParams (params, 'createOrder', 'hedged', hedged);
-        const reduceOnly = this.safeBool (params, 'reduceOnly', false);
+        [ hedged, query ] = this.handleOptionBoolAndParams (query, 'createOrder', 'hedged', hedged);
+        const reduceOnly = this.safeBool (query, 'reduceOnly', false);
         if (hedged) {
-            params = this.omit (params, 'reduceOnly');
+            query = this.omit (query, 'reduceOnly');
             if (side === 'buy') {
-                request['positionSide'] = reduceOnly ? 'SHORT' : 'LONG';
+                request['positionSide'] = (reduceOnly) ? 'SHORT' : 'LONG';
             } else if (side === 'sell') {
-                request['positionSide'] = reduceOnly ? 'LONG' : 'SHORT';
+                request['positionSide'] = (reduceOnly) ? 'LONG' : 'SHORT';
             }
         }
-        const closePosition = this.safeBool (params, 'closePosition', false);
+        const closePosition = this.safeBool (query, 'closePosition', false);
         if (!closePosition) {
-            params = this.omit (params, 'closePosition');
+            query = this.omit (query, 'closePosition');
             request['quantity'] = this.amountToPrecision (symbol, amount);
-        } else if ((type !== 'STOP_MARKET') && (type !== 'TAKE_PROFIT_MARKET')) {
+        } else if ((typeValue !== 'STOP_MARKET') && (typeValue !== 'TAKE_PROFIT_MARKET')) {
             throw new NotSupported (this.id + ' createOrder() closePosition is only supported for stopLoss and takeProfit market orders');
         }
-        let timeInForce = this.handleTimeInForce (params);
+        let timeInForce = this.handleTimeInForce (query);
         let postOnly = false;
-        [ postOnly, params ] = this.handlePostOnly (isMarketOrder, timeInForce === 'POST_ONLY', params);
+        [ postOnly, query ] = this.handlePostOnly (isMarketOrder, timeInForce === 'POST_ONLY', query);
         if (postOnly) {
             timeInForce = 'POST_ONLY';
         }
         if (timeInForce !== undefined) {
             request['timeInForce'] = timeInForce;
-            params = this.omit (params, 'timeInForce');
+            query = this.omit (query, 'timeInForce');
         }
         if (isStopLossOrder || isTakeProfitOrder || isTailingStopOrder) {
             let workingType = 'CONTRACT_PRICE';
-            [ workingType, params ] = this.handleOptionAndParams (params, 'createOrder', 'triggerPriceType', workingType);
+            [ workingType, query ] = this.handleOptionStringAndParams (query, 'createOrder', 'triggerPriceType', workingType);
             request['workingType'] = this.encodeWorkingType (workingType);
         }
-        return this.extend (request, params);
+        return this.extend (request, query);
     }
 
     encodeWorkingType (workingType: Str): Str {
@@ -1366,7 +1390,7 @@ export default class bydfi extends Exchange {
      * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async createOrders (orders: OrderRequest[], params = {}) {
+    override async createOrders (orders: OrderRequest[], params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1376,7 +1400,7 @@ export default class bydfi extends Exchange {
         }
         const ordersRequests: List = [];
         for (let i = 0; i < orders.length; i++) {
-            const rawOrder = orders[i];
+            const rawOrder = this.safeDict (orders, i);
             const symbol = this.safeString (rawOrder, 'symbol');
             const type = this.safeString (rawOrder, 'type');
             const side = this.safeString (rawOrder, 'side');
@@ -1386,13 +1410,13 @@ export default class bydfi extends Exchange {
             const orderRequest = this.createOrderRequest (symbol, type, side, amount, price, orderParams);
             ordersRequests.push (orderRequest);
         }
-        let wallet = 'W001';
-        [ wallet, params ] = this.handleOptionAndParams (params, 'createOrder', 'wallet', wallet);
+        const wallet = 'W001';
+        const [ walletOption, paramsWallet ] = this.handleOptionStringAndParams (params, 'createOrder', 'wallet', wallet);
         const request: Dict = {
-            'wallet': wallet,
+            'wallet': walletOption,
             'orders': ordersRequests,
         };
-        const response = await this.privatePostV1FapiTradeBatchPlaceOrder (this.extend (request, params));
+        const response = await this.privatePostV1FapiTradeBatchPlaceOrder (this.extend (request, paramsWallet));
         const data = this.safeList (response, 'data', []) as List;
         return this.parseOrders (data);
     }
@@ -1413,14 +1437,14 @@ export default class bydfi extends Exchange {
      * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}): Promise<Order> {
+    override async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const request = this.createEditOrderRequest (id, symbol, 'limit', side, amount, price, params);
-        let wallet = 'W001';
-        [ wallet, params ] = this.handleOptionAndParams (params, 'editOrder', 'wallet', wallet);
-        request['wallet'] = wallet;
+        const wallet = 'W001';
+        const walletOption = this.handleOptionStringAndParams (params, 'editOrder', 'wallet', wallet)[0];
+        request['wallet'] = walletOption;
         const response = await this.privatePostV1FapiTradeEditOrder (request);
         const data = this.safeDict (response, 'data', {});
         return this.parseOrder (data);
@@ -1436,7 +1460,7 @@ export default class bydfi extends Exchange {
      * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async editOrders (orders: OrderRequest[], params = {}) : Promise<Order[]> {
+    override async editOrders (orders: OrderRequest[], params: Dict = {}) : Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1446,7 +1470,7 @@ export default class bydfi extends Exchange {
         }
         const ordersRequests: List = [];
         for (let i = 0; i < orders.length; i++) {
-            const rawOrder = orders[i];
+            const rawOrder = this.safeDict (orders, i);
             const id = this.safeString (rawOrder, 'id');
             const symbol = this.safeString (rawOrder, 'symbol');
             const side = this.safeString (rawOrder, 'side');
@@ -1456,18 +1480,18 @@ export default class bydfi extends Exchange {
             const orderRequest = this.createEditOrderRequest (id, symbol, 'limit', side, amount, price, orderParams);
             ordersRequests.push (orderRequest);
         }
-        let wallet = 'W001';
-        [ wallet, params ] = this.handleOptionAndParams (params, 'editOrder', 'wallet', wallet);
+        const wallet = 'W001';
+        const [ walletOption, paramsWallet ] = this.handleOptionStringAndParams (params, 'editOrder', 'wallet', wallet);
         const request: Dict = {
-            'wallet': wallet,
+            'wallet': walletOption,
             'editOrders': ordersRequests,
         };
-        const response = await this.privatePostV1FapiTradeBatchEditOrder (this.extend (request, params));
+        const response = await this.privatePostV1FapiTradeBatchEditOrder (this.extend (request, paramsWallet));
         const data = this.safeList (response, 'data', []) as List;
         return this.parseOrders (data);
     }
 
-    createEditOrderRequest (id: Str, symbol: Str, type: Str, side: Str, amount: Num = undefined, price: Num = undefined, params = {}) {
+    createEditOrderRequest (id: Str, symbol: Str, type: Str, side: Str, amount: Num = undefined, price: Num = undefined, params: Dict = {}): Dict {
         const clientOrderId = this.safeString (params, 'clientOrderId');
         const request: Dict = {};
         if ((id === undefined) && (clientOrderId === undefined)) {
@@ -1499,7 +1523,7 @@ export default class bydfi extends Exchange {
      * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async cancelAllOrders (symbol: Str = undefined, params = {}): Promise<Order[]> {
+    override async cancelAllOrders (symbol: Str = undefined, params: Dict = {}): Promise<Order[]> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument');
         }
@@ -1507,13 +1531,13 @@ export default class bydfi extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        let wallet = 'W001';
-        [ wallet, params ] = this.handleOptionAndParams (params, 'cancelAllOrders', 'wallet', wallet);
+        const wallet = 'W001';
+        const [ walletOption, paramsWallet ] = this.handleOptionStringAndParams (params, 'cancelAllOrders', 'wallet', wallet);
         const request: Dict = {
             'symbol': market['id'],
-            'wallet': wallet,
+            'wallet': walletOption,
         };
-        const response = await this.privatePostV1FapiTradeCancelAllOrder (this.extend (request, params));
+        const response = await this.privatePostV1FapiTradeCancelAllOrder (this.extend (request, paramsWallet));
         //
         //     {
         //         "code": 200,
@@ -1564,7 +1588,7 @@ export default class bydfi extends Exchange {
      * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
         }
@@ -1572,16 +1596,16 @@ export default class bydfi extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        let wallet = 'W001';
-        [ wallet, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'wallet', wallet);
+        const wallet = 'W001';
+        const [ walletOption, paramsWallet ] = this.handleOptionStringAndParams (params, 'fetchOpenOrders', 'wallet', wallet);
         const request: Dict = {
             'symbol': market['id'],
-            'wallet': wallet,
+            'wallet': walletOption,
         };
         let response: Dict;
-        let trigger = false;
-        [ trigger, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'trigger', trigger);
-        if (!trigger) {
+        const trigger = false;
+        const [ triggerOption, paramsTrigger ] = this.handleOptionBoolAndParams (paramsWallet, 'fetchOpenOrders', 'trigger', trigger);
+        if (!triggerOption) {
             //
             //     {
             //         "code": 200,
@@ -1614,9 +1638,9 @@ export default class bydfi extends Exchange {
             //         "success": true
             //     }
             //
-            response = await this.privateGetV1FapiTradeOpenOrder (this.extend (request, params));
+            response = await this.privateGetV1FapiTradeOpenOrder (this.extend (request, paramsTrigger));
         } else {
-            response = await this.privateGetV1FapiTradePlanOrder (this.extend (request, params));
+            response = await this.privateGetV1FapiTradePlanOrder (this.extend (request, paramsTrigger));
         }
         const data = this.safeList (response, 'data', []) as List;
         return this.parseOrders (data, market, since, limit);
@@ -1636,7 +1660,7 @@ export default class bydfi extends Exchange {
      * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOpenOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
+    async fetchOpenOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOpenOrder() requires a symbol argument');
         }
@@ -1653,16 +1677,16 @@ export default class bydfi extends Exchange {
         } else if (id !== undefined) {
             request['orderId'] = id;
         }
-        let wallet = 'W001';
-        [ wallet, params ] = this.handleOptionAndParams (params, 'fetchOpenOrder', 'wallet', wallet);
-        request['wallet'] = wallet;
+        const wallet = 'W001';
+        const [ walletOption, paramsWallet ] = this.handleOptionStringAndParams (params, 'fetchOpenOrder', 'wallet', wallet);
+        request['wallet'] = walletOption;
         let response: Dict;
-        let trigger = false;
-        [ trigger, params ] = this.handleOptionAndParams (params, 'fetchOpenOrder', 'trigger', trigger);
-        if (!trigger) {
-            response = await this.privateGetV1FapiTradeOpenOrder (this.extend (request, params));
+        const trigger = false;
+        const [ triggerOption, paramsTrigger ] = this.handleOptionBoolAndParams (paramsWallet, 'fetchOpenOrder', 'trigger', trigger);
+        if (!triggerOption) {
+            response = await this.privateGetV1FapiTradeOpenOrder (this.extend (request, paramsTrigger));
         } else {
-            response = await this.privateGetV1FapiTradePlanOrder (this.extend (request, params));
+            response = await this.privateGetV1FapiTradePlanOrder (this.extend (request, paramsTrigger));
         }
         const data = this.safeList (response, 'data', []);
         const order = this.safeDict (data, 0, {});
@@ -1684,20 +1708,18 @@ export default class bydfi extends Exchange {
      * @param {string} [params.orderType] order type ('LIMIT', 'MARKET', 'LIQ', 'LIMIT_CLOSE', 'MARKET_CLOSE', 'STOP', 'TAKE_PROFIT', 'STOP_MARKET', 'TAKE_PROFIT_MARKET' or 'TRAILING_STOP_MARKET')
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchCanceledAndClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchCanceledAndClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const paginate = this.safeBool (params, 'paginate', false);
         if (paginate) {
             const maxLimit = 500;
-            params = this.omit (params, 'paginate');
-            params = this.extend (params, { 'paginationDirection': 'backward' });
-            const paginatedResponse = await this.fetchPaginatedCallDynamic ('fetchCanceledAndClosedOrders', symbol, since, limit, params, maxLimit, true);
+            const paramsPaginate = this.extend (this.omit (params, 'paginate'), { 'paginationDirection': 'backward' });
+            const paginatedResponse = await this.fetchPaginatedCallDynamic ('fetchCanceledAndClosedOrders', symbol, since, limit, paramsPaginate, maxLimit, true);
             return this.sortBy (paginatedResponse, 'timestamp');
         }
-        let contractType = 'FUTURE';
-        [ contractType, params ] = this.handleOptionAndParams (params, 'fetchCanceledAndClosedOrders', 'contractType', contractType);
+        const [ contractType, paramsContractType ] = this.handleOptionStringAndParams (params, 'fetchCanceledAndClosedOrders', 'contractType', 'FUTURE');
         const request: Dict = {
             'contractType': contractType,
         };
@@ -1706,11 +1728,11 @@ export default class bydfi extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        params = this.handleSinceAndUntil ('fetchCanceledAndClosedOrders', since, params);
+        const paramsSinceUntil = this.handleSinceAndUntil ('fetchCanceledAndClosedOrders', since, paramsContractType);
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateGetV1FapiTradeHistoryOrder (this.extend (request, params));
+        const response = await this.privateGetV1FapiTradeHistoryOrder (this.extend (request, paramsSinceUntil));
         //
         //     {
         //         "code": 200,
@@ -1760,26 +1782,27 @@ export default class bydfi extends Exchange {
         return this.parseOrders (data, market, since, limit);
     }
 
-    handleSinceAndUntil (methodName: string, since: Int = undefined, params = {}): Dict {
-        let until: Int = undefined;
-        [ until, params ] = this.handleOptionAndParams2 (params, methodName, 'until', 'endTime');
+    handleSinceAndUntil (methodName: string, since: Int = undefined, params: Dict = {}): Dict {
+        const [ untilParam, paramsUntil ] = this.handleOptionIntegerAndParams2 (params, methodName, 'until', 'endTime');
         const now = this.milliseconds ();
         const sevenDays = 7 * 24 * 60 * 60 * 1000; // the maximum range is 7 days
-        let startTime = since;
-        if (startTime === undefined) {
-            if (until === undefined) {
+        let startTime: Int = since;
+        let until: Int = untilParam;
+        if (since === undefined) {
+            if (untilParam !== undefined) {
+                // since is undefined but until is defined
+                startTime = untilParam - sevenDays;
+            } else {
                 // both since and until are undefined
                 startTime = now - sevenDays;
                 until = now;
-            } else {
-                // since is undefined but until is defined
-                startTime = until - sevenDays;
             }
-        } else if (until === undefined) {
+        } else if (untilParam === undefined) {
             // until is undefined but since is defined
-            const delta = now - startTime;
+            const sinceInt = this.parseToInt (since);
+            const delta = now - sinceInt;
             if (delta > sevenDays) {
-                until = startTime + sevenDays;
+                until = sinceInt + sevenDays;
             } else {
                 until = now;
             }
@@ -1788,7 +1811,7 @@ export default class bydfi extends Exchange {
             'startTime': startTime,
             'endTime': until,
         };
-        return this.extend (request, params);
+        return this.extend (request, paramsUntil);
     }
 
     override parseOrder (order: Dict, market: Market = undefined): Order {
@@ -1857,7 +1880,7 @@ export default class bydfi extends Exchange {
         //     }
         //
         const marketId = this.safeString (order, 'symbol');
-        market = this.safeMarket (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger2 (order, 'createTime', 'ctime');
         const rawType = this.safeString (order, 'orderType');
         const stopPrice = this.safeStringN (order, [ 'stopPrice', 'activatePrice', 'triggerPrice' ]);
@@ -1865,7 +1888,7 @@ export default class bydfi extends Exchange {
         const isTakeProfitOrder = (rawType === 'TAKE_PROFIT') || (rawType === 'TAKE_PROFIT_MARKET');
         const rawTimeInForce = this.safeString (order, 'timeInForce');
         const timeInForce = this.parseOrderTimeInForce (rawTimeInForce);
-        let postOnly: Bool = undefined;
+        let postOnly = false;
         if (timeInForce === 'PO') {
             postOnly = true;
         }
@@ -1874,7 +1897,7 @@ export default class bydfi extends Exchange {
         const quoteFee = this.safeNumber (order, 'quoteFee');
         if (quoteFee !== undefined) {
             fee['cost'] = quoteFee;
-            fee['currency'] = market['quote'];
+            fee['currency'] = marketResolved['quote'];
         }
         return this.safeOrder ({
             'info': order,
@@ -1885,7 +1908,7 @@ export default class bydfi extends Exchange {
             'lastTradeTimestamp': undefined,
             'lastUpdateTimestamp': this.safeInteger2 (order, 'updateTime', 'mtime'),
             'status': this.parseOrderStatus (rawStatus),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': this.parseOrderType (rawType),
             'timeInForce': timeInForce,
             'postOnly': postOnly,
@@ -1902,7 +1925,7 @@ export default class bydfi extends Exchange {
             'trades': undefined,
             'fee': fee,
             'average': this.omitZero (this.safeString (order, 'avgPrice')),
-        }, market);
+        }, marketResolved);
     }
 
     parseOrderType (type: Str): Str {
@@ -1954,7 +1977,7 @@ export default class bydfi extends Exchange {
      * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
      * @returns {object} response from the exchange
      */
-    override async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
+    override async setLeverage (leverage: int, symbol: Str = undefined, params: Dict = {}): Promise<Dict> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
@@ -1962,14 +1985,14 @@ export default class bydfi extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        let wallet = 'W001';
-        [ wallet, params ] = this.handleOptionAndParams (params, 'setLeverage', 'wallet', wallet);
+        const wallet = 'W001';
+        const [ walletOption, paramsWallet ] = this.handleOptionStringAndParams (params, 'setLeverage', 'wallet', wallet);
         const request: Dict = {
             'symbol': market['id'],
             'leverage': leverage,
-            'wallet': wallet,
+            'wallet': walletOption,
         };
-        const response = await this.privatePostV1FapiTradeLeverage (this.extend (request, params));
+        const response = await this.privatePostV1FapiTradeLeverage (this.extend (request, paramsWallet));
         const data = this.safeDict (response, 'data', {});
         return data;
     }
@@ -1984,7 +2007,7 @@ export default class bydfi extends Exchange {
      * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    override async fetchLeverage (symbol: string, params = {}): Promise<Leverage> {
+    override async fetchLeverage (symbol: string, params: Dict = {}): Promise<Leverage> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchLeverage() requires a symbol argument');
         }
@@ -1992,13 +2015,13 @@ export default class bydfi extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        let wallet = 'W001';
-        [ wallet, params ] = this.handleOptionAndParams (params, 'fetchLeverage', 'wallet', wallet);
+        const wallet = 'W001';
+        const [ walletOption, paramsWallet ] = this.handleOptionStringAndParams (params, 'fetchLeverage', 'wallet', wallet);
         const request: Dict = {
             'symbol': market['id'],
-            'wallet': wallet,
+            'wallet': walletOption,
         };
-        const response = await this.privateGetV1FapiTradeLeverage (this.extend (request, params));
+        const response = await this.privateGetV1FapiTradeLeverage (this.extend (request, paramsWallet));
         //
         //     {
         //         "code": 200,
@@ -2037,16 +2060,16 @@ export default class bydfi extends Exchange {
      * @param {string} [params.settleCoin] the settlement currency (USDT or USDC or USD)
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    override async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
+    override async fetchPositions (symbols: Strings = undefined, params: Dict = {}): Promise<Position[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let contractType = 'FUTURE';
-        [ contractType, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'contractType', contractType);
+        const contractType = 'FUTURE';
+        const [ contractTypeOption, paramsContractType ] = this.handleOptionStringAndParams (params, 'fetchPositions', 'contractType', contractType);
         const request: Dict = {
-            'contractType': contractType,
+            'contractType': contractTypeOption,
         };
-        const response = await this.privateGetV1FapiTradePositions (this.extend (request, params));
+        const response = await this.privateGetV1FapiTradePositions (this.extend (request, paramsContractType));
         //
         //     {
         //         "code": 200,
@@ -2084,23 +2107,23 @@ export default class bydfi extends Exchange {
      * @param {string} [params.contractType] FUTURE or DELIVERY, default is FUTURE
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    override async fetchPositionsForSymbol (symbol: string, params = {}): Promise<Position[]> {
+    override async fetchPositionsForSymbol (symbol: string, params: Dict = {}): Promise<Position[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        let contractType = 'FUTURE';
-        [ contractType, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'contractType', contractType);
+        const contractType = 'FUTURE';
+        const [ contractTypeOption, paramsContractType ] = this.handleOptionStringAndParams (params, 'fetchPositions', 'contractType', contractType);
         const request: Dict = {
-            'contractType': contractType,
+            'contractType': contractTypeOption,
             'symbol': market['id'],
         };
-        const response = await this.privateGetV1FapiTradePositions (this.extend (request, params));
+        const response = await this.privateGetV1FapiTradePositions (this.extend (request, paramsContractType));
         const data = this.safeList (response, 'data', []) as List;
         return this.parsePositions (data, [ market['symbol'] ]);
     }
 
-    override parsePosition (position: Dict, market: Market = undefined) {
+    override parsePosition (position: Dict, market: Market = undefined): Position {
         //
         // fetchPositions, fetchPositionsForSymbol
         //     {
@@ -2153,11 +2176,11 @@ export default class bydfi extends Exchange {
         //     }
         //
         const marketId = this.safeString (position, 'symbol');
-        market = this.safeMarket (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
         const buyOrSell = this.safeString (position, 'side');
         const rawPositionSide = this.safeStringLower (position, 'positionSide');
         let positionSide = this.parsePositionSide (buyOrSell);
-        let hedged: Bool = undefined;
+        let hedged = false;
         let isFetchPositionsHistory = false;
         if (rawPositionSide !== undefined) {
             isFetchPositionsHistory = true;
@@ -2168,21 +2191,27 @@ export default class bydfi extends Exchange {
                 hedged = false;
             }
         }
-        const contractSize = this.safeString (market, 'contractSize');
+        const contractSize = this.safeString (marketResolved, 'contractSize');
         let contracts = this.safeString2 (position, 'volume', 'openPositionVolume');
         if (!isFetchPositionsHistory) {
             // in fetchPositions, the 'volume' is in base currency units, need to convert to contracts
             contracts = Precise.stringDiv (contracts, contractSize);
         }
         const timestamp = this.safeInteger (position, 'createTime');
+        // raw positionMargin is the margin held in the position; it reads 0 when the position is not isolated
+        let positionMargin = this.safeString (position, 'positionMargin');
+        if ((positionMargin !== undefined) && !Precise.stringGt (positionMargin, '0')) {
+            positionMargin = undefined;
+        }
         return this.safePosition ({
             'info': position,
             'id': this.safeString (position, 'id'),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'entryPrice': this.parseNumber (this.safeString2 (position, 'avgOpenPositionPrice', 'avgPrice')),
             'markPrice': this.parseNumber (this.safeString (position, 'markPrice')),
             'lastPrice': this.parseNumber (this.safeString (position, 'avgClosePositionPrice')),
             'notional': this.parseNumber (this.safeString (position, 'closePositionCost')),
+            'positionMargin': this.parseNumber (positionMargin),
             'collateral': undefined,
             'unrealizedPnl': this.parseNumber (this.safeString (position, 'unPnl')),
             'realizedPnl': this.parseNumber (this.safeString (position, 'positionProfits')),
@@ -2227,22 +2256,22 @@ export default class bydfi extends Exchange {
      * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    override async fetchPositionHistory (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+    override async fetchPositionHistory (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Position[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        let contractType = 'FUTURE';
-        [ contractType, params ] = this.handleOptionAndParams (params, 'fetchPositionHistory', 'contractType', contractType);
+        const contractType = 'FUTURE';
+        const [ contractTypeOption, paramsContractType ] = this.handleOptionStringAndParams (params, 'fetchPositionHistory', 'contractType', contractType);
         const request: Dict = {
             'symbol': market['id'],
-            'contractType': contractType,
+            'contractType': contractTypeOption,
         };
-        params = this.handleSinceAndUntil ('fetchPositionsHistory', since, params);
+        const paramsSinceAndUntil: Dict = this.handleSinceAndUntil ('fetchPositionsHistory', since, paramsContractType);
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateGetV1FapiTradePositionHistory (this.extend (request, params));
+        const response = await this.privateGetV1FapiTradePositionHistory (this.extend (request, paramsSinceAndUntil));
         //
         //
         const data = this.safeList (response, 'data', []);
@@ -2264,20 +2293,20 @@ export default class bydfi extends Exchange {
      * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    override async fetchPositionsHistory (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+    override async fetchPositionsHistory (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Position[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let contractType = 'FUTURE';
-        [ contractType, params ] = this.handleOptionAndParams (params, 'fetchPositionsHistory', 'contractType', contractType);
+        const contractType = 'FUTURE';
+        const [ contractTypeOption, paramsContractType ] = this.handleOptionStringAndParams (params, 'fetchPositionsHistory', 'contractType', contractType);
         const request: Dict = {
-            'contractType': contractType,
+            'contractType': contractTypeOption,
         };
-        params = this.handleSinceAndUntil ('fetchPositionsHistory', since, params);
+        const paramsSinceAndUntil: Dict = this.handleSinceAndUntil ('fetchPositionsHistory', since, paramsContractType);
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateGetV1FapiTradePositionHistory (this.extend (request, params));
+        const response = await this.privateGetV1FapiTradePositionHistory (this.extend (request, paramsSinceAndUntil));
         //
         //     {
         //         "code": 200,
@@ -2320,7 +2349,7 @@ export default class bydfi extends Exchange {
         //         "success": true
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         const positions = this.parsePositions (data, symbols);
         return this.filterBySinceLimit (positions, since, limit);
     }
@@ -2336,21 +2365,21 @@ export default class bydfi extends Exchange {
      * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
      * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
      */
-    override async fetchMarginMode (symbol: string, params = {}): Promise<MarginMode> {
+    override async fetchMarginMode (symbol: string, params: Dict = {}): Promise<MarginMode> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        let contractType = 'FUTURE';
-        [ contractType, params ] = this.handleOptionAndParams (params, 'fetchMarginMode', 'contractType', contractType);
-        let wallet = 'W001';
-        [ wallet, params ] = this.handleOptionAndParams (params, 'fetchMarginMode', 'wallet', wallet);
+        const contractType = 'FUTURE';
+        const [ contractTypeOption, paramsContractType ] = this.handleOptionStringAndParams (params, 'fetchMarginMode', 'contractType', contractType);
+        const wallet = 'W001';
+        const [ walletOption, paramsWallet ] = this.handleOptionStringAndParams (paramsContractType, 'fetchMarginMode', 'wallet', wallet);
         const request: Dict = {
-            'contractType': contractType,
+            'contractType': contractTypeOption,
             'symbol': market['id'],
-            'wallet': wallet,
+            'wallet': walletOption,
         };
-        const response = await this.privateGetV1FapiUserDataAssetsMargin (this.extend (request, params));
+        const response = await this.privateGetV1FapiUserDataAssetsMargin (this.extend (request, paramsWallet));
         //
         //     {
         //         "code": 200,
@@ -2388,29 +2417,29 @@ export default class bydfi extends Exchange {
      * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
      * @returns {object} response from the exchange
      */
-    override async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}) {
+    override async setMarginMode (marginMode: string, symbol: Str = undefined, params: Dict = {}): Promise<Dict> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setMarginMode() requires a symbol argument');
         }
-        marginMode = marginMode.toLowerCase ();
-        if (marginMode !== 'isolated' && marginMode !== 'cross') {
+        const marginModeValue: string = marginMode.toLowerCase ();
+        if (marginModeValue !== 'isolated' && marginModeValue !== 'cross') {
             throw new BadRequest (this.id + ' setMarginMode() marginMode argument should be isolated or cross');
         }
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        let contractType = 'FUTURE';
-        [ contractType, params ] = this.handleOptionAndParams (params, 'setMarginMode', 'contractType', contractType);
-        let wallet = 'W001';
-        [ wallet, params ] = this.handleOptionAndParams (params, 'setMarginMode', 'wallet', wallet);
+        const contractType = 'FUTURE';
+        const [ contractTypeOption, paramsContractType ] = this.handleOptionStringAndParams (params, 'setMarginMode', 'contractType', contractType);
+        const wallet = 'W001';
+        const [ walletOption, paramsWallet ] = this.handleOptionStringAndParams (paramsContractType, 'setMarginMode', 'wallet', wallet);
         const request: Dict = {
-            'contractType': contractType,
+            'contractType': contractTypeOption,
             'symbol': market['id'],
-            'marginType': marginMode.toUpperCase (),
-            'wallet': wallet,
+            'marginType': marginModeValue.toUpperCase (),
+            'wallet': walletOption,
         };
-        return await this.privatePostV1FapiUserDataMarginType (this.extend (request, params));
+        return await this.privatePostV1FapiUserDataMarginType (this.extend (request, paramsWallet));
     }
 
     /**
@@ -2426,25 +2455,28 @@ export default class bydfi extends Exchange {
      * @param {string} [params.settleCoin] The settlement currency - USDT or USDC or USD (default is USDT)
      * @returns {object} response from the exchange
      */
-    override async setPositionMode (hedged: boolean, symbol: Str = undefined, params = {}) {
+    override async setPositionMode (hedged: boolean, symbol: Str = undefined, params: Dict = {}): Promise<Dict> {
         if (symbol !== undefined) {
             throw new NotSupported (this.id + ' setPositionMode() does not support a symbol argument. The position mode is set identically for all markets with same settle currency');
         }
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const positionType = hedged ? 'HEDGE' : 'ONEWAY';
-        let wallet = 'W001';
-        [ wallet, params ] = this.handleOptionAndParams (params, 'setPositionMode', 'wallet', wallet);
-        let contractType = 'FUTURE';
-        [ contractType, params ] = this.handleOptionAndParams (params, 'setPositionMode', 'contractType', contractType);
-        let settleCoin: Str = 'USDT';
-        [ settleCoin, params ] = this.handleOptionAndParams (params, 'setPositionMode', 'settleCoin', settleCoin);
+        let positionType: Str = 'ONEWAY';
+        if (hedged) {
+            positionType = 'HEDGE';
+        }
+        const wallet = 'W001';
+        const [ walletOption, paramsWallet ] = this.handleOptionStringAndParams (params, 'setPositionMode', 'wallet', wallet);
+        const contractType = 'FUTURE';
+        const [ contractTypeOption, paramsContractType ] = this.handleOptionStringAndParams (paramsWallet, 'setPositionMode', 'contractType', contractType);
+        const settleCoin: Str = 'USDT';
+        const [ settleCoinOption, paramsSettleCoin ] = this.handleOptionStringAndParams (paramsContractType, 'setPositionMode', 'settleCoin', settleCoin);
         const request: Dict = {
-            'contractType': contractType,
-            'wallet': wallet,
+            'contractType': contractTypeOption,
+            'wallet': walletOption,
             'positionType': positionType,
-            'settleCoin': settleCoin,
+            'settleCoin': settleCoinOption,
         };
         //
         //     {
@@ -2453,7 +2485,7 @@ export default class bydfi extends Exchange {
         //         "success": true
         //     }
         //
-        return await this.privatePostV1FapiUserDataPositionSideDual (this.extend (request, params));
+        return await this.privatePostV1FapiUserDataPositionSideDual (this.extend (request, paramsSettleCoin));
     }
 
     /**
@@ -2468,17 +2500,16 @@ export default class bydfi extends Exchange {
      * @param {string} [params.settleCoin] The settlement currency - USDT or USDC or USD (default is USDT or settle currency of the market if market is provided)
      * @returns {object} an object detailing whether the market is in hedged or one-way mode
      */
-    override async fetchPositionMode (symbol: Str = undefined, params = {}): Promise<PositionModeInfo> {
+    override async fetchPositionMode (symbol: Str = undefined, params: Dict = {}): Promise<PositionModeInfo> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let wallet = 'W001';
-        [ wallet, params ] = this.handleOptionAndParams (params, 'fetchPositionMode', 'wallet', wallet);
-        let contractType = 'FUTURE';
-        [ contractType, params ] = this.handleOptionAndParams (params, 'fetchPositionMode', 'contractType', contractType);
+        const [ wallet, paramsWallet ] = this.handleOptionStringAndParams (params, 'fetchPositionMode', 'wallet', 'W001');
+        const [ contractType, paramsContractType ] = this.handleOptionStringAndParams (paramsWallet, 'fetchPositionMode', 'contractType', 'FUTURE');
         let settleCoin: Str = 'USDT';
+        let query: Dict = paramsContractType;
         if (symbol === undefined) {
-            [ settleCoin, params ] = this.handleOptionAndParams (params, 'fetchPositionMode', 'settleCoin', settleCoin);
+            [ settleCoin, query ] = this.handleOptionStringAndParams (paramsContractType, 'fetchPositionMode', 'settleCoin', settleCoin);
         } else {
             const market = this.market (symbol);
             settleCoin = market['settleId'];
@@ -2488,7 +2519,7 @@ export default class bydfi extends Exchange {
             'settleCoin': settleCoin,
             'wallet': wallet,
         };
-        const response = await this.privateGetV1FapiUserDataPositionSideDual (this.extend (request, params));
+        const response = await this.privateGetV1FapiUserDataPositionSideDual (this.extend (request, query));
         //
         //     {
         //         "code": 200,
@@ -2526,14 +2557,12 @@ export default class bydfi extends Exchange {
      * @param {string} [params.asset] currency id for the balance to fetch
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    override async fetchBalance (params = {}): Promise<Balances> {
+    override async fetchBalance (params: Dict = {}): Promise<Balances> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let type: Str = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
-        let wallet: Str = undefined;
-        [ wallet, params ] = this.handleOptionAndParams (params, 'fetchBalance', 'wallet');
+        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
+        const [ wallet, paramsWallet ] = this.handleOptionStringAndParams (paramsMarketType, 'fetchBalance', 'wallet');
         const request: Dict = {};
         let response: Dict;
         if (wallet === undefined) {
@@ -2556,7 +2585,7 @@ export default class bydfi extends Exchange {
             //         "success": true
             //     }
             //
-            response = await this.privateGetV1AccountAssets (this.extend (request, params));
+            response = await this.privateGetV1AccountAssets (this.extend (request, paramsWallet));
         } else {
             request['wallet'] = wallet;
             //
@@ -2587,21 +2616,20 @@ export default class bydfi extends Exchange {
             //         ],
             //         "success": true
             //     }
-            response = await this.privateGetV1FapiAccountBalance (this.extend (request, params));
+            response = await this.privateGetV1FapiAccountBalance (this.extend (request, paramsWallet));
         }
         const data = this.safeList (response, 'data', []) as List;
         return this.parseBalance (data);
     }
 
     override parseBalance (response: any): Balances {
-        const timestamp = this.milliseconds ();
         const result: Dict = {
             'info': response,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
         };
         for (let i = 0; i < response.length; i++) {
-            const balance = response[i];
+            const balance = this.safeDict (response, i);
             const symbol = this.safeString (balance, 'asset');
             const code = this.safeCurrencyCode (symbol);
             const account = this.account ();
@@ -2616,7 +2644,7 @@ export default class bydfi extends Exchange {
 
     /**
      * @method
-     * @name budfi#transfer
+     * @name bydfi#transfer
      * @description transfer currency internally between wallets on the same account
      * @see https://developers.bydfi.com/en/account#asset-transfer-between-accounts
      * @param {string} code unified currency code
@@ -2626,7 +2654,7 @@ export default class bydfi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    override async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
+    override async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params: Dict = {}): Promise<TransferEntry> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2652,9 +2680,6 @@ export default class bydfi extends Exchange {
         const transferOptions = this.safeDict (this.options, 'transfer', {});
         const fillResponseFromRequest = this.safeBool (transferOptions, 'fillResponseFromRequest', true);
         if (fillResponseFromRequest) {
-            const timestamp = this.milliseconds ();
-            transfer['timestamp'] = timestamp;
-            transfer['datetime'] = this.iso8601 (timestamp);
             transfer['currency'] = code;
             transfer['fromAccount'] = fromAccount;
             transfer['toAccount'] = toAccount;
@@ -2675,7 +2700,7 @@ export default class bydfi extends Exchange {
      * @param {int} [params.until] the latest time in ms to fetch entries for
      * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    override async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntry[]> {
+    override async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<TransferEntry[]> {
         if (code === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchTransfers() requires a code argument');
         }
@@ -2686,28 +2711,22 @@ export default class bydfi extends Exchange {
         const paginate = this.safeBool (params, 'paginate', false);
         if (paginate) {
             const maxLimit = 50;
-            params = this.omit (params, 'paginate');
-            params = this.extend (params, { 'paginationDirection': 'backward' });
-            const paginatedResponse = await this.fetchPaginatedCallDynamic ('fetchTransfers', currency['code'], since, limit, params, maxLimit, true);
+            const paramsPaginate = this.extend (this.omit (params, 'paginate'), { 'paginationDirection': 'backward' });
+            const paginatedResponse = await this.fetchPaginatedCallDynamic ('fetchTransfers', this.safeString (currency, 'code'), since, limit, paramsPaginate, maxLimit, true);
             return this.sortBy (paginatedResponse, 'timestamp');
         }
         const request: Dict = {
             'asset': currency['id'],
         };
-        let until: Int = undefined;
-        [ until, params ] = this.handleOptionAndParams2 (params, 'fetchTransfers', 'until', 'endTime');
-        if (until === undefined) {
-            until = this.milliseconds (); // exchange requires endTime
-        }
-        if (since === undefined) {
-            since = 1; // exchange requires startTime but allows any value
-        }
-        request['startTime'] = since;
-        request['endTime'] = until;
+        const [ until, paramsUntil ] = this.handleOptionIntegerAndParams2 (params, 'fetchTransfers', 'until', 'endTime');
+        // exchange requires endTime, and startTime but allows any value
+        const sinceResolved = (since === undefined) ? 1 : since;
+        request['startTime'] = sinceResolved;
+        request['endTime'] = (until === undefined) ? this.milliseconds () : until;
         if (limit !== undefined) {
             request['rows'] = limit;
         }
-        const response = await this.privateGetV1AccountTransferRecords (this.extend (request, params));
+        const response = await this.privateGetV1AccountTransferRecords (this.extend (request, paramsUntil));
         //
         //     {
         //         "code": 200,
@@ -2728,7 +2747,7 @@ export default class bydfi extends Exchange {
         //     }
         //
         const data = this.safeList (response, 'data', []) as List;
-        return this.parseTransfers (data, currency, since, limit);
+        return this.parseTransfers (data, currency, sinceResolved, limit);
     }
 
     override parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
@@ -2793,8 +2812,9 @@ export default class bydfi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
-        return await this.fetchTransactionsHelper ('deposit', code, since, limit, params);
+    override async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
+        const transactions = await this.fetchTransactionsHelper ('deposit', code, since, limit, params);
+        return this.toArray (transactions);
     }
 
     /**
@@ -2808,12 +2828,16 @@ export default class bydfi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
-        return await this.fetchTransactionsHelper ('withdrawal', code, since, limit, params);
+    override async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
+        const transactions = await this.fetchTransactionsHelper ('withdrawal', code, since, limit, params);
+        return this.toArray (transactions);
     }
 
-    async fetchTransactionsHelper (type: any, code: any, since: any, limit: any, params: any): Promise<Transaction[]> {
-        const methodName = (type === 'deposit') ? 'fetchDeposits' : 'fetchWithdrawals';
+    async fetchTransactionsHelper (type: string, code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
+        let methodName: Str = 'fetchWithdrawals';
+        if (type === 'deposit') {
+            methodName = 'fetchDeposits';
+        }
         if (code === undefined) {
             throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a code argument');
         }
@@ -2824,33 +2848,33 @@ export default class bydfi extends Exchange {
         const paginate = this.safeBool (params, 'paginate', false);
         if (paginate) {
             const maxLimit = 50;
-            params = this.omit (params, 'paginate');
-            params = this.extend (params, { 'paginationDirection': 'backward' });
-            const paginatedResponse = await this.fetchPaginatedCallDynamic (methodName, currency['code'], since, limit, params, maxLimit, true);
+            const paramsPaginate = this.extend (this.omit (params, 'paginate'), { 'paginationDirection': 'backward' });
+            const paginatedResponse = await this.fetchPaginatedCallDynamic (methodName, this.safeString (currency, 'code'), since, limit, paramsPaginate, maxLimit, true);
             return this.sortBy (paginatedResponse, 'timestamp');
         }
         const request: Dict = {
             'asset': currency['id'],
         };
-        let until: Int = undefined;
-        [ until, params ] = this.handleOptionAndParams2 (params, 'fetchTransfers', 'until', 'endTime');
+        const [ untilParam, paramsUntil ] = this.handleOptionIntegerAndParams2 (params, 'fetchTransfers', 'until', 'endTime');
         const now = this.milliseconds ();
         const sevenDays = 7 * 24 * 60 * 60 * 1000; // the maximum range is 7 days
-        let startTime = since;
-        if (startTime === undefined) {
-            if (until === undefined) {
+        let startTime: Int = since;
+        let until: Int = untilParam;
+        if (since === undefined) {
+            if (untilParam !== undefined) {
+                // since is undefined but until is defined
+                startTime = untilParam - sevenDays;
+            } else {
                 // both since and until are undefined
                 startTime = now - sevenDays;
                 until = now;
-            } else {
-                // since is undefined but until is defined
-                startTime = until - sevenDays;
             }
-        } else if (until === undefined) {
+        } else if (untilParam === undefined) {
             // until is undefined but since is defined
-            const delta = now - startTime;
+            const sinceInt = this.parseToInt (since);
+            const delta = now - sinceInt;
             if (delta > sevenDays) {
-                until = startTime + sevenDays;
+                until = sinceInt + sevenDays;
             } else {
                 until = now;
             }
@@ -2883,19 +2907,19 @@ export default class bydfi extends Exchange {
             //         "success": true
             //     }
             //
-            response = await this.privateGetV1SpotDepositRecords (this.extend (request, params));
+            response = await this.privateGetV1SpotDepositRecords (this.extend (request, paramsUntil));
         } else {
             //
             // todo check after withdrawal
             //
-            response = await this.privateGetV1SpotWithdrawRecords (this.extend (request, params));
+            response = await this.privateGetV1SpotWithdrawRecords (this.extend (request, paramsUntil));
         }
         const data = this.safeList (response, 'data', []) as List;
         const transactionParams: Dict = {
             'type': type,
         };
-        params = this.extend (params, transactionParams);
-        return this.parseTransactions (data, currency, since, limit, params);
+        const paramsTransaction = this.extend (paramsUntil, transactionParams);
+        return this.parseTransactions (data, currency, since, limit, paramsTransaction);
     }
 
     override parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
@@ -2959,8 +2983,13 @@ export default class bydfi extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
-        let url = this.urls['api'][api];
+    override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
+        const apiName = api[0];
+        const apiUrl = this.safeString (this.urls['api'], apiName);
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = apiUrl;
         let endpoint = '/' + path;
         let query = '';
         const sortedParams = this.keysort (params);
@@ -2970,22 +2999,24 @@ export default class bydfi extends Exchange {
                 endpoint += '?' + query;
             }
         }
-        if (api === 'private') {
+        let requestBody: Str = undefined;
+        let requestHeaders: NullableDict = undefined;
+        if (apiName === 'private') {
             this.checkRequiredCredentials ();
             const timestamp = this.milliseconds ().toString ();
             if (method === 'GET') {
                 const payload = this.apiKey + timestamp + query;
                 const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha256, 'hex');
-                headers = {
+                requestHeaders = {
                     'X-API-KEY': this.apiKey,
                     'X-API-TIMESTAMP': timestamp,
                     'X-API-SIGNATURE': signature,
                 };
             } else {
-                body = this.json (sortedParams);
-                const payload = this.apiKey + timestamp + body;
+                requestBody = this.json (sortedParams);
+                const payload = this.apiKey + timestamp + requestBody;
                 const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha256, 'hex');
-                headers = {
+                requestHeaders = {
                     'Content-Type': 'application/json',
                     'X-API-KEY': this.apiKey,
                     'X-API-TIMESTAMP': timestamp,
@@ -2994,7 +3025,9 @@ export default class bydfi extends Exchange {
             }
         }
         url += endpoint;
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        const bodyResolved = requestBody;
+        const headersResolved = requestHeaders;
+        return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
 
     override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {

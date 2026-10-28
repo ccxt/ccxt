@@ -20,10 +20,10 @@ func TestIsJsonEncodedObject() {
 	Assert(exchange.IsJsonEncodedObject("{"))
 	Assert(exchange.IsJsonEncodedObject("["))
 	// invalid
-	Assert(!ccxt.IsTrue(exchange.IsJsonEncodedObject("x")))
-	Assert(!ccxt.IsTrue(exchange.IsJsonEncodedObject("")))
-	Assert(!ccxt.IsTrue(exchange.IsJsonEncodedObject("}")))
-	Assert(!ccxt.IsTrue(exchange.IsJsonEncodedObject("]")))
-	Assert(!ccxt.IsTrue(exchange.IsJsonEncodedObject("null")))
-	Assert(!ccxt.IsTrue(exchange.IsJsonEncodedObject("undefined")))
+	Assert(!ccxt.EvalTruthy(exchange.IsJsonEncodedObject("x")))
+	Assert(!ccxt.EvalTruthy(exchange.IsJsonEncodedObject("")))
+	Assert(!ccxt.EvalTruthy(exchange.IsJsonEncodedObject("}")))
+	Assert(!ccxt.EvalTruthy(exchange.IsJsonEncodedObject("]")))
+	Assert(!ccxt.EvalTruthy(exchange.IsJsonEncodedObject("null")))
+	Assert(!ccxt.EvalTruthy(exchange.IsJsonEncodedObject("undefined")))
 }

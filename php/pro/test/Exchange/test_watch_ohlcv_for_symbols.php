@@ -17,7 +17,7 @@ function test_watch_ohlcv_for_symbols($exchange, $skipped_properties, $symbol) {
         $now = $exchange->milliseconds();
         $ends = $now + 15000;
         $timeframe_keys = is_array($exchange->timeframes) ? array_keys($exchange->timeframes) : array();
-        assert(count($timeframe_keys), $exchange->id . ' ' . $method . ' - no timeframes found');
+        assert(count($timeframe_keys) > 0, $exchange->id . ' ' . $method . ' - no timeframes found');
         // prefer 1m timeframe if available, otherwise return the first one
         $chosen_timeframe_key = '1m';
         if (!$exchange->in_array($chosen_timeframe_key, $timeframe_keys)) {
@@ -44,7 +44,7 @@ function test_watch_ohlcv_for_symbols($exchange, $skipped_properties, $symbol) {
                 $success = false;
             }
             $now = $exchange->milliseconds();
-            if (($success === true) && ($response !== null)) {
+            if (($success) && ($response !== null)) {
                 $assertion_message = $exchange->id . ' ' . $method . ' ' . $symbol . ' ' . $chosen_timeframe_key . ' | ' . $exchange->json($response);
                 assert($exchange->is_dictionary($response), 'Response must be a dictionary. ' . $assertion_message);
                 assert(is_array($response) && array_key_exists($symbol, $response), 'Response should contain the symbol as key. ' . $assertion_message);

@@ -203,15 +203,6 @@ public class WsOrderBook extends java.util.AbstractMap<String, Object> {
         return this;
     }
 
-    public List<Object> getCache() {
-        return this.cache;
-    }
-
-    public void setCache(List<Object> newCache) {
-        this.cache.clear();
-        this.cache.addAll(newCache);
-    }
-
     /** Map view of the orderbook; asks/bids are snapshot copies so callers can iterate
      *  without racing the WsClient thread that keeps applying deltas to the live sides.
      *  Synchronized so the scalar fields (timestamp/datetime/nonce/symbol) are read

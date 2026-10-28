@@ -248,6 +248,28 @@ export default [
         rules: mainRules,
     },
     {
+        // Hand-written utilities use native JS idioms, overloads and browser fallbacks.
+        // Keep the recommended correctness checks, without exchange style/typed rules.
+        files: ['ts/src/base/functions/**/*.ts'],
+        languageOptions: sharedLanguageOptions,
+        plugins: sharedPlugins,
+        rules: {
+            ...js.configs.recommended.rules,
+            'no-undef': 'off', // TypeScript checks names, including type-only references.
+            'no-redeclare': 'off', // TypeScript overload declarations are intentional.
+            'no-unused-vars': 'off', // Do not impose a new unused-argument policy here.
+            'no-empty': ['error', { 'allowEmptyCatch': true }],
+        },
+    },
+    {
+        // Generated implicit-API files: the generator emits the exchange style, so hold it to it.
+        files: ['ts/src/abstract/**/*.ts'],
+        languageOptions: sharedLanguageOptions,
+        plugins: sharedPlugins,
+        settings: sharedSettings,
+        rules: mainRulesWithoutJsdoc,
+    },
+    {
         files: ['ts/src/test/**/*.ts'],
         languageOptions: sharedLanguageOptions,
         plugins: sharedPlugins,
@@ -322,6 +344,13 @@ export default [
                 { 'blankLine': 'always', 'prev': '*', 'next': 'export' },
                 { 'blankLine': 'always', 'prev': '*', 'next': 'function' },
             ],
+        },
+    },
+    {
+        // exchange sources must not reassign parameters (write new values to fresh typed locals)
+        files: ['ts/src/*.ts', 'ts/src/pro/*.ts', 'ts/src/base/Exchange.ts', 'ts/src/base/PredictionExchange.ts'],
+        rules: {
+            'no-param-reassign': ['error', { 'props': false }],
         },
     },
 ];

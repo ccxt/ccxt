@@ -34,7 +34,7 @@ func NewThrottler(config map[string]any) *Throttler {
 	}
 	config = ExtendMap(defaultConfig, config)
 	if config["algorithm"] != "leakyBucket" {
-		config["maxWeight"] = config["windowSize"].(float64) / config["rateLimit"].(float64)
+		config["maxWeight"] = derefScalar(config["windowSize"]).(float64) / derefScalar(config["rateLimit"]).(float64)
 	}
 
 	return &Throttler{
@@ -118,7 +118,12 @@ func (t *Throttler) leakyBucketLoop() {
 			t.Mutex.Lock()
 			sumTokens := ToFloat64(t.Config["refillRate"]) * ToFloat64(elapsed)
 			tokens = ToFloat64(t.Config["tokens"]) + sumTokens
-			t.Config["tokens"] = MathMin(tokens, ToFloat64(t.Config["capacity"]))
+			capacity := ToFloat64(t.Config["capacity"])
+			if tokens < capacity {
+				t.Config["tokens"] = tokens
+			} else {
+				t.Config["tokens"] = capacity
+			}
 			t.Mutex.Unlock()
 		}
 	}

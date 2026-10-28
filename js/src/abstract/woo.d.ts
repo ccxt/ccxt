@@ -1,6 +1,6 @@
 import { Dict, List } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
-interface Exchange {
+declare abstract class Exchange extends _Exchange {
     v1PubGetHistKline(params?: {}): Promise<Dict>;
     v1PubGetHistTrades(params?: {}): Promise<Dict>;
     v1PublicGetInfo(params?: {}): Promise<Dict>;
@@ -115,12 +115,16 @@ interface Exchange {
     v3PrivatePostAssetWalletWithdraw(params?: {}): Promise<Dict>;
     v3PrivatePostSpotMarginLeverage(params?: {}): Promise<Dict>;
     v3PrivatePostSpotMarginInterestRepay(params?: {}): Promise<Dict>;
+    v3PrivatePostFuturesDefaultMarginModeReset(params?: {}): Promise<Dict>;
+    v3PrivatePostIsolatedMarginMargin(params?: {}): Promise<Dict>;
     v3PrivatePostAlgoOrder(params?: {}): Promise<Dict>;
     v3PrivatePostConvertRft(params?: {}): Promise<Dict>;
     v3PrivatePutTradeOrder(params?: {}): Promise<Dict>;
     v3PrivatePutTradeAlgoOrder(params?: {}): Promise<Dict>;
     v3PrivatePutFuturesLeverage(params?: {}): Promise<Dict>;
     v3PrivatePutFuturesPositionMode(params?: {}): Promise<Dict>;
+    v3PrivatePutFuturesDefaultMarginMode(params?: {}): Promise<Dict>;
+    v3PrivatePutFuturesDefaultMarginModeSymbol(params?: {}): Promise<Dict>;
     v3PrivatePutOrderOid(params?: {}): Promise<Dict>;
     v3PrivatePutOrderClientClientOrderId(params?: {}): Promise<Dict>;
     v3PrivatePutAlgoOrderOid(params?: {}): Promise<Dict>;
@@ -134,7 +138,6 @@ interface Exchange {
     v3PrivateDeleteAlgoOrdersPending(params?: {}): Promise<Dict>;
     v3PrivateDeleteAlgoOrdersPendingSymbol(params?: {}): Promise<Dict>;
     v3PrivateDeleteOrdersPending(params?: {}): Promise<Dict>;
-}
-declare abstract class Exchange extends _Exchange {
+    v3PrivateDeleteAssetWalletWithdrawWithdrawId(params?: {}): Promise<Dict>;
 }
 export default Exchange;

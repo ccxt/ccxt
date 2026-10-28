@@ -102,6 +102,13 @@ public partial class paymium : Exchange
         return await this.callAsync<List<object>> ("privateGetUserPriceAlerts",parameters);
     }
 
+    /// <summary>Calls the privateGetUserWithdrawals endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privateGetUserWithdrawals (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("privateGetUserWithdrawals",parameters);
+    }
+
     /// <summary>Calls the privateGetMerchantGetPaymentUuid endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> privateGetMerchantGetPaymentUuid (object parameters = null)

@@ -74,9 +74,9 @@ description: "위와 같이 짧은 형식으로 질문을 작성하시면 도움
 
   ## 업로드한 수정 사항이 TypeScript로 되어 있는데, JavaScript / Python / PHP도 수정해 주실 수 있나요?
 
-  저희의 빌드 시스템이 거래소별 JavaScript, Python, PHP, C#, Go 및 Java 코드를 자동으로 생성하므로, TypeScript에서 트랜스파일되며 모든 언어를 별도로 하나씩 수정할 필요가 없습니다.
+  저희의 빌드 시스템이 거래소별 JavaScript, Python, PHP, C#, Go, Java 및 Rust 코드를 자동으로 생성하므로, TypeScript에서 트랜스파일되며 모든 언어를 별도로 하나씩 수정할 필요가 없습니다.
 
-  따라서, TypeScript에서 수정되면 JavaScript NPM, Python pip, PHP Composer, C# NuGet, Go 및 Java에서도 수정됩니다. 자동 빌드는 보통 15-20분 정도 걸립니다. **새 버전이 출시된 후** `npm`, `pip` 또는 `composer`로 버전을 업그레이드하면 됩니다.
+  따라서, TypeScript에서 수정되면 JavaScript NPM, Python pip, PHP Composer, C# NuGet, Go, Java 및 Rust(crates.io)에서도 수정됩니다. 자동 빌드는 보통 15-20분 정도 걸립니다. **새 버전이 출시된 후** `npm`, `pip` 또는 `composer`로 버전을 업그레이드하면 됩니다.
 
   자세한 내용은 여기를 참고하세요:
 

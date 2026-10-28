@@ -23,13 +23,16 @@ if [ "$ws" -eq 1 ]; then
     npm run tsBuildFile ts/src/pro/$exchange_name.ts &
     npx tsx build/transpileWS.ts $exchange_name --ws &
     npm run transpileCSWs $exchange_name &
+    npm run transpileGOWs $exchange_name &
+    npm run transpileJavaWs $exchange_name &
     wait
 else
     echo "Transpiling REST version of $exchange_name"
     npm run tsBuildFile ts/src/$exchange_name.ts &
     npx tsx build/transpile.ts $exchange_name &
     npm run transpileCsSingle $exchange_name &
-    npx tsx build/goTranspiler.ts $exchange_name &
+    npm run transpileGORest $exchange_name &
+    npm run transpileJavaSingle $exchange_name &
     wait
 fi
 

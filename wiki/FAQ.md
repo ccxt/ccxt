@@ -69,15 +69,18 @@
 
   ## Hey! The fix you've uploaded is in TypeScript, would you fix JavaScript / Python / PHP as well, please?
 
-  Our build system generates exchange-specific JavaScript, Python, PHP, C#, Go and Java code for us automatically, so it is transpiled from TypeScript, and there's no need to fix all languages separately one by one.
+  Our build system generates exchange-specific JavaScript, Python, PHP, C#, Go, Java and Rust code for us automatically, so it is transpiled from TypeScript, and there's no need to fix all languages separately one by one.
 
-  Thus, if it is fixed in TypeScript, it is fixed in JavaScript NPM, Python pip, PHP Composer, C# NuGet, Go and Java as well. The automatic build usually takes 15-20 minutes. Just upgrade your version with `npm`, `pip` or `composer` **after the new version arrives** and you'll be fine.
+  Thus, if it is fixed in TypeScript, it is fixed in JavaScript NPM, Python pip, PHP Composer, C# NuGet, Go, Java and Rust (crates.io) as well. The automatic build usually takes 15-20 minutes. Just upgrade your version with `npm`, `pip` or `composer` **after the new version arrives** and you'll be fine.
 
   More about it here:
 
   - https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#multilanguage-support
   - https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#transpiled-generated-files
 
+  ## What are Exchange Rate FX markets on Binance and how do I use them?
+
+  Binance offers the Exchange Rate Foreign Exchange (FX) perpetual `USDBRL/USDT:USDT`. It uses the USD/BRL exchange rate as its underlying asset and is traded through the same perpetual-swap methods as other Binance USDT-settled linear swaps. It is a derivative contract where the amount is the number of contracts, the position is USDT-settled, and funding applies. This should NOT be confused with the similarly named FX Currency Swap found in traditional finance.
 
 
   ## How to create an order with takeProfit+stopLoss?
@@ -450,6 +453,65 @@ exchange = ccxt.apex({
 })
 ```
 
+### How to trade stocks at Backpack?
+
+Backpack lists tokenized US stocks next to its crypto markets. In CCXT they are regular spot markets flagged with `market['stock'] = true`. Set the `stock` option once when creating the exchange and every unified method will target the stock markets.
+
+- Instantiate the exchange with the `stock` option and load the stock markets:
+
+```
+exchange = ccxt.backpack({
+    'apiKey': 'xxx',
+    'secret': 'xxx',
+    'options': { 'stock': True },
+})
+stocks = exchange.load_markets()
+```
+
+- Stock symbols look like `SPCX.US/USDC`, so you can fetch tickers, order books and trades as usual:
+
+```
+ticker = exchange.fetch_ticker('SPCX.US/USDC')
+orderbook = exchange.fetch_order_book('SPCX.US/USDC')
+```
+
+- Place and cancel orders with `create_order` and `cancel_order` like any other spot market:
+
+```
+order = exchange.create_order('SPCX.US/USDC', 'limit', 'buy', 1, 100)
+exchange.cancel_order(order['id'], 'SPCX.US/USDC')
+```
+
+Markets ending in `.RFQ` (for example `AAPL.US.RFQ/USDC`) are quote-based: `create_order` with `type = 'market'` requests a quote and executes it, and an optional `price` acts as the worst price you accept. With the option set, `fetch_balance()` returns only your stock holdings. To trade crypto again from the same instance, set `exchange.options['stock'] = False`.
+
+### How to trade stocks at Bitget?
+
+Bitget lists tokenized US stocks as spot markets of its unified trading account (UTA). In CCXT they are regular spot markets flagged with `market['stock'] = true`, with symbols such as `RGOOGL/USDT`. Set the `stock` option once when creating the exchange and every call on that instance targets the stock markets.
+
+- Instantiate the exchange with the `stock` option, then load markets and balances as usual:
+
+```
+exchange = ccxt.bitget({
+    'apiKey': 'xxx',
+    'secret': 'xxx',
+    'password': 'xxx',
+    'options': { 'stock': True },
+})
+markets = exchange.load_markets()
+balance = exchange.fetch_balance()
+```
+
+- Market data, orders and cancels then work like any other spot market:
+
+```
+ticker = exchange.fetch_ticker('RGOOGL/USDT')
+orderbook = exchange.fetch_order_book('RGOOGL/USDT')
+order = exchange.create_order('RGOOGL/USDT', 'limit', 'buy', 1, 150)
+exchange.cancel_order(order['id'], 'RGOOGL/USDT')
+```
+
+The option applies to every method of that instance, so keep a separate instance without it for crypto trading. A few venue limits apply to stock markets: `fetch_order_book` and `fetch_trades` are private endpoints that need an API key whitelisted for stock trading, `fetch_order_book` takes no `limit`, `fetch_trades` takes no `since` or `paginate`, and only market and limit orders are supported, so trigger, stop-loss, take-profit and trailing orders are rejected.
+
 ## How to use the Prediction Exchanges in CCXT?
 
 Prediction-market exchanges (Polymarket, Kalshi, Hyperliquid, Limitless, Myriad) live in their own `prediction` namespace and work like any other CCXT exchange, with one key difference: instead of a market `symbol` you address an **outcome** — a handle of the form `MARKET:LABEL` (for example `TRUMP_WIN_2024:YES`). Wherever an outcome is accepted you can pass either the unified handle or the venue's raw `outcomeId` (a Polymarket token id, a Kalshi ticker, ...) — both resolve to the same outcome. Prices are probabilities between 0 and 1, amounts are shares, and costs are in the collateral currency (usually USDC/USD).
@@ -569,3 +631,57 @@ exchange = ccxt.prediction.hyperliquid({
 ```
 
 The id `hyperliquid` exists both as a regular crypto DEX (`ccxt.hyperliquid`) and as a prediction exchange (`ccxt.prediction.hyperliquid`) — the prediction class only exposes the prediction markets, addressed by outcome handles. Public market data works without any credentials.
+
+## How to fetch an RPI orderbook?
+
+OKX publishes a second order book that merges its regular liquidity with RPI (Retail Price Improvement) liquidity. Pass `rpi` to `fetchOrderBook` — either per call or once in `options` — and CCXT routes to that endpoint instead of the regular one. Everything else is unchanged, the returned [order book structure](Manual.md#order-book-structure) is the same.
+
+```Python
+exchange = ccxt.okx()
+
+# per call
+orderbook = exchange.fetch_order_book('BTC/USDT', 5, {'rpi': True})
+
+# or for every call
+exchange.options['fetchOrderBook'] = {'rpi': True}
+orderbook = exchange.fetch_order_book('BTC/USDT', 5)
+
+print(orderbook['bids'][0], orderbook['asks'][0])
+```
+
+The RPI book is capped at 400 entries per side, a larger `limit` is reduced to it.
+
+Binance has one too, but only for linear (USDⓈ-M) futures, and only as a per-call parameter:
+
+```Python
+exchange = ccxt.binance()
+orderbook = exchange.fetch_order_book('BTC/USDT:USDT', 5, {'rpi': True})
+```
+
+
+## Rust build is too slow and heavy, how to improve it?
+
+The `ccxt` crate compiles every exchange by default. A fresh debug build of a crate that depends on it needs about 19 GB of RAM and a few minutes; a release build needs about 50 GB, which does not complete on a 16 or 32 GB machine.
+
+Every exchange sits behind a cargo feature named after its id. Turn the defaults off and list only the exchanges you use:
+
+```toml
+[dependencies]
+ccxt = { version = "4", default-features = false, features = ["binance", "kraken", "okx"] }
+```
+
+Measured on the same machine, that brings a fresh build with three exchanges from 3m23s / 18.6 GB down to 29s / 2.5 GB (release: 7m49s / 50 GB down to 3m05s / 4.9 GB).
+
+Things to know:
+
+- `ccxt-pro` (WebSocket) and `ccxt-prediction` use the same feature names. Features are per crate, so put the list on every ccxt crate you depend on, and leave `default-features = false` on each of them, otherwise that crate's `all` brings every exchange back:
+
+  ```toml
+  ccxt     = { version = "4", default-features = false, features = ["binance"] }
+  ccxt-pro = { version = "4", default-features = false, features = ["binance"] }
+  ```
+
+- A derived exchange enables its parent on its own (`binanceus` pulls in `binance`).
+- Prediction markets that share an id with a regular exchange are separate features: `ccxt-prediction`'s `binance` is the prediction venue, `ccxt`'s `binance` the spot/derivatives one.
+- `ccxt::from_id("kraken", …)` returns `None` for an exchange that was not compiled in, so a program that picks exchanges at runtime needs them in the list.
+- If you still need everything, `debug = 0` (or `"line-tables-only"`) in `[profile.dev]` and `lto = "off"` in `[profile.release]` of your own `Cargo.toml` cut memory noticeably; `RUSTFLAGS="-C codegen-units=4"` trades build time for a lower peak.

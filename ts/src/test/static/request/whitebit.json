@@ -911,12 +911,11 @@
                     "USDT",
                     5,
                     "TQMbNLpgvJ4hPtR3HXi5zccc2mL2n9PURD",
-                    null,
                     {
-                        "uniqueId": "ccxt-test-withdraw-0001",
-                        "network": "TRC20"
+                      "uniqueId": "ccxt-test-withdraw-0001",
+                      "network": "TRC20"
                     }
-                ],
+                  ],
                 "output": {
                     "request": "/api/v4/main-account/withdraw",
                     "nonce": "1786656245400",
@@ -935,6 +934,34 @@
                 "method": "fetchTradingFees",
                 "url": "https://whitebit.com/api/v4/public/assets",
                 "input": [],
+                "output": null
+            }
+        ],
+        "fetchTransactionFees": [
+            {
+                "description": "fetchTransactionFees public fee",
+                "method": "fetchTransactionFees",
+                "url": "https://whitebit.com/api/v4/public/fee",
+                "input": [
+                    [
+                        "BTC",
+                        "DOGE"
+                    ]
+                ],
+                "output": null
+            }
+        ],
+        "fetchDepositWithdrawFees": [
+            {
+                "description": "fetchDepositWithdrawFees public fee",
+                "method": "fetchDepositWithdrawFees",
+                "url": "https://whitebit.com/api/v4/public/fee",
+                "input": [
+                    [
+                        "BTC",
+                        "DOGE"
+                    ]
+                ],
                 "output": null
             }
         ]

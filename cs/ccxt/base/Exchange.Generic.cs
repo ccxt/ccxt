@@ -93,18 +93,30 @@ public partial class BaseExchange
     {
         // var targetA = (List<object>)aa;
         var targetA = new List<object>() { };
-        if (aa.GetType() == typeof(List<object>))
+        if (aa is List<object> plain)
         {
-            targetA = (List<object>)aa;
+            targetA = plain;
         }
-        else
+        else if (aa is dict asDict)
         {
-            targetA = ((dict)aa).Values.ToList();
+            targetA = asDict.Values.ToList();
+        }
+        else if (aa is System.Collections.IEnumerable rows)
+        {
+            // a typed core's List<Dictionary<string, object>> (dydx FetchTransactionsHelper)
+            foreach (var row in rows)
+            {
+                targetA.Add(row);
+            }
         }
         var outList = new List<object>();
         foreach (object elem in targetA)
         {
-            if (((dict)elem)[(string)key]?.ToString() == value?.ToString())
+            // JS reads a missing key as undefined and simply does not match; indexing the
+            // dictionary directly threw KeyNotFoundException on entries lacking the key.
+            var row = (dict)elem;
+            object cell = row.TryGetValue((string)key, out var found) ? found : null;
+            if (cell?.ToString() == value?.ToString())
             {
                 outList.Add(elem);
             }
@@ -136,48 +148,6 @@ public partial class BaseExchange
         return outDict;
     }
 
-    public object deepExtend2(params object[] objs)
-    {
-        // old implementation
-        object outDict = new Dictionary<string, object>();
-        foreach (object obj in objs)
-        {
-            var obj2 = obj;
-            if (obj2 == null)
-            {
-                obj2 = new Dictionary<string, object>();
-            }
-            if (obj2 is dict)
-            {
-                var keys = new List<string>(((dict)obj2).Keys);
-                foreach (string key in keys)
-                {
-
-                    var value = ((dict)obj2)[key];
-                    if (value != null && value is dict)
-                    {
-                        if (((dict)outDict).ContainsKey(key))
-                        {
-                            ((dict)outDict)[key] = deepExtend2(((dict)outDict)[key], value);
-                        }
-                        else
-                        {
-                            ((dict)outDict)[key] = deepExtend2(value);
-                        }
-                    }
-                    else
-                    {
-                        ((dict)outDict)[key] = value;
-                    }
-                }
-            }
-            else
-            {
-                outDict = obj;
-            }
-        }
-        return outDict;
-    }
     public Dictionary<string, object> deepExtend(params object[] objs)
     {
         object outObj = null;
@@ -407,6 +377,11 @@ public partial class BaseExchange
 
     }
 
+    // The string-typed twin the generated declarations bind when the argument is already a
+    // string (the safeString family, classifier-typed locals): the object body hands a string
+    // back unchanged, or null for a numeric zero, so the box is exactly a string or null.
+    public string? omitZero(string? value) => (string?)omitZero((object)value);
+
     public virtual object isDictionary(object value)
     {
         return isTrue(isTrue((!isEqual(value, null))) && isTrue(((value is IDictionary<string, object>)))) && !isTrue(((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))));
@@ -434,6 +409,20 @@ public partial class BaseExchange
             return Convert.ToInt64(sum);
         }
         return sum;
+    }
+
+    // typed twins for the integer-box operands the C# classifier proves (int / uint / long /
+    // Int64 / Int64?): the (object, object) overload above maps a null operand to 0 and boxes
+    // an Int64 for every such pair, so these hand back that exact box and a generated
+    // `Int64 x = this.sum (a, b)` binds here without a cast (cs-strict S18).
+    public virtual Int64 sum(Int64 a, Int64 b)
+    {
+        return Convert.ToInt64(sum((object)a, (object)b));
+    }
+
+    public virtual Int64 sum(Int64? a, Int64? b)
+    {
+        return Convert.ToInt64(sum((object)a, (object)b));
     }
 
 }

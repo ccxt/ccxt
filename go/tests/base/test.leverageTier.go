@@ -6,7 +6,7 @@ import "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 func TestLeverageTier(exchange ccxt.ICoreExchange, skippedProperties any, method any, entry any) {
-	var format any = map[string]any{
+	var format map[string]any = map[string]any{
 		"tier":                  exchange.ParseNumber("1"),
 		"minNotional":           exchange.ParseNumber("0"),
 		"maxNotional":           exchange.ParseNumber("5000"),
@@ -14,7 +14,7 @@ func TestLeverageTier(exchange ccxt.ICoreExchange, skippedProperties any, method
 		"maxLeverage":           exchange.ParseNumber("25"),
 		"info":                  map[string]any{},
 	}
-	var emptyAllowedFor any = []any{"maintenanceMarginRate"}
+	var emptyAllowedFor []any = []any{"maintenanceMarginRate"}
 	AssertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor)
 	//
 	AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "tier", "0")

@@ -13,6 +13,8 @@
 * [fetchOHLCV](#fetchohlcv)
 * [fetchTickers](#fetchtickers)
 * [fetchTicker](#fetchticker)
+* [fetchFundingRates](#fetchfundingrates)
+* [fetchFundingRate](#fetchfundingrate)
 * [fetchOrderBook](#fetchorderbook)
 * [fetchTrades](#fetchtrades)
 * [fetchOpenInterest](#fetchopeninterest)
@@ -174,7 +176,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 | limit | <code>int</code> | No | the maximum amount of candles to fetch |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.until | <code>int</code> | No | timestamp in ms of the latest candle to fetch |
-| params.price | <code>string</code> | No | "last", "mark", "index", default is "last" |
+| params.price | <code>string</code> | No | "last", "mark", "index" (sent as "underlying"), default is "last" |
 
 
 ```javascript
@@ -221,6 +223,48 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 ```javascript
 paradex.fetchTicker (symbol, params?)
+```
+
+
+<a name="fetchFundingRates" id="fetchfundingrates"></a>
+
+### fetchFundingRates{docsify-ignore}
+fetches the current funding rate for multiple markets
+
+**Kind**: instance method of [<code>paradex</code>](#paradex)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-structure)
+
+**See**: https://docs.paradex.trade/api/prod/markets/get-markets-summary  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | unified market symbols |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+paradex.fetchFundingRates (symbols?, params?)
+```
+
+
+<a name="fetchFundingRate" id="fetchfundingrate"></a>
+
+### fetchFundingRate{docsify-ignore}
+fetches the current funding rate
+
+**Kind**: instance method of [<code>paradex</code>](#paradex)  
+**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/?id=funding-rate-structure)
+
+**See**: https://docs.paradex.trade/api/prod/markets/get-markets-summary  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+paradex.fetchFundingRate (symbol, params?)
 ```
 
 
@@ -822,7 +866,7 @@ paradex.fetchGreeks (symbol, params?)
 fetches all option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
 
 **Kind**: instance method of [<code>paradex</code>](#paradex)  
-**Returns**: <code>object</code> - a [greeks structure](https://docs.ccxt.com/?id=greeks-structure)
+**Returns**: <code>object</code> - a dictionary of [greeks structures](https://docs.ccxt.com/?id=greeks-structure) indexed by market symbol
 
 **See**: https://docs.paradex.trade/api/prod/markets/get-markets-summary  
 

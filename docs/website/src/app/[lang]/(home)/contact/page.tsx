@@ -5,7 +5,7 @@ import { MailIcon } from 'lucide-react';
 import { gitConfig } from '@/lib/shared';
 
 export const metadata: Metadata = {
-  title: 'Contact — CCXT',
+  title: { absolute: 'Contact — CCXT' },
   description: 'How to reach the CCXT team — email, Discord and Telegram.',
 };
 

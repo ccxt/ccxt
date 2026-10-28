@@ -80,6 +80,10 @@ def test_precise():
     assert Precise.string_equals('-0.0', '0')
     assert Precise.string_equals('-0.0', '0.0')
     assert Precise.string_equals('5.534000', '5.5340')
+    # equal values whose decimal exponent falls outside a typical small-int
+    # cache range (e.g. Java's boxed Integer cache is -128..127) — guards
+    # against comparing the exponent by object identity instead of value
+    assert Precise.string_equals('0.00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001', '1e-200')
     assert Precise.string_min('1.0000', '2') == '1'
     assert Precise.string_min('2', '1.2345') == '1.2345'
     assert Precise.string_min('3.1415', '-2') == '-2'
@@ -165,6 +169,18 @@ def test_precise():
     # large integers
     assert Precise.string_mul('123456789012345678901234567890', '987654321') == '121932631124828532112482853211126352690'
     assert Precise.string_add('123456789012345678901234567890', '123456789012345678901234567890') == '246913578024691357802469135780'
+    # alignment across a decimal-scale difference beyond the exact range of
+    # binary floats (implementations scaling by a float power of ten lose
+    # precision here — the scaling must use exact integer arithmetic)
+    assert Precise.string_add('1', '1e-30') == '1.000000000000000000000000000001'
+    assert Precise.string_add('1e-30', '1') == '1.000000000000000000000000000001'
+    assert Precise.string_add('1e-30', '-1e-30') == '0'
+    assert Precise.string_sub('1', '1e-30') == '0.999999999999999999999999999999'
+    assert Precise.string_sub('1e-30', '1') == '-0.999999999999999999999999999999'
+    assert Precise.string_gt('1e-30', '9e-31')
+    assert Precise.string_lt('1e-30', '1.1e-30')
+    assert Precise.string_add('1', '1e-130') == '1.0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001'
+    assert Precise.string_sub('1', '1e-130') == '0.9999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999'
     # positive modulo
     assert Precise.string_mod('1000000000.123', '7') == '6.123'
     assert Precise.string_mod('7.5', '2.5') == '0'
@@ -196,21 +212,21 @@ def test_precise():
     assert Precise.string_max('1', None) is None
     assert Precise.string_max(None, None) is None
     # bool false
-    assert Precise.string_equals(None, '1') is False
-    assert Precise.string_equals('1', None) is False
-    assert Precise.string_equals(None, None) is False
-    assert Precise.string_eq(None, '1') is False
-    assert Precise.string_eq('1', None) is False
-    assert Precise.string_eq(None, None) is False
-    assert Precise.string_gt(None, '1') is False
-    assert Precise.string_gt('1', None) is False
-    assert Precise.string_gt(None, None) is False
-    assert Precise.string_ge(None, '1') is False
-    assert Precise.string_ge('1', None) is False
-    assert Precise.string_ge(None, None) is False
-    assert Precise.string_lt(None, '1') is False
-    assert Precise.string_lt('1', None) is False
-    assert Precise.string_lt(None, None) is False
-    assert Precise.string_le(None, '1') is False
-    assert Precise.string_le('1', None) is False
-    assert Precise.string_le(None, None) is False
+    assert not Precise.string_equals(None, '1')
+    assert not Precise.string_equals('1', None)
+    assert not Precise.string_equals(None, None)
+    assert not Precise.string_eq(None, '1')
+    assert not Precise.string_eq('1', None)
+    assert not Precise.string_eq(None, None)
+    assert not Precise.string_gt(None, '1')
+    assert not Precise.string_gt('1', None)
+    assert not Precise.string_gt(None, None)
+    assert not Precise.string_ge(None, '1')
+    assert not Precise.string_ge('1', None)
+    assert not Precise.string_ge(None, None)
+    assert not Precise.string_lt(None, '1')
+    assert not Precise.string_lt('1', None)
+    assert not Precise.string_lt(None, None)
+    assert not Precise.string_le(None, '1')
+    assert not Precise.string_le('1', None)
+    assert not Precise.string_le(None, None)

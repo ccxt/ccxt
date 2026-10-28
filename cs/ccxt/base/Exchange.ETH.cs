@@ -41,7 +41,8 @@ public partial class BaseExchange
         return array;
     }
 
-    public object ethAbiEncode(object types2, object args2)
+    // Nethereum TupleType.Encode returns byte[]; the only return path hands it back unchanged
+    public byte[] ethAbiEncode(object types2, object args2)
     {
         //  ['(uint32,bool,uint64,uint64,bool,uint8,uint64)[]', 'uint8', 'address', 'uint256']
         //  [Array(1), 0, '0x0000000000000000000000000000000000000000', 1708007294587]
@@ -104,7 +105,10 @@ public partial class BaseExchange
         return encoded;
     }
 
-    public object ethEncodeStructuredData(object domain2, object messageTypes2, object messageData2)
+    // the only return path hands back Nethereum's Eip712TypedDataSigner.EncodeTypedDataRaw
+    // (vendored: cs/ccxt/static/.../Eip712TypedDataSigner.cs, `public byte[]`), so the declared
+    // type names the box the value already has
+    public byte[] ethEncodeStructuredData(object domain2, object messageTypes2, object messageData2)
     {
         // const domain =({"chainId":1337,"verifyingContract":"0x0000000000000000000000000000000000000000"})
         // const messageTypes = {"Agent":[{"name":"source","type":"uint256"},{"name":"connectionId","type":"bytes32"}]}

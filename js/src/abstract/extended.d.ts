@@ -1,6 +1,6 @@
 import { Dict, List } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
-interface Exchange {
+declare abstract class Exchange extends _Exchange {
     v1PublicGetInfoMarkets(params?: {}): Promise<Dict>;
     v1PublicGetInfoAssets(params?: {}): Promise<Dict>;
     v1PublicGetInfoAssetsAssetPrice(params?: {}): Promise<Dict>;
@@ -11,6 +11,8 @@ interface Exchange {
     v1PublicGetInfoMarketFunding(params?: {}): Promise<Dict>;
     v1PublicGetInfoMarketOpenInterests(params?: {}): Promise<Dict>;
     v1PublicGetInfoBuilderDashboard(params?: {}): Promise<Dict>;
+    v1PublicGetInterestInfoRateCurves(params?: {}): Promise<Dict>;
+    v1PublicGetInterestInfoLatestRateCurves(params?: {}): Promise<Dict>;
     v1PrivateGetUserAccounts(params?: {}): Promise<Dict>;
     v1PrivateGetUserAccountInfo(params?: {}): Promise<Dict>;
     v1PrivateGetUserBalance(params?: {}): Promise<Dict>;
@@ -37,10 +39,26 @@ interface Exchange {
     v1PrivateGetUserRewardsLeaderboardStats(params?: {}): Promise<Dict>;
     v1PrivateGetPortfolioChartsEquities(params?: {}): Promise<Dict>;
     v1PrivateGetPortfolioChartsPnl(params?: {}): Promise<Dict>;
+    v1PrivateGetPortfolioChartsPnlPercentage(params?: {}): Promise<Dict>;
+    v1PrivateGetPortfolioChartsPnlCumulative(params?: {}): Promise<Dict>;
+    v1PrivateGetPortfolioChartsPnlCumulativePercentage(params?: {}): Promise<Dict>;
+    v1PrivateGetPortfolioChartsVaultEquities(params?: {}): Promise<Dict>;
+    v1PrivateGetPortfolioChartsMaxDrawdown(params?: {}): Promise<Dict>;
+    v1PrivateGetPortfolioChartsFunding(params?: {}): Promise<Dict>;
+    v1PrivateGetPortfolioAccountsSummary(params?: {}): Promise<Dict>;
+    v1PrivateGetPortfolioAccountsHealth(params?: {}): Promise<Dict>;
+    v1PrivateGetPortfolioAccountsPerformance(params?: {}): Promise<Dict>;
+    v1PrivateGetPortfolioFundingStats(params?: {}): Promise<Dict>;
+    v1PrivateGetPortfolioFundingHistory(params?: {}): Promise<Dict>;
     v1PrivateGetVaultPublicPerformance(params?: {}): Promise<Dict>;
     v1PrivateGetVaultPublicSummary(params?: {}): Promise<Dict>;
     v1PrivateGetBuilderTrades(params?: {}): Promise<Dict>;
+    v1PrivateGetInterestKeyMetrics(params?: {}): Promise<Dict>;
+    v1PrivateGetInterestDailyMetrics(params?: {}): Promise<Dict>;
+    v1PrivateGetInterestPaymentChart(params?: {}): Promise<Dict>;
+    v1PrivateGetInterestPayments(params?: {}): Promise<Dict>;
     v1PrivatePostUserOrder(params?: {}): Promise<Dict>;
+    v1PrivatePostUserOrderRfq(params?: {}): Promise<Dict>;
     v1PrivatePostUserOrderMassCancel(params?: {}): Promise<Dict>;
     v1PrivatePostUserDeadmanswitch(params?: {}): Promise<string>;
     v1PrivatePostUserBridgeQuote(params?: {}): Promise<Dict>;
@@ -52,7 +70,5 @@ interface Exchange {
     v1PrivatePatchUserLeverage(params?: {}): Promise<Dict>;
     v1PrivateDeleteUserOrderId(params?: {}): Promise<Dict>;
     v1PrivateDeleteUserOrder(params?: {}): Promise<Dict>;
-}
-declare abstract class Exchange extends _Exchange {
 }
 export default Exchange;

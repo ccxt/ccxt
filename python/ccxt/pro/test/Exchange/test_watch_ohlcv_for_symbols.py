@@ -20,7 +20,7 @@ async def test_watch_ohlcv_for_symbols(exchange, skipped_properties, symbol):
     now = exchange.milliseconds()
     ends = now + 15000
     timeframe_keys = list(exchange.timeframes.keys())
-    assert len(timeframe_keys), exchange.id + ' ' + method + ' - no timeframes found'
+    assert len(timeframe_keys) > 0, exchange.id + ' ' + method + ' - no timeframes found'
     # prefer 1m timeframe if available, otherwise return the first one
     chosen_timeframe_key = '1m'
     if not exchange.in_array(chosen_timeframe_key, timeframe_keys):

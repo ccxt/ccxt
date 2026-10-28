@@ -8,22 +8,23 @@ namespace Tests;
 
 public partial class testMainClass : BaseTest
 {
-    async static public Task<object> testWatchTradesForSymbols(Exchange exchange, object skippedProperties, object symbols)
+    async static public Task<object> testWatchTradesForSymbols(Exchange exchange, object skippedProperties, IList<object> symbols)
     {
-        object method = "watchTradesForSymbols";
-        object now = exchange.milliseconds();
-        object ends = add(now, 15000);
-        object maxIdleTime = 5000;
-        object idle = false;
-        object returnedSymbols = new List<object>() {};
-        while (isTrue((isLessThan(now, ends))) && !isTrue(idle))
+        string method = "watchTradesForSymbols";
+        object logText = add(add(add(add(add(exchange.id, " "), method), " [symbols: "), exchange.json(symbols)), "] ");
+        Int64 now = exchange.milliseconds();
+        Int64 ends = (now + 30000);
+        int symbolsLength = (symbols?.Count ?? 0);
+        List<object> returnedSymbols = new List<object>() {};
+        bool allReceived = false;
+        // keep watching until every symbol traded or the deadline passed, a quiet market can stay silent for a while
+        while ((now < ends) && !allReceived)
         {
             object response = null;
-            object success = true;
-            object startTime = exchange.milliseconds();
+            bool success = true;
             try
             {
-                response = await exchange.watchTradesForSymbols(symbols);
+                response = detypeForComparison(await exchange.WatchTradesForSymbols(symbols));
             } catch(Exception e)
             {
                 if (!isTrue(testSharedMethods.isTemporaryFailure(e)))
@@ -33,30 +34,34 @@ public partial class testMainClass : BaseTest
                 success = false;
             }
             now = exchange.milliseconds();
-            if (isTrue(isTrue((isEqual(success, true))) && isTrue((!isEqual(response, null)))))
+            if ((success) && ((response != null)))
             {
-                assert(((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), add(add(add(add(add(add(exchange.id, " "), method), " "), exchange.json(symbols)), " must return an array. "), exchange.json(response)));
-                object symbol = null;
-                for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+                assert(((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), add(add(logText, "must return an array. "), exchange.json(response)));
+                for (int i = 0; i < getArrayLength(response); i++)
                 {
                     object trade = getValue(response, i);
-                    symbol = getValue(trade, "symbol");
-                    if (isTrue(isEqual(symbol, null)))
-                    {
-                        continue;
-                    }
-                    testTrade(exchange, skippedProperties, method, trade, symbol, now);
+                    object symbol = getValue(trade, "symbol");
+                    assert((symbol != null), add(add(logText, "returned a trade without a symbol "), exchange.json(trade)));
+                    testTrade(exchange, skippedProperties, method, trade, ((string)symbol), now, true);
                     testSharedMethods.assertInArray(exchange, skippedProperties, method, trade, "symbol", symbols);
                     if (!isTrue(exchange.inArray(symbol, returnedSymbols)))
                     {
-                        ((IList<object>)returnedSymbols).Add(symbol);
+                        returnedSymbols.Add(symbol);
                     }
                 }
-                if (isTrue(isGreaterThan((subtract(now, startTime)), maxIdleTime)))
+                int returnedLength = (returnedSymbols?.Count ?? 0);
+                if ((returnedLength == symbolsLength))
                 {
-                    idle = true;
+                    allReceived = true;
                 }
             }
+        }
+        int receivedLength = (returnedSymbols?.Count ?? 0);
+        assert(receivedLength > 0, add(logText, "did not receive trades for any symbol"));
+        if (!allReceived)
+        {
+            // an illiquid symbol may not trade inside the window, that is the market and not a bug
+            Console.WriteLine(add(add(logText, "warning: only received part of symbols before the deadline: "), exchange.json(returnedSymbols)));
         }
         return true;
     }

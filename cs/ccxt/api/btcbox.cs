@@ -46,6 +46,13 @@ public partial class btcbox : Exchange
         return await this.callAsync<Dictionary<string, object>> ("privatePostBalance",parameters);
     }
 
+    /// <summary>Calls the privatePostOrderHistory endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privatePostOrderHistory (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("privatePostOrderHistory",parameters);
+    }
+
     /// <summary>Calls the privatePostTradeAdd endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> privatePostTradeAdd (object parameters = null)

@@ -20,7 +20,7 @@ async function testWatchBalance (exchange: Exchange, skippedProperties: object, 
             // continue;
             success = false;
         }
-        if (success === false) {
+        if (!success) {
             continue; // retry
         }
         testBalance (exchange, skippedProperties, method, response);

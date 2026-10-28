@@ -1,6 +1,6 @@
 import { Dict, List } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
-interface Exchange {
+declare abstract class Exchange extends _Exchange {
     publicGetOpenapiV1Ping(params?: {}): Promise<Dict>;
     publicGetOpenapiV1Time(params?: {}): Promise<Dict>;
     publicGetOpenapiV1UserIp(params?: {}): Promise<Dict>;
@@ -65,6 +65,8 @@ interface Exchange {
     privatePostOpenapiFiatV1SupportChannel(params?: {}): Promise<Dict>;
     privatePostOpenapiFiatV1CashOut(params?: {}): Promise<Dict>;
     privatePostOpenapiFiatV1History(params?: {}): Promise<Dict>;
+    privatePostOpenapiFiatV2History(params?: {}): Promise<Dict>;
+    privatePostOpenapiFiatV1CancelQrCode(params?: {}): Promise<Dict>;
     privatePostOpenapiMigrationV4Sellorder(params?: {}): Promise<Dict>;
     privatePostOpenapiMigrationV4ValidateField(params?: {}): Promise<Dict>;
     privatePostOpenapiTransferV3Transfers(params?: {}): Promise<Dict>;
@@ -79,7 +81,5 @@ interface Exchange {
     privateDeleteOpenapiV1Order(params?: {}): Promise<Dict>;
     privateDeleteOpenapiV1OpenOrders(params?: {}): Promise<List>;
     privateDeleteOpenapiV1UserDataStream(params?: {}): Promise<Dict>;
-}
-declare abstract class Exchange extends _Exchange {
 }
 export default Exchange;

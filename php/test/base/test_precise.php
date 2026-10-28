@@ -75,6 +75,10 @@ function test_precise() {
     assert(Precise::string_equals('-0.0', '0'));
     assert(Precise::string_equals('-0.0', '0.0'));
     assert(Precise::string_equals('5.534000', '5.5340'));
+    // equal values whose decimal exponent falls outside a typical small-int
+    // cache range (e.g. Java's boxed Integer cache is -128..127) — guards
+    // against comparing the exponent by object identity instead of value
+    assert(Precise::string_equals('0.00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001', '1e-200'));
     assert(Precise::string_min('1.0000', '2') === '1');
     assert(Precise::string_min('2', '1.2345') === '1.2345');
     assert(Precise::string_min('3.1415', '-2') === '-2');
@@ -160,6 +164,18 @@ function test_precise() {
     // large integers
     assert(Precise::string_mul('123456789012345678901234567890', '987654321') === '121932631124828532112482853211126352690');
     assert(Precise::string_add('123456789012345678901234567890', '123456789012345678901234567890') === '246913578024691357802469135780');
+    // alignment across a decimal-scale difference beyond the exact range of
+    // binary floats (implementations scaling by a float power of ten lose
+    // precision here — the scaling must use exact integer arithmetic)
+    assert(Precise::string_add('1', '1e-30') === '1.000000000000000000000000000001');
+    assert(Precise::string_add('1e-30', '1') === '1.000000000000000000000000000001');
+    assert(Precise::string_add('1e-30', '-1e-30') === '0');
+    assert(Precise::string_sub('1', '1e-30') === '0.999999999999999999999999999999');
+    assert(Precise::string_sub('1e-30', '1') === '-0.999999999999999999999999999999');
+    assert(Precise::string_gt('1e-30', '9e-31'));
+    assert(Precise::string_lt('1e-30', '1.1e-30'));
+    assert(Precise::string_add('1', '1e-130') === '1.0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001');
+    assert(Precise::string_sub('1', '1e-130') === '0.9999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999');
     // positive modulo
     assert(Precise::string_mod('1000000000.123', '7') === '6.123');
     assert(Precise::string_mod('7.5', '2.5') === '0');
@@ -191,22 +207,22 @@ function test_precise() {
     assert(Precise::string_max('1', null) === null);
     assert(Precise::string_max(null, null) === null);
     // bool false
-    assert(Precise::string_equals(null, '1') === false);
-    assert(Precise::string_equals('1', null) === false);
-    assert(Precise::string_equals(null, null) === false);
-    assert(Precise::string_eq(null, '1') === false);
-    assert(Precise::string_eq('1', null) === false);
-    assert(Precise::string_eq(null, null) === false);
-    assert(Precise::string_gt(null, '1') === false);
-    assert(Precise::string_gt('1', null) === false);
-    assert(Precise::string_gt(null, null) === false);
-    assert(Precise::string_ge(null, '1') === false);
-    assert(Precise::string_ge('1', null) === false);
-    assert(Precise::string_ge(null, null) === false);
-    assert(Precise::string_lt(null, '1') === false);
-    assert(Precise::string_lt('1', null) === false);
-    assert(Precise::string_lt(null, null) === false);
-    assert(Precise::string_le(null, '1') === false);
-    assert(Precise::string_le('1', null) === false);
-    assert(Precise::string_le(null, null) === false);
+    assert(!Precise::string_equals(null, '1'));
+    assert(!Precise::string_equals('1', null));
+    assert(!Precise::string_equals(null, null));
+    assert(!Precise::string_eq(null, '1'));
+    assert(!Precise::string_eq('1', null));
+    assert(!Precise::string_eq(null, null));
+    assert(!Precise::string_gt(null, '1'));
+    assert(!Precise::string_gt('1', null));
+    assert(!Precise::string_gt(null, null));
+    assert(!Precise::string_ge(null, '1'));
+    assert(!Precise::string_ge('1', null));
+    assert(!Precise::string_ge(null, null));
+    assert(!Precise::string_lt(null, '1'));
+    assert(!Precise::string_lt('1', null));
+    assert(!Precise::string_lt(null, null));
+    assert(!Precise::string_le(null, '1'));
+    assert(!Precise::string_le('1', null));
+    assert(!Precise::string_le(null, null));
 }

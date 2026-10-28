@@ -37,7 +37,7 @@
 * [fetchFundingRateHistory](#fetchfundingratehistory)
 * [fetchPosition](#fetchposition)
 * [fetchPositions](#fetchpositions)
-* [closePositions](#closepositions)
+* [closePosition](#closeposition)
 * [fetchTradingFee](#fetchtradingfee)
 * [fetchTradingFees](#fetchtradingfees)
 * [watchOrderBook](#watchorderbook)
@@ -521,12 +521,12 @@ make a withdrawal
 | code | <code>string</code> | Yes | unified currency code |
 | amount | <code>float</code> | Yes | the amount to withdraw |
 | address | <code>string</code> | Yes | the address to withdraw to |
-| tag | <code>string</code> | Yes |  |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.tag | <code>string</code> | No | memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies'] |
 
 
 ```javascript
-cryptocom.withdraw (code, amount, address, tag, params?)
+cryptocom.withdraw (code, amount, address, params?)
 ```
 
 
@@ -797,9 +797,9 @@ cryptocom.fetchPositions (symbols, params?)
 ```
 
 
-<a name="closePositions" id="closepositions"></a>
+<a name="closePosition" id="closeposition"></a>
 
-### closePositions{docsify-ignore}
+### closePosition{docsify-ignore}
 closes open positions for a market
 
 **Kind**: instance method of [<code>cryptocom</code>](#cryptocom)  
@@ -817,7 +817,7 @@ closes open positions for a market
 
 
 ```javascript
-cryptocom.closePositions (symbol, side?, params?)
+cryptocom.closePosition (symbol, side?, params?)
 ```
 
 

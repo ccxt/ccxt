@@ -10,9 +10,9 @@ import ccxt from '../../../ccxt.js';
 // ----------------------------------------------------------------------------
 export default async (exchange, symbol) => {
     console.log('AuthenticationError (bad nonce) test...');
-    const hasFetchBalance = exchange.has.fetchBalance;
-    const hasFetchMyTrades = exchange.has.fetchMyTrades;
-    const hasFetchOrders = exchange.has.fetchOrders;
+    const hasFetchBalance = (exchange.has['fetchBalance'] !== undefined) && (exchange.has['fetchBalance'] !== false);
+    const hasFetchMyTrades = (exchange.has['fetchMyTrades'] !== undefined) && (exchange.has['fetchMyTrades'] !== false);
+    const hasFetchOrders = (exchange.has['fetchOrders'] !== undefined) && (exchange.has['fetchOrders'] !== false);
     if (hasFetchBalance || hasFetchMyTrades || hasFetchOrders) {
         // save the nonce temporarily and replace it with a fake one
         const nonce = exchange.nonce;

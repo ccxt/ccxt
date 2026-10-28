@@ -11,7 +11,7 @@ import java.util.stream.Collectors;
 // `markets` holds the grouped market rows (each carrying its outcomes list),
 // parsed into PredictionMarket. Mirrors the `PredictionEvent`
 // interface in ts/src/base/types.ts and the Go/C# structs.
-public final class PredictionEvent {
+public final class PredictionEvent extends TypedMap {
     public String id;      // raw exchange event id
     public String eventId; // unified handle "US_ELECTION_2024"
     public String title;
@@ -31,10 +31,14 @@ public final class PredictionEvent {
     public String endDatetime;
     public String image;
     public String url;
+    public String resolutionSource;
+    public Long lastUpdatedAt;
+    public String lastUpdatedAtDatetime;
     public Map<String, Object> info;
 
     @SuppressWarnings("unchecked")
     public PredictionEvent(Object raw) {
+        super(raw);
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.id = TypeHelper.safeString(data, "id");
         this.eventId = TypeHelper.safeString(data, "event");
@@ -61,6 +65,9 @@ public final class PredictionEvent {
         this.endDatetime = TypeHelper.safeString(data, "endDatetime");
         this.image = TypeHelper.safeString(data, "image");
         this.url = TypeHelper.safeString(data, "url");
+        this.resolutionSource = TypeHelper.safeString(data, "resolutionSource");
+        this.lastUpdatedAt = TypeHelper.safeInteger(data, "lastUpdatedAt");
+        this.lastUpdatedAtDatetime = TypeHelper.safeString(data, "lastUpdatedAtDatetime");
         this.info = TypeHelper.getInfo(data);
     }
 }

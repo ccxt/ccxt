@@ -7,6 +7,8 @@
 
 package io.github.ccxt.api.prediction;
 import io.github.ccxt.PredictionExchange;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class KalshiApi extends PredictionExchange
 {
@@ -25,7 +27,7 @@ public class KalshiApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPublicGetEvents (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  kalshiPublicGetEvents (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPublicGetEvents", optionalArgs);
     }
@@ -36,7 +38,7 @@ public class KalshiApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPublicGetEventsMultivariate (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  kalshiPublicGetEventsMultivariate (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPublicGetEventsMultivariate", optionalArgs);
     }
@@ -47,7 +49,7 @@ public class KalshiApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPublicGetEventsFeeChanges (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  kalshiPublicGetEventsFeeChanges (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPublicGetEventsFeeChanges", optionalArgs);
     }
@@ -58,7 +60,7 @@ public class KalshiApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPublicGetEventsEventTicker (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  kalshiPublicGetEventsEventTicker (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPublicGetEventsEventTicker", optionalArgs);
     }
@@ -69,7 +71,7 @@ public class KalshiApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPublicGetEventsEventTickerMetadata (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  kalshiPublicGetEventsEventTickerMetadata (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPublicGetEventsEventTickerMetadata", optionalArgs);
     }
@@ -80,7 +82,7 @@ public class KalshiApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPublicGetSeries (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  kalshiPublicGetSeries (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPublicGetSeries", optionalArgs);
     }
@@ -91,7 +93,7 @@ public class KalshiApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPublicGetSeriesFeeChanges (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  kalshiPublicGetSeriesFeeChanges (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPublicGetSeriesFeeChanges", optionalArgs);
     }
@@ -102,7 +104,7 @@ public class KalshiApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPublicGetSeriesSeriesTicker (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  kalshiPublicGetSeriesSeriesTicker (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPublicGetSeriesSeriesTicker", optionalArgs);
     }
@@ -113,7 +115,7 @@ public class KalshiApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPublicGetSeriesSeriesTickerMarketsTickerCandlesticks (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  kalshiPublicGetSeriesSeriesTickerMarketsTickerCandlesticks (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPublicGetSeriesSeriesTickerMarketsTickerCandlesticks", optionalArgs);
     }
@@ -124,7 +126,7 @@ public class KalshiApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPublicGetSeriesSeriesTickerEventsTickerCandlesticks (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  kalshiPublicGetSeriesSeriesTickerEventsTickerCandlesticks (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPublicGetSeriesSeriesTickerEventsTickerCandlesticks", optionalArgs);
     }
@@ -135,7 +137,7 @@ public class KalshiApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPublicGetSeriesSeriesTickerEventsTickerForecastPercentileHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  kalshiPublicGetSeriesSeriesTickerEventsTickerForecastPercentileHistory (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPublicGetSeriesSeriesTickerEventsTickerForecastPercentileHistory", optionalArgs);
     }
@@ -146,7 +148,7 @@ public class KalshiApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPublicGetMarkets (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  kalshiPublicGetMarkets (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPublicGetMarkets", optionalArgs);
     }
@@ -157,7 +159,7 @@ public class KalshiApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPublicGetMarketsTrades (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  kalshiPublicGetMarketsTrades (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPublicGetMarketsTrades", optionalArgs);
     }
@@ -168,7 +170,7 @@ public class KalshiApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPublicGetMarketsOrderbooks (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  kalshiPublicGetMarketsOrderbooks (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPublicGetMarketsOrderbooks", optionalArgs);
     }
@@ -179,7 +181,7 @@ public class KalshiApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPublicGetMarketsCandlesticks (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  kalshiPublicGetMarketsCandlesticks (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPublicGetMarketsCandlesticks", optionalArgs);
     }
@@ -190,7 +192,7 @@ public class KalshiApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPublicGetMarketsTicker (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  kalshiPublicGetMarketsTicker (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPublicGetMarketsTicker", optionalArgs);
     }
@@ -201,7 +203,7 @@ public class KalshiApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPublicGetMarketsTickerOrderbook (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  kalshiPublicGetMarketsTickerOrderbook (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPublicGetMarketsTickerOrderbook", optionalArgs);
     }
@@ -212,7 +214,7 @@ public class KalshiApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPublicGetExchangeStatus (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  kalshiPublicGetExchangeStatus (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPublicGetExchangeStatus", optionalArgs);
     }
@@ -223,7 +225,7 @@ public class KalshiApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPublicGetExchangeSchedule (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  kalshiPublicGetExchangeSchedule (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPublicGetExchangeSchedule", optionalArgs);
     }
@@ -234,7 +236,7 @@ public class KalshiApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPublicGetExchangeAnnouncements (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  kalshiPublicGetExchangeAnnouncements (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPublicGetExchangeAnnouncements", optionalArgs);
     }
@@ -245,7 +247,7 @@ public class KalshiApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPublicGetExchangeUserDataTimestamp (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  kalshiPublicGetExchangeUserDataTimestamp (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPublicGetExchangeUserDataTimestamp", optionalArgs);
     }
@@ -256,7 +258,7 @@ public class KalshiApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPublicGetMilestones (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  kalshiPublicGetMilestones (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPublicGetMilestones", optionalArgs);
     }
@@ -267,7 +269,7 @@ public class KalshiApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPublicGetMilestonesMilestoneId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  kalshiPublicGetMilestonesMilestoneId (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPublicGetMilestonesMilestoneId", optionalArgs);
     }
@@ -278,7 +280,7 @@ public class KalshiApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPublicGetStructuredTargets (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  kalshiPublicGetStructuredTargets (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPublicGetStructuredTargets", optionalArgs);
     }
@@ -289,7 +291,7 @@ public class KalshiApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPublicGetStructuredTargetsStructuredTargetId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  kalshiPublicGetStructuredTargetsStructuredTargetId (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPublicGetStructuredTargetsStructuredTargetId", optionalArgs);
     }
@@ -300,7 +302,7 @@ public class KalshiApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPublicGetSearchFiltersBySport (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  kalshiPublicGetSearchFiltersBySport (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPublicGetSearchFiltersBySport", optionalArgs);
     }
@@ -311,7 +313,7 @@ public class KalshiApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPublicGetSearchTagsByCategories (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  kalshiPublicGetSearchTagsByCategories (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPublicGetSearchTagsByCategories", optionalArgs);
     }
@@ -322,7 +324,7 @@ public class KalshiApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPublicGetLiveDataBatch (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  kalshiPublicGetLiveDataBatch (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPublicGetLiveDataBatch", optionalArgs);
     }
@@ -333,7 +335,7 @@ public class KalshiApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPublicGetLiveDataMilestoneMilestoneId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  kalshiPublicGetLiveDataMilestoneMilestoneId (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPublicGetLiveDataMilestoneMilestoneId", optionalArgs);
     }
@@ -344,7 +346,7 @@ public class KalshiApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPublicGetHistoricalMarkets (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  kalshiPublicGetHistoricalMarkets (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPublicGetHistoricalMarkets", optionalArgs);
     }
@@ -355,7 +357,7 @@ public class KalshiApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPublicGetHistoricalMarketsTickerCandlesticks (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  kalshiPublicGetHistoricalMarketsTickerCandlesticks (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPublicGetHistoricalMarketsTickerCandlesticks", optionalArgs);
     }
@@ -366,7 +368,7 @@ public class KalshiApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPublicGetHistoricalTrades (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  kalshiPublicGetHistoricalTrades (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPublicGetHistoricalTrades", optionalArgs);
     }
@@ -377,7 +379,7 @@ public class KalshiApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPublicGetHistoricalCutoffTimestamps (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  kalshiPublicGetHistoricalCutoffTimestamps (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPublicGetHistoricalCutoffTimestamps", optionalArgs);
     }
@@ -388,7 +390,7 @@ public class KalshiApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPublicGetMultivariateEventCollections (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  kalshiPublicGetMultivariateEventCollections (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPublicGetMultivariateEventCollections", optionalArgs);
     }
@@ -399,7 +401,7 @@ public class KalshiApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPublicGetMultivariateEventCollectionsCollectionTicker (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  kalshiPublicGetMultivariateEventCollectionsCollectionTicker (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPublicGetMultivariateEventCollectionsCollectionTicker", optionalArgs);
     }
@@ -410,7 +412,7 @@ public class KalshiApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPublicGetMultivariateEventCollectionsCollectionTickerLookup (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  kalshiPublicGetMultivariateEventCollectionsCollectionTickerLookup (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPublicGetMultivariateEventCollectionsCollectionTickerLookup", optionalArgs);
     }
@@ -421,7 +423,7 @@ public class KalshiApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPublicGetIncentivePrograms (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  kalshiPublicGetIncentivePrograms (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPublicGetIncentivePrograms", optionalArgs);
     }
@@ -432,7 +434,7 @@ public class KalshiApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPrivateGetPortfolioBalance (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  kalshiPrivateGetPortfolioBalance (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPrivateGetPortfolioBalance", optionalArgs);
     }
@@ -443,7 +445,7 @@ public class KalshiApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPrivateGetPortfolioOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  kalshiPrivateGetPortfolioOrders (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPrivateGetPortfolioOrders", optionalArgs);
     }
@@ -454,7 +456,7 @@ public class KalshiApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPrivateGetPortfolioOrdersOrderId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  kalshiPrivateGetPortfolioOrdersOrderId (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPrivateGetPortfolioOrdersOrderId", optionalArgs);
     }
@@ -465,7 +467,7 @@ public class KalshiApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPrivateGetPortfolioOrdersOrderIdQueuePosition (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  kalshiPrivateGetPortfolioOrdersOrderIdQueuePosition (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPrivateGetPortfolioOrdersOrderIdQueuePosition", optionalArgs);
     }
@@ -476,7 +478,7 @@ public class KalshiApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPrivateGetPortfolioOrdersQueuePositions (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  kalshiPrivateGetPortfolioOrdersQueuePositions (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPrivateGetPortfolioOrdersQueuePositions", optionalArgs);
     }
@@ -487,7 +489,7 @@ public class KalshiApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPrivateGetPortfolioPositions (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  kalshiPrivateGetPortfolioPositions (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPrivateGetPortfolioPositions", optionalArgs);
     }
@@ -498,7 +500,7 @@ public class KalshiApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPrivateGetPortfolioFills (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  kalshiPrivateGetPortfolioFills (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPrivateGetPortfolioFills", optionalArgs);
     }
@@ -509,7 +511,7 @@ public class KalshiApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPrivateGetPortfolioSettlements (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  kalshiPrivateGetPortfolioSettlements (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPrivateGetPortfolioSettlements", optionalArgs);
     }
@@ -520,7 +522,7 @@ public class KalshiApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPrivateGetPortfolioDeposits (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  kalshiPrivateGetPortfolioDeposits (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPrivateGetPortfolioDeposits", optionalArgs);
     }
@@ -531,7 +533,7 @@ public class KalshiApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPrivateGetPortfolioWithdrawals (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  kalshiPrivateGetPortfolioWithdrawals (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPrivateGetPortfolioWithdrawals", optionalArgs);
     }
@@ -542,7 +544,7 @@ public class KalshiApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPrivateGetPortfolioOrderGroups (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  kalshiPrivateGetPortfolioOrderGroups (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPrivateGetPortfolioOrderGroups", optionalArgs);
     }
@@ -553,7 +555,7 @@ public class KalshiApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPrivateGetPortfolioOrderGroupsOrderGroupId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  kalshiPrivateGetPortfolioOrderGroupsOrderGroupId (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPrivateGetPortfolioOrderGroupsOrderGroupId", optionalArgs);
     }
@@ -564,7 +566,7 @@ public class KalshiApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPrivateGetPortfolioSummaryTotalRestingOrderValue (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  kalshiPrivateGetPortfolioSummaryTotalRestingOrderValue (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPrivateGetPortfolioSummaryTotalRestingOrderValue", optionalArgs);
     }
@@ -575,7 +577,7 @@ public class KalshiApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPrivateGetPortfolioSubaccountsBalances (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  kalshiPrivateGetPortfolioSubaccountsBalances (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPrivateGetPortfolioSubaccountsBalances", optionalArgs);
     }
@@ -586,7 +588,7 @@ public class KalshiApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPrivateGetPortfolioSubaccountsNetting (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  kalshiPrivateGetPortfolioSubaccountsNetting (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPrivateGetPortfolioSubaccountsNetting", optionalArgs);
     }
@@ -597,7 +599,7 @@ public class KalshiApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPrivateGetPortfolioSubaccountsTransfers (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  kalshiPrivateGetPortfolioSubaccountsTransfers (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPrivateGetPortfolioSubaccountsTransfers", optionalArgs);
     }
@@ -608,7 +610,7 @@ public class KalshiApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPrivateGetHistoricalFills (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  kalshiPrivateGetHistoricalFills (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPrivateGetHistoricalFills", optionalArgs);
     }
@@ -619,7 +621,7 @@ public class KalshiApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPrivateGetHistoricalOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  kalshiPrivateGetHistoricalOrders (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPrivateGetHistoricalOrders", optionalArgs);
     }
@@ -630,7 +632,7 @@ public class KalshiApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPrivatePostPortfolioOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  kalshiPrivatePostPortfolioOrders (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPrivatePostPortfolioOrders", optionalArgs);
     }
@@ -641,7 +643,7 @@ public class KalshiApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPrivatePostPortfolioEventsOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  kalshiPrivatePostPortfolioEventsOrders (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPrivatePostPortfolioEventsOrders", optionalArgs);
     }
@@ -652,7 +654,7 @@ public class KalshiApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPrivatePostPortfolioOrdersBatched (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  kalshiPrivatePostPortfolioOrdersBatched (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPrivatePostPortfolioOrdersBatched", optionalArgs);
     }
@@ -663,7 +665,7 @@ public class KalshiApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPrivatePostPortfolioOrdersOrderIdAmend (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  kalshiPrivatePostPortfolioOrdersOrderIdAmend (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPrivatePostPortfolioOrdersOrderIdAmend", optionalArgs);
     }
@@ -674,7 +676,7 @@ public class KalshiApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPrivatePostPortfolioOrdersOrderIdDecrease (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  kalshiPrivatePostPortfolioOrdersOrderIdDecrease (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPrivatePostPortfolioOrdersOrderIdDecrease", optionalArgs);
     }
@@ -685,7 +687,7 @@ public class KalshiApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPrivatePostPortfolioOrderGroupsCreate (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  kalshiPrivatePostPortfolioOrderGroupsCreate (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPrivatePostPortfolioOrderGroupsCreate", optionalArgs);
     }
@@ -696,7 +698,7 @@ public class KalshiApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPrivatePostPortfolioSubaccounts (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  kalshiPrivatePostPortfolioSubaccounts (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPrivatePostPortfolioSubaccounts", optionalArgs);
     }
@@ -707,7 +709,7 @@ public class KalshiApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPrivatePostPortfolioSubaccountsTransfer (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  kalshiPrivatePostPortfolioSubaccountsTransfer (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPrivatePostPortfolioSubaccountsTransfer", optionalArgs);
     }
@@ -718,7 +720,7 @@ public class KalshiApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPrivatePostMultivariateEventCollectionsCollectionTicker (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  kalshiPrivatePostMultivariateEventCollectionsCollectionTicker (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPrivatePostMultivariateEventCollectionsCollectionTicker", optionalArgs);
     }
@@ -729,7 +731,7 @@ public class KalshiApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPrivatePutPortfolioOrderGroupsOrderGroupIdReset (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  kalshiPrivatePutPortfolioOrderGroupsOrderGroupIdReset (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPrivatePutPortfolioOrderGroupsOrderGroupIdReset", optionalArgs);
     }
@@ -740,7 +742,7 @@ public class KalshiApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPrivatePutPortfolioOrderGroupsOrderGroupIdTrigger (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  kalshiPrivatePutPortfolioOrderGroupsOrderGroupIdTrigger (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPrivatePutPortfolioOrderGroupsOrderGroupIdTrigger", optionalArgs);
     }
@@ -751,7 +753,7 @@ public class KalshiApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPrivatePutPortfolioOrderGroupsOrderGroupIdLimit (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  kalshiPrivatePutPortfolioOrderGroupsOrderGroupIdLimit (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPrivatePutPortfolioOrderGroupsOrderGroupIdLimit", optionalArgs);
     }
@@ -762,7 +764,7 @@ public class KalshiApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPrivatePutPortfolioSubaccountsNetting (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  kalshiPrivatePutPortfolioSubaccountsNetting (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPrivatePutPortfolioSubaccountsNetting", optionalArgs);
     }
@@ -773,7 +775,7 @@ public class KalshiApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPrivatePutMultivariateEventCollectionsCollectionTickerLookup (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  kalshiPrivatePutMultivariateEventCollectionsCollectionTickerLookup (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPrivatePutMultivariateEventCollectionsCollectionTickerLookup", optionalArgs);
     }
@@ -784,7 +786,7 @@ public class KalshiApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPrivateDeletePortfolioOrdersOrderId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  kalshiPrivateDeletePortfolioOrdersOrderId (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPrivateDeletePortfolioOrdersOrderId", optionalArgs);
     }
@@ -795,7 +797,7 @@ public class KalshiApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPrivateDeletePortfolioOrdersBatched (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  kalshiPrivateDeletePortfolioOrdersBatched (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPrivateDeletePortfolioOrdersBatched", optionalArgs);
     }
@@ -806,7 +808,7 @@ public class KalshiApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPrivateDeletePortfolioEventsOrdersOrderId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  kalshiPrivateDeletePortfolioEventsOrdersOrderId (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPrivateDeletePortfolioEventsOrdersOrderId", optionalArgs);
     }
@@ -817,7 +819,7 @@ public class KalshiApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  kalshiPrivateDeletePortfolioOrderGroupsOrderGroupId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  kalshiPrivateDeletePortfolioOrderGroupsOrderGroupId (Object... optionalArgs)
     {
         return this.callAsync ("kalshiPrivateDeletePortfolioOrderGroupsOrderGroupId", optionalArgs);
     }
@@ -828,7 +830,7 @@ public class KalshiApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  electionsPublicGetSearchSeries (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  electionsPublicGetSearchSeries (Object... optionalArgs)
     {
         return this.callAsync ("electionsPublicGetSearchSeries", optionalArgs);
     }

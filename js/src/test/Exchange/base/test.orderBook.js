@@ -68,7 +68,7 @@ function testOrderBook(exchange, skippedProperties, method, orderbook, symbol) {
         }
     }
     if (!('spread' in skippedProperties)) {
-        if (bidsLength && asksLength) {
+        if ((bidsLength > 0) && (asksLength > 0)) {
             const firstBid = exchange.safeString(bids[0], 0);
             const firstAsk = exchange.safeString(asks[0], 0);
             // check bid-ask spread

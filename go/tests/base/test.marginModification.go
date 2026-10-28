@@ -6,7 +6,7 @@ import "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 func TestMarginModification(exchange ccxt.ICoreExchange, skippedProperties any, method any, entry any) {
-	var format any = map[string]any{
+	var format map[string]any = map[string]any{
 		"info":   map[string]any{},
 		"type":   "add",
 		"amount": exchange.ParseNumber("0.1"),
@@ -15,7 +15,7 @@ func TestMarginModification(exchange ccxt.ICoreExchange, skippedProperties any, 
 		"symbol": "ADA/USDT:USDT",
 		"status": "ok",
 	}
-	var emptyAllowedFor any = []any{"status", "symbol", "code", "total", "amount"}
+	var emptyAllowedFor []any = []any{"status", "symbol", "code", "total", "amount"}
 	AssertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor)
 	AssertCurrencyCode(exchange, skippedProperties, method, entry, GetValue(entry, "code"))
 	//

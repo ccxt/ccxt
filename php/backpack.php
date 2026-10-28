@@ -32,7 +32,7 @@ class backpack extends Exchange {
                 'cancelOrders' => false,
                 'cancelWithdraw' => false,
                 'closePosition' => false,
-                'createConvertTrade' => false, // todo
+                'createConvertTrade' => true,
                 'createDepositAddress' => false,
                 'createLimitBuyOrder' => true,
                 'createLimitOrder' => true,
@@ -61,7 +61,7 @@ class backpack extends Exchange {
                 'fetchClosedOrder' => false,
                 'fetchClosedOrders' => false,
                 'fetchConvertCurrencies' => false,
-                'fetchConvertQuote' => false,
+                'fetchConvertQuote' => true,
                 'fetchConvertTrade' => false,
                 'fetchConvertTradeHistory' => false,
                 'fetchCurrencies' => true,
@@ -90,7 +90,7 @@ class backpack extends Exchange {
                 'fetchOpenOrders' => true,
                 'fetchOption' => false,
                 'fetchOptionChain' => false,
-                'fetchOrder' => false,
+                'fetchOrder' => 'emulated',
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
                 'fetchOrderTrades' => false,
@@ -155,11 +155,20 @@ class backpack extends Exchange {
                         'api/v1/collateral' => array( 'cost' => 1 ), // not used
                         'api/v1/borrowLend/markets' => array( 'cost' => 1 ),
                         'api/v1/borrowLend/markets/history' => array( 'cost' => 1 ),
+                        'api/v1/borrowLend/apy' => array( 'cost' => 1 ),
                         'api/v1/markets' => array( 'cost' => 1 ), // done
                         'api/v1/market' => array( 'cost' => 1 ), // not used
                         'api/v1/ticker' => array( 'cost' => 1 ), // done
                         'api/v1/tickers' => array( 'cost' => 1 ), // done
                         'api/v1/depth' => array( 'cost' => 1 ), // done
+                        'api/v1/prediction' => array( 'cost' => 1 ),
+                        'api/v1/prediction/tags' => array( 'cost' => 1 ),
+                        'api/v1/market-sessions' => array( 'cost' => 1 ),
+                        'api/v1/market-holidays' => array( 'cost' => 1 ),
+                        'api/v1/stockSessions' => array( 'cost' => 1 ),
+                        'api/v1/stockHolidays' => array( 'cost' => 1 ),
+                        'api/v1/stockIndicativeQuote' => array( 'cost' => 1 ),
+                        'api/v1/securities' => array( 'cost' => 1 ),
                         'api/v1/klines' => array( 'cost' => 1 ), // done
                         'api/v1/markPrices' => array( 'cost' => 1 ), // done
                         'api/v1/openInterest' => array( 'cost' => 1 ), // done
@@ -179,6 +188,7 @@ class backpack extends Exchange {
                         'api/v1/account/limits/order' => array( 'cost' => 1 ), // not used
                         'api/v1/account/limits/withdrawal' => array( 'cost' => 1 ), // not used
                         'api/v1/borrowLend/positions' => array( 'cost' => 1 ), // todo fetchBorrowInterest
+                        'api/v1/borrowLend/position/liquidationPrice' => array( 'cost' => 1 ),
                         'api/v1/capital' => array( 'cost' => 1 ), // done
                         'api/v1/capital/collateral' => array( 'cost' => 1 ), // not used
                         'wapi/v1/capital/deposits' => array( 'cost' => 1 ), // done
@@ -191,11 +201,17 @@ class backpack extends Exchange {
                         'wapi/v1/history/dust' => array( 'cost' => 1 ), // not used
                         'wapi/v1/history/fills' => array( 'cost' => 1 ), // done
                         'wapi/v1/history/funding' => array( 'cost' => 1 ), // done
+                        'wapi/v1/history/position' => array( 'cost' => 1 ),
                         'wapi/v1/history/orders' => array( 'cost' => 1 ), // done
+                        'api/v1/rfqs' => array( 'cost' => 1 ),
                         'wapi/v1/history/rfq' => array( 'cost' => 1 ),
                         'wapi/v1/history/quote' => array( 'cost' => 1 ),
+                        'wapi/v1/history/rfq/fill' => array( 'cost' => 1 ),
+                        'wapi/v1/history/quote/fill' => array( 'cost' => 1 ),
                         'wapi/v1/history/settlement' => array( 'cost' => 1 ),
                         'wapi/v1/history/strategies' => array( 'cost' => 1 ),
+                        'api/v1/strategy' => array( 'cost' => 1 ),
+                        'api/v1/strategies' => array( 'cost' => 1 ),
                         'api/v1/order' => array( 'cost' => 1 ), // done
                         'api/v1/orders' => array( 'cost' => 1 ), // done
                     ),
@@ -207,13 +223,15 @@ class backpack extends Exchange {
                         'api/v1/orders' => array( 'cost' => 1 ), // done
                         'api/v1/rfq' => array( 'cost' => 1 ),
                         'api/v1/rfq/accept' => array( 'cost' => 1 ),
-                        'api/v1/rfq/refresh' => array( 'cost' => 1 ),
                         'api/v1/rfq/cancel' => array( 'cost' => 1 ),
                         'api/v1/rfq/quote' => array( 'cost' => 1 ),
+                        'api/v1/strategy' => array( 'cost' => 1 ),
                     ),
                     'delete' => array(
                         'api/v1/order' => array( 'cost' => 1 ), // done
                         'api/v1/orders' => array( 'cost' => 1 ), // done
+                        'api/v1/strategy' => array( 'cost' => 1 ),
+                        'api/v1/strategies' => array( 'cost' => 1 ),
                     ),
                     'patch' => array(
                         'api/v1/account' => array( 'cost' => 1 ),
@@ -371,6 +389,24 @@ class backpack extends Exchange {
                     'wapi/v1/history/rfq' => array(
                         'GET' => 'rfqHistoryQueryAll',
                     ),
+                    'api/v1/rfq' => array(
+                        'POST' => 'rfqSubmit',
+                    ),
+                    'api/v1/rfqs' => array(
+                        'GET' => 'rfqQuery',
+                    ),
+                    'api/v1/rfq/accept' => array(
+                        'POST' => 'quoteAccept',
+                    ),
+                    'api/v1/rfq/cancel' => array(
+                        'POST' => 'rfqCancel',
+                    ),
+                    'wapi/v1/history/rfq/fill' => array(
+                        'GET' => 'rfqFillHistoryQueryAll',
+                    ),
+                    'wapi/v1/history/quote/fill' => array(
+                        'GET' => 'quoteFillHistoryQueryAll',
+                    ),
                     'wapi/v1/history/quote' => array(
                         'GET' => 'quoteHistoryQueryAll',
                     ),
@@ -405,7 +441,7 @@ class backpack extends Exchange {
                     'BERA' => 'Berachain',
                     'BTC' => 'Bitcoin',
                     'BCH' => 'BitcoinCash',
-                    'BSC' => 'Bsc',
+                    'BEP20' => 'Bsc',
                     'ADA' => 'Cardano',
                     'DOGE' => 'Dogecoin',
                     'ECLIPSE' => 'Eclipse',
@@ -430,7 +466,7 @@ class backpack extends Exchange {
                     'berachain' => 'BERA',
                     'bitcoin' => 'BTC',
                     'bitcoincash' => 'BCH',
-                    'bsc' => 'BSC',
+                    'bsc' => 'BEP20',
                     'cardano' => 'ADA',
                     'dogecoin' => 'DOGE',
                     'eclipse' => 'ECLIPSE',
@@ -462,7 +498,7 @@ class backpack extends Exchange {
                     'INSUFFICIENT_SUPPLY' => '\\ccxt\\InsufficientFunds',
                     'INVALID_ASSET' => '\\ccxt\\BadRequest',
                     'INVALID_MARKET' => '\\ccxt\\BadSymbol',
-                    'INVALID_PRICE' => '\\ccxt\\InvalidOrder', // array("code":"INVALID_PRICE","message":"Price is too far from the last active price")
+                    'INVALID_PRICE' => '\\ccxt\\InvalidOrder', // {"code":"INVALID_PRICE","message":"Price is too far from the last active price"}
                     'INVALID_POSITION_ID' => '\\ccxt\\BadRequest',
                     'INVALID_QUANTITY' => '\\ccxt\\BadRequest',
                     'INVALID_RANGE' => '\\ccxt\\BadRequest',
@@ -485,8 +521,8 @@ class backpack extends Exchange {
                     'TRADING_PAUSED' => '\\ccxt\\ExchangeNotAvailable',
                     'UNAUTHORIZED' => '\\ccxt\\AuthenticationError',
                 ),
-                // Bad Request parse request payload error => failed to parse "MarketSymbol" => Invalid market symbol (occurred while parsing "OrderExecutePayload")
-                // failed to parse parameter `interval` => failed to parse "KlineInterval" => Expect a valid enumeration value.
+                // Bad Request parse request payload error: failed to parse "MarketSymbol": Invalid market symbol (occurred while parsing "OrderExecutePayload")
+                // failed to parse parameter `interval`: failed to parse "KlineInterval": Expect a valid enumeration value.
                 'broad' => array(),
             ),
         ));
@@ -494,42 +530,55 @@ class backpack extends Exchange {
 
     public function fetch_currencies($params = array()): array {
         /**
-         * fetches all available currencies on an exchange
+         * fetches available crypto and tokenized $stock $currencies from the assets endpoint
          *
          * @see https://docs.backpack.exchange/#tag/Assets
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} an associative dictionary of currencies
+         * @param {boolean} [$params->stock] return tokenized $stock assets only
+         * @return {array} an associative dictionary of $currencies
          */
-        $response = $this->publicGetApiV1Assets($params);
+        $selection = $this->handle_stock_params('fetchCurrencies', $params);
+        $stock = $this->safe_bool($selection, 0, false);
+        $query = $this->safe_dict($selection, 1, array());
+        $response = $this->publicGetApiV1Assets($query);
         //
-        //     array(
+        //     [
         //         {
-        //             "coingeckoId" => "jito-governance-token",
-        //             "displayName" => "Jito",
-        //             "symbol" => "JTO",
-        //             "tokens" => array(
+        //             "coingeckoId": "jito-governance-token",
+        //             "displayName": "Jito",
+        //             "symbol": "JTO",
+        //             "tokens": [
         //                 {
-        //                     "blockchain" => "Solana",
-        //                     "contractAddress" => "jtojtomepa8beP8AuQc6eXt5FriJwfFMwQx2v2f9mCL",
-        //                     "depositEnabled" => true,
-        //                     "displayName" => "Jito",
-        //                     "maximumWithdrawal" => null,
-        //                     "minimumDeposit" => "0.28",
-        //                     "minimumWithdrawal" => "0.58",
-        //                     "withdrawEnabled" => true,
-        //                     "withdrawalFee" => "0.29"
+        //                     "blockchain": "Solana",
+        //                     "contractAddress": "jtojtomepa8beP8AuQc6eXt5FriJwfFMwQx2v2f9mCL",
+        //                     "depositEnabled": true,
+        //                     "displayName": "Jito",
+        //                     "maximumWithdrawal": null,
+        //                     "minimumDeposit": "0.28",
+        //                     "minimumWithdrawal": "0.58",
+        //                     "withdrawEnabled": true,
+        //                     "withdrawalFee": "0.29"
         //                 }
-        //             )
+        //             ]
         //         }
         //         ...
-        //     )
+        //     ]
         //
-        return $this->parse_currencies($response);
+        $currencies = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $currency = $this->parse_currency($response[$i]);
+            if (($stock !== true) || ($this->safe_string($currency, 'type') === 'stock')) {
+                $currencies[$currency['code']] = $currency;
+            }
+        }
+        return $currencies;
     }
 
     public function parse_currency(array $rawCurrency): array {
         $currencyId = $this->safe_string($rawCurrency, 'symbol');
+        $symbol = $this->safe_string($rawCurrency, 'symbol', '');
+        $stock = str_ends_with($symbol, '.US') || str_ends_with($symbol, '.HK');
         $code = $this->safe_currency_code($currencyId);
         $networks = $this->safe_list($rawCurrency, 'tokens', array());
         $parsedNetworks = array();
@@ -564,8 +613,8 @@ class backpack extends Exchange {
         $active = null;
         $deposit = null;
         $withdraw = null;
-        if ($this->is_empty($parsedNetworks)) { // if $networks are not provided
-            $active = false;
+        if ($this->is_empty($parsedNetworks)) { // if networks are not provided
+            $active = ($stock) ? null : false;
             $deposit = false;
             $withdraw = false;
         }
@@ -573,7 +622,7 @@ class backpack extends Exchange {
             'id' => $currencyId,
             'code' => $code,
             'precision' => null,
-            'type' => 'crypto', // todo check if it is always crypto
+            'type' => ($stock) ? 'stock' : 'crypto',
             'name' => $this->safe_string($rawCurrency, 'displayName'),
             'active' => $active,
             'deposit' => $deposit,
@@ -596,114 +645,220 @@ class backpack extends Exchange {
 
     public function fetch_markets($params = array()): array {
         /**
-         * retrieves data on all markets for bitbank
+         * retrieves venue $markets and tokenized $stock RFQ $markets discovered from $securities
          *
          * @see https://docs.backpack.exchange/#tag/Markets/operation/get_markets
+         * @see https://docs.backpack.exchange/#tag/Stocks/operation/get_securities
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array[]} an array of objects representing market data
+         * @param {boolean} [$params->stock] return tokenized $stock $markets only
+         * @param {string|string[]} [$params->marketType] $market types to discover => spot, swap or $stock
+         * @return {array[]} an array of objects representing $market data
          */
-        if ($this->options['adjustForTimeDifference']) {
+        if ($this->safe_bool($this->options, 'adjustForTimeDifference', false)) {
             $this->load_time_difference();
         }
-        $response = $this->publicGetApiV1Markets($params);
-        return $this->parse_markets($response);
+        $selection = $this->handle_stock_params('fetchMarkets', $params);
+        $stock = $this->safe_bool($selection, 0, false);
+        $query = $this->safe_dict($selection, 1, array());
+        $marketType = $this->safe_string($query, 'marketType');
+        $defaultTypes = ($marketType === null) ? array( 'SPOT', 'PERP', 'RFQ' ) : array( $marketType );
+        $requestedTypes = $this->safe_list($query, 'marketType', $defaultTypes);
+        $aliases = array( 'spot' => 'SPOT', 'swap' => 'PERP', 'stock' => 'RFQ' );
+        $supportedTypes = array( 'SPOT', 'PERP', 'RFQ' );
+        $marketTypes = array();
+        for ($i = 0; $i < count($requestedTypes); $i++) {
+            $requestedType = $requestedTypes[$i];
+            $normalizedType = $this->safe_string($aliases, $requestedType, $requestedType);
+            if (!$this->in_array($normalizedType, $supportedTypes)) {
+                throw new BadRequest($this->id . ' fetchMarkets() unsupported marketType ' . $requestedType);
+            }
+            if (!$this->in_array($normalizedType, $marketTypes)) {
+                $marketTypes[] = $normalizedType;
+            }
+        }
+        $includeRfq = $this->in_array('RFQ', $marketTypes);
+        $marketQuery = $this->omit($query, 'marketType');
+        if (is_array($query) && array_key_exists('marketType' ?? '', $query)) {
+            $marketQuery['marketType'] = $marketTypes;
+        }
+        $response = $this->publicGetApiV1Markets($marketQuery);
+        $securities = array();
+        if ($includeRfq) {
+            $securities = $this->fetch_securities();
+        }
+        $securityById = $this->index_by($securities, 'asset');
+        $markets = array();
+        $marketIds = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $rawMarket = $response[$i];
+            $rawType = $this->safe_string($rawMarket, 'marketType', '');
+            if (!$this->in_array($rawType, $marketTypes)) {
+                continue;
+            }
+            $baseId = $this->safe_string($rawMarket, 'baseSymbol');
+            $security = $this->safe_dict($securityById, $baseId);
+            $market = $this->parse_market(($security === null) ? $rawMarket : $this->extend($rawMarket, array( 'security' => $security )));
+            if ($market !== null) {
+                $marketId = $this->safe_string($market, 'id');
+                if (($marketId === null) || (is_array($marketIds) && array_key_exists($marketId ?? '', $marketIds))) {
+                    continue;
+                }
+                $marketIds[$marketId] = true;
+                if (($stock !== true) || ($market['stock'] === true)) {
+                    $markets[] = $market;
+                }
+            }
+        }
+        if ($includeRfq) {
+            for ($i = 0; $i < count($securities); $i++) {
+                $security = $securities[$i];
+                $assetId = $this->safe_string($security, 'asset');
+                if ($assetId === null) {
+                    continue;
+                }
+                $marketId = $assetId . '_USDC_RFQ';
+                if (!(is_array($marketIds) && array_key_exists($marketId ?? '', $marketIds))) {
+                    $market = $this->parse_market(array( 'symbol' => $marketId, 'baseSymbol' => $assetId, 'quoteSymbol' => 'USDC', 'marketType' => 'RFQ', 'rwaMarketType' => 'STOCK', 'security' => $security ));
+                    if ($market !== null) {
+                        $marketIds[$marketId] = true;
+                        $markets[] = $market;
+                    }
+                }
+            }
+        }
+        return $markets;
     }
 
     public function parse_market(array $market): array {
         //
-        //     array(
+        //     [
         //         {
-        //             "baseSymbol" => "SOL",
-        //             "createdAt" => "2025-01-21T06:34:54.691858",
-        //             "filters" => array(
-        //                 "price" => array(
-        //                     "borrowmarketFeeMaxMultiplier" => null,
-        //                     "borrowmarketFeeMinMultiplier" => null,
-        //                     "maxImpactMultiplier" => "1.03",
-        //                     "maxMultiplier" => "1.25",
-        //                     "maxPrice" => null,
-        //                     "meanMarkPriceBand" => array(
-        //                         "maxMultiplier" => "1.15",
-        //                         "minMultiplier" => "0.9"
-        //                     ),
-        //                     "meanPremiumBand" => null,
-        //                     "minImpactMultiplier" => "0.97",
-        //                     "minMultiplier" => "0.75",
-        //                     "minPrice" => "0.01",
-        //                     "tickSize" => "0.01"
-        //                 ),
-        //                 "quantity" => array(
-        //                     "maxQuantity" => null,
-        //                     "minQuantity" => "0.01",
-        //                     "stepSize" => "0.01"
+        //             "baseSymbol": "SOL",
+        //             "createdAt": "2025-01-21T06:34:54.691858",
+        //             "filters": {
+        //                 "price": {
+        //                     "borrowmarketFeeMaxMultiplier": null,
+        //                     "borrowmarketFeeMinMultiplier": null,
+        //                     "maxImpactMultiplier": "1.03",
+        //                     "maxMultiplier": "1.25",
+        //                     "maxPrice": null,
+        //                     "meanMarkPriceBand": {
+        //                         "maxMultiplier": "1.15",
+        //                         "minMultiplier": "0.9"
+        //                     },
+        //                     "meanPremiumBand": null,
+        //                     "minImpactMultiplier": "0.97",
+        //                     "minMultiplier": "0.75",
+        //                     "minPrice": "0.01",
+        //                     "tickSize": "0.01"
+        //                 },
+        //                 "quantity": {
+        //                     "maxQuantity": null,
+        //                     "minQuantity": "0.01",
+        //                     "stepSize": "0.01"
         //                 }
-        //             ),
-        //             "fundingInterval" => 28800000,
-        //             "fundingRateLowerBound" => null,
-        //             "fundingRateUpperBound" => null,
-        //             "imfFunction" => null,
-        //             "marketType" => "SPOT",
-        //             "mmfFunction" => null,
-        //             "openInterestLimit" => "0",
-        //             "orderBookState" => "Open",
-        //             "quoteSymbol" => "USDC",
-        //             "symbol" => "SOL_USDC"
-        //         ),
+        //             },
+        //             "fundingInterval": 28800000,
+        //             "fundingRateLowerBound": null,
+        //             "fundingRateUpperBound": null,
+        //             "imfFunction": null,
+        //             "marketType": "SPOT",
+        //             "mmfFunction": null,
+        //             "openInterestLimit": "0",
+        //             "orderBookState": "Open",
+        //             "quoteSymbol": "USDC",
+        //             "symbol": "SOL_USDC"
+        //         },
         //         {
-        //             "baseSymbol" => "SOL",
-        //             "createdAt" => "2025-01-21T06:34:54.691858",
-        //             "filters" => {
-        //                 "price" => array(
-        //                     "borrowEntryFeeMaxMultiplier" => null,
-        //                     "borrowEntryFeeMinMultiplier" => null,
-        //                     "maxImpactMultiplier" => "1.03",
-        //                     "maxMultiplier" => "1.25",
-        //                     "maxPrice" => "1000",
-        //                     "meanMarkPriceBand" => array(
-        //                         "maxMultiplier" => "1.1",
-        //                         "minMultiplier" => "0.9"
-        //                     ),
-        //                     "meanPremiumBand" => array(
-        //                         "tolerancePct" => "0.05"
-        //                     ),
-        //                     "minImpactMultiplier" => "0.97",
-        //                     "minMultiplier" => "0.75",
-        //                     "minPrice" => "0.01",
-        //                     "tickSize" => "0.01"
-        //                 ),
-        //                 "quantity" => array(
-        //                     "maxQuantity" => null,
-        //                     "minQuantity" => "0.01",
-        //                     "stepSize" => "0.01"
+        //             "baseSymbol": "SOL",
+        //             "createdAt": "2025-01-21T06:34:54.691858",
+        //             "filters": {
+        //                 "price": {
+        //                     "borrowEntryFeeMaxMultiplier": null,
+        //                     "borrowEntryFeeMinMultiplier": null,
+        //                     "maxImpactMultiplier": "1.03",
+        //                     "maxMultiplier": "1.25",
+        //                     "maxPrice": "1000",
+        //                     "meanMarkPriceBand": {
+        //                         "maxMultiplier": "1.1",
+        //                         "minMultiplier": "0.9"
+        //                     },
+        //                     "meanPremiumBand": {
+        //                         "tolerancePct": "0.05"
+        //                     },
+        //                     "minImpactMultiplier": "0.97",
+        //                     "minMultiplier": "0.75",
+        //                     "minPrice": "0.01",
+        //                     "tickSize": "0.01"
+        //                 },
+        //                 "quantity": {
+        //                     "maxQuantity": null,
+        //                     "minQuantity": "0.01",
+        //                     "stepSize": "0.01"
         //                 }
-        //             ),
-        //             "fundingInterval" => "28800000",
-        //             "fundingRateLowerBound" => "-100",
-        //             "fundingRateUpperBound" => "100",
-        //             "imfFunction" => array(
-        //                 "base" => "0.02",
-        //                 "factor" => "0.0001275",
-        //                 "type" => "sqrt"
-        //             ),
-        //             "marketType" => "PERP",
-        //             "mmfFunction" => array(
-        //                 "base" => "0.0125",
-        //                 "factor" => "0.0000765",
-        //                 "type" => "sqrt"
-        //             ),
-        //             "openInterestLimit" => "4000000",
-        //             "orderBookState" => "Open",
-        //             "quoteSymbol" => "USDC",
-        //             "symbol" => "SOL_USDC_PERP"
+        //             },
+        //             "fundingInterval": "28800000",
+        //             "fundingRateLowerBound": "-100",
+        //             "fundingRateUpperBound": "100",
+        //             "imfFunction": {
+        //                 "base": "0.02",
+        //                 "factor": "0.0001275",
+        //                 "type": "sqrt"
+        //             },
+        //             "marketType": "PERP",
+        //             "mmfFunction": {
+        //                 "base": "0.0125",
+        //                 "factor": "0.0000765",
+        //                 "type": "sqrt"
+        //             },
+        //             "openInterestLimit": "4000000",
+        //             "orderBookState": "Open",
+        //             "quoteSymbol": "USDC",
+        //             "symbol": "SOL_USDC_PERP"
         //         }
-        //     )
+        //     ]
+        //
+        // fetchMarkets stock
+        //
+        //     [
+        //         {
+        //             {
+        //                 "asset": "QNDX.US",
+        //                 "cusip": null,
+        //                 "name": "State Street SPDR Portfolio Nasdaq 100 ETF",
+        //                 "sessions": [
+        //                     {
+        //                         "maxQuantity": "1000",
+        //                         "minQuantity": "1",
+        //                         "name": "US_EQUITIES_PRE_MARKET",
+        //                         "stepSize": "1"
+        //                     },
+        //                     {
+        //                         "maxQuantity": "10000",
+        //                         "minQuantity": "0.01",
+        //                         "name": "US_EQUITIES_REGULAR",
+        //                         "stepSize": "0.01"
+        //                     },
+        //                     {
+        //                         "maxQuantity": "1000",
+        //                         "minQuantity": "1",
+        //                         "name": "US_EQUITIES_POST_MARKET",
+        //                         "stepSize": "1"
+        //                     }
+        //                 ]
+        //             },
+        //         }
+        //     ]
         //
         $id = $this->safe_string($market, 'symbol');
         $baseId = $this->safe_string($market, 'baseSymbol');
         $quoteId = $this->safe_string($market, 'quoteSymbol');
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
+        if (($base === null) || ($quote === null)) {
+            return null;
+        }
         $symbol = $base . '/' . $quote;
         $filters = $this->safe_dict($market, 'filters', array());
         $priceFilter = $this->safe_dict($filters, 'price', array());
@@ -715,14 +870,49 @@ class backpack extends Exchange {
         $minQuantity = $this->safe_number($quantityFilter, 'minQuantity');
         $amountPrecision = $this->safe_number($quantityFilter, 'stepSize');
         $type = null;
-        $typeOfMarket = $this->parse_market_type($this->safe_string($market, 'marketType'));
+        $rawType = $this->safe_string($market, 'marketType');
+        $rfq = $rawType === 'RFQ';
+        $security = $this->safe_dict($market, 'security');
+        $baseSymbol = $this->safe_string($market, 'baseSymbol', '');
+        $stock = ($this->safe_string($market, 'rwaMarketType') === 'STOCK') || ($security !== null) || str_ends_with($baseSymbol, '.US') || str_ends_with($baseSymbol, '.HK');
+        $typeOfMarket = $this->parse_market_type($rawType);
         $linear = null;
         $inverse = null;
         $settle = null;
         $settleId = null;
         $contractSize = null;
-        if ($typeOfMarket === 'spot') {
+        if (($typeOfMarket === 'spot') || $rfq) {
             $type = 'spot';
+            if ($rfq) {
+                $symbol = $base . '.RFQ/' . $quote;
+                $sessions = $this->safe_list($security, 'sessions', array());
+                $stepSize = null;
+                $minimum = null;
+                $maximum = null;
+                $unbounded = false;
+                for ($i = 0; $i < count($sessions); $i++) {
+                    $sessionStep = $this->safe_string($sessions[$i], 'stepSize');
+                    if (($sessionStep !== null) && (($stepSize === null) || Precise::string_lt($sessionStep, $stepSize))) {
+                        $stepSize = $sessionStep;
+                    }
+                    $sessionMin = $this->safe_string($sessions[$i], 'minQuantity');
+                    $sessionMax = $this->safe_string($sessions[$i], 'maxQuantity');
+                    if (($sessionMin !== null) && (($minimum === null) || Precise::string_lt($sessionMin, $minimum))) {
+                        $minimum = $sessionMin;
+                    }
+                    if ($sessionMax === null) {
+                        $unbounded = true;
+                    } elseif (($maximum === null) || Precise::string_gt($sessionMax, $maximum)) {
+                        $maximum = $sessionMax;
+                    }
+                }
+                $sessionsLength = count($sessions);
+                if ($sessionsLength > 0) {
+                    $amountPrecision = $this->parse_number($stepSize);
+                    $minQuantity = $this->parse_number($minimum);
+                    $maxQuantity = ($unbounded) ? null : $this->parse_number($maximum);
+                }
+            }
         } elseif ($typeOfMarket === 'swap') {
             $type = 'swap';
             $linear = true;
@@ -731,8 +921,12 @@ class backpack extends Exchange {
             $settle = $this->safe_currency_code($settleId);
             $symbol .= ':' . $settle;
             $contractSize = 1;
+        } else {
+            return null;
         }
         $orderBookState = $this->safe_string($market, 'orderBookState');
+        // RFQ active means listed, not currently in session; an explicit order book state takes precedence.
+        $active = ($rfq && ($orderBookState === null)) ? (($id !== null) || ($this->safe_string($security, 'asset') !== null)) : ($orderBookState === 'Open');
         return $this->safe_market_structure(array(
             'id' => $id,
             'symbol' => $symbol,
@@ -744,11 +938,13 @@ class backpack extends Exchange {
             'settleId' => $settleId,
             'type' => $type,
             'spot' => $type === 'spot',
-            'margin' => $type === 'spot', // todo check if margin is supported for all markets
+            'margin' => ($type === 'spot') && !$stock && !$rfq,
+            'stock' => $stock,
+            'executionModel' => ($rfq) ? 'rfq' : null,
             'swap' => $type === 'swap',
             'future' => false,
             'option' => false,
-            'active' => $orderBookState === 'Open',
+            'active' => $active,
             'contract' => $type !== 'spot',
             'linear' => $linear,
             'inverse' => $inverse,
@@ -786,56 +982,495 @@ class backpack extends Exchange {
         ));
     }
 
-    public function parse_market_type(mixed $type) {
+    public function handle_stock_params(string $methodName, array $params, ?array $market = null): array {
+        /**
+         * @ignore
+         * resolves the $stock $market filter
+         * @param {string} $methodName calling method
+         * @param {array} $params exchange-specific parameters
+         * @param {array} [$market] resolved $market
+         * @return {Array} $stock flag and remaining parameters
+         */
+        $defaultStock = $this->safe_bool($market, 'stock', false);
+        list($stock, $query) = $this->handle_option_bool_and_params($params, $methodName, 'stock', $defaultStock);
+        if (($market !== null) && $stock && !$this->safe_bool($market, 'stock', false)) {
+            throw new BadSymbol($this->id . ' ' . $methodName . '() requires a stock market');
+        }
+        return array( $stock, $query );
+    }
+
+    public function fetch_securities($params = array()): array {
+        /**
+         * @ignore
+         * fetches stock security metadata and session-specific share quantity constraints
+         *
+         * @see https://docs.backpack.exchange/#tag/Stocks/operation/get_securities
+         *
+         * @param {array} [$params] extra exchange-specific parameters
+         * @return {array[]} security metadata, not account holdings or proof of equity ownership
+         */
+        $response = $this->publicGetApiV1Securities($params);
+        $this->options['securities'] = $response;
+        return $response;
+    }
+
+    public function fetch_stock_indicative_quote(string $symbol, string $side, float $amount, $params = array()): array {
+        /**
+         * @ignore
+         * fetches a size-specific indicative stock quote without submitting or accepting an RFQ
+         *
+         * @see https://docs.backpack.exchange/#tag/Stocks/operation/get_stock_indicative_quote
+         *
+         * @param {string} $symbol unified stock $market $symbol
+         * @param {string} $side buy or sell
+         * @param {float} $amount number of base shares
+         * @param {array} [$params] extra exchange-specific parameters
+         * @param {boolean} [$params->stock] selects tokenized stock data; inferred from $symbol when omitted
+         * @return {array} indicative quote with availability, session constraints and non-guaranteed prices
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $selection = $this->handle_stock_params('fetchStockIndicativeQuote', $params, $market);
+        $query = $this->safe_dict($selection, 1, array());
+        if ($market['stock'] !== true) {
+            throw new BadSymbol($this->id . ' fetchStockIndicativeQuote() requires a stock market');
+        }
+        if (($side !== 'buy') && ($side !== 'sell')) {
+            throw new BadRequest($this->id . ' fetchStockIndicativeQuote() requires buy or sell');
+        }
+        if (($amount === null) || !Precise::string_gt($this->number_to_string($amount), '0')) {
+            throw new InvalidOrder($this->id . ' fetchStockIndicativeQuote() requires a positive base share quantity');
+        }
+        $request = array( 'symbol' => $market['baseId'], 'side' => $this->encode_order_side($side), 'quantity' => $this->number_to_string($amount) );
+        $requestMethod = 'publicGetApiV1StockIndicativeQuote';
+        return $this->$requestMethod($this->extend($query, $request));
+    }
+
+    public function rfq_conversion_market(string $fromCode, string $toCode): array {
+        /**
+         * @ignore
+         * resolves a stock RFQ $market for a currency conversion pair
+         * @param {string} $fromCode source currency code
+         * @param {string} $toCode destination currency code
+         * @return {array} resolved stock RFQ $market
+         */
+        $fromIsStock = str_ends_with($fromCode, '.US') || str_ends_with($fromCode, '.HK');
+        $toIsStock = str_ends_with($toCode, '.US') || str_ends_with($toCode, '.HK');
+        if ($fromIsStock === $toIsStock) {
+            throw new NotSupported($this->id . ' conversion requires exactly one stock currency');
+        }
+        $stockCode = ($fromIsStock) ? $fromCode : $toCode;
+        $quoteCode = ($fromIsStock) ? $toCode : $fromCode;
+        $symbol = $stockCode . '.RFQ/' . $quoteCode;
+        $market = $this->safe_dict($this->markets, $symbol);
+        if (($market === null) || ($this->safe_string($market, 'executionModel') !== 'rfq') || !$this->safe_bool($market, 'stock', false)) {
+            throw new BadSymbol($this->id . ' conversion requires a listed stock RFQ market => ' . $symbol);
+        }
+        return $market;
+    }
+
+    public function parse_conversion(array $order, ?array $fromCurrency = null, ?array $toCurrency = null): array {
+        /**
+         * @ignore
+         * converts a submitted or accepted RFQ $order into a conversion structure
+         * @param {array} $order parsed RFQ $order
+         * @param {array} [$fromCurrency] source currency
+         * @param {array} [$toCurrency] destination currency
+         * @return {array} unified conversion structure
+         */
+        $fromCode = $this->safe_string($fromCurrency, 'code');
+        $toCode = $this->safe_string($toCurrency, 'code');
+        if (($fromCode === null) || ($toCode === null)) {
+            throw new ArgumentsRequired($this->id . ' parseConversion() requires source and destination currencies');
+        }
+        $market = $this->rfq_conversion_market($fromCode, $toCode);
+        $fromIsBase = $fromCode === $this->safe_string($market, 'base');
+        $filled = $this->safe_number($order, 'filled');
+        $cost = $this->safe_number($order, 'cost');
+        $fee = $this->safe_dict($order, 'fee');
+        $timestamp = $this->safe_integer($order, 'timestamp');
+        return array(
+            'info' => $order['info'],
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'id' => $this->safe_string($order, 'id'),
+            'fromCurrency' => $this->safe_currency_code($fromCode),
+            'fromAmount' => ($fromIsBase) ? $filled : $cost,
+            'toCurrency' => $this->safe_currency_code($toCode),
+            'toAmount' => ($fromIsBase) ? $cost : $filled,
+            'price' => $this->safe_number_2($order, 'average', 'price'),
+            'fee' => $this->safe_number($fee, 'cost'),
+        );
+    }
+
+    public function fetch_convert_quote(string $fromCode, string $toCode, ?float $amount = null, $params = array()): array {
+        /**
+         * fetches an indicative $quote for converting between a tokenized stock and its $quote currency
+         *
+         * @see https://docs.backpack.exchange/#tag/Stocks/operation/get_stock_indicative_quote
+         *
+         * @param {string} $fromCode the currency to convert from
+         * @param {string} $toCode the currency to convert to
+         * @param {float} $amount amount in units of the from currency
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {float} [$params->price] optional limit price when converting $quote currency to stock
+         * @return {array} indicative conversion estimate; the price is a bound and is not guaranteed
+         */
+        $amountString = $this->number_to_string($amount);
+        if (($amountString === null) || !Precise::string_gt($amountString, '0')) {
+            throw new ArgumentsRequired($this->id . ' fetchConvertQuote() requires a positive amount');
+        }
+        $this->load_markets();
+        $market = $this->rfq_conversion_market($fromCode, $toCode);
+        $fromIsBase = $fromCode === $market['base'];
+        $side = ($fromIsBase) ? 'sell' : 'buy';
+        if (!$fromIsBase) {
+            $initialQuote = $this->fetch_stock_indicative_quote($market['symbol'], $side, 1, array( 'stock' => true ));
+            $initialPrice = $this->safe_string($initialQuote, 'price');
+            if (!$this->safe_bool($initialQuote, 'available', false) || ($initialPrice === null)) {
+                throw new InvalidOrder($this->id . ' fetchConvertQuote() stock indicative quote unavailable => ' . $this->safe_string($initialQuote, 'reason', 'priceUnavailable'));
+            }
+            $priceParam = $this->safe_string($params, 'price');
+            if ($priceParam === null) {
+                $priceParam = $initialPrice;
+            }
+            if (!Precise::string_gt($priceParam, '0')) {
+                throw new InvalidOrder($this->id . ' fetchConvertQuote() price must be positive');
+            }
+            $rawQuantity = Precise::string_div($amountString, $priceParam, 18);
+            $preciseQuantity = $this->amount_to_precision($market['symbol'], $this->parse_number($rawQuantity));
+            if ($preciseQuantity === null) {
+                throw new InvalidOrder($this->id . ' fetchConvertQuote() could not determine a stock quantity');
+            }
+            $amountString = $preciseQuantity;
+            if (!Precise::string_gt($amountString, '0')) {
+                throw new InvalidOrder($this->id . ' fetchConvertQuote() amount is too small for one stock increment');
+            }
+        }
+        $quote = $this->fetch_stock_indicative_quote($market['symbol'], $side, $this->parse_number($amountString), array( 'stock' => true ));
+        if (!$this->safe_bool($quote, 'available', false) || ($this->safe_string($quote, 'price') === null)) {
+            throw new InvalidOrder($this->id . ' fetchConvertQuote() stock indicative quote unavailable => ' . $this->safe_string($quote, 'reason', 'priceUnavailable'));
+        }
+        if (!$fromIsBase) {
+            $quoteQuantity = $this->safe_string($quote, 'quoteQuantity');
+            $quantityFilter = $this->safe_dict($quote, 'quantityFilter', array());
+            $stepSize = $this->safe_string($quantityFilter, 'stepSize');
+            if (($quoteQuantity !== null) && ($stepSize !== null) && Precise::string_gt($quoteQuantity, $this->number_to_string($amount))) {
+                $reducedQuantity = Precise::string_sub($amountString, $stepSize);
+                if (($reducedQuantity === null) || !Precise::string_gt($reducedQuantity, '0')) {
+                    throw new InvalidOrder($this->id . ' fetchConvertQuote() amount is too small for one stock increment');
+                }
+                $amountString = $reducedQuantity;
+                $quote = $this->fetch_stock_indicative_quote($market['symbol'], $side, $this->parse_number($amountString), array( 'stock' => true ));
+                if (!$this->safe_bool($quote, 'available', false) || ($this->safe_string($quote, 'price') === null)) {
+                    throw new InvalidOrder($this->id . ' fetchConvertQuote() stock indicative quote unavailable => ' . $this->safe_string($quote, 'reason', 'priceUnavailable'));
+                }
+            }
+            $finalQuoteQuantity = $this->safe_string($quote, 'quoteQuantity');
+            if (($finalQuoteQuantity !== null) && Precise::string_gt($finalQuoteQuantity, $this->number_to_string($amount))) {
+                throw new InvalidOrder($this->id . ' fetchConvertQuote() rounded stock quantity exceeds the requested quote-currency amount');
+            }
+        }
+        $quoteAmount = $this->safe_number($quote, 'quoteQuantity');
+        $baseAmount = $this->parse_number($amountString);
+        $fromCurrency = $this->safe_currency_code($fromCode);
+        $toCurrency = $this->safe_currency_code($toCode);
+        return array(
+            'info' => $quote,
+            'timestamp' => $this->safe_integer($quote, 'publishedAt'),
+            'datetime' => $this->iso8601($this->safe_integer($quote, 'publishedAt')),
+            'id' => null,
+            'fromCurrency' => $fromCurrency,
+            'fromAmount' => ($fromIsBase) ? $baseAmount : $quoteAmount,
+            'toCurrency' => $toCurrency,
+            'toAmount' => ($fromIsBase) ? $quoteAmount : $baseAmount,
+            'price' => $this->safe_number($quote, 'price'),
+            'fee' => null,
+        );
+    }
+
+    public function create_convert_trade(string $id, string $fromCode, string $toCode, ?float $amount = null, $params = array()): array {
+        /**
+         * converts between a tokenized stock and its quote currency through a bounded RFQ
+         *
+         * @see https://docs.backpack.exchange/#tag/RFQ/operation/submit_rfq
+         * @see https://docs.backpack.exchange/#tag/RFQ/operation/accept_quote
+         *
+         * @param {string} $id RFQ identifier when accepting a quote, or a numeric client identifier for a new RFQ
+         * @param {string} $fromCode the currency to convert from
+         * @param {string} $toCode the currency to convert to
+         * @param {float} [$amount] $amount in units of the from currency
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->quoteId] accept this quote for RFQ $id supplied as $id
+         * @param {float} [$params->price] $price bound from fetchConvertQuote; required when buying stock
+         * @param {float} [$params->baseAmount] stock $quantity when converting quote currency to stock
+         * @param {int} [$params->clientOrderId] requester client identifier for a newly submitted RFQ
+         * @return {array} conversion result; RFQ submission may remain open and is not necessarily a fill
+         */
+        $this->load_markets();
+        $market = $this->rfq_conversion_market($fromCode, $toCode);
+        $selection = $this->handle_stock_params('createConvertTrade', $params, $market);
+        $query = $this->safe_dict($selection, 1, array());
+        $quoteId = $this->safe_string($query, 'quoteId');
+        if ($quoteId !== null) {
+            $acceptParams = $this->omit($query, array( 'quoteId', 'price', 'baseAmount', 'clientOrderId' ));
+            $accepted = $this->accept_rfq_quote($id, $quoteId, $market['symbol'], $acceptParams);
+            return $this->parse_conversion($accepted, $this->currency($fromCode), $this->currency($toCode));
+        }
+        if (($amount === null) || !Precise::string_gt($this->number_to_string($amount), '0')) {
+            throw new ArgumentsRequired($this->id . ' createConvertTrade() requires a positive amount');
+        }
+        $fromIsBase = $fromCode === $market['base'];
+        $side = ($fromIsBase) ? 'sell' : 'buy';
+        $quantity = $this->number_to_string($amount);
+        $price = $this->safe_number($query, 'price');
+        if (!$fromIsBase) {
+            $baseAmount = $this->safe_number($query, 'baseAmount');
+            if ($baseAmount !== null) {
+                $quantity = $this->number_to_string($baseAmount);
+            } else {
+                if (($price === null) || !Precise::string_gt($this->number_to_string($price), '0')) {
+                    $indicative = $this->fetch_stock_indicative_quote($market['symbol'], $side, 1, array( 'stock' => true ));
+                    if (!$this->safe_bool($indicative, 'available', false)) {
+                        throw new InvalidOrder($this->id . ' createConvertTrade() stock indicative quote unavailable => ' . $this->safe_string($indicative, 'reason', 'priceUnavailable'));
+                    }
+                    $price = $this->safe_number($indicative, 'price');
+                }
+                if (($price === null) || !Precise::string_gt($this->number_to_string($price), '0')) {
+                    throw new InvalidOrder($this->id . ' createConvertTrade() buying stock requires a positive price bound');
+                }
+                $rawQuantity = Precise::string_div($this->number_to_string($amount), $this->number_to_string($price), 18);
+                $preciseQuantity = $this->amount_to_precision($market['symbol'], $this->parse_number($rawQuantity));
+                if ($preciseQuantity === null) {
+                    throw new InvalidOrder($this->id . ' createConvertTrade() could not determine a stock quantity');
+                }
+                $quantity = $preciseQuantity;
+            }
+            if (($price === null) || !Precise::string_gt($this->number_to_string($price), '0')) {
+                $indicative = $this->fetch_stock_indicative_quote($market['symbol'], $side, $this->parse_number($quantity), array( 'stock' => true ));
+                if (!$this->safe_bool($indicative, 'available', false)) {
+                    throw new InvalidOrder($this->id . ' createConvertTrade() stock indicative quote unavailable => ' . $this->safe_string($indicative, 'reason', 'priceUnavailable'));
+                }
+                $price = $this->safe_number($indicative, 'price');
+            }
+            if (($price === null) || !Precise::string_gt($this->number_to_string($price), '0')) {
+                throw new InvalidOrder($this->id . ' createConvertTrade() buying stock requires a positive price bound');
+            }
+            $quoteCost = Precise::string_mul($quantity, $this->number_to_string($price));
+            if (Precise::string_gt($quoteCost, $this->number_to_string($amount))) {
+                $precision = $this->safe_dict($market, 'precision', array());
+                $stepSize = $this->number_to_string($this->safe_number($precision, 'amount'));
+                if (!Precise::string_gt($stepSize, '0')) {
+                    throw new InvalidOrder($this->id . ' createConvertTrade() cannot safely round stock quantity to the quote-currency budget');
+                }
+                $reducedQuantity = Precise::string_sub($quantity, $stepSize);
+                if (($reducedQuantity === null) || !Precise::string_gt($reducedQuantity, '0')) {
+                    throw new InvalidOrder($this->id . ' createConvertTrade() stock quantity is too small for one increment');
+                }
+                $quantity = $reducedQuantity;
+                $quoteCost = Precise::string_mul($quantity, $this->number_to_string($price));
+                if (!Precise::string_gt($quantity, '0') || Precise::string_gt($quoteCost, $this->number_to_string($amount))) {
+                    throw new InvalidOrder($this->id . ' createConvertTrade() stock quantity exceeds the quote-currency amount');
+                }
+            }
+        }
+        $clientOrderId = $this->safe_integer($query, 'clientOrderId');
+        if ($clientOrderId === null) {
+            $clientOrderId = $this->safe_integer(array( 'id' => $id ), 'id');
+        }
+        $orderParams = $this->omit($query, array( 'price', 'baseAmount', 'quoteId', 'clientOrderId' ));
+        if ($clientOrderId !== null) {
+            $orderParams['clientOrderId'] = $clientOrderId;
+        }
+        $order = $this->create_rfq_order($market['symbol'], 'market', $side, $this->parse_number($quantity), $price, $this->extend($orderParams, array( 'stock' => true )));
+        return $this->parse_conversion($order, $this->currency($fromCode), $this->currency($toCode));
+    }
+
+    public function stock_data_request(string $methodName, array $params, ?array $market = null): array {
+        /**
+         * @ignore
+         * resolves venue or external $stock statistics without treating RFQs as an order book
+         * @param {string} $methodName calling method
+         * @param {array} $params exchange-specific parameters
+         * @param {array} [$market] resolved $market
+         * @return {array} $market data parameters
+         */
+        $selection = $this->handle_stock_params($methodName, $params, $market);
+        $stock = $this->safe_bool($selection, 0, false);
+        $query = $this->safe_dict($selection, 1, array());
+        $request = $this->extend(array(), $query);
+        $source = $this->safe_string($query, 'source');
+        $isRfq = ($market !== null) && ($this->safe_string($market['info'], 'marketType') === 'RFQ');
+        if ($source === null) {
+            $source = ($isRfq) ? 'External' : 'Venue';
+        }
+        if (($source !== 'Venue') && ($source !== 'External')) {
+            throw new BadRequest($this->id . ' ' . $methodName . '() source must be Venue or External');
+        }
+        if ($source === 'External') {
+            if (!$stock) {
+                throw new BadRequest($this->id . ' ' . $methodName . '() External provider data requires a stock market symbol or params.stock=true when no symbol is provided');
+            }
+            if (($market !== null) && ($market['stock'] !== true)) {
+                throw new BadSymbol($this->id . ' ' . $methodName . '() External data requires a stock market');
+            }
+            $request['source'] = $source;
+            if ($methodName === 'fetchOHLCV') {
+                $priceType = $this->safe_string($query, 'priceType', 'Last');
+                $price = $this->safe_string($query, 'price');
+                if (($priceType !== 'Last') || (($price !== null) && ($price !== 'last'))) {
+                    throw new BadRequest($this->id . ' fetchOHLCV() External data requires Last prices');
+                }
+                $request['priceType'] = 'Last';
+            } else {
+                $interval = $this->safe_string($query, 'interval', '1d');
+                if ($interval !== '1d') {
+                    throw new BadRequest($this->id . ' ' . $methodName . '() External tickers require interval=1d');
+                }
+                $request['interval'] = $interval;
+            }
+        }
+        if ($market !== null) {
+            $marketId = $market['id'];
+            if ($this->safe_string($market['info'], 'marketType') === 'RFQ') {
+                $marketId = $market['baseId'] . '_' . $market['quoteId'];
+            }
+            $request['symbol'] = $marketId;
+        }
+        return $request;
+    }
+
+    public function filter_stock_structures(array $entries): array {
+        /**
+         * @ignore
+         * filters parsed account structures by securities metadata, never by RFQ execution alone
+         * @param {Array} $entries parsed trades or orders
+         * @return {Array} tokenized stock structures
+         */
+        $result = array();
+        for ($i = 0; $i < count($entries); $i++) {
+            $entry = $entries[$i];
+            $symbol = $this->safe_string($entry, 'symbol');
+            $market = $this->safe_dict($this->markets, $symbol);
+            if ($this->safe_bool($market, 'stock', false)) {
+                $result[] = $entry;
+            }
+        }
+        return $result;
+    }
+
+    public function parse_market_type(?string $type): ?string {
         $types = array(
             'SPOT' => 'spot',
             'PERP' => 'swap',
-            // current $types are described in the docs, but the exchange returns only 'SPOT' and 'PERP'
-            // 'IPERP' => 'swap',
-            // 'DATED' => 'swap',
-            // 'PREDICTION' => 'swap',
-            // 'RFQ' => 'swap',
+            // current types are described in the docs, but the exchange returns only 'SPOT' and 'PERP'
+            // 'IPERP': 'swap',
+            // 'DATED': 'swap',
+            // 'PREDICTION': 'swap',
+            // 'RFQ': 'swap',
         );
         return $this->safe_string($types, $type, $type);
     }
 
     public function fetch_tickers(?array $symbols = null, $params = array()): array {
         /**
+         * fetches venue or external provider statistics, not executable RFQ prices
          *
          * @see https://docs.backpack.exchange/#tag/Markets/operation/get_tickers
          *
-         * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-         * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market $tickers are returned if not assigned
+         * @param {string[]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market $tickers are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
+         * @param {boolean} [$params->stock] return tokenized stock $tickers only; inferred from requested $symbols when omitted
+         * @param {string} [$params->source] Venue or External; RFQ $symbols default to External, other $symbols default to Venue
+         * @param {string} [$params->interval] $ticker interval, External requires 1d
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structures~
          */
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $request = array();
-        $response = $this->publicGetApiV1Tickers($this->extend($request, $params));
+        $selection = $this->handle_stock_params('fetchTickers', $params);
+        $stockOnly = $this->safe_bool($selection, 0, false);
+        $query = $this->safe_dict($selection, 1, array());
+        $source = $this->safe_string($query, 'source', 'Venue');
+        $symbolsLength = 0;
+        if ($symbols !== null) {
+            $symbolsLength = count($symbols);
+        }
+        $symbolsNormalized = ($symbolsLength === 0) ? null : $this->market_symbols($symbols, null, false);
+        $symbolsResolved = ($symbolsNormalized === null) ? is_array($this->markets) ? array_keys($this->markets) : array() : $symbolsNormalized;
+        $hasRfqSymbol = false;
+        $hasStockSymbol = false;
+        if ($symbols !== null) {
+            for ($i = 0; $i < count($symbolsResolved); $i++) {
+                $market = $this->market($symbolsResolved[$i]);
+                if ($market['stock'] === true) {
+                    $hasStockSymbol = true;
+                }
+                if ($this->safe_string($market['info'], 'marketType') === 'RFQ') {
+                    $hasRfqSymbol = true;
+                }
+            }
+        }
+        $stockExplicitlyDisabled = $this->safe_value_2($params, 'stock', 'defaultStock') === false;
+        $needsExternalRfqTickers = ($source === 'Venue') && ($this->safe_string($query, 'source') === null) && $hasRfqSymbol && !$stockExplicitlyDisabled;
+        $requestParams = $query;
+        if (($source === 'External') && ($stockOnly || $hasStockSymbol) && !$stockExplicitlyDisabled) {
+            $requestParams = $this->extend($query, array( 'stock' => true ));
+        }
+        $request = $this->stock_data_request('fetchTickers', $requestParams);
+        $response = $this->publicGetApiV1Tickers($request);
         $tickers = $this->parse_tickers($response);
-        return $this->filter_by_array_tickers($tickers, 'symbol', $symbols);
+        $responseById = $this->index_by($response, 'symbol');
+        $externalResponse = array();
+        $externalResponseById = array();
+        if ($needsExternalRfqTickers || ($source === 'External')) {
+            $externalParams = $this->extend($query, array( 'stock' => true, 'source' => 'External' ));
+            $externalResponse = $this->publicGetApiV1Tickers($this->stock_data_request('fetchTickers', $externalParams));
+            $externalResponseById = $this->index_by($externalResponse, 'symbol');
+        }
+        $result = array();
+        for ($i = 0; $i < count($symbolsResolved); $i++) {
+            $marketSymbol = $symbolsResolved[$i];
+            $market = $this->market($marketSymbol);
+            if ($stockOnly && ($market['stock'] !== true)) {
+                continue;
+            }
+            $marketIsRfq = $this->safe_string($market['info'], 'marketType') === 'RFQ';
+            $ticker = $this->safe_dict($tickers, $marketSymbol);
+            if (($ticker !== null) && (($source !== 'External') || ($market['stock'] === true))) {
+                $result[$marketSymbol] = $ticker;
+            } elseif ($marketIsRfq) {
+                $underlyingId = $market['baseId'] . '_' . $market['quoteId'];
+                $useExternal = ($source === 'External') || $needsExternalRfqTickers;
+                $tickerSource = ($useExternal) ? $externalResponseById : $responseById;
+                $underlyingTicker = $this->safe_dict($tickerSource, $underlyingId);
+                if ($underlyingTicker !== null) {
+                    $result[$marketSymbol] = $this->parse_ticker($underlyingTicker, $market);
+                }
+            }
+        }
+        return $this->filter_by_array_tickers($result, 'symbol', $symbols);
     }
 
     public function fetch_ticker(string $symbol, $params = array()): array {
         /**
-         * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         * fetches underlying venue or external stock statistics, not an executable RFQ quote
          *
          * @see https://docs.backpack.exchange/#tag/Markets/operation/get_ticker
          *
          * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->stock] selects tokenized stock data; inferred from $symbol when omitted
+         * @param {string} [$params->source] Venue or External; RFQ symbols default to External
+         * @param {string} [$params->interval] ticker interval, External requires 1d
          * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
          */
         if ($this->markets === null) {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        $request = array(
-            'symbol' => $market['id'],
-        );
-        $response = $this->publicGetApiV1Ticker($this->extend($request, $params));
+        $request = $this->stock_data_request('fetchTicker', $params, $market);
+        $response = $this->publicGetApiV1Ticker($request);
         return $this->parse_ticker($response, $market);
     }
 
@@ -843,22 +1478,22 @@ class backpack extends Exchange {
         //
         // fetchTicker/fetchTickers
         //
-        //     array(
-        //         "firstPrice" => "327.38",
-        //         "high" => "337.99",
-        //         "lastPrice" => "317.14",
-        //         "low" => "300.01",
-        //         "priceChange" => "-10.24",
-        //         "priceChangePercent" => "-0.031279",
-        //         "quoteVolume" => "21584.32278",
-        //         "symbol" => "AAVE_USDC",
-        //         "trades" => "245",
-        //         "volume" => "65.823"
-        //     ), ...
+        //     {
+        //         "firstPrice": "327.38",
+        //         "high": "337.99",
+        //         "lastPrice": "317.14",
+        //         "low": "300.01",
+        //         "priceChange": "-10.24",
+        //         "priceChangePercent": "-0.031279",
+        //         "quoteVolume": "21584.32278",
+        //         "symbol": "AAVE_USDC",
+        //         "trades": "245",
+        //         "volume": "65.823"
+        //     }, ...
         //
         $marketId = $this->safe_string($ticker, 'symbol');
-        $market = $this->safe_market($marketId, $market);
-        $symbol = $this->safe_symbol($marketId, $market);
+        $marketResolved = ($market === null) ? $this->safe_market($marketId) : $market;
+        $symbol = $marketResolved['symbol'];
         $open = $this->safe_string($ticker, 'firstPrice');
         $last = $this->safe_string($ticker, 'lastPrice');
         $high = $this->safe_string($ticker, 'high');
@@ -895,43 +1530,50 @@ class backpack extends Exchange {
             'markPrice' => null,
             'indexPrice' => null,
             'info' => $ticker,
-        ), $market);
+        ), $marketResolved);
         return $parsedTicker;
     }
 
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): array {
         /**
-         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * fetches venue order-book depth, RFQ and external provider depth are not supported
          *
          * @see https://docs.backpack.exchange/#tag/Markets/operation/get_depth
          *
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-         * @param {int} [$limit] the maximum amount of order book entries to return (default 100, max 200)
+         * @param {int} [$limit] the maximum amount of order book entries to return (default 100, max 500)
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->stock] selects a tokenized stock spot order book; inferred from $symbol when omitted
+         * @param {string} [$params->source] Venue, External provider depth is not supported
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
         if ($this->markets === null) {
             $this->load_markets();
         }
         $market = $this->market($symbol);
+        $selection = $this->handle_stock_params('fetchOrderBook', $params, $market);
+        $query = $this->safe_dict($selection, 1, array());
+        $source = $this->safe_string($query, 'source', 'Venue');
+        if (($source !== 'Venue') || ($this->safe_string($market['info'], 'marketType') === 'RFQ')) {
+            throw new NotSupported($this->id . ' fetchOrderBook() requires a venue order-book market; use fetchStockIndicativeQuote() for size-specific RFQ prices');
+        }
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = $this->publicGetApiV1Depth($this->extend($request, $params));
-        //
-        //     {
-        //         "asks" => array(
-        //             ["118318.3","0.00633"],
-        //             ["118567.2","0.08450"]
-        //         ),
-        //         "bids" => array(
-        //             ["1.0","0.38647"],
-        //             ["12.9","1.00000"]
-        //         ),
-        //         "lastUpdateId":"1504999670",
-        //         "timestamp":1753102447307501
-        //     }
-        //
+        $requestLimit = null;
+        if ($limit !== null) {
+            $supportedLimits = array( 5, 10, 20, 50, 100, 500 );
+            $requestLimit = 500;
+            for ($i = 0; $i < count($supportedLimits); $i++) {
+                $supportedLimit = $this->safe_integer($supportedLimits, $i, 0);
+                if ($limit <= $supportedLimit) {
+                    $requestLimit = $supportedLimit;
+                    break;
+                }
+            }
+            $request['limit'] = $requestLimit;
+        }
+        $response = $this->publicGetApiV1Depth($this->extend($request, $this->omit($query, 'source')));
         $microseconds = $this->safe_integer($response, 'timestamp');
         if ($microseconds === null) {
             throw new ExchangeError($this->id . ' fetchOrderBook() missing microseconds');
@@ -939,74 +1581,92 @@ class backpack extends Exchange {
         $timestamp = $this->parse_to_int($microseconds / 1000);
         $orderbook = $this->parse_order_book($response, $symbol, $timestamp);
         $orderbook['nonce'] = $this->safe_integer($response, 'lastUpdateId');
+        if ($limit !== null) {
+            $orderbook['bids'] = $this->array_slice($orderbook['bids'], 0, $limit);
+            $orderbook['asks'] = $this->array_slice($orderbook['asks'], 0, $limit);
+        }
         return $orderbook;
     }
 
     public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
-         * fetches historical candlestick data containing the open, high, low, and close $price, and the volume of a $market
+         * fetches venue or external stock candlestick data for the underlying $market
          *
          * @see https://docs.backpack.exchange/#tag/Markets/operation/get_klines
          *
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
          * @param {string} $timeframe the length of time each candle represents
-         * @param {int} [$since] timestamp in seconds of the earliest candle to fetch
+         * @param {int} [$since] timestamp in milliseconds of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch (default 100)
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @param {boolean} [$params->stock] selects tokenized stock data; inferred from $symbol when omitted
+         * @param {string} [$params->source] Venue or External; RFQ symbols default to External
+         * @param {string} [$params->price] last, mark or index, External requires last
+         * @param {string} [$params->priceType] Last, Mark or Index, External requires Last
+         * @param {int} [$params->until] latest candle timestamp in milliseconds
+         * @return {int[][]} a list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             $this->load_markets();
         }
         $market = $this->market($symbol);
         $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
-        $request = array(
-            'symbol' => $market['id'],
-            'interval' => $interval,
-        );
-        $until = null;
-        list($until, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'until');
+        $duration = $this->parse_timeframe($timeframe);
+        $dataRequest = $this->stock_data_request('fetchOHLCV', $params, $market);
+        $request = array( 'symbol' => $dataRequest['symbol'], 'interval' => $interval );
+        list($until, $paramsUntil) = $this->handle_option_integer_and_params($this->omit($dataRequest, 'symbol'), 'fetchOHLCV', 'until');
         if ($until !== null) {
             $request['endTime'] = $this->parse_to_int($until / 1000); // convert milliseconds to seconds
         }
         $defaultLimit = 100;
-        if ($since === null) {
-            if ($limit === null) {
-                $limit = $defaultLimit;
-            }
-            $duration = $this->parse_timeframe($timeframe);
-            $endTime = $until ? $this->parse_to_int($until / 1000) : $this->seconds();
-            $startTime = $endTime - ($limit * $duration);
-            $request['startTime'] = $startTime;
-        } else {
-            $request['startTime'] = $this->parse_to_int($since / 1000); // convert milliseconds to seconds
+        $limitResolved = $limit;
+        if (($since === null) && ($limit === null)) {
+            $limitResolved = $defaultLimit;
         }
-        $price = $this->safe_string($params, 'price');
+        $windowLimit = ($limit === null) ? $defaultLimit : $limit;
+        $startTime = null;
+        if ($since === null) {
+            $endTime = $this->seconds();
+            if ($until !== null && $until !== null && $until !== 0) {
+                $endTime = $this->parse_to_int($until / 1000);
+            }
+            $startTime = $endTime - ($windowLimit * $duration);
+        } else {
+            $startTime = $this->parse_to_int($since / 1000); // convert milliseconds to seconds
+        }
+        $request['startTime'] = $startTime;
+        if ($until === null) {
+            $currentMs = $this->seconds(); // default to current time in seconds
+            $windowEnd = $this->sum($startTime, $windowLimit * $duration);
+            $minTimestamp = min($currentMs, $windowEnd);
+            $request['endTime'] = $this->parse_to_int($minTimestamp); // default to current time in seconds if until is not specified
+        }
+        $price = $this->safe_string($paramsUntil, 'price');
+        $paramsOmitted = ($price !== null) ? $this->omit($paramsUntil, 'price') : $paramsUntil;
         if ($price !== null) {
             $request['priceType'] = $this->capitalize($price);
-            $params = $this->omit($params, 'price');
         }
-        $response = $this->publicGetApiV1Klines($this->extend($request, $params));
+        $response = $this->publicGetApiV1Klines($this->extend($request, $paramsOmitted));
         $ohlcvs = $this->to_array($response);
-        return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
+        return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limitResolved);
     }
 
     public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
-        //     array(
-        //         array(
-        //             "close" => "118294.6",
-        //             "end" => "2025-07-19 13:12:00",
-        //             "high" => "118297.6",
-        //             "low" => "118237.5",
-        //             "open" => "118238",
-        //             "quoteVolume" => "4106.558156",
-        //             "start" => "2025-07-19 13:09:00",
-        //             "trades" => "12",
-        //             "volume" => "0.03473"
-        //         ),
+        //     [
+        //         {
+        //             "close": "118294.6",
+        //             "end": "2025-07-19 13:12:00",
+        //             "high": "118297.6",
+        //             "low": "118237.5",
+        //             "open": "118238",
+        //             "quoteVolume": "4106.558156",
+        //             "start": "2025-07-19 13:09:00",
+        //             "trades": "12",
+        //             "volume": "0.03473"
+        //         },
         //         ...
-        //     )
+        //     ]
         //
         return array(
             $this->parse8601($this->safe_string($ohlcv, 'start')),
@@ -1032,8 +1692,8 @@ class backpack extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        if ($market['spot']) {
-            throw new BadRequest($this->id . ' fetchFundingRate() $symbol does not support $market ' . $symbol);
+        if ($market['spot'] === true) {
+            throw new BadRequest($this->id . ' fetchFundingRate() symbol does not support market ' . $symbol);
         }
         $request = array(
             'symbol' => $market['id'],
@@ -1046,16 +1706,16 @@ class backpack extends Exchange {
     public function parse_funding_rate(mixed $contract, ?array $market = null): array {
         //
         //     {
-        //         "fundingRate" => "0.0001",
-        //         "indexPrice" => "118333.18643195",
-        //         "markPrice" => "118343.51853741",
-        //         "nextFundingTimestamp" => 1753113600000,
-        //         "symbol" => "BTC_USDC_PERP"
+        //         "fundingRate": "0.0001",
+        //         "indexPrice": "118333.18643195",
+        //         "markPrice": "118343.51853741",
+        //         "nextFundingTimestamp": 1753113600000,
+        //         "symbol": "BTC_USDC_PERP"
         //     }
         //
         $marketId = $this->safe_string($contract, 'symbol');
-        $market = $this->safe_market($marketId, $market);
-        $symbol = $this->safe_symbol($marketId, $market);
+        $marketResolved = $this->safe_market($marketId, $market);
+        $symbol = $this->safe_symbol($marketId, $marketResolved);
         $nextFundingTimestamp = $this->safe_integer($contract, 'nextFundingTimestamp');
         return array(
             'info' => $contract,
@@ -1079,7 +1739,7 @@ class backpack extends Exchange {
         );
     }
 
-    public function fetch_open_interest(string $symbol, $params = array()) {
+    public function fetch_open_interest(string $symbol, $params = array()): array {
         /**
          * Retrieves the open $interest of a derivative trading pair
          *
@@ -1093,8 +1753,8 @@ class backpack extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        if ($market['spot']) {
-            throw new BadRequest($this->id . ' fetchOpenInterest() $symbol does not support $market ' . $symbol);
+        if ($market['spot'] === true) {
+            throw new BadRequest($this->id . ' fetchOpenInterest() symbol does not support market ' . $symbol);
         }
         $request = array(
             'symbol' => $market['id'],
@@ -1104,15 +1764,15 @@ class backpack extends Exchange {
         return $this->parse_open_interest($interest, $market);
     }
 
-    public function parse_open_interest(mixed $interest, ?array $market = null) {
+    public function parse_open_interest(?array $interest, ?array $market = null): array {
         //
-        //     array(
+        //     [
         //         {
-        //             "openInterest" => "1273.85214",
-        //             "symbol" => "BTC_USDC_PERP",
+        //             "openInterest": "1273.85214",
+        //             "symbol": "BTC_USDC_PERP",
         //             "timestamp":1753105735301
         //         }
-        //     )
+        //     ]
         //
         $timestamp = $this->safe_integer($interest, 'timestamp');
         $openInterest = $this->safe_number($interest, 'openInterest');
@@ -1139,7 +1799,7 @@ class backpack extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-$rate-history-structure funding $rate structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -1153,13 +1813,13 @@ class backpack extends Exchange {
         }
         $response = $this->publicGetApiV1FundingRates($this->extend($request, $params));
         //
-        //     array(
+        //     [
         //         {
-        //             "fundingRate" => "0.0001",
-        //             "intervalEndTimestamp" => "2025-07-22T00:00:00",
-        //             "symbol" => "BTC_USDC_PERP"
+        //             "fundingRate": "0.0001",
+        //             "intervalEndTimestamp": "2025-07-22T00:00:00",
+        //             "symbol": "BTC_USDC_PERP"
         //         }
-        //     )
+        //     ]
         //
         $rates = array();
         $rawRates = $this->to_array($response);
@@ -1176,12 +1836,12 @@ class backpack extends Exchange {
             );
         }
         $sorted = $this->sort_by($rates, 'timestamp');
-        return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
+        return $this->filter_by_symbol_since_limit($sorted, $this->safe_string($market, 'symbol'), $since, $limit);
     }
 
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
-         * get the list of most recent trades for a particular $symbol
+         * gets recent venue order-book trades, not public RFQ or external provider fills
          *
          * @see https://docs.backpack.exchange/#tag/Trades/operation/get_recent_trades
          * @see https://docs.backpack.exchange/#tag/Trades/operation/get_historical_trades
@@ -1191,12 +1851,18 @@ class backpack extends Exchange {
          * @param {int} [$limit] the maximum amount of trades to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->offset] the number of trades to skip, default is 0
+         * @param {boolean} [$params->stock] selects tokenized stock spot trades; inferred from $symbol when omitted
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
          */
         if ($this->markets === null) {
             $this->load_markets();
         }
         $market = $this->market($symbol);
+        $selection = $this->handle_stock_params('fetchTrades', $params, $market);
+        $query = $this->safe_dict($selection, 1, array());
+        if (($this->safe_string($query, 'source', 'Venue') !== 'Venue') || ($this->safe_string($market['info'], 'marketType') === 'RFQ')) {
+            throw new NotSupported($this->id . ' fetchTrades() only supports venue order-book trades; use fetchMyTrades() for RFQ fills');
+        }
         $request = array(
             'symbol' => $market['id'],
         );
@@ -1204,29 +1870,35 @@ class backpack extends Exchange {
             $request['limit'] = min($limit, 1000); // api maximum 1000
         }
         $response = null;
-        $offset = $this->safe_integer($params, 'offset');
+        $offset = $this->safe_integer($query, 'offset');
         if ($offset !== null) {
-            $response = $this->publicGetApiV1TradesHistory($this->extend($request, $params));
+            $response = $this->publicGetApiV1TradesHistory($this->extend($request, $query));
         } else {
-            $response = $this->publicGetApiV1Trades($this->extend($request, $params));
+            $response = $this->publicGetApiV1Trades($this->extend($request, $query));
         }
         $responseList = $this->to_array($response);
         return $this->parse_trades($responseList, $market, $since, $limit);
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
-         * fetch all trades made by the user
+         * fetches venue fills or requester RFQ fills, combining $stock records when no $symbol is supplied
          *
          * @see https://docs.backpack.exchange/#tag/History/operation/get_fills
+         * @see https://docs.backpack.exchange/#tag/RFQ/operation/get_rfq_fill_history
          *
          * @param {string} $symbol unified $market $symbol
-         * @param {int} [$since] the earliest time in ms to fetch trades for
+         * @param {int} [$since] the earliest time in ms to fetch trades for, locally $filtered for RFQ history pages
          * @param {int} [$limit] the maximum number of trades structures to retrieve (default 100, max 1000)
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {int} [$params->until] the latest time in ms to fetch trades for
-         * @param {string} [$params->fillType] 'User' (default) 'BookLiquidation' or 'Adl' or 'Backstop' or 'Liquidation' or 'AllLiquidation' or 'CollateralConversion' or 'CollateralConversionAndSpotLiquidation'
-         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
+         * @param {int} [$params->until] the latest time in ms to fetch trades for, locally $filtered for RFQ history pages
+         * @param {boolean} [$params->stock] selects tokenized $stock fills; inferred from $symbol when omitted
+         * @param {boolean} [$params->rfq] selects requester RFQ fills only, inferred from RFQ symbols
+         * @param {int} [$params->offset] exchange history pagination offset
+         * @param {string} [$params->sortDirection] Asc or Desc
+         * @param {boolean} [$params->deferredSettlement] selects deferred or immediate RFQ settlement records
+         * @param {string} [$params->fillType] User or CollateralConversion for RFQs, additional exchange-specific types for venue fills
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=$trade-structure $trade structures~
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -1237,22 +1909,64 @@ class backpack extends Exchange {
             $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
         }
+        $selection = $this->handle_stock_params('fetchMyTrades', $params, $market);
+        $stock = $this->safe_bool($selection, 0, false);
+        $query = $this->safe_dict($selection, 1, array());
+        $rfq = $this->safe_bool($query, 'rfq', false) || ($this->safe_string($this->safe_dict($market, 'info'), 'marketType') === 'RFQ');
+        $aggregate = $stock && ($market === null) && !$rfq;
+        if ($rfq && ($market !== null) && ($this->safe_string($market['info'], 'marketType') !== 'RFQ')) {
+            throw new BadSymbol($this->id . ' fetchMyTrades() rfq requires an RFQ market symbol');
+        }
+        $accountParams = $this->omit($query, array( 'rfq', 'until' ));
+        $until = $this->safe_integer($query, 'until');
+        if ($rfq || $aggregate) {
+            $rfqRequest = array();
+            if ($market !== null) {
+                $rfqRequest['symbol'] = $market['id'];
+            }
+            if ($limit !== null) {
+                $rfqRequest['limit'] = min($limit, 1000);
+            }
+            $rfqParams = $this->omit($accountParams, array( 'assetClass', 'marketType', 'from', 'to' ));
+            $rfqResponse = $this->privateGetWapiV1HistoryRfqFill($this->extend($rfqRequest, $rfqParams));
+            $rfqTrades = $this->parse_trades($rfqResponse, $market, $since);
+            if ($aggregate) {
+                $venueParams = $this->extend($this->omit($accountParams, array( 'rfqId', 'quoteId', 'deferredSettlement' )), array( 'assetClass' => 'STOCK', 'stock' => false ));
+                $venueTrades = $this->fetch_my_trades(null, $since, $limit, $venueParams);
+                $rfqTrades = $this->array_concat($rfqTrades, $venueTrades);
+            }
+            if ($stock) {
+                $rfqTrades = $this->filter_stock_structures($rfqTrades);
+            }
+            $filtered = array();
+            for ($i = 0; $i < count($rfqTrades); $i++) {
+                $trade = $rfqTrades[$i];
+                $timestamp = $this->safe_integer($trade, 'timestamp');
+                if (($until === null) || (($timestamp !== null) && ($timestamp <= $until))) {
+                    $filtered[] = $trade;
+                }
+            }
+            $sorted = $this->sort_by($filtered, 'timestamp');
+            return $this->filter_by_since_limit($sorted, $since, $limit);
+        }
         if ($since !== null) {
             $request['from'] = $since;
         }
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $until = $this->safe_integer($params, 'until');
+        $paramsOmitted = $accountParams;
+        if ($stock) {
+            $request['assetClass'] = 'STOCK';
+        }
         if ($until !== null) {
-            $params = $this->omit($params, array( 'until' ));
             $request['to'] = $until;
         }
-        $fillType = $this->safe_string($params, 'fillType');
+        $fillType = $this->safe_string($paramsOmitted, 'fillType');
         if ($fillType === null) {
             $request['fillType'] = 'User'; // default
         }
-        $response = $this->privateGetWapiV1HistoryFills($this->extend($request, $params));
+        $response = $this->privateGetWapiV1HistoryFills($this->extend($paramsOmitted, $request));
         $responseList = $this->to_array($response);
         return $this->parse_trades($responseList, $market, $since, $limit);
     }
@@ -1261,35 +1975,35 @@ class backpack extends Exchange {
         //
         // fetchTrades
         //     {
-        //         "id" => 8721563,
-        //         "isBuyerMaker" => false,
-        //         "price" => "117427.6",
-        //         "quantity" => "0.00016",
-        //         "quoteQuantity" => "18.788416",
-        //         "timestamp" => 1753123916819
+        //         "id": 8721563,
+        //         "isBuyerMaker": false,
+        //         "price": "117427.6",
+        //         "quantity": "0.00016",
+        //         "quoteQuantity": "18.788416",
+        //         "timestamp": 1753123916819
         //     }
         //
         // fetchMyTrades
         //     {
-        //         "clientId" => null,
-        //         "fee" => "0.004974",
-        //         "feeSymbol" => "USDC",
-        //         "isMaker" => false,
-        //         "orderId" => "4238907375",
-        //         "price" => "3826.15",
-        //         "quantity" => "0.0026",
-        //         "side" => "Bid",
-        //         "symbol" => "ETH_USDC_PERP",
-        //         "systemOrderType" => null,
-        //         "timestamp" => "2025-07-27T17:39:00.092",
-        //         "tradeId" => 9748827
+        //         "clientId": null,
+        //         "fee": "0.004974",
+        //         "feeSymbol": "USDC",
+        //         "isMaker": false,
+        //         "orderId": "4238907375",
+        //         "price": "3826.15",
+        //         "quantity": "0.0026",
+        //         "side": "Bid",
+        //         "symbol": "ETH_USDC_PERP",
+        //         "systemOrderType": null,
+        //         "timestamp": "2025-07-27T17:39:00.092",
+        //         "tradeId": 9748827
         //     }
         //
         $id = $this->safe_string_2($trade, 'id', 'tradeId');
         $marketId = $this->safe_string($trade, 'symbol');
-        $market = $this->safe_market($marketId, $market);
-        $price = $this->safe_string($trade, 'price');
-        $amount = $this->safe_string($trade, 'quantity');
+        $marketResolved = $this->safe_market($marketId, $market);
+        $price = $this->safe_string_2($trade, 'fillPrice', 'price');
+        $amount = $this->safe_string_2($trade, 'fillQuantity', 'quantity');
         $isBuyerMaker = $this->safe_bool($trade, 'isBuyerMaker');
         $side = $this->parse_order_side($this->safe_string($trade, 'side'));
         $isMaker = $this->safe_bool($trade, 'isMaker');
@@ -1300,7 +2014,7 @@ class backpack extends Exchange {
             $takerOrMaker = 'taker';
             $side = $isBuyerMaker ? 'sell' : 'buy';
         }
-        $orderId = $this->safe_string($trade, 'orderId');
+        $orderId = $this->safe_string_2($trade, 'orderId', 'rfqId');
         $fee = null;
         $feeAmount = $this->safe_string($trade, 'fee');
         $timestamp = $this->safe_integer($trade, 'timestamp');
@@ -1308,6 +2022,10 @@ class backpack extends Exchange {
             // if fetchMyTrades
             $datetime = $this->safe_string($trade, 'timestamp');
             $timestamp = $this->parse8601($datetime);
+        }
+        $filledAt = $this->safe_string($trade, 'filledAt');
+        if ($filledAt !== null) {
+            $timestamp = $this->parse8601($filledAt);
         }
         $feeSymbol = $this->safe_currency_code($this->safe_string($trade, 'feeSymbol'));
         if ($feeAmount !== null) {
@@ -1321,7 +2039,7 @@ class backpack extends Exchange {
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'symbol' => $market['symbol'],
+            'symbol' => $marketResolved['symbol'],
             'id' => $id,
             'order' => $orderId,
             'type' => null,
@@ -1329,9 +2047,9 @@ class backpack extends Exchange {
             'takerOrMaker' => $takerOrMaker,
             'price' => $price,
             'amount' => $amount,
-            'cost' => null,
+            'cost' => $this->safe_string_2($trade, 'fillQuoteQuantity', 'quoteQuantity'),
             'fee' => $fee,
-        ), $market);
+        ), $marketResolved);
     }
 
     public function fetch_status($params = array()): array {
@@ -1381,27 +2099,47 @@ class backpack extends Exchange {
 
     public function fetch_balance($params = array()): array {
         /**
-         * query for balance and get the amount of funds available for trading or funds locked in orders
+         * queries the capital account, optionally filtering tokenized $stock assets locally
          *
          * @see https://docs.backpack.exchange/#tag/Capital/operation/get_balances
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->stock] return tokenized $stock holdings only, without quote-currency cash
          * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
          */
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $response = $this->privateGetApiV1Capital($params);
+        $selection = $this->handle_stock_params('fetchBalance', $params);
+        $stock = $this->safe_bool($selection, 0, false);
+        $query = $this->safe_dict($selection, 1, array());
+        $response = $this->privateGetApiV1Capital($query);
+        if ($stock) {
+            $securities = $this->safe_list($this->options, 'securities');
+            if ($securities === null) {
+                $securities = $this->fetch_securities();
+            }
+            $securityIds = $this->index_by($securities, 'asset');
+            $balances = array();
+            $assetIds = is_array($response) ? array_keys($response) : array();
+            for ($i = 0; $i < count($assetIds); $i++) {
+                $assetId = $assetIds[$i];
+                if (is_array($securityIds) && array_key_exists($assetId ?? '', $securityIds)) {
+                    $balances[$assetId] = $response[$assetId];
+                }
+            }
+            return $this->parse_balance($balances);
+        }
         return $this->parse_balance($response);
     }
 
     public function parse_balance(mixed $response): array {
         //
         //     {
-        //         "USDC" => {
-        //             "available" => "120",
-        //             "locked" => "0",
-        //             "staked" => "0"
+        //         "USDC": {
+        //             "available": "120",
+        //             "locked": "0",
+        //             "staked": "0"
         //         }
         //     }
         //
@@ -1410,7 +2148,7 @@ class backpack extends Exchange {
         for ($i = 0; $i < count($balanceKeys); $i++) {
             $id = $balanceKeys[$i];
             $code = $this->safe_currency_code($id);
-            $balance = $response[$id];
+            $balance = $this->safe_dict($response, $id);
             $account = $this->account();
             $locked = $this->safe_string($balance, 'locked');
             $staked = $this->safe_string($balance, 'staked');
@@ -1452,12 +2190,11 @@ class backpack extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit; // default 100, max 1000
         }
-        $until = null;
-        list($until, $params) = $this->handle_option_and_params($params, 'fetchDeposits', 'until');
+        list($until, $paramsUntil) = $this->handle_option_integer_and_params($params, 'fetchDeposits', 'until');
         if ($until !== null) {
             $request['endTime'] = $until;
         }
-        $response = $this->privateGetWapiV1CapitalDeposits($this->extend($request, $params));
+        $response = $this->privateGetWapiV1CapitalDeposits($this->extend($request, $paramsUntil));
         return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
@@ -1488,16 +2225,15 @@ class backpack extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $until = null;
-        list($until, $params) = $this->handle_option_and_params($params, 'fetchWithdrawals', 'until');
+        list($until, $paramsUntil) = $this->handle_option_integer_and_params($params, 'fetchWithdrawals', 'until');
         if ($until !== null) {
             $request['to'] = $until;
         }
-        $response = $this->privateGetWapiV1CapitalWithdrawals($this->extend($request, $params));
+        $response = $this->privateGetWapiV1CapitalWithdrawals($this->extend($request, $paramsUntil));
         return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): array {
+    public function withdraw(string $code, float $amount, string $address, $params = array()): array {
         /**
          * make a withdrawal
          *
@@ -1506,11 +2242,12 @@ class backpack extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
-         * @param {string} $tag
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->tag] memo / destination $tag, required for currencies in options['withdrawTagRequiredCurrencies']
          * @param {string} $params->network the network to withdraw on (mandatory)
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
+        list($tag, $paramsWithdrawTag) = $this->handle_param_string($params, 'tag');
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -1521,10 +2258,10 @@ class backpack extends Exchange {
             'address' => $address,
         );
         if ($tag !== null) {
-            $request['clientId'] = $tag; // memo or $tag
+            $request['clientId'] = $tag; // memo or tag
         }
-        list($networkCode, $query) = $this->handle_network_code_and_params($params);
-        $networkId = $this->network_code_to_id($networkCode, $currency['code']);
+        list($networkCode, $query) = $this->handle_network_code_and_params($paramsWithdrawTag);
+        $networkId = $this->network_code_to_id($networkCode, $this->safe_string($currency, 'code'));
         if ($networkId === null) {
             throw new BadRequest($this->id . ' withdraw() requires a network parameter');
         }
@@ -1533,78 +2270,78 @@ class backpack extends Exchange {
         return $this->parse_transaction($response, $currency);
     }
 
-    public function parse_transaction(mixed $transaction, ?array $currency = null): array {
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         // fetchDeposits
-        //     array(
+        //     [
         //         {
-        //             "createdAt" => "2025-07-23T13:55:54.267",
-        //             "fiatAmount" => null,
-        //             "fiatCurrency" => null,
-        //             "fromAddress" => "0x2e3ab3e88a7dbdc763aadf5b28c18fb085af420a",
-        //             "id" => 6695353,
-        //             "institutionBic" => null,
-        //             "platformMemo" => null,
-        //             "quantity" => "120",
-        //             "source" => "ethereum",
-        //             "status" => "confirmed",
-        //             "symbol" => "USDC",
-        //             "toAddress" => "0xfBe7CbfCde93c8a4204a4be6B56732Eb32690170",
-        //             "transactionHash" => "0x58edaac415398d617b34c6673fffcaf0024990d5700565030119db5cbf3765d1"
+        //             "createdAt": "2025-07-23T13:55:54.267",
+        //             "fiatAmount": null,
+        //             "fiatCurrency": null,
+        //             "fromAddress": "0x2e3ab3e88a7dbdc763aadf5b28c18fb085af420a",
+        //             "id": 6695353,
+        //             "institutionBic": null,
+        //             "platformMemo": null,
+        //             "quantity": "120",
+        //             "source": "ethereum",
+        //             "status": "confirmed",
+        //             "symbol": "USDC",
+        //             "toAddress": "0xfBe7CbfCde93c8a4204a4be6B56732Eb32690170",
+        //             "transactionHash": "0x58edaac415398d617b34c6673fffcaf0024990d5700565030119db5cbf3765d1"
         //         }
-        //     )
+        //     ]
         //
         // withdraw
         //     {
-        //         "accountIdentifier" => null,
-        //         "bankIdentifier" => null,
-        //         "bankName" => null,
-        //         "blockchain" => "Ethereum",
-        //         "clientId" => null,
-        //         "createdAt" => "2025-08-13T19:27:13.817",
-        //         "fee" => "3",
-        //         "fiatFee" => null,
-        //         "fiatState" => null,
-        //         "fiatSymbol" => null,
-        //         "id" => 5479929,
-        //         "identifier" => null,
-        //         "isInternal" => false,
-        //         "providerId" => null,
-        //         "quantity" => "10",
-        //         "status" => "pending",
-        //         "subaccountId" => null,
-        //         "symbol" => "USDC",
-        //         "toAddress" => "0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749",
-        //         "transactionHash" => null,
-        //         "triggerAt" => null
+        //         "accountIdentifier": null,
+        //         "bankIdentifier": null,
+        //         "bankName": null,
+        //         "blockchain": "Ethereum",
+        //         "clientId": null,
+        //         "createdAt": "2025-08-13T19:27:13.817",
+        //         "fee": "3",
+        //         "fiatFee": null,
+        //         "fiatState": null,
+        //         "fiatSymbol": null,
+        //         "id": 5479929,
+        //         "identifier": null,
+        //         "isInternal": false,
+        //         "providerId": null,
+        //         "quantity": "10",
+        //         "status": "pending",
+        //         "subaccountId": null,
+        //         "symbol": "USDC",
+        //         "toAddress": "0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749",
+        //         "transactionHash": null,
+        //         "triggerAt": null
         //     }
         //
         // fetchWithdrawals
-        //     array(
+        //     [
         //         {
-        //             "accountIdentifier" => null,
-        //             "bankIdentifier" => null,
-        //             "bankName" => null,
-        //             "blockchain" => "Ethereum",
-        //             "clientId" => null,
-        //             "createdAt" => "2025-08-13T19:27:13.817",
-        //             "fee" => "3",
-        //             "fiatFee" => null,
-        //             "fiatState" => null,
-        //             "fiatSymbol" => null,
-        //             "id" => 5479929,
-        //             "identifier" => null,
-        //             "isInternal" => false,
-        //             "providerId" => null,
-        //             "quantity" => "10",
-        //             "status" => "confirmed",
-        //             "subaccountId" => null,
-        //             "symbol" => "USDC",
-        //             "toAddress" => "0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749",
-        //             "transactionHash" => "0x658b6d082af4afa0d3cf85caf344ff7c19d980117726bf193b00d8850f8746a1",
-        //             "triggerAt" => null
+        //             "accountIdentifier": null,
+        //             "bankIdentifier": null,
+        //             "bankName": null,
+        //             "blockchain": "Ethereum",
+        //             "clientId": null,
+        //             "createdAt": "2025-08-13T19:27:13.817",
+        //             "fee": "3",
+        //             "fiatFee": null,
+        //             "fiatState": null,
+        //             "fiatSymbol": null,
+        //             "id": 5479929,
+        //             "identifier": null,
+        //             "isInternal": false,
+        //             "providerId": null,
+        //             "quantity": "10",
+        //             "status": "confirmed",
+        //             "subaccountId": null,
+        //             "symbol": "USDC",
+        //             "toAddress": "0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749",
+        //             "transactionHash": "0x658b6d082af4afa0d3cf85caf344ff7c19d980117726bf193b00d8850f8746a1",
+        //             "triggerAt": null
         //         }
-        //     )
+        //     ]
         //
         $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
         $id = $this->safe_string($transaction, 'id');
@@ -1651,7 +2388,7 @@ class backpack extends Exchange {
         );
     }
 
-    public function parse_transaction_status(?string $status) {
+    public function parse_transaction_status(?string $status): ?string {
         $statuses = array(
             'cancelled' => 'cancelled',
             'confirmed' => 'ok',
@@ -1679,31 +2416,30 @@ class backpack extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $networkCode = null;
-        list($networkCode, $params) = $this->handle_network_code_and_params($params);
+        list($networkCode, $paramsNetworkCode) = $this->handle_network_code_and_params($params);
         if ($networkCode === null) {
             throw new ArgumentsRequired($this->id . ' fetchDepositAddress() requires a network parameter, see https://docs.ccxt.com/?id=network-codes');
         }
         $currency = $this->currency($code);
         $request = array(
-            'blockchain' => $this->network_code_to_id($networkCode, $currency['code']),
+            'blockchain' => $this->network_code_to_id($networkCode, $this->safe_string($currency, 'code')),
         );
-        $response = $this->privateGetWapiV1CapitalDepositAddress($this->extend($request, $params));
+        $response = $this->privateGetWapiV1CapitalDepositAddress($this->extend($request, $paramsNetworkCode));
         return $this->parse_deposit_address($response, $currency);
     }
 
-    public function parse_deposit_address(mixed $depositAddress, ?array $currency = null): array {
+    public function parse_deposit_address(array $depositAddress, ?array $currency = null): array {
         //
         //     {
-        //         "address" => "0xfBe7CbfCde93c8a4204a4be6B56732Eb32690170"
+        //         "address": "0xfBe7CbfCde93c8a4204a4be6B56732Eb32690170"
         //     }
         //
         $address = $this->safe_string($depositAddress, 'address');
         $currencyId = $this->safe_string($depositAddress, 'currency');
-        $currency = $this->safe_currency($currencyId, $currency);
+        $currencyResolved = $this->safe_currency($currencyId, $currency);
         return array(
             'info' => $depositAddress,
-            'currency' => $currency['code'],
+            'currency' => $currencyResolved['code'],
             'network' => null, // network is not returned by the API
             'address' => $address,
             'tag' => null,
@@ -1712,67 +2448,213 @@ class backpack extends Exchange {
 
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
         /**
-         * create a trade order
+         * creates a venue order or bounded requester RFQ for a tokenized stock
          *
          * @see https://docs.backpack.exchange/#tag/Order/operation/execute_order
+         * @see https://docs.backpack.exchange/#tag/RFQ/operation/submit_rfq
          *
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
-         * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float} $amount quantity in base currency, RFQs require base quantity
+         * @param {float} [$price] limit $price, ignored for venue $market orders but an optional execution bound for $market RFQs
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {float} [$params->cost] *$market orders only* the cost of the order in units of the quote currency (could be used instead of $amount)
+         * @param {float} [$params->cost] venue $market orders only, quote-currency cost instead of $amount
+         * @param {boolean} [$params->stock] selects tokenized stock spot or RFQ execution; inferred from $symbol when omitted
+         * @param {string} [$params->executionMode] RFQ only, Immediate (default) or AwaitAccept for manually accepted limit RFQs
+         * @param {int} [$params->orderExpiryTime] RFQ only, resting Immediate RFQ expiry in milliseconds
          * @param {int} [$params->clientOrderId] a unique id for the order
-         * @param {boolean} [$params->postOnly] true to place a post only order
-         * @param {string} [$params->timeInForce] 'GTC', 'IOC', 'FOK' or 'PO'
-         * @param {bool} [$params->reduceOnly] *contract only* Indicates if this order is to reduce the size of a position
-         * @param {string} [$params->selfTradePrevention] one of EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH
-         * @param {bool} [$params->autoLend] *spot margin only* if true then the order can lend
-         * @param {bool} [$params->autoLendRedeem] *spot margin only* if true then the order can redeem a lend if required
-         * @param {bool} [$params->autoBorrow] *spot margin only* if true then the order can borrow
-         * @param {bool} [$params->autoBorrowRepay] *spot margin only* if true then the order can repay a borrow
-         * @param {float} [$params->triggerPrice] the $price that a trigger order is triggered at
-         * @param {array} [$params->takeProfit] *swap markets only - takeProfit object in $params* containing the triggerPrice at which the attached take profit order will be triggered
+         * @param {boolean} [$params->postOnly] venue orders only, true to place a post only order
+         * @param {string} [$params->timeInForce] venue orders only, GTC, IOC, FOK or PO
+         * @param {bool} [$params->reduceOnly] contracts only, reduces a position
+         * @param {string} [$params->selfTradePrevention] venue orders only, EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH
+         * @param {bool} [$params->autoLend] lend if required
+         * @param {bool} [$params->autoLendRedeem] redeem a lend if required
+         * @param {bool} [$params->autoBorrow] borrow if required
+         * @param {bool} [$params->autoBorrowRepay] repay a borrow if required
+         * @param {float} [$params->triggerPrice] venue orders only, trigger $price
+         * @param {array} [$params->takeProfit] swap markets only, attached take profit order
          * @param {float} [$params->takeProfit.triggerPrice] take profit trigger $price
-         * @param {float} [$params->takeProfit.price] take profit order $price (if not provided the order will be a $market order)
-         * @param {array} [$params->stopLoss] *swap markets only - stopLoss object in $params* containing the triggerPrice at which the attached stop loss order will be triggered
+         * @param {float} [$params->takeProfit.price] take profit limit $price, omitted for a $market order
+         * @param {array} [$params->stopLoss] swap markets only, attached stop loss order
          * @param {float} [$params->stopLoss.triggerPrice] stop loss trigger $price
-         * @param {float} [$params->stopLoss.price] stop loss order $price (if not provided the order will be a $market order)
+         * @param {float} [$params->stopLoss.price] stop loss limit $price, omitted for a $market order
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         if ($this->markets === null) {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        $orderRequest = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
+        $selection = $this->handle_stock_params('createOrder', $params, $market);
+        $query = $this->safe_dict($selection, 1, array());
+        $orderParams = $this->extend($query, array( 'stock' => $this->safe_bool($selection, 0, false) ));
+        if ($this->safe_string($market['info'], 'marketType') === 'RFQ') {
+            $rfqResponse = $this->create_rfq_order($symbol, $type, $side, $amount, $price, $orderParams);
+            $rfqOrder = $this->safe_dict(array( 'order' => $rfqResponse ), 'order');
+            return $rfqOrder;
+        }
+        $orderRequest = $this->create_order_request($symbol, $type, $side, $amount, $price, $orderParams);
         $response = $this->privatePostApiV1Order($orderRequest);
         return $this->parse_order($response, $market);
     }
 
-    public function create_orders(array $orders, $params = array()) {
+    public function create_rfq_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
         /**
-         * create a list of trade $orders
+         * @ignore
+         * submits a base-$quantity RFQ, with explicit $market orders using an $indicative execution bound
+         *
+         * @see https://docs.backpack.exchange/#tag/RFQ/operation/submit_rfq
+         *
+         * @param {string} $symbol unified RFQ $market $symbol
+         * @param {string} $type $market or limit
+         * @param {string} $side buy or sell
+         * @param {float} $amount base $quantity
+         * @param {float} [$price] required limit $price, or optional $market execution bound
+         * @param {array} [$params] extra exchange-specific parameters
+         * @param {string} [$params->executionMode] Immediate (default and required) to enforce the execution $price bound
+         * @param {int} [$params->orderExpiryTime] exchange-specific resting RFQ expiry in milliseconds
+         * @param {int} [$params->clientOrderId] requester client identifier
+         * @return {array} an [$order structure](https://docs.ccxt.com/#/?id=$order-structure)
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $selection = $this->handle_stock_params('createRfqOrder', $params, $market);
+        $paramsResolved = $this->safe_dict($selection, 1, array());
+        if ($this->safe_string($market['info'], 'marketType') !== 'RFQ') {
+            throw new BadSymbol($this->id . ' createRfqOrder() requires an RFQ market');
+        }
+        if (($type !== 'market') && ($type !== 'limit')) {
+            throw new InvalidOrder($this->id . ' createOrder() RFQs support market or limit orders only');
+        }
+        if (($side !== 'buy') && ($side !== 'sell')) {
+            throw new InvalidOrder($this->id . ' createOrder() requires buy or sell');
+        }
+        if (($amount === null) || !Precise::string_gt($this->number_to_string($amount), '0')) {
+            throw new InvalidOrder($this->id . ' createOrder() RFQs require a positive base quantity');
+        }
+        $unsupported = array( 'cost', 'quoteQuantity', 'postOnly', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit', 'reduceOnly', 'timeInForce', 'selfTradePrevention' );
+        for ($i = 0; $i < count($unsupported); $i++) {
+            $key = $unsupported[$i];
+            if (is_array($paramsResolved) && array_key_exists($key ?? '', $paramsResolved)) {
+                throw new NotSupported($this->id . ' createOrder() RFQs do not support ' . $key);
+            }
+        }
+        $executionMode = $this->safe_string($paramsResolved, 'executionMode', 'Immediate');
+        if ($executionMode !== 'Immediate') {
+            throw new NotSupported($this->id . ' createOrder() requires Immediate RFQs to enforce the price bound; AwaitAccept has no engine-enforced limit price');
+        }
+        $quantity = $this->number_to_string($amount);
+        $precision = $this->safe_dict($market, 'precision', array());
+        if ($this->safe_number($precision, 'amount') !== null) {
+            $preciseQuantity = $this->amount_to_precision($symbol, $amount);
+            if (!Precise::string_eq($quantity, $preciseQuantity)) {
+                throw new InvalidOrder($this->id . ' createOrder() RFQ quantity must match the share increment without rounding');
+            }
+        }
+        $limitPrice = $this->number_to_string($price);
+        if ($type === 'limit') {
+            if (($limitPrice === null) || !Precise::string_gt($limitPrice, '0')) {
+                throw new InvalidOrder($this->id . ' createOrder() limit RFQs require a positive price');
+            }
+        }
+        if ($market['stock'] === true) {
+            $indicative = $this->fetch_stock_indicative_quote($symbol, $side, $amount, array( 'stock' => false ));
+            $indicativePrice = $this->safe_string($indicative, 'price');
+            if (!$this->safe_bool($indicative, 'available', false) || ($indicativePrice === null)) {
+                throw new InvalidOrder($this->id . ' createOrder() stock indicative quote unavailable => ' . $this->safe_string($indicative, 'reason', 'priceUnavailable'));
+            }
+            if (($type === 'market') && ($limitPrice === null)) {
+                $limitPrice = $indicativePrice;
+            }
+            $quantityFilter = $this->safe_dict($indicative, 'quantityFilter', array());
+            $stepSize = $this->safe_string($quantityFilter, 'stepSize');
+            $minimum = $this->safe_string($quantityFilter, 'minQuantity');
+            $maximum = $this->safe_string($quantityFilter, 'maxQuantity');
+            if (($minimum === null) || ($stepSize === null) || !Precise::string_gt($stepSize, '0')) {
+                throw new InvalidOrder($this->id . ' createOrder() stock indicative quote is missing valid session quantity constraints');
+            }
+            if ((($minimum !== null) && Precise::string_lt($quantity, $minimum)) || (($maximum !== null) && Precise::string_gt($quantity, $maximum)) || (($stepSize !== null) && !Precise::string_eq(Precise::string_mod($quantity, $stepSize), '0'))) {
+                throw new InvalidOrder($this->id . ' createOrder() quantity does not match the current stock session constraints');
+            }
+        } elseif ($limitPrice === null) {
+            throw new ArgumentsRequired($this->id . ' createOrder() crypto market RFQs require an explicit price bound');
+        }
+        if (($limitPrice !== null) && !Precise::string_gt($limitPrice, '0')) {
+            throw new InvalidOrder($this->id . ' createOrder() RFQ price must be positive');
+        }
+        if (($this->safe_integer($params, 'orderExpiryTime') !== null) && ($executionMode !== 'Immediate')) {
+            throw new InvalidOrder($this->id . ' createOrder() resting RFQs require Immediate execution');
+        }
+        $request = array( 'symbol' => $market['id'], 'side' => $this->encode_order_side($side), 'quantity' => $quantity, 'price' => $limitPrice, 'executionMode' => $executionMode );
+        $clientOrderId = $this->safe_integer($params, 'clientOrderId');
+        if ($clientOrderId !== null) {
+            $request['clientId'] = $clientOrderId;
+        }
+        $query = $this->omit($paramsResolved, 'clientOrderId');
+        $response = $this->privatePostApiV1Rfq($this->extend($query, $request));
+        $order = $this->parse_order($response, $market);
+        $order['type'] = $type;
+        return $order;
+    }
+
+    public function accept_rfq_quote(string $id, string $quoteId, string $symbol, $params = array()): array {
+        /**
+         * @ignore
+         * explicitly accepts a selected current best quote, which may bind funds before settlement
+         *
+         * @see https://docs.backpack.exchange/#tag/RFQ/operation/accept_quote
+         *
+         * @param {string} $id requester RFQ identifier
+         * @param {string} $quoteId selected quote identifier
+         * @param {string} $symbol unified RFQ $market $symbol
+         * @param {array} [$params] extra exchange-specific parameters
+         * @return {array} an [order structure](https://docs.ccxt.com/#/?$id=order-structure)
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $selection = $this->handle_stock_params('acceptRfqQuote', $params, $market);
+        $query = $this->safe_dict($selection, 1, array());
+        if ($this->safe_string($market['info'], 'marketType') !== 'RFQ') {
+            throw new BadSymbol($this->id . ' acceptRfqQuote() requires an RFQ market');
+        }
+        $request = array( 'rfqId' => $id, 'quoteId' => $quoteId );
+        $response = $this->privatePostApiV1RfqAccept($this->extend($query, $request));
+        return $this->parse_order($response, $market);
+    }
+
+    public function create_orders(array $orders, $params = array()): array {
+        /**
+         * creates venue order-book $orders, RFQ batches are not supported
          *
          * @see https://docs.backpack.exchange/#tag/Order/operation/execute_order_batch
          *
          * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely symbol, $type, $side, $amount, $price and $params
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
+         * @param {boolean} [$params->stock] selects tokenized $stock spot execution for all $orders, otherwise inferred per symbol
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
+        $selection = $this->handle_stock_params('createOrders', $params);
+        $query = $this->safe_dict($selection, 1, array());
         if ($this->markets === null) {
             $this->load_markets();
         }
         $ordersRequests = array();
+        $stockOption = $this->safe_value_2($params, 'stock', 'defaultStock');
+        $stock = $this->safe_bool($selection, 0, false);
         for ($i = 0; $i < count($orders); $i++) {
-            $rawOrder = $orders[$i];
+            $rawOrder = $this->safe_dict($orders, $i);
             $marketId = $this->safe_string($rawOrder, 'symbol');
             $type = $this->safe_string($rawOrder, 'type');
             $side = $this->safe_string($rawOrder, 'side');
             $amount = $this->safe_number($rawOrder, 'amount');
             $price = $this->safe_number($rawOrder, 'price');
             $orderParams = $this->safe_dict($rawOrder, 'params', array());
-            $extendedParams = $this->extend($orderParams, $params); // the request does not accept extra $params since it's a list, so we're extending each order with the common $params
+            $baseParams = array();
+            if ($stock || ($stockOption === false)) {
+                $baseParams['stock'] = $stock;
+            }
+            $baseQuery = $this->extend($baseParams, $query);
+            $extendedParams = $this->extend($baseQuery, $orderParams);
             $orderRequest = $this->create_order_request($marketId, $type, $side, $amount, $price, $extendedParams);
             $ordersRequests[] = $orderRequest;
         }
@@ -1780,51 +2662,70 @@ class backpack extends Exchange {
         return $this->parse_orders($response);
     }
 
-    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
+    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): array {
+        /**
+         * @ignore
+         * builds a venue order-book $request and rejects RFQ batch execution
+         * @param {string} $symbol unified $market $symbol
+         * @param {string} $type order $type
+         * @param {string} $side order $side
+         * @param {float} $amount base quantity
+         * @param {float} [$price] limit $price
+         * @param {array} [$params] exchange-specific order parameters
+         * @return {array} venue order payload
+         */
         if ($type === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+            throw new ArgumentsRequired($this->id . ' requires a type argument');
         }
         if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+            throw new ArgumentsRequired($this->id . ' requires a side argument');
         }
         $market = $this->market($symbol);
+        $selection = $this->handle_stock_params('createOrder', $params, $market);
+        $query = $this->safe_dict($selection, 1, array());
+        if ($this->safe_string($market['info'], 'marketType') === 'RFQ') {
+            throw new NotSupported($this->id . ' createOrders() does not support RFQ batches; use createOrder()');
+        }
         $request = array(
             'symbol' => $market['id'],
             'side' => $this->encode_order_side($side),
             'orderType' => $this->capitalize($type),
         );
-        $triggerPrice = $this->safe_string($params, 'triggerPrice');
+        $triggerPrice = $this->safe_string($query, 'triggerPrice');
         $isTriggerOrder = $triggerPrice !== null;
-        $quantityKey = $isTriggerOrder ? 'triggerQuantity' : 'quantity';
-        // handle basic limit/market order types
+        $quantityKey = 'quantity';
+        if ($isTriggerOrder) {
+            $quantityKey = 'triggerQuantity';
+        }
+        $omitKeys = array();
         if ($type === 'limit') {
             $request['price'] = $this->price_to_precision($symbol, $price);
             $request[$quantityKey] = $this->amount_to_precision($symbol, $amount);
         } elseif ($type === 'market') {
-            $cost = $this->safe_string_2($params, 'cost', 'quoteQuantity');
+            $cost = $this->safe_string_2($query, 'cost', 'quoteQuantity');
             if ($cost !== null) {
                 $request['quoteQuantity'] = $this->cost_to_precision($symbol, $cost);
-                $params = $this->omit($params, array( 'cost', 'quoteQuantity' ));
+                $omitKeys[] = 'cost';
+                $omitKeys[] = 'quoteQuantity';
             } else {
                 $request[$quantityKey] = $this->amount_to_precision($symbol, $amount);
             }
         }
-        // trigger orders
         if ($isTriggerOrder) {
             $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
-            $params = $this->omit($params, 'triggerPrice');
+            $omitKeys[] = 'triggerPrice';
         }
-        $clientOrderId = $this->safe_integer($params, 'clientOrderId'); // the exchange requires uint
+        $clientOrderId = $this->safe_integer($query, 'clientOrderId');
         if ($clientOrderId !== null) {
             $request['clientId'] = $clientOrderId;
-            $params = $this->omit($params, 'clientOrderId');
+            $omitKeys[] = 'clientOrderId';
         }
-        $postOnly = false;
-        list($postOnly, $params) = $this->handle_post_only($type === 'market', false, $params);
+        list($postOnly, $paramsPostOnly) = $this->handle_post_only($type === 'market', false, $this->omit($query, $omitKeys));
         if ($postOnly) {
-            $params['postOnly'] = true;
+            $paramsPostOnly['postOnly'] = true;
         }
-        $takeProfit = $this->safe_dict($params, 'takeProfit');
+        $bracketKeys = array();
+        $takeProfit = $this->safe_dict($paramsPostOnly, 'takeProfit');
         if ($takeProfit !== null) {
             $takeProfitTriggerPrice = $this->safe_string($takeProfit, 'triggerPrice');
             if ($takeProfitTriggerPrice !== null) {
@@ -1834,9 +2735,9 @@ class backpack extends Exchange {
             if ($takeProfitPrice !== null) {
                 $request['takeProfitLimitPrice'] = $this->price_to_precision($symbol, $takeProfitPrice);
             }
-            $params = $this->omit($params, 'takeProfit');
+            $bracketKeys[] = 'takeProfit';
         }
-        $stopLoss = $this->safe_dict($params, 'stopLoss');
+        $stopLoss = $this->safe_dict($paramsPostOnly, 'stopLoss');
         if ($stopLoss !== null) {
             $stopLossTriggerPrice = $this->safe_string($stopLoss, 'triggerPrice');
             if ($stopLossTriggerPrice !== null) {
@@ -1846,10 +2747,9 @@ class backpack extends Exchange {
             if ($stopLossPrice !== null) {
                 $request['stopLossLimitPrice'] = $this->price_to_precision($symbol, $stopLossPrice);
             }
-            $params = $this->omit($params, 'stopLoss');
+            $bracketKeys[] = 'stopLoss';
         }
-        $selfTradePrevention = null;
-        list($selfTradePrevention, $params) = $this->handle_option_and_params($params, 'createOrder', 'selfTradePrevention');
+        list($selfTradePrevention, $paramsSelfTradePrevention) = $this->handle_option_string_and_params($this->omit($paramsPostOnly, $bracketKeys), 'createOrder', 'selfTradePrevention');
         if ($selfTradePrevention !== null) {
             if ($selfTradePrevention === 'EXPIRE_MAKER') {
                 $request['selfTradePrevention'] = 'RejectMaker';
@@ -1859,10 +2759,10 @@ class backpack extends Exchange {
                 $request['selfTradePrevention'] = 'RejectBoth';
             }
         }
-        return $this->extend($request, $params);
+        return $this->extend($request, $paramsSelfTradePrevention);
     }
 
-    public function encode_order_side(mixed $side) {
+    public function encode_order_side(?string $side): ?string {
         $sides = array(
             'buy' => 'Bid',
             'sell' => 'Ask',
@@ -1870,16 +2770,20 @@ class backpack extends Exchange {
         return $this->safe_string($sides, $side, $side);
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
-         * fetch all unfilled currently open orders
+         * fetches open venue $orders or RFQs with their candidate quotes
          *
          * @see https://docs.backpack.exchange/#tag/Order/operation/get_open_orders
+         * @see https://docs.backpack.exchange/#tag/RFQ/operation/get_open_rfqs
          *
          * @param {string} $symbol unified $market $symbol
-         * @param {int} [$since] the earliest time in ms to fetch open orders for
-         * @param {int} [$limit] the maximum number of open orders structures to retrieve
+         * @param {int} [$since] the earliest time in ms to fetch open $orders for
+         * @param {int} [$limit] the maximum number of open $orders structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->stock] selects tokenized $stock $orders; inferred from $symbol when provided, otherwise selects both venue/RFQ records
+         * @param {boolean} [$params->rfq] selects requester RFQs only, inferred from RFQ symbols
+         * @param {boolean} [$params->deferredSettlement] selects deferred or immediate RFQ records
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         if ($this->markets === null) {
@@ -1891,96 +2795,203 @@ class backpack extends Exchange {
             $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
         }
-        $response = $this->privateGetApiV1Orders($this->extend($request, $params));
-        return $this->parse_orders($response, $market, $since, $limit);
+        $selection = $this->handle_stock_params('fetchOpenOrders', $params, $market);
+        $stock = $this->safe_bool($selection, 0, false);
+        $query = $this->safe_dict($selection, 1, array());
+        $rfq = $this->safe_bool($query, 'rfq', false) || ($this->safe_string($this->safe_dict($market, 'info'), 'marketType') === 'RFQ');
+        if ($rfq && ($market !== null) && ($this->safe_string($market['info'], 'marketType') !== 'RFQ')) {
+            throw new BadSymbol($this->id . ' fetchOpenOrders() rfq requires an RFQ market symbol');
+        }
+        $accountParams = $this->omit($query, 'rfq');
+        $response = array();
+        if (!$rfq) {
+            $venueParams = $this->omit($accountParams, array( 'rfqId', 'deferredSettlement' ));
+            $response = $this->privateGetApiV1Orders($this->extend($request, $venueParams));
+        }
+        if ($rfq || ($stock && ($market === null))) {
+            $rfqResponse = $this->privateGetApiV1Rfqs($this->extend($request, $this->omit($accountParams, 'marketType')));
+            $response = $this->array_concat($response, $rfqResponse);
+        }
+        $orders = $this->parse_orders($response, $market, $since);
+        if ($stock) {
+            $orders = $this->filter_stock_structures($orders);
+        }
+        return $this->filter_by_since_limit($this->sort_by($orders, 'timestamp'), $since, $limit);
     }
 
     public function fetch_open_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
-         * fetch an open order by it's $id
+         * fetches an open venue $order or requester RFQ by identifier
          *
          * @see https://docs.backpack.exchange/#tag/Order/operation/get_order
+         * @see https://docs.backpack.exchange/#tag/RFQ/operation/get_open_rfqs
          *
-         * @param {string} $id order $id
-         * @param {string} $symbol not used by fetchOpenOrder ()
+         * @param {string} $id $order or requester RFQ identifier
+         * @param {string} $symbol unified $market $symbol, required
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->stock] selects tokenized stock orders; inferred from $symbol when omitted
+         * @return {array} an ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
+         */
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchOpenOrder() requires a symbol argument');
+        }
+        $market = $this->market($symbol);
+        $selection = $this->handle_stock_params('fetchOpenOrder', $params, $market);
+        $query = $this->safe_dict($selection, 1, array());
+        if ($this->safe_string($market['info'], 'marketType') === 'RFQ') {
+            $rfqResponse = $this->privateGetApiV1Rfqs($this->extend($query, array( 'symbol' => $market['id'], 'rfqId' => $id )));
+            for ($i = 0; $i < count($rfqResponse); $i++) {
+                $order = $this->parse_order($rfqResponse[$i], $market);
+                if ($order['id'] === $id) {
+                    return $order;
+                }
+            }
+            throw new OrderNotFound($this->id . ' fetchOpenOrder() RFQ ' . $id . ' not found');
+        }
+        $request = array(
+            'symbol' => $market['id'],
+            'orderId' => $id,
+        );
+        $response = $this->privateGetApiV1Order($this->extend($request, $query));
+        return $this->parse_order($response, $market);
+    }
+
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()): array {
+        /**
+         * fetches an $order from filtered history with an open-$order fallback
+         *
+         * @see https://docs.backpack.exchange/#tag/History
+         * @see https://docs.backpack.exchange/#tag/RFQ/operation/get_rfq_history
+         * @see https://docs.backpack.exchange/#tag/RFQ/operation/get_open_rfqs
+         *
+         * @param {string} $id $order or requester RFQ identifier
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} [$params] extra exchange-specific parameters
+         * @param {boolean} [$params->stock] selects tokenized stock orders; inferred from $symbol when omitted
+         * @return {array} an [$order structure](https://docs.ccxt.com/#/?$id=$order-structure)
+         */
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchOrder() requires a symbol argument');
+        }
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $selection = $this->handle_stock_params('fetchOrder', $params, $market);
+        $query = $this->safe_dict($selection, 1, array());
+        $rfq = $this->safe_string($market['info'], 'marketType') === 'RFQ';
+        $request = array( 'symbol' => $market['id'] );
+        if ($rfq) {
+            $request['rfqId'] = $id;
+        } else {
+            $request['orderId'] = $id;
+        }
+        $response = array();
+        if ($rfq) {
+            $response = $this->privateGetWapiV1HistoryRfq($this->extend($query, $request));
+        } else {
+            $response = $this->privateGetWapiV1HistoryOrders($this->extend($query, $request));
+        }
+        for ($i = 0; $i < count($response); $i++) {
+            $order = $this->parse_order($response[$i], $market);
+            if ($order['id'] === $id) {
+                return $order;
+            }
+        }
+        $openOrderParams = $this->extend($query, array( 'stock' => $this->safe_bool($selection, 0, false) ));
+        return $this->fetch_open_order($id, $symbol, $openOrderParams);
+    }
+
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): array {
+        /**
+         * cancels a venue order or requests RFQ cancellation without assuming immediate cancellation
+         *
+         * @see https://docs.backpack.exchange/#tag/Order/operation/cancel_order
+         * @see https://docs.backpack.exchange/#tag/RFQ/operation/cancel_rfq
+         *
+         * @param {string} $id order or requester RFQ identifier
+         * @param {string} $symbol unified $symbol of the $market the order was made in
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->stock] selects tokenized stock orders; inferred from $symbol when omitted
+         * @param {int} [$params->clientOrderId] RFQ client identifier instead of $id
          * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         if ($this->markets === null) {
             $this->load_markets();
         }
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOpenOrder() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a symbol argument');
         }
         $market = $this->market($symbol);
-        $request = array(
-            'symbol' => $market['id'],
-            'orderId' => $id,
-        );
-        $response = $this->privateGetApiV1Order($this->extend($request, $params));
-        return $this->parse_order($response);
-    }
-
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
-        /**
-         * cancels an open order
-         *
-         * @see https://docs.backpack.exchange/#tag/Order/operation/cancel_order
-         *
-         * @param {string} $id order $id
-         * @param {string} $symbol unified $symbol of the $market the order was made in
-         * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
-         */
-        if ($this->markets === null) {
-            $this->load_markets();
+        $selection = $this->handle_stock_params('cancelOrder', $params, $market);
+        $query = $this->safe_dict($selection, 1, array());
+        if ($this->safe_string($market['info'], 'marketType') === 'RFQ') {
+            $clientOrderId = $this->safe_integer($query, 'clientOrderId');
+            $rfqRequest = array();
+            if ($clientOrderId === null) {
+                $rfqRequest['rfqId'] = $id;
+            } else {
+                $rfqRequest['clientId'] = $clientOrderId;
+            }
+            $rfqResponse = $this->privatePostApiV1RfqCancel($this->extend($this->omit($query, 'clientOrderId'), $rfqRequest));
+            return $this->parse_order($rfqResponse, $market);
         }
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
-        }
-        $market = $this->market($symbol);
         $request = array(
             'orderId' => $id,
             'symbol' => $market['id'],
         );
-        $response = $this->privateDeleteApiV1Order($this->extend($request, $params));
-        return $this->parse_order($response);
+        $response = $this->privateDeleteApiV1Order($this->extend($request, $query));
+        return $this->parse_order($response, $market);
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array()): array {
         /**
-         * cancel all open orders
+         * cancels venue orders, bulk RFQ cancellation is not supported
          *
          * @see https://docs.backpack.exchange/#tag/Order/operation/cancel_open_orders
+         * @see https://docs.backpack.exchange/#tag/RFQ
          *
-         * @param {string} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
+         * @param {string} $symbol unified $market $symbol, required
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->stock] selects tokenized stock orders; inferred from $symbol when omitted
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         if ($this->markets === null) {
             $this->load_markets();
         }
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a symbol argument');
         }
         $market = $this->market($symbol);
+        $selection = $this->handle_stock_params('cancelAllOrders', $params, $market);
+        $query = $this->safe_dict($selection, 1, array());
+        if ($this->safe_string($market['info'], 'marketType') === 'RFQ') {
+            throw new NotSupported($this->id . ' cancelAllOrders() does not support RFQs; cancel each RFQ explicitly with cancelOrder()');
+        }
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = $this->privateDeleteApiV1Orders($this->extend($request, $params));
+        $response = $this->privateDeleteApiV1Orders($this->extend($request, $query));
         return $this->parse_orders($response, $market);
     }
 
     public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
-         * fetches information on multiple orders made by the user
+         * fetches venue or requester RFQ order history
          *
          * @see https://docs.backpack.exchange/#tag/History/operation/get_order_history
+         * @see https://docs.backpack.exchange/#tag/RFQ/operation/get_rfq_history
          *
-         * @param {string} [$symbol] unified $market $symbol of the $market orders were made in
-         * @param {int} [$since] the earliest time in ms to fetch orders for
+         * @param {string} [$symbol] unified $market $symbol of the $market $orders were made in
+         * @param {int} [$since] the earliest time in ms to fetch $orders for, locally filtered on retrieved pages
          * @param {int} [$limit] the maximum number of order structures to retrieve (default 100, max 1000)
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->stock] selects tokenized $stock $orders; inferred from $symbol when provided, otherwise selects both venue/RFQ records
+         * @param {boolean} [$params->rfq] selects requester RFQ history only, inferred from RFQ symbols
+         * @param {int} [$params->offset] exchange history pagination offset
+         * @param {string} [$params->sortDirection] Asc or Desc
+         * @param {boolean} [$params->deferredSettlement] selects deferred or immediate RFQ history
          * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
          */
         if ($this->markets === null) {
@@ -1995,101 +3006,128 @@ class backpack extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->privateGetWapiV1HistoryOrders($this->extend($request, $params));
-        return $this->parse_orders($response, $market, $since, $limit);
+        $selection = $this->handle_stock_params('fetchOrders', $params, $market);
+        $stock = $this->safe_bool($selection, 0, false);
+        $query = $this->safe_dict($selection, 1, array());
+        $rfq = $this->safe_bool($query, 'rfq', false) || ($this->safe_string($this->safe_dict($market, 'info'), 'marketType') === 'RFQ');
+        if ($rfq && ($market !== null) && ($this->safe_string($market['info'], 'marketType') !== 'RFQ')) {
+            throw new BadSymbol($this->id . ' fetchOrders() rfq requires an RFQ market symbol');
+        }
+        $accountParams = $this->omit($query, 'rfq');
+        $response = array();
+        if (!$rfq) {
+            $venueParams = $this->omit($accountParams, array( 'rfqId', 'status', 'side', 'deferredSettlement' ));
+            $response = $this->privateGetWapiV1HistoryOrders($this->extend($request, $venueParams));
+        }
+        if ($rfq || ($stock && ($market === null))) {
+            $rfqResponse = $this->privateGetWapiV1HistoryRfq($this->extend($request, $this->omit($accountParams, 'marketType')));
+            $response = $this->array_concat($response, $rfqResponse);
+        }
+        $orders = $this->parse_orders($response, $market, $since);
+        if ($stock) {
+            $orders = $this->filter_stock_structures($orders);
+        }
+        return $this->filter_by_since_limit($this->sort_by($orders, 'timestamp'), $since, $limit);
     }
 
     public function parse_order(array $order, ?array $market = null): array {
+        $rfq = $this->safe_dict($order, 'rfq');
+        if ($rfq !== null) {
+            $parsed = $this->parse_order($rfq, $market);
+            $parsed['info'] = $order;
+            return $parsed;
+        }
         //
         //     {
-        //         "clientId" => null,
-        //         "createdAt" => 1753624283415,
-        //         "executedQuantity" => "0.001",
-        //         "executedQuoteQuantity" => "3.81428",
-        //         "id" => "4227701917",
-        //         "orderType" => "Market",
-        //         "quantity" => "0.001",
-        //         "quoteQuantity" => "3.82",
-        //         "reduceOnly" => null,
-        //         "relatedOrderId" => null,
-        //         "selfTradePrevention" => "RejectTaker",
-        //         "side" => "Bid",
-        //         "status" => "Filled",
-        //         "stopLossLimitPrice" => null,
-        //         "stopLossTriggerBy" => null,
-        //         "stopLossTriggerPrice" => null,
-        //         "strategyId" => null,
-        //         "symbol" => "ETH_USDC",
-        //         "takeProfitLimitPrice" => null,
-        //         "takeProfitTriggerBy" => null,
-        //         "takeProfitTriggerPrice" => null,
-        //         "timeInForce" => "GTC",
-        //         "triggerBy" => null,
-        //         "triggerPrice" => null,
-        //         "triggerQuantity" => null,
-        //         "triggeredAt" => null
+        //         "clientId": null,
+        //         "createdAt": 1753624283415,
+        //         "executedQuantity": "0.001",
+        //         "executedQuoteQuantity": "3.81428",
+        //         "id": "4227701917",
+        //         "orderType": "Market",
+        //         "quantity": "0.001",
+        //         "quoteQuantity": "3.82",
+        //         "reduceOnly": null,
+        //         "relatedOrderId": null,
+        //         "selfTradePrevention": "RejectTaker",
+        //         "side": "Bid",
+        //         "status": "Filled",
+        //         "stopLossLimitPrice": null,
+        //         "stopLossTriggerBy": null,
+        //         "stopLossTriggerPrice": null,
+        //         "strategyId": null,
+        //         "symbol": "ETH_USDC",
+        //         "takeProfitLimitPrice": null,
+        //         "takeProfitTriggerBy": null,
+        //         "takeProfitTriggerPrice": null,
+        //         "timeInForce": "GTC",
+        //         "triggerBy": null,
+        //         "triggerPrice": null,
+        //         "triggerQuantity": null,
+        //         "triggeredAt": null
         //     }
         //
         // fetchOpenOrders
         //     {
-        //         "clientId" => 123456789,
-        //         "createdAt" => 1753626206762,
-        //         "executedQuantity" => "0",
-        //         "executedQuoteQuantity" => "0",
-        //         "id" => "4228978331",
-        //         "orderType" => "Limit",
-        //         "postOnly" => true,
-        //         "price" => "3000",
-        //         "quantity" => "0.001",
-        //         "reduceOnly" => null,
-        //         "relatedOrderId" => null,
-        //         "selfTradePrevention" => "RejectTaker",
-        //         "side" => "Bid",
-        //         "status" => "New",
-        //         "stopLossLimitPrice" => null,
-        //         "stopLossTriggerBy" => null,
-        //         "stopLossTriggerPrice" => null,
-        //         "strategyId" => null,
-        //         "symbol" => "ETH_USDC",
-        //         "takeProfitLimitPrice" => null,
-        //         "takeProfitTriggerBy" => null,
-        //         "takeProfitTriggerPrice" => null,
-        //         "timeInForce" => "GTC",
-        //         "triggerBy" => null,
-        //         "triggerPrice" => null,
-        //         "triggerQuantity" => null,
-        //         "triggeredAt" => null
+        //         "clientId": 123456789,
+        //         "createdAt": 1753626206762,
+        //         "executedQuantity": "0",
+        //         "executedQuoteQuantity": "0",
+        //         "id": "4228978331",
+        //         "orderType": "Limit",
+        //         "postOnly": true,
+        //         "price": "3000",
+        //         "quantity": "0.001",
+        //         "reduceOnly": null,
+        //         "relatedOrderId": null,
+        //         "selfTradePrevention": "RejectTaker",
+        //         "side": "Bid",
+        //         "status": "New",
+        //         "stopLossLimitPrice": null,
+        //         "stopLossTriggerBy": null,
+        //         "stopLossTriggerPrice": null,
+        //         "strategyId": null,
+        //         "symbol": "ETH_USDC",
+        //         "systemOrderType": null,
+        //         "takeProfitLimitPrice": null,
+        //         "takeProfitTriggerBy": null,
+        //         "takeProfitTriggerPrice": null,
+        //         "timeInForce": "GTC",
+        //         "triggerBy": null,
+        //         "triggerPrice": null,
+        //         "triggerQuantity": null,
+        //         "triggeredAt": null
         //     }
         //
         // fetchOrders
         //     {
-        //         "clientId" => null,
-        //         "createdAt" => "2025-07-27T18:05:40.897",
-        //         "executedQuantity" => "0",
-        //         "executedQuoteQuantity" => "0",
-        //         "expiryReason" => null,
-        //         "id" => "4239996998",
-        //         "orderType" => "Limit",
-        //         "postOnly" => false,
-        //         "price" => "4500",
-        //         "quantity" => null,
-        //         "quoteQuantity" => null,
-        //         "selfTradePrevention" => "RejectTaker",
-        //         "side" => "Ask",
-        //         "status" => "Cancelled",
-        //         "stopLossLimitPrice" => null,
-        //         "stopLossTriggerBy" => null,
-        //         "stopLossTriggerPrice" => null,
-        //         "strategyId" => null,
-        //         "symbol" => "ETH_USDC",
-        //         "systemOrderType" => null,
-        //         "takeProfitLimitPrice" => null,
-        //         "takeProfitTriggerBy" => null,
-        //         "takeProfitTriggerPrice" => null,
-        //         "timeInForce" => "GTC",
-        //         "triggerBy" => null,
-        //         "triggerPrice" => "4300",
-        //         "triggerQuantity" => "0.001"
+        //         "clientId": null,
+        //         "createdAt": "2025-07-27T18:05:40.897",
+        //         "executedQuantity": "0",
+        //         "executedQuoteQuantity": "0",
+        //         "expiryReason": null,
+        //         "id": "4239996998",
+        //         "orderType": "Limit",
+        //         "postOnly": false,
+        //         "price": "4500",
+        //         "quantity": null,
+        //         "quoteQuantity": null,
+        //         "selfTradePrevention": "RejectTaker",
+        //         "side": "Ask",
+        //         "status": "Cancelled",
+        //         "stopLossLimitPrice": null,
+        //         "stopLossTriggerBy": null,
+        //         "stopLossTriggerPrice": null,
+        //         "strategyId": null,
+        //         "symbol": "ETH_USDC",
+        //         "systemOrderType": null,
+        //         "takeProfitLimitPrice": null,
+        //         "takeProfitTriggerBy": null,
+        //         "takeProfitTriggerPrice": null,
+        //         "timeInForce": "GTC",
+        //         "triggerBy": null,
+        //         "triggerPrice": "4300",
+        //         "triggerQuantity": "0.001"
         //     }
         //
         $timestamp = $this->safe_integer($order, 'createdAt');
@@ -2097,10 +3135,15 @@ class backpack extends Exchange {
         if ($timestamp2 !== null) {
             $timestamp = $timestamp2;
         }
-        $id = $this->safe_string($order, 'id');
+        $id = $this->safe_string_2($order, 'id', 'rfqId');
         $clientOrderId = $this->safe_string($order, 'clientId');
-        $symbol = $this->safe_symbol($this->safe_string($order, 'symbol'), $market);
+        $marketId = $this->safe_string($order, 'symbol');
+        $marketResolved = $this->safe_market($marketId, $market);
+        $symbol = $this->safe_symbol($marketId, $marketResolved);
         $type = $this->safe_string_lower($order, 'orderType');
+        if (($type === null) && ($this->safe_string($order, 'rfqId') !== null) && ($this->safe_string($order, 'price') !== null)) {
+            $type = 'limit';
+        }
         $timeInForce = $this->safe_string($order, 'timeInForce');
         $side = $this->parse_order_side($this->safe_string($order, 'side'));
         $amount = $this->safe_string_2($order, 'quantity', 'triggerQuantity');
@@ -2138,10 +3181,10 @@ class backpack extends Exchange {
             'status' => $status,
             'fee' => null,
             'trades' => null,
-        ), $market);
+        ), $marketResolved);
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             'New' => 'open',
             'Filled' => 'closed',
@@ -2154,7 +3197,7 @@ class backpack extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order_side(?string $side) {
+    public function parse_order_side(?string $side): ?string {
         $sides = array(
             'Bid' => 'buy',
             'Ask' => 'sell',
@@ -2164,7 +3207,7 @@ class backpack extends Exchange {
 
     public function fetch_positions(?array $symbols = null, $params = array()): array {
         /**
-         * fetch all open $positions
+         * fetches derivative positions
          *
          * @see https://docs.backpack.exchange/#tag/Futures/operation/get_positions
          *
@@ -2176,53 +3219,51 @@ class backpack extends Exchange {
             $this->load_markets();
         }
         $response = $this->privateGetApiV1Position($params);
-        $positions = $this->parse_positions($response);
         if ($this->is_empty($symbols)) {
-            return $positions;
+            return $this->parse_positions($response);
         }
-        $symbols = $this->market_symbols($symbols);
-        return $this->filter_by_array_positions($positions, 'symbol', $symbols, false);
+        $symbolsNormalized = $this->market_symbols($symbols);
+        return $this->parse_positions($response, $symbolsNormalized);
     }
 
-    public function parse_position(array $position, ?array $market = null) {
+    public function parse_position(array $position, ?array $market = null): array {
         //
         // fetchPositions
         //     {
-        //         "breakEvenPrice" => "3831.3630555555555555555555556",
-        //         "cumulativeFundingPayment" => "-0.009218",
-        //         "cumulativeInterest" => "0",
-        //         "entryPrice" => "3826.8888888888888888888888889",
-        //         "estLiquidationPrice" => "0",
-        //         "imf" => "0.02",
-        //         "imfFunction" => array(
-        //             "base" => "0.02",
-        //             "factor" => "0.0000935",
-        //             "type" => "sqrt"
-        //         ),
-        //         "markPrice" => "3787.46813304",
-        //         "mmf" => "0.0125",
-        //         "mmfFunction" => array(
-        //             "base" => "0.0125",
-        //             "factor" => "0.0000561",
-        //             "type" => "sqrt"
-        //         ),
-        //         "netCost" => "13.7768",
-        //         "netExposureNotional" => "13.634885278944",
-        //         "netExposureQuantity" => "0.0036",
-        //         "netQuantity" => "0.0036",
-        //         "pnlRealized" => "0",
-        //         "pnlUnrealized" => "-0.141914",
-        //         "positionId" => "4238420454",
-        //         "subaccountId" => null,
-        //         "symbol" => "ETH_USDC_PERP",
+        //         "breakEvenPrice": "3831.3630555555555555555555556",
+        //         "cumulativeFundingPayment": "-0.009218",
+        //         "cumulativeInterest": "0",
+        //         "entryPrice": "3826.8888888888888888888888889",
+        //         "estLiquidationPrice": "0",
+        //         "imf": "0.02",
+        //         "imfFunction": {
+        //             "base": "0.02",
+        //             "factor": "0.0000935",
+        //             "type": "sqrt"
+        //         },
+        //         "markPrice": "3787.46813304",
+        //         "mmf": "0.0125",
+        //         "mmfFunction": {
+        //             "base": "0.0125",
+        //             "factor": "0.0000561",
+        //             "type": "sqrt"
+        //         },
+        //         "netCost": "13.7768",
+        //         "netExposureNotional": "13.634885278944",
+        //         "netExposureQuantity": "0.0036",
+        //         "netQuantity": "0.0036",
+        //         "pnlRealized": "0",
+        //         "pnlUnrealized": "-0.141914",
+        //         "positionId": "4238420454",
+        //         "subaccountId": null,
+        //         "symbol": "ETH_USDC_PERP",
         //         "userId":1813870
         //     }
         //
-        //
         $id = $this->safe_string($position, 'positionId');
         $marketId = $this->safe_string($position, 'symbol');
-        $market = $this->safe_market($marketId, $market);
-        $symbol = $market['symbol'];
+        $marketResolved = $this->safe_market($marketId, $market);
+        $symbol = $marketResolved['symbol'];
         $entryPrice = $this->safe_string($position, 'entryPrice');
         $markPrice = $this->safe_string($position, 'markPrice');
         $netCost = $this->safe_string($position, 'netCost');
@@ -2270,7 +3311,7 @@ class backpack extends Exchange {
         ));
     }
 
-    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches the history of funding payments
          *
@@ -2299,15 +3340,15 @@ class backpack extends Exchange {
         return $this->parse_incomes($response, $market, $since, $limit);
     }
 
-    public function parse_income(mixed $income, ?array $market = null) {
+    public function parse_income(array $income, ?array $market = null): array {
         //
         //     {
-        //         "fundingRate" => "0.0001",
-        //         "intervalEndTimestamp" => "2025-08-01T16:00:00",
-        //         "quantity" => "-0.001301",
-        //         "subaccountId" => 0,
-        //         "symbol" => "ETH_USDC_PERP",
-        //         "userId" => 1813870
+        //         "fundingRate": "0.0001",
+        //         "intervalEndTimestamp": "2025-08-01T16:00:00",
+        //         "quantity": "-0.001301",
+        //         "subaccountId": 0,
+        //         "symbol": "ETH_USDC_PERP",
+        //         "userId": 1813870
         //     }
         //
         $marketId = $this->safe_string($income, 'symbol');
@@ -2328,15 +3369,26 @@ class backpack extends Exchange {
         );
     }
 
-    public function nonce() {
-        return $this->milliseconds() - $this->options['timeDifference'];
+    public function nonce(): float {
+        $timeDifference = $this->safe_integer($this->options, 'timeDifference');
+        if ($timeDifference === null) {
+            throw new ExchangeError($this->id . ' nonce() requires a numeric options["timeDifference"]');
+        }
+        return $this->milliseconds() - $timeDifference;
     }
 
-    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
+        $apiName = $api[0];
         $endpoint = '/' . $path;
-        $url = $this->urls['api'][$api];
-        $sortedParams = (gettype($params) === 'array' && array_keys($params) === array_keys(array_keys($params))) ? $params : $this->keysort($params);
-        if ($api === 'private') {
+        $apiUrl = $this->safe_string($this->urls['api'], $apiName);
+        if ($apiUrl === null) {
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+        }
+        $requestParams = (gettype($params) === 'array' && array_keys($params) === array_keys(array_keys($params))) ? $params : $this->omit($params, array( 'stock', 'defaultStock', 'rfq', 'callerMethodName' ));
+        $sortedParams = (gettype($requestParams) === 'array' && array_keys($requestParams) === array_keys(array_keys($requestParams))) ? $requestParams : $this->keysort($requestParams);
+        $headersSigned = null;
+        $bodySigned = null;
+        if ($apiName === 'private') {
             $this->check_required_credentials();
             $ts = (string) $this->nonce();
             $recvWindow = $this->safe_string_2($this->options, 'recvWindow', 'X-Window', '5000');
@@ -2356,7 +3408,7 @@ class backpack extends Exchange {
             $secretBytes = base64_decode($this->secret);
             $seed = $this->array_slice($secretBytes, 0, 32);
             $signature = $this->eddsa($this->encode($payload), $seed, 'ed25519');
-            $headers = array(
+            $headersSigned = array(
                 'X-Timestamp' => $ts,
                 'X-Window' => $recvWindow,
                 'X-API-Key' => $this->apiKey,
@@ -2364,21 +3416,26 @@ class backpack extends Exchange {
                 'X-Broker-Id' => '1400',
             );
             if ($method !== 'GET') {
-                $body = $this->json($sortedParams);
-                $headers['Content-Type'] = 'application/json';
+                $bodySigned = $this->json($sortedParams);
+                $headersSigned['Content-Type'] = 'application/json';
             }
         }
         if ($method === 'GET') {
-            $query = $this->urlencode($sortedParams);
+            $query = $this->urlencode_with_array_repeat($sortedParams);
             if (strlen($query) !== 0) {
                 $endpoint .= '?' . $query;
             }
         }
-        $url .= $endpoint;
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        $url = $apiUrl . $endpoint;
+        $headersResolved = ($apiName === 'private') ? $headersSigned : null;
+        $bodyResolved = null;
+        if (($apiName === 'private') && ($method !== 'GET')) {
+            $bodyResolved = $bodySigned;
+        }
+        return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersResolved );
     }
 
-    public function generate_batch_payload(mixed $params, mixed $ts, mixed $recvWindow, mixed $instruction) {
+    public function generate_batch_payload(mixed $params, string $ts, string $recvWindow, string $instruction): string {
         $payload = '';
         for ($i = 0; $i < count($params); $i++) {
             $order = $this->safe_dict($params, $i, array());
@@ -2397,8 +3454,8 @@ class backpack extends Exchange {
             return null; // fallback to default error handler
         }
         //
-        // array("code":"INVALID_ORDER","message":"Invalid order")
-        // array("code":"INVALID_CLIENT_REQUEST","message":"Must specify both `triggerPrice` and `triggerQuantity` or neither")
+        // {"code":"INVALID_ORDER","message":"Invalid order"}
+        // {"code":"INVALID_CLIENT_REQUEST","message":"Must specify both `triggerPrice` and `triggerQuantity` or neither"}
         //
         $errorCode = $this->safe_string($response, 'code');
         $message = $this->safe_string($response, 'message');
@@ -2407,7 +3464,7 @@ class backpack extends Exchange {
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
-            throw new ExchangeError($feedback); // unknown $message
+            throw new ExchangeError($feedback); // unknown message
         }
         return null;
     }

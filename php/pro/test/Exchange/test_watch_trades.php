@@ -31,10 +31,10 @@ function test_watch_trades($exchange, $skipped_properties, $symbol) {
                 $success = false;
             }
             $now = $exchange->milliseconds();
-            if ($success === true) {
+            if ($success) {
                 assert_non_emtpy_array($exchange, $skipped_properties, $method, $response);
                 for ($i = 0; $i < count($response); $i++) {
-                    test_trade($exchange, $skipped_properties, $method, $response[$i], $symbol, $now);
+                    test_trade($exchange, $skipped_properties, $method, $response[$i], $symbol, $now, true);
                 }
                 if (($now - $start_time) > $max_idle_time) {
                     $idle = true;

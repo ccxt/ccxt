@@ -43,7 +43,7 @@ def helper_test_sandbox_state(exchange, expect_enabled=True):
         assert exchange.urls['api']['public'] == 'https://testnet.org'
         assert exchange.urls['apiBackup']['public'] == 'https://example.com'
     else:
-        assert not is_sandbox_mode_enabled
+        assert is_sandbox_mode_enabled is not True
         assert exchange.urls['api']['public'] == 'https://example.com'
         assert exchange.urls['test']['public'] == 'https://testnet.org'
 
@@ -79,6 +79,16 @@ def helper_test_init_sandbox():
     helper_test_sandbox_state(exchange4, True)
     exchange4.set_sandbox_mode(False)
     helper_test_sandbox_state(exchange4, False)
+    #
+    # CASE C: passed 'sandbox' within userConfig
+    #
+    opts['options']['sandbox'] = False
+    # @ts-expect-error
+    opts['sandbox'] = True
+    exchange5 = ccxt.Exchange(opts)
+    helper_test_sandbox_state(exchange5, True)
+    exchange5.set_sandbox_mode(False)
+    helper_test_sandbox_state(exchange5, False)
 
 
 def helper_test_init_market():
@@ -117,13 +127,6 @@ def helper_test_properties():
     # options
     #
     assert exchange.options is not None
-    # const defaultNetworkCodeReplacements = [
-    #     { 'baseCoin': 'ETH', 'primary': 'ETH', 'secondary': 'ERC20' },
-    #     { 'baseCoin': 'CRO', 'primary': 'CRONOS', 'secondary': 'CRC20' },
-    #     { 'baseCoin': 'TRX', 'primary': 'TRX', 'secondary': 'TRC20' },
-    #     { 'baseCoin': 'BTC', 'primary': 'BTC', 'secondary': 'BRC20' },
-    # ];
-    # testSharedMethods.assertDeepEqual (exchange, {}, 'options', exchange.options['defaultNetworkCodeReplacements'], defaultNetworkCodeReplacements);
     #
     # credentials
     #
@@ -203,9 +206,9 @@ def helper_test_properties():
     assert test_shared_methods.exchange_prop(exchange, 'enableRateLimit'), 'enableRateLimit should be true'
     assert test_shared_methods.exchange_prop(exchange, 'rateLimiterAlgorithm') == 'leakyBucket', 'rateLimiterAlgorithm should be "leakyBucket"'
     assert test_shared_methods.exchange_prop(exchange, 'rateLimit') == 2000, 'rateLimit should be 2000'
-    assert exchange.certified is False, 'certified should be false'
-    assert exchange.pro is False, 'pro should be false'
-    assert exchange.alias is False, 'alias should be false'
+    assert not exchange.certified, 'certified should be false'
+    assert not exchange.pro, 'pro should be false'
+    assert not exchange.alias, 'alias should be false'
     http_exception_keys = ['400', '401', '403', '404', '405', '407', '408', '409', '410', '418', '422', '429', '451', '500', '501', '502', '503', '504', '511', '520', '521', '522', '525', '526', '530']
     # php errors with below, bcz integer key cast
     # testSharedMethods.assertDeepEqual (exchange, {}, 'httpExceptionKeys', Object.keys (testSharedMethods.exchangeProp (exchange, 'httpExceptions')), httpExceptionKeys); # todo: add better deepAssert with error classes
@@ -276,9 +279,9 @@ def helper_test_properties():
     }
     test_shared_methods.assert_deep_equal(exchange, {}, 'status', exchange.status, status)
     assert exchange.timeout == 10000, 'timeout should be 10000'
-    assert exchange.verbose is False, 'verbose should be false'
+    assert not exchange.verbose, 'verbose should be false'
     # assert (testSharedMethods.exchangeProp (exchange, 'newUpdates') === true, 'newUpdates should be true'); # todo WS
-    assert not test_shared_methods.exchange_prop(exchange, 'reloadingMarkets'), 'reloadingMarkets should be false'
+    assert test_shared_methods.exchange_prop(exchange, 'reloadingMarkets') is not True, 'reloadingMarkets should be false'
     assert test_shared_methods.exchange_prop(exchange, 'marketsLoading') is None, 'marketsLoading should be undefined'
     # undefined or false
     assert exchange.version is None, 'version should be undefined'

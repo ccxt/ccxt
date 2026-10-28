@@ -10,7 +10,7 @@ export default class poloniex extends poloniexRest {
      * @see https://api-docs.poloniex.com/spot/websocket/authentication
      * @returns {object} response from exchange
      */
-    authenticate(params?: {}): Promise<any>;
+    authenticate(params?: Dict): Promise<any>;
     /**
      * @ignore
      * @method
@@ -22,7 +22,18 @@ export default class poloniex extends poloniexRest {
      * @param {object} [params] extra parameters specific to the poloniex api
      * @returns {object} data from the websocket stream
      */
-    subscribe(name: string, messageHash: string, isPrivate: boolean, symbols?: Strings, params?: {}): Promise<any>;
+    subscribe(name: string, messageHash: string, isPrivate: boolean, symbols?: Strings, params?: Dict): Promise<any>;
+    /**
+     * @ignore
+     * @method
+     * @description unsubscribes from a public websocket channel
+     * @param {string} name name of the channel
+     * @param {string[]} symbols CCXT market symbols
+     * @param {string[]} messageHashes unique identifiers resolved once the exchange acknowledges the unsubscribe
+     * @param {object} [params] extra parameters specific to the poloniex api
+     * @returns {object} true once the exchange acknowledges the unsubscribe
+     */
+    unSubscribe(name: string, symbols: string[], messageHashes: string[], params?: Dict): Promise<any>;
     /**
      * @ignore
      * @method
@@ -31,7 +42,7 @@ export default class poloniex extends poloniexRest {
      * @param {object} [params] extra parameters specific to the poloniex api
      * @returns {object} data from the websocket stream
      */
-    tradeRequest(name: string, params?: {}): Promise<any>;
+    tradeRequest(name: string, params?: Dict): Promise<any>;
     /**
      * @method
      * @name poloniex#createOrderWs
@@ -54,7 +65,7 @@ export default class poloniex extends poloniexRest {
      * @param {string} [params.slippageTolerance] used to control the maximum slippage ratio, the value range is greater than 0 and less than 1
      * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
-    createOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
+    createOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name poloniex#cancelOrderWs
@@ -78,7 +89,7 @@ export default class poloniex extends poloniexRest {
      * @param {string[]} [params.clientOrderIds] client order ids
      * @returns {object} an list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
-    cancelOrdersWs(ids: string[], symbol?: Str, params?: {}): Promise<Order[]>;
+    cancelOrdersWs(ids: string[], symbol?: Str, params?: Dict): Promise<Order[]>;
     /**
      * @method
      * @name poloniex#cancelAllOrdersWs
@@ -88,8 +99,8 @@ export default class poloniex extends poloniexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
-    cancelAllOrdersWs(symbol?: Str, params?: {}): Promise<Order[]>;
-    handleOrderRequest(client: Client, message: any): void;
+    cancelAllOrdersWs(symbol?: Str, params?: Dict): Promise<Order[]>;
+    handleOrderRequest(client: Client, message: Dict): void;
     /**
      * @method
      * @name poloniex#watchOHLCV
@@ -102,7 +113,18 @@ export default class poloniex extends poloniexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
+    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
+    /**
+     * @method
+     * @name poloniex#unWatchOHLCV
+     * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://api-docs.poloniex.com/spot/websocket/market-data#candlesticks
+     * @param {string} symbol unified symbol of the market to unwatch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    unWatchOHLCV(symbol: string, timeframe?: string, params?: Dict): Promise<any>;
     /**
      * @method
      * @name poloniex#watchTicker
@@ -112,7 +134,7 @@ export default class poloniex extends poloniexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    watchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    watchTicker(symbol: string, params?: Dict): Promise<Ticker>;
     /**
      * @method
      * @name poloniex#watchTickers
@@ -122,7 +144,7 @@ export default class poloniex extends poloniexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
+    watchTickers(symbols?: Strings, params?: Dict): Promise<Tickers>;
     /**
      * @method
      * @name poloniex#watchTrades
@@ -134,7 +156,7 @@ export default class poloniex extends poloniexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    watchTrades(symbol: string, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     /**
      * @method
      * @name poloniex#watchTradesForSymbols
@@ -146,7 +168,27 @@ export default class poloniex extends poloniexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
+    /**
+     * @method
+     * @name poloniex#unWatchTrades
+     * @description unWatches the list of most recent trades for a particular symbol
+     * @see https://api-docs.poloniex.com/spot/websocket/market-data#trades
+     * @param {string} symbol unified symbol of the market to unwatch trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    unWatchTrades(symbol: string, params?: Dict): Promise<any>;
+    /**
+     * @method
+     * @name poloniex#unWatchTradesForSymbols
+     * @description unWatches the list of most recent trades for a list of symbols
+     * @see https://api-docs.poloniex.com/spot/websocket/market-data#trades
+     * @param {string[]} symbols unified symbols of the markets to unwatch trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    unWatchTradesForSymbols(symbols: string[], params?: Dict): Promise<any>;
     /**
      * @method
      * @name poloniex#watchOrderBook
@@ -157,7 +199,7 @@ export default class poloniex extends poloniexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
+    watchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
     /**
      * @method
      * @name poloniex#watchOrders
@@ -169,7 +211,7 @@ export default class poloniex extends poloniexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     /**
      * @method
      * @name poloniex#watchMyTrades
@@ -181,7 +223,7 @@ export default class poloniex extends poloniexRest {
      * @param {object} [params] extra parameters specific to the poloniex strean
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     /**
      * @method
      * @name poloniex#watchBalance
@@ -190,25 +232,25 @@ export default class poloniex extends poloniexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    watchBalance(params?: {}): Promise<Balances>;
+    watchBalance(params?: Dict): Promise<Balances>;
+    setBalanceCache(client: Client, type: string): void;
+    loadBalanceSnapshot(client: Client, messageHash: string, type: string): Promise<void>;
     parseWsOHLCV(ohlcv: any, market?: Market): OHLCV;
-    handleOHLCV(client: Client, message: any): any;
-    handleTrade(client: Client, message: any): any;
+    handleOHLCV(client: Client, message: Dict): Dict;
+    handleTrade(client: Client, message: Dict): Dict;
     parseWsTrade(trade: any, market?: Market): Trade;
-    parseStatus(status: any): string;
+    parseStatus(status: Str): Str;
     parseWsOrderTrade(trade: Dict, market?: Market): Trade;
-    handleOrder(client: Client, message: any): any;
+    handleOrder(client: Client, message: Dict): Dict;
     parseWsOrder(order: any, market?: Market): Order;
-    handleTicker(client: Client, message: any): any;
-    handleOrderBook(client: Client, message: any): void;
-    handleBalance(client: Client, message: any): void;
-    parseWsBalance(response: any): Balances;
-    handleMyTrades(client: Client, parsedTrade: any): void;
+    handleTicker(client: Client, message: Dict): Dict;
+    handleOrderBook(client: Client, message: Dict): void;
+    handleBalance(client: Client, message: Dict): void;
+    handleMyTrades(client: Client, parsedTrade: Trade): void;
     handlePong(client: Client): void;
-    handleMessage(client: Client, message: any): void;
-    handleErrorMessage(client: Client, message: any): Bool;
-    handleAuthenticate(client: Client, message: any): any;
-    ping(client: Client): {
-        event: string;
-    };
+    handleMessage(client: Client, message: Dict): void;
+    handleUnsubscription(client: Client, message: Dict): void;
+    handleErrorMessage(client: Client, message: Dict): Bool;
+    handleAuthenticate(client: Client, message: Dict): Dict;
+    ping(client: Client): Dict;
 }

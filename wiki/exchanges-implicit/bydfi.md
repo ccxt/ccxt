@@ -1,6 +1,6 @@
 Every endpoint in `bydfi`'s `api` definition is exposed as an **implicit method** — a thin, generated wrapper around the raw exchange endpoint. Use these for exchange-specific functionality the [CCXT API](/docs/exchanges/bydfi) does not cover.
 
-These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C#, Go and Java. Call them by the camelCase name shown in the tables below (e.g. `publicGetV1PublicApiLimits`); the snake_case alias (`public_get_v1_public_api_limits`) also works in JavaScript, Python and PHP, and Go uses the PascalCase form (`PublicGetV1PublicApiLimits`). Switch tabs for the call in each language:
+These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C#, Go and Java. Call them by the camelCase name shown in the tables below (e.g. `publicGetV1PublicApiLimits`); Python and PHP use the snake_case form (`public_get_v1_public_api_limits`), and Go uses the PascalCase form (`PublicGetV1PublicApiLimits`). Switch tabs for the call in each language:
 
 <!-- tabs:start -->
 
@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official bydfi API documentation:** [developers.bydfi.com](https://developers.bydfi.com/en/)
 
-> 45 implicit endpoints across 2 access groups.
+> 58 implicit endpoints across 2 access groups.
 
 ## public
 
@@ -92,6 +92,12 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateGetV1FapiTradeHistoryTrade` | GET | `v1/fapi/trade/history_trade` | 1 |
 | `privateGetV1FapiTradePositionHistory` | GET | `v1/fapi/trade/position_history` | 1 |
 | `privateGetV1FapiTradePositions` | GET | `v1/fapi/trade/positions` | 1 |
+| `privateGetV2FapiTradeOpenOrder` | GET | `v2/fapi/trade/open_order` | 1 |
+| `privateGetV2FapiTradePlanOrder` | GET | `v2/fapi/trade/plan_order` | 1 |
+| `privateGetV2FapiTradeHistoryOrder` | GET | `v2/fapi/trade/history_order` | 1 |
+| `privateGetV2FapiTradeHistoryTrade` | GET | `v2/fapi/trade/history_trade` | 1 |
+| `privateGetV2FapiTradePositionHistory` | GET | `v2/fapi/trade/position_history` | 1 |
+| `privateGetV2FapiTradePositions` | GET | `v2/fapi/trade/positions` | 1 |
 | `privateGetV1FapiAccountBalance` | GET | `v1/fapi/account/balance` | 1 |
 | `privateGetV1FapiUserDataAssetsMargin` | GET | `v1/fapi/user_data/assets_margin` | 1 |
 | `privateGetV1FapiUserDataPositionSideDual` | GET | `v1/fapi/user_data/position_side/dual` | 1 |
@@ -112,6 +118,13 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privatePostV1FapiTradeCancelAllOrder` | POST | `v1/fapi/trade/cancel_all_order` | 1 |
 | `privatePostV1FapiTradeLeverage` | POST | `v1/fapi/trade/leverage` | 1 |
 | `privatePostV1FapiTradeBatchLeverageMargin` | POST | `v1/fapi/trade/batch_leverage_margin` | 1 |
+| `privatePostV2FapiTradePlaceOrder` | POST | `v2/fapi/trade/place_order` | 1 |
+| `privatePostV2FapiTradeBatchPlaceOrder` | POST | `v2/fapi/trade/batch_place_order` | 1 |
+| `privatePostV2FapiTradeEditOrder` | POST | `v2/fapi/trade/edit_order` | 1 |
+| `privatePostV2FapiTradeBatchEditOrder` | POST | `v2/fapi/trade/batch_edit_order` | 1 |
+| `privatePostV2FapiTradeCancelOrder` | POST | `v2/fapi/trade/cancel_order` | 1 |
+| `privatePostV2FapiTradeBatchCancelOrder` | POST | `v2/fapi/trade/batch_cancel_order` | 1 |
+| `privatePostV2FapiTradeCancelAllOrder` | POST | `v2/fapi/trade/cancel_all_order` | 1 |
 | `privatePostV1FapiUserDataMarginType` | POST | `v1/fapi/user_data/margin_type` | 1 |
 | `privatePostV1FapiUserDataPositionSideDual` | POST | `v1/fapi/user_data/position_side/dual` | 1 |
 | `privatePostV1AgentInternalWithdrawal` | POST | `v1/agent/internal_withdrawal` | 1 |

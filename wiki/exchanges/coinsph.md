@@ -493,12 +493,12 @@ make a withdrawal to coins_ph account
 | code | <code>string</code> | Yes | unified currency code |
 | amount | <code>float</code> | Yes | the amount to withdraw |
 | address | <code>string</code> | Yes | not used by withdraw () |
-| tag | <code>string</code> | Yes |  |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.tag | <code>string</code> | No | memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies'] |
 
 
 ```javascript
-coinsph.withdraw (code, amount, address, tag, params?)
+coinsph.withdraw (code, amount, address, params?)
 ```
 
 

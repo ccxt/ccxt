@@ -75,34 +75,34 @@ class opinion extends opinion$1["default"] {
                 'opinion': {
                     'public': {
                         'get': {
-                            'market': 1,
-                            'market/{marketId}': 1,
-                            'market/categorical/{marketId}': 1,
-                            'market/slug/{slug}': 1,
+                            'market': { 'cost': 1 },
+                            'market/{marketId}': { 'cost': 1 },
+                            'market/categorical/{marketId}': { 'cost': 1 },
+                            'market/slug/{slug}': { 'cost': 1 },
                             'label': 1,
-                            'token/latest-price': 1,
-                            'token/orderbook': 1,
-                            'token/price-history': 1,
-                            'quoteToken': 1,
+                            'token/latest-price': { 'cost': 1 },
+                            'token/orderbook': { 'cost': 1 },
+                            'token/price-history': { 'cost': 1 },
+                            'quoteToken': { 'cost': 1 },
                         },
                     },
                     'private': {
                         'get': {
-                            'order': 1,
-                            'order/{orderId}': 1,
-                            'positions/user/{walletAddress}': 1,
-                            'trade/user/{walletAddress}': 1,
-                            'auth/api-key': 1,
-                            'user/auth': 1,
-                            'user/balance': 1,
+                            'order': { 'cost': 1 },
+                            'order/{orderId}': { 'cost': 1 },
+                            'positions/user/{walletAddress}': { 'cost': 1 },
+                            'trade/user/{walletAddress}': { 'cost': 1 },
+                            'auth/api-key': { 'cost': 1 },
+                            'user/auth': { 'cost': 1 },
+                            'user/balance': { 'cost': 1 },
                         },
                         'post': {
-                            'auth/api-key': 1,
-                            'order': 1,
-                            'order/cancel': 1,
+                            'auth/api-key': { 'cost': 1 },
+                            'order': { 'cost': 1 },
+                            'order/cancel': { 'cost': 1 },
                         },
                         'delete': {
-                            'auth/api-key': 1,
+                            'auth/api-key': { 'cost': 1 },
                         },
                     },
                 },
@@ -180,9 +180,9 @@ class opinion extends opinion$1["default"] {
         // so the cache gets the base indexing (id + handle + slug) instead of a raw assignment
         const seenEvents = {};
         const eventsList = [];
-        let page = 1;
-        let fetchedRawCount = 0;
-        while (true) {
+        // every raw (unflattened) row fetched so far, so its length is the raw fetched count
+        const fetchedRawRows = [];
+        for (let page = 1; page <= maxPages; page++) {
             const request = {
                 'marketType': 2, // all - both standalone binaries and categorical parents
                 'limit': pageLimit,
@@ -192,17 +192,17 @@ class opinion extends opinion$1["default"] {
             const result = this.safeDict(response, 'result', {});
             const rawMarkets = this.safeList(result, 'list', []);
             const rawMarketsLength = rawMarkets.length;
-            fetchedRawCount = this.sum(fetchedRawCount, rawMarketsLength);
             // categorical parents expand into several flatMarkets entries each, so the raw,
             // unflattened row count in 'total' must be compared against fetchedRawCount, not
             // flatMarkets.length - otherwise expansion makes the comparison meaningless
             const total = this.safeInteger(result, 'total');
             for (let i = 0; i < rawMarketsLength; i++) {
                 const raw = rawMarkets[i];
+                fetchedRawRows.push(raw);
                 const marketType = this.safeInteger(raw, 'marketType');
                 if (marketType === 1) {
                     const event = this.parseEvent(raw);
-                    const childMarkets = event['markets'];
+                    const childMarkets = this.safeList(event, 'markets', []);
                     const childMarketsLength = childMarkets.length;
                     for (let ci = 0; ci < childMarketsLength; ci++) {
                         flatMarkets.push(childMarkets[ci]);
@@ -218,10 +218,10 @@ class opinion extends opinion$1["default"] {
                 }
             }
             const collectedLength = flatMarkets.length;
+            const fetchedRawCount = fetchedRawRows.length;
             if ((rawMarketsLength < pageLimit) || (page >= maxPages) || ((total !== undefined) && (fetchedRawCount >= total)) || ((userLimit !== undefined) && (collectedLength >= userLimit))) {
                 break;
             }
-            page = this.sum(page, 1);
         }
         this.setEvents(eventsList);
         const flatMarketsLength = flatMarkets.length;
@@ -419,25 +419,17 @@ class opinion extends opinion$1["default"] {
             return this.applyEventFetchParams([single], params, queries);
         }
         const rest = this.omit(params, ['query', 'queries', 'tags', 'status', 'sort', 'searchIn', 'limit']);
-        const pageLimit = this.safeInteger(this.options, 'defaultFetchEventsLimit', 20);
-        const userLimit = this.safeInteger(params, 'limit');
+        const pageLimit = this.parseToInt(this.safeInteger(this.options, 'defaultFetchEventsLimit', 20));
         // bound how many events are actually FETCHED: the user limit when given, otherwise
         // options.maxFetchEventsResults - the scope filters keep the listing narrow, but a broad
         // label can still hold more than one page
-        let fetchCap = this.safeInteger(this.options, 'maxFetchEventsResults', 100);
-        if (userLimit !== undefined) {
-            fetchCap = userLimit;
-        }
+        const fetchCap = this.safeInteger(params, 'limit', this.safeInteger(this.options, 'maxFetchEventsResults', 100));
         const maxPages = this.safeInteger(this.options, 'maxEventsPages', 50);
         const rawEvents = [];
-        let page = 1;
-        let fetchedRawCount = 0;
-        while (true) {
-            let reqLimit = pageLimit;
-            const remaining = fetchCap - fetchedRawCount;
-            if (remaining < reqLimit) {
-                reqLimit = remaining;
-            }
+        for (let page = 1; page <= maxPages; page++) {
+            const fetchedSoFar = rawEvents.length;
+            const remaining = this.parseToInt(fetchCap - fetchedSoFar);
+            const reqLimit = (remaining < pageLimit) ? remaining : pageLimit;
             if (reqLimit <= 0) {
                 break;
             }
@@ -450,15 +442,15 @@ class opinion extends opinion$1["default"] {
             const result = this.safeDict(response, 'result', {});
             const pageEvents = this.safeList(result, 'list', []);
             const pageEventsLength = pageEvents.length;
-            fetchedRawCount = this.sum(fetchedRawCount, pageEventsLength);
             for (let i = 0; i < pageEventsLength; i++) {
                 rawEvents.push(pageEvents[i]);
             }
+            // rawEvents holds every row fetched so far, so its length is the raw fetched count
+            const fetchedRawCount = rawEvents.length;
             const total = this.safeInteger(result, 'total');
             if ((pageEventsLength < reqLimit) || (page >= maxPages) || ((total !== undefined) && (fetchedRawCount >= total)) || (fetchedRawCount >= fetchCap)) {
                 break;
             }
-            page = this.sum(page, 1);
         }
         const rawEventsLength = rawEvents.length;
         const parsedEvents = [];
@@ -603,7 +595,13 @@ class opinion extends opinion$1["default"] {
         const eventId = this.safeString(rawEvent, 'marketId');
         const slug = this.safeString(rawEvent, 'slug');
         const title = this.safeString(rawEvent, 'marketTitle');
-        const eventHandle = (title !== undefined) ? this.shortenSlug(title) : this.shortenSlug(slug);
+        let eventHandle = undefined;
+        if (title !== undefined) {
+            eventHandle = this.shortenSlug(title);
+        }
+        else {
+            eventHandle = this.shortenSlug(slug);
+        }
         const rawChildren = this.safeList(rawEvent, 'childMarkets', []);
         const rawChildrenLength = rawChildren.length;
         const marketsList = [];
@@ -693,7 +691,10 @@ class opinion extends opinion$1["default"] {
         const bestBid = this.safeDict(bids, 0, {});
         const bestAsk = this.safeDict(asks, 0, {});
         const last = this.safeNumber(priceResult, 'price');
-        const timestamp = this.safeInteger(priceResult, 'timestamp', this.milliseconds());
+        let timestamp = this.safeInteger(priceResult, 'timestamp');
+        if (timestamp === 0) {
+            timestamp = undefined; // the venue reports timestamp 0 for outcomes that have not traded yet
+        }
         return this.safePredictionTicker({
             'outcome': this.safeString(marketAny, 'outcome'),
             'outcomeId': this.safeString2(marketAny, 'outcomeId', 'id'),
@@ -833,7 +834,7 @@ class opinion extends opinion$1["default"] {
         const candles = [];
         const historyLength = history.length;
         for (let i = 0; i < historyLength; i++) {
-            const point = history[i];
+            const point = this.safeDict(history, i);
             const price = this.safeNumber(point, 'p');
             const timestamp = this.safeTimestamp(point, 't');
             if ((price !== undefined) && (timestamp !== undefined)) {
@@ -944,8 +945,11 @@ class opinion extends opinion$1["default"] {
     }
     opinionOrderRawAmounts(isMarket, side, amount, price, decimals) {
         let decimalsStr = '1';
-        for (let i = 0; i < decimals; i++) {
-            decimalsStr = decimalsStr + '0';
+        if (decimals !== undefined) {
+            const decimalsCount = this.parseToInt(decimals);
+            for (let i = 0; i < decimalsCount; i++) {
+                decimalsStr = decimalsStr + '0';
+            }
         }
         const amountStr = this.numberToString(amount);
         if (isMarket && (side === 'BUY')) {
@@ -1403,7 +1407,7 @@ class opinion extends opinion$1["default"] {
         const balances = this.safeList(data, 'balances', []);
         const balancesLength = balances.length;
         for (let i = 0; i < balancesLength; i++) {
-            const balance = balances[i];
+            const balance = this.safeDict(balances, i);
             const code = this.safeString(balance, 'symbol', 'USDT');
             result[code] = {
                 'free': this.safeNumber(balance, 'availableBalance'),
@@ -1436,10 +1440,10 @@ class opinion extends opinion$1["default"] {
         const response = await this.opinionPrivateGetPositionsUserWalletAddress(this.extend(request, params));
         const result = this.safeDict(response, 'result', {});
         const positions = this.safeList(result, 'list', []);
-        const parsed = this.parsePredictionPositions(positions);
         if (outcomesLength === 0) {
-            return parsed;
+            return this.parsePredictionPositions(positions);
         }
+        const parsed = this.parsePredictionPositions(positions);
         const wantedTokenIds = {};
         // copy to a plain list so the strict null checks see one shape
         const outcomesList = (outcomes === undefined) ? [] : outcomes;
@@ -1700,7 +1704,7 @@ class opinion extends opinion$1["default"] {
         const marketKeys = Object.keys(this.markets);
         const marketKeysLength = marketKeys.length;
         for (let i = 0; i < marketKeysLength; i++) {
-            const market = this.markets[marketKeys[i]];
+            const market = this.safeDict(this.markets, marketKeys[i]);
             const info = this.safeDict(market, 'info', {});
             if (this.safeInteger(info, 'marketId') === marketId) {
                 const outcomes = this.safeList(market, 'outcomes', []);
@@ -1783,9 +1787,8 @@ class opinion extends opinion$1["default"] {
         const price = this.safeNumber(message, 'price');
         const size = this.safeNumber(message, 'size');
         bookSide.storeArray([price, size]);
-        const now = this.milliseconds();
-        orderbook['timestamp'] = now;
-        orderbook['datetime'] = this.iso8601(now);
+        orderbook['timestamp'] = undefined;
+        orderbook['datetime'] = undefined;
         client.resolve(orderbook, 'orderbook::' + sym);
     }
     /**
@@ -1821,15 +1824,14 @@ class opinion extends opinion$1["default"] {
         if (sym === undefined) {
             return;
         }
-        const now = this.milliseconds();
         const last = this.safeNumber(message, 'price');
         const ticker = this.safePredictionTicker({
             'outcome': sym,
             'outcomeId': tokenId,
             'label': this.safeString(outcomeObj, 'label'),
             'market': this.safeString(outcomeObj, 'market'),
-            'timestamp': now,
-            'datetime': this.iso8601(now),
+            'timestamp': undefined,
+            'datetime': undefined,
             'close': last,
             'last': last,
             'info': message,
@@ -1876,12 +1878,11 @@ class opinion extends opinion$1["default"] {
         if (sym === undefined) {
             return;
         }
-        const now = this.milliseconds();
         const trade = this.safePredictionTrade({
             'id': undefined,
             'info': message,
-            'timestamp': now,
-            'datetime': this.iso8601(now),
+            'timestamp': undefined,
+            'datetime': undefined,
             'outcome': sym,
             'outcomeId': tokenId,
             'label': this.safeString(outcomeObj, 'label'),
@@ -1986,9 +1987,15 @@ class opinion extends opinion$1["default"] {
         // unlike the REST order body (0 buy / 1 sell), the websocket channel uses 1 buy / 2 sell
         // per the docs and confirmed live
         const sideInt = this.safeInteger(message, 'side');
-        const side = (sideInt === 1) ? 'buy' : 'sell';
+        let side = 'sell';
+        if (sideInt === 1) {
+            side = 'buy';
+        }
         const tradingMethod = this.safeInteger(message, 'tradingMethod');
-        const type = (tradingMethod === 1) ? 'market' : 'limit';
+        let type = 'limit';
+        if (tradingMethod === 1) {
+            type = 'market';
+        }
         const order = this.safePredictionOrder({
             'id': this.safeString(message, 'orderId'),
             'clientOrderId': undefined,
@@ -2117,22 +2124,20 @@ class opinion extends opinion$1["default"] {
      * @name opinion#sign
      * @description builds the request url and attaches the apikey/EIP-712 authentication headers for private endpoints
      * @param {string} path the endpoint path
-     * @param {string|string[]} api the api group and access level
+     * @param {string[]} api the api group and access level
      * @param {string} method the http method
      * @param {object} params the request parameters
-     * @param {object} [headers] request headers
-     * @param {string} [body] the request body
      * @returns {object} a dict with url, method, body and headers
      */
-    sign(path, api = 'opinion', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const apiGroup = typeof api === 'string' ? api : api[0];
-        const access = typeof api === 'string' ? 'public' : api[1];
+    sign(path, api = ['opinion'], method = 'GET', params = {}) {
+        const apiGroup = api[0];
+        const access = this.safeString(api, 1, 'public');
         const baseUrls = this.urls['api'];
         const baseUrl = this.safeString(baseUrls, apiGroup, baseUrls['opinion']);
         let url = baseUrl + '/' + this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
-        const existingHeaders = (headers !== undefined) ? headers : {};
-        headers = this.extend({
+        const existingHeaders = {};
+        const headersExtended = this.extend({
             'Accept': 'application/json',
             'Content-Type': 'application/json',
         }, existingHeaders);
@@ -2145,9 +2150,9 @@ class opinion extends opinion$1["default"] {
                 const actionByMethod = { 'POST': 'create', 'GET': 'get', 'DELETE': 'delete' };
                 const action = this.safeString(actionByMethod, method, 'get');
                 const timestamp = this.numberToString(this.seconds());
-                headers['OPINION_ADDRESS'] = this.walletAddress;
-                headers['OPINION_SIGNATURE'] = this.signApiKeyAuth(this.walletAddress, action, timestamp);
-                headers['OPINION_TIMESTAMP'] = timestamp;
+                headersExtended['OPINION_ADDRESS'] = this.walletAddress;
+                headersExtended['OPINION_SIGNATURE'] = this.signApiKeyAuth(this.walletAddress, action, timestamp);
+                headersExtended['OPINION_TIMESTAMP'] = timestamp;
             }
             else {
                 // an empty this.apiKey counts as absent - deleteApiKey clears it to '' (the
@@ -2157,18 +2162,19 @@ class opinion extends opinion$1["default"] {
                 if (apiKey === undefined) {
                     throw new errors.AuthenticationError(this.id + ' ' + path + ' requires an apiKey - set it directly or call createApiKey()/fetchApiKey() first');
                 }
-                headers['apikey'] = apiKey;
+                headersExtended['apikey'] = apiKey;
             }
         }
+        let bodyValue = undefined;
         if (method === 'GET') {
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 url += '?' + this.urlencode(query);
             }
         }
         else {
-            body = this.json(query);
+            bodyValue = this.json(query);
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': bodyValue, 'headers': headersExtended };
     }
 }
 

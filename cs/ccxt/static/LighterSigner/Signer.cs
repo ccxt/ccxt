@@ -97,7 +97,7 @@ namespace LighterSigner
         [StructLayout(LayoutKind.Sequential)]
         public struct CreateOrderTxReq
         {
-            public byte MarketIndex;
+            public short MarketIndex;
             public long ClientOrderIndex;
             public long BaseAmount;
             public uint Price;
@@ -169,6 +169,8 @@ namespace LighterSigner
             long integratorAccountIndex,
             int integratorTakerFee,
             int integratorMakerFee,
+            byte selfTradeBehaviorMode,
+            byte selfTradeEqualityMode,
             byte skipNonce,
             long nonce,
             int apiKeyIndex,
@@ -182,6 +184,8 @@ namespace LighterSigner
             long integratorAccountIndex,
             int integratorTakerFee,
             int integratorMakerFee,
+            byte selfTradeBehaviorMode,
+            byte selfTradeEqualityMode,
             byte skipNonce,
             long nonce,
             int apiKeyIndex,
@@ -197,10 +201,25 @@ namespace LighterSigner
         private delegate SignedTxResponse SignCreateSubAccountDelegate(byte skipNonce, long nonce, int apiKeyIndex, long accountIndex);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        private delegate SignedTxResponse SignCancelAllOrdersDelegate(int timeInForce, long time, byte skipNonce, long nonce, int apiKeyIndex, long accountIndex);
+        private delegate SignedTxResponse SignCancelAllOrdersDelegate(int timeInForce, long time, int cancelAllMarketIndex, byte skipNonce, long nonce, int apiKeyIndex, long accountIndex);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        private delegate SignedTxResponse SignModifyOrderDelegate(int marketIndex, long index, long baseAmount, long price, long triggerPrice, byte skipNonce, long nonce, int apiKeyIndex, long accountIndex);
+        private delegate SignedTxResponse SignModifyOrderDelegate(
+            int marketIndex,
+            long index,
+            long baseAmount,
+            long price,
+            long triggerPrice,
+            long integratorAccountIndex,
+            int integratorTakerFee,
+            int integratorMakerFee,
+            byte selfTradeBehaviorMode,
+            byte selfTradeEqualityMode,
+            byte skipNonce,
+            long nonce,
+            long orderVersion,
+            int apiKeyIndex,
+            long accountIndex);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         private delegate SignedTxResponse SignTransferDelegate(
@@ -241,7 +260,7 @@ namespace LighterSigner
         private delegate SignedTxResponse SignApproveIntegratorDelegate(long integratorIndex, int maxPerpsTakerFee, int maxPerpsMakerFee, int maxSpotTakerFee, int maxSpotMakerFee, long approvalExpiry, byte skipNonce, long nonce, int apiKeyIndex, long accountIndex);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        private delegate SignedTxResponse FreeDelegate(int ptr);
+        private delegate void FreeDelegate(IntPtr ptr);
 
         // bound delegates
         private readonly GenerateAPIKeyDelegate _generateApiKey;
@@ -328,6 +347,8 @@ namespace LighterSigner
             long integratorAccountIndex,
             int integratorTakerFee,
             int integratorMakerFee,
+            byte selfTradeBehaviorMode,
+            byte selfTradeEqualityMode,
             byte skipNonce,
             long nonce,
             int apiKeyIndex,
@@ -338,7 +359,7 @@ namespace LighterSigner
             var r = _signCreateOrder(
                 marketIndex, clientOrderIndex, baseAmount, price, isAsk, orderType, timeInForce,
                 reduceOnly, triggerPrice, orderExpiry, integratorAccountIndex, integratorTakerFee,
-                integratorMakerFee, skipNonce, nonce, apiKeyIndex, accountIndex);
+                integratorMakerFee, selfTradeBehaviorMode, selfTradeEqualityMode, skipNonce, nonce, apiKeyIndex, accountIndex);
 
             return ParseSignedTx(r);
         }
@@ -349,6 +370,8 @@ namespace LighterSigner
             long integratorAccountIndex,
             int integratorTakerFee,
             int integratorMakerFee,
+            byte selfTradeBehaviorMode,
+            byte selfTradeEqualityMode,
             byte skipNonce,
             long nonce,
             int apiKeyIndex,
@@ -366,7 +389,7 @@ namespace LighterSigner
             try
             {
                 var ptr = handle.AddrOfPinnedObject();
-                var r = _signCreateGroupedOrders(groupingType, ptr, arr.Length, integratorAccountIndex, integratorTakerFee, integratorMakerFee, skipNonce, nonce, apiKeyIndex, accountIndex);
+                var r = _signCreateGroupedOrders(groupingType, ptr, arr.Length, integratorAccountIndex, integratorTakerFee, integratorMakerFee, selfTradeBehaviorMode, selfTradeEqualityMode, skipNonce, nonce, apiKeyIndex, accountIndex);
                 return ParseSignedTx(r);
             }
             finally
@@ -384,11 +407,29 @@ namespace LighterSigner
         public SignedTx SignCreateSubAccount(byte skipNonce,long nonce, int apiKeyIndex, long accountIndex)
             => ParseSignedTx(_signCreateSubAccount(skipNonce, nonce, apiKeyIndex, accountIndex));
 
-        public SignedTx SignCancelAllOrders(int timeInForce, long time, byte skipNonce, long nonce, int apiKeyIndex, long accountIndex)
-            => ParseSignedTx(_signCancelAllOrders(timeInForce, time, skipNonce, nonce, apiKeyIndex, accountIndex));
+        public SignedTx SignCancelAllOrders(int timeInForce, long time, int cancelAllMarketIndex, byte skipNonce, long nonce, int apiKeyIndex, long accountIndex)
+            => ParseSignedTx(_signCancelAllOrders(timeInForce, time, cancelAllMarketIndex, skipNonce, nonce, apiKeyIndex, accountIndex));
 
-        public SignedTx SignModifyOrder(int marketIndex, long index, long baseAmount, long price, long triggerPrice, byte skipNonce, long nonce, int apiKeyIndex, long accountIndex)
-            => ParseSignedTx(_signModifyOrder(marketIndex, index, baseAmount, price, triggerPrice, skipNonce, nonce, apiKeyIndex, accountIndex));
+        public SignedTx SignModifyOrder(
+            int marketIndex,
+            long index,
+            long baseAmount,
+            long price,
+            long triggerPrice,
+            long integratorAccountIndex,
+            int integratorTakerFee,
+            int integratorMakerFee,
+            byte selfTradeBehaviorMode,
+            byte selfTradeEqualityMode,
+            byte skipNonce,
+            long nonce,
+            long orderVersion,
+            int apiKeyIndex,
+            long accountIndex)
+            => ParseSignedTx(_signModifyOrder(
+                marketIndex, index, baseAmount, price, triggerPrice, integratorAccountIndex,
+                integratorTakerFee, integratorMakerFee, selfTradeBehaviorMode, selfTradeEqualityMode,
+                skipNonce, nonce, orderVersion, apiKeyIndex, accountIndex));
 
         public SignedTx SignTransfer(long toAccountIndex, short assetIndex, byte fromRouteType, byte toRouteType, long amount, long usdcFee, string memo, byte skipNonce, long nonce, int apiKeyIndex, long accountIndex)
         {

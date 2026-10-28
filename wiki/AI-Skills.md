@@ -1,28 +1,30 @@
-# AI Skills for Claude Code and OpenCode
+# AI Skills for Claude Code, OpenCode, Codex and Gemini
 
-CCXT provides language-specific skills for Claude Code and OpenCode AI assistants. These skills help developers quickly learn and use CCXT in their projects with comprehensive guides, code examples, and a complete API reference.
+CCXT provides skills for Claude Code, OpenCode, Codex, Gemini and other AI coding assistants — one per supported language, plus skills for the CCXT CLI and the CCXT MCP server. These skills help developers quickly learn and use CCXT in their projects with comprehensive guides, code examples, and an API reference.
 
 > Looking to let an AI agent **call exchanges directly** (fetch market data, check balances, place orders) rather than help you write code? See the [MCP Server](MCP.md) — the official CCXT Model Context Protocol server for Claude Desktop, Claude Code, Cursor, VS Code, and other MCP hosts.
 
 ## What are CCXT Skills?
 
-Skills are interactive documentation modules that AI coding assistants (like Claude Code and OpenCode) can load to provide context-aware help when working with CCXT. When you ask questions about CCXT, the AI assistant uses these skills to give accurate, detailed answers with working code examples.
+Skills are interactive documentation modules that AI coding assistants (like Claude Code, OpenCode, Codex and Gemini) can load to provide context-aware help when working with CCXT. When you ask questions about CCXT, the AI assistant uses these skills to give accurate, detailed answers with working code examples.
 
 ### What's Included
 
-Each skill includes:
+Each **language** skill includes:
 
-- **Complete API reference** - All 200+ CCXT methods documented with descriptions
+- **Broad API reference** - the most-used unified methods documented with descriptions, grouped by market data, trading, account, derivatives and WebSocket
 - **Installation guides** - Package manager commands for each language
-- **Code examples** - Working code examples embedded in documentation across all supported languages
+- **Code examples** - Working, runnable examples throughout, in that skill's own language
 - **REST & WebSocket APIs** - Both standard and real-time APIs covered
 - **Best practices** - Error handling, rate limiting, authentication patterns
 - **Common pitfalls** - Language-specific mistakes to avoid
 - **Troubleshooting guides** - Solutions to common issues and error messages
 
+The `ccxt-cli` and `ccxt-mcp` skills are scoped to their tool instead: installation and configuration, the commands or tools available, authentication, safety rails and troubleshooting.
+
 ## Available Skills
 
-Five language-specific skills are available:
+Seven language-specific skills are available:
 
 | Skill | Language | Coverage |
 |-------|----------|----------|
@@ -31,14 +33,25 @@ Five language-specific skills are available:
 | **ccxt-php** | PHP | Sync, async (ReactPHP), REST & WebSocket |
 | **ccxt-csharp** | C#/.NET | .NET Standard 2.0+, REST & WebSocket |
 | **ccxt-go** | Go | REST & WebSocket |
+| **ccxt-java** | Java | Java 21+, typed subclasses, sync & async, REST & WebSocket |
+| **ccxt-rust** | Rust | Async (tokio), typed wrappers, REST & WebSocket |
 
 Each skill is tailored to the specific language with appropriate idioms, naming conventions, and best practices.
+
+Two further skills cover CCXT tooling rather than a language:
+
+| Skill | Covers |
+|-------|--------|
+| **ccxt-cli** | The `ccxt-cli` npm package — calling any unified method from the terminal, argument and `--param` rules, API keys, sandbox/demo modes, live WebSocket tickers and orderbooks, OHLCV charts, `--raw` output for scripting |
+| **ccxt-mcp** | Installing and configuring the [CCXT MCP server](MCP.md) — MCP hosts, named accounts and local API keys, capability tiers and safety rails, sandbox trading, and how to drive the tools |
+
+`ccxt-mcp` is *documentation about* the MCP server, not the server itself. Install the **skill** to get help setting the server up; install the **server** ([MCP.md](MCP.md)) to let an agent actually call exchanges. `ccxt-mcp` has no individual installer flag or menu entry — it is installed by `--all` (the default when the script is piped from curl) or by copying it manually.
 
 ## Installation
 
 ### Prerequisites
 
-You need either [Claude Code](https://claude.ai/download) or [OpenCode](https://opencode.dev/) installed on your system.
+You need an AI coding assistant that loads skills — [Claude Code](https://claude.ai/download), [OpenCode](https://opencode.ai/), Codex or Gemini — installed on your system.
 
 ### Quick Install (Recommended)
 
@@ -60,7 +73,7 @@ curl -fsSL https://raw.githubusercontent.com/ccxt/ccxt/master/install-skills.sh 
 curl -fsSL https://raw.githubusercontent.com/ccxt/ccxt/master/install-skills.sh | sh -s -- --typescript
 ```
 
-This will automatically download and install all five CCXT skills to your system.
+This downloads and installs the CCXT usage skills to your system.
 
 ### From Repository
 
@@ -82,10 +95,13 @@ Select which skills to install:
   3) ccxt-php        - PHP (sync & async, REST & WebSocket)
   4) ccxt-csharp     - C#/.NET (REST & WebSocket)
   5) ccxt-go         - Go (REST & WebSocket)
-  6) All skills      - Install all of the above
-  7) Exit            - Cancel installation
+  6) ccxt-java       - Java (Java 21+, REST & WebSocket)
+  7) ccxt-rust       - Rust (async/tokio, REST & WebSocket)
+  8) ccxt-cli        - Command-line interface (terminal, no code)
+  9) All skills      - Install all of the above
+ 10) Exit            - Cancel installation
 
-Enter your choice (1-7):
+Enter your choice (1-10):
 ```
 
 #### Option 2: Install All Skills
@@ -107,19 +123,23 @@ Enter your choice (1-7):
 ./install-skills.sh --typescript --php --csharp
 ```
 
+Available flags: `--typescript`, `--python`, `--php`, `--csharp`, `--go`, `--java`, `--rust`, `--cli`, plus `--all` for everything and `--remote` to pull from GitHub even inside a clone.
+
 ### Installation Locations
 
 Skills are installed to:
 - `~/.claude/skills/` (for Claude Code)
 - `~/.opencode/skills/` (for OpenCode)
+- `~/skills/` (for Codex)
+- `~/.gemini/skills/` (for Gemini)
 
-The installation script automatically detects both and installs to the appropriate locations.
+The installation script writes to all four locations unconditionally, creating any directory that does not exist yet.
 
 ## Usage with AI Assistants
 
 ### Invoking Skills
 
-Once installed, you can invoke skills directly in Claude Code or OpenCode:
+Once installed, you can invoke skills directly in Claude Code, OpenCode, Codex or Gemini:
 
 ```
 /ccxt-typescript
@@ -127,6 +147,10 @@ Once installed, you can invoke skills directly in Claude Code or OpenCode:
 /ccxt-php
 /ccxt-csharp
 /ccxt-go
+/ccxt-java
+/ccxt-rust
+/ccxt-cli
+/ccxt-mcp
 ```
 
 The AI assistant will load the skill and be ready to answer questions about CCXT in that language.
@@ -156,6 +180,8 @@ The AI assistant will automatically reference the appropriate skill to provide a
 
 ## What's Covered
 
+The lists below reflect the TypeScript, Python, PHP, C# and Go skills, which document the fullest unified surface. `ccxt-rust` and especially `ccxt-java` cover a subset — see that skill's own *Complete Method Reference* section for exactly what it documents.
+
 ### Market Data Methods
 
 **Tickers & Prices:**
@@ -168,7 +194,7 @@ The AI assistant will automatically reference the appropriate skill to provide a
 **Order Books:**
 - `fetchOrderBook` - Get full order book
 - `fetchL2OrderBook` - Level 2 order book
-- `fetchL3OrderBook` - Level 3 order book (full depth)
+- `fetchL3OrderBook` - Level 3 order book (unaggregated, order-by-order)
 - WebSocket: `watchOrderBook` - Live order book updates
 
 **Trades & History:**
@@ -201,11 +227,12 @@ The AI assistant will automatically reference the appropriate skill to provide a
 ### Account & Balance
 
 - `fetchBalance` - Get account balance
-- `fetchAccounts` - Get sub-accounts
+- `fetchAccounts` - Get all accounts associated with the profile
 - `fetchLedger` - Get ledger history
 - `fetchDeposits` - Get deposit history
 - `fetchWithdrawals` - Get withdrawal history
-- `fetchTransactions` - Get transaction history
+- `fetchDepositsWithdrawals` - Get combined deposit and withdrawal history
+- `fetchTransactions` - *deprecated*, use `fetchDepositsWithdrawals`
 - WebSocket: `watchBalance` - Live balance updates
 
 ### Derivatives & Futures
@@ -221,8 +248,8 @@ The AI assistant will automatically reference the appropriate skill to provide a
 - `fetchLeverage` - Get current leverage
 - `setLeverage` - Set leverage
 - `setMarginMode` - Set cross/isolated margin
-- `borrowMargin` - Borrow margin
-- `repayMargin` - Repay borrowed margin
+- `borrowCrossMargin` / `borrowIsolatedMargin` - Borrow margin (cross or isolated)
+- `repayCrossMargin` / `repayIsolatedMargin` - Repay borrowed margin (cross or isolated)
 
 **Funding & Settlement:**
 - `fetchFundingRate` - Get current funding rate
@@ -259,7 +286,7 @@ The AI assistant will automatically reference the appropriate skill to provide a
 
 ### WebSocket Real-time Streaming
 
-All `fetch*` methods have WebSocket equivalents with `watch*` prefix:
+Many high-frequency `fetch*` methods have a streaming `watch*` counterpart. Most other `fetch*` methods are REST-only. Separately, some exchanges expose request/response calls over the WebSocket connection using a `Ws` suffix (`fetchBalanceWs`, `fetchOrderWs`, `createOrderWs`):
 
 - `watchTicker` - Live ticker updates
 - `watchTickers` - Live multiple ticker updates
@@ -270,6 +297,9 @@ All `fetch*` methods have WebSocket equivalents with `watch*` prefix:
 - `watchOrders` - Live order updates (auth required)
 - `watchMyTrades` - Live trade updates (auth required)
 - `watchPositions` - Live position updates (auth required)
+- `watchBidsAsks` - Live best bid/ask updates
+- `watchLiquidations` / `watchMyLiquidations` - Live liquidation stream
+- `watchStatus` - Live exchange status updates
 
 ## Best Practices Covered
 
@@ -286,11 +316,11 @@ Each skill teaches proper exception handling:
 
 ### Rate Limiting
 
-Skills cover both built-in and manual rate limiting:
+Most skills cover both the built-in rate limiter and manual delays:
 
 ```
-# Enable built-in rate limiter (recommended)
-exchange.enableRateLimit = true
+# The built-in rate limiter is ON by default - leave it on
+exchange.enableRateLimit = true   # set to false only if you throttle requests yourself
 ```
 
 ### Authentication
@@ -321,13 +351,19 @@ if (exchange.has['fetchOHLCV']) {
 ```sh
 ls ~/.claude/skills/ccxt-*
 ls ~/.opencode/skills/ccxt-*
+ls ~/skills/ccxt-*
+ls ~/.gemini/skills/ccxt-*
 ```
 
-2. Restart Claude Code / OpenCode
+2. Restart your AI assistant (Claude Code, OpenCode, Codex or Gemini)
 
 3. Re-run installation:
 ```sh
+# from a CCXT clone
 ./install-skills.sh --all
+
+# or, without a clone
+curl -fsSL https://raw.githubusercontent.com/ccxt/ccxt/master/install-skills.sh | sh -s -- --all
 ```
 
 ### Getting "Skill Not Found" Error
@@ -346,25 +382,16 @@ The AI assistant automatically uses skills when you ask CCXT-related questions. 
 If the installation script doesn't work, you can install manually:
 
 ```sh
-# Create directories
-mkdir -p ~/.claude/skills/
-mkdir -p ~/.opencode/skills/
-
-# Copy skills
-cp -r .claude/skills/ccxt-typescript ~/.claude/skills/
-cp -r .claude/skills/ccxt-python ~/.claude/skills/
-cp -r .claude/skills/ccxt-php ~/.claude/skills/
-cp -r .claude/skills/ccxt-csharp ~/.claude/skills/
-cp -r .claude/skills/ccxt-go ~/.claude/skills/
-
-# For OpenCode
-cp -r .claude/skills/ccxt-* ~/.opencode/skills/
+# Copy every ccxt-* skill into each assistant's skills directory
+for dir in ~/.claude/skills ~/.opencode/skills ~/skills ~/.gemini/skills; do
+    mkdir -p "$dir"
+    cp -r .claude/skills/ccxt-* "$dir/"
+done
 ```
 
 ## Learn More
 
 - **Skills documentation**: `.claude/skills/README.md` in the CCXT repository
-- **Generation strategy**: `.claude/skills/GENERATION_STRATEGY.md`
 - **CCXT Manual**: [Manual.md](Manual.md)
 - **CCXT Pro**: [ccxt.pro.manual.md](ccxt.pro.manual.md)
 

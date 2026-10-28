@@ -18,10 +18,17 @@
 * [createOrder](#createorder)
 * [cancelOrder](#cancelorder)
 * [createOrders](#createorders)
+* [fetchOrder](#fetchorder)
 * [fetchOpenOrders](#fetchopenorders)
 * [fetchMyTrades](#fetchmytrades)
 * [fetchDeposits](#fetchdeposits)
 * [fetchWithdrawals](#fetchwithdrawals)
+* [fetchCurrencies](#fetchcurrencies)
+* [fetchDepositAddress](#fetchdepositaddress)
+* [fetchDepositWithdrawFees](#fetchdepositwithdrawfees)
+* [fetchDeposit](#fetchdeposit)
+* [fetchWithdrawal](#fetchwithdrawal)
+* [withdraw](#withdraw)
 * [fetchLedger](#fetchledger)
 * [cancelOrders](#cancelorders)
 * [transfer](#transfer)
@@ -40,6 +47,8 @@
 * [fetchPositionsADLRank](#fetchpositionsadlrank)
 * [watchTrades](#watchtrades)
 * [watchTradesForSymbols](#watchtradesforsymbols)
+* [unWatchTrades](#unwatchtrades)
+* [unWatchTradesForSymbols](#unwatchtradesforsymbols)
 * [watchOrderBook](#watchorderbook)
 * [watchOrderBookForSymbols](#watchorderbookforsymbols)
 * [watchTicker](#watchticker)
@@ -47,6 +56,8 @@
 * [watchBidsAsks](#watchbidsasks)
 * [watchOHLCV](#watchohlcv)
 * [watchOHLCVForSymbols](#watchohlcvforsymbols)
+* [unWatchOHLCV](#unwatchohlcv)
+* [unWatchOHLCVForSymbols](#unwatchohlcvforsymbols)
 * [watchBalance](#watchbalance)
 * [watchOrdersForSymbols](#watchordersforsymbols)
 * [watchPositions](#watchpositions)
@@ -373,6 +384,34 @@ blofin.createOrders (orders, params?)
 ```
 
 
+<a name="fetchOrder" id="fetchorder"></a>
+
+### fetchOrder{docsify-ignore}
+fetches information on an order made by the user
+
+**Kind**: instance method of [<code>blofin</code>](#blofin)  
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
+
+**See**
+
+- https://docs.blofin.com/index.html#get-order-detail
+- https://docs.blofin.com/index.html#get-tpsl-order-detail
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| id | <code>string</code> | Yes | order id |
+| symbol | <code>string</code> | Yes | unified symbol of the market the order was made in |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.clientOrderId | <code>string</code> | No | client order id, used instead of the id argument |
+| params.tpsl | <code>boolean</code> | No | True if fetching a tpsl order |
+
+
+```javascript
+blofin.fetchOrder (id, symbol, params?)
+```
+
+
 <a name="fetchOpenOrders" id="fetchopenorders"></a>
 
 ### fetchOpenOrders{docsify-ignore}
@@ -477,6 +516,144 @@ fetch all withdrawals made from an account
 
 ```javascript
 blofin.fetchWithdrawals (code, since?, limit?, params?)
+```
+
+
+<a name="fetchCurrencies" id="fetchcurrencies"></a>
+
+### fetchCurrencies{docsify-ignore}
+fetches all available currencies on an exchange
+
+**Kind**: instance method of [<code>blofin</code>](#blofin)  
+**Returns**: <code>object</code> - an associative dictionary of currencies
+
+**See**: https://docs.blofin.com/index.html#get-currencies  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+blofin.fetchCurrencies (params?)
+```
+
+
+<a name="fetchDepositAddress" id="fetchdepositaddress"></a>
+
+### fetchDepositAddress{docsify-ignore}
+fetch the deposit address for a currency associated with this account
+
+**Kind**: instance method of [<code>blofin</code>](#blofin)  
+**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/#/?id=address-structure)
+
+**See**: https://docs.blofin.com/index.html#get-deposit-address  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| code | <code>string</code> | Yes | unified currency code |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.network | <code>string</code> | No | unified network code, required unless the currency has a single network or a default in options['defaultNetworks'] |
+| params.chain | <code>string</code> | No | the exchange-specific chain id, takes precedence over params.network |
+
+
+```javascript
+blofin.fetchDepositAddress (code, params?)
+```
+
+
+<a name="fetchDepositWithdrawFees" id="fetchdepositwithdrawfees"></a>
+
+### fetchDepositWithdrawFees{docsify-ignore}
+fetch deposit and withdraw fees
+
+**Kind**: instance method of [<code>blofin</code>](#blofin)  
+**Returns**: <code>object</code> - a list of [fee structures](https://docs.ccxt.com/#/?id=fee-structure)
+
+**See**: https://docs.blofin.com/index.html#get-currencies  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| codes | <code>Array&lt;string&gt;</code> | No | list of unified currency codes |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+blofin.fetchDepositWithdrawFees (codes?, params?)
+```
+
+
+<a name="fetchDeposit" id="fetchdeposit"></a>
+
+### fetchDeposit{docsify-ignore}
+fetch information on a deposit
+
+**Kind**: instance method of [<code>blofin</code>](#blofin)  
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+
+**See**: https://docs.blofin.com/index.html#get-deposit-history  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| id | <code>string</code> | Yes | deposit id |
+| code | <code>string</code> | No | unified currency code |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+blofin.fetchDeposit (id, code?, params?)
+```
+
+
+<a name="fetchWithdrawal" id="fetchwithdrawal"></a>
+
+### fetchWithdrawal{docsify-ignore}
+fetch data on a currency withdrawal via the withdrawal id
+
+**Kind**: instance method of [<code>blofin</code>](#blofin)  
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+
+**See**: https://docs.blofin.com/index.html#get-withdraw-history  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| id | <code>string</code> | Yes | withdrawal id |
+| code | <code>string</code> | No | unified currency code |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.clientId | <code>string</code> | No | look up by the client-supplied id instead, with id set to undefined |
+
+
+```javascript
+blofin.fetchWithdrawal (id, code?, params?)
+```
+
+
+<a name="withdraw" id="withdraw"></a>
+
+### withdraw{docsify-ignore}
+make a withdrawal
+
+**Kind**: instance method of [<code>blofin</code>](#blofin)  
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+
+**See**: https://docs.blofin.com/index.html#withdrawal  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| code | <code>string</code> | Yes | unified currency code |
+| amount | <code>float</code> | Yes | the amount to withdraw, the withdrawal fee is not included and must be reserved on top |
+| address | <code>string</code> | Yes | the address to withdraw to, or a UID / email / phone number for an internal transfer |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.tag | <code>string</code> | No | memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies'] |
+| params.network | <code>string</code> | No | the unified network code for on-chain withdrawals, mapped to the exchange's chain name |
+| params.dest | <code>string</code> | No | 'onchain' (default) or 'internal' for an internal transfer |
+| params.addrType | <code>string</code> | No | address type, 1: wallet address, 2: UID, 3: email, 4: mobile phone |
+| params.areaCode | <code>string</code> | No | area code for the phone number, required when address is a phone number |
+| params.clientId | <code>string</code> | No | a client-supplied id of up to 32 case-sensitive alphanumerics |
+
+
+```javascript
+blofin.withdraw (code, amount, address, params?)
 ```
 
 
@@ -900,6 +1077,48 @@ blofin.watchTradesForSymbols (symbols, since?, limit?, params?)
 ```
 
 
+<a name="unWatchTrades" id="unwatchtrades"></a>
+
+### unWatchTrades{docsify-ignore}
+unWatches the list of most recent trades for a particular symbol
+
+**Kind**: instance method of [<code>blofin</code>](#blofin)  
+**Returns**: <code>any</code> - status of the unwatch request
+
+**See**: https://docs.blofin.com/index.html#ws-trades-channel  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to unwatch trades for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+blofin.unWatchTrades (symbol, params?)
+```
+
+
+<a name="unWatchTradesForSymbols" id="unwatchtradesforsymbols"></a>
+
+### unWatchTradesForSymbols{docsify-ignore}
+unWatches the list of most recent trades for a list of symbols
+
+**Kind**: instance method of [<code>blofin</code>](#blofin)  
+**Returns**: <code>any</code> - status of the unwatch request
+
+**See**: https://docs.blofin.com/index.html#ws-trades-channel  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | Yes | unified symbols of the markets to unwatch trades for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+blofin.unWatchTradesForSymbols (symbols, params?)
+```
+
+
 <a name="watchOrderBook" id="watchorderbook"></a>
 
 ### watchOrderBook{docsify-ignore}
@@ -1051,6 +1270,49 @@ watches historical candlestick data containing the open, high, low, and close pr
 
 ```javascript
 blofin.watchOHLCVForSymbols (symbolsAndTimeframes, since?, limit?, params?)
+```
+
+
+<a name="unWatchOHLCV" id="unwatchohlcv"></a>
+
+### unWatchOHLCV{docsify-ignore}
+unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+
+**Kind**: instance method of [<code>blofin</code>](#blofin)  
+**Returns**: <code>any</code> - status of the unwatch request
+
+**See**: https://docs.blofin.com/index.html#ws-candlesticks-channel  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to unwatch OHLCV data for |
+| timeframe | <code>string</code> | Yes | the length of time each candle represents |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+blofin.unWatchOHLCV (symbol, timeframe, params?)
+```
+
+
+<a name="unWatchOHLCVForSymbols" id="unwatchohlcvforsymbols"></a>
+
+### unWatchOHLCVForSymbols{docsify-ignore}
+unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+
+**Kind**: instance method of [<code>blofin</code>](#blofin)  
+**Returns**: <code>any</code> - status of the unwatch request
+
+**See**: https://docs.blofin.com/index.html#ws-candlesticks-channel  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbolsAndTimeframes | <code>Array&lt;Array&lt;string&gt;&gt;</code> | Yes | array of arrays containing unified symbols and timeframes to unwatch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']] |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+blofin.unWatchOHLCVForSymbols (symbolsAndTimeframes, params?)
 ```
 
 

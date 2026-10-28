@@ -38,7 +38,7 @@ function test_watch_order_book($exchange, $skipped_properties, $symbol) {
             // refresh the deadline on every path, otherwise a stream of temporary
             // failures would loop forever
             $now = $exchange->milliseconds();
-            if (($success === true) && ($response !== null)) {
+            if (($success) && ($response !== null)) {
                 test_order_book($exchange, $skipped_properties, $method, $response, $symbol);
                 $elapsed = $now - $start_time;
                 if ($elapsed > $max_idle_time) {

@@ -17,7 +17,6 @@ function testImplodeParams () {
     const result = exchange.implodeParams (path, params);
     assert (result === expected, 'implodeParams did not produce the expected result: ' + result + ' != ' + expected);
 
-
 }
 
 export default testImplodeParams;

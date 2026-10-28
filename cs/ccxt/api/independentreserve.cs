@@ -102,6 +102,20 @@ public partial class independentreserve : Exchange
         return await this.callAsync<Dictionary<string, object>> ("publicGetGetOrderMinimumVolumes",parameters);
     }
 
+    /// <summary>Calls the publicGetGetDepositFees endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> publicGetGetDepositFees (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("publicGetGetDepositFees",parameters);
+    }
+
+    /// <summary>Calls the publicGetGetFiatWithdrawalFees endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> publicGetGetFiatWithdrawalFees (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("publicGetGetFiatWithdrawalFees",parameters);
+    }
+
     /// <summary>Calls the publicGetGetCryptoWithdrawalFees endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> publicGetGetCryptoWithdrawalFees (object parameters = null)
@@ -214,6 +228,13 @@ public partial class independentreserve : Exchange
         return await this.callAsync<Dictionary<string, object>> ("privatePostGetTrades",parameters);
     }
 
+    /// <summary>Calls the privatePostGetTradesByOrder endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostGetTradesByOrder (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostGetTradesByOrder",parameters);
+    }
+
     /// <summary>Calls the privatePostGetBrokerageFees endpoint.</summary>
     /// <returns>a JSON array</returns>
     public async Task<List<object>> privatePostGetBrokerageFees (object parameters = null)
@@ -226,6 +247,27 @@ public partial class independentreserve : Exchange
     public async Task<Dictionary<string, object>> privatePostGetDigitalCurrencyWithdrawal (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("privatePostGetDigitalCurrencyWithdrawal",parameters);
+    }
+
+    /// <summary>Calls the privatePostGetFiatWithdrawal endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostGetFiatWithdrawal (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostGetFiatWithdrawal",parameters);
+    }
+
+    /// <summary>Calls the privatePostGetDepositLimits endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostGetDepositLimits (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostGetDepositLimits",parameters);
+    }
+
+    /// <summary>Calls the privatePostGetWithdrawalLimits endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostGetWithdrawalLimits (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostGetWithdrawalLimits",parameters);
     }
 
     /// <summary>Calls the privatePostPlaceLimitOrder endpoint.</summary>
@@ -247,6 +289,13 @@ public partial class independentreserve : Exchange
     public async Task<Dictionary<string, object>> privatePostCancelOrder (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("privatePostCancelOrder",parameters);
+    }
+
+    /// <summary>Calls the privatePostCancelOrders endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostCancelOrders (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostCancelOrders",parameters);
     }
 
     /// <summary>Calls the privatePostSynchDigitalCurrencyDepositAddressWithBlockchain endpoint.</summary>

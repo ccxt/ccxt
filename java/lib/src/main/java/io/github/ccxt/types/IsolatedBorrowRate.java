@@ -5,7 +5,7 @@ package io.github.ccxt.types;
 
 import java.util.Map;
 
-public final class IsolatedBorrowRate {
+public final class IsolatedBorrowRate extends TypedMap {
     public String symbol;
     public String base;
     public Double baseRate;
@@ -18,6 +18,7 @@ public final class IsolatedBorrowRate {
 
     @SuppressWarnings("unchecked")
     public IsolatedBorrowRate(Object raw) {
+        super(raw);
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.symbol = TypeHelper.safeString(data, "symbol");
         this.base = TypeHelper.safeString(data, "base");

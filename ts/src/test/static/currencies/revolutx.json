@@ -1,0 +1,142 @@
+{
+    "BTC": {
+        "info": {
+            "name": "Bitcoin",
+            "symbol": "BTC",
+            "scale": 8,
+            "asset_type": "crypto",
+            "status": "active",
+            "id": "BTC"
+        },
+        "id": "BTC",
+        "code": "BTC",
+        "name": "Bitcoin",
+        "active": true,
+        "type": "crypto",
+        "deposit": null,
+        "withdraw": null,
+        "precision": 1e-8,
+        "fee": null,
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            },
+            "deposit": {
+                "min": null,
+                "max": null
+            }
+        },
+        "networks": {}
+    },
+    "USD": {
+        "info": {
+            "symbol": "$",
+            "name": "US Dollar",
+            "scale": 2,
+            "asset_type": "fiat",
+            "status": "active",
+            "id": "USD"
+        },
+        "id": "USD",
+        "numericId": null,
+        "code": "USD",
+        "precision": 0.01,
+        "type": "fiat",
+        "name": "US Dollar",
+        "active": true,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            },
+            "deposit": {
+                "min": null,
+                "max": null
+            }
+        }
+    },
+    "ETH": {
+        "info": {
+            "symbol": "ETH",
+            "name": "Ethereum",
+            "scale": 8,
+            "asset_type": "crypto",
+            "status": "active",
+            "id": "ETH"
+        },
+        "id": "ETH",
+        "numericId": null,
+        "code": "ETH",
+        "precision": 1e-8,
+        "type": "crypto",
+        "name": "Ethereum",
+        "active": true,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            },
+            "deposit": {
+                "min": null,
+                "max": null
+            }
+        }
+    },
+    "USDC": {
+        "info": {
+            "name": "US Dollar Coin",
+            "symbol": "USDC",
+            "scale": 6,
+            "asset_type": "crypto",
+            "status": "active",
+            "id": "USDC"
+        },
+        "id": "USDC",
+        "code": "USDC",
+        "name": "US Dollar Coin",
+        "active": true,
+        "type": "crypto",
+        "deposit": null,
+        "withdraw": null,
+        "precision": 0.000001,
+        "fee": null,
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            },
+            "deposit": {
+                "min": null,
+                "max": null
+            }
+        },
+        "networks": {}
+    }
+}

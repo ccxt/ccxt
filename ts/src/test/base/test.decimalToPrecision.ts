@@ -1,10 +1,8 @@
 
 
-
 import assert from 'assert';
 import ccxt from '../../../ccxt.js';
 import { ROUND, TRUNCATE, DECIMAL_PLACES, TICK_SIZE, PAD_WITH_ZERO, SIGNIFICANT_DIGITS } from '../../base/functions/number.js';
-
 
 function testDecimalToPrecision () {
     const exchange = new ccxt.Exchange ({
@@ -143,7 +141,6 @@ function testDecimalToPrecision () {
 
     assert (exchange.decimalToPrecision ('0.00000044', ROUND, 5, SIGNIFICANT_DIGITS) === '0.00000044');
 
-
     assert (exchange.decimalToPrecision ('0.123456', ROUND, 5, SIGNIFICANT_DIGITS) === '0.12346');
     assert (exchange.decimalToPrecision ('0.123456', ROUND, 6, SIGNIFICANT_DIGITS) === '0.123456');
     assert (exchange.decimalToPrecision ('0.123456', ROUND, 7, SIGNIFICANT_DIGITS) === '0.123456');
@@ -160,8 +157,6 @@ function testDecimalToPrecision () {
     assert (exchange.decimalToPrecision ('1114.5', ROUND, 4, SIGNIFICANT_DIGITS) === '1115');
     assert (exchange.decimalToPrecision ('1114.5', ROUND, 5, SIGNIFICANT_DIGITS) === '1114.5');
     assert (exchange.decimalToPrecision ('1115.5', ROUND, 5, SIGNIFICANT_DIGITS) === '1115.5');
-
-
 
     // ----------------------------------------------------------------------------
 
@@ -180,8 +175,15 @@ function testDecimalToPrecision () {
     assert (exchange.decimalToPrecision ('0.000273398', ROUND, 1e-7, TICK_SIZE) === '0.0002734');
 
     assert (exchange.decimalToPrecision ('0.00005714', TRUNCATE, 0.00000001, TICK_SIZE) === '0.00005714');
-    // this line causes problems in JS, fix with Precise
-    // assert (exchange.decimalToPrecision ('0.0000571495257361', TRUNCATE, 0.00000001, TICK_SIZE) === '0.00005714');
+    assert (exchange.decimalToPrecision ('0.0000571495257361', TRUNCATE, 0.00000001, TICK_SIZE) === '0.00005714');
+
+    // A result under 1e-6 is a decimal, not an exponent: '1e-8' is not a number
+    // decimalToPrecision accepts back, and it is what reaches an order body.
+    assert (exchange.decimalToPrecision ('0.00000001', TRUNCATE, 0.00000001, TICK_SIZE) === '0.00000001');
+    assert (exchange.decimalToPrecision ('0.000000123', TRUNCATE, 0.00000001, TICK_SIZE) === '0.00000012');
+    assert (exchange.decimalToPrecision ('0.0000009', TRUNCATE, 0.0000001, TICK_SIZE) === '0.0000009');
+    assert (exchange.decimalToPrecision ('0.0000005', TRUNCATE, 0.0000001, TICK_SIZE) === '0.0000005');
+    assert (exchange.decimalToPrecision ('0.00000001', TRUNCATE, 0.00000001, TICK_SIZE, PAD_WITH_ZERO) === '0.00000001');
 
     assert (exchange.decimalToPrecision ('0.01', ROUND, 0.0001, TICK_SIZE, PAD_WITH_ZERO) === '0.0100');
     assert (exchange.decimalToPrecision ('0.01', TRUNCATE, 0.0001, TICK_SIZE, PAD_WITH_ZERO) === '0.0100');
@@ -270,19 +272,8 @@ function testDecimalToPrecision () {
     assert (exchange.decimalToPrecision ('-165', ROUND, '110', TICK_SIZE) === '-220');
 
     // ----------------------------------------------------------------------------
-    // testDecimalToPrecisionErrorHandling (todo)
-    //
-    // throws (() =>
-    //     decimalToPrecision ('123456.789', TRUNCATE, -2, DECIMAL_PLACES),
-    //         'negative precision is not yet supported')
-    //
-    // throws (() =>
-    //     decimalToPrecision ('foo'),
-    //         "invalid number (contains an illegal character 'f')")
-    //
-    // throws (() =>
-    //     decimalToPrecision ('0.01', TRUNCATE, -1, TICK_SIZE),
-    //         "TICK_SIZE cant be used with negative numPrecisionDigits")
+    // testDecimalToPrecisionErrorHandling (todo): negative precision (TRUNCATE, -2, DECIMAL_PLACES),
+    // illegal characters ('foo') and TICK_SIZE with negative numPrecisionDigits must all throw
 
     // ----------------------------------------------------------------------------
 

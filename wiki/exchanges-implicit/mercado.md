@@ -1,6 +1,6 @@
 Every endpoint in `mercado`'s `api` definition is exposed as an **implicit method** — a thin, generated wrapper around the raw exchange endpoint. Use these for exchange-specific functionality the [CCXT API](/docs/exchanges/mercado) does not cover.
 
-These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C#, Go and Java. Call them by the camelCase name shown in the tables below (e.g. `publicGetCoins`); the snake_case alias (`public_get_coins`) also works in JavaScript, Python and PHP, and Go uses the PascalCase form (`PublicGetCoins`). Switch tabs for the call in each language:
+These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C#, Go and Java. Call them by the camelCase name shown in the tables below (e.g. `publicGetCoins`); Python and PHP use the snake_case form (`public_get_coins`), and Go uses the PascalCase form (`PublicGetCoins`). Switch tabs for the call in each language:
 
 <!-- tabs:start -->
 
@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official mercado API documentation:** [mercadobitcoin.com.br](https://www.mercadobitcoin.com.br/api-doc) · [mercadobitcoin.com.br](https://www.mercadobitcoin.com.br/trade-api)
 
-> 21 implicit endpoints across 4 access groups.
+> 25 implicit endpoints across 5 access groups.
 
 ## public
 
@@ -105,4 +105,15 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | Method | HTTP | Endpoint | Cost |
 | --- | --- | --- | --- |
 | `v4PublicNetGetCandles` | GET | `candles` | 1 |
+
+## v4Private
+
+**Base URL**: `https://api.mercadobitcoin.net/api/v4`
+
+| Method | HTTP | Endpoint | Cost |
+| --- | --- | --- | --- |
+| `v4PrivatePostAccounts` | POST | `accounts` | 1 |
+| `v4PrivatePostAccountsAccountIdSymbolTransfersInternal` | POST | `accounts/{accountId}/{symbol}/transfers/internal` | 1 |
+| `v4PrivatePostOauth2Token` | POST | `oauth2/token` | 1 |
+| `v4PrivatePatchAccountsAccountIdWalletSymbolDepositsDepositId` | PATCH | `accounts/{accountId}/wallet/{symbol}/deposits/{depositId}` | 1 |
 

@@ -1,6 +1,6 @@
 Every endpoint in `onetrading`'s `api` definition is exposed as an **implicit method** — a thin, generated wrapper around the raw exchange endpoint. Use these for exchange-specific functionality the [CCXT API](/docs/exchanges/onetrading) does not cover.
 
-These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C#, Go and Java. Call them by the camelCase name shown in the tables below (e.g. `publicGetCurrencies`); the snake_case alias (`public_get_currencies`) also works in JavaScript, Python and PHP, and Go uses the PascalCase form (`PublicGetCurrencies`). Switch tabs for the call in each language:
+These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C#, Go and Java. Call them by the camelCase name shown in the tables below (e.g. `publicGetCurrencies`); Python and PHP use the snake_case form (`public_get_currencies`), and Go uses the PascalCase form (`PublicGetCurrencies`). Switch tabs for the call in each language:
 
 <!-- tabs:start -->
 
@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official onetrading API documentation:** [docs.onetrading.com](https://docs.onetrading.com)
 
-> 20 implicit endpoints across 2 access groups.
+> 30 implicit endpoints across 2 access groups.
 
 ## public
 
@@ -71,6 +71,9 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `publicGetMarketTicker` | GET | `market-ticker` | 1 |
 | `publicGetMarketTickerInstrumentCode` | GET | `market-ticker/{instrument_code}` | 1 |
 | `publicGetTime` | GET | `time` | 1 |
+| `publicGetFundingRate` | GET | `funding-rate` | 1 |
+| `publicGetFundingRateHistory` | GET | `funding-rate/history` | 1 |
+| `publicGetFundingRateSettings` | GET | `funding-rate/settings` | 1 |
 
 ## private
 
@@ -86,7 +89,14 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateGetAccountOrdersOrderIdTrades` | GET | `account/orders/{order_id}/trades` | 1 |
 | `privateGetAccountTrades` | GET | `account/trades` | 1 |
 | `privateGetAccountTradeTradeId` | GET | `account/trade/{trade_id}` | 1 |
+| `privateGetAccountFuturesSummary` | GET | `account/futures/summary` | 1 |
+| `privateGetAccountFuturesPositions` | GET | `account/futures/positions` | 1 |
+| `privateGetAccountFuturesPositionsHistory` | GET | `account/futures/positions-history` | 1 |
+| `privateGetAccountFuturesPositionsPositionIdTrades` | GET | `account/futures/positions/{position_id}/trades` | 1 |
+| `privateGetAccountFuturesPositionsPositionIdFundingPayments` | GET | `account/futures/positions/{position_id}/funding-payments` | 1 |
+| `privateGetAccountFuturesFundingPayments` | GET | `account/futures/funding-payments` | 1 |
 | `privatePostAccountOrders` | POST | `account/orders` | 1 |
+| `privatePostSubaccountsTransfers` | POST | `subaccounts/transfers` | 1 |
 | `privateDeleteAccountOrders` | DELETE | `account/orders` | 1 |
 | `privateDeleteAccountOrdersOrderId` | DELETE | `account/orders/{order_id}` | 1 |
 | `privateDeleteAccountOrdersClientClientId` | DELETE | `account/orders/client/{client_id}` | 1 |

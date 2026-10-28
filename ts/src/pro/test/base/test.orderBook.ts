@@ -309,6 +309,25 @@ function testWsOrderBook () {
 
     // --------------------------------------------------------------------------------------------------------------------
 
+    // a zero size delta for an id that is not in the book stores nothing, so the
+    // constructor must not advance the length on its account. it used to, which
+    // left the side with trailing holes and a length that overcounted the rows,
+    // and limit() then dereferenced one of those holes
+    const noopDeltas = new IndexedOrderBook ({
+        'bids': [ [ 100.0, 1, 'a' ], [ 101.0, 0, 'ghost' ], [ 102.0, 1, 'c' ] ],
+        'asks': [ [ 200.0, 0, 'ghost' ], [ 201.0, 1, 'd' ] ],
+    }, 2);
+    assert (noopDeltas['bids'].length === 2);
+    assert (noopDeltas['asks'].length === 1);
+    assert (noopDeltas['bids'][0] !== undefined);
+    assert (noopDeltas['bids'][1] !== undefined);
+    assert (noopDeltas['asks'][0] !== undefined);
+    noopDeltas.limit ();
+    assert (noopDeltas['bids'].length === 2);
+    assert (noopDeltas['asks'].length === 1);
+
+    // --------------------------------------------------------------------------------------------------------------------
+
     const countedOrderBook = new CountedOrderBook (countedOrderBookInput);
     const limitedCountedOrderBook = new CountedOrderBook (countedOrderBookInput, 5);
     countedOrderBook.limit ();

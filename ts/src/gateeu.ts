@@ -1,7 +1,7 @@
 
 //  ---------------------------------------------------------------------------
 
-import gate from './gate.js';
+import gate from './abstract/gateeu.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -50,6 +50,9 @@ export default class gateeu extends gate {
             'options': {
                 'fetchMarkets': {
                     'types': [ 'spot' ],
+                },
+                'fetchOrderBook': {
+                    'maxSpotLimit': 100, // this venue returns an empty book above 100
                 },
                 'mica': true,
             },

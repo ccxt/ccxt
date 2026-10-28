@@ -158,15 +158,22 @@ export default class bullish extends Exchange {
                         'v1/time': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/assets': { 'cost': 1 } as Endpoint<List>,
                         'v1/assets/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/vol-grids': { 'cost': 1 } as Endpoint<List>,
+                        'v1/assets/{symbol}/vol-grid': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/markets': { 'cost': 1 } as Endpoint<List>,
                         'v1/markets/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/history/markets': { 'cost': 1 } as Endpoint<List>,
                         'v1/history/markets/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/markets/{symbol}/orderbook/hybrid': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/markets/{symbol}/trades': { 'cost': 1 } as Endpoint<List>,
                         'v1/markets/{symbol}/tick': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/markets/{symbol}/candle': { 'cost': 1 } as Endpoint<List>,
+                        'v1/markets/{symbol}/auctions': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/markets/{symbol}/auctions/noii': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/history/markets/{symbol}/trades': { 'cost': 1 } as Endpoint<List>,
                         'v1/history/markets/{symbol}/funding-rate': { 'cost': 1 } as Endpoint<List>,
+                        'v1/history/markets/{symbol}/auctions': { 'cost': 1 } as Endpoint<List>,
+                        'v1/history/option-trades': { 'cost': 1 } as Endpoint<List>,
                         'v1/index-prices': { 'cost': 1 } as Endpoint<List>,
                         'v1/index-prices/{assetSymbol}': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/expiry-prices/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
@@ -179,6 +186,7 @@ export default class bullish extends Exchange {
                         'v2/orders': { 'cost': 1 } as Endpoint<List>,
                         'v2/history/orders': { 'cost': 1 } as Endpoint<List>,
                         'v2/orders/{orderId}': { 'cost': 1 } as Endpoint<Dict>,
+                        'v2/orders/client-order-id/{clientOrderId}': { 'cost': 1 } as Endpoint<Dict>,
                         'v2/amm-instructions': { 'cost': 1 } as Endpoint<List>,
                         'v2/amm-instructions/{instructionId}': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/wallets/transactions': { 'cost': 1 } as Endpoint<Dict>,
@@ -206,6 +214,9 @@ export default class bullish extends Exchange {
                         'v2/otc-trades': { 'cost': 1 } as Endpoint<List>,
                         'v2/otc-trades/{otcTradeId}': { 'cost': 1 } as Endpoint<Dict>,
                         'v2/otc-trades/unconfirmed-trade': { 'cost': 1 } as Endpoint<Dict>,
+                        'v2/otc-trades/delegated-accounts': { 'cost': 1 } as Endpoint<List>,
+                        'v2/idb/delegated-accounts': { 'cost': 1 } as Endpoint<List>,
+                        'v2/idb/otc-trades': { 'cost': 1 } as Endpoint<List>,
                     },
                     'post': {
                         'v2/orders': { 'cost': 5 } as Endpoint<Dict>,
@@ -214,10 +225,13 @@ export default class bullish extends Exchange {
                         'v1/wallets/withdrawal': { 'cost': 1 } as Endpoint<Dict>,
                         'v2/users/login': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/simulate-portfolio-margin': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/bulk-simulate-portfolio-margin': { 'cost': 1 } as Endpoint<List>,
                         'v1/wallets/self-hosted/initiate': { 'cost': 1 } as Endpoint<Dict>,
                         'v2/mmp-configuration': { 'cost': 1 } as Endpoint<Dict>,
                         'v2/otc-trades': { 'cost': 1 } as Endpoint<Dict>,
                         'v2/otc-command': { 'cost': 1 } as Endpoint<Dict>,
+                        'v2/idb/otc-trades': { 'cost': 1 } as Endpoint<Dict>,
+                        'v2/idb/otc-command': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
             },
@@ -449,7 +463,7 @@ export default class bullish extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    override async fetchTime (params = {}): Promise<Int> {
+    override async fetchTime (params: Dict = {}): Promise<Int> {
         const response = await this.publicGetV1Time (params);
         //
         //     {
@@ -468,7 +482,7 @@ export default class bullish extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    override async fetchCurrencies (params = {}): Promise<Currencies> {
+    override async fetchCurrencies (params: Dict = {}): Promise<Currencies> {
         const response = await this.publicGetV1Assets (params);
         //
         //     [
@@ -549,8 +563,8 @@ export default class bullish extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    override async fetchMarkets (params = {}): Promise<Market[]> {
-        if (this.options['adjustForTimeDifference']) {
+    override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
+        if (this.safeBool (this.options, 'adjustForTimeDifference', false)) {
             await this.loadTimeDifference ();
         }
         const response = await this.publicGetV1Markets (params);
@@ -778,6 +792,9 @@ export default class bullish extends Exchange {
         const quoteId = this.safeString (market, 'quoteSymbol');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         let symbol = base + '/' + quote;
         const basePrecision = this.safeString (market, 'basePrecision');
         const quotePrecision = this.safeString (market, 'quotePrecision');
@@ -889,7 +906,7 @@ export default class bullish extends Exchange {
     }
 
     parseMarketType (type: Str = undefined, defaultType: Str = undefined): Str {
-        const types = {
+        const types: Dict = {
             'SPOT': 'spot',
             'PERPETUAL': 'swap',
             'DATED_FUTURE': 'future',
@@ -908,7 +925,7 @@ export default class bullish extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async fetchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -954,26 +971,25 @@ export default class bullish extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const maxLimit = 100;
-        let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchTrades', 'paginate');
+        const [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchTrades', 'paginate', false);
         if (paginate) {
-            params = this.handlePaginationParams ('fetchTrades', since, params);
-            return await this.fetchPaginatedCallDynamic ('fetchTrades', symbol, since, limit, params, maxLimit) as Trade[];
+            const paramsPagination: Dict = this.handlePaginationParams ('fetchTrades', since, paramsPaginate);
+            return await this.fetchPaginatedCallDynamic ('fetchTrades', symbol, since, limit, paramsPagination, maxLimit) as Trade[];
         }
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
         };
-        params = this.handleSinceAndUntil (since, params);
+        const paramsSinceAndUntil: Dict = this.handleSinceAndUntil (since, paramsPaginate);
         if (limit !== undefined) {
             request['_pageSize'] = this.getClosestLimit (limit);
         }
-        const response = await this.publicGetV1HistoryMarketsSymbolTrades (this.extend (request, params));
+        const response = await this.publicGetV1HistoryMarketsSymbolTrades (this.extend (request, paramsSinceAndUntil));
         //
         //     [
         //         {
@@ -1007,7 +1023,7 @@ export default class bullish extends Exchange {
      * @param {string} [params.tradingAccountId] the trading account id to fetch trades for
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
         const tradingAccountId = await this.loadAccount (params);
         const request: Dict = {
@@ -1023,13 +1039,12 @@ export default class bullish extends Exchange {
         if (clientOrderId !== undefined) {
             response = await this.privateGetV1TradesClientOrderIdClientOrderId (this.extend (request, params));
         } else {
-            let paginate = false;
-            [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
+            const [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchMyTrades', 'paginate', false);
             if (paginate) {
-                params = this.handlePaginationParams ('fetchMyTrades', since, params);
-                return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, params, 100) as Trade[];
+                const paramsPagination: Dict = this.handlePaginationParams ('fetchMyTrades', since, paramsPaginate);
+                return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, paramsPagination, 100) as Trade[];
             }
-            params = this.handleSinceAndUntil (since, params);
+            const paramsSinceAndUntil: Dict = this.handleSinceAndUntil (since, paramsPaginate);
             if (limit !== undefined) {
                 request['_pageSize'] = this.getClosestLimit (limit);
             }
@@ -1053,7 +1068,7 @@ export default class bullish extends Exchange {
             //         }, ...
             //     ]
             //
-            response = await this.privateGetV1HistoryTrades (this.extend (request, params));
+            response = await this.privateGetV1HistoryTrades (this.extend (request, paramsSinceAndUntil));
         }
         return this.parseTrades (response, market, since, limit);
     }
@@ -1071,15 +1086,16 @@ export default class bullish extends Exchange {
      * @param {string} [params.clientOrderId] the client order id to fetch trades for
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    override async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const clientOrderId = this.safeString (params, 'clientOrderId');
+        let paramsExtended: Dict = params;
         if (clientOrderId === undefined) {
-            params = this.extend ({ 'orderId': id }, params);
+            paramsExtended = this.extend ({ 'orderId': id }, params);
         }
-        return await this.fetchMyTrades (symbol, since, limit, params);
+        return await this.fetchMyTrades (symbol, since, limit, paramsExtended);
     }
 
     override parseTrade (trade: Dict, market: Market = undefined): Trade {
@@ -1133,14 +1149,14 @@ export default class bullish extends Exchange {
         //     ]
         //
         const marketId = this.safeString (trade, 'symbol');
-        market = this.safeMarket (marketId, market);
-        const symbol = market['symbol'];
+        const marketResolved: Market = this.safeMarket (marketId, market);
+        const symbol = marketResolved['symbol'];
         const timestamp = this.safeInteger (trade, 'createdAtTimestamp');
         const price = this.safeString (trade, 'price');
         const amount = this.safeString (trade, 'quantity');
         const side = this.safeStringLower (trade, 'side');
         const isTaker = this.safeBool (trade, 'isTaker');
-        const currency = market['quote'];
+        const currency = marketResolved['quote'];
         const code = this.safeCurrencyCode (currency);
         const feeCost = this.safeNumber (trade, 'quoteFee');
         let fee: Fee = undefined;
@@ -1148,7 +1164,7 @@ export default class bullish extends Exchange {
             fee = { 'currency': code, 'cost': feeCost };
         }
         let takerOrMaker: Str = undefined;
-        if (isTaker) {
+        if (isTaker === true) {
             takerOrMaker = 'taker';
         } else {
             takerOrMaker = 'maker';
@@ -1168,7 +1184,7 @@ export default class bullish extends Exchange {
             'amount': amount,
             'cost': undefined,
             'fee': fee,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -1180,7 +1196,7 @@ export default class bullish extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async fetchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1270,10 +1286,10 @@ export default class bullish extends Exchange {
         //     }
         //
         const marketId = this.safeString (ticker, 'symbol');
-        market = this.safeMarket (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger (ticker, 'createdAtTimestamp');
         return this.safeTicker ({
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': this.safeString (ticker, 'high'),
@@ -1294,27 +1310,26 @@ export default class bullish extends Exchange {
             'quoteVolume': this.safeString (ticker, 'quoteVolume'),
             'markPrice': this.safeString (ticker, 'markPrice'),
             'info': ticker,
-        }, market);
+        }, marketResolved);
     }
 
-    override async safeDeterministicCall (method: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, timeframe: Str = undefined, params = {}) {
-        let maxRetries: Int = undefined;
-        [ maxRetries, params ] = this.handleOptionAndParams (params, method, 'maxRetries', 3);
+    override async safeDeterministicCall (method: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, timeframe: Str = undefined, params: Dict = {}) {
+        const [ maxRetries, paramsMaxRetries ] = this.handleOptionIntegerAndParams (params, method, 'maxRetries', 3);
         if ((method !== 'fetchOHLCV') && (method !== 'fetchFundingRateHistory') && (method !== 'fetchTrades')) {
             throw new NotSupported (this.id + ' safeDeterministicCall() does not support the ' + method + ' method');
         }
-        let errors = 0;
-        params = this.omit (params, 'until');
+        let errors: int = 0;
+        const paramsOmitted: Dict = this.omit (paramsMaxRetries, 'until');
         // the exchange returns the most recent data, so we do not need to pass until into paginated calls
         // the correct util value will be calculated inside of the method
         while (errors <= maxRetries) {
             try {
                 if (method === 'fetchOHLCV') {
-                    return await this.fetchOHLCV (symbol as string, timeframe, since, limit, params);
+                    return await this.fetchOHLCV (symbol as string, timeframe, since, limit, paramsOmitted);
                 } else if (method === 'fetchFundingRateHistory') {
-                    return await this.fetchFundingRateHistory (symbol, since, limit, params);
+                    return await this.fetchFundingRateHistory (symbol, since, limit, paramsOmitted);
                 } else {
-                    return await this.fetchTrades (symbol as string, since, limit, params);
+                    return await this.fetchTrades (symbol as string, since, limit, paramsOmitted);
                 }
             } catch (e) {
                 if (e instanceof RateLimitExceeded) {
@@ -1343,39 +1358,43 @@ export default class bullish extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
         const maxLimit = 100;
-        let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
+        const [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, maxLimit) as OHLCV[];
+            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, maxLimit) as OHLCV[];
         }
-        let request: Dict = {
+        const request: Dict = {
             'symbol': market['id'],
             'timeBucket': this.safeString (this.timeframes, timeframe, timeframe),
             '_pageSize': maxLimit,
         };
-        [ request, params ] = this.handleUntilOption ('createdAtDatetime[lte]', request, params);
-        let until = this.safeInteger (request, 'createdAtDatetime[lte]');
+        const [ requestUntil, paramsUntil ] = this.handleUntilOption ('createdAtDatetime[lte]', request, paramsPaginate);
+        const untilParam = this.safeInteger (requestUntil, 'createdAtDatetime[lte]');
+        let until: Int = undefined;
+        if (untilParam !== undefined) {
+            until = untilParam;
+        }
         const duration = this.parseTimeframe (timeframe);
-        const maxDelta = 1000 * duration * maxLimit;
-        let startTime = since;
+        const maxDelta = duration * maxLimit * 1000;
+        let startTime: Int = since;
         // both of since and until are required
-        if (startTime === undefined && until === undefined) {
-            until = this.milliseconds ();
-            startTime = until - maxDelta;
-        } else if (startTime === undefined) {
-            startTime = (until as number) - maxDelta;
-        } else if (until === undefined) {
+        if (since === undefined && untilParam === undefined) {
+            const now = this.milliseconds ();
+            until = now;
+            startTime = now - maxDelta;
+        } else if ((since === undefined) && (untilParam !== undefined)) {
+            startTime = untilParam - maxDelta;
+        } else if (untilParam === undefined) {
             until = this.sum (startTime, maxDelta);
         }
-        request['createdAtDatetime[gte]'] = this.iso8601 (startTime);
-        request['createdAtDatetime[lte]'] = this.iso8601 (until);
-        const response = await this.publicGetV1MarketsSymbolCandle (this.extend (request, params));
+        requestUntil['createdAtDatetime[gte]'] = this.iso8601 (startTime);
+        requestUntil['createdAtDatetime[lte]'] = this.iso8601 (until);
+        const response = await this.publicGetV1MarketsSymbolCandle (this.extend (requestUntil, paramsUntil));
         //
         //     [
         //         {
@@ -1416,7 +1435,7 @@ export default class bullish extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
-    override async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<FundingRateHistory[]> {
+    override async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<FundingRateHistory[]> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
@@ -1424,14 +1443,13 @@ export default class bullish extends Exchange {
             await this.loadMarkets ();
         }
         const maxLimit = 100;
-        let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
+        const [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchFundingRateHistory', 'paginate', false);
         if (paginate) {
-            params = this.handlePaginationParams ('fetchFundingRateHistory', since, params);
-            return await this.fetchPaginatedCallDynamic ('fetchFundingRateHistory', symbol, since, limit, params, maxLimit) as FundingRateHistory[];
+            const paramsPagination: Dict = this.handlePaginationParams ('fetchFundingRateHistory', since, paramsPaginate);
+            return await this.fetchPaginatedCallDynamic ('fetchFundingRateHistory', symbol, since, limit, paramsPagination, maxLimit) as FundingRateHistory[];
         }
         const market = this.market (symbol);
-        if (!market['swap']) {
+        if (market['swap'] !== true) {
             throw new BadRequest (this.id + ' fetchFundingRateHistory() supports swap markets only');
         }
         const request: Dict = {
@@ -1440,8 +1458,8 @@ export default class bullish extends Exchange {
         if (limit !== undefined) {
             request['_pageSize'] = this.getClosestLimit (limit);
         }
-        params = this.handleSinceAndUntil (since, params, 'updatedAtDatetime[gte]', 'updatedAtDatetime[lte]');
-        const response = await this.publicGetV1HistoryMarketsSymbolFundingRate (this.extend (request, params));
+        const paramsSinceAndUntil: Dict = this.handleSinceAndUntil (since, paramsPaginate, 'updatedAtDatetime[gte]', 'updatedAtDatetime[lte]');
+        const response = await this.publicGetV1HistoryMarketsSymbolFundingRate (this.extend (request, paramsSinceAndUntil));
         //
         //     [
         //         {
@@ -1468,7 +1486,7 @@ export default class bullish extends Exchange {
             });
         }
         const sorted = this.sortBy (rates, 'timestamp');
-        return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit) as FundingRateHistory[];
+        return this.filterBySymbolSinceLimit (sorted, this.safeString (market, 'symbol'), since, limit) as FundingRateHistory[];
     }
 
     /**
@@ -1489,13 +1507,13 @@ export default class bullish extends Exchange {
      * @param {bool} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
         const tradingAccountId = await this.loadAccount (params);
         const paginate = this.safeBool (params, 'paginate', false);
         if (paginate) {
-            params = this.handlePaginationParams ('fetchOrders', since, params);
-            return await this.fetchPaginatedCallDynamic ('fetchOrders', symbol, since, limit, params, 100) as Order[];
+            const paramsPagination: Dict = this.handlePaginationParams ('fetchOrders', since, params);
+            return await this.fetchPaginatedCallDynamic ('fetchOrders', symbol, since, limit, paramsPagination, 100) as Order[];
         }
         let market: Market = undefined;
         const request: Dict = {
@@ -1505,12 +1523,13 @@ export default class bullish extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        params = this.handleSinceAndUntil (since, params);
+        const paramsSinceAndUntil: Dict = this.handleSinceAndUntil (since, params);
         if (limit !== undefined) {
             request['_pageSize'] = this.getClosestLimit (limit);
         }
         let method = 'privateGetV2HistoryOrders';
-        [ method, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'method', method);
+        let paramsMethod = undefined;
+        [ method, paramsMethod ] = this.handleOptionStringAndParams (paramsSinceAndUntil, 'fetchOrders', 'method', method);
         let response: Dict | List = [];
         if (method === 'privateGetV2Orders') {
             //
@@ -1542,9 +1561,9 @@ export default class bullish extends Exchange {
             //         }
             //     ]
             //
-            response = await this.privateGetV2Orders (this.extend (request, params));
+            response = await this.privateGetV2Orders (this.extend (request, paramsMethod));
         } else if (method === 'privateGetV2HistoryOrders') {
-            response = await this.privateGetV2HistoryOrders (this.extend (request, params));
+            response = await this.privateGetV2HistoryOrders (this.extend (request, paramsMethod));
         } else {
             throw new BadRequest (this.id + ' fetchOrders() method parameter must be either "privateGetV2Orders" or "privateGetV2HistoryOrders"');
         }
@@ -1558,44 +1577,59 @@ export default class bullish extends Exchange {
         if ((since !== undefined) && (since < allowedSince)) {
             throw new BadRequest (this.id + ' ' + method + '() only allows fetching entries up to 90 days in the past');
         }
-        params = this.omit (params, 'paginate');
-        params = this.extend (params, { 'paginationDirection': 'backward' });
-        const until = this.safeInteger (params, 'until');
+        const paramsOmitted: Dict = this.omit (params, 'paginate');
+        const paramsExtended: Dict = this.extend (paramsOmitted, { 'paginationDirection': 'backward' });
+        const until = this.safeInteger (paramsExtended, 'until');
         if (until === undefined) {
-            params = this.extend (params, { 'until': now });
+            return this.extend (paramsExtended, { 'until': now });
         }
-        return params;
+        return paramsExtended;
     }
 
     handleSinceAndUntil (since: Int = undefined, params: Dict = {}, sinceKey: Str = 'createdAtDatetime[gte]', untilKey: Str = 'createdAtDatetime[lte]'): Dict {
-        let until = this.safeInteger (params, 'until');
-        if ((since !== undefined) || (until !== undefined)) {
+        const untilParam = this.safeInteger (params, 'until');
+        let until: Int = undefined;
+        if (untilParam !== undefined) {
+            until = untilParam;
+        }
+        const sinceFromUntil = (since === undefined) && (untilParam !== undefined);
+        let paramsResult: Dict = params;
+        if (sinceFromUntil) {
+            paramsResult = this.omit (params, 'until');
+        }
+        if ((since !== undefined) || (untilParam !== undefined)) {
             const timeDelta = 7 * 24 * 60 * 60 * 1000; // 7 days
-            if (since === undefined) {
-                since = (until as number) - timeDelta;
-                params = this.omit (params, 'until');
-            } else if (until === undefined) {
-                until = this.sum (since, timeDelta);
+            let sinceResolved: Int = since;
+            if ((since === undefined) && (untilParam !== undefined)) {
+                sinceResolved = untilParam - timeDelta;
+            }
+            if ((since !== undefined) && (untilParam === undefined)) {
                 const now = this.milliseconds ();
-                if ((until as number) > now) {
+                const latestSince = now - timeDelta;
+                if (since > latestSince) {
                     until = now;
+                } else {
+                    until = this.sum (since, timeDelta);
                 }
             }
-            const sinceDate = this.iso8601 (since);
+            const sinceDate = this.iso8601 (sinceResolved);
             const untilDate = this.iso8601 (until);
-            params[sinceKey] = sinceDate;
-            params[untilKey] = untilDate;
+            paramsResult[sinceKey] = sinceDate;
+            paramsResult[untilKey] = untilDate;
         }
-        return params;
+        return paramsResult;
     }
 
     getClosestLimit (limit: Int): Int {
         let pageSize = 5;
-        if (((limit as number) > 5) && ((limit as number) < 26)) {
+        if (limit === undefined) {
+            return pageSize;
+        }
+        if ((limit > 5) && (limit < 26)) {
             pageSize = 25;
-        } else if (((limit as number) > 25) && ((limit as number) < 51)) {
+        } else if ((limit > 25) && (limit < 51)) {
             pageSize = 50;
-        } else if ((limit as number) > 50) {
+        } else if (limit > 50) {
             pageSize = 100;
         }
         return pageSize;
@@ -1613,7 +1647,7 @@ export default class bullish extends Exchange {
      * @param {string} params.tradingAccountId the trading account id (mandatory parameter)
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         const request: Dict = {
             'status': 'OPEN',
         };
@@ -1632,7 +1666,7 @@ export default class bullish extends Exchange {
      * @param {string} [params.tradingAccountId] the trading account id (mandatory parameter)
      * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchCanceledOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchCanceledOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         const request: Dict = {
             'status': 'CANCELLED',
             'method': 'privateGetV2Orders', // current endpoint distinguishes between CLOSED and CANCELLED orders
@@ -1652,7 +1686,7 @@ export default class bullish extends Exchange {
      * @param {string} params.tradingAccountId the trading account id (mandatory parameter)
      * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         const request: Dict = {
             'status': 'CLOSED',
             'method': 'privateGetV2Orders', // current endpoint distinguishes between CLOSED and CANCELLED orders
@@ -1672,7 +1706,7 @@ export default class bullish extends Exchange {
      * @param {string} [params.tradingAccountId] the trading account id (mandatory parameter)
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchCanceledAndClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchCanceledAndClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         const request: Dict = {
             'status': 'CLOSED',
             'method': 'privateGetV2HistoryOrders', // current endpoint returns both CLOSED and CANCELLED orders
@@ -1691,7 +1725,7 @@ export default class bullish extends Exchange {
      * @param {string} [params.traidingAccountId] the trading account id (mandatory parameter)
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
+    override async fetchOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
         const tradingAccountId = await this.loadAccount (params);
         let market: Market = undefined;
@@ -1764,28 +1798,27 @@ export default class bullish extends Exchange {
             'tradingAccountId': tradingAccountId,
         };
         const isMarketOrder = ((type === 'market') || type === 'MARKET');
-        let postOnly = false;
-        [ postOnly, params ] = this.handlePostOnly (isMarketOrder, type === 'POST_ONLY', params);
+        const [ postOnly, paramsPostOnly ] = this.handlePostOnly (isMarketOrder, type === 'POST_ONLY', params);
+        let orderType: string = type;
         if (postOnly) {
-            type = 'POST_ONLY';
+            orderType = 'POST_ONLY';
         }
-        let timeInForce = 'GTC'; // is mandatory
-        [ timeInForce, params ] = this.handleOptionAndParams (params, 'createOrder', 'timeInForce', timeInForce);
-        params['timeInForce'] = timeInForce.toUpperCase ();
+        const [ timeInForce, paramsTimeInForce ] = this.handleOptionStringAndParams (paramsPostOnly, 'createOrder', 'timeInForce', 'GTC'); // is mandatory
+        paramsTimeInForce['timeInForce'] = timeInForce.toUpperCase ();
         if (!isMarketOrder) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        const triggerPrice = this.safeString (params, 'triggerPrice');
+        const triggerPrice = this.safeString (paramsTimeInForce, 'triggerPrice');
         if (triggerPrice !== undefined) {
             if (isMarketOrder) {
                 throw new NotSupported (this.id + ' createOrder() does not support market trigger orders');
             }
             request['stopPrice'] = this.priceToPrecision (symbol, triggerPrice);
-            type = 'STOP_LIMIT';
-            params = this.omit (params, 'triggerPrice');
+            orderType = 'STOP_LIMIT';
         }
-        request['type'] = type.toUpperCase ();
-        const response = await this.privatePostV2Orders (this.extend (request, params));
+        const paramsOmitted: Dict = (triggerPrice !== undefined) ? this.omit (paramsTimeInForce, 'triggerPrice') : paramsTimeInForce;
+        request['type'] = orderType.toUpperCase ();
+        const response = await this.privatePostV2Orders (this.extend (request, paramsOmitted));
         //
         //     {
         //         "message": "Command acknowledged - CreateOrder",
@@ -1814,7 +1847,7 @@ export default class bullish extends Exchange {
      * @param {string} [params.clientOrderId] a unique identifier for the order, automatically generated if not sent
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
+    override async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params: Dict = {}): Promise<Order> {
         await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
         const tradingAccountId = await this.loadAccount (params);
         const market = this.market (symbol);
@@ -1832,7 +1865,6 @@ export default class bullish extends Exchange {
         }
         const postOnly = this.safeBool (params, 'postOnly', false);
         if (postOnly) {
-            params = this.omit (params, 'postOnly');
             request['type'] = 'POST_ONLY';
         }
         if (amount !== undefined) {
@@ -1841,7 +1873,8 @@ export default class bullish extends Exchange {
         if (price !== undefined) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        const response = await this.privatePostV2Command (this.extend (request, params));
+        const paramsOmitted: Dict = (postOnly) ? this.omit (params, 'postOnly') : params;
+        const response = await this.privatePostV2Command (this.extend (request, paramsOmitted));
         return this.parseOrder (response, market);
     }
 
@@ -1857,7 +1890,7 @@ export default class bullish extends Exchange {
      * @param {string} [params.traidingAccountId] the trading account id (mandatory parameter)
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async cancelOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
+    override async cancelOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
         const tradingAccountId = await this.loadAccount (params);
         if (symbol === undefined) {
@@ -1892,7 +1925,7 @@ export default class bullish extends Exchange {
      * @param {string} params.traidingAccountId the trading account id (mandatory parameter)
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async cancelAllOrders (symbol: Str = undefined, params = {}): Promise<Order[]> {
+    override async cancelAllOrders (symbol: Str = undefined, params: Dict = {}): Promise<Order[]> {
         await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
         const tradingAccountId = await this.loadAccount (params);
         const request: Dict = {
@@ -1968,10 +2001,8 @@ export default class bullish extends Exchange {
         //     }
         //
         const marketId = this.safeString (order, 'symbol');
-        if (market === undefined) {
-            market = this.safeMarket (marketId);
-        }
-        const symbol = this.safeSymbol (marketId, market);
+        const marketResolved: Market = this.safeMarket ((market === undefined) ? marketId : undefined, market);
+        const symbol = this.safeSymbol (marketId, marketResolved);
         const id = this.safeString (order, 'orderId');
         const timestamp = this.safeInteger (order, 'createdAtTimestamp');
         const type = this.safeString (order, 'type');
@@ -1993,7 +2024,7 @@ export default class bullish extends Exchange {
         const quoteFee = this.safeNumber (order, 'quoteFee');
         if (quoteFee !== undefined) {
             fee['cost'] = quoteFee;
-            fee['currency'] = market['quote'];
+            fee['currency'] = marketResolved['quote'];
         }
         const average = this.safeString (order, 'averageFillPrice');
         return this.safeOrder ({
@@ -2018,10 +2049,10 @@ export default class bullish extends Exchange {
             'fee': fee,
             'info': order,
             'average': average,
-        }, market);
+        }, marketResolved);
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             'OPEN': 'open',
             'CLOSED': 'closed',
@@ -2031,7 +2062,7 @@ export default class bullish extends Exchange {
         return this.safeString (statuses, status as string, status);
     }
 
-    parseOrderType (type: Str) {
+    parseOrderType (type: Str): Str {
         const types: Dict = {
             'LMT': 'limit',
             'MKT': 'market',
@@ -2052,18 +2083,18 @@ export default class bullish extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    override async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
         await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
-        let request: Dict = {};
-        [ request, params ] = this.handleUntilOption ('createdAtDatetime[lte]', request, params);
-        const until = this.safeInteger (request, 'createdAtDatetime[lte]');
+        const request: Dict = {};
+        const [ requestUntil, paramsUntil ] = this.handleUntilOption ('createdAtDatetime[lte]', request, params);
+        const until = this.safeInteger (requestUntil, 'createdAtDatetime[lte]');
         if (until !== undefined) {
-            request['createdAtDatetime[lte]'] = this.iso8601 (until);
+            requestUntil['createdAtDatetime[lte]'] = this.iso8601 (until);
         }
         if (since !== undefined) {
-            request['createdAtDatetime[gte]'] = this.iso8601 (since);
+            requestUntil['createdAtDatetime[gte]'] = this.iso8601 (since);
         }
-        const response = await this.privateGetV1WalletsTransactions (this.extend (request, params));
+        const response = await this.privateGetV1WalletsTransactions (this.extend (requestUntil, paramsUntil));
         //
         //     {
         //         "data": [
@@ -2098,7 +2129,7 @@ export default class bullish extends Exchange {
         //         "totalCount": 1
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
@@ -2114,14 +2145,14 @@ export default class bullish extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} [tag]
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @param {string} params.timestamp the timestamp of the withdrawal request (mandatory)
      * @param {string} params.nonce the nonce of the withdrawal request (mandatory)
      * @param {string} params.network network for withdraw (mandatory)
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
+    override async withdraw (code: string, amount: number, address: string, params: Dict = {}): Promise<Transaction> {
         await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
         // todo check this method properly
         const currency = this.currency (code);
@@ -2133,14 +2164,13 @@ export default class bullish extends Exchange {
                 'quantity': this.currencyToPrecision (code, amount),
             },
         };
-        let networkCode: Str = undefined;
-        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
+        const [ networkCode, paramsNetworkCode ] = this.handleNetworkCodeAndParams (params);
         if (networkCode !== undefined) {
             request['network'] = this.networkCodeToId (networkCode, code);
         } else {
             throw new ArgumentsRequired (this.id + ' withdraw() requires a network parameter');
         }
-        const response = await this.privatePostV1WalletsWithdrawal (this.extend (request, params));
+        const response = await this.privatePostV1WalletsWithdrawal (this.extend (request, paramsNetworkCode));
         //
         //     {
         //         "code": "00000",
@@ -2229,7 +2259,7 @@ export default class bullish extends Exchange {
         };
     }
 
-    parseTransactionType (type: any) {
+    parseTransactionType (type: Str): Str {
         const types: Dict = {
             'DEPOSIT': 'deposit',
             'WITHDRAW': 'withdrawal',
@@ -2237,7 +2267,7 @@ export default class bullish extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    parseTransactionStatus (status: Str) {
+    parseTransactionStatus (status: Str): Str {
         const statuses: Dict = {
             'COMPLETE': 'ok',
             'FAILED': 'failed',
@@ -2247,14 +2277,14 @@ export default class bullish extends Exchange {
         return this.safeString (statuses, status as string, status);
     }
 
-    async loadAccount (params = {}) {
-        let tradingAccountId: Str = undefined;
-        [ tradingAccountId, params ] = this.handleOptionAndParams (params, 'loadAccount', 'tradingAccountId');
+    async loadAccount (params: Dict = {}): Promise<Str> {
+        const [ tradingAccountIdOption, paramsTradingAccountId ] = this.handleOptionStringAndParams (params, 'loadAccount', 'tradingAccountId');
+        let tradingAccountId: Str = tradingAccountIdOption;
         if (tradingAccountId === undefined) {
-            const response = await this.privateGetV1AccountsTradingAccounts (params);
+            const response = await this.privateGetV1AccountsTradingAccounts (paramsTradingAccountId);
             const accounts = this.toArray (response);
             for (let i = 0; i < accounts.length; i++) {
-                const account = accounts[i];
+                const account = this.safeDict (accounts, i);
                 const name = this.safeString (account, 'tradingAccountName');
                 if (name === 'Primary Account') {
                     tradingAccountId = this.safeString (account, 'tradingAccountId');
@@ -2266,7 +2296,7 @@ export default class bullish extends Exchange {
             throw new ArgumentsRequired (this.id + ' loadAccount() requires a tradingAccountId parameter in options["tradingAccountId"] or params["tradingAccountId"], fetchAccounts() was not able to find the Primary account');
         }
         this.options['tradingAccountId'] = tradingAccountId;
-        return tradingAccountId;
+        return this.safeString (this.options, 'tradingAccountId');
     }
 
     /**
@@ -2277,7 +2307,7 @@ export default class bullish extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
      */
-    override async fetchAccounts (params = {}): Promise<Account[]> {
+    override async fetchAccounts (params: Dict = {}): Promise<Account[]> {
         await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
         const response = await this.privateGetV1AccountsTradingAccounts (params);
         //
@@ -2381,7 +2411,7 @@ export default class bullish extends Exchange {
      * @param {string} [params.network] network for deposit address
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    override async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
+    override async fetchDepositAddress (code: string, params: Dict = {}): Promise<DepositAddress> {
         await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
         const currency = this.currency (code);
         const request: Dict = {
@@ -2400,14 +2430,15 @@ export default class bullish extends Exchange {
         const safeResponse = this.toArray (response);
         const length = safeResponse.length;
         let data = this.safeDict (safeResponse, 0, {});
-        let network: Str = undefined;
-        [ network, params ] = this.handleNetworkCodeAndParams (params);
-        const networkDefinedByUser = network !== undefined;
+        const networkAndParams = this.handleNetworkCodeAndParams (params);
+        const networkParam: Str = networkAndParams[0];
+        const networkDefinedByUser = networkParam !== undefined;
+        let network: Str = networkParam;
         if ((length > 1) || (networkDefinedByUser)) {
             // some currencies have multiple networks
             if (network === undefined) {
                 // use default network if not specified and multiple are available
-                network = this.defaultNetworkCode (code);
+                network = this.safeString (this.safeDict (this.options, 'defaultNetworks', {}), code, this.safeString (this.options, 'defaultNetwork'));
             }
             if (network !== undefined) {
                 // find the entry that matches the network or return first entry if not found and user did not specify a network
@@ -2428,7 +2459,7 @@ export default class bullish extends Exchange {
         return this.parseDepositAddress (data, currency);
     }
 
-    override parseDepositAddress (depositAddress: any, currency: Currency = undefined): DepositAddress {
+    override parseDepositAddress (depositAddress: Dict, currency: Currency = undefined): DepositAddress {
         const id = this.safeString (depositAddress, 'symbol');
         const network = this.safeString (depositAddress, 'network');
         const code = this.safeCurrencyCode (id, currency);
@@ -2452,7 +2483,7 @@ export default class bullish extends Exchange {
      * @param {string} [params.code] unified currency code, default is undefined
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    override async fetchBalance (params = {}): Promise<Balances> {
+    override async fetchBalance (params: Dict = {}): Promise<Balances> {
         await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
         const tradingAccountId = await this.loadAccount (params);
         const request: Dict = {
@@ -2486,9 +2517,9 @@ export default class bullish extends Exchange {
         }
     }
 
-    parseBalanceForSingleCurrency (response: any, code: Str): Balances {
+    parseBalanceForSingleCurrency (response: Dict, code: Str): Balances {
         const result: Dict = { 'info': response };
-        const account = this.account ();
+        const account: Dict = this.account ();
         account['free'] = this.safeString (response, 'availableQuantity');
         account['used'] = this.safeString (response, 'lockedQuantity');
         result[code as string] = account;
@@ -2500,7 +2531,7 @@ export default class bullish extends Exchange {
             'info': response,
         };
         for (let i = 0; i < response.length; i++) {
-            const balance = response[i];
+            const balance = this.safeDict (response, i);
             const symbol = this.safeString (balance, 'assetSymbol');
             const code = this.safeCurrencyCode (symbol);
             const account = this.account ();
@@ -2523,7 +2554,7 @@ export default class bullish extends Exchange {
      * @param {string} params.tradingAccountId the trading account id
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    override async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
+    override async fetchPositions (symbols: Strings = undefined, params: Dict = {}): Promise<Position[]> {
         await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
         const tradingAccountId = await this.loadAccount (params);
         const request: Dict = {
@@ -2552,10 +2583,10 @@ export default class bullish extends Exchange {
         //     ]
         //
         const results = this.parsePositions (response, symbols);
-        return this.filterByArrayPositions (results, 'symbol', symbols, false);
+        return this.filterByArrayPositions (results, 'symbol', symbols);
     }
 
-    override parsePosition (position: Dict, market: Market = undefined) {
+    override parsePosition (position: Dict, market: Market = undefined): Position {
         //
         //     [
         //         {
@@ -2577,8 +2608,8 @@ export default class bullish extends Exchange {
         //         }
         //     ]
         //
-        market = this.safeMarket (this.safeString (position, 'symbol'), market);
-        const symbol = market['symbol'];
+        const marketResolved: Market = this.safeMarket (this.safeString (position, 'symbol'), market);
+        const symbol = marketResolved['symbol'];
         const timestamp = this.safeInteger (position, 'createdAtTimestamp');
         const side = this.safeString (position, 'side');
         return this.safePosition ({
@@ -2612,7 +2643,7 @@ export default class bullish extends Exchange {
         });
     }
 
-    parsePositionSide (side: Str) {
+    parsePositionSide (side: Str): Str {
         const sides: Dict = {
             'BUY': 'long',
             'SELL': 'short',
@@ -2633,15 +2664,14 @@ export default class bullish extends Exchange {
      * @param {string} params.tradingAccountId the trading account id
      * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    override async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntry[]> {
+    override async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<TransferEntry[]> {
         await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
         const tradingAccountId = await this.loadAccount (params);
         const maxLimit = 100;
-        let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchTransfers', 'paginate');
+        const [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchTransfers', 'paginate', false);
         if (paginate) {
-            params = this.handlePaginationParams ('fetchTransfers', since, params);
-            return await this.fetchPaginatedCallDynamic ('fetchTransfers', code, since, limit, params, maxLimit) as TransferEntry[];
+            const paramsPagination: Dict = this.handlePaginationParams ('fetchTransfers', since, paramsPaginate);
+            return await this.fetchPaginatedCallDynamic ('fetchTransfers', code, since, limit, paramsPagination, maxLimit) as TransferEntry[];
         }
         const request: Dict = {
             'tradingAccountId': tradingAccountId,
@@ -2651,17 +2681,18 @@ export default class bullish extends Exchange {
             currency = this.currency (code);
             request['assetSymbol'] = currency['id'];
         }
-        const until = this.safeInteger (params, 'until');
-        if ((since === undefined) && (until === undefined)) {
-            // since and until are mandatory for this endpoint, set until to now if both are undefined
-            const now = this.milliseconds ();
-            params = this.extend (params, { 'until': now });
+        const until = this.safeInteger (paramsPaginate, 'until');
+        // since and until are mandatory for this endpoint, set until to now if both are undefined
+        const untilMissing = (since === undefined) && (until === undefined);
+        let paramsUntil: Dict = paramsPaginate;
+        if (untilMissing) {
+            paramsUntil = this.extend (paramsPaginate, { 'until': this.milliseconds () });
         }
-        params = this.handleSinceAndUntil (since, params);
+        const paramsSinceAndUntil: Dict = this.handleSinceAndUntil (since, paramsUntil);
         if (limit !== undefined) {
             request['_pageSize'] = this.getClosestLimit (limit);
         }
-        const response = await this.privateGetV1HistoryTransfer (this.extend (request, params));
+        const response = await this.privateGetV1HistoryTransfer (this.extend (request, paramsSinceAndUntil));
         //
         //     [
         //         {
@@ -2693,7 +2724,7 @@ export default class bullish extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    override async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
+    override async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params: Dict = {}): Promise<TransferEntry> {
         await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
         // todo check this method properly
         const currency = this.currency (code);
@@ -2723,7 +2754,7 @@ export default class bullish extends Exchange {
         return transfer;
     }
 
-    override parseTransfer (transfer: any, currency: Currency = undefined) {
+    override parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
         //
         // fetchTransfers
         //     {
@@ -2764,7 +2795,7 @@ export default class bullish extends Exchange {
         };
     }
 
-    parseTransferStatus (status: Str) {
+    parseTransferStatus (status: Str): Str {
         const statuses: Dict = {
             'CLOSED': 'ok',
             'OPEN': 'pending',
@@ -2787,28 +2818,28 @@ export default class bullish extends Exchange {
      * @param {string} params.tradingAccountId the trading account id
      * @returns {object[]} an array of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
      */
-    async fetchBorrowRateHistory (code: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchBorrowRateHistory (code: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Dict[]> {
         await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
         const tradingAccountId = await this.loadAccount (params);
         const currency = this.currency (code);
-        let request: Dict = {
+        const request: Dict = {
             'assetSymbol': currency['id'],
             'tradingAccountId': tradingAccountId,
         };
         const now = this.milliseconds ();
         let startTimestamp = since;
-        [ request, params ] = this.handleUntilOption ('createdAtDatetime[lte]', request, params);
-        let until = this.safeInteger (request, 'createdAtDatetime[lte]');
+        const [ requestUntil, paramsUntil ] = this.handleUntilOption ('createdAtDatetime[lte]', request, params);
+        let until = this.safeInteger (requestUntil, 'createdAtDatetime[lte]');
         // current endpoint requires both since and until parameters
-        if (startTimestamp === undefined) {
+        if (since === undefined) {
             startTimestamp = now - 1000 * 60 * 60 * 24 * 90; // Only the last 90 days of data is available for querying
         }
         if (until === undefined) {
             until = now;
         }
-        request['createdAtDatetime[gte]'] = this.iso8601 (startTimestamp);
-        request['createdAtDatetime[lte]'] = this.iso8601 (until);
-        const response = await this.privateGetV1HistoryBorrowInterest (this.extend (request, params));
+        requestUntil['createdAtDatetime[gte]'] = this.iso8601 (startTimestamp);
+        requestUntil['createdAtDatetime[lte]'] = this.iso8601 (until);
+        const response = await this.privateGetV1HistoryBorrowInterest (this.extend (requestUntil, paramsUntil));
         //
         //     [
         //         {
@@ -2824,7 +2855,7 @@ export default class bullish extends Exchange {
         return this.parseBorrowRateHistory (response, code, since, limit);
     }
 
-    override parseBorrowRate (info: any, currency: Currency = undefined) {
+    override parseBorrowRate (info: any, currency: Currency = undefined): Dict {
         //
         //     {
         //         "assetId": "1",
@@ -2847,8 +2878,8 @@ export default class bullish extends Exchange {
         };
     }
 
-    getTimestamp () {
-        return this.milliseconds () - this.options['timeDifference'];
+    getTimestamp (): number {
+        return this.milliseconds () - this.safeInteger (this.options, 'timeDifference', 0);
     }
 
     /**
@@ -2860,7 +2891,7 @@ export default class bullish extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async fetchOpenInterest (symbol: string, params = {}): Promise<OpenInterest> {
+    override async fetchOpenInterest (symbol: string, params: Dict = {}): Promise<OpenInterest> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2910,7 +2941,7 @@ export default class bullish extends Exchange {
         return this.parseOpenInterest (response, market);
     }
 
-    override parseOpenInterest (interest: any, market: Market = undefined) {
+    override parseOpenInterest (interest: NullableDict, market: Market = undefined): OpenInterest {
         //
         //     {
         //         "createdAtDatetime": "2021-05-20T01:01:01.000Z",
@@ -2962,59 +2993,66 @@ export default class bullish extends Exchange {
         }, market);
     }
 
-    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
+        const apiName = api[0];
+        let requestHeaders: NullableDict = undefined;
+        let requestBody: Str = undefined;
         const request = this.omit (params, this.extractParams (path));
         const endpoint = '/' + this.implodeParams (path, params);
-        let url = this.urls['api'][api] + endpoint;
-        if (api === 'private') {
+        const apiUrl = this.safeString (this.urls['api'], apiName);
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = apiUrl + endpoint;
+        if (apiName === 'private') {
             this.checkRequiredCredentials ();
             const nonce = this.microseconds ().toString ();
             const timestamp = this.getTimestamp ().toString ();
             if (method === 'GET') {
                 const payload = timestamp + nonce + method + '/trading-api/' + path;
                 const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha256, 'hex');
-                headers = {
+                requestHeaders = {
                     'BX-TIMESTAMP': timestamp,
                     'BX-NONCE': nonce,
                     'BX-SIGNATURE': signature,
                 };
             } else if (method === 'POST') {
-                body = this.json (params);
-                const payload = timestamp + nonce + method + '/trading-api/' + path + body;
+                requestBody = this.json (params);
+                const payload = timestamp + nonce + method + '/trading-api/' + path + requestBody;
                 const digest = this.hash (this.encode (payload), sha256, 'hex');
                 const signature = this.hmac (this.encode (digest), this.encode (this.secret), sha256, 'hex');
-                headers = {
+                requestHeaders = {
                     'BX-TIMESTAMP': timestamp,
                     'BX-NONCE': nonce,
                     'BX-SIGNATURE': signature,
                     'Content-Type': 'application/json',
                 };
-                headers['Content-Type'] = 'application/json';
+                requestHeaders['Content-Type'] = 'application/json';
                 const rateLimitToken = this.safeString (request, 'rateLimitToken');
                 if (rateLimitToken !== undefined) {
-                    headers['BX-RATE-LIMIT-TOKEN'] = rateLimitToken;
+                    requestHeaders['BX-RATE-LIMIT-TOKEN'] = rateLimitToken;
                 }
             }
             if (path === 'v1/users/hmac/login') {
-                headers = (headers === undefined) ? {} : headers;
-                headers['BX-PUBLIC-KEY'] = this.apiKey;
+                requestHeaders = (requestHeaders === undefined) ? {} : requestHeaders;
+                requestHeaders['BX-PUBLIC-KEY'] = this.apiKey;
             } else {
                 const token = this.token;
                 if ((token === undefined)) {
                     throw new AuthenticationError (this.id + ' requires a token, please call signIn() first');
                 }
-                headers = (headers === undefined) ? {} : headers;
-                headers['Authorization'] = 'Bearer ' + token;
+                requestHeaders = (requestHeaders === undefined) ? {} : requestHeaders;
+                requestHeaders['Authorization'] = 'Bearer ' + token;
                 // headers['BX-NONCE-WINDOW-ENABLED'] = 'false'; // default is false
             }
         }
         if (method === 'GET') {
             const query = this.urlencode (request);
-            if (query.length) {
+            if (query.length > 0) {
                 url += '?' + query;
             }
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
 
     /**
@@ -3025,7 +3063,7 @@ export default class bullish extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns response from exchange
      */
-    override async signIn (params = {}) {
+    override async signIn (params: Dict = {}) {
         const response = await this.privateGetV1UsersHmacLogin (params);
         //
         //     {
@@ -3042,7 +3080,7 @@ export default class bullish extends Exchange {
         return token as string;
     }
 
-    async handleToken (params = {}) {
+    async handleToken (params: Dict = {}): Promise<string> {
         const now = this.milliseconds ();
         const token = this.token;
         const tokenExpires = this.safeInteger (this.options, 'tokenExpires');

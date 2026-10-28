@@ -7,177 +7,632 @@
 
 package ccxt
 
-// V1PublicGetAssets returns a channel that yields a JSON array.
-func (this *CoinbaseinternationalCore) V1PublicGetAssets(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetAssets", args...)
+// PublicPostAuth returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PublicPostAuth(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "auth", []string{"public"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-// V1PublicGetAssetsAssets returns a channel that yields a JSON object.
-func (this *CoinbaseinternationalCore) V1PublicGetAssetsAssets(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetAssetsAssets", args...)
+// PublicGetDisableHeartbeat returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PublicGetDisableHeartbeat(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "disable_heartbeat", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-// V1PublicGetAssetsAssetNetworks returns a channel that yields a JSON array.
-func (this *CoinbaseinternationalCore) V1PublicGetAssetsAssetNetworks(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetAssetsAssetNetworks", args...)
+// PublicGetGetAnnouncements returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PublicGetGetAnnouncements(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_announcements", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-// V1PublicGetInstruments returns a channel that yields a JSON array.
-func (this *CoinbaseinternationalCore) V1PublicGetInstruments(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetInstruments", args...)
+// PublicGetGetBlockRfqTrades returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PublicGetGetBlockRfqTrades(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_block_rfq_trades", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-// V1PublicGetInstrumentsInstrument returns a channel that yields a JSON object.
-func (this *CoinbaseinternationalCore) V1PublicGetInstrumentsInstrument(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetInstrumentsInstrument", args...)
+// PublicGetGetBookSummaryByCurrency returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PublicGetGetBookSummaryByCurrency(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_book_summary_by_currency", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-// V1PublicGetInstrumentsInstrumentQuote returns a channel that yields a JSON object.
-func (this *CoinbaseinternationalCore) V1PublicGetInstrumentsInstrumentQuote(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetInstrumentsInstrumentQuote", args...)
+// PublicGetGetBookSummaryByInstrument returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PublicGetGetBookSummaryByInstrument(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_book_summary_by_instrument", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-// V1PublicGetInstrumentsInstrumentFunding returns a channel that yields a JSON object.
-func (this *CoinbaseinternationalCore) V1PublicGetInstrumentsInstrumentFunding(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetInstrumentsInstrumentFunding", args...)
+// PublicGetGetComboDetails returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PublicGetGetComboDetails(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_combo_details", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-// V1PublicGetInstrumentsInstrumentCandles returns a channel that yields a JSON object.
-func (this *CoinbaseinternationalCore) V1PublicGetInstrumentsInstrumentCandles(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetInstrumentsInstrumentCandles", args...)
+// PublicGetGetComboIds returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PublicGetGetComboIds(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_combo_ids", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-// V1PrivateGetOrders returns a channel that yields a JSON object.
-func (this *CoinbaseinternationalCore) V1PrivateGetOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetOrders", args...)
+// PublicGetGetCombos returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PublicGetGetCombos(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_combos", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-// V1PrivateGetOrdersId returns a channel that yields a JSON object.
-func (this *CoinbaseinternationalCore) V1PrivateGetOrdersId(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetOrdersId", args...)
+// PublicGetGetContractSize returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PublicGetGetContractSize(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_contract_size", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-// V1PrivateGetPortfolios returns a channel that yields a JSON array.
-func (this *CoinbaseinternationalCore) V1PrivateGetPortfolios(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetPortfolios", args...)
+// PublicGetGetCurrencies returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PublicGetGetCurrencies(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_currencies", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-// V1PrivateGetPortfoliosPortfolio returns a channel that yields a JSON object.
-func (this *CoinbaseinternationalCore) V1PrivateGetPortfoliosPortfolio(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetPortfoliosPortfolio", args...)
+// PublicGetGetDeliveryPrices returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PublicGetGetDeliveryPrices(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_delivery_prices", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-// V1PrivateGetPortfoliosPortfolioDetail returns a channel that yields a JSON object.
-func (this *CoinbaseinternationalCore) V1PrivateGetPortfoliosPortfolioDetail(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetPortfoliosPortfolioDetail", args...)
+// PublicGetGetExpirations returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PublicGetGetExpirations(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_expirations", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-// V1PrivateGetPortfoliosPortfolioSummary returns a channel that yields a JSON object.
-func (this *CoinbaseinternationalCore) V1PrivateGetPortfoliosPortfolioSummary(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetPortfoliosPortfolioSummary", args...)
+// PublicGetGetFundingChartData returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PublicGetGetFundingChartData(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_funding_chart_data", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-// V1PrivateGetPortfoliosPortfolioBalances returns a channel that yields a JSON array.
-func (this *CoinbaseinternationalCore) V1PrivateGetPortfoliosPortfolioBalances(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetPortfoliosPortfolioBalances", args...)
+// PublicGetGetFundingRateHistory returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PublicGetGetFundingRateHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_funding_rate_history", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-// V1PrivateGetPortfoliosPortfolioBalancesAsset returns a channel that yields a JSON object.
-func (this *CoinbaseinternationalCore) V1PrivateGetPortfoliosPortfolioBalancesAsset(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetPortfoliosPortfolioBalancesAsset", args...)
+// PublicGetGetFundingRateValue returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PublicGetGetFundingRateValue(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_funding_rate_value", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-// V1PrivateGetPortfoliosPortfolioPositions returns a channel that yields a JSON array.
-func (this *CoinbaseinternationalCore) V1PrivateGetPortfoliosPortfolioPositions(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetPortfoliosPortfolioPositions", args...)
+// PublicGetGetHistoricalVolatility returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PublicGetGetHistoricalVolatility(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_historical_volatility", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-// V1PrivateGetPortfoliosPortfolioPositionsInstrument returns a channel that yields a JSON object.
-func (this *CoinbaseinternationalCore) V1PrivateGetPortfoliosPortfolioPositionsInstrument(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetPortfoliosPortfolioPositionsInstrument", args...)
+// PublicGetGetIndexChartData returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PublicGetGetIndexChartData(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_index_chart_data", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-// V1PrivateGetPortfoliosFills returns a channel that yields a JSON object.
-func (this *CoinbaseinternationalCore) V1PrivateGetPortfoliosFills(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetPortfoliosFills", args...)
+// PublicGetGetIndexPrice returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PublicGetGetIndexPrice(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_index_price", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-// V1PrivateGetPortfoliosPortfolioFills returns a channel that yields a JSON object.
-func (this *CoinbaseinternationalCore) V1PrivateGetPortfoliosPortfolioFills(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetPortfoliosPortfolioFills", args...)
+// PublicGetGetIndexPriceNames returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PublicGetGetIndexPriceNames(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_index_price_names", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-// V1PrivateGetTransfers returns a channel that yields a JSON object.
-func (this *CoinbaseinternationalCore) V1PrivateGetTransfers(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetTransfers", args...)
+// PublicGetGetInstrument returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PublicGetGetInstrument(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_instrument", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-// V1PrivateGetTransfersTransferUuid returns a channel that yields a JSON object.
-func (this *CoinbaseinternationalCore) V1PrivateGetTransfersTransferUuid(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetTransfersTransferUuid", args...)
+// PublicGetGetInstruments returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PublicGetGetInstruments(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_instruments", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-// V1PrivatePostOrders returns a channel that yields a JSON object.
-func (this *CoinbaseinternationalCore) V1PrivatePostOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostOrders", args...)
+// PublicGetGetLastSettlementsByCurrency returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PublicGetGetLastSettlementsByCurrency(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_last_settlements_by_currency", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-// V1PrivatePostPortfolios returns a channel that yields a JSON object.
-func (this *CoinbaseinternationalCore) V1PrivatePostPortfolios(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostPortfolios", args...)
+// PublicGetGetLastSettlementsByInstrument returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PublicGetGetLastSettlementsByInstrument(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_last_settlements_by_instrument", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-// V1PrivatePostPortfoliosMargin returns a channel that yields a JSON object.
-func (this *CoinbaseinternationalCore) V1PrivatePostPortfoliosMargin(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostPortfoliosMargin", args...)
+// PublicGetGetLastTradesByCurrency returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PublicGetGetLastTradesByCurrency(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_last_trades_by_currency", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-// V1PrivatePostPortfoliosTransfer returns a channel that yields a JSON object.
-func (this *CoinbaseinternationalCore) V1PrivatePostPortfoliosTransfer(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostPortfoliosTransfer", args...)
+// PublicGetGetLastTradesByCurrencyAndTime returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PublicGetGetLastTradesByCurrencyAndTime(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_last_trades_by_currency_and_time", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-// V1PrivatePostTransfersWithdraw returns a channel that yields a JSON object.
-func (this *CoinbaseinternationalCore) V1PrivatePostTransfersWithdraw(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostTransfersWithdraw", args...)
+// PublicGetGetLastTradesByInstrument returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PublicGetGetLastTradesByInstrument(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_last_trades_by_instrument", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-// V1PrivatePostTransfersAddress returns a channel that yields a JSON object.
-func (this *CoinbaseinternationalCore) V1PrivatePostTransfersAddress(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostTransfersAddress", args...)
+// PublicGetGetLastTradesByInstrumentAndTime returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PublicGetGetLastTradesByInstrumentAndTime(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_last_trades_by_instrument_and_time", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-// V1PrivatePostTransfersCreateCounterpartyId returns a channel that yields a JSON object.
-func (this *CoinbaseinternationalCore) V1PrivatePostTransfersCreateCounterpartyId(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostTransfersCreateCounterpartyId", args...)
+// PublicGetGetMarkPriceHistory returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PublicGetGetMarkPriceHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_mark_price_history", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-// V1PrivatePostTransfersValidateCounterpartyId returns a channel that yields a JSON object.
-func (this *CoinbaseinternationalCore) V1PrivatePostTransfersValidateCounterpartyId(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostTransfersValidateCounterpartyId", args...)
+// PublicGetGetOrderBook returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PublicGetGetOrderBook(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_order_book", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-// V1PrivatePostTransfersWithdrawCounterparty returns a channel that yields a JSON object.
-func (this *CoinbaseinternationalCore) V1PrivatePostTransfersWithdrawCounterparty(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostTransfersWithdrawCounterparty", args...)
+// PublicGetGetOrderBookByInstrumentId returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PublicGetGetOrderBookByInstrumentId(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_order_book_by_instrument_id", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-// V1PrivatePutOrdersId returns a channel that yields a JSON object.
-func (this *CoinbaseinternationalCore) V1PrivatePutOrdersId(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePutOrdersId", args...)
+// PublicGetGetSupportedIndexNames returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PublicGetGetSupportedIndexNames(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_supported_index_names", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-// V1PrivatePutPortfoliosPortfolio returns a channel that yields a JSON object.
-func (this *CoinbaseinternationalCore) V1PrivatePutPortfoliosPortfolio(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePutPortfoliosPortfolio", args...)
+// PublicGetGetTime returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PublicGetGetTime(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_time", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-// V1PrivateDeleteOrders returns a channel that yields a JSON array.
-func (this *CoinbaseinternationalCore) V1PrivateDeleteOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateDeleteOrders", args...)
+// PublicGetGetTradeVolumes returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PublicGetGetTradeVolumes(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_trade_volumes", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-// V1PrivateDeleteOrdersId returns a channel that yields a JSON object.
-func (this *CoinbaseinternationalCore) V1PrivateDeleteOrdersId(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateDeleteOrdersId", args...)
+// PublicGetGetTradingviewChartData returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PublicGetGetTradingviewChartData(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_tradingview_chart_data", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PublicGetGetVolatilityIndexData returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PublicGetGetVolatilityIndexData(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_volatility_index_data", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PublicGetHello returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PublicGetHello(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "hello", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PublicGetSetHeartbeat returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PublicGetSetHeartbeat(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "set_heartbeat", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PublicGetStatus returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PublicGetStatus(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "status", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PublicGetSubscribe returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PublicGetSubscribe(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "subscribe", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PublicGetTest returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PublicGetTest(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "test", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PublicGetTicker returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PublicGetTicker(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "ticker", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PublicGetTickersByCurrency returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PublicGetTickersByCurrency(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "tickers_by_currency", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PublicGetUnsubscribe returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PublicGetUnsubscribe(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "unsubscribe", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PublicGetUnsubscribeAll returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PublicGetUnsubscribeAll(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "unsubscribe_all", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateGetAcceptBlockRfq returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PrivateGetAcceptBlockRfq(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "accept_block_rfq", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateGetAddBlockRfqQuote returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PrivateGetAddBlockRfqQuote(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "add_block_rfq_quote", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateGetApproveBlockTrade returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PrivateGetApproveBlockTrade(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "approve_block_trade", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateGetBuy returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PrivateGetBuy(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "buy", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateGetCancel returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PrivateGetCancel(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "cancel", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateGetCancelAll returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PrivateGetCancelAll(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "cancel_all", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateGetCancelAllBlockRfqQuotes returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PrivateGetCancelAllBlockRfqQuotes(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "cancel_all_block_rfq_quotes", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateGetCancelAllByCurrency returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PrivateGetCancelAllByCurrency(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "cancel_all_by_currency", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateGetCancelAllByCurrencyPair returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PrivateGetCancelAllByCurrencyPair(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "cancel_all_by_currency_pair", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateGetCancelAllByInstrument returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PrivateGetCancelAllByInstrument(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "cancel_all_by_instrument", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateGetCancelAllByKindOrType returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PrivateGetCancelAllByKindOrType(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "cancel_all_by_kind_or_type", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateGetCancelBlockRfq returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PrivateGetCancelBlockRfq(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "cancel_block_rfq", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateGetCancelBlockRfqQuote returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PrivateGetCancelBlockRfqQuote(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "cancel_block_rfq_quote", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateGetCancelBlockRfqTrigger returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PrivateGetCancelBlockRfqTrigger(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "cancel_block_rfq_trigger", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateGetCancelByLabel returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PrivateGetCancelByLabel(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "cancel_by_label", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateGetChangeMarginModel returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PrivateGetChangeMarginModel(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "change_margin_model", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateGetClosePosition returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PrivateGetClosePosition(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "close_position", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateGetCreateBlockRfq returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PrivateGetCreateBlockRfq(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "create_block_rfq", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateGetCreateCombo returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PrivateGetCreateCombo(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "create_combo", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateGetDisableCancelOnDisconnect returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PrivateGetDisableCancelOnDisconnect(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "disable_cancel_on_disconnect", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateGetEdit returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PrivateGetEdit(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "edit", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateGetEditBlockRfqQuote returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PrivateGetEditBlockRfqQuote(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "edit_block_rfq_quote", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateGetEditByLabel returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PrivateGetEditByLabel(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "edit_by_label", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateGetEnableCancelOnDisconnect returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PrivateGetEnableCancelOnDisconnect(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "enable_cancel_on_disconnect", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateGetExecuteBlockTrade returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PrivateGetExecuteBlockTrade(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "execute_block_trade", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateGetGetAccessLog returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PrivateGetGetAccessLog(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_access_log", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateGetGetAccountSummaries returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PrivateGetGetAccountSummaries(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_account_summaries", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateGetGetAccountSummary returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PrivateGetGetAccountSummary(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_account_summary", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateGetGetBlockRfqMakers returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PrivateGetGetBlockRfqMakers(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_block_rfq_makers", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateGetGetBlockRfqQuotes returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PrivateGetGetBlockRfqQuotes(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_block_rfq_quotes", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateGetGetBlockRfqUserInfo returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PrivateGetGetBlockRfqUserInfo(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_block_rfq_user_info", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateGetGetBlockRfqs returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PrivateGetGetBlockRfqs(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_block_rfqs", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateGetGetBlockTrade returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PrivateGetGetBlockTrade(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_block_trade", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateGetGetBlockTradeRequests returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PrivateGetGetBlockTradeRequests(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_block_trade_requests", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateGetGetBlockTrades returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PrivateGetGetBlockTrades(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_block_trades", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateGetGetBrokerTradeRequests returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PrivateGetGetBrokerTradeRequests(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_broker_trade_requests", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateGetGetBrokerTrades returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PrivateGetGetBrokerTrades(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_broker_trades", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateGetGetCancelOnDisconnect returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PrivateGetGetCancelOnDisconnect(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_cancel_on_disconnect", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateGetGetLegPrices returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PrivateGetGetLegPrices(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_leg_prices", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateGetGetLeverage returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PrivateGetGetLeverage(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_leverage", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateGetGetMargins returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PrivateGetGetMargins(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_margins", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateGetGetMaxOrderSize returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PrivateGetGetMaxOrderSize(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_max_order_size", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateGetGetOpenOrders returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PrivateGetGetOpenOrders(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_open_orders", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateGetGetOpenOrdersByCurrency returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PrivateGetGetOpenOrdersByCurrency(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_open_orders_by_currency", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateGetGetOpenOrdersByInstrument returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PrivateGetGetOpenOrdersByInstrument(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_open_orders_by_instrument", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateGetGetOpenOrdersByLabel returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PrivateGetGetOpenOrdersByLabel(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_open_orders_by_label", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateGetGetOrderHistoryByCurrency returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PrivateGetGetOrderHistoryByCurrency(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_order_history_by_currency", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateGetGetOrderHistoryByInstrument returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PrivateGetGetOrderHistoryByInstrument(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_order_history_by_instrument", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateGetGetOrderMarginByIds returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PrivateGetGetOrderMarginByIds(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_order_margin_by_ids", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateGetGetOrderState returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PrivateGetGetOrderState(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_order_state", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateGetGetOrderStateByLabel returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PrivateGetGetOrderStateByLabel(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_order_state_by_label", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateGetGetPmeParams returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PrivateGetGetPmeParams(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_pme_params", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateGetGetPosition returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PrivateGetGetPosition(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_position", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateGetGetPositions returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PrivateGetGetPositions(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_positions", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateGetGetRiskProfile returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PrivateGetGetRiskProfile(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_risk_profile", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateGetGetSettlementHistoryByCurrency returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PrivateGetGetSettlementHistoryByCurrency(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_settlement_history_by_currency", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateGetGetSettlementHistoryByInstrument returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PrivateGetGetSettlementHistoryByInstrument(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_settlement_history_by_instrument", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateGetGetSubaccounts returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PrivateGetGetSubaccounts(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_subaccounts", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateGetGetSubaccountsDetails returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PrivateGetGetSubaccountsDetails(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_subaccounts_details", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateGetGetTradingLimits returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PrivateGetGetTradingLimits(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_trading_limits", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateGetGetTransactionLog returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PrivateGetGetTransactionLog(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_transaction_log", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
+}
+
+// PrivateGetGetTriggerOrderHistory returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PrivateGetGetTriggerOrderHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_trigger_order_history", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateGetGetUserLocks returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PrivateGetGetUserLocks(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_user_locks", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateGetGetUserTradesByCurrency returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PrivateGetGetUserTradesByCurrency(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_user_trades_by_currency", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateGetGetUserTradesByCurrencyAndTime returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PrivateGetGetUserTradesByCurrencyAndTime(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_user_trades_by_currency_and_time", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateGetGetUserTradesByInstrument returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PrivateGetGetUserTradesByInstrument(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_user_trades_by_instrument", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateGetGetUserTradesByInstrumentAndTime returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PrivateGetGetUserTradesByInstrumentAndTime(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_user_trades_by_instrument_and_time", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateGetGetUserTradesByOrder returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PrivateGetGetUserTradesByOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_user_trades_by_order", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateGetInvalidateBlockTradeSignature returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PrivateGetInvalidateBlockTradeSignature(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "invalidate_block_trade_signature", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateGetLogout returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PrivateGetLogout(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "logout", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateGetPmeSimulate returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PrivateGetPmeSimulate(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "pme/simulate", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateGetRejectBlockTrade returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PrivateGetRejectBlockTrade(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "reject_block_trade", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateGetSell returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PrivateGetSell(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "sell", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateGetSetLeverage returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PrivateGetSetLeverage(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "set_leverage", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateGetSimulateBlockTrade returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PrivateGetSimulateBlockTrade(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "simulate_block_trade", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateGetSimulatePortfolio returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PrivateGetSimulatePortfolio(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "simulate_portfolio", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateGetSubscribe returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PrivateGetSubscribe(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "subscribe", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateGetSubmitTransferBetweenSubaccounts returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PrivateGetSubmitTransferBetweenSubaccounts(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "submit_transfer_between_subaccounts", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateGetUnsubscribe returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PrivateGetUnsubscribe(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "unsubscribe", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateGetUnsubscribeAll returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PrivateGetUnsubscribeAll(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "unsubscribe_all", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PrivateGetVerifyBlockTrade returns a channel that yields a JSON object.
+func (this *Coinbaseinternational) PrivateGetVerifyBlockTrade(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "verify_block_trade", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }

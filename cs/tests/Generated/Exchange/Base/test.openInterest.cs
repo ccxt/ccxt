@@ -9,7 +9,7 @@ public partial class testMainClass : BaseTest
 {
     public static void testOpenInterest(BaseExchange exchange, object skippedProperties, object method, object entry)
     {
-        object format = new Dictionary<string, object>() {
+        Dictionary<string, object> format = new Dictionary<string, object>() {
             { "symbol", "BTC/USDT" },
             { "openInterestAmount", exchange.parseNumber("3544581864.598") },
             { "openInterestValue", exchange.parseNumber("3544581864.598") },
@@ -17,7 +17,7 @@ public partial class testMainClass : BaseTest
             { "datetime", "2022-04-07T23:20:00.000Z" },
             { "info", new Dictionary<string, object>() {} },
         };
-        object emptyAllowedFor = new List<object>() {"symbol", "timestamp", "openInterestAmount", "openInterestValue", "datetime"};
+        List<object> emptyAllowedFor = new List<object>() {"symbol", "timestamp", "openInterestAmount", "openInterestValue", "datetime"};
         testSharedMethods.assertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
         testSharedMethods.assertSymbol(exchange, skippedProperties, method, entry, "symbol");
         testSharedMethods.assertTimestampAndDatetime(exchange, skippedProperties, method, entry);

@@ -7,7 +7,7 @@ namespace ccxt.pro;
 public partial class coinbaseinternational { public coinbaseinternational(object args = null) : base(args) { } }
 public partial class coinbaseinternational : ccxt.coinbaseinternational
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "has", new Dictionary<string, object>() {
@@ -17,901 +17,2306 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
                 { "watchOrderBook", true },
                 { "watchOrderBookForSymbols", true },
                 { "watchTicker", true },
-                { "watchBalance", false },
-                { "watchMyTrades", false },
+                { "watchBidsAsks", true },
+                { "watchBalance", true },
+                { "watchFundingRate", true },
+                { "watchFundingRates", true },
+                { "watchMyTrades", true },
                 { "watchOHLCV", true },
-                { "watchOHLCVForSymbols", false },
-                { "watchOrders", false },
-                { "watchOrdersForSymbols", false },
-                { "watchPositions", false },
+                { "watchOHLCVForSymbols", true },
+                { "watchOrders", true },
+                { "watchOrdersForSymbols", true },
+                { "watchPositions", true },
                 { "watchTickers", true },
-                { "createOrderWs", false },
-                { "editOrderWs", false },
-                { "cancelOrderWs", false },
+                { "watchMarkPrice", true },
+                { "watchMarkPrices", true },
+                { "unWatchMarkPrice", true },
+                { "unWatchMarkPrices", true },
+                { "unWatchTrades", true },
+                { "unWatchTradesForSymbols", true },
+                { "unWatchOHLCV", true },
+                { "unWatchOHLCVForSymbols", true },
+                { "unWatchOrderBook", true },
+                { "unWatchOrderBookForSymbols", true },
+                { "unWatchPositions", true },
+                { "unWatchTickers", true },
+                { "unWatchBidsAsks", true },
+                { "unWatchFundingRate", true },
+                { "unWatchFundingRates", true },
+                { "unWatchMyTrades", true },
+                { "unWatchTicker", true },
+                { "createOrderWs", true },
+                { "editOrderWs", true },
+                { "cancelOrderWs", true },
                 { "cancelOrdersWs", false },
-                { "cancelAllOrdersWs", false },
-                { "fetchOrderWs", false },
-                { "fetchOrdersWs", false },
-                { "fetchBalanceWs", false },
-                { "fetchMyTradesWs", false },
+                { "cancelAllOrdersWs", true },
+                { "fetchOrderWs", true },
+                { "fetchOpenOrdersWs", true },
+                { "fetchOrdersWs", true },
+                { "fetchBalanceWs", true },
+                { "fetchMyTradesWs", true },
+                { "fetchPositionsWs", true },
             } },
             { "urls", new Dictionary<string, object>() {
                 { "api", new Dictionary<string, object>() {
-                    { "ws", "wss://ws-md.international.coinbase.com" },
-                } },
-                { "test", new Dictionary<string, object>() {
-                    { "ws", "wss://ws-md.n5e2.coinbase.com" },
+                    { "ws", "wss://streams.drb.coinbase.com/ws/api/v2" },
+                    { "wsPrivate", "wss://drb.coinbase.com/ws/api/v2" },
                 } },
             } },
+            { "streaming", new Dictionary<string, object>() {
+                { "keepAlive", 15000 },
+            } },
             { "options", new Dictionary<string, object>() {
-                { "watchTicker", new Dictionary<string, object>() {
-                    { "channel", "LEVEL1" },
+                { "wsAuthRefreshRatio", 0.8 },
+                { "ws", new Dictionary<string, object>() {
+                    { "timeframes", new Dictionary<string, object>() {
+                        { "1m", "1" },
+                        { "5m", "5" },
+                        { "15m", "15" },
+                        { "30m", "30" },
+                        { "1h", "60" },
+                        { "2h", "120" },
+                        { "6h", "360" },
+                        { "1d", "1D" },
+                    } },
+                    { "watchTradesForSymbols", new Dictionary<string, object>() {
+                        { "interval", "100ms" },
+                    } },
+                    { "watchOrderBookForSymbols", new Dictionary<string, object>() {
+                        { "interval", "100ms" },
+                        { "useDepthEndpoint", false },
+                        { "depth", "20" },
+                        { "group", "none" },
+                    } },
                 } },
+                { "currencies", new List<object>() {"BTC", "ETH", "SOL", "USDC", "USDT"} },
                 { "tradesLimit", 1000 },
                 { "ordersLimit", 1000 },
                 { "myTradesLimit", 1000 },
-                { "timeframes", new Dictionary<string, object>() {
-                    { "1m", "CANDLES_ONE_MINUTE" },
-                    { "5m", "CANDLES_FIVE_MINUTES" },
-                    { "30m", "CANDLES_THIRTY_MINUTES" },
-                    { "1h", "CANDLES_ONE_HOUR" },
-                    { "2h", "CANDLES_TWO_HOURS" },
-                    { "1d", "CANDLES_ONE_DAY" },
-                } },
-            } },
-            { "exceptions", new Dictionary<string, object>() {
-                { "exact", new Dictionary<string, object>() {
-                    { "Unable to authenticate", typeof(AuthenticationError) },
-                } },
             } },
         });
     }
 
-    /**
-     * @ignore
-     * @method
-     * @description subscribes to a websocket channel
-     * @see https://docs.cloud.coinbase.com/intx/docs/websocket-overview#subscribe
-     * @param {string} name the name of the channel
-     * @param {string[]} [symbols] unified market symbol
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} subscription to a websocket channel
-     */
-    public async virtual Task<object> subscribe(object name, object symbols = null, object parameters = null)
+    public virtual Int64 requestId()
     {
-        parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        Int64 requestId = this.sum(this.safeInteger(this.options, "requestId", 0), 1);
+        this.options["requestId"] = requestId;
+        return requestId;
+    }
+
+    public virtual object getWsUrl(object isPrivate = null)
+    {
+        isPrivate ??= false;
+        if (this.isNativeDeribitCredentials())
         {
-            await this.loadMarkets();
+            return "wss://www.deribit.com/ws/api/v2";
         }
-        this.checkRequiredCredentials();
-        object market = null;
-        object messageHash = name;
-        object productIds = null;
-        if (isTrue(isEqual(symbols, null)))
+        if (isTrue(isPrivate))
         {
-            symbols = this.getActiveSymbols();
+            return getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "wsPrivate");
         }
-        object symbolsLength = getArrayLength(symbols);
-        object messageHashes = new List<object>() {};
-        if (isTrue(isGreaterThan(symbolsLength, 1)))
+        return getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws");
+    }
+
+    public override object ping(WebSocketClient client)
+    {
+        Int64? refreshAt = this.safeInteger(this.options, "wsAuthRefreshAt");
+        bool isPrivateClient = (isEqual(client.url, this.getWsUrl(true)));
+        if (isPrivateClient && ((refreshAt != null)) && ((refreshAt == null || this.milliseconds() >= refreshAt)))
         {
-            object parsedSymbols = this.marketSymbols(symbols);
-            object marketIds = this.marketIds(parsedSymbols);
-            productIds = marketIds;
-            for (object i = 0; isLessThan(i, getArrayLength(parsedSymbols)); postFixIncrement(ref i))
+            // re-authenticate in-band before the session expires, also while no watch call is pending
+            // retry in 60s if this attempt fails; a successful reply reschedules via handleAuthenticationMessage
+            this.options["wsAuthRefreshAt"] = this.sum(this.milliseconds(), 60000);
+            Int64 requestId = this.requestId();
+            this.options["wsAuthRequestId"] = requestId;
+            Dictionary<string, object> parameters = new Dictionary<string, object>() {
+                { "grant_type", "client_credentials" },
+                { "client_id", this.apiKey },
+                { "client_secret", this.secret },
+            };
+            if (!this.isNativeDeribitCredentials())
             {
-                ((IList<object>)messageHashes).Add(add(add(name, "::"), getValue(parsedSymbols, i)));
+                parameters = new Dictionary<string, object>() {
+                    { "grant_type", "coinbase_cdp" },
+                    { "token", this.createAuthToken(this.seconds(), null, null, this.isEddsaSecret()) },
+                };
             }
-        } else if (isTrue(isEqual(symbolsLength, 1)))
-        {
-            market = this.market(getValue(symbols, 0));
-            messageHash = add(add(name, "::"), getValue(market, "symbol"));
-            productIds = new List<object>() {((string)getValue(market, "id"))};
+            return new Dictionary<string, object>() {
+                { "jsonrpc", "2.0" },
+                { "id", requestId },
+                { "method", "public/auth" },
+                { "params", parameters },
+            };
         }
-        object url = getValue(getValue(this.urls, "api"), "ws");
-        if (isTrue(isEqual(url, null)))
-        {
-            throw new NotSupported ((string)add(this.id, " is not supported in sandbox environment")) ;
-        }
-        object timestamp = ((object)this.nonce()).ToString();
-        object auth = add(add(add(timestamp, this.apiKey), "CBINTLMD"), this.password);
-        object signature = this.hmac(this.encode(auth), this.base64ToBinary(this.secret), sha256, "base64");
-        object subscribe = new Dictionary<string, object>() {
-            { "type", "SUBSCRIBE" },
-            { "channels", new List<object>() {name} },
-            { "time", timestamp },
-            { "key", this.apiKey },
-            { "passphrase", this.password },
-            { "signature", signature },
+        // the gateway closes a socket after ~30s without client messages; protocol-level pings do not count
+        return new Dictionary<string, object>() {
+            { "jsonrpc", "2.0" },
+            { "id", this.requestId() },
+            { "method", "public/test" },
+            { "params", new Dictionary<string, object>() {} },
         };
-        if (isTrue(!isEqual(productIds, null)))
-        {
-            ((IDictionary<string,object>)subscribe)["product_ids"] = productIds;
-        }
-        if (isTrue(isGreaterThan(symbolsLength, 1)))
-        {
-            return await this.watchMultiple(url, messageHashes, this.extend(subscribe, parameters), messageHashes);
-        }
-        return await this.watch(url, messageHash, this.extend(subscribe, parameters), messageHash);
     }
 
     /**
      * @ignore
      * @method
-     * @description subscribes to a websocket channel using watchMultiple
-     * @see https://docs.cloud.coinbase.com/intx/docs/websocket-overview#subscribe
-     * @param {string} name the name of the channel
-     * @param {string|string[]} [symbols] unified market symbol
+     * @name coinbaseinternational#subscribe
+     * @description subscribes to websocket channels
+     * @see https://docs.deribit.com/api-reference/subscription-management/public-subscribe
+     * @see https://docs.deribit.com/api-reference/subscription-management/private-subscribe
+     * @param {string[]} channels exchange channel names
+     * @param {string[]} messageHashes message hashes to resolve
+     * @param {boolean} [isPrivate] whether to authenticate and subscribe privately
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} subscription to a websocket channel
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @returns {object} the subscription result
      */
-    public async virtual Task<object> subscribeMultiple(object name, object symbols = null, object parameters = null)
+    public async virtual Task<object> subscribe(object channels, object messageHashes, object isPrivate = null, object parameters = null)
+    {
+        isPrivate ??= false;
+        parameters ??= new Dictionary<string, object>();
+        object paramsResolved = this.handleRouteAndParams("subscribe", parameters);
+        object url = this.getWsUrl(false);
+        string method = "public/subscribe";
+        if (isTrue(isPrivate))
+        {
+            url = this.getWsUrl(true);
+            method = "private/subscribe";
+            await this.authenticate();
+        }
+        if ((url == null))
+        {
+            throw new NotSupported ((this.id + " websocket is not supported")) ;
+        }
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "jsonrpc", "2.0" },
+            { "method", method },
+            { "params", new Dictionary<string, object>() {
+                { "channels", channels },
+            } },
+            { "id", this.requestId() },
+        };
+        Dictionary<string, object> extendedRequest = this.deepExtend(request, paramsResolved);
+        int channelsLength = getArrayLength(channels);
+        if ((channelsLength == 1))
+        {
+            return await this.watch(url, getValue(messageHashes, 0), extendedRequest, getValue(channels, 0), extendedRequest);
+        }
+        return await this.watchMultiple(url, messageHashes, extendedRequest, channels, extendedRequest);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name coinbaseinternational#unSubscribe
+     * @description unsubscribes from websocket channels
+     * @see https://docs.deribit.com/api-reference/subscription-management/public-unsubscribe
+     * @see https://docs.deribit.com/api-reference/subscription-management/private-unsubscribe
+     * @param {string[]} channels exchange channel names
+     * @param {boolean} [isPrivate] whether to authenticate and unsubscribe privately
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @returns {boolean} true when unsubscription has been requested
+     */
+    public async virtual Task<object> unSubscribe(object channels, object isPrivate = null, object parameters = null)
+    {
+        isPrivate ??= false;
+        parameters ??= new Dictionary<string, object>();
+        object paramsResolved = this.handleRouteAndParams("unSubscribe", parameters);
+        object url = this.getWsUrl(false);
+        string method = "public/unsubscribe";
+        if (isTrue(isPrivate))
+        {
+            url = this.getWsUrl(true);
+            method = "private/unsubscribe";
+            await this.authenticate();
+        }
+        List<object> unWatchMessageHashes = new List<object>() {};
+        int channelsLength = getArrayLength(channels);
+        for (int i = 0; i < channelsLength; i++)
+        {
+            unWatchMessageHashes.Add(("unsubscribe:" + (getValue(channels, i))));
+        }
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "jsonrpc", "2.0" },
+            { "method", method },
+            { "params", new Dictionary<string, object>() {
+                { "channels", channels },
+            } },
+            { "id", this.requestId() },
+        };
+        var client = this.client(url);
+        this.watchMultiple(url, unWatchMessageHashes, this.deepExtend(request, paramsResolved), unWatchMessageHashes);
+        for (int i = 0; i < channelsLength; i++)
+        {
+            this.cleanUnsubscription(client, getValue(channels, i), (unWatchMessageHashes != null && i < unWatchMessageHashes.Count ? unWatchMessageHashes[i] : null));
+        }
+        return true;
+    }
+
+    /**
+     * @method
+     * @name coinbaseinternational#watchBalance
+     * @description watch balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://docs.cdp.coinbase.com/api-reference/coinbase-deribit-app-api/websocket/user/userportfoliocurrency
+     * @see https://docs.deribit.com/subscriptions/user/userportfoliocurrency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @param {string} [params.currency] currency code to watch, default is any
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
+    public async override Task<ccxt.Balances> WatchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        object paramsResolved = this.handleRouteAndParams("watchBalance", parameters);
+        IList<object> currencyparamsCurrencyVariable = (IList<object>)this.handleOptionAndParams(paramsResolved, "watchBalance", "currency", "any");
+        var currency = currencyparamsCurrencyVariable[0];
+        IDictionary<string, object> paramsCurrency = ((IDictionary<string, object>)currencyparamsCurrencyVariable[1]);
+        string channel = ("user.portfolio." + (currency));
+        return ccxt.BaseExchange.ToBalances(await this.subscribe(new List<object>() {channel}, new List<object>() {"balance"}, true, paramsCurrency));
+    }
+
+    public virtual void handleBalance(WebSocketClient client, Dictionary<string, object> message)
+    {
+        IDictionary<string, object> parameters = this.safeDict(message, "params", new Dictionary<string, object>() {});
+        IDictionary<string, object> data = this.safeDict(parameters, "data", new Dictionary<string, object>() {});
+        Dictionary<string, object> parsed = this.parseBalance(data);
+        this.balance = this.deepExtend(this.balance, parsed);
+        client.resolve(this.balance, "balance");
+    }
+
+    /**
+     * @method
+     * @name coinbaseinternational#watchMyTrades
+     * @description watches trades associated with the user
+     * @see https://docs.cdp.coinbase.com/api-reference/coinbase-deribit-app-api/websocket/user/usertradesinstrument_nameinterval
+     * @see https://docs.deribit.com/subscriptions/trades/tradesinstrument_nameinterval
+     * @param {string} [symbol] unified market symbol
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @param {string} [params.interval] notification interval, default raw
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
+    public async override Task<List<ccxt.Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object paramsResolved = this.handleRouteAndParams("watchMyTrades", parameters);
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        this.checkRequiredCredentials();
-        if (isTrue(this.isEmpty(symbols)))
+        IList<object> intervalparamsIntervalVariable = (IList<object>)this.handleOptionAndParams(paramsResolved, "watchMyTrades", "interval", "raw");
+        var interval = intervalparamsIntervalVariable[0];
+        IDictionary<string, object> paramsInterval = ((IDictionary<string, object>)intervalparamsIntervalVariable[1]);
+        string channel = ("user.trades.any.any." + (interval));
+        object symbolResolved = null;
+        if ((symbol != null))
         {
-            symbols = this.symbols;
+            Dictionary<string, object> market = this.market(symbol);
+            symbolResolved = (market.ContainsKey("symbol") ? market["symbol"] : null);
+            channel = ((("user.trades." + ((market.ContainsKey("id") ? market["id"] : null))) + ".") + (interval));
+        }
+        object trades = await this.subscribe(new List<object>() {channel}, new List<object>() {channel}, true, paramsInterval);
+        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbolResolved, since, limit, true));
+    }
+
+    /**
+     * @method
+     * @name coinbaseinternational#unWatchMyTrades
+     * @description stops watching user trades
+     * @see https://docs.cdp.coinbase.com/api-reference/subscription-management/private-unsubscribe
+     * @see https://docs.deribit.com/api-reference/subscription-management/private-unsubscribe
+     * @param {string} [symbol] unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @returns {object} the exchange response
+     */
+    public async override Task<object> unWatchMyTrades(string? symbol = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object paramsResolved = this.handleRouteAndParams("unWatchMyTrades", parameters);
+        IList<object> intervalparamsIntervalVariable = (IList<object>)this.handleOptionAndParams(paramsResolved, "watchMyTrades", "interval", "raw");
+        var interval = intervalparamsIntervalVariable[0];
+        IDictionary<string, object> paramsInterval = ((IDictionary<string, object>)intervalparamsIntervalVariable[1]);
+        string channel = ("user.trades.any.any." + (interval));
+        if ((symbol != null))
+        {
+            if ((this.markets == null))
+            {
+                await this.loadMarkets();
+            }
+            channel = ((("user.trades." + this.marketId(symbol)) + ".") + (interval));
+        }
+        return await this.unSubscribe(new List<object>() {channel}, true, paramsInterval);
+    }
+
+    public virtual void handleMyTrades(WebSocketClient client, Dictionary<string, object> message)
+    {
+        IDictionary<string, object> parameters = this.safeDict(message, "params", new Dictionary<string, object>() {});
+        string? channel = this.safeString(parameters, "channel");
+        List<object> data = this.safeList(parameters, "data", new List<object>() {});
+        if ((this.myTrades == null))
+        {
+            Int64? limit = this.safeInteger(this.options, "myTradesLimit", 1000);
+            this.myTrades = new ArrayCacheBySymbolById(limit);
+        }
+        IList<object> trades = ccxt.BaseExchange.FromTradeList(this.parseTrades(data));
+        int tradesLength = (trades?.Count ?? 0);
+        for (int i = 0; i < tradesLength; i++)
+        {
+            this.myTrades.append((trades != null && i < trades.Count ? trades[i] : null));
+        }
+        client.resolve(this.myTrades, channel);
+    }
+
+    /**
+     * @method
+     * @name coinbaseinternational#watchOrders
+     * @description watches information on orders made by the user
+     * @see https://docs.cdp.coinbase.com/api-reference/coinbase-deribit-app-api/websocket/user/userordersinstrument_nameinterval
+     * @see https://docs.deribit.com/subscriptions/user/userordersinstrument_nameinterval
+     * @param {string} [symbol] unified market symbol
+     * @param {int} [since] timestamp in ms of the earliest order to fetch
+     * @param {int} [limit] the maximum number of orders to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @param {string} [params.interval] notification interval, default raw
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object paramsResolved = this.handleRouteAndParams("watchOrders", parameters);
+        if ((this.markets == null))
+        {
+            await this.loadMarkets();
+        }
+        IList<object> intervalparamsIntervalVariable = (IList<object>)this.handleOptionAndParams(paramsResolved, "watchOrders", "interval", "raw");
+        var interval = intervalparamsIntervalVariable[0];
+        IDictionary<string, object> paramsInterval = ((IDictionary<string, object>)intervalparamsIntervalVariable[1]);
+        string channel = ("user.orders.any.any." + (interval));
+        object symbolResolved = null;
+        if ((symbol != null))
+        {
+            Dictionary<string, object> market = this.market(symbol);
+            symbolResolved = (market.ContainsKey("symbol") ? market["symbol"] : null);
+            channel = ((("user.orders." + ((market.ContainsKey("id") ? market["id"] : null))) + ".") + (interval));
+        }
+        object orders = await this.subscribe(new List<object>() {channel}, new List<object>() {channel}, true, paramsInterval);
+        Int64? limitResolved = limit;
+        if (this.newUpdates)
+        {
+            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(orders, symbolResolved, limit));
+        }
+        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true));
+    }
+
+    /**
+     * @method
+     * @name coinbaseinternational#watchOrdersForSymbols
+     * @description watches information on orders made by the user for multiple symbols
+     * @see https://docs.cdp.coinbase.com/api-reference/coinbase-deribit-app-api/websocket/user/userordersinstrument_nameinterval
+     * @see https://docs.deribit.com/subscriptions/user/userordersinstrument_nameinterval
+     * @param {string[]} symbols unified market symbols
+     * @param {int} [since] timestamp in ms of the earliest order to fetch
+     * @param {int} [limit] the maximum number of orders to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    public async override Task<List<ccxt.Order>> WatchOrdersForSymbols(IList<object> symbols, Int64? since = null, Int64? limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object paramsResolved = this.handleRouteAndParams("watchOrdersForSymbols", parameters);
+        if ((this.markets == null))
+        {
+            await this.loadMarkets();
+        }
+        IList<object> symbolsResolved = this.marketSymbols(symbols, null, false);
+        IList<object> intervalparamsIntervalVariable = (IList<object>)this.handleOptionAndParams(paramsResolved, "watchOrders", "interval", "raw");
+        var interval = intervalparamsIntervalVariable[0];
+        IDictionary<string, object> paramsInterval = ((IDictionary<string, object>)intervalparamsIntervalVariable[1]);
+        List<object> channels = new List<object>() {};
+        int symbolsLength = (symbolsResolved?.Count ?? 0);
+        for (int i = 0; i < symbolsLength; i++)
+        {
+            channels.Add(((("user.orders." + this.marketId((symbolsResolved != null && i < symbolsResolved.Count ? symbolsResolved[i] : null))) + ".") + (interval)));
+        }
+        object orders = await this.subscribe(channels, channels, true, paramsInterval);
+        Int64? limitResolved = limit;
+        if (this.newUpdates)
+        {
+            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(orders, null, limit));
+        }
+        IList<object> ordersForSymbols = ((IList<object>)this.filterByArray(orders, "symbol", symbolsResolved, false));
+        return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(ordersForSymbols, since, limitResolved, "timestamp", true));
+    }
+
+    /**
+     * @method
+     * @name coinbaseinternational#unWatchOrders
+     * @description stops watching user orders
+     * @see https://docs.cdp.coinbase.com/api-reference/subscription-management/private-unsubscribe
+     * @see https://docs.deribit.com/api-reference/subscription-management/private-unsubscribe
+     * @param {string} [symbol] unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @returns {object} the exchange response
+     */
+    public async override Task<object> unWatchOrders(string? symbol = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object paramsResolved = this.handleRouteAndParams("unWatchOrders", parameters);
+        IList<object> intervalparamsIntervalVariable = (IList<object>)this.handleOptionAndParams(paramsResolved, "watchOrders", "interval", "raw");
+        var interval = intervalparamsIntervalVariable[0];
+        IDictionary<string, object> paramsInterval = ((IDictionary<string, object>)intervalparamsIntervalVariable[1]);
+        string channel = ("user.orders.any.any." + (interval));
+        if ((symbol != null))
+        {
+            if ((this.markets == null))
+            {
+                await this.loadMarkets();
+            }
+            channel = ((("user.orders." + this.marketId(symbol)) + ".") + (interval));
+        }
+        return await this.unSubscribe(new List<object>() {channel}, true, paramsInterval);
+    }
+
+    public virtual void handleOrders(WebSocketClient client, Dictionary<string, object> message)
+    {
+        if ((this.orders == null))
+        {
+            Int64? limit = this.safeInteger(this.options, "ordersLimit", 1000);
+            this.orders = new ArrayCacheBySymbolById(limit);
+        }
+        IDictionary<string, object> parameters = this.safeDict(message, "params", new Dictionary<string, object>() {});
+        string? channel = this.safeString(parameters, "channel");
+        object data = this.safeValue(parameters, "data", new Dictionary<string, object>() {});
+        IList<object> orders = new List<object>() {};
+        if (((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        {
+            orders = ccxt.BaseExchange.FromOrderList(this.parseOrders(data));
         } else
         {
-            symbols = this.marketSymbols(symbols);
+            orders = new List<object> {ccxt.BaseExchange.FromOrder(this.parseOrder(data))};
         }
-        object messageHashes = new List<object>() {};
-        object productIds = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        int ordersLength = (orders?.Count ?? 0);
+        for (int i = 0; i < ordersLength; i++)
         {
-            object marketId = this.marketId(getValue(symbols, i));
-            object symbol = this.symbol(marketId);
-            ((IList<object>)productIds).Add(marketId);
-            ((IList<object>)messageHashes).Add(add(add(name, "::"), symbol));
+            this.orders.append((orders != null && i < orders.Count ? orders[i] : null));
         }
-        object url = getValue(getValue(this.urls, "api"), "ws");
-        if (isTrue(isEqual(url, null)))
+        client.resolve(this.orders, channel);
+    }
+
+    /**
+     * @method
+     * @name coinbaseinternational#watchPositions
+     * @description watches all open positions
+     * @see https://docs.cdp.coinbase.com/api-reference/coinbase-deribit-app-api/websocket/user/userchangesinstrument_nameinterval
+     * @see https://docs.deribit.com/subscriptions/user/userchangesinstrument_nameinterval
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {int} [since] timestamp in ms of the earliest position to fetch
+     * @param {int} [limit] the maximum number of positions to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @param {string} [params.interval] notification interval, default raw
+     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
+    public async override Task<List<ccxt.Position>> WatchPositions(IList<object> symbols = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object paramsResolved = this.handleRouteAndParams("watchPositions", parameters);
+        if ((this.markets == null))
         {
-            throw new NotSupported ((string)add(this.id, " is not supported in sandbox environment")) ;
+            await this.loadMarkets();
         }
-        object timestamp = this.numberToString(this.seconds());
-        object auth = add(add(add(timestamp, this.apiKey), "CBINTLMD"), this.password);
-        object signature = this.hmac(this.encode(auth), this.base64ToBinary(this.secret), sha256, "base64");
-        object subscribe = new Dictionary<string, object>() {
-            { "type", "SUBSCRIBE" },
-            { "time", timestamp },
-            { "product_ids", productIds },
-            { "channels", new List<object>() {name} },
-            { "key", this.apiKey },
-            { "passphrase", this.password },
-            { "signature", signature },
-        };
-        return await this.watchMultiple(url, messageHashes, this.extend(subscribe, parameters), messageHashes);
+        IList<object> symbolsResolved = this.marketSymbols(symbols);
+        IList<object> intervalparamsIntervalVariable = (IList<object>)this.handleOptionAndParams(paramsResolved, "watchPositions", "interval", "raw");
+        var interval = intervalparamsIntervalVariable[0];
+        IDictionary<string, object> paramsInterval = ((IDictionary<string, object>)intervalparamsIntervalVariable[1]);
+        List<object> channels = new List<object>() {};
+        int symbolsLength = 0;
+        if ((symbolsResolved != null))
+        {
+            symbolsLength = (symbolsResolved?.Count ?? 0);
+        }
+        if (((symbolsResolved != null)) && (symbolsLength > 0))
+        {
+            for (int i = 0; i < symbolsLength; i++)
+            {
+                channels.Add(((("user.changes." + this.marketId((symbolsResolved != null && i < symbolsResolved.Count ? symbolsResolved[i] : null))) + ".") + (interval)));
+            }
+        } else
+        {
+            channels.Add(("user.changes.any.any." + (interval)));
+        }
+        object positions = await this.subscribe(channels, channels, true, paramsInterval);
+        if (this.newUpdates)
+        {
+            return ccxt.BaseExchange.ToPositionList(positions);
+        }
+        return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(this.positions, symbolsResolved, since, limit, true));
+    }
+
+    /**
+     * @method
+     * @name coinbaseinternational#unWatchPositions
+     * @description stops watching open positions
+     * @see https://docs.cdp.coinbase.com/api-reference/subscription-management/private-unsubscribe
+     * @see https://docs.deribit.com/api-reference/subscription-management/private-unsubscribe
+     * @param {string[]} [symbols] unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @returns {object} the exchange response
+     */
+    public async override Task<object> unWatchPositions(IList<object> symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object paramsResolved = this.handleRouteAndParams("unWatchPositions", parameters);
+        if ((this.markets == null))
+        {
+            await this.loadMarkets();
+        }
+        IList<object> symbolsResolved = this.marketSymbols(symbols);
+        IList<object> intervalparamsIntervalVariable = (IList<object>)this.handleOptionAndParams(paramsResolved, "watchPositions", "interval", "raw");
+        var interval = intervalparamsIntervalVariable[0];
+        IDictionary<string, object> paramsInterval = ((IDictionary<string, object>)intervalparamsIntervalVariable[1]);
+        List<object> channels = new List<object>() {};
+        int symbolsLength = 0;
+        if ((symbolsResolved != null))
+        {
+            symbolsLength = (symbolsResolved?.Count ?? 0);
+        }
+        if (((symbolsResolved != null)) && (symbolsLength > 0))
+        {
+            for (int i = 0; i < symbolsLength; i++)
+            {
+                channels.Add(((("user.changes." + this.marketId((symbolsResolved != null && i < symbolsResolved.Count ? symbolsResolved[i] : null))) + ".") + (interval)));
+            }
+        } else
+        {
+            channels.Add(("user.changes.any.any." + (interval)));
+        }
+        return await this.unSubscribe(channels, true, paramsInterval);
+    }
+
+    public virtual void handlePositions(WebSocketClient client, Dictionary<string, object> message)
+    {
+        if ((this.positions == null))
+        {
+            this.positions = new ArrayCacheBySymbolBySide();
+        }
+        IDictionary<string, object> parameters = this.safeDict(message, "params", new Dictionary<string, object>() {});
+        string? channel = this.safeString(parameters, "channel");
+        IDictionary<string, object> data = this.safeDict(parameters, "data", new Dictionary<string, object>() {});
+        List<object> rawPositions = this.safeList(data, "positions", new List<object>() {});
+        IList<object> positions = this.parsePositions(rawPositions);
+        int positionsLength = (positions?.Count ?? 0);
+        for (int i = 0; i < positionsLength; i++)
+        {
+            ccxt.pro.BaseCache.appendTo(this.positions, (positions != null && i < positions.Count ? positions[i] : null));
+        }
+        client.resolve(this.positions, channel);
     }
 
     /**
      * @method
      * @name coinbaseinternational#watchFundingRate
      * @description watch the current funding rate
-     * @see https://docs.cloud.coinbase.com/intx/docs/websocket-channels#funding-channel
+     * @see https://docs.cdp.coinbase.com/api-reference/coinbase-deribit-app-api/websocket/market-data/tickerinstrument_nameinterval
+     * @see https://docs.deribit.com/subscriptions/market-data/tickerinstrument_nameinterval
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    public async override Task<object> watchFundingRate(object symbol, object parameters = null)
+    public async override Task<ccxt.FundingRate> WatchFundingRate(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.subscribe("RISK", new List<object>() {symbol}, parameters);
+        object paramsResolved = this.handleRouteAndParams("watchFundingRate", parameters);
+        Dictionary<string, object> ticker = ccxt.BaseExchange.FromTicker(await this.WatchTicker(symbol, paramsResolved));
+        return ccxt.BaseExchange.ToFundingRate(this.parseFundingRate((ticker != null && ticker.ContainsKey("info") ? ticker["info"] : null), this.market(symbol)));
     }
 
     /**
      * @method
      * @name coinbaseinternational#watchFundingRates
      * @description watch the funding rate for multiple markets
-     * @see https://docs.cloud.coinbase.com/intx/docs/websocket-channels#funding-channel
+     * @see https://docs.cdp.coinbase.com/api-reference/coinbase-deribit-app-api/websocket/market-data/tickerinstrument_nameinterval
+     * @see https://docs.deribit.com/subscriptions/market-data/tickerinstrument_nameinterval
      * @param {string[]} symbols a list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexe by market symbols
      */
-    public async override Task<object> watchFundingRates(object symbols = null, object parameters = null)
+    public async override Task<ccxt.FundingRates> WatchFundingRates(IList<object> symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(symbols, null)))
+        object paramsResolved = this.handleRouteAndParams("watchFundingRates", parameters);
+        if ((symbols == null))
         {
-            throw new ArgumentsRequired ((string)add(this.id, " watchFundingRates() requires an array of symbols")) ;
+            throw new ArgumentsRequired ((this.id + " watchFundingRates() requires an array of symbols")) ;
         }
-        if (isTrue(isEqual(this.markets, null)))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        object fundingRate = await this.subscribeMultiple("RISK", symbols, parameters);
-        object symbol = this.safeString(fundingRate, "symbol");
-        if (isTrue(this.newUpdates))
+        Dictionary<string, object> tickers = ccxt.BaseExchange.FromTickers(await this.WatchTickers(symbols, paramsResolved));
+        Dictionary<string, object> result = new Dictionary<string, object>() {};
+        List<object> tickerSymbols = new List<object>(tickers.Keys);
+        int tickerSymbolsLength = tickerSymbols.Count;
+        for (int i = 0; i < tickerSymbolsLength; i++)
         {
-            object result = new Dictionary<string, object>() {};
-            ((IDictionary<string,object>)result)[(string)((string)symbol)] = fundingRate;
-            return result;
+            string? symbol = ((string)(tickerSymbols != null && i < tickerSymbols.Count ? tickerSymbols[i] : null));
+            object ticker = (tickers != null && symbol != null && tickers.ContainsKey(symbol) ? tickers[symbol] : null);
+            result[(string)symbol] = this.parseFundingRate(getValue(ticker, "info"), this.market(symbol));
         }
-        return this.filterByArray(this.fundingRates, "symbol", symbols);
+        return ccxt.BaseExchange.ToFundingRates(result);
+    }
+
+    /**
+     * @method
+     * @name coinbaseinternational#unWatchFundingRate
+     * @description stops watching the funding rate for a symbol
+     * @see https://docs.cdp.coinbase.com/api-reference/subscription-management/public-unsubscribe
+     * @see https://docs.deribit.com/api-reference/subscription-management/public-unsubscribe
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @returns {object} the exchange response
+     */
+    public async override Task<object> unWatchFundingRate(string? symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object paramsResolved = this.handleRouteAndParams("unWatchFundingRate", parameters);
+        return await this.unWatchTicker(symbol, paramsResolved);
+    }
+
+    /**
+     * @method
+     * @name coinbaseinternational#unWatchFundingRates
+     * @description stops watching funding rates for multiple symbols
+     * @see https://docs.cdp.coinbase.com/api-reference/subscription-management/public-unsubscribe
+     * @see https://docs.deribit.com/api-reference/subscription-management/public-unsubscribe
+     * @param {string[]} [symbols] unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @returns {object} the exchange response
+     */
+    public async override Task<object> unWatchFundingRates(IList<object> symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object paramsResolved = this.handleRouteAndParams("unWatchFundingRates", parameters);
+        return await this.unWatchTickers(symbols, paramsResolved);
     }
 
     /**
      * @method
      * @name coinbaseinternational#watchTicker
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://docs.cloud.coinbase.com/intx/docs/websocket-channels#instruments-channel
+     * @see https://docs.cdp.coinbase.com/api-reference/coinbase-deribit-app-api/websocket/market-data/tickerinstrument_nameinterval
+     * @see https://docs.deribit.com/subscriptions/market-data/tickerinstrument_nameinterval
      * @param {string} [symbol] unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.channel] the channel to watch, 'LEVEL1' or 'INSTRUMENTS', default is 'LEVEL1'
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @param {string} [params.interval] notification interval, default 100ms
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> watchTicker(object symbol, object parameters = null)
+    public async override Task<ccxt.Ticker> WatchTicker(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        object paramsResolved = this.handleRouteAndParams("watchTicker", parameters);
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        object channel = null;
-        var channelparametersVariable = this.handleOptionAndParams(parameters, "watchTicker", "channel", "LEVEL1");
-        channel = ((IList<object>)channelparametersVariable)[0];
-        parameters = ((IList<object>)channelparametersVariable)[1];
-        return await this.subscribe(((string)channel), new List<object>() {symbol}, parameters);
+        Dictionary<string, object> market = this.market(symbol);
+        IList<object> intervalparamsIntervalVariable = (IList<object>)this.handleOptionAndParams(paramsResolved, "watchTicker", "interval", "100ms");
+        var interval = intervalparamsIntervalVariable[0];
+        IDictionary<string, object> paramsInterval = ((IDictionary<string, object>)intervalparamsIntervalVariable[1]);
+        bool isPrivate = (interval is "raw");
+        string channel = ((("ticker." + ((market.ContainsKey("id") ? market["id"] : null))) + ".") + (interval));
+        return ccxt.BaseExchange.ToTicker(await this.subscribe(new List<object>() {channel}, new List<object>() {channel}, isPrivate, paramsInterval));
     }
 
-    public virtual object getActiveSymbols()
+    /**
+     * @method
+     * @name coinbaseinternational#unWatchTicker
+     * @description stops watching a ticker
+     * @see https://docs.cdp.coinbase.com/api-reference/subscription-management/public-unsubscribe
+     * @see https://docs.deribit.com/api-reference/subscription-management/public-unsubscribe
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @returns {object} the exchange response
+     */
+    public async override Task<object> unWatchTicker(string? symbol, object parameters = null)
     {
-        object symbols = this.symbols;
-        object output = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
-        {
-            object symbol = getValue(symbols, i);
-            object market = this.market(symbol);
-            if (isTrue(getValue(market, "active")))
-            {
-                ((IList<object>)output).Add(symbol);
-            }
-        }
-        return output;
+        parameters ??= new Dictionary<string, object>();
+        object paramsResolved = this.handleRouteAndParams("unWatchTicker", parameters);
+        return await this.unWatchTickers(new List<object>() {symbol}, paramsResolved);
     }
 
     /**
      * @method
      * @name coinbaseinternational#watchTickers
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://docs.cloud.coinbase.com/intx/docs/websocket-channels#instruments-channel
+     * @see https://docs.cdp.coinbase.com/api-reference/coinbase-deribit-app-api/websocket/market-data/tickerinstrument_nameinterval
+     * @see https://docs.deribit.com/subscriptions/market-data/tickerinstrument_nameinterval
      * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.channel] the channel to watch, 'LEVEL1' or 'INSTRUMENTS', default is 'INSTLEVEL1UMENTS'
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @param {string} [params.interval] notification interval, default 100ms
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> watchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        object paramsResolved = this.handleRouteAndParams("watchTickers", parameters);
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        object channel = null;
-        var channelparametersVariable = this.handleOptionAndParams(parameters, "watchTickers", "channel", "LEVEL1");
-        channel = ((IList<object>)channelparametersVariable)[0];
-        parameters = ((IList<object>)channelparametersVariable)[1];
-        object ticker = await this.subscribe(channel, symbols, parameters);
-        if (isTrue(this.newUpdates))
+        IList<object> symbolsResolved = this.marketSymbols(symbols, null, false);
+        IList<object> intervalparamsIntervalVariable = (IList<object>)this.handleOptionAndParams(paramsResolved, "watchTickers", "interval", "100ms");
+        var interval = intervalparamsIntervalVariable[0];
+        IDictionary<string, object> paramsInterval = ((IDictionary<string, object>)intervalparamsIntervalVariable[1]);
+        bool isPrivate = (interval is "raw");
+        List<object> channels = new List<object>() {};
+        int symbolsLength = (symbolsResolved?.Count ?? 0);
+        for (int i = 0; i < symbolsLength; i++)
         {
-            object result = new Dictionary<string, object>() {};
-            ((IDictionary<string,object>)result)[(string)getValue(ticker, "symbol")] = ticker;
-            return result;
+            Dictionary<string, object> market = this.market((symbolsResolved != null && i < symbolsResolved.Count ? symbolsResolved[i] : null));
+            channels.Add(((("ticker." + ((market.ContainsKey("id") ? market["id"] : null))) + ".") + (interval)));
         }
-        return this.filterByArray(this.tickers, "symbol", symbols);
+        object ticker = await this.subscribe(channels, channels, isPrivate, paramsInterval);
+        if (this.newUpdates)
+        {
+            Dictionary<string, object> result = new Dictionary<string, object>() {};
+            string? tickerSymbol = this.safeString(ticker, "symbol");
+            if ((tickerSymbol != null))
+            {
+                result[(string)tickerSymbol] = ticker;
+            }
+            return ccxt.BaseExchange.ToTickers(result);
+        }
+        return ccxt.BaseExchange.ToTickers(this.filterByArray(this.tickers, "symbol", symbolsResolved));
     }
 
-    public virtual void handleInstrument(WebSocketClient client, object message)
+    /**
+     * @method
+     * @name coinbaseinternational#unWatchTickers
+     * @description stops watching tickers
+     * @see https://docs.cdp.coinbase.com/api-reference/subscription-management/public-unsubscribe
+     * @see https://docs.deribit.com/api-reference/subscription-management/public-unsubscribe
+     * @param {string[]} [symbols] unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @returns {object} the exchange response
+     */
+    public async override Task<object> unWatchTickers(IList<object> symbols = null, object parameters = null)
     {
-        //
-        //    {
-        //        "sequence": 1,
-        //        "product_id": "ETH-PERP",
-        //        "instrument_type": "PERP",
-        //        "base_asset_name": "ETH",
-        //        "quote_asset_name": "USDC",
-        //        "base_increment": "0.0001",
-        //        "quote_increment": "0.01",
-        //        "avg_daily_quantity": "43.0",
-        //        "avg_daily_volume": "80245.2",
-        //        "total_30_day_quantity":"1443.0",
-        //        "total_30_day_volume":"3040449.0",
-        //        "total_24_hour_quantity":"48.1",
-        //        "total_24_hour_volume":"101348.3",
-        //        "base_imf": "0.2",
-        //        "min_quantity": "0.0001",
-        //        "position_size_limit": "500",
-        //        "funding_interval": "60000000000",
-        //        "trading_state": "trading",
-        //        "last_update_time": "2023-05-04T11:16:33.016Z",
-        //        "time": "2023-05-10T14:58:47.000Z",
-        //        "channel":"INSTRUMENTS",
-        //        "type":"SNAPSHOT"
-        //    }
-        object ticker = this.parseWsInstrument(message);
-        object channel = this.safeString(message, "channel");
-        callDynamically(client as WebSocketClient, "resolve", new object[] {ticker, channel});
-        callDynamically(client as WebSocketClient, "resolve", new object[] {ticker, add(add(channel, "::"), getValue(ticker, "symbol"))});
+        parameters ??= new Dictionary<string, object>();
+        object paramsResolved = this.handleRouteAndParams("unWatchTickers", parameters);
+        if ((this.markets == null))
+        {
+            await this.loadMarkets();
+        }
+        IList<object> symbolsResolved = this.marketSymbols(symbols, null, false);
+        IList<object> intervalparamsIntervalVariable = (IList<object>)this.handleOptionAndParams(paramsResolved, "watchTickers", "interval", "100ms");
+        var interval = intervalparamsIntervalVariable[0];
+        IDictionary<string, object> paramsInterval = ((IDictionary<string, object>)intervalparamsIntervalVariable[1]);
+        List<object> channels = new List<object>() {};
+        int symbolsLength = (symbolsResolved?.Count ?? 0);
+        for (int i = 0; i < symbolsLength; i++)
+        {
+            channels.Add(((("ticker." + this.marketId((symbolsResolved != null && i < symbolsResolved.Count ? symbolsResolved[i] : null))) + ".") + (interval)));
+        }
+        return await this.unSubscribe(channels, (interval is "raw"), paramsInterval);
     }
 
-    public virtual object parseWsInstrument(object ticker, object market = null)
+    /**
+     * @method
+     * @name coinbaseinternational#watchMarkPrice
+     * @description watches a mark price for a specific market
+     * @see https://docs.cdp.coinbase.com/api-reference/coinbase-deribit-app-api/websocket/market-data/tickerinstrument_nameinterval
+     * @see https://docs.deribit.com/subscriptions/market-data/tickerinstrument_nameinterval
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @param {string} [params.interval] notification interval, default 100ms
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    public async override Task<ccxt.Ticker> WatchMarkPrice(string symbol, object parameters = null)
     {
-        //
-        //    {
-        //        "sequence": 1,
-        //        "product_id": "ETH-PERP",
-        //        "instrument_type": "PERP",
-        //        "base_asset_name": "ETH",
-        //        "quote_asset_name": "USDC",
-        //        "base_increment": "0.0001",
-        //        "quote_increment": "0.01",
-        //        "avg_daily_quantity": "43.0",
-        //        "avg_daily_volume": "80245.2",
-        //        "total_30_day_quantity":"1443.0",
-        //        "total_30_day_volume":"3040449.0",
-        //        "total_24_hour_quantity":"48.1",
-        //        "total_24_hour_volume":"101348.3",
-        //        "base_imf": "0.2",
-        //        "min_quantity": "0.0001",
-        //        "position_size_limit": "500",
-        //        "funding_interval": "60000000000",
-        //        "trading_state": "trading",
-        //        "last_update_time": "2023-05-04T11:16:33.016Z",
-        //        "time": "2023-05-10T14:58:47.000Z",
-        //        "channel":"INSTRUMENTS",
-        //        "type":"SNAPSHOT"
-        //    }
-        // instruments
-        //   {
-        //       sequence: 0,
-        //       instrument_type: 'PERP',
-        //       instrument_mode: 'standard',
-        //       base_asset_name: 'BTC',
-        //       quote_asset_name: 'USDC',
-        //       base_increment: '0.0001',
-        //       quote_increment: '0.1',
-        //       avg_daily_quantity: '502.8845',
-        //       avg_daily_volume: '3.1495242961566668E7',
-        //       total30_day_quantity: '15086.535',
-        //       total30_day_volume: '9.44857288847E8',
-        //       total24_hour_quantity: '5.0',
-        //       total24_hour_volume: '337016.5',
-        //       base_imf: '0.1',
-        //       min_quantity: '0.0001',
-        //       position_size_limit: '800',
-        //       funding_interval: '3600000000000',
-        //       trading_state: 'trading',
-        //       last_updated_time: '2024-07-30T15:00:00Z',
-        //       default_initial_margin: '0.2',
-        //       base_asset_multiplier: '1.0',
-        //       channel: 'INSTRUMENTS',
-        //       type: 'SNAPSHOT',
-        //       time: '2024-07-30T15:26:56.766Z',
-        //   }
-        //
-        object marketId = this.safeString(ticker, "product_id");
-        object datetime = this.safeString(ticker, "time");
-        return this.safeTicker(new Dictionary<string, object>() {
+        parameters ??= new Dictionary<string, object>();
+        object paramsResolved = this.handleRouteAndParams("watchMarkPrice", parameters);
+        return await this.WatchTicker(symbol, paramsResolved);
+    }
+
+    /**
+     * @method
+     * @name coinbaseinternational#watchMarkPrices
+     * @description watches the mark price for multiple markets
+     * @see https://docs.cdp.coinbase.com/api-reference/coinbase-deribit-app-api/websocket/market-data/tickerinstrument_nameinterval
+     * @see https://docs.deribit.com/subscriptions/market-data/tickerinstrument_nameinterval
+     * @param {string[]} symbols unified symbols of the markets to watch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @param {string} [params.interval] notification interval, default 100ms
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    public async override Task<ccxt.Tickers> WatchMarkPrices(IList<object> symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object paramsResolved = this.handleRouteAndParams("watchMarkPrices", parameters);
+        return await this.WatchTickers(symbols, paramsResolved);
+    }
+
+    /**
+     * @method
+     * @name coinbaseinternational#unWatchMarkPrice
+     * @description stops watching the mark price for a symbol
+     * @see https://docs.cdp.coinbase.com/api-reference/subscription-management/public-unsubscribe
+     * @see https://docs.deribit.com/api-reference/subscription-management/public-unsubscribe
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @returns {object} the exchange response
+     */
+    public async override Task<object> unWatchMarkPrice(string? symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object paramsResolved = this.handleRouteAndParams("unWatchMarkPrice", parameters);
+        return await this.unWatchTicker(symbol, paramsResolved);
+    }
+
+    /**
+     * @method
+     * @name coinbaseinternational#unWatchMarkPrices
+     * @description stops watching mark prices for multiple symbols
+     * @see https://docs.cdp.coinbase.com/api-reference/subscription-management/public-unsubscribe
+     * @see https://docs.deribit.com/api-reference/subscription-management/public-unsubscribe
+     * @param {string[]} [symbols] unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @returns {object} the exchange response
+     */
+    public async override Task<object> unWatchMarkPrices(IList<object> symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object paramsResolved = this.handleRouteAndParams("unWatchMarkPrices", parameters);
+        return await this.unWatchTickers(symbols, paramsResolved);
+    }
+
+    /**
+     * @method
+     * @name coinbaseinternational#watchBidsAsks
+     * @description watches best bid & ask for symbols
+     * @see https://docs.cdp.coinbase.com/api-reference/coinbase-deribit-app-api/websocket/market-data/quoteinstrument_name
+     * @see https://docs.deribit.com/subscriptions/market-data/quoteinstrument_name
+     * @param {string[]} [symbols] unified symbols of the markets to watch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    public async override Task<ccxt.Tickers> WatchBidsAsks(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object paramsResolved = this.handleRouteAndParams("watchBidsAsks", parameters);
+        if ((this.markets == null))
+        {
+            await this.loadMarkets();
+        }
+        IList<object> symbolsResolved = this.marketSymbols(symbols, null, false);
+        List<object> channels = new List<object>() {};
+        int symbolsLength = (symbolsResolved?.Count ?? 0);
+        for (int i = 0; i < symbolsLength; i++)
+        {
+            Dictionary<string, object> market = this.market((symbolsResolved != null && i < symbolsResolved.Count ? symbolsResolved[i] : null));
+            channels.Add(("quote." + ((market.ContainsKey("id") ? market["id"] : null))));
+        }
+        object ticker = await this.subscribe(channels, channels, false, paramsResolved);
+        if (this.newUpdates)
+        {
+            Dictionary<string, object> result = new Dictionary<string, object>() {};
+            result[(string)getValue(ticker, "symbol")] = ticker;
+            return ccxt.BaseExchange.ToTickers(result);
+        }
+        return ccxt.BaseExchange.ToTickers(this.filterByArray(this.bidsasks, "symbol", symbolsResolved));
+    }
+
+    /**
+     * @method
+     * @name coinbaseinternational#unWatchBidsAsks
+     * @description stops watching best bid & ask for symbols
+     * @see https://docs.cdp.coinbase.com/api-reference/subscription-management/public-unsubscribe
+     * @see https://docs.deribit.com/api-reference/subscription-management/public-unsubscribe
+     * @param {string[]} [symbols] unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @returns {object} the exchange response
+     */
+    public async override Task<object> unWatchBidsAsks(IList<object> symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object paramsResolved = this.handleRouteAndParams("unWatchBidsAsks", parameters);
+        if ((this.markets == null))
+        {
+            await this.loadMarkets();
+        }
+        IList<object> symbolsResolved = this.marketSymbols(symbols, null, false);
+        List<object> channels = new List<object>() {};
+        int symbolsLength = (symbolsResolved?.Count ?? 0);
+        for (int i = 0; i < symbolsLength; i++)
+        {
+            channels.Add(("quote." + this.marketId((symbolsResolved != null && i < symbolsResolved.Count ? symbolsResolved[i] : null))));
+        }
+        return await this.unSubscribe(channels, false, paramsResolved);
+    }
+
+    public virtual void handleTicker(WebSocketClient client, Dictionary<string, object> message)
+    {
+        IDictionary<string, object> parameters = this.safeDict(message, "params", new Dictionary<string, object>() {});
+        IDictionary<string, object> data = this.safeDict(parameters, "data", new Dictionary<string, object>() {});
+        ccxt.Ticker ticker = this.parseTicker(data);
+        string? channel = this.safeString(parameters, "channel");
+        string? symbol = ticker.symbol;
+        this.tickers[(string)symbol] = ccxt.BaseExchange.FromTicker(ticker);
+        client.resolve(ccxt.BaseExchange.FromTicker(ticker), channel);
+    }
+
+    public virtual void handleBidAsk(WebSocketClient client, Dictionary<string, object> message)
+    {
+        IDictionary<string, object> parameters = this.safeDict(message, "params", new Dictionary<string, object>() {});
+        IDictionary<string, object> data = this.safeDict(parameters, "data", new Dictionary<string, object>() {});
+        Dictionary<string, object> ticker = this.parseWsBidAsk(data);
+        string? symbol = ((string)(ticker != null && ticker.ContainsKey("symbol") ? ticker["symbol"] : null));
+        this.bidsasks[(string)symbol] = ticker;
+        string? channel = this.safeString(parameters, "channel");
+        client.resolve(ticker, channel);
+    }
+
+    public virtual Dictionary<string, object> parseWsBidAsk(object ticker, IDictionary<string, object> market = null)
+    {
+        string? marketId = this.safeString(ticker, "instrument_name");
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Int64? timestamp = this.safeInteger(ticker, "timestamp");
+        return ccxt.BaseExchange.FromTicker(this.safeTicker(new Dictionary<string, object>() {
             { "info", ticker },
-            { "symbol", this.safeSymbol(marketId, market, "-") },
-            { "timestamp", this.parse8601(datetime) },
-            { "datetime", datetime },
-            { "high", null },
-            { "low", null },
-            { "bid", null },
-            { "bidVolume", null },
-            { "ask", null },
-            { "askVolume", null },
-            { "vwap", null },
-            { "open", null },
-            { "close", null },
-            { "last", null },
-            { "previousClose", null },
-            { "change", null },
-            { "percentage", null },
-            { "average", null },
-            { "baseVolume", this.safeString2(ticker, "total_24_hour_quantity", "total24_hour_quantity") },
-            { "quoteVolume", this.safeString2(ticker, "total_24_hour_volume", "total24_hour_volume") },
-        });
-    }
-
-    public virtual void handleTicker(WebSocketClient client, object message)
-    {
-        //
-        // snapshot
-        //    {
-        //        "sequence": 0,
-        //        "product_id": "BTC-PERP",
-        //        "time": "2023-05-10T14:58:47.000Z",
-        //        "bid_price": "28787.8",
-        //        "bid_qty": "0.466", // One side book
-        //        "channel": "LEVEL1",
-        //        "type": "SNAPSHOT"
-        //    }
-        // update
-        //    {
-        //       "sequence": 1,
-        //       "product_id": "BTC-PERP",
-        //       "time": "2023-05-10T14:58:47.547Z",
-        //       "bid_price": "28787.8",
-        //       "bid_qty": "0.466",
-        //       "ask_price": "28788.8",
-        //       "ask_qty": "1.566",
-        //       "channel": "LEVEL1",
-        //       "type": "UPDATE"
-        //    }
-        //
-        object ticker = this.parseWsTicker(message);
-        object channel = this.safeString(message, "channel");
-        callDynamically(client as WebSocketClient, "resolve", new object[] {ticker, channel});
-        callDynamically(client as WebSocketClient, "resolve", new object[] {ticker, add(add(channel, "::"), getValue(ticker, "symbol"))});
-    }
-
-    public virtual object parseWsTicker(object ticker, object market = null)
-    {
-        //
-        //    {
-        //       "sequence": 1,
-        //       "product_id": "BTC-PERP",
-        //       "time": "2023-05-10T14:58:47.547Z",
-        //       "bid_price": "28787.8",
-        //       "bid_qty": "0.466",
-        //       "ask_price": "28788.8",
-        //       "ask_qty": "1.566",
-        //       "channel": "LEVEL1",
-        //       "type": "UPDATE"
-        //    }
-        //
-        object datetime = this.safeString(ticker, "time");
-        object marketId = this.safeString(ticker, "product_id");
-        return this.safeTicker(new Dictionary<string, object>() {
-            { "info", ticker },
-            { "symbol", this.safeSymbol(marketId, market) },
-            { "timestamp", this.parse8601(datetime) },
-            { "datetime", datetime },
-            { "bid", this.safeNumber(ticker, "bid_price") },
-            { "bidVolume", this.safeNumber(ticker, "bid_qty") },
-            { "ask", this.safeNumber(ticker, "ask_price") },
-            { "askVolume", this.safeNumber(ticker, "ask_qty") },
-            { "high", null },
-            { "low", null },
-            { "open", null },
-            { "close", null },
-            { "last", null },
-            { "change", null },
-            { "percentage", null },
-            { "average", null },
-            { "vwap", null },
-            { "baseVolume", null },
-            { "quoteVolume", null },
-            { "previousClose", null },
-        });
+            { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "bid", this.safeString(ticker, "best_bid_price") },
+            { "bidVolume", this.safeString(ticker, "best_bid_amount") },
+            { "ask", this.safeString(ticker, "best_ask_price") },
+            { "askVolume", this.safeString(ticker, "best_ask_amount") },
+        }, marketResolved));
     }
 
     /**
      * @method
      * @name coinbaseinternational#watchOHLCV
      * @description watches historical candlestick data containing the open, high, low, close price, and the volume of a market
-     * @see https://docs.cdp.coinbase.com/intx/docs/websocket-channels#candles-channel
+     * @see https://docs.cdp.coinbase.com/api-reference/coinbase-deribit-app-api/websocket/market-data/charttradesinstrument_nameresolution
+     * @see https://docs.deribit.com/subscriptions/market-data/charttradesinstrument_nameresolution
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<object> watchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        timeframe ??= "1m";
+        string timeframeVar = timeframe;
+        timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        object paramsResolved = this.handleRouteAndParams("watchOHLCV", parameters);
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbol);
-        symbol = getValue(market, "symbol");
-        object options = this.safeDict(this.options, "timeframes", new Dictionary<string, object>() {});
-        object interval = this.safeString(options, timeframe, timeframe);
-        object ohlcv = await this.subscribe(interval, new List<object>() {symbol}, parameters);
-        if (isTrue(this.newUpdates))
-        {
-            limit = callDynamically(ohlcv, "getLimit", new object[] {symbol, limit});
-        }
-        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
+        string? symbolResolved = this.symbol(symbol);
+        Dictionary<string, object> ohlcvs = ccxt.BaseExchange.FromOHLCVDict(await this.WatchOHLCVForSymbols(new List<object>() {new List<object>() {symbolResolved, timeframeVar}}, since, limit, paramsResolved));
+        return ccxt.BaseExchange.ToOHLCVList(getValue((ohlcvs != null && symbolResolved != null && ohlcvs.ContainsKey(symbolResolved) ? ohlcvs[symbolResolved] : null), timeframeVar));
     }
 
-    public virtual void handleOHLCV(WebSocketClient client, object message)
+    /**
+     * @method
+     * @name coinbaseinternational#watchOHLCVForSymbols
+     * @description watches historical candlestick data for multiple markets and timeframes
+     * @see https://docs.cdp.coinbase.com/api-reference/coinbase-deribit-app-api/websocket/market-data/charttradesinstrument_nameresolution
+     * @see https://docs.deribit.com/subscriptions/market-data/charttradesinstrument_nameresolution
+     * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @returns {object} a dictionary of OHLCV arrays indexed by symbol and timeframe
+     */
+    public async override Task<Dictionary<string, Dictionary<string, List<ccxt.OHLCV>>>> WatchOHLCVForSymbols(IList<object> symbolsAndTimeframes, object since = null, object limit = null, object parameters = null)
     {
-        //
-        // {
-        //     "sequence": 0,
-        //     "product_id": "BTC-PERP",
-        //     "channel": "CANDLES_ONE_MINUTE",
-        //     "type": "SNAPSHOT",
-        //     "candles": [
-        //       {
-        //           "time": "2023-05-10T14:58:47.000Z",
-        //           "low": "28787.8",
-        //           "high": "28788.8",
-        //           "open": "28788.8",
-        //           "close": "28787.8",
-        //           "volume": "0.466"
-        //        },
-        //     ]
-        //  }
-        //
-        object messageHash = this.safeString(message, "channel");
-        object marketId = this.safeString(message, "product_id");
-        object market = this.safeMarket(marketId);
-        object symbol = getValue(market, "symbol");
-        object timeframe = this.findTimeframe(messageHash);
-        ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
-        if (isTrue(isEqual(this.safeValue(getValue(this.ohlcvs, symbol), timeframe), null)))
+        parameters ??= new Dictionary<string, object>();
+        object paramsResolved = this.handleRouteAndParams("watchOHLCVForSymbols", parameters);
+        int symbolsAndTimeframesLength = symbolsAndTimeframes?.Count ?? 0;
+        if ((symbolsAndTimeframesLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null) is IList<object>) || ((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null).GetType().IsGenericType && (symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null).GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
-            object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
-            ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)((string)timeframe)] = new ArrayCacheByTimestamp(limit);
+            throw new ArgumentsRequired ((this.id + " watchOHLCVForSymbols() requires an array of symbols and timeframes, like [['BTC/USDC', '1m']]")) ;
         }
-        object stored = getValue(getValue(this.ohlcvs, symbol), ((string)timeframe));
-        object data = this.safeList(message, "candles", new List<object>() {});
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        if ((this.markets == null))
         {
-            object tick = getValue(data, i);
-            object parsed = this.parseOHLCV(tick, market);
-            callDynamically(stored, "append", new object[] {parsed});
+            await this.loadMarkets();
         }
-        callDynamically(client as WebSocketClient, "resolve", new object[] {stored, add(add(messageHash, "::"), symbol)});
+        List<object> channels = new List<object>() {};
+        for (int i = 0; i < symbolsAndTimeframesLength; i++)
+        {
+            object current = (symbolsAndTimeframes != null && i < symbolsAndTimeframes.Count ? symbolsAndTimeframes[i] : null);
+            Dictionary<string, object> market = this.market(getValue(current, 0));
+            object currentTimeframe = getValue(current, 1);
+            string? resolution = this.safeString(this.timeframes, currentTimeframe, currentTimeframe);
+            channels.Add(((("chart.trades." + ((market.ContainsKey("id") ? market["id"] : null))) + ".") + resolution));
+        }
+        object resolved = await this.subscribe(channels, channels, false, paramsResolved);
+        string? symbol = this.safeString(resolved, 0);
+        string? timeframe = this.safeString(resolved, 1);
+        object ohlcv = this.safeValue(resolved, 2);
+        object limitResolved = limit;
+        if (this.newUpdates)
+        {
+            limitResolved = ccxt.pro.BaseCache.getLimitOf(ohlcv, symbol, limit);
+        }
+        IList<object> filtered = this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true);
+        return ccxt.BaseExchange.ToOHLCVDict(this.createOHLCVObject(symbol, timeframe, filtered));
+    }
+
+    /**
+     * @method
+     * @name coinbaseinternational#unWatchOHLCV
+     * @description stops watching OHLCV data for a symbol
+     * @see https://docs.cdp.coinbase.com/api-reference/subscription-management/public-unsubscribe
+     * @see https://docs.deribit.com/api-reference/subscription-management/public-unsubscribe
+     * @param {string} symbol unified market symbol
+     * @param {string} timeframe the length of time each candle represents
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @returns {object} the exchange response
+     */
+    public async override Task<object> unWatchOHLCV(object symbol, string timeframe = null, object parameters = null)
+    {
+        string timeframeVar = timeframe;
+        timeframeVar ??= "1m";
+        parameters ??= new Dictionary<string, object>();
+        object paramsResolved = this.handleRouteAndParams("unWatchOHLCV", parameters);
+        return await this.unWatchOHLCVForSymbols(new List<object>() {new List<object>() {symbol, timeframeVar}}, paramsResolved);
+    }
+
+    /**
+     * @method
+     * @name coinbaseinternational#unWatchOHLCVForSymbols
+     * @description stops watching OHLCV data for multiple symbols and timeframes
+     * @see https://docs.cdp.coinbase.com/api-reference/subscription-management/public-unsubscribe
+     * @see https://docs.deribit.com/api-reference/subscription-management/public-unsubscribe
+     * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @returns {object} the exchange response
+     */
+    public async override Task<object> unWatchOHLCVForSymbols(IList<object> symbolsAndTimeframes, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object paramsResolved = this.handleRouteAndParams("unWatchOHLCVForSymbols", parameters);
+        if ((this.markets == null))
+        {
+            await this.loadMarkets();
+        }
+        List<object> channels = new List<object>() {};
+        int symbolsAndTimeframesLength = symbolsAndTimeframes?.Count ?? 0;
+        for (int i = 0; i < symbolsAndTimeframesLength; i++)
+        {
+            object current = (symbolsAndTimeframes != null && i < symbolsAndTimeframes.Count ? symbolsAndTimeframes[i] : null);
+            Dictionary<string, object> market = this.market(getValue(current, 0));
+            object timeframe = getValue(current, 1);
+            string? resolution = this.safeString(this.timeframes, timeframe, timeframe);
+            channels.Add(((("chart.trades." + ((market.ContainsKey("id") ? market["id"] : null))) + ".") + resolution));
+        }
+        return await this.unSubscribe(channels, false, paramsResolved);
+    }
+
+    public virtual void handleOHLCV(WebSocketClient client, Dictionary<string, object> message)
+    {
+        IDictionary<string, object> parameters = this.safeDict(message, "params", new Dictionary<string, object>() {});
+        string? messageHash = this.safeString(parameters, "channel", "");
+        List<object> parts = messageHash.Split(new [] {"."}, StringSplitOptions.None).ToList<object>();
+        string? marketId = this.safeString(parts, 2);
+        Dictionary<string, object> market = this.safeMarket(marketId);
+        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? resolution = this.safeString(parts, 3);
+        IDictionary<string, object> wsOptions = this.safeDict(this.options, "ws", new Dictionary<string, object>() {});
+        IDictionary<string, object> timeframes = this.safeDict(wsOptions, "timeframes", new Dictionary<string, object>() {});
+        string? timeframe = this.findTimeframe(resolution, timeframes);
+        this.ohlcvs[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
+        if ((this.safeValue((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), timeframe) == null))
+        {
+            Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
+            ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[timeframe] = new ArrayCacheByTimestamp(limit);
+        }
+        ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)getValue((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), timeframe));
+        IDictionary<string, object> data = this.safeDict(parameters, "data", new Dictionary<string, object>() {});
+        List<object> parsed = this.parseWsOHLCV(data, market);
+        stored.append(parsed);
+        List<object> resolved = new List<object>() {symbol, timeframe, stored};
+        client.resolve(resolved, messageHash);
+    }
+
+    public override List<object> parseWsOHLCV(object ohlcv, object market = null)
+    {
+        return new List<object> {this.safeInteger(ohlcv, "tick"), this.safeNumber(ohlcv, "open"), this.safeNumber(ohlcv, "high"), this.safeNumber(ohlcv, "low"), this.safeNumber(ohlcv, "close"), this.safeNumber(ohlcv, "volume")};
     }
 
     /**
      * @method
      * @name coinbaseinternational#watchTrades
      * @description get the list of most recent trades for a particular symbol
-     * @see https://docs.cloud.coinbase.com/intx/docs/websocket-channels#match-channel
+     * @see https://docs.cdp.coinbase.com/api-reference/coinbase-deribit-app-api/websocket/trades/tradesinstrument_nameinterval
+     * @see https://docs.deribit.com/subscriptions/trades/tradesinstrument_nameinterval
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
      */
-    public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.watchTradesForSymbols(new List<object>() {symbol}, since, limit, parameters);
+        object paramsResolved = this.handleRouteAndParams("watchTrades", parameters);
+        return await this.WatchTradesForSymbols(new List<object>() {symbol},ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), paramsResolved);
     }
 
     /**
      * @method
      * @name coinbaseinternational#watchTradesForSymbols
      * @description get the list of most recent trades for a list of symbols
+     * @see https://docs.cdp.coinbase.com/api-reference/coinbase-deribit-app-api/websocket/trades/tradesinstrument_nameinterval
+     * @see https://docs.deribit.com/subscriptions/trades/tradesinstrument_nameinterval
      * @param {string[]} symbols unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
      */
-    public async override Task<object> watchTradesForSymbols(object symbols, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchTradesForSymbols(IList<object> symbols, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        object paramsResolved = this.handleRouteAndParams("watchTradesForSymbols", parameters);
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        symbols = this.marketSymbols(symbols, null, false, true, true);
-        object trades = await this.subscribeMultiple("MATCH", symbols, parameters);
-        if (isTrue(this.newUpdates))
+        IList<object> symbolsResolved = this.marketSymbols(symbols, null, false);
+        IList<object> intervalparamsIntervalVariable = (IList<object>)this.handleOptionAndParams(paramsResolved, "watchTradesForSymbols", "interval", "100ms");
+        var interval = intervalparamsIntervalVariable[0];
+        IDictionary<string, object> paramsInterval = ((IDictionary<string, object>)intervalparamsIntervalVariable[1]);
+        bool isPrivate = (interval is "raw");
+        List<object> channels = new List<object>() {};
+        int symbolsLength = (symbolsResolved?.Count ?? 0);
+        for (int i = 0; i < symbolsLength; i++)
         {
-            object first = this.safeDict(trades, 0);
-            object tradeSymbol = this.safeString(first, "symbol");
-            limit = callDynamically(trades, "getLimit", new object[] {tradeSymbol, limit});
+            Dictionary<string, object> market = this.market((symbolsResolved != null && i < symbolsResolved.Count ? symbolsResolved[i] : null));
+            channels.Add(((("trades." + ((market.ContainsKey("id") ? market["id"] : null))) + ".") + (interval)));
         }
-        return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
+        object trades = await this.subscribe(channels, channels, isPrivate, paramsInterval);
+        Int64? limitResolved = limit;
+        if (this.newUpdates)
+        {
+            IDictionary<string, object> first = this.safeDict(trades, 0);
+            string? tradeSymbol = this.safeString(first, "symbol");
+            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, tradeSymbol, limit));
+        }
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
     }
 
-    public virtual object handleTrade(WebSocketClient client, object message)
+    /**
+     * @method
+     * @name coinbaseinternational#unWatchTrades
+     * @description stops watching trades for a symbol
+     * @see https://docs.cdp.coinbase.com/api-reference/subscription-management/public-unsubscribe
+     * @see https://docs.deribit.com/api-reference/subscription-management/public-unsubscribe
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @returns {object} the exchange response
+     */
+    public async override Task<object> unWatchTrades(string? symbol, object parameters = null)
     {
-        //
-        //    {
-        //       "sequence": 0,
-        //       "product_id": "BTC-PERP",
-        //       "time": "2023-05-10T14:58:47.002Z",
-        //       "match_id": "177101110052388865",
-        //       "trade_qty": "0.006",
-        //       "aggressor_side": "BUY",
-        //       "trade_price": "28833.1",
-        //       "channel": "MATCH",
-        //       "type": "UPDATE"
-        //    }
-        //
-        object trade = this.parseWsTrade(message);
-        object symbol = getValue(trade, "symbol");
-        object channel = this.safeString(message, "channel");
-        if (!isTrue((inOp(this.trades, ((string)symbol)))))
+        parameters ??= new Dictionary<string, object>();
+        object paramsResolved = this.handleRouteAndParams("unWatchTrades", parameters);
+        return await this.unWatchTradesForSymbols(new List<object>() {symbol}, paramsResolved);
+    }
+
+    /**
+     * @method
+     * @name coinbaseinternational#unWatchTradesForSymbols
+     * @description stops watching trades for multiple symbols
+     * @see https://docs.cdp.coinbase.com/api-reference/subscription-management/public-unsubscribe
+     * @see https://docs.deribit.com/api-reference/subscription-management/public-unsubscribe
+     * @param {string[]} symbols unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @returns {object} the exchange response
+     */
+    public async override Task<object> unWatchTradesForSymbols(IList<object> symbols, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object paramsResolved = this.handleRouteAndParams("unWatchTradesForSymbols", parameters);
+        if ((this.markets == null))
         {
-            object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+            await this.loadMarkets();
+        }
+        IList<object> symbolsResolved = this.marketSymbols(symbols, null, false);
+        IList<object> intervalparamsIntervalVariable = (IList<object>)this.handleOptionAndParams(paramsResolved, "watchTradesForSymbols", "interval", "100ms");
+        var interval = intervalparamsIntervalVariable[0];
+        IDictionary<string, object> paramsInterval = ((IDictionary<string, object>)intervalparamsIntervalVariable[1]);
+        List<object> channels = new List<object>() {};
+        int symbolsLength = (symbolsResolved?.Count ?? 0);
+        for (int i = 0; i < symbolsLength; i++)
+        {
+            channels.Add(((("trades." + this.marketId((symbolsResolved != null && i < symbolsResolved.Count ? symbolsResolved[i] : null))) + ".") + (interval)));
+        }
+        return await this.unSubscribe(channels, (interval is "raw"), paramsInterval);
+    }
+
+    public virtual object handleTrades(WebSocketClient client, Dictionary<string, object> message)
+    {
+        IDictionary<string, object> parameters = this.safeDict(message, "params", new Dictionary<string, object>() {});
+        string? channel = this.safeString(parameters, "channel", "");
+        List<object> data = this.safeList(parameters, "data", new List<object>() {});
+        List<object> parts = channel.Split(new [] {"."}, StringSplitOptions.None).ToList<object>();
+        string? marketId = this.safeString(parts, 1);
+        Dictionary<string, object> market = this.safeMarket(marketId);
+        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        if (!(((symbol != null) && ((IDictionary<string, object>)this.trades).ContainsKey(symbol))))
+        {
+            Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             var tradesArrayCache = new ArrayCache(limit);
-            ((IDictionary<string,object>)this.trades)[(string)((string)symbol)] = tradesArrayCache;
+            this.trades[(string)symbol] = tradesArrayCache;
         }
-        object tradesArray = getValue(this.trades, ((string)symbol));
-        callDynamically(tradesArray, "append", new object[] {trade});
-        ((IDictionary<string,object>)this.trades)[(string)((string)symbol)] = tradesArray;
-        callDynamically(client as WebSocketClient, "resolve", new object[] {tradesArray, channel});
-        callDynamically(client as WebSocketClient, "resolve", new object[] {tradesArray, add(add(channel, "::"), getValue(trade, "symbol"))});
+        ccxt.pro.ArrayCache tradesArray = ((ccxt.pro.ArrayCache)(this.trades != null && symbol != null && this.trades.ContainsKey(symbol) ? this.trades[symbol] : null));
+        int dataLength = data.Count;
+        for (int i = 0; i < dataLength; i++)
+        {
+            ccxt.Trade trade = this.parseTrade((data != null && i < data.Count ? data[i] : null), market);
+            tradesArray.append(ccxt.BaseExchange.FromTrade(trade));
+        }
+        this.trades[(string)symbol] = tradesArray;
+        client.resolve(tradesArray, channel);
         return message;
-    }
-
-    public override object parseWsTrade(object trade, object market = null)
-    {
-        //
-        //    {
-        //       "sequence": 0,
-        //       "product_id": "BTC-PERP",
-        //       "time": "2023-05-10T14:58:47.002Z",
-        //       "match_id": "177101110052388865",
-        //       "trade_qty": "0.006",
-        //       "aggressor_side": "BUY",
-        //       "trade_price": "28833.1",
-        //       "channel": "MATCH",
-        //       "type": "UPDATE"
-        //    }
-        object marketId = this.safeString2(trade, "symbol", "product_id");
-        object datetime = this.safeString(trade, "time");
-        return this.safeTrade(new Dictionary<string, object>() {
-            { "info", trade },
-            { "id", this.safeString(trade, "match_id") },
-            { "order", null },
-            { "timestamp", this.parse8601(datetime) },
-            { "datetime", datetime },
-            { "symbol", this.safeSymbol(marketId, market) },
-            { "type", null },
-            { "side", this.safeStringLower(trade, "agressor_side") },
-            { "takerOrMaker", null },
-            { "price", this.safeString(trade, "trade_price") },
-            { "amount", this.safeString(trade, "trade_qty") },
-            { "cost", null },
-            { "fee", null },
-        });
     }
 
     /**
      * @method
      * @name coinbaseinternational#watchOrderBook
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://docs.cloud.coinbase.com/intx/docs/websocket-channels#level2-channel
+     * @see https://docs.cdp.coinbase.com/api-reference/coinbase-deribit-app-api/websocket/orderbook/bookinstrument_nameinterval
+     * @see https://docs.deribit.com/subscriptions/orderbook/bookinstrument_nameinterval
+     * @see https://docs.deribit.com/subscriptions/orderbook/bookinstrument_namegroupdepthinterval
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
+    public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.watchOrderBookForSymbols(new List<object>() {symbol}, limit, parameters);
+        object paramsResolved = this.handleRouteAndParams("watchOrderBook", parameters);
+        return await this.WatchOrderBookForSymbols(new List<object>() {symbol},ccxt.BaseExchange.ToInt64Arg(limit), paramsResolved);
     }
 
     /**
      * @method
-     * @name coinbaseinternational#watchOrderBook
+     * @name coinbaseinternational#watchOrderBookForSymbols
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://docs.cloud.coinbase.com/intx/docs/websocket-channels#level2-channel
+     * @see https://docs.cdp.coinbase.com/api-reference/coinbase-deribit-app-api/websocket/orderbook/bookinstrument_nameinterval
+     * @see https://docs.deribit.com/subscriptions/orderbook/bookinstrument_nameinterval
+     * @see https://docs.deribit.com/subscriptions/orderbook/bookinstrument_namegroupdepthinterval
      * @param {string[]} symbols
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> watchOrderBookForSymbols(object symbols, object limit = null, object parameters = null)
+    public async override Task<ccxt.pro.IOrderBook> WatchOrderBookForSymbols(IList<object> symbols, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.subscribeMultiple("LEVEL2", symbols, parameters);
+        object paramsResolved = this.handleRouteAndParams("watchOrderBookForSymbols", parameters);
+        if ((this.markets == null))
+        {
+            await this.loadMarkets();
+        }
+        IList<object> intervalparamsIntervalVariable = (IList<object>)this.handleOptionAndParams(paramsResolved, "watchOrderBookForSymbols", "interval", "100ms");
+        var interval = intervalparamsIntervalVariable[0];
+        IDictionary<string, object> paramsInterval = ((IDictionary<string, object>)intervalparamsIntervalVariable[1]);
+        bool isPrivate = (interval is "raw");
+        IList<object> useDepthEndpointparamsDepthEndpointVariable = (IList<object>)this.handleOptionAndParams(paramsInterval, "watchOrderBookForSymbols", "useDepthEndpoint", false);
+        var useDepthEndpoint = useDepthEndpointparamsDepthEndpointVariable[0];
+        IDictionary<string, object> paramsDepthEndpoint = ((IDictionary<string, object>)useDepthEndpointparamsDepthEndpointVariable[1]);
+        IDictionary<string, object> paramsChannel = paramsDepthEndpoint;
+        object descriptor = ((string)interval);
+        if (isTrue(useDepthEndpoint))
+        {
+            IList<object> depthparamsDepthVariable = (IList<object>)this.handleOptionAndParams(paramsDepthEndpoint, "watchOrderBookForSymbols", "depth", "20");
+            var depth = depthparamsDepthVariable[0];
+            IDictionary<string, object> paramsDepth = ((IDictionary<string, object>)depthparamsDepthVariable[1]);
+            IList<object> groupparamsGroupVariable = (IList<object>)this.handleOptionAndParams(paramsDepth, "watchOrderBookForSymbols", "group", "none");
+            var group = groupparamsGroupVariable[0];
+            IDictionary<string, object> paramsGroup = ((IDictionary<string, object>)groupparamsGroupVariable[1]);
+            paramsChannel = paramsGroup;
+            descriptor = add(add(add(add(group, "."), depth), "."), interval);
+        }
+        List<object> channels = new List<object>() {};
+        int symbolsLength = symbols?.Count ?? 0;
+        for (int i = 0; i < symbolsLength; i++)
+        {
+            Dictionary<string, object> market = this.market((symbols != null && i < symbols.Count ? symbols[i] : null));
+            channels.Add(((("book." + ((market.ContainsKey("id") ? market["id"] : null))) + ".") + (descriptor)));
+        }
+        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.subscribe(channels, channels, isPrivate, paramsChannel));
+        return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
 
-    public virtual void handleOrderBook(WebSocketClient client, object message)
+    /**
+     * @method
+     * @name coinbaseinternational#unWatchOrderBook
+     * @description stops watching an order book
+     * @see https://docs.cdp.coinbase.com/api-reference/subscription-management/public-unsubscribe
+     * @see https://docs.deribit.com/api-reference/subscription-management/public-unsubscribe
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @returns {object} the exchange response
+     */
+    public async override Task<object> unWatchOrderBook(object symbol, object parameters = null)
     {
-        //
-        // snapshot
-        //    {
-        //       "sequence": 0,
-        //       "product_id": "BTC-PERP",
-        //       "time": "2023-05-10T14:58:47.000Z",
-        //       "bids": [
-        //           ["29100", "0.02"],
-        //           ["28950", "0.01"],
-        //           ["28900", "0.01"]
-        //       ],
-        //       "asks": [
-        //           ["29267.8", "18"],
-        //           ["29747.6", "18"],
-        //           ["30227.4", "9"]
-        //       ],
-        //       "channel": "LEVEL2",
-        //       "type": "SNAPSHOT",
-        //    }
-        // update
-        //    {
-        //       "sequence": 1,
-        //       "product_id": "BTC-PERP",
-        //       "time": "2023-05-10T14:58:47.375Z",
-        //       "changes": [
-        //           [
-        //               "BUY",
-        //               "28787.7",
-        //               "6"
-        //           ]
-        //       ],
-        //       "channel": "LEVEL2",
-        //       "type": "UPDATE"
-        //    }
-        //
-        object type = this.safeString(message, "type");
-        object marketId = this.safeString(message, "product_id");
-        object symbol = this.safeSymbol(marketId);
-        object datetime = this.safeString(message, "time");
-        object channel = this.safeString(message, "channel");
-        if (!isTrue((inOp(this.orderbooks, symbol))))
+        parameters ??= new Dictionary<string, object>();
+        object paramsResolved = this.handleRouteAndParams("unWatchOrderBook", parameters);
+        return await this.unWatchOrderBookForSymbols(new List<object>() {symbol}, paramsResolved);
+    }
+
+    /**
+     * @method
+     * @name coinbaseinternational#unWatchOrderBookForSymbols
+     * @description stops watching order books for multiple symbols
+     * @see https://docs.cdp.coinbase.com/api-reference/subscription-management/public-unsubscribe
+     * @see https://docs.deribit.com/api-reference/subscription-management/public-unsubscribe
+     * @param {string[]} symbols unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @returns {object} the exchange response
+     */
+    public async override Task<object> unWatchOrderBookForSymbols(IList<object> symbols, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object paramsResolved = this.handleRouteAndParams("unWatchOrderBookForSymbols", parameters);
+        if ((this.markets == null))
         {
-            object limit = this.safeInteger(this.options, "watchOrderBookLimit", 1000);
-            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
+            await this.loadMarkets();
         }
-        object orderbook = getValue(this.orderbooks, symbol);
-        if (isTrue(isEqual(type, "SNAPSHOT")))
+        IList<object> intervalparamsIntervalVariable = (IList<object>)this.handleOptionAndParams(paramsResolved, "watchOrderBookForSymbols", "interval", "100ms");
+        var interval = intervalparamsIntervalVariable[0];
+        IDictionary<string, object> paramsInterval = ((IDictionary<string, object>)intervalparamsIntervalVariable[1]);
+        IList<object> useDepthEndpointparamsDepthEndpointVariable = (IList<object>)this.handleOptionAndParams(paramsInterval, "watchOrderBookForSymbols", "useDepthEndpoint", false);
+        var useDepthEndpoint = useDepthEndpointparamsDepthEndpointVariable[0];
+        IDictionary<string, object> paramsDepthEndpoint = ((IDictionary<string, object>)useDepthEndpointparamsDepthEndpointVariable[1]);
+        object paramsChannel = paramsDepthEndpoint;
+        object descriptor = ((string)interval);
+        if (isTrue(useDepthEndpoint))
         {
-            object parsedSnapshot = this.parseOrderBook(message, symbol, null, "bids", "asks");
-            (orderbook as IOrderBook).reset(parsedSnapshot);
-            ((IDictionary<string,object>)orderbook)["symbol"] = symbol;
+            IList<object> depthparamsDepthVariable = (IList<object>)this.handleOptionAndParams(paramsDepthEndpoint, "watchOrderBookForSymbols", "depth", "20");
+            var depth = depthparamsDepthVariable[0];
+            IDictionary<string, object> paramsDepth = ((IDictionary<string, object>)depthparamsDepthVariable[1]);
+            IList<object> groupparamsGroupVariable = (IList<object>)this.handleOptionAndParams(paramsDepth, "watchOrderBookForSymbols", "group", "none");
+            var group = groupparamsGroupVariable[0];
+            IDictionary<string, object> paramsGroup = ((IDictionary<string, object>)groupparamsGroupVariable[1]);
+            paramsChannel = paramsGroup;
+            descriptor = add(add(add(add(group, "."), depth), "."), interval);
+        }
+        List<object> channels = new List<object>() {};
+        int symbolsLength = symbols?.Count ?? 0;
+        for (int i = 0; i < symbolsLength; i++)
+        {
+            channels.Add(((("book." + this.marketId((symbols != null && i < symbols.Count ? symbols[i] : null))) + ".") + (descriptor)));
+        }
+        return await this.unSubscribe(channels, (interval is "raw"), paramsChannel);
+    }
+
+    public virtual void handleOrderBook(WebSocketClient client, Dictionary<string, object> message)
+    {
+        IDictionary<string, object> parameters = this.safeDict(message, "params", new Dictionary<string, object>() {});
+        IDictionary<string, object> data = this.safeDict(parameters, "data", new Dictionary<string, object>() {});
+        string? type = this.safeString(data, "type", "snapshot");
+        string? marketId = this.safeString(data, "instrument_name");
+        string? symbol = this.safeSymbol(marketId);
+        Int64? timestamp = this.safeInteger(data, "timestamp");
+        string? channel = this.safeString(parameters, "channel");
+        List<object> channelParts = channel.Split(new [] {"."}, StringSplitOptions.None).ToList<object>();
+        int channelPartsLength = channelParts.Count;
+        bool isGrouped = (channelPartsLength == 5);
+        if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
+        {
+            Int64? limit = this.safeInteger(this.options, "watchOrderBookLimit", 1000);
+            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = isGrouped ? this.orderBook(new Dictionary<string, object>() {}, limit) : this.countedOrderBook(new Dictionary<string, object>() {}, limit);
+        }
+        ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
+        if (!isGrouped && (type != "snapshot") && ((((object)((orderbook != null && orderbook.ContainsKey("nonce") ? orderbook["nonce"] : null))) == null)))
+        {
+            return;
+        }
+        if (isGrouped)
+        {
+            ccxt.OrderBook parsedSnapshot = this.parseOrderBook(data, symbol, timestamp, "bids", "asks");
+            (orderbook as IOrderBook).reset(ccxt.BaseExchange.FromOrderBook(parsedSnapshot));
         } else
         {
-            object changes = this.safeList(message, "changes", new List<object>() {});
-            this.handleDeltas(orderbook, changes);
+            Int64? previousChangeId = this.safeInteger(data, "prev_change_id");
+            if ((type != "snapshot") && (!(((object)((orderbook != null && orderbook.ContainsKey("nonce") ? orderbook["nonce"] : null))) == null)) && (!isEqual(previousChangeId, (orderbook != null && orderbook.ContainsKey("nonce") ? orderbook["nonce"] : null))))
+            {
+                // drop the stale book and reject only this channels future
+                ((IDictionary<string,object>)this.orderbooks).Remove(symbol);
+                if ((client.subscriptions != null && channel is string inOpKey1 && client.subscriptions.ContainsKey(inOpKey1)))
+                {
+                    ((IDictionary<string,object>)client.subscriptions).Remove(channel);
+                }
+                client.reject(new ExchangeError((this.id + " order book update has a nonce mismatch")), channel);
+                this.spawn(this.resubscribeOrderBook, new object[] { channel});
+                return;
+            }
+            this.handleDeltas(orderbook?.asks, this.safeList(data, "asks", new List<object>() {}));
+            this.handleDeltas(orderbook?.bids, this.safeList(data, "bids", new List<object>() {}));
         }
-        ((IDictionary<string,object>)orderbook)["nonce"] = this.safeInteger(message, "sequence");
-        ((IDictionary<string,object>)orderbook)["datetime"] = datetime;
-        ((IDictionary<string,object>)orderbook)["timestamp"] = this.parse8601(datetime);
+        orderbook["symbol"] = symbol;
+        orderbook["nonce"] = this.safeInteger(data, "change_id");
+        orderbook["timestamp"] = timestamp;
+        orderbook["datetime"] = this.iso8601(timestamp);
         ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
-        callDynamically(client as WebSocketClient, "resolve", new object[] {orderbook, add(add(channel, "::"), symbol)});
-    }
-
-    public override void handleDelta(object orderbook, object delta)
-    {
-        object rawSide = this.safeStringLower(delta, 0);
-        object side = ((bool) isTrue((isEqual(rawSide, "buy")))) ? "bids" : "asks";
-        object price = this.safeFloat(delta, 1);
-        object amount = this.safeFloat(delta, 2);
-        object bookside = getValue(orderbook, side);
-        (bookside as IOrderBookSide).store(price, amount);
-    }
-
-    public override void handleDeltas(object orderbook, object deltas)
-    {
-        for (object i = 0; isLessThan(i, getArrayLength(deltas)); postFixIncrement(ref i))
+        if ((channel != null))
         {
-            this.handleDelta(orderbook, getValue(deltas, i));
+            client.resolve(orderbook, channel);
         }
     }
 
-    public virtual object handleSubscriptionStatus(WebSocketClient client, object message)
+    public async virtual Task resubscribeOrderBook(object channel)
     {
-        //
-        //    {
-        //       "channels": [
-        //           {
-        //               "name": "MATCH",
-        //               "product_ids": [
-        //                   "BTC-PERP",
-        //                   "ETH-PERP"
-        //               ]
-        //           },
-        //           {
-        //               "name": "INSTRUMENTS",
-        //               "product_ids": [
-        //                   "BTC-PERP",
-        //                   "ETH-PERP"
-        //               ]
-        //           }
-        //       ],
-        //       "authenticated": true,
-        //       "channel": "SUBSCRIPTIONS",
-        //       "type": "SNAPSHOT",
-        //       "time": "2023-05-30T16:53:46.847Z"
-        //    }
-        //
-        return message;
-    }
-
-    public virtual void handleFundingRate(WebSocketClient client, object message)
-    {
-        //
-        // snapshot
-        //    {
-        //       "sequence": 0,
-        //       "product_id": "BTC-PERP",
-        //       "time": "2023-05-10T14:58:47.000Z",
-        //       "funding_rate": "0.001387",
-        //       "is_final": true,
-        //       "channel": "FUNDING",
-        //       "type": "SNAPSHOT"
-        //    }
-        // update
-        //    {
-        //       "sequence": 1,
-        //       "product_id": "BTC-PERP",
-        //       "time": "2023-05-10T15:00:00.000Z",
-        //       "funding_rate": "0.001487",
-        //       "is_final": false,
-        //       "channel": "FUNDING",
-        //       "type": "UPDATE"
-        //    }
-        //
-        object channel = this.safeString(message, "channel");
-        object fundingRate = this.parseFundingRate(message);
-        ((IDictionary<string,object>)this.fundingRates)[(string)getValue(fundingRate, "symbol")] = fundingRate;
-        callDynamically(client as WebSocketClient, "resolve", new object[] {fundingRate, add(add(channel, "::"), getValue(fundingRate, "symbol"))});
-    }
-
-    public virtual object handleErrorMessage(WebSocketClient client, object message)
-    {
-        //
-        //    {
-        //        message: 'Failed to subscribe',
-        //        reason: 'Unable to authenticate',
-        //        channel: 'SUBSCRIPTIONS',
-        //        type: 'REJECT'
-        //    }
-        //
-        object type = this.safeString(message, "type");
-        if (isTrue(!isEqual(type, "REJECT")))
+        List<object> channelParts = ((string)channel).Split(new [] {"."}, StringSplitOptions.None).ToList<object>();
+        int channelPartsLength = channelParts.Count;
+        bool isPrivate = (this.safeString(channelParts, (channelPartsLength - 1)) == "raw");
+        object url = this.getWsUrl(isPrivate);
+        if (isPrivate)
         {
-            return false;
+            await this.authenticate();
         }
-        object reason = this.safeString(message, "reason");
-        object errMsg = this.safeString(message, "message");
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "jsonrpc", "2.0" },
+            { "method", isPrivate ? "private/unsubscribe" : "public/unsubscribe" },
+            { "params", new Dictionary<string, object>() {
+                { "channels", new List<object>() {channel} },
+            } },
+            { "id", this.requestId() },
+        };
+        var client = this.client(url);
+        await client.send(request);
+        if ((client.subscriptions != null && channel is string inOpKey0 && client.subscriptions.ContainsKey(inOpKey0)))
+        {
+            ((IDictionary<string,object>)client.subscriptions).Remove((string)channel);
+        }
+        await this.subscribe(new List<object>() {channel}, new List<object>() {channel}, isPrivate, new Dictionary<string, object>() {});
+    }
+
+    public override void handleDelta(object bookside, object delta)
+    {
+        string? action = this.safeString(delta, 0);
+        double? price = this.safeNumber(delta, 1);
+        double? amount = this.safeNumber(delta, 2);
+        if ((action == "new") || (action == "change"))
+        {
+            (bookside as IOrderBookSide).storeArray(new List<object>() {price, amount, 1});
+        } else if (action == "delete")
+        {
+            (bookside as IOrderBookSide).storeArray(new List<object>() {price, amount, 0});
+        }
+    }
+
+    public override void handleDeltas(object bookside, IList<object> deltas)
+    {
+        int deltasLength = deltas?.Count ?? 0;
+        for (int i = 0; i < deltasLength; i++)
+        {
+            this.handleDelta(bookside, (deltas != null && i < deltas.Count ? deltas[i] : null));
+        }
+    }
+
+    public virtual bool? handleErrorMessage(WebSocketClient client, object message)
+    {
+        IDictionary<string, object> error = this.safeDict(message, "error");
+        if ((error == null))
+        {
+            return ((bool?)((object)(false)));
+        }
+        string? errorCode = this.safeString(error, "code");
+        string? errorMessage = this.safeString(error, "message");
+        string feedback = ((this.id + " ") + this.json(message));
         try
         {
-            object feedback = add(add(add(this.id, " "), errMsg), reason);
-            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), reason, feedback);
-            this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), reason, feedback);
-            throw new ExchangeError ((string)feedback) ;
+            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorCode, feedback);
+            this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), errorMessage, feedback);
+            throw new ExchangeError (feedback) ;
         } catch(Exception e)
         {
-            ((WebSocketClient)client).reject(e);
+            string? requestId = this.safeString(message, "id");
+            string? authRequestId = this.safeString(this.options, "wsAuthRequestId");
+            string? messageHash = ((requestId == authRequestId)) ? "authenticated" : requestId;
+            if ((messageHash == "authenticated") && ((client.subscriptions != null && messageHash != null && client.subscriptions.ContainsKey(messageHash))))
+            {
+                // allow the next authenticate () call to retry
+                ((IDictionary<string,object>)client.subscriptions).Remove(messageHash);
+            }
+            client.reject(e, messageHash);
         }
-        return true;
+        return ((bool?)((object)(true)));
+    }
+
+    public async virtual Task handleHeartbeat(WebSocketClient client, Dictionary<string, object> message)
+    {
+        IDictionary<string, object> parameters = this.safeDict(message, "params", new Dictionary<string, object>() {});
+        string? data = this.safeString(parameters, "data");
+        if (data == "test_request")
+        {
+            await client.send(new Dictionary<string, object>() {
+                { "jsonrpc", "2.0" },
+                { "id", this.requestId() },
+                { "method", "public/test" },
+                { "params", new Dictionary<string, object>() {} },
+            });
+        }
     }
 
     public override void handleMessage(WebSocketClient client, object message)
     {
-        if (isTrue(this.handleErrorMessage(client as WebSocketClient, message)))
+        if ((this.handleErrorMessage(client, message) == true))
         {
             return;
         }
-        object channel = this.safeString(message, "channel", "");
-        object methods = new Dictionary<string, object>() {
-            { "SUBSCRIPTIONS", this.handleSubscriptionStatus },
-            { "INSTRUMENTS", this.handleInstrument },
-            { "LEVEL1", this.handleTicker },
-            { "MATCH", this.handleTrade },
-            { "LEVEL2", this.handleOrderBook },
-            { "FUNDING", this.handleFundingRate },
-            { "RISK", this.handleTicker },
+        string? method = this.safeString(message, "method");
+        if (method == "heartbeat")
+        {
+            this.spawn(this.handleHeartbeat, new object[] { client, message});
+            return;
+        }
+        IDictionary<string, object> parameters = this.safeDict(message, "params");
+        string? channel = this.safeString(parameters, "channel");
+        if ((channel != null))
+        {
+            List<object> parts = channel.Split(new [] {"."}, StringSplitOptions.None).ToList<object>();
+            string? channelId = this.safeString(parts, 0);
+            string? userChannel = this.safeString(parts, 1);
+            Dictionary<string, object> userHandlers = new Dictionary<string, object>() {
+                { "portfolio", this.handleBalance },
+                { "trades", this.handleMyTrades },
+                { "orders", this.handleOrders },
+                { "changes", this.handlePositions },
+            };
+            Dictionary<string, object> handlers = new Dictionary<string, object>() {
+                { "ticker", this.handleTicker },
+                { "incremental_ticker", this.handleTicker },
+                { "quote", this.handleBidAsk },
+                { "book", this.handleOrderBook },
+                { "trades", this.handleTrades },
+                { "chart", this.handleOHLCV },
+                { "user", this.safeValue(userHandlers, userChannel) },
+            };
+            object handler = this.safeValue(handlers, channelId);
+            if ((handler == null))
+            {
+                throw new NotSupported (((this.id + " no handler found for websocket channel ") + channel)) ;
+            }
+            DynamicInvoker.InvokeMethod(handler, new object[] { client, message});
+            return;
+        }
+        string? requestId = this.safeString(message, "id");
+        if ((requestId != null))
+        {
+            IDictionary<string, object> result = this.safeDict(message, "result");
+            if ((this.safeString(result, "version") != null))
+            {
+                client.lastPong = this.milliseconds();
+            }
+            string? authRequestId = this.safeString(this.options, "wsAuthRequestId");
+            if ((requestId == authRequestId))
+            {
+                this.handleAuthenticationMessage(client, message);
+                return;
+            }
+            client.resolve(this.safeValue(message, "result", message), requestId);
+        }
+    }
+
+    public virtual void handleAuthenticationMessage(WebSocketClient client, object message)
+    {
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "id": 1,
+        //         "result": {
+        //             "expires_in": 3000,
+        //             "scope": "...",
+        //             "sid": "...",
+        //             "token_type": "bearer"
+        //         }
+        //     }
+        //
+        IDictionary<string, object> result = this.safeDict(message, "result", new Dictionary<string, object>() {});
+        Int64? expiresIn = this.safeInteger(result, "expires_in", 900);
+        double? ratio = this.safeNumber(this.options, "wsAuthRefreshRatio");
+        double? refreshRatio = ((ratio == null)) ? 0.8 : ratio;
+        Int64 now = this.milliseconds();
+        this.options["wsAuthRefreshAt"] = this.sum(now, this.parseToInt(((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))((expiresIn * 1000), refreshRatio)));
+        client.lastPong = now;
+        client.resolve(result, "authenticated");
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name coinbaseinternational#authenticate
+     * @description authenticates the private websocket session
+     * @see https://docs.cdp.coinbase.com/api-reference/authentication/public-auth
+     * @see https://docs.deribit.com/api-reference/authentication/public-auth
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @returns {object} the authentication response
+     */
+    public async virtual Task<object> authenticate(object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object paramsResolved = this.handleRouteAndParams("authenticate", parameters);
+        object url = this.getWsUrl(true);
+        var client = this.client(url);
+        string messageHash = "authenticated";
+        var future = this.safeValue(client.subscriptions, messageHash);
+        if ((future != null))
+        {
+            Int64? refreshAt = this.safeInteger(this.options, "wsAuthRefreshAt");
+            if (((refreshAt != null)) && ((refreshAt == null || this.milliseconds() >= refreshAt)) && !((client.futures != null && client.futures.ContainsKey(messageHash))))
+            {
+                ((IDictionary<string,object>)client.subscriptions).Remove(messageHash);
+                future = null;
+            }
+        }
+        if ((future == null))
+        {
+            this.checkRequiredCredentials();
+            Int64 requestId = this.requestId();
+            this.options["wsAuthRequestId"] = requestId;
+            Dictionary<string, object> paramsAuth = new Dictionary<string, object>() {
+                { "grant_type", "client_credentials" },
+                { "client_id", this.apiKey },
+                { "client_secret", this.secret },
+            };
+            if (!this.isNativeDeribitCredentials())
+            {
+                paramsAuth = new Dictionary<string, object>() {
+                    { "grant_type", "coinbase_cdp" },
+                    { "token", this.createAuthToken(this.seconds(), null, null, this.isEddsaSecret()) },
+                };
+            }
+            Dictionary<string, object> request = new Dictionary<string, object>() {
+                { "jsonrpc", "2.0" },
+                { "id", requestId },
+                { "method", "public/auth" },
+                { "params", paramsAuth },
+            };
+            future = client.reusableFuture(messageHash);
+            this.watch(url, messageHash, this.extend(request, paramsResolved), messageHash);
+            ((IDictionary<string,object>)client.subscriptions)[messageHash] = future;
+        }
+        return await (future as Exchange.Future);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name coinbaseinternational#requestWs
+     * @description sends a websocket JSON-RPC request
+     * @param {string} method exchange JSON-RPC method name
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @param {boolean} [isPrivate] whether to authenticate before sending the request
+     * @returns {object} the exchange response
+     */
+    public async virtual Task<object> requestWs(object method, object parameters = null, object isPrivate = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        isPrivate ??= false;
+        object paramsResolved = this.handleRouteAndParams("requestWs", parameters);
+        object url = this.getWsUrl(true);
+        if (isTrue(isPrivate))
+        {
+            await this.authenticate();
+        }
+        Int64 requestId = this.requestId();
+        string messageHash = requestId.ToString();
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "jsonrpc", "2.0" },
+            { "id", requestId },
+            { "method", method },
+            { "params", paramsResolved },
         };
-        object type = this.safeString(message, "type");
-        if (isTrue(isEqual(type, "error")))
+        return await this.watch(url, messageHash, request, messageHash);
+    }
+
+    /**
+     * @method
+     * @name coinbaseinternational#createOrderWs
+     * @description create a trade order over websocket
+     * @see https://docs.cdp.coinbase.com/api-reference/trading/private-buy
+     * @see https://docs.cdp.coinbase.com/api-reference/trading/private-sell
+     * @see https://docs.deribit.com/api-reference/trading/private-buy
+     * @see https://docs.deribit.com/api-reference/trading/private-sell
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount number of contracts for native Deribit derivatives, otherwise the exchange order amount (base currency for spot)
+     * @param {float} [price] the price at which the order is to be fulfilled
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    public async override Task<ccxt.Order> CreateOrderWs(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object paramsResolved = this.handleRouteAndParams("createOrderWs", parameters);
+        if ((this.markets == null))
         {
-            object errorMessage = this.safeString(message, "message");
-            throw new ExchangeError ((string)((string)errorMessage)) ;
+            await this.loadMarkets();
         }
-        if (isTrue(isGreaterThan(getIndexOf(channel, "CANDLES"), -1)))
+        Dictionary<string, object> market = this.market(symbol);
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "instrument_name", (market.ContainsKey("id") ? market["id"] : null) },
+            { "amount", this.parseNumber(this.getOrderAmount(market, amount)) },
+            { "type", type },
+        };
+        double? triggerPrice = this.safeNumberN(paramsResolved, new List<object>() {"triggerPrice", "stopPrice", "stop_price"});
+        if ((triggerPrice != null))
         {
-            this.handleOHLCV(client as WebSocketClient, message);
+            request["type"] = ((type == "limit")) ? "stop_limit" : "stop_market";
+            request["trigger_price"] = triggerPrice;
         }
-        object method = this.safeValue(methods, channel);
-        if (isTrue(!isEqual(method, null)))
+        if ((type == "limit"))
         {
-            DynamicInvoker.InvokeMethod(method, new object[] { client, message});
+            if ((price == null))
+            {
+                throw new ArgumentsRequired ((this.id + " createOrderWs() requires a price argument for limit orders")) ;
+            }
+            request["price"] = this.parseNumber(this.priceToPrecision(symbol, price));
         }
+        bool? postOnly = this.safeBool2(paramsResolved, "postOnly", "post_only");
+        if (this.isNativeDeribitCredentials())
+        {
+            bool? reduceOnly = this.safeBool2(paramsResolved, "reduceOnly", "reduce_only");
+            if ((reduceOnly != null))
+            {
+                request["reduce_only"] = reduceOnly;
+            }
+        }
+        if ((postOnly != null))
+        {
+            request["post_only"] = postOnly;
+            request["reject_post_only"] = postOnly;
+        }
+        string? timeInForce = this.safeString2(paramsResolved, "timeInForce", "tif");
+        if ((timeInForce != null))
+        {
+            Dictionary<string, object> timeInForces = new Dictionary<string, object>() {
+                { "GTC", "good_til_cancelled" },
+                { "IOC", "immediate_or_cancel" },
+                { "FOK", "fill_or_kill" },
+                { "GTD", "good_til_day" },
+            };
+            request["time_in_force"] = this.safeString(timeInForces, timeInForce, timeInForce);
+        }
+        string? clientOrderId = this.safeString2(paramsResolved, "clientOrderId", "client_order_id");
+        if ((clientOrderId != null))
+        {
+            request["label"] = clientOrderId;
+        } else
+        {
+            string? brokerId = this.safeString(this.options, "brokerId");
+            if ((brokerId != null))
+            {
+                request["label"] = ((brokerId + "-") + this.uuid22());
+            }
+        }
+        object paramsRequest = this.omit(paramsResolved, new List<object>() {"clientOrderId", "client_order_id", "postOnly", "post_only", "timeInForce", "tif", "triggerPrice", "stopPrice", "stop_price"});
+        if (this.isNativeDeribitCredentials())
+        {
+            paramsRequest = this.omit(paramsRequest, new List<object>() {"reduceOnly", "reduce_only"});
+        }
+        object result = await this.requestWs(("private/" + side), this.extend(request, paramsRequest), true);
+        IDictionary<string, object> order = this.safeDict(result, "order", new Dictionary<string, object>() {});
+        order["trades"] = this.safeList(result, "trades", new List<object>() {});
+        return this.parseOrder(order, market);
+    }
+
+    /**
+     * @method
+     * @name coinbaseinternational#editOrderWs
+     * @description edit a trade order over websocket
+     * @see https://docs.cdp.coinbase.com/api-reference/trading/private-edit
+     * @see https://docs.deribit.com/api-reference/trading/private-edit
+     * @param {string} id order id
+     * @param {string} symbol unified market symbol
+     * @param {string} type not used by coinbaseinternational editOrderWs
+     * @param {string} side not used by coinbaseinternational editOrderWs
+     * @param {float} [amount] new order amount, in contracts for native Deribit derivatives
+     * @param {float} [price] new order price
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    public async override Task<ccxt.Order> EditOrderWs(string id, string symbol, string type, string side, double? amount = null, double? price = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object paramsResolved = this.handleRouteAndParams("editOrderWs", parameters);
+        if ((this.markets == null))
+        {
+            await this.loadMarkets();
+        }
+        Dictionary<string, object> market = this.market(symbol);
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "order_id", id },
+        };
+        if ((amount != null))
+        {
+            request["amount"] = this.parseNumber(this.getOrderAmount(market, amount));
+        }
+        if ((price != null))
+        {
+            request["price"] = this.parseNumber(this.priceToPrecision(symbol, price));
+        }
+        double? triggerPrice = this.safeNumberN(paramsResolved, new List<object>() {"triggerPrice", "stopPrice", "stop_price"});
+        if ((triggerPrice != null))
+        {
+            request["trigger_price"] = triggerPrice;
+        }
+        object paramsRequest = this.omit(paramsResolved, new List<object>() {"triggerPrice", "stopPrice", "stop_price"});
+        object result = await this.requestWs("private/edit", this.extend(request, paramsRequest), true);
+        IDictionary<string, object> order = this.safeDict(result, "order", new Dictionary<string, object>() {});
+        order["trades"] = this.safeList(result, "trades", new List<object>() {});
+        return this.parseOrder(order, market);
+    }
+
+    /**
+     * @method
+     * @name coinbaseinternational#cancelOrderWs
+     * @description cancels an open order over websocket
+     * @see https://docs.cdp.coinbase.com/api-reference/trading/private-cancel
+     * @see https://docs.deribit.com/api-reference/trading/private-cancel
+     * @param {string} id order id
+     * @param {string} [symbol] unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    public async override Task<ccxt.Order> CancelOrderWs(string id, string symbol = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object paramsResolved = this.handleRouteAndParams("cancelOrderWs", parameters);
+        if ((this.markets == null))
+        {
+            await this.loadMarkets();
+        }
+        IDictionary<string, object> market = null;
+        if ((symbol != null))
+        {
+            market = this.market(symbol);
+        }
+        object result = await this.requestWs("private/cancel", this.extend(new Dictionary<string, object>() {
+            { "order_id", id },
+        }, paramsResolved), true);
+        return this.parseOrder(result, market);
+    }
+
+    /**
+     * @method
+     * @name coinbaseinternational#cancelAllOrdersWs
+     * @description cancels all open orders over websocket
+     * @see https://docs.cdp.coinbase.com/api-reference/trading/private-cancel_all
+     * @see https://docs.cdp.coinbase.com/api-reference/trading/private-cancel_all_by_instrument
+     * @see https://docs.deribit.com/api-reference/trading/private-cancel_all
+     * @see https://docs.deribit.com/api-reference/trading/private-cancel_all_by_instrument
+     * @param {string} [symbol] unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    public async override Task<List<ccxt.Order>> CancelAllOrdersWs(string symbol = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object paramsResolved = this.handleRouteAndParams("cancelAllOrdersWs", parameters);
+        string method = "private/cancel_all";
+        object paramsRequest = paramsResolved;
+        if ((symbol != null))
+        {
+            if ((this.markets == null))
+            {
+                await this.loadMarkets();
+            }
+            Dictionary<string, object> market = this.market(symbol);
+            paramsRequest = this.extend(new Dictionary<string, object>() {
+                { "instrument_name", (market.ContainsKey("id") ? market["id"] : null) },
+            }, paramsResolved);
+            method = "private/cancel_all_by_instrument";
+        }
+        object result = await this.requestWs(method, paramsRequest, true);
+        return ccxt.BaseExchange.ToOrderList(new List<object> {ccxt.BaseExchange.FromOrder(this.safeOrder(new Dictionary<string, object>() {     { "info", result }, }))});
+    }
+
+    /**
+     * @method
+     * @name coinbaseinternational#fetchOrderWs
+     * @description fetches an order over websocket
+     * @see https://docs.cdp.coinbase.com/api-reference/trading/private-get_order_state
+     * @see https://docs.deribit.com/api-reference/trading/private-get_order_state
+     * @param {string} id order id
+     * @param {string} [symbol] unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    public async override Task<ccxt.Order> FetchOrderWs(string id, string symbol = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object paramsResolved = this.handleRouteAndParams("fetchOrderWs", parameters);
+        IDictionary<string, object> market = null;
+        if ((symbol != null))
+        {
+            if ((this.markets == null))
+            {
+                await this.loadMarkets();
+            }
+            market = this.market(symbol);
+        }
+        object result = await this.requestWs("private/get_order_state", this.extend(new Dictionary<string, object>() {
+            { "order_id", id },
+        }, paramsResolved), true);
+        return this.parseOrder(result, market);
+    }
+
+    /**
+     * @method
+     * @name coinbaseinternational#fetchOpenOrdersWs
+     * @description fetches open orders over websocket
+     * @see https://docs.cdp.coinbase.com/api-reference/trading/private-get_open_orders_by_instrument
+     * @see https://docs.deribit.com/api-reference/trading/private-get_open_orders_by_instrument
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] timestamp in ms of the earliest order
+     * @param {int} [limit] the maximum number of orders to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    public async override Task<List<ccxt.Order>> FetchOpenOrdersWs(string symbol = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object paramsResolved = this.handleRouteAndParams("fetchOpenOrdersWs", parameters);
+        if ((symbol == null))
+        {
+            throw new ArgumentsRequired ((this.id + " fetchOpenOrdersWs() requires a symbol argument")) ;
+        }
+        if ((this.markets == null))
+        {
+            await this.loadMarkets();
+        }
+        Dictionary<string, object> market = this.market(symbol);
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "instrument_name", (market.ContainsKey("id") ? market["id"] : null) },
+        };
+        if ((limit != null))
+        {
+            request["count"] = limit;
+        }
+        object result = await this.requestWs("private/get_open_orders_by_instrument", this.extend(request, paramsResolved), true);
+        return this.parseOrders(result, market, since, limit);
+    }
+
+    /**
+     * @method
+     * @name coinbaseinternational#fetchOrdersWs
+     * @description fetches order history over websocket
+     * @see https://docs.cdp.coinbase.com/api-reference/trading/private-get_order_history_by_instrument
+     * @see https://docs.deribit.com/api-reference/trading/private-get_order_history_by_instrument
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] timestamp in ms of the earliest order
+     * @param {int} [limit] the maximum number of orders to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    public async override Task<List<ccxt.Order>> FetchOrdersWs(string symbol = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object paramsResolved = this.handleRouteAndParams("fetchOrdersWs", parameters);
+        if ((symbol == null))
+        {
+            throw new ArgumentsRequired ((this.id + " fetchOrdersWs() requires a symbol argument")) ;
+        }
+        if ((this.markets == null))
+        {
+            await this.loadMarkets();
+        }
+        Dictionary<string, object> market = this.market(symbol);
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "instrument_name", (market.ContainsKey("id") ? market["id"] : null) },
+        };
+        if ((limit != null))
+        {
+            request["count"] = limit;
+        }
+        object result = await this.requestWs("private/get_order_history_by_instrument", this.extend(request, paramsResolved), true);
+        List<object> orders = this.safeList(result, "orders", result);
+        return this.parseOrders(orders, market, since, limit);
+    }
+
+    /**
+     * @method
+     * @name coinbaseinternational#fetchBalanceWs
+     * @description fetches the balance over websocket
+     * @see https://docs.cdp.coinbase.com/api-reference/account-management/private-get_account_summaries
+     * @see https://docs.deribit.com/api-reference/account-management/private-get_account_summaries
+     * @see https://docs.deribit.com/api-reference/account-management/private-get_account_summary
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
+    public async override Task<ccxt.Balances> FetchBalanceWs(object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object paramsResolved = this.handleRouteAndParams("fetchBalanceWs", parameters);
+        object result = await this.requestWs("private/get_account_summaries", paramsResolved, true);
+        List<object> summaries = this.safeList(result, "summaries", new List<object>() {});
+        Dictionary<string, object> balance = new Dictionary<string, object>() {
+            { "info", result },
+        };
+        int summariesLength = summaries.Count;
+        for (int i = 0; i < summariesLength; i++)
+        {
+            balance = this.deepExtend(balance, this.parseBalance((summaries != null && i < summaries.Count ? summaries[i] : null)));
+        }
+        return ccxt.BaseExchange.ToBalances(this.safeBalance(balance));
+    }
+
+    /**
+     * @method
+     * @name coinbaseinternational#fetchMyTradesWs
+     * @description fetches user trades over websocket
+     * @see https://docs.cdp.coinbase.com/api-reference/trading/private-get_user_trades_by_instrument
+     * @see https://docs.deribit.com/api-reference/trading/private-get_user_trades_by_instrument
+     * @see https://docs.deribit.com/api-reference/trading/private-get_user_trades_by_instrument_and_time
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] timestamp in ms of the earliest trade
+     * @param {int} [limit] the maximum number of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
+    public async override Task<List<ccxt.Trade>> FetchMyTradesWs(string symbol = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object paramsResolved = this.handleRouteAndParams("fetchMyTradesWs", parameters);
+        if ((symbol == null))
+        {
+            throw new ArgumentsRequired ((this.id + " fetchMyTradesWs() requires a symbol argument")) ;
+        }
+        if ((this.markets == null))
+        {
+            await this.loadMarkets();
+        }
+        Dictionary<string, object> market = this.market(symbol);
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "instrument_name", (market.ContainsKey("id") ? market["id"] : null) },
+            { "include_old", true },
+        };
+        if ((limit != null))
+        {
+            request["count"] = limit;
+        }
+        object result = await this.requestWs("private/get_user_trades_by_instrument", this.extend(request, paramsResolved), true);
+        List<object> trades = this.safeList(result, "trades", new List<object>() {});
+        return this.parseTrades(trades, market, since, limit);
+    }
+
+    /**
+     * @method
+     * @name coinbaseinternational#fetchPositionsWs
+     * @description fetches open positions over websocket
+     * @see https://docs.cdp.coinbase.com/api-reference/account-management/private-get_positions
+     * @see https://docs.deribit.com/api-reference/account-management/private-get_positions
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
+    public async override Task<List<ccxt.Position>> FetchPositionsWs(IList<object> symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object paramsResolved = this.handleRouteAndParams("fetchPositionsWs", parameters);
+        if ((this.markets == null))
+        {
+            await this.loadMarkets();
+        }
+        IList<object> symbolsResolved = this.marketSymbols(symbols);
+        object result = await this.requestWs("private/get_positions", paramsResolved, true);
+        IList<object> positions = this.parsePositions(result);
+        return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(positions, "symbol", symbolsResolved));
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name coinbaseinternational#setHeartbeat
+     * @description enables heartbeat messages for the private websocket connection
+     * @see https://docs.cdp.coinbase.com/api-reference/session-management/public-set_heartbeat
+     * @see https://docs.deribit.com/api-reference/session-management/public-set_heartbeat
+     * @param {int} [interval] heartbeat interval in seconds, minimum 10
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @returns {object} the exchange response
+     */
+    public async virtual Task<object> setHeartbeat(object interval = null, object parameters = null)
+    {
+        interval ??= 30;
+        parameters ??= new Dictionary<string, object>();
+        object paramsResolved = this.handleRouteAndParams("setHeartbeat", parameters);
+        Dictionary<string, object> request = this.extend(new Dictionary<string, object>() {
+            { "interval", interval },
+        }, paramsResolved);
+        return await this.requestWs("public/set_heartbeat", request);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name coinbaseinternational#disableHeartbeat
+     * @description disables heartbeat messages for the private websocket connection
+     * @see https://docs.cdp.coinbase.com/api-reference/session-management/public-disable_heartbeat
+     * @see https://docs.deribit.com/api-reference/session-management/public-disable_heartbeat
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @returns {object} the exchange response
+     */
+    public async virtual Task<object> disableHeartbeat(object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object paramsResolved = this.handleRouteAndParams("disableHeartbeat", parameters);
+        return await this.requestWs("public/disable_heartbeat", paramsResolved);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name coinbaseinternational#setCancelOnDisconnect
+     * @description enables or disables cancel on disconnect
+     * @see https://docs.cdp.coinbase.com/api-reference/session-management/private-enable_cancel_on_disconnect
+     * @see https://docs.cdp.coinbase.com/api-reference/session-management/private-disable_cancel_on_disconnect
+     * @see https://docs.deribit.com/api-reference/session-management/private-enable_cancel_on_disconnect
+     * @see https://docs.deribit.com/api-reference/session-management/private-disable_cancel_on_disconnect
+     * @param {bool} enabled whether cancel on disconnect should be enabled
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @param {string} [params.scope] connection or account, default connection
+     * @returns {object} the exchange response
+     */
+    public async virtual Task<object> setCancelOnDisconnect(object enabled, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object paramsResolved = this.handleRouteAndParams("setCancelOnDisconnect", parameters);
+        string method = ((enabled is true)) ? "private/enable_cancel_on_disconnect" : "private/disable_cancel_on_disconnect";
+        return await this.requestWs(method, paramsResolved, true);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name coinbaseinternational#getCancelOnDisconnect
+     * @description gets the cancel on disconnect configuration
+     * @see https://docs.cdp.coinbase.com/api-reference/session-management/private-get_cancel_on_disconnect
+     * @see https://docs.deribit.com/api-reference/session-management/private-get_cancel_on_disconnect
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @param {string} [params.scope] connection or account, default connection
+     * @returns {object} the exchange response
+     */
+    public async virtual Task<object> getCancelOnDisconnect(object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object paramsResolved = this.handleRouteAndParams("getCancelOnDisconnect", parameters);
+        return await this.requestWs("private/get_cancel_on_disconnect", paramsResolved, true);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name coinbaseinternational#unsubscribeAllWs
+     * @description unsubscribes from all websocket channels
+     * @see https://docs.cdp.coinbase.com/api-reference/subscription-management/public-unsubscribe_all
+     * @see https://docs.cdp.coinbase.com/api-reference/subscription-management/private-unsubscribe_all
+     * @see https://docs.deribit.com/api-reference/subscription-management/private-unsubscribe_all
+     * @see https://docs.deribit.com/api-reference/subscription-management/public-unsubscribe_all
+     * @param {bool} [isPrivate] whether to unsubscribe from private channels
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @returns {object} the exchange response
+     */
+    public async virtual Task<object> unsubscribeAllWs(object isPrivate = null, object parameters = null)
+    {
+        isPrivate ??= false;
+        parameters ??= new Dictionary<string, object>();
+        object paramsResolved = this.handleRouteAndParams("unsubscribeAllWs", parameters);
+        string method = isTrue(isPrivate) ? "private/unsubscribe_all" : "public/unsubscribe_all";
+        return await this.requestWs(method, paramsResolved, isPrivate);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name coinbaseinternational#logoutWs
+     * @description gracefully logs out of the private websocket session
+     * @see https://docs.cdp.coinbase.com/api-reference/authentication/private-logout
+     * @see https://docs.deribit.com/api-reference/authentication/private-logout
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @param {bool} [params.invalidate_token] whether to invalidate session tokens, default true
+     * @returns {object} the exchange response
+     */
+    public async virtual Task<object> logoutWs(object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object paramsResolved = this.handleRouteAndParams("logoutWs", parameters);
+        await this.authenticate();
+        object url = this.getWsUrl(true);
+        var client = this.client(url);
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "jsonrpc", "2.0" },
+            { "id", this.requestId() },
+            { "method", "private/logout" },
+            { "params", paramsResolved },
+        };
+        await client.send(request);
+        return null;
     }
 }

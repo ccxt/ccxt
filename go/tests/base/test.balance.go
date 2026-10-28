@@ -6,7 +6,7 @@ import "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 func TestBalance(exchange ccxt.ICoreExchange, skippedProperties any, method any, entry any) {
-	var format any = map[string]any{
+	var format map[string]any = map[string]any{
 		"free":  map[string]any{},
 		"used":  map[string]any{},
 		"total": map[string]any{},
@@ -15,34 +15,34 @@ func TestBalance(exchange ccxt.ICoreExchange, skippedProperties any, method any,
 	AssertStructure(exchange, skippedProperties, method, entry, format)
 	var logText any = LogTemplate(exchange, method, entry)
 	//
-	var codesTotal any = ObjectKeys(GetValue(entry, "total"))
-	var codesFree any = ObjectKeys(GetValue(entry, "free"))
-	var codesUsed any = ObjectKeys(GetValue(entry, "used"))
+	var codesTotal []string = ObjectKeys(GetValue(entry, "total"))
+	var codesFree []string = ObjectKeys(GetValue(entry, "free"))
+	var codesUsed []string = ObjectKeys(GetValue(entry, "used"))
 	AssertNonEmtpyArray(exchange, skippedProperties, method, codesTotal, "total")
 	AssertNonEmtpyArray(exchange, skippedProperties, method, codesFree, "free")
 	AssertNonEmtpyArray(exchange, skippedProperties, method, codesUsed, "used")
 	var allCodes any = exchange.ArrayConcat(codesTotal, codesFree)
 	allCodes = exchange.ArrayConcat(allCodes, codesUsed)
-	var codesLength any = GetArrayLength(codesTotal)
-	var freeLength any = GetArrayLength(codesFree)
-	var usedLength any = GetArrayLength(codesUsed)
-	Assert(IsTrue((IsEqual(codesLength, freeLength))) || IsTrue((IsEqual(codesLength, usedLength))), Add("free and total and used codes have different lengths", logText))
-	for i := 0; IsLessThan(i, GetArrayLength(allCodes)); i++ {
+	var codesLength int = len(codesTotal)
+	var freeLength int = len(codesFree)
+	var usedLength int = len(codesUsed)
+	Assert((codesLength == freeLength) || (codesLength == usedLength), Add("free and total and used codes have different lengths", logText))
+	for i := 0; i < GetArrayLength(allCodes); i++ {
 		var code any = GetValue(allCodes, i)
 		// AssertCurrencyCode (exchange, skippedProperties, method, entry, code);
 		Assert(InOp(GetValue(entry, "total"), code), Add(Add(Add("code ", code), " not in total"), logText))
 		Assert(InOp(GetValue(entry, "free"), code), Add(Add(Add("code ", code), " not in free"), logText))
 		Assert(InOp(GetValue(entry, "used"), code), Add(Add(Add("code ", code), " not in used"), logText))
-		var total any = exchange.SafeString(GetValue(entry, "total"), code)
-		var free any = exchange.SafeString(GetValue(entry, "free"), code)
-		var used any = exchange.SafeString(GetValue(entry, "used"), code)
-		Assert(!IsEqual(total, nil), Add("total is undefined", logText))
-		Assert(!IsEqual(free, nil), Add("free is undefined", logText))
-		Assert(!IsEqual(used, nil), Add("used is undefined", logText))
+		var total any = ccxt.DerefScalar(exchange.SafeString(GetValue(entry, "total"), code))
+		var free any = ccxt.DerefScalar(exchange.SafeString(GetValue(entry, "free"), code))
+		var used any = ccxt.DerefScalar(exchange.SafeString(GetValue(entry, "used"), code))
+		Assert((total != nil), Add("total is undefined", logText))
+		Assert((free != nil), Add("free is undefined", logText))
+		Assert((used != nil), Add("used is undefined", logText))
 		Assert(ccxt.Precise.StringGe(total, "0"), Add("total is not positive", logText))
 		Assert(ccxt.Precise.StringGe(free, "0"), Add("free is not positive", logText))
 		Assert(ccxt.Precise.StringGe(used, "0"), Add("used is not positive", logText))
-		var sumFreeUsed any = ccxt.Precise.StringAdd(free, used)
+		var sumFreeUsed *string = ccxt.Precise.StringAdd(free, used)
 		Assert(ccxt.Precise.StringEq(total, sumFreeUsed), Add("free and used do not sum to total", logText))
 	}
 }

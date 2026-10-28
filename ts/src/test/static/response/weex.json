@@ -3,6 +3,51 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "fetchFundingHistory": [
+            {
+                "description": "fetch funding history",
+                "method": "fetchFundingHistory",
+                "input": [],
+                "httpResponse": {
+                    "hasNextPage": false,
+                    "items": [
+                        {
+                            "billId": "793622764958253481",
+                            "asset": "USDT",
+                            "symbol": "VIRTUALUSDT",
+                            "income": "0.00000378",
+                            "incomeType": "position_funding",
+                            "balance": "29.36239410",
+                            "fillFee": "0",
+                            "time": "1789214411964",
+                            "transferReason": "UNKNOWN_TRANSFER_REASON"
+                        }
+                    ],
+                    "nextKey": null
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "billId": "793622764958253481",
+                            "asset": "USDT",
+                            "symbol": "VIRTUALUSDT",
+                            "income": "0.00000378",
+                            "incomeType": "position_funding",
+                            "balance": "29.36239410",
+                            "fillFee": "0",
+                            "time": "1789214411964",
+                            "transferReason": "UNKNOWN_TRANSFER_REASON"
+                        },
+                        "symbol": "VIRTUAL/USDT:USDT",
+                        "code": "USDT",
+                        "timestamp": 1789214411964,
+                        "datetime": "2026-09-12T12:00:11.964Z",
+                        "id": "793622764958253481",
+                        "amount": 0.00000378
+                    }
+                ]
+            }
+        ],
         "fetchCurrencies": [
             {
                 "description": "default",
@@ -1106,6 +1151,7 @@
                         "leverage": null,
                         "unrealizedPnl": null,
                         "realizedPnl": null,
+                        "positionMargin": null,
                         "collateral": null,
                         "entryPrice": null,
                         "markPrice": null,
@@ -1187,6 +1233,7 @@
                         "leverage": 20,
                         "unrealizedPnl": 0.06012,
                         "realizedPnl": null,
+                        "positionMargin": null,
                         "collateral": null,
                         "entryPrice": 2279.56,
                         "markPrice": null,
@@ -1196,7 +1243,7 @@
                         "maintenanceMargin": null,
                         "maintenanceMarginPercentage": null,
                         "initialMargin": 4.107,
-                        "initialMarginPercentage": null,
+                        "initialMarginPercentage": 0.050046207747694,
                         "marginRatio": null,
                         "lastUpdateTimestamp": 1778676309365,
                         "lastPrice": null,
@@ -2684,6 +2731,247 @@
         ],
         "fetchOHLCV": [
             {
+                "description": "fetch swap ohlcv with until only routes to historyKlines, startTime is until minus limit candles",
+                "method": "fetchOHLCV",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "1h",
+                    null,
+                    5,
+                    {
+                        "until": 1761018000000
+                    }
+                ],
+                "httpResponse": [
+                    [
+                        1761015600000,
+                        "3929.70",
+                        "3941.85",
+                        "3917.98",
+                        "3921.40",
+                        "29371.012",
+                        1761019200000,
+                        "115393312.36586",
+                        22295,
+                        "12119.303",
+                        "47617960.35641"
+                    ],
+                    [
+                        1761012000000,
+                        "3946.55",
+                        "3949.49",
+                        "3922.99",
+                        "3929.70",
+                        "56066.020",
+                        1761015600000,
+                        "220602508.32302",
+                        24382,
+                        "29913.993",
+                        "117703675.55641"
+                    ],
+                    [
+                        1761008400000,
+                        "3970.49",
+                        "3972.44",
+                        "3932.99",
+                        "3946.55",
+                        "60741.708",
+                        1761012000000,
+                        "239996557.87082",
+                        25997,
+                        "34990.250",
+                        "138216933.68159"
+                    ],
+                    [
+                        1761004800000,
+                        "3977.53",
+                        "3984.67",
+                        "3960.59",
+                        "3970.49",
+                        "25707.923",
+                        1761008400000,
+                        "102125937.77549",
+                        20753,
+                        "14543.549",
+                        "57761907.88535"
+                    ],
+                    [
+                        1761001200000,
+                        "3986.99",
+                        "3992.06",
+                        "3973.86",
+                        "3977.53",
+                        "16782.062",
+                        1761004800000,
+                        "66806562.93967",
+                        19234,
+                        "9809.994",
+                        "39048024.84992"
+                    ]
+                ],
+                "parsedResponse": [
+                    [
+                        1761001200000,
+                        3986.99,
+                        3992.06,
+                        3973.86,
+                        3977.53,
+                        16782.062
+                    ],
+                    [
+                        1761004800000,
+                        3977.53,
+                        3984.67,
+                        3960.59,
+                        3970.49,
+                        25707.923
+                    ],
+                    [
+                        1761008400000,
+                        3970.49,
+                        3972.44,
+                        3932.99,
+                        3946.55,
+                        60741.708
+                    ],
+                    [
+                        1761012000000,
+                        3946.55,
+                        3949.49,
+                        3922.99,
+                        3929.7,
+                        56066.02
+                    ],
+                    [
+                        1761015600000,
+                        3929.7,
+                        3941.85,
+                        3917.98,
+                        3921.4,
+                        29371.012
+                    ]
+                ]
+            },
+            {
+                "description": "fetch swap ohlcv with since routes to historyKlines, endTime is since plus limit candles",
+                "method": "fetchOHLCV",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "1h",
+                    1761000000000,
+                    5
+                ],
+                "httpResponse": [
+                    [
+                        1761015600000,
+                        "3929.70",
+                        "3941.85",
+                        "3917.98",
+                        "3921.40",
+                        "29371.012",
+                        1761019200000,
+                        "115393312.36586",
+                        22295,
+                        "12119.303",
+                        "47617960.35641"
+                    ],
+                    [
+                        1761012000000,
+                        "3946.55",
+                        "3949.49",
+                        "3922.99",
+                        "3929.70",
+                        "56066.020",
+                        1761015600000,
+                        "220602508.32302",
+                        24382,
+                        "29913.993",
+                        "117703675.55641"
+                    ],
+                    [
+                        1761008400000,
+                        "3970.49",
+                        "3972.44",
+                        "3932.99",
+                        "3946.55",
+                        "60741.708",
+                        1761012000000,
+                        "239996557.87082",
+                        25997,
+                        "34990.250",
+                        "138216933.68159"
+                    ],
+                    [
+                        1761004800000,
+                        "3977.53",
+                        "3984.67",
+                        "3960.59",
+                        "3970.49",
+                        "25707.923",
+                        1761008400000,
+                        "102125937.77549",
+                        20753,
+                        "14543.549",
+                        "57761907.88535"
+                    ],
+                    [
+                        1761001200000,
+                        "3986.99",
+                        "3992.06",
+                        "3973.86",
+                        "3977.53",
+                        "16782.062",
+                        1761004800000,
+                        "66806562.93967",
+                        19234,
+                        "9809.994",
+                        "39048024.84992"
+                    ]
+                ],
+                "parsedResponse": [
+                    [
+                        1761001200000,
+                        3986.99,
+                        3992.06,
+                        3973.86,
+                        3977.53,
+                        16782.062
+                    ],
+                    [
+                        1761004800000,
+                        3977.53,
+                        3984.67,
+                        3960.59,
+                        3970.49,
+                        25707.923
+                    ],
+                    [
+                        1761008400000,
+                        3970.49,
+                        3972.44,
+                        3932.99,
+                        3946.55,
+                        60741.708
+                    ],
+                    [
+                        1761012000000,
+                        3946.55,
+                        3949.49,
+                        3922.99,
+                        3929.7,
+                        56066.02
+                    ],
+                    [
+                        1761015600000,
+                        3929.7,
+                        3941.85,
+                        3917.98,
+                        3921.4,
+                        29371.012
+                    ]
+                ]
+            },
+            {
                 "description": "fetch swap ohlcv",
                 "method": "fetchOHLCV",
                 "input": [
@@ -3888,6 +4176,7 @@
                         "leverage": 20,
                         "unrealizedPnl": 0.06012,
                         "realizedPnl": null,
+                        "positionMargin": null,
                         "collateral": null,
                         "entryPrice": 2279.56,
                         "markPrice": null,
@@ -3897,7 +4186,7 @@
                         "maintenanceMargin": null,
                         "maintenanceMarginPercentage": null,
                         "initialMargin": 4.107,
-                        "initialMarginPercentage": null,
+                        "initialMarginPercentage": 0.050046207747694,
                         "marginRatio": null,
                         "lastUpdateTimestamp": 1778676309365,
                         "lastPrice": null,

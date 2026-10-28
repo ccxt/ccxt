@@ -21,7 +21,6 @@ function testNumberToBE () {
     const expectedBase64 = exchange.binaryToBase64 (expectedBinary1);
     assert (resultBase64 === expectedBase64, 'Expected base64: ' + expectedBase64 + ', got: ' + resultBase64);
 
-
     // 0 with 1-byte padding => 0x00
     const result2 = exchange.numberToBE (0, 1);
     assert (exchange.isBinaryMessage (result2));

@@ -71,6 +71,8 @@ Int = int | None
 Bool = bool | None
 MarketType = Literal['spot', 'margin', 'swap', 'future', 'option']
 SubType = Literal['linear', 'inverse']
+DefaultType = Literal['spot', 'margin', 'option', 'swap', 'future']
+DefaultSubType = Literal['linear', 'inverse']
 
 
 class FeeInterface(TypedDict):
@@ -89,6 +91,7 @@ class TradingFeeInterface(TypedDict):
     taker: Num
     percentage: Bool
     tierBased: Bool
+    tiers: dict[str, Any]
 
 
 class DepositWithdrawFeeNetwork(TypedDict):
@@ -96,11 +99,16 @@ class DepositWithdrawFeeNetwork(TypedDict):
     percentage: NotRequired[Bool]
 
 
+class DepositWithdrawFeeNetworkEntry(TypedDict):
+    deposit: NotRequired[DepositWithdrawFeeNetwork]
+    withdraw: NotRequired[DepositWithdrawFeeNetwork]
+
+
 class DepositWithdrawFee(TypedDict):
     info: dict[str, Any]
     withdraw: NotRequired[DepositWithdrawFeeNetwork]
     deposit: NotRequired[DepositWithdrawFeeNetwork]
-    networks: NotRequired[dict[str, DepositWithdrawFeeNetwork]]
+    networks: NotRequired[dict[str, DepositWithdrawFeeNetworkEntry]]
 
 
 class Balance(TypedDict):
@@ -124,6 +132,7 @@ class Account(TypedDict):
     type: Str
     code: Str
     info: dict[str, Any]
+    name: Str
 
 
 class Trade(TypedDict):
@@ -140,6 +149,7 @@ class Trade(TypedDict):
     takerOrMaker: Str
     cost: Num
     fee: Fee
+    fees: list[Fee]
 
 
 class Position(TypedDict):
@@ -155,6 +165,7 @@ class Position(TypedDict):
     leverage: Num
     unrealizedPnl: Num
     realizedPnl: Num
+    positionMargin: Num
     collateral: Num
     entryPrice: Num
     markPrice: Num
@@ -171,6 +182,8 @@ class Position(TypedDict):
     stopLossPrice: Num
     takeProfitPrice: Num
     percentage: Num
+    isolated: Bool
+    exitPrice: Num
 
 class OrderRequest(TypedDict):
     symbol: str
@@ -221,8 +234,12 @@ class Order(TypedDict):
     cost: Num
     trades: list[Trade]
     fee: Fee
+    fees: list[Fee]
     reduceOnly: Bool
     postOnly: Bool
+    marginMode: Str
+    leverage: Num
+    hedged: Bool
     info: dict[str, Any]
 
 
@@ -247,6 +264,8 @@ class FundingHistory(TypedDict):
     datetime: Str
     id: Str
     amount: Num
+    rate: Num
+    type: Str
 
 
 class Balances(dict[str, Balance]):
@@ -255,6 +274,15 @@ class Balances(dict[str, Balance]):
 
 
 class OrderBook(TypedDict):
+    asks: list[list[Num]]
+    bids: list[list[Num]]
+    datetime: Str
+    timestamp: Int
+    nonce: Int
+    symbol: Str
+
+
+class OrderBookL3(TypedDict):
     asks: list[list[Num]]
     bids: list[list[Num]]
     datetime: Str
@@ -371,6 +399,9 @@ class Greeks(TypedDict):
     info: dict[str, Any]
 
 
+AllGreeks = dict[str, Greeks]
+
+
 class Conversion(TypedDict):
     info: dict[str, Any]
     timestamp: Int
@@ -426,6 +457,8 @@ class Precision(TypedDict):
     amount: Num
     price: Num
     cost: Num
+    base: Num
+    quote: Num
 
 
 class MarketInterface(TypedDict):
@@ -446,6 +479,7 @@ class MarketInterface(TypedDict):
     swap: Bool
     future: Bool
     option: Bool
+    index: Bool
     stock: Bool
     prediction: Bool
     contract: Bool
@@ -468,7 +502,17 @@ class MarketInterface(TypedDict):
     marginModes: MarketMarginModes
     limits: MarketLimits
     created: Int
+    baseName: Str
+    id2: Str
+    instIdCode: Int
+    tiers: dict[str, Any]
     info: dict[str, Any]
+    market: Str
+    marketType: Str
+    executionModel: Str
+    collateral: Str
+    resolved: Bool
+    resolvedOutcome: Str
     outcomes: list['PredictionOutcome']
 
 class Limit(TypedDict):
@@ -495,6 +539,8 @@ class CurrencyInterface(TypedDict):
     fee: Num
     limits: CurrencyLimits
     networks: dict[str, Any]
+    fees: dict[str, Any]
+    valueScale: Int
     info: dict[str, Any]
 
 
@@ -636,6 +682,10 @@ class DepositAddress(TypedDict):
     network: Str
     address: Str
     tag: Str
+    note: Str
+
+
+DepositAddresses = dict[str, DepositAddress]
 
 
 class LongShortRatio(TypedDict):
@@ -703,6 +753,8 @@ class PredictionOutcome(TypedDict):
     winner: Bool         # resolved True (the settleFraction == 1 case)
     settleFraction: Num  # 0..1 fractional settlement
     precision: Precision  # outcome-level price/amount precision
+    id: Str
+    negRisk: Bool
 
 
 class PredictionMarket(TypedDict):
@@ -737,6 +789,33 @@ class PredictionMarket(TypedDict):
     fees: PredictionFees
     resolutionSource: Str
     image: Str
+    base: Str
+    quote: Str
+    settle: Str
+    baseId: Str
+    quoteId: Str
+    settleId: Str
+    type: Str
+    spot: Bool
+    margin: Bool
+    swap: Bool
+    future: Bool
+    option: Bool
+    prediction: Bool
+    contract: Bool
+    linear: Bool
+    inverse: Bool
+    contractSize: Num
+    expiry: Int
+    expiryDatetime: Str
+    strike: Num
+    optionType: Str
+    taker: Num
+    maker: Num
+    percentage: Bool
+    tierBased: Bool
+    feeSide: Str
+    precision: Precision
 
 
 class PredictionEvent(TypedDict):
@@ -760,6 +839,9 @@ class PredictionEvent(TypedDict):
     endDatetime: Str
     image: Str
     url: Str
+    resolutionSource: Str
+    lastUpdatedAt: Int
+    lastUpdatedAtDatetime: Str
 
 
 # Native dedicated prediction-market trading types. They inherit their base unified

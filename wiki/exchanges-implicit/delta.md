@@ -1,6 +1,6 @@
 Every endpoint in `delta`'s `api` definition is exposed as an **implicit method** — a thin, generated wrapper around the raw exchange endpoint. Use these for exchange-specific functionality the [CCXT API](/docs/exchanges/delta) does not cover.
 
-These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C#, Go and Java. Call them by the camelCase name shown in the tables below (e.g. `publicGetAssets`); the snake_case alias (`public_get_assets`) also works in JavaScript, Python and PHP, and Go uses the PascalCase form (`PublicGetAssets`). Switch tabs for the call in each language:
+These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C#, Go and Java. Call them by the camelCase name shown in the tables below (e.g. `publicGetAssets`); Python and PHP use the snake_case form (`public_get_assets`), and Go uses the PascalCase form (`PublicGetAssets`). Switch tabs for the call in each language:
 
 <!-- tabs:start -->
 
@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official delta API documentation:** [docs.delta.exchange](https://docs.delta.exchange)
 
-> 52 implicit endpoints across 2 access groups.
+> 53 implicit endpoints across 2 access groups.
 
 ## public
 
@@ -119,6 +119,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privatePutUsersUpdateMmp` | PUT | `users/update_mmp` | 1 |
 | `privatePutUsersResetMmp` | PUT | `users/reset_mmp` | 1 |
 | `privatePutUsersMarginMode` | PUT | `users/margin_mode` | 1 |
+| `privatePutUsersTradingPreferences` | PUT | `users/trading_preferences` | 1 |
 | `privateDeleteOrders` | DELETE | `orders` | 1 |
 | `privateDeleteOrdersAll` | DELETE | `orders/all` | 1 |
 | `privateDeleteOrdersBatch` | DELETE | `orders/batch` | 1 |

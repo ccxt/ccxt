@@ -9,21 +9,48 @@ import (
 	"io/ioutil"
 	"mime/multipart"
 	"net/http"
+	"sort"
 	"strings"
 )
 
-func (this *BaseExchange) Fetch(url any, method any, headers any, body any) chan any {
-	ch := make(chan any)
+// mockBodyForUrl picks the response-test body whose url fragment the request url
+// contains. Map iteration is unordered, so the no-match fallback sorts the
+// fragments and takes the first for a deterministic result.
+func mockBodyForUrl(responsesByUrl any, url any) any {
+	byUrl, ok := responsesByUrl.(map[string]any)
+	if !ok {
+		return responsesByUrl
+	}
+	urlStr, _ := url.(string)
+	fragments := make([]string, 0, len(byUrl))
+	for fragment := range byUrl {
+		fragments = append(fragments, fragment)
+	}
+	sort.Strings(fragments)
+	for _, fragment := range fragments {
+		if strings.Contains(urlStr, fragment) {
+			return byUrl[fragment]
+		}
+	}
+	if len(fragments) > 0 {
+		return byUrl[fragments[0]]
+	}
+	return nil
+}
+
+func (this *BaseExchange) FetchAsync(url any, method any, headers any, body any) chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any])
 	go func() {
 		defer close(ch)
-		defer func() {
-			if r := recover(); r != nil {
-				ch <- "panic:" + ToString(r)
-			}
-		}()
+		defer ReturnPanicError(ch)
+
+		if this.FetchResponseByUrl != nil {
+			ch <- AsyncResult[any]{Value: mockBodyForUrl(this.FetchResponseByUrl, url)}
+			return
+		}
 
 		if this.FetchResponse != nil {
-			ch <- this.FetchResponse
+			ch <- AsyncResult[any]{Value: this.FetchResponse}
 			return
 		}
 		this.UpdateProxySettings() // for now this needs to be here
@@ -41,14 +68,20 @@ func (this *BaseExchange) Fetch(url any, method any, headers any, body any) chan
 		}
 
 		// Convert headers to map[string]string
-		headersMap, ok := headers.(map[string]any)
-		if !ok {
-			panic("headers must be a map[string]any")
-		}
-
+		// unsigned requests carry no headers (sign returns undefined)
 		headersStrMap := make(map[string]string)
-		for k, v := range headersMap {
-			headersStrMap[k] = fmt.Sprintf("%v", v)
+		switch h := headers.(type) {
+		case nil:
+		case map[string]any:
+			for k, v := range h {
+				headersStrMap[k] = fmt.Sprintf("%v", v)
+			}
+		case map[string]string:
+			for k, v := range h {
+				headersStrMap[k] = v
+			}
+		default:
+			panic("headers must be a map[string]any")
 		}
 
 		headersOptions, ok := this.Options.Load("headers")
@@ -142,7 +175,7 @@ func (this *BaseExchange) Fetch(url any, method any, headers any, body any) chan
 		//set default headers
 		defaultHeaders := this.Headers.(map[string]any)
 		for key, value := range defaultHeaders {
-			req.Header.Set(key, value.(string))
+			req.Header.Set(key, derefScalar(value).(string))
 		}
 
 		// Set headers
@@ -245,7 +278,7 @@ func (this *BaseExchange) Fetch(url any, method any, headers any, body any) chan
 			panic(fmt.Sprintf("request failed: %v", err))
 		}
 
-		ch <- result
+		ch <- AsyncResult[any]{Value: result}
 	}()
 	return ch
 }

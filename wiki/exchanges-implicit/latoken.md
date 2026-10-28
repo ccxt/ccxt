@@ -1,6 +1,6 @@
 Every endpoint in `latoken`'s `api` definition is exposed as an **implicit method** — a thin, generated wrapper around the raw exchange endpoint. Use these for exchange-specific functionality the [CCXT API](/docs/exchanges/latoken) does not cover.
 
-These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C#, Go and Java. Call them by the camelCase name shown in the tables below (e.g. `publicGetBookCurrencyQuote`); the snake_case alias (`public_get_book_currency_quote`) also works in JavaScript, Python and PHP, and Go uses the PascalCase form (`PublicGetBookCurrencyQuote`). Switch tabs for the call in each language:
+These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C#, Go and Java. Call them by the camelCase name shown in the tables below (e.g. `publicGetBookCurrencyQuote`); Python and PHP use the snake_case form (`public_get_book_currency_quote`), and Go uses the PascalCase form (`PublicGetBookCurrencyQuote`). Switch tabs for the call in each language:
 
 <!-- tabs:start -->
 
@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official latoken API documentation:** [api.latoken.com](https://api.latoken.com)
 
-> 52 implicit endpoints across 2 access groups.
+> 56 implicit endpoints across 2 access groups.
 
 ## public
 
@@ -84,7 +84,9 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | --- | --- | --- | --- |
 | `privateGetAuthAccount` | GET | `auth/account` | 1 |
 | `privateGetAuthAccountCurrencyCurrencyType` | GET | `auth/account/currency/{currency}/{type}` | 1 |
+| `privateGetAuthAccountFiltered` | GET | `auth/account/filtered` | 1 |
 | `privateGetAuthOrder` | GET | `auth/order` | 1 |
+| `privateGetAuthOrderActive` | GET | `auth/order/active` | 1 |
 | `privateGetAuthOrderGetOrderId` | GET | `auth/order/getOrder/{id}` | 1 |
 | `privateGetAuthOrderPairCurrencyQuote` | GET | `auth/order/pair/{currency}/{quote}` | 1 |
 | `privateGetAuthOrderPairCurrencyQuoteActive` | GET | `auth/order/pair/{currency}/{quote}/active` | 1 |
@@ -103,7 +105,9 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privatePostAuthOrderCancel` | POST | `auth/order/cancel` | 1 |
 | `privatePostAuthOrderCancelAll` | POST | `auth/order/cancelAll` | 1 |
 | `privatePostAuthOrderCancelAllCurrencyQuote` | POST | `auth/order/cancelAll/{currency}/{quote}` | 1 |
+| `privatePostAuthOrderCancelBulk` | POST | `auth/order/cancelBulk` | 1 |
 | `privatePostAuthOrderPlace` | POST | `auth/order/place` | 1 |
+| `privatePostAuthOrderPlaceBulk` | POST | `auth/order/placeBulk` | 1 |
 | `privatePostAuthSpotDeposit` | POST | `auth/spot/deposit` | 1 |
 | `privatePostAuthSpotWithdraw` | POST | `auth/spot/withdraw` | 1 |
 | `privatePostAuthStopOrderCancel` | POST | `auth/stopOrder/cancel` | 1 |

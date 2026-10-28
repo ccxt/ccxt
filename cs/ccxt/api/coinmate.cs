@@ -459,4 +459,18 @@ public partial class coinmate : Exchange
         return await this.callAsync<Dictionary<string, object>> ("privatePostBankWireWithdrawal",parameters);
     }
 
+    /// <summary>Calls the privatePostLightningDeposit endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostLightningDeposit (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostLightningDeposit",parameters);
+    }
+
+    /// <summary>Calls the privatePostLightningWithdraw endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostLightningWithdraw (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostLightningWithdraw",parameters);
+    }
+
 }

@@ -50,6 +50,7 @@ class latoken extends latoken$1["default"] {
                 'fetchBorrowRateHistory': false,
                 'fetchBorrowRates': false,
                 'fetchBorrowRatesPerSymbol': false,
+                'fetchClosedOrders': 'emulated',
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
@@ -161,7 +162,9 @@ class latoken extends latoken$1["default"] {
                     'get': {
                         'auth/account': { 'cost': 1 },
                         'auth/account/currency/{currency}/{type}': { 'cost': 1 },
+                        'auth/account/filtered': { 'cost': 1 },
                         'auth/order': { 'cost': 1 },
+                        'auth/order/active': { 'cost': 1 },
                         'auth/order/getOrder/{id}': { 'cost': 1 },
                         'auth/order/pair/{currency}/{quote}': { 'cost': 1 },
                         'auth/order/pair/{currency}/{quote}/active': { 'cost': 1 },
@@ -182,7 +185,9 @@ class latoken extends latoken$1["default"] {
                         'auth/order/cancel': { 'cost': 1 },
                         'auth/order/cancelAll': { 'cost': 1 },
                         'auth/order/cancelAll/{currency}/{quote}': { 'cost': 1 },
+                        'auth/order/cancelBulk': { 'cost': 1 },
                         'auth/order/place': { 'cost': 1 },
+                        'auth/order/placeBulk': { 'cost': 1 },
                         'auth/spot/deposit': { 'cost': 1 },
                         'auth/spot/withdraw': { 'cost': 1 },
                         'auth/stopOrder/cancel': { 'cost': 1 },
@@ -233,6 +238,7 @@ class latoken extends latoken$1["default"] {
                     'INTERNAL_ERROR': errors.ExchangeError, // internal server error. You can contact our support to solve this problem. {"message":"Internal Server Error","error":"INTERNAL_ERROR","status":"FAILURE"}
                     'SERVICE_UNAVAILABLE': errors.ExchangeNotAvailable, // requested information currently not available. You can contact our support to solve this problem or retry later.
                     'NOT_AUTHORIZED': errors.AuthenticationError, // user's query not authorized. Check if you are logged in.
+                    'UNAUTHORIZED': errors.AuthenticationError, // {"result":false,"message":"user must be authenticated","error":"UNAUTHORIZED","status":"FAILURE"}
                     'FORBIDDEN': errors.PermissionDenied, // you don't have enough access rights.
                     'BAD_REQUEST': errors.BadRequest, // some bad request, for example bad fields values or something else. Read response message for more information.
                     'NOT_FOUND': errors.ExchangeError, // entity not found. Read message for more information.
@@ -255,6 +261,7 @@ class latoken extends latoken$1["default"] {
                 },
                 'broad': {
                     'invalid API key, signature or digest': errors.AuthenticationError, // {"result":false,"message":"invalid API key, signature or digest","error":"BAD_REQUEST","status":"FAILURE"}
+                    'Invalid API key specified': errors.AuthenticationError, // {"result":false,"message":"Invalid API key specified","error":"NOT_FOUND","status":"FAILURE"}
                     'The API key was revoked': errors.AuthenticationError, // {"result":false,"message":"The API key was revoked","error":"BAD_REQUEST","status":"FAILURE"}
                     'request expired or bad': errors.InvalidNonce, // {"result":false,"message":"request expired or bad <timeAlive>/<timestamp> format","error":"BAD_REQUEST","status":"FAILURE"}
                     'For input string': errors.BadRequest, // {"result":false,"message":"Internal error","error":"For input string: \"NaN\"","status":"FAILURE"}
@@ -274,6 +281,33 @@ class latoken extends latoken$1["default"] {
                 'accounts': {
                     'ACCOUNT_TYPE_WALLET': 'wallet',
                     'ACCOUNT_TYPE_SPOT': 'spot',
+                },
+                'networks': {
+                    // the venue names a token chain "<CHAIN>_TOKEN" and the native
+                    // chain by its own ticker, so only the former needs a mapping
+                    'BEP20': 'BSC_TOKEN',
+                    'TRC20': 'TRON',
+                    'ADA': 'ADA_TOKEN',
+                    'ALGO': 'ALGO_TOKEN',
+                    'ARBITRUM': 'ARB_TOKEN',
+                    'AVAXC': 'AVAXC_TOKEN',
+                    'BASE': 'BASE_TOKEN',
+                    'CELO': 'CELO_TOKEN',
+                    'EOS': 'EOS_TOKEN',
+                    'FTM': 'FTM_TOKEN',
+                    'MATIC': 'MATIC_TOKEN',
+                    'OP': 'OP_TOKEN',
+                    'QTUM': 'QTUM_TOKEN',
+                    'SOL': 'SOL_TOKEN',
+                    'TON': 'TON_TOKEN',
+                    'VET': 'VECHAIN_TOKEN',
+                    'WAVES': 'WAVES_TOKEN',
+                    'XDC': 'XDC_TOKEN',
+                    'XLM': 'XLM_TOKEN',
+                    'XRP': 'XRP_TOKEN',
+                },
+                'networksById': {
+                    'BSC': 'BEP20', // second provider id for the same chain
                 },
                 'fetchTradingFee': {
                     'method': 'fetchPrivateTradingFee', // or 'fetchPublicTradingFee'
@@ -302,7 +336,7 @@ class latoken extends latoken$1["default"] {
                         'selfTradePrevention': false,
                         'trailing': false,
                         'leverage': false,
-                        'marketBuyByCost': true,
+                        'marketBuyByCost': false,
                         'marketBuyRequiresPrice': false,
                         'iceberg': false,
                     },
@@ -323,11 +357,19 @@ class latoken extends latoken$1["default"] {
                     'fetchOpenOrders': {
                         'marginMode': false,
                         'limit': undefined,
-                        'trigger': false,
+                        'trigger': true,
                         'trailing': false,
                         'symbolRequired': true,
                     },
-                    'fetchOrders': undefined,
+                    'fetchOrders': {
+                        'marginMode': false,
+                        'limit': undefined,
+                        'daysBack': undefined,
+                        'untilDays': undefined,
+                        'trigger': true,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
                     'fetchClosedOrders': {
                         'marginMode': false,
                         'limit': 1000,
@@ -352,7 +394,11 @@ class latoken extends latoken$1["default"] {
         });
     }
     nonce() {
-        return this.milliseconds() - this.options['timeDifference'];
+        const timeDifference = this.safeInteger(this.options, 'timeDifference');
+        if (timeDifference === undefined) {
+            throw new errors.ExchangeError(this.id + ' nonce() requires a numeric options["timeDifference"]');
+        }
+        return this.milliseconds() - timeDifference;
     }
     /**
      * @method
@@ -484,10 +530,14 @@ class latoken extends latoken$1["default"] {
      * @method
      * @name latoken#fetchCurrencies
      * @description fetches all available currencies on an exchange
+     * @see https://api.latoken.com/doc/v2/#tag/Currency/operation/getActiveCurrencies
+     * @see https://api.latoken.com/doc/v2/#tag/Transaction/operation/getBindings
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
     async fetchCurrencies(params = {}) {
+        // sequential on purpose - with Promise.all the static request harness records
+        // whichever call finished last, which differs between the sync and async ports
         const response = await this.publicGetCurrency(params);
         //
         //     [
@@ -521,7 +571,41 @@ class latoken extends latoken$1["default"] {
         //         },
         //     ]
         //
-        return this.parseCurrencies(response);
+        //     [
+        //         {
+        //             "id":"0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+        //             "tag":"USDT",
+        //             "bindings":[
+        //                 {
+        //                     "minAmount":"5.000000000000000000",
+        //                     "maxAmount":"0",
+        //                     "fee":"3.000000000000000000",
+        //                     "percentFee":"0.250000000000000000",
+        //                     "providerName":"ERC20",
+        //                     "id":"973d2079-1fae-4fa7-82e4-bae55eba8284",
+        //                     "currencyProvider":"4d26b9ec-4bed-4bec-ba2f-02aaca8e84a1",
+        //                     "deflation":"0"
+        //                 },
+        //             ]
+        //         },
+        //     ]
+        //
+        // no params on this one - they belong to the currency request, not to the bindings
+        const bindingsResponse = await this.publicGetTransactionBindings();
+        const bindingsById = this.indexBy(bindingsResponse, 'id');
+        const rawCurrencies = this.toArray(response);
+        const merged = [];
+        for (let i = 0; i < rawCurrencies.length; i++) {
+            const rawCurrency = rawCurrencies[i];
+            const bindingEntry = this.safeDict(bindingsById, this.safeString(rawCurrency, 'id'));
+            const bindings = this.safeList(bindingEntry, 'bindings');
+            let mergedCurrency = rawCurrency;
+            if (bindings !== undefined) {
+                mergedCurrency = this.extend(rawCurrency, { 'bindings': bindings });
+            }
+            merged.push(mergedCurrency);
+        }
+        return this.parseCurrencies(merged);
     }
     parseCurrency(currency) {
         const id = this.safeString(currency, 'id');
@@ -529,6 +613,42 @@ class latoken extends latoken$1["default"] {
         const code = this.safeCurrencyCode(tag);
         const currencyType = this.safeString(currency, 'type');
         const isCrypto = (currencyType === 'CURRENCY_TYPE_CRYPTO' || currencyType === 'CURRENCY_TYPE_IEO');
+        const bindings = this.safeList(currency, 'bindings', []);
+        const networks = {};
+        for (let i = 0; i < bindings.length; i++) {
+            const binding = bindings[i];
+            const networkId = this.safeString(binding, 'providerName');
+            const networkCode = this.networkIdToCode(networkId, code);
+            // the venue lists one provider twice on a currency (MBS, SOL_TOKEN), and both
+            // entries would land on the same unified code - keep the first one for a
+            // deterministic binding id, since withdrawals resolve the chain through it
+            if ((networkCode !== undefined) && !(networkCode in networks)) {
+                networks[networkCode] = {
+                    'info': binding,
+                    'id': this.safeString(binding, 'id'),
+                    'network': networkCode,
+                    'active': undefined,
+                    // the public endpoint serves one entry per chain without saying
+                    // whether it is bound for deposits, withdrawals or both
+                    'deposit': undefined,
+                    'withdraw': undefined,
+                    'fee': this.safeNumber(binding, 'fee'),
+                    'precision': undefined,
+                    'limits': {
+                        'deposit': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'withdraw': {
+                            'min': this.safeNumber(binding, 'minAmount'),
+                            // maxAmount is "0" on 1990 of the 1996 bindings and contradicts its
+                            // own minimum on the rest, so the venue does not keep it as a real cap
+                            'max': undefined,
+                        },
+                    },
+                };
+            }
+        }
         return this.safeCurrencyStructure({
             'id': id,
             'code': code,
@@ -538,7 +658,7 @@ class latoken extends latoken$1["default"] {
             'active': this.safeString(currency, 'status') === 'CURRENCY_STATUS_ACTIVE',
             'deposit': undefined,
             'withdraw': undefined,
-            'fee': this.safeNumber(currency, 'fee'),
+            'fee': undefined,
             'precision': this.parseNumber(this.parsePrecision(this.safeString(currency, 'decimals'))),
             'limits': {
                 'amount': {
@@ -550,7 +670,7 @@ class latoken extends latoken$1["default"] {
                     'max': undefined,
                 },
             },
-            'networks': {},
+            'networks': networks,
         });
     }
     /**
@@ -565,7 +685,10 @@ class latoken extends latoken$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const response = await this.privateGetAuthAccount(params);
+        const defaultType = this.safeString2(this.options, 'fetchBalance', 'defaultType', 'spot');
+        const type = this.safeString(params, 'type', defaultType);
+        const paramsOmitted = this.omit(params, 'type');
+        const response = await this.privateGetAuthAccount(paramsOmitted);
         //
         //     [
         //         {
@@ -594,22 +717,17 @@ class latoken extends latoken$1["default"] {
             'datetime': undefined,
         };
         let maxTimestamp = undefined;
-        const defaultType = this.safeString2(this.options, 'fetchBalance', 'defaultType', 'spot');
-        const type = this.safeString(params, 'type', defaultType);
-        const types = this.safeValue(this.options, 'types', {});
+        const types = this.safeDict(this.options, 'types', {});
         const accountType = this.safeString(types, type, type);
         const balancesByType = this.groupBy(response, 'type');
-        const balances = this.safeValue(balancesByType, accountType, []);
+        const balances = this.safeList(balancesByType, accountType, []);
         for (let i = 0; i < balances.length; i++) {
-            const balance = balances[i];
+            const balance = this.safeDict(balances, i);
             const currencyId = this.safeString(balance, 'currency');
             const timestamp = this.safeInteger(balance, 'timestamp');
             if (timestamp !== undefined) {
-                if (maxTimestamp === undefined) {
+                if ((maxTimestamp === undefined) || (timestamp > maxTimestamp)) {
                     maxTimestamp = timestamp;
-                }
-                else {
-                    maxTimestamp = Math.max(maxTimestamp, timestamp);
                 }
             }
             const code = this.safeCurrencyCode(currencyId);
@@ -695,7 +813,7 @@ class latoken extends latoken$1["default"] {
     parseTicker(ticker, market = undefined) {
         //
         //    {
-        //        "symbol": "92151d82-df98-4d88-9a4d-284fa9eca49f/0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+        //        "symbol": "BTC/USDT",
         //        "baseCurrency": "92151d82-df98-4d88-9a4d-284fa9eca49f",
         //        "quoteCurrency": "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
         //        "volume24h": "165723597.189022176000000000",
@@ -710,14 +828,28 @@ class latoken extends latoken$1["default"] {
         //        "bestBidQuantity": "0.6520232",
         //        "bestAsk": "25779.17",
         //        "bestAskQuantity": "0.4956043",
-        //        "updateTimestamp": "1693965231406"
+        //        "updateTimestamp": 1693965231406
         //    }
         //
-        const marketId = this.safeString(ticker, 'symbol');
+        // the "symbol" field carries the currency tags, which differ from the
+        // unified symbol whenever commonCurrencies renames a code, so resolve
+        // the market from the currency ids like parseTrade and parseOrder do
+        const baseId = this.safeString(ticker, 'baseCurrency');
+        const quoteId = this.safeString(ticker, 'quoteCurrency');
+        const base = this.safeCurrencyCode(baseId);
+        const quote = this.safeCurrencyCode(quoteId);
+        let symbol = undefined;
+        let marketResolved = market;
+        if ((base !== undefined) && (quote !== undefined)) {
+            symbol = base + '/' + quote;
+            if ((this.markets !== undefined) && (symbol in this.markets)) {
+                marketResolved = this.market(symbol);
+            }
+        }
         const last = this.safeString(ticker, 'lastPrice');
         const timestamp = this.safeIntegerOmitZero(ticker, 'updateTimestamp'); // sometimes latoken provided '0' ts from /ticker endpoint
         return this.safeTicker({
-            'symbol': this.safeSymbol(marketId, market),
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'low': undefined,
@@ -737,7 +869,7 @@ class latoken extends latoken$1["default"] {
             'baseVolume': this.safeString(ticker, 'amount24h'),
             'quoteVolume': this.safeString(ticker, 'volume24h'),
             'info': ticker,
-        }, market);
+        }, marketResolved);
     }
     /**
      * @method
@@ -760,7 +892,7 @@ class latoken extends latoken$1["default"] {
         const response = await this.publicGetTickerBaseQuote(this.extend(request, params));
         //
         //    {
-        //        "symbol": "92151d82-df98-4d88-9a4d-284fa9eca49f/0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+        //        "symbol": "BTC/USDT",
         //        "baseCurrency": "92151d82-df98-4d88-9a4d-284fa9eca49f",
         //        "quoteCurrency": "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
         //        "volume24h": "165723597.189022176000000000",
@@ -775,7 +907,7 @@ class latoken extends latoken$1["default"] {
         //        "bestBidQuantity": "0.6520232",
         //        "bestAsk": "25779.17",
         //        "bestAskQuantity": "0.4956043",
-        //        "updateTimestamp": "1693965231406"
+        //        "updateTimestamp": 1693965231406
         //    }
         //
         return this.parseTicker(response, market);
@@ -797,7 +929,7 @@ class latoken extends latoken$1["default"] {
         //
         //    [
         //        {
-        //            "symbol": "92151d82-df98-4d88-9a4d-284fa9eca49f/0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+        //            "symbol": "BTC/USDT",
         //            "baseCurrency": "92151d82-df98-4d88-9a4d-284fa9eca49f",
         //            "quoteCurrency": "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
         //            "volume24h": "165723597.189022176000000000",
@@ -812,7 +944,7 @@ class latoken extends latoken$1["default"] {
         //            "bestBidQuantity": "0.6520232",
         //            "bestAsk": "25779.17",
         //            "bestAskQuantity": "0.4956043",
-        //            "updateTimestamp": "1693965231406"
+        //            "updateTimestamp": 1693965231406
         //        }
         //    ]
         //
@@ -856,10 +988,10 @@ class latoken extends latoken$1["default"] {
         const priceString = this.safeString(trade, 'price');
         const amountString = this.safeString(trade, 'quantity');
         const costString = this.safeString(trade, 'cost');
-        const makerBuyer = this.safeValue(trade, 'makerBuyer');
+        const makerBuyer = this.safeBool(trade, 'makerBuyer');
         let side = this.safeString(trade, 'direction');
         if (side === undefined) {
-            side = makerBuyer ? 'sell' : 'buy';
+            side = (makerBuyer === true) ? 'sell' : 'buy';
         }
         else {
             if (side === 'TRADE_DIRECTION_BUY') {
@@ -870,14 +1002,19 @@ class latoken extends latoken$1["default"] {
             }
         }
         const isBuy = (side === 'buy');
-        const takerOrMaker = (makerBuyer && isBuy) ? 'maker' : 'taker';
+        const isMaker = (makerBuyer === true) && isBuy;
+        const takerOrMaker = isMaker ? 'maker' : 'taker';
         const baseId = this.safeString(trade, 'baseCurrency');
         const quoteId = this.safeString(trade, 'quoteCurrency');
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
-        const symbol = base + '/' + quote;
-        if ((this.markets !== undefined) && (symbol in this.markets)) {
-            market = this.market(symbol);
+        let symbol = undefined;
+        let marketResolved = market;
+        if ((base !== undefined) && (quote !== undefined)) {
+            symbol = base + '/' + quote;
+            if ((this.markets !== undefined) && (symbol in this.markets)) {
+                marketResolved = this.market(symbol);
+            }
         }
         const id = this.safeString(trade, 'id');
         const orderId = this.safeString(trade, 'order');
@@ -903,7 +1040,7 @@ class latoken extends latoken$1["default"] {
             'amount': amountString,
             'cost': costString,
             'fee': fee,
-        }, market);
+        }, marketResolved);
     }
     /**
      * @method
@@ -951,15 +1088,15 @@ class latoken extends latoken$1["default"] {
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     async fetchTradingFee(symbol, params = {}) {
-        const options = this.safeValue(this.options, 'fetchTradingFee', {});
+        const options = this.safeDict(this.options, 'fetchTradingFee', {});
         const defaultMethod = this.safeString(options, 'method', 'fetchPrivateTradingFee');
         const method = this.safeString(params, 'method', defaultMethod);
-        params = this.omit(params, 'method');
+        const paramsOmitted = this.omit(params, 'method');
         if (method === 'fetchPrivateTradingFee') {
-            return await this.fetchPrivateTradingFee(symbol, params);
+            return await this.fetchPrivateTradingFee(symbol, paramsOmitted);
         }
         else if (method === 'fetchPublicTradingFee') {
-            return await this.fetchPublicTradingFee(symbol, params);
+            return await this.fetchPublicTradingFee(symbol, paramsOmitted);
         }
         else {
             throw new errors.NotSupported(this.id + ' not support this method');
@@ -1151,9 +1288,11 @@ class latoken extends latoken$1["default"] {
         let symbol = undefined;
         if ((base !== undefined) && (quote !== undefined)) {
             symbol = base + '/' + quote;
-            if ((this.markets !== undefined) && (symbol in this.markets)) {
-                market = this.market(symbol);
-            }
+        }
+        const symbolKnown = (symbol !== undefined) && (this.markets !== undefined) && (symbol in this.markets);
+        let marketResolved = market;
+        if (symbolKnown) {
+            marketResolved = this.market(symbol);
         }
         const orderSide = this.safeString(order, 'side');
         let side = undefined;
@@ -1201,7 +1340,7 @@ class latoken extends latoken$1["default"] {
             'remaining': undefined,
             'fee': undefined,
             'trades': undefined,
-        }, market);
+        }, marketResolved);
     }
     /**
      * @method
@@ -1224,19 +1363,19 @@ class latoken extends latoken$1["default"] {
             await this.loadMarkets();
         }
         let response;
-        const isTrigger = this.safeValue2(params, 'trigger', 'stop');
-        params = this.omit(params, 'stop');
+        const isTrigger = this.safeBool2(params, 'trigger', 'stop');
+        const paramsOmitted = this.omit(params, ['stop', 'trigger']);
         // privateGetAuthOrderActive doesn't work even though its listed at https://api.latoken.com/doc/v2/#tag/Order/operation/getMyActiveOrders
         const market = this.market(symbol);
         const request = {
             'currency': market['baseId'],
             'quote': market['quoteId'],
         };
-        if (isTrigger) {
-            response = await this.privateGetAuthStopOrderPairCurrencyQuoteActive(this.extend(request, params));
+        if (isTrigger === true) {
+            response = await this.privateGetAuthStopOrderPairCurrencyQuoteActive(this.extend(request, paramsOmitted));
         }
         else {
-            response = await this.privateGetAuthOrderPairCurrencyQuoteActive(this.extend(request, params));
+            response = await this.privateGetAuthOrderPairCurrencyQuoteActive(this.extend(request, paramsOmitted));
         }
         //
         //     [
@@ -1288,8 +1427,8 @@ class latoken extends latoken$1["default"] {
         // 'limit': limit, // default '100'
         };
         let market = undefined;
-        const isTrigger = this.safeValue2(params, 'trigger', 'stop');
-        params = this.omit(params, ['stop', 'trigger']);
+        const isTrigger = this.safeBool2(params, 'trigger', 'stop');
+        const paramsOmitted = this.omit(params, ['stop', 'trigger']);
         if (limit !== undefined) {
             request['limit'] = limit; // default 100
         }
@@ -1298,19 +1437,19 @@ class latoken extends latoken$1["default"] {
             market = this.market(symbol);
             request['currency'] = market['baseId'];
             request['quote'] = market['quoteId'];
-            if (isTrigger) {
-                response = await this.privateGetAuthStopOrderPairCurrencyQuote(this.extend(request, params));
+            if (isTrigger === true) {
+                response = await this.privateGetAuthStopOrderPairCurrencyQuote(this.extend(request, paramsOmitted));
             }
             else {
-                response = await this.privateGetAuthOrderPairCurrencyQuote(this.extend(request, params));
+                response = await this.privateGetAuthOrderPairCurrencyQuote(this.extend(request, paramsOmitted));
             }
         }
         else {
-            if (isTrigger) {
-                response = await this.privateGetAuthStopOrder(this.extend(request, params));
+            if (isTrigger === true) {
+                response = await this.privateGetAuthStopOrder(this.extend(request, paramsOmitted));
             }
             else {
-                response = await this.privateGetAuthOrder(this.extend(request, params));
+                response = await this.privateGetAuthOrder(this.extend(request, paramsOmitted));
             }
         }
         //
@@ -1356,14 +1495,14 @@ class latoken extends latoken$1["default"] {
         const request = {
             'id': id,
         };
-        const isTrigger = this.safeValue2(params, 'trigger', 'stop');
-        params = this.omit(params, ['stop', 'trigger']);
+        const isTrigger = this.safeBool2(params, 'trigger', 'stop');
+        const paramsOmitted = this.omit(params, ['stop', 'trigger']);
         let response;
-        if (isTrigger) {
-            response = await this.privateGetAuthStopOrderGetOrderId(this.extend(request, params));
+        if (isTrigger === true) {
+            response = await this.privateGetAuthStopOrderGetOrderId(this.extend(request, paramsOmitted));
         }
         else {
-            response = await this.privateGetAuthOrderGetOrderId(this.extend(request, params));
+            response = await this.privateGetAuthOrderGetOrderId(this.extend(request, paramsOmitted));
         }
         //
         //     {
@@ -1412,9 +1551,7 @@ class latoken extends latoken$1["default"] {
         }
         const market = this.market(symbol);
         const uppercaseType = type.toUpperCase();
-        if (side === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' createOrder() requires a side argument');
-        }
+        this.checkRequiredArgument('createOrder', side, 'side');
         const request = {
             'baseCurrency': market['baseId'],
             'quoteCurrency': market['quoteId'],
@@ -1431,14 +1568,14 @@ class latoken extends latoken$1["default"] {
             request['price'] = this.priceToPrecision(symbol, price);
         }
         const triggerPrice = this.safeString2(params, 'triggerPrice', 'stopPrice');
-        params = this.omit(params, ['triggerPrice', 'stopPrice']);
+        const paramsOmitted = this.omit(params, ['triggerPrice', 'stopPrice']);
         let response;
         if (triggerPrice !== undefined) {
             request['stopPrice'] = this.priceToPrecision(symbol, triggerPrice);
-            response = await this.privatePostAuthStopOrderPlace(this.extend(request, params));
+            response = await this.privatePostAuthStopOrderPlace(this.extend(request, paramsOmitted));
         }
         else {
-            response = await this.privatePostAuthOrderPlace(this.extend(request, params));
+            response = await this.privatePostAuthOrderPlace(this.extend(request, paramsOmitted));
         }
         //
         //    {
@@ -1473,14 +1610,14 @@ class latoken extends latoken$1["default"] {
         const request = {
             'id': id,
         };
-        const isTrigger = this.safeValue2(params, 'trigger', 'stop');
-        params = this.omit(params, ['stop', 'trigger']);
+        const isTrigger = this.safeBool2(params, 'trigger', 'stop');
+        const paramsOmitted = this.omit(params, ['stop', 'trigger']);
         let response;
-        if (isTrigger) {
-            response = await this.privatePostAuthStopOrderCancel(this.extend(request, params));
+        if (isTrigger === true) {
+            response = await this.privatePostAuthStopOrderCancel(this.extend(request, paramsOmitted));
         }
         else {
-            response = await this.privatePostAuthOrderCancel(this.extend(request, params));
+            response = await this.privatePostAuthOrderCancel(this.extend(request, paramsOmitted));
         }
         //
         //     {
@@ -1513,26 +1650,26 @@ class latoken extends latoken$1["default"] {
         // 'quote': market['quoteId'],
         };
         let market = undefined;
-        const isTrigger = this.safeValue2(params, 'trigger', 'stop');
-        params = this.omit(params, ['stop', 'trigger']);
+        const isTrigger = this.safeBool2(params, 'trigger', 'stop');
+        const paramsOmitted = this.omit(params, ['stop', 'trigger']);
         let response;
         if (symbol !== undefined) {
             market = this.market(symbol);
             request['currency'] = market['baseId'];
             request['quote'] = market['quoteId'];
-            if (isTrigger) {
-                response = await this.privatePostAuthStopOrderCancelAllCurrencyQuote(this.extend(request, params));
+            if (isTrigger === true) {
+                response = await this.privatePostAuthStopOrderCancelAllCurrencyQuote(this.extend(request, paramsOmitted));
             }
             else {
-                response = await this.privatePostAuthOrderCancelAllCurrencyQuote(this.extend(request, params));
+                response = await this.privatePostAuthOrderCancelAllCurrencyQuote(this.extend(request, paramsOmitted));
             }
         }
         else {
-            if (isTrigger) {
-                response = await this.privatePostAuthStopOrderCancelAll(this.extend(request, params));
+            if (isTrigger === true) {
+                response = await this.privatePostAuthStopOrderCancelAll(this.extend(request, paramsOmitted));
             }
             else {
-                response = await this.privatePostAuthOrderCancelAll(this.extend(request, params));
+                response = await this.privatePostAuthOrderCancelAll(this.extend(request, paramsOmitted));
             }
         }
         //
@@ -1839,35 +1976,42 @@ class latoken extends latoken$1["default"] {
         };
         return this.safeString(statuses, status, status);
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
+        let requestHeaders = undefined;
+        let requestBody = undefined;
         const request = '/' + this.version + '/' + this.implodeParams(path, params);
         let requestString = request;
         const query = this.omit(params, this.extractParams(path));
         const urlencodedQuery = this.urlencode(query);
         if (method === 'GET') {
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 requestString += '?' + urlencodedQuery;
             }
         }
-        if (api === 'private') {
+        if (apiName === 'private') {
             this.checkRequiredCredentials();
             const auth = method + request + urlencodedQuery;
             const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha2_js.sha512);
-            headers = {
+            requestHeaders = {
                 'X-LA-APIKEY': this.apiKey,
                 'X-LA-SIGNATURE': signature,
                 'X-LA-DIGEST': 'HMAC-SHA512', // HMAC-SHA384, HMAC-SHA512, optional
             };
             if (method === 'POST') {
-                headers['Content-Type'] = 'application/json';
-                body = this.json(query);
+                requestHeaders['Content-Type'] = 'application/json';
+                requestBody = this.json(query);
             }
         }
-        const url = this.urls['api']['rest'] + requestString;
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        const apiUrl = this.safeString(this.urls['api'], 'rest');
+        if (apiUrl === undefined) {
+            throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
+        }
+        const url = apiUrl + requestString;
+        return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
-        if (!response) {
+        if (response === undefined) {
             return undefined;
         }
         //
@@ -1882,9 +2026,8 @@ class latoken extends latoken$1["default"] {
             this.throwExactlyMatchedException(this.exceptions['exact'], message, feedback);
             this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
         }
-        const error = this.safeValue(response, 'error');
-        const errorMessage = this.safeString(error, 'message');
-        if ((error !== undefined) || (errorMessage !== undefined)) {
+        const error = this.safeString(response, 'error');
+        if (error !== undefined) {
             this.throwExactlyMatchedException(this.exceptions['exact'], error, feedback);
             this.throwBroadlyMatchedException(this.exceptions['broad'], body, feedback);
             throw new errors.ExchangeError(feedback); // unknown message

@@ -8,6 +8,48 @@
     ],
     "options": {},
     "methods": {
+        "fetchFundingHistory": [
+            {
+                "description": "fetch funding history",
+                "method": "fetchFundingHistory",
+                "url": "https://api-contract.weex.com/capi/v3/account/income",
+                "input": [],
+                "output": "{\"incomeType\":\"position_funding\"}"
+            },
+            {
+                "description": "fetch funding history with since and until",
+                "method": "fetchFundingHistory",
+                "url": "https://api-contract.weex.com/capi/v3/account/income",
+                "input": [
+                    "ETH/USDT:USDT",
+                    1786612835613,
+                    10,
+                    {
+                        "until": 1789204835613
+                    }
+                ],
+                "output": "{\"incomeType\":\"position_funding\",\"symbol\":\"ETHUSDT\",\"startTime\":1786612835613,\"limit\":10,\"endTime\":1789204835613}"
+            },
+            {
+                "description": "fetch funding history with since defaults the end time",
+                "method": "fetchFundingHistory",
+                "url": "https://api-contract.weex.com/capi/v3/account/income",
+                "input": [
+                    "ETH/USDT:USDT",
+                    1786612835613
+                ],
+                "output": "{\"incomeType\":\"position_funding\",\"symbol\":\"ETHUSDT\",\"startTime\":1786612835613,\"endTime\":1789204839567}"
+            },
+            {
+                "description": "fetch funding history for a symbol",
+                "method": "fetchFundingHistory",
+                "url": "https://api-contract.weex.com/capi/v3/account/income",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": "{\"incomeType\":\"position_funding\",\"symbol\":\"ETHUSDT\"}"
+            }
+        ],
         "fetchCurrencies": [
             {
                 "description": "default",
@@ -361,6 +403,20 @@
             }
         ],
         "fetchLedger": [
+            {
+                "description": "fetch ledger for contract without a code",
+                "method": "fetchLedger",
+                "url": "https://api-contract.weex.com/capi/v3/account/income",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "type": "swap"
+                    }
+                ],
+                "output": "{}"
+            },
             {
                 "description": "fetch ledger for funding",
                 "method": "fetchLedger",
@@ -897,6 +953,76 @@
             }
         ],
         "fetchOHLCV": [
+            {
+                "description": "fetch swap ohlcv with since and a limit above 100 caps the window at the 100 candles historyKlines can return",
+                "method": "fetchOHLCV",
+                "url": "https://api-contract.weex.com/capi/v3/market/historyKlines?symbol=ETHUSDT&interval=1h&startTime=1761000000000&endTime=1761360000000",
+                "forceCheckKeys": ["startTime", "endTime"],
+                "input": [
+                    "ETH/USDT:USDT",
+                    "1h",
+                    1761000000000,
+                    500
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch swap ohlcv with since and until passes both bounds through unchanged",
+                "method": "fetchOHLCV",
+                "url": "https://api-contract.weex.com/capi/v3/market/historyKlines?symbol=ETHUSDT&interval=1h&startTime=1761000000000&endTime=1761010800000",
+                "forceCheckKeys": ["startTime", "endTime"],
+                "input": [
+                    "ETH/USDT:USDT",
+                    "1h",
+                    1761000000000,
+                    5,
+                    {
+                        "until": 1761010800000
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch swap ohlcv with until only routes to historyKlines, startTime is until minus limit candles",
+                "method": "fetchOHLCV",
+                "url": "https://api-contract.weex.com/capi/v3/market/historyKlines?symbol=ETHUSDT&interval=1h&startTime=1761000000000&endTime=1761018000000",
+                "forceCheckKeys": ["startTime", "endTime"],
+                "input": [
+                    "ETH/USDT:USDT",
+                    "1h",
+                    null,
+                    5,
+                    {
+                        "until": 1761018000000
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch swap ohlcv with since and no limit spans the default 100 candles",
+                "method": "fetchOHLCV",
+                "url": "https://api-contract.weex.com/capi/v3/market/historyKlines?symbol=ETHUSDT&interval=1h&startTime=1761000000000&endTime=1761360000000",
+                "forceCheckKeys": ["startTime", "endTime"],
+                "input": [
+                    "ETH/USDT:USDT",
+                    "1h",
+                    1761000000000
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch swap ohlcv with since routes to historyKlines, endTime is since plus limit candles",
+                "method": "fetchOHLCV",
+                "url": "https://api-contract.weex.com/capi/v3/market/historyKlines?symbol=ETHUSDT&interval=1h&startTime=1761000000000&endTime=1761018000000",
+                "forceCheckKeys": ["startTime", "endTime"],
+                "input": [
+                    "ETH/USDT:USDT",
+                    "1h",
+                    1761000000000,
+                    5
+                ],
+                "output": null
+            },
             {
                 "description": "fetch swap ohlcv historical",
                 "method": "fetchOHLCV",

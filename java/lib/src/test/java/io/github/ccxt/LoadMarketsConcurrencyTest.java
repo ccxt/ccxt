@@ -46,13 +46,13 @@ class LoadMarketsConcurrencyTest {
         int threads = 20;
         CountDownLatch start = new CountDownLatch(1);
         CountDownLatch finished = new CountDownLatch(threads);
-        java.util.List<CompletableFuture<Object>> futures = new java.util.ArrayList<>();
+        java.util.List<CompletableFuture<java.util.Map<String, io.github.ccxt.types.MarketInterface>>> futures = new java.util.ArrayList<>();
 
         for (int i = 0; i < threads; i++) {
             Thread.ofVirtual().start(() -> {
                 try {
                     start.await();
-                    futures.add(ex.loadMarkets(true));
+                    futures.add(ex.loadMarketsAsync(true));
                 } catch (InterruptedException ignored) {
                 } finally {
                     finished.countDown();
@@ -70,7 +70,7 @@ class LoadMarketsConcurrencyTest {
 
         // Sanity: let the gate complete and confirm every caller got the result.
         ex.gate.complete(null);
-        for (CompletableFuture<Object> f : futures) {
+        for (CompletableFuture<java.util.Map<String, io.github.ccxt.types.MarketInterface>> f : futures) {
             assertNotNull(f.get(2, TimeUnit.SECONDS),
                     "every collapsed caller must resolve with the shared markets");
         }

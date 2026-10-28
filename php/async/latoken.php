@@ -52,6 +52,7 @@ class latoken extends Exchange {
                 'fetchBorrowRateHistory' => false,
                 'fetchBorrowRates' => false,
                 'fetchBorrowRatesPerSymbol' => false,
+                'fetchClosedOrders' => 'emulated',
                 'fetchCrossBorrowRate' => false,
                 'fetchCrossBorrowRates' => false,
                 'fetchCurrencies' => true,
@@ -163,7 +164,9 @@ class latoken extends Exchange {
                     'get' => array(
                         'auth/account' => array( 'cost' => 1 ),
                         'auth/account/currency/{currency}/{type}' => array( 'cost' => 1 ),
+                        'auth/account/filtered' => array( 'cost' => 1 ),
                         'auth/order' => array( 'cost' => 1 ),
+                        'auth/order/active' => array( 'cost' => 1 ),
                         'auth/order/getOrder/{id}' => array( 'cost' => 1 ),
                         'auth/order/pair/{currency}/{quote}' => array( 'cost' => 1 ),
                         'auth/order/pair/{currency}/{quote}/active' => array( 'cost' => 1 ),
@@ -184,7 +187,9 @@ class latoken extends Exchange {
                         'auth/order/cancel' => array( 'cost' => 1 ),
                         'auth/order/cancelAll' => array( 'cost' => 1 ),
                         'auth/order/cancelAll/{currency}/{quote}' => array( 'cost' => 1 ),
+                        'auth/order/cancelBulk' => array( 'cost' => 1 ),
                         'auth/order/place' => array( 'cost' => 1 ),
+                        'auth/order/placeBulk' => array( 'cost' => 1 ),
                         'auth/spot/deposit' => array( 'cost' => 1 ),
                         'auth/spot/withdraw' => array( 'cost' => 1 ),
                         'auth/stopOrder/cancel' => array( 'cost' => 1 ),
@@ -232,9 +237,10 @@ class latoken extends Exchange {
             ),
             'exceptions' => array(
                 'exact' => array(
-                    'INTERNAL_ERROR' => '\\ccxt\\ExchangeError', // internal server error. You can contact our support to solve this problem. array("message":"Internal Server Error","error":"INTERNAL_ERROR","status":"FAILURE")
+                    'INTERNAL_ERROR' => '\\ccxt\\ExchangeError', // internal server error. You can contact our support to solve this problem. {"message":"Internal Server Error","error":"INTERNAL_ERROR","status":"FAILURE"}
                     'SERVICE_UNAVAILABLE' => '\\ccxt\\ExchangeNotAvailable', // requested information currently not available. You can contact our support to solve this problem or retry later.
                     'NOT_AUTHORIZED' => '\\ccxt\\AuthenticationError', // user's query not authorized. Check if you are logged in.
+                    'UNAUTHORIZED' => '\\ccxt\\AuthenticationError', // {"result":false,"message":"user must be authenticated","error":"UNAUTHORIZED","status":"FAILURE"}
                     'FORBIDDEN' => '\\ccxt\\PermissionDenied', // you don't have enough access rights.
                     'BAD_REQUEST' => '\\ccxt\\BadRequest', // some bad request, for example bad fields values or something else. Read response message for more information.
                     'NOT_FOUND' => '\\ccxt\\ExchangeError', // entity not found. Read message for more information.
@@ -251,19 +257,20 @@ class latoken extends Exchange {
                     'INSUFFICIENT_AUTHENTICATION' => '\\ccxt\\AuthenticationError', // for example, 2FA required.
                     'UNKNOWN_LOCATION' => '\\ccxt\\AuthenticationError', // user logged from unusual location, email confirmation required.
                     'TOO_MANY_REQUESTS' => '\\ccxt\\RateLimitExceeded', // too many requests at the time. A response header X-Rate-Limit-Remaining indicates the number of allowed request per a period.
-                    'INSUFFICIENT_FUNDS' => '\\ccxt\\InsufficientFunds', // array("message":"not enough balance on the spot account for currency (USDT), need (20.000)","error":"INSUFFICIENT_FUNDS","status":"FAILURE")
-                    'ORDER_VALIDATION' => '\\ccxt\\InvalidOrder', // array("message":"Quantity (0) is not positive","error":"ORDER_VALIDATION","status":"FAILURE")
-                    'BAD_TICKS' => '\\ccxt\\InvalidOrder', // array("status":"FAILURE","message":"Quantity (1.4) does not match quantity tick (10)","error":"BAD_TICKS","errors":null,"result":false)
+                    'INSUFFICIENT_FUNDS' => '\\ccxt\\InsufficientFunds', // {"message":"not enough balance on the spot account for currency (USDT), need (20.000)","error":"INSUFFICIENT_FUNDS","status":"FAILURE"}
+                    'ORDER_VALIDATION' => '\\ccxt\\InvalidOrder', // {"message":"Quantity (0) is not positive","error":"ORDER_VALIDATION","status":"FAILURE"}
+                    'BAD_TICKS' => '\\ccxt\\InvalidOrder', // {"status":"FAILURE","message":"Quantity (1.4) does not match quantity tick (10)","error":"BAD_TICKS","errors":null,"result":false}
                 ),
                 'broad' => array(
-                    'invalid API key, signature or digest' => '\\ccxt\\AuthenticationError', // array("result":false,"message":"invalid API key, signature or digest","error":"BAD_REQUEST","status":"FAILURE")
-                    'The API key was revoked' => '\\ccxt\\AuthenticationError', // array("result":false,"message":"The API key was revoked","error":"BAD_REQUEST","status":"FAILURE")
-                    'request expired or bad' => '\\ccxt\\InvalidNonce', // array("result":false,"message":"request expired or bad <timeAlive>/<timestamp> format","error":"BAD_REQUEST","status":"FAILURE")
-                    'For input string' => '\\ccxt\\BadRequest', // array("result":false,"message":"Internal error","error":"For input string => \"NaN\"","status":"FAILURE")
-                    'Unable to resolve currency by tag' => '\\ccxt\\BadSymbol', // array("message":"Unable to resolve currency by tag (null)","error":"NOT_FOUND","status":"FAILURE")
-                    "Can't find currency with tag" => '\\ccxt\\BadSymbol', // array("status":"FAILURE","message":"Can't find currency with tag = null","error":"NOT_FOUND","errors":null,"result":false)
-                    'Unable to place order because pair is in inactive state' => '\\ccxt\\BadSymbol', // array("message":"Unable to place order because pair is in inactive state (PAIR_STATUS_INACTIVE)","error":"ORDER_VALIDATION","status":"FAILURE")
-                    'API keys are not available for' => '\\ccxt\\AccountSuspended', // array("result":false,"message":"API keys are not available for FROZEN user","error":"BAD_REQUEST","status":"FAILURE")
+                    'invalid API key, signature or digest' => '\\ccxt\\AuthenticationError', // {"result":false,"message":"invalid API key, signature or digest","error":"BAD_REQUEST","status":"FAILURE"}
+                    'Invalid API key specified' => '\\ccxt\\AuthenticationError', // {"result":false,"message":"Invalid API key specified","error":"NOT_FOUND","status":"FAILURE"}
+                    'The API key was revoked' => '\\ccxt\\AuthenticationError', // {"result":false,"message":"The API key was revoked","error":"BAD_REQUEST","status":"FAILURE"}
+                    'request expired or bad' => '\\ccxt\\InvalidNonce', // {"result":false,"message":"request expired or bad <timeAlive>/<timestamp> format","error":"BAD_REQUEST","status":"FAILURE"}
+                    'For input string' => '\\ccxt\\BadRequest', // {"result":false,"message":"Internal error","error":"For input string: \"NaN\"","status":"FAILURE"}
+                    'Unable to resolve currency by tag' => '\\ccxt\\BadSymbol', // {"message":"Unable to resolve currency by tag (undefined)","error":"NOT_FOUND","status":"FAILURE"}
+                    "Can't find currency with tag" => '\\ccxt\\BadSymbol', // {"status":"FAILURE","message":"Can't find currency with tag = undefined","error":"NOT_FOUND","errors":null,"result":false}
+                    'Unable to place order because pair is in inactive state' => '\\ccxt\\BadSymbol', // {"message":"Unable to place order because pair is in inactive state (PAIR_STATUS_INACTIVE)","error":"ORDER_VALIDATION","status":"FAILURE"}
+                    'API keys are not available for' => '\\ccxt\\AccountSuspended', // {"result":false,"message":"API keys are not available for FROZEN user","error":"BAD_REQUEST","status":"FAILURE"}
                 ),
             ),
             'options' => array(
@@ -276,6 +283,33 @@ class latoken extends Exchange {
                 'accounts' => array(
                     'ACCOUNT_TYPE_WALLET' => 'wallet',
                     'ACCOUNT_TYPE_SPOT' => 'spot',
+                ),
+                'networks' => array(
+                    // the venue names a token chain "<CHAIN>_TOKEN" and the native
+                    // chain by its own ticker, so only the former needs a mapping
+                    'BEP20' => 'BSC_TOKEN',
+                    'TRC20' => 'TRON',
+                    'ADA' => 'ADA_TOKEN',
+                    'ALGO' => 'ALGO_TOKEN',
+                    'ARBITRUM' => 'ARB_TOKEN',
+                    'AVAXC' => 'AVAXC_TOKEN',
+                    'BASE' => 'BASE_TOKEN',
+                    'CELO' => 'CELO_TOKEN',
+                    'EOS' => 'EOS_TOKEN',
+                    'FTM' => 'FTM_TOKEN',
+                    'MATIC' => 'MATIC_TOKEN',
+                    'OP' => 'OP_TOKEN',
+                    'QTUM' => 'QTUM_TOKEN',
+                    'SOL' => 'SOL_TOKEN',
+                    'TON' => 'TON_TOKEN',
+                    'VET' => 'VECHAIN_TOKEN',
+                    'WAVES' => 'WAVES_TOKEN',
+                    'XDC' => 'XDC_TOKEN',
+                    'XLM' => 'XLM_TOKEN',
+                    'XRP' => 'XRP_TOKEN',
+                ),
+                'networksById' => array(
+                    'BSC' => 'BEP20', // second provider id for the same chain
                 ),
                 'fetchTradingFee' => array(
                     'method' => 'fetchPrivateTradingFee', // or 'fetchPublicTradingFee'
@@ -295,7 +329,7 @@ class latoken extends Exchange {
                         'takeProfitPrice' => false, // todo
                         'attachedStopLossTakeProfit' => null,
                         'timeInForce' => array(
-                            'IOC' => true, // todo => for non-trigger orders
+                            'IOC' => true, // todo: for non-trigger orders
                             'FOK' => true,
                             'PO' => false,
                             'GTD' => false,
@@ -304,7 +338,7 @@ class latoken extends Exchange {
                         'selfTradePrevention' => false,
                         'trailing' => false,
                         'leverage' => false,
-                        'marketBuyByCost' => true,
+                        'marketBuyByCost' => false,
                         'marketBuyRequiresPrice' => false,
                         'iceberg' => false,
                     ),
@@ -325,11 +359,19 @@ class latoken extends Exchange {
                     'fetchOpenOrders' => array(
                         'marginMode' => false,
                         'limit' => null,
-                        'trigger' => false,
+                        'trigger' => true,
                         'trailing' => false,
                         'symbolRequired' => true,
                     ),
-                    'fetchOrders' => null,
+                    'fetchOrders' => array(
+                        'marginMode' => false,
+                        'limit' => null,
+                        'daysBack' => null,
+                        'untilDays' => null,
+                        'trigger' => true,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
                     'fetchClosedOrders' => array(
                         'marginMode' => false,
                         'limit' => 1000,
@@ -354,8 +396,12 @@ class latoken extends Exchange {
         ));
     }
 
-    public function nonce() {
-        return $this->milliseconds() - $this->options['timeDifference'];
+    public function nonce(): float {
+        $timeDifference = $this->safe_integer($this->options, 'timeDifference');
+        if ($timeDifference === null) {
+            throw new ExchangeError($this->id . ' nonce() requires a numeric options["timeDifference"]');
+        }
+        return $this->milliseconds() - $timeDifference;
     }
 
     public function fetch_time($params = array()): PromiseInterface {
@@ -374,7 +420,7 @@ class latoken extends Exchange {
         $response = Async\await($this->publicGetTime($params));
         //
         //     {
-        //         "serverTime" => 1570615577321
+        //         "serverTime": 1570615577321
         //     }
         //
         return $this->safe_integer($response, 'serverTime');
@@ -395,7 +441,7 @@ class latoken extends Exchange {
          */
         $response = Async\await($this->publicGetPair($params));
         //
-        //     array(
+        //     [
         //         {
         //             "id":"dba4289b-6b46-4d94-bf55-49eec9a163ad",
         //             "status":"PAIR_STATUS_ACTIVE", // CURRENCY_STATUS_INACTIVE
@@ -412,7 +458,7 @@ class latoken extends Exchange {
         //             "minOrderCostUsd":"0",
         //             "externalSymbol":""
         //         }
-        //     )
+        //     ]
         //
         if ($this->safe_bool($this->options, 'adjustForTimeDifference', false)) {
             Async\await($this->load_time_difference());
@@ -501,13 +547,19 @@ class latoken extends Exchange {
     private function do_fetch_currencies($params = array()) {
         /**
          * fetches all available currencies on an exchange
+         *
+         * @see https://api.latoken.com/doc/v2/#tag/Currency/operation/getActiveCurrencies
+         * @see https://api.latoken.com/doc/v2/#tag/Transaction/operation/getBindings
+         *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an associative dictionary of currencies
          */
+        // sequential on purpose - with Promise.all the static request harness records
+        // whichever call finished last, which differs between the sync and async ports
         $response = Async\await($this->publicGetCurrency($params));
         //
-        //     array(
-        //         array(
+        //     [
+        //         {
         //             "id":"1a075819-9e0b-48fc-8784-4dab1d186d6d",
         //             "status":"CURRENCY_STATUS_ACTIVE",
         //             "type":"CURRENCY_TYPE_ALTERNATIVE", // CURRENCY_TYPE_CRYPTO, CURRENCY_TYPE_IEO
@@ -520,8 +572,8 @@ class latoken extends Exchange {
         //             "tier":1,
         //             "assetClass":"ASSET_CLASS_UNKNOWN",
         //             "minTransferAmount":0
-        //         ),
-        //         array(
+        //         },
+        //         {
         //             "id":"db02758e-2507-46a5-a805-7bc60355b3eb",
         //             "status":"CURRENCY_STATUS_ACTIVE",
         //             "type":"CURRENCY_TYPE_FUTURES_CONTRACT",
@@ -534,10 +586,44 @@ class latoken extends Exchange {
         //             "tier":1,
         //             "assetClass":"ASSET_CLASS_UNKNOWN",
         //             "minTransferAmount":0
-        //         ),
-        //     )
+        //         },
+        //     ]
         //
-        return $this->parse_currencies($response);
+        //     [
+        //         {
+        //             "id":"0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+        //             "tag":"USDT",
+        //             "bindings":[
+        //                 {
+        //                     "minAmount":"5.000000000000000000",
+        //                     "maxAmount":"0",
+        //                     "fee":"3.000000000000000000",
+        //                     "percentFee":"0.250000000000000000",
+        //                     "providerName":"ERC20",
+        //                     "id":"973d2079-1fae-4fa7-82e4-bae55eba8284",
+        //                     "currencyProvider":"4d26b9ec-4bed-4bec-ba2f-02aaca8e84a1",
+        //                     "deflation":"0"
+        //                 },
+        //             ]
+        //         },
+        //     ]
+        //
+        // no params on this one - they belong to the currency request, not to the bindings
+        $bindingsResponse = Async\await($this->publicGetTransactionBindings());
+        $bindingsById = $this->index_by($bindingsResponse, 'id');
+        $rawCurrencies = $this->to_array($response);
+        $merged = array();
+        for ($i = 0; $i < count($rawCurrencies); $i++) {
+            $rawCurrency = $rawCurrencies[$i];
+            $bindingEntry = $this->safe_dict($bindingsById, $this->safe_string($rawCurrency, 'id'));
+            $bindings = $this->safe_list($bindingEntry, 'bindings');
+            $mergedCurrency = $rawCurrency;
+            if ($bindings !== null) {
+                $mergedCurrency = $this->extend($rawCurrency, array( 'bindings' => $bindings ));
+            }
+            $merged[] = $mergedCurrency;
+        }
+        return $this->parse_currencies($merged);
     }
 
     public function parse_currency(array $currency): array {
@@ -546,6 +632,42 @@ class latoken extends Exchange {
         $code = $this->safe_currency_code($tag);
         $currencyType = $this->safe_string($currency, 'type');
         $isCrypto = ($currencyType === 'CURRENCY_TYPE_CRYPTO' || $currencyType === 'CURRENCY_TYPE_IEO');
+        $bindings = $this->safe_list($currency, 'bindings', array());
+        $networks = array();
+        for ($i = 0; $i < count($bindings); $i++) {
+            $binding = $bindings[$i];
+            $networkId = $this->safe_string($binding, 'providerName');
+            $networkCode = $this->network_id_to_code($networkId, $code);
+            // the venue lists one provider twice on a currency (MBS, SOL_TOKEN), and both
+            // entries would land on the same unified code - keep the first one for a
+            // deterministic binding id, since withdrawals resolve the chain through it
+            if (($networkCode !== null) && !(is_array($networks) && array_key_exists($networkCode ?? '', $networks))) {
+                $networks[$networkCode] = array(
+                    'info' => $binding,
+                    'id' => $this->safe_string($binding, 'id'),
+                    'network' => $networkCode,
+                    'active' => null,
+                    // the public endpoint serves one entry per chain without saying
+                    // whether it is bound for deposits, withdrawals or both
+                    'deposit' => null,
+                    'withdraw' => null,
+                    'fee' => $this->safe_number($binding, 'fee'),
+                    'precision' => null,
+                    'limits' => array(
+                        'deposit' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'withdraw' => array(
+                            'min' => $this->safe_number($binding, 'minAmount'),
+                            // maxAmount is "0" on 1990 of the 1996 bindings and contradicts its
+                            // own minimum on the rest, so the venue does not keep it as a real cap
+                            'max' => null,
+                        ),
+                    ),
+                );
+            }
+        }
         return $this->safe_currency_structure(array(
             'id' => $id,
             'code' => $code,
@@ -555,7 +677,7 @@ class latoken extends Exchange {
             'active' => $this->safe_string($currency, 'status') === 'CURRENCY_STATUS_ACTIVE',
             'deposit' => null,
             'withdraw' => null,
-            'fee' => $this->safe_number($currency, 'fee'),
+            'fee' => null,
             'precision' => $this->parse_number($this->parse_precision($this->safe_string($currency, 'decimals'))),
             'limits' => array(
                 'amount' => array(
@@ -567,7 +689,7 @@ class latoken extends Exchange {
                     'max' => null,
                 ),
             ),
-            'networks' => array(),
+            'networks' => $networks,
         ));
     }
 
@@ -587,28 +709,31 @@ class latoken extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $response = Async\await($this->privateGetAuthAccount($params));
+        $defaultType = $this->safe_string_2($this->options, 'fetchBalance', 'defaultType', 'spot');
+        $type = $this->safe_string($params, 'type', $defaultType);
+        $paramsOmitted = $this->omit($params, 'type');
+        $response = Async\await($this->privateGetAuthAccount($paramsOmitted));
         //
-        //     array(
-        //         array(
-        //             "id" => "e5852e02-8711-431c-9749-a6f5503c6dbe",
-        //             "status" => "ACCOUNT_STATUS_ACTIVE",
-        //             "type" => "ACCOUNT_TYPE_WALLET",
-        //             "timestamp" => "1635920106506",
-        //             "currency" => "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
-        //             "available" => "100.000000",
-        //             "blocked" => "0.000000"
-        //         ),
+        //     [
         //         {
-        //             "id" => "369df204-acbc-467e-a25e-b16e3cc09cf6",
-        //             "status" => "ACCOUNT_STATUS_ACTIVE",
-        //             "type" => "ACCOUNT_TYPE_SPOT",
-        //             "timestamp" => "1635920106504",
-        //             "currency" => "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
-        //             "available" => "100.000000",
-        //             "blocked" => "0.000000"
+        //             "id": "e5852e02-8711-431c-9749-a6f5503c6dbe",
+        //             "status": "ACCOUNT_STATUS_ACTIVE",
+        //             "type": "ACCOUNT_TYPE_WALLET",
+        //             "timestamp": "1635920106506",
+        //             "currency": "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+        //             "available": "100.000000",
+        //             "blocked": "0.000000"
+        //         },
+        //         {
+        //             "id": "369df204-acbc-467e-a25e-b16e3cc09cf6",
+        //             "status": "ACCOUNT_STATUS_ACTIVE",
+        //             "type": "ACCOUNT_TYPE_SPOT",
+        //             "timestamp": "1635920106504",
+        //             "currency": "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+        //             "available": "100.000000",
+        //             "blocked": "0.000000"
         //         }
-        //     )
+        //     ]
         //
         $result = array(
             'info' => $response,
@@ -616,21 +741,17 @@ class latoken extends Exchange {
             'datetime' => null,
         );
         $maxTimestamp = null;
-        $defaultType = $this->safe_string_2($this->options, 'fetchBalance', 'defaultType', 'spot');
-        $type = $this->safe_string($params, 'type', $defaultType);
-        $types = $this->safe_value($this->options, 'types', array());
+        $types = $this->safe_dict($this->options, 'types', array());
         $accountType = $this->safe_string($types, $type, $type);
         $balancesByType = $this->group_by($response, 'type');
-        $balances = $this->safe_value($balancesByType, $accountType, array());
+        $balances = $this->safe_list($balancesByType, $accountType, array());
         for ($i = 0; $i < count($balances); $i++) {
-            $balance = $balances[$i];
+            $balance = $this->safe_dict($balances, $i);
             $currencyId = $this->safe_string($balance, 'currency');
             $timestamp = $this->safe_integer($balance, 'timestamp');
             if ($timestamp !== null) {
-                if ($maxTimestamp === null) {
+                if (($maxTimestamp === null) || ($timestamp > $maxTimestamp)) {
                     $maxTimestamp = $timestamp;
-                } else {
-                    $maxTimestamp = max($maxTimestamp, $timestamp);
                 }
             }
             $code = $this->safe_currency_code($currencyId);
@@ -675,16 +796,16 @@ class latoken extends Exchange {
         $response = Async\await($this->publicGetBookCurrencyQuote($this->extend($request, $params)));
         //
         //     {
-        //         "ask":array(
-        //             array("price":"4428.76","quantity":"0.08136","cost":"360.3239136","accumulated":"360.3239136"),
-        //             array("price":"4429.77","quantity":"1.11786","cost":"4951.8626922","accumulated":"5312.1866058"),
-        //             array("price":"4430.94","quantity":"1.78418","cost":"7905.5945292","accumulated":"13217.781135"),
-        //         ),
-        //         "bid":array(
-        //             array("price":"4428.43","quantity":"0.13675","cost":"605.5878025","accumulated":"605.5878025"),
-        //             array("price":"4428.19","quantity":"0.03619","cost":"160.2561961","accumulated":"765.8439986"),
-        //             array("price":"4428.15","quantity":"0.02926","cost":"129.567669","accumulated":"895.4116676"),
-        //         ),
+        //         "ask":[
+        //             {"price":"4428.76","quantity":"0.08136","cost":"360.3239136","accumulated":"360.3239136"},
+        //             {"price":"4429.77","quantity":"1.11786","cost":"4951.8626922","accumulated":"5312.1866058"},
+        //             {"price":"4430.94","quantity":"1.78418","cost":"7905.5945292","accumulated":"13217.781135"},
+        //         ],
+        //         "bid":[
+        //             {"price":"4428.43","quantity":"0.13675","cost":"605.5878025","accumulated":"605.5878025"},
+        //             {"price":"4428.19","quantity":"0.03619","cost":"160.2561961","accumulated":"765.8439986"},
+        //             {"price":"4428.15","quantity":"0.02926","cost":"129.567669","accumulated":"895.4116676"},
+        //         ],
         //         "totalAsk":"53.14814",
         //         "totalBid":"112216.9029791"
         //     }
@@ -722,29 +843,43 @@ class latoken extends Exchange {
     public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         //    {
-        //        "symbol" => "92151d82-df98-4d88-9a4d-284fa9eca49f/0c3a106d-bde3-4c13-a26e-3fd2394529e5",
-        //        "baseCurrency" => "92151d82-df98-4d88-9a4d-284fa9eca49f",
-        //        "quoteCurrency" => "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
-        //        "volume24h" => "165723597.189022176000000000",
-        //        "volume7d" => "934505768.625109571000000000",
-        //        "change24h" => "0.0200",
-        //        "change7d" => "-6.4200",
-        //        "amount24h" => "6438.457663100000000000",
-        //        "amount7d" => "35657.785013800000000000",
-        //        "lastPrice" => "25779.16",
-        //        "lastQuantity" => "0.248403300000000000",
-        //        "bestBid" => "25778.74",
-        //        "bestBidQuantity" => "0.6520232",
-        //        "bestAsk" => "25779.17",
-        //        "bestAskQuantity" => "0.4956043",
-        //        "updateTimestamp" => "1693965231406"
+        //        "symbol": "BTC/USDT",
+        //        "baseCurrency": "92151d82-df98-4d88-9a4d-284fa9eca49f",
+        //        "quoteCurrency": "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+        //        "volume24h": "165723597.189022176000000000",
+        //        "volume7d": "934505768.625109571000000000",
+        //        "change24h": "0.0200",
+        //        "change7d": "-6.4200",
+        //        "amount24h": "6438.457663100000000000",
+        //        "amount7d": "35657.785013800000000000",
+        //        "lastPrice": "25779.16",
+        //        "lastQuantity": "0.248403300000000000",
+        //        "bestBid": "25778.74",
+        //        "bestBidQuantity": "0.6520232",
+        //        "bestAsk": "25779.17",
+        //        "bestAskQuantity": "0.4956043",
+        //        "updateTimestamp": 1693965231406
         //    }
         //
-        $marketId = $this->safe_string($ticker, 'symbol');
+        // the "symbol" field carries the currency tags, which differ from the
+        // unified symbol whenever commonCurrencies renames a code, so resolve
+        // the market from the currency ids like parseTrade and parseOrder do
+        $baseId = $this->safe_string($ticker, 'baseCurrency');
+        $quoteId = $this->safe_string($ticker, 'quoteCurrency');
+        $base = $this->safe_currency_code($baseId);
+        $quote = $this->safe_currency_code($quoteId);
+        $symbol = null;
+        $marketResolved = $market;
+        if (($base !== null) && ($quote !== null)) {
+            $symbol = $base . '/' . $quote;
+            if (($this->markets !== null) && (is_array($this->markets) && array_key_exists($symbol ?? '', $this->markets))) {
+                $marketResolved = $this->market($symbol);
+            }
+        }
         $last = $this->safe_string($ticker, 'lastPrice');
         $timestamp = $this->safe_integer_omit_zero($ticker, 'updateTimestamp'); // sometimes latoken provided '0' ts from /ticker endpoint
         return $this->safe_ticker(array(
-            'symbol' => $this->safe_symbol($marketId, $market),
+            'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'low' => null,
@@ -764,7 +899,7 @@ class latoken extends Exchange {
             'baseVolume' => $this->safe_string($ticker, 'amount24h'),
             'quoteVolume' => $this->safe_string($ticker, 'volume24h'),
             'info' => $ticker,
-        ), $market);
+        ), $marketResolved);
     }
 
     public function fetch_ticker(string $symbol, $params = array()): PromiseInterface {
@@ -792,22 +927,22 @@ class latoken extends Exchange {
         $response = Async\await($this->publicGetTickerBaseQuote($this->extend($request, $params)));
         //
         //    {
-        //        "symbol" => "92151d82-df98-4d88-9a4d-284fa9eca49f/0c3a106d-bde3-4c13-a26e-3fd2394529e5",
-        //        "baseCurrency" => "92151d82-df98-4d88-9a4d-284fa9eca49f",
-        //        "quoteCurrency" => "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
-        //        "volume24h" => "165723597.189022176000000000",
-        //        "volume7d" => "934505768.625109571000000000",
-        //        "change24h" => "0.0200",
-        //        "change7d" => "-6.4200",
-        //        "amount24h" => "6438.457663100000000000",
-        //        "amount7d" => "35657.785013800000000000",
-        //        "lastPrice" => "25779.16",
-        //        "lastQuantity" => "0.248403300000000000",
-        //        "bestBid" => "25778.74",
-        //        "bestBidQuantity" => "0.6520232",
-        //        "bestAsk" => "25779.17",
-        //        "bestAskQuantity" => "0.4956043",
-        //        "updateTimestamp" => "1693965231406"
+        //        "symbol": "BTC/USDT",
+        //        "baseCurrency": "92151d82-df98-4d88-9a4d-284fa9eca49f",
+        //        "quoteCurrency": "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+        //        "volume24h": "165723597.189022176000000000",
+        //        "volume7d": "934505768.625109571000000000",
+        //        "change24h": "0.0200",
+        //        "change7d": "-6.4200",
+        //        "amount24h": "6438.457663100000000000",
+        //        "amount7d": "35657.785013800000000000",
+        //        "lastPrice": "25779.16",
+        //        "lastQuantity": "0.248403300000000000",
+        //        "bestBid": "25778.74",
+        //        "bestBidQuantity": "0.6520232",
+        //        "bestAsk": "25779.17",
+        //        "bestAskQuantity": "0.4956043",
+        //        "updateTimestamp": 1693965231406
         //    }
         //
         return $this->parse_ticker($response, $market);
@@ -832,26 +967,26 @@ class latoken extends Exchange {
         }
         $response = Async\await($this->publicGetTicker($params));
         //
-        //    array(
+        //    [
         //        {
-        //            "symbol" => "92151d82-df98-4d88-9a4d-284fa9eca49f/0c3a106d-bde3-4c13-a26e-3fd2394529e5",
-        //            "baseCurrency" => "92151d82-df98-4d88-9a4d-284fa9eca49f",
-        //            "quoteCurrency" => "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
-        //            "volume24h" => "165723597.189022176000000000",
-        //            "volume7d" => "934505768.625109571000000000",
-        //            "change24h" => "0.0200",
-        //            "change7d" => "-6.4200",
-        //            "amount24h" => "6438.457663100000000000",
-        //            "amount7d" => "35657.785013800000000000",
-        //            "lastPrice" => "25779.16",
-        //            "lastQuantity" => "0.248403300000000000",
-        //            "bestBid" => "25778.74",
-        //            "bestBidQuantity" => "0.6520232",
-        //            "bestAsk" => "25779.17",
-        //            "bestAskQuantity" => "0.4956043",
-        //            "updateTimestamp" => "1693965231406"
+        //            "symbol": "BTC/USDT",
+        //            "baseCurrency": "92151d82-df98-4d88-9a4d-284fa9eca49f",
+        //            "quoteCurrency": "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+        //            "volume24h": "165723597.189022176000000000",
+        //            "volume7d": "934505768.625109571000000000",
+        //            "change24h": "0.0200",
+        //            "change7d": "-6.4200",
+        //            "amount24h": "6438.457663100000000000",
+        //            "amount7d": "35657.785013800000000000",
+        //            "lastPrice": "25779.16",
+        //            "lastQuantity": "0.248403300000000000",
+        //            "bestBid": "25778.74",
+        //            "bestBidQuantity": "0.6520232",
+        //            "bestAsk": "25779.17",
+        //            "bestAskQuantity": "0.4956043",
+        //            "updateTimestamp": 1693965231406
         //        }
-        //    )
+        //    ]
         //
         return $this->parse_tickers($response, $symbols);
     }
@@ -894,10 +1029,10 @@ class latoken extends Exchange {
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string($trade, 'quantity');
         $costString = $this->safe_string($trade, 'cost');
-        $makerBuyer = $this->safe_value($trade, 'makerBuyer');
+        $makerBuyer = $this->safe_bool($trade, 'makerBuyer');
         $side = $this->safe_string($trade, 'direction');
         if ($side === null) {
-            $side = $makerBuyer ? 'sell' : 'buy';
+            $side = ($makerBuyer === true) ? 'sell' : 'buy';
         } else {
             if ($side === 'TRADE_DIRECTION_BUY') {
                 $side = 'buy';
@@ -906,14 +1041,19 @@ class latoken extends Exchange {
             }
         }
         $isBuy = ($side === 'buy');
-        $takerOrMaker = ($makerBuyer && $isBuy) ? 'maker' : 'taker';
+        $isMaker = ($makerBuyer === true) && $isBuy;
+        $takerOrMaker = $isMaker ? 'maker' : 'taker';
         $baseId = $this->safe_string($trade, 'baseCurrency');
         $quoteId = $this->safe_string($trade, 'quoteCurrency');
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
-        $symbol = $base . '/' . $quote;
-        if (($this->markets !== null) && (is_array($this->markets) && array_key_exists($symbol ?? '', $this->markets))) {
-            $market = $this->market($symbol);
+        $symbol = null;
+        $marketResolved = $market;
+        if (($base !== null) && ($quote !== null)) {
+            $symbol = $base . '/' . $quote;
+            if (($this->markets !== null) && (is_array($this->markets) && array_key_exists($symbol ?? '', $this->markets))) {
+                $marketResolved = $this->market($symbol);
+            }
         }
         $id = $this->safe_string($trade, 'id');
         $orderId = $this->safe_string($trade, 'order');
@@ -939,7 +1079,7 @@ class latoken extends Exchange {
             'amount' => $amountString,
             'cost' => $costString,
             'fee' => $fee,
-        ), $market);
+        ), $marketResolved);
     }
 
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -965,19 +1105,19 @@ class latoken extends Exchange {
         $request = array(
             'currency' => $market['baseId'],
             'quote' => $market['quoteId'],
-            // 'from' => (string) $since, // milliseconds
-            // 'limit' => $limit, // default 100, $limit 100
+            // 'from': since.toString (), // milliseconds
+            // 'limit': limit, // default 100, limit 100
         );
         if ($limit !== null) {
-            $request['limit'] = min($limit, 100); // default 100, $limit 100
+            $request['limit'] = min($limit, 100); // default 100, limit 100
         }
         $response = Async\await($this->publicGetTradeHistoryCurrencyQuote($this->extend($request, $params)));
         //
-        //     array(
-        //         array("id":"c152f814-8eeb-44f0-8f3f-e5c568f2ffcf","isMakerBuyer":false,"baseCurrency":"620f2019-33c0-423b-8a9d-cde4d7f8ef7f","quoteCurrency":"0c3a106d-bde3-4c13-a26e-3fd2394529e5","price":"4435.56","quantity":"0.32534","cost":"1443.0650904","timestamp":1635854642725,"makerBuyer":false),
-        //         array("id":"cfecbefb-3d11-43d7-b9d4-fa16211aad8a","isMakerBuyer":false,"baseCurrency":"620f2019-33c0-423b-8a9d-cde4d7f8ef7f","quoteCurrency":"0c3a106d-bde3-4c13-a26e-3fd2394529e5","price":"4435.13","quantity":"0.26540","cost":"1177.083502","timestamp":1635854641114,"makerBuyer":false),
-        //         array("id":"f43d3ec8-db94-49f3-b534-91dbc2779296","isMakerBuyer":true,"baseCurrency":"620f2019-33c0-423b-8a9d-cde4d7f8ef7f","quoteCurrency":"0c3a106d-bde3-4c13-a26e-3fd2394529e5","price":"4435.00","quantity":"0.41738","cost":"1851.0803","timestamp":1635854640323,"makerBuyer":true),
-        //     )
+        //     [
+        //         {"id":"c152f814-8eeb-44f0-8f3f-e5c568f2ffcf","isMakerBuyer":false,"baseCurrency":"620f2019-33c0-423b-8a9d-cde4d7f8ef7f","quoteCurrency":"0c3a106d-bde3-4c13-a26e-3fd2394529e5","price":"4435.56","quantity":"0.32534","cost":"1443.0650904","timestamp":1635854642725,"makerBuyer":false},
+        //         {"id":"cfecbefb-3d11-43d7-b9d4-fa16211aad8a","isMakerBuyer":false,"baseCurrency":"620f2019-33c0-423b-8a9d-cde4d7f8ef7f","quoteCurrency":"0c3a106d-bde3-4c13-a26e-3fd2394529e5","price":"4435.13","quantity":"0.26540","cost":"1177.083502","timestamp":1635854641114,"makerBuyer":false},
+        //         {"id":"f43d3ec8-db94-49f3-b534-91dbc2779296","isMakerBuyer":true,"baseCurrency":"620f2019-33c0-423b-8a9d-cde4d7f8ef7f","quoteCurrency":"0c3a106d-bde3-4c13-a26e-3fd2394529e5","price":"4435.00","quantity":"0.41738","cost":"1851.0803","timestamp":1635854640323,"makerBuyer":true},
+        //     ]
         //
         return $this->parse_trades($response, $market, $since, $limit);
     }
@@ -997,20 +1137,20 @@ class latoken extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=fee-structure fee structure~
          */
-        $options = $this->safe_value($this->options, 'fetchTradingFee', array());
+        $options = $this->safe_dict($this->options, 'fetchTradingFee', array());
         $defaultMethod = $this->safe_string($options, 'method', 'fetchPrivateTradingFee');
         $method = $this->safe_string($params, 'method', $defaultMethod);
-        $params = $this->omit($params, 'method');
+        $paramsOmitted = $this->omit($params, 'method');
         if ($method === 'fetchPrivateTradingFee') {
-            return Async\await($this->fetch_private_trading_fee($symbol, $params));
+            return Async\await($this->fetch_private_trading_fee($symbol, $paramsOmitted));
         } elseif ($method === 'fetchPublicTradingFee') {
-            return Async\await($this->fetch_public_trading_fee($symbol, $params));
+            return Async\await($this->fetch_public_trading_fee($symbol, $paramsOmitted));
         } else {
             throw new NotSupported($this->id . ' not support this method');
         }
     }
 
-    public function fetch_public_trading_fee(string $symbol, $params = array()) {
+    public function fetch_public_trading_fee(string $symbol, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_public_trading_fee(...))($symbol, $params);
     }
 
@@ -1026,10 +1166,10 @@ class latoken extends Exchange {
         $response = Async\await($this->publicGetTradeFeeCurrencyQuote($this->extend($request, $params)));
         //
         //     {
-        //         "makerFee" => "0.004900000000000000",
-        //         "takerFee" => "0.004900000000000000",
-        //         "type" => "FEE_SCHEME_TYPE_PERCENT_QUOTE",
-        //         "take" => "FEE_SCHEME_TAKE_PROPORTION"
+        //         "makerFee": "0.004900000000000000",
+        //         "takerFee": "0.004900000000000000",
+        //         "type": "FEE_SCHEME_TYPE_PERCENT_QUOTE",
+        //         "take": "FEE_SCHEME_TAKE_PROPORTION"
         //     }
         //
         return array(
@@ -1042,7 +1182,7 @@ class latoken extends Exchange {
         );
     }
 
-    public function fetch_private_trading_fee(string $symbol, $params = array()) {
+    public function fetch_private_trading_fee(string $symbol, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_private_trading_fee(...))($symbol, $params);
     }
 
@@ -1058,10 +1198,10 @@ class latoken extends Exchange {
         $response = Async\await($this->privateGetAuthTradeFeeCurrencyQuote($this->extend($request, $params)));
         //
         //     {
-        //         "makerFee" => "0.004900000000000000",
-        //         "takerFee" => "0.004900000000000000",
-        //         "type" => "FEE_SCHEME_TYPE_PERCENT_QUOTE",
-        //         "take" => "FEE_SCHEME_TAKE_PROPORTION"
+        //         "makerFee": "0.004900000000000000",
+        //         "takerFee": "0.004900000000000000",
+        //         "type": "FEE_SCHEME_TYPE_PERCENT_QUOTE",
+        //         "take": "FEE_SCHEME_TAKE_PROPORTION"
         //     }
         //
         return array(
@@ -1074,7 +1214,7 @@ class latoken extends Exchange {
         );
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_my_trades(...))($symbol, $since, $limit, $params);
     }
 
@@ -1095,10 +1235,10 @@ class latoken extends Exchange {
             Async\await($this->load_markets());
         }
         $request = array(
-            // 'currency' => $market['baseId'],
-            // 'quote' => $market['quoteId'],
-            // 'from' => $this->milliseconds(),
-            // 'limit' => $limit, // default '100'
+            // 'currency': market['baseId'],
+            // 'quote': market['quoteId'],
+            // 'from': this.milliseconds (),
+            // 'limit': limit, // default '100'
         );
         $market = null;
         if ($limit !== null) {
@@ -1114,7 +1254,7 @@ class latoken extends Exchange {
             $response = Async\await($this->privateGetAuthTrade($this->extend($request, $params)));
         }
         //
-        //     array(
+        //     [
         //         {
         //             "id":"02e02533-b4bf-4ba9-9271-24e2108dfbf7",
         //             "isMakerBuyer":false,
@@ -1129,12 +1269,12 @@ class latoken extends Exchange {
         //             "timestamp":1635921580399,
         //             "makerBuyer":false
         //         }
-        //     )
+        //     ]
         //
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             'ORDER_STATUS_PLACED' => 'open',
             'ORDER_STATUS_CLOSED' => 'closed',
@@ -1143,7 +1283,7 @@ class latoken extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order_type(mixed $status) {
+    public function parse_order_type(?string $status): ?string {
         $statuses = array(
             'ORDER_TYPE_MARKET' => 'market',
             'ORDER_TYPE_LIMIT' => 'limit',
@@ -1151,7 +1291,7 @@ class latoken extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_time_in_force(?string $timeInForce) {
+    public function parse_time_in_force(?string $timeInForce): ?string {
         $timeInForces = array(
             'ORDER_CONDITION_GOOD_TILL_CANCELLED' => 'GTC',
             'ORDER_CONDITION_IMMEDIATE_OR_CANCEL' => 'IOC',
@@ -1165,14 +1305,14 @@ class latoken extends Exchange {
         // createOrder
         //
         //    {
-        //        "baseCurrency" => "f7dac554-8139-4ff6-841f-0e586a5984a0",
-        //        "quoteCurrency" => "a5a7a7a9-e2a3-43f9-8754-29a02f6b709b",
-        //        "side" => "BID",
-        //        "clientOrderId" => "my-wonderful-$order-number-71566",
-        //        "price" => "10103.19",
-        //        "stopPrice" => "10103.19",
-        //        "quantity" => "3.21",
-        //        "timestamp" => 1568185507
+        //        "baseCurrency": "f7dac554-8139-4ff6-841f-0e586a5984a0",
+        //        "quoteCurrency": "a5a7a7a9-e2a3-43f9-8754-29a02f6b709b",
+        //        "side": "BID",
+        //        "clientOrderId": "my-wonderful-order-number-71566",
+        //        "price": "10103.19",
+        //        "stopPrice": "10103.19",
+        //        "quantity": "3.21",
+        //        "timestamp": 1568185507
         //    }
         //
         // fetchOrder, fetchOpenOrders, fetchOrders
@@ -1213,9 +1353,11 @@ class latoken extends Exchange {
         $symbol = null;
         if (($base !== null) && ($quote !== null)) {
             $symbol = $base . '/' . $quote;
-            if (($this->markets !== null) && (is_array($this->markets) && array_key_exists($symbol ?? '', $this->markets))) {
-                $market = $this->market($symbol);
-            }
+        }
+        $symbolKnown = ($symbol !== null) && ($this->markets !== null) && (is_array($this->markets) && array_key_exists($symbol ?? '', $this->markets));
+        $marketResolved = $market;
+        if ($symbolKnown) {
+            $marketResolved = $this->market($symbol);
         }
         $orderSide = $this->safe_string($order, 'side');
         $side = null;
@@ -1262,7 +1404,7 @@ class latoken extends Exchange {
             'remaining' => null,
             'fee' => null,
             'trades' => null,
-        ), $market);
+        ), $marketResolved);
     }
 
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -1284,26 +1426,26 @@ class latoken extends Exchange {
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $isTrigger = $this->safe_value_2($params, 'trigger', 'stop');
-        $params = $this->omit($params, 'stop');
+        $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop');
+        $paramsOmitted = $this->omit($params, array( 'stop', 'trigger' ));
         // privateGetAuthOrderActive doesn't work even though its listed at https://api.latoken.com/doc/v2/#tag/Order/operation/getMyActiveOrders
         $market = $this->market($symbol);
         $request = array(
             'currency' => $market['baseId'],
             'quote' => $market['quoteId'],
         );
-        if ($isTrigger) {
-            $response = Async\await($this->privateGetAuthStopOrderPairCurrencyQuoteActive($this->extend($request, $params)));
+        if ($isTrigger === true) {
+            $response = Async\await($this->privateGetAuthStopOrderPairCurrencyQuoteActive($this->extend($request, $paramsOmitted)));
         } else {
-            $response = Async\await($this->privateGetAuthOrderPairCurrencyQuoteActive($this->extend($request, $params)));
+            $response = Async\await($this->privateGetAuthOrderPairCurrencyQuoteActive($this->extend($request, $paramsOmitted)));
         }
         //
-        //     array(
+        //     [
         //         {
         //             "id":"a76bd262-3560-4bfb-98ac-1cedd394f4fc",
         //             "status":"ORDER_STATUS_PLACED",
@@ -1322,7 +1464,7 @@ class latoken extends Exchange {
         //             "creatorId":"",
         //             "timestamp":1635920767648
         //         }
-        //     )
+        //     ]
         //
         return $this->parse_orders($response, $market, $since, $limit);
     }
@@ -1351,14 +1493,14 @@ class latoken extends Exchange {
             Async\await($this->load_markets());
         }
         $request = array(
-            // 'currency' => $market['baseId'],
-            // 'quote' => $market['quoteId'],
-            // 'from' => $this->milliseconds(),
-            // 'limit' => $limit, // default '100'
+            // 'currency': market['baseId'],
+            // 'quote': market['quoteId'],
+            // 'from': this.milliseconds (),
+            // 'limit': limit, // default '100'
         );
         $market = null;
-        $isTrigger = $this->safe_value_2($params, 'trigger', 'stop');
-        $params = $this->omit($params, array( 'stop', 'trigger' ));
+        $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop');
+        $paramsOmitted = $this->omit($params, array( 'stop', 'trigger' ));
         if ($limit !== null) {
             $request['limit'] = $limit; // default 100
         }
@@ -1366,20 +1508,20 @@ class latoken extends Exchange {
             $market = $this->market($symbol);
             $request['currency'] = $market['baseId'];
             $request['quote'] = $market['quoteId'];
-            if ($isTrigger) {
-                $response = Async\await($this->privateGetAuthStopOrderPairCurrencyQuote($this->extend($request, $params)));
+            if ($isTrigger === true) {
+                $response = Async\await($this->privateGetAuthStopOrderPairCurrencyQuote($this->extend($request, $paramsOmitted)));
             } else {
-                $response = Async\await($this->privateGetAuthOrderPairCurrencyQuote($this->extend($request, $params)));
+                $response = Async\await($this->privateGetAuthOrderPairCurrencyQuote($this->extend($request, $paramsOmitted)));
             }
         } else {
-            if ($isTrigger) {
-                $response = Async\await($this->privateGetAuthStopOrder($this->extend($request, $params)));
+            if ($isTrigger === true) {
+                $response = Async\await($this->privateGetAuthStopOrder($this->extend($request, $paramsOmitted)));
             } else {
-                $response = Async\await($this->privateGetAuthOrder($this->extend($request, $params)));
+                $response = Async\await($this->privateGetAuthOrder($this->extend($request, $paramsOmitted)));
             }
         }
         //
-        //     array(
+        //     [
         //         {
         //             "id":"a76bd262-3560-4bfb-98ac-1cedd394f4fc",
         //             "status":"ORDER_STATUS_PLACED",
@@ -1398,12 +1540,12 @@ class latoken extends Exchange {
         //             "creatorId":"",
         //             "timestamp":1635920767648
         //         }
-        //     )
+        //     ]
         //
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_order(...))($id, $symbol, $params);
     }
 
@@ -1426,12 +1568,12 @@ class latoken extends Exchange {
         $request = array(
             'id' => $id,
         );
-        $isTrigger = $this->safe_value_2($params, 'trigger', 'stop');
-        $params = $this->omit($params, array( 'stop', 'trigger' ));
-        if ($isTrigger) {
-            $response = Async\await($this->privateGetAuthStopOrderGetOrderId($this->extend($request, $params)));
+        $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop');
+        $paramsOmitted = $this->omit($params, array( 'stop', 'trigger' ));
+        if ($isTrigger === true) {
+            $response = Async\await($this->privateGetAuthStopOrderGetOrderId($this->extend($request, $paramsOmitted)));
         } else {
-            $response = Async\await($this->privateGetAuthOrderGetOrderId($this->extend($request, $params)));
+            $response = Async\await($this->privateGetAuthOrderGetOrderId($this->extend($request, $paramsOmitted)));
         }
         //
         //     {
@@ -1456,7 +1598,7 @@ class latoken extends Exchange {
         return $this->parse_order($response);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_create_order(...))($symbol, $type, $side, $amount, $price, $params);
     }
 
@@ -1485,9 +1627,7 @@ class latoken extends Exchange {
         }
         $market = $this->market($symbol);
         $uppercaseType = strtoupper($type);
-        if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' createOrder() requires a $side argument');
-        }
+        $this->check_required_argument('createOrder', $side, 'side');
         $request = array(
             'baseCurrency' => $market['baseId'],
             'quoteCurrency' => $market['quoteId'],
@@ -1495,8 +1635,8 @@ class latoken extends Exchange {
             'condition' => 'GTC', // "GTC", "GOOD_TILL_CANCELLED", "IOC", "IMMEDIATE_OR_CANCEL", "FOK", "FILL_OR_KILL"
             'type' => $uppercaseType, // "LIMIT", "MARKET"
             'clientOrderId' => $this->uuid(), // 50 characters max
-            // 'price' => $this->price_to_precision($symbol, $price),
-            // 'quantity' => $this->amount_to_precision($symbol, $amount),
+            // 'price': this.priceToPrecision (symbol, price),
+            // 'quantity': this.amountToPrecision (symbol, amount),
             'quantity' => $this->amount_to_precision($symbol, $amount),
             'timestamp' => $this->seconds(),
         );
@@ -1504,29 +1644,29 @@ class latoken extends Exchange {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
         $triggerPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
-        $params = $this->omit($params, array( 'triggerPrice', 'stopPrice' ));
+        $paramsOmitted = $this->omit($params, array( 'triggerPrice', 'stopPrice' ));
         if ($triggerPrice !== null) {
             $request['stopPrice'] = $this->price_to_precision($symbol, $triggerPrice);
-            $response = Async\await($this->privatePostAuthStopOrderPlace($this->extend($request, $params)));
+            $response = Async\await($this->privatePostAuthStopOrderPlace($this->extend($request, $paramsOmitted)));
         } else {
-            $response = Async\await($this->privatePostAuthOrderPlace($this->extend($request, $params)));
+            $response = Async\await($this->privatePostAuthOrderPlace($this->extend($request, $paramsOmitted)));
         }
         //
         //    {
-        //        "baseCurrency" => "f7dac554-8139-4ff6-841f-0e586a5984a0",
-        //        "quoteCurrency" => "a5a7a7a9-e2a3-43f9-8754-29a02f6b709b",
-        //        "side" => "BID",
-        //        "clientOrderId" => "my-wonderful-order-number-71566",
-        //        "price" => "10103.19",
-        //        "stopPrice" => "10103.19",
-        //        "quantity" => "3.21",
-        //        "timestamp" => 1568185507
+        //        "baseCurrency": "f7dac554-8139-4ff6-841f-0e586a5984a0",
+        //        "quoteCurrency": "a5a7a7a9-e2a3-43f9-8754-29a02f6b709b",
+        //        "side": "BID",
+        //        "clientOrderId": "my-wonderful-order-number-71566",
+        //        "price": "10103.19",
+        //        "stopPrice": "10103.19",
+        //        "quantity": "3.21",
+        //        "timestamp": 1568185507
         //    }
         //
         return $this->parse_order($response, $market);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_order(...))($id, $symbol, $params);
     }
 
@@ -1549,26 +1689,26 @@ class latoken extends Exchange {
         $request = array(
             'id' => $id,
         );
-        $isTrigger = $this->safe_value_2($params, 'trigger', 'stop');
-        $params = $this->omit($params, array( 'stop', 'trigger' ));
-        if ($isTrigger) {
-            $response = Async\await($this->privatePostAuthStopOrderCancel($this->extend($request, $params)));
+        $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop');
+        $paramsOmitted = $this->omit($params, array( 'stop', 'trigger' ));
+        if ($isTrigger === true) {
+            $response = Async\await($this->privatePostAuthStopOrderCancel($this->extend($request, $paramsOmitted)));
         } else {
-            $response = Async\await($this->privatePostAuthOrderCancel($this->extend($request, $params)));
+            $response = Async\await($this->privatePostAuthOrderCancel($this->extend($request, $paramsOmitted)));
         }
         //
         //     {
-        //         "id" => "12345678-1234-1244-1244-123456789012",
-        //         "message" => "cancellation $request successfully submitted",
-        //         "status" => "SUCCESS",
-        //         "error" => "",
-        //         "errors" => array( )
+        //         "id": "12345678-1234-1244-1244-123456789012",
+        //         "message": "cancellation request successfully submitted",
+        //         "status": "SUCCESS",
+        //         "error": "",
+        //         "errors": { }
         //     }
         //
         return $this->parse_order($response);
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_all_orders(...))($symbol, $params);
     }
 
@@ -1588,31 +1728,31 @@ class latoken extends Exchange {
             Async\await($this->load_markets());
         }
         $request = array(
-            // 'currency' => $market['baseId'],
-            // 'quote' => $market['quoteId'],
+            // 'currency': market['baseId'],
+            // 'quote': market['quoteId'],
         );
         $market = null;
-        $isTrigger = $this->safe_value_2($params, 'trigger', 'stop');
-        $params = $this->omit($params, array( 'stop', 'trigger' ));
+        $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop');
+        $paramsOmitted = $this->omit($params, array( 'stop', 'trigger' ));
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $request['currency'] = $market['baseId'];
             $request['quote'] = $market['quoteId'];
-            if ($isTrigger) {
-                $response = Async\await($this->privatePostAuthStopOrderCancelAllCurrencyQuote($this->extend($request, $params)));
+            if ($isTrigger === true) {
+                $response = Async\await($this->privatePostAuthStopOrderCancelAllCurrencyQuote($this->extend($request, $paramsOmitted)));
             } else {
-                $response = Async\await($this->privatePostAuthOrderCancelAllCurrencyQuote($this->extend($request, $params)));
+                $response = Async\await($this->privatePostAuthOrderCancelAllCurrencyQuote($this->extend($request, $paramsOmitted)));
             }
         } else {
-            if ($isTrigger) {
-                $response = Async\await($this->privatePostAuthStopOrderCancelAll($this->extend($request, $params)));
+            if ($isTrigger === true) {
+                $response = Async\await($this->privatePostAuthStopOrderCancelAll($this->extend($request, $paramsOmitted)));
             } else {
-                $response = Async\await($this->privatePostAuthOrderCancelAll($this->extend($request, $params)));
+                $response = Async\await($this->privatePostAuthOrderCancelAll($this->extend($request, $paramsOmitted)));
             }
         }
         //
         //     {
-        //         "message":"cancellation $request successfully submitted",
+        //         "message":"cancellation request successfully submitted",
         //         "status":"SUCCESS"
         //     }
         //
@@ -1623,7 +1763,7 @@ class latoken extends Exchange {
         );
     }
 
-    public function fetch_transactions(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_transactions(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_transactions(...))($code, $since, $limit, $params);
     }
 
@@ -1644,14 +1784,14 @@ class latoken extends Exchange {
             Async\await($this->load_markets());
         }
         $request = array(
-            // 'page' => '1',
-            // 'size' => 100,
+            // 'page': '1',
+            // 'size': 100,
         );
         $response = Async\await($this->privateGetAuthTransaction($this->extend($request, $params)));
         //
         //     {
         //         "hasNext":false,
-        //         "content":array(
+        //         "content":[
         //             {
         //                 "id":"fbf7d0d1-2629-4ad8-9def-7a1dba423362",
         //                 "status":"TRANSACTION_STATUS_CONFIRMED",
@@ -1668,7 +1808,7 @@ class latoken extends Exchange {
         //                 "paymentProvider":"a8d6d1cb-f84a-4e9d-aa82-c6a08b356ee1",
         //                 "requiresCode":false
         //             }
-        //         ),
+        //         ],
         //         "first":true,
         //         "hasContent":true,
         //         "pageSize":10
@@ -1746,7 +1886,7 @@ class latoken extends Exchange {
         );
     }
 
-    public function parse_transaction_status(?string $status) {
+    public function parse_transaction_status(?string $status): ?string {
         $statuses = array(
             'TRANSACTION_STATUS_CONFIRMED' => 'ok',
             'TRANSACTION_STATUS_EXECUTED' => 'ok',
@@ -1758,7 +1898,7 @@ class latoken extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction_type(mixed $type) {
+    public function parse_transaction_type(?string $type): ?string {
         $types = array(
             'TRANSACTION_TYPE_DEPOSIT' => 'deposit',
             'TRANSACTION_TYPE_WITHDRAWAL' => 'withdrawal',
@@ -1789,33 +1929,33 @@ class latoken extends Exchange {
         $response = Async\await($this->privateGetAuthTransfer($params));
         //
         //     {
-        //         "hasNext" => true,
-        //         "content" => array(
-        //             array(
-        //             "id" => "ebd6312f-cb4f-45d1-9409-4b0b3027f21e",
-        //             "status" => "TRANSFER_STATUS_COMPLETED",
-        //             "type" => "TRANSFER_TYPE_WITHDRAW_SPOT",
-        //             "fromAccount" => "c429c551-adbb-4078-b74b-276bea308a36",
-        //             "toAccount" => "631c6203-bd62-4734-a04d-9b2a951f43b9",
-        //             "transferringFunds" => 1259.0321785,
-        //             "usdValue" => 1259.032179,
-        //             "rejectReason" => null,
-        //             "timestamp" => 1633515579530,
-        //             "direction" => "INTERNAL",
-        //             "method" => "TRANSFER_METHOD_UNKNOWN",
-        //             "recipient" => null,
-        //             "sender" => null,
-        //             "currency" => "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
-        //             "codeRequired" => false,
-        //             "fromUser" => "ce555f3f-585d-46fb-9ae6-487f66738073",
-        //             "toUser" => "ce555f3f-585d-46fb-9ae6-487f66738073",
-        //             "fee" => 0
-        //             ),
+        //         "hasNext": true,
+        //         "content": [
+        //             {
+        //             "id": "ebd6312f-cb4f-45d1-9409-4b0b3027f21e",
+        //             "status": "TRANSFER_STATUS_COMPLETED",
+        //             "type": "TRANSFER_TYPE_WITHDRAW_SPOT",
+        //             "fromAccount": "c429c551-adbb-4078-b74b-276bea308a36",
+        //             "toAccount": "631c6203-bd62-4734-a04d-9b2a951f43b9",
+        //             "transferringFunds": 1259.0321785,
+        //             "usdValue": 1259.032179,
+        //             "rejectReason": null,
+        //             "timestamp": 1633515579530,
+        //             "direction": "INTERNAL",
+        //             "method": "TRANSFER_METHOD_UNKNOWN",
+        //             "recipient": null,
+        //             "sender": null,
+        //             "currency": "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+        //             "codeRequired": false,
+        //             "fromUser": "ce555f3f-585d-46fb-9ae6-487f66738073",
+        //             "toUser": "ce555f3f-585d-46fb-9ae6-487f66738073",
+        //             "fee": 0
+        //             },
         //             ...
-        //         ),
-        //         "first" => true,
-        //         "pageSize" => 20,
-        //         "hasContent" => true
+        //         ],
+        //         "first": true,
+        //         "pageSize": 20,
+        //         "hasContent": true
         //     }
         //
         $transfers = $this->safe_list($response, 'content', array());
@@ -1859,24 +1999,24 @@ class latoken extends Exchange {
         }
         //
         //     {
-        //         "id" => "e6fc4ace-7750-44e4-b7e9-6af038ac7107",
-        //         "status" => "TRANSFER_STATUS_COMPLETED",
-        //         "type" => "TRANSFER_TYPE_DEPOSIT_SPOT",
-        //         "fromAccount" => "3bf61015-bf32-47a6-b237-c9f70df772ad",
-        //         "toAccount" => "355eb279-7c7e-4515-814a-575a49dc0325",
-        //         "transferringFunds" => "500000.000000000000000000",
-        //         "usdValue" => "0.000000000000000000",
-        //         "rejectReason" => "",
-        //         "timestamp" => 1576844438402,
-        //         "direction" => "INTERNAL",
-        //         "method" => "TRANSFER_METHOD_UNKNOWN",
-        //         "recipient" => "",
-        //         "sender" => "",
-        //         "currency" => "40af7879-a8cc-4576-a42d-7d2749821b58",
-        //         "codeRequired" => false,
-        //         "fromUser" => "cd555555-666d-46fb-9ae6-487f66738073",
-        //         "toUser" => "cd555555-666d-46fb-9ae6-487f66738073",
-        //         "fee" => 0
+        //         "id": "e6fc4ace-7750-44e4-b7e9-6af038ac7107",
+        //         "status": "TRANSFER_STATUS_COMPLETED",
+        //         "type": "TRANSFER_TYPE_DEPOSIT_SPOT",
+        //         "fromAccount": "3bf61015-bf32-47a6-b237-c9f70df772ad",
+        //         "toAccount": "355eb279-7c7e-4515-814a-575a49dc0325",
+        //         "transferringFunds": "500000.000000000000000000",
+        //         "usdValue": "0.000000000000000000",
+        //         "rejectReason": "",
+        //         "timestamp": 1576844438402,
+        //         "direction": "INTERNAL",
+        //         "method": "TRANSFER_METHOD_UNKNOWN",
+        //         "recipient": "",
+        //         "sender": "",
+        //         "currency": "40af7879-a8cc-4576-a42d-7d2749821b58",
+        //         "codeRequired": false,
+        //         "fromUser": "cd555555-666d-46fb-9ae6-487f66738073",
+        //         "toUser": "cd555555-666d-46fb-9ae6-487f66738073",
+        //         "fee": 0
         //     }
         //
         return $this->parse_transfer($response);
@@ -1885,24 +2025,24 @@ class latoken extends Exchange {
     public function parse_transfer(array $transfer, ?array $currency = null): array {
         //
         //     {
-        //         "id" => "e6fc4ace-7750-44e4-b7e9-6af038ac7107",
-        //         "status" => "TRANSFER_STATUS_COMPLETED",
-        //         "type" => "TRANSFER_TYPE_DEPOSIT_SPOT",
-        //         "fromAccount" => "3bf61015-bf32-47a6-b237-c9f70df772ad",
-        //         "toAccount" => "355eb279-7c7e-4515-814a-575a49dc0325",
-        //         "transferringFunds" => "500000.000000000000000000",
-        //         "usdValue" => "0.000000000000000000",
-        //         "rejectReason" => "",
-        //         "timestamp" => 1576844438402,
-        //         "direction" => "INTERNAL",
-        //         "method" => "TRANSFER_METHOD_UNKNOWN",
-        //         "recipient" => "",
-        //         "sender" => "",
-        //         "currency" => "40af7879-a8cc-4576-a42d-7d2749821b58",
-        //         "codeRequired" => false,
-        //         "fromUser" => "cd555555-666d-46fb-9ae6-487f66738073",
-        //         "toUser" => "cd555555-666d-46fb-9ae6-487f66738073",
-        //         "fee" => 0
+        //         "id": "e6fc4ace-7750-44e4-b7e9-6af038ac7107",
+        //         "status": "TRANSFER_STATUS_COMPLETED",
+        //         "type": "TRANSFER_TYPE_DEPOSIT_SPOT",
+        //         "fromAccount": "3bf61015-bf32-47a6-b237-c9f70df772ad",
+        //         "toAccount": "355eb279-7c7e-4515-814a-575a49dc0325",
+        //         "transferringFunds": "500000.000000000000000000",
+        //         "usdValue": "0.000000000000000000",
+        //         "rejectReason": "",
+        //         "timestamp": 1576844438402,
+        //         "direction": "INTERNAL",
+        //         "method": "TRANSFER_METHOD_UNKNOWN",
+        //         "recipient": "",
+        //         "sender": "",
+        //         "currency": "40af7879-a8cc-4576-a42d-7d2749821b58",
+        //         "codeRequired": false,
+        //         "fromUser": "cd555555-666d-46fb-9ae6-487f66738073",
+        //         "toUser": "cd555555-666d-46fb-9ae6-487f66738073",
+        //         "fee": 0
         //     }
         //
         $timestamp = $this->safe_timestamp($transfer, 'timestamp');
@@ -1932,43 +2072,50 @@ class latoken extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
+    public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
+        $apiName = $api[0];
+        $requestHeaders = null;
+        $requestBody = null;
         $request = '/' . $this->version . '/' . $this->implode_params($path, $params);
         $requestString = $request;
         $query = $this->omit($params, $this->extract_params($path));
         $urlencodedQuery = $this->urlencode($query);
         if ($method === 'GET') {
-            if ($query) {
+            if (count($query) > 0) {
                 $requestString .= '?' . $urlencodedQuery;
             }
         }
-        if ($api === 'private') {
+        if ($apiName === 'private') {
             $this->check_required_credentials();
             $auth = $method . $request . $urlencodedQuery;
             $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha512');
-            $headers = array(
+            $requestHeaders = array(
                 'X-LA-APIKEY' => $this->apiKey,
                 'X-LA-SIGNATURE' => $signature,
                 'X-LA-DIGEST' => 'HMAC-SHA512', // HMAC-SHA384, HMAC-SHA512, optional
             );
             if ($method === 'POST') {
-                $headers['Content-Type'] = 'application/json';
-                $body = $this->json($query);
+                $requestHeaders['Content-Type'] = 'application/json';
+                $requestBody = $this->json($query);
             }
         }
-        $url = $this->urls['api']['rest'] . $requestString;
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        $apiUrl = $this->safe_string($this->urls['api'], 'rest');
+        if ($apiUrl === null) {
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+        }
+        $url = $apiUrl . $requestString;
+        return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $requestHeaders );
     }
 
     public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
-        if (!$response) {
+        if ($response === null) {
             return null;
         }
         //
-        // array("result":false,"message":"invalid API key, signature or digest","error":"BAD_REQUEST","status":"FAILURE")
-        // array("result":false,"message":"request expired or bad <timeAlive>/<timestamp> format","error":"BAD_REQUEST","status":"FAILURE")
-        // array("message":"Internal Server Error","error":"INTERNAL_ERROR","status":"FAILURE")
-        // array("result":false,"message":"Internal $error","error":"For input string => \"NaN\"","status":"FAILURE")
+        // {"result":false,"message":"invalid API key, signature or digest","error":"BAD_REQUEST","status":"FAILURE"}
+        // {"result":false,"message":"request expired or bad <timeAlive>/<timestamp> format","error":"BAD_REQUEST","status":"FAILURE"}
+        // {"message":"Internal Server Error","error":"INTERNAL_ERROR","status":"FAILURE"}
+        // {"result":false,"message":"Internal error","error":"For input string: \"NaN\"","status":"FAILURE"}
         //
         $message = $this->safe_string($response, 'message');
         $feedback = $this->id . ' ' . $body;
@@ -1976,12 +2123,11 @@ class latoken extends Exchange {
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
         }
-        $error = $this->safe_value($response, 'error');
-        $errorMessage = $this->safe_string($error, 'message');
-        if (($error !== null) || ($errorMessage !== null)) {
+        $error = $this->safe_string($response, 'error');
+        if ($error !== null) {
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $error, $feedback);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $feedback);
-            throw new ExchangeError($feedback); // unknown $message
+            throw new ExchangeError($feedback); // unknown message
         }
         return null;
     }

@@ -2,20 +2,11 @@ import assert from 'assert';
 import { AuthenticationError, ExchangeClosedByUser } from '../../../base/errors.js';
 import ccxt from '../../../../ccxt.js';
 
-// native ts test, intentionally not transpiled - pins the single-flight
-// authentication logic from https://github.com/ccxt/ccxt/issues/29393 on
-// kraken. the flight is registered in client.futures and settled through
-// client.resolve () / client.reject (), so the registry entry is created and
-// removed by the client itself and never by a hand-rolled delete. kraken's
-// authenticate () already owns a client local bound to urls['api']['ws']
-// ['private'] and already caches the websockets token in that client's
-// subscriptions under 'authenticated', so the flight is parked on that same
-// client under a namespaced 'authenticateFlight' hash. the logic is inlined
-// directly into authenticate (), so there is no helper method to unit-test:
-// this file is the only guard, and no build/lint gate sees it - dropping the
-// in-progress early-return or the flight settlement still compiles and only
-// surfaces as duplicate GetWebSocketsToken calls against the live
-// rate-limited endpoint
+// native ts test, intentionally not transpiled - pins kraken's single-flight
+// authenticate () (https://github.com/ccxt/ccxt/issues/29393). the flight lives in
+// client.futures under 'authenticateFlight' on the private ws client and is settled
+// only via client.resolve () / client.reject (). the logic is inlined, so this file is
+// the only guard: breaking it still compiles and only shows as duplicate GetWebSocketsToken calls
 
 function sleep (ms: number) {
     return new Promise ((resolve) => setTimeout (resolve, ms));

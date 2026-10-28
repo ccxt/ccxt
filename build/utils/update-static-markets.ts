@@ -19,7 +19,6 @@ if (platform === 'win32' && __dirname[0] === '/') {
     __dirname = __dirname.substring (1);
 }
 const rootDir = __dirname + '/../../';
-const useJsonParsing = false; 
 
 function getExchangeSettings (exchangeId: string) {
     // set up keys and settings, if any
@@ -53,10 +52,6 @@ function writeString (filename: string, data: any) {
     return fs.writeFileSync(filename, data);
 }
 
-function spaces (amount: number) {
-    return ' '.repeat(amount);
-}
-
 function die (errorMessage = undefined, code = 1) {
     const defaultMsg = 'Please specify correct format, e.g.: \n\n' +
                        '    npm run static-updater binance BTC/USDT ETH/USDT\n' +
@@ -64,18 +59,6 @@ function die (errorMessage = undefined, code = 1) {
                        '               ...                 --all\n'
     console.log (errorMessage || defaultMsg);
     process.exit(code);
-}
-
-async function ccxtClass () {
-    let ccxtRef = undefined;
-    try {
-        // if this script is running from tsx, import untranspiled ccxt
-        // @ts-expect-error
-        ccxtRef = await import ('../ts/ccxt.ts');
-    } catch (e) {
-        ccxtRef = ccxt;
-    }
-    return ccxtRef;
 }
 
 function twoSpacedIndent (jsonStr: string) {

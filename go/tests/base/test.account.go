@@ -6,13 +6,13 @@ import "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 func TestAccount(exchange ccxt.ICoreExchange, skippedProperties any, method any, entry any) {
-	var format any = map[string]any{
+	var format map[string]any = map[string]any{
 		"info": map[string]any{},
 		"code": "BTC",
 		"type": "spot",
 		"id":   "12345",
 	}
-	var emptyAllowedFor any = []any{"code", "id"}
+	var emptyAllowedFor []any = []any{"code", "id"}
 	AssertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor)
 	AssertCurrencyCode(exchange, skippedProperties, method, entry, GetValue(entry, "code"))
 }
