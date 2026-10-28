@@ -1890,7 +1890,7 @@ class mexc(ccxt.async_support.mexc):
                 candlesSymbol = self.safe_string(splitHashes, 2, '')
                 splitHashesLength = len(splitHashes)  # hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
                 if splitHashesLength > 4:
-                    candlesSymbol = candlesSymbol + ':' + self.safe_string(splitHashes, 3, '')
+                    candlesSymbol += ':' + self.safe_string(splitHashes, 3, '')
                 if candlesSymbol in self.ohlcvs:
                     del self.ohlcvs[candlesSymbol]
             elif messageHash.find('orderbook') >= 0:

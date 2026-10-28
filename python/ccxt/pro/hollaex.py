@@ -137,7 +137,7 @@ class hollaex(ccxt.async_support.hollaex):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         marketId = self.safe_string(market, 'id', '')
         messageHash = 'trade' + ':' + marketId
         trades = await self.watch_public(messageHash, params)
@@ -166,7 +166,7 @@ class hollaex(ccxt.async_support.hollaex):
         marketId = self.safe_string(message, 'symbol')
         market = self.safe_market(marketId)
         marketIdValue = self.safe_string(market, 'id', '')
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         stored = self.safe_value(self.trades, symbol)
         if stored is None:
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
@@ -249,7 +249,7 @@ class hollaex(ccxt.async_support.hollaex):
             stored.append(parsed)
             symbol = self.safe_string(trade, 'symbol')
             market = self.market(symbol)
-            marketId = market['id']
+            marketId = self.safe_string(market, 'id')
             if marketId is not None:
                 marketIds[marketId] = True
         # non-symbol specific
@@ -368,7 +368,7 @@ class hollaex(ccxt.async_support.hollaex):
             stored.append(parsed)
             symbol = self.safe_string(order, 'symbol')
             market = self.market(symbol)
-            marketId = market['id']
+            marketId = self.safe_string(market, 'id')
             if marketId is not None:
                 marketIds[marketId] = True
         # non-symbol specific

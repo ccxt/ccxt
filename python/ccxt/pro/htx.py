@@ -842,7 +842,8 @@ class htx(ccxt.async_support.htx):
         future = (type == 'future')
         isV5Linear = (linear and (swap or future))
         if type == 'spot':
-            mode = self.safe_string(paramsRequest, 'mode', self.safe_string_2(self.options, 'watchMyTrades', 'mode', '0'))
+            mode = self.safe_string_2(self.options, 'watchMyTrades', 'mode', '0')
+            mode = self.safe_string(paramsRequest, 'mode', mode)
             paramsRequest = self.omit(paramsRequest, 'mode')
             messageHash = 'trade.clearing' + '#' + marketId + '#' + mode
             channel = messageHash
@@ -2791,7 +2792,7 @@ class htx(ccxt.async_support.htx):
                 }
             signatureParams = self.keysort(signatureParams)
             auth = self.urlencode(signatureParams, True)  # true required in go
-            payload = "\n".join(['GET', hostname, relativePath, auth])  # eslint-disable-line quotes
+            payload = 'GET' + "\n" + hostname + "\n" + relativePath + "\n" + auth  # eslint-disable-line quotes
             signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256, 'base64')
             request = None
             if type == 'spot':

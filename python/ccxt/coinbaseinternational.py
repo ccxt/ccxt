@@ -3048,7 +3048,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         now = self.milliseconds()
         token = self.get_v2_access_token()
         tokenExpires = self.safe_integer(self.options, 'v2TokenExpires')
-        if not forceRefresh and (token is not None) and (tokenExpires is not None) and (now < tokenExpires):
+        if not forceRefresh and (token is not None) and (token != '') and (tokenExpires is not None) and (now < tokenExpires):
             return token
         response = self.publicPostAuth(paramsOmitted)
         #
@@ -3083,12 +3083,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         the cached gateway access token, options.v2AccessToken takes precedence over exchange.token
         :returns str|None: the access token
         """
-        token = self.safe_string(self.options, 'v2AccessToken')
-        if (token is not None) and (token != ''):
-            return token
-        if self.token == '':
-            return None
-        return self.token
+        return self.safe_string(self.options, 'v2AccessToken', self.token)
 
     def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
         access = api[0]
@@ -3131,7 +3126,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
             }
         elif access == 'private':
             accessToken = self.get_v2_access_token()
-            if accessToken is None:
+            if (accessToken is None) or (accessToken == ''):
                 raise AuthenticationError(self.id + ' requires an access token from public/auth')
             requestHeaders = {
                 'Content-Type': 'application/json',
@@ -3177,7 +3172,8 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         deribit = self.resolve_route(route)
         previousBackend = self.safe_bool(self.options, 'routeBackend')
         configuredBackend = self.is_native_deribit_credentials()
-        hasToken = self.get_v2_access_token() is not None
+        currentToken = self.get_v2_access_token()
+        hasToken = (currentToken is not None) and (currentToken != '')
         hasWsState = self.safe_integer(self.options, 'wsAuthRefreshAt') is not None
         if (previousBackend is not None) and (previousBackend != deribit):
             raise BadRequest(self.id + ' cannot switch route backend on an initialized instance; use a separate exchange instance')

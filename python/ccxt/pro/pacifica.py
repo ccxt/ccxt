@@ -1287,7 +1287,7 @@ class pacifica(ccxt.async_support.pacifica):
         messageHash = 'unsubscribe:' + subMessageHash
         self.clean_unsubscription(client, subMessageHash, messageHash)
         if (symbol is not None) and (symbol in self.ohlcvs):
-            if (timeframe is not None) and (timeframe in self.ohlcvs[symbol]):
+            if timeframe in self.ohlcvs[symbol]:
                 del self.ohlcvs[symbol][timeframe]
 
     def handle_order_unsubscription(self, client: Client, subscription: dict):

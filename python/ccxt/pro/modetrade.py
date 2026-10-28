@@ -1223,10 +1223,6 @@ class modetrade(ccxt.async_support.modetrade):
             value = self.safe_dict(balances, key)
             code = self.safe_currency_code(key)
             account = self.account()
-            if (code is not None) and (code in self.balance):
-                cachedAccount = self.safe_dict(self.balance, code)
-                if cachedAccount is not None:
-                    account = cachedAccount
             total = self.safe_string(value, 'holding')
             used = self.safe_string(value, 'frozen')
             account['total'] = total
