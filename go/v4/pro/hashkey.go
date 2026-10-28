@@ -198,15 +198,18 @@ func (this *Hashkey) HandleOHLCV(client any, message any) {
 	//
 	var marketId *string = this.SafeString(message, "symbol")
 	var market map[string]any = this.SafeMarket(marketId)
-	var symbol *string = this.SafeSymbol(marketId, market)
+	var symbol *string = this.SafeString(market, "symbol", "")
+	var params map[string]any = ccxt.SafeMapTyped(message, "params")
+	var klineType *string = this.SafeString(params, "klineType")
+	var timeframe *string = this.FindTimeframe(klineType)
+	if timeframe == nil {
+		return
+	}
 	if !(ccxt.InOp(this.Ohlcvs, symbol)) {
 		if symbol != nil {
 			this.Ohlcvs[*symbol] = map[string]any{}
 		}
 	}
-	var params map[string]any = ccxt.SafeMapTyped(message, "params")
-	var klineType *string = this.SafeString(params, "klineType")
-	var timeframe *string = this.FindTimeframe(klineType)
 	if !(ccxt.InOp(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)) {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		if symbol != nil && timeframe != nil && this.Ohlcvs[*symbol] != nil {
@@ -223,7 +226,7 @@ func (this *Hashkey) HandleOHLCV(client any, message any) {
 		var parsed any = this.ParseWsOHLCV(candle, market)
 		stored.(ccxt.Appender).Append(parsed)
 	}
-	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ohlcv:"+*symbol+":", timeframe))
+	var messageHash string = "ohlcv:" + *symbol + ":" + *timeframe
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
 func (this *Hashkey) ParseWsOHLCV(ohlcv any, optionalArgs ...any) any {

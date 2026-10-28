@@ -4716,20 +4716,10 @@ func (this *Deribit) AddPaginationCursorToResult(cursor *string, data []any) any
 	if cursor != nil {
 		var dataLength int = len(data)
 		if dataLength > 0 {
-			var first any = func() any {
-				if 0 >= 0 && 0 < len(data) {
-					return DerefScalar(data[0])
-				}
-				return nil
-			}()
-			var last any = func() any {
-				if dataLength-1 >= 0 && dataLength-1 < len(data) {
-					return DerefScalar(data[dataLength-1])
-				}
-				return nil
-			}()
-			AddElementToObject(first, "continuation", cursor)
-			AddElementToObject(last, "continuation", cursor)
+			var first map[string]any = this.SafeDictMap(data, 0, map[string]any{})
+			var last map[string]any = this.SafeDictMap(data, dataLength-1, map[string]any{})
+			first["continuation"] = *cursor
+			last["continuation"] = *cursor
 			AddElementToObject(data, 0, first)
 			AddElementToObject(data, dataLength-1, last)
 		}

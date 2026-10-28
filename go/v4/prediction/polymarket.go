@@ -2232,11 +2232,11 @@ func (this *Polymarket) fetchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Predicti
 		panic(r.Err)
 	}
 	var outcomeObj map[string]any = ccxt.StructResultMap(r.Value, ccxt.PredictionOutcomeToMap)
-	var tokenId *string = this.SafeString(outcomeObj, "outcomeId")
+	var tokenId *string = this.SafeString(outcomeObj, "outcomeId", "")
 	var outcomeInfo map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
 	var conditionId *string = this.SafeString(outcomeInfo, "conditionId")
 	if conditionId == nil {
-		panic(ccxt.BadRequest(ccxt.Add(this.Id+" fetchTrades() requires outcome.info.conditionId for an outcome ", tokenId)))
+		panic(ccxt.BadRequest(this.Id + " fetchTrades() requires outcome.info.conditionId for an outcome " + *tokenId))
 	}
 	// the endpoint filters by market conditionId (which spans BOTH outcome tokens), then we narrow
 	// to the requested token client-side below. applying the user's `limit` to this request and

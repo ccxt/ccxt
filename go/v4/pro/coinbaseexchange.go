@@ -1307,7 +1307,7 @@ func (this *Coinbaseexchange) HandleErrorMessage(client any, message map[string]
 	//     }
 	//
 	var errMsg *string = this.SafeString(message, "message")
-	var reason *string = this.SafeString(message, "reason")
+	var reason *string = this.SafeString(message, "reason", "")
 
 	{
 		ret__ := func(this *Coinbaseexchange) (ret_ any) {
@@ -1326,9 +1326,9 @@ func (this *Coinbaseexchange) HandleErrorMessage(client any, message map[string]
 			}()
 			// try block:
 			if errMsg != nil && *errMsg == "Authentication Failed" {
-				panic(ccxt.AuthenticationError(ccxt.Add("Authentication failed: ", reason)))
+				panic(ccxt.AuthenticationError("Authentication failed: " + *reason))
 			} else {
-				panic(ccxt.ExchangeError(ccxt.Add(this.Id+" ", reason)))
+				panic(ccxt.ExchangeError(this.Id + " " + *reason))
 			}
 
 		}(this)

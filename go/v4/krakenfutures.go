@@ -582,8 +582,8 @@ func (this *Krakenfutures) fetchMarketsBody(ch chan AsyncResult[[]MarketInterfac
 		var future bool = (typeVar == "future")
 		var symbol *string = id
 		var split []string = strings.Split(*id, "_")
-		var splitMarket *string = this.SafeString(split, 1)
-		var baseId string = Slice(splitMarket, 0, GetLength(splitMarket)-3)
+		var splitMarket *string = this.SafeString(split, 1, "")
+		var baseId string = Slice(splitMarket, 0, len(*splitMarket)-3)
 		var quoteId string = "usd" // always USD
 		var base *string = this.SafeCurrencyCode(baseId)
 		var quote *string = this.SafeCurrencyCode(quoteId)
