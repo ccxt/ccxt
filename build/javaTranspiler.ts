@@ -4144,6 +4144,18 @@ class NewTranspiler {
         content = content.replace(/Object\s+future\s*=\s*this\.safeValue\(client\.futures,\s*([^)]+)\)/gm,
             'io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)this.safeValue(client.futures, $1)');
 
+        // WsClient.futures is Map<String, Future> and subscriptions an owner Map<String, Object>:
+        // with a provably-String key, reads/puts print natively (no helper, no checkcast).
+        const wsKeyIsString = (key: string, offset: number): boolean =>
+            /^"[^"\\]*"$/.test (key) || (/^[A-Za-z_]\w*$/.test (key) && this.provablyStringLocal (content, key, offset));
+        content = content.replace(/io\.github\.ccxt\.ws\.Future (\w+) = \(io\.github\.ccxt\.ws\.Future\)this\.safeValue\(client\.futures, ("[^"\\]*"|\w+)\);/gm,
+            (whole: string, local: string, key: string, offset: number) =>
+                wsKeyIsString (key, offset) ? `io.github.ccxt.ws.Future ${local} = client.futures.get(${key});` : whole);
+        content = content.replace(/^(\s*)Helpers\.addElementToObject\(client\.subscriptions, ("[^"\\]*"|\w+), ([^\n]*)\);$/gm,
+            (whole: string, indent: string, key: string, value: string, offset: number) =>
+                wsKeyIsString (key, offset) && (value.split ('(').length === value.split (')').length)
+                    ? `${indent}client.subscriptions.put(${key}, ${value});` : whole);
+
         // ── Pattern 3: (String) cast on the hash argument of client.future() / reusableFuture() ──
         // client.future(hash) where the hash local is Object-typed. any
         // identifier is accepted, not just `messageHash`, so a renamed hash
