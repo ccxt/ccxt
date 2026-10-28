@@ -1386,10 +1386,9 @@ class okx extends \ccxt\async\okx {
         for ($i = 0; $i < count($symbolsNormalized); $i++) {
             $symbol = $symbolsNormalized[$i];
             $messageHashes[] = $depth . ':' . $symbol;
-            $marketId = $this->market_id($symbol);
             $topic = array(
                 'channel' => $depth,
-                'instId' => $marketId,
+                'instId' => $this->market_id($symbol),
             );
             $topics[] = $topic;
         }

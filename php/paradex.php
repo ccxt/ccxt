@@ -669,7 +669,7 @@ class paradex extends Exchange {
         }
         $settle = $this->safe_currency_code($settleId);
         $symbol = $base . '/' . $quote;
-        if (!$isSpot) {
+        if (!$isSpot && ($settle !== null)) {
             $symbol = $symbol . ':' . $settle;
         }
         $expiry = $this->safe_integer($market, 'expiry_at');
@@ -683,7 +683,9 @@ class paradex extends Exchange {
             if ($expiry !== 0) {
                 $deliveryValue = $this->yymmdd($expiry) . '-';
             }
-            $symbol = $symbol . '-' . $deliveryValue . $strikePrice . '-' . $optionTypeSuffix;
+            if ($strikePrice !== null) {
+                $symbol = $symbol . '-' . $deliveryValue . $strikePrice . '-' . $optionTypeSuffix;
+            }
             $makerFee = $this->parse_number('0.0003');
         } else {
             $expiry = null;

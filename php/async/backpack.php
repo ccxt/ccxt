@@ -682,8 +682,10 @@ class backpack extends Exchange {
         $stock = $this->safe_bool($selection, 0, false);
         $query = $this->safe_dict($selection, 1, array());
         $marketType = $this->safe_string($query, 'marketType');
-        $defaultTypes = ($marketType === null) ? array( 'SPOT', 'PERP', 'RFQ' ) : array( $marketType );
-        $requestedTypes = $this->safe_list($query, 'marketType', $defaultTypes);
+        $requestedTypes = $this->safe_list($query, 'marketType', array( 'SPOT', 'PERP', 'RFQ' ));
+        if ($marketType !== null) {
+            $requestedTypes = array( $marketType );
+        }
         $aliases = array( 'spot' => 'SPOT', 'swap' => 'PERP', 'stock' => 'RFQ' );
         $supportedTypes = array( 'SPOT', 'PERP', 'RFQ' );
         $marketTypes = array();
@@ -1087,8 +1089,12 @@ class backpack extends Exchange {
         if ($fromIsStock === $toIsStock) {
             throw new NotSupported($this->id . ' conversion requires exactly one stock currency');
         }
-        $stockCode = ($fromIsStock) ? $fromCode : $toCode;
-        $quoteCode = ($fromIsStock) ? $toCode : $fromCode;
+        $stockCode = $fromCode;
+        $quoteCode = $toCode;
+        if (!$fromIsStock) {
+            $stockCode = $toCode;
+            $quoteCode = $fromCode;
+        }
         $symbol = $stockCode . '.RFQ/' . $quoteCode;
         $market = $this->safe_dict($this->markets, $symbol);
         if (($market === null) || ($this->safe_string($market, 'executionModel') !== 'rfq') || !$this->safe_bool($market, 'stock', false)) {
@@ -1667,7 +1673,7 @@ class backpack extends Exchange {
         $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
         $duration = $this->parse_timeframe($timeframe);
         $dataRequest = $this->stock_data_request('fetchOHLCV', $params, $market);
-        $request = array( 'symbol' => $dataRequest['symbol'], 'interval' => $interval );
+        $request = array( 'symbol' => $this->safe_string($dataRequest, 'symbol'), 'interval' => $interval );
         list($until, $paramsUntil) = $this->handle_option_integer_and_params($this->omit($dataRequest, 'symbol'), 'fetchOHLCV', 'until');
         if ($until !== null) {
             $request['endTime'] = $this->parse_to_int($until / 1000); // convert milliseconds to seconds
@@ -1681,7 +1687,7 @@ class backpack extends Exchange {
         $startTime = null;
         if ($since === null) {
             $endTime = $this->seconds();
-            if ($until !== null && $until !== null && $until !== 0) {
+            if ($until !== null && $until !== 0) {
                 $endTime = $this->parse_to_int($until / 1000);
             }
             $startTime = $endTime - ($windowLimit * $duration);

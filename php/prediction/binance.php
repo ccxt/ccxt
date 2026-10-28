@@ -214,7 +214,10 @@ class binance extends Exchange {
          * @return {array[]} raw market topic objects
          */
         $maxTopicsOption = $this->safe_integer($this->options, 'maxFetchMarketsLimit', 200);
-        $maxTopicsResolved = ($maxTopics !== null) ? $maxTopics : $maxTopicsOption;
+        $maxTopicsResolved = $this->parse_to_int($maxTopicsOption);
+        if ($maxTopics !== null) {
+            $maxTopicsResolved = $this->parse_to_int($maxTopics);
+        }
         $pageLimitOption = $this->safe_integer($this->options, 'marketsPageLimit', 100);
         $pageLimit = ($pageLimitOption > 100) ? 100 : $pageLimitOption;
         $collected = array();
@@ -1937,17 +1940,14 @@ class binance extends Exchange {
         $failedOrders = $this->safe_list($response, 'failed', array());
         $failedOrdersLength = count($failedOrders);
         if ($failedOrdersLength > 0) {
-            $failedDetails = '';
+            $failedDetails = array();
             for ($i = 0; $i < $failedOrdersLength; $i++) {
                 $failedOrder = $this->safe_dict($failedOrders, $i);
-                $failedOrderId = $this->safe_string($failedOrder, 'orderId');
-                $failedReason = $this->safe_string($failedOrder, 'reason');
-                if ($i > 0) {
-                    $failedDetails = $failedDetails . ', ';
-                }
-                $failedDetails = $failedDetails . $failedOrderId . ' => ' . $failedReason;
+                $failedOrderId = $this->safe_string($failedOrder, 'orderId', '');
+                $failedReason = $this->safe_string($failedOrder, 'reason', '');
+                $failedDetails[] = $failedOrderId . ' => ' . $failedReason;
             }
-            throw new OrderNotFound($this->id . ' cancelOrders() failed for ' . $failedDetails);
+            throw new OrderNotFound($this->id . ' cancelOrders() failed for ' . implode(', ', $failedDetails));
         }
         $orders = array();
         $canceledOrdersLength = count($canceledOrders);

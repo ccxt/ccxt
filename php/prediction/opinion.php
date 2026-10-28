@@ -1892,7 +1892,7 @@ class opinion extends Exchange {
         if ($sym === null) {
             return;
         }
-        if ($this->safe_value($this->orderbooks, $sym) === null) {
+        if (!(is_array($this->orderbooks) && array_key_exists($sym ?? '', $this->orderbooks))) {
             // the delta belongs to the market's other token, whose book is not being watched
             return;
         }

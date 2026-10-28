@@ -1557,7 +1557,7 @@ class kraken extends Exchange {
             }
         } elseif (gettype($trade) === 'string') {
             $id = $trade;
-        } elseif (is_array($trade) && array_key_exists('ordertxid' ?? '', $trade)) {
+        } elseif ($isOrderTrade) {
             $orderId = $this->safe_string($trade, 'ordertxid');
             $id = $this->safe_string_2($trade, 'id', 'postxid');
             $timestamp = $this->safe_timestamp($trade, 'time');
@@ -1949,11 +1949,12 @@ class kraken extends Exchange {
         $baseIdEnd = 3;
         $quoteIdStart = 3;
         $quoteIdEnd = 6;
-        if (strlen($id) === 8) {
+        $idLength = count($id);
+        if ($idLength === 8) {
             $baseIdEnd = 4;
             $quoteIdStart = 4;
             $quoteIdEnd = 8;
-        } elseif (strlen($id) === 7) {
+        } elseif ($idLength === 7) {
             $baseIdEnd = 4;
             $quoteIdStart = 4;
             $quoteIdEnd = 7;

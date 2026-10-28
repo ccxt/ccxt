@@ -408,6 +408,9 @@ class xt extends \ccxt\async\xt {
         $options = $this->safe_dict($this->options, 'watchTickers');
         $defaultMethod = $this->safe_string($options, 'method', 'tickers');
         $name = $this->safe_string($params, 'method', $defaultMethod);
+        if ($name === null) {
+            return $this->filter_by_array($this->tickers, 'symbol', $symbols);
+        }
         $market = null;
         if ($symbols !== null) {
             $market = $this->market($symbols[0]);
@@ -443,6 +446,9 @@ class xt extends \ccxt\async\xt {
         $options = $this->safe_dict($this->options, 'unWatchTickers');
         $defaultMethod = $this->safe_string($options, 'method', 'tickers');
         $name = $this->safe_string($params, 'method', $defaultMethod);
+        if ($name === null) {
+            return null;
+        }
         if ($symbols !== null) {
             throw new NotSupported($this->id . ' unWatchTickers() does not support symbols argument, unsubscribtion is for all tickers at once only');
         }
