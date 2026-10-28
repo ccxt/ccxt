@@ -3494,8 +3494,8 @@ class modetrade extends Exchange {
             $ts = (string) $this->nonce();
             $url .= $pathWithParams;
             $apiKey = $this->apiKey;
-            if (mb_strpos($apiKey, 'ed25519:') === false) {
-                $apiKey = 'ed25519:' . $apiKey;
+            if (mb_strpos($this->apiKey, 'ed25519:') === false) {
+                $apiKey = 'ed25519:' . $this->apiKey;
             }
             $signedHeaders = array(
                 'orderly-account-id' => $this->accountId,

@@ -8267,7 +8267,7 @@ class BaseExchange {
     public function parse_borrow_interests(mixed $response, ?array $market = null) {
         $interests = array();
         for ($i = 0; $i < count($response); $i++) {
-            $row = $response[$i];
+            $row = $this->safe_value($response, $i);
             $interests[] = $this->parse_borrow_interest($row, $market);
         }
         return $interests;
@@ -8280,7 +8280,7 @@ class BaseExchange {
     public function parse_borrow_rate_history(mixed $response, ?string $code, ?int $since, ?int $limit) {
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
-            $item = $response[$i];
+            $item = $this->safe_value($response, $i);
             $borrowRate = $this->parse_borrow_rate($item);
             $result[] = $borrowRate;
         }
@@ -8291,7 +8291,7 @@ class BaseExchange {
     public function parse_isolated_borrow_rates(mixed $info) {
         $result = array();
         for ($i = 0; $i < count($info); $i++) {
-            $item = $info[$i];
+            $item = $this->safe_value($info, $i);
             $borrowRate = $this->parse_isolated_borrow_rate($item);
             $symbol = $this->safe_string($borrowRate, 'symbol');
             $result[$symbol] = $borrowRate;

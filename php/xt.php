@@ -5890,45 +5890,40 @@ class xt extends Exchange {
             $signedBody = $isUndefinedBody ? null : $this->json($query);
             $payloadString = '';
             if (($endpoint === 'spot') || ($endpoint === 'user')) {
-                $payloadString = 'xt-validate-algorithms=HmacSHA256&xt-validate-appkey=' . $this->apiKey . '&xt-validate-recvwindow=' . $recvWindow . '&xt-validate-t' . 'imestamp=' . $timestamp;
+                $spotPrefix = 'xt-validate-algorithms=HmacSHA256&xt-validate-appkey=' . $this->apiKey . '&xt-validate-recvwindow=' . $recvWindow . '&xt-validate-t' . 'imestamp=' . $timestamp;
                 if ($isUndefinedBody) {
                     if ($urlencoded !== '') {
                         $url = $apiUrl . $payload . '?' . $urlencoded;
-                        $payloadString .= '#' . $method . '#' . $payload . '#' . $this->rawencode($this->keysort($query));
+                        $payloadString = $spotPrefix . '#' . $method . '#' . $payload . '#' . $this->rawencode($this->keysort($query));
                     } else {
-                        $payloadString .= '#' . $method . '#' . $payload;
+                        $payloadString = $spotPrefix . '#' . $method . '#' . $payload;
                     }
                 } else {
-                    $payloadString .= '#' . $method . '#' . $payload . '#' . $signedBody;
+                    $payloadString = $spotPrefix . '#' . $method . '#' . $payload . '#' . $signedBody;
                 }
                 $headersValue['xt-validate-algorithms'] = 'HmacSHA256';
                 $headersValue['xt-validate-recvwindow'] = $recvWindow;
             } else {
-                $payloadString = 'xt-validate-appkey=' . $this->apiKey . '&xt-validate-t' . 'imestamp=' . $timestamp; // we can't glue timestamp, breaks in php
+                $futurePrefix = 'xt-validate-appkey=' . $this->apiKey . '&xt-validate-t' . 'imestamp=' . $timestamp; // we can't glue timestamp, breaks in php
                 if ($method === 'GET') {
                     if ($urlencoded !== '') {
                         $url = $apiUrl . $payload . '?' . $urlencoded;
-                        $payloadString .= '#' . $payload . '#' . $urlencoded;
+                        $payloadString = $futurePrefix . '#' . $payload . '#' . $urlencoded;
                     } else {
-                        $payloadString .= '#' . $payload;
+                        $payloadString = $futurePrefix . '#' . $payload;
                     }
                 } else {
-                    $payloadString .= '#' . $payload . '#' . $signedBody;
+                    $payloadString = $futurePrefix . '#' . $payload . '#' . $signedBody;
                 }
             }
-            $signature = $this->hmac($this->encode($payloadString), $this->encode($this->secret), 'sha256');
             $headersValue['xt-validate-appkey'] = $this->apiKey;
             $headersValue['xt-validate-timestamp'] = $timestamp;
-            $headersValue['xt-validate-signature'] = $signature;
+            $headersValue['xt-validate-signature'] = $this->hmac($this->encode($payloadString), $this->encode($this->secret), 'sha256');
         } else {
             if ($urlencoded !== '') {
                 $url = $apiUrl . $payload . '?' . $urlencoded;
             }
         }
-        $bodyValue = null;
-        if ($signed) {
-            $bodyValue = $signedBody;
-        }
-        return array( 'url' => $url, 'method' => $method, 'body' => $bodyValue, 'headers' => $headersValue );
+        return array( 'url' => $url, 'method' => $method, 'body' => $signedBody, 'headers' => $headersValue );
     }
 }

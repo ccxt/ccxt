@@ -3266,7 +3266,7 @@ class coinbaseinternational extends Exchange {
          * @return {string} signed JWT
          */
         $uri = null;
-        if ($url !== null) {
+        if (($url !== null) && ($method !== null)) {
             $uri = $method . ' ' . str_replace('https://', '', $url);
             $quesPos = mb_strpos($uri, '?');
             if ($quesPos > 0) {

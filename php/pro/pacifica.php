@@ -1635,11 +1635,12 @@ class pacifica extends \ccxt\async\pacifica {
             throw new ArgumentsRequired($this->id . 'postAction() requires a "operationType" argument!');
         }
         $requestId = $this->request_id();
+        $postParams = array();
+        $postParams[$operationType] = $request;
         $payload = array(
             'id' => $requestId,
-            'params' => array(),
+            'params' => $postParams,
         );
-        $payload['params'][$operationType] = $request;
         return $payload;
     }
 

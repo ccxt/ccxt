@@ -1554,7 +1554,7 @@ class poloniex extends \ccxt\async\poloniex {
         //        "symbols": [ "ETH_USDT", "BTC_USDT" ]
         //    }
         //
-        $channel = $this->safe_string($message, 'channel');
+        $channel = $this->safe_string($message, 'channel', '');
         $marketIds = $this->safe_list($message, 'symbols', array());
         $timeframes = $this->safe_dict($this->options, 'timeframes', array());
         $timeframe = $this->find_timeframe($channel, $timeframes);

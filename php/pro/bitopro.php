@@ -469,10 +469,10 @@ class bitopro extends \ccxt\async\bitopro {
             'X-BITOPRO-PAYLOAD' => $payload,
             'X-BITOPRO-SIGNATURE' => $signature,
         );
-        $this->options['ws']['options']['headers'] = $headers;
+        $wsInnerOptions['headers'] = $headers;
         // instantiate client
         $this->client($url);
-        $this->options['ws']['options']['headers'] = $originalHeaders;
+        $wsInnerOptions['headers'] = $originalHeaders;
     }
 
     public function watch_balance($params = array()): PromiseInterface {

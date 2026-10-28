@@ -279,14 +279,11 @@ class kalshi extends Exchange {
                 $parsed = $this->parse_binary_market_to_outcomes($raw);
                 $eventTicker = $this->safe_string($raw, 'event_ticker');
                 $eventTitle = $this->safe_string($raw, 'title', $eventTicker);
-                $eventKey = '';
-                if ($eventTitle !== null && $eventTitle !== '') {
-                    $eventKey = $this->shorten_slug($eventTitle);
-                }
                 for ($j = 0; $j < count($parsed); $j++) {
                     $m = $parsed[$j];
                     $flatMarkets[] = $m;
-                    if ($eventKey !== '') {
+                    if ($eventTitle !== null && $eventTitle !== '') {
+                        $eventKey = $this->shorten_slug($eventTitle);
                         if (!(is_array($eventsDict) && array_key_exists($eventKey ?? '', $eventsDict))) {
                             $eventsDict[$eventKey] = array(
                                 'id' => $eventTicker,
