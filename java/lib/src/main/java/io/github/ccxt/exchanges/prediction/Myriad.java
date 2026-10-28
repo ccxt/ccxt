@@ -2605,20 +2605,20 @@ public class Myriad extends MyriadApi
             // reassigned local into the anonymous inner class it emits for a map literal)
             Boolean winner = winnerRaw;
             Object settleFraction = settleFractionRaw;
-            ((List<Object>)outcomes).add((switch (0) { default -> { HashMap<String, Object> j39v2 = new HashMap<String, Object>();
-                j39v2.put("id", outcomeCompositeId);
-                j39v2.put("outcomeId", outcomeCompositeId);
-                j39v2.put("outcome", outcomeHandle);
-                j39v2.put("market", marketSymbol);
-                j39v2.put("label", outcomeLabel);
-                j39v2.put("active", active);
-                j39v2.put("winner", winner);
-                j39v2.put("settleFraction", settleFraction);
-                j39v2.put("precision", new HashMap<String, Object>() {{
+            HashMap<String, Object> j39v2 = new HashMap<String, Object>();
+            j39v2.put("id", outcomeCompositeId);
+            j39v2.put("outcomeId", outcomeCompositeId);
+            j39v2.put("outcome", outcomeHandle);
+            j39v2.put("market", marketSymbol);
+            j39v2.put("label", outcomeLabel);
+            j39v2.put("active", active);
+            j39v2.put("winner", winner);
+            j39v2.put("settleFraction", settleFraction);
+            j39v2.put("precision", new HashMap<String, Object>() {{
                     put( "amount", 0.01 );
                     put( "price", 0.001 );
                 }});
-                j39v2.put("info", (switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+            j39v2.put("info", (switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
                     j39v1.put("networkId", networkId);
                     j39v1.put("marketId", marketId);
                     j39v1.put("slug", slug);
@@ -2631,7 +2631,7 @@ public class Myriad extends MyriadApi
                     j39v1.put("tokenAddress", tokenAddress);
                     j39v1.put("tokenDecimals", tokenDecimals);
                     yield j39v1; } }));
-                yield j39v2; } }));
+            ((List<Object>)outcomes).add(j39v2);
         }
         String marketTradingModel = this.safeString(raw, "tradingModel", "amm");
         String marketExecutionModel = "clob";

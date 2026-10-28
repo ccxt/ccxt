@@ -2773,7 +2773,9 @@ public class Toobit extends ToobitApi
             }
             for (var i = 0; i < ((List<?>)responseList).size(); i++)
             {
-                ((List<Object>)ordersList).add((switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>(); j39v1.put("result", (responseList == null || i < 0 || i >= responseList.size() ? null : responseList.get(i))); yield j39v1; } }));
+                HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+                j39v1.put("result", (responseList == null || i < 0 || i >= responseList.size() ? null : responseList.get(i)));
+                ((List<Object>)ordersList).add(j39v1);
             }
             return this.parseOrders(ordersList, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));

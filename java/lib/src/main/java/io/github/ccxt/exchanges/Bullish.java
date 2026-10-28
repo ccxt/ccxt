@@ -1777,13 +1777,13 @@ public class Bullish extends BullishApi
             {
                 Object entry = (result == null || i < 0 || i >= result.size() ? null : result.get(i));
                 String datetime = this.safeString(entry, "updatedAtDatetime");
-                ((List<Object>)rates).add((switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-                    j39v1.put("info", entry);
-                    j39v1.put("symbol", symbol);
-                    j39v1.put("fundingRate", this.safeNumber(entry, "fundingRate", (Object) null));
-                    j39v1.put("timestamp", this.parse8601(datetime));
-                    j39v1.put("datetime", datetime);
-                    yield j39v1; } }));
+                HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+                j39v1.put("info", entry);
+                j39v1.put("symbol", symbol);
+                j39v1.put("fundingRate", this.safeNumber(entry, "fundingRate", (Object) null));
+                j39v1.put("timestamp", this.parse8601(datetime));
+                j39v1.put("datetime", datetime);
+                ((List<Object>)rates).add(j39v1);
             }
             return this.filterBySymbolSinceLimit(this.sortBy(rates, "timestamp"), this.safeString(market, "symbol"), since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(FundingRateHistory::new).collect(Collectors.toList()));

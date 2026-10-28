@@ -2106,7 +2106,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         String marketId = this.safeString(result, "s");
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, "-", type);
         Map<String, Object> parsed = (Map<String, Object>) this.parseTrade(result, market);
-        String symbol = this.safeString(parsed, "symbol");
+        String symbol = this.safeString(parsed, "symbol", "");
         String spotHash = "spot:mytrades";
         String swapHash = "swap:mytrades";
         String messageHash = swapHash;

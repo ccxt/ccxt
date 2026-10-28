@@ -6330,17 +6330,17 @@ public class Bybit extends BybitApi
             Map<String, Object> paramsOmitted = this.omit(paramsValue, new ArrayList<Object>(Arrays.asList("clientOrderIds", "clientOids")));
             for (var i = 0; i < ((List<?>)clientOrderIds).size(); i++)
             {
-                ((List<Object>)ordersRequests).add((switch (0) { default -> { HashMap<String, Object> j39v4 = new HashMap<String, Object>();
-                    j39v4.put("symbol", market.get("id"));
-                    j39v4.put("orderLinkId", this.safeString(clientOrderIds, i));
-                    yield j39v4; } }));
+                HashMap<String, Object> j39v4 = new HashMap<String, Object>();
+                j39v4.put("symbol", market.get("id"));
+                j39v4.put("orderLinkId", this.safeString(clientOrderIds, i));
+                ((List<Object>)ordersRequests).add(j39v4);
             }
             for (var i = 0; i < ((List<?>)ids).size(); i++)
             {
-                ((List<Object>)ordersRequests).add((switch (0) { default -> { HashMap<String, Object> j39v3 = new HashMap<String, Object>();
-                    j39v3.put("symbol", market.get("id"));
-                    j39v3.put("orderId", this.safeString(ids, i));
-                    yield j39v3; } }));
+                HashMap<String, Object> j39v3 = new HashMap<String, Object>();
+                j39v3.put("symbol", market.get("id"));
+                j39v3.put("orderId", this.safeString(ids, i));
+                ((List<Object>)ordersRequests).add(j39v3);
             }
             Map<String, Object> request = new HashMap<String, Object>();
             request.put("category", category);
@@ -11008,16 +11008,16 @@ public class Bybit extends BybitApi
             {
                 minNotional = this.safeNumber(Helpers.GetValue(info, (((long) i) - 1L)), "riskLimitValue", (Object) null);
             }
-            ((List<Object>)tiers).add((switch (0) { default -> { HashMap<String, Object> j39v12 = new HashMap<String, Object>();
-                j39v12.put("tier", this.safeInteger(tier, "id"));
-                j39v12.put("symbol", this.safeSymbol(marketId, marketResolved, (String) null, (String) null));
-                j39v12.put("currency", marketResolved.get("settle"));
-                j39v12.put("minNotional", minNotional);
-                j39v12.put("maxNotional", this.safeNumber(tier, "riskLimitValue", (Object) null));
-                j39v12.put("maintenanceMarginRate", this.safeNumber(tier, "maintenanceMargin", (Object) null));
-                j39v12.put("maxLeverage", this.safeNumber(tier, "maxLeverage", (Object) null));
-                j39v12.put("info", tier);
-                yield j39v12; } }));
+            HashMap<String, Object> j39v12 = new HashMap<String, Object>();
+            j39v12.put("tier", this.safeInteger(tier, "id"));
+            j39v12.put("symbol", this.safeSymbol(marketId, marketResolved, (String) null, (String) null));
+            j39v12.put("currency", marketResolved.get("settle"));
+            j39v12.put("minNotional", minNotional);
+            j39v12.put("maxNotional", this.safeNumber(tier, "riskLimitValue", (Object) null));
+            j39v12.put("maintenanceMarginRate", this.safeNumber(tier, "maintenanceMargin", (Object) null));
+            j39v12.put("maxLeverage", this.safeNumber(tier, "maxLeverage", (Object) null));
+            j39v12.put("info", tier);
+            ((List<Object>)tiers).add(j39v12);
         }
         return tiers;
     }

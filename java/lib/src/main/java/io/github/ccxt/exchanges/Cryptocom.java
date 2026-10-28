@@ -1121,35 +1121,35 @@ public class Cryptocom extends CryptocomApi
                 }
                 Boolean isLinear = (((java.util.Objects.equals(contract, true)))) ? true : null;
                 Boolean isInverse = (((java.util.Objects.equals(contract, true)))) ? false : null;
-                ((List<Object>)result).add((switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-                    j39v1.put("id", this.safeString(market, "symbol"));
-                    j39v1.put("symbol", symbol);
-                    j39v1.put("base", base);
-                    j39v1.put("quote", quote);
-                    j39v1.put("settle", settle);
-                    j39v1.put("baseId", baseId);
-                    j39v1.put("quoteId", quoteId);
-                    j39v1.put("settleId", settleId);
-                    j39v1.put("type", type);
-                    j39v1.put("spot", spot);
-                    j39v1.put("margin", ((java.util.Objects.equals(marginBuyEnabled, true)) || (java.util.Objects.equals(marginSellEnabled, true))));
-                    j39v1.put("swap", swap);
-                    j39v1.put("future", future);
-                    j39v1.put("option", option);
-                    j39v1.put("active", this.safeBool(market, "tradable", (Object) null));
-                    j39v1.put("contract", contract);
-                    j39v1.put("linear", isLinear);
-                    j39v1.put("inverse", isInverse);
-                    j39v1.put("contractSize", this.safeNumber(market, "contract_size", (Object) null));
-                    j39v1.put("expiry", expiry);
-                    j39v1.put("expiryDatetime", this.iso8601(expiry));
-                    j39v1.put("strike", this.parseNumber(strike));
-                    j39v1.put("optionType", optionType);
-                    j39v1.put("precision", new HashMap<String, Object>() {{
+                HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+                j39v1.put("id", this.safeString(market, "symbol"));
+                j39v1.put("symbol", symbol);
+                j39v1.put("base", base);
+                j39v1.put("quote", quote);
+                j39v1.put("settle", settle);
+                j39v1.put("baseId", baseId);
+                j39v1.put("quoteId", quoteId);
+                j39v1.put("settleId", settleId);
+                j39v1.put("type", type);
+                j39v1.put("spot", spot);
+                j39v1.put("margin", ((java.util.Objects.equals(marginBuyEnabled, true)) || (java.util.Objects.equals(marginSellEnabled, true))));
+                j39v1.put("swap", swap);
+                j39v1.put("future", future);
+                j39v1.put("option", option);
+                j39v1.put("active", this.safeBool(market, "tradable", (Object) null));
+                j39v1.put("contract", contract);
+                j39v1.put("linear", isLinear);
+                j39v1.put("inverse", isInverse);
+                j39v1.put("contractSize", this.safeNumber(market, "contract_size", (Object) null));
+                j39v1.put("expiry", expiry);
+                j39v1.put("expiryDatetime", this.iso8601(expiry));
+                j39v1.put("strike", this.parseNumber(strike));
+                j39v1.put("optionType", optionType);
+                j39v1.put("precision", new HashMap<String, Object>() {{
                         put( "price", Cryptocom.this.parseNumber(Cryptocom.this.safeString(market, "price_tick_size")) );
                         put( "amount", Cryptocom.this.parseNumber(Cryptocom.this.safeString(market, "qty_tick_size")) );
                     }});
-                    j39v1.put("limits", new HashMap<String, Object>() {{
+                j39v1.put("limits", new HashMap<String, Object>() {{
                         put( "leverage", new HashMap<String, Object>() {{
                             put( "min", Cryptocom.this.parseNumber("1") );
                             put( "max", Cryptocom.this.safeNumber(market, "max_leverage", (Object) null) );
@@ -1167,9 +1167,9 @@ public class Cryptocom extends CryptocomApi
                             put( "max", null );
                         }} );
                     }});
-                    j39v1.put("created", null);
-                    j39v1.put("info", market);
-                    yield j39v1; } }));
+                j39v1.put("created", null);
+                j39v1.put("info", market);
+                ((List<Object>)result).add(j39v1);
             }
             return result;
         });

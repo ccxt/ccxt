@@ -588,36 +588,36 @@ public class Coinone extends CoinoneApi
                 {
                     continue;
                 }
-                ((List<Object>)result).add((switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-                    j39v1.put("id", id);
-                    j39v1.put("symbol", ((base + "/") + quote));
-                    j39v1.put("base", base);
-                    j39v1.put("quote", quote);
-                    j39v1.put("settle", null);
-                    j39v1.put("baseId", baseId);
-                    j39v1.put("quoteId", quoteId);
-                    j39v1.put("settleId", null);
-                    j39v1.put("type", "spot");
-                    j39v1.put("spot", true);
-                    j39v1.put("margin", false);
-                    j39v1.put("swap", false);
-                    j39v1.put("future", false);
-                    j39v1.put("option", false);
-                    j39v1.put("active", null);
-                    j39v1.put("contract", false);
-                    j39v1.put("linear", null);
-                    j39v1.put("inverse", null);
-                    j39v1.put("contractSize", null);
-                    j39v1.put("expiry", null);
-                    j39v1.put("expiryDatetime", null);
-                    j39v1.put("strike", null);
-                    j39v1.put("optionType", null);
-                    j39v1.put("precision", new HashMap<String, Object>() {{
+                HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+                j39v1.put("id", id);
+                j39v1.put("symbol", ((base + "/") + quote));
+                j39v1.put("base", base);
+                j39v1.put("quote", quote);
+                j39v1.put("settle", null);
+                j39v1.put("baseId", baseId);
+                j39v1.put("quoteId", quoteId);
+                j39v1.put("settleId", null);
+                j39v1.put("type", "spot");
+                j39v1.put("spot", true);
+                j39v1.put("margin", false);
+                j39v1.put("swap", false);
+                j39v1.put("future", false);
+                j39v1.put("option", false);
+                j39v1.put("active", null);
+                j39v1.put("contract", false);
+                j39v1.put("linear", null);
+                j39v1.put("inverse", null);
+                j39v1.put("contractSize", null);
+                j39v1.put("expiry", null);
+                j39v1.put("expiryDatetime", null);
+                j39v1.put("strike", null);
+                j39v1.put("optionType", null);
+                j39v1.put("precision", new HashMap<String, Object>() {{
                         put( "amount", Coinone.this.parseNumber("1e-4") );
                         put( "price", Coinone.this.parseNumber("1e-4") );
                         put( "cost", Coinone.this.parseNumber("1e-8") );
                     }});
-                    j39v1.put("limits", new HashMap<String, Object>() {{
+                j39v1.put("limits", new HashMap<String, Object>() {{
                         put( "leverage", new HashMap<String, Object>() {{
                             put( "min", null );
                             put( "max", null );
@@ -635,9 +635,9 @@ public class Coinone extends CoinoneApi
                             put( "max", null );
                         }} );
                     }});
-                    j39v1.put("created", null);
-                    j39v1.put("info", entry);
-                    yield j39v1; } }));
+                j39v1.put("created", null);
+                j39v1.put("info", entry);
+                ((List<Object>)result).add(j39v1);
             }
             return result;
         });

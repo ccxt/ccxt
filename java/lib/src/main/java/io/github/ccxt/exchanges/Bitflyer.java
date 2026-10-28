@@ -477,37 +477,37 @@ public class Bitflyer extends BitflyerApi
                         symbol = ((symbol + "-") + this.yymmdd(expiry));
                     }
                 }
-                ((List<Object>)result).add((switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-                    j39v1.put("id", id);
-                    j39v1.put("symbol", symbol);
-                    j39v1.put("base", base);
-                    j39v1.put("quote", quote);
-                    j39v1.put("settle", settle);
-                    j39v1.put("baseId", baseId);
-                    j39v1.put("quoteId", quoteId);
-                    j39v1.put("settleId", null);
-                    j39v1.put("type", type);
-                    j39v1.put("spot", spot);
-                    j39v1.put("margin", false);
-                    j39v1.put("swap", swap);
-                    j39v1.put("future", future);
-                    j39v1.put("option", false);
-                    j39v1.put("active", true);
-                    j39v1.put("contract", contract);
-                    j39v1.put("linear", ((Boolean.TRUE.equals(spot))) ? null : true);
-                    j39v1.put("inverse", ((Boolean.TRUE.equals(spot))) ? null : false);
-                    j39v1.put("taker", taker);
-                    j39v1.put("maker", maker);
-                    j39v1.put("contractSize", null);
-                    j39v1.put("expiry", expiry);
-                    j39v1.put("expiryDatetime", this.iso8601(expiry));
-                    j39v1.put("strike", null);
-                    j39v1.put("optionType", null);
-                    j39v1.put("precision", new HashMap<String, Object>() {{
+                HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+                j39v1.put("id", id);
+                j39v1.put("symbol", symbol);
+                j39v1.put("base", base);
+                j39v1.put("quote", quote);
+                j39v1.put("settle", settle);
+                j39v1.put("baseId", baseId);
+                j39v1.put("quoteId", quoteId);
+                j39v1.put("settleId", null);
+                j39v1.put("type", type);
+                j39v1.put("spot", spot);
+                j39v1.put("margin", false);
+                j39v1.put("swap", swap);
+                j39v1.put("future", future);
+                j39v1.put("option", false);
+                j39v1.put("active", true);
+                j39v1.put("contract", contract);
+                j39v1.put("linear", ((Boolean.TRUE.equals(spot))) ? null : true);
+                j39v1.put("inverse", ((Boolean.TRUE.equals(spot))) ? null : false);
+                j39v1.put("taker", taker);
+                j39v1.put("maker", maker);
+                j39v1.put("contractSize", null);
+                j39v1.put("expiry", expiry);
+                j39v1.put("expiryDatetime", this.iso8601(expiry));
+                j39v1.put("strike", null);
+                j39v1.put("optionType", null);
+                j39v1.put("precision", new HashMap<String, Object>() {{
                         put( "amount", null );
                         put( "price", null );
                     }});
-                    j39v1.put("limits", new HashMap<String, Object>() {{
+                j39v1.put("limits", new HashMap<String, Object>() {{
                         put( "leverage", new HashMap<String, Object>() {{
                             put( "min", null );
                             put( "max", null );
@@ -525,9 +525,9 @@ public class Bitflyer extends BitflyerApi
                             put( "max", null );
                         }} );
                     }});
-                    j39v1.put("created", null);
-                    j39v1.put("info", market);
-                    yield j39v1; } }));
+                j39v1.put("created", null);
+                j39v1.put("info", market);
+                ((List<Object>)result).add(j39v1);
             }
             return result;
         });

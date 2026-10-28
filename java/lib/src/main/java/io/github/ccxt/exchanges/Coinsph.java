@@ -1023,37 +1023,37 @@ public class Coinsph extends CoinsphApi
                 Map<String, Object> amountLimits = (Map<String, Object>) this.safeDict(limits, "LOT_SIZE", new HashMap<String, Object>() {{}});
                 Map<String, Object> priceLimits = (Map<String, Object>) this.safeDict(limits, "PRICE_FILTER", new HashMap<String, Object>() {{}});
                 Map<String, Object> costLimits = (Map<String, Object>) this.safeDict(limits, "NOTIONAL", new HashMap<String, Object>() {{}});
-                ((List<Object>)result).add((switch (0) { default -> { HashMap<String, Object> j39v5 = new HashMap<String, Object>();
-                    j39v5.put("id", id);
-                    j39v5.put("symbol", ((base + "/") + quote));
-                    j39v5.put("base", base);
-                    j39v5.put("quote", quote);
-                    j39v5.put("settle", null);
-                    j39v5.put("baseId", baseId);
-                    j39v5.put("quoteId", quoteId);
-                    j39v5.put("settleId", null);
-                    j39v5.put("type", "spot");
-                    j39v5.put("spot", true);
-                    j39v5.put("margin", false);
-                    j39v5.put("swap", false);
-                    j39v5.put("future", false);
-                    j39v5.put("option", false);
-                    j39v5.put("active", java.util.Objects.equals(this.safeStringLower(market, "status"), "trading"));
-                    j39v5.put("contract", false);
-                    j39v5.put("linear", null);
-                    j39v5.put("inverse", null);
-                    j39v5.put("taker", null);
-                    j39v5.put("maker", null);
-                    j39v5.put("contractSize", null);
-                    j39v5.put("expiry", null);
-                    j39v5.put("expiryDatetime", null);
-                    j39v5.put("strike", null);
-                    j39v5.put("optionType", null);
-                    j39v5.put("precision", new HashMap<String, Object>() {{
+                HashMap<String, Object> j39v5 = new HashMap<String, Object>();
+                j39v5.put("id", id);
+                j39v5.put("symbol", ((base + "/") + quote));
+                j39v5.put("base", base);
+                j39v5.put("quote", quote);
+                j39v5.put("settle", null);
+                j39v5.put("baseId", baseId);
+                j39v5.put("quoteId", quoteId);
+                j39v5.put("settleId", null);
+                j39v5.put("type", "spot");
+                j39v5.put("spot", true);
+                j39v5.put("margin", false);
+                j39v5.put("swap", false);
+                j39v5.put("future", false);
+                j39v5.put("option", false);
+                j39v5.put("active", java.util.Objects.equals(this.safeStringLower(market, "status"), "trading"));
+                j39v5.put("contract", false);
+                j39v5.put("linear", null);
+                j39v5.put("inverse", null);
+                j39v5.put("taker", null);
+                j39v5.put("maker", null);
+                j39v5.put("contractSize", null);
+                j39v5.put("expiry", null);
+                j39v5.put("expiryDatetime", null);
+                j39v5.put("strike", null);
+                j39v5.put("optionType", null);
+                j39v5.put("precision", new HashMap<String, Object>() {{
                         put( "amount", Coinsph.this.parseNumber(Coinsph.this.safeString(amountLimits, "stepSize")) );
                         put( "price", Coinsph.this.parseNumber(Coinsph.this.safeString(priceLimits, "tickSize")) );
                     }});
-                    j39v5.put("limits", new HashMap<String, Object>() {{
+                j39v5.put("limits", new HashMap<String, Object>() {{
                         put( "leverage", new HashMap<String, Object>() {{
                             put( "min", null );
                             put( "max", null );
@@ -1071,9 +1071,9 @@ public class Coinsph extends CoinsphApi
                             put( "max", null );
                         }} );
                     }});
-                    j39v5.put("created", null);
-                    j39v5.put("info", market);
-                    yield j39v5; } }));
+                j39v5.put("created", null);
+                j39v5.put("info", market);
+                ((List<Object>)result).add(j39v5);
             }
             this.setMarkets(result, (Object) null);
             return result;

@@ -1217,7 +1217,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         //     }
         //
         Map<String, Object> parameters = (Map<String, Object>) this.safeDict(message, "params", (Object) null);
-        String topic = this.safeString(parameters, "channel");
+        String topic = this.safeString(parameters, "channel", "");
         List<Object> topicParts = new ArrayList<Object>(Arrays.asList(((String)topic).split(java.util.regex.Pattern.quote("."))));
         String subaccountIdKey = this.safeString(topicParts, 0);
         List<Object> data = (List<Object>) this.safeList(parameters, "data", new ArrayList<Object>(Arrays.asList()));

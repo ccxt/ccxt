@@ -1258,7 +1258,7 @@ public class Paradex extends ParadexApi
                 }
             } else
             {
-                Long endAtRaw = ((Boolean.TRUE.equals(hasEnd))) ? this.safeInteger(requestUntil, "end_at", 0) : this.milliseconds();
+                Long endAtRaw = this.safeInteger(requestUntil, "end_at", this.milliseconds());
                 Long endAt = this.parseToInt(endAtRaw);
                 ((Map<String, Object>)requestUntil).put("end_at", endAt);
                 ((Map<String, Object>)requestUntil).put("start_at", ((endAt - windowLength) + 1L));

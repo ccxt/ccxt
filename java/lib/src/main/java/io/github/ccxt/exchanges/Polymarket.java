@@ -2509,15 +2509,15 @@ public class Polymarket extends PolymarketApi
                 Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 String marketId = this.safeString(entry, "instrument_id");
                 Long timestamp = this.safeInteger(entry, "timestamp");
-                ((List<Object>)result).add((switch (0) { default -> { HashMap<String, Object> j39v3 = new HashMap<String, Object>();
-                    j39v3.put("info", entry);
-                    j39v3.put("symbol", this.safeSymbol(marketId, market, (String) null, (String) null));
-                    j39v3.put("code", this.safeCurrencyCode(this.safeString(entry, "funding_asset"), (Map<String, Object>) null));
-                    j39v3.put("timestamp", timestamp);
-                    j39v3.put("datetime", this.iso8601(timestamp));
-                    j39v3.put("id", this.safeString(entry, "id"));
-                    j39v3.put("amount", this.safeNumber(entry, "funding", (Object) null));
-                    yield j39v3; } }));
+                HashMap<String, Object> j39v3 = new HashMap<String, Object>();
+                j39v3.put("info", entry);
+                j39v3.put("symbol", this.safeSymbol(marketId, market, (String) null, (String) null));
+                j39v3.put("code", this.safeCurrencyCode(this.safeString(entry, "funding_asset"), (Map<String, Object>) null));
+                j39v3.put("timestamp", timestamp);
+                j39v3.put("datetime", this.iso8601(timestamp));
+                j39v3.put("id", this.safeString(entry, "id"));
+                j39v3.put("amount", this.safeNumber(entry, "funding", (Object) null));
+                ((List<Object>)result).add(j39v3);
             }
             return this.filterBySymbolSinceLimit(result, symbol, since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(FundingHistory::new).collect(Collectors.toList()));

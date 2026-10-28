@@ -2347,41 +2347,41 @@ public class Kucoin extends KucoinApi
                 Boolean hasCrossMargin = (crossById.containsKey(id));
                 Boolean hasIsolatedMargin = (isolatedById.containsKey(id));
                 Boolean isMarginable = Boolean.TRUE.equals(this.safeBool(market, "isMarginEnabled", false)) || Boolean.TRUE.equals(hasCrossMargin) || Boolean.TRUE.equals(hasIsolatedMargin);
-                ((List<Object>)result).add((switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-                    j39v1.put("id", id);
-                    j39v1.put("symbol", ((base + "/") + quote));
-                    j39v1.put("base", base);
-                    j39v1.put("quote", quote);
-                    j39v1.put("settle", null);
-                    j39v1.put("baseId", baseId);
-                    j39v1.put("quoteId", quoteId);
-                    j39v1.put("settleId", null);
-                    j39v1.put("type", "spot");
-                    j39v1.put("spot", true);
-                    j39v1.put("margin", isMarginable);
-                    j39v1.put("marginModes", new HashMap<String, Object>() {{
+                HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+                j39v1.put("id", id);
+                j39v1.put("symbol", ((base + "/") + quote));
+                j39v1.put("base", base);
+                j39v1.put("quote", quote);
+                j39v1.put("settle", null);
+                j39v1.put("baseId", baseId);
+                j39v1.put("quoteId", quoteId);
+                j39v1.put("settleId", null);
+                j39v1.put("type", "spot");
+                j39v1.put("spot", true);
+                j39v1.put("margin", isMarginable);
+                j39v1.put("marginModes", new HashMap<String, Object>() {{
                         put( "cross", hasCrossMargin );
                         put( "isolated", hasIsolatedMargin );
                     }});
-                    j39v1.put("swap", false);
-                    j39v1.put("future", false);
-                    j39v1.put("option", false);
-                    j39v1.put("active", this.safeBool(market, "enableTrading", (Object) null));
-                    j39v1.put("contract", false);
-                    j39v1.put("linear", null);
-                    j39v1.put("inverse", null);
-                    j39v1.put("taker", this.parseNumber(Precise.stringMul(takerFeeRate, takerCoefficient)));
-                    j39v1.put("maker", this.parseNumber(Precise.stringMul(makerFeeRate, makerCoefficient)));
-                    j39v1.put("contractSize", null);
-                    j39v1.put("expiry", null);
-                    j39v1.put("expiryDatetime", null);
-                    j39v1.put("strike", null);
-                    j39v1.put("optionType", null);
-                    j39v1.put("precision", new HashMap<String, Object>() {{
+                j39v1.put("swap", false);
+                j39v1.put("future", false);
+                j39v1.put("option", false);
+                j39v1.put("active", this.safeBool(market, "enableTrading", (Object) null));
+                j39v1.put("contract", false);
+                j39v1.put("linear", null);
+                j39v1.put("inverse", null);
+                j39v1.put("taker", this.parseNumber(Precise.stringMul(takerFeeRate, takerCoefficient)));
+                j39v1.put("maker", this.parseNumber(Precise.stringMul(makerFeeRate, makerCoefficient)));
+                j39v1.put("contractSize", null);
+                j39v1.put("expiry", null);
+                j39v1.put("expiryDatetime", null);
+                j39v1.put("strike", null);
+                j39v1.put("optionType", null);
+                j39v1.put("precision", new HashMap<String, Object>() {{
                         put( "amount", Kucoin.this.safeNumber(market, "baseIncrement", (Object) null) );
                         put( "price", Kucoin.this.safeNumber(market, "priceIncrement", (Object) null) );
                     }});
-                    j39v1.put("limits", new HashMap<String, Object>() {{
+                j39v1.put("limits", new HashMap<String, Object>() {{
                         put( "leverage", new HashMap<String, Object>() {{
                             put( "min", null );
                             put( "max", null );
@@ -2399,9 +2399,9 @@ public class Kucoin extends KucoinApi
                             put( "max", Kucoin.this.safeNumber(market, "quoteMaxSize", (Object) null) );
                         }} );
                     }});
-                    j39v1.put("created", null);
-                    j39v1.put("info", market);
-                    yield j39v1; } }));
+                j39v1.put("created", null);
+                j39v1.put("info", market);
+                ((List<Object>)result).add(j39v1);
             }
             if (Boolean.TRUE.equals(fetchContractMarkets))
             {
@@ -2533,37 +2533,37 @@ public class Kucoin extends KucoinApi
                     String quoteMaxSizeString = this.safeString(market, "quoteMaxSize");
                     limitPriceMax = this.parseNumber(Precise.stringDiv(quoteMaxSizeString, baseMinSizeString));
                 }
-                ((List<Object>)result).add((switch (0) { default -> { HashMap<String, Object> j39v5 = new HashMap<String, Object>();
-                    j39v5.put("id", id);
-                    j39v5.put("symbol", symbol);
-                    j39v5.put("base", base);
-                    j39v5.put("quote", quote);
-                    j39v5.put("settle", settle);
-                    j39v5.put("baseId", baseId);
-                    j39v5.put("quoteId", quoteId);
-                    j39v5.put("settleId", settleId);
-                    j39v5.put("type", type);
-                    j39v5.put("spot", false);
-                    j39v5.put("margin", false);
-                    j39v5.put("swap", swap);
-                    j39v5.put("future", future);
-                    j39v5.put("option", false);
-                    j39v5.put("active", (java.util.Objects.equals(status, "Open")));
-                    j39v5.put("contract", true);
-                    j39v5.put("linear", (!java.util.Objects.equals(inverse, true)));
-                    j39v5.put("inverse", inverse);
-                    j39v5.put("taker", this.safeNumber(market, "takerFeeRate", (Object) null));
-                    j39v5.put("maker", this.safeNumber(market, "makerFeeRate", (Object) null));
-                    j39v5.put("contractSize", this.parseNumber(Precise.stringAbs(multiplier)));
-                    j39v5.put("expiry", expiry);
-                    j39v5.put("expiryDatetime", this.iso8601(expiry));
-                    j39v5.put("strike", null);
-                    j39v5.put("optionType", null);
-                    j39v5.put("precision", new HashMap<String, Object>() {{
+                HashMap<String, Object> j39v5 = new HashMap<String, Object>();
+                j39v5.put("id", id);
+                j39v5.put("symbol", symbol);
+                j39v5.put("base", base);
+                j39v5.put("quote", quote);
+                j39v5.put("settle", settle);
+                j39v5.put("baseId", baseId);
+                j39v5.put("quoteId", quoteId);
+                j39v5.put("settleId", settleId);
+                j39v5.put("type", type);
+                j39v5.put("spot", false);
+                j39v5.put("margin", false);
+                j39v5.put("swap", swap);
+                j39v5.put("future", future);
+                j39v5.put("option", false);
+                j39v5.put("active", (java.util.Objects.equals(status, "Open")));
+                j39v5.put("contract", true);
+                j39v5.put("linear", (!java.util.Objects.equals(inverse, true)));
+                j39v5.put("inverse", inverse);
+                j39v5.put("taker", this.safeNumber(market, "takerFeeRate", (Object) null));
+                j39v5.put("maker", this.safeNumber(market, "makerFeeRate", (Object) null));
+                j39v5.put("contractSize", this.parseNumber(Precise.stringAbs(multiplier)));
+                j39v5.put("expiry", expiry);
+                j39v5.put("expiryDatetime", this.iso8601(expiry));
+                j39v5.put("strike", null);
+                j39v5.put("optionType", null);
+                j39v5.put("precision", new HashMap<String, Object>() {{
                         put( "amount", lotSize );
                         put( "price", tickSize );
                     }});
-                    j39v5.put("limits", (switch (0) { default -> { HashMap<String, Object> j39v4 = new HashMap<String, Object>();
+                j39v5.put("limits", (switch (0) { default -> { HashMap<String, Object> j39v4 = new HashMap<String, Object>();
                         j39v4.put("leverage", new HashMap<String, Object>() {{
                             put( "min", Kucoin.this.parseNumber("1") );
                             put( "max", Kucoin.this.safeNumber(market, "maxLeverage", (Object) null) );
@@ -2581,9 +2581,9 @@ public class Kucoin extends KucoinApi
                             put( "max", Kucoin.this.safeNumber(market, "quoteMaxSize", (Object) null) );
                         }});
                         yield j39v4; } }));
-                    j39v5.put("created", this.safeInteger(market, "firstOpenDate"));
-                    j39v5.put("info", market);
-                    yield j39v5; } }));
+                j39v5.put("created", this.safeInteger(market, "firstOpenDate"));
+                j39v5.put("info", market);
+                ((List<Object>)result).add(j39v5);
             }
             return result;
         });
@@ -2737,37 +2737,37 @@ public class Kucoin extends KucoinApi
                     type = "spot";
                     spot = true;
                 }
-                ((List<Object>)result).add((switch (0) { default -> { HashMap<String, Object> j39v6 = new HashMap<String, Object>();
-                    j39v6.put("id", id);
-                    j39v6.put("symbol", symbol);
-                    j39v6.put("base", base);
-                    j39v6.put("quote", quote);
-                    j39v6.put("settle", settle);
-                    j39v6.put("baseId", baseId);
-                    j39v6.put("quoteId", quoteId);
-                    j39v6.put("settleId", settleId);
-                    j39v6.put("type", type);
-                    j39v6.put("spot", spot);
-                    j39v6.put("margin", isMarginable);
-                    j39v6.put("swap", swap);
-                    j39v6.put("future", future);
-                    j39v6.put("option", false);
-                    j39v6.put("active", (java.util.Objects.equals(active, "1")));
-                    j39v6.put("contract", contract);
-                    j39v6.put("linear", linear);
-                    j39v6.put("inverse", inverse);
-                    j39v6.put("taker", this.safeNumber(market, "makerFeeRate", (Object) null));
-                    j39v6.put("maker", this.safeNumber(market, "takerFeeRate", (Object) null));
-                    j39v6.put("contractSize", this.safeNumber(market, "unitSize", (Object) null));
-                    j39v6.put("expiry", expiry);
-                    j39v6.put("expiryDatetime", this.iso8601(expiry));
-                    j39v6.put("strike", null);
-                    j39v6.put("optionType", null);
-                    j39v6.put("precision", new HashMap<String, Object>() {{
+                HashMap<String, Object> j39v6 = new HashMap<String, Object>();
+                j39v6.put("id", id);
+                j39v6.put("symbol", symbol);
+                j39v6.put("base", base);
+                j39v6.put("quote", quote);
+                j39v6.put("settle", settle);
+                j39v6.put("baseId", baseId);
+                j39v6.put("quoteId", quoteId);
+                j39v6.put("settleId", settleId);
+                j39v6.put("type", type);
+                j39v6.put("spot", spot);
+                j39v6.put("margin", isMarginable);
+                j39v6.put("swap", swap);
+                j39v6.put("future", future);
+                j39v6.put("option", false);
+                j39v6.put("active", (java.util.Objects.equals(active, "1")));
+                j39v6.put("contract", contract);
+                j39v6.put("linear", linear);
+                j39v6.put("inverse", inverse);
+                j39v6.put("taker", this.safeNumber(market, "makerFeeRate", (Object) null));
+                j39v6.put("maker", this.safeNumber(market, "takerFeeRate", (Object) null));
+                j39v6.put("contractSize", this.safeNumber(market, "unitSize", (Object) null));
+                j39v6.put("expiry", expiry);
+                j39v6.put("expiryDatetime", this.iso8601(expiry));
+                j39v6.put("strike", null);
+                j39v6.put("optionType", null);
+                j39v6.put("precision", new HashMap<String, Object>() {{
                         put( "amount", Kucoin.this.safeNumber2(market, "lotSize", "baseOrderStep", (Object) null) );
                         put( "price", Kucoin.this.safeNumber(market, "tickSize", (Object) null) );
                     }});
-                    j39v6.put("limits", new HashMap<String, Object>() {{
+                j39v6.put("limits", new HashMap<String, Object>() {{
                         put( "leverage", new HashMap<String, Object>() {{
                             put( "min", null );
                             put( "max", Kucoin.this.safeInteger(market, "maxLeverage") );
@@ -2785,9 +2785,9 @@ public class Kucoin extends KucoinApi
                             put( "max", Kucoin.this.safeNumber(market, "maxQuoteOrderSize", (Object) null) );
                         }} );
                     }});
-                    j39v6.put("created", this.safeInteger(market, "launchTime"));
-                    j39v6.put("info", market);
-                    yield j39v6; } }));
+                j39v6.put("created", this.safeInteger(market, "launchTime"));
+                j39v6.put("info", market);
+                ((List<Object>)result).add(j39v6);
             }
             if (Boolean.TRUE.equals(this.safeBool(this.options, "adjustForTimeDifference", false)))
             {
@@ -12383,19 +12383,19 @@ public class Kucoin extends KucoinApi
                 Object listItem = (dataList == null || i < 0 || i >= dataList.size() ? null : dataList.get(i));
                 Long timestamp = (Long) this.safeInteger2(listItem, "timePoint", "settlementTime");
                 String marketId = this.safeString(listItem, "symbol");
-                ((List<Object>)fees).add((switch (0) { default -> { HashMap<String, Object> j39v11 = new HashMap<String, Object>();
-                    j39v11.put("info", listItem);
-                    j39v11.put("symbol", this.safeSymbol(marketId, market, (String) null, (String) null));
-                    j39v11.put("code", this.safeCurrencyCode(this.safeString(listItem, "settleCurrency"), (Map<String, Object>) null));
-                    j39v11.put("timestamp", timestamp);
-                    j39v11.put("datetime", this.iso8601(timestamp));
-                    j39v11.put("id", this.safeNumber(listItem, "id", (Object) null));
-                    j39v11.put("amount", this.safeNumber2(listItem, "funding", "fundingFee", (Object) null));
-                    j39v11.put("fundingRate", this.safeNumber(listItem, "fundingRate", (Object) null));
-                    j39v11.put("markPrice", this.safeNumber(listItem, "markPrice", (Object) null));
-                    j39v11.put("positionQty", this.safeNumber2(listItem, "positionQty", "size", (Object) null));
-                    j39v11.put("positionCost", this.safeNumber2(listItem, "positionCost", "positionValue", (Object) null));
-                    yield j39v11; } }));
+                HashMap<String, Object> j39v11 = new HashMap<String, Object>();
+                j39v11.put("info", listItem);
+                j39v11.put("symbol", this.safeSymbol(marketId, market, (String) null, (String) null));
+                j39v11.put("code", this.safeCurrencyCode(this.safeString(listItem, "settleCurrency"), (Map<String, Object>) null));
+                j39v11.put("timestamp", timestamp);
+                j39v11.put("datetime", this.iso8601(timestamp));
+                j39v11.put("id", this.safeNumber(listItem, "id", (Object) null));
+                j39v11.put("amount", this.safeNumber2(listItem, "funding", "fundingFee", (Object) null));
+                j39v11.put("fundingRate", this.safeNumber(listItem, "fundingRate", (Object) null));
+                j39v11.put("markPrice", this.safeNumber(listItem, "markPrice", (Object) null));
+                j39v11.put("positionQty", this.safeNumber2(listItem, "positionQty", "size", (Object) null));
+                j39v11.put("positionCost", this.safeNumber2(listItem, "positionCost", "positionValue", (Object) null));
+                ((List<Object>)fees).add(j39v11);
             }
             return fees;
         }).thenApply(res -> ((List<?>) res).stream().map(FundingHistory::new).collect(Collectors.toList()));

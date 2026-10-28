@@ -633,39 +633,39 @@ public class Krakenfutures extends KrakenfuturesApi
                         symbol = ((((((base + "/") + quote) + ":") + settle) + "-") + this.yymmdd(expiry));
                     }
                 }
-                ((List<Object>)result).add((switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-                    j39v1.put("id", id);
-                    j39v1.put("symbol", symbol);
-                    j39v1.put("base", base);
-                    j39v1.put("quote", quote);
-                    j39v1.put("settle", settle);
-                    j39v1.put("baseId", baseId);
-                    j39v1.put("quoteId", quoteId);
-                    j39v1.put("settleId", settleId);
-                    j39v1.put("type", type);
-                    j39v1.put("spot", false);
-                    j39v1.put("margin", false);
-                    j39v1.put("swap", swap);
-                    j39v1.put("future", future);
-                    j39v1.put("option", false);
-                    j39v1.put("index", index);
-                    j39v1.put("active", this.safeBool(market, "tradeable", (Object) null));
-                    j39v1.put("contract", contract);
-                    j39v1.put("linear", linear);
-                    j39v1.put("inverse", inverse);
-                    j39v1.put("contractSize", this.safeNumber(market, "contractSize", (Object) null));
-                    j39v1.put("taker", this.safeNumber((this.fees == null ? null : ((Map<?, ?>)this.fees).get("trading")), "taker", (Object) null));
-                    j39v1.put("maker", this.safeNumber((this.fees == null ? null : ((Map<?, ?>)this.fees).get("trading")), "maker", (Object) null));
-                    j39v1.put("maintenanceMarginRate", null);
-                    j39v1.put("expiry", expiry);
-                    j39v1.put("expiryDatetime", this.iso8601(expiry));
-                    j39v1.put("strike", null);
-                    j39v1.put("optionType", null);
-                    j39v1.put("precision", new HashMap<String, Object>() {{
+                HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+                j39v1.put("id", id);
+                j39v1.put("symbol", symbol);
+                j39v1.put("base", base);
+                j39v1.put("quote", quote);
+                j39v1.put("settle", settle);
+                j39v1.put("baseId", baseId);
+                j39v1.put("quoteId", quoteId);
+                j39v1.put("settleId", settleId);
+                j39v1.put("type", type);
+                j39v1.put("spot", false);
+                j39v1.put("margin", false);
+                j39v1.put("swap", swap);
+                j39v1.put("future", future);
+                j39v1.put("option", false);
+                j39v1.put("index", index);
+                j39v1.put("active", this.safeBool(market, "tradeable", (Object) null));
+                j39v1.put("contract", contract);
+                j39v1.put("linear", linear);
+                j39v1.put("inverse", inverse);
+                j39v1.put("contractSize", this.safeNumber(market, "contractSize", (Object) null));
+                j39v1.put("taker", this.safeNumber((this.fees == null ? null : ((Map<?, ?>)this.fees).get("trading")), "taker", (Object) null));
+                j39v1.put("maker", this.safeNumber((this.fees == null ? null : ((Map<?, ?>)this.fees).get("trading")), "maker", (Object) null));
+                j39v1.put("maintenanceMarginRate", null);
+                j39v1.put("expiry", expiry);
+                j39v1.put("expiryDatetime", this.iso8601(expiry));
+                j39v1.put("strike", null);
+                j39v1.put("optionType", null);
+                j39v1.put("precision", new HashMap<String, Object>() {{
                         put( "amount", amountPrecision );
                         put( "price", pricePrecision );
                     }});
-                    j39v1.put("limits", new HashMap<String, Object>() {{
+                j39v1.put("limits", new HashMap<String, Object>() {{
                         put( "leverage", new HashMap<String, Object>() {{
                             put( "min", null );
                             put( "max", null );
@@ -683,9 +683,9 @@ public class Krakenfutures extends KrakenfuturesApi
                             put( "max", null );
                         }} );
                     }});
-                    j39v1.put("created", this.parse8601(this.safeString(market, "openingDate")));
-                    j39v1.put("info", market);
-                    yield j39v1; } }));
+                j39v1.put("created", this.parse8601(this.safeString(market, "openingDate")));
+                j39v1.put("info", market);
+                ((List<Object>)result).add(j39v1);
             }
             List<Object> settlementCurrencies = (List<Object>) this.safeList(this.safeDict(this.options, "settlementCurrencies", new HashMap<String, Object>() {{}}), "flex", new ArrayList<Object>(Arrays.asList()));
             List<Object> currencies = new ArrayList<Object>(Arrays.asList());
@@ -1862,10 +1862,10 @@ public class Krakenfutures extends KrakenfuturesApi
             {
                 for (var i = 0; i < ((List<?>)clientOrderIds).size(); i++)
                 {
-                    ((List<Object>)orders).add((switch (0) { default -> { HashMap<String, Object> j39v2 = new HashMap<String, Object>();
-                        j39v2.put("order", "cancel");
-                        j39v2.put("cliOrdId", (clientOrderIds == null || i < 0 || i >= clientOrderIds.size() ? null : clientOrderIds.get(i)));
-                        yield j39v2; } }));
+                    HashMap<String, Object> j39v2 = new HashMap<String, Object>();
+                    j39v2.put("order", "cancel");
+                    j39v2.put("cliOrdId", (clientOrderIds == null || i < 0 || i >= clientOrderIds.size() ? null : clientOrderIds.get(i)));
+                    ((List<Object>)orders).add(j39v2);
                 }
             } else
             {
@@ -3673,13 +3673,13 @@ public class Krakenfutures extends KrakenfuturesApi
             {
                 Map<String, Object> item = (Map<String, Object>) this.safeDict(rates, i, (Object) null);
                 String datetime = this.safeString(item, "timestamp");
-                ((List<Object>)result).add((switch (0) { default -> { HashMap<String, Object> j39v3 = new HashMap<String, Object>();
-                    j39v3.put("info", item);
-                    j39v3.put("symbol", symbol);
-                    j39v3.put("fundingRate", this.safeNumber(item, "relativeFundingRate", (Object) null));
-                    j39v3.put("timestamp", this.parse8601(datetime));
-                    j39v3.put("datetime", datetime);
-                    yield j39v3; } }));
+                HashMap<String, Object> j39v3 = new HashMap<String, Object>();
+                j39v3.put("info", item);
+                j39v3.put("symbol", symbol);
+                j39v3.put("fundingRate", this.safeNumber(item, "relativeFundingRate", (Object) null));
+                j39v3.put("timestamp", this.parse8601(datetime));
+                j39v3.put("datetime", datetime);
+                ((List<Object>)result).add(j39v3);
             }
             List<Object> sorted = this.sortBy(result, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, symbol, since, limit, false);
@@ -4093,16 +4093,16 @@ public class Krakenfutures extends KrakenfuturesApi
             Object tier = (marginLevels == null || i < 0 || i >= marginLevels.size() ? null : marginLevels.get(i));
             String initialMargin = this.safeString(tier, "initialMargin");
             Double minNotional = this.safeNumber2(tier, "numNonContractUnits", "contracts", (Object) null);
-            ((List<Object>)tiers).add((switch (0) { default -> { HashMap<String, Object> j39v4 = new HashMap<String, Object>();
-                j39v4.put("tier", this.sum(i, 1));
-                j39v4.put("symbol", this.safeSymbol(marketId, marketResolved, (String) null, (String) null));
-                j39v4.put("currency", marketResolved.get("quote"));
-                j39v4.put("minNotional", minNotional);
-                j39v4.put("maxNotional", this.safeNumber2(this.safeValue(marginLevels, this.sum(i, 1)), "numNonContractUnits", "contracts", (Object) null));
-                j39v4.put("maintenanceMarginRate", this.safeNumber(tier, "maintenanceMargin", (Object) null));
-                j39v4.put("maxLeverage", this.parseNumber(Precise.stringDiv("1", initialMargin)));
-                j39v4.put("info", tier);
-                yield j39v4; } }));
+            HashMap<String, Object> j39v4 = new HashMap<String, Object>();
+            j39v4.put("tier", this.sum(i, 1));
+            j39v4.put("symbol", this.safeSymbol(marketId, marketResolved, (String) null, (String) null));
+            j39v4.put("currency", marketResolved.get("quote"));
+            j39v4.put("minNotional", minNotional);
+            j39v4.put("maxNotional", this.safeNumber2(this.safeValue(marginLevels, this.sum(i, 1)), "numNonContractUnits", "contracts", (Object) null));
+            j39v4.put("maintenanceMarginRate", this.safeNumber(tier, "maintenanceMargin", (Object) null));
+            j39v4.put("maxLeverage", this.parseNumber(Precise.stringDiv("1", initialMargin)));
+            j39v4.put("info", tier);
+            ((List<Object>)tiers).add(j39v4);
         }
         return tiers;
     }

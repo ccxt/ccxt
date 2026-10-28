@@ -865,17 +865,17 @@ public class Kalshi extends KalshiApi
             // reassigned local into the anonymous inner class it emits for a map literal)
             Boolean winner = winnerRaw;
             Object settleFraction = settleFractionRaw;
-            ((List<Object>)outcomes).add((switch (0) { default -> { HashMap<String, Object> j39v2 = new HashMap<String, Object>();
-                j39v2.put("id", (outcomeIds == null || oi < 0 || oi >= outcomeIds.size() ? null : outcomeIds.get(oi)));
-                j39v2.put("outcomeId", (outcomeIds == null || oi < 0 || oi >= outcomeIds.size() ? null : outcomeIds.get(oi)));
-                j39v2.put("outcome", outcomeHandle);
-                j39v2.put("market", marketSymbol);
-                j39v2.put("label", label);
-                j39v2.put("active", active);
-                j39v2.put("winner", winner);
-                j39v2.put("settleFraction", settleFraction);
-                j39v2.put("precision", precision);
-                j39v2.put("info", (switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+            HashMap<String, Object> j39v2 = new HashMap<String, Object>();
+            j39v2.put("id", (outcomeIds == null || oi < 0 || oi >= outcomeIds.size() ? null : outcomeIds.get(oi)));
+            j39v2.put("outcomeId", (outcomeIds == null || oi < 0 || oi >= outcomeIds.size() ? null : outcomeIds.get(oi)));
+            j39v2.put("outcome", outcomeHandle);
+            j39v2.put("market", marketSymbol);
+            j39v2.put("label", label);
+            j39v2.put("active", active);
+            j39v2.put("winner", winner);
+            j39v2.put("settleFraction", settleFraction);
+            j39v2.put("precision", precision);
+            j39v2.put("info", (switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
                     j39v1.put("ticker", ticker);
                     j39v1.put("eventTicker", eventTicker);
                     j39v1.put("seriesTicker", seriesTicker);
@@ -885,7 +885,7 @@ public class Kalshi extends KalshiApi
                     j39v1.put("liquidity", liquidity);
                     j39v1.put("openInterest", openInt);
                     yield j39v1; } }));
-                yield j39v2; } }));
+            ((List<Object>)outcomes).add(j39v2);
         }
         // effectively-final copy for the market object literal below (reassigned in the loop)
         Object marketResolvedOutcome = resolvedOutcome;
@@ -1288,17 +1288,12 @@ public class Kalshi extends KalshiApi
             }
             // batch-resolve the uncached outcomes (one markets request per 100 tickers)
             (this.loadOutcomes(outcomes, false, new HashMap<String, Object>() {{}})).join();
-            List<Object> targets = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)outcomes).size(); i++)
-            {
-                ((List<Object>)targets).add((outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i)));
-            }
             // group requested outcomes by their market ticker, yes and no outcomes share one market
             Map<String, Object> outcomesByTicker = new HashMap<String, Object>() {{}};
             List<String> tickers = new ArrayList<String>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)targets).size(); i++)
+            for (var i = 0; i < ((List<?>)outcomes).size(); i++)
             {
-                Map<String, Object> outcomeObj = this.outcome((String) ((targets == null || i < 0 || i >= targets.size() ? null : targets.get(i))));
+                Map<String, Object> outcomeObj = this.outcome((String) ((outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i))));
                 String ticker = this.safeString(outcomeObj.get("info"), "ticker");
                 if (java.util.Objects.equals(ticker, null))
                 {

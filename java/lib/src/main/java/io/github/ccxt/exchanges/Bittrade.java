@@ -850,38 +850,38 @@ public class Bittrade extends BittradeApi
                 {
                     throw new ExchangeError((this.id + " fetchMarkets() missing quoteId")) ;
                 }
-                ((List<Object>)result).add((switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-                    j39v1.put("id", (baseId + quoteId));
-                    j39v1.put("symbol", ((base + "/") + quote));
-                    j39v1.put("base", base);
-                    j39v1.put("quote", quote);
-                    j39v1.put("settle", null);
-                    j39v1.put("baseId", baseId);
-                    j39v1.put("quoteId", quoteId);
-                    j39v1.put("settleId", null);
-                    j39v1.put("type", "spot");
-                    j39v1.put("spot", true);
-                    j39v1.put("margin", margin);
-                    j39v1.put("swap", false);
-                    j39v1.put("future", false);
-                    j39v1.put("option", false);
-                    j39v1.put("active", (java.util.Objects.equals(state, "online")));
-                    j39v1.put("contract", false);
-                    j39v1.put("linear", null);
-                    j39v1.put("inverse", null);
-                    j39v1.put("taker", fee);
-                    j39v1.put("maker", fee);
-                    j39v1.put("contractSize", null);
-                    j39v1.put("expiry", null);
-                    j39v1.put("expiryDatetime", null);
-                    j39v1.put("strike", null);
-                    j39v1.put("optionType", null);
-                    j39v1.put("precision", new HashMap<String, Object>() {{
+                HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+                j39v1.put("id", (baseId + quoteId));
+                j39v1.put("symbol", ((base + "/") + quote));
+                j39v1.put("base", base);
+                j39v1.put("quote", quote);
+                j39v1.put("settle", null);
+                j39v1.put("baseId", baseId);
+                j39v1.put("quoteId", quoteId);
+                j39v1.put("settleId", null);
+                j39v1.put("type", "spot");
+                j39v1.put("spot", true);
+                j39v1.put("margin", margin);
+                j39v1.put("swap", false);
+                j39v1.put("future", false);
+                j39v1.put("option", false);
+                j39v1.put("active", (java.util.Objects.equals(state, "online")));
+                j39v1.put("contract", false);
+                j39v1.put("linear", null);
+                j39v1.put("inverse", null);
+                j39v1.put("taker", fee);
+                j39v1.put("maker", fee);
+                j39v1.put("contractSize", null);
+                j39v1.put("expiry", null);
+                j39v1.put("expiryDatetime", null);
+                j39v1.put("strike", null);
+                j39v1.put("optionType", null);
+                j39v1.put("precision", new HashMap<String, Object>() {{
                         put( "price", Bittrade.this.parseNumber(Bittrade.this.parsePrecision(Bittrade.this.safeString(market, "price-precision"))) );
                         put( "amount", Bittrade.this.parseNumber(Bittrade.this.parsePrecision(Bittrade.this.safeString(market, "amount-precision"))) );
                         put( "cost", Bittrade.this.parseNumber(Bittrade.this.parsePrecision(Bittrade.this.safeString(market, "value-precision"))) );
                     }});
-                    j39v1.put("limits", new HashMap<String, Object>() {{
+                j39v1.put("limits", new HashMap<String, Object>() {{
                         put( "leverage", new HashMap<String, Object>() {{
                             put( "min", Bittrade.this.parseNumber("1") );
                             put( "max", Bittrade.this.parseNumber(leverageRatio) );
@@ -900,9 +900,9 @@ public class Bittrade extends BittradeApi
                             put( "max", null );
                         }} );
                     }});
-                    j39v1.put("created", null);
-                    j39v1.put("info", market);
-                    yield j39v1; } }));
+                j39v1.put("created", null);
+                j39v1.put("info", market);
+                ((List<Object>)result).add(j39v1);
             }
             return result;
         });

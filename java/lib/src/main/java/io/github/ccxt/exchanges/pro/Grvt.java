@@ -729,6 +729,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = this.safeString(market, "symbol", "");
         Long timestamp = this.safeIntegerProduct(data, "event_time", 0.000001);
+        String messageHash = ("orderbook::" + symbol);
         if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
         {
             this.orderbooks.put(symbol, this.orderBook());
@@ -760,7 +761,6 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
         // unconditional assignment is correct for every language.
         orderbook.put("symbol", symbol);
         orderbook.put("nonce", sequenceNumber);
-        String messageHash = ("orderbook::" + symbol);
         this.orderbooks.put(symbol, orderbook);
         client.resolve(orderbook, messageHash);
     }

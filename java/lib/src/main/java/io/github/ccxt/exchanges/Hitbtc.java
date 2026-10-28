@@ -965,38 +965,38 @@ public class Hitbtc extends HitbtcApi
                 String stepString = this.safeString(market, "tick_size");
                 Double lot = this.parseNumber(lotString);
                 Double step = this.parseNumber(stepString);
-                ((List<Object>)result).add((switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-                    j39v1.put("id", id);
-                    j39v1.put("symbol", symbol);
-                    j39v1.put("base", base);
-                    j39v1.put("quote", quote);
-                    j39v1.put("settle", settle);
-                    j39v1.put("baseId", baseId);
-                    j39v1.put("quoteId", quoteId);
-                    j39v1.put("settleId", settleId);
-                    j39v1.put("type", type);
-                    j39v1.put("spot", spot);
-                    j39v1.put("margin", margin);
-                    j39v1.put("swap", swap);
-                    j39v1.put("future", future);
-                    j39v1.put("option", option);
-                    j39v1.put("active", true);
-                    j39v1.put("contract", contract);
-                    j39v1.put("linear", linear);
-                    j39v1.put("inverse", inverse);
-                    j39v1.put("taker", this.safeNumber(market, "take_rate", (Object) null));
-                    j39v1.put("maker", this.safeNumber(market, "make_rate", (Object) null));
-                    j39v1.put("contractSize", contractSize);
-                    j39v1.put("expiry", expiry);
-                    j39v1.put("expiryDatetime", null);
-                    j39v1.put("strike", null);
-                    j39v1.put("optionType", null);
-                    j39v1.put("feeCurrency", feeCurrency);
-                    j39v1.put("precision", new HashMap<String, Object>() {{
+                HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+                j39v1.put("id", id);
+                j39v1.put("symbol", symbol);
+                j39v1.put("base", base);
+                j39v1.put("quote", quote);
+                j39v1.put("settle", settle);
+                j39v1.put("baseId", baseId);
+                j39v1.put("quoteId", quoteId);
+                j39v1.put("settleId", settleId);
+                j39v1.put("type", type);
+                j39v1.put("spot", spot);
+                j39v1.put("margin", margin);
+                j39v1.put("swap", swap);
+                j39v1.put("future", future);
+                j39v1.put("option", option);
+                j39v1.put("active", true);
+                j39v1.put("contract", contract);
+                j39v1.put("linear", linear);
+                j39v1.put("inverse", inverse);
+                j39v1.put("taker", this.safeNumber(market, "take_rate", (Object) null));
+                j39v1.put("maker", this.safeNumber(market, "make_rate", (Object) null));
+                j39v1.put("contractSize", contractSize);
+                j39v1.put("expiry", expiry);
+                j39v1.put("expiryDatetime", null);
+                j39v1.put("strike", null);
+                j39v1.put("optionType", null);
+                j39v1.put("feeCurrency", feeCurrency);
+                j39v1.put("precision", new HashMap<String, Object>() {{
                         put( "amount", lot );
                         put( "price", step );
                     }});
-                    j39v1.put("limits", new HashMap<String, Object>() {{
+                j39v1.put("limits", new HashMap<String, Object>() {{
                         put( "leverage", new HashMap<String, Object>() {{
                             put( "min", Hitbtc.this.parseNumber("1") );
                             put( "max", Hitbtc.this.safeNumber(market, "max_initial_leverage", 1) );
@@ -1014,9 +1014,9 @@ public class Hitbtc extends HitbtcApi
                             put( "max", null );
                         }} );
                     }});
-                    j39v1.put("created", null);
-                    j39v1.put("info", market);
-                    yield j39v1; } }));
+                j39v1.put("created", null);
+                j39v1.put("info", market);
+                ((List<Object>)result).add(j39v1);
             }
             return result;
         });

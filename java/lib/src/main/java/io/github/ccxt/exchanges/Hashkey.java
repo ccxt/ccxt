@@ -4736,16 +4736,16 @@ public class Hashkey extends HashkeyApi
         {
             Object tier = (riskLimits == null || i < 0 || i >= riskLimits.size() ? null : riskLimits.get(i));
             String initialMarginRate = this.safeString(tier, "initialMargin");
-            ((List<Object>)tiers).add((switch (0) { default -> { HashMap<String, Object> j39v2 = new HashMap<String, Object>();
-                j39v2.put("tier", this.sum(i, 1));
-                j39v2.put("symbol", this.safeSymbol(marketId, marketResolved, (String) null, (String) null));
-                j39v2.put("currency", marketResolved.get("settle"));
-                j39v2.put("minNotional", null);
-                j39v2.put("maxNotional", this.safeNumber(tier, "quantity", (Object) null));
-                j39v2.put("maintenanceMarginRate", this.safeNumber(tier, "maintMargin", (Object) null));
-                j39v2.put("maxLeverage", this.parseNumber(Precise.stringDiv("1", initialMarginRate)));
-                j39v2.put("info", tier);
-                yield j39v2; } }));
+            HashMap<String, Object> j39v2 = new HashMap<String, Object>();
+            j39v2.put("tier", this.sum(i, 1));
+            j39v2.put("symbol", this.safeSymbol(marketId, marketResolved, (String) null, (String) null));
+            j39v2.put("currency", marketResolved.get("settle"));
+            j39v2.put("minNotional", null);
+            j39v2.put("maxNotional", this.safeNumber(tier, "quantity", (Object) null));
+            j39v2.put("maintenanceMarginRate", this.safeNumber(tier, "maintMargin", (Object) null));
+            j39v2.put("maxLeverage", this.parseNumber(Precise.stringDiv("1", initialMarginRate)));
+            j39v2.put("info", tier);
+            ((List<Object>)tiers).add(j39v2);
         }
         return tiers;
     }

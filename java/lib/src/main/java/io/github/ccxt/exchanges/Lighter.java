@@ -1654,37 +1654,37 @@ public class Lighter extends LighterApi
                 Double amountPrecision = (((java.util.Objects.equals(amountDecimals, null)))) ? null : this.parseNumber(this.parsePrecision(amountDecimals));
                 Double pricePrecision = (((java.util.Objects.equals(priceDecimals, null)))) ? null : this.parseNumber(this.parsePrecision(priceDecimals));
                 Double quoteMultiplier = this.safeNumber(market, "quote_multiplier", (Object) null);
-                ((List<Object>)result).add((switch (0) { default -> { HashMap<String, Object> j39v5 = new HashMap<String, Object>();
-                    j39v5.put("id", id);
-                    j39v5.put("symbol", symbol);
-                    j39v5.put("base", base);
-                    j39v5.put("quote", quote);
-                    j39v5.put("settle", settle);
-                    j39v5.put("baseId", baseId);
-                    j39v5.put("quoteId", quoteId);
-                    j39v5.put("settleId", settleId);
-                    j39v5.put("type", type);
-                    j39v5.put("spot", java.util.Objects.equals(type, "spot"));
-                    j39v5.put("margin", false);
-                    j39v5.put("swap", java.util.Objects.equals(type, "swap"));
-                    j39v5.put("future", false);
-                    j39v5.put("option", false);
-                    j39v5.put("active", java.util.Objects.equals(this.safeString(market, "status"), "active"));
-                    j39v5.put("contract", java.util.Objects.equals(type, "swap"));
-                    j39v5.put("linear", (((java.util.Objects.equals(type, "swap")))) ? true : null);
-                    j39v5.put("inverse", (((java.util.Objects.equals(type, "swap")))) ? false : null);
-                    j39v5.put("taker", this.safeNumber(market, "taker_fee", (Object) null));
-                    j39v5.put("maker", this.safeNumber(market, "maker_fee", (Object) null));
-                    j39v5.put("contractSize", quoteMultiplier);
-                    j39v5.put("expiry", null);
-                    j39v5.put("expiryDatetime", null);
-                    j39v5.put("strike", null);
-                    j39v5.put("optionType", null);
-                    j39v5.put("precision", new HashMap<String, Object>() {{
+                HashMap<String, Object> j39v5 = new HashMap<String, Object>();
+                j39v5.put("id", id);
+                j39v5.put("symbol", symbol);
+                j39v5.put("base", base);
+                j39v5.put("quote", quote);
+                j39v5.put("settle", settle);
+                j39v5.put("baseId", baseId);
+                j39v5.put("quoteId", quoteId);
+                j39v5.put("settleId", settleId);
+                j39v5.put("type", type);
+                j39v5.put("spot", java.util.Objects.equals(type, "spot"));
+                j39v5.put("margin", false);
+                j39v5.put("swap", java.util.Objects.equals(type, "swap"));
+                j39v5.put("future", false);
+                j39v5.put("option", false);
+                j39v5.put("active", java.util.Objects.equals(this.safeString(market, "status"), "active"));
+                j39v5.put("contract", java.util.Objects.equals(type, "swap"));
+                j39v5.put("linear", (((java.util.Objects.equals(type, "swap")))) ? true : null);
+                j39v5.put("inverse", (((java.util.Objects.equals(type, "swap")))) ? false : null);
+                j39v5.put("taker", this.safeNumber(market, "taker_fee", (Object) null));
+                j39v5.put("maker", this.safeNumber(market, "maker_fee", (Object) null));
+                j39v5.put("contractSize", quoteMultiplier);
+                j39v5.put("expiry", null);
+                j39v5.put("expiryDatetime", null);
+                j39v5.put("strike", null);
+                j39v5.put("optionType", null);
+                j39v5.put("precision", new HashMap<String, Object>() {{
                         put( "amount", amountPrecision );
                         put( "price", pricePrecision );
                     }});
-                    j39v5.put("limits", new HashMap<String, Object>() {{
+                j39v5.put("limits", new HashMap<String, Object>() {{
                         put( "leverage", new HashMap<String, Object>() {{
                             put( "min", null );
                             put( "max", null );
@@ -1702,9 +1702,9 @@ public class Lighter extends LighterApi
                             put( "max", Lighter.this.safeNumber(market, "order_quote_limit", (Object) null) );
                         }} );
                     }});
-                    j39v5.put("created", null);
-                    j39v5.put("info", market);
-                    yield j39v5; } }));
+                j39v5.put("created", null);
+                j39v5.put("info", market);
+                ((List<Object>)result).add(j39v5);
             }
             return result;
         });

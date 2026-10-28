@@ -317,7 +317,7 @@ public class Hyperliquid extends HyperliquidApi
      * @param {object} [question] linked question object from outcomeMeta
      * @returns {string} the parent market outcome
      */
-    public Object buildOutcomeParentSymbol(Map<String, Object> desc, Object outcomeId, Object name, Map<String, Object> question)
+    public String buildOutcomeParentSymbol(Map<String, Object> desc, Object outcomeId, Object name, Map<String, Object> question)
     {
         String underlying = this.safeString(desc, "underlying", "");
         if (!java.util.Objects.equals(underlying, ""))
@@ -330,16 +330,17 @@ public class Hyperliquid extends HyperliquidApi
                 List<Object> expiryParts = new ArrayList<Object>(Arrays.asList(((String)expiry).split(java.util.regex.Pattern.quote("-"))));
                 expiryDate = (expiryParts == null || 0 >= expiryParts.size() ? null : expiryParts.get(0));
             }
-            Object base = underlying.toUpperCase();
+            String targetPart = "";
             if (!java.util.Objects.equals(targetPrice, ""))
             {
-                base = ((base + "_ABOVE_") + targetPrice);
+                targetPart = ("_ABOVE_" + targetPrice);
             }
+            String expiryPart = "";
             if (!java.util.Objects.equals(expiryDate, ""))
             {
-                base = ((base + "_") + expiryDate);
+                expiryPart = ("_" + expiryDate);
             }
-            return base;
+            return ((underlying.toUpperCase() + targetPart) + expiryPart);
         }
         String questionDescription = this.safeString(question, "description");
         if ((!java.util.Objects.equals(questionDescription, null)) && (!java.util.Objects.equals(questionDescription, "")))
@@ -355,6 +356,11 @@ public class Hyperliquid extends HyperliquidApi
                 {
                     List<Object> questionExpiryParts = new ArrayList<Object>(Arrays.asList(((String)questionExpiry).split(java.util.regex.Pattern.quote("-"))));
                     questionExpiryDate = (questionExpiryParts == null || 0 >= questionExpiryParts.size() ? null : questionExpiryParts.get(0));
+                }
+                String questionExpiryPart = "";
+                if (!java.util.Objects.equals(questionExpiryDate, ""))
+                {
+                    questionExpiryPart = ("_" + questionExpiryDate);
                 }
                 String thresholdsRaw = this.safeString(questionDesc, "priceThresholds", "");
                 String indexStr = this.safeString(desc, "index");
@@ -388,23 +394,13 @@ public class Hyperliquid extends HyperliquidApi
                         {
                             bucketLabel = ((("BETWEEN_" + (thresholds == null || ((int) (index - 1L)) < 0 || ((int) (index - 1L)) >= thresholds.size() ? null : thresholds.get(((int) (index - 1L))))) + "_") + (thresholds == null || index == null || index.intValue() < 0 || index.intValue() >= thresholds.size() ? null : thresholds.get(index.intValue())));
                         }
-                        String base = ((questionUnderlying.toUpperCase() + "_") + bucketLabel);
-                        if (!java.util.Objects.equals(questionExpiryDate, ""))
-                        {
-                            base = ((base + "_") + questionExpiryDate);
-                        }
-                        return base;
+                        return (((questionUnderlying.toUpperCase() + "_") + bucketLabel) + questionExpiryPart);
                     }
                 }
                 Boolean isFallbackLike = (java.util.Objects.equals(rawDescription, "other")) || (((String)nameLower).indexOf("fallback") >= 0) || (((String)nameLower).indexOf("other") >= 0);
                 if ((!java.util.Objects.equals(questionUnderlying, null) && !java.util.Objects.equals(questionUnderlying, "")) && Boolean.TRUE.equals(isFallbackLike))
                 {
-                    String base = (questionUnderlying.toUpperCase() + "_OTHER");
-                    if (!java.util.Objects.equals(questionExpiryDate, ""))
-                    {
-                        base = ((base + "_") + questionExpiryDate);
-                    }
-                    return base;
+                    return ((questionUnderlying.toUpperCase() + "_OTHER") + questionExpiryPart);
                 }
             }
         }
@@ -568,7 +564,7 @@ public class Hyperliquid extends HyperliquidApi
         String name = this.safeString(outcomeInfo, "name", "");
         List<Object> sideSpecs = (List<Object>) this.safeList(outcomeInfo, "sideSpecs", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> desc = this.parseOutcomeDescription((String) (description));
-        Object parentSymbol = this.buildOutcomeParentSymbol((Map<String, Object>) (desc), outcomeId, name, question);
+        String parentSymbol = this.buildOutcomeParentSymbol((Map<String, Object>) (desc), outcomeId, name, question);
         Object yesEncoding = this.outcomeEncoding(outcomeId, 0);
         Object noEncoding = this.outcomeEncoding(outcomeId, 1);
         String yesOutcomeSymbol = (parentSymbol + ":YES");
@@ -1667,20 +1663,20 @@ public class Hyperliquid extends HyperliquidApi
                 cancelAction.put("type", "cancelByCloid");
                 for (var i = 0; i < ((List<?>)cloids).size(); i++)
                 {
-                    ((List<Object>)cancelReq).add((switch (0) { default -> { HashMap<String, Object> j39v3 = new HashMap<String, Object>();
-                        j39v3.put("asset", assetId);
-                        j39v3.put("cloid", (cloids == null || i < 0 || i >= ((List<?>)cloids).size() ? null : ((List<?>)cloids).get(i)));
-                        yield j39v3; } }));
+                    HashMap<String, Object> j39v3 = new HashMap<String, Object>();
+                    j39v3.put("asset", assetId);
+                    j39v3.put("cloid", (cloids == null || i < 0 || i >= ((List<?>)cloids).size() ? null : ((List<?>)cloids).get(i)));
+                    ((List<Object>)cancelReq).add(j39v3);
                 }
             } else
             {
                 cancelAction.put("type", "cancel");
                 for (var i = 0; i < ((List<?>)ids).size(); i++)
                 {
-                    ((List<Object>)cancelReq).add((switch (0) { default -> { HashMap<String, Object> j39v2 = new HashMap<String, Object>();
-                        j39v2.put("a", assetId);
-                        j39v2.put("o", this.parseToNumeric((ids == null || i < 0 || i >= ((List<?>)ids).size() ? null : ((List<?>)ids).get(i))));
-                        yield j39v2; } }));
+                    HashMap<String, Object> j39v2 = new HashMap<String, Object>();
+                    j39v2.put("a", assetId);
+                    j39v2.put("o", this.parseToNumeric((ids == null || i < 0 || i >= ((List<?>)ids).size() ? null : ((List<?>)ids).get(i))));
+                    ((List<Object>)cancelReq).add(j39v2);
                 }
             }
             cancelAction.put("cancels", cancelReq);

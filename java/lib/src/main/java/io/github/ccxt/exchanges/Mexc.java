@@ -1705,37 +1705,37 @@ public class Mexc extends MexcApi
                 Double makerCommission = this.safeNumber(market, "makerCommission", (Object) null);
                 Double takerCommission = this.safeNumber(market, "takerCommission", (Object) null);
                 Double maxQuoteAmount = this.safeNumber(market, "maxQuoteAmount", (Object) null);
-                ((List<Object>)result).add((switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-                    j39v1.put("id", id);
-                    j39v1.put("symbol", ((base + "/") + quote));
-                    j39v1.put("base", base);
-                    j39v1.put("quote", quote);
-                    j39v1.put("settle", null);
-                    j39v1.put("baseId", baseId);
-                    j39v1.put("quoteId", quoteId);
-                    j39v1.put("settleId", null);
-                    j39v1.put("type", "spot");
-                    j39v1.put("spot", true);
-                    j39v1.put("margin", isMarginTradingAllowed);
-                    j39v1.put("swap", false);
-                    j39v1.put("future", false);
-                    j39v1.put("option", false);
-                    j39v1.put("active", active);
-                    j39v1.put("contract", false);
-                    j39v1.put("linear", null);
-                    j39v1.put("inverse", null);
-                    j39v1.put("taker", takerCommission);
-                    j39v1.put("maker", makerCommission);
-                    j39v1.put("contractSize", null);
-                    j39v1.put("expiry", null);
-                    j39v1.put("expiryDatetime", null);
-                    j39v1.put("strike", null);
-                    j39v1.put("optionType", null);
-                    j39v1.put("precision", new HashMap<String, Object>() {{
+                HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+                j39v1.put("id", id);
+                j39v1.put("symbol", ((base + "/") + quote));
+                j39v1.put("base", base);
+                j39v1.put("quote", quote);
+                j39v1.put("settle", null);
+                j39v1.put("baseId", baseId);
+                j39v1.put("quoteId", quoteId);
+                j39v1.put("settleId", null);
+                j39v1.put("type", "spot");
+                j39v1.put("spot", true);
+                j39v1.put("margin", isMarginTradingAllowed);
+                j39v1.put("swap", false);
+                j39v1.put("future", false);
+                j39v1.put("option", false);
+                j39v1.put("active", active);
+                j39v1.put("contract", false);
+                j39v1.put("linear", null);
+                j39v1.put("inverse", null);
+                j39v1.put("taker", takerCommission);
+                j39v1.put("maker", makerCommission);
+                j39v1.put("contractSize", null);
+                j39v1.put("expiry", null);
+                j39v1.put("expiryDatetime", null);
+                j39v1.put("strike", null);
+                j39v1.put("optionType", null);
+                j39v1.put("precision", new HashMap<String, Object>() {{
                         put( "amount", Mexc.this.parseNumber(Mexc.this.parsePrecision(Mexc.this.safeString(market, "baseAssetPrecision"))) );
                         put( "price", Mexc.this.parseNumber(Mexc.this.parsePrecision(Mexc.this.safeString(market, "quoteAssetPrecision"))) );
                     }});
-                    j39v1.put("limits", new HashMap<String, Object>() {{
+                j39v1.put("limits", new HashMap<String, Object>() {{
                         put( "leverage", new HashMap<String, Object>() {{
                             put( "min", null );
                             put( "max", null );
@@ -1753,9 +1753,9 @@ public class Mexc extends MexcApi
                             put( "max", maxQuoteAmount );
                         }} );
                     }});
-                    j39v1.put("created", null);
-                    j39v1.put("info", market);
-                    yield j39v1; } }));
+                j39v1.put("created", null);
+                j39v1.put("info", market);
+                ((List<Object>)result).add(j39v1);
             }
             return result;
         });
@@ -1842,37 +1842,37 @@ public class Mexc extends MexcApi
                 String settle = this.safeCurrencyCode(settleId, (Map<String, Object>) null);
                 String state = this.safeString(market, "state");
                 Boolean isLinear = java.util.Objects.equals(quote, settle);
-                ((List<Object>)result).add((switch (0) { default -> { HashMap<String, Object> j39v2 = new HashMap<String, Object>();
-                    j39v2.put("id", id);
-                    j39v2.put("symbol", ((((base + "/") + quote) + ":") + settle));
-                    j39v2.put("base", base);
-                    j39v2.put("quote", quote);
-                    j39v2.put("settle", settle);
-                    j39v2.put("baseId", baseId);
-                    j39v2.put("quoteId", quoteId);
-                    j39v2.put("settleId", settleId);
-                    j39v2.put("type", "swap");
-                    j39v2.put("spot", false);
-                    j39v2.put("margin", false);
-                    j39v2.put("swap", true);
-                    j39v2.put("future", false);
-                    j39v2.put("option", false);
-                    j39v2.put("active", (java.util.Objects.equals(state, "0")));
-                    j39v2.put("contract", true);
-                    j39v2.put("linear", isLinear);
-                    j39v2.put("inverse", !Boolean.TRUE.equals(isLinear));
-                    j39v2.put("taker", this.safeNumber(market, "takerFeeRate", (Object) null));
-                    j39v2.put("maker", this.safeNumber(market, "makerFeeRate", (Object) null));
-                    j39v2.put("contractSize", this.safeNumber(market, "contractSize", (Object) null));
-                    j39v2.put("expiry", null);
-                    j39v2.put("expiryDatetime", null);
-                    j39v2.put("strike", null);
-                    j39v2.put("optionType", null);
-                    j39v2.put("precision", new HashMap<String, Object>() {{
+                HashMap<String, Object> j39v2 = new HashMap<String, Object>();
+                j39v2.put("id", id);
+                j39v2.put("symbol", ((((base + "/") + quote) + ":") + settle));
+                j39v2.put("base", base);
+                j39v2.put("quote", quote);
+                j39v2.put("settle", settle);
+                j39v2.put("baseId", baseId);
+                j39v2.put("quoteId", quoteId);
+                j39v2.put("settleId", settleId);
+                j39v2.put("type", "swap");
+                j39v2.put("spot", false);
+                j39v2.put("margin", false);
+                j39v2.put("swap", true);
+                j39v2.put("future", false);
+                j39v2.put("option", false);
+                j39v2.put("active", (java.util.Objects.equals(state, "0")));
+                j39v2.put("contract", true);
+                j39v2.put("linear", isLinear);
+                j39v2.put("inverse", !Boolean.TRUE.equals(isLinear));
+                j39v2.put("taker", this.safeNumber(market, "takerFeeRate", (Object) null));
+                j39v2.put("maker", this.safeNumber(market, "makerFeeRate", (Object) null));
+                j39v2.put("contractSize", this.safeNumber(market, "contractSize", (Object) null));
+                j39v2.put("expiry", null);
+                j39v2.put("expiryDatetime", null);
+                j39v2.put("strike", null);
+                j39v2.put("optionType", null);
+                j39v2.put("precision", new HashMap<String, Object>() {{
                         put( "amount", Mexc.this.safeNumber(market, "volUnit", (Object) null) );
                         put( "price", Mexc.this.safeNumber(market, "priceUnit", (Object) null) );
                     }});
-                    j39v2.put("limits", new HashMap<String, Object>() {{
+                j39v2.put("limits", new HashMap<String, Object>() {{
                         put( "leverage", new HashMap<String, Object>() {{
                             put( "min", Mexc.this.safeNumber(market, "minLeverage", (Object) null) );
                             put( "max", Mexc.this.safeNumber(market, "maxLeverage", (Object) null) );
@@ -1890,9 +1890,9 @@ public class Mexc extends MexcApi
                             put( "max", null );
                         }} );
                     }});
-                    j39v2.put("created", null);
-                    j39v2.put("info", market);
-                    yield j39v2; } }));
+                j39v2.put("created", null);
+                j39v2.put("info", market);
+                ((List<Object>)result).add(j39v2);
             }
             return result;
         });
@@ -5600,16 +5600,16 @@ public class Mexc extends MexcApi
         {
             String cap = Precise.stringAdd(floor, riskIncrVol);
             Double maxLev = this.parseNumber(Precise.stringDiv("1", initialMarginRate));
-            ((List<Object>)tiers).add((switch (0) { default -> { HashMap<String, Object> j39v3 = new HashMap<String, Object>();
-                j39v3.put("tier", this.parseNumber(Precise.stringDiv(cap, riskIncrVol)));
-                j39v3.put("symbol", this.safeSymbol(marketId, market, (String) null, "contract"));
-                j39v3.put("currency", this.safeCurrencyCode(quoteId, (Map<String, Object>) null));
-                j39v3.put("minNotional", this.parseNumber(floor));
-                j39v3.put("maxNotional", this.parseNumber(cap));
-                j39v3.put("maintenanceMarginRate", this.parseNumber(maintenanceMarginRate));
-                j39v3.put("maxLeverage", maxLev);
-                j39v3.put("info", info);
-                yield j39v3; } }));
+            HashMap<String, Object> j39v3 = new HashMap<String, Object>();
+            j39v3.put("tier", this.parseNumber(Precise.stringDiv(cap, riskIncrVol)));
+            j39v3.put("symbol", this.safeSymbol(marketId, market, (String) null, "contract"));
+            j39v3.put("currency", this.safeCurrencyCode(quoteId, (Map<String, Object>) null));
+            j39v3.put("minNotional", this.parseNumber(floor));
+            j39v3.put("maxNotional", this.parseNumber(cap));
+            j39v3.put("maintenanceMarginRate", this.parseNumber(maintenanceMarginRate));
+            j39v3.put("maxLeverage", maxLev);
+            j39v3.put("info", info);
+            ((List<Object>)tiers).add(j39v3);
             initialMarginRate = Precise.stringAdd(initialMarginRate, riskIncrImr);
             maintenanceMarginRate = Precise.stringAdd(maintenanceMarginRate, riskIncrMmr);
             floor = cap;

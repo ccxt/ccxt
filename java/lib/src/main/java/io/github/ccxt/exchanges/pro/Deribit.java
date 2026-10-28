@@ -1057,7 +1057,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         stored.append(parsed);
         Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), unifiedTimeframe, stored);
         List<Object> resolveData = new ArrayList<Object>(Arrays.asList(symbol, unifiedTimeframe, stored));
-        String messageHash = ((("chart.trades|" + symbol) + "|") + rawTimeframe);
+        String messageHash = ((("chart.trades|" + symbol) + "|") + this.safeString(parts, 3, ""));
         client.resolve(resolveData, messageHash);
     }
 

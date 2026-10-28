@@ -1396,11 +1396,11 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             }
             for (var j = 0; (numInGroup != null && j < numInGroup); j++)
             {
-                ((List<Object>)inserts).add((switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-                    j39v1.put("side", (sides == null || i < 0 || i >= sides.size() ? null : sides.get(i)));
-                    j39v1.put("price", this.sbeReadDecimal(frameHex, position));
-                    j39v1.put("size", this.sbeReadDecimal(frameHex, (position + 8L)));
-                    yield j39v1; } }));
+                HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+                j39v1.put("side", (sides == null || i < 0 || i >= sides.size() ? null : sides.get(i)));
+                j39v1.put("price", this.sbeReadDecimal(frameHex, position));
+                j39v1.put("size", this.sbeReadDecimal(frameHex, (position + 8L)));
+                ((List<Object>)inserts).add(j39v1);
                 position = this.parseToInt(this.sum(position, entryLength));
             }
         }

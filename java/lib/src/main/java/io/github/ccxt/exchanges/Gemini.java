@@ -889,35 +889,35 @@ public class Gemini extends GeminiApi
                 {
                     continue;
                 }
-                ((List<Object>)result).add((switch (0) { default -> { HashMap<String, Object> j39v2 = new HashMap<String, Object>();
-                    j39v2.put("id", marketId);
-                    j39v2.put("symbol", ((base + "/") + quote));
-                    j39v2.put("base", base);
-                    j39v2.put("quote", quote);
-                    j39v2.put("settle", null);
-                    j39v2.put("baseId", baseId);
-                    j39v2.put("quoteId", quoteId);
-                    j39v2.put("settleId", null);
-                    j39v2.put("type", "spot");
-                    j39v2.put("spot", true);
-                    j39v2.put("margin", false);
-                    j39v2.put("swap", false);
-                    j39v2.put("future", false);
-                    j39v2.put("option", false);
-                    j39v2.put("active", null);
-                    j39v2.put("contract", false);
-                    j39v2.put("linear", null);
-                    j39v2.put("inverse", null);
-                    j39v2.put("contractSize", null);
-                    j39v2.put("expiry", null);
-                    j39v2.put("expiryDatetime", null);
-                    j39v2.put("strike", null);
-                    j39v2.put("optionType", null);
-                    j39v2.put("precision", new HashMap<String, Object>() {{
+                HashMap<String, Object> j39v2 = new HashMap<String, Object>();
+                j39v2.put("id", marketId);
+                j39v2.put("symbol", ((base + "/") + quote));
+                j39v2.put("base", base);
+                j39v2.put("quote", quote);
+                j39v2.put("settle", null);
+                j39v2.put("baseId", baseId);
+                j39v2.put("quoteId", quoteId);
+                j39v2.put("settleId", null);
+                j39v2.put("type", "spot");
+                j39v2.put("spot", true);
+                j39v2.put("margin", false);
+                j39v2.put("swap", false);
+                j39v2.put("future", false);
+                j39v2.put("option", false);
+                j39v2.put("active", null);
+                j39v2.put("contract", false);
+                j39v2.put("linear", null);
+                j39v2.put("inverse", null);
+                j39v2.put("contractSize", null);
+                j39v2.put("expiry", null);
+                j39v2.put("expiryDatetime", null);
+                j39v2.put("strike", null);
+                j39v2.put("optionType", null);
+                j39v2.put("precision", new HashMap<String, Object>() {{
                         put( "amount", Gemini.this.safeNumber(amountPrecisionParts, 0, (Object) null) );
                         put( "price", Gemini.this.safeNumber(pricePrecisionParts, 0, (Object) null) );
                     }});
-                    j39v2.put("limits", new HashMap<String, Object>() {{
+                j39v2.put("limits", new HashMap<String, Object>() {{
                         put( "leverage", new HashMap<String, Object>() {{
                             put( "min", null );
                             put( "max", null );
@@ -935,9 +935,9 @@ public class Gemini extends GeminiApi
                             put( "max", null );
                         }} );
                     }});
-                    j39v2.put("created", null);
-                    j39v2.put("info", row);
-                    yield j39v2; } }));
+                j39v2.put("created", null);
+                j39v2.put("info", row);
+                ((List<Object>)result).add(j39v2);
             }
             return result;
         });

@@ -1631,7 +1631,7 @@ public class Woofipro extends WoofiproApi
             {
                 Object row = (rows == null || i < 0 || i >= rows.size() ? null : rows.get(i));
                 String marketId = this.safeString(row, "symbol", "");
-                if (java.util.Objects.equals(this.safeValue(this.markets_by_id, marketId), null))
+                if ((java.util.Objects.equals(this.markets_by_id, null)) || !(((Map<?, ?>)this.markets_by_id).containsKey(marketId)))
                 {
                     continue;
                 }
@@ -1763,7 +1763,7 @@ public class Woofipro extends WoofiproApi
             {
                 Object row = (rows == null || i < 0 || i >= rows.size() ? null : rows.get(i));
                 String marketId = this.safeString(row, "symbol", "");
-                if (java.util.Objects.equals(this.safeValue(this.markets_by_id, marketId), null))
+                if ((java.util.Objects.equals(this.markets_by_id, null)) || !(((Map<?, ?>)this.markets_by_id).containsKey(marketId)))
                 {
                     continue;
                 }

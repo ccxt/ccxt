@@ -1248,7 +1248,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             }
             ((List<Object>)newTickers).add(ticker);
         }
-        String messageHashStart = ((this.safeString(message, "topic") + "::") + tradeType);
+        String messageHashStart = ((this.safeString(message, "topic", "") + "::") + tradeType);
         List<Object> messageHashes = (List<Object>) this.findMessageHashes(client, (messageHashStart + "::"));
         for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
         {

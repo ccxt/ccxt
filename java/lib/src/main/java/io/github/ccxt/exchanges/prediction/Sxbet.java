@@ -423,17 +423,17 @@ public class Sxbet extends SxbetApi
         {
             String label = (outcomeLabels == null || oi < 0 || oi >= outcomeLabels.size() ? null : outcomeLabels.get(oi));
             Object outcomeHandle = this.slugToOutcomeSymbol((String) (eventSlug), marketSlug, label);
-            ((List<Object>)outcomes).add((switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-                j39v1.put("id", (outcomeIds == null || oi < 0 || oi >= outcomeIds.size() ? null : outcomeIds.get(oi)));
-                j39v1.put("outcomeId", (outcomeIds == null || oi < 0 || oi >= outcomeIds.size() ? null : outcomeIds.get(oi)));
-                j39v1.put("outcome", outcomeHandle);
-                j39v1.put("market", marketSymbol);
-                j39v1.put("label", label);
-                j39v1.put("active", active);
-                j39v1.put("winner", null);
-                j39v1.put("settleFraction", null);
-                j39v1.put("info", raw);
-                yield j39v1; } }));
+            HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+            j39v1.put("id", (outcomeIds == null || oi < 0 || oi >= outcomeIds.size() ? null : outcomeIds.get(oi)));
+            j39v1.put("outcomeId", (outcomeIds == null || oi < 0 || oi >= outcomeIds.size() ? null : outcomeIds.get(oi)));
+            j39v1.put("outcome", outcomeHandle);
+            j39v1.put("market", marketSymbol);
+            j39v1.put("label", label);
+            j39v1.put("active", active);
+            j39v1.put("winner", null);
+            j39v1.put("settleFraction", null);
+            j39v1.put("info", raw);
+            ((List<Object>)outcomes).add(j39v1);
         }
         {
             HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
@@ -1410,7 +1410,9 @@ public class Sxbet extends SxbetApi
                 Integer chunkIdsLength = (switch ((Object)(chunkIds)) { case null -> 0; case List<?> j39v6 -> j39v6.size(); case String j39v7 -> j39v7.length(); case Object j39v8 -> j39v8.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v8) : 0; });
                 for (var i = 0; (chunkIdsLength != null && i < chunkIdsLength); i++)
                 {
-                    ((List<Object>)orderItems).add((switch (0) { default -> { HashMap<String, Object> j39v5 = new HashMap<String, Object>(); j39v5.put("orderId", Helpers.GetValue(chunkIds, i)); yield j39v5; } }));
+                    HashMap<String, Object> j39v5 = new HashMap<String, Object>();
+                    j39v5.put("orderId", Helpers.GetValue(chunkIds, i));
+                    ((List<Object>)orderItems).add(j39v5);
                 }
                 Map<String, Object> request = new HashMap<String, Object>() {{
                     put( "orders", orderItems );

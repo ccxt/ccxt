@@ -808,7 +808,7 @@ public class Delta extends DeltaApi
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-            Object item = Helpers.GetValue(input, key);
+            Map<String, Object> item = (Map<String, Object>) this.safeDict(input, key, new HashMap<String, Object>() {{}});
             String numericIdString = this.safeString(item, "numericId");
             if (java.util.Objects.equals(numericIdString, null))
             {

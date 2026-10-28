@@ -5308,26 +5308,26 @@ public class Okx extends OkxApi
                 {
                     for (var i = 0; i < (switch ((Object)(algoIds)) { case null -> 0; case List<?> j39v15 -> j39v15.size(); case String j39v16 -> j39v16.length(); case Object j39v17 -> j39v17.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v17) : 0; }); i++)
                     {
-                        ((List<Object>)request).add((switch (0) { default -> { HashMap<String, Object> j39v14 = new HashMap<String, Object>();
-                            j39v14.put("algoId", this.safeString(algoIds, i));
-                            j39v14.put("instId", market.get("id"));
-                            yield j39v14; } }));
+                        HashMap<String, Object> j39v14 = new HashMap<String, Object>();
+                        j39v14.put("algoId", this.safeString(algoIds, i));
+                        j39v14.put("instId", market.get("id"));
+                        ((List<Object>)request).add(j39v14);
                     }
                 }
                 for (var i = 0; i < (switch ((Object)(orderIds)) { case null -> 0; case List<?> j39v11 -> j39v11.size(); case String j39v12 -> j39v12.length(); case Object j39v13 -> j39v13.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v13) : 0; }); i++)
                 {
                     if (Boolean.TRUE.equals(trailing) || Boolean.TRUE.equals(isTrigger))
                     {
-                        ((List<Object>)request).add((switch (0) { default -> { HashMap<String, Object> j39v10 = new HashMap<String, Object>();
-                            j39v10.put("algoId", this.safeString(orderIds, i));
-                            j39v10.put("instId", market.get("id"));
-                            yield j39v10; } }));
+                        HashMap<String, Object> j39v10 = new HashMap<String, Object>();
+                        j39v10.put("algoId", this.safeString(orderIds, i));
+                        j39v10.put("instId", market.get("id"));
+                        ((List<Object>)request).add(j39v10);
                     } else
                     {
-                        ((List<Object>)request).add((switch (0) { default -> { HashMap<String, Object> j39v9 = new HashMap<String, Object>();
-                            j39v9.put("ordId", this.safeString(orderIds, i));
-                            j39v9.put("instId", market.get("id"));
-                            yield j39v9; } }));
+                        HashMap<String, Object> j39v9 = new HashMap<String, Object>();
+                        j39v9.put("ordId", this.safeString(orderIds, i));
+                        j39v9.put("instId", market.get("id"));
+                        ((List<Object>)request).add(j39v9);
                     }
                 }
             } else
@@ -5336,16 +5336,16 @@ public class Okx extends OkxApi
                 {
                     if (Boolean.TRUE.equals(trailing) || Boolean.TRUE.equals(isTrigger))
                     {
-                        ((List<Object>)request).add((switch (0) { default -> { HashMap<String, Object> j39v5 = new HashMap<String, Object>();
-                            j39v5.put("instId", market.get("id"));
-                            j39v5.put("algoClOrdId", this.safeString(clientOrderIds, i));
-                            yield j39v5; } }));
+                        HashMap<String, Object> j39v5 = new HashMap<String, Object>();
+                        j39v5.put("instId", market.get("id"));
+                        j39v5.put("algoClOrdId", this.safeString(clientOrderIds, i));
+                        ((List<Object>)request).add(j39v5);
                     } else
                     {
-                        ((List<Object>)request).add((switch (0) { default -> { HashMap<String, Object> j39v4 = new HashMap<String, Object>();
-                            j39v4.put("instId", market.get("id"));
-                            j39v4.put("clOrdId", this.safeString(clientOrderIds, i));
-                            yield j39v4; } }));
+                        HashMap<String, Object> j39v4 = new HashMap<String, Object>();
+                        j39v4.put("instId", market.get("id"));
+                        j39v4.put("clOrdId", this.safeString(clientOrderIds, i));
+                        ((List<Object>)request).add(j39v4);
                     }
                 }
             }
@@ -8869,15 +8869,15 @@ public class Okx extends OkxApi
                 {
                     amount = positionBalanceChange;
                 }
-                ((List<Object>)result).add((switch (0) { default -> { HashMap<String, Object> j39v18 = new HashMap<String, Object>();
-                    j39v18.put("info", entry);
-                    j39v18.put("symbol", marketInner.get("symbol"));
-                    j39v18.put("code", code);
-                    j39v18.put("timestamp", timestamp);
-                    j39v18.put("datetime", this.iso8601(timestamp));
-                    j39v18.put("id", this.safeString(entry, "billId"));
-                    j39v18.put("amount", this.parseNumber(amount));
-                    yield j39v18; } }));
+                HashMap<String, Object> j39v18 = new HashMap<String, Object>();
+                j39v18.put("info", entry);
+                j39v18.put("symbol", marketInner.get("symbol"));
+                j39v18.put("code", code);
+                j39v18.put("timestamp", timestamp);
+                j39v18.put("datetime", this.iso8601(timestamp));
+                j39v18.put("id", this.safeString(entry, "billId"));
+                j39v18.put("amount", this.parseNumber(amount));
+                ((List<Object>)result).add(j39v18);
             }
             List<Object> sorted = this.sortBy(result, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, symbolResolved, since, limit, false);

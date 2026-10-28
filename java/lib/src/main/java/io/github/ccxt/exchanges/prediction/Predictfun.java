@@ -1287,22 +1287,22 @@ public class Predictfun extends PredictfunApi
                 }
             }
             Object settleFraction = settleFractionRaw;
-            ((List<Object>)outcomes).add((switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-                j39v1.put("id", tokenId);
-                j39v1.put("outcomeId", tokenId);
-                j39v1.put("outcome", outcomeHandle);
-                j39v1.put("market", marketSymbol);
-                j39v1.put("event", eventHandle);
-                j39v1.put("label", label);
-                j39v1.put("price", null);
-                j39v1.put("active", active);
-                j39v1.put("winner", winner);
-                j39v1.put("settleFraction", settleFraction);
-                j39v1.put("precision", precision);
-                j39v1.put("info", this.extend(new HashMap<String, Object>() {{
+            HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+            j39v1.put("id", tokenId);
+            j39v1.put("outcomeId", tokenId);
+            j39v1.put("outcome", outcomeHandle);
+            j39v1.put("market", marketSymbol);
+            j39v1.put("event", eventHandle);
+            j39v1.put("label", label);
+            j39v1.put("price", null);
+            j39v1.put("active", active);
+            j39v1.put("winner", winner);
+            j39v1.put("settleFraction", settleFraction);
+            j39v1.put("precision", precision);
+            j39v1.put("info", this.extend(new HashMap<String, Object>() {{
                     put( "marketId", marketId );
                 }}, rawOutcome));
-                yield j39v1; } }));
+            ((List<Object>)outcomes).add(j39v1);
         }
         String resolvedOutcome = resolvedOutcomeRaw;
         String collateral = "USDT";

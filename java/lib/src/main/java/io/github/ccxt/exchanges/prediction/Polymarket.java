@@ -1135,67 +1135,67 @@ public class Polymarket extends PolymarketApi
                 // inner class, which cannot capture a reassigned local
                 Boolean winner = winnerRaw;
                 Object settleFraction = settleFractionRaw;
-                ((List<Object>)outcomes).add((switch (0) { default -> { HashMap<String, Object> j39v2 = new HashMap<String, Object>();
-                    j39v2.put("outcome", outcomeHandle);
-                    j39v2.put("outcomeId", clobTokenId);
-                    j39v2.put("market", marketSymbol);
-                    j39v2.put("label", outcomeLabel);
-                    j39v2.put("price", outcomePrice);
-                    j39v2.put("active", Boolean.TRUE.equals(active) && (!Boolean.TRUE.equals(closed)));
-                    j39v2.put("winner", winner);
-                    j39v2.put("settleFraction", settleFraction);
-                    j39v2.put("precision", new HashMap<String, Object>() {{
+                HashMap<String, Object> j39v2 = new HashMap<String, Object>();
+                j39v2.put("outcome", outcomeHandle);
+                j39v2.put("outcomeId", clobTokenId);
+                j39v2.put("market", marketSymbol);
+                j39v2.put("label", outcomeLabel);
+                j39v2.put("price", outcomePrice);
+                j39v2.put("active", Boolean.TRUE.equals(active) && (!Boolean.TRUE.equals(closed)));
+                j39v2.put("winner", winner);
+                j39v2.put("settleFraction", settleFraction);
+                j39v2.put("precision", new HashMap<String, Object>() {{
                         put( "amount", tickSize );
                         put( "price", tickSize );
                     }});
-                    j39v2.put("negRisk", negRisk);
-                    j39v2.put("info", market);
-                    yield j39v2; } }));
+                j39v2.put("negRisk", negRisk);
+                j39v2.put("info", market);
+                ((List<Object>)outcomes).add(j39v2);
             }
             String baseId = (((!java.util.Objects.equals(conditionId, null)))) ? conditionId : marketId;
             String marketType = ((((outcomeLabelsLength != null && outcomeLabelsLength > 2)))) ? "categorical" : "binary";
             // effectively-final copy for the market object literal below (reassigned in the loop)
             Object marketResolvedOutcome = resolvedOutcome;
-            ((List<Object>)result).add((switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-                j39v1.put("id", conditionId);
-                j39v1.put("market", marketSymbol);
-                j39v1.put("marketType", marketType);
-                j39v1.put("executionModel", "clob");
-                j39v1.put("collateral", "USDC");
-                j39v1.put("base", "USDC");
-                j39v1.put("quote", "USDC");
-                j39v1.put("settle", null);
-                j39v1.put("baseId", baseId);
-                j39v1.put("quoteId", "USDC");
-                j39v1.put("settleId", null);
-                j39v1.put("type", "prediction");
-                j39v1.put("spot", false);
-                j39v1.put("margin", false);
-                j39v1.put("swap", false);
-                j39v1.put("future", false);
-                j39v1.put("option", false);
-                j39v1.put("prediction", true);
-                j39v1.put("active", Boolean.TRUE.equals(active) && (!Boolean.TRUE.equals(closed)));
-                j39v1.put("resolved", marketResolved);
-                j39v1.put("resolvedOutcome", marketResolvedOutcome);
-                j39v1.put("contract", false);
-                j39v1.put("linear", null);
-                j39v1.put("inverse", null);
-                j39v1.put("contractSize", null);
-                j39v1.put("expiry", (((!java.util.Objects.equals(endDate, null) && !java.util.Objects.equals(endDate, "")))) ? this.parse8601(endDate) : null);
-                j39v1.put("expiryDatetime", endDate);
-                j39v1.put("strike", null);
-                j39v1.put("optionType", null);
-                j39v1.put("taker", 0);
-                j39v1.put("maker", 0);
-                j39v1.put("percentage", true);
-                j39v1.put("tierBased", false);
-                j39v1.put("feeSide", "get");
-                j39v1.put("precision", new HashMap<String, Object>() {{
+            HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+            j39v1.put("id", conditionId);
+            j39v1.put("market", marketSymbol);
+            j39v1.put("marketType", marketType);
+            j39v1.put("executionModel", "clob");
+            j39v1.put("collateral", "USDC");
+            j39v1.put("base", "USDC");
+            j39v1.put("quote", "USDC");
+            j39v1.put("settle", null);
+            j39v1.put("baseId", baseId);
+            j39v1.put("quoteId", "USDC");
+            j39v1.put("settleId", null);
+            j39v1.put("type", "prediction");
+            j39v1.put("spot", false);
+            j39v1.put("margin", false);
+            j39v1.put("swap", false);
+            j39v1.put("future", false);
+            j39v1.put("option", false);
+            j39v1.put("prediction", true);
+            j39v1.put("active", Boolean.TRUE.equals(active) && (!Boolean.TRUE.equals(closed)));
+            j39v1.put("resolved", marketResolved);
+            j39v1.put("resolvedOutcome", marketResolvedOutcome);
+            j39v1.put("contract", false);
+            j39v1.put("linear", null);
+            j39v1.put("inverse", null);
+            j39v1.put("contractSize", null);
+            j39v1.put("expiry", (((!java.util.Objects.equals(endDate, null) && !java.util.Objects.equals(endDate, "")))) ? this.parse8601(endDate) : null);
+            j39v1.put("expiryDatetime", endDate);
+            j39v1.put("strike", null);
+            j39v1.put("optionType", null);
+            j39v1.put("taker", 0);
+            j39v1.put("maker", 0);
+            j39v1.put("percentage", true);
+            j39v1.put("tierBased", false);
+            j39v1.put("feeSide", "get");
+            j39v1.put("precision", new HashMap<String, Object>() {{
                     put( "amount", tickSize );
                     put( "price", tickSize );
                 }});
-                j39v1.put("limits", new HashMap<String, Object>() {{
+            j39v1.put("limits", new HashMap<String, Object>() {{
                     put( "leverage", new HashMap<String, Object>() {{
                         put( "min", 1 );
                         put( "max", 1 );
@@ -1213,10 +1213,10 @@ public class Polymarket extends PolymarketApi
                         put( "max", null );
                     }} );
                 }});
-                j39v1.put("outcomes", outcomes);
-                j39v1.put("info", market);
-                j39v1.put("created", null);
-                yield j39v1; } }));
+            j39v1.put("outcomes", outcomes);
+            j39v1.put("info", market);
+            j39v1.put("created", null);
+            ((List<Object>)result).add(j39v1);
         }
         return result;
     }
@@ -1490,7 +1490,9 @@ public class Polymarket extends PolymarketApi
                 List<Object> bookParams = new ArrayList<Object>(Arrays.asList());
                 for (long i = ((long) (switch ((Object) (startIndex)) { case null -> Long.parseLong("null"); case Long hx4J40v10 -> hx4J40v10.longValue(); case Integer hx4J40v10 -> hx4J40v10.longValue(); case Double hx4J40v10 -> hx4J40v10.longValue(); case Float hx4J40v10 -> hx4J40v10.longValue(); case java.math.BigDecimal hx4J40v10 -> hx4J40v10.longValue(); case String hx4J40v10 -> Long.parseLong(hx4J40v10); case Object hx4J40v10 -> Long.parseLong(String.valueOf(hx4J40v10)); })); ((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } java.util.function.Predicate<Object> j38i = j38o -> { if (j38o instanceof Byte || j38o instanceof Short || j38o instanceof Integer || j38o instanceof Long || j38o instanceof java.util.concurrent.atomic.AtomicInteger || j38o instanceof java.util.concurrent.atomic.AtomicLong) return true; return (j38o instanceof Float || j38o instanceof Double || j38o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(j38o)).stripTrailingZeros().scale() <= 0; }; java.util.function.ToLongFunction<Object> j38l = j38o -> (j38o instanceof Long || j38o instanceof Integer || j38o instanceof Double || j38o instanceof Float || j38o instanceof java.math.BigDecimal) ? ((Number) j38o).longValue() : Long.parseLong(String.valueOf(j38o)); boolean j38e; try { if (j38a == null || j38b == null) j38e = j38a == j38b; else if (!j38a.getClass().equals(j38b.getClass()) && !(j38n.test(j38a) && j38n.test(j38b))) j38e = false; else if (j38i.test(j38a) && j38i.test(j38b)) j38e = j38l.applyAsLong(j38a) == j38l.applyAsLong(j38b); else if (j38a instanceof Double || j38b instanceof Double) j38e = j38d.applyAsDouble(j38a) == j38d.applyAsDouble(j38b); else if (j38a instanceof Float || j38b instanceof Float) j38e = (float) j38d.applyAsDouble(j38a) == (float) j38d.applyAsDouble(j38b); else if (j38a instanceof String && j38b instanceof String) j38e = j38a.equals(j38b); else if (j38a instanceof Boolean && j38b instanceof Boolean) j38e = j38a.equals(j38b); else if (j38n.test(j38a) && j38n.test(j38b)) j38e = new java.math.BigDecimal(String.valueOf(j38a)).compareTo(new java.math.BigDecimal(String.valueOf(j38b))) == 0; else j38e = false; } catch (Exception j38x) { j38e = false; } return !j38g && !j38e; }).test(i, endIndex); i++)
                 {
-                    ((List<Object>)bookParams).add((switch (0) { default -> { HashMap<String, Object> j39v3 = new HashMap<String, Object>(); j39v3.put("token_id", (tokenIds == null || ((int) i) < 0 || ((int) i) >= tokenIds.size() ? null : tokenIds.get(((int) i)))); yield j39v3; } }));
+                    HashMap<String, Object> j39v3 = new HashMap<String, Object>();
+                    j39v3.put("token_id", (tokenIds == null || ((int) i) < 0 || ((int) i) >= tokenIds.size() ? null : tokenIds.get(((int) i))));
+                    ((List<Object>)bookParams).add(j39v3);
                 }
                 List<Object> promises = new ArrayList<Object>(Arrays.asList(this.clobPublicPostBooks(bookParams), this.clobPublicPostMidpoints(bookParams), this.clobPublicPostLastTradesPrices(bookParams)));
                 Object responses = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();

@@ -930,35 +930,35 @@ public class Digifinex extends DigifinexApi
                     }
                 }
                 Boolean isActive = Boolean.TRUE.equals(isTradingSwap) || ((isAllowedRaw == null || isAllowedRaw != 0));
-                ((List<Object>)result).add((switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-                    j39v1.put("id", id);
-                    j39v1.put("symbol", symbol);
-                    j39v1.put("base", base);
-                    j39v1.put("quote", quote);
-                    j39v1.put("settle", settle);
-                    j39v1.put("baseId", baseId);
-                    j39v1.put("quoteId", quoteId);
-                    j39v1.put("settleId", settleId);
-                    j39v1.put("type", type);
-                    j39v1.put("spot", spot);
-                    j39v1.put("margin", margin);
-                    j39v1.put("swap", swap);
-                    j39v1.put("future", false);
-                    j39v1.put("option", false);
-                    j39v1.put("active", isActive);
-                    j39v1.put("contract", swap);
-                    j39v1.put("linear", isLinear);
-                    j39v1.put("inverse", isInverse);
-                    j39v1.put("contractSize", this.safeNumber(market, "contract_value", (Object) null));
-                    j39v1.put("expiry", null);
-                    j39v1.put("expiryDatetime", null);
-                    j39v1.put("strike", null);
-                    j39v1.put("optionType", null);
-                    j39v1.put("precision", new HashMap<String, Object>() {{
+                HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+                j39v1.put("id", id);
+                j39v1.put("symbol", symbol);
+                j39v1.put("base", base);
+                j39v1.put("quote", quote);
+                j39v1.put("settle", settle);
+                j39v1.put("baseId", baseId);
+                j39v1.put("quoteId", quoteId);
+                j39v1.put("settleId", settleId);
+                j39v1.put("type", type);
+                j39v1.put("spot", spot);
+                j39v1.put("margin", margin);
+                j39v1.put("swap", swap);
+                j39v1.put("future", false);
+                j39v1.put("option", false);
+                j39v1.put("active", isActive);
+                j39v1.put("contract", swap);
+                j39v1.put("linear", isLinear);
+                j39v1.put("inverse", isInverse);
+                j39v1.put("contractSize", this.safeNumber(market, "contract_value", (Object) null));
+                j39v1.put("expiry", null);
+                j39v1.put("expiryDatetime", null);
+                j39v1.put("strike", null);
+                j39v1.put("optionType", null);
+                j39v1.put("precision", new HashMap<String, Object>() {{
                         put( "amount", Digifinex.this.parseNumber(Digifinex.this.parsePrecision(Digifinex.this.safeString(market, "amount_precision"))) );
                         put( "price", Digifinex.this.parseNumber(Digifinex.this.parsePrecision(Digifinex.this.safeString(market, "price_precision"))) );
                     }});
-                    j39v1.put("limits", new HashMap<String, Object>() {{
+                j39v1.put("limits", new HashMap<String, Object>() {{
                         put( "leverage", new HashMap<String, Object>() {{
                             put( "min", null );
                             put( "max", null );
@@ -976,9 +976,9 @@ public class Digifinex extends DigifinexApi
                             put( "max", null );
                         }} );
                     }});
-                    j39v1.put("created", null);
-                    j39v1.put("info", market);
-                    yield j39v1; } }));
+                j39v1.put("created", null);
+                j39v1.put("info", market);
+                ((List<Object>)result).add(j39v1);
             }
             return result;
         });
@@ -1025,35 +1025,35 @@ public class Digifinex extends DigifinexApi
                 {
                     continue;
                 }
-                ((List<Object>)result).add((switch (0) { default -> { HashMap<String, Object> j39v2 = new HashMap<String, Object>();
-                    j39v2.put("id", id);
-                    j39v2.put("symbol", ((base + "/") + quote));
-                    j39v2.put("base", base);
-                    j39v2.put("quote", quote);
-                    j39v2.put("settle", null);
-                    j39v2.put("baseId", baseId);
-                    j39v2.put("quoteId", quoteId);
-                    j39v2.put("settleId", null);
-                    j39v2.put("type", "spot");
-                    j39v2.put("spot", true);
-                    j39v2.put("margin", null);
-                    j39v2.put("swap", false);
-                    j39v2.put("future", false);
-                    j39v2.put("option", false);
-                    j39v2.put("active", null);
-                    j39v2.put("contract", false);
-                    j39v2.put("linear", null);
-                    j39v2.put("inverse", null);
-                    j39v2.put("contractSize", null);
-                    j39v2.put("expiry", null);
-                    j39v2.put("expiryDatetime", null);
-                    j39v2.put("strike", null);
-                    j39v2.put("optionType", null);
-                    j39v2.put("precision", new HashMap<String, Object>() {{
+                HashMap<String, Object> j39v2 = new HashMap<String, Object>();
+                j39v2.put("id", id);
+                j39v2.put("symbol", ((base + "/") + quote));
+                j39v2.put("base", base);
+                j39v2.put("quote", quote);
+                j39v2.put("settle", null);
+                j39v2.put("baseId", baseId);
+                j39v2.put("quoteId", quoteId);
+                j39v2.put("settleId", null);
+                j39v2.put("type", "spot");
+                j39v2.put("spot", true);
+                j39v2.put("margin", null);
+                j39v2.put("swap", false);
+                j39v2.put("future", false);
+                j39v2.put("option", false);
+                j39v2.put("active", null);
+                j39v2.put("contract", false);
+                j39v2.put("linear", null);
+                j39v2.put("inverse", null);
+                j39v2.put("contractSize", null);
+                j39v2.put("expiry", null);
+                j39v2.put("expiryDatetime", null);
+                j39v2.put("strike", null);
+                j39v2.put("optionType", null);
+                j39v2.put("precision", new HashMap<String, Object>() {{
                         put( "price", Digifinex.this.parseNumber(Digifinex.this.parsePrecision(Digifinex.this.safeString(market, "price_precision"))) );
                         put( "amount", Digifinex.this.parseNumber(Digifinex.this.parsePrecision(Digifinex.this.safeString(market, "volume_precision"))) );
                     }});
-                    j39v2.put("limits", new HashMap<String, Object>() {{
+                j39v2.put("limits", new HashMap<String, Object>() {{
                         put( "leverage", new HashMap<String, Object>() {{
                             put( "min", null );
                             put( "max", null );
@@ -1071,8 +1071,8 @@ public class Digifinex extends DigifinexApi
                             put( "max", null );
                         }} );
                     }});
-                    j39v2.put("info", market);
-                    yield j39v2; } }));
+                j39v2.put("info", market);
+                ((List<Object>)result).add(j39v2);
             }
             return result;
         });
@@ -5183,16 +5183,16 @@ public class Digifinex extends DigifinexApi
         for (var i = 0; i < ((List<?>)brackets).size(); i++)
         {
             Map<String, Object> tier = (Map<String, Object>) this.safeDict(brackets, i, (Object) null);
-            ((List<Object>)tiers).add((switch (0) { default -> { HashMap<String, Object> j39v4 = new HashMap<String, Object>();
-                j39v4.put("tier", this.sum(i, 1));
-                j39v4.put("symbol", this.safeSymbol(marketId, marketResolved, (String) null, "swap"));
-                j39v4.put("currency", marketResolved.get("settle"));
-                j39v4.put("minNotional", null);
-                j39v4.put("maxNotional", this.safeNumber(tier, "max_limit", (Object) null));
-                j39v4.put("maintenanceMarginRate", null);
-                j39v4.put("maxLeverage", this.safeNumber(tier, "leverage", (Object) null));
-                j39v4.put("info", tier);
-                yield j39v4; } }));
+            HashMap<String, Object> j39v4 = new HashMap<String, Object>();
+            j39v4.put("tier", this.sum(i, 1));
+            j39v4.put("symbol", this.safeSymbol(marketId, marketResolved, (String) null, "swap"));
+            j39v4.put("currency", marketResolved.get("settle"));
+            j39v4.put("minNotional", null);
+            j39v4.put("maxNotional", this.safeNumber(tier, "max_limit", (Object) null));
+            j39v4.put("maintenanceMarginRate", null);
+            j39v4.put("maxLeverage", this.safeNumber(tier, "leverage", (Object) null));
+            j39v4.put("info", tier);
+            ((List<Object>)tiers).add(j39v4);
         }
         return tiers;
     }

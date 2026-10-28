@@ -453,38 +453,38 @@ public class Indodax extends IndodaxApi
                 }
                 Long isMaintenance = this.safeInteger(market, "is_maintenance");
                 Boolean inMaintenance = (!java.util.Objects.equals(isMaintenance, null)) && ((isMaintenance == null || isMaintenance != 0));
-                ((List<Object>)result).add((switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-                    j39v1.put("id", id);
-                    j39v1.put("symbol", ((base + "/") + quote));
-                    j39v1.put("base", base);
-                    j39v1.put("quote", quote);
-                    j39v1.put("settle", null);
-                    j39v1.put("baseId", baseId);
-                    j39v1.put("quoteId", quoteId);
-                    j39v1.put("settleId", null);
-                    j39v1.put("type", "spot");
-                    j39v1.put("spot", true);
-                    j39v1.put("margin", false);
-                    j39v1.put("swap", false);
-                    j39v1.put("future", false);
-                    j39v1.put("option", false);
-                    j39v1.put("active", ((Boolean.TRUE.equals(inMaintenance))) ? false : true);
-                    j39v1.put("contract", false);
-                    j39v1.put("linear", null);
-                    j39v1.put("inverse", null);
-                    j39v1.put("taker", this.safeNumber(market, "trade_fee_percent", (Object) null));
-                    j39v1.put("contractSize", null);
-                    j39v1.put("expiry", null);
-                    j39v1.put("expiryDatetime", null);
-                    j39v1.put("strike", null);
-                    j39v1.put("optionType", null);
-                    j39v1.put("percentage", true);
-                    j39v1.put("precision", new HashMap<String, Object>() {{
+                HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+                j39v1.put("id", id);
+                j39v1.put("symbol", ((base + "/") + quote));
+                j39v1.put("base", base);
+                j39v1.put("quote", quote);
+                j39v1.put("settle", null);
+                j39v1.put("baseId", baseId);
+                j39v1.put("quoteId", quoteId);
+                j39v1.put("settleId", null);
+                j39v1.put("type", "spot");
+                j39v1.put("spot", true);
+                j39v1.put("margin", false);
+                j39v1.put("swap", false);
+                j39v1.put("future", false);
+                j39v1.put("option", false);
+                j39v1.put("active", ((Boolean.TRUE.equals(inMaintenance))) ? false : true);
+                j39v1.put("contract", false);
+                j39v1.put("linear", null);
+                j39v1.put("inverse", null);
+                j39v1.put("taker", this.safeNumber(market, "trade_fee_percent", (Object) null));
+                j39v1.put("contractSize", null);
+                j39v1.put("expiry", null);
+                j39v1.put("expiryDatetime", null);
+                j39v1.put("strike", null);
+                j39v1.put("optionType", null);
+                j39v1.put("percentage", true);
+                j39v1.put("precision", new HashMap<String, Object>() {{
                         put( "amount", Indodax.this.parseNumber("1e-8") );
                         put( "price", Indodax.this.parseNumber(Indodax.this.parsePrecision(Indodax.this.safeString(market, "price_round"))) );
                         put( "cost", Indodax.this.parseNumber(Indodax.this.parsePrecision(Indodax.this.safeString(market, "volume_precision"))) );
                     }});
-                    j39v1.put("limits", new HashMap<String, Object>() {{
+                j39v1.put("limits", new HashMap<String, Object>() {{
                         put( "leverage", new HashMap<String, Object>() {{
                             put( "min", null );
                             put( "max", null );
@@ -502,9 +502,9 @@ public class Indodax extends IndodaxApi
                             put( "max", null );
                         }} );
                     }});
-                    j39v1.put("created", null);
-                    j39v1.put("info", market);
-                    yield j39v1; } }));
+                j39v1.put("created", null);
+                j39v1.put("info", market);
+                ((List<Object>)result).add(j39v1);
             }
             return result;
         });

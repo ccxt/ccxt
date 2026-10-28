@@ -420,37 +420,37 @@ public class Blockchaincom extends BlockchaincomApi
                     String maxOrderSizeValueString = Precise.stringMul(maxOrderSizeRaw, maxOrderSizeScalePrecisionString);
                     maxOrderSize = this.parseNumber(maxOrderSizeValueString);
                 }
-                ((List<Object>)result).add((switch (0) { default -> { HashMap<String, Object> j39v3 = new HashMap<String, Object>();
-                    j39v3.put("info", market);
-                    j39v3.put("id", marketId);
-                    j39v3.put("numericId", numericId);
-                    j39v3.put("symbol", ((base + "/") + quote));
-                    j39v3.put("base", base);
-                    j39v3.put("quote", quote);
-                    j39v3.put("settle", null);
-                    j39v3.put("baseId", baseId);
-                    j39v3.put("quoteId", quoteId);
-                    j39v3.put("settleId", null);
-                    j39v3.put("type", "spot");
-                    j39v3.put("spot", true);
-                    j39v3.put("margin", false);
-                    j39v3.put("swap", false);
-                    j39v3.put("future", false);
-                    j39v3.put("option", false);
-                    j39v3.put("active", active);
-                    j39v3.put("contract", false);
-                    j39v3.put("linear", null);
-                    j39v3.put("inverse", null);
-                    j39v3.put("contractSize", null);
-                    j39v3.put("expiry", null);
-                    j39v3.put("expiryDatetime", null);
-                    j39v3.put("strike", null);
-                    j39v3.put("optionType", null);
-                    j39v3.put("precision", new HashMap<String, Object>() {{
+                HashMap<String, Object> j39v3 = new HashMap<String, Object>();
+                j39v3.put("info", market);
+                j39v3.put("id", marketId);
+                j39v3.put("numericId", numericId);
+                j39v3.put("symbol", ((base + "/") + quote));
+                j39v3.put("base", base);
+                j39v3.put("quote", quote);
+                j39v3.put("settle", null);
+                j39v3.put("baseId", baseId);
+                j39v3.put("quoteId", quoteId);
+                j39v3.put("settleId", null);
+                j39v3.put("type", "spot");
+                j39v3.put("spot", true);
+                j39v3.put("margin", false);
+                j39v3.put("swap", false);
+                j39v3.put("future", false);
+                j39v3.put("option", false);
+                j39v3.put("active", active);
+                j39v3.put("contract", false);
+                j39v3.put("linear", null);
+                j39v3.put("inverse", null);
+                j39v3.put("contractSize", null);
+                j39v3.put("expiry", null);
+                j39v3.put("expiryDatetime", null);
+                j39v3.put("strike", null);
+                j39v3.put("optionType", null);
+                j39v3.put("precision", new HashMap<String, Object>() {{
                         put( "amount", Blockchaincom.this.parseNumber(amountPrecisionString) );
                         put( "price", Blockchaincom.this.parseNumber(pricePrecisionString) );
                     }});
-                    j39v3.put("limits", (switch (0) { default -> { HashMap<String, Object> j39v2 = new HashMap<String, Object>();
+                j39v3.put("limits", (switch (0) { default -> { HashMap<String, Object> j39v2 = new HashMap<String, Object>();
                         j39v2.put("leverage", new HashMap<String, Object>() {{
                             put( "min", null );
                             put( "max", null );
@@ -468,8 +468,8 @@ public class Blockchaincom extends BlockchaincomApi
                             put( "max", null );
                         }});
                         yield j39v2; } }));
-                    j39v3.put("created", null);
-                    yield j39v3; } }));
+                j39v3.put("created", null);
+                ((List<Object>)result).add(j39v3);
             }
             return result;
         });

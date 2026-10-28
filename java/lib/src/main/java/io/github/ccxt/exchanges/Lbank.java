@@ -727,35 +727,35 @@ public class Lbank extends LbankApi
                     continue;
                 }
                 String symbol = ((base + "/") + quote);
-                ((List<Object>)result).add((switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-                    j39v1.put("id", marketId);
-                    j39v1.put("symbol", symbol);
-                    j39v1.put("base", base);
-                    j39v1.put("quote", quote);
-                    j39v1.put("baseId", baseId);
-                    j39v1.put("quoteId", quoteId);
-                    j39v1.put("settle", null);
-                    j39v1.put("settleId", null);
-                    j39v1.put("type", "spot");
-                    j39v1.put("spot", true);
-                    j39v1.put("margin", false);
-                    j39v1.put("swap", false);
-                    j39v1.put("future", false);
-                    j39v1.put("option", false);
-                    j39v1.put("active", true);
-                    j39v1.put("contract", false);
-                    j39v1.put("linear", null);
-                    j39v1.put("inverse", null);
-                    j39v1.put("contractSize", null);
-                    j39v1.put("expiry", null);
-                    j39v1.put("expiryDatetime", null);
-                    j39v1.put("strike", null);
-                    j39v1.put("optionType", null);
-                    j39v1.put("precision", new HashMap<String, Object>() {{
+                HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+                j39v1.put("id", marketId);
+                j39v1.put("symbol", symbol);
+                j39v1.put("base", base);
+                j39v1.put("quote", quote);
+                j39v1.put("baseId", baseId);
+                j39v1.put("quoteId", quoteId);
+                j39v1.put("settle", null);
+                j39v1.put("settleId", null);
+                j39v1.put("type", "spot");
+                j39v1.put("spot", true);
+                j39v1.put("margin", false);
+                j39v1.put("swap", false);
+                j39v1.put("future", false);
+                j39v1.put("option", false);
+                j39v1.put("active", true);
+                j39v1.put("contract", false);
+                j39v1.put("linear", null);
+                j39v1.put("inverse", null);
+                j39v1.put("contractSize", null);
+                j39v1.put("expiry", null);
+                j39v1.put("expiryDatetime", null);
+                j39v1.put("strike", null);
+                j39v1.put("optionType", null);
+                j39v1.put("precision", new HashMap<String, Object>() {{
                         put( "amount", Lbank.this.parseNumber(Lbank.this.parsePrecision(Lbank.this.safeString(market, "quantityAccuracy"))) );
                         put( "price", Lbank.this.parseNumber(Lbank.this.parsePrecision(Lbank.this.safeString(market, "priceAccuracy"))) );
                     }});
-                    j39v1.put("limits", new HashMap<String, Object>() {{
+                j39v1.put("limits", new HashMap<String, Object>() {{
                         put( "leverage", new HashMap<String, Object>() {{
                             put( "min", null );
                             put( "max", null );
@@ -773,9 +773,9 @@ public class Lbank extends LbankApi
                             put( "max", null );
                         }} );
                     }});
-                    j39v1.put("created", null);
-                    j39v1.put("info", market);
-                    yield j39v1; } }));
+                j39v1.put("created", null);
+                j39v1.put("info", market);
+                ((List<Object>)result).add(j39v1);
             }
             return result;
         });
@@ -835,35 +835,35 @@ public class Lbank extends LbankApi
                     continue;
                 }
                 String symbol = ((((base + "/") + quote) + ":") + quote);
-                ((List<Object>)result).add((switch (0) { default -> { HashMap<String, Object> j39v2 = new HashMap<String, Object>();
-                    j39v2.put("id", marketId);
-                    j39v2.put("symbol", symbol);
-                    j39v2.put("base", base);
-                    j39v2.put("quote", quote);
-                    j39v2.put("settle", quote);
-                    j39v2.put("baseId", baseId);
-                    j39v2.put("quoteId", quoteId);
-                    j39v2.put("settleId", settleId);
-                    j39v2.put("type", "swap");
-                    j39v2.put("spot", false);
-                    j39v2.put("margin", false);
-                    j39v2.put("swap", true);
-                    j39v2.put("future", false);
-                    j39v2.put("option", false);
-                    j39v2.put("active", true);
-                    j39v2.put("contract", true);
-                    j39v2.put("linear", true);
-                    j39v2.put("inverse", false);
-                    j39v2.put("contractSize", this.safeNumber(market, "volumeMultiple", (Object) null));
-                    j39v2.put("expiry", null);
-                    j39v2.put("expiryDatetime", null);
-                    j39v2.put("strike", null);
-                    j39v2.put("optionType", null);
-                    j39v2.put("precision", new HashMap<String, Object>() {{
+                HashMap<String, Object> j39v2 = new HashMap<String, Object>();
+                j39v2.put("id", marketId);
+                j39v2.put("symbol", symbol);
+                j39v2.put("base", base);
+                j39v2.put("quote", quote);
+                j39v2.put("settle", quote);
+                j39v2.put("baseId", baseId);
+                j39v2.put("quoteId", quoteId);
+                j39v2.put("settleId", settleId);
+                j39v2.put("type", "swap");
+                j39v2.put("spot", false);
+                j39v2.put("margin", false);
+                j39v2.put("swap", true);
+                j39v2.put("future", false);
+                j39v2.put("option", false);
+                j39v2.put("active", true);
+                j39v2.put("contract", true);
+                j39v2.put("linear", true);
+                j39v2.put("inverse", false);
+                j39v2.put("contractSize", this.safeNumber(market, "volumeMultiple", (Object) null));
+                j39v2.put("expiry", null);
+                j39v2.put("expiryDatetime", null);
+                j39v2.put("strike", null);
+                j39v2.put("optionType", null);
+                j39v2.put("precision", new HashMap<String, Object>() {{
                         put( "amount", Lbank.this.safeNumber(market, "volumeTick", (Object) null) );
                         put( "price", Lbank.this.safeNumber(market, "priceTick", (Object) null) );
                     }});
-                    j39v2.put("limits", new HashMap<String, Object>() {{
+                j39v2.put("limits", new HashMap<String, Object>() {{
                         put( "leverage", new HashMap<String, Object>() {{
                             put( "min", null );
                             put( "max", null );
@@ -881,9 +881,9 @@ public class Lbank extends LbankApi
                             put( "max", null );
                         }} );
                     }});
-                    j39v2.put("created", null);
-                    j39v2.put("info", market);
-                    yield j39v2; } }));
+                j39v2.put("created", null);
+                j39v2.put("info", market);
+                ((List<Object>)result).add(j39v2);
             }
             return result;
         });

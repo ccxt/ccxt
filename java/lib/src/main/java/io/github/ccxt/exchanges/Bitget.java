@@ -4836,16 +4836,16 @@ public class Bitget extends BitgetApi
             String base = this.safeString(market, "base");
             String currencyId = (((!java.util.Objects.equals(marginCurrency, null)))) ? marginCurrency : base;
             String marketId = this.safeString(item, "symbol");
-            ((List<Object>)tiers).add((switch (0) { default -> { HashMap<String, Object> j39v4 = new HashMap<String, Object>();
-                j39v4.put("tier", this.safeInteger2(item, "level", "tier"));
-                j39v4.put("symbol", this.safeSymbol(marketId, market, (String) null, (String) null));
-                j39v4.put("currency", this.safeCurrencyCode(currencyId, (Map<String, Object>) null));
-                j39v4.put("minNotional", minNotional);
-                j39v4.put("maxNotional", maxNotional);
-                j39v4.put("maintenanceMarginRate", this.safeNumberN(item, new ArrayList<Object>(Arrays.asList("keepMarginRate", "maintainMarginRate", "mmr")), (Object) null));
-                j39v4.put("maxLeverage", this.safeNumber(item, "leverage", (Object) null));
-                j39v4.put("info", item);
-                yield j39v4; } }));
+            HashMap<String, Object> j39v4 = new HashMap<String, Object>();
+            j39v4.put("tier", this.safeInteger2(item, "level", "tier"));
+            j39v4.put("symbol", this.safeSymbol(marketId, market, (String) null, (String) null));
+            j39v4.put("currency", this.safeCurrencyCode(currencyId, (Map<String, Object>) null));
+            j39v4.put("minNotional", minNotional);
+            j39v4.put("maxNotional", maxNotional);
+            j39v4.put("maintenanceMarginRate", this.safeNumberN(item, new ArrayList<Object>(Arrays.asList("keepMarginRate", "maintainMarginRate", "mmr")), (Object) null));
+            j39v4.put("maxLeverage", this.safeNumber(item, "leverage", (Object) null));
+            j39v4.put("info", item);
+            ((List<Object>)tiers).add(j39v4);
             minNotional = maxNotional;
         }
         return tiers;

@@ -629,11 +629,11 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             for (var i = 0; i < ((List<?>)intervals).size(); i++)
             {
                 String interval = (intervals == null || i < 0 || i >= intervals.size() ? null : intervals.get(i));
-                ((List<Object>)channels).add((switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-                    j39v1.put("name", name);
-                    j39v1.put("interval", new ArrayList<Object>(Arrays.asList(interval)));
-                    j39v1.put("markets", (marketIdsByInterval == null || interval == null ? null : marketIdsByInterval.get(interval)));
-                    yield j39v1; } }));
+                HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+                j39v1.put("name", name);
+                j39v1.put("interval", new ArrayList<Object>(Arrays.asList(interval)));
+                j39v1.put("markets", (marketIdsByInterval == null || interval == null ? null : marketIdsByInterval.get(interval)));
+                ((List<Object>)channels).add(j39v1);
             }
             String url = this.safeString(this.urls.get("api"), "ws");
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -718,11 +718,11 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             for (var i = 0; i < ((List<?>)intervals).size(); i++)
             {
                 String interval = (intervals == null || i < 0 || i >= intervals.size() ? null : intervals.get(i));
-                ((List<Object>)channels).add((switch (0) { default -> { HashMap<String, Object> j39v2 = new HashMap<String, Object>();
-                    j39v2.put("name", name);
-                    j39v2.put("interval", new ArrayList<Object>(Arrays.asList(interval)));
-                    j39v2.put("markets", (marketIdsByInterval == null || interval == null ? null : marketIdsByInterval.get(interval)));
-                    yield j39v2; } }));
+                HashMap<String, Object> j39v2 = new HashMap<String, Object>();
+                j39v2.put("name", name);
+                j39v2.put("interval", new ArrayList<Object>(Arrays.asList(interval)));
+                j39v2.put("markets", (marketIdsByInterval == null || interval == null ? null : marketIdsByInterval.get(interval)));
+                ((List<Object>)channels).add(j39v2);
             }
             Map<String, Object> subscriptionArgs = new HashMap<String, Object>() {{
                 put( "symbolsAndTimeframes", symbolsAndTimeframes );
