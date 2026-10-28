@@ -6981,7 +6981,7 @@ class BaseExchange(object):
     def parse_borrow_interests(self, response: object, market: Market = None):
         interests = []
         for i in range(0, len(response)):
-            row = response[i]
+            row = self.safe_value(response, i)
             interests.append(self.parse_borrow_interest(row, market))
         return interests
 
@@ -6991,7 +6991,7 @@ class BaseExchange(object):
     def parse_borrow_rate_history(self, response: object, code: Str, since: Int, limit: Int):
         result = []
         for i in range(0, len(response)):
-            item = response[i]
+            item = self.safe_value(response, i)
             borrowRate = self.parse_borrow_rate(item)
             result.append(borrowRate)
         sorted = self.sort_by(result, 'timestamp')
@@ -7000,7 +7000,7 @@ class BaseExchange(object):
     def parse_isolated_borrow_rates(self, info: object):
         result = {}
         for i in range(0, len(info)):
-            item = info[i]
+            item = self.safe_value(info, i)
             borrowRate = self.parse_isolated_borrow_rate(item)
             symbol = self.safe_string(borrowRate, 'symbol')
             result[symbol] = borrowRate

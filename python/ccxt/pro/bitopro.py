@@ -409,10 +409,10 @@ class bitopro(ccxt.async_support.bitopro):
             'X-BITOPRO-PAYLOAD': payload,
             'X-BITOPRO-SIGNATURE': signature,
         }
-        self.options['ws']['options']['headers'] = headers
+        wsInnerOptions['headers'] = headers
         # instantiate client
         self.client(url)
-        self.options['ws']['options']['headers'] = originalHeaders
+        wsInnerOptions['headers'] = originalHeaders
 
     async def watch_balance(self, params: dict = {}) -> Balances:
         """

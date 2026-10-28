@@ -5560,35 +5560,31 @@ class xt(Exchange, ImplicitAPI):
             signedBody = None if isUndefinedBody else self.json(query)
             payloadString = ''
             if (endpoint == 'spot') or (endpoint == 'user'):
-                payloadString = 'xt-validate-algorithms=HmacSHA256&xt-validate-appkey=' + self.apiKey + '&xt-validate-recvwindow=' + recvWindow + '&xt-validate-t' + 'imestamp=' + timestamp
+                spotPrefix = 'xt-validate-algorithms=HmacSHA256&xt-validate-appkey=' + self.apiKey + '&xt-validate-recvwindow=' + recvWindow + '&xt-validate-t' + 'imestamp=' + timestamp
                 if isUndefinedBody:
                     if urlencoded != '':
                         url = apiUrl + payload + '?' + urlencoded
-                        payloadString += '#' + method + '#' + payload + '#' + self.rawencode(self.keysort(query))
+                        payloadString = spotPrefix + '#' + method + '#' + payload + '#' + self.rawencode(self.keysort(query))
                     else:
-                        payloadString += '#' + method + '#' + payload
+                        payloadString = spotPrefix + '#' + method + '#' + payload
                 else:
-                    payloadString += '#' + method + '#' + payload + '#' + signedBody
+                    payloadString = spotPrefix + '#' + method + '#' + payload + '#' + signedBody
                 headersValue['xt-validate-algorithms'] = 'HmacSHA256'
                 headersValue['xt-validate-recvwindow'] = recvWindow
             else:
-                payloadString = 'xt-validate-appkey=' + self.apiKey + '&xt-validate-t' + 'imestamp=' + timestamp  # we can't glue timestamp, breaks in php
+                futurePrefix = 'xt-validate-appkey=' + self.apiKey + '&xt-validate-t' + 'imestamp=' + timestamp  # we can't glue timestamp, breaks in php
                 if method == 'GET':
                     if urlencoded != '':
                         url = apiUrl + payload + '?' + urlencoded
-                        payloadString += '#' + payload + '#' + urlencoded
+                        payloadString = futurePrefix + '#' + payload + '#' + urlencoded
                     else:
-                        payloadString += '#' + payload
+                        payloadString = futurePrefix + '#' + payload
                 else:
-                    payloadString += '#' + payload + '#' + signedBody
-            signature = self.hmac(self.encode(payloadString), self.encode(self.secret), hashlib.sha256)
+                    payloadString = futurePrefix + '#' + payload + '#' + signedBody
             headersValue['xt-validate-appkey'] = self.apiKey
             headersValue['xt-validate-timestamp'] = timestamp
-            headersValue['xt-validate-signature'] = signature
+            headersValue['xt-validate-signature'] = self.hmac(self.encode(payloadString), self.encode(self.secret), hashlib.sha256)
         else:
             if urlencoded != '':
                 url = apiUrl + payload + '?' + urlencoded
-        bodyValue = None
-        if signed:
-            bodyValue = signedBody
-        return {'url': url, 'method': method, 'body': bodyValue, 'headers': headersValue}
+        return {'url': url, 'method': method, 'body': signedBody, 'headers': headersValue}

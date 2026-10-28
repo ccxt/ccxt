@@ -2995,7 +2995,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         :returns str: signed JWT
         """
         uri = None
-        if url is not None:
+        if (url is not None) and (method is not None):
             uri = method + ' ' + url.replace('https://', '')
             quesPos = uri.find('?')
             if quesPos > 0:

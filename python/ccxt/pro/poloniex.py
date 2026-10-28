@@ -1342,7 +1342,7 @@ class poloniex(ccxt.async_support.poloniex):
         #        "symbols": [ "ETH_USDT", "BTC_USDT" ]
         #    }
         #
-        channel = self.safe_string(message, 'channel')
+        channel = self.safe_string(message, 'channel', '')
         marketIds = self.safe_list(message, 'symbols', [])
         timeframes = self.safe_dict(self.options, 'timeframes', {})
         timeframe = self.find_timeframe(channel, timeframes)

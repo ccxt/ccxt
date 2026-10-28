@@ -1411,11 +1411,12 @@ class pacifica(ccxt.async_support.pacifica):
         if operationType is None:
             raise ArgumentsRequired(self.id + 'postAction() requires a "operationType" argument!')
         requestId = self.request_id()
+        postParams = {}
+        postParams[operationType] = request
         payload = {
             'id': requestId,
-            'params': {},
+            'params': postParams,
         }
-        payload['params'][operationType] = request
         return payload
 
     def handle_ws_post(self, client: Client, message: dict):

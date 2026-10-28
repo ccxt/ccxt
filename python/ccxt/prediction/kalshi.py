@@ -270,13 +270,11 @@ class kalshi(PredictionExchange, ImplicitAPI):
                 parsed = self.parse_binary_market_to_outcomes(raw)
                 eventTicker = self.safe_string(raw, 'event_ticker')
                 eventTitle = self.safe_string(raw, 'title', eventTicker)
-                eventKey = ''
-                if eventTitle is not None and eventTitle != '':
-                    eventKey = self.shorten_slug(eventTitle)
                 for j in range(0, len(parsed)):
                     m = parsed[j]
                     flatMarkets.append(m)
-                    if eventKey != '':
+                    if eventTitle is not None and eventTitle != '':
+                        eventKey = self.shorten_slug(eventTitle)
                         if not (eventKey in eventsDict):
                             eventsDict[eventKey] = {
                                 'id': eventTicker,

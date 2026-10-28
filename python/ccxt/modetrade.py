@@ -3130,8 +3130,8 @@ class modetrade(Exchange, ImplicitAPI):
             ts = str(self.nonce())
             url += pathWithParams
             apiKey = self.apiKey
-            if apiKey.find('ed25519:') < 0:
-                apiKey = 'ed25519:' + apiKey
+            if self.apiKey.find('ed25519:') < 0:
+                apiKey = 'ed25519:' + self.apiKey
             signedHeaders = {
                 'orderly-account-id': self.accountId,
                 'orderly-key': apiKey,
