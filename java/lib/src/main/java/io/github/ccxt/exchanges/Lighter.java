@@ -565,27 +565,23 @@ public class Lighter extends LighterApi
 
     public void setAuthEntry(String accIdx, String keyIdx, Map<String, Object> entry)
     {
-        Helpers.addElementToObject(Helpers.GetValue((this.options == null ? null : ((Map<?, ?>)this.options).get("auths")), accIdx), keyIdx, this.extend(this.safeDict(this.safeDict(this.safeDict(this.options, "auths", new HashMap<String, Object>() {{}}), accIdx, new HashMap<String, Object>() {{}}), keyIdx, new HashMap<String, Object>() {{}}), entry));
+        Map<String, Object> updated = new HashMap<String, Object>() {{}};
+        updated.put(keyIdx, this.extend(this.safeDict(this.safeDict(this.safeDict(this.options, "auths", new HashMap<String, Object>() {{}}), accIdx, new HashMap<String, Object>() {{}}), keyIdx, new HashMap<String, Object>() {{}}), entry));
+        Map<String, Object> auths = new HashMap<String, Object>() {{}};
+        auths.put(accIdx, this.extend(this.safeDict(this.safeDict(this.options, "auths", new HashMap<String, Object>() {{}}), accIdx, new HashMap<String, Object>() {{}}), updated));
+        this.options.put("auths", this.extend(this.safeDict(this.options, "auths", new HashMap<String, Object>() {{}}), auths));
     }
 
     public void initAuthObject(String strAccountIndex, String strApiKeyIndex)
     {
-        if (!(((Map<?, ?>)this.options).containsKey("auths")))
+        if (java.util.Objects.equals(this.safeDict(this.safeDict(this.safeDict(this.options, "auths", new HashMap<String, Object>() {{}}), strAccountIndex, new HashMap<String, Object>() {{}}), strApiKeyIndex, (Object) null), null))
         {
-            this.options.put("auths", new HashMap<String, Object>() {{}});
-        }
-        if (!((switch ((Object)(this.options.get("auths"))) { case List<?> j39v4 -> ((Object)(strAccountIndex)) != null && j39v4.contains(strAccountIndex); case Map<?, ?> j39v3 -> ((Object)(strAccountIndex)) instanceof String && j39v3.containsKey(strAccountIndex); case null, default -> false; })))
-        {
-            Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("auths")), strAccountIndex, new HashMap<String, Object>() {{}});
-        }
-        if (!((switch ((Object)(Helpers.GetValue(this.options.get("auths"), strAccountIndex))) { case List<?> j39v2 -> ((Object)(strApiKeyIndex)) != null && j39v2.contains(strApiKeyIndex); case Map<?, ?> j39v1 -> ((Object)(strApiKeyIndex)) instanceof String && j39v1.containsKey(strApiKeyIndex); case null, default -> false; })))
-        {
-            Helpers.addElementToObject(Helpers.GetValue((this.options == null ? null : ((Map<?, ?>)this.options).get("auths")), strAccountIndex), strApiKeyIndex, new HashMap<String, Object>() {{
-    put( "signer", null );
-    put( "lighterPrivateKey", null );
-    put( "deadline", null );
-    put( "token", null );
-}});
+            this.setAuthEntry((String) (strAccountIndex), (String) (strApiKeyIndex), new HashMap<String, Object>() {{
+                put( "signer", null );
+                put( "lighterPrivateKey", null );
+                put( "deadline", null );
+                put( "token", null );
+            }});
         }
     }
 
@@ -1654,37 +1650,37 @@ public class Lighter extends LighterApi
                 Double amountPrecision = (((java.util.Objects.equals(amountDecimals, null)))) ? null : this.parseNumber(this.parsePrecision(amountDecimals));
                 Double pricePrecision = (((java.util.Objects.equals(priceDecimals, null)))) ? null : this.parseNumber(this.parsePrecision(priceDecimals));
                 Double quoteMultiplier = this.safeNumber(market, "quote_multiplier", (Object) null);
-                HashMap<String, Object> j39v5 = new HashMap<String, Object>();
-                j39v5.put("id", id);
-                j39v5.put("symbol", symbol);
-                j39v5.put("base", base);
-                j39v5.put("quote", quote);
-                j39v5.put("settle", settle);
-                j39v5.put("baseId", baseId);
-                j39v5.put("quoteId", quoteId);
-                j39v5.put("settleId", settleId);
-                j39v5.put("type", type);
-                j39v5.put("spot", java.util.Objects.equals(type, "spot"));
-                j39v5.put("margin", false);
-                j39v5.put("swap", java.util.Objects.equals(type, "swap"));
-                j39v5.put("future", false);
-                j39v5.put("option", false);
-                j39v5.put("active", java.util.Objects.equals(this.safeString(market, "status"), "active"));
-                j39v5.put("contract", java.util.Objects.equals(type, "swap"));
-                j39v5.put("linear", (((java.util.Objects.equals(type, "swap")))) ? true : null);
-                j39v5.put("inverse", (((java.util.Objects.equals(type, "swap")))) ? false : null);
-                j39v5.put("taker", this.safeNumber(market, "taker_fee", (Object) null));
-                j39v5.put("maker", this.safeNumber(market, "maker_fee", (Object) null));
-                j39v5.put("contractSize", quoteMultiplier);
-                j39v5.put("expiry", null);
-                j39v5.put("expiryDatetime", null);
-                j39v5.put("strike", null);
-                j39v5.put("optionType", null);
-                j39v5.put("precision", new HashMap<String, Object>() {{
+                HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+                j39v1.put("id", id);
+                j39v1.put("symbol", symbol);
+                j39v1.put("base", base);
+                j39v1.put("quote", quote);
+                j39v1.put("settle", settle);
+                j39v1.put("baseId", baseId);
+                j39v1.put("quoteId", quoteId);
+                j39v1.put("settleId", settleId);
+                j39v1.put("type", type);
+                j39v1.put("spot", java.util.Objects.equals(type, "spot"));
+                j39v1.put("margin", false);
+                j39v1.put("swap", java.util.Objects.equals(type, "swap"));
+                j39v1.put("future", false);
+                j39v1.put("option", false);
+                j39v1.put("active", java.util.Objects.equals(this.safeString(market, "status"), "active"));
+                j39v1.put("contract", java.util.Objects.equals(type, "swap"));
+                j39v1.put("linear", (((java.util.Objects.equals(type, "swap")))) ? true : null);
+                j39v1.put("inverse", (((java.util.Objects.equals(type, "swap")))) ? false : null);
+                j39v1.put("taker", this.safeNumber(market, "taker_fee", (Object) null));
+                j39v1.put("maker", this.safeNumber(market, "maker_fee", (Object) null));
+                j39v1.put("contractSize", quoteMultiplier);
+                j39v1.put("expiry", null);
+                j39v1.put("expiryDatetime", null);
+                j39v1.put("strike", null);
+                j39v1.put("optionType", null);
+                j39v1.put("precision", new HashMap<String, Object>() {{
                         put( "amount", amountPrecision );
                         put( "price", pricePrecision );
                     }});
-                j39v5.put("limits", new HashMap<String, Object>() {{
+                j39v1.put("limits", new HashMap<String, Object>() {{
                         put( "leverage", new HashMap<String, Object>() {{
                             put( "min", null );
                             put( "max", null );
@@ -1702,9 +1698,9 @@ public class Lighter extends LighterApi
                             put( "max", Lighter.this.safeNumber(market, "order_quote_limit", (Object) null) );
                         }} );
                     }});
-                j39v5.put("created", null);
-                j39v5.put("info", market);
-                ((List<Object>)result).add(j39v5);
+                j39v1.put("created", null);
+                j39v1.put("info", market);
+                ((List<Object>)result).add(j39v1);
             }
             return result;
         });
@@ -4255,7 +4251,7 @@ public class Lighter extends LighterApi
                 put( "Authorization", Lighter.this.createAuth(((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); }))) );
             }};
         }
-        if (((List<Object>) switch ((Object)(parameters)) { case Map<?, ?> j39v6 -> { synchronized (j39v6) { yield new ArrayList<Object>(j39v6.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
+        if (((List<Object>) switch ((Object)(parameters)) { case Map<?, ?> j39v2 -> { synchronized (j39v2) { yield new ArrayList<Object>(j39v2.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
         {
             if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST"))
             {

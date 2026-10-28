@@ -418,7 +418,7 @@ public class Hyperliquid extends HyperliquidApi
         {
             throw new ExchangeError((this.id + " markets not loaded")) ;
         }
-        if ((!java.util.Objects.equals(symbol, null)) && !(((Map<?, ?>)this.markets).containsKey(symbol)))
+        if (!(((Map<?, ?>)this.markets).containsKey(symbol)))
         {
             List<Object> symbolParts = new ArrayList<Object>(Arrays.asList(((String)symbol).split(java.util.regex.Pattern.quote("/"))));
             String baseName = this.safeString(symbolParts, 0);
@@ -730,7 +730,7 @@ public class Hyperliquid extends HyperliquidApi
             for (var i = 0; i < ((List<?>)promises).size(); i++)
             {
                 Object dexName = (fetchDexesList == null || i < 0 || i >= ((List<?>)fetchDexesList).size() ? null : ((List<?>)fetchDexesList).get(i));
-                Object offset = (perpDexesOffset == null || !(dexName instanceof String) ? null : perpDexesOffset.get(dexName));
+                Long offset = this.safeInteger(perpDexesOffset, dexName);
                 List<Object> response = (List<Object>) this.safeList(promises, i, (Object) null);
                 Map<String, Object> meta = (Map<String, Object>) this.safeDict(response, 0, new HashMap<String, Object>() {{}});
                 String collateralToken = this.safeString(meta, "collateralToken");
@@ -1927,8 +1927,7 @@ public class Hyperliquid extends HyperliquidApi
         }
         if (!java.util.Objects.equals(expiresAfter, null))
         {
-            data = (data + "00");
-            data = (data + ("00000" + this.intToBase16(expiresAfter)));
+            data = (data + ("0000000" + this.intToBase16(expiresAfter)));
         }
         return this.hash(this.base16ToBinary(data), keccak(), "binary");
     }

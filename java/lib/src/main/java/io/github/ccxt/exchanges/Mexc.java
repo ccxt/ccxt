@@ -7378,12 +7378,6 @@ public class Mexc extends MexcApi
                 this.checkRequiredCredentials(true);
                 String timestamp = String.valueOf(this.nonce());
                 Object auth = "";
-                requestHeaders = new HashMap<String, Object>() {{
-                    put( "ApiKey", Mexc.this.apiKey );
-                    put( "Request-Time", timestamp );
-                    put( "Content-Type", "application/json" );
-                    put( "source", Mexc.this.safeString(Mexc.this.options, "broker", "CCXT") );
-                }};
                 if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST"))
                 {
                     auth = this.json(paramsOmitted);
@@ -7399,7 +7393,13 @@ public class Mexc extends MexcApi
                 }
                 auth = ((this.apiKey + timestamp) + auth);
                 String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256());
-                requestHeaders.put("Signature", signature);
+                requestHeaders = new HashMap<String, Object>() {{
+                    put( "ApiKey", Mexc.this.apiKey );
+                    put( "Request-Time", timestamp );
+                    put( "Content-Type", "application/json" );
+                    put( "source", Mexc.this.safeString(Mexc.this.options, "broker", "CCXT") );
+                    put( "Signature", signature );
+                }};
             }
         }
         {
