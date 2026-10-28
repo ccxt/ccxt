@@ -1184,7 +1184,7 @@ public partial class polymarket : ccxt.polymarket
                         {
                             // resolve the future object directly so it stays
                             // cached and later authenticate calls reuse it
-                            Future future = ((Future)this.safeValue(client.futures, "authenticated"));
+                            Future future = client.getFuture("authenticated");
                             if ((future != null))
                             {
                                 (future as Future).resolve(true);

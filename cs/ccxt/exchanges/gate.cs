@@ -5835,7 +5835,7 @@ public partial class gate : Exchange
                 useGateFuturesDecimalSize = this.isGateFuturesContractWithDecimalSize(market);
                 if (!useGateFuturesDecimalSize)
                 {
-                    contractAmount = parseInt(((string)signedAmount));
+                    contractAmount = JsParse.parseInt(((string)signedAmount));
                 }
             }
         }
@@ -9429,10 +9429,10 @@ public partial class gate : Exchange
         Int64? timestamp = null;
         if (rawTimestamp.Length > 10)
         {
-            timestamp = parseInt(rawTimestamp);
+            timestamp = JsParse.parseInt(rawTimestamp);
         } else
         {
-            timestamp = (parseInt(rawTimestamp) * 1000);
+            timestamp = (JsParse.parseInt(rawTimestamp) * 1000);
         }
         string? balanceString = this.safeString(item, "balance");
         string? changeString = this.safeString(item, "change");

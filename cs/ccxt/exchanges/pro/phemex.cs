@@ -1650,7 +1650,7 @@ public partial class phemex : ccxt.phemex
         string? id = this.safeString(message, "id", "");
         if ((client.subscriptions != null && id != null && client.subscriptions.ContainsKey(id)))
         {
-            object method = this.safeValue(client.subscriptions, id);
+            object method = client.getSubscription(id);
             ((IDictionary<string,object>)client.subscriptions).Remove(id);
             if (!(method is true))
             {

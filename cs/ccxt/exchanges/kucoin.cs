@@ -4980,7 +4980,7 @@ public partial class kucoin : Exchange
             string? sizeString = this.amountToPrecision(symbol, amount);
             if ((sizeString != null))
             {
-                request["size"] = parseInt(sizeString);
+                request["size"] = JsParse.parseInt(sizeString);
             }
         }
         IList<object> triggerPricestopLossPricetakeProfitPriceVariable = (IList<object>)this.handleTriggerPrices(paramsOmitted);
@@ -8776,7 +8776,7 @@ public partial class kucoin : Exchange
         string? amountString = this.currencyToPrecision(code, amount, networkCode);
         if ((amountString != null))
         {
-            request["amount"] = parseFloat(amountString);
+            request["amount"] = JsParse.parseFloat(amountString);
         }
         (bool?, object) includeFeeparamsIncludeFeeVariable = this.handleOptionBoolAndParams(paramsNetworkCode, "withdraw", "includeFee", false);
         bool? includeFee = includeFeeparamsIncludeFeeVariable.Item1;

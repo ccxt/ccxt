@@ -1698,7 +1698,7 @@ public partial class cex : ccxt.cex
         } catch(Exception error)
         {
             string? messageHash = this.safeString(message, "oid");
-            Future future = ((Future)this.safeValue(client.futures, messageHash));
+            Future future = client.getFuture(messageHash);
             if ((future != null))
             {
                 client.reject(error, messageHash);
@@ -1761,7 +1761,7 @@ public partial class cex : ccxt.cex
         //         "timestamp":1448034593
         //     }
         //
-        Future future = ((Future)this.safeValue(client.futures, "authenticated"));
+        Future future = client.getFuture("authenticated");
         if ((future != null))
         {
             (future as Future).resolve(true);

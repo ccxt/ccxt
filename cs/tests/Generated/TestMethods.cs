@@ -1451,7 +1451,7 @@ public partial class testMainClass
                 tests["fetchPositions"] = new List<object>() {symbol}; // this test fetches all positions for 1 symbol
                 tests["fetchPosition"] = new List<object>() {symbol};
                 tests["fetchPositionRisk"] = new List<object>() {symbol};
-                tests["setPositionMode"] = new List<object>() {symbol};
+                tests["setPositionMode"] = new List<object>() {false, symbol};
                 tests["setMarginMode"] = new List<object>() {symbol};
                 tests["fetchOpenInterestHistory"] = new List<object>() {symbol};
                 tests["fetchFundingRateHistory"] = new List<object>() {symbol};

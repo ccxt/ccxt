@@ -2894,7 +2894,7 @@ public partial class okx : ccxt.okx
         //
         //     { event: "login", success: true }
         //
-        Future future = ((Future)this.safeValue(client.futures, "authenticated"));
+        Future future = client.getFuture("authenticated");
         (future as Future).resolve(true);
     }
 

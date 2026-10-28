@@ -1419,7 +1419,7 @@ public partial class onetrading : ccxt.onetrading
         //        "time": "2022-06-24T20:45:25.447488Z"
         //    }
         //
-        Future future = ((Future)this.safeValue(client.futures, "authenticated"));
+        Future future = client.getFuture("authenticated");
         if ((future != null))
         {
             (future as Future).resolve(true);

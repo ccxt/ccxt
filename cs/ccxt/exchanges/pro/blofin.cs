@@ -1116,7 +1116,7 @@ public partial class blofin : ccxt.blofin
                 return;
             } else if (eventVar == "login")
             {
-                Future future = ((Future)this.safeValue(client.futures, "authenticate_hash"));
+                Future future = client.getFuture("authenticate_hash");
                 (future as Future).resolve(true);
                 return;
             } else if (eventVar == "error")

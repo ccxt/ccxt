@@ -1467,7 +1467,7 @@ public partial class BaseExchange
         throw new NotSupported ((this.id + " fetchLongShortRatioHistory() is not supported yet")) ;
     }
 
-    public async virtual Task<List<ccxt.MarginModification>> FetchMarginAdjustmentHistory(string symbol = null, string type = null, object since = null, object limit = null, object parameters = null)
+    public async virtual Task<List<ccxt.MarginModification>> FetchMarginAdjustmentHistory(string symbol = null, string type = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((this.id + " fetchMarginAdjustmentHistory() is not supported yet")) ;
@@ -1519,7 +1519,7 @@ public partial class BaseExchange
         // the cast is erased at transpile-time, so output matches every target language, rather than
         // branching to a bare `NaN` literal, which has no symbol in Go/Java/C#
         string stringifiedNumber = this.numberToString(number);
-        object convertedNumber = ((object)parseFloat(stringifiedNumber));
+        object convertedNumber = ((object)JsParse.parseFloat(stringifiedNumber));
         return ((Int64?)((object)(parseInt(convertedNumber))));
     }
 
@@ -1532,9 +1532,9 @@ public partial class BaseExchange
         // in PHP:    1 == 1.0 is true, but 1 === 1.0 is false.
         if (stringVersion.IndexOf(".", StringComparison.Ordinal) >= 0)
         {
-            return parseFloat(stringVersion);
+            return JsParse.parseFloat(stringVersion);
         }
-        return parseInt(stringVersion);
+        return JsParse.parseInt(stringVersion);
     }
 
     public virtual bool isRoundNumber(object value)
@@ -1586,7 +1586,7 @@ public partial class BaseExchange
         bool? isSandbox = this.safeBool2(this.options, "sandbox", "testnet", false);
         if ((isSandbox == true))
         {
-            this.setSandboxMode(isSandbox);
+            this.setSandboxMode(true);
         }
         // compatibility for sandbox/testnet options in userConfig
         if ((this.safeBool(userConfig, "sandbox", false) == true) || (this.safeBool(userConfig, "testnet", false) == true))
@@ -5653,7 +5653,7 @@ public partial class BaseExchange
         throw new NotSupported ((this.id + " unWatchFundingRate() is not supported yet")) ;
     }
 
-    public async virtual Task<ccxt.Order> CreateTwapOrder(string symbol, string side, double amount, object duration, object parameters = null)
+    public async virtual Task<ccxt.Order> CreateTwapOrder(string symbol, string side, double amount, double duration, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((this.id + " createTwapOrder() is not supported yet")) ;
@@ -6277,7 +6277,7 @@ public partial class BaseExchange
             {
                 return null;
             }
-            Int64? positivePrecision = parseInt(positivePrecisionString);
+            Int64? positivePrecision = JsParse.parseInt(positivePrecisionString);
             string parsedPrecision = "1";
             for (int i = 0; isLessThan(i, ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? (hx4x.GetType() == typeof(Int64) ? (object)((Int64)hx4x - (Int64)hx4y) : hx4x.GetType() == typeof(double) ? (object)((double)hx4x - Convert.ToDouble(hx4y)) : null) : null))(positivePrecision, 1)); i++)
             {
@@ -7406,7 +7406,7 @@ public partial class BaseExchange
         return new List<object>() {};
     }
 
-    public async virtual Task<object> fetchPaginatedCallDeterministic(object method, object symbol = null, object since = null, object limit = null, string timeframe = null, object parameters = null, object maxEntriesPerRequest = null)
+    public async virtual Task<object> fetchPaginatedCallDeterministic(object method, object symbol = null, Int64? since = null, object limit = null, string timeframe = null, object parameters = null, object maxEntriesPerRequest = null)
     {
         parameters ??= new Dictionary<string, object>();
         int maxCalls = 10;
@@ -7451,7 +7451,7 @@ public partial class BaseExchange
             {
                 throw new ArgumentsRequired ((this.id + " fetchPaginatedCallDeterministic() requires a since argument when until is set")) ;
             }
-            double requiredCalls = Math.Ceiling(Convert.ToDouble(divide((((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? (hx4x.GetType() == typeof(Int64) ? (object)((Int64)hx4x - (Int64)hx4y) : hx4x.GetType() == typeof(double) ? (object)((double)hx4x - Convert.ToDouble(hx4y)) : null) : null))(until, since)), step)));
+            double requiredCalls = Math.Ceiling(Convert.ToDouble(((double?)((until - since)) / step)));
             if (((maxCallsLimit == null || requiredCalls > maxCallsLimit)))
             {
                 throw new BadRequest (((((this.id + " the number of required calls is greater than the max number of calls allowed, either increase the paginationCalls or decrease the since-until gap. Current paginationCalls limit is ") + ((object)maxCallsLimit).ToString()) + " required calls is ") + ((object)requiredCalls).ToString())) ;

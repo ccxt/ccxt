@@ -854,7 +854,7 @@ public partial class blockchaincom : ccxt.blockchaincom
         {
             throw new AuthenticationError (((this.id + " received an authentication error: ") + this.json(message))) ;
         }
-        Future future = ((Future)this.safeValue(client.futures, "authenticated"));
+        Future future = client.getFuture("authenticated");
         if ((future != null))
         {
             (future as Future).resolve(true);

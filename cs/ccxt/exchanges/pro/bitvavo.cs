@@ -998,7 +998,7 @@ public partial class bitvavo : ccxt.bitvavo
             string messageHash = ((name + "@") + this.safeString(marketIds, i, ""));
             if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
             {
-                object subscription = this.safeValue(client.subscriptions, messageHash);
+                object subscription = client.getSubscription(messageHash);
                 object method = this.safeValue(subscription, "method");
                 if ((method != null))
                 {
@@ -1058,7 +1058,7 @@ public partial class bitvavo : ccxt.bitvavo
             {
                 continue;
             }
-            object subscription = this.safeValue(client.subscriptions, key);
+            object subscription = client.getSubscription(key);
             string subHash = key.Replace("unsubscribe:", (string)"");
             this.cleanCache(subscription);
             this.cleanUnsubscription(client, subHash, key);

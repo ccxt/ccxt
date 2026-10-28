@@ -1980,7 +1980,7 @@ public partial class krakenfutures : ccxt.krakenfutures
             string signature = this.hmac(hashedChallenge, base64Secret, sha512, "base64");
             this.options["challenge"] = challenge;
             this.options["signedChallenge"] = signature;
-            Future future = ((Future)this.safeValue(client.futures, messageHash));
+            Future future = client.getFuture(messageHash);
             (future as Future).resolve(true);
         } else
         {

@@ -1309,7 +1309,7 @@ public partial class derive : ccxt.derive
         if (idsLength > 0)
         {
             // client.resolve (message, messageHash);
-            Future future = ((Future)this.safeValue(client.futures, "authenticated"));
+            Future future = client.getFuture("authenticated");
             (future as Future).resolve(true);
         } else
         {

@@ -128,7 +128,7 @@ public partial class paradex : ccxt.paradex
         //     }
         //
         // the future stays resolved, so later private watches on this connection skip the auth request
-        Future future = ((Future)this.safeValue(client.futures, "authenticated"));
+        Future future = client.getFuture("authenticated");
         if ((future != null))
         {
             (future as Future).resolve(true);

@@ -1269,7 +1269,7 @@ public partial class apex : ccxt.apex
         string messageHash = "authenticated";
         if (((success == true)) || ((code == 0)))
         {
-            Future future = ((Future)this.safeValue(client.futures, messageHash));
+            Future future = client.getFuture(messageHash);
             (future as Future).resolve(true);
         } else
         {

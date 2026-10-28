@@ -3843,7 +3843,7 @@ public partial class binance : ccxt.binance
         // don't remove the future from the .futures cache
         if ((client.futures != null && messageHash != null && client.futures.ContainsKey((string)messageHash)))
         {
-            Future future = ((Future)this.safeValue(client.futures, messageHash));
+            Future future = client.getFuture(messageHash?.ToString());
             (future as Future).resolve();
             client.resolve((this.balance != null && type != null && this.balance.ContainsKey((string)type) ? this.balance[(string)type] : null), add(type, ":balance"));
         }
@@ -5950,7 +5950,7 @@ public partial class binance : ccxt.binance
         // don't remove the future from the .futures cache
         if ((client.futures != null && messageHash != null && client.futures.ContainsKey((string)messageHash)))
         {
-            Future future = ((Future)this.safeValue(client.futures, messageHash));
+            Future future = client.getFuture(messageHash?.ToString());
             (future as Future).resolve(cache);
             client.resolve(cache, add(type, ":position"));
         }
@@ -6445,7 +6445,7 @@ public partial class binance : ccxt.binance
                                     {
                                         feeCostString = "0";
                                     }
-                                    ((IDictionary<string,object>)getValue((order != null && order.ContainsKey("fees") ? order["fees"] : null), i))["cost"] = parseFloat(feeCostString);
+                                    ((IDictionary<string,object>)getValue((order != null && order.ContainsKey("fees") ? order["fees"] : null), i))["cost"] = JsParse.parseFloat(feeCostString);
                                     insertNewFeeCurrency = false;
                                     break;
                                 }
@@ -6464,7 +6464,7 @@ public partial class binance : ccxt.binance
                                 {
                                     feeCostString = "0";
                                 }
-                                ((IDictionary<string,object>)(order != null && order.ContainsKey("fee") ? order["fee"] : null))["cost"] = parseFloat(feeCostString);
+                                ((IDictionary<string,object>)(order != null && order.ContainsKey("fee") ? order["fee"] : null))["cost"] = JsParse.parseFloat(feeCostString);
                             } else if (((fee != null && fee.ContainsKey("currency") ? fee["currency"] : null) == null))
                             {
                                 order["fee"] = tradeFee;

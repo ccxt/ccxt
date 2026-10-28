@@ -1185,7 +1185,7 @@ public partial class bitfinex : ccxt.bitfinex
         if (status == "OK")
         {
             // we resolve the future here permanently so authentication only happens once
-            Future future = ((Future)this.safeValue(client.futures, messageHash));
+            Future future = client.getFuture(messageHash);
             (future as Future).resolve(true);
         } else
         {

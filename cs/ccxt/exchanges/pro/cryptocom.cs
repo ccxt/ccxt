@@ -1669,7 +1669,7 @@ public partial class cryptocom : ccxt.cryptocom
         //
         //  { id: 1648132625434, method: "public/auth", code: 0 }
         //
-        Future future = ((Future)this.safeValue(client.futures, "authenticated"));
+        Future future = client.getFuture("authenticated");
         (future as Future).resolve(true);
     }
 
@@ -1686,7 +1686,7 @@ public partial class cryptocom : ccxt.cryptocom
             }
             if (messageHash.StartsWith("unsubscribe"))
             {
-                object subscription = this.safeValue(client.subscriptions, messageHash);
+                object subscription = client.getSubscription(messageHash);
                 string? subId = this.safeString(subscription, "id");
                 if ((id != subId))
                 {

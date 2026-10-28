@@ -2393,7 +2393,7 @@ public partial class gate : ccxt.gate
         if (((channel != null) && (methods?.ContainsKey(channel) == true)))
         {
             string? subscriptionHash = this.safeString(client.subscriptions, id);
-            object subscription = this.safeValue(client.subscriptions, subscriptionHash);
+            object subscription = client.getSubscription(subscriptionHash);
             object method = (channel != null && methods.ContainsKey(channel) ? methods[channel] : null);
             DynamicInvoker.InvokeMethod(method, new object[] { client, message, subscription});
         }
@@ -2767,7 +2767,7 @@ public partial class gate : ccxt.gate
     public virtual void handleAuthenticationMessage(WebSocketClient client, Dictionary<string, object> message)
     {
         string messageHash = "authenticated";
-        Future future = ((Future)this.safeValue(client.futures, messageHash));
+        Future future = client.getFuture(messageHash);
         (future as Future).resolve(true);
     }
 

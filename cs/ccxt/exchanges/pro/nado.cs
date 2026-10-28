@@ -1931,7 +1931,7 @@ public partial class nado : ccxt.nado
                     ((IDictionary<string,object>)client.subscriptions).Remove(subscriptionHash);
                 }
             }
-            object subscriptionMsg = this.safeValue(client.subscriptions, messageHash);
+            object subscriptionMsg = client.getSubscription(messageHash);
             if ((subscriptionMsg != null))
             {
                 ((IDictionary<string,object>)client.subscriptions).Remove(messageHash);
@@ -1972,7 +1972,7 @@ public partial class nado : ccxt.nado
             return;
         }
         string messageHash = ("execute:" + id);
-        object subscription = this.safeValue(client.subscriptions, messageHash);
+        object subscription = client.getSubscription(messageHash);
         if ((subscription != null))
         {
             ((IDictionary<string,object>)client.subscriptions).Remove(messageHash);
@@ -2163,7 +2163,7 @@ public partial class nado : ccxt.nado
         if ((id != null))
         {
             string executeHash = ("execute:" + id);
-            object executeSubscription = this.safeValue(client.subscriptions, executeHash);
+            object executeSubscription = client.getSubscription(executeHash);
             if ((executeSubscription != null))
             {
                 ((IDictionary<string,object>)client.subscriptions).Remove(executeHash);

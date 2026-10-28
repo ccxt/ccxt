@@ -9797,12 +9797,12 @@ public partial class okx : Exchange
      * @param {int} [params.until] the latest time in ms of the entries to fetch
      * @returns {object[]} the request and the remaining params
      */
-    public virtual object handleTradingStatisticsWindow(IDictionary<string, object> request, object period, object since = null, object limit = null, object parameters = null)
+    public virtual object handleTradingStatisticsWindow(IDictionary<string, object> request, object period, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         int maxLimit = 100;
         object effectiveLimit = this.parseToInt(100);
-        if (((limit != null)) && (isGreaterThan(100, limit)))
+        if (((limit != null)) && ((100 > limit)))
         {
             effectiveLimit = limit;
         }
@@ -9812,7 +9812,7 @@ public partial class okx : Exchange
         }
         if ((since != null))
         {
-            request["begin"] = ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? (hx4x.GetType() == typeof(Int64) ? (object)((Int64)hx4x - (Int64)hx4y) : hx4x.GetType() == typeof(double) ? (object)((double)hx4x - Convert.ToDouble(hx4y)) : null) : null))(since, 1);
+            request["begin"] = (since - 1);
         }
         Int64? until = this.safeInteger(parameters, "until");
         IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "until"));
@@ -11208,7 +11208,7 @@ public partial class okx : Exchange
      * @param {boolean} [params.auto] true if fetching auto margin increases
      * @returns {object[]} a list of [margin structures]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    public async override Task<List<ccxt.MarginModification>> FetchMarginAdjustmentHistory(string symbol = null, string type = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.MarginModification>> FetchMarginAdjustmentHistory(string symbol = null, string type = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -11254,10 +11254,10 @@ public partial class okx : Exchange
         Int64 now = this.milliseconds();
         Int64 oneWeekAgo = (now - 604800000);
         Int64 threeMonthsAgo = (now - 7776000000);
-        if (((since == null)) || (isGreaterThan(since, oneWeekAgo)))
+        if (((since == null)) || ((since != null && since > oneWeekAgo)))
         {
             response = await this.privateGetAccountBills(this.extend(request, paramsOmitted));
-        } else if (isGreaterThan(since, threeMonthsAgo))
+        } else if ((since > threeMonthsAgo))
         {
             response = await this.privateGetAccountBillsArchive(this.extend(request, paramsOmitted));
         } else

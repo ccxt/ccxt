@@ -665,7 +665,7 @@ public partial class modetrade : ccxt.modetrade
         if ((success == true))
         {
             // client.resolve (message, messageHash);
-            Future future = ((Future)this.safeValue(client.futures, "authenticated"));
+            Future future = client.getFuture("authenticated");
             (future as Future).resolve(true);
         } else
         {
@@ -1222,7 +1222,7 @@ public partial class modetrade : ccxt.modetrade
             }
         }
         // don't remove the future from the .futures cache
-        Future future = ((Future)this.safeValue(client.futures, messageHash));
+        Future future = client.getFuture(messageHash?.ToString());
         if ((future != null))
         {
             (future as Future).resolve(cache);

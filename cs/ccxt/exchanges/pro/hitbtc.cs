@@ -1616,7 +1616,7 @@ public partial class hitbtc : ccxt.hitbtc
         string messageHash = "authenticated";
         if ((success == true))
         {
-            Future future = ((Future)this.safeValue(client.futures, messageHash));
+            Future future = client.getFuture(messageHash);
             (future as Future).resolve(true);
         } else
         {
