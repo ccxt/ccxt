@@ -638,7 +638,7 @@ class delta(Exchange, ImplicitAPI):
         keys = list(input.keys())
         for i in range(0, len(keys)):
             key = keys[i]
-            item = input[key]
+            item = self.safe_dict(input, key, {})
             numericIdString = self.safe_string(item, 'numericId')
             if numericIdString is None:
                 continue

@@ -1625,7 +1625,7 @@ class bingx(ccxt.async_support.bingx):
         marketId = self.safe_string(result, 's')
         market = self.safe_market(marketId, None, '-', type)
         parsed = self.parse_trade(result, market)
-        symbol = self.safe_string(parsed, 'symbol')
+        symbol = self.safe_string(parsed, 'symbol', '')
         spotHash = 'spot:mytrades'
         swapHash = 'swap:mytrades'
         messageHash = swapHash

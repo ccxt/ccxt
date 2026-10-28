@@ -836,7 +836,7 @@ class deribit(ccxt.async_support.deribit):
         stored.append(parsed)
         self.ohlcvs[symbol][unifiedTimeframe] = stored
         resolveData = [symbol, unifiedTimeframe, stored]
-        messageHash = 'chart.trades|' + symbol + '|' + rawTimeframe
+        messageHash = 'chart.trades|' + symbol + '|' + self.safe_string(parts, 3, '')
         client.resolve(resolveData, messageHash)
 
     def parse_ws_ohlcv(self, ohlcv: object, market: Market = None) -> list:

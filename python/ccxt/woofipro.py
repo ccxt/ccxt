@@ -1183,7 +1183,7 @@ class woofipro(Exchange, ImplicitAPI):
         for i in range(0, len(rows)):
             row = rows[i]
             marketId = self.safe_string(row, 'symbol', '')
-            if self.safe_value(self.markets_by_id, marketId) is None:
+            if (self.markets_by_id is None) or not (marketId in self.markets_by_id):
                 continue  # the endpoint returns entries for markets missing from public/info, e.g. pre-TGE symbols
             ticker = self.extend({'timestamp': timestamp}, row)
             result.append(self.parse_ticker(ticker))
@@ -1289,7 +1289,7 @@ class woofipro(Exchange, ImplicitAPI):
         for i in range(0, len(rows)):
             row = rows[i]
             marketId = self.safe_string(row, 'symbol', '')
-            if self.safe_value(self.markets_by_id, marketId) is None:
+            if (self.markets_by_id is None) or not (marketId in self.markets_by_id):
                 continue  # the endpoint returns entries for markets missing from public/info, e.g. pre-TGE symbols
             interest = self.extend({'timestamp': timestamp}, row)
             result.append(self.parse_open_interest(interest))

@@ -261,12 +261,13 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
             if expiry != '':
                 expiryParts = expiry.split('-')
                 expiryDate = expiryParts[0]
-            base = underlying.upper()
+            targetPart = ''
             if targetPrice != '':
-                base = base + '_ABOVE_' + targetPrice
+                targetPart = '_ABOVE_' + targetPrice
+            expiryPart = ''
             if expiryDate != '':
-                base = base + '_' + expiryDate
-            return base
+                expiryPart = '_' + expiryDate
+            return underlying.upper() + targetPart + expiryPart
         questionDescription = self.safe_string(question, 'description')
         if (questionDescription is not None) and (questionDescription != ''):
             questionDesc = self.parse_outcome_description(questionDescription)
@@ -278,6 +279,9 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
                 if questionExpiry != '':
                     questionExpiryParts = questionExpiry.split('-')
                     questionExpiryDate = questionExpiryParts[0]
+                questionExpiryPart = ''
+                if questionExpiryDate != '':
+                    questionExpiryPart = '_' + questionExpiryDate
                 thresholdsRaw = self.safe_string(questionDesc, 'priceThresholds', '')
                 indexStr = self.safe_string(desc, 'index')
                 rawDescription = self.safe_string_lower(desc, 'description', '')
@@ -300,16 +304,10 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
                             bucketLabel = 'ABOVE_' + thresholds[lastIdx]
                         else:
                             bucketLabel = 'BETWEEN_' + thresholds[index - 1] + '_' + thresholds[index]
-                        base = questionUnderlying.upper() + '_' + bucketLabel
-                        if questionExpiryDate != '':
-                            base = base + '_' + questionExpiryDate
-                        return base
+                        return questionUnderlying.upper() + '_' + bucketLabel + questionExpiryPart
                 isFallbackLike = (rawDescription == 'other') or (nameLower.find('fallback') >= 0) or (nameLower.find('other') >= 0)
                 if (questionUnderlying is not None and questionUnderlying != '') and isFallbackLike:
-                    base = questionUnderlying.upper() + '_OTHER'
-                    if questionExpiryDate != '':
-                        base = base + '_' + questionExpiryDate
-                    return base
+                    return questionUnderlying.upper() + '_OTHER' + questionExpiryPart
         questionName = self.safe_string(question, 'name')
         if (questionName is not None) and (questionName != ''):
             questionSlug = self.shorten_slug(questionName)

@@ -563,6 +563,7 @@ class grvt(ccxt.async_support.grvt):
         market = self.safe_market(marketId)
         symbol = self.safe_string(market, 'symbol', '')
         timestamp = self.safe_integer_product(data, 'event_time', 0.000001)
+        messageHash = 'orderbook::' + symbol
         if not (symbol in self.orderbooks):
             self.orderbooks[symbol] = self.order_book()
         orderbook = self.orderbooks[symbol]
@@ -589,7 +590,6 @@ class grvt(ccxt.async_support.grvt):
         # unconditional assignment is correct for every language.
         orderbook['symbol'] = symbol
         orderbook['nonce'] = sequenceNumber
-        messageHash = 'orderbook::' + symbol
         self.orderbooks[symbol] = orderbook
         client.resolve(orderbook, messageHash)
 

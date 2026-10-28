@@ -917,7 +917,7 @@ class xt(ccxt.async_support.xt):
             if symbol is not None:
                 self.tickers[symbol] = ticker
             newTickers.append(ticker)
-        messageHashStart = self.safe_string(message, 'topic') + '::' + tradeType
+        messageHashStart = self.safe_string(message, 'topic', '') + '::' + tradeType
         messageHashes = self.find_message_hashes(client, messageHashStart + '::')
         for i in range(0, len(messageHashes)):
             messageHash = messageHashes[i]

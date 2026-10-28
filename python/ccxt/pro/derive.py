@@ -944,7 +944,7 @@ class derive(ccxt.async_support.derive):
         #     }
         #
         params = self.safe_dict(message, 'params')
-        topic = self.safe_string(params, 'channel')
+        topic = self.safe_string(params, 'channel', '')
         topicParts = topic.split('.')
         subaccountIdKey = self.safe_string(topicParts, 0)
         data = self.safe_list(params, 'data', [])

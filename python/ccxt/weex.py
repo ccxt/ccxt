@@ -1583,9 +1583,11 @@ class weex(Exchange, ImplicitAPI):
         if useHistory:
             if priceType is not None:
                 request['priceType'] = priceType
-            startTime = since
-            endTime = until
             now = self.milliseconds()
+            startTime = since
+            endTime = now
+            if until is not None:
+                endTime = until
             if (since is None) or (until is None):
                 duration = self.parse_to_int(self.parse_timeframe(timeframe) * 1000)
                 # the history endpoint returns at most maxHistoricalLimit candles and serves the
@@ -1606,7 +1608,7 @@ class weex(Exchange, ImplicitAPI):
                     # this.sum, a bare + is string concatenation in the php port
                     endTime = self.sum(since, timeDelta)
             # the endpoint rejects an endTime in the future (-1142), which a recent since would produce
-            if (endTime is not None) and (endTime > now):
+            if endTime > now:
                 endTime = now
             request['startTime'] = startTime
             request['endTime'] = endTime

@@ -900,7 +900,7 @@ class paradex(Exchange, ImplicitAPI):
                 sinceInt = self.parse_to_int(since)
                 requestUntil['end_at'] = sinceInt + windowLength - 1
         else:
-            endAtRaw = self.safe_integer(requestUntil, 'end_at', 0) if hasEnd else self.milliseconds()
+            endAtRaw = self.safe_integer(requestUntil, 'end_at', self.milliseconds())
             endAt = self.parse_to_int(endAtRaw)
             requestUntil['end_at'] = endAt
             requestUntil['start_at'] = endAt - windowLength + 1

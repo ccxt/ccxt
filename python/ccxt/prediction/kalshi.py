@@ -929,14 +929,11 @@ class kalshi(PredictionExchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles to fetch (discover them via fetchEvents ())')
         # batch-resolve the uncached outcomes (one markets request per 100 tickers)
         await self.load_outcomes(outcomes)
-        targets = []
-        for i in range(0, len(outcomes)):
-            targets.append(outcomes[i])
         # group requested outcomes by their market ticker, yes and no outcomes share one market
         outcomesByTicker = {}
         tickers = []
-        for i in range(0, len(targets)):
-            outcomeObj = self.outcome(targets[i])
+        for i in range(0, len(outcomes)):
+            outcomeObj = self.outcome(outcomes[i])
             ticker = self.safe_string(outcomeObj['info'], 'ticker')
             if ticker is None:
                 continue
