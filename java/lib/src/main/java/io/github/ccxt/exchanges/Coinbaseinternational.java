@@ -4074,7 +4074,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         return ((this.apiKey.length() == 8)) && ((this.secret.length() == 43));
     }
 
-    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
+    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, String requestBody)
     {
         //
         //     { "jsonrpc": "2.0", "id": 1, "error": { "code": 13004, "message": "invalid_credentials" } }

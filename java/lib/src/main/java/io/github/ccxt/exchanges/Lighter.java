@@ -4290,7 +4290,7 @@ public class Lighter extends LighterApi
         }
     }
 
-    public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
+    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, String requestBody)
     {
         if ((java.util.Objects.equals(response, null)) || (java.util.Objects.equals(response, null)))
         {
@@ -4302,13 +4302,13 @@ public class Lighter extends LighterApi
         //         "message": "string"
         //     }
         //
-        String code = this.safeString(response, "code");
+        String codeError = this.safeString(response, "code");
         String message = this.safeString(response, "message");
-        if (!java.util.Objects.equals(code, null) && !java.util.Objects.equals(code, "0") && !java.util.Objects.equals(code, "200"))
+        if (!java.util.Objects.equals(codeError, null) && !java.util.Objects.equals(codeError, "0") && !java.util.Objects.equals(codeError, "200"))
         {
             String feedback = ((this.id + " ") + body);
             this.throwBroadlyMatchedException(this.exceptions.get("broad"), message, feedback);
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), code, feedback);
+            this.throwExactlyMatchedException(this.exceptions.get("exact"), codeError, feedback);
             throw new ExchangeError(feedback) ;
         }
         return null;

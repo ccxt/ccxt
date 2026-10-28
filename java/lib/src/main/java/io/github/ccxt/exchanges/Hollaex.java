@@ -2412,7 +2412,7 @@ public class Hollaex extends HollaexApi
         }
     }
 
-    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
+    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, String requestBody)
     {
         // { "message": "Invalid token" }
         if (java.util.Objects.equals(response, null))

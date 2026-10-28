@@ -9491,7 +9491,7 @@ public class Htx extends HtxApi
         }
     }
 
-    public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
+    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {
@@ -9506,10 +9506,10 @@ public class Htx extends HtxApi
             String status = this.safeString(response, "status");
             if (java.util.Objects.equals(status, "error"))
             {
-                String code = this.safeString2(response, "err-code", "err_code");
+                String codeError = this.safeString2(response, "err-code", "err_code");
                 String feedback = ((this.id + " ") + body);
                 this.throwBroadlyMatchedException(this.exceptions.get("broad"), body, feedback);
-                this.throwExactlyMatchedException(this.exceptions.get("exact"), code, feedback);
+                this.throwExactlyMatchedException(this.exceptions.get("exact"), codeError, feedback);
                 String message = this.safeString2(response, "err-msg", "err_msg");
                 this.throwExactlyMatchedException(this.exceptions.get("exact"), message, feedback);
                 throw new ExchangeError(feedback) ;
@@ -9519,8 +9519,8 @@ public class Htx extends HtxApi
         {
             // {code: '1003', message: 'invalid signature'}
             String feedback = ((this.id + " ") + body);
-            String code = this.safeString(response, "code");
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), code, feedback);
+            String codeError = this.safeString(response, "code");
+            this.throwExactlyMatchedException(this.exceptions.get("exact"), codeError, feedback);
         }
         Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", (Object) null);
         List<Object> errorsList = (List<Object>) this.safeList(data, "errors", (Object) null);

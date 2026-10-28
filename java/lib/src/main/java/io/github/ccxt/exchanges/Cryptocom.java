@@ -4463,7 +4463,7 @@ public class Cryptocom extends CryptocomApi
         }
     }
 
-    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
+    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, String requestBody)
     {
         String errorCode = this.safeString(response, "code");
         if (!java.util.Objects.equals(errorCode, "0"))

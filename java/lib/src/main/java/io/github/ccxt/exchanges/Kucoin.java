@@ -2405,8 +2405,7 @@ public class Kucoin extends KucoinApi
             }
             if (Boolean.TRUE.equals(fetchContractMarkets))
             {
-                List<Object> contractMarkets = (List<Object>) this.safeList(responses, contractIndex, new ArrayList<Object>(Arrays.asList()));
-                result = (List<Object>) this.arrayConcat(result, contractMarkets);
+                result = (List<Object>) this.arrayConcat(result, this.safeList(responses, contractIndex, new ArrayList<Object>(Arrays.asList())));
             }
             if (Boolean.TRUE.equals(this.safeBool(this.options, "adjustForTimeDifference", false)))
             {
@@ -2906,9 +2905,8 @@ public class Kucoin extends KucoinApi
                 //
                 response = (this.publicGetCurrencies(paramsUta)).join();
             }
-            List<Object> currenciesData = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Object brokenCurrencies = this.handleOption("fetchCurrencies", "brokenCurrencies", new ArrayList<Object>(Arrays.asList()));
-            Object filteredCurrencies = this.filterOutByArray(currenciesData, "currency", brokenCurrencies, true); // remove broken entries
+            Object filteredCurrencies = this.filterOutByArray(this.safeList(response, "data", new ArrayList<Object>(Arrays.asList())), "currency", brokenCurrencies, true); // remove broken entries
             return this.parseCurrencies(filteredCurrencies);
         });
 
@@ -3012,8 +3010,7 @@ public class Kucoin extends KucoinApi
                 //         }
                 //     }
                 //
-                Map<String, Object> dataDict = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-                data = new ArrayList<Object>(Arrays.asList(dataDict));
+                data = new ArrayList<Object>(Arrays.asList(this.safeDict(response, "data", new HashMap<String, Object>() {{}})));
             } else
             {
                 //
@@ -5628,9 +5625,10 @@ public class Kucoin extends KucoinApi
             }
             Boolean isSpot = false;
             Boolean isContract = false;
-            for (var i = 0; i < ((List<?>)orders).size(); i++)
+            List<Object> ordersList = this.toArray(orders);
+            for (var i = 0; i < ((List<?>)ordersList).size(); i++)
             {
-                Map<String, Object> order = (Map<String, Object>) this.safeDict(orders, i, (Object) null);
+                Map<String, Object> order = (Map<String, Object>) this.safeDict(ordersList, i, (Object) null);
                 String symbol = this.safeString(order, "symbol");
                 if (java.util.Objects.equals(symbol, null))
                 {
@@ -5686,9 +5684,10 @@ public class Kucoin extends KucoinApi
             }
             List<Object> ordersRequests = new ArrayList<Object>(Arrays.asList());
             String symbol = null;
-            for (var i = 0; i < ((List<?>)orders).size(); i++)
+            List<Object> ordersList = this.toArray(orders);
+            for (var i = 0; i < ((List<?>)ordersList).size(); i++)
             {
-                Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(orders, i, (Object) null);
+                Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(ordersList, i, (Object) null);
                 String marketId = this.safeString(rawOrder, "symbol");
                 if (java.util.Objects.equals(marketId, null))
                 {
@@ -5798,9 +5797,10 @@ public class Kucoin extends KucoinApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             List<Object> ordersRequests = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)orders).size(); i++)
+            List<Object> ordersList = this.toArray(orders);
+            for (var i = 0; i < ((List<?>)ordersList).size(); i++)
             {
-                Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(orders, i, (Object) null);
+                Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(ordersList, i, (Object) null);
                 String symbol = this.safeString(rawOrder, "symbol");
                 if (java.util.Objects.equals(symbol, null))
                 {
@@ -12985,9 +12985,10 @@ public class Kucoin extends KucoinApi
                 mapLiteral18.put("clientOid", this.safeString(clientOrderIds, i));
                 ((List<Object>)ordersRequests).add(mapLiteral18);
             }
-            for (var i = 0; i < ((List<?>)ids).size(); i++)
+            List<Object> idsList = this.toArray(ids);
+            for (var i = 0; i < ((List<?>)idsList).size(); i++)
             {
-                String orderId = this.safeString(ids, i);
+                String orderId = this.safeString(idsList, i);
                 if (Boolean.TRUE.equals(uta))
                 {
                     HashMap<String, Object> mapLiteral19 = new HashMap<String, Object>();
@@ -13988,7 +13989,7 @@ public class Kucoin extends KucoinApi
         }
     }
 
-    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
+    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, String requestBody)
     {
         if ((java.util.Objects.equals(response, null)) || (java.util.Objects.equals(response, null)))
         {
@@ -14002,9 +14003,8 @@ public class Kucoin extends KucoinApi
         //     { code: '200000', data: { ... }}
         //
         String errorCode = this.safeString(response, "code");
-        String message = this.safeString2(response, "msg", "data", "");
         String feedback = ((this.id + " ") + body);
-        this.throwExactlyMatchedException(this.exceptions.get("exact"), message, feedback);
+        this.throwExactlyMatchedException(this.exceptions.get("exact"), this.safeString2(response, "msg", "data", ""), feedback);
         this.throwExactlyMatchedException(this.exceptions.get("exact"), errorCode, feedback);
         this.throwBroadlyMatchedException(this.exceptions.get("broad"), body, feedback);
         if (!java.util.Objects.equals(errorCode, "200000") && !java.util.Objects.equals(errorCode, "200"))

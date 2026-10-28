@@ -2968,18 +2968,18 @@ public class Predictfun extends PredictfunApi
      * @method
      * @name predictfun#handleErrors
      * @description maps the venue's error slugs and messages onto the unified exceptions
-     * @param {int} statusCode the http status code
-     * @param {string} statusText the http status text
+     * @param {int} code the http status code
+     * @param {string} reason the http status text
      * @param {string} url the request url
      * @param {string} method the http method
-     * @param {object} responseHeaders the response headers
-     * @param {string} responseBody the raw response body
+     * @param {object} headers the response headers
+     * @param {string} body the raw response body
      * @param {object} response the parsed response
      * @param {object} requestHeaders the request headers
      * @param {object} requestBody the request body
      * @returns {undefined} nothing, it throws when the venue reported a failure
      */
-    public Object handleErrors(Object statusCode, Object statusText, Object url, Object method, Object responseHeaders, Object responseBody, Object response, Object requestHeaders, Object requestBody)
+    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {
@@ -2990,7 +2990,7 @@ public class Predictfun extends PredictfunApi
         {
             return null;
         }
-        String feedback = ((this.id + " ") + responseBody);
+        String feedback = ((this.id + " ") + body);
         // the message is matched first because it is the more specific of the two: several
         // distinct failures share a generic slug, notably 'unauthorized', which the venue also
         // returns for a hash belonging to another wallet, and 'not_found' for an unknown market
@@ -3000,7 +3000,7 @@ public class Predictfun extends PredictfunApi
         // order - that case is matched above and has already thrown, so reaching here with a 401
         // means the credential itself was refused. drop the cached JWT, otherwise a token revoked
         // or aged out before its window closes is replayed for the life of the process
-        if ((statusCode != null && ((Number) statusCode).doubleValue() == 401))
+        if ((code != null && ((Number) code).doubleValue() == 401))
         {
             this.options.remove("jwtToken");
             this.options.put("jwtTokenExpiresAt", 0);
@@ -3009,7 +3009,7 @@ public class Predictfun extends PredictfunApi
         this.throwExactlyMatchedException(this.exceptions.get("exact"), error, feedback);
         // a 400 is a rejected request or a business rule, not a transport outage - the base would
         // otherwise map the bare status onto a retryable network error
-        if ((statusCode != null && ((Number) statusCode).doubleValue() == 400))
+        if ((code != null && ((Number) code).doubleValue() == 400))
         {
             throw new BadRequest(feedback) ;
         }

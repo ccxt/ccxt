@@ -5685,24 +5685,24 @@ public class Digifinex extends DigifinexApi
         }
     }
 
-    public Object handleErrors(Object statusCode, Object statusText, Object url, Object method, Object responseHeaders, Object responseBody, Object response, Object requestHeaders, Object requestBody)
+    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {
             return null;  // fall back to default error handler
         }
-        String code = this.safeString(response, "code");
-        if ((java.util.Objects.equals(code, "0")) || (java.util.Objects.equals(code, "200")))
+        String codeError = this.safeString(response, "code");
+        if ((java.util.Objects.equals(codeError, "0")) || (java.util.Objects.equals(codeError, "200")))
         {
             return null;  // no error
         }
-        String feedback = ((this.id + " ") + responseBody);
-        if (java.util.Objects.equals(code, null))
+        String feedback = ((this.id + " ") + body);
+        if (java.util.Objects.equals(codeError, null))
         {
             throw new BadResponse(feedback) ;
         }
         List<Object> unknownError = new ArrayList<Object>(Arrays.asList(ExchangeError.class, feedback));
-        var ExceptionClassmessageVariable = this.safeValue(this.exceptions.get("exact"), code, unknownError);
+        var ExceptionClassmessageVariable = this.safeValue(this.exceptions.get("exact"), codeError, unknownError);
         var ExceptionClass = ((List<Object>) ExceptionClassmessageVariable).get(0);
         var message = ((List<Object>) ExceptionClassmessageVariable).get(1);
         Helpers.throwDynamicException(ExceptionClass, message);return null;

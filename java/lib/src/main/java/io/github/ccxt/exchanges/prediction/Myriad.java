@@ -829,7 +829,7 @@ public class Myriad extends MyriadApi
             String networkId = this.safeString(info, "networkId");
             String marketId = this.safeString(info, "marketId");
             Long outcomeId = this.safeInteger(info, "outcomeId");
-            String sideStr = ((String)((String)side)).toLowerCase();
+            String sideStr = ((String)side).toLowerCase();
             Map<String, Object> request = new HashMap<String, Object>();
             request.put("market_id", this.parseToInt(marketId));
             request.put("network_id", this.parseToInt(networkId));
@@ -1305,7 +1305,7 @@ public class Myriad extends MyriadApi
             // would silently size `amount` as dollars (inconsistent with every other venue and the wiki).
             // route dollar-sizing through createMarketBuyOrderWithCost (which sets costDenominated); a
             // plain createOrder buy on the AMM is rejected so it can't misinterpret shares as collateral
-            String sideLower = (((!java.util.Objects.equals(side, null)))) ? ((String)((String)side)).toLowerCase() : null;
+            String sideLower = ((String)side).toLowerCase();
             Boolean isCostDenominated = (Boolean) this.safeBool(parameters, "costDenominated", false);
             if ((java.util.Objects.equals(sideLower, "buy")) && (!Boolean.TRUE.equals(isCostDenominated)))
             {
@@ -4606,7 +4606,7 @@ public class Myriad extends MyriadApi
         return ((String)this.ethGetAddressFromPrivateKey(this.privateKey)).toLowerCase();
     }
 
-    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
+    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, String requestBody)
     {
         // Myriad error responses are { "error": "<message>", "details": [...] } with a 4xx status
         if (java.util.Objects.equals(response, null))

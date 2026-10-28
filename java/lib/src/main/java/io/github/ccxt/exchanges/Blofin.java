@@ -4318,7 +4318,7 @@ public class Blofin extends BlofinApi
         }};
     }
 
-    public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
+    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {
@@ -4327,13 +4327,13 @@ public class Blofin extends BlofinApi
         //
         // {"code":"152002","msg":"Parameter bar error."}
         //
-        String code = this.safeString(response, "code");
+        String codeError = this.safeString(response, "code");
         String message = this.safeString(response, "msg");
         String feedback = ((this.id + " ") + body);
-        if (!java.util.Objects.equals(code, null) && !java.util.Objects.equals(code, "0"))
+        if (!java.util.Objects.equals(codeError, null) && !java.util.Objects.equals(codeError, "0"))
         {
             this.throwExactlyMatchedException(this.exceptions.get("exact"), message, feedback);
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), code, feedback);
+            this.throwExactlyMatchedException(this.exceptions.get("exact"), codeError, feedback);
             this.throwBroadlyMatchedException(this.exceptions.get("broad"), message, feedback);
             throw new ExchangeError(feedback) ;
         }

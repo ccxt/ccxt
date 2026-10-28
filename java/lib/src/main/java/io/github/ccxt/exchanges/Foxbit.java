@@ -2478,14 +2478,14 @@ public class Foxbit extends FoxbitApi
         }
     }
 
-    public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
+    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {
             return null;
         }
         Map<String, Object> error = (Map<String, Object>) this.safeDict(response, "error", (Object) null);
-        String code = this.safeString(error, "code");
+        String codeError = this.safeString(error, "code");
         List<Object> details = (List<Object>) this.safeList(error, "details", (Object) null);
         String message = this.safeString(error, "message", "");
         String detailsString = "";
@@ -2501,7 +2501,7 @@ public class Foxbit extends FoxbitApi
             String feedback = ((((this.id + " ") + message) + " details: ") + detailsString);
             this.throwBroadlyMatchedException(this.exceptions.get("broad"), message, feedback);
             this.throwBroadlyMatchedException(this.exceptions.get("broad"), detailsString, feedback);
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), code, feedback);
+            this.throwExactlyMatchedException(this.exceptions.get("exact"), codeError, feedback);
             throw new ExchangeError(feedback) ;
         }
         return null;

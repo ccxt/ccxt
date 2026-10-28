@@ -2232,7 +2232,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         Boolean rejected = false;
         try
         {
-            this.handleErrors(code, error, client.url, "", new HashMap<String, Object>() {{}}, error, message, new HashMap<String, Object>() {{}}, new HashMap<String, Object>() {{}});
+            this.handleErrors(code, error, client.url, "", new HashMap<String, Object>() {{}}, error, message, new HashMap<String, Object>() {{}}, "");
         } catch(Exception e)
         {
             rejected = true;

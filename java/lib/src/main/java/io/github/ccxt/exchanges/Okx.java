@@ -11524,7 +11524,7 @@ public class Okx extends OkxApi
 
     }
 
-    public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
+    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {
@@ -11550,8 +11550,8 @@ public class Okx extends OkxApi
         //        "msg": "Incorrect trade password"
         //    }
         //
-        String code = this.safeString(response, "code");
-        if ((!java.util.Objects.equals(code, "0")) && (!java.util.Objects.equals(code, "2")))
+        String codeError = this.safeString(response, "code");
+        if ((!java.util.Objects.equals(codeError, "0")) && (!java.util.Objects.equals(codeError, "2")))
         {
             String feedback = ((this.id + " ") + body);
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
@@ -11563,7 +11563,7 @@ public class Okx extends OkxApi
                 this.throwExactlyMatchedException(this.exceptions.get("exact"), errorCode, feedback);
                 this.throwBroadlyMatchedException(this.exceptions.get("broad"), message, feedback);
             }
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), code, feedback);
+            this.throwExactlyMatchedException(this.exceptions.get("exact"), codeError, feedback);
             throw new ExchangeError(feedback) ;
         }
         return null;

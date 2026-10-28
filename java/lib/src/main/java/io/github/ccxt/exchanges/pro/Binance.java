@@ -6899,7 +6899,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         Object codeValue = (((java.util.Objects.equals(code, null)))) ? 0 : code;
         try
         {
-            this.handleErrors(codeValue, ((String)msg), client.url, "", new HashMap<String, Object>() {{}}, this.json(error), error, new HashMap<String, Object>() {{}}, new HashMap<String, Object>() {{}});
+            this.handleErrors(codeValue, ((String)msg), client.url, "", new HashMap<String, Object>() {{}}, this.json(error), error, new HashMap<String, Object>() {{}}, "");
         } catch(Exception e)
         {
             rejected = true;

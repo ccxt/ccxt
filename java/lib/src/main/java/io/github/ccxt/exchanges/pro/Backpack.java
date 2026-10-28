@@ -917,10 +917,9 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             List<String> messageHashes = new ArrayList<String>(Arrays.asList());
             for (var i = 0; (symbolsLength != null && i < symbolsLength); i++)
             {
-                List<Object> symbolAndTimeframe = (List<Object>) this.safeList(symbolsAndTimeframes, i, (Object) null);
-                String marketId = this.safeString(symbolAndTimeframe, 0);
+                String marketId = this.safeString(this.safeList(symbolsAndTimeframes, i, (Object) null), 0);
                 Map<String, Object> market = this.market(marketId);
-                String tf = this.safeString(symbolAndTimeframe, 1);
+                String tf = this.safeString(this.safeList(symbolsAndTimeframes, i, (Object) null), 1, "");
                 String interval = this.safeString(this.timeframes, tf, tf);
                 this.wsVenueMarketId("watchOHLCVForSymbols", (Map<String, Object>) (market), (Map<String, Object>) (query));
                 topics.add(((("kline." + interval) + ".") + this.safeString(market, "id", "")));
@@ -971,10 +970,9 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             List<String> messageHashes = new ArrayList<String>(Arrays.asList());
             for (var i = 0; (symbolsLength != null && i < symbolsLength); i++)
             {
-                List<Object> symbolAndTimeframe = (List<Object>) this.safeList(symbolsAndTimeframes, i, (Object) null);
-                String marketId = this.safeString(symbolAndTimeframe, 0);
+                String marketId = this.safeString(this.safeList(symbolsAndTimeframes, i, (Object) null), 0);
                 Map<String, Object> market = this.market(marketId);
-                String tf = this.safeString(symbolAndTimeframe, 1);
+                String tf = this.safeString(this.safeList(symbolsAndTimeframes, i, (Object) null), 1, "");
                 String interval = this.safeString(this.timeframes, tf, tf);
                 this.wsVenueMarketId("watchOHLCVForSymbols", (Map<String, Object>) (market), (Map<String, Object>) (query));
                 topics.add(((("kline." + interval) + ".") + this.safeString(market, "id", "")));

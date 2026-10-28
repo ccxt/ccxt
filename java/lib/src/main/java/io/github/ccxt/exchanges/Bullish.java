@@ -3654,7 +3654,7 @@ public class Bullish extends BullishApi
 
     }
 
-    public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
+    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {
@@ -3673,9 +3673,9 @@ public class Bullish extends BullishApi
         //             "errorCodeName": "ORDER_SIZE_OUTSIDE_VALID_RANGE"
         //         }
         //
-        String code = this.safeString(response, "errorCode");
+        String codeError = this.safeString(response, "errorCode");
         String type = this.safeString(response, "type");
-        if ((!java.util.Objects.equals(code, null) && !java.util.Objects.equals(code, "0") && !java.util.Objects.equals(code, "1001")) || (!java.util.Objects.equals(type, null) && java.util.Objects.equals(type, "HttpInvalidParameterException")))
+        if ((!java.util.Objects.equals(codeError, null) && !java.util.Objects.equals(codeError, "0") && !java.util.Objects.equals(codeError, "1001")) || (!java.util.Objects.equals(type, null) && java.util.Objects.equals(type, "HttpInvalidParameterException")))
         {
             String message = "";
             String errorCodeName = this.safeString(response, "errorCodeName");
@@ -3689,7 +3689,7 @@ public class Bullish extends BullishApi
             String feedback = ((this.id + " ") + body);
             this.throwExactlyMatchedException(this.exceptions.get("exact"), message, feedback);
             this.throwBroadlyMatchedException(this.exceptions.get("broad"), message, feedback);
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), code, feedback);
+            this.throwExactlyMatchedException(this.exceptions.get("exact"), codeError, feedback);
             throw new ExchangeError(feedback) ;
         }
         return null;

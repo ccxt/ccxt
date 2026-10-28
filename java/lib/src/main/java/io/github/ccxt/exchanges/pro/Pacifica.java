@@ -1644,7 +1644,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         Map<String, Object> wsHeadersFinal = (Map<String, Object>) this.safeDict(wsHeaders, "headers", new HashMap<String, Object>() {{}});
         try
         {
-            this.handleErrors(0, error, "", postType, wsHeadersFinal, this.json(data), message, new HashMap<String, Object>() {{}}, new HashMap<String, Object>() {{}});
+            this.handleErrors(0, error, "", postType, wsHeadersFinal, this.json(data), message, new HashMap<String, Object>() {{}}, "");
         } catch(Exception e)
         {
             client.reject(e, id);

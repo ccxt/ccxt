@@ -3749,7 +3749,7 @@ public class Bitstamp extends BitstampApi
         }
     }
 
-    public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
+    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {
@@ -3796,8 +3796,8 @@ public class Bitstamp extends BitstampApi
                     ((List<Object>)errors).add((all == null || i < 0 || i >= all.size() ? null : all.get(i)));
                 }
             }
-            String code = this.safeString(response, "code");
-            if (java.util.Objects.equals(code, "API0005"))
+            String codeError = this.safeString(response, "code");
+            if (java.util.Objects.equals(codeError, "API0005"))
             {
                 throw new AuthenticationError((this.id + " invalid signature, use the uid for the main account if you have subaccounts")) ;
             }

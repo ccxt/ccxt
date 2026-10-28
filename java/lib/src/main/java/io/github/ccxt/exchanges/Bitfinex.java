@@ -3744,7 +3744,7 @@ public class Bitfinex extends BitfinexApi
         }
     }
 
-    public Object handleErrors(Object statusCode, Object statusText, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
+    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, String requestBody)
     {
         // ["error", 11010, "ratelimit: error"]
         if (!java.util.Objects.equals(response, null))
@@ -3761,11 +3761,11 @@ public class Bitfinex extends BitfinexApi
         {
             throw new ExchangeError((this.id + " returned empty response")) ;
         }
-        if ((statusCode != null && ((Number) statusCode).doubleValue() == 429))
+        if ((code != null && ((Number) code).doubleValue() == 429))
         {
             throw new RateLimitExceeded(((this.id + " ") + body)) ;
         }
-        if ((statusCode != null && ((Number) statusCode).doubleValue() == 500))
+        if ((code != null && ((Number) code).doubleValue() == 500))
         {
             // See https://docs.bitfinex.com/docs/abbreviations-glossary#section-errorinfo-codes
             String errorCode = this.safeString(response, 1, "");

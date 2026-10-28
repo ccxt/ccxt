@@ -1010,14 +1010,14 @@ public class Btcbox extends BtcboxApi
         }
     }
 
-    public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
+    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {
             return null;  // resort to defaultErrorHandler
         }
         // typical error response: {"result":false,"code":"401"}
-        if ((httpCode != null && ((Number) httpCode).doubleValue() >= 400))
+        if ((code != null && ((Number) code).doubleValue() >= 400))
         {
             return null;  // resort to defaultErrorHandler
         }
@@ -1026,9 +1026,9 @@ public class Btcbox extends BtcboxApi
         {
             return null;  // either public API (no error codes expected) or success
         }
-        String code = this.safeString(response, "code");
+        String codeError = this.safeString(response, "code");
         String feedback = ((this.id + " ") + body);
-        this.throwExactlyMatchedException(this.exceptions, code, feedback);
+        this.throwExactlyMatchedException(this.exceptions, codeError, feedback);
         throw new ExchangeError(feedback) ;
     }
 

@@ -2346,7 +2346,7 @@ public class Bitso extends BitsoApi
         }
     }
 
-    public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
+    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {
@@ -2366,8 +2366,8 @@ public class Bitso extends BitsoApi
                 {
                     throw new ExchangeError(feedback) ;
                 }
-                String code = this.safeString(error, "code");
-                this.throwExactlyMatchedException(this.exceptions, code, feedback);
+                String codeError = this.safeString(error, "code");
+                this.throwExactlyMatchedException(this.exceptions, codeError, feedback);
                 throw new ExchangeError(feedback) ;
             }
         }

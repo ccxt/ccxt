@@ -1372,7 +1372,7 @@ public class Bitbank extends BitbankApi
         }
     }
 
-    public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
+    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {
@@ -1444,9 +1444,9 @@ public class Bitbank extends BitbankApi
                 put( "70009", "We are currently temporarily restricting orders to be carried out. Please use the limit order." );
                 put( "70010", "We are temporarily raising the minimum order quantity as the system load is now rising." );
             }};
-            String code = this.safeString(data, "code");
-            String message = this.safeString(errorMessages, code, "Error");
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), code, message);
+            String codeError = this.safeString(data, "code");
+            String message = this.safeString(errorMessages, codeError, "Error");
+            this.throwExactlyMatchedException(this.exceptions.get("exact"), codeError, message);
             throw new ExchangeError(((this.id + " ") + this.json(response))) ;
         }
         return null;

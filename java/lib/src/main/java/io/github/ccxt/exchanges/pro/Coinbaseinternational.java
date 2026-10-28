@@ -1451,7 +1451,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         String marketId = this.safeString(parts, 1);
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = this.safeString(market, "symbol", "");
-        if (!(((Map<?, ?>)this.trades).containsKey(symbol)))
+        if (!java.util.Objects.equals(symbol, null) && !(((Map<?, ?>)this.trades).containsKey(symbol)))
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             var tradesArrayCache = new ArrayCache(((Number)limit).intValue());

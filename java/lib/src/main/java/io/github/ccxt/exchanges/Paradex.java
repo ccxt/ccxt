@@ -4383,7 +4383,7 @@ public class Paradex extends ParadexApi
         }
     }
 
-    public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
+    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {
@@ -4397,7 +4397,7 @@ public class Paradex extends ParadexApi
         //     }
         //
         String errorCode = this.safeString(response, "error");
-        if ((java.util.Objects.equals(errorCode, null)) && ((httpCode != null && ((Number) httpCode).doubleValue() == 400)))
+        if ((java.util.Objects.equals(errorCode, null)) && ((code != null && ((Number) code).doubleValue() == 400)))
         {
             //
             // a batch where every order was rejected, errors are index-aligned with the request

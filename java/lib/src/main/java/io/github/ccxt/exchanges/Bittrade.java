@@ -2686,7 +2686,7 @@ public class Bittrade extends BittradeApi
         }
     }
 
-    public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
+    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {
@@ -2700,10 +2700,10 @@ public class Bittrade extends BittradeApi
             String status = this.safeString(response, "status");
             if (java.util.Objects.equals(status, "error"))
             {
-                String code = this.safeString(response, "err-code");
+                String codeError = this.safeString(response, "err-code");
                 String feedback = ((this.id + " ") + body);
                 this.throwBroadlyMatchedException(this.exceptions.get("broad"), body, feedback);
-                this.throwExactlyMatchedException(this.exceptions.get("exact"), code, feedback);
+                this.throwExactlyMatchedException(this.exceptions.get("exact"), codeError, feedback);
                 String message = this.safeString(response, "err-msg");
                 this.throwExactlyMatchedException(this.exceptions.get("exact"), message, feedback);
                 throw new ExchangeError(feedback) ;

@@ -3817,25 +3817,25 @@ public class Limitless extends LimitlessApi
      * @name limitless#handleErrors
      * @description maps limitless error responses to ccxt exceptions
      */
-    public Object handleErrors(Object statusCode, Object statusText, Object url, Object method, Object responseHeaders, Object responseBody, Object response, Object requestHeaders, Object requestBody)
+    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {
             return null;
         }
-        Long statusCodeInt = this.parseToInt(statusCode);
+        Long statusCodeInt = this.parseToInt(code);
         if ((((statusCodeInt != null && statusCodeInt >= 200))) && (((statusCodeInt == null || statusCodeInt < 300))))
         {
             return null;
         }
-        String feedback = ((this.id + " ") + responseBody);
+        String feedback = ((this.id + " ") + body);
         // the API returns either a string message or an array of field-validation errors
         String message = this.safeString(response, "message");
         if (!java.util.Objects.equals(message, null))
         {
             this.throwExactlyMatchedException(this.exceptions.get("exact"), message, feedback);
         }
-        this.throwBroadlyMatchedException(this.exceptions.get("broad"), responseBody, feedback);
+        this.throwBroadlyMatchedException(this.exceptions.get("broad"), body, feedback);
         // a 400 is a client-side bad request (bad params, or a business rule like "market not
         // resolved"), not a transport outage — throw BadRequest with the exchange message instead
         // of letting the base map the bare 400 to a retryable network-unavailable error
