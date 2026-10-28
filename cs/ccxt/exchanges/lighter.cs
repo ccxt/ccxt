@@ -351,6 +351,7 @@ public partial class lighter : Exchange
             { "httpExceptions", new Dictionary<string, object>() {} },
             { "exceptions", new Dictionary<string, object>() {
                 { "exact", new Dictionary<string, object>() {
+                    { "20001", typeof(BadRequest) },
                     { "21146", typeof(ExchangeError) },
                     { "21500", typeof(ExchangeError) },
                     { "21501", typeof(ExchangeError) },
@@ -423,10 +424,12 @@ public partial class lighter : Exchange
                     { "21904", typeof(InvalidOrder) },
                     { "21905", typeof(InvalidOrder) },
                     { "21906", typeof(InvalidOrder) },
+                    { "22400", typeof(BadRequest) },
                     { "23000", typeof(RateLimitExceeded) },
                     { "23001", typeof(RateLimitExceeded) },
                     { "23002", typeof(RateLimitExceeded) },
                     { "23003", typeof(RateLimitExceeded) },
+                    { "29404", typeof(BadRequest) },
                 } },
                 { "broad", new Dictionary<string, object>() {} },
             } },
@@ -4064,7 +4067,7 @@ public partial class lighter : Exchange
         //     }
         //
         string? code = this.safeString(response, "code");
-        string? message = this.safeString(response, "msg");
+        string? message = this.safeString(response, "message");
         if ((code != null) && code != "0" && code != "200")
         {
             string feedback = ((this.id + " ") + (body));
