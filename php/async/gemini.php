@@ -1967,7 +1967,7 @@ class gemini extends Exchange {
         return $this->parse_transaction($response, $currency);
     }
 
-    public function nonce(): float {
+    public function nonce(): int {
         $nonceMethod = $this->safe_string($this->options, 'nonce', 'milliseconds');
         if ($nonceMethod === 'milliseconds') {
             return $this->milliseconds();

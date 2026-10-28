@@ -855,7 +855,7 @@ class btcbox extends Exchange {
         return Async\await($this->fetch_orders_by_type('open', $symbol, $since, $limit, $params));
     }
 
-    public function nonce(): float {
+    public function nonce(): int {
         return $this->milliseconds();
     }
 

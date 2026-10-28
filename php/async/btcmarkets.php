@@ -1518,7 +1518,7 @@ class btcmarkets extends Exchange {
         return $this->parse_transaction($response, $currency);
     }
 
-    public function nonce(): float {
+    public function nonce(): int {
         return $this->milliseconds();
     }
 

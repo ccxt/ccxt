@@ -7306,7 +7306,7 @@ class bingx extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResult, 'headers' => $headersResult );
     }
 
-    public function nonce(): float {
+    public function nonce(): int {
         return $this->milliseconds();
     }
 

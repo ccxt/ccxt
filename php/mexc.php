@@ -6366,7 +6366,7 @@ class mexc extends Exchange {
         return $this->parse_leverage($response, $market); // widened to Dict to match the base setMarginMode return ({}) — narrowing it to Leverage breaks the Go IExchange interface
     }
 
-    public function nonce(): float {
+    public function nonce(): int {
         return $this->milliseconds() - $this->safe_integer($this->options, 'timeDifference', 0);
     }
 

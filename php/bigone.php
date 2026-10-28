@@ -1965,7 +1965,7 @@ class bigone extends Exchange {
         return $this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params));
     }
 
-    public function nonce(): float {
+    public function nonce(): int {
         $exchangeMillisecondsCorrection = $this->safe_integer($this->options, 'exchangeMillisecondsCorrection', 0);
         $exchangeTimeCorrection = $exchangeMillisecondsCorrection * 1000000;
         return $this->sum($this->microseconds() * 1000, $exchangeTimeCorrection);

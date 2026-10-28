@@ -2049,7 +2049,7 @@ class bitso extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function nonce(): float {
+    public function nonce(): int {
         return $this->milliseconds();
     }
 

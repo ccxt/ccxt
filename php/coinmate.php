@@ -1271,7 +1271,7 @@ class coinmate extends Exchange {
         return $this->parse_order($data);
     }
 
-    public function nonce(): float {
+    public function nonce(): int {
         return $this->milliseconds();
     }
 

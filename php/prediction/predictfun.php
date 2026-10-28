@@ -3925,7 +3925,7 @@ class predictfun extends Exchange {
         }
     }
 
-    public function nonce(): float {
+    public function nonce(): int {
         // the order salt is a millisecond timestamp; incrementingNonce () reads this and keeps salts
         // unique when two identical orders are signed within the same millisecond
         return $this->milliseconds();

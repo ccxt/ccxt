@@ -4298,7 +4298,7 @@ class derive extends Exchange {
         return null;
     }
 
-    public function nonce(): float {
+    public function nonce(): int {
         // signs the auth timestamp and feeds incrementingNonce (), which nonceString () extends to the nanosecond-scale action nonce; must be unique per wallet (error 11017) while staying a valid date (error 11018)
         return $this->milliseconds() - $this->safe_integer($this->options, 'timeDifference', 0);
     }

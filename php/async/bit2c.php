@@ -1087,7 +1087,7 @@ class bit2c extends Exchange {
         );
     }
 
-    public function nonce(): float {
+    public function nonce(): int {
         return $this->milliseconds();
     }
 

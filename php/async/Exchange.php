@@ -4147,11 +4147,11 @@ class BaseExchange extends \ccxt\BaseExchange {
         return $this->filter_by_currency_since_limit($result, $code, $since, $limit);
     }
 
-    public function nonce(): float {
+    public function nonce(): int {
         return $this->seconds();
     }
 
-    public function incrementing_nonce() {
+    public function incrementing_nonce(): int {
         /**
          * @ignore
          * returns a strictly-increasing nonce for venues that reject duplicate nonces per signer;

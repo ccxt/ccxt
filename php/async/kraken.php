@@ -3923,7 +3923,7 @@ class kraken extends Exchange {
         return array( 'url' => $apiUrl . $url, 'method' => $method, 'body' => null, 'headers' => null );
     }
 
-    public function nonce(): float {
+    public function nonce(): int {
         return $this->milliseconds() - $this->safe_integer($this->options, 'timeDifference', 0);
     }
 

@@ -3482,7 +3482,7 @@ class woo extends Exchange {
         );
     }
 
-    public function nonce(): float {
+    public function nonce(): int {
         return $this->milliseconds() - $this->safe_integer($this->options, 'timeDifference', 0);
     }
 

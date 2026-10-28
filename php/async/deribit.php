@@ -4163,7 +4163,7 @@ class deribit extends Exchange {
         ), $marketResolved);
     }
 
-    public function nonce(): float {
+    public function nonce(): int {
         return $this->milliseconds();
     }
 

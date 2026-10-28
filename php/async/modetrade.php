@@ -3448,7 +3448,7 @@ class modetrade extends Exchange {
         return $this->parse_positions($positions, $symbols);
     }
 
-    public function nonce(): float {
+    public function nonce(): int {
         return $this->milliseconds();
     }
 

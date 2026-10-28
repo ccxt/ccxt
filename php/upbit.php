@@ -2416,7 +2416,7 @@ class upbit extends Exchange {
         return $this->parse_transaction($response);
     }
 
-    public function nonce(): float {
+    public function nonce(): int {
         return $this->milliseconds();
     }
 

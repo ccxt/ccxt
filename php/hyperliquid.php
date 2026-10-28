@@ -361,7 +361,7 @@ class hyperliquid extends Exchange {
         $this->options['sandboxMode'] = $enabled;
     }
 
-    public function nonce(): float {
+    public function nonce(): int {
         // the venue nonce is a millisecond timestamp and must be strictly increasing per signer
         // incrementingNonce () reads this and bumps past the previous value when two signed actions share a millisecond
         return $this->milliseconds();

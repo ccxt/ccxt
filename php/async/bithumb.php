@@ -3384,7 +3384,7 @@ class bithumb extends Exchange {
         return $finalNumberStr;
     }
 
-    public function nonce(): float {
+    public function nonce(): int {
         return $this->milliseconds();
     }
 

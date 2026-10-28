@@ -1089,7 +1089,7 @@ class btcturk extends Exchange {
         return $this->parse_trades($dataList, $market, $since, $limit);
     }
 
-    public function nonce(): float {
+    public function nonce(): int {
         return $this->milliseconds();
     }
 

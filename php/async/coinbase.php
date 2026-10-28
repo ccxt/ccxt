@@ -5509,7 +5509,7 @@ class coinbase extends Exchange {
         }
     }
 
-    public function nonce(): float {
+    public function nonce(): int {
         $timeDifference = $this->safe_integer($this->options, 'timeDifference');
         if ($timeDifference === null) {
             throw new ExchangeError($this->id . ' nonce() requires a numeric options["timeDifference"]');

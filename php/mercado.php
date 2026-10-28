@@ -1001,7 +1001,7 @@ class mercado extends Exchange {
         return $result;
     }
 
-    public function nonce(): float {
+    public function nonce(): int {
         // the venue accepts any strictly-increasing integer tonce, so use milliseconds: with the second-resolution base nonce a burst of N calls would leave incrementingNonce N seconds ahead of the clock
         return $this->milliseconds();
     }

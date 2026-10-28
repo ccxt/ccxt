@@ -4177,7 +4177,7 @@ class poloniex extends Exchange {
         return Async\await($this->modify_margin_helper($symbol, $amount, 'add', $params));
     }
 
-    public function nonce(): float {
+    public function nonce(): int {
         return $this->milliseconds();
     }
 
