@@ -286,7 +286,7 @@ export default class hashkey extends hashkeyRest {
         //
         const marketId = this.safeString(message, 'symbol');
         const market = this.safeMarket(marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         if (!(symbol in this.trades)) {
             const limit = this.safeInteger(this.options, 'tradesLimit', 1000);
             this.trades[symbol] = new ArrayCache(limit);

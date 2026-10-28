@@ -273,14 +273,11 @@ export default class kalshi extends Exchange {
                 const parsed = this.parseBinaryMarketToOutcomes(raw);
                 const eventTicker = this.safeString(raw, 'event_ticker');
                 const eventTitle = this.safeString(raw, 'title', eventTicker);
-                let eventKey = '';
-                if (eventTitle !== undefined && eventTitle !== '') {
-                    eventKey = this.shortenSlug(eventTitle);
-                }
                 for (let j = 0; j < parsed.length; j++) {
                     const m = parsed[j];
                     flatMarkets.push(m);
-                    if (eventKey !== '') {
+                    if (eventTitle !== undefined && eventTitle !== '') {
+                        const eventKey = this.shortenSlug(eventTitle);
                         if (!(eventKey in eventsDict)) {
                             eventsDict[eventKey] = {
                                 'id': eventTicker,

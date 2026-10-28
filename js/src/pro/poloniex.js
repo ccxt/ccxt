@@ -1440,7 +1440,7 @@ export default class poloniex extends poloniexRest {
         //        "symbols": [ "ETH_USDT", "BTC_USDT" ]
         //    }
         //
-        const channel = this.safeString(message, 'channel');
+        const channel = this.safeString(message, 'channel', '');
         const marketIds = this.safeList(message, 'symbols', []);
         const timeframes = this.safeDict(this.options, 'timeframes', {});
         const timeframe = this.findTimeframe(channel, timeframes);

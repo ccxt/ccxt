@@ -3139,7 +3139,7 @@ export default class coinbaseinternational extends Exchange {
      */
     createAuthToken(seconds, method = undefined, url = undefined, useEddsa = false) {
         let uri = undefined;
-        if (url !== undefined) {
+        if ((url !== undefined) && (method !== undefined)) {
             uri = method + ' ' + url.replace('https://', '');
             const quesPos = uri.indexOf('?');
             if (quesPos > 0) {

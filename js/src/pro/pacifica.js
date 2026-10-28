@@ -1531,11 +1531,12 @@ export default class pacifica extends pacificaRest {
             throw new ArgumentsRequired(this.id + 'postAction() requires a "operationType" argument!');
         }
         const requestId = this.requestId();
+        const postParams = {};
+        postParams[operationType] = request;
         const payload = {
             'id': requestId,
-            'params': {},
+            'params': postParams,
         };
-        payload['params'][operationType] = request;
         return payload;
     }
     handleWsPost(client, message) {

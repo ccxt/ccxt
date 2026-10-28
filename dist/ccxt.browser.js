@@ -183652,7 +183652,7 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
     parseBorrowInterests(response, market = undefined) {
         const interests = [];
         for(let i = 0; i < response.length; i++){
-            const row = response[i];
+            const row = this.safeValue(response, i);
             interests.push(this.parseBorrowInterest(row, market));
         }
         return interests;
@@ -183663,7 +183663,7 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
     parseBorrowRateHistory(response, code, since, limit) {
         const result = [];
         for(let i = 0; i < response.length; i++){
-            const item = response[i];
+            const item = this.safeValue(response, i);
             const borrowRate = this.parseBorrowRate(item);
             result.push(borrowRate);
         }
@@ -183673,7 +183673,7 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
     parseIsolatedBorrowRates(info) {
         const result = {};
         for(let i = 0; i < info.length; i++){
-            const item = info[i];
+            const item = this.safeValue(info, i);
             const borrowRate = this.parseIsolatedBorrowRate(item);
             const symbol = this.safeString(borrowRate, 'symbol');
             result[symbol] = borrowRate;
@@ -316562,7 +316562,7 @@ class coinbaseinternational extends _abstract_coinbaseinternational_js__rspack_i
      * @returns {string} signed JWT
      */ createAuthToken(seconds, method = undefined, url = undefined, useEddsa = false) {
         let uri = undefined;
-        if (url !== undefined) {
+        if (url !== undefined && method !== undefined) {
             uri = method + ' ' + url.replace('https://', '');
             const quesPos = uri.indexOf('?');
             if (quesPos > 0) {
@@ -452709,8 +452709,8 @@ class modetrade extends _abstract_modetrade_js__rspack_import_0/* ["default"] */
             const ts = this.nonce().toString();
             url += pathWithParams;
             let apiKey = this.apiKey;
-            if (apiKey.indexOf('ed25519:') < 0) {
-                apiKey = 'ed25519:' + apiKey;
+            if (this.apiKey.indexOf('ed25519:') < 0) {
+                apiKey = 'ed25519:' + this.apiKey;
             }
             const signedHeaders = {
                 'orderly-account-id': this.accountId,
@@ -501791,14 +501791,11 @@ class kalshi extends _abstract_prediction_kalshi_js__rspack_import_0/* ["default
                 const parsed = this.parseBinaryMarketToOutcomes(raw);
                 const eventTicker = this.safeString(raw, 'event_ticker');
                 const eventTitle = this.safeString(raw, 'title', eventTicker);
-                let eventKey = '';
-                if (eventTitle !== undefined && eventTitle !== '') {
-                    eventKey = this.shortenSlug(eventTitle);
-                }
                 for(let j = 0; j < parsed.length; j++){
                     const m = parsed[j];
                     flatMarkets.push(m);
-                    if (eventKey !== '') {
+                    if (eventTitle !== undefined && eventTitle !== '') {
+                        const eventKey = this.shortenSlug(eventTitle);
                         if (!(eventKey in eventsDict)) {
                             eventsDict[eventKey] = {
                                 'id': eventTicker,
@@ -545290,10 +545287,10 @@ class bitopro extends _bitopro_js__rspack_import_0/* ["default"] */.A {
             'X-BITOPRO-PAYLOAD': payload,
             'X-BITOPRO-SIGNATURE': signature
         };
-        this.options['ws']['options']['headers'] = headers;
+        wsInnerOptions['headers'] = headers;
         // instantiate client
         this.client(url);
-        this.options['ws']['options']['headers'] = originalHeaders;
+        wsInnerOptions['headers'] = originalHeaders;
     }
     /**
      * @method
@@ -574420,7 +574417,7 @@ class hashkey extends _hashkey_js__rspack_import_0/* ["default"] */.A {
         //
         const marketId = this.safeString(message, 'symbol');
         const market = this.safeMarket(marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         if (!(symbol in this.trades)) {
             const limit = this.safeInteger(this.options, 'tradesLimit', 1000);
             this.trades[symbol] = new _base_ws_Cache_js__rspack_import_2/* .ArrayCache */.I3(limit);
@@ -605965,11 +605962,12 @@ class pacifica extends _pacifica_js__rspack_import_0/* ["default"] */.A {
             throw new _base_errors_js__rspack_import_1.ArgumentsRequired(this.id + 'postAction() requires a "operationType" argument!');
         }
         const requestId = this.requestId();
+        const postParams = {};
+        postParams[operationType] = request;
         const payload = {
             'id': requestId,
-            'params': {}
+            'params': postParams
         };
-        payload['params'][operationType] = request;
         return payload;
     }
     handleWsPost(client, message) {
@@ -610765,7 +610763,7 @@ class poloniex extends _poloniex_js__rspack_import_0/* ["default"] */.A {
         //        "symbols": [ "ETH_USDT", "BTC_USDT" ]
         //    }
         //
-        const channel = this.safeString(message, 'channel');
+        const channel = this.safeString(message, 'channel', '');
         const marketIds = this.safeList(message, 'symbols', []);
         const timeframes = this.safeDict(this.options, 'timeframes', {});
         const timeframe = this.findTimeframe(channel, timeframes);
@@ -661436,49 +661434,44 @@ class xt extends _abstract_xt_js__rspack_import_0/* ["default"] */.A {
             signedBody = isUndefinedBody ? undefined : this.json(query);
             let payloadString = '';
             if (endpoint === 'spot' || endpoint === 'user') {
-                payloadString = 'xt-validate-algorithms=HmacSHA256&xt-validate-appkey=' + this.apiKey + '&xt-validate-recvwindow=' + recvWindow + '&xt-validate-t' + 'imestamp=' + timestamp;
+                const spotPrefix = 'xt-validate-algorithms=HmacSHA256&xt-validate-appkey=' + this.apiKey + '&xt-validate-recvwindow=' + recvWindow + '&xt-validate-t' + 'imestamp=' + timestamp;
                 if (isUndefinedBody) {
                     if (urlencoded !== '') {
                         url = apiUrl + payload + '?' + urlencoded;
-                        payloadString += '#' + method + '#' + payload + '#' + this.rawencode(this.keysort(query));
+                        payloadString = spotPrefix + '#' + method + '#' + payload + '#' + this.rawencode(this.keysort(query));
                     } else {
-                        payloadString += '#' + method + '#' + payload;
+                        payloadString = spotPrefix + '#' + method + '#' + payload;
                     }
                 } else {
-                    payloadString += '#' + method + '#' + payload + '#' + signedBody;
+                    payloadString = spotPrefix + '#' + method + '#' + payload + '#' + signedBody;
                 }
                 headersValue['xt-validate-algorithms'] = 'HmacSHA256';
                 headersValue['xt-validate-recvwindow'] = recvWindow;
             } else {
-                payloadString = 'xt-validate-appkey=' + this.apiKey + '&xt-validate-t' + 'imestamp=' + timestamp; // we can't glue timestamp, breaks in php
+                const futurePrefix = 'xt-validate-appkey=' + this.apiKey + '&xt-validate-t' + 'imestamp=' + timestamp; // we can't glue timestamp, breaks in php
                 if (method === 'GET') {
                     if (urlencoded !== '') {
                         url = apiUrl + payload + '?' + urlencoded;
-                        payloadString += '#' + payload + '#' + urlencoded;
+                        payloadString = futurePrefix + '#' + payload + '#' + urlencoded;
                     } else {
-                        payloadString += '#' + payload;
+                        payloadString = futurePrefix + '#' + payload;
                     }
                 } else {
-                    payloadString += '#' + payload + '#' + signedBody;
+                    payloadString = futurePrefix + '#' + payload + '#' + signedBody;
                 }
             }
-            const signature = this.hmac(this.encode(payloadString), this.encode(this.secret), _noble_hashes_sha2_js__rspack_import_4/* .sha256 */.sc);
             headersValue['xt-validate-appkey'] = this.apiKey;
             headersValue['xt-validate-timestamp'] = timestamp;
-            headersValue['xt-validate-signature'] = signature;
+            headersValue['xt-validate-signature'] = this.hmac(this.encode(payloadString), this.encode(this.secret), _noble_hashes_sha2_js__rspack_import_4/* .sha256 */.sc);
         } else {
             if (urlencoded !== '') {
                 url = apiUrl + payload + '?' + urlencoded;
             }
         }
-        let bodyValue = undefined;
-        if (signed) {
-            bodyValue = signedBody;
-        }
         return {
             'url': url,
             'method': method,
-            'body': bodyValue,
+            'body': signedBody,
             'headers': headersValue
         };
     }
