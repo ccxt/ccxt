@@ -2801,7 +2801,8 @@ export default class paradex extends Exchange {
         if (paginate) {
             // a page can hold no deposit at all, which would end the pagination early, so every row is paginated and filtered afterwards
             const transactions = await this.fetchPaginatedCallCursor ('fetchDeposits', code, since, undefined, this.extend (paramsPaginate, { 'allKinds': true }), 'next', 'cursor', undefined, 100);
-            return this.filterTransactionsByKind (transactions, 'DEPOSIT', since, limit);
+            const transactionsOfKind = this.filterTransactionsByKind (transactions, 'DEPOSIT');
+            return this.filterBySinceLimit (transactionsOfKind, since, limit) as Transaction[];
         }
         const allKinds = this.safeBool (paramsPaginate, 'allKinds', false);
         const paramsKinds = this.omit (paramsPaginate, 'allKinds');
@@ -2873,7 +2874,8 @@ export default class paradex extends Exchange {
         if (paginate) {
             // a page can hold no withdrawal at all, which would end the pagination early, so every row is paginated and filtered afterwards
             const transactions = await this.fetchPaginatedCallCursor ('fetchWithdrawals', code, since, undefined, this.extend (paramsPaginate, { 'allKinds': true }), 'next', 'cursor', undefined, 100);
-            return this.filterTransactionsByKind (transactions, 'WITHDRAWAL', since, limit);
+            const transactionsOfKind = this.filterTransactionsByKind (transactions, 'WITHDRAWAL');
+            return this.filterBySinceLimit (transactionsOfKind, since, limit) as Transaction[];
         }
         const allKinds = this.safeBool (paramsPaginate, 'allKinds', false);
         const paramsKinds = this.omit (paramsPaginate, 'allKinds');
@@ -3083,7 +3085,7 @@ export default class paradex extends Exchange {
         };
     }
 
-    filterTransactionsByKind (transactions: Transaction[], kind: string, since: Int = undefined, limit: Int = undefined): Transaction[] {
+    filterTransactionsByKind (transactions: Transaction[], kind: string): Transaction[] {
         const result: Transaction[] = [];
         for (let i = 0; i < transactions.length; i++) {
             const info = this.safeDict (transactions[i], 'info');
@@ -3091,7 +3093,7 @@ export default class paradex extends Exchange {
                 result.push (transactions[i]);
             }
         }
-        return this.filterBySinceLimit (result, since, limit) as Transaction[];
+        return result;
     }
 
     parseTransactionStatus (status: Str): Str {
