@@ -1304,7 +1304,7 @@ public partial class blofin : Exchange
         if ((since != null))
         {
             Int64 durationInMilliseconds = (this.parseTimeframe(timeframeVar) * 1000L);
-            request["before"] = mathMax((since - 1), 0);
+            request["before"] = Math.Max((since.Value - 1), 0);
             request["after"] = this.sum(since, (durationInMilliseconds * limitResolved));
         }
         Int64? until = this.safeInteger(query, "until");
