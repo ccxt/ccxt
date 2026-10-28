@@ -4346,7 +4346,7 @@ impl CoinbaseinternationalCore {
         let mut url = get_arg(optional_args, 1, Value::Null);
         let useEddsa: bool = get_arg(optional_args, 2, Value::Bool(false)).is_truthy();
         let mut uri: Value = Value::Null;
-        if (url != Value::Null) {
+        if (url != Value::Null) && (method != Value::Null) {
             uri = Value::Str(format!("{}{}", Value::Str(format!("{}{}", method, Value::Str(" ".into())).into()), url.as_str().map(|__s| Value::Str(__s.replace("https://", "").into())).unwrap_or_else(|| url.clone())).into());
             let mut quesPos: Value = Value::Int(uri.as_str().and_then(|__s| __s.find("?")).map(|__i| __i as i64).unwrap_or(-1));
             if quesPos.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {

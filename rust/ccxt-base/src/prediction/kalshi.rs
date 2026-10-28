@@ -782,17 +782,14 @@ impl KalshiCore {
                 let mut parsed: Vec<Value> = self.parse_binary_market_to_outcomes(raw.clone()).as_array().cloned().unwrap_or_default();
                 let mut eventTicker: Option<String> = self.safe_string_k_opt(raw.clone(), "event_ticker", &[]);
                 let mut eventTitle: Value = self.safe_string_k(raw, "title", &[eventTicker.clone().map(Value::from).unwrap_or(Value::Null)]);
-                let mut eventKey: Value = Value::Str("".into());
-                if (eventTitle != Value::Null) && (eventTitle.as_str() != Some("")) {
-                    eventKey = self.shorten_slug(eventTitle.clone());
-                }
                 {
                                         let mut j: Value = Value::Int(0);
                     let mut __for_first_1252: bool = true;
                     while { if !__for_first_1252 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_1252 = false; j.as_f64().unwrap_or(f64::NAN) < ((parsed.len() as i64) as f64) } {
                     let mut m: Value = parsed.get(j.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
                     flatMarkets.push(m.clone());
-                    if (eventKey.as_str() != Some("")) {
+                    if (eventTitle != Value::Null) && (eventTitle.as_str() != Some("")) {
+                        let mut eventKey: Value = self.shorten_slug(eventTitle.clone());
                         if !(matches!((&eventsDict, &eventKey), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                             if let Value::Dict(__d) = &mut eventsDict { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&eventKey), Value::Map({
     let mut m = indexmap::IndexMap::new();
