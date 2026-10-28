@@ -1287,13 +1287,7 @@ export default class modetrade extends modetradeRest {
             const key = keys[i];
             const value = this.safeDict(balances, key);
             const code = this.safeCurrencyCode(key);
-            let account = this.account();
-            if ((code !== undefined) && (code in this.balance)) {
-                const cachedAccount = this.safeDict(this.balance, code);
-                if (cachedAccount !== undefined) {
-                    account = cachedAccount;
-                }
-            }
+            const account = this.account();
             const total = this.safeString(value, 'holding');
             const used = this.safeString(value, 'frozen');
             account['total'] = total;

@@ -139,7 +139,7 @@ class hollaex extends hollaex$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
+        const symbolValue = this.safeString(market, 'symbol', '');
         const marketId = this.safeString(market, 'id', '');
         const messageHash = 'trade' + ':' + marketId;
         const trades = await this.watchPublic(messageHash, params);
@@ -169,7 +169,7 @@ class hollaex extends hollaex$1["default"] {
         const marketId = this.safeString(message, 'symbol');
         const market = this.safeMarket(marketId);
         const marketIdValue = this.safeString(market, 'id', '');
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         let stored = this.safeValue(this.trades, symbol);
         if (stored === undefined) {
             const limit = this.safeInteger(this.options, 'tradesLimit', 1000);
@@ -260,7 +260,7 @@ class hollaex extends hollaex$1["default"] {
             stored.append(parsed);
             const symbol = this.safeString(trade, 'symbol');
             const market = this.market(symbol);
-            const marketId = market['id'];
+            const marketId = this.safeString(market, 'id');
             if (marketId !== undefined) {
                 marketIds[marketId] = true;
             }
@@ -390,7 +390,7 @@ class hollaex extends hollaex$1["default"] {
             stored.append(parsed);
             const symbol = this.safeString(order, 'symbol');
             const market = this.market(symbol);
-            const marketId = market['id'];
+            const marketId = this.safeString(market, 'id');
             if (marketId !== undefined) {
                 marketIds[marketId] = true;
             }

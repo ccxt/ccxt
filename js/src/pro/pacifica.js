@@ -1392,7 +1392,7 @@ export default class pacifica extends pacificaRest {
         const messageHash = 'unsubscribe:' + subMessageHash;
         this.cleanUnsubscription(client, subMessageHash, messageHash);
         if ((symbol !== undefined) && (symbol in this.ohlcvs)) {
-            if ((timeframe !== undefined) && (timeframe in this.ohlcvs[symbol])) {
+            if (timeframe in this.ohlcvs[symbol]) {
                 delete this.ohlcvs[symbol][timeframe];
             }
         }

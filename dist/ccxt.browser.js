@@ -316633,7 +316633,7 @@ class coinbaseinternational extends _abstract_coinbaseinternational_js__rspack_i
         const now = this.milliseconds();
         const token = this.getV2AccessToken();
         const tokenExpires = this.safeInteger(this.options, 'v2TokenExpires');
-        if (!forceRefresh && token !== undefined && tokenExpires !== undefined && now < tokenExpires) {
+        if (!forceRefresh && token !== undefined && token !== '' && tokenExpires !== undefined && now < tokenExpires) {
             return token;
         }
         const response = await this.publicPostAuth(paramsOmitted);
@@ -316671,14 +316671,7 @@ class coinbaseinternational extends _abstract_coinbaseinternational_js__rspack_i
      * @description the cached gateway access token, options.v2AccessToken takes precedence over exchange.token
      * @returns {string|undefined} the access token
      */ getV2AccessToken() {
-        const token = this.safeString(this.options, 'v2AccessToken');
-        if (token !== undefined && token !== '') {
-            return token;
-        }
-        if (this.token === '') {
-            return undefined;
-        }
-        return this.token;
+        return this.safeString(this.options, 'v2AccessToken', this.token);
     }
     sign(path, api = [
         'public'
@@ -316727,7 +316720,7 @@ class coinbaseinternational extends _abstract_coinbaseinternational_js__rspack_i
             };
         } else if (access === 'private') {
             const accessToken = this.getV2AccessToken();
-            if (accessToken === undefined) {
+            if (accessToken === undefined || accessToken === '') {
                 throw new _base_errors_js__rspack_import_2.AuthenticationError(this.id + ' requires an access token from public/auth');
             }
             requestHeaders = {
@@ -316791,7 +316784,8 @@ class coinbaseinternational extends _abstract_coinbaseinternational_js__rspack_i
         const deribit = this.resolveRoute(route);
         const previousBackend = this.safeBool(this.options, 'routeBackend');
         const configuredBackend = this.isNativeDeribitCredentials();
-        const hasToken = this.getV2AccessToken() !== undefined;
+        const currentToken = this.getV2AccessToken();
+        const hasToken = currentToken !== undefined && currentToken !== '';
         const hasWsState = this.safeInteger(this.options, 'wsAuthRefreshAt') !== undefined;
         if (previousBackend !== undefined && previousBackend !== deribit) {
             throw new _base_errors_js__rspack_import_2.BadRequest(this.id + ' cannot switch route backend on an initialized instance; use a separate exchange instance');
@@ -576699,7 +576693,7 @@ class hollaex extends _hollaex_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
+        const symbolValue = this.safeString(market, 'symbol', '');
         const marketId = this.safeString(market, 'id', '');
         const messageHash = 'trade' + ':' + marketId;
         const trades = await this.watchPublic(messageHash, params);
@@ -576729,7 +576723,7 @@ class hollaex extends _hollaex_js__rspack_import_0/* ["default"] */.A {
         const marketId = this.safeString(message, 'symbol');
         const market = this.safeMarket(marketId);
         const marketIdValue = this.safeString(market, 'id', '');
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         let stored = this.safeValue(this.trades, symbol);
         if (stored === undefined) {
             const limit = this.safeInteger(this.options, 'tradesLimit', 1000);
@@ -576819,7 +576813,7 @@ class hollaex extends _hollaex_js__rspack_import_0/* ["default"] */.A {
             stored.append(parsed);
             const symbol = this.safeString(trade, 'symbol');
             const market = this.market(symbol);
-            const marketId = market['id'];
+            const marketId = this.safeString(market, 'id');
             if (marketId !== undefined) {
                 marketIds[marketId] = true;
             }
@@ -576949,7 +576943,7 @@ class hollaex extends _hollaex_js__rspack_import_0/* ["default"] */.A {
             stored.append(parsed);
             const symbol = this.safeString(order, 'symbol');
             const market = this.market(symbol);
-            const marketId = market['id'];
+            const marketId = this.safeString(market, 'id');
             if (marketId !== undefined) {
                 marketIds[marketId] = true;
             }
@@ -578112,7 +578106,8 @@ class htx extends _htx_js__rspack_import_0/* ["default"] */.A {
         const future = type === 'future';
         const isV5Linear = linear && (swap || future);
         if (type === 'spot') {
-            const mode = this.safeString(paramsRequest, 'mode', this.safeString2(this.options, 'watchMyTrades', 'mode', '0'));
+            let mode = this.safeString2(this.options, 'watchMyTrades', 'mode', '0');
+            mode = this.safeString(paramsRequest, 'mode', mode);
             paramsRequest = this.omit(paramsRequest, 'mode');
             messageHash = 'trade.clearing' + '#' + marketId + '#' + mode;
             channel = messageHash;
@@ -580276,12 +580271,7 @@ class htx extends _htx_js__rspack_import_0/* ["default"] */.A {
             }
             signatureParams = this.keysort(signatureParams);
             const auth = this.urlencode(signatureParams, true); // true required in go
-            const payload = [
-                'GET',
-                hostname,
-                relativePath,
-                auth
-            ].join("\n"); // eslint-disable-line quotes
+            const payload = 'GET' + "\n" + hostname + "\n" + relativePath + "\n" + auth; // eslint-disable-line quotes
             const signature = this.hmac(this.encode(payload), this.encode(this.secret), _noble_hashes_sha2_js__rspack_import_3/* .sha256 */.sc, 'base64');
             let request = undefined;
             if (type === 'spot') {
@@ -595090,7 +595080,7 @@ class mexc extends _mexc_js__rspack_import_0/* ["default"] */.A {
                 let candlesSymbol = this.safeString(splitHashes, 2, '');
                 const splitHashesLength = splitHashes.length; // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
                 if (splitHashesLength > 4) {
-                    candlesSymbol = candlesSymbol + ':' + this.safeString(splitHashes, 3, '');
+                    candlesSymbol += ':' + this.safeString(splitHashes, 3, '');
                 }
                 if (candlesSymbol in this.ohlcvs) {
                     delete this.ohlcvs[candlesSymbol];
@@ -596623,13 +596613,7 @@ class modetrade extends _modetrade_js__rspack_import_0/* ["default"] */.A {
             const key = keys[i];
             const value = this.safeDict(balances, key);
             const code = this.safeCurrencyCode(key);
-            let account = this.account();
-            if (code !== undefined && code in this.balance) {
-                const cachedAccount = this.safeDict(this.balance, code);
-                if (cachedAccount !== undefined) {
-                    account = cachedAccount;
-                }
-            }
+            const account = this.account();
             const total = this.safeString(value, 'holding');
             const used = this.safeString(value, 'frozen');
             account['total'] = total;
@@ -605823,7 +605807,7 @@ class pacifica extends _pacifica_js__rspack_import_0/* ["default"] */.A {
         const messageHash = 'unsubscribe:' + subMessageHash;
         this.cleanUnsubscription(client, subMessageHash, messageHash);
         if (symbol !== undefined && symbol in this.ohlcvs) {
-            if (timeframe !== undefined && timeframe in this.ohlcvs[symbol]) {
+            if (timeframe in this.ohlcvs[symbol]) {
                 delete this.ohlcvs[symbol][timeframe];
             }
         }
