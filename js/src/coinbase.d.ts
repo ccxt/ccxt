@@ -638,6 +638,14 @@ export default class coinbase extends Exchange {
      */
     fetchPortfolioDetails(portfolioUuid: string, params?: Dict): Promise<any[]>;
     parsePortfolioDetails(portfolioData: Dict): Dict[];
+    /**
+     * @method
+     * @name coinbase#isEddsaApiKey
+     * @ignore
+     * @description checks whether the secret is a v2 (Ed25519) CDP api key secret
+     * @returns {boolean} true if the secret is an Ed25519 key
+     */
+    isEddsaApiKey(): boolean;
     createAuthToken(seconds: int, method?: Str, url?: Str, useEddsa?: boolean): string;
     nonce(): number;
     sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
