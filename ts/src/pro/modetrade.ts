@@ -987,7 +987,7 @@ export default class modetrade extends modetradeRest {
                 }
                 const fees = this.safeList (order, 'fees');
                 if (fees !== undefined) {
-                    (parsed as Dict)['fees'] = fees;
+                    parsed['fees'] = fees;
                 }
                 parsed['trades'] = this.safeList (order, 'trades', []);
                 parsed['timestamp'] = this.safeInteger (order, 'timestamp');
