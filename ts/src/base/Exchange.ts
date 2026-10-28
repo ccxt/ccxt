@@ -2389,6 +2389,22 @@ export class BaseExchange {
         return undefined;
     }
 
+    intToBase16 (elem: any): string {
+        return elem.toString (16);
+    }
+
+    extendExchangeOptions (newOptions: Dict) {
+        this.options = this.extend (this.options, newOptions);
+    }
+
+    createSafeDictionary (isWs: boolean = false) { // eslint-disable-line no-unused-vars
+        return {};
+    }
+
+    convertToSafeDictionary (dict: any) {
+        return dict;
+    }
+
     readDhParam(path: string) {
         const pem: any = readFile (path);
         const der = Buffer.from (pem.replace (/-----[^-]+-----|\s/g, ''), 'base64');
@@ -2443,22 +2459,6 @@ export class BaseExchange {
             hex = '00' + hex; // prepend the sign byte
         }
         return this.base16ToBinary (hex);
-    }
-
-    intToBase16 (elem: any): string {
-        return elem.toString (16);
-    }
-
-    extendExchangeOptions (newOptions: Dict) {
-        this.options = this.extend (this.options, newOptions);
-    }
-
-    createSafeDictionary (isWs: boolean = false) { // eslint-disable-line no-unused-vars
-        return {};
-    }
-
-    convertToSafeDictionary (dict: any) {
-        return dict;
     }
 
     checkOptionString (methodName: Str, optionName: string, value: any): Str {

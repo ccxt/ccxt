@@ -2170,6 +2170,59 @@ class BaseExchange(object):
     def convert_to_safe_dictionary(self, dictionary):
         return dictionary
 
+    def read_dh_param(self, path):
+        # reads a PEM-encoded DH parameters file (DER SEQUENCE { INTEGER prime, INTEGER generator }) and returns the prime as a hex string
+        pem = self.read_file(path)
+        if pem is None:
+            raise ExchangeError(self.id + ' readDhParam() could not read the DH_param file: ' + str(path))
+        der = base64.b64decode(re.sub(r'-----[^-]+-----|\s', '', pem))
+        pos = 0
+
+        def read_byte():
+            nonlocal pos
+            if pos >= len(der):
+                raise ExchangeError(self.id + ' readDhParam() unexpected end of the DH_param file')
+            byte = der[pos]
+            pos += 1
+            return byte
+
+        def read_len():
+            length = read_byte()
+            if length & 0x80:
+                n = length & 0x7f
+                length = 0
+                for _ in range(n):
+                    length = (length << 8) | read_byte()
+            return length
+
+        def read_int():
+            nonlocal pos
+            if read_byte() != 0x02:
+                raise ExchangeError(self.id + ' readDhParam() expected INTEGER while reading DH_param file')
+            length = read_len()
+            hex_value = der[pos:pos + length].hex()
+            pos += length
+            return hex_value[2:] if hex_value.startswith('00') else hex_value  # strip sign byte
+
+        if read_byte() != 0x30:
+            raise ExchangeError(self.id + ' readDhParam() expected SEQUENCE while reading DH_param file')
+        read_len()
+        prime = read_int()
+        read_int()  # generator
+        return prime
+
+    def mod_pow(self, base, exponent, modulus):
+        return pow(self.convert_to_big_int(base), self.convert_to_big_int(exponent), self.convert_to_big_int(modulus))
+
+    def big_to_bytes(self, value):
+        # big-endian two's complement bytes, same as java's BigInteger.toByteArray () expected by IBKR
+        hex_value = format(self.convert_to_big_int(value), 'x')
+        if (len(hex_value) % 2) == 1:
+            hex_value = '0' + hex_value
+        if int(hex_value[0], 16) >= 8:
+            hex_value = '00' + hex_value  # prepend the sign byte
+        return bytes.fromhex(hex_value)
+
     def check_option_string(self, methodName, optionName, value):
         # the statically typed ports throw on a present non-string value; here it passes through unchanged
         return value

@@ -1361,6 +1361,106 @@ public partial class BaseExchange
         return new System.Collections.Concurrent.ConcurrentDictionary<string, object>((IDictionary<string, object>)obj);
     }
 
+    // reads a PEM-encoded DH parameters file (DER SEQUENCE { INTEGER prime, INTEGER generator }) and returns the prime as a hex string
+    public string readDhParam(object path)
+    {
+        var pem = this.readFile(path);
+        var der = Convert.FromBase64String(Regex.Replace(pem, @"-----[^-]+-----|\s", ""));
+        var pos = 0;
+        Func<int> readByte = () =>
+        {
+            if (pos >= der.Length)
+            {
+                throw new ExchangeError(this.id + " readDhParam() unexpected end of the DH_param file");
+            }
+            return der[pos++];
+        };
+        Func<int> readLen = () =>
+        {
+            var len = readByte();
+            if ((len & 0x80) != 0)
+            {
+                var n = len & 0x7f;
+                len = 0;
+                for (var i = 0; i < n; i++)
+                {
+                    len = (len << 8) | readByte();
+                }
+            }
+            return len;
+        };
+        Func<string> readInt = () =>
+        {
+            if (readByte() != 0x02)
+            {
+                throw new ExchangeError(this.id + " readDhParam() expected INTEGER while reading DH_param file");
+            }
+            var len = readLen();
+            if (pos + len > der.Length)
+            {
+                throw new ExchangeError(this.id + " readDhParam() unexpected end of the DH_param file");
+            }
+            var sb = new StringBuilder(len * 2);
+            for (var i = pos; i < pos + len; i++)
+            {
+                sb.Append(der[i].ToString("x2"));
+            }
+            pos += len;
+            var hex = sb.ToString();
+            return hex.StartsWith("00") ? hex.Substring(2) : hex; // strip sign byte
+        };
+        if (readByte() != 0x30)
+        {
+            throw new ExchangeError(this.id + " readDhParam() expected SEQUENCE while reading DH_param file");
+        }
+        readLen();
+        var prime = readInt();
+        readInt(); // generator
+        return prime;
+    }
+
+    private static BigInteger toUnsignedBigInteger(object value)
+    {
+        if (value is BigInteger bi)
+        {
+            return bi;
+        }
+        if (value is string str)
+        {
+            if (str.StartsWith("0x") || str.StartsWith("0X"))
+            {
+                // leading zero keeps BigInteger.Parse from reading the top bit as a sign
+                return BigInteger.Parse("0" + str.Substring(2), NumberStyles.HexNumber, CultureInfo.InvariantCulture);
+            }
+            return BigInteger.Parse(str, CultureInfo.InvariantCulture);
+        }
+        return new BigInteger(Convert.ToInt64(value, CultureInfo.InvariantCulture));
+    }
+
+    public BigInteger modPow(object b, object exponent, object modulus)
+    {
+        return BigInteger.ModPow(toUnsignedBigInteger(b), toUnsignedBigInteger(exponent), toUnsignedBigInteger(modulus));
+    }
+
+    // big-endian two's complement bytes, same as java's BigInteger.toByteArray () expected by IBKR
+    public byte[] bigToBytes(object value)
+    {
+        var hex = toUnsignedBigInteger(value).ToString("x").TrimStart('0');
+        if (hex.Length == 0)
+        {
+            hex = "0";
+        }
+        if ((hex.Length % 2) == 1)
+        {
+            hex = "0" + hex;
+        }
+        if (Convert.ToInt32(hex.Substring(0, 1), 16) >= 8)
+        {
+            hex = "00" + hex; // prepend the sign byte
+        }
+        return this.base16ToBinary(hex);
+    }
+
     // a present option value of another type is a user error: throw instead of coercing
     public string checkOptionString(object methodName, object optionName, object value)
     {
