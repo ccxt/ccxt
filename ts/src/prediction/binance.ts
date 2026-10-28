@@ -201,7 +201,10 @@ export default class binance extends Exchange {
      */
     async fetchRawTopics (maxTopics: Int, rest: Dict = {}): Promise<Dict[]> {
         const maxTopicsOption = this.safeInteger (this.options, 'maxFetchMarketsLimit', 200);
-        const maxTopicsResolved = (maxTopics !== undefined) ? maxTopics : maxTopicsOption;
+        let maxTopicsResolved = this.parseToInt (maxTopicsOption);
+        if (maxTopics !== undefined) {
+            maxTopicsResolved = this.parseToInt (maxTopics);
+        }
         const pageLimitOption = this.safeInteger (this.options, 'marketsPageLimit', 100);
         const pageLimit = (pageLimitOption > 100) ? 100 : pageLimitOption;
         const collected: List = [];
@@ -1860,17 +1863,14 @@ export default class binance extends Exchange {
         const failedOrders: Dict[] = this.safeList (response, 'failed', []);
         const failedOrdersLength = failedOrders.length;
         if (failedOrdersLength > 0) {
-            let failedDetails = '';
+            const failedDetails: string[] = [];
             for (let i = 0; i < failedOrdersLength; i++) {
                 const failedOrder = this.safeDict (failedOrders, i);
-                const failedOrderId = this.safeString (failedOrder, 'orderId');
-                const failedReason = this.safeString (failedOrder, 'reason');
-                if (i > 0) {
-                    failedDetails = failedDetails + ', ';
-                }
-                failedDetails = failedDetails + failedOrderId + ': ' + failedReason;
+                const failedOrderId = this.safeString (failedOrder, 'orderId', '');
+                const failedReason = this.safeString (failedOrder, 'reason', '');
+                failedDetails.push (failedOrderId + ': ' + failedReason);
             }
-            throw new OrderNotFound (this.id + ' cancelOrders() failed for ' + failedDetails);
+            throw new OrderNotFound (this.id + ' cancelOrders() failed for ' + failedDetails.join (', '));
         }
         const orders: PredictionOrder[] = [];
         const canceledOrdersLength = canceledOrders.length;
