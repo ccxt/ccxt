@@ -405,7 +405,7 @@ export default class cryptocom extends Exchange {
      */
     fetchPositions(symbols?: Strings, params?: Dict): Promise<Position[]>;
     parsePosition(position: Dict, market?: Market): Position;
-    nonce(): number;
+    nonce(): int;
     paramsToString(object: any, level: number): string;
     /**
      * @method

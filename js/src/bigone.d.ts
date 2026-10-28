@@ -222,7 +222,7 @@ export default class bigone extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
-    nonce(): number;
+    nonce(): int;
     sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
     /**
      * @method

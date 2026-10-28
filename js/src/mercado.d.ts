@@ -150,7 +150,7 @@ export default class mercado extends Exchange {
      */
     fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     ordersToTrades(orders: Order[]): Trade[];
-    nonce(): number;
+    nonce(): int;
     sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
     handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
 }

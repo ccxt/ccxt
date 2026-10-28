@@ -6,7 +6,7 @@ import type { Balances, Currencies, Currency, CurrencyInterface, Dict, FundingHi
  */
 export default class weex extends Exchange {
     describe(): Dict;
-    nonce(): number;
+    nonce(): int;
     /**
      * @method
      * @name weex#fetchStatus

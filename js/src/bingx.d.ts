@@ -811,7 +811,7 @@ export default class bingx extends Exchange {
     fetchMarketLeverageTiers(symbol: string, params?: Dict): Promise<LeverageTier[]>;
     parseMarketLeverageTiers(info: any, market?: Market): LeverageTier[];
     sign(path: string, section?: string[], method?: string, params?: Dict): Dict;
-    nonce(): number;
+    nonce(): int;
     setSandboxMode(enable: boolean): void;
     handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
 }

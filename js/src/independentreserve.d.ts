@@ -1,5 +1,5 @@
 import Exchange from './abstract/independentreserve.js';
-import type { Balances, Currency, Dict, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TradingFees, Transaction, DepositAddress } from './base/types.js';
+import type { Balances, Currency, Dict, Int, int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TradingFees, Transaction, DepositAddress } from './base/types.js';
 /**
  * @class independentreserve
  * @augments Exchange
@@ -161,6 +161,6 @@ export default class independentreserve extends Exchange {
      */
     withdraw(code: string, amount: number, address: string, params?: Dict): Promise<Transaction>;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
-    nonce(): number;
+    nonce(): int;
     sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
 }

@@ -6,7 +6,7 @@ import type { Balances, Currencies, Currency, CurrencyInterface, Dict, Int, Marg
  */
 export default class bitrue extends Exchange {
     describe(): Dict;
-    nonce(): number;
+    nonce(): int;
     /**
      * @method
      * @name bitrue#fetchStatus

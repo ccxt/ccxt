@@ -175,7 +175,7 @@ export default class hibachi extends Exchange {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     withdraw(code: string, amount: number, address: string, params?: Dict): Promise<Transaction>;
-    nonce(): number;
+    nonce(): int;
     signMessage(message: any, privateKey: string): string;
     /**
      * @method

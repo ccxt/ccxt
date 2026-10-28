@@ -182,7 +182,7 @@ export default class gemini extends Exchange {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     withdraw(code: string, amount: number, address: string, params?: Dict): Promise<Transaction>;
-    nonce(): number;
+    nonce(): int;
     /**
      * @method
      * @name gemini#fetchDepositsWithdrawals

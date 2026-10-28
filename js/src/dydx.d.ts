@@ -343,7 +343,7 @@ export default class dydx extends Exchange {
      */
     fetchBalance(params?: Dict): Promise<Balances>;
     parseBalance(response: any): Balances;
-    nonce(): number;
+    nonce(): int;
     getWalletAddress(): string;
     sign(path: string, section?: string[], method?: string, params?: Dict): Dict;
     handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;

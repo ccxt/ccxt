@@ -9,7 +9,7 @@ import type { OrderSide, OrderType, Int, int, Str, Dict, Strings, Num, Market, P
  */
 export default class binance extends Exchange {
     describe(): Dict;
-    nonce(): number;
+    nonce(): int;
     /**
      * @method
      * @name binance#fetchMarkets

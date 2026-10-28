@@ -472,6 +472,6 @@ export default class kraken extends Exchange {
     transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: Dict): Promise<TransferEntry>;
     parseTransfer(transfer: Dict, currency?: Currency): TransferEntry;
     sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
-    nonce(): number;
+    nonce(): int;
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
 }

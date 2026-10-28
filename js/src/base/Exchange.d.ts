@@ -793,7 +793,7 @@ export declare class BaseExchange {
     parseTransactions(transactions: List, currency?: Currency, since?: Int, limit?: Int, params?: Dict): Transaction[];
     parseTransfers(transfers: List, currency?: Currency, since?: Int, limit?: Int, params?: Dict): TransferEntry[];
     parseLedger(data: any, currency?: Currency, since?: Int, limit?: Int, params?: Dict): LedgerEntry[];
-    nonce(): number;
+    nonce(): int;
     /**
      * @method
      * @ignore
@@ -805,7 +805,7 @@ export declare class BaseExchange {
      * so it narrows the duplicate-nonce race but does not remove it across instances or processes.
      * @returns {int} a strictly-increasing nonce in the unit returned by nonce ()
      */
-    incrementingNonce(): number;
+    incrementingNonce(): int;
     setHeaders(headers: any): any;
     currencyId(code: Str): Str;
     marketId(symbol: Str): Str;

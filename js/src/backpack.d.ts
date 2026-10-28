@@ -557,7 +557,7 @@ export default class backpack extends Exchange {
      */
     fetchFundingHistory(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<FundingHistory[]>;
     parseIncome(income: Dict, market?: Market): object;
-    nonce(): number;
+    nonce(): int;
     sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
     generateBatchPayload(params: any, ts: string, recvWindow: string, instruction: string): string;
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;

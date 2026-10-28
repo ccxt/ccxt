@@ -509,6 +509,6 @@ export default class derive extends Exchange {
     handleDeriveSubaccountId(methodName: string, params: Dict): [Int, Dict];
     handleDeriveWalletAddress(methodName: string, params: Dict): [Str, Dict];
     handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
-    nonce(): number;
+    nonce(): int;
     sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
 }

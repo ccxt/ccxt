@@ -7,7 +7,7 @@ import type { OrderSide, OrderType, Int, int, Str, Num, Dict, Market, Prediction
 export default class hyperliquid extends Exchange {
     describe(): Dict;
     setSandboxMode(enabled: boolean): void;
-    nonce(): number;
+    nonce(): int;
     /**
      * @ignore
      * @method

@@ -607,5 +607,5 @@ export default class btse extends Exchange {
     };
     futuresRequestId(market: Dict): Str;
     cleanPath(path: string): string;
-    nonce(): number;
+    nonce(): int;
 }

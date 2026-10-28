@@ -12,7 +12,7 @@ export default class binance extends Exchange {
     createExpiredOptionMarket(symbol: string): MarketInterface;
     market(symbol: Str): MarketInterface;
     safeMarket(marketId?: Str, market?: Market, delimiter?: Str, marketType?: Str): MarketInterface;
-    nonce(): number;
+    nonce(): int;
     /**
      * @method
      * @name binance#mintTokenizedAsset

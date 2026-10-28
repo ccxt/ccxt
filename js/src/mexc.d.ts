@@ -760,7 +760,7 @@ export default class mexc extends Exchange {
      * @returns {object} response from the exchange
      */
     setMarginMode(marginMode: string, symbol?: Str, params?: Dict): Promise<Dict>;
-    nonce(): number;
+    nonce(): int;
     sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
 }

@@ -1,5 +1,5 @@
 import Exchange from '../abstract/prediction/predictfun.js';
-import type { Dict, fetchEventsParams, Int, Market, Num, OrderSide, OrderType, PredictionEvent, PredictionOrder, PredictionOrderBook, PredictionPosition, PredictionTicker, PredictionTrade, Str, Strings } from '../base/types.js';
+import type { Dict, fetchEventsParams, Int, int, Market, Num, OrderSide, OrderType, PredictionEvent, PredictionOrder, PredictionOrderBook, PredictionPosition, PredictionTicker, PredictionTrade, Str, Strings } from '../base/types.js';
 import type Client from '../base/ws/Client.js';
 /**
  * @class predictfun
@@ -710,7 +710,7 @@ export default class predictfun extends Exchange {
      * @param {object} message the raw message
      */
     handleMessage(client: Client, message: Dict): void;
-    nonce(): number;
+    nonce(): int;
     /**
      * @ignore
      * @method

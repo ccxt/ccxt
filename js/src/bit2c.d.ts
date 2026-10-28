@@ -135,7 +135,7 @@ export default class bit2c extends Exchange {
      */
     fetchDepositAddress(code: string, params?: Dict): Promise<DepositAddress>;
     parseDepositAddress(depositAddress: Dict, currency?: Currency): DepositAddress;
-    nonce(): number;
+    nonce(): int;
     sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
     handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
 }

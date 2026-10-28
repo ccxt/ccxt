@@ -6,7 +6,7 @@ import type { TransferEntry, Balances, Currency, CurrencyInterface, Int, Market,
  */
 export default class latoken extends Exchange {
     describe(): Dict;
-    nonce(): number;
+    nonce(): int;
     /**
      * @method
      * @name latoken#fetchTime

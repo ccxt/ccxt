@@ -6,7 +6,7 @@ import type { Balances, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBoo
  */
 export default class tokocrypto extends Exchange {
     describe(): Dict;
-    nonce(): number;
+    nonce(): int;
     /**
      * @method
      * @name tokocrypto#fetchTime

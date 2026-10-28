@@ -6,7 +6,7 @@ import type { Balances, Currencies, Currency, DepositAddress, Dict, FundingHisto
  */
 export default class xt extends Exchange {
     describe(): Dict;
-    nonce(): number;
+    nonce(): int;
     /**
      * @method
      * @name xt#fetchTime

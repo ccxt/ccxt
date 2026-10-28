@@ -14,7 +14,7 @@ export default class bybit extends Exchange {
      * @param {boolean} [enable] true if demo trading should be enabled, false otherwise
      */
     enableDemoTrading(enable: boolean): void;
-    nonce(): number;
+    nonce(): int;
     addPaginationCursorToResult(response: Dict): any[];
     /**
      * @method

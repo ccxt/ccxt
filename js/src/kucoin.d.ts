@@ -6,7 +6,7 @@ import type { ADL, Account, Balances, Bool, BorrowInterest, CrossBorrowRate, Cur
  */
 export default class kucoin extends Exchange {
     describe(): Dict;
-    nonce(): number;
+    nonce(): int;
     /**
      * @method
      * @name kucoin#fetchTime
