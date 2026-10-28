@@ -762,7 +762,7 @@ public partial class PredictionExchange : BaseExchange
                         string? suffix = ocId;
                         if (idLen > 6)
                         {
-                            suffix = slice(ocId, (idLen - 6), null);
+                            suffix = ((ocId == null) ? null : ocId.Substring(Math.Max(Math.Min(((idLen - 6) < 0 ? ocId.Length + ((idLen - 6)) : (idLen - 6)), ocId.Length), 0)));
                         }
                         ocSymbol = ((ocSymbol + "_") + suffix.ToUpper());
                     }

@@ -1237,7 +1237,7 @@ public partial class whitebit : Exchange
                 if ((networkId != null))
                 {
                     int networkLength = networkId.Length;
-                    string? networkCode = this.networkIdToCode(slice(networkId, 1, (networkLength - 1)), code);
+                    string? networkCode = this.networkIdToCode(((networkId == null) ? null : networkId.Substring(Math.Min(1, networkId.Length), Math.Max(Math.Max(Math.Min(((networkLength - 1) < 0 ? networkId.Length + ((networkLength - 1)) : (networkLength - 1)), networkId.Length), 0) - Math.Min(1, networkId.Length), 0))), code);
                     if ((networkCode != null))
                     {
                         ((IDictionary<string,object>)getValue((depositWithdrawFees.ContainsKey(code) ? depositWithdrawFees[code] : null), "networks"))[(string)networkCode] = new Dictionary<string, object>() {

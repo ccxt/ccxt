@@ -99,7 +99,7 @@ public partial class hollaex : ccxt.hollaex
         string? channel = this.safeString(message, "topic");
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? marketIdValue = this.safeString(market, "id", "");
-        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbol = this.safeString(market, "symbol");
         if ((symbol != null))
         {
             IDictionary<string, object> data = this.safeDict(message, "data");
@@ -107,7 +107,7 @@ public partial class hollaex : ccxt.hollaex
             Int64? timestampMs = this.parse8601(timestamp);
             ccxt.OrderBook snapshot = this.parseOrderBook(data, symbol, timestampMs);
             object orderbook = null;
-            if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
+            if (!(((symbol != null) && ((IDictionary<string, object>)this.orderbooks).ContainsKey(symbol))))
             {
                 orderbook = this.orderBook(ccxt.BaseExchange.FromOrderBook(snapshot));
                 ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;

@@ -1424,7 +1424,7 @@ public partial class nado : ccxt.nado
         // on a string, breaking every ws parser with a TypeError
         if (value.Length > 13)
         {
-            return this.parseToInt(slice(value, 0, (value.Length - 6)));
+            return this.parseToInt(((value == null) ? null : value.Substring(0, Math.Max(Math.Min(((value.Length - 6) < 0 ? value.Length + ((value.Length - 6)) : (value.Length - 6)), value.Length), 0))));
         }
         return this.safeInteger(message, key);
     }

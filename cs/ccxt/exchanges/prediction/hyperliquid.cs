@@ -229,7 +229,7 @@ public partial class hyperliquid : PredictionExchange
             if (colonIndex > -1)
             {
                 string? key = ((part == null) ? null : part.Substring(0, Math.Max(Math.Min((colonIndex < 0 ? part.Length + (colonIndex) : colonIndex), part.Length), 0)));
-                string? value = slice(part, (colonIndex + 1L), null);
+                string? value = ((part == null) ? null : part.Substring(Math.Max(Math.Min(((colonIndex + 1) < 0 ? part.Length + ((colonIndex + 1)) : (colonIndex + 1)), part.Length), 0)));
                 result[(string)key] = value;
             }
         }
@@ -1294,7 +1294,7 @@ public partial class hyperliquid : PredictionExchange
         int colonIndex = outcomeInput.IndexOf(":", StringComparison.Ordinal);
         if (colonIndex > -1 && (colonIndex < (outcomeInput.Length - 1)))
         {
-            string side = ((string)slice(outcomeInput, (colonIndex + 1L), null)).ToUpper();
+            string side = ((string)((outcomeInput == null) ? null : outcomeInput.Substring(Math.Max(Math.Min(((colonIndex + 1) < 0 ? outcomeInput.Length + ((colonIndex + 1)) : (colonIndex + 1)), outcomeInput.Length), 0)))).ToUpper();
             if (side == "YES" || side == "NO")
             {
                 return side;

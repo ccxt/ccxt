@@ -283,7 +283,7 @@ public partial class binance : ccxt.binance
             // this avoids matching "/wss", "/ws-api", "/ws-fapi/v1", etc.
             if ((baseUrl.EndsWith("/ws") == true))
             {
-                object prefix = slice(baseUrl, 0, (baseUrl.Length - 3));
+                object prefix = ((baseUrl == null) ? null : baseUrl.Substring(0, Math.Max(Math.Min(((baseUrl.Length - 3) < 0 ? baseUrl.Length + ((baseUrl.Length - 3)) : (baseUrl.Length - 3)), baseUrl.Length), 0)));
                 return ((string?)((object)(add(add(add(prefix, "/"), category), "/ws"))));
             }
             return baseUrl;
