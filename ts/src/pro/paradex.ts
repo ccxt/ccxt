@@ -6,7 +6,7 @@ import Precise from '../base/Precise.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import type { Int, int, Str, Trade, Order, Dict, NullableDict, OrderBook, Ticker, Strings, Tickers, Bool, Market, FundingRate, FundingRates, Position, Balances, Liquidation } from '../base/types.js';
 import Client from '../base/ws/Client.js';
-import { ArgumentsRequired, ExchangeError } from '../base/errors.js';
+import { ArgumentsRequired, ExchangeError, RequestTimeout } from '../base/errors.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
@@ -70,6 +70,8 @@ export default class paradex extends paradexRest {
                     // the book is the 15-level snapshot sent every 100ms
                     'deltas': false,
                 },
+                // ms a watch waits for the acknowledgement of an unsubscribe of its channel
+                'unsubscribeTimeout': 10000,
                 'ws': {
                     // paces the requests sent on a connection: a subscribe per market adds up when
                     // many symbols are watched at once
@@ -179,6 +181,7 @@ export default class paradex extends paradexRest {
         // messageHashes[i] is the hash the updates of channels[i] resolve. The channels still to subscribe are
         // looked up again after each await: another watch may have subscribed one meanwhile, and a reconnect
         // starts a client without any. Each but the last is sent once the previous one is acknowledged
+        await this.waitForPendingUnsubscribe (url, channels);
         const channelsLength = channels.length;
         for (let attempt = 0; attempt < channelsLength; attempt++) {
             const pending = this.unsubscribedChannels (url, channels);
@@ -242,7 +245,7 @@ export default class paradex extends paradexRest {
      * @ignore
      * @method
      * @name paradex#unsubscribeChannels
-     * @description unsubscribes from a list of channels, one request per channel as the server takes one channel per request, each sent once the previous one is acknowledged
+     * @description unsubscribes from a list of channels, one request per channel as the server takes one channel per request, each sent once the previous one is acknowledged, a refused channel does not stop the others
      * @param {string} url the websocket url
      * @param {string} topic the cache the replies clear, see cleanCache
      * @param {string[]} channels the channels to unsubscribe from
@@ -252,29 +255,133 @@ export default class paradex extends paradexRest {
      * @returns {boolean} true once every channel is unsubscribed
      */
     async unsubscribeChannels (url: string, topic: string, channels: string[], subMessageHashes: string[], symbols: string[], params: Dict = {}): Promise<any> {
-        let result: any = undefined;
         for (let i = 0; i < channels.length; i++) {
-            const channel = channels[i];
-            const symbol = this.safeString (symbols, i);
-            const hashes: string[] = [ subMessageHashes[i] ];
-            const channelSymbols: string[] = [];
-            if (symbol !== undefined) {
-                channelSymbols.push (symbol);
-                if (topic === 'trades') {
-                    // the liquidations of a market come from its trades channel
-                    hashes.push ('liquidations:' + symbol);
+            try {
+                await this.unsubscribeChannelAt (url, topic, channels, subMessageHashes, symbols, i, params);
+            } catch (e) {
+                // a channel the server refuses (not subscribed) does not stop the others, its error is thrown once they are sent
+                await this.unsubscribeChannelsFrom (url, topic, channels, subMessageHashes, symbols, i + 1, params);
+                throw e;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name paradex#unsubscribeChannelsFrom
+     * @description unsubscribes from the channels from an index on, after one was refused, their errors are dropped as the first one is thrown
+     * @param {string} url the websocket url
+     * @param {string} topic the cache the replies clear, see cleanCache
+     * @param {string[]} channels the channels to unsubscribe from
+     * @param {string[]} subMessageHashes the message hash the watchers of each channel wait on
+     * @param {string[]} symbols the unified symbol of each channel, empty for an all-markets channel
+     * @param {int} start the index of the first channel to unsubscribe from
+     * @param {object} [params] extra parameters merged into each unsubscribe request
+     * @returns {int} the number of channels refused
+     */
+    async unsubscribeChannelsFrom (url: string, topic: string, channels: string[], subMessageHashes: string[], symbols: string[], start: number, params: Dict = {}): Promise<any> {
+        let refused = 0;
+        for (let i = 0; i < channels.length; i++) {
+            if (i >= start) {
+                try {
+                    await this.unsubscribeChannelAt (url, topic, channels, subMessageHashes, symbols, i, params);
+                } catch (e) {
+                    refused = refused + 1;
                 }
             }
-            const subscription: Dict = {
-                'topic': topic,
-                'subscribeHashes': [ channel ],
-                'subMessageHashes': hashes,
-                'symbols': channelSymbols,
-            };
-            const request = this.unsubscribeRequest (channel);
-            result = await this.sendUnsubscribe (url, 'unsubscribe:' + channel, request, subscription, params);
         }
-        return result;
+        return refused;
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name paradex#unsubscribeChannelAt
+     * @description unsubscribes from one channel of a list, the reply forgets its subscription and rejects its watchers, the liquidations of a market with its trades
+     * @param {string} url the websocket url
+     * @param {string} topic the cache the reply clears, see cleanCache
+     * @param {string[]} channels the channels of the list
+     * @param {string[]} subMessageHashes the message hash the watchers of each channel wait on
+     * @param {string[]} symbols the unified symbol of each channel, empty for an all-markets channel
+     * @param {int} index the index of the channel to unsubscribe from
+     * @param {object} [params] extra parameters merged into the unsubscribe request
+     * @returns {boolean} true once unsubscribed
+     */
+    async unsubscribeChannelAt (url: string, topic: string, channels: string[], subMessageHashes: string[], symbols: string[], index: number, params: Dict = {}): Promise<any> {
+        const channel = channels[index];
+        const symbol = this.safeString (symbols, index);
+        const hashes: string[] = [ subMessageHashes[index] ];
+        const channelSymbols: string[] = [];
+        if (symbol !== undefined) {
+            channelSymbols.push (symbol);
+            if (topic === 'trades') {
+                // the liquidations of a market come from its trades channel
+                hashes.push ('liquidations:' + symbol);
+            }
+        }
+        const subscription: Dict = {
+            'topic': topic,
+            'subscribeHashes': [ channel ],
+            'subMessageHashes': hashes,
+            'symbols': channelSymbols,
+        };
+        const request = this.unsubscribeRequest (channel);
+        return await this.sendUnsubscribe (url, 'unsubscribe:' + channel, request, subscription, params);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name paradex#waitForPendingUnsubscribe
+     * @description waits for the unsubscribes in flight of any of these subscriptions, a watch made meanwhile would find the subscription still there, send nothing, and be rejected by the reply
+     * @param {string} url the websocket url
+     * @param {string[]} subscribeHashes the subscriptions the watch relies on
+     * @returns {undefined}
+     */
+    async waitForPendingUnsubscribe (url: string, subscribeHashes: string[]): Promise<any> {
+        if (!(url in this.clients)) {
+            return undefined;
+        }
+        const client = this.client (url);
+        const keys = Object.keys (client.subscriptions);
+        for (let i = 0; i < keys.length; i++) {
+            const unsubHash = keys[i];
+            if (unsubHash.indexOf ('unsubscribe:') !== 0) {
+                continue;
+            }
+            const unsubscription = this.safeDict (client.subscriptions, unsubHash);
+            const pendingHashes = this.safeList (unsubscription, 'subscribeHashes', []);
+            let pending = false;
+            for (let j = 0; j < pendingHashes.length; j++) {
+                if (this.inArray (pendingHashes[j], subscribeHashes)) {
+                    pending = true;
+                }
+            }
+            if (pending) {
+                // a lost acknowledgement is timed out, so that the watch cannot hang
+                const timeout = this.safeInteger (this.options, 'unsubscribeTimeout', 10000);
+                this.delay (timeout, this.expirePendingUnsubscribe, client, unsubHash, this.safeString (unsubscription, 'id'));
+                try {
+                    await client.future (unsubHash);
+                } catch (e) {
+                    // the error of the unsubscribe belongs to the unwatch, the watch goes on with the subscriptions as the reply left them
+                    pending = false;
+                }
+            }
+        }
+        return undefined;
+    }
+
+    async expirePendingUnsubscribe (client: Client, unsubHash: string, requestId: string) {
+        const unsubscription = this.safeDict (client.subscriptions, unsubHash, {});
+        if (this.safeString (unsubscription, 'id') === requestId) {
+            const error = new RequestTimeout (this.id + ' ' + unsubHash + ' was not acknowledged');
+            client.reject (error, unsubHash);
+            // the subscriptions are forgotten, so that the next watch subscribes them again
+            this.cleanUnsubscribed (client, unsubHash, unsubscription);
+        }
     }
 
     async authenticate (params: Dict = {}) {
@@ -377,30 +484,33 @@ export default class paradex extends paradexRest {
             if (unsubHash.indexOf ('unsubscribe:') !== 0) {
                 continue;
             }
-            const subscription = this.safeDict (client.subscriptions, unsubHash);
-            if (this.safeString (subscription, 'id') !== requestId) {
-                continue;
+            const subscription = this.safeDict (client.subscriptions, unsubHash, {});
+            if (this.safeString (subscription, 'id') === requestId) {
+                this.cleanUnsubscribed (client, unsubHash, subscription);
             }
-            const subscribeHashes = this.safeList (subscription, 'subscribeHashes', []);
-            for (let j = 0; j < subscribeHashes.length; j++) {
-                const subscribeHash = subscribeHashes[j] as string;
-                if (subscribeHash in client.subscriptions) {
-                    delete client.subscriptions[subscribeHash];
-                }
-                // a market moved to the deltas feed goes back to the snapshots on its next watch
-                const requestedHash = subscribeHash + ':requested';
-                if (requestedHash in client.subscriptions) {
-                    delete client.subscriptions[requestedHash];
-                }
-            }
-            const prefix = this.safeBool (subscription, 'prefix', false);
-            const subMessageHashes = this.safeList (subscription, 'subMessageHashes', []);
-            for (let j = 0; j < subMessageHashes.length; j++) {
-                this.cleanUnsubscription (client, subMessageHashes[j], unsubHash, prefix);
-            }
-            this.cleanCache (subscription);
-            client.resolve (true, unsubHash);
         }
+    }
+
+    cleanUnsubscribed (client: Client, unsubHash: string, subscription: Dict) {
+        const subscribeHashes = this.safeList (subscription, 'subscribeHashes', []);
+        for (let j = 0; j < subscribeHashes.length; j++) {
+            const subscribeHash = subscribeHashes[j] as string;
+            if (subscribeHash in client.subscriptions) {
+                delete client.subscriptions[subscribeHash];
+            }
+            // a market moved to the deltas feed goes back to the snapshots on its next watch
+            const requestedHash = subscribeHash + ':requested';
+            if (requestedHash in client.subscriptions) {
+                delete client.subscriptions[requestedHash];
+            }
+        }
+        const prefix = this.safeBool (subscription, 'prefix', false);
+        const subMessageHashes = this.safeList (subscription, 'subMessageHashes', []);
+        for (let j = 0; j < subMessageHashes.length; j++) {
+            this.cleanUnsubscription (client, subMessageHashes[j], unsubHash, prefix);
+        }
+        this.cleanCache (subscription);
+        client.resolve (true, unsubHash);
     }
 
     /**
@@ -424,6 +534,7 @@ export default class paradex extends paradexRest {
             messageHash = 'trades.' + market['id'];
         }
         const url = this.getWsUrl ();
+        await this.waitForPendingUnsubscribe (url, [ messageHash ]);
         const request: Dict = this.subscribeRequest (messageHash);
         const subscription: Dict = {
             'id': request['id'],
@@ -665,6 +776,14 @@ export default class paradex extends paradexRest {
         const [ deltasOption, paramsDeltas ] = this.handleOptionAndParams (params, 'watchOrderBook', 'deltas', false);
         const deltas = (deltasOption === true) || ((limit !== undefined) && (limit > 15));
         const url = this.getWsUrl ();
+        // an unwatch in flight decides which feed each market is on once acknowledged
+        const feeds: string[] = [];
+        for (let i = 0; i < symbolsLength; i++) {
+            const feedMarket = this.market (symbolsNormalized[i]);
+            feeds.push (this.getOrderBookChannel (feedMarket['id'], true));
+            feeds.push (this.getOrderBookChannel (feedMarket['id'], false));
+        }
+        await this.waitForPendingUnsubscribe (url, feeds);
         const client = this.client (url);
         const channels: string[] = [];
         const messageHashes: string[] = [];
@@ -736,7 +855,9 @@ export default class paradex extends paradexRest {
             const deltasChannel = this.getOrderBookChannel (market['id'], true);
             const snapshotChannel = this.getOrderBookChannel (market['id'], false);
             let channel = (deltasOption === true) ? deltasChannel : snapshotChannel;
-            if (deltasChannel in client.subscriptions) {
+            // a market switching to the deltas feed is on neither feed until its snapshot unsubscribe is acknowledged
+            const requestedHash = deltasChannel + ':requested';
+            if ((deltasChannel in client.subscriptions) || (requestedHash in client.subscriptions)) {
                 channel = deltasChannel;
             } else if (snapshotChannel in client.subscriptions) {
                 channel = snapshotChannel;
@@ -954,8 +1075,9 @@ export default class paradex extends paradexRest {
         } else {
             // every listed market, options included
             const url = this.getWsUrl ();
-            const client = this.client (url);
             const scopedHash = channel + ':scoped';
+            await this.waitForPendingUnsubscribe (url, [ channel, scopedHash ]);
+            const client = this.client (url);
             if (scopedHash in client.subscriptions) {
                 // a scoped subscription keeps its filter through a plain subscribe, it is unsubscribed first
                 const subscribeHashes = Object.keys (client.subscriptions);
@@ -1091,8 +1213,13 @@ export default class paradex extends paradexRest {
      */
     async subscribeMarketsSummary (symbols: string[], messageHashes: string[], params: Dict = {}): Promise<any> {
         const url = this.getWsUrl ();
-        const client = this.client (url);
         const channel = 'markets_summary';
+        const pendingHashes: string[] = [ channel, channel + ':scoped' ];
+        for (let i = 0; i < symbols.length; i++) {
+            pendingHashes.push (channel + '.' + this.market (symbols[i])['id']);
+        }
+        await this.waitForPendingUnsubscribe (url, pendingHashes);
+        const client = this.client (url);
         if (channel in client.subscriptions) {
             // the all-markets subscription carries these markets already
             return await this.watchMultiple (url, messageHashes, undefined, [ channel ]);
@@ -1704,7 +1831,8 @@ export default class paradex extends paradexRest {
         // the per-market channel, the all-markets one sends every perpetual's funding
         const channel = 'funding_data.' + market['id'];
         const url = this.getWsUrl ();
-        const messageHash = 'funding_data.' + market['symbol'];
+        // its own hash: funding_data.<symbol> is the hash of watchFundingRates on the all-markets channel
+        const messageHash = 'fundingRate:' + market['symbol'];
         return await this.subscribeChannels (url, [ messageHash ], [ channel ], params);
     }
 
@@ -1723,7 +1851,7 @@ export default class paradex extends paradexRest {
         }
         const market = this.market (symbol);
         const channel = 'funding_data.' + market['id'];
-        const messageHash = 'funding_data.' + market['symbol'];
+        const messageHash = 'fundingRate:' + market['symbol'];
         return await this.unsubscribeChannels (this.getWsUrl (), 'fundingRate', [ channel ], [ messageHash ], [ market['symbol'] ], params);
     }
 
@@ -1797,10 +1925,11 @@ export default class paradex extends paradexRest {
         const fundingRate = this.parseFundingRateWs (data);
         const symbol = this.safeString (fundingRate, 'symbol');
         this.fundingRates[(symbol as string)] = fundingRate;
-        // watchFundingRates without symbols waits on the bare channel, the per-market and all-markets
-        // channels carry the same frame
+        // watchFundingRates waits on the bare channel without symbols and on funding_data.<symbol> with them,
+        // watchFundingRate on fundingRate:<symbol>, the per-market and all-markets channels carry the same frame
         client.resolve (fundingRate, 'funding_data');
         client.resolve (fundingRate, 'funding_data.' + symbol);
+        client.resolve (fundingRate, 'fundingRate:' + symbol);
     }
 
     parseFundingRateWs (contract: Dict, market: Market = undefined): FundingRate {
