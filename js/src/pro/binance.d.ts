@@ -694,7 +694,7 @@ export default class binance extends binanceRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     watchBidsAsks(symbols?: Strings, params?: Dict): Promise<Tickers>;
-    watchMultiTickerHelper(methodName: string, channelName: Str, symbols?: Strings, params?: Dict, isUnsubscribe?: boolean): Promise<any>;
+    watchMultiTickerHelper(methodName: string, channelName: string, symbols?: Strings, params?: Dict, isUnsubscribe?: boolean): Promise<any>;
     parseWsTicker(message: NullableDict, marketType: Str): Ticker;
     handleTickerWs(client: Client, message: Dict): void;
     handleBidsAsks(client: Client, message: any): void;
