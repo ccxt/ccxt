@@ -668,7 +668,6 @@ func (this *Bitget) ParseWsBidAsk(message map[string]any, optionalArgs ...any) a
  * @param {int} [limit] the maximum amount of candles to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
- * @param {boolean} [params.stock] set to true for tokenized stock symbols, defaults to market['stock']
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
 func (this *Bitget) WatchOHLCVAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.OHLCV] {
@@ -700,16 +699,10 @@ func (this *Bitget) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbo
 	var interval *string = this.SafeString(timeframes, timeframe)
 	var messageHash string
 	uta, paramsUta := this.HandleOptionBoolAndParams(params, "watchOHLCV", "uta", false)
-	var stockDefault *bool = this.SafeBool(market, "stock", false)
-	var stockparamsStockVariable []any = this.HandleOptionBoolAndParamsNullable(paramsUta, "watchOHLCV", "stock", stockDefault)
-	stock := func() any {
-		if p, _ := stockparamsStockVariable[0].(*bool); p != nil {
-			return *p
-		}
-		return nil
-	}()
-	var paramsStock map[string]any = ccxt.MapTyped(stockparamsStockVariable[1])
-	var isStockOrUta bool = ((stock == true) || (uta == true))
+	var isStock *bool = ccxt.SafeBoolPtr(market["stock"])
+	var paramsStock map[string]any = this.OmitDict(paramsUta, "stock")
+	var isStockSpot bool = (isStock != nil && *isStock) && ccxt.EvalTruthy(market["spot"])
+	var isStockOrUta bool = (isStockSpot || (uta == true))
 	instTypeparamsInstTypeVariable := this.GetInstType("watchOHLCV", market, isStockOrUta, paramsStock)
 	var instType *string = ccxt.SafeStringPtr(instTypeparamsInstTypeVariable[0])
 	var paramsInstType map[string]any = ccxt.MapTyped(instTypeparamsInstTypeVariable[1])
@@ -758,7 +751,6 @@ func (this *Bitget) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbo
  * @param {string} [timeframe] the period for the ratio, default is 1 minute
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
- * @param {boolean} [params.stock] set to true for tokenized stock symbols, defaults to market['stock']
  * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *Bitget) UnWatchOHLCVAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
@@ -787,16 +779,10 @@ func (this *Bitget) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol stri
 	var messageHash any = nil
 	var values any = ccxt.TupleSlice(this.HandleOptionBoolAndParams(params, "watchOHLCV", "uta", false))
 	var uta *bool = ccxt.SafeBoolPtr(ccxt.GetValue(values, 0))
-	var stockDefault *bool = this.SafeBool(market, "stock", false)
-	var stockparamsStockVariable []any = this.HandleOptionBoolAndParamsNullable(params, "watchOHLCV", "stock", stockDefault)
-	stock := func() any {
-		if p, _ := stockparamsStockVariable[0].(*bool); p != nil {
-			return *p
-		}
-		return nil
-	}()
-	var paramsStock map[string]any = ccxt.MapTyped(stockparamsStockVariable[1])
-	var isStockOrUta bool = ((stock == true) || (uta != nil && *uta == true))
+	var isStock *bool = ccxt.SafeBoolPtr(market["stock"])
+	var paramsStock map[string]any = this.OmitDict(params, "stock")
+	var isStockSpot bool = (isStock != nil && *isStock) && ccxt.EvalTruthy(market["spot"])
+	var isStockOrUta bool = (isStockSpot || (uta != nil && *uta == true))
 	instTypeparamsInstTypeVariable := this.GetInstType("watchOHLCV", market, isStockOrUta, paramsStock)
 	var instType *string = ccxt.SafeStringPtr(instTypeparamsInstTypeVariable[0])
 	var paramsInstType map[string]any = ccxt.MapTyped(instTypeparamsInstTypeVariable[1])
@@ -912,7 +898,8 @@ func (this *Bitget) HandleOHLCV(client any, message any) {
 	if timeframe == nil {
 		return
 	}
-	var stored any = this.SafeValue(this.SafeDict(this.Ohlcvs, symbol), timeframe)
+	var ohlcvs map[string]any = ccxt.SafeMapTyped(this.Ohlcvs, symbol)
+	var stored any = this.SafeValue(ohlcvs, timeframe)
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		stored = ccxt.NewArrayCacheByTimestamp(limit)
@@ -968,7 +955,13 @@ func (this *Bitget) ParseWsOHLCV(ohlcv any, optionalArgs ...any) any {
 	if isInverse != nil && *isInverse == true {
 		volumeIndex = 6
 	}
-	return []any{this.SafeInteger2(ohlcv, "start", 0), this.SafeNumber2(ohlcv, "open", 1), this.SafeNumber2(ohlcv, "high", 2), this.SafeNumber2(ohlcv, "low", 3), this.SafeNumber2(ohlcv, "close", 4), this.SafeNumber2(ohlcv, "volume", volumeIndex)}
+	var timestamp *int64 = this.SafeInteger2(ohlcv, "start", 0)
+	var open *float64 = this.SafeNumber2(ohlcv, "open", 1)
+	var high *float64 = this.SafeNumber2(ohlcv, "high", 2)
+	var low *float64 = this.SafeNumber2(ohlcv, "low", 3)
+	var close *float64 = this.SafeNumber2(ohlcv, "close", 4)
+	var volume *float64 = this.SafeNumber2(ohlcv, "volume", volumeIndex)
+	return []any{timestamp, open, high, low, close, volume}
 }
 
 /**
@@ -982,7 +975,6 @@ func (this *Bitget) ParseWsOHLCV(ohlcv any, optionalArgs ...any) any {
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
- * @param {boolean} [params.stock] set to true for tokenized stock symbols, defaults to market['stock']
  * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *Bitget) WatchOrderBookAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.OrderBookInterface] {
@@ -1017,7 +1009,6 @@ func (this *Bitget) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookIn
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.limit] orderbook limit, default is undefined
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
- * @param {boolean} [params.stock] set to true for tokenized stock symbols, defaults to market['stock']
  * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *Bitget) UnWatchOrderBookAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
@@ -1038,17 +1029,11 @@ func (this *Bitget) unWatchOrderBookBody(ch chan ccxt.AsyncResult[bool], symbol 
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var stockDefault *bool = this.SafeBool(market, "stock", false)
-	var stockparamsStockVariable []any = this.HandleOptionBoolAndParamsNullable(params, "unWatchOrderBook", "stock", stockDefault)
-	stock := func() any {
-		if p, _ := stockparamsStockVariable[0].(*bool); p != nil {
-			return *p
-		}
-		return nil
-	}()
-	var paramsStock map[string]any = ccxt.MapTyped(stockparamsStockVariable[1])
+	var isStock *bool = ccxt.SafeBoolPtr(market["stock"])
+	var paramsStock map[string]any = this.OmitDict(params, "stock")
 	uta, paramsUta := this.HandleOptionBoolAndParams(paramsStock, "unWatchOrderBook", "uta", false)
-	var isStockOrUta bool = ((stock == true) || (uta == true))
+	var isStockSpot bool = (isStock != nil && *isStock) && ccxt.EvalTruthy(market["spot"])
+	var isStockOrUta bool = (isStockSpot || (uta == true))
 	var paramsRequest any = paramsUta
 	if isStockOrUta {
 		paramsRequest = this.Extend(paramsUta, map[string]any{
@@ -1145,7 +1130,6 @@ func (this *Bitget) unWatchChannelBody(ch chan ccxt.AsyncResult[bool], symbol st
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
- * @param {boolean} [params.stock] set to true for tokenized stock symbols, defaults to market['stock']
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *Bitget) WatchOrderBookForSymbolsAsync(symbols any, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.OrderBookInterface] {
@@ -1169,26 +1153,20 @@ func (this *Bitget) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.O
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var symbolsLength int = len(symbolsNormalized)
-	var firstMarket map[string]any = nil
+	var isStockSpot bool = false
 	if symbolsLength > 0 {
-		firstMarket = this.Market(func() any {
+		var market map[string]any = this.Market(func() any {
 			if 0 >= 0 && 0 < len(symbolsNormalized) {
 				return symbolsNormalized[0]
 			}
 			return nil
 		}())
+		var isStock *bool = ccxt.SafeBoolPtr(market["stock"])
+		isStockSpot = (isStock != nil && *isStock) && ccxt.EvalTruthy(market["spot"])
 	}
-	var stockDefault *bool = this.SafeBool(firstMarket, "stock", false)
-	var stockparamsStockVariable []any = this.HandleOptionBoolAndParamsNullable(params, "watchOrderBookForSymbols", "stock", stockDefault)
-	stock := func() any {
-		if p, _ := stockparamsStockVariable[0].(*bool); p != nil {
-			return *p
-		}
-		return nil
-	}()
-	var paramsStock map[string]any = ccxt.MapTyped(stockparamsStockVariable[1])
+	var paramsStock map[string]any = this.OmitDict(params, "stock")
 	uta, paramsUta := this.HandleOptionBoolAndParams(paramsStock, "watchOrderBookForSymbols", "uta", false)
-	var isStockOrUta bool = ((stock == true) || (uta == true))
+	var isStockOrUta bool = (isStockSpot || (uta == true))
 	var channel string = "books"
 	var incrementalFeed bool = true
 	if (ccxt.IsEqual(limit, 1)) || (ccxt.IsEqual(limit, 5)) || (ccxt.IsEqual(limit, 15)) || (ccxt.IsEqual(limit, 50)) {
@@ -1318,7 +1296,8 @@ func (this *Bitget) HandleOrderBook(client any, message any) {
 			ccxt.AddElementToObject(this.Orderbooks, symbol, ob)
 		}
 		var storedOrderBook ccxt.OrderBookInterface = ccxt.OrderBookTyped(ccxt.GetValue(this.Orderbooks, symbol))
-		var isSnapshot bool = (this.SafeString(message, "action") != nil && *this.SafeString(message, "action") == "snapshot") // snapshot does not have a checksum
+		var action *string = this.SafeString(message, "action")
+		var isSnapshot bool = (action != nil && *action == "snapshot") // snapshot does not have a checksum
 		if isSnapshot {
 			// a snapshot replaces the book, e.g. after a reconnect, levels absent from it must not survive
 			storedOrderBook.Reset(map[string]any{
@@ -1802,8 +1781,9 @@ func (this *Bitget) ParseWsTrade(trade any, optionalArgs ...any) any {
 	if first != nil {
 		var feeCurrencyId *string = this.SafeString(first, "feeCoin")
 		var feeCurrencyCode *string = this.SafeCurrencyCode(feeCurrencyId)
+		var feeCost *string = this.SafeString2(first, "totalFee", "fee")
 		fee = map[string]any{
-			"cost":     ccxt.Precise.StringAbs(this.SafeString2(first, "totalFee", "fee")),
+			"cost":     ccxt.Precise.StringAbs(feeCost),
 			"currency": feeCurrencyCode,
 		}
 	}
@@ -2681,8 +2661,10 @@ func (this *Bitget) ParseWsOrder(order any, optionalArgs ...any) any {
 	}()
 	var side *string = this.SafeString(order, "side")
 	var typeVar *string = this.SafeString(order, "orderType")
-	var accBaseVolume any = this.OmitZero(this.SafeString2(order, "accBaseVolume", "cumExecQty"))
-	var newSizeValue any = this.OmitZero(this.SafeString2(order, "newSize", "cumExecValue"))
+	var accBaseVolumeString *string = this.SafeString2(order, "accBaseVolume", "cumExecQty")
+	var accBaseVolume any = this.OmitZero(accBaseVolumeString)
+	var newSizeString *string = this.SafeString2(order, "newSize", "cumExecValue")
+	var newSizeValue any = this.OmitZero(newSizeString)
 	var isMarketOrder bool = (typeVar != nil && *typeVar == "market")
 	var isBuy bool = (side != nil && *side == "buy")
 	var totalAmount any = nil
@@ -3922,7 +3904,8 @@ func (this *Bitget) HandleUnSubscriptionStatus(client any, message any) any {
 	//
 	var argsList any = this.SafeList(message, "args")
 	if argsList == nil {
-		argsList = []any{this.SafeDict(message, "arg", map[string]any{})}
+		var arg map[string]any = this.SafeDictMap(message, "arg", map[string]any{})
+		argsList = []any{arg}
 	}
 	for i := 0; i < ccxt.GetArrayLength(argsList); i++ {
 		var arg map[string]any = ccxt.SafeMapTyped(argsList, i)
@@ -4075,7 +4058,6 @@ func (this *Bitget) WatchBidsAsks(options ...ccxt.WatchBidsAsksOptions) (ccxt.Ti
  * @param {int} [limit] the maximum amount of candles to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
- * @param {boolean} [params.stock] set to true for tokenized stock symbols, defaults to market['stock']
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
 func (this *Bitget) WatchOHLCV(symbol string, options ...ccxt.WatchOHLCVOptions) ([]ccxt.OHLCV, error) {
@@ -4104,7 +4086,6 @@ func (this *Bitget) WatchOHLCV(symbol string, options ...ccxt.WatchOHLCVOptions)
  * @param {string} [timeframe] the period for the ratio, default is 1 minute
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
- * @param {boolean} [params.stock] set to true for tokenized stock symbols, defaults to market['stock']
  * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *Bitget) UnWatchOHLCV(symbol string, options ...ccxt.UnWatchOHLCVOptions) (any, error) {
@@ -4132,7 +4113,6 @@ func (this *Bitget) UnWatchOHLCV(symbol string, options ...ccxt.UnWatchOHLCVOpti
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
- * @param {boolean} [params.stock] set to true for tokenized stock symbols, defaults to market['stock']
  * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *Bitget) WatchOrderBook(symbol string, options ...ccxt.WatchOrderBookOptions) (ccxt.OrderBook, error) {
@@ -4161,7 +4141,6 @@ func (this *Bitget) WatchOrderBook(symbol string, options ...ccxt.WatchOrderBook
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.limit] orderbook limit, default is undefined
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
- * @param {boolean} [params.stock] set to true for tokenized stock symbols, defaults to market['stock']
  * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *Bitget) UnWatchOrderBook(symbol string, options ...ccxt.UnWatchOrderBookOptions) (any, error) {
@@ -4189,7 +4168,6 @@ func (this *Bitget) UnWatchOrderBook(symbol string, options ...ccxt.UnWatchOrder
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
- * @param {boolean} [params.stock] set to true for tokenized stock symbols, defaults to market['stock']
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *Bitget) WatchOrderBookForSymbols(symbols []string, options ...ccxt.WatchOrderBookForSymbolsOptions) (ccxt.OrderBook, error) {
