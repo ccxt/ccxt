@@ -333,13 +333,8 @@ impl CoincheckCore {
         })]);
         let mut timestamp: Value = self.safe_timestamp_k(data.clone(), "last_update_at", &[]);
         let mut snapshot: Value = self.parse_order_book(data, symbol.clone(), &[timestamp]);
-        let mut orderbook: Value = self.safe_value(self.orderbooks.clone(), symbol.clone(), &[]);
-        if (orderbook == Value::Null) {
-            orderbook = self.order_book(&[snapshot.clone()]);
-            if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), orderbook.clone()); }
-        }  else {
-            orderbook.reset(snapshot);
-        }
+        let mut orderbook: Value = self.order_book(&[snapshot]);
+        if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), orderbook.clone()); }
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook:".into()), symbol).into());
         client.resolve(&[orderbook, messageHash]);
 }

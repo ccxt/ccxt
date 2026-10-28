@@ -1554,7 +1554,7 @@ impl MercadoCore {
         let mut url: Value = Value::Str(format!("{}{}", apiUrl.map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into());
         let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
         let mut isPublic: bool = (apiName.as_str() == Some("public")) || (apiName.as_str() == Some("v4Public")) || (apiName.as_str() == Some("v4PublicNet"));
-        let mut privateBody: Value = Value::Null;
+        let mut privateBody: Value = Value::Str("".into());
         let mut privateHeaders: Value = Value::Null;
         if isPublic {
             url = Value::Str(format!("{}{}", url, self.implode_params(path.clone(), params.clone())).into());

@@ -1476,15 +1476,15 @@ impl TokocryptoCore {
         if (buyerMaker != Value::Null) {
             side = (if buyerMaker.as_bool() == Some(true) { Value::Str("sell".into()) } else { Value::Str("buy".into()) }); // this is reversed intentionally
             takerOrMaker = Value::Str("taker".into());
-        }  else if (matches!(&trade, Value::Dict(__d) if __d.contains_key("side"))) {
+        }  else if (self.safe_string_k(trade.clone(), "side", &[]) != Value::Null) {
             side = self.safe_string_lower_k(trade.clone(), "side", &[]);
         }  else {
-            if (matches!(&trade, Value::Dict(__d) if __d.contains_key("isBuyer"))) {
+            if (self.safe_string_k(trade.clone(), "isBuyer", &[]) != Value::Null) {
                 side = (if matches!((self.safe_bool_k(trade.clone(), "isBuyer", &[Value::Bool(false)])), Value::Bool(true)) { Value::Str("buy".into()) } else { Value::Str("sell".into()) }); // this is a true side
             }
         }
         let mut fee: Value = Value::Null;
-        if (matches!(&trade, Value::Dict(__d) if __d.contains_key("commission"))) {
+        if (self.safe_string_k(trade.clone(), "commission", &[]) != Value::Null) {
             fee = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("cost".to_string(), self.safe_string_k(trade.clone(), "commission", &[]));
@@ -1492,10 +1492,10 @@ impl TokocryptoCore {
                 m
             });
         }
-        if (matches!(&trade, Value::Dict(__d) if __d.contains_key("isMaker"))) {
+        if (self.safe_string_k(trade.clone(), "isMaker", &[]) != Value::Null) {
             takerOrMaker = (if matches!((self.safe_bool_k(trade.clone(), "isMaker", &[Value::Bool(false)])), Value::Bool(true)) { Value::Str("maker".into()) } else { Value::Str("taker".into()) });
         }
-        if (matches!(&trade, Value::Dict(__d) if __d.contains_key("maker"))) {
+        if (self.safe_string_k(trade.clone(), "maker", &[]) != Value::Null) {
             takerOrMaker = (if matches!((self.safe_bool_k(trade.clone(), "maker", &[Value::Bool(false)])), Value::Bool(true)) { Value::Str("maker".into()) } else { Value::Str("taker".into()) });
         }
         return self.safe_trade(Value::Map({
@@ -1698,7 +1698,7 @@ impl TokocryptoCore {
         let mut marketId: Option<String> = self.safe_string_k_opt(ticker.clone(), "symbol", &[]);
         let mut symbol: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[market.clone()]);
         let mut last: Option<String> = self.safe_string_k_opt(ticker.clone(), "lastPrice", &[]);
-        let mut isCoinm: bool = matches!(&ticker, Value::Dict(__d) if __d.contains_key("baseVolume"));
+        let mut isCoinm: bool = self.safe_string_k(ticker.clone(), "baseVolume", &[]) != Value::Null;
         let mut baseVolume: Value = Value::Null;
         let mut quoteVolume: Value = Value::Null;
         if isCoinm {
@@ -2449,7 +2449,10 @@ impl TokocryptoCore {
         }
         if timeInForceIsRequired {
             let mut defaultTimeInForce: Value = self.safe_string_k(self.options.clone(), "defaultTimeInForce", &[Value::Str("GTC".into())]);
-            let mut timeInForce: Value = (if (timeInForceResolved == Value::Null) { defaultTimeInForce } else { timeInForceResolved.clone() });
+            let mut timeInForce: Value = defaultTimeInForce;
+            if (timeInForceResolved != Value::Null) {
+                timeInForce = timeInForceResolved.clone();
+            }
             // the endpoint takes the time force as a numeric code, post only is
             // placed as a LIMIT_MAKER order rather than as the GTX code
             let mut timeInForceCodes: indexmap::IndexMap<String, Value> = ({
