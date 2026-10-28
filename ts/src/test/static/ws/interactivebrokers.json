@@ -3,6 +3,604 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "watchMyTrades": [
+            {
+                "description": "crypto spot",
+                "input": [],
+                "url": "wss://api.ibkr.com/v1/api/ws?oauth_token=84270d7070618c28432c",
+                "messages": [
+                    {
+                        "topic": "system",
+                        "success": "todua1991",
+                        "isFT": false,
+                        "isPaper": false
+                    },
+                    {
+                        "topic": "sts",
+                        "args": {
+                            "connected": true,
+                            "authenticated": true,
+                            "established": false,
+                            "competing": false,
+                            "message": ""
+                        }
+                    },
+                    {
+                        "topic": "sts",
+                        "args": {
+                            "authenticated": true
+                        }
+                    },
+                    {
+                        "topic": "sts",
+                        "args": {
+                            "established": true
+                        }
+                    },
+                    {
+                        "topic": "sts",
+                        "args": {
+                            "fail": ""
+                        }
+                    },
+                    {
+                        "topic": "sts",
+                        "args": {
+                            "serverName": "JifZ20112"
+                        }
+                    },
+                    {
+                        "topic": "sts",
+                        "args": {
+                            "serverVersion": "Build 10.50.1d, Oct 15, 2026 12:58:27 PM"
+                        }
+                    },
+                    {
+                        "topic": "sts",
+                        "args": {
+                            "username": "todua1991"
+                        }
+                    },
+                    {
+                        "topic": "sts",
+                        "args": {
+                            "authenticated": true
+                        }
+                    },
+                    {
+                        "topic": "act",
+                        "args": {
+                            "accounts": [
+                                "U3448646"
+                            ],
+                            "acctProps": {
+                                "U3448646": {
+                                    "hasChildAccounts": false,
+                                    "supportsCashQty": true,
+                                    "supportsFractions": true
+                                }
+                            },
+                            "aliases": {
+                                "U3448646": "U3448646"
+                            },
+                            "allowFeatures": {
+                                "showGFIS": true,
+                                "showEUCostReport": false,
+                                "allowEventContract": true,
+                                "allowFXConv": true,
+                                "allowFinancialLens": false,
+                                "allowMTA": true,
+                                "allowTypeAhead": true,
+                                "allowEventTrading": true,
+                                "snapshotRefreshTimeout": 30,
+                                "liteUser": false,
+                                "showWebNews": true,
+                                "research": true,
+                                "debugPnl": true,
+                                "showTaxOpt": true,
+                                "showImpactDashboard": true,
+                                "allowDynAccount": false,
+                                "allowCrypto": false,
+                                "allowFA": false,
+                                "allowLiteUnderPro": false,
+                                "allowedAssetTypes": "STK,CFD,OPT,FOP,WAR,FUT,BAG,PDC,CASH,IND,BOND,BILL,FUND,SLB,News,CMDTY,IOPT,ICU,ICS,PHYSS,CRYPTO",
+                                "restrictTradeSubscription": false,
+                                "showUkUserLabels": true,
+                                "sideBySide": true
+                            },
+                            "chartPeriods": {
+                                "STK": [
+                                    "*"
+                                ],
+                                "CFD": [
+                                    "*"
+                                ],
+                                "OPT": [
+                                    "2h",
+                                    "1d",
+                                    "2d",
+                                    "1w",
+                                    "1m"
+                                ],
+                                "FOP": [
+                                    "2h",
+                                    "1d",
+                                    "2d",
+                                    "1w",
+                                    "1m"
+                                ],
+                                "WAR": [
+                                    "*"
+                                ],
+                                "IOPT": [
+                                    "*"
+                                ],
+                                "FUT": [
+                                    "*"
+                                ],
+                                "CASH": [
+                                    "*"
+                                ],
+                                "IND": [
+                                    "*"
+                                ],
+                                "BOND": [
+                                    "*"
+                                ],
+                                "FUND": [
+                                    "*"
+                                ],
+                                "CMDTY": [
+                                    "*"
+                                ],
+                                "PHYSS": [
+                                    "*"
+                                ],
+                                "CRYPTO": [
+                                    "*"
+                                ]
+                            },
+                            "groups": [],
+                            "profiles": [],
+                            "selectedAccount": "U3448646",
+                            "serverInfo": {
+                                "serverName": "JifZ20112",
+                                "serverVersion": "Build 10.50.1d, Oct 15, 2026 12:58:27 PM"
+                            },
+                            "sessionId": "6ae1768f.0000032c",
+                            "isFT": false,
+                            "isPaper": false
+                        }
+                    },
+                    {
+                        "topic": "str",
+                        "args": [
+                            {
+                                "execution_id": "0001ac57.6ae10444.01.01",
+                                "symbol": "ETH",
+                                "supports_tax_opt": "1",
+                                "side": "S",
+                                "order_description": "Sold 0.01 @ 2327.47691091 on PAXOS",
+                                "trade_time": "20261028-14:31:43",
+                                "trade_time_r": 1793197903000,
+                                "size": 0.01,
+                                "price": "2327.47691091",
+                                "order_ref": "ccxt631156cf945f469bba55f8",
+                                "exchange": "PAXOS",
+                                "commission": "0.23",
+                                "net_amount": 23.27476911,
+                                "account": "U3448646",
+                                "accountCode": "U3448646",
+                                "account_allocation_name": "U3448646",
+                                "company_name": "Ethereum cryptocurrency",
+                                "contract_description_1": "ETH",
+                                "sec_type": "CRYPTO",
+                                "conid": 495759171,
+                                "conidEx": "495759171@PAXOS",
+                                "position": "0.05086533",
+                                "clearing_id": "IB",
+                                "clearing_name": "IB",
+                                "liquidation_trade": "0",
+                                "is_event_trading": "0",
+                                "order_id": 199150765
+                            }
+                        ]
+                    },
+                    {
+                        "topic": "str",
+                        "args": [
+                            {
+                                "execution_id": "0001ac57.6ae1044a.01.01",
+                                "symbol": "ETH",
+                                "supports_tax_opt": "1",
+                                "side": "B",
+                                "order_description": "Bot 0.01 @ 2324.40 on PAXOS",
+                                "trade_time": "20261028-14:39:08",
+                                "trade_time_r": 1793198348000,
+                                "size": 0.01,
+                                "price": "2324.40",
+                                "order_ref": "99030614",
+                                "exchange": "PAXOS",
+                                "commission": "0.23",
+                                "net_amount": 23.244,
+                                "account": "U3448646",
+                                "accountCode": "U3448646",
+                                "account_allocation_name": "U3448646",
+                                "company_name": "Ethereum cryptocurrency",
+                                "contract_description_1": "ETH",
+                                "sec_type": "CRYPTO",
+                                "conid": 495759171,
+                                "conidEx": "495759171@PAXOS",
+                                "position": "0.05086533",
+                                "clearing_id": "IB",
+                                "clearing_name": "IB",
+                                "liquidation_trade": "0",
+                                "is_event_trading": "0",
+                                "order_id": 757158961
+                            }
+                        ]
+                    },
+                    {
+                        "topic": "act",
+                        "args": {
+                            "acctProps": {
+                                "U3448646": {
+                                    "noFXConv": false,
+                                    "liteUnderPro": false,
+                                    "autoFx": false
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "topic": "str",
+                        "args": [
+                            {
+                                "execution_id": "0001ac57.6ae1044b.01.01",
+                                "symbol": "ETH",
+                                "supports_tax_opt": "1",
+                                "side": "B",
+                                "order_description": "Bot 0.01 @ 2324.40 on PAXOS",
+                                "trade_time": "20261028-14:39:20",
+                                "trade_time_r": 1793198360000,
+                                "size": 0.01,
+                                "price": "2324.40",
+                                "order_ref": "73914384",
+                                "exchange": "PAXOS",
+                                "net_amount": 23.244,
+                                "account": "U3448646",
+                                "accountCode": "U3448646",
+                                "account_allocation_name": "U3448646",
+                                "company_name": "Ethereum cryptocurrency",
+                                "contract_description_1": "ETH",
+                                "sec_type": "CRYPTO",
+                                "conid": 495759171,
+                                "conidEx": "495759171@PAXOS",
+                                "position": "0.05086533",
+                                "clearing_id": "IB",
+                                "clearing_name": "IB",
+                                "liquidation_trade": "0",
+                                "is_event_trading": "0",
+                                "order_id": 757158966
+                            }
+                        ]
+                    },
+                    {
+                        "topic": "str",
+                        "args": [
+                            {
+                                "execution_id": "0001ac57.6ae1044b.01.01",
+                                "symbol": "ETH",
+                                "supports_tax_opt": "1",
+                                "side": "B",
+                                "order_description": "Bot 0.01 @ 2324.40 on PAXOS",
+                                "trade_time": "20261028-14:39:20",
+                                "trade_time_r": 1793198360000,
+                                "size": 0.01,
+                                "price": "2324.40",
+                                "order_ref": "73914384",
+                                "exchange": "PAXOS",
+                                "commission": "0.23",
+                                "net_amount": 23.244,
+                                "account": "U3448646",
+                                "accountCode": "U3448646",
+                                "account_allocation_name": "U3448646",
+                                "company_name": "Ethereum cryptocurrency",
+                                "contract_description_1": "ETH",
+                                "sec_type": "CRYPTO",
+                                "conid": 495759171,
+                                "conidEx": "495759171@PAXOS",
+                                "position": "0.06086533",
+                                "clearing_id": "IB",
+                                "clearing_name": "IB",
+                                "liquidation_trade": "0",
+                                "is_event_trading": "0",
+                                "order_id": 757158966
+                            }
+                        ]
+                    },
+                    {
+                        "topic": "act",
+                        "args": {
+                            "accounts": [
+                                "U3448646"
+                            ],
+                            "acctProps": {
+                                "U3448646": {
+                                    "hasChildAccounts": false,
+                                    "supportsCashQty": true,
+                                    "liteUnderPro": false,
+                                    "noFXConv": false,
+                                    "isProp": false,
+                                    "supportsFractions": true,
+                                    "allowCustomerTime": false,
+                                    "autoFx": false
+                                }
+                            },
+                            "aliases": {
+                                "U3448646": "U3448646"
+                            },
+                            "allowFeatures": {
+                                "showGFIS": true,
+                                "showEUCostReport": false,
+                                "allowEventContract": true,
+                                "allowFXConv": true,
+                                "allowFinancialLens": false,
+                                "allowMTA": true,
+                                "allowTypeAhead": true,
+                                "allowEventTrading": true,
+                                "snapshotRefreshTimeout": 30,
+                                "liteUser": false,
+                                "showWebNews": true,
+                                "research": true,
+                                "debugPnl": true,
+                                "showTaxOpt": true,
+                                "showImpactDashboard": true,
+                                "allowDynAccount": false,
+                                "allowCrypto": false,
+                                "allowFA": false,
+                                "allowLiteUnderPro": false,
+                                "allowedAssetTypes": "STK,CFD,OPT,FOP,WAR,FUT,BAG,PDC,CASH,IND,BOND,BILL,FUND,SLB,News,CMDTY,IOPT,ICU,ICS,PHYSS,CRYPTO",
+                                "restrictTradeSubscription": false,
+                                "showUkUserLabels": true,
+                                "sideBySide": true
+                            },
+                            "chartPeriods": {
+                                "STK": [
+                                    "*"
+                                ],
+                                "CFD": [
+                                    "*"
+                                ],
+                                "OPT": [
+                                    "2h",
+                                    "1d",
+                                    "2d",
+                                    "1w",
+                                    "1m"
+                                ],
+                                "FOP": [
+                                    "2h",
+                                    "1d",
+                                    "2d",
+                                    "1w",
+                                    "1m"
+                                ],
+                                "WAR": [
+                                    "*"
+                                ],
+                                "IOPT": [
+                                    "*"
+                                ],
+                                "FUT": [
+                                    "*"
+                                ],
+                                "CASH": [
+                                    "*"
+                                ],
+                                "IND": [
+                                    "*"
+                                ],
+                                "BOND": [
+                                    "*"
+                                ],
+                                "FUND": [
+                                    "*"
+                                ],
+                                "CMDTY": [
+                                    "*"
+                                ],
+                                "PHYSS": [
+                                    "*"
+                                ],
+                                "CRYPTO": [
+                                    "*"
+                                ]
+                            },
+                            "groups": [],
+                            "profiles": [],
+                            "selectedAccount": "U3448646",
+                            "serverInfo": {
+                                "serverName": "JifZ20112",
+                                "serverVersion": "Build 10.50.1d, Oct 15, 2026 12:58:27 PM"
+                            },
+                            "sessionId": "6ae1768f.0000032c",
+                            "isFT": false,
+                            "isPaper": false
+                        }
+                    },
+                    {
+                        "topic": "system",
+                        "hb": 1793198366355
+                    },
+                    {
+                        "topic": "system",
+                        "hb": 1793198376356
+                    },
+                    {
+                        "topic": "system",
+                        "hb": 1793198386355
+                    },
+                    {
+                        "topic": "tic",
+                        "alive": true,
+                        "id": "9d08ed7efae1c18acfb1d5da3f1db19d",
+                        "lastAccessed": 1793198390486
+                    },
+                    {
+                        "topic": "tic",
+                        "alive": true,
+                        "id": "9d08ed7efae1c18acfb1d5da3f1db19d",
+                        "lastAccessed": 1793198390486
+                    },
+                    {
+                        "topic": "tic",
+                        "alive": true,
+                        "id": "9d08ed7efae1c18acfb1d5da3f1db19d",
+                        "lastAccessed": 1793198390486
+                    },
+                    {
+                        "topic": "tic",
+                        "alive": true,
+                        "id": "9d08ed7efae1c18acfb1d5da3f1db19d",
+                        "lastAccessed": 1793198390486
+                    },
+                    {
+                        "topic": "system",
+                        "hb": 1793198396355
+                    }
+                ],
+                "httpResponse": {
+                    "session": "9d08ed7efae1c18acfb1d5da3f1db19d",
+                    "hmds": {
+                        "error": "no bridge"
+                    },
+                    "iserver": {
+                        "authStatus": {
+                            "authenticated": true,
+                            "established": false,
+                            "competing": false,
+                            "connected": true,
+                            "message": "",
+                            "MAC": "06:61:A2:5D:8E:CE",
+                            "serverInfo": {
+                                "serverName": null,
+                                "serverVersion": null
+                            },
+                            "hardware_info": "d6d1cd6f|06:61:A2:5D:8E:CE"
+                        }
+                    }
+                },
+                "sentMessages": [
+                    "str+{\"realtimeUpdatesOnly\":false,\"days\":1}",
+                    "tic"
+                ],
+                "parsedResponses": [
+                    [
+                        {
+                            "id": "0001ac57.6ae1044b.01.01",
+                            "info": {
+                                "execution_id": "0001ac57.6ae1044b.01.01",
+                                "symbol": "ETH",
+                                "supports_tax_opt": "1",
+                                "side": "B",
+                                "order_description": "Bot 0.01 @ 2324.40 on PAXOS",
+                                "trade_time": "20261028-14:39:20",
+                                "trade_time_r": 1793198360000,
+                                "size": 0.01,
+                                "price": "2324.40",
+                                "order_ref": "73914384",
+                                "exchange": "PAXOS",
+                                "net_amount": 23.244,
+                                "account": "U3448646",
+                                "accountCode": "U3448646",
+                                "account_allocation_name": "U3448646",
+                                "company_name": "Ethereum cryptocurrency",
+                                "contract_description_1": "ETH",
+                                "sec_type": "CRYPTO",
+                                "conid": 495759171,
+                                "conidEx": "495759171@PAXOS",
+                                "position": "0.05086533",
+                                "clearing_id": "IB",
+                                "clearing_name": "IB",
+                                "liquidation_trade": "0",
+                                "is_event_trading": "0",
+                                "order_id": 757158966
+                            },
+                            "timestamp": 1793198360000,
+                            "datetime": "2026-10-28T14:39:20.000Z",
+                            "symbol": "ETH/USD",
+                            "order": "757158966",
+                            "type": null,
+                            "side": "buy",
+                            "takerOrMaker": null,
+                            "price": 2324.4,
+                            "amount": 0.01,
+                            "cost": 23.244,
+                            "fee": {
+                                "cost": null,
+                                "currency": null
+                            },
+                            "fees": []
+                        }
+                    ],
+                    [
+                        {
+                            "id": "0001ac57.6ae1044b.01.01",
+                            "info": {
+                                "execution_id": "0001ac57.6ae1044b.01.01",
+                                "symbol": "ETH",
+                                "supports_tax_opt": "1",
+                                "side": "B",
+                                "order_description": "Bot 0.01 @ 2324.40 on PAXOS",
+                                "trade_time": "20261028-14:39:20",
+                                "trade_time_r": 1793198360000,
+                                "size": 0.01,
+                                "price": "2324.40",
+                                "order_ref": "73914384",
+                                "exchange": "PAXOS",
+                                "commission": "0.23",
+                                "net_amount": 23.244,
+                                "account": "U3448646",
+                                "accountCode": "U3448646",
+                                "account_allocation_name": "U3448646",
+                                "company_name": "Ethereum cryptocurrency",
+                                "contract_description_1": "ETH",
+                                "sec_type": "CRYPTO",
+                                "conid": 495759171,
+                                "conidEx": "495759171@PAXOS",
+                                "position": "0.06086533",
+                                "clearing_id": "IB",
+                                "clearing_name": "IB",
+                                "liquidation_trade": "0",
+                                "is_event_trading": "0",
+                                "order_id": 757158966
+                            },
+                            "timestamp": 1793198360000,
+                            "datetime": "2026-10-28T14:39:20.000Z",
+                            "symbol": "ETH/USD",
+                            "order": "757158966",
+                            "type": null,
+                            "side": "buy",
+                            "takerOrMaker": null,
+                            "price": 2324.4,
+                            "amount": 0.01,
+                            "cost": 23.244,
+                            "fee": {
+                                "currency": "USD",
+                                "cost": 0.23
+                            },
+                            "fees": [
+                                {
+                                    "currency": "USD",
+                                    "cost": 0.23
+                                }
+                            ]
+                        }
+                    ]
+                ]
+            }
+        ],
         "watchOrders": [
             {
                 "description": "crypto spot",

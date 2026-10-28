@@ -71,8 +71,9 @@ export default class interactivebrokers extends interactivebrokersRest {
                     'fetchOrdersSnapshot': true, // seed the full orders from GET /iserver/account/orders, the sor updates of the orders not created on this connection carry only the orderId and the status
                 },
                 'watchMyTrades': {
-                    'realtimeUpdatesOnly': false,
+                    'realtimeUpdatesOnly': true, // return only the executions made after subscribing (filtered client-side, the server always gets false), false also returns the executions of the last options.watchMyTrades.days days
                     'days': 1,
+                    'skipDuplicates': true, // an execution that is sent again unchanged (same id and same raw content as the cached one) is not emitted again
                 },
                 'watchBalance': {
                     'fetchBalanceSnapshot': true, // the ledger stream has cash only, the snapshot adds the crypto holdings and the locked amounts
@@ -1061,8 +1062,8 @@ export default class interactivebrokers extends interactivebrokersRest {
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trade structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.realtimeUpdatesOnly] skip the trades of the previous days, default false
-     * @param {int} [params.days] number of days of trades to receive first, default 1
+     * @param {boolean} [params.realtimeUpdatesOnly] return only the executions made after subscribing, default true, false also returns the executions of the last params.days days, the filtering is done client-side
+     * @param {int} [params.days] number of days of past executions requested on subscribing, default 1
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
@@ -1077,11 +1078,19 @@ export default class interactivebrokers extends interactivebrokersRest {
         const client = this.client (url);
         const future = this.watch (url, messageHash);
         const options = this.safeDict (this.options, 'watchMyTrades', {});
+        const realtimeUpdatesOnly = this.safeBool (params, 'realtimeUpdatesOnly', this.safeBool (options, 'realtimeUpdatesOnly', true));
+        // the server handles realtimeUpdatesOnly=true unreliably, sometimes it replays the executions of the last days anyway,
+        // sometimes it sends no executions at all (not even the new ones), so the stream is always requested with
+        // realtimeUpdatesOnly=false and the executions older than the subscription are dropped on the client side instead
         const requestParams: Dict = {
-            'realtimeUpdatesOnly': this.safeBool (params, 'realtimeUpdatesOnly', this.safeBool (options, 'realtimeUpdatesOnly', false)),
+            'realtimeUpdatesOnly': false,
             'days': this.safeInteger (params, 'days', this.safeInteger (options, 'days', 1)),
         };
-        await this.ibkrSubscribe (client, 'str', 'str+' + this.json (requestParams));
+        const subscription: Dict = {
+            'realtimeUpdatesOnly': realtimeUpdatesOnly,
+            'subscribedAt': this.milliseconds (),
+        };
+        await this.ibkrSubscribe (client, 'str', 'str+' + this.json (requestParams), subscription);
         const trades = await future;
         let resultLimit = limit;
         if (this.newUpdates) {
@@ -1137,15 +1146,47 @@ export default class interactivebrokers extends interactivebrokersRest {
             this.myTrades = new ArrayCacheBySymbolById (limit);
         }
         const trades = this.myTrades;
+        // with realtimeUpdatesOnly the past executions replayed by the server are dropped, trade_time_r has a second precision
+        const subscription = this.safeDict (client.subscriptions, 'str', {});
+        const realtimeUpdatesOnly = this.safeBool (subscription, 'realtimeUpdatesOnly', false);
+        let threshold: Int = undefined;
+        if (realtimeUpdatesOnly) {
+            const subscribedAt = this.safeInteger (subscription, 'subscribedAt');
+            if (subscribedAt !== undefined) {
+                threshold = this.parseToInt (subscribedAt / 1000) * 1000;
+            }
+        }
+        // the same execution can be sent several times, first without the commission, then with it, then again unchanged,
+        // an execution identical to the cached one with the same id is not emitted again
+        const options = this.safeDict (this.options, 'watchMyTrades', {});
+        const skipDuplicates = this.safeBool (options, 'skipDuplicates', true);
         const symbols: Dict = {};
         for (let i = 0; i < args.length; i++) {
-            const trade = this.parseTrade (args[i]);
+            const rawTrade = args[i];
+            const trade = this.parseTrade (rawTrade);
+            const tradeTimestamp = trade['timestamp'];
+            if ((threshold !== undefined) && (tradeTimestamp !== undefined) && (tradeTimestamp < threshold)) {
+                continue;
+            }
+            if (skipDuplicates) {
+                const cachedBySymbol = this.safeDict (trades.hashmap, trade['symbol'], {});
+                const cached = this.safeDict (cachedBySymbol, trade['id']);
+                if (cached !== undefined) {
+                    const cachedInfo = this.safeDict (cached, 'info', {});
+                    if (this.json (cachedInfo) === this.json (rawTrade)) {
+                        continue;
+                    }
+                }
+            }
             trades.append (trade);
             const tradeSymbol = trade['symbol'] as string;
             symbols[tradeSymbol] = true;
         }
-        client.resolve (trades, 'myTrades');
         const keys = Object.keys (symbols);
+        if (keys.length === 0) {
+            return;
+        }
+        client.resolve (trades, 'myTrades');
         for (let i = 0; i < keys.length; i++) {
             client.resolve (trades, 'myTrades::' + keys[i]);
         }
