@@ -2313,7 +2313,7 @@ func (this *Binance) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[strin
 			utcSuffix = suffix
 		}
 		rawHashes = append(rawHashes, ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(*marketId+"@", klineType), "_"), interval), utcSuffix))
-		messageHashes = append(messageHashes, "ohlcv::"+market["symbol"].(string)+"::"+*timeframeString)
+		messageHashes = append(messageHashes, "ohlcv::"+*this.SafeString(market, "symbol", "")+"::"+*timeframeString)
 	}
 	var url any = ccxt.Add(ccxt.Add(this.GetWsUrl(wsUrlType, this.GetFutureWsCategory(klineType)), "/"), this.Stream(wsUrlType, "multipleOHLCV"))
 	var requestId int64 = this.RequestId(url)
@@ -2429,8 +2429,8 @@ func (this *Binance) unWatchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[bool], 
 			utcSuffix = suffix
 		}
 		rawHashes = append(rawHashes, ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(*marketId+"@", klineType), "_"), interval), utcSuffix))
-		subMessageHashes = append(subMessageHashes, "ohlcv::"+market["symbol"].(string)+"::"+*timeframeString)
-		messageHashes = append(messageHashes, "unsubscribe::ohlcv::"+market["symbol"].(string)+"::"+*timeframeString)
+		subMessageHashes = append(subMessageHashes, "ohlcv::"+*this.SafeString(market, "symbol", "")+"::"+*timeframeString)
+		messageHashes = append(messageHashes, "unsubscribe::ohlcv::"+*this.SafeString(market, "symbol", "")+"::"+*timeframeString)
 	}
 	var url any = ccxt.Add(ccxt.Add(this.GetWsUrl(wsUrlType, this.GetFutureWsCategory(klineType)), "/"), this.Stream(wsUrlType, "multipleOHLCV"))
 	var requestId int64 = this.RequestId(url)
@@ -3285,6 +3285,9 @@ func (this *Binance) watchMultiTickerHelperBody(ch chan ccxt.AsyncResult[any], m
 	_ = params
 	var isUnsubscribe bool = ccxt.GetArgBool(optionalArgs, 2, false)
 	_ = isUnsubscribe
+	var channel *string = this.SafeString(map[string]any{
+		"name": channelName,
+	}, "name", "")
 	if this.Markets() == nil {
 
 		r := <-this.LoadMarketsAsync()
@@ -3293,9 +3296,8 @@ func (this *Binance) watchMultiTickerHelperBody(ch chan ccxt.AsyncResult[any], m
 		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true, false, true)
-	var isBidAsk bool = (ccxt.IsEqual(channelName, "bookTicker"))
-	var isMarkPrice bool = (ccxt.IsEqual(channelName, "markPrice"))
-	var use1sFreq *bool = this.SafeBool(params, "use1sFreq", true)
+	var isBidAsk bool = (channel != nil && *channel == "bookTicker")
+	var isMarkPrice bool = (channel != nil && *channel == "markPrice")
 	var firstMarket map[string]any = nil
 	var symbolsDefined bool = (symbolsNormalized != nil)
 	if symbolsNormalized != nil {
@@ -3335,7 +3337,7 @@ func (this *Binance) watchMultiTickerHelperBody(ch chan ccxt.AsyncResult[any], m
 		panic(ccxt.NotSupported(this.Id + " " + methodName + "() does not support options markets"))
 	}
 	// eOptions tickers have a different stream name (@optionTicker) but the same event type (24hrTicker)
-	// so only the subscription arg changes — channelName stays as-is to keep messageHashes aligned
+	// so only the subscription arg changes — channel stays as-is to keep messageHashes aligned
 	var isOptionTicker bool = ((marketType != nil && *marketType == "option") && !isMarkPrice && !isBidAsk)
 	if isMarkPrice && !this.InArray(marketType, []any{"swap", "future", "option"}) {
 		panic(ccxt.NotSupported(ccxt.Add(ccxt.Add(this.Id+" "+methodName+"() does not support ", marketType), " markets yet")))
@@ -3346,28 +3348,26 @@ func (this *Binance) watchMultiTickerHelperBody(ch chan ccxt.AsyncResult[any], m
 	var suffix string = ""
 	if isMarkPrice && !isOptionMarkPrice {
 		suffix = func() string {
-			if use1sFreq != nil && *use1sFreq {
+			if *this.SafeBool(params, "use1sFreq", true) {
 				return "@1s"
 			}
 			return ""
 		}()
 	}
-	var unifiedPrefix string
+	var unifiedPrefix string = "ticker"
 	if isBidAsk {
 		unifiedPrefix = "bidask"
 	} else if isMarkPrice {
 		unifiedPrefix = "markPrice"
-	} else {
-		unifiedPrefix = "ticker"
 	}
 	if symbolsNormalized != nil {
 		var seenUnderlyings map[string]any = map[string]any{}
 		for i := 0; i < len(symbolsNormalized); i++ {
 			var symbol string = symbolsNormalized[i]
 			var market map[string]any = this.Market(symbol)
-			messageHashes = append(messageHashes, ccxt.Add(ccxt.Add(ccxt.Add(unifiedPrefix+":", channelName), "@"), symbol))
+			messageHashes = append(messageHashes, unifiedPrefix+":"+*channel+"@"+symbol)
 			if isUnsubscribe == true {
-				unsubscribeMessageHashes = append(unsubscribeMessageHashes, ccxt.Add(ccxt.Add(ccxt.Add("unsubscribe::"+unifiedPrefix+":", channelName), "@"), symbol))
+				unsubscribeMessageHashes = append(unsubscribeMessageHashes, "unsubscribe::"+unifiedPrefix+":"+*channel+"@"+symbol)
 			}
 			if isOptionMarkPrice {
 				// subscribe per underlying, not per contract
@@ -3393,7 +3393,7 @@ func (this *Binance) watchMultiTickerHelperBody(ch chan ccxt.AsyncResult[any], m
 					subscriptionArgs = append(subscriptionArgs, subscriptionArg)
 				}
 			} else {
-				subscriptionArgs = append(subscriptionArgs, ccxt.Add(ccxt.Add(*this.SafeString(market, "lowercaseId", "")+"@", channelName), suffix))
+				subscriptionArgs = append(subscriptionArgs, *this.SafeString(market, "lowercaseId", "")+"@"+*channel+suffix)
 			}
 		}
 	} else {
@@ -3413,30 +3413,30 @@ func (this *Binance) watchMultiTickerHelperBody(ch chan ccxt.AsyncResult[any], m
 				// isOptionMarkPrice: one stream covers all contracts for the underlying
 				subscriptionArgs = append(subscriptionArgs, *underlying+"@optionMarkPrice")
 			}
-			messageHashes = append(messageHashes, ccxt.Add(unifiedPrefix+"s:", channelName))
-			unsubscribeMessageHashes = append(unsubscribeMessageHashes, ccxt.Add("unsubscribe::", channelName))
+			messageHashes = append(messageHashes, unifiedPrefix+"s:"+*channel)
+			unsubscribeMessageHashes = append(unsubscribeMessageHashes, "unsubscribe::"+*channel)
 		} else if isBidAsk {
 			if marketType != nil && *marketType == "spot" {
 				panic(ccxt.ArgumentsRequired(this.Id + " " + methodName + "() requires symbols for this channel for spot markets"))
 			}
-			subscriptionArgs = append(subscriptionArgs, ccxt.Add("!", channelName))
-			messageHashes = append(messageHashes, ccxt.Add(unifiedPrefix+"s:", channelName))
-			unsubscribeMessageHashes = append(unsubscribeMessageHashes, ccxt.Add("unsubscribe::", channelName))
+			subscriptionArgs = append(subscriptionArgs, "!"+*channel)
+			messageHashes = append(messageHashes, unifiedPrefix+"s:"+*channel)
+			unsubscribeMessageHashes = append(unsubscribeMessageHashes, "unsubscribe::"+*channel)
 		} else if isMarkPrice {
-			subscriptionArgs = append(subscriptionArgs, ccxt.Add(ccxt.Add(ccxt.Add("!", channelName), "@arr"), suffix))
-			messageHashes = append(messageHashes, ccxt.Add(unifiedPrefix+"s:", channelName))
-			unsubscribeMessageHashes = append(unsubscribeMessageHashes, ccxt.Add("unsubscribe::", channelName))
+			subscriptionArgs = append(subscriptionArgs, "!"+*channel+"@arr"+suffix)
+			messageHashes = append(messageHashes, unifiedPrefix+"s:"+*channel)
+			unsubscribeMessageHashes = append(unsubscribeMessageHashes, "unsubscribe::"+*channel)
 		} else {
-			subscriptionArgs = append(subscriptionArgs, ccxt.Add(ccxt.Add("!", channelName), "@arr"))
-			messageHashes = append(messageHashes, ccxt.Add(unifiedPrefix+"s:", channelName))
-			unsubscribeMessageHashes = append(unsubscribeMessageHashes, ccxt.Add("unsubscribe::", channelName))
+			subscriptionArgs = append(subscriptionArgs, "!"+*channel+"@arr")
+			messageHashes = append(messageHashes, unifiedPrefix+"s:"+*channel)
+			unsubscribeMessageHashes = append(unsubscribeMessageHashes, "unsubscribe::"+*channel)
 		}
 	}
 	var streamHash any = channelName
 	if symbolsNormalized != nil {
-		streamHash = ccxt.Add(ccxt.Add(channelName, "::"), strings.Join(symbolsNormalized, ","))
+		streamHash = *channel + "::" + strings.Join(symbolsNormalized, ",")
 	}
-	var url any = ccxt.Add(ccxt.Add(this.GetWsUrl(rawMarketType, this.GetFutureWsCategory(channelName)), "/"), this.Stream(rawMarketType, streamHash))
+	var url any = ccxt.Add(ccxt.Add(this.GetWsUrl(rawMarketType, this.GetFutureWsCategory(channel)), "/"), this.Stream(rawMarketType, streamHash))
 	var requestId int64 = this.RequestId(url)
 	var request map[string]any = map[string]any{
 		"method": func() string {
@@ -3467,7 +3467,7 @@ func (this *Binance) watchMultiTickerHelperBody(ch chan ccxt.AsyncResult[any], m
 	// wait on the batch hash so the resolved value is the full dict of new tickers
 	var waitHashes []any = hashes
 	if isOptionMarkPrice && !(isUnsubscribe == true) {
-		waitHashes = []any{ccxt.Add(unifiedPrefix+"s:", channelName)}
+		waitHashes = []any{unifiedPrefix + "s:" + *channel}
 	}
 
 	r1 := <-this.WatchMultiple(url, waitHashes, this.DeepExtend(request, paramsSubType), hashes, subscription)
@@ -4704,11 +4704,11 @@ func (this *Binance) fetchPositionWsBody(ch chan ccxt.AsyncResult[[]ccxt.Positio
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes349715 []any = ccxt.PositionsToList(r.Value)
-	if retRes349715 == nil {
+	var retRes349515 []any = ccxt.PositionsToList(r.Value)
+	if retRes349515 == nil {
 		ch <- ccxt.AsyncResult[[]ccxt.Position]{Value: nil}
 	} else {
-		ch <- ccxt.AsyncResult[[]ccxt.Position]{Value: ccxt.PositionsFromList(retRes349715)}
+		ch <- ccxt.AsyncResult[[]ccxt.Position]{Value: ccxt.PositionsFromList(retRes349515)}
 	}
 	return nil
 }
@@ -7372,9 +7372,9 @@ func (this *Binance) HandleMyTrade(client any, message any) {
 							}
 						}
 						if insertNewFeeCurrency {
-							retRes566832 := ccxt.GetValue(order, "fees")
-							ccxt.AppendToArray(&retRes566832, tradeFee)
-							ccxt.AddElementToObject(order, "fees", retRes566832)
+							retRes566632 := ccxt.GetValue(order, "fees")
+							ccxt.AppendToArray(&retRes566632, tradeFee)
+							ccxt.AddElementToObject(order, "fees", retRes566632)
 						}
 					} else if fee != nil {
 						if this.SafeString(fee, "currency") == this.SafeString(tradeFee, "currency") || (this.SafeString(fee, "currency") != nil && this.SafeString(tradeFee, "currency") != nil && *this.SafeString(fee, "currency") == *this.SafeString(tradeFee, "currency")) {
