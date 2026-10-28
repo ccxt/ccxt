@@ -266,6 +266,7 @@ class lighter(Exchange, ImplicitAPI):
             },
             'exceptions': {
                 'exact': {
+                    '20001': BadRequest,  # invalid param
                     '21146': ExchangeError,  # system account cannot be an integrator
                     '21500': ExchangeError,  # transaction not found
                     '21501': ExchangeError,  # invalid tx info
@@ -338,10 +339,12 @@ class lighter(Exchange, ImplicitAPI):
                     '21904': InvalidOrder,  # invalid deleverage size
                     '21905': InvalidOrder,  # invalid deleverage price
                     '21906': InvalidOrder,  # invalid deleverage side
+                    '22400': BadRequest,  # invalid timestamps: end_timestamp must be greater than start_timestamp
                     '23000': RateLimitExceeded,  # Too Many Requests!
                     '23001': RateLimitExceeded,  # Too Many Subscriptions!
                     '23002': RateLimitExceeded,  # Too Many Different Accounts!
                     '23003': RateLimitExceeded,  # Too Many Connections!
+                    '29404': BadRequest,  # not found
                 },
                 'broad': {
                 },
@@ -3236,7 +3239,7 @@ class lighter(Exchange, ImplicitAPI):
         #     }
         #
         code = self.safe_string(response, 'code')
-        message = self.safe_string(response, 'msg')
+        message = self.safe_string(response, 'message')
         if code is not None and code != '0' and code != '200':
             feedback = self.id + ' ' + body
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)

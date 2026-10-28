@@ -26,6 +26,10 @@ public partial class blofin : ccxt.blofin
                 { "watchOrders", true },
                 { "watchOrdersForSymbols", true },
                 { "watchPositions", true },
+                { "unWatchTrades", true },
+                { "unWatchTradesForSymbols", true },
+                { "unWatchOHLCV", true },
+                { "unWatchOHLCVForSymbols", true },
             } },
             { "urls", new Dictionary<string, object>() {
                 { "api", new Dictionary<string, object>() {
@@ -113,6 +117,37 @@ public partial class blofin : ccxt.blofin
         }
         IList<object> result = this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true);
         return ccxt.BaseExchange.ToTradeList(this.sortBy(result, "timestamp"));  // needed bcz of https://github.com/ccxt/ccxt/actions/runs/20755599430/job/59597237029?pr=27624#step:11:611
+    }
+
+    /**
+     * @method
+     * @name blofin#unWatchTrades
+     * @description unWatches the list of most recent trades for a particular symbol
+     * @see https://docs.blofin.com/index.html#ws-trades-channel
+     * @param {string} symbol unified symbol of the market to unwatch trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    public async override Task<object> unWatchTrades(string? symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        ((IDictionary<string,object>)parameters)["callerMethodName"] = "unWatchTrades";
+        return await this.unWatchTradesForSymbols(new List<object>() {symbol}, parameters);
+    }
+
+    /**
+     * @method
+     * @name blofin#unWatchTradesForSymbols
+     * @description unWatches the list of most recent trades for a list of symbols
+     * @see https://docs.blofin.com/index.html#ws-trades-channel
+     * @param {string[]} symbols unified symbols of the markets to unwatch trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    public async override Task<object> unWatchTradesForSymbols(IList<object> symbols, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        return await this.unsubscribeMultipleWrapper("trades", "unWatchTradesForSymbols", symbols, parameters);
     }
 
     public virtual void handleTrades(WebSocketClient client, Dictionary<string, object> message)
@@ -487,6 +522,45 @@ public partial class blofin : ccxt.blofin
         }
         IList<object> filtered = this.filterBySinceLimit(candles, since, limitResolved, 0, true);
         return ccxt.BaseExchange.ToOHLCVDict(this.createOHLCVObject(symbol,((string)timeframe), filtered));
+    }
+
+    /**
+     * @method
+     * @name blofin#unWatchOHLCV
+     * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://docs.blofin.com/index.html#ws-candlesticks-channel
+     * @param {string} symbol unified symbol of the market to unwatch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    public async override Task<object> unWatchOHLCV(object symbol, string timeframe = null, object parameters = null)
+    {
+        string timeframeVar = timeframe;
+        timeframeVar ??= "1m";
+        parameters ??= new Dictionary<string, object>();
+        ((IDictionary<string,object>)parameters)["callerMethodName"] = "unWatchOHLCV";
+        return await this.unWatchOHLCVForSymbols(new List<object>() {new List<object>() {symbol, timeframeVar}}, parameters);
+    }
+
+    /**
+     * @method
+     * @name blofin#unWatchOHLCVForSymbols
+     * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://docs.blofin.com/index.html#ws-candlesticks-channel
+     * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to unwatch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    public async override Task<object> unWatchOHLCVForSymbols(IList<object> symbolsAndTimeframes, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        int symbolsLength = symbolsAndTimeframes?.Count ?? 0;
+        if ((symbolsLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null) is IList<object>) || ((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null).GetType().IsGenericType && (symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null).GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        {
+            throw new ArgumentsRequired ((this.id + " unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]")) ;
+        }
+        return await this.unsubscribeMultipleWrapper("candle", "unWatchOHLCVForSymbols", symbolsAndTimeframes, parameters);
     }
 
     public virtual void handleOHLCV(WebSocketClient client, Dictionary<string, object> message)
@@ -911,6 +985,94 @@ public partial class blofin : ccxt.blofin
         return await this.watchMultiple(url, messageHashes, this.deepExtend(request, paramsMarketType), messageHashes);
     }
 
+    public async virtual Task<object> unsubscribeMultipleWrapper(object channelName, object callerMethodName, object symbolsArray, object parameters = null)
+    {
+        // underlier method for the public unWatch* methods, sends the same topics as watchMultipleWrapper
+        parameters ??= new Dictionary<string, object>();
+        if ((this.markets == null))
+        {
+            await this.loadMarkets();
+        }
+        IList<object> callerMethodNameOptionparamsCallerMethodNameVariable = (IList<object>)this.handleParamString(parameters, "callerMethodName", callerMethodName);
+        string? callerMethodNameOption = (string)callerMethodNameOptionparamsCallerMethodNameVariable[0];
+        IDictionary<string, object> paramsCallerMethodName = ((IDictionary<string, object>)callerMethodNameOptionparamsCallerMethodNameVariable[1]);
+        bool isOHLCV = ((channelName is "candle"));
+        object symbols = isOHLCV ? this.getListFromObjectValues(symbolsArray, 0) : symbolsArray;
+        symbols = this.marketSymbols(symbols, null, false, true);
+        Dictionary<string, object> firstMarket = this.market(getValue(symbols, 0));
+        IList<object> marketTypeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams(callerMethodNameOption, firstMarket, paramsCallerMethodName);
+        string? marketType = (string)marketTypeparamsMarketTypeVariable[0];
+        IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)marketTypeparamsMarketTypeVariable[1]);
+        if (!(marketType == "swap"))
+        {
+            throw new NotSupported ((((((this.id + " ") + callerMethodNameOption) + "() does not support ") + marketType) + " markets yet")) ;
+        }
+        List<object> topics = new List<object>() {};
+        List<object> messageHashes = new List<object>() {};
+        for (int i = 0; i < getArrayLength(symbols); i++)
+        {
+            Dictionary<string, object> market = this.market(getValue(symbols, i));
+            object channel = channelName;
+            if (isOHLCV)
+            {
+                object tfArray = getValue(symbolsArray, i);
+                object tf = getValue(tfArray, 1);
+                string? interval = this.safeString(this.timeframes, tf, tf);
+                channel = add(channel, interval);
+            }
+            Dictionary<string, object> topic = new Dictionary<string, object>() {
+                { "channel", channel },
+                { "instId", (market.ContainsKey("id") ? market["id"] : null) },
+            };
+            topics.Add(topic);
+            messageHashes.Add(((("unsubscribe:" + (channel)) + ":") + ((market.ContainsKey("symbol") ? market["symbol"] : null))));
+        }
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "op", "unsubscribe" },
+            { "args", topics },
+        };
+        object url = getValue(getValue(getValue(((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null)), "ws"), marketType), "public");
+        return await this.watchMultiple(url, messageHashes, this.deepExtend(request, paramsMarketType), messageHashes);
+    }
+
+    public virtual void handleUnsubscription(WebSocketClient client, object message)
+    {
+        //
+        //     {
+        //         "event": "unsubscribe",
+        //         "arg": {
+        //             "channel": "candle1m",
+        //             "instId": "BTC-USDT"
+        //         }
+        //     }
+        //
+        IDictionary<string, object> arg = this.safeDict(message, "arg", new Dictionary<string, object>() {});
+        string channel = this.safeString(arg, "channel", "");
+        string? marketId = this.safeString(arg, "instId");
+        Dictionary<string, object> market = this.safeMarket(marketId);
+        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string subMessageHash = ((channel + ":") + symbol);
+        if (channel == "trades")
+        {
+            this.cleanCache(new Dictionary<string, object>() {
+                { "topic", "trades" },
+                { "symbols", new List<object>() {symbol} },
+            });
+            this.cleanUnsubscription(client, subMessageHash, ("unsubscribe:" + subMessageHash));
+        } else if (channel.StartsWith("candle"))
+        {
+            string? timeframe = this.findTimeframe(channel.Replace("candle", (string)""));
+            if ((timeframe != null))
+            {
+                this.cleanCache(new Dictionary<string, object>() {
+                    { "topic", "ohlcv" },
+                    { "symbolsAndTimeframes", new List<object>() {new List<object>() {symbol, timeframe}} },
+                });
+            }
+            this.cleanUnsubscription(client, subMessageHash, ("unsubscribe:" + subMessageHash));
+        }
+    }
+
     public virtual Dictionary<string, object> getSubscriptionRequest(IList<object> args)
     {
         return new Dictionary<string, object>() {
@@ -955,6 +1117,10 @@ public partial class blofin : ccxt.blofin
             string? eventVar = this.safeString(message, "event");
             if (eventVar == "subscribe")
             {
+                return;
+            } else if (eventVar == "unsubscribe")
+            {
+                this.handleUnsubscription(client, message);
                 return;
             } else if (eventVar == "login")
             {

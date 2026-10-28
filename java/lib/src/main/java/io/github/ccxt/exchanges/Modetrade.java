@@ -16,6 +16,8 @@ import io.github.ccxt.types.LedgerEntry;
 import io.github.ccxt.types.Leverage;
 import io.github.ccxt.types.MarketInterface;
 import io.github.ccxt.types.OHLCV;
+import io.github.ccxt.types.OpenInterest;
+import io.github.ccxt.types.OpenInterests;
 import io.github.ccxt.types.Order;
 import io.github.ccxt.types.OrderBook;
 import io.github.ccxt.types.Pair;
@@ -114,7 +116,9 @@ public class Modetrade extends ModetradeApi
                 put( "fetchMarkOHLCV", false );
                 put( "fetchMyTrades", true );
                 put( "fetchOHLCV", true );
+                put( "fetchOpenInterest", true );
                 put( "fetchOpenInterestHistory", false );
+                put( "fetchOpenInterests", true );
                 put( "fetchOpenOrder", false );
                 put( "fetchOpenOrders", true );
                 put( "fetchOrder", true );
@@ -1645,6 +1649,110 @@ public class Modetrade extends ModetradeApi
             }
             return this.filterByArrayTickers(result, "symbol", symbolsNormalized);
         }).thenApply(Tickers::new);
+
+    }
+
+    public Object parseOpenInterest(Object interest, Map<String, Object> market)
+    {
+        //
+        //     {
+        //         "symbol": "PERP_BTC_USDC",
+        //         "index_price": 81559.8,
+        //         "mark_price": 81542.2,
+        //         "open_interest": 42.65602,
+        //         "24h_open": 81606.8,
+        //         "24h_close": 81518.1,
+        //         "24h_high": 81706.7,
+        //         "24h_low": 81069.9,
+        //         "24h_volume": 65.48965,
+        //         "24h_amount": 5333323.390584
+        //     }
+        //
+        String marketId = this.safeString(interest, "symbol");
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
+        Long timestamp = this.safeInteger(interest, "timestamp");
+        return this.safeOpenInterest(new HashMap<String, Object>() {{
+            put( "symbol", marketResolved.get("symbol") );
+            put( "openInterestAmount", Modetrade.this.safeNumber(interest, "open_interest", (Object) null) );
+            put( "openInterestValue", null );
+            put( "timestamp", timestamp );
+            put( "datetime", Modetrade.this.iso8601(timestamp) );
+            put( "info", interest );
+        }}, marketResolved);
+    }
+
+    /**
+     * @method
+     * @name modetrade#fetchOpenInterest
+     * @description retrieves the open interest of a contract trading pair
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-one-symbol
+     * @param {string} symbol unified CCXT market symbol
+     * @param {object} [params] exchange specific parameters
+     * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
+     */
+    public CompletableFuture<OpenInterest> fetchOpenInterest(String symbol, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            if (java.util.Objects.equals(this.markets, null))
+            {
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            }
+            Map<String, Object> market = this.market(symbol);
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "symbol", market.get("id") );
+            }};
+            Map<String, Object> response = (this.v1PublicGetPublicFuturesSymbol(this.extend(request, parameters))).join();
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Long timestamp = this.safeInteger(response, "timestamp");
+            Map<String, Object> interest = this.extend(new HashMap<String, Object>() {{
+                put( "timestamp", timestamp );
+            }}, data);
+            return this.parseOpenInterest(interest, market);
+        }).thenApply(OpenInterest::new);
+
+    }
+
+    /**
+     * @method
+     * @name modetrade#fetchOpenInterests
+     * @description retrieves the open interest for a list of contract trading pairs
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-all-symbols
+     * @param {string[]} [symbols] a list of unified CCXT market symbols
+     * @param {object} [params] exchange specific parameters
+     * @returns {object} a dictionary of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
+     */
+    public CompletableFuture<OpenInterests> fetchOpenInterests(List<String> symbols, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            if (java.util.Objects.equals(this.markets, null))
+            {
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            }
+            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
+            Map<String, Object> response = (this.v1PublicGetPublicFutures(parameters)).join();
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            List<Object> rows = (List<Object>) this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
+            Long timestamp = this.safeInteger(response, "timestamp");
+            List<Object> result = new ArrayList<Object>(Arrays.asList());
+            for (var i = 0; i < ((List<?>)rows).size(); i++)
+            {
+                Object row = (rows == null || i < 0 || i >= rows.size() ? null : rows.get(i));
+                String marketId = this.safeString(row, "symbol", "");
+                if ((java.util.Objects.equals(this.markets_by_id, null)) || !(((Map<?, ?>)this.markets_by_id).containsKey(marketId)))
+                {
+                    continue;
+                }
+                Map<String, Object> interest = this.extend(new HashMap<String, Object>() {{
+                    put( "timestamp", timestamp );
+                }}, row);
+                ((List<Object>)result).add(this.parseOpenInterest(interest, (Map<String, Object>) null));
+            }
+            return this.indexBy(this.filterByArray(result, "symbol", symbolsNormalized, false), "symbol");
+        }).thenApply(OpenInterests::new);
 
     }
 

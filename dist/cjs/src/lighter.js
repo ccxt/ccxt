@@ -264,6 +264,7 @@ class lighter extends lighter$1["default"] {
             'httpExceptions': {},
             'exceptions': {
                 'exact': {
+                    '20001': errors.BadRequest, // invalid param
                     '21146': errors.ExchangeError, // system account cannot be an integrator
                     '21500': errors.ExchangeError, // transaction not found
                     '21501': errors.ExchangeError, // invalid tx info
@@ -336,10 +337,12 @@ class lighter extends lighter$1["default"] {
                     '21904': errors.InvalidOrder, // invalid deleverage size
                     '21905': errors.InvalidOrder, // invalid deleverage price
                     '21906': errors.InvalidOrder, // invalid deleverage side
+                    '22400': errors.BadRequest, // invalid timestamps: end_timestamp must be greater than start_timestamp
                     '23000': errors.RateLimitExceeded, // Too Many Requests!
                     '23001': errors.RateLimitExceeded, // Too Many Subscriptions!
                     '23002': errors.RateLimitExceeded, // Too Many Different Accounts!
                     '23003': errors.RateLimitExceeded, // Too Many Connections!
+                    '29404': errors.BadRequest, // not found
                 },
                 'broad': {},
             },
@@ -3456,7 +3459,7 @@ class lighter extends lighter$1["default"] {
         //     }
         //
         const code = this.safeString(response, 'code');
-        const message = this.safeString(response, 'msg');
+        const message = this.safeString(response, 'message');
         if (code !== undefined && code !== '0' && code !== '200') {
             const feedback = this.id + ' ' + body;
             this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);

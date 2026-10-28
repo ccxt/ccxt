@@ -188,6 +188,11 @@ impl crate::exchange_generated::ExchangeBase for BlofinCore {
                 "parse_ws_ticker" => self.parse_ws_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_ws_trade" => self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "ping" => self.ping(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+                "un_watch_ohlcv" => self.un_watch_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+                "un_watch_ohlcv_for_symbols" => self.un_watch_ohlcv_for_symbols(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+                "un_watch_trades" => self.un_watch_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+                "un_watch_trades_for_symbols" => self.un_watch_trades_for_symbols(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+                "unsubscribe_multiple_wrapper" => self.unsubscribe_multiple_wrapper(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..]).await,
                 "watch_balance" => self.watch_balance(&args[..]).await,
                 "watch_bids_asks" => self.watch_bids_asks(&args[..]).await,
                 "watch_funding_rate" => self.watch_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
@@ -228,6 +233,7 @@ impl BlofinCore {
             "handle_positions" => { self.handle_positions(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_ticker" => { self.handle_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_trades" => { self.handle_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_unsubscription" => { self.handle_unsubscription(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "parse_ws_balance" => self.parse_ws_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "parse_ws_bid_ask" => self.parse_ws_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "parse_ws_order" => self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
@@ -235,6 +241,11 @@ impl BlofinCore {
             "parse_ws_ticker" => self.parse_ws_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "parse_ws_trade" => self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "ping" => self.ping(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+            "un_watch_ohlcv" => { crate::exchange_stubs::enqueue_spawn("un_watch_ohlcv", args.to_vec()); crate::Value::Null },
+            "un_watch_ohlcv_for_symbols" => { crate::exchange_stubs::enqueue_spawn("un_watch_ohlcv_for_symbols", args.to_vec()); crate::Value::Null },
+            "un_watch_trades" => { crate::exchange_stubs::enqueue_spawn("un_watch_trades", args.to_vec()); crate::Value::Null },
+            "un_watch_trades_for_symbols" => { crate::exchange_stubs::enqueue_spawn("un_watch_trades_for_symbols", args.to_vec()); crate::Value::Null },
+            "unsubscribe_multiple_wrapper" => { crate::exchange_stubs::enqueue_spawn("unsubscribe_multiple_wrapper", args.to_vec()); crate::Value::Null },
             "watch_balance" => { crate::exchange_stubs::enqueue_spawn("watch_balance", args.to_vec()); crate::Value::Null },
             "watch_bids_asks" => { crate::exchange_stubs::enqueue_spawn("watch_bids_asks", args.to_vec()); crate::Value::Null },
             "watch_funding_rate" => { crate::exchange_stubs::enqueue_spawn("watch_funding_rate", args.to_vec()); crate::Value::Null },
@@ -285,6 +296,10 @@ impl BlofinCore {
         m.insert("watchOrders".to_string(), Value::Bool(true));
         m.insert("watchOrdersForSymbols".to_string(), Value::Bool(true));
         m.insert("watchPositions".to_string(), Value::Bool(true));
+        m.insert("unWatchTrades".to_string(), Value::Bool(true));
+        m.insert("unWatchTradesForSymbols".to_string(), Value::Bool(true));
+        m.insert("unWatchOHLCV".to_string(), Value::Bool(true));
+        m.insert("unWatchOHLCVForSymbols".to_string(), Value::Bool(true));
     m
 }));
         m.insert("urls".to_string(), Value::Map({
@@ -407,6 +422,45 @@ impl BlofinCore {
         }
         let mut result: Value = self.filter_by_since_limit(trades, &[since, limitResolved, Value::Str("timestamp".into()), Value::Bool(true)]);
         return self.sort_by(result, Value::Str("timestamp".into()), &[]);
+
+    Value::Null
+}
+
+/*
+ * @method
+ * @name blofin#unWatchTrades
+ * @description unWatches the list of most recent trades for a particular symbol
+ * @see https://docs.blofin.com/index.html#ws-trades-channel
+ * @param {string} symbol unified symbol of the market to unwatch trades for
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {any} status of the unwatch request
+ */
+    pub async fn un_watch_trades(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+        let mut params = get_arg(optional_args, 0, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("callerMethodName".into(), Value::Str("unWatchTrades".into())); }
+        return self.un_watch_trades_for_symbols(Value::from(vec![symbol]), &[params]).await;
+
+    Value::Null
+}
+
+/*
+ * @method
+ * @name blofin#unWatchTradesForSymbols
+ * @description unWatches the list of most recent trades for a list of symbols
+ * @see https://docs.blofin.com/index.html#ws-trades-channel
+ * @param {string[]} symbols unified symbols of the markets to unwatch trades for
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {any} status of the unwatch request
+ */
+    pub async fn un_watch_trades_for_symbols(&mut self, mut symbols: Value, optional_args: &[Value]) -> Value {
+        let mut params = get_arg(optional_args, 0, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        return self.unsubscribe_multiple_wrapper(Value::Str("trades".into()), Value::Str("unWatchTradesForSymbols".into()), symbols, &[params]).await;
 
     Value::Null
 }
@@ -830,6 +884,51 @@ impl BlofinCore {
         }
         let mut filtered: Value = self.filter_by_since_limit(candles, &[since, limitResolved, Value::Int(0), Value::Bool(true)]);
         return self.create_ohlcv_object(symbol, timeframe, filtered);
+
+    Value::Null
+}
+
+/*
+ * @method
+ * @name blofin#unWatchOHLCV
+ * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+ * @see https://docs.blofin.com/index.html#ws-candlesticks-channel
+ * @param {string} symbol unified symbol of the market to unwatch OHLCV data for
+ * @param {string} timeframe the length of time each candle represents
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {any} status of the unwatch request
+ */
+    pub async fn un_watch_ohlcv(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+        let mut timeframe = get_arg(optional_args, 0, Value::Str("1m".into()));
+        let mut params = get_arg(optional_args, 1, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("callerMethodName".into(), Value::Str("unWatchOHLCV".into())); }
+        return self.un_watch_ohlcv_for_symbols(Value::from(vec![Value::from(vec![symbol, timeframe])]), &[params]).await;
+
+    Value::Null
+}
+
+/*
+ * @method
+ * @name blofin#unWatchOHLCVForSymbols
+ * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+ * @see https://docs.blofin.com/index.html#ws-candlesticks-channel
+ * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to unwatch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {any} status of the unwatch request
+ */
+    pub async fn un_watch_ohlcv_for_symbols(&mut self, mut symbolsAndTimeframes: Value, optional_args: &[Value]) -> Value {
+        let mut params = get_arg(optional_args, 0, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        let mut symbolsLength: f64 = ((symbolsAndTimeframes.len() as i64) as f64);
+        if (symbolsLength == 0.0) || !(matches!(&symbolsAndTimeframes.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), Value::Arr(_))) {
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]".into()))));
+        }
+        return self.unsubscribe_multiple_wrapper(Value::Str("candle".into()), Value::Str("unWatchOHLCVForSymbols".into()), symbolsAndTimeframes, &[params]).await;
 
     Value::Null
 }
@@ -1314,6 +1413,109 @@ impl BlofinCore {
     Value::Null
 }
 
+    pub async fn unsubscribe_multiple_wrapper(&mut self, mut channelName: Value, mut callerMethodName: Value, mut symbolsArray: Value, optional_args: &[Value]) -> Value {
+        let mut params = get_arg(optional_args, 0, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        // underlier method for the public unWatch* methods, sends the same topics as watchMultipleWrapper
+        if (self.markets.clone() == Value::Null) {
+            self.load_markets(&[]).await;
+        }
+        let mut callerMethodNameOptionparamsCallerMethodNameVariable = self.handle_param_string(params, Value::Str("callerMethodName".into()), &[callerMethodName]);
+        let mut callerMethodNameOption: Value = callerMethodNameOptionparamsCallerMethodNameVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsCallerMethodName: Value = callerMethodNameOptionparamsCallerMethodNameVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
+        let mut isOHLCV: bool = channelName.as_str() == Some("candle");
+        let mut symbols: Value = (if isOHLCV { self.get_list_from_object_values(symbolsArray.clone(), Value::Int(0)) } else { symbolsArray.clone() });
+        symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false), Value::Bool(true)]);
+        let mut firstMarket: Value = self.market(get_value(&symbols, &Value::Int(0)));
+        let mut marketTypeparamsMarketTypeVariable = self.handle_market_type_and_params(callerMethodNameOption.clone(), &[firstMarket, paramsCallerMethodName]);
+        let mut marketType: Value = marketTypeparamsMarketTypeVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
+        if (marketType.as_str() != Some("swap")) {
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), callerMethodNameOption).into()), Value::Str("() does not support ".into())).into()), marketType).into()), Value::Str(" markets yet".into()))));
+        }
+        let mut topics: Vec<Value> = Vec::new();
+        let mut messageHashes: Value = Value::from(vec![]);
+        {
+                        let mut i: Value = Value::Int(0);
+            let mut __for_first_177: bool = true;
+            while { if !__for_first_177 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_177 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&symbols).as_f64().unwrap_or(f64::NAN) } {
+            let mut market: Value = self.market(get_value(&symbols, &i));
+            let mut channel: Value = channelName.clone();
+            if isOHLCV {
+                let mut tfArray: Value = get_value(&symbolsArray, &i);
+                let mut tfArray: Value = get_value(&symbolsArray, &i);
+                let mut tf: Value = get_value(&tfArray, &Value::Int(1));
+                let mut interval: Value = self.safe_string(self.timeframes.clone(), tf.clone(), &[tf.clone()]);
+                channel = Value::Str(format!("{}{}", channel, interval).into());
+            }
+            let mut topic: Value = Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                    m.insert("channel".to_string(), channel.clone());
+                    m.insert("instId".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m
+            });
+            topics.push(topic);
+            if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), channel).into()), Value::Str(":".into())).into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into())); }
+        }
+        }
+        let mut request: Value = Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("op".to_string(), Value::Str("unsubscribe".into()));
+                m.insert("args".to_string(), Value::from(topics));
+            m
+        });
+        let mut url: Value = crate::value::get_value_k(&get_value(&(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null)).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), &marketType), "public");
+        let __ws_arg_4 = self.deep_extend(request, &[paramsMarketType]);
+        return self.watch_multiple(url, messageHashes.clone(), &[__ws_arg_4, messageHashes.clone()]).await;
+
+    Value::Null
+}
+
+    pub fn handle_unsubscription(&mut self, mut client: Value, mut message: Value) {
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
+        //
+        //     {
+        //         "event": "unsubscribe",
+        //         "arg": {
+        //             "channel": "candle1m",
+        //             "instId": "BTC-USDT"
+        //         }
+        //     }
+        //
+        let mut arg: Value = (match message.get("arg") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}) });
+        let mut channel: Value = self.safe_string_k(arg.clone(), "channel", &[Value::Str("".into())]);
+        let mut marketId: Value = self.safe_string_k(arg, "instId", &[]);
+        let mut market: Value = self.safe_market(&[marketId]);
+        let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+        let mut subMessageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(":".into())).into()), symbol).into());
+        if (channel.as_str() == Some("trades")) {
+            self.clean_cache(Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                    m.insert("topic".to_string(), Value::Str("trades".into()));
+                    m.insert("symbols".to_string(), Value::from(vec![symbol.clone()]));
+                m
+            }));
+            self.clean_unsubscription(client.clone(), subMessageHash.clone(), Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash).into()), &[]);
+        }  else if (channel.as_str().is_some_and(|__s| __s.starts_with("candle"))) {
+            let mut timeframe: Value = self.find_timeframe(channel.as_str().map(|__s| Value::Str(__s.replace("candle", "").into())).unwrap_or_else(|| channel.clone()), &[]);
+            if (timeframe != Value::Null) {
+                self.clean_cache(Value::Map({
+                    let mut m = indexmap::IndexMap::new();
+                        m.insert("topic".to_string(), Value::Str("ohlcv".into()));
+                        m.insert("symbolsAndTimeframes".to_string(), Value::from(vec![Value::from(vec![symbol, timeframe])]));
+                    m
+                }));
+            }
+            self.clean_unsubscription(client, subMessageHash.clone(), Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash).into()), &[]);
+        }
+}
+
     pub fn get_subscription_request(&self, mut args: Value) -> Value {
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1359,6 +1561,9 @@ impl BlofinCore {
         }  else {
             let mut event: Option<String> = self.safe_string_k(message.clone(), "event", &[]).as_str().map(str::to_owned);
             if (event.as_deref() == Some("subscribe")) {
+                return;
+            }  else if (event.as_deref() == Some("unsubscribe")) {
+                self.handle_unsubscription(client.clone(), message.clone());
                 return;
             }  else if (event.as_deref() == Some("login")) {
                 let mut future: Value = self.safe_value(get_value(&client, &Value::Str("futures".into())), Value::Str("authenticate_hash".into()), &[]);
@@ -1407,8 +1612,8 @@ impl BlofinCore {
         });
         let mut marketType: Value = Value::Str("swap".into()); // for now
         let mut url: Value = crate::value::get_value_k(&get_value(&(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null)).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), &marketType), "private");
-        let __ws_arg_4 = self.deep_extend(request, &[params]);
-        self.watch(url, messageHash.clone(), &[__ws_arg_4, messageHash.clone()]).await;
+        let __ws_arg_5 = self.deep_extend(request, &[params]);
+        self.watch(url, messageHash.clone(), &[__ws_arg_5, messageHash.clone()]).await;
 
     Value::Null
 }

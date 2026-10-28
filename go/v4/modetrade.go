@@ -84,7 +84,9 @@ func (this *Modetrade) Describe() any {
 			"fetchMarkOHLCV":                       false,
 			"fetchMyTrades":                        true,
 			"fetchOHLCV":                           true,
+			"fetchOpenInterest":                    true,
 			"fetchOpenInterestHistory":             false,
+			"fetchOpenInterests":                   true,
 			"fetchOpenOrder":                       false,
 			"fetchOpenOrders":                      true,
 			"fetchOrder":                           true,
@@ -1350,11 +1352,11 @@ func (this *Modetrade) fetchFundingIntervalBody(ch chan AsyncResult[FundingRate]
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes95515 map[string]any = StructResultMap(r.Value, FundingRateToMap)
-	if retRes95515 == nil {
+	var retRes95715 map[string]any = StructResultMap(r.Value, FundingRateToMap)
+	if retRes95715 == nil {
 		ch <- AsyncResult[FundingRate]{}
 	} else {
-		ch <- AsyncResult[FundingRate]{Value: FundingRateFromMap(retRes95515)}
+		ch <- AsyncResult[FundingRate]{Value: FundingRateFromMap(retRes95715)}
 	}
 	return nil
 }
@@ -1518,11 +1520,11 @@ func (this *Modetrade) fetchFundingRateHistoryBody(ch chan AsyncResult[[]Funding
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes105119 []any = r1.Value
-		if retRes105119 == nil {
+		var retRes105319 []any = r1.Value
+		if retRes105319 == nil {
 			ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes105119)}
+			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes105319)}
 		}
 		return nil
 	}
@@ -1774,6 +1776,141 @@ func (this *Modetrade) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], 
 	ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.FilterByArrayTickers(result, "symbol", symbolsNormalized))}
 	return nil
 }
+func (this *Modetrade) ParseOpenInterest(interest any, optionalArgs ...any) OpenInterest {
+	//
+	//     {
+	//         "symbol": "PERP_BTC_USDC",
+	//         "index_price": 81559.8,
+	//         "mark_price": 81542.2,
+	//         "open_interest": 42.65602,
+	//         "24h_open": 81606.8,
+	//         "24h_close": 81518.1,
+	//         "24h_high": 81706.7,
+	//         "24h_low": 81069.9,
+	//         "24h_volume": 65.48965,
+	//         "24h_amount": 5333323.390584
+	//     }
+	//
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
+	_ = market
+	var marketId *string = this.SafeString(interest, "symbol")
+	var marketResolved map[string]any = this.SafeMarket(marketId, market)
+	var timestamp *int64 = this.SafeInteger(interest, "timestamp")
+	return this.SafeOpenInterest(map[string]any{
+		"symbol":             marketResolved["symbol"],
+		"openInterestAmount": this.SafeNumber(interest, "open_interest"),
+		"openInterestValue":  nil,
+		"timestamp":          timestamp,
+		"datetime":           this.Iso8601(timestamp),
+		"info":               interest,
+	}, marketResolved)
+}
+
+/**
+ * @method
+ * @name modetrade#fetchOpenInterest
+ * @description retrieves the open interest of a contract trading pair
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-one-symbol
+ * @param {string} symbol unified CCXT market symbol
+ * @param {object} [params] exchange specific parameters
+ * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
+ */
+func (this *Modetrade) FetchOpenInterestAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[OpenInterest] {
+	ch := make(chan AsyncResult[OpenInterest], 1)
+	go this.fetchOpenInterestBody(ch, symbol, optionalArgs...)
+	return ch
+}
+func (this *Modetrade) fetchOpenInterestBody(ch chan AsyncResult[OpenInterest], symbol string, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
+	if this.Markets == nil {
+
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
+	}
+	var market map[string]any = this.Market(symbol)
+	var request map[string]any = map[string]any{
+		"symbol": market["id"],
+	}
+
+	r1 := <-this.V1PublicGetPublicFuturesSymbol(this.Extend(request, params))
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var response map[string]any = r1.Value
+	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var timestamp *int64 = this.SafeInteger(response, "timestamp")
+	var interest map[string]any = this.Extend(map[string]any{
+		"timestamp": timestamp,
+	}, data)
+
+	ch <- AsyncResult[OpenInterest]{Value: this.ParseOpenInterest(interest, market)}
+	return nil
+}
+
+/**
+ * @method
+ * @name modetrade#fetchOpenInterests
+ * @description retrieves the open interest for a list of contract trading pairs
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-all-symbols
+ * @param {string[]} [symbols] a list of unified CCXT market symbols
+ * @param {object} [params] exchange specific parameters
+ * @returns {object} a dictionary of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
+ */
+func (this *Modetrade) FetchOpenInterestsAsync(optionalArgs ...any) <-chan AsyncResult[map[string]OpenInterest] {
+	ch := make(chan AsyncResult[map[string]OpenInterest], 1)
+	go this.fetchOpenInterestsBody(ch, optionalArgs...)
+	return ch
+}
+func (this *Modetrade) fetchOpenInterestsBody(ch chan AsyncResult[map[string]OpenInterest], optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
+	_ = symbols
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
+	_ = params
+	if this.Markets == nil {
+
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
+	}
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
+
+	r1 := <-this.V1PublicGetPublicFutures(params)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var response map[string]any = r1.Value
+	var data map[string]any = SafeMapTyped(response, "data")
+	var rows []any = SafeListTyped(data, "rows")
+	var timestamp *int64 = this.SafeInteger(response, "timestamp")
+	var result []any = []any{}
+	for i := 0; i < len(rows); i++ {
+		var row any = func() any {
+			if i >= 0 && i < len(rows) {
+				return DerefScalar(rows[i])
+			}
+			return nil
+		}()
+		var marketId *string = this.SafeString(row, "symbol", "")
+		if (this.Markets_by_id == nil) || !(InOp(this.Markets_by_id, marketId)) {
+			continue
+		}
+		var interest map[string]any = this.Extend(map[string]any{
+			"timestamp": timestamp,
+		}, row)
+		result = append(result, OpenInterestToMap(this.ParseOpenInterest(interest)))
+	}
+
+	ch <- AsyncResult[map[string]OpenInterest]{Value: OpenInterestMapFromMap(this.IndexBy(this.FilterByArray(result, "symbol", symbolsNormalized, false), "symbol"))}
+	return nil
+}
 func (this *Modetrade) ParseIncome(income any, optionalArgs ...any) any {
 	//
 	// {
@@ -1859,11 +1996,11 @@ func (this *Modetrade) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHist
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes128519 []any = r1.Value
-		if retRes128519 == nil {
+		var retRes137019 []any = r1.Value
+		if retRes137019 == nil {
 			ch <- AsyncResult[[]FundingHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes128519)}
+			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes137019)}
 		}
 		return nil
 	}
@@ -3148,11 +3285,11 @@ func (this *Modetrade) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArg
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes228519 []any = r1.Value
-		if retRes228519 == nil {
+		var retRes237019 []any = r1.Value
+		if retRes237019 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes228519)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes237019)}
 		}
 		return nil
 	}
@@ -3280,11 +3417,11 @@ func (this *Modetrade) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optiona
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes237315 []any = OrdersToList(r1.Value)
-	if retRes237315 == nil {
+	var retRes245815 []any = OrdersToList(r1.Value)
+	if retRes245815 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes237315)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes245815)}
 	}
 	return nil
 }
@@ -3337,11 +3474,11 @@ func (this *Modetrade) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optio
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes239815 []any = OrdersToList(r1.Value)
-	if retRes239815 == nil {
+	var retRes248315 []any = OrdersToList(r1.Value)
+	if retRes248315 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes239815)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes248315)}
 	}
 	return nil
 }
@@ -3465,11 +3602,11 @@ func (this *Modetrade) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalA
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes247019 []any = r1.Value
-		if retRes247019 == nil {
+		var retRes255519 []any = r1.Value
+		if retRes255519 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes247019)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes255519)}
 		}
 		return nil
 	}
@@ -3774,8 +3911,8 @@ func (this *Modetrade) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optio
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listRecv3519, _ := r.Value, r.Value != nil
-	var currencyRows []any = listRecv3519
+	listRecv3642, _ := r.Value, r.Value != nil
+	var currencyRows []any = listRecv3642
 	var currency any = this.SafeValue(currencyRows, 0)
 	var rows []any = SafeListTyped(currencyRows, 1)
 
@@ -3892,11 +4029,11 @@ func (this *Modetrade) fetchDepositsBody(ch chan AsyncResult[[]Transaction], opt
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes278615 []any = TransactionsToList(r.Value)
-	if retRes278615 == nil {
+	var retRes287115 []any = TransactionsToList(r.Value)
+	if retRes287115 == nil {
 		ch <- AsyncResult[[]Transaction]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes278615)}
+		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes287115)}
 	}
 	return nil
 }
@@ -3936,11 +4073,11 @@ func (this *Modetrade) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes280415 []any = TransactionsToList(r.Value)
-	if retRes280415 == nil {
+	var retRes288915 []any = TransactionsToList(r.Value)
+	if retRes288915 == nil {
 		ch <- AsyncResult[[]Transaction]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes280415)}
+		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes288915)}
 	}
 	return nil
 }
@@ -3978,8 +4115,8 @@ func (this *Modetrade) fetchDepositsWithdrawalsBody(ch chan AsyncResult[[]Transa
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listRecv3707, _ := r.Value, r.Value != nil
-	var currencyRows []any = listRecv3707
+	listRecv3830, _ := r.Value, r.Value != nil
+	var currencyRows []any = listRecv3830
 	var currency any = this.SafeValue(currencyRows, 0)
 	var rows []any = SafeListTypedDefault(currencyRows, 1, []any{})
 	//
@@ -4885,6 +5022,54 @@ func (this *Modetrade) FetchTickers(options ...FetchTickersOptions) (Tickers, er
 		return Tickers{}, r.Err
 	}
 	var res Tickers = Tickers{Tickers: r.Value}
+	return res, nil
+}
+
+/**
+ * @method
+ * @name modetrade#fetchOpenInterest
+ * @description retrieves the open interest of a contract trading pair
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-one-symbol
+ * @param {string} symbol unified CCXT market symbol
+ * @param {object} [params] exchange specific parameters
+ * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
+ */
+func (this *Modetrade) FetchOpenInterest(symbol string, options ...FetchOpenInterestOptions) (OpenInterest, error) {
+
+	opts := FetchOpenInterestOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+	r := <-this.FetchOpenInterestAsync(symbol, opts.Params)
+	if r.Err != nil {
+		return OpenInterest{}, r.Err
+	}
+	var res OpenInterest = r.Value
+	return res, nil
+}
+
+/**
+ * @method
+ * @name modetrade#fetchOpenInterests
+ * @description retrieves the open interest for a list of contract trading pairs
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-all-symbols
+ * @param {string[]} [symbols] a list of unified CCXT market symbols
+ * @param {object} [params] exchange specific parameters
+ * @returns {object} a dictionary of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
+ */
+func (this *Modetrade) FetchOpenInterests(options ...FetchOpenInterestsOptions) (OpenInterests, error) {
+
+	opts := FetchOpenInterestsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+	r := <-this.FetchOpenInterestsAsync(opts.Symbols, opts.Params)
+	if r.Err != nil {
+		return OpenInterests{}, r.Err
+	}
+	var res OpenInterests = OpenInterests{OpenInterests: r.Value}
 	return res, nil
 }
 

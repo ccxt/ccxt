@@ -78,7 +78,9 @@ class modetrade extends Exchange {
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
+                'fetchOpenInterest' => true,
                 'fetchOpenInterestHistory' => false,
+                'fetchOpenInterests' => true,
                 'fetchOpenOrder' => false,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
@@ -1221,6 +1223,89 @@ class modetrade extends Exchange {
             $result[] = $this->parse_ticker($ticker);
         }
         return $this->filter_by_array_tickers($result, 'symbol', $symbolsNormalized);
+    }
+
+    public function parse_open_interest(?array $interest, ?array $market = null): array {
+        //
+        //     {
+        //         "symbol": "PERP_BTC_USDC",
+        //         "index_price": 81559.8,
+        //         "mark_price": 81542.2,
+        //         "open_interest": 42.65602,
+        //         "24h_open": 81606.8,
+        //         "24h_close": 81518.1,
+        //         "24h_high": 81706.7,
+        //         "24h_low": 81069.9,
+        //         "24h_volume": 65.48965,
+        //         "24h_amount": 5333323.390584
+        //     }
+        //
+        $marketId = $this->safe_string($interest, 'symbol');
+        $marketResolved = $this->safe_market($marketId, $market);
+        $timestamp = $this->safe_integer($interest, 'timestamp');
+        return $this->safe_open_interest(array(
+            'symbol' => $marketResolved['symbol'],
+            'openInterestAmount' => $this->safe_number($interest, 'open_interest'),
+            'openInterestValue' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'info' => $interest,
+        ), $marketResolved);
+    }
+
+    public function fetch_open_interest(string $symbol, $params = array()): array {
+        /**
+         * retrieves the open $interest of a contract trading pair
+         *
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-$market-info-for-one-$symbol
+         *
+         * @param {string} $symbol unified CCXT $market $symbol
+         * @param {array} [$params] exchange specific parameters
+         * @return {array} an ~@link https://docs.ccxt.com/?id=open-$interest-structure open $interest structure~
+         */
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $response = $this->v1PublicGetPublicFuturesSymbol($this->extend($request, $params));
+        $data = $this->safe_dict($response, 'data', array());
+        $timestamp = $this->safe_integer($response, 'timestamp');
+        $interest = $this->extend(array( 'timestamp' => $timestamp ), $data);
+        return $this->parse_open_interest($interest, $market);
+    }
+
+    public function fetch_open_interests(?array $symbols = null, $params = array()): array {
+        /**
+         * retrieves the open $interest for a list of contract trading pairs
+         *
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-all-$symbols
+         *
+         * @param {string[]} [$symbols] a list of unified CCXT market $symbols
+         * @param {array} [$params] exchange specific parameters
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=open-$interest-structure open $interest structures~
+         */
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        $symbolsNormalized = $this->market_symbols($symbols);
+        $response = $this->v1PublicGetPublicFutures($params);
+        $data = $this->safe_dict($response, 'data', array());
+        $rows = $this->safe_list($data, 'rows', array());
+        $timestamp = $this->safe_integer($response, 'timestamp');
+        $result = array();
+        for ($i = 0; $i < count($rows); $i++) {
+            $row = $rows[$i];
+            $marketId = $this->safe_string($row, 'symbol', '');
+            if (($this->markets_by_id === null) || !(is_array($this->markets_by_id) && array_key_exists($marketId ?? '', $this->markets_by_id))) {
+                continue; // the endpoint returns entries for markets missing from public/info, e.g. pre-TGE symbols
+            }
+            $interest = $this->extend(array( 'timestamp' => $timestamp ), $row);
+            $result[] = $this->parse_open_interest($interest);
+        }
+        return $this->index_by($this->filter_by_array($result, 'symbol', $symbolsNormalized, false), 'symbol');
     }
 
     public function parse_income(array $income, ?array $market = null): array {

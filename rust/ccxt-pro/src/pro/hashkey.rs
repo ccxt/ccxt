@@ -438,8 +438,8 @@ impl HashkeyCore {
         let mut stored: Value = self.ohlcvs.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| timeframe.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_371: bool = true;
-            while { if !__for_first_371 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_371 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
+            let mut __for_first_372: bool = true;
+            while { if !__for_first_372 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_372 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             let mut candle: Value = self.safe_dict(data.clone(), i.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -604,8 +604,8 @@ impl HashkeyCore {
             data = self.sort_by(data.clone(), Value::Str("t".into()), &[]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_372: bool = true;
-                while { if !__for_first_372 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_372 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
+                let mut __for_first_373: bool = true;
+                while { if !__for_first_373 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_373 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
                 let mut trade: Value = self.safe_dict(data.clone(), i.clone(), &[]);
                 let mut parsed: Value = self.parse_ws_trade(trade, &[market.clone()]);
                 stored.append(parsed);
@@ -1007,8 +1007,8 @@ impl HashkeyCore {
         }  else {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_373: bool = true;
-                while { if !__for_first_373 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_373 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
+                let mut __for_first_374: bool = true;
+                while { if !__for_first_374 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_374 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
                 let mut symbol: Value = symbolsNormalized.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), symbol).into())); }
             }
