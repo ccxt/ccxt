@@ -9096,6 +9096,12 @@ function hx4C04ArrayCacheField (name: string): boolean {
     return [ 'this.orders', 'this.myTrades', 'this.liquidations' ].includes (name);
 }
 
+// a needle printed as a `+` chain of identifiers/literals with a string literal in it: C# concatenation
+// with a string operand is a non-null `string`, so the helper's `(string)` cast is the identity
+function hx4C04StringConcatNeedle (mask: string): boolean {
+    return mask.includes ('"') && /^[\s()+"\w]+$/.test (mask) && !/[A-Za-z_]\w*\s*\(/.test (mask) && /^[\s(]*("|\w)/.test (mask) && !/\+\s*[+)]|\(\s*\+/.test (mask);
+}
+
 function hx4C04RewriteLine (original: string, masked: string, typeOf, wsMapOf, keyName): string | undefined {
     const edits = [];
     let match;
@@ -9125,7 +9131,7 @@ function hx4C04RewriteLine (original: string, masked: string, typeOf, wsMapOf, k
             const receiver = typeOf (name);
             if ((receiver === undefined) || ((receiver.type !== 'string') && (receiver.type !== 'string?'))) continue;
             // the needle is never evaluated twice and is already a C# string (a null one throws in both forms)
-            if (!literal && !((key !== undefined) && ((key.type === 'string') || (key.type === 'string?')))) continue;
+            if (!literal && !((key !== undefined) && ((key.type === 'string') || (key.type === 'string?'))) && !hx4C04StringConcatNeedle (keyMask)) continue;
             const scan = `IndexOf(${keyText}, StringComparison.Ordinal)`;
             // a `string?` receiver answers the helper's -1 for null through `?.`
             edits.push ({ start: match.index, end: close + 1, text: (receiver.type === 'string') ? `${name}.${scan}` : `(${name}?.${scan} ?? -1)` });
@@ -10664,6 +10670,14 @@ function hx4C16SelfTest (): string[] {
     check ('object receiver keeps helper', 'f(object d, object v)', 'if (inOp(d, getValue(v, "id"))) { }', 'inOp(d, getValue(v, "id"))');
     check ('side-effecting key keeps helper', 'f(IDictionary<string, object> d)', 'if (inOp(d, this.k())) { }', 'inOp(d, this.k())');
     check ('identifier key left to the declared pass', 'f(IDictionary<string, object> d, object k)', 'if (inOp(d, k)) { }', 'inOp(d, k)');
+    const check04 = (name: string, sig: string, body: string, expected: string) => {
+        const out = hx4C04NativeHelperCalls (wrap (sig, body));
+        if (!out.includes (expected)) problems.push (`hx4 C04: ${name}\n${out}`);
+    };
+    check04 ('string? haystack, string-concat needle', 'f(string? msg, string? ch)', 'if ((ch != null) && (getIndexOf(msg, ((\"[\" + ch) + \"]\")) >= 0)) { }',
+        '((msg?.IndexOf(((\"[\" + ch) + \"]\"), StringComparison.Ordinal) ?? -1) >= 0)');
+    check04 ('concat of two identifiers keeps helper', 'f(string? msg, string? a, string? b)', 'if (getIndexOf(msg, (a + b)) >= 0) { }', 'getIndexOf(msg, (a + b))');
+    check04 ('call in needle keeps helper', 'f(string? msg, string? a)', 'if (getIndexOf(msg, (\"[\" + this.g(a))) >= 0) { }', 'getIndexOf(msg, (\"[\" + this.g(a)))');
     check ('object haystack keeps helper', 'f(object topic, List<object> keys)', 'if (getIndexOf(topic, keys[0]) >= 0) { }', 'getIndexOf(topic, keys[0])');
     return problems;
 }
