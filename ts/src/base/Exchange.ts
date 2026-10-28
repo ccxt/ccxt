@@ -8041,7 +8041,7 @@ export class BaseExchange {
     parseBorrowInterests (response: any, market: Market = undefined): BorrowInterest[] {
         const interests: BorrowInterest[] = [];
         for (let i = 0; i < response.length; i++) {
-            const row = response[i];
+            const row = this.safeValue (response, i);
             interests.push (this.parseBorrowInterest (row, market));
         }
         return interests as BorrowInterest[];
@@ -8054,7 +8054,7 @@ export class BaseExchange {
     parseBorrowRateHistory (response: any, code: Str, since: Int, limit: Int) {
         const result: Dict[] = [];
         for (let i = 0; i < response.length; i++) {
-            const item = response[i];
+            const item = this.safeValue (response, i);
             const borrowRate = this.parseBorrowRate (item);
             result.push (borrowRate);
         }
@@ -8065,7 +8065,7 @@ export class BaseExchange {
     parseIsolatedBorrowRates (info: any): IsolatedBorrowRates {
         const result: Dict = {};
         for (let i = 0; i < info.length; i++) {
-            const item = info[i];
+            const item = this.safeValue (info, i);
             const borrowRate = this.parseIsolatedBorrowRate (item);
             const symbol = this.safeString (borrowRate, 'symbol');
             result[symbol as string] = borrowRate;
