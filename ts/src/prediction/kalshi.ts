@@ -993,15 +993,11 @@ export default class kalshi extends Exchange {
         }
         // batch-resolve the uncached outcomes (one markets request per 100 tickers)
         await this.loadOutcomes (outcomes);
-        const targets: any[] = [];
-        for (let i = 0; i < outcomes.length; i++) {
-            targets.push (outcomes[i]);
-        }
         // group requested outcomes by their market ticker, yes and no outcomes share one market
         const outcomesByTicker: Dict = {};
         const tickers: any[] = [];
-        for (let i = 0; i < targets.length; i++) {
-            const outcomeObj = this.outcome (targets[i]);
+        for (let i = 0; i < outcomes.length; i++) {
+            const outcomeObj = this.outcome (outcomes[i]);
             const ticker = this.safeString (outcomeObj['info'], 'ticker');
             if (ticker === undefined) {
                 continue;
