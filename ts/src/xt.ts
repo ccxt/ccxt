@@ -4549,7 +4549,7 @@ export default class xt extends Exchange {
 
     async modifyMarginHelper (symbol: string, amount: any, addOrReduce: string, params: Dict = {}): Promise<MarginModification> {
         const positionSide = this.safeString (params, 'positionSide');
-        let methodName: Str = 'reduceMargin';
+        let methodName = 'reduceMargin';
         if (addOrReduce === 'ADD') {
             methodName = 'addMargin';
         }
