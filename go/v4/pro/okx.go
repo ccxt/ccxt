@@ -1895,10 +1895,9 @@ func (this *Okx) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.Orde
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var symbol string = symbolsNormalized[i]
 		messageHashes = append(messageHashes, *depth+":"+symbol)
-		var marketId any = this.MarketId(symbol)
 		var topic map[string]any = map[string]any{
 			"channel": depth,
-			"instId":  marketId,
+			"instId":  this.MarketId(symbol),
 		}
 		topics = append(topics, topic)
 	}

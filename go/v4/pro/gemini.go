@@ -574,7 +574,6 @@ func (this *Gemini) HandleOrderBook(client any, message map[string]any) {
 		}()
 		var bookside any = ccxt.GetValue(orderbook, side)
 		bookside.(ccxt.IOrderBookSide).Store(price, size)
-		ccxt.AddElementToObject(orderbook, side, bookside)
 	}
 	ccxt.AddElementToObject(orderbook, "symbol", symbol)
 	ccxt.AddElementToObject(this.Orderbooks, symbol, orderbook)
@@ -821,8 +820,6 @@ func (this *Gemini) HandleOrderBookForMultidata(client any, rawOrderBookChanges 
 			asks.(ccxt.IOrderBookSide).Store(price, size)
 		}
 	}
-	ccxt.AddElementToObject(orderbook, "bids", bids)
-	ccxt.AddElementToObject(orderbook, "asks", asks)
 	orderbook.SetSymbol(symbol)
 	orderbook.SetNonce(nonce)
 	orderbook.SetTimestamp(timestamp)

@@ -652,20 +652,18 @@ func (this *Grvt) HandleOHLCV(client any, message map[string]any) {
 	var secondPart *string = this.SafeString(parts, 1, "")
 	var timeframeId string = strings.Replace(*secondPart, "-TRADE", "", 1)
 	var timeframe *string = this.FindTimeframe(timeframeId)
-	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ohlcv::"+*symbol+"::", timeframe))
+	if timeframe == nil {
+		return
+	}
+	var messageHash string = "ohlcv::" + *symbol + "::" + *timeframe
 	if this.Ohlcvs[*symbol] == nil {
 		this.Ohlcvs[*symbol] = map[string]any{}
 	}
-	if !(ccxt.InOp(this.Ohlcvs[*symbol], timeframe)) {
+	if _, ok := this.Ohlcvs[*symbol][*timeframe]; !ok {
 		var limit any = this.HandleOption("watchOHLCV", "limit", 1000)
-		if timeframe != nil {
-			this.Ohlcvs[*symbol][*timeframe] = ccxt.NewArrayCacheByTimestamp(limit)
-		}
+		this.Ohlcvs[*symbol][*timeframe] = ccxt.NewArrayCacheByTimestamp(limit)
 	}
-	var stored any
-	if timeframe != nil {
-		stored = this.Ohlcvs[*symbol][*timeframe]
-	}
+	var stored any = this.Ohlcvs[*symbol][*timeframe]
 	var parsed any = this.ParseWsOHLCV(data, market)
 	stored.(ccxt.Appender).Append(parsed)
 	var resolveData []any = []any{symbol, timeframe, stored}

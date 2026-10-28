@@ -280,12 +280,12 @@ func (this *Xt) HandleBookDelta(orderbook any, delta any) {
  * @param {object} params extra parameters specific to the xt api
  * @returns {object} data from the websocket stream
  */
-func (this *Xt) SubscribeAsync(name any, access string, methodName string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+func (this *Xt) SubscribeAsync(name string, access string, methodName string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.subscribeBody(ch, name, access, methodName, optionalArgs...)
 	return ch
 }
-func (this *Xt) subscribeBody(ch chan ccxt.AsyncResult[any], name any, access string, methodName string, optionalArgs ...any) any {
+func (this *Xt) subscribeBody(ch chan ccxt.AsyncResult[any], name string, access string, methodName string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
@@ -297,7 +297,7 @@ func (this *Xt) subscribeBody(ch chan ccxt.AsyncResult[any], name any, access st
 	var privateAccess bool = (access == "private")
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams(methodName, market, params)
 	var isContract bool = (typeVar == nil || *typeVar != "spot")
-	var id *string = ccxt.SafeStringPtr(ccxt.Add(strconv.FormatInt(this.Milliseconds(), 10), name)) // call back ID
+	var id string = strconv.FormatInt(this.Milliseconds(), 10) + name // call back ID
 	var subscribe map[string]any = map[string]any{
 		"method": func() string {
 			if isContract {
@@ -322,7 +322,7 @@ func (this *Xt) subscribeBody(ch chan ccxt.AsyncResult[any], name any, access st
 				panic(r1.Err)
 			}
 			listenKey := r1.Value
-			var param any = ccxt.Add(ccxt.Add(name, "@"), listenKey)
+			var param *string = ccxt.SafeStringPtr(ccxt.Add(name+"@", listenKey))
 			subscribe["params"] = []any{param}
 		}
 	} else {
@@ -332,9 +332,9 @@ func (this *Xt) subscribeBody(ch chan ccxt.AsyncResult[any], name any, access st
 	if isContract {
 		tradeType = "contract"
 	}
-	var messageHash any = ccxt.Add(ccxt.Add(name, "::"), tradeType)
+	var messageHash string = name + "::" + tradeType
 	if symbols != nil {
-		messageHash = ccxt.Add(ccxt.Add(messageHash, "::"), ccxt.Join(symbols, ","))
+		messageHash = messageHash + "::" + ccxt.Join(symbols, ",")
 	}
 	var request map[string]any = this.Extend(subscribe, paramsMarketType)
 	var tail string = access
@@ -595,6 +595,11 @@ func (this *Xt) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Ticker
 	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchTickers")
 	var defaultMethod *string = this.SafeString(options, "method", "tickers")
 	var name *string = this.SafeString(params, "method", defaultMethod)
+	if name == nil {
+
+		ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: this.WsCacheTickerMap("Tickers", symbols)}
+		return nil
+	}
 	var market map[string]any = nil
 	if symbols != nil {
 		market = this.Market(func() any {
@@ -606,7 +611,7 @@ func (this *Xt) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Ticker
 	}
 	if name != nil {
 
-		r1 := <-this.SubscribeAsync(name, "public", "watchTickers", market, symbols, params)
+		r1 := <-this.SubscribeAsync(*name, "public", "watchTickers", market, symbols, params)
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
@@ -655,6 +660,10 @@ func (this *Xt) unWatchTickersBody(ch chan ccxt.AsyncResult[bool], optionalArgs 
 	var options map[string]any = ccxt.SafeMapTyped(this.Options, "unWatchTickers")
 	var defaultMethod *string = this.SafeString(options, "method", "tickers")
 	var name *string = this.SafeString(params, "method", defaultMethod)
+	if name == nil {
+
+		return nil
+	}
 	if symbols != nil {
 		panic(ccxt.NotSupported(this.Id + " unWatchTickers() does not support symbols argument, unsubscribtion is for all tickers at once only"))
 	}
@@ -765,8 +774,8 @@ func (this *Xt) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol string, 
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	retRes46215 := r1.Value
-	ch <- ccxt.AsyncResult[bool]{Value: retRes46215}
+	retRes46815 := r1.Value
+	ch <- ccxt.AsyncResult[bool]{Value: retRes46815}
 	return nil
 }
 

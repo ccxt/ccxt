@@ -1896,7 +1896,7 @@ func (this *Kraken) ParseTrade(trade any, optionalArgs ...any) Trade {
 		}
 	} else if IsString(trade) {
 		id = trade
-	} else if InOp(trade, "ordertxid") {
+	} else if isOrderTrade {
 		orderId = this.SafeString(trade, "ordertxid")
 		id = DerefScalar(this.SafeString2(trade, "id", "postxid"))
 		timestamp = this.SafeTimestamp(trade, "time")
@@ -2403,11 +2403,12 @@ func (this *Kraken) GetDelistedMarketById(id any) any {
 	var baseIdEnd int = 3
 	var quoteIdStart int = 3
 	var quoteIdEnd int = 6
-	if GetLength(id) == 8 {
+	var idLength int = GetLength(id)
+	if idLength == 8 {
 		baseIdEnd = 4
 		quoteIdStart = 4
 		quoteIdEnd = 8
-	} else if GetLength(id) == 7 {
+	} else if idLength == 7 {
 		baseIdEnd = 4
 		quoteIdStart = 4
 		quoteIdEnd = 7
@@ -4203,11 +4204,11 @@ func (this *Kraken) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], opt
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes321819 []any = r1.Value
-		if retRes321819 == nil {
+		var retRes321919 []any = r1.Value
+		if retRes321919 == nil {
 			ch <- AsyncResult[[]Transaction]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes321819)}
+			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes321919)}
 		}
 		return nil
 	}
@@ -4441,8 +4442,8 @@ func (this *Kraken) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress],
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		listRecv4235, _ := MapSliceToList(r1.Value), r1.Value != nil
-		var depositMethods []any = listRecv4235
+		listRecv4236, _ := MapSliceToList(r1.Value), r1.Value != nil
+		var depositMethods []any = listRecv4236
 		if network != nil {
 			// find best matching deposit method, or fallback to the first one
 			for i := 0; i < len(depositMethods); i++ {

@@ -440,10 +440,8 @@ func (this *Predictfun) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.Predicti
 	} else {
 		var request map[string]any = map[string]any{}
 		var tags any = this.SafeList(paramsValue, "tags", []any{})
-		var tagsLength int = ccxt.GetArrayLength(tags)
-		if tagsLength > 0 {
-			var tagsString string = ccxt.Join(tags, ",")
-			request["tagIds"] = tagsString
+		if ccxt.GetArrayLength(tags) > 0 {
+			request["tagIds"] = ccxt.Join(tags, ",")
 		}
 		postOmitKeys = append(postOmitKeys, "limit")
 		var paramsCategories map[string]any = this.OmitDict(paramsValue, []any{"limit", "tags"})
@@ -2954,11 +2952,11 @@ func (this *Predictfun) fetchOpenOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Pred
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes242115 []any = ccxt.PredictionOrdersToList(r.Value)
-	if retRes242115 == nil {
+	var retRes241915 []any = ccxt.PredictionOrdersToList(r.Value)
+	if retRes241915 == nil {
 		ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: nil}
 	} else {
-		ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(retRes242115)}
+		ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(retRes241915)}
 	}
 	return nil
 }
@@ -3001,11 +2999,11 @@ func (this *Predictfun) fetchClosedOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Pr
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes244215 []any = ccxt.PredictionOrdersToList(r.Value)
-	if retRes244215 == nil {
+	var retRes244015 []any = ccxt.PredictionOrdersToList(r.Value)
+	if retRes244015 == nil {
 		ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: nil}
 	} else {
-		ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(retRes244215)}
+		ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(retRes244015)}
 	}
 	return nil
 }

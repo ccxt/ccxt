@@ -2681,7 +2681,7 @@ func (this *Opinion) HandleOrderBook(client any, message any) {
 	if sym == nil {
 		return
 	}
-	if ccxt.IsEqual(this.SafeValue(this.Orderbooks, sym), nil) {
+	if !(ccxt.InOp(this.Orderbooks, sym)) {
 		// the delta belongs to the market's other token, whose book is not being watched
 		return
 	}

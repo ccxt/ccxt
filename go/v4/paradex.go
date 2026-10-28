@@ -976,9 +976,9 @@ func (this *Paradex) ParseMarket(market any) map[string]any {
 		return nil
 	}
 	var settle *string = this.SafeCurrencyCode(settleId)
-	var symbol any = *base + "/" + *quote
-	if !isSpot {
-		symbol = Add(Add(symbol, ":"), settle)
+	var symbol string = *base + "/" + *quote
+	if !isSpot && (settle != nil) {
+		symbol = symbol + ":" + *settle
 	}
 	var expiry *int64 = this.SafeInteger(market, "expiry_at")
 	var optionType *string = this.SafeString(market, "option_type")
@@ -999,7 +999,9 @@ func (this *Paradex) ParseMarket(market any) map[string]any {
 		if expiry == nil || *expiry != 0 {
 			deliveryValue = this.Yymmdd(expiry) + "-"
 		}
-		symbol = Add(Add(Add(Add(Add(symbol, "-"), deliveryValue), strikePrice), "-"), optionTypeSuffix)
+		if strikePrice != nil {
+			symbol = symbol + "-" + deliveryValue + *strikePrice + "-" + optionTypeSuffix
+		}
 		makerFee = this.ParseNumber("0.0003")
 	} else {
 		expiry = nil
@@ -1815,11 +1817,11 @@ func (this *Paradex) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, o
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes127719 []any = r1.Value
-		if retRes127719 == nil {
+		var retRes127919 []any = r1.Value
+		if retRes127919 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes127719)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes127919)}
 		}
 		return nil
 	}
@@ -3296,11 +3298,11 @@ func (this *Paradex) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs 
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes228919 []any = r2.Value
-		if retRes228919 == nil {
+		var retRes229119 []any = r2.Value
+		if retRes229119 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes228919)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes229119)}
 		}
 		return nil
 	}
@@ -3576,11 +3578,11 @@ func (this *Paradex) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArg
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes247319 []any = r2.Value
-		if retRes247319 == nil {
+		var retRes247519 []any = r2.Value
+		if retRes247519 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes247319)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes247519)}
 		}
 		return nil
 	}
@@ -3961,11 +3963,11 @@ func (this *Paradex) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optio
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes273219 []any = r2.Value
-		if retRes273219 == nil {
+		var retRes273419 []any = r2.Value
+		if retRes273419 == nil {
 			ch <- AsyncResult[[]Transaction]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes273219)}
+			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes273419)}
 		}
 		return nil
 	}
@@ -4065,11 +4067,11 @@ func (this *Paradex) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], op
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes279519 []any = r2.Value
-		if retRes279519 == nil {
+		var retRes279719 []any = r2.Value
+		if retRes279719 == nil {
 			ch <- AsyncResult[[]Transaction]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes279519)}
+			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes279719)}
 		}
 		return nil
 	}
@@ -4169,11 +4171,11 @@ func (this *Paradex) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], op
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes285819 []any = r2.Value
-		if retRes285819 == nil {
+		var retRes286019 []any = r2.Value
+		if retRes286019 == nil {
 			ch <- AsyncResult[[]TransferEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(retRes285819)}
+			ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(retRes286019)}
 		}
 		return nil
 	}
@@ -4860,11 +4862,11 @@ func (this *Paradex) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistor
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes335819 []any = r2.Value
-		if retRes335819 == nil {
+		var retRes336019 []any = r2.Value
+		if retRes336019 == nil {
 			ch <- AsyncResult[[]FundingHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes335819)}
+			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes336019)}
 		}
 		return nil
 	}
