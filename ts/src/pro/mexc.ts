@@ -2036,10 +2036,10 @@ export default class mexc extends mexcRest {
                 }
             } else if (messageHash.indexOf ('candles') >= 0) {
                 const splitHashes = messageHash.split (':');
-                let candlesSymbol = this.safeString (splitHashes, 2, '');
+                let candlesSymbol: string = this.safeString (splitHashes, 2, '');
                 const splitHashesLength = splitHashes.length; // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
                 if (splitHashesLength > 4) {
-                    candlesSymbol = candlesSymbol + ':' + this.safeString (splitHashes, 3, '');
+                    candlesSymbol += ':' + this.safeString (splitHashes, 3, '');
                 }
                 if (candlesSymbol in this.ohlcvs) {
                     delete this.ohlcvs[candlesSymbol];
