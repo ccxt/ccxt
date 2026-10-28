@@ -9844,6 +9844,9 @@ export function csharpHx4SelfTest (): string[] {
         check ('ternary-guarded local returned emits Math.Min (C05)', '        int maxLimit = 300;\n        object v = ((limit == null)) ? maxLimit : mathMin(limit, maxLimit);\n        return v;', 'Math.Min(limit.Value, maxLimit)');
         check ('C20 !(x == null) guard', '        IDictionary<string, object> request = new Dictionary<string, object>() {};\n        if (!(limit == null))\n        {\n            request["size"] = mathMin(limit, 2000); // max\n        }', 'request["size"] = Math.Min(limit.Value, 2000);');
         check ('C20 && guard', '        bool b = true;\n        IDictionary<string, object> request = new Dictionary<string, object>() {};\n        if ((limit != null) && (b == true))\n        {\n            request["size"] = mathMin(limit, 2000);\n        }', 'request["size"] = Math.Min(limit.Value, 2000);');
+        check ('C20 guard with statements between brace and call', '        IDictionary<string, object> request = new Dictionary<string, object>() {};\n        if ((limit != null))\n        {\n            Int64 durationVar = 5L;\n            request[\"size\"] = mathMin(limit, 2000);\n        }', 'request[\"size\"] = Math.Min(limit.Value, 2000);');
+        check ('C20 guard then limit rewritten keeps helper', '        IDictionary<string, object> request = new Dictionary<string, object>() {};\n        if ((limit != null))\n        {\n            limit = this.parseToInt(5);\n            request[\"size\"] = mathMin(limit, 2000);\n        }', 'mathMin(limit, 2000)');
+        check ('C20 call after the guard block closed keeps helper', '        IDictionary<string, object> request = new Dictionary<string, object>() {};\n        if ((limit != null))\n        {\n            Int64 durationVar = 5L;\n        }\n        request[\"size\"] = mathMin(limit, 2000);', 'mathMin(limit, 2000)');
         check ('C20 || guard keeps helper', '        bool b = true;\n        IDictionary<string, object> request = new Dictionary<string, object>() {};\n        if ((limit != null) || (b == true))\n        {\n            request["size"] = mathMin(limit, 2000);\n        }', 'mathMin(limit, 2000)');
         check ('C20 guard on other name keeps helper', '        IDictionary<string, object> request = new Dictionary<string, object>() {};\n        if (!(since == null))\n        {\n            request["size"] = mathMin(limit, 2000);\n        }', 'mathMin(limit, 2000)');
         check ('ternary on another name keeps helper', '        int maxLimit = 300;\n        object v = ((since == null)) ? maxLimit : mathMin(limit, maxLimit);\n        object d = multiply(v, 2);', 'mathMin(limit, maxLimit)');
@@ -10491,11 +10494,30 @@ function c15MinMax (region, masked: string, line: number, start: number, close: 
     if (shape < 0) return undefined;
     // the whole-call shape needs a dominating `if ((id != null))` block opened right above
     if (shape === 0) {
-        const prev = (region.lines[line - 2] ?? '').trim ();
-        if (((region.lines[line - 1] ?? '').trim () !== '{') || !hx4C20NullGuardLine (prev, id)) return undefined;
+        if (!c15GuardBlockDominates (region, line, id)) return undefined;
     }
     if (field) return native;
     return c15BoxNeutralLocal (region, local[1], line) ? native : undefined;
+}
+
+// the innermost block holding `line` is the bare `{` of an `if ((id != null))` statement (nothing between the
+// `if` and the `{`), and `id` is not written, nor a lambda/closure opened, between that `{` and the call
+// (the former rule demanded the `{` directly above the call)
+function c15GuardBlockDominates (region, line: number, id: string): boolean {
+    let depth = 0;
+    const write = new RegExp ('(?<![\\w.])' + id + '[ ]*(?:=[^=>]|\\+=|-=|\\?\\?=|\\+\\+|--)|\\b(?:ref|out)[ ]+' + id + '\\b');
+    for (let k = line - 1; k > region.start; k--) {
+        const text = region.lines[k];
+        if (depth === 0 && text.trim () === '{') {
+            return hx4C20NullGuardLine ((region.lines[k - 1] ?? '').trim (), id);
+        }
+        for (let p = text.length - 1; p >= 0; p--) {
+            if (text[p] === '}') depth++;
+            if (text[p] === '{') { if (depth === 0) return false; depth--; }
+        }
+        if (write.test (text) || /=>/.test (text)) return false;
+    }
+    return false;
 }
 
 // `object v = ...` declared once, never written again, every read a direct argument of a helper that
