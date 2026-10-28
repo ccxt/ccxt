@@ -918,7 +918,7 @@ export default class paradex extends Exchange {
                 requestUntil['end_at'] = sinceInt + windowLength - 1;
             }
         } else {
-            const endAtRaw = hasEnd ? this.safeInteger (requestUntil, 'end_at', 0) : this.milliseconds ();
+            const endAtRaw = this.safeInteger (requestUntil, 'end_at', this.milliseconds ());
             const endAt = this.parseToInt (endAtRaw);
             requestUntil['end_at'] = endAt;
             requestUntil['start_at'] = endAt - windowLength + 1;
