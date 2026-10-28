@@ -2226,6 +2226,15 @@ pub(crate) fn book_store_array_side(book: &mut Value, side_key: &str, delta: Val
 // ─── Value method API exposed to the transpiled tests ─────────────────────
 
 impl Value {
+    /// `book.timestamp|datetime|nonce|symbol = v` — the shared-store write for a
+    /// tagged book, else the generic element write (same result as the helper).
+    pub fn set_book_meta(&mut self, k: &str, v: Value) {
+        if let Value::Dict(m) = &*self {
+            if try_book_meta_write(m, k, &v) { return; }
+        }
+        crate::runtime::add_element_to_object(self, &Value::Str(k.to_string().into()), v);
+    }
+
     /// `book.limit()` — trim both sides to `_depth`. Returns a clone
     /// of `self` so transpiled `return book.limit();` lines still
     /// match the `-> Value` signature.
