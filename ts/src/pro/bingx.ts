@@ -1777,7 +1777,7 @@ export default class bingx extends bingxRest {
         const marketId = this.safeString (result, 's');
         const market = this.safeMarket (marketId, undefined, '-', type);
         const parsed = this.parseTrade (result, market);
-        const symbol = this.safeString (parsed, 'symbol');
+        const symbol = this.safeString (parsed, 'symbol', '');
         const spotHash = 'spot:mytrades';
         const swapHash = 'swap:mytrades';
         let messageHash: Str = swapHash;
