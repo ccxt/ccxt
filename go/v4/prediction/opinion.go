@@ -2681,14 +2681,11 @@ func (this *Opinion) HandleOrderBook(client any, message any) {
 	if sym == nil {
 		return
 	}
-	if !(ccxt.InOp(this.Orderbooks, sym)) {
+	if _, ok := this.Orderbooks[*sym]; !ok {
 		// the delta belongs to the market's other token, whose book is not being watched
 		return
 	}
-	var orderbook ccxt.OrderBookInterface
-	if sym != nil {
-		orderbook = this.Orderbooks[*sym].(ccxt.OrderBookInterface)
-	}
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*sym].(ccxt.OrderBookInterface)
 	var sideStr *string = this.SafeString(message, "side")
 	var bookSide any = func() any {
 		if sideStr != nil && *sideStr == "bids" {
@@ -2870,10 +2867,7 @@ func (this *Opinion) HandleTrades(client any, message any) {
 			this.Trades[*sym] = ccxt.NewArrayCache(tradesLimit)
 		}
 	}
-	var stored any
-	if sym != nil {
-		stored = this.Trades[*sym]
-	}
+	var stored any = this.Trades[*sym]
 	stored.(ccxt.Appender).Append(trade)
 	client.(ccxt.ClientInterface).Resolve(stored, "trades::"+*sym)
 }

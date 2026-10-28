@@ -7883,49 +7883,44 @@ func (this *Xt) Sign(path string, optionalArgs ...any) any {
 		}()
 		var payloadString any = ""
 		if (endpoint == "spot") || (endpoint == "user") {
-			payloadString = "xt-validate-algorithms=HmacSHA256&xt-validate-appkey=" + this.ApiKey + "&xt-validate-recvwindow=" + *recvWindow + "&xt-validate-t" + "imestamp=" + *timestamp
+			var spotPrefix string = "xt-validate-algorithms=HmacSHA256&xt-validate-appkey=" + this.ApiKey + "&xt-validate-recvwindow=" + *recvWindow + "&xt-validate-t" + "imestamp=" + *timestamp
 			if isUndefinedBody {
 				if urlencoded != "" {
 					url = *apiUrl + payload + "?" + urlencoded
-					payloadString = Add(payloadString, "#"+method+"#"+payload+"#"+this.Rawencode(this.Keysort(query)))
+					payloadString = spotPrefix + "#" + method + "#" + payload + "#" + this.Rawencode(this.Keysort(query))
 				} else {
-					payloadString = Add(payloadString, "#"+method+"#"+payload)
+					payloadString = spotPrefix + "#" + method + "#" + payload
 				}
 			} else {
-				payloadString = Add(payloadString, Add("#"+method+"#"+payload+"#", signedBody))
+				payloadString = Add(spotPrefix+"#"+method+"#"+payload+"#", signedBody)
 			}
 			headersValue["xt-validate-algorithms"] = "HmacSHA256"
 			headersValue["xt-validate-recvwindow"] = recvWindow
 		} else {
-			payloadString = "xt-validate-appkey=" + this.ApiKey + "&xt-validate-t" + "imestamp=" + *timestamp // we can't glue timestamp, breaks in php
+			var futurePrefix string = "xt-validate-appkey=" + this.ApiKey + "&xt-validate-t" + "imestamp=" + *timestamp // we can't glue timestamp, breaks in php
 			if method == "GET" {
 				if urlencoded != "" {
 					url = *apiUrl + payload + "?" + urlencoded
-					payloadString = Add(payloadString, "#"+payload+"#"+urlencoded)
+					payloadString = futurePrefix + "#" + payload + "#" + urlencoded
 				} else {
-					payloadString = Add(payloadString, "#"+payload)
+					payloadString = futurePrefix + "#" + payload
 				}
 			} else {
-				payloadString = Add(payloadString, Add("#"+payload+"#", signedBody))
+				payloadString = Add(futurePrefix+"#"+payload+"#", signedBody)
 			}
 		}
-		var signature string = this.Hmac(this.Encode(payloadString), this.Encode(this.Secret), sha256)
 		headersValue["xt-validate-appkey"] = this.ApiKey
 		headersValue["xt-validate-timestamp"] = timestamp
-		headersValue["xt-validate-signature"] = signature
+		headersValue["xt-validate-signature"] = this.Hmac(this.Encode(payloadString), this.Encode(this.Secret), sha256)
 	} else {
 		if urlencoded != "" {
 			url = *apiUrl + payload + "?" + urlencoded
 		}
 	}
-	var bodyValue any = nil
-	if signed {
-		bodyValue = signedBody
-	}
 	return map[string]any{
 		"url":     url,
 		"method":  method,
-		"body":    bodyValue,
+		"body":    signedBody,
 		"headers": headersValue,
 	}
 }

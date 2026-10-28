@@ -1261,7 +1261,7 @@ func (this *Woofipro) HandleOrder(client any, message any, topic any) {
 			}
 			var fees any = this.SafeList(order, "fees")
 			if fees != nil {
-				ccxt.AddElementToObject(parsed, "fees", fees)
+				parsed["fees"] = fees
 			}
 			parsed["trades"] = this.SafeList(order, "trades", []any{})
 			parsed["timestamp"] = this.SafeInteger(order, "timestamp")

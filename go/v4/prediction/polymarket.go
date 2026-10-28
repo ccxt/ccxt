@@ -4666,7 +4666,7 @@ func (this *Polymarket) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Prediction
 		"assets_ids": []any{tokenId},
 		"type":       "market",
 	}
-	if !this.WsCacheHas("Orderbooks", outcomeValue) {
+	if !this.WsCacheHas("Orderbooks", *outcomeValue) {
 		var seededBook any = this.OrderBook(map[string]any{})
 		if outcomeValue != nil {
 			this.WsCacheSet("Orderbooks", outcomeValue, seededBook)

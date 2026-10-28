@@ -1979,25 +1979,25 @@ func (this *Poloniex) HandleUnsubscription(client any, message map[string]any) {
 	//        "symbols": [ "ETH_USDT", "BTC_USDT" ]
 	//    }
 	//
-	var channel *string = this.SafeString(message, "channel")
+	var channel *string = this.SafeString(message, "channel", "")
 	var marketIds []any = ccxt.SafeListTyped(message, "symbols")
 	var timeframes map[string]any = this.SafeDictMap(this.Options, "timeframes", map[string]any{})
 	var timeframe *string = this.FindTimeframe(channel, timeframes)
 	for i := 0; i < len(marketIds); i++ {
 		var symbol *string = this.SafeSymbol(this.SafeString(marketIds, i))
-		var subMessageHash any = ccxt.Add(ccxt.Add(channel, "::"), symbol)
+		var subMessageHash string = *channel + "::" + *symbol
 		if channel != nil && *channel == "trades" {
 			this.CleanCache(map[string]any{
 				"topic":   "trades",
 				"symbols": []any{symbol},
 			})
-			this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, ccxt.Add("unsubscribe:", subMessageHash))
+			this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, "unsubscribe:"+subMessageHash)
 		} else if timeframe != nil {
 			this.CleanCache(map[string]any{
 				"topic":                "ohlcv",
 				"symbolsAndTimeframes": []any{[]any{symbol, timeframe}},
 			})
-			this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, ccxt.Add("unsubscribe:", subMessageHash))
+			this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, "unsubscribe:"+subMessageHash)
 		}
 	}
 }

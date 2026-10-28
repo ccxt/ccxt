@@ -1278,7 +1278,9 @@ func (this *Deepcoin) HandleMyTrade(client any, message any) {
 	var symbol *string = this.SafeSymbol(marketId, market)
 	var messageHash string = "myTrades"
 	var symbolMessageHash string = messageHash + "::" + *symbol
-	if (ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash)) || (ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), symbolMessageHash)) {
+	_, hasFuture := client.(ccxt.ClientInterface).GetFutures()[messageHash]
+	_, hasSymbolFuture := client.(ccxt.ClientInterface).GetFutures()[symbolMessageHash]
+	if hasFuture || hasSymbolFuture {
 		if this.MyTrades == nil {
 			var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 			this.MyTrades = ccxt.NewArrayCacheBySymbolById(limit)
@@ -1388,7 +1390,9 @@ func (this *Deepcoin) HandleOrder(client any, message any) {
 	var symbol *string = this.SafeSymbol(marketId, market)
 	var messageHash string = "orders"
 	var symbolMessageHash string = messageHash + "::" + *symbol
-	if (ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash)) || (ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), symbolMessageHash)) {
+	_, hasFuture := client.(ccxt.ClientInterface).GetFutures()[messageHash]
+	_, hasSymbolFuture := client.(ccxt.ClientInterface).GetFutures()[symbolMessageHash]
+	if hasFuture || hasSymbolFuture {
 		if this.Orders == nil {
 			var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
 			this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
@@ -1574,7 +1578,9 @@ func (this *Deepcoin) HandlePosition(client any, message any) {
 	var symbol *string = this.SafeSymbol(marketId, market)
 	var messageHash string = "positions"
 	var symbolMessageHash string = messageHash + "::" + *symbol
-	if (ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash)) || (ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), symbolMessageHash)) {
+	_, hasFuture := client.(ccxt.ClientInterface).GetFutures()[messageHash]
+	_, hasSymbolFuture := client.(ccxt.ClientInterface).GetFutures()[symbolMessageHash]
+	if hasFuture || hasSymbolFuture {
 		if this.Positions == nil {
 			this.Positions = ccxt.NewArrayCacheBySymbolBySide()
 		}

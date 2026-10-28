@@ -3760,10 +3760,7 @@ func (this *Sxbet) HandleTrades(client any, rows []any) {
 				this.Trades[*sym] = ccxt.NewArrayCache(tradesLimit)
 			}
 		}
-		var stored any
-		if sym != nil {
-			stored = this.Trades[*sym]
-		}
+		var stored any = this.Trades[*sym]
 		stored.(ccxt.Appender).Append(trade)
 		client.(ccxt.ClientInterface).Resolve(stored, "trades::"+*sym)
 	}

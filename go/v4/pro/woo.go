@@ -396,15 +396,10 @@ func (this *Woo) HandleOrderBookSubscription(client any, message map[string]any,
 	if symbol == nil {
 		return
 	}
-	if !(ccxt.InOp(this.Orderbooks, symbol)) {
-		if symbol != nil {
-			this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
-		}
+	if _, ok := this.Orderbooks[*symbol]; !ok {
+		this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
 	}
-	var orderbook any
-	if symbol != nil {
-		orderbook = this.Orderbooks[*symbol]
-	}
+	var orderbook any = this.Orderbooks[*symbol]
 	// handleOrderBook queues deltas while timestamp is undefined, until the REST snapshot lands
 	ccxt.AddElementToObject(orderbook, "timestamp", nil)
 	ccxt.AddElementToObject(orderbook, "datetime", nil)

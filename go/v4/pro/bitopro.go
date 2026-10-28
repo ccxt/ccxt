@@ -546,18 +546,18 @@ func (this *Bitopro) Authenticate(url string) {
 	// this.options = this.extend (defaultOptions, this.options)
 	this.ExtendExchangeOptions(defaultOptions)
 	var wsOptions map[string]any = ccxt.SafeMapTyped(this.Options, "ws")
-	var wsInnerOptions map[string]any = ccxt.SafeMapTyped(wsOptions, "options")
-	var originalHeaders any = wsInnerOptions["headers"]
+	var wsInnerOptions map[string]any = this.SafeDictMap(wsOptions, "options", map[string]any{})
+	var originalHeaders any = ccxt.GetValue(wsInnerOptions, "headers")
 	var headers map[string]any = map[string]any{
 		"X-BITOPRO-API":       "ccxt",
 		"X-BITOPRO-APIKEY":    this.ApiKey,
 		"X-BITOPRO-PAYLOAD":   payload,
 		"X-BITOPRO-SIGNATURE": signature,
 	}
-	ccxt.AddElementToObject(ccxt.GetValue(this.Options["ws"], "options"), "headers", headers)
+	wsInnerOptions["headers"] = headers
 	// instantiate client
 	this.Client(url)
-	ccxt.AddElementToObject(ccxt.GetValue(this.Options["ws"], "options"), "headers", originalHeaders)
+	wsInnerOptions["headers"] = originalHeaders
 }
 
 /**

@@ -4676,8 +4676,8 @@ func (this *Modetrade) Sign(path string, optionalArgs ...any) any {
 		var ts string = ToString(this.Nonce())
 		url += pathWithParams
 		var apiKey any = this.ApiKey
-		if GetIndexOf(apiKey, "ed25519:") < 0 {
-			apiKey = Add("ed25519:", apiKey)
+		if strings.Index(this.ApiKey, "ed25519:") < 0 {
+			apiKey = "ed25519:" + this.ApiKey
 		}
 		var signedHeaders map[string]any = map[string]any{
 			"orderly-account-id": this.AccountId,

@@ -7098,7 +7098,7 @@ func (this *BaseExchange) ParseBorrowInterests(response any, optionalArgs ...any
 	_ = market
 	var interests []any = []any{}
 	for i := 0; i < GetArrayLength(response); i++ {
-		var row any = GetValue(response, i)
+		var row any = this.SafeValue(response, i)
 		interests = append(interests, this.DerivedExchange.ParseBorrowInterest(row, market))
 	}
 	return interests
@@ -7111,7 +7111,7 @@ func (this *BaseExchange) ParseBorrowRate(info any, optionalArgs ...any) map[str
 func (this *BaseExchange) ParseBorrowRateHistory(response any, code any, since any, limit any) []any {
 	var result []any = []any{}
 	for i := 0; i < GetArrayLength(response); i++ {
-		var item any = GetValue(response, i)
+		var item any = this.SafeValue(response, i)
 
 		var borrowRate any = this.DerivedExchange.ParseBorrowRate(item)
 		PanicOnError(borrowRate)
@@ -7123,7 +7123,7 @@ func (this *BaseExchange) ParseBorrowRateHistory(response any, code any, since a
 func (this *BaseExchange) ParseIsolatedBorrowRates(info any) map[string]any {
 	var result map[string]any = map[string]any{}
 	for i := 0; i < GetArrayLength(info); i++ {
-		var item any = GetValue(info, i)
+		var item any = this.SafeValue(info, i)
 		var borrowRate map[string]any = this.ParseIsolatedBorrowRate(item)
 		var symbol *string = this.SafeString(borrowRate, "symbol")
 		AddElementToObject(result, symbol, borrowRate)

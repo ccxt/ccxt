@@ -2123,11 +2123,12 @@ func (this *Pacifica) WrapAsPostAction(operationType any, request any) map[strin
 		panic(ccxt.ArgumentsRequired(this.Id + "postAction() requires a \"operationType\" argument!"))
 	}
 	var requestId string = this.RequestId()
+	var postParams map[string]any = map[string]any{}
+	ccxt.AddElementToObject(postParams, operationType, request)
 	var payload map[string]any = map[string]any{
 		"id":     requestId,
-		"params": map[string]any{},
+		"params": postParams,
 	}
-	ccxt.AddElementToObject(payload["params"], operationType, request)
 	return payload
 }
 func (this *Pacifica) HandleWsPost(client any, message any) {

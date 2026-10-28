@@ -670,15 +670,10 @@ func (this *Bittrade) HandleOrderBookSubscription(client any, message map[string
 		return
 	}
 	var limit *int64 = this.SafeInteger(subscription, "limit")
-	if !(ccxt.InOp(this.Orderbooks, symbol)) {
-		if symbol != nil {
-			this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
-		}
+	if _, ok := this.Orderbooks[*symbol]; !ok {
+		this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
 	}
-	var orderbook any
-	if symbol != nil {
-		orderbook = this.Orderbooks[*symbol]
-	}
+	var orderbook any = this.Orderbooks[*symbol]
 	ccxt.AddElementToObject(orderbook, "nonce", nil)
 	orderbook.(ccxt.OrderBookInterface).SetCache([]any{})
 	// watch the snapshot in a separate async call

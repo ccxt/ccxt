@@ -4147,8 +4147,8 @@ func (this *Coinbaseinternational) CreateAuthToken(seconds any, optionalArgs ...
 	var useEddsa bool = GetArgBool(optionalArgs, 2, false)
 	_ = useEddsa
 	var uri any = nil
-	if url != nil {
-		uri = Add(Add(method, " "), Replace(url, "https://", ""))
+	if (url != nil) && (method != nil) {
+		uri = *method + " " + Replace(url, "https://", "")
 		var quesPos int = GetIndexOf(uri, "?")
 		if quesPos > 0 {
 			uri = Slice(uri, 0, quesPos)

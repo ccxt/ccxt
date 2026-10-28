@@ -301,10 +301,7 @@ func (this *Cex) HandleTradesInner(client any, message map[string]any) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		this.Trades[*symbol] = ccxt.NewArrayCache(limit)
 	}
-	var stored any
-	if symbol != nil {
-		stored = this.Trades[*symbol]
-	}
+	var stored any = this.Trades[*symbol]
 	var market map[string]any = this.Market(symbol)
 	var dataLength int = len(data)
 	for i := 0; i < dataLength; i++ {

@@ -446,14 +446,11 @@ func (this *Kalshi) fetchMarketsBody(ch chan ccxt.AsyncResult[[]ccxt.MarketInter
 			var parsed []any = ccxt.ArrayTyped(this.ParseBinaryMarketToOutcomes(raw))
 			var eventTicker *string = this.SafeString(raw, "event_ticker")
 			var eventTitle *string = this.SafeString(raw, "title", eventTicker)
-			var eventKey any = ""
-			if (eventTitle != nil) && (eventTitle == nil || *eventTitle != "") {
-				eventKey = this.ShortenSlug(eventTitle)
-			}
 			for j := 0; j < len(parsed); j++ {
 				var m any = ccxt.DerefScalar(parsed[j])
 				flatMarkets = append(flatMarkets, m)
-				if !ccxt.IsEqual(eventKey, "") {
+				if (eventTitle != nil) && (eventTitle == nil || *eventTitle != "") {
+					var eventKey any = this.ShortenSlug(eventTitle)
 					if !(ccxt.InOp(eventsDict, eventKey)) {
 						ccxt.AddElementToObject(eventsDict, eventKey, map[string]any{
 							"id":      eventTicker,
