@@ -667,8 +667,10 @@ export default class backpack extends Exchange {
         const stock = this.safeBool(selection, 0, false);
         const query = this.safeDict(selection, 1, {});
         const marketType = this.safeString(query, 'marketType');
-        const defaultTypes = (marketType === undefined) ? ['SPOT', 'PERP', 'RFQ'] : [marketType];
-        const requestedTypes = this.safeList(query, 'marketType', defaultTypes);
+        let requestedTypes = this.safeList(query, 'marketType', ['SPOT', 'PERP', 'RFQ']);
+        if (marketType !== undefined) {
+            requestedTypes = [marketType];
+        }
         const aliases = { 'spot': 'SPOT', 'swap': 'PERP', 'stock': 'RFQ' };
         const supportedTypes = ['SPOT', 'PERP', 'RFQ'];
         const marketTypes = [];
@@ -1066,8 +1068,12 @@ export default class backpack extends Exchange {
         if (fromIsStock === toIsStock) {
             throw new NotSupported(this.id + ' conversion requires exactly one stock currency');
         }
-        const stockCode = (fromIsStock) ? fromCode : toCode;
-        const quoteCode = (fromIsStock) ? toCode : fromCode;
+        let stockCode = fromCode;
+        let quoteCode = toCode;
+        if (!fromIsStock) {
+            stockCode = toCode;
+            quoteCode = fromCode;
+        }
         const symbol = stockCode + '.RFQ/' + quoteCode;
         const market = this.safeDict(this.markets, symbol);
         if ((market === undefined) || (this.safeString(market, 'executionModel') !== 'rfq') || !this.safeBool(market, 'stock', false)) {
@@ -1621,7 +1627,7 @@ export default class backpack extends Exchange {
         const interval = this.safeString(this.timeframes, timeframe, timeframe);
         const duration = this.parseTimeframe(timeframe);
         const dataRequest = this.stockDataRequest('fetchOHLCV', params, market);
-        const request = { 'symbol': dataRequest['symbol'], 'interval': interval };
+        const request = { 'symbol': this.safeString(dataRequest, 'symbol'), 'interval': interval };
         const [until, paramsUntil] = this.handleOptionIntegerAndParams(this.omit(dataRequest, 'symbol'), 'fetchOHLCV', 'until');
         if (until !== undefined) {
             request['endTime'] = this.parseToInt(until / 1000); // convert milliseconds to seconds
@@ -1635,7 +1641,7 @@ export default class backpack extends Exchange {
         let startTime = undefined;
         if (since === undefined) {
             let endTime = this.seconds();
-            if (until !== undefined && until !== null && until !== 0) {
+            if (until !== undefined && until !== 0) {
                 endTime = this.parseToInt(until / 1000);
             }
             startTime = endTime - (windowLimit * duration);

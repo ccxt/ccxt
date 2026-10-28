@@ -201,7 +201,10 @@ class binance extends binance$1["default"] {
      */
     async fetchRawTopics(maxTopics, rest = {}) {
         const maxTopicsOption = this.safeInteger(this.options, 'maxFetchMarketsLimit', 200);
-        const maxTopicsResolved = (maxTopics !== undefined) ? maxTopics : maxTopicsOption;
+        let maxTopicsResolved = this.parseToInt(maxTopicsOption);
+        if (maxTopics !== undefined) {
+            maxTopicsResolved = this.parseToInt(maxTopics);
+        }
         const pageLimitOption = this.safeInteger(this.options, 'marketsPageLimit', 100);
         const pageLimit = (pageLimitOption > 100) ? 100 : pageLimitOption;
         const collected = [];
@@ -1839,17 +1842,14 @@ class binance extends binance$1["default"] {
         const failedOrders = this.safeList(response, 'failed', []);
         const failedOrdersLength = failedOrders.length;
         if (failedOrdersLength > 0) {
-            let failedDetails = '';
+            const failedDetails = [];
             for (let i = 0; i < failedOrdersLength; i++) {
                 const failedOrder = this.safeDict(failedOrders, i);
-                const failedOrderId = this.safeString(failedOrder, 'orderId');
-                const failedReason = this.safeString(failedOrder, 'reason');
-                if (i > 0) {
-                    failedDetails = failedDetails + ', ';
-                }
-                failedDetails = failedDetails + failedOrderId + ': ' + failedReason;
+                const failedOrderId = this.safeString(failedOrder, 'orderId', '');
+                const failedReason = this.safeString(failedOrder, 'reason', '');
+                failedDetails.push(failedOrderId + ': ' + failedReason);
             }
-            throw new errors.OrderNotFound(this.id + ' cancelOrders() failed for ' + failedDetails);
+            throw new errors.OrderNotFound(this.id + ' cancelOrders() failed for ' + failedDetails.join(', '));
         }
         const orders = [];
         const canceledOrdersLength = canceledOrders.length;

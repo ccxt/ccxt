@@ -1490,7 +1490,7 @@ class kraken extends kraken$1["default"] {
         else if (typeof trade === 'string') {
             id = trade;
         }
-        else if ('ordertxid' in trade) {
+        else if (isOrderTrade) {
             orderId = this.safeString(trade, 'ordertxid');
             id = this.safeString2(trade, 'id', 'postxid');
             timestamp = this.safeTimestamp(trade, 'time');
@@ -1852,12 +1852,13 @@ class kraken extends kraken$1["default"] {
         let baseIdEnd = 3;
         let quoteIdStart = 3;
         let quoteIdEnd = 6;
-        if (id.length === 8) {
+        const idLength = id.length;
+        if (idLength === 8) {
             baseIdEnd = 4;
             quoteIdStart = 4;
             quoteIdEnd = 8;
         }
-        else if (id.length === 7) {
+        else if (idLength === 7) {
             baseIdEnd = 4;
             quoteIdStart = 4;
             quoteIdEnd = 7;

@@ -463,6 +463,9 @@ export default class grvt extends grvtRest {
         const secondPart = this.safeString(parts, 1, '');
         const timeframeId = secondPart.replace('-TRADE', '');
         const timeframe = this.findTimeframe(timeframeId);
+        if (timeframe === undefined) {
+            return;
+        }
         const messageHash = 'ohlcv::' + symbol + '::' + timeframe;
         this.ohlcvs[symbol] = this.safeDict(this.ohlcvs, symbol, {});
         if (!(timeframe in this.ohlcvs[symbol])) {

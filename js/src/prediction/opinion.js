@@ -1776,7 +1776,7 @@ export default class opinion extends Exchange {
         if (sym === undefined) {
             return;
         }
-        if (this.safeValue(this.orderbooks, sym) === undefined) {
+        if (!(sym in this.orderbooks)) {
             // the delta belongs to the market's other token, whose book is not being watched
             return;
         }

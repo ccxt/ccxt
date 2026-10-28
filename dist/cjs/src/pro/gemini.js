@@ -447,7 +447,6 @@ class gemini extends gemini$1["default"] {
             const side = (this.safeString(delta, 0) === 'buy') ? 'bids' : 'asks';
             const bookside = orderbook[side];
             bookside.store(price, size);
-            orderbook[side] = bookside;
         }
         orderbook['symbol'] = symbol;
         this.orderbooks[symbol] = orderbook;
@@ -622,8 +621,6 @@ class gemini extends gemini$1["default"] {
                 asks.store(price, size);
             }
         }
-        orderbook['bids'] = bids;
-        orderbook['asks'] = asks;
         orderbook['symbol'] = symbol;
         orderbook['nonce'] = nonce;
         orderbook['timestamp'] = timestamp;

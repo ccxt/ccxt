@@ -492,8 +492,8 @@ class bitvavo extends bitvavo$1["default"] {
         const marketIdsByInterval = {};
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
             const symbolAndTimeframe = symbolsAndTimeframes[i];
-            const market = this.market(symbolAndTimeframe[0]);
-            const timeframeString = symbolAndTimeframe[1];
+            const market = this.market(this.safeString(symbolAndTimeframe, 0, ''));
+            const timeframeString = this.safeString(symbolAndTimeframe, 1, '');
             const interval = this.safeString(this.timeframes, timeframeString, timeframeString);
             if (!(interval in marketIdsByInterval)) {
                 marketIdsByInterval[interval] = [];
@@ -557,8 +557,8 @@ class bitvavo extends bitvavo$1["default"] {
         const marketIdsByInterval = {};
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
             const symbolAndTimeframe = symbolsAndTimeframes[i];
-            const market = this.market(symbolAndTimeframe[0]);
-            const timeframeString = symbolAndTimeframe[1];
+            const market = this.market(this.safeString(symbolAndTimeframe, 0, ''));
+            const timeframeString = this.safeString(symbolAndTimeframe, 1, '');
             const interval = this.safeString(this.timeframes, timeframeString, timeframeString);
             if (!(interval in marketIdsByInterval)) {
                 marketIdsByInterval[interval] = [];

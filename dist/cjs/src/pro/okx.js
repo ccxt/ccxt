@@ -1282,10 +1282,9 @@ class okx extends okx$1["default"] {
         for (let i = 0; i < symbolsNormalized.length; i++) {
             const symbol = symbolsNormalized[i];
             messageHashes.push(depth + ':' + symbol);
-            const marketId = this.marketId(symbol);
             const topic = {
                 'channel': depth,
-                'instId': marketId,
+                'instId': this.marketId(symbol),
             };
             topics.push(topic);
         }
