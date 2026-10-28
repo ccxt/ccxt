@@ -719,6 +719,18 @@ export const CORE_NUMERIC_ARGS = {
     'withdraw': { 1: 'double' },
 };
 
+// retype-cs-divide-arith (hx11 w8): numeric parameters whose `divide(p, N)` / `divide(N, p)` helper call
+// prints native once the parameter is typed (the declared type is the C# twin of the TS annotation:
+// `Int` -> Int64?, required `int` -> Int64, `number` -> double). Name-keyed, so the base method and every
+// override (CS0115/CS0508 invariance) take the same type; call sites are wrapped by castCoreArgCallSites.
+export const RETYPE_CS_DIVIDE_NUMERIC_ARGS = {
+    'fetchPaginatedCallDeterministic': { 2: 'Int64?' },
+    'createTwapOrder': { 3: 'double' },
+};
+for (const [ retypeName, retypePositions ] of Object.entries (RETYPE_CS_DIVIDE_NUMERIC_ARGS)) {
+    CORE_NUMERIC_ARGS[retypeName] = { ...(CORE_NUMERIC_ARGS[retypeName] ?? {}), ...retypePositions };
+}
+
 export const CORE_STRING_ARGS = {
     'addMargin': [ 0 ],
     'borrowCrossMargin': [ 0 ],
