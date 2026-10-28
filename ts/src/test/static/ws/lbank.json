@@ -1,0 +1,32 @@
+{
+    "exchange": "lbank",
+    "skipKeys": [],
+    "options": {},
+    "methods": {
+        "unWatchTrades": [
+            {
+                "description": "spot trades unsubscribe with nothing subscribed: no frame is sent and the call resolves true (the subscribed path is covered by ts/src/pro/test/base/test.unWatch.lbank.ts)",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "url": "wss://www.lbkex.net/ws/V2/",
+                "messages": [],
+                "sentMessages": [],
+                "parsedResponse": true
+            }
+        ],
+        "unWatchOHLCV": [
+            {
+                "description": "spot 1h kbar unsubscribe with nothing subscribed: no frame is sent and the call resolves true (the subscribed path is covered by ts/src/pro/test/base/test.unWatch.lbank.ts)",
+                "input": [
+                    "BTC/USDT",
+                    "1h"
+                ],
+                "url": "wss://www.lbkex.net/ws/V2/",
+                "messages": [],
+                "sentMessages": [],
+                "parsedResponse": true
+            }
+        ]
+    }
+}
