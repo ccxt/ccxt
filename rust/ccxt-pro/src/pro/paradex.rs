@@ -676,7 +676,7 @@ impl ParadexCore {
         });
         let mut orderbook: Value = self.orderbooks.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
         let mut snapshot: Value = self.parse_order_book(Value::Map(orderbookData), symbol, &[timestamp, Value::Str("bids".into()), Value::Str("asks".into())]);
-        if let Value::Dict(__r03d) = &mut snapshot { std::sync::Arc::make_mut(__r03d).insert("nonce".into(), self.safe_integer_k(data, "seq_no", &[])); }
+        snapshot.set_book_meta("nonce", self.safe_integer_k(data, "seq_no", &[]));
         orderbook.reset(snapshot);
         let mut messageHash: Option<String> = self.safe_string_k_opt(params, "channel", &[]);
         client.resolve(&[orderbook, messageHash.map(Value::from).unwrap_or(Value::Null)]);

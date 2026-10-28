@@ -1518,7 +1518,7 @@ impl BitgetCore {
                     let mut m = indexmap::IndexMap::new();
                     m
                 })]);
-                add_element_to_object(&mut ob, &Value::Str("symbol".into()), symbol.clone());
+                ob.set_book_meta("symbol", symbol.clone());
                 if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ob); }
             }
             let mut storedOrderBook: Value = self.orderbooks.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
@@ -1535,8 +1535,8 @@ impl BitgetCore {
             let mut bids: Value = self.safe_list2(rawOrderBook.clone(), Value::Str("bids".into()), Value::Str("b".into()), &[Value::from(vec![])]);
             self.handle_deltas(get_value(&storedOrderBook, &Value::Str("asks".into())), asks);
             self.handle_deltas(get_value(&storedOrderBook, &Value::Str("bids".into())), bids);
-            add_element_to_object(&mut storedOrderBook, &Value::Str("timestamp".into()), timestamp.clone());
-            add_element_to_object(&mut storedOrderBook, &Value::Str("datetime".into()), self.iso8601(timestamp.clone()));
+            storedOrderBook.set_book_meta("timestamp", timestamp.clone());
+            storedOrderBook.set_book_meta("datetime", self.iso8601(timestamp.clone()));
             let mut checksum: Value = self.handle_option(Value::Str("watchOrderBook".into()), Value::Str("checksum".into()), &[Value::Bool(true)]);
             // UTA order books do not provide a crc32 checksum (they rely on seq/pseq for integrity),
             // so only validate the checksum when the exchange actually sends one

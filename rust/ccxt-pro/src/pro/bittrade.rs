@@ -749,9 +749,9 @@ impl BittradeCore {
         }
         let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Null });
         let mut snapshot: Value = self.parse_order_book(data.clone(), symbol.clone().map(Value::from).unwrap_or(Value::Null), &[]);
-        if let Value::Dict(__r03d) = &mut snapshot { std::sync::Arc::make_mut(__r03d).insert("nonce".into(), self.safe_integer_k(data, "seqNum", &[])); }
-        if let Value::Dict(__r03d) = &mut snapshot { std::sync::Arc::make_mut(__r03d).insert("timestamp".into(), timestamp.clone()); }
-        if let Value::Dict(__r03d) = &mut snapshot { std::sync::Arc::make_mut(__r03d).insert("datetime".into(), self.iso8601(timestamp)); }
+        snapshot.set_book_meta("nonce", self.safe_integer_k(data, "seqNum", &[]));
+        snapshot.set_book_meta("timestamp", timestamp.clone());
+        snapshot.set_book_meta("datetime", self.iso8601(timestamp));
         orderbook.reset(snapshot);
         // unroll the accumulated deltas
         let mut messages: Value = get_value(&orderbook, &Value::Str("cache".into()));
@@ -935,7 +935,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 }), limit]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
         }
         let mut orderbook: Value = self.orderbooks.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
-        add_element_to_object(&mut orderbook, &Value::Str("nonce".into()), Value::Null);
+        orderbook.set_book_meta("nonce", Value::Null);
         crate::set_value(&mut orderbook, &Value::Str("cache".into()), Value::from(vec![]));
         // watch the snapshot in a separate async call
         self.spawn(&[Value::Str("watch_order_book_snapshot".into()).clone(), client, message, subscription]);

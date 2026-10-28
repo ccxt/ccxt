@@ -483,10 +483,10 @@ impl LighterCore {
 }) });
         self.handle_deltas(get_value(&orderbook, &Value::Str("asks".into())), self.safe_list_k(data.clone(), "asks", &[Value::from(vec![])]));
         self.handle_deltas(get_value(&orderbook, &Value::Str("bids".into())), self.safe_list_k(data.clone(), "bids", &[Value::from(vec![])]));
-        add_element_to_object(&mut orderbook, &Value::Str("nonce".into()), self.safe_integer_k(data, "offset", &[]));
+        orderbook.set_book_meta("nonce", self.safe_integer_k(data, "offset", &[]));
         let mut timestamp: Value = self.safe_integer_k(message, "timestamp", &[]);
-        add_element_to_object(&mut orderbook, &Value::Str("timestamp".into()), timestamp.clone());
-        add_element_to_object(&mut orderbook, &Value::Str("datetime".into()), self.iso8601(timestamp));
+        orderbook.set_book_meta("timestamp", timestamp.clone());
+        orderbook.set_book_meta("datetime", self.iso8601(timestamp));
         return orderbook;
 
     Value::Null
@@ -537,7 +537,7 @@ impl LighterCore {
         let mut type_var: Option<String> = (match __pro_message.get("type").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().map(str::to_owned);
         if (type_var.as_deref() == Some("subscribed/order_book")) {
             let mut parsed: Value = self.parse_order_book(data.clone(), symbol.clone(), &[timestamp, Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("size".into())]);
-            if let Value::Dict(__r03d) = &mut parsed { std::sync::Arc::make_mut(__r03d).insert("nonce".into(), self.safe_integer_k(data, "offset", &[])); }
+            parsed.set_book_meta("nonce", self.safe_integer_k(data, "offset", &[]));
             orderbook.reset(parsed);
         }  else if (type_var.as_deref() == Some("update/order_book")) {
             self.handle_order_book_message(client.clone(), message, orderbook.clone());

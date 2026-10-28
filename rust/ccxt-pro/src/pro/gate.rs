@@ -1030,7 +1030,7 @@ impl GateCore {
 }), limit]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
             }
             let mut orderbook: Value = self.orderbooks.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
-            add_element_to_object(&mut orderbook, &Value::Str("nonce".into()), Value::Null);
+            orderbook.set_book_meta("nonce", Value::Null);
             crate::set_value(&mut orderbook, &Value::Str("cache".into()), Value::from(vec![]));
         }
 }
@@ -1084,8 +1084,8 @@ impl GateCore {
         let mut orderbook: Value = self.orderbooks.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
         if full.as_bool() == Some(true) {
             let mut snapshopt: Value = self.parse_order_book(result.clone(), symbol, &[Value::Null, Value::Str("b".into()), Value::Str("a".into())]);
-            if let Value::Dict(__r03d) = &mut snapshopt { std::sync::Arc::make_mut(__r03d).insert("nonce".into(), self.safe_integer_k(result.clone(), "u", &[])); }
-            if let Value::Dict(__r03d) = &mut snapshopt { std::sync::Arc::make_mut(__r03d).insert("timestamp".into(), self.safe_integer_k(result.clone(), "t", &[])); }
+            snapshopt.set_book_meta("nonce", self.safe_integer_k(result.clone(), "u", &[]));
+            snapshopt.set_book_meta("timestamp", self.safe_integer_k(result.clone(), "t", &[]));
             orderbook.reset(snapshopt);
         }  else {
             let mut nonce: Value = self.safe_integer_k(orderbook.clone(), "nonce", &[]);
@@ -1264,9 +1264,9 @@ impl GateCore {
 
     pub fn handle_book_delta(&self, mut orderbook: Value, mut delta: Value) {
         let mut timestamp: Value = self.safe_integer_k(delta.clone(), "t", &[]);
-        add_element_to_object(&mut orderbook, &Value::Str("timestamp".into()), timestamp.clone());
-        add_element_to_object(&mut orderbook, &Value::Str("datetime".into()), self.iso8601(timestamp));
-        add_element_to_object(&mut orderbook, &Value::Str("nonce".into()), self.safe_integer_k(delta.clone(), "u", &[]));
+        orderbook.set_book_meta("timestamp", timestamp.clone());
+        orderbook.set_book_meta("datetime", self.iso8601(timestamp));
+        orderbook.set_book_meta("nonce", self.safe_integer_k(delta.clone(), "u", &[]));
         let mut bids: Value = self.safe_list_k(delta.clone(), "b", &[Value::from(vec![])]);
         let mut asks: Value = self.safe_list_k(delta, "a", &[Value::from(vec![])]);
         let mut storedBids: Value = get_value(&orderbook, &Value::Str("bids".into()));

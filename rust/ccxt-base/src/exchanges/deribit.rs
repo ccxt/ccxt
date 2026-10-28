@@ -4894,11 +4894,16 @@ impl DeribitCore {
         if (cursor != Value::Null) {
             let mut dataLength: Value = Value::Int(data.len() as i64);
             if dataLength.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
-                let mut first: Value = data.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-                let mut last: Value = data.as_array().and_then(|__arr| match &((match (&(dataLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
-                    Value::Float(y)) => Value::Float(x - y), _ => Value::Null })) { Value::Int(__n) if *__n >= 0 => __arr.get(*__n as usize), _ => None }).cloned().unwrap_or(Value::Null);
-                add_element_to_object(&mut first, &Value::Str("continuation".into()), cursor.clone());
-                add_element_to_object(&mut last, &Value::Str("continuation".into()), cursor);
+                let mut first: Value = self.safe_dict(data.clone(), Value::Int(0), &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
+                let mut last: Value = self.safe_dict(data.clone(), (match (&(dataLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
+                if let Value::Dict(__d) = &mut first { std::sync::Arc::make_mut(__d).insert("continuation".into(), cursor.clone()); }
+                if let Value::Dict(__d) = &mut last { std::sync::Arc::make_mut(__d).insert("continuation".into(), cursor); }
                 add_element_to_object(&mut data, &Value::Int(0), first);
                 add_element_to_object(&mut data, &(match (&(dataLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), last);
             }

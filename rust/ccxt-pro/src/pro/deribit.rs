@@ -1112,10 +1112,10 @@ impl DeribitCore {
         let mut bids: Value = self.safe_list_k(data, "bids", &[Value::from(vec![])]);
         self.handle_deltas(get_value(&storedOrderBook, &Value::Str("asks".into())), asks);
         self.handle_deltas(get_value(&storedOrderBook, &Value::Str("bids".into())), bids);
-        add_element_to_object(&mut storedOrderBook, &Value::Str("nonce".into()), timestamp.clone());
-        add_element_to_object(&mut storedOrderBook, &Value::Str("timestamp".into()), timestamp.clone());
-        add_element_to_object(&mut storedOrderBook, &Value::Str("datetime".into()), self.iso8601(timestamp));
-        add_element_to_object(&mut storedOrderBook, &Value::Str("symbol".into()), symbol.clone());
+        storedOrderBook.set_book_meta("nonce", timestamp.clone());
+        storedOrderBook.set_book_meta("timestamp", timestamp.clone());
+        storedOrderBook.set_book_meta("datetime", self.iso8601(timestamp));
+        storedOrderBook.set_book_meta("symbol", symbol.clone());
         if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), storedOrderBook.clone()); }
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("book|".into()), symbol).into()), Value::Str("|".into())).into()), descriptor).into());
         client.resolve(&[storedOrderBook, messageHash]);

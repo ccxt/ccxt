@@ -1637,7 +1637,7 @@ impl BybitCore {
             { let __be_tmp = self.order_book(&[]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
         }
         let mut orderbook: Value = self.orderbooks.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
-        add_element_to_object(&mut orderbook, &Value::Str("symbol".into()), symbol.clone());
+        orderbook.set_book_meta("symbol", symbol.clone());
         if isSnapshot {
             let mut snapshot: Value = self.parse_order_book(data.clone(), symbol.clone(), &[timestamp.clone(), Value::Str("b".into()), Value::Str("a".into())]);
             orderbook.reset(snapshot);
@@ -1646,8 +1646,8 @@ impl BybitCore {
             let mut bids: Value = self.safe_list_k(data, "b", &[Value::from(vec![])]);
             self.handle_deltas(get_value(&orderbook, &Value::Str("asks".into())), asks);
             self.handle_deltas(get_value(&orderbook, &Value::Str("bids".into())), bids);
-            add_element_to_object(&mut orderbook, &Value::Str("timestamp".into()), timestamp.clone());
-            add_element_to_object(&mut orderbook, &Value::Str("datetime".into()), self.iso8601(timestamp));
+            orderbook.set_book_meta("timestamp", timestamp.clone());
+            orderbook.set_book_meta("datetime", self.iso8601(timestamp));
         }
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderbook".into()), Value::Str(":".into())).into()), symbol).into());
         if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), orderbook.clone()); }

@@ -1449,7 +1449,7 @@ impl BitvavoCore {
             return;
         }
         let mut snapshot: Value = self.parse_order_book(response.clone(), symbol.clone(), &[]);
-        if let Value::Dict(__r03d) = &mut snapshot { std::sync::Arc::make_mut(__r03d).insert("nonce".into(), self.safe_integer_k(response.clone(), "nonce", &[])); }
+        snapshot.set_book_meta("nonce", self.safe_integer_k(response.clone(), "nonce", &[]));
         orderbook.reset(snapshot);
         // unroll the accumulated deltas
         let mut messages: Value = get_value(&orderbook, &Value::Str("cache".into()));
@@ -1490,7 +1490,7 @@ impl BitvavoCore {
             if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("orderBookLimits".into(), limits); }
         }
         let mut orderbook: Value = self.orderbooks.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
-        add_element_to_object(&mut orderbook, &Value::Str("nonce".into()), Value::Null);
+        orderbook.set_book_meta("nonce", Value::Null);
         crate::set_value(&mut orderbook, &Value::Str("cache".into()), Value::from(vec![]));
 }
 

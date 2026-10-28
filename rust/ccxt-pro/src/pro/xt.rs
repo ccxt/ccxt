@@ -469,7 +469,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     pub fn handle_book_delta(&self, mut orderbook: Value, mut delta: Value) {
-        add_element_to_object(&mut orderbook, &Value::Str("nonce".into()), self.safe_integer2(delta.clone(), Value::Str("i".into()), Value::Str("u".into()), &[]));
+        orderbook.set_book_meta("nonce", self.safe_integer2(delta.clone(), Value::Str("i".into()), Value::Str("u".into()), &[]));
         let mut obAsks: Value = self.safe_list_k(delta.clone(), "a", &[Value::from(vec![])]);
         let mut obBids: Value = self.safe_list_k(delta, "b", &[Value::from(vec![])]);
         let mut bids: Value = get_value(&orderbook, &Value::Str("bids".into()));
@@ -1811,10 +1811,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 }
             }
             let mut timestamp: Value = self.safe_integer_k(data.clone(), "t", &[]);
-            add_element_to_object(&mut orderbook, &Value::Str("nonce".into()), self.safe_integer2(data, Value::Str("i".into()), Value::Str("u".into()), &[]));
-            add_element_to_object(&mut orderbook, &Value::Str("timestamp".into()), timestamp.clone());
-            add_element_to_object(&mut orderbook, &Value::Str("datetime".into()), self.iso8601(timestamp));
-            add_element_to_object(&mut orderbook, &Value::Str("symbol".into()), symbol);
+            orderbook.set_book_meta("nonce", self.safe_integer2(data, Value::Str("i".into()), Value::Str("u".into()), &[]));
+            orderbook.set_book_meta("timestamp", timestamp.clone());
+            orderbook.set_book_meta("datetime", self.iso8601(timestamp));
+            orderbook.set_book_meta("symbol", symbol);
             client.resolve(&[orderbook, messageHash]);
         }
 }

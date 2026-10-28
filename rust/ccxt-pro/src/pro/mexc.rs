@@ -1247,7 +1247,7 @@ impl MexcCore {
 })]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
         }
         let mut orderbook: Value = self.orderbooks.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
-        add_element_to_object(&mut orderbook, &Value::Str("nonce".into()), Value::Null);
+        orderbook.set_book_meta("nonce", Value::Null);
         crate::set_value(&mut orderbook, &Value::Str("cache".into()), Value::from(vec![]));
 }
 
@@ -1378,8 +1378,8 @@ impl MexcCore {
         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
             self.handle_book_delta(storedOrderBook.clone(), data.clone());
             let mut timestamp: Value = self.safe_integer_n(message.clone(), Value::from(vec![Value::Str("t".into()), Value::Str("ts".into()), Value::Str("sendTime".into())]), &[]);
-            add_element_to_object(&mut storedOrderBook, &Value::Str("timestamp".into()), timestamp.clone());
-            add_element_to_object(&mut storedOrderBook, &Value::Str("datetime".into()), self.iso8601(timestamp.clone()));
+            storedOrderBook.set_book_meta("timestamp", timestamp.clone());
+            storedOrderBook.set_book_meta("datetime", self.iso8601(timestamp.clone()));
          #[allow(unreachable_code)] { Value::Null }}));
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             __ch.remove_subscription(&messageHash);
@@ -1418,7 +1418,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (deltaNonce != Value::Null) && (existingNonce != Value::Null) && (deltaNonce.as_f64().unwrap_or(f64::NAN) < existingNonce.as_f64().unwrap_or(f64::NAN)) {
             return;
         }
-        add_element_to_object(&mut orderbook, &Value::Str("nonce".into()), deltaNonce);
+        orderbook.set_book_meta("nonce", deltaNonce);
         let mut asks: Value = self.safe_list_k(delta.clone(), "asks", &[Value::from(vec![])]);
         let mut bids: Value = self.safe_list_k(delta, "bids", &[Value::from(vec![])]);
         let mut asksOrderSide: Value = get_value(&orderbook, &Value::Str("asks".into()));

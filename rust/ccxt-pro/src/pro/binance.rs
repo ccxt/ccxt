@@ -1609,7 +1609,7 @@ impl BinanceCore {
         let mut result: Value = (match message.get("result") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Null });
         let mut timestamp: Value = self.safe_integer_k(result.clone(), "T", &[]);
         let mut orderbook: Value = self.parse_order_book(result.clone(), Value::Null, &[timestamp]);
-        if let Value::Dict(__r03d) = &mut orderbook { std::sync::Arc::make_mut(__r03d).insert("nonce".into(), self.safe_integer2(result, Value::Str("lastUpdateId".into()), Value::Str("u".into()), &[])); }
+        orderbook.set_book_meta("nonce", self.safe_integer2(result, Value::Str("lastUpdateId".into()), Value::Str("u".into()), &[]));
         client.resolve(&[orderbook, messageHash]);
 }
 
@@ -1706,10 +1706,10 @@ impl BinanceCore {
         let mut u: Value = (match message.get("u") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null });
         self.handle_deltas(get_value(&orderbook, &Value::Str("asks".into())), (match message.get("a") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }));
         self.handle_deltas(get_value(&orderbook, &Value::Str("bids".into())), (match message.get("b") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }));
-        add_element_to_object(&mut orderbook, &Value::Str("nonce".into()), u);
+        orderbook.set_book_meta("nonce", u);
         let mut timestamp: Value = (match message.get("E") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null });
-        add_element_to_object(&mut orderbook, &Value::Str("timestamp".into()), timestamp.clone());
-        add_element_to_object(&mut orderbook, &Value::Str("datetime".into()), self.iso8601(timestamp));
+        orderbook.set_book_meta("timestamp", timestamp.clone());
+        orderbook.set_book_meta("datetime", self.iso8601(timestamp));
         return orderbook;
 
     Value::Null
@@ -1852,7 +1852,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
 }), limit.clone()]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
             }
             let mut orderbook: Value = self.orderbooks.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
-            add_element_to_object(&mut orderbook, &Value::Str("nonce".into()), Value::Null);
+            orderbook.set_book_meta("nonce", Value::Null);
             crate::set_value(&mut orderbook, &Value::Str("cache".into()), Value::from(vec![]));
             let mut symbolSubscription: Value = self.extend(subscription.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();

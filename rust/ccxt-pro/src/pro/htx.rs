@@ -1008,7 +1008,7 @@ impl HtxCore {
             if (nonce == Value::Null) {
                 return true;
             }
-            if let Value::Dict(__r03d) = &mut snapshot { std::sync::Arc::make_mut(__r03d).insert("nonce".into(), nonce.clone()); }
+            snapshot.set_book_meta("nonce", nonce.clone());
             let mut snapshotTimestamp: Value = (match __pro_message.get("ts").cloned() { Some(Value::Int(__n)) => Value::Int(__n), Some(Value::Float(__f)) => Value::Int(__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n),
                 Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null });
             if let Value::Dict(__d) = &mut subscription { std::sync::Arc::make_mut(__d).insert("lastTimestamp".into(), snapshotTimestamp.clone()); }
@@ -1215,7 +1215,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (event.as_deref() == Some("snapshot")) {
             let mut snapshot: Value = self.parse_order_book(tick.clone(), symbol.clone(), &[timestamp.clone()]);
             orderbook.reset(snapshot);
-            add_element_to_object(&mut orderbook, &Value::Str("nonce".into()), version.clone());
+            orderbook.set_book_meta("nonce", version.clone());
         }
         let mut orderbookNonce: Value = self.safe_integer_k(orderbook.clone(), "nonce", &[Value::Int(0)]);
         if (prevSeqNum != Value::Null) && prevSeqNum.as_f64().unwrap_or(f64::NAN) > orderbookNonce.as_f64().unwrap_or(f64::NAN) {
@@ -1232,9 +1232,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut bids: Value = self.safe_list_k(tick, "bids", &[Value::from(vec![])]);
             self.handle_deltas(get_value(&orderbook, &Value::Str("asks".into())), asks);
             self.handle_deltas(get_value(&orderbook, &Value::Str("bids".into())), bids);
-            add_element_to_object(&mut orderbook, &Value::Str("nonce".into()), (if (spotConditon) { seqNum } else { version }));
-            add_element_to_object(&mut orderbook, &Value::Str("timestamp".into()), timestamp.clone());
-            add_element_to_object(&mut orderbook, &Value::Str("datetime".into()), self.iso8601(timestamp));
+            orderbook.set_book_meta("nonce", (if (spotConditon) { seqNum } else { version }));
+            orderbook.set_book_meta("timestamp", timestamp.clone());
+            orderbook.set_book_meta("datetime", self.iso8601(timestamp));
         }
 }
 
@@ -1329,7 +1329,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 }), limit]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
             }
             let mut orderbook: Value = self.orderbooks.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
-            add_element_to_object(&mut orderbook, &Value::Str("nonce".into()), Value::Null);
+            orderbook.set_book_meta("nonce", Value::Null);
             crate::set_value(&mut orderbook, &Value::Str("cache".into()), Value::from(vec![]));
         }
         if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {

@@ -1425,9 +1425,9 @@ impl CoinbaseCore {
                 }));
             }
             self.handle_order_book_helper(orderbook.clone(), updates);
-            add_element_to_object(&mut orderbook, &Value::Str("timestamp".into()), self.parse8601(datetime.clone().map(Value::from).unwrap_or(Value::Null)));
-            add_element_to_object(&mut orderbook, &Value::Str("datetime".into()), datetime.clone().map(Value::from).unwrap_or(Value::Null));
-            add_element_to_object(&mut orderbook, &Value::Str("symbol".into()), symbol);
+            orderbook.set_book_meta("timestamp", self.parse8601(datetime.clone().map(Value::from).unwrap_or(Value::Null)));
+            orderbook.set_book_meta("datetime", datetime.clone().map(Value::from).unwrap_or(Value::Null));
+            orderbook.set_book_meta("symbol", symbol);
             client.resolve(&[orderbook.clone(), messageHash.clone()]);
             self.try_resolve_usdc(client.clone(), messageHash, orderbook);
         }

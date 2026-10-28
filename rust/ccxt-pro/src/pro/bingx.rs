@@ -1158,7 +1158,7 @@ impl BingxCore {
             snapshot = self.parse_order_book(data.clone(), symbol.clone(), &[timestamp, Value::Str("bids".into()), Value::Str("asks".into()), Value::Int(0), Value::Int(1)]);
         }
         let mut nonce: Value = self.safe_integer_k(data, "lastUpdateId", &[]);
-        add_element_to_object(&mut snapshot, &Value::Str("nonce".into()), nonce);
+        snapshot.set_book_meta("nonce", nonce);
         orderbook.reset(snapshot);
         let mut messageHash: Value = self.get_message_hash(Value::Str("orderbook".into()), &[symbol]).map(Value::from).unwrap_or(Value::Null);
         client.resolve(&[orderbook.clone(), messageHash]);

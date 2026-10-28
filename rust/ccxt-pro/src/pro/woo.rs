@@ -667,8 +667,8 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         }
         let mut orderbook: Value = self.orderbooks.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
         // handleOrderBook queues deltas while timestamp is undefined, until the REST snapshot lands
-        add_element_to_object(&mut orderbook, &Value::Str("timestamp".into()), Value::Null);
-        add_element_to_object(&mut orderbook, &Value::Str("datetime".into()), Value::Null);
+        orderbook.set_book_meta("timestamp", Value::Null);
+        orderbook.set_book_meta("datetime", Value::Null);
         crate::set_value(&mut orderbook, &Value::Str("cache".into()), Value::from(vec![]));
         self.spawn(&[Value::Str("fetch_order_book_snapshot".into()).clone(), client.clone(), message.clone(), subscription]);
 }
@@ -723,8 +723,8 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         self.handle_deltas(get_value(&orderbook, &Value::Str("asks".into())), self.safe_list_k(data.clone(), "asks", &[Value::from(vec![])]));
         self.handle_deltas(get_value(&orderbook, &Value::Str("bids".into())), self.safe_list_k(data, "bids", &[Value::from(vec![])]));
         let mut timestamp: Value = (match message.get("ts") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null });
-        add_element_to_object(&mut orderbook, &Value::Str("timestamp".into()), timestamp.clone());
-        add_element_to_object(&mut orderbook, &Value::Str("datetime".into()), self.iso8601(timestamp.clone()));
+        orderbook.set_book_meta("timestamp", timestamp.clone());
+        orderbook.set_book_meta("datetime", self.iso8601(timestamp.clone()));
         return orderbook;
 
     Value::Null

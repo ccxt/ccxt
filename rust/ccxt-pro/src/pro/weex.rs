@@ -1547,16 +1547,16 @@ impl WeexCore {
         let mut nonce: Value = (match __pro_message.get("u").cloned() { Some(Value::Int(__n)) => Value::Int(__n), Some(Value::Float(__f)) => Value::Int(__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null });
         if (event.as_deref() == Some("depthSnapshot")) {
             let mut parsed: Value = self.parse_order_book(message, symbol, &[timestamp.clone(), Value::Str("b".into()), Value::Str("a".into())]);
-            if let Value::Dict(__r03d) = &mut parsed { std::sync::Arc::make_mut(__r03d).insert("nonce".into(), nonce.clone()); }
+            parsed.set_book_meta("nonce", nonce.clone());
             orderbook.reset(parsed);
         }  else {
             let mut asks: Value = (match __pro_message.get("a").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
             let mut bids: Value = (match __pro_message.get("b").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
             self.handle_deltas(get_value(&orderbook, &Value::Str("asks".into())), asks);
             self.handle_deltas(get_value(&orderbook, &Value::Str("bids".into())), bids);
-            add_element_to_object(&mut orderbook, &Value::Str("timestamp".into()), timestamp.clone());
-            add_element_to_object(&mut orderbook, &Value::Str("datetime".into()), self.iso8601(timestamp));
-            add_element_to_object(&mut orderbook, &Value::Str("nonce".into()), nonce);
+            orderbook.set_book_meta("timestamp", timestamp.clone());
+            orderbook.set_book_meta("datetime", self.iso8601(timestamp));
+            orderbook.set_book_meta("nonce", nonce);
         }
         client.resolve(&[orderbook, messageHash]);
 }

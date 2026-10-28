@@ -696,7 +696,7 @@ impl BullishCore {
         let mut sequenceNumberRange: Value = self.safe_list_k(data, "sequenceNumberRange", &[Value::from(vec![])]);
         if ((sequenceNumberRange.len() as i64) as f64) > ((0i64) as f64) {
             let mut lastIndex: Value = (match (&(Value::Int(sequenceNumberRange.len() as i64)), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
-            if let Value::Dict(__r03d) = &mut parsed { std::sync::Arc::make_mut(__r03d).insert("nonce".into(), self.safe_integer(sequenceNumberRange, lastIndex, &[])); }
+            parsed.set_book_meta("nonce", self.safe_integer(sequenceNumberRange, lastIndex, &[]));
         }
         orderbook.reset(parsed);
         if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), orderbook.clone()); }

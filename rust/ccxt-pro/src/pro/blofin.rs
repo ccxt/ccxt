@@ -552,15 +552,15 @@ impl BlofinCore {
         let mut action: Option<String> = (match message.get("action") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         if (action.as_deref() == Some("snapshot")) {
             let mut orderBookSnapshot: Value = self.parse_order_book(data.clone(), symbol.clone(), &[timestamp.clone()]);
-            if let Value::Dict(__r03d) = &mut orderBookSnapshot { std::sync::Arc::make_mut(__r03d).insert("nonce".into(), self.safe_integer_k(data.clone(), "seqId", &[])); }
+            orderBookSnapshot.set_book_meta("nonce", self.safe_integer_k(data.clone(), "seqId", &[]));
             orderbook.reset(orderBookSnapshot);
         }  else {
             let mut asks: Value = self.safe_list_k(data.clone(), "asks", &[Value::from(vec![])]);
             let mut bids: Value = self.safe_list_k(data, "bids", &[Value::from(vec![])]);
             self.handle_deltas_with_keys(get_value(&orderbook, &Value::Str("asks".into())), asks, &[]);
             self.handle_deltas_with_keys(get_value(&orderbook, &Value::Str("bids".into())), bids, &[]);
-            add_element_to_object(&mut orderbook, &Value::Str("timestamp".into()), timestamp.clone());
-            add_element_to_object(&mut orderbook, &Value::Str("datetime".into()), self.iso8601(timestamp));
+            orderbook.set_book_meta("timestamp", timestamp.clone());
+            orderbook.set_book_meta("datetime", self.iso8601(timestamp));
         }
         if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), orderbook.clone()); }
         if (channelName.is_some()) {

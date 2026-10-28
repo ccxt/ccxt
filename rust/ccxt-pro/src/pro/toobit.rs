@@ -1061,7 +1061,7 @@ impl ToobitCore {
             let mut asks: Value = self.safe_list_k(entry, "a", &[Value::from(vec![])]);
             self.handle_deltas(get_value(&orderBook, &Value::Str("asks".into())), asks);
             self.handle_deltas(get_value(&orderBook, &Value::Str("bids".into())), bids);
-            add_element_to_object(&mut orderBook, &Value::Str("timestamp".into()), timestamp);
+            orderBook.set_book_meta("timestamp", timestamp);
             if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), orderBook.clone()); }
             client.resolve(&[orderBook, messageHash]);
         }

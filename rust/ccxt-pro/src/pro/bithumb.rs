@@ -814,13 +814,13 @@ impl BithumbCore {
             let mut legacyTimestamp: Value = self.parse_to_int(timestampStr.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(0); let __j = __l.min(13); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null));
             if !(matches!((&self.orderbooks, &legacySymbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 let mut ob: Value = self.order_book(&[]);
-                add_element_to_object(&mut ob, &Value::Str("symbol".into()), legacySymbol.clone());
+                ob.set_book_meta("symbol", legacySymbol.clone());
                 if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&legacySymbol), ob); }
             }
             let mut legacyOrderbook: Value = self.orderbooks.as_map().and_then(|__m| legacySymbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
             self.handle_book_deltas(legacyOrderbook.clone(), list);
-            add_element_to_object(&mut legacyOrderbook, &Value::Str("timestamp".into()), legacyTimestamp.clone());
-            add_element_to_object(&mut legacyOrderbook, &Value::Str("datetime".into()), self.iso8601(legacyTimestamp));
+            legacyOrderbook.set_book_meta("timestamp", legacyTimestamp.clone());
+            legacyOrderbook.set_book_meta("datetime", self.iso8601(legacyTimestamp));
             let mut legacyMessageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderbook".into()), Value::Str(":".into())).into()), legacySymbol).into());
             client.resolve(&[legacyOrderbook, legacyMessageHash]);
             return;

@@ -1035,8 +1035,8 @@ impl GrvtCore {
             let mut bids: Value = self.safe_list_k(data, "bids", &[Value::from(vec![])]);
             self.handle_deltas_with_keys(get_value(&orderbook, &Value::Str("asks".into())), asks, &[Value::Str("price".into()), Value::Str("size".into())]);
             self.handle_deltas_with_keys(get_value(&orderbook, &Value::Str("bids".into())), bids, &[Value::Str("price".into()), Value::Str("size".into())]);
-            add_element_to_object(&mut orderbook, &Value::Str("timestamp".into()), timestamp.clone());
-            add_element_to_object(&mut orderbook, &Value::Str("datetime".into()), self.iso8601(timestamp));
+            orderbook.set_book_meta("timestamp", timestamp.clone());
+            orderbook.set_book_meta("datetime", self.iso8601(timestamp));
         }
         // grvt defaults to the delta channel (v1.book.d); if the very first
         // message is a delta, the freshly-created orderbook has symbol=null
@@ -1045,8 +1045,8 @@ impl GrvtCore {
         // typed WsOrderBook surfaces this as `"symbol":null` in the output;
         // Python/JS dict-backed orderbooks happen to mask it but the
         // unconditional assignment is correct for every language.
-        add_element_to_object(&mut orderbook, &Value::Str("symbol".into()), symbol.clone());
-        add_element_to_object(&mut orderbook, &Value::Str("nonce".into()), sequenceNumber);
+        orderbook.set_book_meta("symbol", symbol.clone());
+        orderbook.set_book_meta("nonce", sequenceNumber);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook::".into()), symbol).into());
         if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), orderbook.clone()); }
         client.resolve(&[orderbook, messageHash]);

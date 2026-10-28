@@ -521,12 +521,12 @@ impl LunoCore {
             orderbook.reset(snapshot);
         }  else {
             self.handle_book_delta(orderbook.clone(), message);
-            add_element_to_object(&mut orderbook, &Value::Str("timestamp".into()), timestamp.clone());
-            add_element_to_object(&mut orderbook, &Value::Str("datetime".into()), self.iso8601(timestamp));
+            orderbook.set_book_meta("timestamp", timestamp.clone());
+            orderbook.set_book_meta("datetime", self.iso8601(timestamp));
         }
         let mut nonce: Value = (match __pro_message.get("sequence").cloned() { Some(Value::Int(__n)) => Value::Int(__n), Some(Value::Float(__f)) => Value::Int(__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n),
             Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null });
-        add_element_to_object(&mut orderbook, &Value::Str("nonce".into()), nonce);
+        orderbook.set_book_meta("nonce", nonce);
         client.resolve(&[orderbook, messageHash]);
 }
 
@@ -750,7 +750,7 @@ impl LunoCore {
             // the cached book is kept so references returned by earlier
             // watchOrderBook calls stay live: clearing its nonce discards
             // deltas until the fresh snapshot resets the book in place
-            add_element_to_object(&mut orderbook, &Value::Str("nonce".into()), Value::Null);
+            orderbook.set_book_meta("nonce", Value::Null);
             let mut market: Value = self.market(symbol);
             let symbolValue: String = self.safe_string_k_opt(market.clone(), "symbol", &[Value::Str("".into())]).unwrap_or_default();
             let marketId: String = self.safe_string_k_opt(market, "id", &[Value::Str("".into())]).unwrap_or_default();

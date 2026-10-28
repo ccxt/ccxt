@@ -1027,7 +1027,7 @@ impl PacificaCore {
         let mut snapshot: Value = self.parse_order_book(Value::Map(result), symbol.clone(), &[timestamp, Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("p".into()), Value::Str("a".into())]);
         let mut nonce: Value = self.safe_integer_k(entry, "li", &[]);
         if (nonce != Value::Null) && (nonce.as_f64() != Some(0.0)) {
-            if let Value::Dict(__r03d) = &mut snapshot { std::sync::Arc::make_mut(__r03d).insert("nonce".into(), nonce); }
+            snapshot.set_book_meta("nonce", nonce);
         }
         if !(matches!((&self.orderbooks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             let mut ob: Value = self.order_book(&[snapshot.clone()]);

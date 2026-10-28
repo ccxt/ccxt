@@ -1210,9 +1210,9 @@ impl PhemexCore {
                 let mut bids: Value = self.safe_list_k(changes, "bids", &[Value::from(vec![])]);
                 self.custom_handle_deltas(get_value(&orderbook, &Value::Str("asks".into())), asks, &[market.clone()]);
                 self.custom_handle_deltas(get_value(&orderbook, &Value::Str("bids".into())), bids, &[market]);
-                add_element_to_object(&mut orderbook, &Value::Str("nonce".into()), nonce);
-                add_element_to_object(&mut orderbook, &Value::Str("timestamp".into()), timestamp.clone());
-                add_element_to_object(&mut orderbook, &Value::Str("datetime".into()), self.iso8601(timestamp));
+                orderbook.set_book_meta("nonce", nonce);
+                orderbook.set_book_meta("timestamp", timestamp.clone());
+                orderbook.set_book_meta("datetime", self.iso8601(timestamp));
                 if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), orderbook.clone()); }
                 client.resolve(&[orderbook, messageHash]);
             }

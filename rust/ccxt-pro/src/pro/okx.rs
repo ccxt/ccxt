@@ -2209,9 +2209,9 @@ impl OkxCore {
             return orderbook;
         }
         let mut timestamp: Value = (match message.get("ts") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null });
-        add_element_to_object(&mut orderbook, &Value::Str("nonce".into()), seqId);
-        add_element_to_object(&mut orderbook, &Value::Str("timestamp".into()), timestamp.clone());
-        add_element_to_object(&mut orderbook, &Value::Str("datetime".into()), self.iso8601(timestamp));
+        orderbook.set_book_meta("nonce", seqId);
+        orderbook.set_book_meta("timestamp", timestamp.clone());
+        orderbook.set_book_meta("datetime", self.iso8601(timestamp));
         return orderbook;
 
     Value::Null
@@ -2349,7 +2349,7 @@ impl OkxCore {
                 // price and amount only, matching handleDelta, so countOrIdKey
                 // points past the row on purpose
                 let mut snapshot: Value = self.parse_order_book(update.clone(), symbol.clone(), &[timestamp.clone(), Value::Str("bids".into()), Value::Str("asks".into()), Value::Int(0), Value::Int(1), Value::Int(4)]);
-                add_element_to_object(&mut snapshot, &Value::Str("nonce".into()), self.safe_integer_k(update.clone(), "seqId", &[]));
+                snapshot.set_book_meta("nonce", self.safe_integer_k(update.clone(), "seqId", &[]));
                 orderbook.reset(snapshot.clone());
                 if !(matches!((&__ch.subscriptions.clone(), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                     break;

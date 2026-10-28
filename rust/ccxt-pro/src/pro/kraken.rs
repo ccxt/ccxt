@@ -1623,9 +1623,9 @@ impl KrakenCore {
                 self.custom_handle_deltas(storedBids, b);
             }
             let mut datetime: Option<String> = self.safe_string_k_opt(first.clone(), "timestamp", &[]);
-            add_element_to_object(&mut orderbook, &Value::Str("symbol".into()), symbol.clone());
-            add_element_to_object(&mut orderbook, &Value::Str("timestamp".into()), self.parse8601(datetime.clone().map(Value::from).unwrap_or(Value::Null)));
-            add_element_to_object(&mut orderbook, &Value::Str("datetime".into()), datetime.map(Value::from).unwrap_or(Value::Null));
+            orderbook.set_book_meta("symbol", symbol.clone());
+            orderbook.set_book_meta("timestamp", self.parse8601(datetime.clone().map(Value::from).unwrap_or(Value::Null)));
+            orderbook.set_book_meta("datetime", datetime.map(Value::from).unwrap_or(Value::Null));
         }  else {
             // snapshot
             let mut subscription: Value = self.safe_dict(__ch.subscriptions.clone(), messageHash.clone(), &[Value::Map({
@@ -1675,7 +1675,7 @@ impl KrakenCore {
                 }
             }
             }
-            add_element_to_object(&mut orderbook, &Value::Str("symbol".into()), symbol.clone());
+            orderbook.set_book_meta("symbol", symbol.clone());
         }
         orderbook.limit();
         // checksum temporarily disabled because the exchange checksum was not reliable

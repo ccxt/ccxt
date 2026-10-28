@@ -1094,8 +1094,8 @@ impl BlockchaincomCore {
             let mut bids: Value = (match __pro_message.get("bids").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
             self.handle_deltas(get_value(&orderbook, &Value::Str("asks".into())), asks);
             self.handle_deltas(get_value(&orderbook, &Value::Str("bids".into())), bids);
-            add_element_to_object(&mut orderbook, &Value::Str("timestamp".into()), timestamp);
-            add_element_to_object(&mut orderbook, &Value::Str("datetime".into()), datetime.map(Value::from).unwrap_or(Value::Null));
+            orderbook.set_book_meta("timestamp", timestamp);
+            orderbook.set_book_meta("datetime", datetime.map(Value::from).unwrap_or(Value::Null));
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBook() does not support ".into())).into()), event).into()), Value::Str(" yet".into()))));
         }

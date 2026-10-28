@@ -1831,8 +1831,8 @@ impl KrakenfuturesCore {
             let mut bids: Value = get_value(&orderbook, &Value::Str("bids".into()));
             bids.store(price, qty);
         }
-        add_element_to_object(&mut orderbook, &Value::Str("timestamp".into()), timestamp.clone());
-        add_element_to_object(&mut orderbook, &Value::Str("datetime".into()), self.iso8601(timestamp));
+        orderbook.set_book_meta("timestamp", timestamp.clone());
+        orderbook.set_book_meta("datetime", self.iso8601(timestamp));
         client.resolve(&[orderbook, messageHash]);
 }
 

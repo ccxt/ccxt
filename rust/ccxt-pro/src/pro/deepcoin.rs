@@ -1328,8 +1328,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (currentTimestamp != Value::Null) && (timestamp.as_f64().unwrap_or(f64::NAN) > currentTimestamp.as_f64().unwrap_or(f64::NAN)) {
             let mut response: Value = (match message.get("r") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
             self.handle_book_deltas(orderbook.clone(), response);
-            add_element_to_object(&mut orderbook, &Value::Str("timestamp".into()), timestamp.clone());
-            add_element_to_object(&mut orderbook, &Value::Str("datetime".into()), self.iso8601(timestamp));
+            orderbook.set_book_meta("timestamp", timestamp.clone());
+            orderbook.set_book_meta("datetime", self.iso8601(timestamp));
         }
 }
 

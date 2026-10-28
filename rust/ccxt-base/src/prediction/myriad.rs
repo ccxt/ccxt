@@ -4535,8 +4535,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut sideStr: Option<String> = self.safe_string_k(change, "side", &[]).as_str().map(str::to_owned);
             let mut bookSide: Value = (if (sideStr.as_deref() == Some("bid")) { get_value(&orderbook, &Value::Str("bids".into())) } else { get_value(&orderbook, &Value::Str("asks".into())) });
             bookSide.store_array(Value::from(vec![price, amount]));
-            add_element_to_object(&mut orderbook, &Value::Str("timestamp".into()), ts.clone());
-            add_element_to_object(&mut orderbook, &Value::Str("datetime".into()), self.iso8601(ts.clone()));
+            orderbook.set_book_meta("timestamp", ts.clone());
+            orderbook.set_book_meta("datetime", self.iso8601(ts.clone()));
             if let Value::Dict(__d) = &mut updated { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&sym), Value::Bool(true)); }
         }
         }

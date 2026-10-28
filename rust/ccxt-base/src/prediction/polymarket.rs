@@ -2501,7 +2501,7 @@ impl PolymarketCore {
     m
 }));
         let mut outcomeObj: Value = self.load_outcome(outcome, &[]).await;
-        let mut tokenId: Value = self.safe_string_k(outcomeObj.clone(), "outcomeId", &[]);
+        let mut tokenId: Value = self.safe_string_k(outcomeObj.clone(), "outcomeId", &[Value::Str("".into())]);
         let mut outcomeInfo: Value = self.safe_dict_k(outcomeObj, "info", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4667,8 +4667,8 @@ if _try_result.is_err() {
             // storeArray([price, size]) inserts/updates or removes (size=0) the level
             let mut sideRef: Value = side;
             sideRef.store_array(Value::from(vec![price, size]));
-            add_element_to_object(&mut orderbook, &Value::Str("timestamp".into()), timestamp.clone());
-            add_element_to_object(&mut orderbook, &Value::Str("datetime".into()), self.iso8601(timestamp.clone()));
+            orderbook.set_book_meta("timestamp", timestamp.clone());
+            orderbook.set_book_meta("datetime", self.iso8601(timestamp.clone()));
             if let Value::Dict(__d) = &mut updated { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&outcome), Value::Bool(true)); }
         }
         }

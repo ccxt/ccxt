@@ -2744,8 +2744,8 @@ if _try_result.is_err() {
         let mut price: Value = (match message.get("price") { Some(Value::Float(__f)) => Value::Float(*__f), Some(Value::Int(__n)) => Value::Float(*__n as f64), Some(Value::Str(__s)) => match __s.parse::<f64>() { Ok(__n) => Value::Float(__n), Err(_) => Value::Null }, _ => Value::Null });
         let mut size: Value = (match message.get("size") { Some(Value::Float(__f)) => Value::Float(*__f), Some(Value::Int(__n)) => Value::Float(*__n as f64), Some(Value::Str(__s)) => match __s.parse::<f64>() { Ok(__n) => Value::Float(__n), Err(_) => Value::Null }, _ => Value::Null });
         bookSide.store_array(Value::from(vec![price, size]));
-        add_element_to_object(&mut orderbook, &Value::Str("timestamp".into()), Value::Null);
-        add_element_to_object(&mut orderbook, &Value::Str("datetime".into()), Value::Null);
+        orderbook.set_book_meta("timestamp", Value::Null);
+        orderbook.set_book_meta("datetime", Value::Null);
         client.resolve(&[orderbook, Value::Str(format!("{}{}", Value::Str("orderbook::".into()), sym).into())]);
 }
 

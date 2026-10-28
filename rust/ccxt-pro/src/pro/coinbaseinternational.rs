@@ -2151,10 +2151,10 @@ impl CoinbaseinternationalCore {
             self.handle_deltas(get_value(&orderbook, &Value::Str("asks".into())), self.safe_list_k(data.clone(), "asks", &[Value::from(vec![])]));
             self.handle_deltas(get_value(&orderbook, &Value::Str("bids".into())), self.safe_list_k(data.clone(), "bids", &[Value::from(vec![])]));
         }
-        add_element_to_object(&mut orderbook, &Value::Str("symbol".into()), symbol.clone());
-        add_element_to_object(&mut orderbook, &Value::Str("nonce".into()), self.safe_integer_k(data, "change_id", &[]));
-        add_element_to_object(&mut orderbook, &Value::Str("timestamp".into()), timestamp.clone());
-        add_element_to_object(&mut orderbook, &Value::Str("datetime".into()), self.iso8601(timestamp));
+        orderbook.set_book_meta("symbol", symbol.clone());
+        orderbook.set_book_meta("nonce", self.safe_integer_k(data, "change_id", &[]));
+        orderbook.set_book_meta("timestamp", timestamp.clone());
+        orderbook.set_book_meta("datetime", self.iso8601(timestamp));
         if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), orderbook.clone()); }
         if (channel != Value::Null) {
             client.resolve(&[orderbook, channel]);

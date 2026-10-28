@@ -2499,7 +2499,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("uta:orderbook:".into()), symbol).into()), Value::Str(":depth:".into())).into()), depth).into());
         if (type_var.as_deref() == Some("snapshot")) {
             let mut parsed: Value = self.parse_order_book(data.clone(), symbol.clone(), &[timestamp, Value::Str("b".into()), Value::Str("a".into()), Value::Int(0), Value::Int(1)]);
-            if let Value::Dict(__r03d) = &mut parsed { std::sync::Arc::make_mut(__r03d).insert("nonce".into(), self.safe_integer_k(data.clone(), "O", &[])); }
+            parsed.set_book_meta("nonce", self.safe_integer_k(data.clone(), "O", &[]));
             orderbook.reset(parsed);
             if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), orderbook.clone()); }
         }  else {
@@ -2568,9 +2568,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (timestamp == Value::Null) {
             timestamp = self.safe_integer2(delta.clone(), Value::Str("time".into()), Value::Str("timestamp".into()), &[]);
         }
-        add_element_to_object(&mut orderbook, &Value::Str("nonce".into()), self.safe_integer_n(delta.clone(), Value::from(vec![Value::Str("sequenceEnd".into()), Value::Str("sequence".into()), Value::Str("C".into())]), &[timestamp.clone()]));
-        add_element_to_object(&mut orderbook, &Value::Str("timestamp".into()), timestamp.clone());
-        add_element_to_object(&mut orderbook, &Value::Str("datetime".into()), self.iso8601(timestamp));
+        orderbook.set_book_meta("nonce", self.safe_integer_n(delta.clone(), Value::from(vec![Value::Str("sequenceEnd".into()), Value::Str("sequence".into()), Value::Str("C".into())]), &[timestamp.clone()]));
+        orderbook.set_book_meta("timestamp", timestamp.clone());
+        orderbook.set_book_meta("datetime", self.iso8601(timestamp));
         let mut change: Value = self.safe_string_k(delta.clone(), "change", &[]);
         let mut changes: Value = self.safe_dict_k(delta.clone(), "changes", &[delta.clone()]);
         let mut storedBids: Value = get_value(&orderbook, &Value::Str("bids".into()));
@@ -2641,7 +2641,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }), limit.clone()]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
             }  else {
                 let mut orderbook: Value = self.orderbooks.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
-                add_element_to_object(&mut orderbook, &Value::Str("nonce".into()), Value::Null);
+                orderbook.set_book_meta("nonce", Value::Null);
                 crate::set_value(&mut orderbook, &Value::Str("cache".into()), Value::from(vec![]));
             }
             limits.insert(crate::runtime::stringify_param(&symbol), limit.clone());

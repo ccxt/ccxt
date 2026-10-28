@@ -2509,7 +2509,7 @@ impl BackpackCore {
         }
         let mut timestamp: Value = self.parse_to_int((match ((microseconds).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
         let mut orderbook: Value = self.parse_order_book(response.clone(), symbol, &[timestamp]);
-        if let Value::Dict(__r03d) = &mut orderbook { std::sync::Arc::make_mut(__r03d).insert("nonce".into(), self.safe_integer_k(response, "lastUpdateId", &[])); }
+        orderbook.set_book_meta("nonce", self.safe_integer_k(response, "lastUpdateId", &[]));
         if (limit != Value::Null) {
             { let __be_tmp = self.array_slice(crate::value::get_value_k(&orderbook, "bids"), Value::Int(0), &[limit.clone()]); if let Value::Dict(__r03d) = &mut orderbook { std::sync::Arc::make_mut(__r03d).insert("bids".into(), __be_tmp); } };
             { let __be_tmp = self.array_slice(crate::value::get_value_k(&orderbook, "asks"), Value::Int(0), &[limit]); if let Value::Dict(__r03d) = &mut orderbook { std::sync::Arc::make_mut(__r03d).insert("asks".into(), __be_tmp); } };

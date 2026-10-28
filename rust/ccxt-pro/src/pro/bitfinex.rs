@@ -1174,7 +1174,7 @@ impl BitfinexCore {
                 }
                 }
             }
-            add_element_to_object(&mut orderbook, &Value::Str("symbol".into()), symbol.clone());
+            orderbook.set_book_meta("symbol", symbol.clone());
             client.resolve(&[orderbook.clone(), messageHash.clone()]);
         }  else {
             let mut orderbook: Value = self.orderbooks.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);

@@ -385,7 +385,7 @@ impl ExtendedCore {
         let mut orderbook: Value = self.orderbooks.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
         if (type_var.as_deref() == Some("SNAPSHOT")) {
             let mut snapshot: Value = self.parse_order_book(data.clone(), symbol.clone(), &[timestamp.clone(), Value::Str("b".into()), Value::Str("a".into()), Value::Str("p".into()), Value::Str("q".into())]);
-            if let Value::Dict(__r03d) = &mut snapshot { std::sync::Arc::make_mut(__r03d).insert("nonce".into(), nonce.clone()); }
+            snapshot.set_book_meta("nonce", nonce.clone());
             orderbook.reset(snapshot);
             client.resolve(&[orderbook.clone(), messageHash.clone()]);
             return;
@@ -400,9 +400,9 @@ impl ExtendedCore {
         }
         self.handle_deltas(get_value(&orderbook, &Value::Str("bids".into())), self.safe_list_k(data.clone(), "b", &[Value::from(vec![])]));
         self.handle_deltas(get_value(&orderbook, &Value::Str("asks".into())), self.safe_list_k(data, "a", &[Value::from(vec![])]));
-        add_element_to_object(&mut orderbook, &Value::Str("timestamp".into()), timestamp.clone());
-        add_element_to_object(&mut orderbook, &Value::Str("datetime".into()), self.iso8601(timestamp));
-        add_element_to_object(&mut orderbook, &Value::Str("nonce".into()), nonce);
+        orderbook.set_book_meta("timestamp", timestamp.clone());
+        orderbook.set_book_meta("datetime", self.iso8601(timestamp));
+        orderbook.set_book_meta("nonce", nonce);
         client.resolve(&[orderbook, messageHash]);
 }
 
