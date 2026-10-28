@@ -1311,10 +1311,9 @@ export default class okx extends okxRest {
         for (let i = 0; i < symbolsNormalized.length; i++) {
             const symbol = symbolsNormalized[i];
             messageHashes.push (depth + ':' + symbol);
-            const marketId = this.marketId (symbol);
             const topic: Dict = {
                 'channel': depth,
-                'instId': marketId,
+                'instId': this.marketId (symbol),
             };
             topics.push (topic);
         }
@@ -1568,7 +1567,7 @@ export default class okx extends okxRest {
         const arg = this.safeDict (message, 'arg', {});
         const channel = this.safeString (arg, 'channel');
         const action = this.safeString (message, 'action');
-        const data = this.safeList (message, 'data', []) as List;
+        const data = this.safeList (message, 'data', []);
         const marketId = this.safeString (arg, 'instId');
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
