@@ -322,26 +322,27 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
         String timestamp = this.numberToString(this.seconds());
         this.checkRequiredCredentials(true);
         Boolean isCloudAPiKey = (((String)this.apiKey).indexOf("organizations/") >= 0) || ((this.secret.startsWith("-----BEGIN")));
+        Boolean isV2CloudAPiKey = this.isEddsaApiKey();
         Object auth = ((timestamp + name) + String.join(",", (List<String>)productIds));
-        if (!Boolean.TRUE.equals(isCloudAPiKey))
+        if (!Boolean.TRUE.equals(isCloudAPiKey) && !Boolean.TRUE.equals(isV2CloudAPiKey))
         {
             subscribe.put("api_key", this.apiKey);
             subscribe.put("timestamp", timestamp);
             subscribe.put("signature", this.hmac(this.encode(auth), this.encode(this.secret), sha256()));
         } else
         {
-            if ((this.apiKey.startsWith("-----BEGIN")))
+            if (Boolean.TRUE.equals(isCloudAPiKey) && (this.apiKey.startsWith("-----BEGIN")))
             {
                 throw new ArgumentsRequired((this.id + " apiKey should contain the name (eg: organizations/3b910e93....) and not the public key")) ;
             }
             String currentToken = this.safeString(this.options, "wsToken");
             Long tokenTimestamp = this.safeInteger(this.options, "wsTokenTimestamp", 0);
             Long seconds = this.seconds();
-            Long tokenExpiry = (Long) (tokenTimestamp + 120L);
+            Long tokenExpiry = (Long) (tokenTimestamp + 90L);
             if (java.util.Objects.equals(currentToken, null) || (seconds != null && (tokenExpiry == null || tokenExpiry < seconds)))
             {
                 // we should generate new token
-                String token = this.createAuthToken(seconds, (String) null, (String) null, false);
+                String token = this.createAuthToken(seconds, (String) null, (String) null, this.isEddsaApiKey());
                 Helpers.addElementToObject(this.options, "wsToken", token);
                 Helpers.addElementToObject(this.options, "wsTokenTimestamp", seconds);
             }
