@@ -4,7 +4,7 @@
 // where the runtime isEqual / isTrue call stands today. Name + position keyed like the tables it
 // extends: every declaration of a name moves together (C# overrides are invariant), and each gate
 // below re-checks the proof that makes the narrowed type the declaration's own type.
-import { CSHARP_BOOLEAN_PARAMS, SIGNATURE_ARG_TYPES } from './csharp-local-types.js'
+import { CSHARP_BOOLEAN_PARAMS, CSHARP_LOCAL_THIS_RETURN_TYPES, SIGNATURE_ARG_TYPES } from './csharp-local-types.js'
 
 // position 0 of handleErrors() is `int` on all 102 generated declarations (code / httpCode /
 // statusCode), never written by a body and never read as a string: a nullable integer is that
@@ -24,6 +24,25 @@ const HX10W3C07_BOOLEAN_ARGS = {
     'subscribeWsTickers': { 3: 'bool?', 4: 'bool?' },
     'watchPublic': { 3: 'bool?' },
     'watchPrivate': { 3: 'bool?' },
+    // hx11 w8: the flags whose bodies read `isTrue(flag)`; every C# call site passes bool, bool?,
+    // a bool literal or nothing (the checker still declines same-named non-boolean declarations)
+    'loadBalanceSnapshot': { 3: 'bool?' },
+    'loadPositionsSnapshot': { 3: 'bool?' },
+    'negotiate': { 1: 'bool?' },
+    'parseBalanceCustom': { 3: 'bool?' },
+    'requestWs': { 2: 'bool?' },
+    'subscribeMultiple': { 3: 'bool?' },
+    'subscribePublic': { 2: 'bool?' },
+    'unsubscribeAllWs': { 0: 'bool?' },
+    'watchMultiHelper': { 2: 'bool?' },
+}
+
+// hx11 w8: boolean-returning methods declared once (`: boolean` -> printed `bool`), so a local
+// fed by one is a bool and `isTrue(local)` reads it bare
+for (const name of [ 'isConditionalOrder', 'isEddsaApiKey' ]) {
+    if (CSHARP_LOCAL_THIS_RETURN_TYPES[name] === undefined) {
+        CSHARP_LOCAL_THIS_RETURN_TYPES[name] = 'bool'
+    }
 }
 
 for (const [ name, positions ] of Object.entries (HX10W3C07_SIGNATURE_ARGS)) {
