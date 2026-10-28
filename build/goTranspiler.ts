@@ -4691,6 +4691,7 @@ const GO_MARKET_ROW_METHODS = [ 'Market', 'SafeMarket' ];
 const GO_MAP_RETURNING_METHODS = [ 'Market', 'Currency', 'SafeCurrency', 'SafeMarket', 'Account', 'ParseOrderBook',
     'SafeOrder', 'SafeTicker', 'SafeLedgerEntry', 'ParseOrder', 'ParseTicker', 'ParseTransaction', 'ParseTransfer', 'ParseLedgerEntry',
     'SafeMarketStructure', 'SafeCurrencyStructure', 'SafeOpenInterest', 'ParseCurrency', 'ParseOpenInterest',
+    'CreateOrderRequest', // only the 8 callers wrapping it: every one sits on a venue whose builder is a map
     // the ws parsers are `any` on the printer and retyped to map[string]any by the family below
     'ParseWsTrade', 'ParseWsTicker', 'ParseWsOrder' ];
 
@@ -4779,7 +4780,10 @@ export function retypeGoProvenParseMethods (content: string): string {
     // proven dict producers the struct-returns pass retypes itself: a family def may return one,
     // but they are not members of this family (their `any` stub is the struct pass's to retype)
     const calleeOnly = [ 'SafeTrade', 'ParseTrade' ];
-    return retypeGoProvenFamily (content, maps, 'map[string]any', 'MapTyped', maps.concat (calleeOnly, [ 'Extend', 'DeepExtend', 'IndexBy' ]));
+    content = retypeGoProvenFamily (content, maps, 'map[string]any', 'MapTyped', maps.concat (calleeOnly, [ 'Extend', 'DeepExtend', 'IndexBy' ]));
+    // dydx/hitbtc/lighter/pacifica/toobit build a pair list, so only these two dispatchers retype
+    const builders = [ 'CreateRegularOrderRequest', 'CreateTriggerOrderRequest', 'CreateSpotOrderRequest', 'CreateSwapOrderRequest' ];
+    return retypeGoProvenFamily (content, [ 'CreateOrderRequest' ], 'map[string]any', 'MapTyped', builders, 'Deepcoin|Hashkey');
 }
 
 // list producers (base + every override): TS `X[]`; a returned `array` parameter is coerced with ToArray (caches too)
@@ -4842,14 +4846,14 @@ export function goBalanceLocalIsMap (body: string, name: string): boolean {
 
 // one family: `names` retype to `type`; returns proven by a `type` literal, a call of `calls`, a typed/proven local,
 // or (paramWrap) a parameter of the def wrapped in the coercion
-function retypeGoProvenFamily (content: string, names: string[], type: string, paramWrap: string, calls: string[]): string {
+function retypeGoProvenFamily (content: string, names: string[], type: string, paramWrap: string, calls: string[], receivers = '\\w+'): string {
     const literal = type + '{';
     const provenCall = new RegExp ('^(?:ccxt\\.)?this\\.(?:DerivedExchange\\.|base\\.)?(?:' + calls.join ('|') + ')\\(');
     // the struct->map converters are package-level functions (no `this.` receiver)
     const provenConverter = new RegExp ('^(?:ccxt\\.)?(?:' + GO_PROVEN_STRUCT_TO_MAP_CALLS.join ('|') + ')\\(');
     const proven = (e: string) => e.startsWith (literal) || provenCall.test (e) || provenConverter.test (e);
     const typeRe = type.replace (/[[\]]/g, '\\$&');
-    const head = new RegExp ('\\nfunc \\(this \\*(\\w+)\\) (' + names.join ('|') + ')\\(([^)\\n]*)\\) any \\{\\n', 'g');
+    const head = new RegExp ('\\nfunc \\(this \\*(' + receivers + ')\\) (' + names.join ('|') + ')\\(([^)\\n]*)\\) any \\{\\n', 'g');
     let out = '';
     let cursor = 0;
     for (let m = head.exec (content); m !== null; m = head.exec (content)) {
