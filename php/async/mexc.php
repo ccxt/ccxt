@@ -6701,12 +6701,6 @@ class mexc extends Exchange {
                 $this->check_required_credentials();
                 $timestamp = (string) $this->nonce();
                 $auth = '';
-                $requestHeaders = array(
-                    'ApiKey' => $this->apiKey,
-                    'Request-Time' => $timestamp,
-                    'Content-Type' => 'application/json',
-                    'source' => $this->safe_string($this->options, 'broker', 'CCXT'),
-                );
                 if ($method === 'POST') {
                     $auth = $this->json($paramsOmitted);
                     $requestBody = $auth;
@@ -6719,7 +6713,13 @@ class mexc extends Exchange {
                 }
                 $auth = $this->apiKey . $timestamp . $auth;
                 $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
-                $requestHeaders['Signature'] = $signature;
+                $requestHeaders = array(
+                    'ApiKey' => $this->apiKey,
+                    'Request-Time' => $timestamp,
+                    'Content-Type' => 'application/json',
+                    'source' => $this->safe_string($this->options, 'broker', 'CCXT'),
+                    'Signature' => $signature,
+                );
             }
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $requestHeaders );

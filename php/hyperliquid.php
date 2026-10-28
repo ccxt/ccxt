@@ -374,7 +374,7 @@ class hyperliquid extends Exchange {
         if ($this->markets === null) {
             throw new ExchangeError($this->id . ' markets not loaded');
         }
-        if (($symbol !== null) && !(is_array($this->markets) && array_key_exists($symbol ?? '', $this->markets))) {
+        if (!(is_array($this->markets) && array_key_exists($symbol ?? '', $this->markets))) {
             $symbolParts = explode('/', $symbol);
             $baseName = $this->safe_string($symbolParts, 0);
             $spotCurrencyMapping = $this->safe_dict($this->options, 'spotCurrencyMapping', array());
@@ -631,7 +631,7 @@ class hyperliquid extends Exchange {
         $markets = array();
         for ($i = 0; $i < count($promises); $i++) {
             $dexName = $fetchDexesList[$i];
-            $offset = $perpDexesOffset[$dexName];
+            $offset = $this->safe_integer($perpDexesOffset, $dexName);
             $response = $this->safe_list($promises, $i);
             $meta = $this->safe_dict($response, 0, array());
             $collateralToken = $this->safe_string($meta, 'collateralToken');
@@ -1721,8 +1721,7 @@ class hyperliquid extends Exchange {
             $data .= $vaultAddress;
         }
         if ($expiresAfter !== null) {
-            $data .= '00';
-            $data .= '00000' . $this->int_to_base16($expiresAfter);
+            $data .= '0000000' . $this->int_to_base16($expiresAfter);
         }
         return $this->hash($this->base16_to_binary($data), 'keccak', 'binary');
     }

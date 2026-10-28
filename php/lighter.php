@@ -422,23 +422,21 @@ class lighter extends Exchange {
     }
 
     public function set_auth_entry(string $accIdx, string $keyIdx, array $entry) {
-        $this->options['auths'][$accIdx][$keyIdx] = $this->extend($this->safe_dict($this->safe_dict($this->safe_dict($this->options, 'auths', array()), $accIdx, array()), $keyIdx, array()), $entry);
+        $updated = array();
+        $updated[$keyIdx] = $this->extend($this->safe_dict($this->safe_dict($this->safe_dict($this->options, 'auths', array()), $accIdx, array()), $keyIdx, array()), $entry);
+        $auths = array();
+        $auths[$accIdx] = $this->extend($this->safe_dict($this->safe_dict($this->options, 'auths', array()), $accIdx, array()), $updated);
+        $this->options['auths'] = $this->extend($this->safe_dict($this->options, 'auths', array()), $auths);
     }
 
     public function init_auth_object(string $strAccountIndex, string $strApiKeyIndex) {
-        if (!(is_array($this->options) && array_key_exists('auths' ?? '', $this->options))) {
-            $this->options['auths'] = array();
-        }
-        if (!(is_array($this->options['auths']) && array_key_exists($strAccountIndex ?? '', $this->options['auths']))) {
-            $this->options['auths'][$strAccountIndex] = array();
-        }
-        if (!(is_array($this->options['auths'][$strAccountIndex]) && array_key_exists($strApiKeyIndex ?? '', $this->options['auths'][$strAccountIndex]))) {
-            $this->options['auths'][$strAccountIndex][$strApiKeyIndex] = array(
+        if ($this->safe_dict($this->safe_dict($this->safe_dict($this->options, 'auths', array()), $strAccountIndex, array()), $strApiKeyIndex) === null) {
+            $this->set_auth_entry($strAccountIndex, $strApiKeyIndex, array(
                 'signer' => null,
                 'lighterPrivateKey' => null,
                 'deadline' => null,
                 'token' => null,
-            );
+            ));
         }
     }
 
