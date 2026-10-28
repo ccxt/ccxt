@@ -478,13 +478,16 @@ export default class grvt extends grvtRest {
         const secondPart = this.safeString (parts, 1, '');
         const timeframeId = secondPart.replace ('-TRADE', '');
         const timeframe = this.findTimeframe (timeframeId);
+        if (timeframe === undefined) {
+            return;
+        }
         const messageHash = 'ohlcv::' + symbol + '::' + timeframe;
         this.ohlcvs[symbol] = this.safeDict (this.ohlcvs, symbol, {});
-        if (!((timeframe as string) in this.ohlcvs[symbol])) {
+        if (!(timeframe in this.ohlcvs[symbol])) {
             const limit = this.handleOption ('watchOHLCV', 'limit', 1000);
-            this.ohlcvs[symbol][(timeframe as string)] = new ArrayCacheByTimestamp (limit);
+            this.ohlcvs[symbol][timeframe] = new ArrayCacheByTimestamp (limit);
         }
-        const stored = this.ohlcvs[symbol][(timeframe as string)];
+        const stored = this.ohlcvs[symbol][timeframe];
         const parsed = this.parseWsOHLCV (data, market);
         stored.append (parsed);
         const resolveData = [ symbol, timeframe, stored ];
@@ -677,7 +680,7 @@ export default class grvt extends grvtRest {
             await this.loadMarkets ();
         }
         await this.authenticate ();
-        const subAccountId = this.getSubAccountId (params);
+        const subAccountId: string = this.getSubAccountId (params);
         const messageHashes: string[] = [];
         const rawHashes: string[] = [];
         if (symbol !== undefined) {
@@ -767,7 +770,7 @@ export default class grvt extends grvtRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const subAccountId = this.getSubAccountId (params);
+        const subAccountId: string = this.getSubAccountId (params);
         const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const rawHashes: string[] = [];
         const messageHashes: string[] = [];
@@ -855,7 +858,7 @@ export default class grvt extends grvtRest {
             await this.loadMarkets ();
         }
         await this.authenticate ();
-        const subAccountId = this.getSubAccountId (params);
+        const subAccountId: string = this.getSubAccountId (params);
         const messageHashes: string[] = [];
         const rawHashes: string[] = [];
         if (symbol === undefined) {
