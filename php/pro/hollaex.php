@@ -108,7 +108,7 @@ class hollaex extends \ccxt\async\hollaex {
         $channel = $this->safe_string($message, 'topic');
         $market = $this->safe_market($marketId);
         $marketIdValue = $this->safe_string($market, 'id', '');
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol');
         if ($symbol !== null) {
             $data = $this->safe_dict($message, 'data');
             $timestamp = $this->safe_string($data, 'timestamp');
