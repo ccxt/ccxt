@@ -1046,6 +1046,20 @@ function hx4G26PointerNonNil (scope: GoArithScope, name: string): boolean {
         if (li < indent) {
             indent = li;
             if (/^(?:\} else|else)/.test (s) && !/^\} else if /.test (s)) {
+                // the else arm of a plain `if name == nil {` (no && / ||) sees name non-nil: the
+                // nearest line at the arm's indent is the `if` header (the then-body is deeper)
+                if (s === '} else {') {
+                    for (let h = k - 1; h >= 1; h--) {
+                        const hs = lines[h].trim ();
+                        if ((hs === '') || (indentOf (lines[h]) > li)) {
+                            continue;
+                        }
+                        if ((indentOf (lines[h]) === li) && new RegExp ('^if \\(*' + name + ' == nil\\)* \\{$').test (hs)) {
+                            return true;
+                        }
+                        break;
+                    }
+                }
                 return false;
             }
             const head = /^(?:\} else )?if (.*) \{$/.exec (s);
@@ -1088,6 +1102,9 @@ export function hx4G26SelfTest (): string[] {
         [ '\tvar p *float64 = this.SafeNumber(o, "p")\n\tvar a *float64 = this.SafeNumber(o, "a")\n\tvar c any = nil\n\tif (p != nil) || (a != nil) {\n\t\tc = Multiply(p, a)\n\t}\n\treturn c', 'Multiply(p, a)', true ],
         [ '\tvar p *float64 = this.SafeNumber(o, "p")\n\tvar a *float64 = this.SafeNumber(o, "a")\n\tif (p != nil) && (a != nil) {\n\t\tp = this.SafeNumber(o, "x")\n\t\treturn Subtract(p, a)\n\t}\n\treturn nil', 'Subtract(p, a)', true ],
         [ '\tvar p *float64 = this.SafeNumber(o, "p")\n\tvar a *float64 = this.SafeNumber(o, "a")\n\tif p != nil {\n\t} else {\n\t\treturn Subtract(p, a)\n\t}\n\treturn nil', 'Subtract(p, a)', true ],
+        [ '\tvar p *float64 = this.SafeNumber(o, "p")\n\tvar a *float64 = this.SafeNumber(o, "a")\n\tif a == nil {\n\t\treturn nil\n\t}\n\tif p == nil {\n\t\treturn nil\n\t} else {\n\t\treturn Subtract(p, a)\n\t}', '(*p - *a)', true ],
+        [ '\tvar p *float64 = this.SafeNumber(o, "p")\n\tvar a *float64 = this.SafeNumber(o, "a")\n\tif a == nil {\n\t\treturn nil\n\t}\n\tif p == nil {\n\t\tp = this.SafeNumber(o, "x")\n\t} else {\n\t\treturn Subtract(p, a)\n\t}\n\treturn nil', 'Subtract(p, a)', true ],
+        [ '\tvar p *float64 = this.SafeNumber(o, "p")\n\tvar a *float64 = this.SafeNumber(o, "a")\n\tif a == nil {\n\t\treturn nil\n\t}\n\tif p == nil {\n\t\treturn nil\n\t}\n\tif a != nil {\n\t} else {\n\t\treturn Subtract(p, a)\n\t}\n\treturn nil', '(*p - *a)', true ],
         [ '\tif q == nil {\n\t\treturn nil\n\t}\n\tvar r *float64 = this.SafeNumber(o, "r")\n\tvar v any = func() any {\n\t\tif r == nil {\n\t\t\treturn nil\n\t\t}\n\t\treturn ccxt.Multiply(r, 100)\n\t}()\n\treturn ccxt.Subtract(q, 1)', '(*r * 100)', true ],
         [ '\tif q == nil {\n\t\treturn nil\n\t}\n\treturn ccxt.Subtract(q, 1)', '(*q - 1)', true ],
         [ '\tvar r *float64 = this.SafeNumber(o, "r")\n\treturn Multiply(r, 100)', 'Multiply(r, 100)', true ],
