@@ -35,6 +35,10 @@ class blofin extends \ccxt\async\blofin {
                 'watchOrders' => true,
                 'watchOrdersForSymbols' => true,
                 'watchPositions' => true,
+                'unWatchTrades' => true,
+                'unWatchTradesForSymbols' => true,
+                'unWatchOHLCV' => true,
+                'unWatchOHLCVForSymbols' => true,
             ),
             'urls' => array(
                 'api' => array(
@@ -126,6 +130,41 @@ class blofin extends \ccxt\async\blofin {
         }
         $result = $this->filter_by_since_limit($trades, $since, $limitResolved, 'timestamp', true);
         return $this->sort_by($result, 'timestamp'); // needed bcz of https://github.com/ccxt/ccxt/actions/runs/20755599430/job/59597237029?pr=27624#step:11:611
+    }
+
+    public function un_watch_trades(string $symbol, $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_trades(...))($symbol, $params);
+    }
+
+    private function do_un_watch_trades(string $symbol, $params = array()) {
+        /**
+         * unWatches the list of most recent trades for a particular $symbol
+         *
+         * @see https://docs.blofin.com/index.html#ws-trades-channel
+         *
+         * @param {string} $symbol unified $symbol of the market to unwatch trades for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {any} status of the unwatch request
+         */
+        $params['callerMethodName'] = 'unWatchTrades';
+        return Async\await($this->un_watch_trades_for_symbols(array( $symbol ), $params));
+    }
+
+    public function un_watch_trades_for_symbols(array $symbols, $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_trades_for_symbols(...))($symbols, $params);
+    }
+
+    private function do_un_watch_trades_for_symbols(array $symbols, $params = array()) {
+        /**
+         * unWatches the list of most recent trades for a list of $symbols
+         *
+         * @see https://docs.blofin.com/index.html#ws-trades-channel
+         *
+         * @param {string[]} $symbols unified $symbols of the markets to unwatch trades for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {any} status of the unwatch request
+         */
+        return Async\await($this->unsubscribe_multiple_wrapper('trades', 'unWatchTradesForSymbols', $symbols, $params));
     }
 
     public function handle_trades(Client $client, array $message) {
@@ -476,6 +515,46 @@ class blofin extends \ccxt\async\blofin {
         }
         $filtered = $this->filter_by_since_limit($candles, $since, $limitResolved, 0, true);
         return $this->create_ohlcv_object($symbol, $timeframe, $filtered);
+    }
+
+    public function un_watch_ohlcv(string $symbol, string $timeframe = '1m', $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_ohlcv(...))($symbol, $timeframe, $params);
+    }
+
+    private function do_un_watch_ohlcv(string $symbol, string $timeframe = '1m', $params = array()) {
+        /**
+         * unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         *
+         * @see https://docs.blofin.com/index.html#ws-candlesticks-channel
+         *
+         * @param {string} $symbol unified $symbol of the market to unwatch OHLCV data for
+         * @param {string} $timeframe the length of time each candle represents
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {any} status of the unwatch request
+         */
+        $params['callerMethodName'] = 'unWatchOHLCV';
+        return Async\await($this->un_watch_ohlcv_for_symbols(array( array( $symbol, $timeframe ) ), $params));
+    }
+
+    public function un_watch_ohlcv_for_symbols(array $symbolsAndTimeframes, $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_ohlcv_for_symbols(...))($symbolsAndTimeframes, $params);
+    }
+
+    private function do_un_watch_ohlcv_for_symbols(array $symbolsAndTimeframes, $params = array()) {
+        /**
+         * unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         *
+         * @see https://docs.blofin.com/index.html#ws-candlesticks-channel
+         *
+         * @param {string[][]} $symbolsAndTimeframes array of arrays containing unified symbols and timeframes to unwatch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {any} status of the unwatch request
+         */
+        $symbolsLength = count($symbolsAndTimeframes);
+        if ($symbolsLength === 0 || (gettype($symbolsAndTimeframes[0]) !== 'array' || array_keys($symbolsAndTimeframes[0]) !== array_keys(array_keys($symbolsAndTimeframes[0])))) {
+            throw new ArgumentsRequired($this->id . " unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]");
+        }
+        return Async\await($this->unsubscribe_multiple_wrapper('candle', 'unWatchOHLCVForSymbols', $symbolsAndTimeframes, $params));
     }
 
     public function handle_ohlcv(Client $client, array $message) {
@@ -854,6 +933,78 @@ class blofin extends \ccxt\async\blofin {
         return Async\await($this->watch_multiple($url, $messageHashes, $this->deep_extend($request, $paramsMarketType), $messageHashes));
     }
 
+    public function unsubscribe_multiple_wrapper(string $channelName, string $callerMethodName, mixed $symbolsArray, $params = array()): PromiseInterface {
+        return Async\async(self::do_unsubscribe_multiple_wrapper(...))($channelName, $callerMethodName, $symbolsArray, $params);
+    }
+
+    private function do_unsubscribe_multiple_wrapper(string $channelName, string $callerMethodName, mixed $symbolsArray, $params = array()) {
+        // underlier method for the public unWatch* methods, sends the same topics as watchMultipleWrapper
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        list($callerMethodNameOption, $paramsCallerMethodName) = $this->handle_param_string($params, 'callerMethodName', $callerMethodName);
+        $isOHLCV = ($channelName === 'candle');
+        $symbols = $isOHLCV ? $this->get_list_from_object_values($symbolsArray, 0) : $symbolsArray;
+        $symbols = $this->market_symbols($symbols, null, false, true);
+        $firstMarket = $this->market($symbols[0]);
+        list($marketType, $paramsMarketType) = $this->handle_market_type_and_params($callerMethodNameOption, $firstMarket, $paramsCallerMethodName);
+        if ($marketType !== 'swap') {
+            throw new NotSupported($this->id . ' ' . $callerMethodNameOption . '() does not support ' . $marketType . ' markets yet');
+        }
+        $topics = array();
+        $messageHashes = array();
+        for ($i = 0; $i < count($symbols); $i++) {
+            $market = $this->market($symbols[$i]);
+            $channel = $channelName;
+            if ($isOHLCV) {
+                $tfArray = $symbolsArray[$i];
+                $tf = $tfArray[1];
+                $interval = $this->safe_string($this->timeframes, $tf, $tf);
+                $channel .= $interval;
+            }
+            $topic = array(
+                'channel' => $channel,
+                'instId' => $market['id'],
+            );
+            $topics[] = $topic;
+            $messageHashes[] = 'unsubscribe:' . $channel . ':' . $market['symbol'];
+        }
+        $request = array(
+            'op' => 'unsubscribe',
+            'args' => $topics,
+        );
+        $url = ($this->urls['api'])['ws'][$marketType]['public'];
+        return Async\await($this->watch_multiple($url, $messageHashes, $this->deep_extend($request, $paramsMarketType), $messageHashes));
+    }
+
+    public function handle_unsubscription(Client $client, array $message) {
+        //
+        //     {
+        //         "event": "unsubscribe",
+        //         "arg": {
+        //             "channel": "candle1m",
+        //             "instId": "BTC-USDT"
+        //         }
+        //     }
+        //
+        $arg = $this->safe_dict($message, 'arg', array());
+        $channel = $this->safe_string($arg, 'channel', '');
+        $marketId = $this->safe_string($arg, 'instId');
+        $market = $this->safe_market($marketId);
+        $symbol = $market['symbol'];
+        $subMessageHash = $channel . ':' . $symbol;
+        if ($channel === 'trades') {
+            $this->clean_cache(array( 'topic' => 'trades', 'symbols' => array( $symbol ) ));
+            $this->clean_unsubscription($client, $subMessageHash, 'unsubscribe:' . $subMessageHash);
+        } elseif (str_starts_with($channel, 'candle')) {
+            $timeframe = $this->find_timeframe(str_replace('candle', '', $channel));
+            if ($timeframe !== null) {
+                $this->clean_cache(array( 'topic' => 'ohlcv', 'symbolsAndTimeframes' => array( array( $symbol, $timeframe ) ) ));
+            }
+            $this->clean_unsubscription($client, $subMessageHash, 'unsubscribe:' . $subMessageHash);
+        }
+    }
+
     public function get_subscription_request(array $args): array {
         return array(
             'op' => 'subscribe',
@@ -895,6 +1046,9 @@ class blofin extends \ccxt\async\blofin {
         } else {
             $event = $this->safe_string($message, 'event');
             if ($event === 'subscribe') {
+                return;
+            } elseif ($event === 'unsubscribe') {
+                $this->handle_unsubscription($client, $message);
                 return;
             } elseif ($event === 'login') {
                 $future = $this->safe_value($client->futures, 'authenticate_hash');

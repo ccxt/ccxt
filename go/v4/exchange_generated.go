@@ -5272,7 +5272,7 @@ func (this *BaseExchange) BuildOHLCVC(trades any, optionalArgs ...any) any {
 			if candleTimestamp == nil {
 				panic(ExchangeError(this.Id + " buildOHLCVC() missing candle timestamp"))
 			}
-			isNewCandle = IsGreaterThanOrEqual(openingTime, Add(candleTimestamp, ms))
+			isNewCandle = IsGreaterThanOrEqual(openingTime, this.Sum(candleTimestamp, ms))
 		}
 		if isNewCandle {
 			// moved to a new timeframe -> create a new candle from opening trade

@@ -516,7 +516,10 @@ class mexc(ccxt.async_support.mexc):
             'method': method,
             'params': [channel],
         }
-        return await self.watch(url, messageHash, self.extend(request, paramsOmitted), messageHash)
+        subscription = {
+            'channel': channel,  # the rejection frame names the channel, this maps it back to the hash
+        }
+        return await self.watch(url, messageHash, self.extend(request, paramsOmitted), messageHash, subscription)
 
     async def watch_spot_private(self, channel: str, messageHash: str, params: dict = {}):
         self.check_required_credentials()
@@ -782,12 +785,15 @@ class mexc(ccxt.async_support.mexc):
         return orderbook.limit()
 
     def handle_order_book_subscription(self, client: Client, message: dict):
-        # spot
+        # the ack echoes the subscribed channel, the market id is always its last segment
+        #
+        #     { id: 0, code: 0, msg: "spot@public.aggre.depth.v3.api.pb@100ms@BTCUSDT" }
         #     { id: 0, code: 0, msg: "spot@public.increase.depth.v3.api@BTCUSDT" }
         #
         msg = self.safe_string(message, 'msg', '')
         parts = msg.split('@')
-        marketId = self.safe_string(parts, 2)
+        partsLength = len(parts)  # hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
+        marketId = self.safe_string(parts, partsLength - 1)
         symbol = self.safe_symbol(marketId)
         if not (symbol in self.orderbooks):
             self.orderbooks[symbol] = self.order_book({})
@@ -1968,10 +1974,35 @@ class mexc(ccxt.async_support.mexc):
         #        "code": 0,
         #        "msg": "spot@public.increase.depth.v3.api@BTCUSDT"
         #    }
+        #
+        # a rejected subscription answers with code 0 as well, the failure is only in the text
+        #
+        #    {
+        #        "id": 0,
+        #        "code": 0,
+        #        "msg": "Not Subscribed successfully! [spot@public.aggre.depth.v3.api.pb@999ms@BTCUSDT].  Reason： Blocked! "
+        #    }
+        #
         # Set the default to an empty string if the message is empty during the test.
         msg = self.safe_string(message, 'msg', '')
         if msg == 'PONG':
             self.handle_pong(client, message)
+        elif msg.find('Not Subscribed successfully') > -1:
+            # the venue names the refused channel between brackets, reject only that watcher
+            # and drop its subscription so a corrected retry sends a new frame
+            error = ExchangeError(self.id + ' ' + msg)
+            subscriptionHashes = list(client.subscriptions.keys())
+            rejected = False
+            for i in range(0, len(subscriptionHashes)):
+                subscriptionHash = subscriptionHashes[i]
+                subscribedChannel = self.safe_string(client.subscriptions[subscriptionHash], 'channel')
+                if (subscribedChannel is not None) and (msg.find('[' + subscribedChannel + ']') >= 0):
+                    del client.subscriptions[subscriptionHash]
+                    client.reject(error, subscriptionHash)
+                    rejected = True
+            if not rejected:
+                # nothing matched, the caller would hang otherwise
+                client.reject(error)
         elif msg.find('@') > -1:
             parts = msg.split('@')
             channel = self.safe_string(parts, 1)

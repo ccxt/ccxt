@@ -3743,7 +3743,7 @@ class myriad extends Exchange {
          */
         // Myriad has no OHLCV websocket channel, so build candles from the live trade stream
         $trades = Async\await($this->watch_trades($outcome, $since, $limit, $params));
-        $ohlcvc = $this->build_ohlcv($trades, $timeframe, 0, 2147483647);
+        $ohlcvc = $this->build_ohlcvc($trades, $timeframe, 0, 2147483647);
         $result = array();
         $ohlcvcLength = count($ohlcvc);
         for ($i = 0; $i < $ohlcvcLength; $i++) {

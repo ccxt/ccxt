@@ -4966,7 +4966,7 @@ public partial class BaseExchange
                 {
                     throw new ExchangeError ((this.id + " buildOHLCVC() missing candle timestamp")) ;
                 }
-                isNewCandle = isGreaterThanOrEqual(openingTime, add(candleTimestamp, ms));
+                isNewCandle = isGreaterThanOrEqual(openingTime, this.sum(candleTimestamp, ms));
             }
             if (isNewCandle)
             {

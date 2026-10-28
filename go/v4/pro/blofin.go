@@ -39,6 +39,10 @@ func (this *Blofin) Describe() map[string]any {
 			"watchOrders":              true,
 			"watchOrdersForSymbols":    true,
 			"watchPositions":           true,
+			"unWatchTrades":            true,
+			"unWatchTradesForSymbols":  true,
+			"unWatchOHLCV":             true,
+			"unWatchOHLCVForSymbols":   true,
 		},
 		"urls": map[string]any{
 			"api": map[string]any{
@@ -160,6 +164,75 @@ func (this *Blofin) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.Tr
 	var result any = this.FilterBySinceLimit(trades, since, limitResolved, "timestamp", true)
 
 	ch <- ccxt.AsyncResult[[]ccxt.Trade]{Value: ccxt.TradesFromList(this.SortBy(result, "timestamp"))} // needed bcz of https://github.com/ccxt/ccxt/actions/runs/20755599430/job/59597237029?pr=27624#step:11:611
+	return nil
+}
+
+/**
+ * @method
+ * @name blofin#unWatchTrades
+ * @description unWatches the list of most recent trades for a particular symbol
+ * @see https://docs.blofin.com/index.html#ws-trades-channel
+ * @param {string} symbol unified symbol of the market to unwatch trades for
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {any} status of the unwatch request
+ */
+func (this *Blofin) UnWatchTradesAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+	ch := make(chan ccxt.AsyncResult[bool], 1)
+	go this.unWatchTradesBody(ch, symbol, optionalArgs...)
+	return ch
+}
+func (this *Blofin) unWatchTradesBody(ch chan ccxt.AsyncResult[bool], symbol string, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
+	params["callerMethodName"] = "unWatchTrades"
+
+	r := <-this.UnWatchTradesForSymbolsAsync([]any{symbol}, params)
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	ch <- ccxt.AsyncResult[bool]{Value: r.Value}
+	return nil
+}
+
+/**
+ * @method
+ * @name blofin#unWatchTradesForSymbols
+ * @description unWatches the list of most recent trades for a list of symbols
+ * @see https://docs.blofin.com/index.html#ws-trades-channel
+ * @param {string[]} symbols unified symbols of the markets to unwatch trades for
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {any} status of the unwatch request
+ */
+func (this *Blofin) UnWatchTradesForSymbolsAsync(symbols any, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+	ch := make(chan ccxt.AsyncResult[bool], 1)
+	go this.unWatchTradesForSymbolsBody(ch, symbols, optionalArgs...)
+	return ch
+}
+func (this *Blofin) unWatchTradesForSymbolsBody(ch chan ccxt.AsyncResult[bool], symbols any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
+
+	r := <-this.UnsubscribeMultipleWrapperAsync("trades", "unWatchTradesForSymbols", symbols, params)
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	var resolved bool
+	switch resolvedBox := r.Value.(type) {
+	case bool:
+		resolved = resolvedBox
+	case []any:
+		resolved = len(resolvedBox) > 0
+	case map[string]any:
+		resolved = true
+	case nil:
+	default:
+		panic(ccxt.ExchangeError("resolved value is not bool"))
+	}
+	ch <- ccxt.AsyncResult[bool]{Value: resolved}
 	return nil
 }
 func (this *Blofin) HandleTrades(client any, message map[string]any) {
@@ -659,6 +732,82 @@ func (this *Blofin) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[string
 	var filtered []any = this.FilterBySinceLimit(candles, since, limitResolved, 0, true)
 
 	ch <- ccxt.AsyncResult[map[string]map[string][]ccxt.OHLCV]{Value: ccxt.OHLCVForSymbolsMapFromMap(this.CreateOHLCVObject(symbol, timeframe, filtered))}
+	return nil
+}
+
+/**
+ * @method
+ * @name blofin#unWatchOHLCV
+ * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+ * @see https://docs.blofin.com/index.html#ws-candlesticks-channel
+ * @param {string} symbol unified symbol of the market to unwatch ccxt.OHLCV data for
+ * @param {string} timeframe the length of time each candle represents
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {any} status of the unwatch request
+ */
+func (this *Blofin) UnWatchOHLCVAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+	ch := make(chan ccxt.AsyncResult[bool], 1)
+	go this.unWatchOHLCVBody(ch, symbol, optionalArgs...)
+	return ch
+}
+func (this *Blofin) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol string, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	var timeframe string = ccxt.GetArgString(optionalArgs, 0, "1m")
+	_ = timeframe
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
+	_ = params
+	params["callerMethodName"] = "unWatchOHLCV"
+
+	r := <-this.UnWatchOHLCVForSymbolsAsync([]any{[]any{symbol, timeframe}}, params)
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	ch <- ccxt.AsyncResult[bool]{Value: r.Value}
+	return nil
+}
+
+/**
+ * @method
+ * @name blofin#unWatchOHLCVForSymbols
+ * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+ * @see https://docs.blofin.com/index.html#ws-candlesticks-channel
+ * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to unwatch ccxt.OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {any} status of the unwatch request
+ */
+func (this *Blofin) UnWatchOHLCVForSymbolsAsync(symbolsAndTimeframes any, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+	ch := make(chan ccxt.AsyncResult[bool], 1)
+	go this.unWatchOHLCVForSymbolsBody(ch, symbolsAndTimeframes, optionalArgs...)
+	return ch
+}
+func (this *Blofin) unWatchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[bool], symbolsAndTimeframes any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
+	var symbolsLength int = ccxt.GetArrayLength(symbolsAndTimeframes)
+	if (symbolsLength == 0) || !ccxt.IsArray(ccxt.GetValue(symbolsAndTimeframes, 0)) {
+		panic(ccxt.ArgumentsRequired(this.Id + " unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]"))
+	}
+
+	r := <-this.UnsubscribeMultipleWrapperAsync("candle", "unWatchOHLCVForSymbols", symbolsAndTimeframes, params)
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	var resolved bool
+	switch resolvedBox := r.Value.(type) {
+	case bool:
+		resolved = resolvedBox
+	case []any:
+		resolved = len(resolvedBox) > 0
+	case map[string]any:
+		resolved = true
+	case nil:
+	default:
+		panic(ccxt.ExchangeError("resolved value is not bool"))
+	}
+	ch <- ccxt.AsyncResult[bool]{Value: resolved}
 	return nil
 }
 func (this *Blofin) HandleOHLCV(client any, message map[string]any) {
@@ -1202,6 +1351,109 @@ func (this *Blofin) watchMultipleWrapperBody(ch chan ccxt.AsyncResult[any], isPu
 	ch <- ccxt.AsyncResult[any]{Value: r1.Value}
 	return nil
 }
+func (this *Blofin) UnsubscribeMultipleWrapperAsync(channelName string, callerMethodName string, symbolsArray any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
+	go this.unsubscribeMultipleWrapperBody(ch, channelName, callerMethodName, symbolsArray, optionalArgs...)
+	return ch
+}
+func (this *Blofin) unsubscribeMultipleWrapperBody(ch chan ccxt.AsyncResult[any], channelName string, callerMethodName string, symbolsArray any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	// underlier method for the public unWatch* methods, sends the same topics as watchMultipleWrapper
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
+	if this.Markets == nil {
+
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
+	}
+	var callerMethodNameOptionparamsCallerMethodNameVariable []any = this.HandleParamString(params, "callerMethodName", callerMethodName)
+	callerMethodNameOption := func() any {
+		if p, _ := callerMethodNameOptionparamsCallerMethodNameVariable[0].(*string); p != nil {
+			return *p
+		}
+		return nil
+	}()
+	var paramsCallerMethodName map[string]any = ccxt.MapTyped(callerMethodNameOptionparamsCallerMethodNameVariable[1])
+	var isOHLCV bool = (channelName == "candle")
+	var symbols any = func() any {
+		if isOHLCV {
+			return this.GetListFromObjectValues(symbolsArray, 0)
+		}
+		return symbolsArray
+	}()
+	symbols = this.MarketSymbols(symbols, nil, false, true)
+	var firstMarket map[string]any = this.Market(ccxt.GetValue(symbols, 0))
+	marketType, paramsMarketType := this.HandleMarketTypeAndParams(callerMethodNameOption, firstMarket, paramsCallerMethodName)
+	if marketType == nil || *marketType != "swap" {
+		panic(ccxt.NotSupported(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(this.Id+" ", callerMethodNameOption), "() does not support "), marketType), " markets yet")))
+	}
+	var topics []any = []any{}
+	var messageHashes []any = []any{}
+	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
+		var market map[string]any = this.Market(ccxt.GetValue(symbols, i))
+		var channel any = channelName
+		if isOHLCV {
+			var tfArray any = ccxt.GetValue(symbolsArray, i)
+			var tf any = ccxt.GetValue(tfArray, 1)
+			var interval *string = this.SafeString(this.Timeframes, tf, tf)
+			channel = ccxt.Add(channel, interval)
+		}
+		var topic map[string]any = map[string]any{
+			"channel": channel,
+			"instId":  market["id"],
+		}
+		topics = append(topics, topic)
+		messageHashes = append(messageHashes, ccxt.Add(ccxt.Add(ccxt.Add("unsubscribe:", channel), ":"), market["symbol"]))
+	}
+	var request map[string]any = map[string]any{
+		"op":   "unsubscribe",
+		"args": topics,
+	}
+	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue((this.Urls["api"]), "ws"), marketType), "public")
+
+	r1 := <-this.WatchMultiple(url, messageHashes, this.DeepExtend(request, paramsMarketType), messageHashes)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	ch <- ccxt.AsyncResult[any]{Value: r1.Value}
+	return nil
+}
+func (this *Blofin) HandleUnsubscription(client any, message any) {
+	//
+	//     {
+	//         "event": "unsubscribe",
+	//         "arg": {
+	//             "channel": "candle1m",
+	//             "instId": "BTC-USDT"
+	//         }
+	//     }
+	//
+	var arg map[string]any = ccxt.SafeMapTyped(message, "arg")
+	var channel *string = this.SafeString(arg, "channel", "")
+	var marketId *string = this.SafeString(arg, "instId")
+	var market map[string]any = this.SafeMarket(marketId)
+	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
+	var subMessageHash string = *channel + ":" + *symbol
+	if channel != nil && *channel == "trades" {
+		this.CleanCache(map[string]any{
+			"topic":   "trades",
+			"symbols": []any{symbol},
+		})
+		this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, "unsubscribe:"+subMessageHash)
+	} else if strings.HasPrefix(*channel, "candle") {
+		var timeframe *string = this.FindTimeframe(strings.Replace(*channel, "candle", "", 1))
+		if timeframe != nil {
+			this.CleanCache(map[string]any{
+				"topic":                "ohlcv",
+				"symbolsAndTimeframes": []any{[]any{symbol, timeframe}},
+			})
+		}
+		this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, "unsubscribe:"+subMessageHash)
+	}
+}
 func (this *Blofin) GetSubscriptionRequest(args []any) map[string]any {
 	return map[string]any{
 		"op":   "subscribe",
@@ -1240,6 +1492,9 @@ func (this *Blofin) HandleMessage(client any, message any) {
 	} else {
 		var event *string = this.SafeString(message, "event")
 		if event != nil && *event == "subscribe" {
+			return
+		} else if event != nil && *event == "unsubscribe" {
+			this.HandleUnsubscription(client, message)
 			return
 		} else if event != nil && *event == "login" {
 			var future any = client.(ccxt.ClientInterface).GetFutures()["authenticate_hash"]
@@ -1361,6 +1616,52 @@ func (this *Blofin) WatchTradesForSymbols(symbols []string, options ...ccxt.Watc
 	}
 	var res []ccxt.Trade = r.Value
 	return res, nil
+}
+
+/**
+ * @method
+ * @name blofin#unWatchTrades
+ * @description unWatches the list of most recent trades for a particular symbol
+ * @see https://docs.blofin.com/index.html#ws-trades-channel
+ * @param {string} symbol unified symbol of the market to unwatch trades for
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {any} status of the unwatch request
+ */
+func (this *Blofin) UnWatchTrades(symbol string, options ...ccxt.UnWatchTradesOptions) (any, error) {
+
+	opts := ccxt.UnWatchTradesOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+	r := <-this.UnWatchTradesAsync(symbol, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
+	}
+	return r.Value, nil
+}
+
+/**
+ * @method
+ * @name blofin#unWatchTradesForSymbols
+ * @description unWatches the list of most recent trades for a list of symbols
+ * @see https://docs.blofin.com/index.html#ws-trades-channel
+ * @param {string[]} symbols unified symbols of the markets to unwatch trades for
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {any} status of the unwatch request
+ */
+func (this *Blofin) UnWatchTradesForSymbols(symbols []string, options ...ccxt.UnWatchTradesForSymbolsOptions) (any, error) {
+
+	opts := ccxt.UnWatchTradesForSymbolsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+	r := <-this.UnWatchTradesForSymbolsAsync(symbols, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
+	}
+	return r.Value, nil
 }
 
 /**
@@ -1536,6 +1837,53 @@ func (this *Blofin) WatchOHLCVForSymbols(symbolsAndTimeframes [][]string, option
 	}
 	var res map[string]map[string][]ccxt.OHLCV = r.Value
 	return res, nil
+}
+
+/**
+ * @method
+ * @name blofin#unWatchOHLCV
+ * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+ * @see https://docs.blofin.com/index.html#ws-candlesticks-channel
+ * @param {string} symbol unified symbol of the market to unwatch ccxt.OHLCV data for
+ * @param {string} timeframe the length of time each candle represents
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {any} status of the unwatch request
+ */
+func (this *Blofin) UnWatchOHLCV(symbol string, options ...ccxt.UnWatchOHLCVOptions) (any, error) {
+
+	opts := ccxt.UnWatchOHLCVOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+	r := <-this.UnWatchOHLCVAsync(symbol, opts.Timeframe, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
+	}
+	return r.Value, nil
+}
+
+/**
+ * @method
+ * @name blofin#unWatchOHLCVForSymbols
+ * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+ * @see https://docs.blofin.com/index.html#ws-candlesticks-channel
+ * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to unwatch ccxt.OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {any} status of the unwatch request
+ */
+func (this *Blofin) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...ccxt.UnWatchOHLCVForSymbolsOptions) (any, error) {
+
+	opts := ccxt.UnWatchOHLCVForSymbolsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+	r := <-this.UnWatchOHLCVForSymbolsAsync(symbolsAndTimeframes, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
+	}
+	return r.Value, nil
 }
 
 /**

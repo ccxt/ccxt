@@ -561,7 +561,10 @@ class mexc extends \ccxt\async\mexc {
             'method' => $method,
             'params' => array( $channel ),
         );
-        return Async\await($this->watch($url, $messageHash, $this->extend($request, $paramsOmitted), $messageHash));
+        $subscription = array(
+            'channel' => $channel, // the rejection frame names the channel, this maps it back to the hash
+        );
+        return Async\await($this->watch($url, $messageHash, $this->extend($request, $paramsOmitted), $messageHash, $subscription));
     }
 
     public function watch_spot_private(string $channel, string $messageHash, $params = array()) {
@@ -864,12 +867,15 @@ class mexc extends \ccxt\async\mexc {
     }
 
     public function handle_order_book_subscription(Client $client, array $message) {
-        // spot
+        // the ack echoes the subscribed channel, the market id is always its last segment
+        //
+        //     { id: 0, code: 0, msg: "spot@public.aggre.depth.v3.api.pb@100ms@BTCUSDT" }
         //     { id: 0, code: 0, msg: "spot@public.increase.depth.v3.api@BTCUSDT" }
         //
         $msg = $this->safe_string($message, 'msg', '');
         $parts = explode('@', $msg);
-        $marketId = $this->safe_string($parts, 2);
+        $partsLength = count($parts); // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
+        $marketId = $this->safe_string($parts, $partsLength - 1);
         $symbol = $this->safe_symbol($marketId);
         if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $this->orderbooks[$symbol] = $this->order_book(array());
@@ -2213,10 +2219,38 @@ class mexc extends \ccxt\async\mexc {
         //        "code": 0,
         //        "msg": "spot@public.increase.depth.v3.api@BTCUSDT"
         //    }
+        //
+        // a rejected subscription answers with code 0 as well, the failure is only in the text
+        //
+        //    {
+        //        "id": 0,
+        //        "code": 0,
+        //        "msg": "Not Subscribed successfully! [spot@public.aggre.depth.v3.api.pb@999ms@BTCUSDT].  Reason： Blocked! "
+        //    }
+        //
         // Set the default to an empty string if the message is empty during the test.
         $msg = $this->safe_string($message, 'msg', '');
         if ($msg === 'PONG') {
             $this->handle_pong($client, $message);
+        } elseif (mb_strpos($msg, 'Not Subscribed successfully') > -1) {
+            // the venue names the refused channel between brackets, reject only that watcher
+            // and drop its subscription so a corrected retry sends a new frame
+            $error = new ExchangeError($this->id . ' ' . $msg);
+            $subscriptionHashes = is_array($client->subscriptions) ? array_keys($client->subscriptions) : array();
+            $rejected = false;
+            for ($i = 0; $i < count($subscriptionHashes); $i++) {
+                $subscriptionHash = $subscriptionHashes[$i];
+                $subscribedChannel = $this->safe_string($client->subscriptions[$subscriptionHash], 'channel');
+                if (($subscribedChannel !== null) && (mb_strpos($msg, '[' . $subscribedChannel . ']') !== false)) {
+                    unset($client->subscriptions[$subscriptionHash]);
+                    $client->reject($error, $subscriptionHash);
+                    $rejected = true;
+                }
+            }
+            if (!$rejected) {
+                // nothing matched, the caller would hang otherwise
+                $client->reject($error);
+            }
         } elseif (mb_strpos($msg, '@') > -1) {
             $parts = explode('@', $msg);
             $channel = $this->safe_string($parts, 1);

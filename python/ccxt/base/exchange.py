@@ -6081,7 +6081,7 @@ class BaseExchange(object):
                 candleTimestamp = ohlcvs[candle][i_timestamp]
                 if candleTimestamp is None:
                     raise ExchangeError(self.id + ' buildOHLCVC() missing candle timestamp')
-                isNewCandle = openingTime >= candleTimestamp + ms
+                isNewCandle = openingTime >= self.sum(candleTimestamp, ms)
             if isNewCandle:
                 # moved to a new timeframe -> create a new candle from opening trade
                 ohlcvs.append([

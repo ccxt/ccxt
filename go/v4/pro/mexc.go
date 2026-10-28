@@ -613,8 +613,11 @@ func (this *Mexc) watchSpotPublicBody(ch chan ccxt.AsyncResult[any], channel any
 		"method": method,
 		"params": []any{channel},
 	}
+	var subscription map[string]any = map[string]any{
+		"channel": channel,
+	}
 
-	r := <-this.Watch(url, messageHash, this.Extend(request, paramsOmitted), messageHash)
+	r := <-this.Watch(url, messageHash, this.Extend(request, paramsOmitted), messageHash, subscription)
 	if r.Err != nil {
 		panic(r.Err)
 	}
@@ -1000,12 +1003,15 @@ func (this *Mexc) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInte
 	return nil
 }
 func (this *Mexc) HandleOrderBookSubscription(client any, message map[string]any) {
-	// spot
+	// the ack echoes the subscribed channel, the market id is always its last segment
+	//
+	//     { id: 0, code: 0, msg: "spot@public.aggre.depth.v3.api.pb@100ms@BTCUSDT" }
 	//     { id: 0, code: 0, msg: "spot@public.increase.depth.v3.api@BTCUSDT" }
 	//
 	var msg *string = this.SafeString(message, "msg", "")
 	var parts []string = strings.Split(*msg, "@")
-	var marketId *string = this.SafeString(parts, 2)
+	var partsLength int = len(parts) // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
+	var marketId *string = this.SafeString(parts, partsLength-1)
 	var symbol *string = this.SafeSymbol(marketId)
 	if !(ccxt.InOp(this.Orderbooks, symbol)) {
 		if symbol != nil {
@@ -2635,10 +2641,38 @@ func (this *Mexc) HandleSubscriptionStatus(client any, message any) {
 	//        "code": 0,
 	//        "msg": "spot@public.increase.depth.v3.api@BTCUSDT"
 	//    }
+	//
+	// a rejected subscription answers with code 0 as well, the failure is only in the text
+	//
+	//    {
+	//        "id": 0,
+	//        "code": 0,
+	//        "msg": "Not Subscribed successfully! [spot@public.aggre.depth.v3.api.pb@999ms@BTCUSDT].  Reason： Blocked! "
+	//    }
+	//
 	// ccxt.Set the default to an empty string if the message is empty during the test.
 	var msg *string = this.SafeString(message, "msg", "")
 	if msg != nil && *msg == "PONG" {
 		this.HandlePong(client, message)
+	} else if strings.Index(*msg, "Not Subscribed successfully") > -1 {
+		// the venue names the refused channel between brackets, reject only that watcher
+		// and drop its subscription so a corrected retry sends a new frame
+		error := ccxt.ExchangeError(this.Id + " " + *msg)
+		var subscriptionHashes []string = ccxt.ObjectKeys(client.(ccxt.ClientInterface).GetSubscriptions())
+		var rejected bool = false
+		for i := 0; i < len(subscriptionHashes); i++ {
+			var subscriptionHash string = subscriptionHashes[i]
+			var subscribedChannel *string = this.SafeString(ccxt.GetValue(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionHash), "channel")
+			if (subscribedChannel != nil) && (strings.Index(*msg, "["+*subscribedChannel+"]") >= 0) {
+				ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionHash)
+				client.(ccxt.ClientInterface).Reject(error, subscriptionHash)
+				rejected = true
+			}
+		}
+		if !rejected {
+			// nothing matched, the caller would hang otherwise
+			client.(ccxt.ClientInterface).Reject(error)
+		}
 	} else if strings.Index(*msg, "@") > -1 {
 		var parts []string = strings.Split(*msg, "@")
 		var channel *string = this.SafeString(parts, 1)

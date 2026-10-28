@@ -276,22 +276,23 @@ class coinbase extends \ccxt\async\coinbase {
         $timestamp = $this->number_to_string($this->seconds());
         $this->check_required_credentials();
         $isCloudAPiKey = (mb_strpos($this->apiKey, 'organizations/') !== false) || (str_starts_with($this->secret, '-----BEGIN'));
+        $isV2CloudAPiKey = $this->isEddsaApiKey();
         $auth = $timestamp . $name . implode(',', $productIds);
-        if (!$isCloudAPiKey) {
+        if (!$isCloudAPiKey && !$isV2CloudAPiKey) {
             $subscribe['api_key'] = $this->apiKey;
             $subscribe['timestamp'] = $timestamp;
             $subscribe['signature'] = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
         } else {
-            if (str_starts_with($this->apiKey, '-----BEGIN')) {
+            if ($isCloudAPiKey && str_starts_with($this->apiKey, '-----BEGIN')) {
                 throw new ArgumentsRequired($this->id . ' apiKey should contain the name (eg => organizations/3b910e93....) and not the public key');
             }
             $currentToken = $this->safe_string($this->options, 'wsToken');
             $tokenTimestamp = $this->parse_to_int($this->safe_integer($this->options, 'wsTokenTimestamp', 0));
             $seconds = $this->seconds();
-            $tokenExpiry = $tokenTimestamp + 120;
+            $tokenExpiry = $tokenTimestamp + 90;
             if ($currentToken === null || $tokenExpiry < $seconds) {
                 // we should generate new token
-                $token = $this->create_auth_token($seconds);
+                $token = $this->create_auth_token($seconds, null, null, $this->isEddsaApiKey());
                 $this->options['wsToken'] = $token;
                 $this->options['wsTokenTimestamp'] = $seconds;
             }

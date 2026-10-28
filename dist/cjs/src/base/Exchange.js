@@ -6189,7 +6189,7 @@ class BaseExchange {
                 if (candleTimestamp === undefined) {
                     throw new errors.ExchangeError(this.id + ' buildOHLCVC() missing candle timestamp');
                 }
-                isNewCandle = openingTime >= candleTimestamp + ms;
+                isNewCandle = openingTime >= this.sum(candleTimestamp, ms);
             }
             if (isNewCandle) {
                 // moved to a new timeframe -> create a new candle from opening trade

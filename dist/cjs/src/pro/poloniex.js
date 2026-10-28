@@ -21,6 +21,9 @@ class poloniex extends poloniex$1["default"] {
                 'watchTickers': true,
                 'watchTrades': true,
                 'watchTradesForSymbols': true,
+                'unWatchOHLCV': true,
+                'unWatchTrades': true,
+                'unWatchTradesForSymbols': true,
                 'watchBalance': true,
                 'watchStatus': false,
                 'watchOrders': true,
@@ -184,6 +187,27 @@ class poloniex extends poloniex$1["default"] {
         }
         const request = this.extend(subscribe, params);
         return await this.watch(url, symbolsHash, request, symbolsHash);
+    }
+    /**
+     * @ignore
+     * @method
+     * @description unsubscribes from a public websocket channel
+     * @param {string} name name of the channel
+     * @param {string[]} symbols CCXT market symbols
+     * @param {string[]} messageHashes unique identifiers resolved once the exchange acknowledges the unsubscribe
+     * @param {object} [params] extra parameters specific to the poloniex api
+     * @returns {object} true once the exchange acknowledges the unsubscribe
+     */
+    async unSubscribe(name, symbols, messageHashes, params = {}) {
+        const url = this.urls['api']['ws']['public'];
+        const request = {
+            'event': 'unsubscribe',
+            'channel': [
+                name,
+            ],
+            'symbols': this.marketIds(symbols),
+        };
+        return await this.watchMultiple(url, messageHashes, this.extend(request, params), messageHashes);
     }
     /**
      * @ignore
@@ -391,6 +415,29 @@ class poloniex extends poloniex$1["default"] {
     }
     /**
      * @method
+     * @name poloniex#unWatchOHLCV
+     * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://api-docs.poloniex.com/spot/websocket/market-data#candlesticks
+     * @param {string} symbol unified symbol of the market to unwatch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    async unWatchOHLCV(symbol, timeframe = '1m', params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const timeframes = this.safeDict(this.options, 'timeframes', {});
+        const channel = this.safeString(timeframes, timeframe, timeframe);
+        if (channel === undefined) {
+            throw new errors.BadRequest(this.id + ' unWatchOHLCV cannot take a timeframe of ' + timeframe);
+        }
+        const market = this.market(symbol);
+        const messageHash = 'unsubscribe:' + channel + '::' + market['symbol'];
+        return await this.unSubscribe(channel, [market['symbol']], [messageHash], params);
+    }
+    /**
+     * @method
      * @name poloniex#watchTicker
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @see https://api-docs.poloniex.com/spot/websocket/market-data#ticker
@@ -482,6 +529,39 @@ class poloniex extends poloniex$1["default"] {
             limitResolved = trades.getLimit(tradeSymbol, limit);
         }
         return this.filterBySinceLimit(trades, since, limitResolved, 'timestamp', true);
+    }
+    /**
+     * @method
+     * @name poloniex#unWatchTrades
+     * @description unWatches the list of most recent trades for a particular symbol
+     * @see https://api-docs.poloniex.com/spot/websocket/market-data#trades
+     * @param {string} symbol unified symbol of the market to unwatch trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    async unWatchTrades(symbol, params = {}) {
+        return await this.unWatchTradesForSymbols([symbol], params);
+    }
+    /**
+     * @method
+     * @name poloniex#unWatchTradesForSymbols
+     * @description unWatches the list of most recent trades for a list of symbols
+     * @see https://api-docs.poloniex.com/spot/websocket/market-data#trades
+     * @param {string[]} symbols unified symbols of the markets to unwatch trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    async unWatchTradesForSymbols(symbols, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const symbolsNormalized = this.marketSymbols(symbols, undefined, false, true, true);
+        const name = 'trades';
+        const messageHashes = [];
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            messageHashes.push('unsubscribe:' + name + '::' + symbolsNormalized[i]);
+        }
+        return await this.unSubscribe(name, symbolsNormalized, messageHashes, params);
     }
     /**
      * @method
@@ -1306,6 +1386,10 @@ class poloniex extends poloniex$1["default"] {
         if (event === 'pong') {
             client.lastPong = this.milliseconds();
         }
+        if (event === 'unsubscribe') {
+            this.handleUnsubscription(client, message);
+            return;
+        }
         const methods = {
             'candles_minute_1': this.handleOHLCV,
             'candles_minute_5': this.handleOHLCV,
@@ -1344,6 +1428,31 @@ class poloniex extends poloniex$1["default"] {
             const dataLength = data.length;
             if (dataLength > 0) {
                 method.call(this, client, message);
+            }
+        }
+    }
+    handleUnsubscription(client, message) {
+        //
+        //    {
+        //        "event": "unsubscribe",
+        //        "channel": "trades",
+        //        "symbols": [ "ETH_USDT", "BTC_USDT" ]
+        //    }
+        //
+        const channel = this.safeString(message, 'channel');
+        const marketIds = this.safeList(message, 'symbols', []);
+        const timeframes = this.safeDict(this.options, 'timeframes', {});
+        const timeframe = this.findTimeframe(channel, timeframes);
+        for (let i = 0; i < marketIds.length; i++) {
+            const symbol = this.safeSymbol(this.safeString(marketIds, i));
+            const subMessageHash = channel + '::' + symbol;
+            if (channel === 'trades') {
+                this.cleanCache({ 'topic': 'trades', 'symbols': [symbol] });
+                this.cleanUnsubscription(client, subMessageHash, 'unsubscribe:' + subMessageHash);
+            }
+            else if (timeframe !== undefined) {
+                this.cleanCache({ 'topic': 'ohlcv', 'symbolsAndTimeframes': [[symbol, timeframe]] });
+                this.cleanUnsubscription(client, subMessageHash, 'unsubscribe:' + subMessageHash);
             }
         }
     }
