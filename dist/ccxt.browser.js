@@ -401064,7 +401064,7 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
         if (this.markets === undefined) {
             throw new _base_errors_js__rspack_import_1.ExchangeError(this.id + ' markets not loaded');
         }
-        if (symbol !== undefined && !(symbol in this.markets)) {
+        if (!(symbol in this.markets)) {
             const symbolParts = symbol.split('/');
             const baseName = this.safeString(symbolParts, 0);
             const spotCurrencyMapping = this.safeDict(this.options, 'spotCurrencyMapping', {});
@@ -401314,7 +401314,7 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
         let markets = [];
         for(let i = 0; i < promises.length; i++){
             const dexName = fetchDexesList[i];
-            const offset = perpDexesOffset[dexName];
+            const offset = this.safeInteger(perpDexesOffset, dexName);
             const response = this.safeList(promises, i);
             const meta = this.safeDict(response, 0, {});
             const collateralToken = this.safeString(meta, 'collateralToken');
@@ -402371,8 +402371,7 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
             data += vaultAddress;
         }
         if (expiresAfter !== undefined) {
-            data += '00';
-            data += '00000' + this.intToBase16(expiresAfter);
+            data += '0000000' + this.intToBase16(expiresAfter);
         }
         return this.hash(this.base16ToBinary(data), _noble_hashes_sha3_js__rspack_import_4/* .keccak_256 */.lY, 'binary');
     }
@@ -436193,22 +436192,20 @@ class lighter extends _abstract_lighter_js__rspack_import_0/* ["default"] */.A {
         return signer;
     }
     setAuthEntry(accIdx, keyIdx, entry) {
-        this.options['auths'][accIdx][keyIdx] = this.extend(this.safeDict(this.safeDict(this.safeDict(this.options, 'auths', {}), accIdx, {}), keyIdx, {}), entry);
+        const updated = {};
+        updated[keyIdx] = this.extend(this.safeDict(this.safeDict(this.safeDict(this.options, 'auths', {}), accIdx, {}), keyIdx, {}), entry);
+        const auths = {};
+        auths[accIdx] = this.extend(this.safeDict(this.safeDict(this.options, 'auths', {}), accIdx, {}), updated);
+        this.options['auths'] = this.extend(this.safeDict(this.options, 'auths', {}), auths);
     }
     initAuthObject(strAccountIndex, strApiKeyIndex) {
-        if (!('auths' in this.options)) {
-            this.options['auths'] = {};
-        }
-        if (!(strAccountIndex in this.options['auths'])) {
-            this.options['auths'][strAccountIndex] = {};
-        }
-        if (!(strApiKeyIndex in this.options['auths'][strAccountIndex])) {
-            this.options['auths'][strAccountIndex][strApiKeyIndex] = {
+        if (this.safeDict(this.safeDict(this.safeDict(this.options, 'auths', {}), strAccountIndex, {}), strApiKeyIndex) === undefined) {
+            this.setAuthEntry(strAccountIndex, strApiKeyIndex, {
                 'signer': undefined,
                 'lighterPrivateKey': undefined,
                 'deadline': undefined,
                 'token': undefined
-            };
+            });
         }
     }
     getLighterPrivateKey(strAccountIndex, strApiKeyIndex) {
@@ -449001,12 +448998,6 @@ class mexc extends _abstract_mexc_js__rspack_import_0/* ["default"] */.A {
                 this.checkRequiredCredentials();
                 const timestamp = this.nonce().toString();
                 let auth = '';
-                requestHeaders = {
-                    'ApiKey': this.apiKey,
-                    'Request-Time': timestamp,
-                    'Content-Type': 'application/json',
-                    'source': this.safeString(this.options, 'broker', 'CCXT')
-                };
                 if (method === 'POST') {
                     auth = this.json(paramsOmitted);
                     requestBody = auth;
@@ -449019,7 +449010,13 @@ class mexc extends _abstract_mexc_js__rspack_import_0/* ["default"] */.A {
                 }
                 auth = this.apiKey + timestamp + auth;
                 const signature = this.hmac(this.encode(auth), this.encode(this.secret), _noble_hashes_sha2_js__rspack_import_4/* .sha256 */.sc);
-                requestHeaders['Signature'] = signature;
+                requestHeaders = {
+                    'ApiKey': this.apiKey,
+                    'Request-Time': timestamp,
+                    'Content-Type': 'application/json',
+                    'source': this.safeString(this.options, 'broker', 'CCXT'),
+                    'Signature': signature
+                };
             }
         }
         return {

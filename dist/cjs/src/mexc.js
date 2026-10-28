@@ -6453,12 +6453,6 @@ class mexc extends mexc$1["default"] {
                 this.checkRequiredCredentials();
                 const timestamp = this.nonce().toString();
                 let auth = '';
-                requestHeaders = {
-                    'ApiKey': this.apiKey,
-                    'Request-Time': timestamp,
-                    'Content-Type': 'application/json',
-                    'source': this.safeString(this.options, 'broker', 'CCXT'),
-                };
                 if (method === 'POST') {
                     auth = this.json(paramsOmitted);
                     requestBody = auth;
@@ -6472,7 +6466,13 @@ class mexc extends mexc$1["default"] {
                 }
                 auth = this.apiKey + timestamp + auth;
                 const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha2_js.sha256);
-                requestHeaders['Signature'] = signature;
+                requestHeaders = {
+                    'ApiKey': this.apiKey,
+                    'Request-Time': timestamp,
+                    'Content-Type': 'application/json',
+                    'source': this.safeString(this.options, 'broker', 'CCXT'),
+                    'Signature': signature,
+                };
             }
         }
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };

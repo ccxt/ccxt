@@ -427,22 +427,20 @@ export default class lighter extends Exchange {
         return signer;
     }
     setAuthEntry(accIdx, keyIdx, entry) {
-        this.options['auths'][accIdx][keyIdx] = this.extend(this.safeDict(this.safeDict(this.safeDict(this.options, 'auths', {}), accIdx, {}), keyIdx, {}), entry);
+        const updated = {};
+        updated[keyIdx] = this.extend(this.safeDict(this.safeDict(this.safeDict(this.options, 'auths', {}), accIdx, {}), keyIdx, {}), entry);
+        const auths = {};
+        auths[accIdx] = this.extend(this.safeDict(this.safeDict(this.options, 'auths', {}), accIdx, {}), updated);
+        this.options['auths'] = this.extend(this.safeDict(this.options, 'auths', {}), auths);
     }
     initAuthObject(strAccountIndex, strApiKeyIndex) {
-        if (!('auths' in this.options)) {
-            this.options['auths'] = {};
-        }
-        if (!(strAccountIndex in this.options['auths'])) {
-            this.options['auths'][strAccountIndex] = {};
-        }
-        if (!(strApiKeyIndex in this.options['auths'][strAccountIndex])) {
-            this.options['auths'][strAccountIndex][strApiKeyIndex] = {
+        if (this.safeDict(this.safeDict(this.safeDict(this.options, 'auths', {}), strAccountIndex, {}), strApiKeyIndex) === undefined) {
+            this.setAuthEntry(strAccountIndex, strApiKeyIndex, {
                 'signer': undefined,
                 'lighterPrivateKey': undefined,
                 'deadline': undefined,
                 'token': undefined,
-            };
+            });
         }
     }
     getLighterPrivateKey(strAccountIndex, strApiKeyIndex) {

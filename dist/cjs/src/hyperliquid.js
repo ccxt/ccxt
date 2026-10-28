@@ -377,7 +377,7 @@ class hyperliquid extends hyperliquid$1["default"] {
         if (this.markets === undefined) {
             throw new errors.ExchangeError(this.id + ' markets not loaded');
         }
-        if ((symbol !== undefined) && !(symbol in this.markets)) {
+        if (!(symbol in this.markets)) {
             const symbolParts = symbol.split('/');
             const baseName = this.safeString(symbolParts, 0);
             const spotCurrencyMapping = this.safeDict(this.options, 'spotCurrencyMapping', {});
@@ -635,7 +635,7 @@ class hyperliquid extends hyperliquid$1["default"] {
         let markets = [];
         for (let i = 0; i < promises.length; i++) {
             const dexName = fetchDexesList[i];
-            const offset = perpDexesOffset[dexName];
+            const offset = this.safeInteger(perpDexesOffset, dexName);
             const response = this.safeList(promises, i);
             const meta = this.safeDict(response, 0, {});
             const collateralToken = this.safeString(meta, 'collateralToken');
@@ -1705,8 +1705,7 @@ class hyperliquid extends hyperliquid$1["default"] {
             data += vaultAddress;
         }
         if (expiresAfter !== undefined) {
-            data += '00';
-            data += '00000' + this.intToBase16(expiresAfter);
+            data += '0000000' + this.intToBase16(expiresAfter);
         }
         return this.hash(this.base16ToBinary(data), sha3_js.keccak_256, 'binary');
     }
