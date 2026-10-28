@@ -1057,6 +1057,22 @@ impl ClientHandle {
             (other, _) => crate::runtime::add_element_to_object(other, key, val),
         }
     }
+    /// `key in client.subscriptions`, read from the handle's snapshot.
+    pub fn has_subscription(&self, key: &Value) -> bool { crate::runtime::in_op(&self.subscriptions, key) }
+    /// `client.subscriptions[key]` (Null when absent).
+    pub fn get_subscription(&self, key: &Value) -> Value { crate::get_value(&self.subscriptions, key) }
+    /// `Object.keys(client.subscriptions)` (internal tags filtered).
+    pub fn subscription_keys(&self) -> Vec<Value> {
+        crate::runtime::object_keys(&self.subscriptions).as_array().cloned().unwrap_or_default()
+    }
+    /// `key in client.futures`, read from the handle's snapshot.
+    pub fn has_future(&self, key: &Value) -> bool { crate::runtime::in_op(&self.futures, key) }
+    /// `client.futures[key]` (Null when absent).
+    pub fn get_future(&self, key: &Value) -> Value { crate::get_value(&self.futures, key) }
+    /// `Object.keys(client.futures)`.
+    pub fn future_keys(&self) -> Vec<Value> {
+        crate::runtime::object_keys(&self.futures).as_array().cloned().unwrap_or_default()
+    }
     pub fn future(&self, args: &[Value]) -> Value {
         self.value.future(args)
     }
