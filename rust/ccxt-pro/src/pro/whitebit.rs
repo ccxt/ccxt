@@ -406,8 +406,8 @@ impl WhitebitCore {
         let mut params: Value = (match __pro_message.get("params").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_693: bool = true;
-            while { if !__for_first_693 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_693 = false; i.as_f64().unwrap_or(f64::NAN) < ((params.len() as i64) as f64) } {
+            let mut __for_first_694: bool = true;
+            while { if !__for_first_694 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_694 = false; i.as_f64().unwrap_or(f64::NAN) < ((params.len() as i64) as f64) } {
             let mut data: Value = params.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut marketId: Value = self.safe_string(data.clone(), Value::Int(7), &[]);
             let mut market: Value = self.safe_market(&[marketId]);
@@ -550,8 +550,8 @@ impl WhitebitCore {
     pub fn handle_deltas(&self, mut bookside: Value, mut deltas: Value) {
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_694: bool = true;
-            while { if !__for_first_694 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_694 = false; i.as_f64().unwrap_or(f64::NAN) < ((deltas.len() as i64) as f64) } {
+            let mut __for_first_695: bool = true;
+            while { if !__for_first_695 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_695 = false; i.as_f64().unwrap_or(f64::NAN) < ((deltas.len() as i64) as f64) } {
             self.handle_delta(bookside.clone(), deltas.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
         }
         }
@@ -609,8 +609,8 @@ impl WhitebitCore {
         let mut args: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_695: bool = true;
-            while { if !__for_first_695 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_695 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
+            let mut __for_first_696: bool = true;
+            while { if !__for_first_696 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_696 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
             let mut market: Value = self.market(symbolsNormalized.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
             if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("ticker:".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into())); }
             args.push(market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
@@ -669,8 +669,8 @@ impl WhitebitCore {
         let mut messageHashes: Value = object_keys(&get_value(&client, &Value::Str("futures".into())));
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_696: bool = true;
-            while { if !__for_first_696 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_696 = false; i.as_f64().unwrap_or(f64::NAN) < ((messageHashes.len() as i64) as f64) } {
+            let mut __for_first_697: bool = true;
+            while { if !__for_first_697 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_697 = false; i.as_f64().unwrap_or(f64::NAN) < ((messageHashes.len() as i64) as f64) } {
             let mut currentMessageHash: Value = messageHashes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             if Value::Int(currentMessageHash.as_str().and_then(|__s| __s.find("tickers")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) && Value::Int(currentMessageHash.as_str().zip(symbol.as_str()).and_then(|(__s, __n)| __s.find(__n)).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
                 // Example: user calls watchTickers with ['LTC/USDT', 'ETH/USDT']
@@ -768,8 +768,8 @@ impl WhitebitCore {
         let mut parsedTrades: Value = self.parse_trades(data, &[market.clone()]);
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_697: bool = true;
-            while { if !__for_first_697 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_697 = false; j.as_f64().unwrap_or(f64::NAN) < ((parsedTrades.len() as i64) as f64) } {
+            let mut __for_first_698: bool = true;
+            while { if !__for_first_698 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_698 = false; j.as_f64().unwrap_or(f64::NAN) < ((parsedTrades.len() as i64) as f64) } {
             stored.append(parsedTrades.as_array().and_then(|__arr| match &j { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
         }
         }
@@ -1265,8 +1265,8 @@ impl WhitebitCore {
         let mut data: Value = (match message.get("params") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_699: bool = true;
-            while { if !__for_first_699 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_699 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
+            let mut __for_first_700: bool = true;
+            while { if !__for_first_700 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_700 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             let mut balanceDict: Value = self.safe_dict(data.clone(), i.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -1286,8 +1286,8 @@ impl WhitebitCore {
                 let mut keys: Value = object_keys(&balanceDict);
                 {
                                         let mut j: Value = Value::Int(0);
-                    let mut __for_first_698: bool = true;
-                    while { if !__for_first_698 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_698 = false; j.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
+                    let mut __for_first_699: bool = true;
+                    while { if !__for_first_699 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_699 = false; j.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
                     let mut currencyId: Value = keys.as_array().and_then(|__arr| match &j { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                     let mut rawBalance: Value = self.safe_dict(balanceDict.clone(), currencyId.clone(), &[Value::Map({
                         let mut m = indexmap::IndexMap::new();
@@ -1623,8 +1623,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut values: Value = object_values(&subs);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_700: bool = true;
-            while { if !__for_first_700 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_700 = false; i.as_f64().unwrap_or(f64::NAN) < ((values.len() as i64) as f64) } {
+            let mut __for_first_701: bool = true;
+            while { if !__for_first_701 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_701 = false; i.as_f64().unwrap_or(f64::NAN) < ((values.len() as i64) as f64) } {
             let mut subscription: Value = values.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             if !(match &(subscription) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 1.0) }) {
                 let mut subId: Value = self.safe_integer_k(subscription.clone(), "id", &[]);
