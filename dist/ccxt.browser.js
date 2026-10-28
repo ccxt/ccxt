@@ -442235,7 +442235,7 @@ class mercado extends _abstract_mercado_js__rspack_import_0/* ["default"] */.A {
         let url = apiUrl + '/';
         const query = this.omit(params, this.extractParams(path));
         const isPublic = apiName === 'public' || apiName === 'v4Public' || apiName === 'v4PublicNet';
-        let privateBody = undefined;
+        let privateBody = '';
         let privateHeaders = undefined;
         if (isPublic) {
             url += this.implodeParams(path, params);
@@ -562574,13 +562574,8 @@ class coincheck extends _coincheck_js__rspack_import_0/* ["default"] */.A {
         const data = this.safeDict(message, 1, {});
         const timestamp = this.safeTimestamp(data, 'last_update_at');
         const snapshot = this.parseOrderBook(data, symbol, timestamp);
-        let orderbook = this.safeValue(this.orderbooks, symbol);
-        if (orderbook === undefined) {
-            orderbook = this.orderBook(snapshot);
-            this.orderbooks[symbol] = orderbook;
-        } else {
-            orderbook.reset(snapshot);
-        }
+        const orderbook = this.orderBook(snapshot);
+        this.orderbooks[symbol] = orderbook;
         const messageHash = 'orderbook:' + symbol;
         client.resolve(orderbook, messageHash);
     }
@@ -628790,24 +628785,24 @@ class tokocrypto extends _abstract_tokocrypto_js__rspack_import_0/* ["default"] 
         if (buyerMaker !== undefined) {
             side = buyerMaker ? 'sell' : 'buy'; // this is reversed intentionally
             takerOrMaker = 'taker';
-        } else if ('side' in trade) {
+        } else if (this.safeString(trade, 'side') !== undefined) {
             side = this.safeStringLower(trade, 'side');
         } else {
-            if ('isBuyer' in trade) {
+            if (this.safeString(trade, 'isBuyer') !== undefined) {
                 side = this.safeBool(trade, 'isBuyer', false) ? 'buy' : 'sell'; // this is a true side
             }
         }
         let fee = undefined;
-        if ('commission' in trade) {
+        if (this.safeString(trade, 'commission') !== undefined) {
             fee = {
                 'cost': this.safeString(trade, 'commission'),
                 'currency': this.safeCurrencyCode(this.safeString(trade, 'commissionAsset'))
             };
         }
-        if ('isMaker' in trade) {
+        if (this.safeString(trade, 'isMaker') !== undefined) {
             takerOrMaker = this.safeBool(trade, 'isMaker', false) ? 'maker' : 'taker';
         }
-        if ('maker' in trade) {
+        if (this.safeString(trade, 'maker') !== undefined) {
             takerOrMaker = this.safeBool(trade, 'maker', false) ? 'maker' : 'taker';
         }
         return this.safeTrade({
@@ -628986,7 +628981,7 @@ class tokocrypto extends _abstract_tokocrypto_js__rspack_import_0/* ["default"] 
         const marketId = this.safeString(ticker, 'symbol');
         const symbol = this.safeSymbol(marketId, market);
         const last = this.safeString(ticker, 'lastPrice');
-        const isCoinm = 'baseVolume' in ticker;
+        const isCoinm = this.safeString(ticker, 'baseVolume') !== undefined;
         let baseVolume = undefined;
         let quoteVolume = undefined;
         if (isCoinm) {
@@ -629702,7 +629697,10 @@ class tokocrypto extends _abstract_tokocrypto_js__rspack_import_0/* ["default"] 
         }
         if (timeInForceIsRequired) {
             const defaultTimeInForce = this.safeString(this.options, 'defaultTimeInForce', 'GTC');
-            const timeInForce = timeInForceResolved === undefined ? defaultTimeInForce : timeInForceResolved;
+            let timeInForce = defaultTimeInForce;
+            if (timeInForceResolved !== undefined) {
+                timeInForce = timeInForceResolved;
+            }
             // the endpoint takes the time force as a numeric code, post only is
             // placed as a LIMIT_MAKER order rather than as the GTX code
             const timeInForceCodes = {

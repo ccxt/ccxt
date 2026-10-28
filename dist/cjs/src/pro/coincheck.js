@@ -94,14 +94,8 @@ class coincheck extends coincheck$1["default"] {
         const data = this.safeDict(message, 1, {});
         const timestamp = this.safeTimestamp(data, 'last_update_at');
         const snapshot = this.parseOrderBook(data, symbol, timestamp);
-        let orderbook = this.safeValue(this.orderbooks, symbol);
-        if (orderbook === undefined) {
-            orderbook = this.orderBook(snapshot);
-            this.orderbooks[symbol] = orderbook;
-        }
-        else {
-            orderbook.reset(snapshot);
-        }
+        const orderbook = this.orderBook(snapshot);
+        this.orderbooks[symbol] = orderbook;
         const messageHash = 'orderbook:' + symbol;
         client.resolve(orderbook, messageHash);
     }

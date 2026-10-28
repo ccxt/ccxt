@@ -1068,25 +1068,25 @@ export default class tokocrypto extends Exchange {
             side = (buyerMaker) ? 'sell' : 'buy'; // this is reversed intentionally
             takerOrMaker = 'taker';
         }
-        else if ('side' in trade) {
+        else if (this.safeString(trade, 'side') !== undefined) {
             side = this.safeStringLower(trade, 'side');
         }
         else {
-            if ('isBuyer' in trade) {
+            if (this.safeString(trade, 'isBuyer') !== undefined) {
                 side = (this.safeBool(trade, 'isBuyer', false)) ? 'buy' : 'sell'; // this is a true side
             }
         }
         let fee = undefined;
-        if ('commission' in trade) {
+        if (this.safeString(trade, 'commission') !== undefined) {
             fee = {
                 'cost': this.safeString(trade, 'commission'),
                 'currency': this.safeCurrencyCode(this.safeString(trade, 'commissionAsset')),
             };
         }
-        if ('isMaker' in trade) {
+        if (this.safeString(trade, 'isMaker') !== undefined) {
             takerOrMaker = (this.safeBool(trade, 'isMaker', false)) ? 'maker' : 'taker';
         }
-        if ('maker' in trade) {
+        if (this.safeString(trade, 'maker') !== undefined) {
             takerOrMaker = (this.safeBool(trade, 'maker', false)) ? 'maker' : 'taker';
         }
         return this.safeTrade({
@@ -1271,7 +1271,7 @@ export default class tokocrypto extends Exchange {
         const marketId = this.safeString(ticker, 'symbol');
         const symbol = this.safeSymbol(marketId, market);
         const last = this.safeString(ticker, 'lastPrice');
-        const isCoinm = ('baseVolume' in ticker);
+        const isCoinm = (this.safeString(ticker, 'baseVolume') !== undefined);
         let baseVolume = undefined;
         let quoteVolume = undefined;
         if (isCoinm) {
@@ -1994,7 +1994,10 @@ export default class tokocrypto extends Exchange {
         }
         if (timeInForceIsRequired) {
             const defaultTimeInForce = this.safeString(this.options, 'defaultTimeInForce', 'GTC');
-            const timeInForce = (timeInForceResolved === undefined) ? defaultTimeInForce : timeInForceResolved;
+            let timeInForce = defaultTimeInForce;
+            if (timeInForceResolved !== undefined) {
+                timeInForce = timeInForceResolved;
+            }
             // the endpoint takes the time force as a numeric code, post only is
             // placed as a LIMIT_MAKER order rather than as the GTX code
             const timeInForceCodes = {

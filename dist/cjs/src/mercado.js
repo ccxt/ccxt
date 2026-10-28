@@ -1032,7 +1032,7 @@ class mercado extends mercado$1["default"] {
         let url = apiUrl + '/';
         const query = this.omit(params, this.extractParams(path));
         const isPublic = (apiName === 'public') || (apiName === 'v4Public') || (apiName === 'v4PublicNet');
-        let privateBody = undefined;
+        let privateBody = '';
         let privateHeaders = undefined;
         if (isPublic) {
             url += this.implodeParams(path, params);
