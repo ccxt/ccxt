@@ -1649,7 +1649,7 @@ class binance(ccxt.async_support.binance):
             if shouldUseUTC8:
                 utcSuffix = suffix
             rawHashes.append(marketId + '@' + klineType + '_' + interval + utcSuffix)
-            messageHashes.append('ohlcv::' + market['symbol'] + '::' + timeframeString)
+            messageHashes.append('ohlcv::' + self.safe_string(market, 'symbol', '') + '::' + timeframeString)
         url = self.get_ws_url(wsUrlType, self.get_future_ws_category(klineType)) + '/' + self.stream(wsUrlType, 'multipleOHLCV')
         requestId = self.request_id(url)
         request = {
@@ -1722,8 +1722,8 @@ class binance(ccxt.async_support.binance):
             if shouldUseUTC8:
                 utcSuffix = suffix
             rawHashes.append(marketId + '@' + klineType + '_' + interval + utcSuffix)
-            subMessageHashes.append('ohlcv::' + market['symbol'] + '::' + timeframeString)
-            messageHashes.append('unsubscribe::ohlcv::' + market['symbol'] + '::' + timeframeString)
+            subMessageHashes.append('ohlcv::' + self.safe_string(market, 'symbol', '') + '::' + timeframeString)
+            messageHashes.append('unsubscribe::ohlcv::' + self.safe_string(market, 'symbol', '') + '::' + timeframeString)
         url = self.get_ws_url(wsUrlType, self.get_future_ws_category(klineType)) + '/' + self.stream(wsUrlType, 'multipleOHLCV')
         requestId = self.request_id(url)
         request = {
@@ -2189,13 +2189,13 @@ class binance(ccxt.async_support.binance):
             return result
         return self.filter_by_array(self.bidsasks, 'symbol', symbolsNormalized)
 
-    async def watch_multi_ticker_helper(self, methodName: str, channelName: Str, symbols: Strings = None, params: dict = {}, isUnsubscribe: bool = False):
+    async def watch_multi_ticker_helper(self, methodName: str, channelName: str, symbols: Strings = None, params: dict = {}, isUnsubscribe: bool = False):
+        channel = self.safe_string({'name': channelName}, 'name', '')
         if self.markets is None:
             await self.load_markets()
         symbolsNormalized = self.market_symbols(symbols, None, True, False, True)
-        isBidAsk = (channelName == 'bookTicker')
-        isMarkPrice = (channelName == 'markPrice')
-        use1sFreq = self.safe_bool(params, 'use1sFreq', True)
+        isBidAsk = (channel == 'bookTicker')
+        isMarkPrice = (channel == 'markPrice')
         firstMarket = None
         symbolsDefined = (symbolsNormalized is not None)
         if symbolsNormalized is not None:
@@ -2222,7 +2222,7 @@ class binance(ccxt.async_support.binance):
         else:
             raise NotSupported(self.id + ' ' + methodName + '() does not support options markets')
         # eOptions tickers have a different stream name (@optionTicker) but the same event type (24hrTicker)
-        # so only the subscription arg changes — channelName stays as-is to keep messageHashes aligned
+        # so only the subscription arg changes — channel stays as-is to keep messageHashes aligned
         isOptionTicker = (marketType == 'option' and not isMarkPrice and not isBidAsk)
         if isMarkPrice and not self.in_array(marketType, ['swap', 'future', 'option']):
             raise NotSupported(self.id + ' ' + methodName + '() does not support ' + marketType + ' markets yet')
@@ -2231,22 +2231,20 @@ class binance(ccxt.async_support.binance):
         unsubscribeMessageHashes = []
         suffix = ''
         if isMarkPrice and not isOptionMarkPrice:
-            suffix = '@1s' if (use1sFreq) else ''
-        unifiedPrefix = None
+            suffix = '@1s' if (self.safe_bool(params, 'use1sFreq', True)) else ''
+        unifiedPrefix = 'ticker'
         if isBidAsk:
             unifiedPrefix = 'bidask'
         elif isMarkPrice:
             unifiedPrefix = 'markPrice'
-        else:
-            unifiedPrefix = 'ticker'
         if symbolsNormalized is not None:
             seenUnderlyings = {}
             for i in range(0, len(symbolsNormalized)):
                 symbol = symbolsNormalized[i]
                 market = self.market(symbol)
-                messageHashes.append(unifiedPrefix + ':' + channelName + '@' + symbol)
+                messageHashes.append(unifiedPrefix + ':' + channel + '@' + symbol)
                 if isUnsubscribe:
-                    unsubscribeMessageHashes.append('unsubscribe::' + unifiedPrefix + ':' + channelName + '@' + symbol)
+                    unsubscribeMessageHashes.append('unsubscribe::' + unifiedPrefix + ':' + channel + '@' + symbol)
                 if isOptionMarkPrice:
                     # subscribe per underlying, not per contract
                     baseIdLower = self.safe_string_lower(market, 'baseId', '')
@@ -2269,7 +2267,7 @@ class binance(ccxt.async_support.binance):
                         seenUnderlyings[subscriptionArg] = True
                         subscriptionArgs.append(subscriptionArg)
                 else:
-                    subscriptionArgs.append(self.safe_string(market, 'lowercaseId', '') + '@' + channelName + suffix)
+                    subscriptionArgs.append(self.safe_string(market, 'lowercaseId', '') + '@' + channel + suffix)
         else:
             if marketType == 'option':
                 underlying = self.safe_string_lower(paramsSubType, 'underlying')
@@ -2284,26 +2282,26 @@ class binance(ccxt.async_support.binance):
                 else:
                     # isOptionMarkPrice: one stream covers all contracts for the underlying
                     subscriptionArgs.append(underlying + '@optionMarkPrice')
-                messageHashes.append(unifiedPrefix + 's:' + channelName)
-                unsubscribeMessageHashes.append('unsubscribe::' + channelName)
+                messageHashes.append(unifiedPrefix + 's:' + channel)
+                unsubscribeMessageHashes.append('unsubscribe::' + channel)
             elif isBidAsk:
                 if marketType == 'spot':
                     raise ArgumentsRequired(self.id + ' ' + methodName + '() requires symbols for self channel for spot markets')
-                subscriptionArgs.append('!' + channelName)
-                messageHashes.append(unifiedPrefix + 's:' + channelName)
-                unsubscribeMessageHashes.append('unsubscribe::' + channelName)
+                subscriptionArgs.append('!' + channel)
+                messageHashes.append(unifiedPrefix + 's:' + channel)
+                unsubscribeMessageHashes.append('unsubscribe::' + channel)
             elif isMarkPrice:
-                subscriptionArgs.append('!' + channelName + '@arr' + suffix)
-                messageHashes.append(unifiedPrefix + 's:' + channelName)
-                unsubscribeMessageHashes.append('unsubscribe::' + channelName)
+                subscriptionArgs.append('!' + channel + '@arr' + suffix)
+                messageHashes.append(unifiedPrefix + 's:' + channel)
+                unsubscribeMessageHashes.append('unsubscribe::' + channel)
             else:
-                subscriptionArgs.append('!' + channelName + '@arr')
-                messageHashes.append(unifiedPrefix + 's:' + channelName)
-                unsubscribeMessageHashes.append('unsubscribe::' + channelName)
+                subscriptionArgs.append('!' + channel + '@arr')
+                messageHashes.append(unifiedPrefix + 's:' + channel)
+                unsubscribeMessageHashes.append('unsubscribe::' + channel)
         streamHash = channelName
         if symbolsNormalized is not None:
-            streamHash = channelName + '::' + ','.join(symbolsNormalized)
-        url = self.get_ws_url(rawMarketType, self.get_future_ws_category(channelName)) + '/' + self.stream(rawMarketType, streamHash)
+            streamHash = channel + '::' + ','.join(symbolsNormalized)
+        url = self.get_ws_url(rawMarketType, self.get_future_ws_category(channel)) + '/' + self.stream(rawMarketType, streamHash)
         requestId = self.request_id(url)
         request = {
             'method': 'UNSUBSCRIBE' if isUnsubscribe else 'SUBSCRIBE',
@@ -2328,7 +2326,7 @@ class binance(ccxt.async_support.binance):
         # wait on the batch hash so the resolved value is the full dict of new tickers
         waitHashes = hashes
         if isOptionMarkPrice and not isUnsubscribe:
-            waitHashes = [unifiedPrefix + 's:' + channelName]
+            waitHashes = [unifiedPrefix + 's:' + channel]
         result = await self.watch_multiple(url, waitHashes, self.deep_extend(request, paramsSubType), hashes, subscription)
         if isUnsubscribe:
             return result
