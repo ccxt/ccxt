@@ -1733,7 +1733,7 @@ class BaseExchange extends \ccxt\BaseExchange {
         // sanbox mode
         $isSandbox = $this->safe_bool_2($this->options, 'sandbox', 'testnet', false);
         if ($isSandbox) {
-            $this->set_sandbox_mode($isSandbox);
+            $this->set_sandbox_mode(true);
         }
         // compatibility for sandbox/testnet options in userConfig
         if (($this->safe_bool($userConfig, 'sandbox', false)) || ($this->safe_bool($userConfig, 'testnet', false))) {
