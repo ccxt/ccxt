@@ -199,8 +199,8 @@ export default class interactivebrokers extends Exchange {
                         'v1/api/portfolio/positions/:conid': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/api/portfolio/:accountId/combo/positions': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/api/portfolio/accounts': { 'cost': 1 } as Endpoint<List>,
-                        'v1/api/portfolio/subaccounts': { 'cost': 1 } as Endpoint<Dict>,
-                        'v1/api/portfolio/subaccounts2': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/api/portfolio/subaccounts': { 'cost': 1 } as Endpoint<List>,
+                        'v1/api/portfolio/subaccounts2': { 'cost': 1 } as Endpoint<List>,
                         'v1/api/sso/validate': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/api/iserver/scanner/params': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/api/iserver/watchlist': { 'cost': 1 } as Endpoint<Dict>,
@@ -2193,7 +2193,7 @@ export default class interactivebrokers extends Exchange {
     async fetchPortfolioAccounts (params: Dict = {}): Promise<List> {
         await this.authenticate ();
         const [ method, query ] = this.handleOptionAndParams (params, 'fetchPortfolioAccounts', 'method', 'privateGetPortfolioAccounts');
-        let response = undefined;
+        let response: List| undefined = undefined;
         if (method === 'privateGetPortfolioSubaccounts') {
             response = await this.webapiGetV1ApiPortfolioSubaccounts (query);
         } else {
