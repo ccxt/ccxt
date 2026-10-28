@@ -4100,9 +4100,9 @@ public class Modetrade extends ModetradeApi
             String ts = String.valueOf(this.nonce());
             url = (url + pathWithParams);
             String apiKey = this.apiKey;
-            if (((String)apiKey).indexOf("ed25519:") < 0)
+            if (((String)this.apiKey).indexOf("ed25519:") < 0)
             {
-                apiKey = ("ed25519:" + apiKey);
+                apiKey = ("ed25519:" + this.apiKey);
             }
             Map<String, Object> signedHeaders = new HashMap<String, Object>();
             signedHeaders.put("orderly-account-id", this.accountId);

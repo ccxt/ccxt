@@ -536,10 +536,10 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
             put( "X-BITOPRO-PAYLOAD", payload );
             put( "X-BITOPRO-SIGNATURE", signature );
         }};
-        Helpers.addElementToObject(Helpers.GetValue((this.options == null ? null : ((Map<?, ?>)this.options).get("ws")), "options"), "headers", headers);
+        wsInnerOptions.put("headers", headers);
         // instantiate client
         this.client(url);
-        Helpers.addElementToObject(Helpers.GetValue((this.options == null ? null : ((Map<?, ?>)this.options).get("ws")), "options"), "headers", originalHeaders);
+        Helpers.addElementToObject(wsInnerOptions, "headers", originalHeaders);
     }
 
     /**

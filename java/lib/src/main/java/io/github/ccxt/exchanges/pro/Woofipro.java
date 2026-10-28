@@ -1115,7 +1115,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
                 List<Object> fees = (List<Object>) this.safeList(order, "fees", (Object) null);
                 if (!java.util.Objects.equals(fees, null))
                 {
-                    ((Map<String, Object>)parsed).put("fees", fees);
+                    parsed.put("fees", fees);
                 }
                 parsed.put("trades", this.safeList(order, "trades", new ArrayList<Object>(Arrays.asList())));
                 parsed.put("timestamp", this.safeInteger(order, "timestamp"));

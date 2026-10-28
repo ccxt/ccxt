@@ -1724,7 +1724,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         //        "symbols": [ "ETH_USDT", "BTC_USDT" ]
         //    }
         //
-        String channel = this.safeString(message, "channel");
+        String channel = this.safeString(message, "channel", "");
         List<Object> marketIds = (List<Object>) this.safeList(message, "symbols", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(this.options, "timeframes", new HashMap<String, Object>() {{}});
         String timeframe = this.findTimeframe(channel, timeframes);

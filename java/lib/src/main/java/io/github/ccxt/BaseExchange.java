@@ -10856,7 +10856,7 @@ public Map<String, Object> describe()
         List<Object> interests = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < (switch ((Object)(response)) { case null -> 0; case List<?> j39v58 -> j39v58.size(); case String j39v59 -> j39v59.length(); case Object j39v60 -> j39v60.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v60) : 0; }); i++)
         {
-            Object row = Helpers.GetValue(response, i);
+            Object row = this.safeValue(response, i);
             ((List<Object>)interests).add(this.parseBorrowInterest((Map<String, Object>) (row), market));
         }
         return interests;
@@ -10872,7 +10872,7 @@ public Map<String, Object> describe()
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < (switch ((Object)(response)) { case null -> 0; case List<?> j39v61 -> j39v61.size(); case String j39v62 -> j39v62.length(); case Object j39v63 -> j39v63.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v63) : 0; }); i++)
         {
-            Object item = Helpers.GetValue(response, i);
+            Object item = this.safeValue(response, i);
             Map<String, Object> borrowRate = (Map<String, Object>) this.parseBorrowRate(item, (Map<String, Object>) null);
             ((List<Object>)result).add(borrowRate);
         }
@@ -10885,7 +10885,7 @@ public Map<String, Object> describe()
         Map<String, Object> result = new HashMap<String, Object>() {{}};
         for (var i = 0; i < (switch ((Object)(info)) { case null -> 0; case List<?> j39v64 -> j39v64.size(); case String j39v65 -> j39v65.length(); case Object j39v66 -> j39v66.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v66) : 0; }); i++)
         {
-            Object item = Helpers.GetValue(info, i);
+            Object item = this.safeValue(info, i);
             Map<String, Object> borrowRate = (Map<String, Object>) this.parseIsolatedBorrowRate((Map<String, Object>) (item), (Map<String, Object>) null);
             String symbol = this.safeString(borrowRate, "symbol");
             result.put((String)symbol, borrowRate);

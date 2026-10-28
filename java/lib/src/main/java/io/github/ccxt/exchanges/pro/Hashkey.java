@@ -359,7 +359,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         //
         String marketId = this.safeString(message, "symbol");
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
-        String symbol = (String) market.get("symbol");
+        String symbol = this.safeString(market, "symbol", "");
         if (!(((Map<?, ?>)this.trades).containsKey(symbol)))
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);

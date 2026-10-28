@@ -7071,45 +7071,44 @@ public class Xt extends XtApi
             String payloadString = "";
             if ((java.util.Objects.equals(endpoint, "spot")) || (java.util.Objects.equals(endpoint, "user")))
             {
-                payloadString = (((((("xt-validate-algorithms=HmacSHA256&xt-validate-appkey=" + this.apiKey) + "&xt-validate-recvwindow=") + recvWindow) + "&xt-validate-t") + "imestamp=") + timestamp);
+                String spotPrefix = (((((("xt-validate-algorithms=HmacSHA256&xt-validate-appkey=" + this.apiKey) + "&xt-validate-recvwindow=") + recvWindow) + "&xt-validate-t") + "imestamp=") + timestamp);
                 if (Boolean.TRUE.equals(isUndefinedBody))
                 {
                     if (!java.util.Objects.equals(urlencoded, ""))
                     {
                         url = (((apiUrl + payload) + "?") + urlencoded);
-                        payloadString = (payloadString + ((((("#" + java.util.Objects.requireNonNullElse(method, "GET")) + "#") + payload) + "#") + this.rawencode(this.keysort(query))));
+                        payloadString = ((((((spotPrefix + "#") + java.util.Objects.requireNonNullElse(method, "GET")) + "#") + payload) + "#") + this.rawencode(this.keysort(query)));
                     } else
                     {
-                        payloadString = (payloadString + ((("#" + java.util.Objects.requireNonNullElse(method, "GET")) + "#") + payload));
+                        payloadString = ((((spotPrefix + "#") + java.util.Objects.requireNonNullElse(method, "GET")) + "#") + payload);
                     }
                 } else
                 {
-                    payloadString = (payloadString + ((((("#" + java.util.Objects.requireNonNullElse(method, "GET")) + "#") + payload) + "#") + signedBody));
+                    payloadString = ((((((spotPrefix + "#") + java.util.Objects.requireNonNullElse(method, "GET")) + "#") + payload) + "#") + signedBody);
                 }
                 headersValue.put("xt-validate-algorithms", "HmacSHA256");
                 headersValue.put("xt-validate-recvwindow", recvWindow);
             } else
             {
-                payloadString = (((("xt-validate-appkey=" + this.apiKey) + "&xt-validate-t") + "imestamp=") + timestamp); // we can't glue timestamp, breaks in php
+                String futurePrefix = (((("xt-validate-appkey=" + this.apiKey) + "&xt-validate-t") + "imestamp=") + timestamp); // we can't glue timestamp, breaks in php
                 if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
                 {
                     if (!java.util.Objects.equals(urlencoded, ""))
                     {
                         url = (((apiUrl + payload) + "?") + urlencoded);
-                        payloadString = (payloadString + ((("#" + payload) + "#") + urlencoded));
+                        payloadString = ((((futurePrefix + "#") + payload) + "#") + urlencoded);
                     } else
                     {
-                        payloadString = (payloadString + ("#" + payload));
+                        payloadString = ((futurePrefix + "#") + payload);
                     }
                 } else
                 {
-                    payloadString = (payloadString + ((("#" + payload) + "#") + signedBody));
+                    payloadString = ((((futurePrefix + "#") + payload) + "#") + signedBody);
                 }
             }
-            String signature = (String) this.hmac(this.encode(payloadString), this.encode(this.secret), sha256());
             headersValue.put("xt-validate-appkey", this.apiKey);
             headersValue.put("xt-validate-timestamp", timestamp);
-            headersValue.put("xt-validate-signature", signature);
+            headersValue.put("xt-validate-signature", this.hmac(this.encode(payloadString), this.encode(this.secret), sha256()));
         } else
         {
             if (!java.util.Objects.equals(urlencoded, ""))
@@ -7117,16 +7116,11 @@ public class Xt extends XtApi
                 url = (((apiUrl + payload) + "?") + urlencoded);
             }
         }
-        String bodyValue = null;
-        if (Boolean.TRUE.equals(signed))
-        {
-            bodyValue = signedBody;
-        }
         {
             HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
             h2kMap1.put("url", url);
             h2kMap1.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
-            h2kMap1.put("body", bodyValue);
+            h2kMap1.put("body", signedBody);
             h2kMap1.put("headers", headersValue);
             return h2kMap1;
         }

@@ -1873,11 +1873,12 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             throw new ArgumentsRequired((this.id + "postAction() requires a \"operationType\" argument!")) ;
         }
         String requestId = this.requestId();
+        Map<String, Object> postParams = new HashMap<String, Object>() {{}};
+        postParams.put(operationType, request);
         Map<String, Object> payload = new HashMap<String, Object>() {{
             put( "id", requestId );
-            put( "params", new HashMap<String, Object>() {{}} );
+            put( "params", postParams );
         }};
-        Helpers.addElementToObject(payload.get("params"), operationType, request);
         return payload;
     }
 
