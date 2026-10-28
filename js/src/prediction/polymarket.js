@@ -1490,7 +1490,7 @@ export default class polymarket extends Exchange {
      */
     async fetchTrades(outcome, since = undefined, limit = undefined, params = {}) {
         const outcomeObj = await this.loadOutcome(outcome);
-        const tokenId = this.safeString(outcomeObj, 'outcomeId');
+        const tokenId = this.safeString(outcomeObj, 'outcomeId', '');
         const outcomeInfo = this.safeDict(outcomeObj, 'info', {});
         const conditionId = this.safeString(outcomeInfo, 'conditionId');
         if (conditionId === undefined) {

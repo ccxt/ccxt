@@ -3476,8 +3476,8 @@ class deribit extends deribit$1["default"] {
         if (cursor !== undefined) {
             const dataLength = data.length;
             if (dataLength > 0) {
-                const first = data[0];
-                const last = data[dataLength - 1];
+                const first = this.safeDict(data, 0, {});
+                const last = this.safeDict(data, dataLength - 1, {});
                 first['continuation'] = cursor;
                 last['continuation'] = cursor;
                 data[0] = first;

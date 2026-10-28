@@ -341151,8 +341151,8 @@ class deribit extends _abstract_deribit_js__rspack_import_0/* ["default"] */.A {
         if (cursor !== undefined) {
             const dataLength = data.length;
             if (dataLength > 0) {
-                const first = data[0];
-                const last = data[dataLength - 1];
+                const first = this.safeDict(data, 0, {});
+                const last = this.safeDict(data, dataLength - 1, {});
                 first['continuation'] = cursor;
                 last['continuation'] = cursor;
                 data[0] = first;
@@ -413555,7 +413555,7 @@ class krakenfutures extends _abstract_krakenfutures_js__rspack_import_0/* ["defa
             const future = type === 'future';
             let symbol = id;
             const split = id.split('_');
-            const splitMarket = this.safeString(split, 1);
+            const splitMarket = this.safeString(split, 1, '');
             const baseId = splitMarket.slice(0, splitMarket.length - 3);
             const quoteId = 'usd'; // always USD
             const base = this.safeCurrencyCode(baseId);
@@ -515817,7 +515817,7 @@ class polymarket extends _abstract_prediction_polymarket_js__rspack_import_0/* [
      * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */ async fetchTrades(outcome, since = undefined, limit = undefined, params = {}) {
         const outcomeObj = await this.loadOutcome(outcome);
-        const tokenId = this.safeString(outcomeObj, 'outcomeId');
+        const tokenId = this.safeString(outcomeObj, 'outcomeId', '');
         const outcomeInfo = this.safeDict(outcomeObj, 'info', {});
         const conditionId = this.safeString(outcomeInfo, 'conditionId');
         if (conditionId === undefined) {
@@ -560114,7 +560114,7 @@ class coinbaseexchange extends _coinbaseexchange_js__rspack_import_0/* ["default
         //     }
         //
         const errMsg = this.safeString(message, 'message');
-        const reason = this.safeString(message, 'reason');
+        const reason = this.safeString(message, 'reason', '');
         try {
             if (errMsg === 'Authentication Failed') {
                 throw new _base_errors_js__rspack_import_2.AuthenticationError('Authentication failed: ' + reason);
@@ -573931,13 +573931,16 @@ class hashkey extends _hashkey_js__rspack_import_0/* ["default"] */.A {
         //
         const marketId = this.safeString(message, 'symbol');
         const market = this.safeMarket(marketId);
-        const symbol = this.safeSymbol(marketId, market);
-        if (!(symbol in this.ohlcvs)) {
-            this.ohlcvs[symbol] = {};
-        }
+        const symbol = this.safeString(market, 'symbol', '');
         const params = this.safeDict(message, 'params');
         const klineType = this.safeString(params, 'klineType');
         const timeframe = this.findTimeframe(klineType);
+        if (timeframe === undefined) {
+            return;
+        }
+        if (!(symbol in this.ohlcvs)) {
+            this.ohlcvs[symbol] = {};
+        }
         if (!(timeframe in this.ohlcvs[symbol])) {
             const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
             this.ohlcvs[symbol][timeframe] = new _base_ws_Cache_js__rspack_import_2/* .ArrayCacheByTimestamp */.TG(limit);

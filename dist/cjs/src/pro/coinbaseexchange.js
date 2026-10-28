@@ -982,7 +982,7 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
         //     }
         //
         const errMsg = this.safeString(message, 'message');
-        const reason = this.safeString(message, 'reason');
+        const reason = this.safeString(message, 'reason', '');
         try {
             if (errMsg === 'Authentication Failed') {
                 throw new errors.AuthenticationError('Authentication failed: ' + reason);

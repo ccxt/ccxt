@@ -130,13 +130,16 @@ export default class hashkey extends hashkeyRest {
         //
         const marketId = this.safeString(message, 'symbol');
         const market = this.safeMarket(marketId);
-        const symbol = this.safeSymbol(marketId, market);
-        if (!(symbol in this.ohlcvs)) {
-            this.ohlcvs[symbol] = {};
-        }
+        const symbol = this.safeString(market, 'symbol', '');
         const params = this.safeDict(message, 'params');
         const klineType = this.safeString(params, 'klineType');
         const timeframe = this.findTimeframe(klineType);
+        if (timeframe === undefined) {
+            return;
+        }
+        if (!(symbol in this.ohlcvs)) {
+            this.ohlcvs[symbol] = {};
+        }
         if (!(timeframe in this.ohlcvs[symbol])) {
             const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
             this.ohlcvs[symbol][timeframe] = new ArrayCacheByTimestamp(limit);
