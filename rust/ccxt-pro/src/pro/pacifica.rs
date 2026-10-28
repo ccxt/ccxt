@@ -161,6 +161,9 @@ impl crate::exchange::DerivedExchange for PacificaCore {
     fn create_expired_option_market(&self, symbol: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::create_expired_option_market(&self.parent, symbol)
     }
+    fn market(&self, symbol: crate::Value) -> crate::Value {
+        crate::exchange::DerivedExchange::market(&self.parent, symbol)
+    }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::sign(&self.parent, path, api, method, params, headers, body)
     }
@@ -414,10 +417,10 @@ impl PacificaCore {
         let mut operationType: Value = requestoperationTypeVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut isTestnet: Value = self.isSandboxModeEnabled.clone();
         let mut urlKey: Value = Value::Str("api".into());
-        if is_true(&isTestnet) {
+        if isTestnet.as_bool() == Some(true) {
             urlKey = Value::Str("test".into());
         }
-        let mut url: Value = self.safe_string(crate::value::get_value_k(&get_value(&self.urls, &urlKey), "ws"), Value::Str("public".into()), &[]);
+        let mut url: Value = self.safe_string(crate::value::get_value_k(&self.urls.as_map().and_then(|__m| urlKey.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), "ws"), Value::Str("public".into()), &[]);
         if (url == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" has no websocket url for this endpoint".into()))));
         }
@@ -519,10 +522,10 @@ impl PacificaCore {
         let mut request: Value = self.parent.edit_order_request(id.clone(), symbol.clone(), type_var, side, amount, price, market, &[params]);
         let mut isTestnet: Value = self.isSandboxModeEnabled.clone();
         let mut urlKey: Value = Value::Str("api".into());
-        if is_true(&isTestnet) {
+        if isTestnet.as_bool() == Some(true) {
             urlKey = Value::Str("test".into());
         }
-        let mut url: Value = self.safe_string(crate::value::get_value_k(&get_value(&self.urls, &urlKey), "ws"), Value::Str("public".into()), &[]);
+        let mut url: Value = self.safe_string(crate::value::get_value_k(&self.urls.as_map().and_then(|__m| urlKey.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), "ws"), Value::Str("public".into()), &[]);
         if (url == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" has no websocket url for this endpoint".into()))));
         }
@@ -601,10 +604,10 @@ impl PacificaCore {
         let mut request: Value = self.parent.cancel_orders_request(ids, &[symbol, params]);
         let mut isTestnet: Value = self.isSandboxModeEnabled.clone();
         let mut urlKey: Value = Value::Str("api".into());
-        if is_true(&isTestnet) {
+        if isTestnet.as_bool() == Some(true) {
             urlKey = Value::Str("test".into());
         }
-        let mut url: Value = self.safe_string(crate::value::get_value_k(&get_value(&self.urls, &urlKey), "ws"), Value::Str("public".into()), &[]);
+        let mut url: Value = self.safe_string(crate::value::get_value_k(&self.urls.as_map().and_then(|__m| urlKey.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), "ws"), Value::Str("public".into()), &[]);
         if (url == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" has no websocket url for this endpoint".into()))));
         }
@@ -642,8 +645,8 @@ impl PacificaCore {
         let mut ordersToReturn: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_560: bool = true;
-            while { if !__for_first_560 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_560 = false; i.as_f64().unwrap_or(f64::NAN) < ((results.len() as i64) as f64) } {
+            let mut __for_first_586: bool = true;
+            while { if !__for_first_586 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_586 = false; i.as_f64().unwrap_or(f64::NAN) < ((results.len() as i64) as f64) } {
             let mut order: Value = self.safe_dict(results.clone(), i.clone(), &[]);
             let mut error: Option<String> = self.safe_string_k(order.clone(), "error", &[]).as_str().map(str::to_owned);
             let mut success: Value = self.safe_bool_k(order.clone(), "success", &[Value::Bool(false)]);
@@ -652,12 +655,12 @@ impl PacificaCore {
             let mut orderId: Value = self.safe_string_k(order.clone(), "i", &[]);
             let mut clientOrderId: Value = self.safe_string_k(order, "I", &[]);
             let mut status: Value = Value::Null;
-            if (error.is_some()) || (success.as_bool() != Some(true)) {
+            if (error.is_some()) || (!(success.as_bool() == Some(true))) {
                 status = Value::Str("closed".into());
             }  else {
                 status = Value::Str("canceled".into());
             }
-            append_to_array(&mut ordersToReturn, self.safe_order(Value::Map({
+            if let Value::Arr(__a) = &mut ordersToReturn { std::sync::Arc::make_mut(__a).push(self.safe_order(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), orderId);
                     m.insert("clientOrderId".to_string(), clientOrderId);
@@ -665,7 +668,7 @@ impl PacificaCore {
                     m.insert("info".to_string(), response.clone());
                     m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
                 m
-            }), &[]));
+            }), &[])); }
         }
         }
         return ordersToReturn;
@@ -704,10 +707,10 @@ impl PacificaCore {
         let mut request: Value = self.parent.cancel_order_request(id.clone(), &[symbol.clone(), params]);
         let mut isTestnet: Value = self.isSandboxModeEnabled.clone();
         let mut urlKey: Value = Value::Str("api".into());
-        if is_true(&isTestnet) {
+        if isTestnet.as_bool() == Some(true) {
             urlKey = Value::Str("test".into());
         }
-        let mut url: Value = self.safe_string(crate::value::get_value_k(&get_value(&self.urls, &urlKey), "ws"), Value::Str("public".into()), &[]);
+        let mut url: Value = self.safe_string(crate::value::get_value_k(&self.urls.as_map().and_then(|__m| urlKey.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), "ws"), Value::Str("public".into()), &[]);
         if (url == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" has no websocket url for this endpoint".into()))));
         }
@@ -783,10 +786,10 @@ impl PacificaCore {
         let mut request: Value = self.parent.cancel_all_orders_request(symbol, &[params]);
         let mut isTestnet: Value = self.isSandboxModeEnabled.clone();
         let mut urlKey: Value = Value::Str("api".into());
-        if is_true(&isTestnet) {
+        if isTestnet.as_bool() == Some(true) {
             urlKey = Value::Str("test".into());
         }
-        let mut url: Value = self.safe_string(crate::value::get_value_k(&get_value(&self.urls, &urlKey), "ws"), Value::Str("public".into()), &[]);
+        let mut url: Value = self.safe_string(crate::value::get_value_k(&self.urls.as_map().and_then(|__m| urlKey.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), "ws"), Value::Str("public".into()), &[]);
         if (url == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" has no websocket url for this endpoint".into()))));
         }
@@ -830,10 +833,10 @@ impl PacificaCore {
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook:".into()), symbol).into());
         let mut isTestnet: Value = self.isSandboxModeEnabled.clone();
         let mut urlKey: Value = Value::Str("api".into());
-        if is_true(&isTestnet) {
+        if isTestnet.as_bool() == Some(true) {
             urlKey = Value::Str("test".into());
         }
-        let mut url: Value = self.safe_string(crate::value::get_value_k(&get_value(&self.urls, &urlKey), "ws"), Value::Str("public".into()), &[]);
+        let mut url: Value = self.safe_string(crate::value::get_value_k(&self.urls.as_map().and_then(|__m| urlKey.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), "ws"), Value::Str("public".into()), &[]);
         if (url == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" has no websocket url for this endpoint".into()))));
         }
@@ -882,10 +885,10 @@ impl PacificaCore {
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash).into());
         let mut isTestnet: Value = self.isSandboxModeEnabled.clone();
         let mut urlKey: Value = Value::Str("api".into());
-        if is_true(&isTestnet) {
+        if isTestnet.as_bool() == Some(true) {
             urlKey = Value::Str("test".into());
         }
-        let mut url: Value = self.safe_string(crate::value::get_value_k(&get_value(&self.urls, &urlKey), "ws"), Value::Str("public".into()), &[]);
+        let mut url: Value = self.safe_string(crate::value::get_value_k(&self.urls.as_map().and_then(|__m| urlKey.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), "ws"), Value::Str("public".into()), &[]);
         if (url == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" has no websocket url for this endpoint".into()))));
         }
@@ -963,11 +966,11 @@ impl PacificaCore {
         if (nonce != Value::Null) && (nonce.as_f64() != Some(0.0)) {
             add_element_to_object(&mut snapshot, &Value::Str("nonce".into()), nonce);
         }
-        if !(in_op(&self.orderbooks, &symbol)) {
+        if !(matches!((&self.orderbooks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             let mut ob: Value = self.order_book(&[snapshot.clone()]);
             if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ob); }
         }
-        let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
+        let mut orderbook: Value = self.orderbooks.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
         orderbook.reset(snapshot);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook:".into()), symbol).into());
         client.resolve(&[orderbook, messageHash]);
@@ -1016,10 +1019,10 @@ impl PacificaCore {
         let mut messageHash: Value = Value::Str("tickers".into());
         let mut isTestnet: Value = self.isSandboxModeEnabled.clone();
         let mut urlKey: Value = Value::Str("api".into());
-        if is_true(&isTestnet) {
+        if isTestnet.as_bool() == Some(true) {
             urlKey = Value::Str("test".into());
         }
-        let mut url: Value = self.safe_string(crate::value::get_value_k(&get_value(&self.urls, &urlKey), "ws"), Value::Str("public".into()), &[]);
+        let mut url: Value = self.safe_string(crate::value::get_value_k(&self.urls.as_map().and_then(|__m| urlKey.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), "ws"), Value::Str("public".into()), &[]);
         if (url == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" has no websocket url for this endpoint".into()))));
         }
@@ -1035,7 +1038,7 @@ impl PacificaCore {
         });
         let __ws_arg_0 = self.extend(request, &[params]);
         let mut tickers: Value = self.watch(url, messageHash.clone(), &[__ws_arg_0, messageHash.clone()]).await;
-        if is_true(&self.newUpdates) {
+        if self.newUpdates.as_bool() == Some(true) {
             return self.filter_by_array_tickers(tickers.clone(), Value::Str("symbol".into()), &[symbolsNormalized]);
         }
         return self.tickers.clone();
@@ -1066,10 +1069,10 @@ impl PacificaCore {
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash).into());
         let mut isTestnet: Value = self.isSandboxModeEnabled.clone();
         let mut urlKey: Value = Value::Str("api".into());
-        if is_true(&isTestnet) {
+        if isTestnet.as_bool() == Some(true) {
             urlKey = Value::Str("test".into());
         }
-        let mut url: Value = self.safe_string(crate::value::get_value_k(&get_value(&self.urls, &urlKey), "ws"), Value::Str("public".into()), &[]);
+        let mut url: Value = self.safe_string(crate::value::get_value_k(&self.urls.as_map().and_then(|__m| urlKey.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), "ws"), Value::Str("public".into()), &[]);
         if (url == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" has no websocket url for this endpoint".into()))));
         }
@@ -1123,10 +1126,10 @@ impl PacificaCore {
         }
         let mut isTestnet: Value = self.isSandboxModeEnabled.clone();
         let mut urlKey: Value = Value::Str("api".into());
-        if is_true(&isTestnet) {
+        if isTestnet.as_bool() == Some(true) {
             urlKey = Value::Str("test".into());
         }
-        let mut url: Value = self.safe_string(crate::value::get_value_k(&get_value(&self.urls, &urlKey), "ws"), Value::Str("public".into()), &[]);
+        let mut url: Value = self.safe_string(crate::value::get_value_k(&self.urls.as_map().and_then(|__m| urlKey.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), "ws"), Value::Str("public".into()), &[]);
         if (url == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" has no websocket url for this endpoint".into()))));
         }
@@ -1144,7 +1147,7 @@ impl PacificaCore {
         let mut message: Value = self.extend(request, &[paramsOriginAndSingleAddress]);
         let mut trades: Value = self.watch(url, messageHash.clone(), &[message, messageHash.clone()]).await;
         let mut limitResolved: Value = limit.clone();
-        if is_true(&self.newUpdates) {
+        if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolResolved.clone(), limit);
         }
         return self.filter_by_symbol_since_limit(trades, &[symbolResolved, since, limitResolved, Value::Bool(true)]);
@@ -1180,10 +1183,10 @@ impl PacificaCore {
         let mut messageHash: Value = Value::Str("unsubscribe:myTrades".into());
         let mut isTestnet: Value = self.isSandboxModeEnabled.clone();
         let mut urlKey: Value = Value::Str("api".into());
-        if is_true(&isTestnet) {
+        if isTestnet.as_bool() == Some(true) {
             urlKey = Value::Str("test".into());
         }
-        let mut url: Value = self.safe_string(crate::value::get_value_k(&get_value(&self.urls, &urlKey), "ws"), Value::Str("public".into()), &[]);
+        let mut url: Value = self.safe_string(crate::value::get_value_k(&self.urls.as_map().and_then(|__m| urlKey.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), "ws"), Value::Str("public".into()), &[]);
         if (url == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" has no websocket url for this endpoint".into()))));
         }
@@ -1227,22 +1230,22 @@ impl PacificaCore {
         //     ],
         // }
         //
-        let mut parsedTickers: Value = Value::from(vec![]);
+        let mut parsedTickers: Vec<Value> = Vec::new();
         let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_561: bool = true;
-            while { if !__for_first_561 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_561 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
+            let mut __for_first_587: bool = true;
+            while { if !__for_first_587 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_587 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             let mut info: Value = data.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut marketId: Value = self.safe_string_k(info.clone(), "symbol", &[]);
             let mut market: Value = self.safe_market(&[marketId]);
             let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             let mut ticker: Value = self.parse_ws_ticker(info, &[market]);
             if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ticker.clone()); }
-            append_to_array(&mut parsedTickers, ticker);
+            parsedTickers.push(ticker);
         }
         }
-        let mut tickers: Value = self.index_by(parsedTickers, Value::Str("symbol".into()));
+        let mut tickers: Value = self.index_by(Value::from(parsedTickers), Value::Str("symbol".into()));
         client.resolve(&[tickers, Value::Str("tickers".into())]);
         return Value::Bool(true);
 
@@ -1299,8 +1302,8 @@ impl PacificaCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_562: bool = true;
-            while { if !__for_first_562 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_562 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
+            let mut __for_first_588: bool = true;
+            while { if !__for_first_588 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_588 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             let mut rawTrade: Value = data.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut parsed: Value = self.parse_ws_trade(rawTrade, &[]);
             let mut symbol: Value = parsed.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
@@ -1313,8 +1316,8 @@ impl PacificaCore {
         let mut keys: Value = object_keys(&symbols);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_563: bool = true;
-            while { if !__for_first_563 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_563 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
+            let mut __for_first_589: bool = true;
+            while { if !__for_first_589 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_589 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
             let mut currentMessageHash: Value = Value::Str(format!("{}{}", Value::Str("myTrades:".into()), keys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null)).into());
             client.resolve(&[trades.clone(), currentMessageHash]);
         }
@@ -1350,10 +1353,10 @@ impl PacificaCore {
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("trade:".into()), symbolValue).into());
         let mut isTestnet: Value = self.isSandboxModeEnabled.clone();
         let mut urlKey: Value = Value::Str("api".into());
-        if is_true(&isTestnet) {
+        if isTestnet.as_bool() == Some(true) {
             urlKey = Value::Str("test".into());
         }
-        let mut url: Value = self.safe_string(crate::value::get_value_k(&get_value(&self.urls, &urlKey), "ws"), Value::Str("public".into()), &[]);
+        let mut url: Value = self.safe_string(crate::value::get_value_k(&self.urls.as_map().and_then(|__m| urlKey.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), "ws"), Value::Str("public".into()), &[]);
         if (url == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" has no websocket url for this endpoint".into()))));
         }
@@ -1371,7 +1374,7 @@ impl PacificaCore {
         let mut message: Value = self.extend(request, &[params]);
         let mut trades: Value = self.watch(url, messageHash.clone(), &[message, messageHash.clone()]).await;
         let mut limitResolved: Value = limit.clone();
-        if is_true(&self.newUpdates) {
+        if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolValue, limit);
         }
         return self.filter_by_since_limit(trades, &[since, limitResolved, Value::Str("timestamp".into()), Value::Bool(true)]);
@@ -1402,10 +1405,10 @@ impl PacificaCore {
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash).into());
         let mut isTestnet: Value = self.isSandboxModeEnabled.clone();
         let mut urlKey: Value = Value::Str("api".into());
-        if is_true(&isTestnet) {
+        if isTestnet.as_bool() == Some(true) {
             urlKey = Value::Str("test".into());
         }
-        let mut url: Value = self.safe_string(crate::value::get_value_k(&get_value(&self.urls, &urlKey), "ws"), Value::Str("public".into()), &[]);
+        let mut url: Value = self.safe_string(crate::value::get_value_k(&self.urls.as_map().and_then(|__m| urlKey.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), "ws"), Value::Str("public".into()), &[]);
         if (url == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" has no websocket url for this endpoint".into()))));
         }
@@ -1454,16 +1457,16 @@ impl PacificaCore {
         let mut marketId: Value = self.safe_string_k(first, "s", &[]);
         let mut market: Value = self.safe_market(&[marketId]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        if !(in_op(&self.trades, &symbol)) {
+        if !(matches!((&self.trades, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
             let mut stored = ArrayCache::new(limit);
             if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), stored); }
         }
-        let mut trades: Value = get_value(&self.trades, &symbol);
+        let mut trades: Value = self.trades.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_564: bool = true;
-            while { if !__for_first_564 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_564 = false; i.as_f64().unwrap_or(f64::NAN) < ((entry.len() as i64) as f64) } {
+            let mut __for_first_590: bool = true;
+            while { if !__for_first_590 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_590 = false; i.as_f64().unwrap_or(f64::NAN) < ((entry.len() as i64) as f64) } {
             let mut data: Value = self.safe_dict(entry.clone(), i.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -1594,10 +1597,10 @@ impl PacificaCore {
         let mut isTestnet: Value = self.isSandboxModeEnabled.clone();
         let mut parsedTf: Value = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
         let mut urlKey: Value = Value::Str("api".into());
-        if is_true(&isTestnet) {
+        if isTestnet.as_bool() == Some(true) {
             urlKey = Value::Str("test".into());
         }
-        let mut url: Value = self.safe_string(crate::value::get_value_k(&get_value(&self.urls, &urlKey), "ws"), Value::Str("public".into()), &[]);
+        let mut url: Value = self.safe_string(crate::value::get_value_k(&self.urls.as_map().and_then(|__m| urlKey.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), "ws"), Value::Str("public".into()), &[]);
         if (url == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" has no websocket url for this endpoint".into()))));
         }
@@ -1617,7 +1620,7 @@ impl PacificaCore {
         let mut message: Value = self.extend(request, &[params]);
         let mut ohlcv: Value = self.watch(url, messageHash.clone(), &[message, messageHash.clone()]).await;
         let mut limitResolved: Value = limit.clone();
-        if is_true(&self.newUpdates) {
+        if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(symbolValue, limit);
         }
         return self.filter_by_since_limit(ohlcv, &[since, limitResolved, Value::Int(0), Value::Bool(true)]);
@@ -1648,10 +1651,10 @@ impl PacificaCore {
         let mut symbolValue: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut isTestnet: Value = self.isSandboxModeEnabled.clone();
         let mut urlKey: Value = Value::Str("api".into());
-        if is_true(&isTestnet) {
+        if isTestnet.as_bool() == Some(true) {
             urlKey = Value::Str("test".into());
         }
-        let mut url: Value = self.safe_string(crate::value::get_value_k(&get_value(&self.urls, &urlKey), "ws"), Value::Str("public".into()), &[]);
+        let mut url: Value = self.safe_string(crate::value::get_value_k(&self.urls.as_map().and_then(|__m| urlKey.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), "ws"), Value::Str("public".into()), &[]);
         if (url == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" has no websocket url for this endpoint".into()))));
         }
@@ -1706,7 +1709,7 @@ impl PacificaCore {
         if (timeframe == Value::Null) {
             return;
         }
-        if !(in_op(&self.ohlcvs, &symbol)) {
+        if !(matches!((&self.ohlcvs, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             if let Value::Dict(__d) = &mut self.ohlcvs { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1764,10 +1767,10 @@ impl PacificaCore {
         }
         let mut isTestnet: Value = self.isSandboxModeEnabled.clone();
         let mut urlKey: Value = Value::Str("api".into());
-        if is_true(&isTestnet) {
+        if isTestnet.as_bool() == Some(true) {
             urlKey = Value::Str("test".into());
         }
-        let mut url: Value = self.safe_string(crate::value::get_value_k(&get_value(&self.urls, &urlKey), "ws"), Value::Str("public".into()), &[]);
+        let mut url: Value = self.safe_string(crate::value::get_value_k(&self.urls.as_map().and_then(|__m| urlKey.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), "ws"), Value::Str("public".into()), &[]);
         if (url == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" has no websocket url for this endpoint".into()))));
         }
@@ -1785,7 +1788,7 @@ impl PacificaCore {
         let mut message: Value = self.extend(request, &[paramsOriginAndSingleAddress]);
         let mut orders: Value = self.watch(url, messageHash.clone(), &[message, messageHash.clone()]).await;
         let mut limitResolved: Value = limit.clone();
-        if is_true(&self.newUpdates) {
+        if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.clone(), limit);
         }
         return self.filter_by_symbol_since_limit(orders, &[symbolResolved, since, limitResolved, Value::Bool(true)]);
@@ -1818,10 +1821,10 @@ impl PacificaCore {
         let mut messageHash: Value = Value::Str("unsubscribe:order".into());
         let mut isTestnet: Value = self.isSandboxModeEnabled.clone();
         let mut urlKey: Value = Value::Str("api".into());
-        if is_true(&isTestnet) {
+        if isTestnet.as_bool() == Some(true) {
             urlKey = Value::Str("test".into());
         }
-        let mut url: Value = self.safe_string(crate::value::get_value_k(&get_value(&self.urls, &urlKey), "ws"), Value::Str("public".into()), &[]);
+        let mut url: Value = self.safe_string(crate::value::get_value_k(&self.urls.as_map().and_then(|__m| urlKey.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), "ws"), Value::Str("public".into()), &[]);
         if (url == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" has no websocket url for this endpoint".into()))));
         }
@@ -1892,8 +1895,8 @@ impl PacificaCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_565: bool = true;
-            while { if !__for_first_565 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_565 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
+            let mut __for_first_591: bool = true;
+            while { if !__for_first_591 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_591 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             let mut rawOrder: Value = data.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut order: Value = self.parse_order(rawOrder, &[]);
             stored.append(order.clone());
@@ -1906,8 +1909,8 @@ impl PacificaCore {
         let mut keys: Value = object_keys(&marketSymbols);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_566: bool = true;
-            while { if !__for_first_566 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_566 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
+            let mut __for_first_592: bool = true;
+            while { if !__for_first_592 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_592 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
             let mut symbol: Value = keys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut innerMessageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), symbol).into());
             client.resolve(&[stored.clone(), innerMessageHash]);
@@ -1958,8 +1961,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut subMessageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook:".into()), symbol).into());
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash).into());
         self.clean_unsubscription(client, subMessageHash, messageHash, &[]);
-        if (in_op(&self.orderbooks, &symbol)) {
-            remove(&mut self.orderbooks, &symbol);
+        if (matches!((&self.orderbooks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+            if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.orderbooks, &symbol) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
         }
 }
 
@@ -1970,8 +1973,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut subMessageHash: Value = Value::Str(format!("{}{}", Value::Str("trade:".into()), symbol).into());
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash).into());
         self.clean_unsubscription(client, subMessageHash, messageHash, &[]);
-        if (in_op(&self.trades, &symbol)) {
-            remove(&mut self.trades, &symbol);
+        if (matches!((&self.trades, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+            if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.trades, &symbol) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
         }
 }
 
@@ -1979,11 +1982,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut subMessageHash: Value = Value::Str("tickers".into());
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash).into());
         self.clean_unsubscription(client, subMessageHash, messageHash, &[]);
-        let mut symbols: Value = object_keys(&self.tickers);
+        let mut symbols: Value = Value::Array(self.tickers.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_567: bool = true;
-            while { if !__for_first_567 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_567 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
+            let mut __for_first_593: bool = true;
+            while { if !__for_first_593 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_593 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
             remove(&mut self.tickers, &symbols.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
         }
         }
@@ -2003,8 +2006,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut subMessageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("candles:".into()), timeframe).into()), Value::Str(":".into())).into()), symbol).into());
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash).into());
         self.clean_unsubscription(client, subMessageHash, messageHash, &[]);
-        if (symbol != Value::Null) && (in_op(&self.ohlcvs, &symbol)) {
-            if (timeframe != Value::Null) && (in_op(&get_value(&self.ohlcvs, &symbol), &timeframe)) {
+        if (symbol != Value::Null) && (matches!((&self.ohlcvs, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+            if (timeframe != Value::Null) && (in_op(&self.ohlcvs.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), &timeframe)) {
                 remove(&mut get_value(&self.ohlcvs, &symbol), &timeframe);
             }
         }
@@ -2124,13 +2127,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             self.handle_ws_post(client.clone(), message.clone());
             return;
         }
-        let mut keys: Value = object_keys(&methods);
+        let mut keys: Value = Value::Array(methods.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_568: bool = true;
-            while { if !__for_first_568 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_568 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
+            let mut __for_first_594: bool = true;
+            while { if !__for_first_594 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_594 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
             let mut key: Value = keys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-            if get_index_of(&topic, &keys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+            if (match (&(topic), &(keys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null))) { (Value::Arr(__a), __nd) => Value::Int(__a.iter().position(|__it| match (__it, __nd) { (Value::Null, Value::Null) => true, (Value::Bool(__x), Value::Bool(__y)) => __x == __y, (Value::Str(__x), Value::Str(__y)) => __x == __y, (Value::Int(__x), Value::Int(__y)) => __x == __y, (Value::Float(__x), Value::Float(__y)) => __x == __y, (__p, __q) => match ((match __p { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), (match __q { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None })) { (Some(__x), Some(__y)) => __x == __y, _ => false } }).map(|__i| __i as i64).unwrap_or(-1)), (Value::Str(__s), Value::Str(__nd)) => Value::Int(__s.find(&**__nd).map(|__i| __i as i64).unwrap_or(-1)), _ => Value::Int(-1) }).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
                 let mut method: Value = methods.as_map().and_then(|__m| key.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
                 self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);
                 return;

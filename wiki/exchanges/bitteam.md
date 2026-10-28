@@ -21,6 +21,7 @@
 * [fetchTicker](#fetchticker)
 * [fetchTrades](#fetchtrades)
 * [fetchMyTrades](#fetchmytrades)
+* [fetchBalance](#fetchbalance)
 * [fetchDepositsWithdrawals](#fetchdepositswithdrawals)
 
 <a name="fetchMarkets" id="fetchmarkets"></a>
@@ -376,6 +377,26 @@ fetch all trades made by the user
 
 ```javascript
 bitteam.fetchMyTrades (symbol, since?, limit?, params?)
+```
+
+
+<a name="fetchBalance" id="fetchbalance"></a>
+
+### fetchBalance{docsify-ignore}
+query for balance and get the amount of funds available for trading or funds locked in orders
+
+**Kind**: instance method of [<code>bitteam</code>](#bitteam)  
+**Returns**: <code>object</code> - a [balance structure](https://github.com/ccxt/ccxt/wiki/Manual#balance-structure)
+
+**See**: https://bit.team/trade/api/documentation#/PRIVATE/getTradeApiCcxtBalance  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bitteam.fetchBalance (params?)
 ```
 
 

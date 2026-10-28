@@ -176,9 +176,9 @@ public class Extended extends io.github.ccxt.exchanges.Extended
 
     public void handleDeltas(Object bookside, Object deltas)
     {
-        for (var i = 0; i < Helpers.getArrayLength(deltas); i++)
+        for (var i = 0; i < ((List<?>)deltas).size(); i++)
         {
-            this.handleDelta(bookside, Helpers.GetValue(deltas, i));
+            this.handleDelta(bookside, (deltas == null || i < 0 || i >= ((List<?>)deltas).size() ? null : ((List<?>)deltas).get(i)));
         }
     }
 
@@ -450,7 +450,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             client.resolve(stored, messageHash);
         }
         client.resolve(stored, "myTrades");
-        List<Object> subscriptions = Helpers.objectKeys(client.subscriptions);
+        List<Object> subscriptions = ((List<Object>) switch ((Object)(client.subscriptions)) { case Map<?, ?> j39v1 -> { synchronized (j39v1) { yield new ArrayList<Object>(j39v1.keySet()); } } case null, default -> new ArrayList<Object>(); });
         for (var i = 0; i < ((List<?>)subscriptions).size(); i++)
         {
             Object messageHash = (subscriptions == null || i < 0 || i >= subscriptions.size() ? null : subscriptions.get(i));
@@ -550,10 +550,10 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             ((List<Object>)newPositions).add(position);
             stored.append(position);
         }
-        Object messageHashes = this.findMessageHashes(client, "positions::");
+        List<Object> messageHashes = (List<Object>) this.findMessageHashes(client, "positions::");
         for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
         {
-            Object messageHash = (messageHashes == null || i < 0 || i >= ((List<?>)messageHashes).size() ? null : ((List<?>)messageHashes).get(i));
+            Object messageHash = (messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i));
             List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)messageHash).split(java.util.regex.Pattern.quote("::"))));
             String symbolsString = (String) (parts == null || 1 >= parts.size() ? null : parts.get(1));
             List<Object> symbols = new ArrayList<Object>(Arrays.asList(((String)symbolsString).split(java.util.regex.Pattern.quote(","))));
@@ -626,7 +626,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             client.resolve(orders, messageHash);
         }
         client.resolve(orders, "orders");
-        List<Object> subscriptions = Helpers.objectKeys(client.subscriptions);
+        List<Object> subscriptions = ((List<Object>) switch ((Object)(client.subscriptions)) { case Map<?, ?> j39v2 -> { synchronized (j39v2) { yield new ArrayList<Object>(j39v2.keySet()); } } case null, default -> new ArrayList<Object>(); });
         for (var i = 0; i < ((List<?>)subscriptions).size(); i++)
         {
             Object messageHash = (subscriptions == null || i < 0 || i >= subscriptions.size() ? null : subscriptions.get(i));
@@ -1013,9 +1013,9 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         client.resolve(stored, messageHash);
     }
 
-    public Object findSubscription(Client client, Object name)
+    public Object findSubscription(Client client, String name)
     {
-        List<Object> keys = Helpers.objectKeys(client.subscriptions);
+        List<Object> keys = ((List<Object>) switch ((Object)(client.subscriptions)) { case Map<?, ?> j39v3 -> { synchronized (j39v3) { yield new ArrayList<Object>(j39v3.keySet()); } } case null, default -> new ArrayList<Object>(); });
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
@@ -1054,10 +1054,11 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             return;
         }
         String type = this.safeString(message, "type");
-        Object data = this.safeValue(message, "data");
-        if ((data instanceof List))
+        List<Object> dataList = (List<Object>) this.safeList(message, "data", (Object) null);
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", (Object) null);
+        if (!java.util.Objects.equals(dataList, null))
         {
-            Map<String, Object> first = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> first = (Map<String, Object>) this.safeDict(dataList, 0, new HashMap<String, Object>() {{}});
             String side = this.safeString(first, "S");
             if (!java.util.Objects.equals(side, null))
             {
@@ -1071,22 +1072,22 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             // an account frame may carry several sections at once, so these are
             // not mutually exclusive and must not fall through to the order book
             Boolean isAccountUpdate = false;
-            if ((java.util.Objects.equals(type, "ORDER")) || (Helpers.inOp(data, "orders")))
+            if ((java.util.Objects.equals(type, "ORDER")) || (data.containsKey("orders")))
             {
                 this.handleOrders(client, (Map<String, Object>) (message));
                 isAccountUpdate = true;
             }
-            if ((java.util.Objects.equals(type, "TRADE")) || (Helpers.inOp(data, "trades")))
+            if ((java.util.Objects.equals(type, "TRADE")) || (data.containsKey("trades")))
             {
                 this.handleMyTrades(client, (Map<String, Object>) (message));
                 isAccountUpdate = true;
             }
-            if ((java.util.Objects.equals(type, "POSITION")) || (Helpers.inOp(data, "positions")))
+            if ((java.util.Objects.equals(type, "POSITION")) || (data.containsKey("positions")))
             {
                 this.handlePositions(client, (Map<String, Object>) (message));
                 isAccountUpdate = true;
             }
-            if ((java.util.Objects.equals(type, "BALANCE")) || (Helpers.inOp(data, "balance")) || (Helpers.inOp(data, "spotBalances")))
+            if ((java.util.Objects.equals(type, "BALANCE")) || (data.containsKey("balance")) || (data.containsKey("spotBalances")))
             {
                 this.handleBalance(client, (Map<String, Object>) (message));
                 isAccountUpdate = true;
@@ -1094,7 +1095,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             if (java.util.Objects.equals(type, "MP"))
             {
                 this.handleMarkPrice(client, (Map<String, Object>) (message));
-            } else if (Helpers.inOp(data, "f"))
+            } else if (data.containsKey("f"))
             {
                 this.handleFundingRate(client, (Map<String, Object>) (message));
             } else if (!Boolean.TRUE.equals(isAccountUpdate))

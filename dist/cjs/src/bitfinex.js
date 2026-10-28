@@ -563,7 +563,8 @@ class bitfinex extends bitfinex$1["default"] {
         });
     }
     isFiat(code) {
-        return (code in this.options['fiat']);
+        const fiat = this.safeDict(this.options, 'fiat', {});
+        return (code in fiat);
     }
     getCurrencyName(code) {
         // temporary fix for transpiler recognition, even though this is in parent class
@@ -645,7 +646,7 @@ class bitfinex extends bitfinex$1["default"] {
         for (let i = 0; i < markets.length; i++) {
             const pairObj = this.safeList(markets, i);
             const id = this.safeStringUpper(pairObj, 0);
-            const market = this.safeValue(pairObj, 1, {});
+            const market = this.safeList(pairObj, 1, []);
             let spot = true;
             let type = undefined;
             if (id.indexOf('F0') >= 0) {
@@ -850,6 +851,7 @@ class bitfinex extends bitfinex$1["default"] {
         //         ]
         //     ]
         //
+        const networks = this.safeList(response, 8, []);
         const indexed = {
             'sym': this.indexBy(this.safeList(response, 1, []), 0),
             'label': this.indexBy(this.safeList(response, 2, []), 0),
@@ -858,13 +860,13 @@ class bitfinex extends bitfinex$1["default"] {
             'pool': this.indexBy(this.safeList(response, 5, []), 0),
             'explorer': this.indexBy(this.safeList(response, 6, []), 0),
             'fees': this.indexBy(this.safeList(response, 7, []), 0),
-            'networks': this.safeList(response, 8, []),
+            'networks': networks,
             'statuses': this.indexBy(this.safeList(response, 9, []), 0),
             'marginables': this.safeList(response, 10, []),
         };
         const indexedNetworks = {};
-        for (let i = 0; i < indexed['networks'].length; i++) {
-            const networkObj = this.safeList(indexed['networks'], i);
+        for (let i = 0; i < networks.length; i++) {
+            const networkObj = this.safeList(networks, i);
             const networkId = this.safeString(networkObj, 0);
             const valuesList = this.safeList(networkObj, 1);
             const networkName = this.safeString(valuesList, 0);
@@ -901,7 +903,8 @@ class bitfinex extends bitfinex$1["default"] {
         const name = this.safeString(label, 1);
         const pool = this.safeList(indexed['pool'], id, []);
         const rawType = this.safeString(pool, 1);
-        const isCryptoCoin = (rawType !== undefined) || (id in indexed['explorer']); // "hacky" solution
+        const explorer = this.safeDict(indexed, 'explorer', {});
+        const isCryptoCoin = (rawType !== undefined) || (id in explorer); // "hacky" solution
         const type = isCryptoCoin ? 'crypto' : undefined;
         const feeValues = this.safeList(indexed['fees'], id, []);
         const fees = this.safeList(feeValues, 1, []);
@@ -1003,8 +1006,7 @@ class bitfinex extends bitfinex$1["default"] {
             }
             const type = this.safeString(balance, 0);
             const currencyId = this.safeStringLower(balance, 1, '');
-            const start = currencyId.length - 2;
-            const isDerivativeCode = currencyId.slice(start) === 'f0';
+            const isDerivativeCode = (currencyId !== undefined) && (currencyId.endsWith('f0') === true);
             // this will only filter the derivative codes if the requestedType is 'derivatives'
             const derivativeCondition = (!isDerivative || isDerivativeCode);
             if ((accountType === type) && derivativeCondition) {
@@ -1153,8 +1155,7 @@ class bitfinex extends bitfinex$1["default"] {
         let currencyId = undefined;
         if (type === 'derivatives') {
             currencyId = this.safeString(underlying, 0, transferId);
-            const start = currencyId.length - 2;
-            const isDerivativeCode = currencyId.slice(start) === 'F0';
+            const isDerivativeCode = currencyId.endsWith('F0');
             if (!isDerivativeCode) {
                 currencyId = currencyId + 'F0';
             }
@@ -1201,7 +1202,7 @@ class bitfinex extends bitfinex$1["default"] {
             'datetime': this.iso8601(timestamp),
             'nonce': undefined,
         };
-        const priceIndex = (fullRequest['precision'] === 'R0') ? 1 : 0;
+        const priceIndex = (this.safeString(fullRequest, 'precision') === 'R0') ? 1 : 0;
         const orders = this.toArray(orderbook);
         for (let i = 0; i < orders.length; i++) {
             const order = orders[i];
@@ -1296,9 +1297,7 @@ class bitfinex extends bitfinex$1["default"] {
             bid = this.safeString(ticker, 2 - minusIndex);
             ask = this.safeString(ticker, 5 - minusIndex);
             change = this.safeString(ticker, 8 - minusIndex);
-            // DAILY_CHANGE_RELATIVE, per the array above: the same field the trading
-            // branch reads at index 6 and scales
-            percentage = Precise["default"].stringMul(this.safeString(ticker, 9 - minusIndex), '100');
+            // funding DAILY_CHANGE_RELATIVE is not change / (last - change), let safeTicker derive percentage
             volume = this.safeString(ticker, 11 - minusIndex);
             high = this.safeString(ticker, 12 - minusIndex);
             low = this.safeString(ticker, 13 - minusIndex);
@@ -1795,7 +1794,7 @@ class bitfinex extends bitfinex$1["default"] {
         }
         const ioc = (timeInForce === 'IOC');
         const fok = (timeInForce === 'FOK');
-        const postOnly = ((postOnlyParam === true) || (timeInForce === 'PO'));
+        const postOnly = ((postOnlyParam) || (timeInForce === 'PO'));
         if ((ioc || fok) && (price === undefined)) {
             throw new errors.InvalidOrder(this.id + ' createOrder() requires a price argument with IOC and FOK orders');
         }
@@ -1819,11 +1818,14 @@ class bitfinex extends bitfinex$1["default"] {
         request['type'] = orderType;
         // flag values may be summed to combine flags
         let flags = 0;
-        if (postOnly) {
-            flags = this.sum(flags, 4096);
+        if (postOnly && reduceOnly) {
+            flags = 5120;
         }
-        if (reduceOnly === true) {
-            flags = this.sum(flags, 1024);
+        else if (postOnly) {
+            flags = 4096;
+        }
+        else if (reduceOnly) {
+            flags = 1024;
         }
         if (flags !== 0) {
             request['flags'] = flags;
@@ -2029,7 +2031,7 @@ class bitfinex extends bitfinex$1["default"] {
             market = this.market(symbol);
         }
         if (cid !== undefined) {
-            const cidDate = this.safeValue(params, 'cidDate'); // client order id date
+            const cidDate = this.safeString(params, 'cidDate'); // client order id date
             if (cidDate === undefined) {
                 throw new errors.InvalidOrder(this.id + " canceling an order by clientOrderId ('cid') requires both 'cid' and 'cid_date' ('YYYY-MM-DD')");
             }
@@ -2149,7 +2151,7 @@ class bitfinex extends bitfinex$1["default"] {
             'id': [parseInt(id)],
         };
         const orders = await this.fetchOpenOrders(symbol, undefined, undefined, this.extend(request, params));
-        const order = this.safeValue(orders, 0);
+        const order = this.safeDict(orders, 0);
         if (order === undefined) {
             throw new errors.OrderNotFound(this.id + ' order ' + id + ' not found');
         }
@@ -2171,7 +2173,7 @@ class bitfinex extends bitfinex$1["default"] {
             'id': [parseInt(id)],
         };
         const orders = await this.fetchClosedOrders(symbol, undefined, undefined, this.extend(request, params));
-        const order = this.safeValue(orders, 0);
+        const order = this.safeDict(orders, 0);
         if (order === undefined) {
             throw new errors.OrderNotFound(this.id + ' order ' + id + ' not found');
         }
@@ -2582,9 +2584,10 @@ class bitfinex extends bitfinex$1["default"] {
                 feeCost = Precise["default"].stringAbs(feeCost);
             }
             amount = this.safeNumber(data, 5);
-            id = this.safeInteger(data, 0);
+            const withdrawId = this.safeInteger(data, 0);
+            id = withdrawId;
             status = 'ok';
-            if (id === 0) {
+            if (withdrawId === 0) {
                 id = undefined;
                 status = 'failed';
             }
@@ -2870,7 +2873,7 @@ class bitfinex extends bitfinex$1["default"] {
         }
         const withdrawOptions = this.safeDict(this.options, 'withdraw', {});
         const includeFee = this.safeBool(withdrawOptions, 'includeFee', false);
-        if (includeFee === true) {
+        if (includeFee) {
             request['fee_deduct'] = 1;
         }
         const response = await this.privatePostAuthWWithdraw(this.extend(request, paramsOmitted2));
@@ -3858,7 +3861,7 @@ class bitfinex extends bitfinex$1["default"] {
         //         ]
         //     ]
         //
-        const marginStatusRaw = data[0];
+        const marginStatusRaw = this.safeInteger(data, 0);
         let marginStatus = 'failed';
         if (marginStatusRaw === 1) {
             marginStatus = 'ok';
@@ -3996,17 +3999,20 @@ class bitfinex extends bitfinex$1["default"] {
                 request['price_aux_limit'] = this.priceToPrecision(symbol, price);
             }
         }
-        const postOnly = ((postOnlyParam === true) || (timeInForce === 'PO'));
+        const postOnly = ((postOnlyParam) || (timeInForce === 'PO'));
         if ((type !== 'market') && (triggerPrice === undefined)) {
             request['price'] = this.priceToPrecision(symbol, price);
         }
         // flag values may be summed to combine flags
         let flags = 0;
-        if (postOnly) {
-            flags = this.sum(flags, 4096);
+        if (postOnly && reduceOnly) {
+            flags = 5120;
         }
-        if (reduceOnly === true) {
-            flags = this.sum(flags, 1024);
+        else if (postOnly) {
+            flags = 4096;
+        }
+        else if (reduceOnly) {
+            flags = 1024;
         }
         if (flags !== 0) {
             request['flags'] = flags;

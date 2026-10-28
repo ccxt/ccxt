@@ -712,7 +712,7 @@ export default class PredictionExchange extends BaseExchange {
             let missingLength = missing.length;
             const wasWarm = (this.outcomes !== undefined) && !this.isEmpty (this.outcomes);
             const loadAll = this.safeBool (this.options, 'loadAllOutcomes', false);
-            if ((missingLength > 0) && (loadAll === true) && !wasWarm && !reload) {
+            if ((missingLength > 0) && (loadAll) && !wasWarm && !reload) {
                 // same trade-off as loadOutcome: on venues where the whole universe is one cheap
                 // request (hyperliquid), a cold miss bulk-warms once instead of fetching per outcome
                 await this.loadOutcomes ();
@@ -779,7 +779,7 @@ export default class PredictionExchange extends BaseExchange {
                 }
             }
             const loadAll = this.safeBool (this.options, 'loadAllOutcomes', false);
-            if ((loadAll === true) && !wasWarm) {
+            if ((loadAll) && !wasWarm) {
                 // a miss on a cold cache: bulk-load once so later lookups are 0-network hits.
                 // a miss on an already-warm cache is authoritative — the outcome genuinely isn't
                 // listed, so fall through to fetchOutcome (a real BadSymbol) rather than refetching
@@ -1568,7 +1568,7 @@ export default class PredictionExchange extends BaseExchange {
         }
         results = this.sortBy2 (results, 'timestamp', 'id');
         const outcomeHandle = this.safeString (outcomeObj, 'outcome');
-        return this.filterByOutcomeSinceLimit (results, outcomeHandle, since, limit) as PredictionTrade[];
+        return this.filterByValueSinceLimit (results, 'outcome', outcomeHandle, since, limit, 'timestamp', false);
     }
 
     /**

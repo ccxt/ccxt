@@ -163,7 +163,8 @@ public partial class hyperliquid : PredictionExchange
      */
     public virtual object outcomeEncoding(object outcomeId, object side)
     {
-        return this.sum(multiply(10, outcomeId), side);
+        Int64? outcomeIdInt = this.parseToInt(outcomeId);
+        return this.sum((10 * outcomeIdInt), side);
     }
 
     /**
@@ -228,7 +229,7 @@ public partial class hyperliquid : PredictionExchange
             if (colonIndex > -1)
             {
                 string? key = slice(part, 0, colonIndex);
-                string? value = slice(part, add(colonIndex, 1), null);
+                string? value = slice(part, (colonIndex + 1L), null);
                 result[(string)key] = value;
             }
         }
@@ -353,7 +354,7 @@ public partial class hyperliquid : PredictionExchange
                             bucketLabel = ("ABOVE_" + ((thresholds != null && lastIdx < thresholds.Count ? thresholds[lastIdx] : null)));
                         } else
                         {
-                            bucketLabel = ((("BETWEEN_" + (getValue(thresholds, subtract(index, 1)))) + "_") + (getValue(thresholds, index)));
+                            bucketLabel = ((("BETWEEN_" + (getValue(thresholds, (index - 1)))) + "_") + ((thresholds != null && index != null && index < thresholds.Count ? thresholds[(int)index] : null)));
                         }
                         object bs = ((questionUnderlying.ToUpper() + "_") + bucketLabel);
                         if (((expiryDate != null)) && (!(expiryDate is "")))
@@ -691,12 +692,19 @@ public partial class hyperliquid : PredictionExchange
         string? midStr = this.numberToString(midPx);
         List<object> parts = midStr.Split(new [] {"."}, StringSplitOptions.None).ToList<object>();
         string? intPart = ((string)(parts != null && 0 < parts.Count ? parts[0] : null));
-        object significantDigits = Math.Max(5, intPart.Length);
-        object maxDecimals = subtract(8, szDecimals);
-        object pricePrecisionDecimals = mathMax(1, mathMin(maxDecimals, subtract(significantDigits, intPart.Length)));
+        int intPartLength = intPart.Length;
+        Int64? szDecimalsInt = this.parseToInt(szDecimals);
+        object maxDecimals = ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? (hx4x.GetType() == typeof(Int64) ? (object)((Int64)hx4x - (Int64)hx4y) : hx4x.GetType() == typeof(double) ? (object)((double)hx4x - Convert.ToDouble(hx4y)) : null) : null))(8, szDecimalsInt);
+        // significantDigits - intPartLength, with significantDigits = max (5, intPartLength)
+        int digitsLeft = 0;
+        if (intPartLength <= 5)
+        {
+            digitsLeft = (5 - intPartLength);
+        }
+        object cappedDecimals = (isLessThan(maxDecimals, digitsLeft)) ? maxDecimals : digitsLeft;
+        // appends max (1, cappedDecimals) - 1 zeros
         string zeros = "";
-        object zeroCount = subtract(pricePrecisionDecimals, 1);
-        for (int zi = 0; isLessThan(zi, zeroCount); zi++)
+        for (int zi = 1; isLessThan(zi, cappedDecimals); zi++)
         {
             zeros = (zeros + "0");
         }
@@ -971,12 +979,13 @@ public partial class hyperliquid : PredictionExchange
             int tf = this.parseTimeframe(timeframeVar);
             Int64? candleCount = ((limit != null)) ? limit : 100;
             Int64? startOffset = ((tf * candleCount) * -1000);
-            startTime = this.sum(until, startOffset);
+            Int64 shiftedStart = this.sum(until, startOffset);
+            startTime = shiftedStart;
             if ((startTime == null))
             {
                 throw new ExchangeError ((this.id + " fetchOHLCV() missing startTime")) ;
             }
-            if (isLessThan(startTime, 0))
+            if (shiftedStart < 0)
             {
                 startTime = 0;
             }
@@ -990,7 +999,7 @@ public partial class hyperliquid : PredictionExchange
                 { "endTime", until },
             } },
         };
-        object paramsOmitted = this.omit(parameters, "until");
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "until"));
         object response = await this.publicPostInfo(this.extend(request, paramsOmitted));
         //
         //     [
@@ -1286,7 +1295,7 @@ public partial class hyperliquid : PredictionExchange
         int colonIndex = outcomeInput.IndexOf(":", StringComparison.Ordinal);
         if (colonIndex > -1 && (colonIndex < (outcomeInput.Length - 1)))
         {
-            string side = ((string)slice(outcomeInput, add(colonIndex, 1), null)).ToUpper();
+            string side = ((string)slice(outcomeInput, (colonIndex + 1L), null)).ToUpper();
             if (side == "YES" || side == "NO")
             {
                 return side;
@@ -1560,7 +1569,7 @@ public partial class hyperliquid : PredictionExchange
         Int64? assetId = this.safeInteger(outcomeInfo, "assetId");
         Int64? nonce = this.incrementingNonce();
         object clientOrderId = this.safeValue2(parameters, "clientOrderId", "client_id");
-        object paramsOmitted = this.omit(parameters, new List<object>() {"clientOrderId", "client_id"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"clientOrderId", "client_id"}));
         List<object> cancelReq = new List<object>() {};
         Dictionary<string, object> cancelAction = new Dictionary<string, object>() {
             { "type", "cancel" },
@@ -2233,8 +2242,8 @@ public partial class hyperliquid : PredictionExchange
             // push through a local and write the slice back — the go transpiler's
             // AppendToArray reassigns only a local copy of a map-stored array, so a
             // direct push on groupMap[parentSymbol] loses the element in go
-            object parentMarkets = this.safeValue(groupMap, parentSymbol);
-            ((IList<object>)parentMarkets).Add(mkt);
+            List<object> parentMarkets = this.safeList(groupMap, parentSymbol, new List<object>() {});
+            parentMarkets.Add(mkt);
             if ((parentSymbol != null))
             {
                 groupMap[(string)parentSymbol] = parentMarkets;
@@ -2365,9 +2374,9 @@ public partial class hyperliquid : PredictionExchange
         return this.decimalToPrecision(price, 1, decimals, 2, this.paddingMode);
     }
 
-    public virtual object hashMessage(object message)
+    public virtual string? hashMessage(object message)
     {
-        return ("0x" + (this.hash(message, keccak, "hex")));
+        return ((string?)((object)(("0x" + (this.hash(message, keccak, "hex"))))));
     }
 
     public virtual Dictionary<string, object> signHash(object hash, object privateKey)
@@ -2497,7 +2506,7 @@ public partial class hyperliquid : PredictionExchange
         Int64? nonce = this.incrementingNonce();
         bool? isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
         Dictionary<string, object> payload = new Dictionary<string, object>() {
-            { "hyperliquidChain", ((isSandboxMode == true)) ? "Testnet" : "Mainnet" },
+            { "hyperliquidChain", isSandboxMode == true ? "Testnet" : "Mainnet" },
             { "maxFeeRate", maxFeeRate },
             { "builder", builder },
             { "nonce", nonce },
@@ -2527,7 +2536,7 @@ public partial class hyperliquid : PredictionExchange
         // async for the PHP and typed transpilers, which mishandle an async body that never suspends
         await this.loadMarkets();
         bool? buildFee = this.safeBool(this.options, "builderFee", false);
-        if ((buildFee != true))
+        if (buildFee != true)
         {
             return null;
         }
@@ -2562,7 +2571,7 @@ public partial class hyperliquid : PredictionExchange
         {
             return new List<object>() {user, paramsAddress};
         }
-        if ((this.walletAddress != null) && !isEqual(this.walletAddress, ""))
+        if ((this.walletAddress != null) && !(this.walletAddress == ""))
         {
             return new List<object>() {this.walletAddress, paramsAddress};
         }

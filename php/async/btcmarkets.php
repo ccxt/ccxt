@@ -388,7 +388,7 @@ class btcmarkets extends Exchange {
         return Async\await($this->fetch_transactions_with_method('privateGetWithdrawals', $code, $since, $limit, $params));
     }
 
-    public function parse_transaction_status(?string $status) {
+    public function parse_transaction_status(?string $status): ?string {
         $statuses = array(
             'Accepted' => 'pending',
             'Pending Authorization' => 'pending',
@@ -1227,7 +1227,7 @@ class btcmarkets extends Exchange {
         );
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             'Accepted' => 'open',
             'Placed' => 'open',
@@ -1526,7 +1526,7 @@ class btcmarkets extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+    public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
         $apiName = $api[0];
         $requestHeaders = null;
         $requestBody = null;

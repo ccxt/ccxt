@@ -26,6 +26,9 @@ export default class kraken extends krakenRest {
                 'watchBidsAsks': true,
                 'watchTrades': true,
                 'watchTradesForSymbols': true,
+                'unWatchOHLCV': true,
+                'unWatchTrades': true,
+                'unWatchTradesForSymbols': true,
                 'createOrderWs': true,
                 'editOrderWs': true,
                 'cancelOrderWs': true,
@@ -129,7 +132,7 @@ export default class kraken extends krakenRest {
         }
         const isMarket = (type === 'market');
         const [postOnly, paramsPostOnly] = this.handlePostOnly(isMarket, false, params);
-        if (postOnly === true) {
+        if (postOnly) {
             request['params']['post_only'] = true;
         }
         const clientOrderId = this.safeString(paramsPostOnly, 'clientOrderId');
@@ -774,6 +777,47 @@ export default class kraken extends krakenRest {
     }
     /**
      * @method
+     * @name kraken#unWatchTrades
+     * @description stop watching the list of most recent trades for a particular symbol
+     * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/trade
+     * @param {string} symbol unified symbol of the market to stop watching the trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    async unWatchTrades(symbol, params = {}) {
+        return await this.unWatchTradesForSymbols([symbol], params);
+    }
+    /**
+     * @method
+     * @name kraken#unWatchTradesForSymbols
+     * @description stop watching the list of most recent trades for a list of symbols
+     * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/trade
+     * @param {string[]} symbols unified symbols of the markets to stop watching the trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    async unWatchTradesForSymbols(symbols, params = {}) {
+        await this.loadMarkets();
+        const symbolsNormalized = this.marketSymbols(symbols, undefined, false, true, false);
+        const unsubMessageHashes = [];
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            unsubMessageHashes.push('unsubscribe:' + this.getMessageHash('trade', undefined, symbolsNormalized[i]));
+        }
+        const request = {
+            'method': 'unsubscribe',
+            'params': {
+                'channel': 'trade',
+                'symbol': symbolsNormalized,
+            },
+            'req_id': this.requestId(),
+        };
+        request['params'] = this.deepExtend(request['params'], params);
+        const url = this.urls['api']['ws']['publicV2'];
+        // kraken acknowledges each symbol separately, see handleUnsubscriptionStatus
+        return await this.watchMultiple(url, unsubMessageHashes, request, unsubMessageHashes);
+    }
+    /**
+     * @method
      * @name kraken#watchOrderBook
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/book
@@ -844,6 +888,35 @@ export default class kraken extends krakenRest {
             limitResolved = ohlcv.getLimit(symbolValue, limit);
         }
         return this.filterBySinceLimit(ohlcv, since, limitResolved, 'timestamp', true);
+    }
+    /**
+     * @method
+     * @name kraken#unWatchOHLCV
+     * @description stop watching historical candlestick data for a market
+     * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/ohlc
+     * @param {string} symbol unified symbol of the market to stop watching the candles for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    async unWatchOHLCV(symbol, timeframe = '1m', params = {}) {
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const symbolValue = market['symbol'];
+        const interval = this.safeString(this.timeframes, timeframe, timeframe);
+        const unsubMessageHash = 'unsubscribe:' + this.getMessageHash('ohlcv', interval, symbolValue);
+        const unsubscribe = {
+            'method': 'unsubscribe',
+            'params': {
+                'channel': 'ohlc',
+                'symbol': [symbolValue],
+                'interval': this.safeValue(this.timeframes, timeframe, timeframe),
+            },
+            'req_id': this.requestId(),
+        };
+        const request = this.deepExtend(unsubscribe, params);
+        const url = this.urls['api']['ws']['publicV2'];
+        return await this.watch(url, unsubMessageHash, request, unsubMessageHash);
     }
     async loadMarkets(reload = false, params = {}) {
         const markets = await super.loadMarkets(reload, params);
@@ -1060,15 +1133,11 @@ export default class kraken extends krakenRest {
     }
     formatNumber(data) {
         const parts = data.split('.');
-        const integer = this.safeString(parts, 0);
+        const integer = this.safeString(parts, 0, '');
         const decimals = this.safeString(parts, 1, '');
         let joinedResult = integer + decimals;
-        let i = 0;
-        while (joinedResult[i] === '0') {
-            i += 1;
-        }
-        if (i > 0) {
-            joinedResult = joinedResult.slice(i);
+        while (joinedResult.startsWith('0')) {
+            joinedResult = joinedResult.slice(1);
         }
         return joinedResult;
     }
@@ -1108,8 +1177,9 @@ export default class kraken extends krakenRest {
         let subscription = this.safeValue(client.subscriptions, authenticated);
         const now = this.seconds();
         const start = this.safeInteger(subscription, 'start');
-        const expires = this.safeInteger(subscription, 'expires');
-        if ((subscription === undefined) || ((subscription !== undefined) && (start + expires) <= now)) {
+        const expires = this.safeInteger(subscription, 'expires', -1);
+        const expired = (start !== undefined) && (expires >= 0) && (start <= (now - expires));
+        if ((subscription === undefined) || expired) {
             // single-flight leader election, see
             // https://github.com/ccxt/ccxt/issues/29393: the staleness gate
             // above is followed by an awaited privatePostGetWebSocketsToken (),
@@ -1394,8 +1464,9 @@ export default class kraken extends krakenRest {
                 if (length === limit && (previousOrder === undefined)) {
                     const first = stored[0];
                     const symbolsByOrderId = this.safeDict(this.options, 'symbolsByOrderId', {});
-                    if (first['id'] in symbolsByOrderId) {
-                        delete symbolsByOrderId[first['id']];
+                    const firstId = this.safeString(first, 'id');
+                    if ((firstId !== undefined) && (firstId in symbolsByOrderId)) {
+                        delete symbolsByOrderId[firstId];
                     }
                 }
                 stored.append(newOrder);
@@ -1559,21 +1630,27 @@ export default class kraken extends krakenRest {
         //         "sequence": 1
         //     }
         //
+        // merge updates into the existing balance object instead of building a
+        // fresh one: a consumer awakened by an earlier message holds a reference
+        // to this.balance[type], and Client.resolve is a no-op while nobody is
+        // awaiting, so a replaced object would make updates landing in that
+        // window invisible to the consumer forever (issue #26773)
+        const type = 'spot';
+        if (this.balance === undefined) {
+            this.balance = {};
+        }
+        this.balance[type] = this.safeDict(this.balance, type, {});
+        this.balance[type]['info'] = message;
         const data = this.safeList(message, 'data', []);
-        const result = { 'info': message };
         for (let i = 0; i < data.length; i++) {
             const currencyId = this.safeString(data[i], 'asset');
             const code = this.safeCurrencyCode(currencyId);
             const account = this.account();
             const eq = this.safeString(data[i], 'balance');
             account['total'] = eq;
-            result[code] = account;
+            this.balance[type][code] = account;
         }
-        const type = 'spot';
-        const balance = this.safeBalance(result);
-        const oldBalance = this.safeDict(this.balance, type, {});
-        const newBalance = this.deepExtend(oldBalance, balance);
-        this.balance[type] = this.safeBalance(newBalance);
+        this.balance[type] = this.safeBalance(this.balance[type]);
         const channel = this.safeString(message, 'channel');
         client.resolve(this.balance[type], channel);
     }
@@ -1625,6 +1702,37 @@ export default class kraken extends krakenRest {
         // if (requestId in client.futures) {
         //     delete client.futures[requestId];
         // }
+    }
+    handleUnsubscriptionStatus(client, message) {
+        //
+        // one acknowledgement per symbol in the unsubscribe request
+        //
+        //     {
+        //         "method": "unsubscribe",
+        //         "req_id": 4,
+        //         "result": { "channel": "ohlc", "interval": 5, "symbol": "BTC/USD" },
+        //         "success": true,
+        //         "time_in": "2026-10-26T16:12:36.610481Z",
+        //         "time_out": "2026-10-26T16:12:36.610502Z"
+        //     }
+        //
+        const result = this.safeDict(message, 'result', {});
+        const channel = this.safeString(result, 'channel');
+        const symbol = this.safeSymbol(this.safeString(result, 'symbol'));
+        if (channel === 'trade') {
+            const subMessageHash = this.getMessageHash('trade', undefined, symbol);
+            this.cleanCache({ 'topic': 'trades', 'symbols': [symbol] });
+            this.cleanUnsubscription(client, subMessageHash, 'unsubscribe:' + subMessageHash);
+        }
+        else if (channel === 'ohlc') {
+            const interval = this.safeInteger(result, 'interval');
+            const timeframe = this.findTimeframe(interval);
+            const subMessageHash = this.getMessageHash('ohlcv', undefined, symbol);
+            const unsubMessageHash = 'unsubscribe:' + this.getMessageHash('ohlcv', this.numberToString(interval), symbol);
+            this.cleanCache({ 'topic': 'ohlcv', 'symbolsAndTimeframes': [[symbol, timeframe]] });
+            this.cleanUnsubscription(client, subMessageHash, unsubMessageHash);
+        }
+        return message;
     }
     handleErrorMessage(client, message) {
         //
@@ -1695,6 +1803,7 @@ export default class kraken extends krakenRest {
                 'heartbeat': this.handleHeartbeat,
                 'systemStatus': this.handleSystemStatus,
                 'subscriptionStatus': this.handleSubscriptionStatus,
+                'unsubscribe': this.handleUnsubscriptionStatus,
                 'add_order': this.handleCreateEditOrder,
                 'amend_order': this.handleCreateEditOrder,
                 'cancel_order': this.handleCancelOrder,

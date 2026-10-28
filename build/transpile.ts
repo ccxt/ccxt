@@ -321,7 +321,7 @@ class Transpiler {
             [ /\.fetchOHLCVS/g, '.fetch_ohlcvs'],
             [ /\.fetchOHLCVWs/g, '.fetch_ohlcvws'],
             [ /\.parseOHLCVS/g, '.parse_ohlcvs'],
-            [ /\.buildOHLCVC/g, '.build_ohlcv'],
+            [ /\.buildOHLCVC/g, '.build_ohlcvc'],
             [ /\.intToBase16/g, '.int_to_base16'],
             [ /\.parseDate/g, '.parse_date'],
             [ /\.urlencodeBase64/g, '.urlencode_base64'],
@@ -1114,6 +1114,7 @@ class Transpiler {
             'OptionChain': /-> OptionChain:/,
             'Order': /-> (?:[Ll]ist\[)?Order\]?:/,
             'OrderBook': /-> OrderBook:/,
+            'OrderBookL3': /-> OrderBookL3:/,
             'OrderRequest': /: (?:[Ll]ist\[)?OrderRequest/,
             'CancellationRequest': /: (?:[Ll]ist\[)?CancellationRequest/,
             'OrderSide': /: OrderSide/,
@@ -2423,7 +2424,7 @@ class Transpiler {
                     // the ws order book class alias prints untyped, as `any` did
                     'WsOrderBook': 'mixed',
                 }
-                const phpArrayRegex = /^(?:Market|Currency|Account|AccountStructure|BalanceAccount|object|OHLCV|ADL|Order|OrderBooks?|Tickers?|Trade|Transaction|Balances?|MarketInterface|CurrencyInterface|TransferEntry|TransferEntries|Leverages|Leverage|Greeks|AllGreeks|MarginModes|MarginMode|MarketMarginModes|MarginModification|MarginLoan|LastPrice|LastPrices|TradingFeeInterface|Currencies|TradingFees|DepositWithdrawFee|DepositWithdrawFees|DepositWithdrawFeeNetwork|CrossBorrowRates?|IsolatedBorrowRates?|FundingRates|FundingRate|FundingRateHistory|LedgerEntry|LeverageTier|LeverageTiers|Conversion|DepositAddress|DepositAddresses|LongShortRatio|PositionModeInfo|Position|BorrowInterest|PredictionTicker|PredictionTickers|PredictionOrder|PredictionTrade|PredictionPosition|PredictionOrderBook|PredictionEvent|PredictionMarket|PredictionOutcome|PredictionTradingFee|PredictionOpenInterest|PredictionSettlement|fetchEventsParams|OpenInterests?|Options?|OptionChain|Liquidations?|Status)( \| undefined)?$|\w+\[\]/
+                const phpArrayRegex = /^(?:Market|Currency|Account|AccountStructure|BalanceAccount|object|OHLCV|ADL|Order|OrderBooks?|OrderBookL3|Tickers?|Trade|Transaction|Balances?|MarketInterface|CurrencyInterface|TransferEntry|TransferEntries|Leverages|Leverage|Greeks|AllGreeks|MarginModes|MarginMode|MarketMarginModes|MarginModification|MarginLoan|LastPrice|LastPrices|TradingFeeInterface|Currencies|TradingFees|DepositWithdrawFee|DepositWithdrawFees|DepositWithdrawFeeNetwork|DepositWithdrawFeeNetworkEntry|CrossBorrowRates?|IsolatedBorrowRates?|FundingRates|FundingRate|FundingRateHistory|LedgerEntry|LeverageTier|LeverageTiers|Conversion|DepositAddress|DepositAddresses|LongShortRatio|PositionModeInfo|Position|BorrowInterest|PredictionTicker|PredictionTickers|PredictionOrder|PredictionTrade|PredictionPosition|PredictionOrderBook|PredictionEvent|PredictionMarket|PredictionOutcome|PredictionTradingFee|PredictionOpenInterest|PredictionSettlement|fetchEventsParams|OpenInterests?|Options?|OptionChain|Liquidations?|Status)( \| undefined)?$|\w+\[\]/
 
                 phpArgs = argsArray.map (x => {
                     const parts = x.split (':')

@@ -162,6 +162,9 @@ impl crate::exchange::DerivedExchange for ToobitCore {
     fn create_expired_option_market(&self, symbol: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::create_expired_option_market(&self.parent, symbol)
     }
+    fn market(&self, symbol: crate::Value) -> crate::Value {
+        crate::exchange::DerivedExchange::market(&self.parent, symbol)
+    }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::sign(&self.parent, path, api, method, params, headers, body)
     }
@@ -438,8 +441,8 @@ impl ToobitCore {
         }  else {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_605: bool = true;
-                while { if !__for_first_605 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_605 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&message).as_f64().unwrap_or(f64::NAN) } {
+                let mut __for_first_651: bool = true;
+                while { if !__for_first_651 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_651 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&message).as_f64().unwrap_or(f64::NAN) } {
                 let mut item: Value = get_value(&message, &i);
                 let mut item: Value = get_value(&message, &i);
                 let mut event: Value = self.safe_string_k(item.clone(), "e", &[]);
@@ -503,23 +506,23 @@ impl ToobitCore {
         }
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]);
         let mut messageHashes: Value = Value::from(vec![]);
-        let mut subParams: Value = Value::from(vec![]);
+        let mut subParams: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_606: bool = true;
-            while { if !__for_first_606 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_606 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
+            let mut __for_first_652: bool = true;
+            while { if !__for_first_652 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_652 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
             let mut symbol: Value = symbolsNormalized.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.market(symbol.clone());
-            append_to_array(&mut messageHashes, Value::Str(format!("{}{}", Value::Str("trade::".into()), symbol).into()));
+            if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("trade::".into()), symbol).into())); }
             let mut rawHash: Value = market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null);
-            append_to_array(&mut subParams, rawHash);
+            subParams.push(rawHash);
         }
         }
         let mut marketIds: Value = self.market_ids(&[symbolsNormalized]);
         let mut url: Value = Value::Str(format!("{}{}", self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Str("common".into()), &[]), Value::Str("/quote/ws/v1".into())).into());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), join(&marketIds, &Value::Str(",".into())));
+                m.insert("symbol".to_string(), Value::Str(marketIds.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into()));
                 m.insert("topic".to_string(), Value::Str("trade".into()));
                 m.insert("event".to_string(), Value::Str("sub".into()));
             m
@@ -529,7 +532,7 @@ impl ToobitCore {
         let mut first: Value = self.safe_dict(trades.clone(), Value::Int(0), &[]);
         let mut tradeSymbol: Value = self.safe_string_k(first, "symbol", &[]);
         let mut limitResolved: Value = limit.clone();
-        if is_true(&self.newUpdates) {
+        if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(tradeSymbol, limit);
         }
         return self.filter_by_since_limit(trades, &[since, limitResolved, Value::Str("timestamp".into()), Value::Bool(true)]);
@@ -566,17 +569,17 @@ impl ToobitCore {
         let mut marketId: Value = self.safe_string_k(message, "symbol", &[]);
         let mut market: Value = self.safe_market(&[marketId]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        if !(in_op(&self.trades, &symbol)) {
+        if !(matches!((&self.trades, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
             if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ArrayCache::new(limit)); }
         }
-        let mut stored: Value = get_value(&self.trades, &symbol);
+        let mut stored: Value = self.trades.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
         let mut data: Value = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
         let mut parsed: Value = self.parse_ws_trades(data, &[market]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_607: bool = true;
-            while { if !__for_first_607 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_607 = false; i.as_f64().unwrap_or(f64::NAN) < ((parsed.len() as i64) as f64) } {
+            let mut __for_first_653: bool = true;
+            while { if !__for_first_653 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_653 = false; i.as_f64().unwrap_or(f64::NAN) < ((parsed.len() as i64) as f64) } {
             let mut trade: Value = get_value(&parsed, &i);
             add_element_to_object(&mut trade, &Value::Str("symbol".into()), symbol.clone());
             crate::set_value(&mut parsed, &i, trade.clone());
@@ -654,8 +657,8 @@ impl ToobitCore {
         let mut selectedTimeframe: Value = Value::Null;
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_608: bool = true;
-            while { if !__for_first_608 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_608 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsAndTimeframes.len() as i64) as f64) } {
+            let mut __for_first_654: bool = true;
+            while { if !__for_first_654 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_654 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsAndTimeframes.len() as i64) as f64) } {
             let mut data: Value = self.safe_list(symbolsAndTimeframes.clone(), i.clone(), &[]);
             let mut symbolStr: Value = self.safe_string(data.clone(), Value::Int(0), &[]);
             let mut market: Value = self.market(symbolStr.clone());
@@ -667,8 +670,8 @@ impl ToobitCore {
             }  else {
                 selectedTimeframe = rawTimeframe;
             }
-            append_to_array(&mut marketIds, marketId);
-            append_to_array(&mut messageHashes, Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv::".into()), symbolStr).into()), Value::Str("::".into())).into()), unfiedTimeframe).into()));
+            if let Value::Arr(__a) = &mut marketIds { std::sync::Arc::make_mut(__a).push(marketId); }
+            if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv::".into()), symbolStr).into()), Value::Str("::".into())).into()), unfiedTimeframe).into())); }
         }
         }
         let mut request: Value = Value::Map({
@@ -684,7 +687,7 @@ impl ToobitCore {
         let mut timeframe: Value = get_value(&symboltimeframestoredVariable, &Value::Int(1));
         let mut stored: Value = get_value(&symboltimeframestoredVariable, &Value::Int(2));
         let mut limitResolved: Value = limit.clone();
-        if is_true(&self.newUpdates) {
+        if self.newUpdates.as_bool() == Some(true) {
             limitResolved = stored.get_limit(symbol.clone(), limit);
         }
         let mut filtered: Value = self.filter_by_since_limit(stored, &[since, limitResolved, Value::Int(0), Value::Bool(true)]);
@@ -730,13 +733,13 @@ impl ToobitCore {
 }) });
         let mut timeframeId: Value = self.safe_string_k(params, "klineType", &[]);
         let mut timeframe: Value = self.find_timeframe(timeframeId, &[]);
-        if !(in_op(&self.ohlcvs, &symbol)) {
+        if !(matches!((&self.ohlcvs, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             if let Value::Dict(__d) = &mut self.ohlcvs { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })); }
         }
-        let mut stored: Value = self.safe_value(get_value(&self.ohlcvs, &symbol), timeframe.clone(), &[]);
+        let mut stored: Value = self.safe_value(self.ohlcvs.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), timeframe.clone(), &[]);
         if (stored == Value::Null) {
             let mut limit: Value = self.safe_integer(self.options.as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Str("OHLCVLimit".into()), &[Value::Int(1000)]);
             stored = ArrayCacheByTimestamp::new(limit);
@@ -747,8 +750,8 @@ impl ToobitCore {
         let mut data: Value = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_609: bool = true;
-            while { if !__for_first_609 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_609 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
+            let mut __for_first_655: bool = true;
+            while { if !__for_first_655 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_655 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             let mut parsed: Value = self.parse_ws_ohlcv(data.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), &[market.clone()]);
             stored.append(parsed);
         }
@@ -825,30 +828,30 @@ impl ToobitCore {
         }
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]);
         let mut messageHashes: Value = Value::from(vec![]);
-        let mut subParams: Value = Value::from(vec![]);
+        let mut subParams: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_610: bool = true;
-            while { if !__for_first_610 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_610 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
+            let mut __for_first_656: bool = true;
+            while { if !__for_first_656 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_656 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
             let mut symbol: Value = symbolsNormalized.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.market(symbol.clone());
-            append_to_array(&mut messageHashes, Value::Str(format!("{}{}", Value::Str("ticker::".into()), symbol).into()));
+            if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("ticker::".into()), symbol).into())); }
             let mut rawHash: Value = market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null);
-            append_to_array(&mut subParams, rawHash);
+            subParams.push(rawHash);
         }
         }
         let mut marketIds: Value = self.market_ids(&[symbolsNormalized.clone()]);
         let mut url: Value = Value::Str(format!("{}{}", self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Str("common".into()), &[]), Value::Str("/quote/ws/v1".into())).into());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), join(&marketIds, &Value::Str(",".into())));
+                m.insert("symbol".to_string(), Value::Str(marketIds.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into()));
                 m.insert("topic".to_string(), Value::Str("realtimes".into()));
                 m.insert("event".to_string(), Value::Str("sub".into()));
             m
         });
         let __ws_arg_2 = self.extend(request, &[params]);
         let mut ticker: Value = self.watch_multiple(url, messageHashes.clone(), &[__ws_arg_2, messageHashes.clone()]).await;
-        if is_true(&self.newUpdates) {
+        if self.newUpdates.as_bool() == Some(true) {
             let mut result: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -912,8 +915,8 @@ impl ToobitCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_611: bool = true;
-            while { if !__for_first_611 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_611 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
+            let mut __for_first_657: bool = true;
+            while { if !__for_first_657 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_657 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             let mut ticker: Value = data.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut parsed: Value = self.parse_ws_ticker(ticker, &[]);
             let mut symbol: Value = parsed.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
@@ -988,23 +991,23 @@ impl ToobitCore {
         let mut channel: Value = channelparamsChannelVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsChannel: Value = channelparamsChannelVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut messageHashes: Value = Value::from(vec![]);
-        let mut subParams: Value = Value::from(vec![]);
+        let mut subParams: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_612: bool = true;
-            while { if !__for_first_612 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_612 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
+            let mut __for_first_658: bool = true;
+            while { if !__for_first_658 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_658 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
             let mut symbol: Value = symbolsNormalized.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.market(symbol.clone());
-            append_to_array(&mut messageHashes, Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderBook::".into()), symbol).into()), Value::Str("::".into())).into()), channel).into()));
+            if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderBook::".into()), symbol).into()), Value::Str("::".into())).into()), channel).into())); }
             let mut rawHash: Value = market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null);
-            append_to_array(&mut subParams, rawHash);
+            subParams.push(rawHash);
         }
         }
         let mut marketIds: Value = self.market_ids(&[symbolsNormalized]);
         let mut url: Value = Value::Str(format!("{}{}", self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Str("common".into()), &[]), Value::Str("/quote/ws/v1".into())).into());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), join(&marketIds, &Value::Str(",".into())));
+                m.insert("symbol".to_string(), Value::Str(marketIds.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into()));
                 m.insert("topic".to_string(), channel);
                 m.insert("event".to_string(), Value::Str("sub".into()));
             m
@@ -1041,7 +1044,7 @@ impl ToobitCore {
         //     }
         //
         let mut isSnapshot: Value = (match __pro_message.get("f").cloned() { Some(__v) if matches!(__v, Value::Bool(_)) => __v, _ => Value::Bool(false) });
-        if (isSnapshot.as_bool() == Some(true)) {
+        if isSnapshot.as_bool() == Some(true) {
             self.set_order_book_snapshot(client.clone(), message.clone(), Value::Str("diffDepth".into()));
             return;
         }
@@ -1051,18 +1054,18 @@ impl ToobitCore {
         let mut data: Value = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_613: bool = true;
-            while { if !__for_first_613 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_613 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
+            let mut __for_first_659: bool = true;
+            while { if !__for_first_659 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_659 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             let mut entry: Value = self.safe_dict(data.clone(), i.clone(), &[]);
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderBook::".into()), symbol).into()), Value::Str("::".into())).into()), Value::Str("diffDepth".into())).into());
-            if !(in_op(&self.orderbooks, &symbol)) {
+            if !(matches!((&self.orderbooks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 let mut limit: Value = self.safe_integer(self.options.as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Str("orderBookLimit".into()), &[Value::Int(1000)]);
                 { let __be_tmp = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }), limit]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
             }
-            let mut orderBook: Value = get_value(&self.orderbooks, &symbol);
+            let mut orderBook: Value = self.orderbooks.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
             let mut timestamp: Value = self.safe_integer_k(entry.clone(), "t", &[]);
             let mut bids: Value = self.safe_list_k(entry.clone(), "b", &[Value::from(vec![])]);
             let mut asks: Value = self.safe_list_k(entry, "a", &[Value::from(vec![])]);
@@ -1116,20 +1119,20 @@ impl ToobitCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_614: bool = true;
-            while { if !__for_first_614 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_614 = false; i.as_f64().unwrap_or(f64::NAN) < length } {
+            let mut __for_first_660: bool = true;
+            while { if !__for_first_660 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_660 = false; i.as_f64().unwrap_or(f64::NAN) < length } {
             let mut entry: Value = self.safe_dict(data.clone(), i.clone(), &[]);
             let mut marketId: Value = self.safe_string_k(entry.clone(), "s", &[]);
             let mut symbol: Value = self.safe_symbol(marketId, &[]);
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderBook::".into()), symbol).into()), Value::Str("::".into())).into()), channel).into());
-            if !(in_op(&self.orderbooks, &symbol)) {
+            if !(matches!((&self.orderbooks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 let mut limit: Value = self.safe_integer(self.options.as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Str("orderBookLimit".into()), &[Value::Int(1000)]);
                 { let __be_tmp = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }), limit]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
             }
-            let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
+            let mut orderbook: Value = self.orderbooks.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
             let mut timestamp: Value = self.safe_integer_k(entry.clone(), "t", &[]);
             let mut snapshot: Value = self.parse_order_book(entry, symbol, &[timestamp, Value::Str("b".into()), Value::Str("a".into())]);
             orderbook.reset(snapshot);
@@ -1248,7 +1251,7 @@ impl ToobitCore {
         if (channel.as_deref() == Some("outboundContractAccountInfo")) {
             type_var = Value::Str("contract".into());
         }
-        if !(in_op(&self.balance, &type_var)) {
+        if !(matches!((&self.balance, &type_var), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&type_var), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1259,8 +1262,8 @@ impl ToobitCore {
         { let __be_tmp = self.iso8601(timestamp); add_element_to_object(get_value_mut(&mut self.balance, &type_var), &Value::Str("datetime".into()), __be_tmp); };
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_615: bool = true;
-            while { if !__for_first_615 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_615 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
+            let mut __for_first_661: bool = true;
+            while { if !__for_first_661 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_661 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             let mut balance: Value = data.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "a", &[]);
             let mut code: Value = self.safe_currency_code(currencyId, &[]);
@@ -1274,7 +1277,7 @@ impl ToobitCore {
         }
         }
         { let __be_tmp = self.safe_balance(get_value(&self.balance, &type_var)); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&type_var), __be_tmp); } }
-        client.resolve(&[get_value(&self.balance, &type_var), Value::Str(format!("{}{}", type_var, Value::Str(":balance".into())).into())]);
+        client.resolve(&[self.balance.as_map().and_then(|__m| type_var.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), Value::Str(format!("{}{}", type_var, Value::Str(":balance".into())).into())]);
 }
 
     pub async fn load_balance_snapshot(&mut self, mut client: Value, mut messageHash: Value, mut marketType: Value) -> Value {
@@ -1296,8 +1299,8 @@ impl ToobitCore {
         if (in_op(&get_value(&client, &Value::Str("futures".into())), &messageHash)) {
             let mut future: Value = get_value(&get_value(&client, &Value::Str("futures".into())), &messageHash);
             future.resolve(&[]);
-            client.resolve(&[get_value(&self.balance, &type_var), Value::Str(format!("{}{}", type_var, Value::Str(":fetchBalanceSnapshot".into())).into())]);
-            client.resolve(&[get_value(&self.balance, &type_var), Value::Str(format!("{}{}", type_var, Value::Str(":balance".into())).into())]); // we should also resolve right away after snapshot, so user doesn't double-fetch balance
+            client.resolve(&[self.balance.as_map().and_then(|__m| type_var.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), Value::Str(format!("{}{}", type_var, Value::Str(":fetchBalanceSnapshot".into())).into())]);
+            client.resolve(&[self.balance.as_map().and_then(|__m| type_var.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), Value::Str(format!("{}{}", type_var, Value::Str(":balance".into())).into())]); // we should also resolve right away after snapshot, so user doesn't double-fetch balance
         }
 
     Value::Null
@@ -1336,7 +1339,7 @@ impl ToobitCore {
         let mut url: Value = self.get_user_stream_url().map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut orders: Value = self.watch(url, messageHash.clone(), &[params, messageHash.clone()]).await;
         let mut limitResolved: Value = limit.clone();
-        if is_true(&self.newUpdates) {
+        if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolValue.clone(), limit);
         }
         return self.filter_by_symbol_since_limit(orders, &[symbolValue, since, limitResolved, Value::Bool(true)]);
@@ -1433,7 +1436,7 @@ impl ToobitCore {
         m.insert("average".to_string(), self.safe_string_k(order.clone(), "p", &[]));
         m.insert("filled".to_string(), self.safe_string_k(order.clone(), "z", &[]));
         m.insert("remaining".to_string(), Value::Null);
-        m.insert("status".to_string(), self.parent.parse_order_status(self.safe_string_k(order, "X", &[])));
+        m.insert("status".to_string(), self.parent.parse_order_status(self.safe_string_k(order, "X", &[])).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null));
         m.insert("fee".to_string(), fee);
         m.insert("trades".to_string(), Value::Null);
     m
@@ -1476,7 +1479,7 @@ impl ToobitCore {
         let mut url: Value = self.get_user_stream_url().map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut trades: Value = self.watch(url, messageHash.clone(), &[params, messageHash.clone()]).await;
         let mut limitResolved: Value = limit.clone();
-        if is_true(&self.newUpdates) {
+        if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolValue, limit);
         }
         return self.filter_by_since_limit(trades, &[since, limitResolved, Value::Str("timestamp".into()), Value::Bool(true)]);
@@ -1571,13 +1574,12 @@ impl ToobitCore {
         let mut messageHash: Value = Value::Str("".into());
         let mut symbolsNormalized: Value = symbols.clone();
         if !(self.is_empty(symbols.clone()).as_bool() == Some(true)) {
-            symbolsNormalized = self.market_symbols(&[symbols.clone()]);
-        }
-        if !(self.is_empty(symbols).as_bool() == Some(true)) {
-            if (symbolsNormalized == Value::Null) {
+            let mut marketSymbols: Value = self.market_symbols(&[symbols]);
+            if (marketSymbols == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchPositions() symbols is required".into()))));
             }
-            messageHash = Value::Str(format!("{}{}", Value::Str("::".into()), join(&symbolsNormalized, &Value::Str(",".into()))).into());
+            symbolsNormalized = marketSymbols.clone();
+            messageHash = Value::Str(format!("{}{}", Value::Str("::".into()), Value::Str(marketSymbols.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into())).into());
         }
         messageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", type_var, Value::Str(":positions".into())).into()), messageHash).into());
         let mut url: Value = self.get_user_stream_url().map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
@@ -1589,7 +1591,7 @@ impl ToobitCore {
             return self.filter_by_symbols_since_limit(snapshot, &[symbolsNormalized.clone(), since.clone(), limit.clone(), Value::Bool(true)]);
         }
         let mut newPositions: Value = self.watch(url, messageHash.clone(), &[Value::Null, messageHash.clone()]).await;
-        if is_true(&self.newUpdates) {
+        if self.newUpdates.as_bool() == Some(true) {
             return newPositions;
         }
         return self.filter_by_symbols_since_limit(cache, &[symbolsNormalized, since, limit, Value::Bool(true)]);
@@ -1609,7 +1611,7 @@ impl ToobitCore {
             return;
         }
         let mut fetchPositionsSnapshot: Value = self.handle_option(Value::Str("watchPositions".into()), Value::Str("fetchPositionsSnapshot".into()), &[Value::Bool(false)]);
-        if is_equal(&fetchPositionsSnapshot, &Value::Bool(true)) {
+        if (match &(fetchPositionsSnapshot) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 1.0) }) {
             let mut messageHash: Value = Value::Str(format!("{}{}", type_var, Value::Str(":fetchPositionsSnapshot".into())).into());
             if !(in_op(&get_value(&client, &Value::Str("futures".into())), &messageHash)) {
                 client.future(&[messageHash.clone()]);
@@ -1631,8 +1633,8 @@ impl ToobitCore {
         let mut cache: Value = get_value(&self.positions, &type_var);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_616: bool = true;
-            while { if !__for_first_616 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_616 = false; i.as_f64().unwrap_or(f64::NAN) < ((positions.len() as i64) as f64) } {
+            let mut __for_first_662: bool = true;
+            while { if !__for_first_662 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_662 = false; i.as_f64().unwrap_or(f64::NAN) < ((positions.len() as i64) as f64) } {
             let mut position: Value = positions.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             cache.append(position);
         }
@@ -1691,15 +1693,15 @@ impl ToobitCore {
         let mut newPositions: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_617: bool = true;
-            while { if !__for_first_617 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_617 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&rawPositions).as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_663: bool = true;
+            while { if !__for_first_663 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_663 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&rawPositions).as_f64().unwrap_or(f64::NAN) } {
             let mut rawPosition: Value = get_value(&rawPositions, &i);
             let mut rawPosition: Value = get_value(&rawPositions, &i);
             let mut position: Value = self.parse_ws_position(rawPosition.clone(), &[]);
             let mut timestamp: Value = self.safe_integer_k(rawPosition, "E", &[]);
             add_element_to_object(&mut position, &Value::Str("timestamp".into()), timestamp.clone());
             add_element_to_object(&mut position, &Value::Str("datetime".into()), self.iso8601(timestamp));
-            append_to_array(&mut newPositions, position.clone());
+            if let Value::Arr(__a) = &mut newPositions { std::sync::Arc::make_mut(__a).push(position.clone()); }
             cache.append(position);
         }
         }
@@ -1710,12 +1712,12 @@ impl ToobitCore {
         let mut messageHashes: Value = self.find_message_hashes(client.clone(), Value::Str(format!("{}{}", accountType, Value::Str(":positions::".into())).into()));
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_618: bool = true;
-            while { if !__for_first_618 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_618 = false; i.as_f64().unwrap_or(f64::NAN) < ((messageHashes.len() as i64) as f64) } {
+            let mut __for_first_664: bool = true;
+            while { if !__for_first_664 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_664 = false; i.as_f64().unwrap_or(f64::NAN) < ((messageHashes.len() as i64) as f64) } {
             let mut messageHash: Value = messageHashes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-            let mut parts: Value = split(&messageHash, &Value::Str("::".into()));
+            let mut parts: Value = Value::Array(messageHash.as_str().map(|__s| __s.split("::").map(|__p| Value::Str(__p.to_string().into())).collect()).unwrap_or_default());
             let mut symbolsString: Value = parts.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-            let mut symbols: Value = split(&symbolsString, &Value::Str(",".into()));
+            let mut symbols: Value = Value::Array(symbolsString.as_str().map(|__s| __s.split(",").map(|__p| Value::Str(__p.to_string().into())).collect()).unwrap_or_default());
             let mut filtered: Value = self.filter_by_array(newPositions.clone(), Value::Str("symbol".into()), &[symbols, Value::Bool(false)]);
             if !(self.is_empty(filtered.clone()).as_bool() == Some(true)) {
                 client.resolve(&[filtered, messageHash]);
@@ -1838,8 +1840,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             let mut messageHashes: Value = object_keys(&get_value(&client, &Value::Str("futures".into())));
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_619: bool = true;
-                while { if !__for_first_619 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_619 = false; i.as_f64().unwrap_or(f64::NAN) < ((messageHashes.len() as i64) as f64) } {
+                let mut __for_first_665: bool = true;
+                while { if !__for_first_665 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_665 = false; i.as_f64().unwrap_or(f64::NAN) < ((messageHashes.len() as i64) as f64) } {
                 let mut messageHash: Value = messageHashes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 client.reject(&[Value::from(error.clone()), messageHash]);
             }

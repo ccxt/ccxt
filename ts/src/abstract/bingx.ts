@@ -753,12 +753,12 @@ abstract class Exchange extends _Exchange {
         return this.request ('post/asset/transfer', [ 'api', 'v3', 'private' ], 'POST', params, { 'cost': 1 });
     }
 
-    apiAssetV1PrivatePostTransfer (params = {}): Promise<Dict> {
-        return this.request ('transfer', [ 'api', 'asset', 'v1', 'private' ], 'POST', params, { 'cost': 5 });
+    apiAssetV1PrivateGetTransferSupportCoins (params = {}): Promise<Dict> {
+        return this.request ('transfer/supportCoins', [ 'api', 'asset', 'v1', 'private' ], 'GET', params, { 'cost': 5 });
     }
 
-    apiAssetV1PublicGetTransferSupportCoins (params = {}): Promise<Dict> {
-        return this.request ('transfer/supportCoins', [ 'api', 'asset', 'v1', 'public' ], 'GET', params, { 'cost': 5 });
+    apiAssetV1PrivatePostTransfer (params = {}): Promise<Dict> {
+        return this.request ('transfer', [ 'api', 'asset', 'v1', 'private' ], 'POST', params, { 'cost': 5 });
     }
 
     agentV1PrivateGetAccountInviteAccountList (params = {}): Promise<Dict> {

@@ -66,7 +66,7 @@ public partial class lbank : ccxt.lbank
     {
         // the spot ws rejects futures ids and lbank's contract ws protocol is not published,
         // see https://github.com/ccxt/ccxt/issues/26864
-        if (((market != null)) && (isEqual((market != null && market.ContainsKey("contract") ? market["contract"] : null), true)))
+        if (((market != null)) && (((market != null && market.ContainsKey("contract") ? market["contract"] : null) is true)))
         {
             throw new NotSupported ((((((this.id + " ") + methodName) + "() does not support ") + ((market != null && market.ContainsKey("type") ? market["type"] : null))) + " markets yet")) ;
         }
@@ -108,7 +108,8 @@ public partial class lbank : ccxt.lbank
         };
         if ((since != null))
         {
-            message["start"] = this.parseToInt((Math.Floor(Double.Parse((divide(since, 1000)).ToString()))));
+            Int64? sinceInt = this.parseToInt(since);
+            message["start"] = this.parseToInt(((double?)sinceInt / 1000));
         }
         if ((limit != null))
         {
@@ -877,7 +878,7 @@ public partial class lbank : ccxt.lbank
         this.checkContractMarket(market, "watchOrderBook");
         string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         string messageHash = ("orderbook:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
-        object paramsOmitted = this.omit(parameters, "aggregation");
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "aggregation"));
         Int64? limitResolved = ((limit == null)) ? 100 : limit;
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "action", "subscribe" },
@@ -1077,7 +1078,7 @@ public partial class lbank : ccxt.lbank
                 if (((expires == null || expires < now)))
                 {
                     Dictionary<string, object> request = new Dictionary<string, object>() {
-                        { "subscribeKey", GetValue(authenticated, "key") },
+                        { "subscribeKey", (authenticated != null && authenticated.ContainsKey("key") ? authenticated["key"] : null) },
                     };
                     Dictionary<string, object> response = await this.spotPrivatePostSubscribeRefreshKey(this.extend(request, parameters));
                     //
@@ -1093,7 +1094,7 @@ public partial class lbank : ccxt.lbank
             }
             // settle the flight through the client so that every write to the
             // futures map happens inside the base class
-            client.resolve(getValue(getValue(client.subscriptions, "authenticated"), "key"), messageHash);
+            client.resolve(getValue((client.subscriptions != null && client.subscriptions.ContainsKey("authenticated") ? client.subscriptions["authenticated"] : null), "key"), messageHash);
         } catch(Exception e)
         {
             // reject the flight - all waiters throw and the next caller

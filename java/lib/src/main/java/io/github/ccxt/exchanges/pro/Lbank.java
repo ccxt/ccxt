@@ -79,16 +79,16 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
 
     public Long requestId()
     {
-        Object newValue;
+        Long newValue;
         synchronized (this) {
         Long previousValue = this.safeInteger(this.options, "requestId", 0);
-        newValue = this.sum(previousValue, 1);
+        newValue = (Long) this.sum(previousValue, 1);
         Helpers.addElementToObject(this.options, "requestId", newValue);
         }
-        return Helpers.toLongOrNull(newValue);
+        return newValue;
     }
 
-    public void checkContractMarket(Map<String, Object> market, Object methodName)
+    public void checkContractMarket(Map<String, Object> market, String methodName)
     {
         // the spot ws rejects futures ids and lbank's contract ws protocol is not published,
         // see https://github.com/ccxt/ccxt/issues/26864
@@ -134,7 +134,8 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
             }};
             if (!java.util.Objects.equals(since, null))
             {
-                message.put("start", this.parseToInt((Math.floor(Double.parseDouble(String.valueOf((((double) since) / ((double) 1000))))))));
+                Long sinceInt = this.parseToInt(since);
+                message.put("start", this.parseToInt((((double) sinceInt) / ((double) 1000))));
             }
             if (!java.util.Objects.equals(limit, null))
             {
@@ -564,9 +565,9 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
         }
         Helpers.addElementToObject(this.trades, symbol, stored);
         String messageHash = ("trades:" + symbol);
-        client.resolve(Helpers.GetValue(this.trades, symbol), messageHash);
+        client.resolve((symbol == null || this.trades == null ? null : ((Map<?, ?>)this.trades).get(symbol)), messageHash);
         messageHash = ("fetchTrades:" + symbol);
-        client.resolve(Helpers.GetValue(this.trades, symbol), messageHash);
+        client.resolve((symbol == null || this.trades == null ? null : ((Map<?, ?>)this.trades).get(symbol)), messageHash);
     }
 
     public Trade parseWsTrade(Map<String, Object> trade, Map<String, Object> market)

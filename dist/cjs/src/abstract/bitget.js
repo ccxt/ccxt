@@ -351,6 +351,39 @@ class Exchange extends Exchange$1["default"] {
     publicUtaGetV3MarketFuturesAccountLongShort(params = {}) {
         return this.request('v3/market/futures-account-long-short', ['public', 'uta'], 'GET', params, { 'cost': 20 });
     }
+    publicUtaGetV3StockplusMarketStatic(params = {}) {
+        return this.request('v3/stockplus/market/static', ['public', 'uta'], 'GET', params, { 'cost': 2 });
+    }
+    publicUtaGetV3StockplusMarketQuote(params = {}) {
+        return this.request('v3/stockplus/market/quote', ['public', 'uta'], 'GET', params, { 'cost': 2 });
+    }
+    publicUtaGetV3StockplusMarketIntraday(params = {}) {
+        return this.request('v3/stockplus/market/intraday', ['public', 'uta'], 'GET', params, { 'cost': 2 });
+    }
+    publicUtaGetV3StockplusMarketDepth(params = {}) {
+        return this.request('v3/stockplus/market/depth', ['public', 'uta'], 'GET', params, { 'cost': 2 });
+    }
+    publicUtaGetV3StockplusMarketCandlestick(params = {}) {
+        return this.request('v3/stockplus/market/candlestick', ['public', 'uta'], 'GET', params, { 'cost': 2 });
+    }
+    publicUtaGetV3StockplusMarketHistoryCandlestick(params = {}) {
+        return this.request('v3/stockplus/market/history-candlestick', ['public', 'uta'], 'GET', params, { 'cost': 2 });
+    }
+    publicUtaGetV3StockplusMarketTrade(params = {}) {
+        return this.request('v3/stockplus/market/trade', ['public', 'uta'], 'GET', params, { 'cost': 2 });
+    }
+    publicUtaGetV3StockplusMarketOptionQuote(params = {}) {
+        return this.request('v3/stockplus/market/option-quote', ['public', 'uta'], 'GET', params, { 'cost': 2 });
+    }
+    publicUtaGetV3StockplusMarketOptionChainInfo(params = {}) {
+        return this.request('v3/stockplus/market/option-chain-info', ['public', 'uta'], 'GET', params, { 'cost': 2 });
+    }
+    publicUtaGetV3StockplusMarketOptionExpiryDate(params = {}) {
+        return this.request('v3/stockplus/market/option-expiry-date', ['public', 'uta'], 'GET', params, { 'cost': 2 });
+    }
+    publicUtaGetV3StockplusMarketOptionVolume(params = {}) {
+        return this.request('v3/stockplus/market/option-volume', ['public', 'uta'], 'GET', params, { 'cost': 2 });
+    }
     publicUtaGetV3RealityMarketStockInfo(params = {}) {
         return this.request('v3/reality/market/stock-info', ['public', 'uta'], 'GET', params, { 'cost': 20 });
     }
@@ -1926,6 +1959,39 @@ class Exchange extends Exchange$1["default"] {
     privateUtaGetV3PositionAdlRank(params = {}) {
         return this.request('v3/position/adlRank', ['private', 'uta'], 'GET', params, { 'cost': 20 });
     }
+    privateUtaGetV3AccountRealityOrderbook(params = {}) {
+        return this.request('v3/account/reality-orderbook', ['private', 'uta'], 'GET', params, { 'cost': 2 });
+    }
+    privateUtaGetV3AccountRealityFills(params = {}) {
+        return this.request('v3/account/reality-fills', ['private', 'uta'], 'GET', params, { 'cost': 2 });
+    }
+    privateUtaGetV3StockplusAssetTransferRecords(params = {}) {
+        return this.request('v3/stockplus/asset/transfer-records', ['private', 'uta'], 'GET', params, { 'cost': 2 });
+    }
+    privateUtaGetV3StockplusAssetAccount(params = {}) {
+        return this.request('v3/stockplus/asset/account', ['private', 'uta'], 'GET', params, { 'cost': 2 });
+    }
+    privateUtaGetV3StockplusAssetStockPosition(params = {}) {
+        return this.request('v3/stockplus/asset/stock-position', ['private', 'uta'], 'GET', params, { 'cost': 2 });
+    }
+    privateUtaGetV3StockplusAssetCashFlow(params = {}) {
+        return this.request('v3/stockplus/asset/cash-flow', ['private', 'uta'], 'GET', params, { 'cost': 2 });
+    }
+    privateUtaGetV3StockplusTradeTodayOrders(params = {}) {
+        return this.request('v3/stockplus/trade/today-orders', ['private', 'uta'], 'GET', params, { 'cost': 20 });
+    }
+    privateUtaGetV3StockplusTradeHistoryOrders(params = {}) {
+        return this.request('v3/stockplus/trade/history-orders', ['private', 'uta'], 'GET', params, { 'cost': 20 });
+    }
+    privateUtaGetV3StockplusTradeOrderDetail(params = {}) {
+        return this.request('v3/stockplus/trade/order-detail', ['private', 'uta'], 'GET', params, { 'cost': 20 });
+    }
+    privateUtaGetV3StockplusTradeTodayExecutions(params = {}) {
+        return this.request('v3/stockplus/trade/today-executions', ['private', 'uta'], 'GET', params, { 'cost': 20 });
+    }
+    privateUtaGetV3StockplusTradeHistoryExecutions(params = {}) {
+        return this.request('v3/stockplus/trade/history-executions', ['private', 'uta'], 'GET', params, { 'cost': 20 });
+    }
     privateUtaGetV3TaxRecords(params = {}) {
         return this.request('v3/tax/records', ['private', 'uta'], 'GET', params, { 'cost': 20 });
     }
@@ -1991,12 +2057,6 @@ class Exchange extends Exchange$1["default"] {
     }
     privateUtaGetV3AccountFundingFinancialRecords(params = {}) {
         return this.request('v3/account/funding-financial-records', ['private', 'uta'], 'GET', params, { 'cost': 2 });
-    }
-    privateUtaGetV3AccountRealityOrderbook(params = {}) {
-        return this.request('v3/account/reality-orderbook', ['private', 'uta'], 'GET', params, { 'cost': 2 });
-    }
-    privateUtaGetV3AccountRealityFills(params = {}) {
-        return this.request('v3/account/reality-fills', ['private', 'uta'], 'GET', params, { 'cost': 2 });
     }
     privateUtaGetV3CopyFuturesTradingPairs(params = {}) {
         return this.request('v3/copy/futures/trading-pairs', ['private', 'uta'], 'GET', params, { 'cost': 4 });
@@ -2099,33 +2159,6 @@ class Exchange extends Exchange$1["default"] {
     }
     privateUtaGetV3StockplusMarketCandlestick(params = {}) {
         return this.request('v3/stockplus/market/candlestick', ['private', 'uta'], 'GET', params, { 'cost': 2 });
-    }
-    privateUtaGetV3StockplusTradeTodayOrders(params = {}) {
-        return this.request('v3/stockplus/trade/today-orders', ['private', 'uta'], 'GET', params, { 'cost': 20 });
-    }
-    privateUtaGetV3StockplusTradeHistoryOrders(params = {}) {
-        return this.request('v3/stockplus/trade/history-orders', ['private', 'uta'], 'GET', params, { 'cost': 20 });
-    }
-    privateUtaGetV3StockplusTradeOrderDetail(params = {}) {
-        return this.request('v3/stockplus/trade/order-detail', ['private', 'uta'], 'GET', params, { 'cost': 20 });
-    }
-    privateUtaGetV3StockplusTradeTodayExecutions(params = {}) {
-        return this.request('v3/stockplus/trade/today-executions', ['private', 'uta'], 'GET', params, { 'cost': 20 });
-    }
-    privateUtaGetV3StockplusTradeHistoryExecutions(params = {}) {
-        return this.request('v3/stockplus/trade/history-executions', ['private', 'uta'], 'GET', params, { 'cost': 20 });
-    }
-    privateUtaGetV3StockplusAssetAccount(params = {}) {
-        return this.request('v3/stockplus/asset/account', ['private', 'uta'], 'GET', params, { 'cost': 2 });
-    }
-    privateUtaGetV3StockplusAssetCashFlow(params = {}) {
-        return this.request('v3/stockplus/asset/cash-flow', ['private', 'uta'], 'GET', params, { 'cost': 2 });
-    }
-    privateUtaGetV3StockplusAssetStockPosition(params = {}) {
-        return this.request('v3/stockplus/asset/stock-position', ['private', 'uta'], 'GET', params, { 'cost': 2 });
-    }
-    privateUtaGetV3StockplusAssetTransferRecords(params = {}) {
-        return this.request('v3/stockplus/asset/transfer-records', ['private', 'uta'], 'GET', params, { 'cost': 2 });
     }
     privateUtaGetV3P2pAdList(params = {}) {
         return this.request('v3/p2p/ad-list', ['private', 'uta'], 'GET', params, { 'cost': 2 });
@@ -2231,6 +2264,18 @@ class Exchange extends Exchange$1["default"] {
     }
     privateUtaPostV3LoanRevisePledge(params = {}) {
         return this.request('v3/loan/revise-pledge', ['private', 'uta'], 'POST', params, { 'cost': 2 });
+    }
+    privateUtaPostV3StockplusAssetTransfer(params = {}) {
+        return this.request('v3/stockplus/asset/transfer', ['private', 'uta'], 'POST', params, { 'cost': 4 });
+    }
+    privateUtaPostV3StockplusTradePlaceOrder(params = {}) {
+        return this.request('v3/stockplus/trade/place-order', ['private', 'uta'], 'POST', params, { 'cost': 20 });
+    }
+    privateUtaPostV3StockplusTradeModifyOrder(params = {}) {
+        return this.request('v3/stockplus/trade/modify-order', ['private', 'uta'], 'POST', params, { 'cost': 20 });
+    }
+    privateUtaPostV3StockplusTradeCancelOrder(params = {}) {
+        return this.request('v3/stockplus/trade/cancel-order', ['private', 'uta'], 'POST', params, { 'cost': 20 });
     }
     privateUtaPostV3TradePlaceOrder(params = {}) {
         return this.request('v3/trade/place-order', ['private', 'uta'], 'POST', params, { 'cost': 2 });
@@ -2348,18 +2393,6 @@ class Exchange extends Exchange$1["default"] {
     }
     privateUtaPostV3UserSubAccountAgentCreate(params = {}) {
         return this.request('v3/user/sub-account/agent-create', ['private', 'uta'], 'POST', params, { 'cost': 20 });
-    }
-    privateUtaPostV3StockplusTradePlaceOrder(params = {}) {
-        return this.request('v3/stockplus/trade/place-order', ['private', 'uta'], 'POST', params, { 'cost': 20 });
-    }
-    privateUtaPostV3StockplusTradeCancelOrder(params = {}) {
-        return this.request('v3/stockplus/trade/cancel-order', ['private', 'uta'], 'POST', params, { 'cost': 20 });
-    }
-    privateUtaPostV3StockplusTradeModifyOrder(params = {}) {
-        return this.request('v3/stockplus/trade/modify-order', ['private', 'uta'], 'POST', params, { 'cost': 20 });
-    }
-    privateUtaPostV3StockplusAssetTransfer(params = {}) {
-        return this.request('v3/stockplus/asset/transfer', ['private', 'uta'], 'POST', params, { 'cost': 4 });
     }
     privateUtaPostV3P2pAdCreate(params = {}) {
         return this.request('v3/p2p/ad-create', ['private', 'uta'], 'POST', params, { 'cost': 2 });

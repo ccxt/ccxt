@@ -1266,7 +1266,8 @@ class gate extends gate$1["default"] {
                 this.options['unifiedAccount'] = false;
             }
         }
-        return this.options['unifiedAccount'];
+        const unified = this.safeBool(this.options, 'unifiedAccount') === true;
+        return unified;
     }
     async upgradeUnifiedTradeAccount(params = {}) {
         return await this.privateUnifiedPutUnifiedMode(params);
@@ -1706,6 +1707,15 @@ class gate extends gate$1["default"] {
             contractSize = '1'; // 1 USD in WEB: https://i.imgur.com/MBBUI04.png
         }
         const status = this.safeString(market, 'status', 'trading'); // or "suspend"
+        let amountPrecision = this.parseNumber('1');
+        const enableDecimal = this.safeBool(market, 'enable_decimal', false);
+        const orderSizeMin = this.safeString(market, 'order_size_min');
+        const swap = marketType === 'swap';
+        const minAmount = this.parseNumber(orderSizeMin);
+        if (swap && enableDecimal && (orderSizeMin !== undefined) && (minAmount !== undefined) && Precise["default"].stringGt(orderSizeMin, '0')) {
+            amountPrecision = minAmount;
+        }
+        const active = (status === 'trading');
         return {
             'id': id,
             'symbol': symbol,
@@ -1718,10 +1728,10 @@ class gate extends gate$1["default"] {
             'type': marketType,
             'spot': false,
             'margin': false,
-            'swap': marketType === 'swap',
-            'future': marketType === 'future',
+            'swap': swap,
+            'future': (marketType === 'future'),
             'option': false,
-            'active': status === 'trading',
+            'active': active,
             'contract': true,
             'linear': isLinear,
             'inverse': !isLinear,
@@ -1733,7 +1743,7 @@ class gate extends gate$1["default"] {
             'strike': undefined,
             'optionType': undefined,
             'precision': {
-                'amount': this.parseNumber('1'), // all contracts have this step size
+                'amount': amountPrecision,
                 'price': this.safeNumber(market, 'order_price_round'),
             },
             'limits': {
@@ -1742,7 +1752,7 @@ class gate extends gate$1["default"] {
                     'max': this.safeNumber(market, 'leverage_max'),
                 },
                 'amount': {
-                    'min': this.safeNumber(market, 'order_size_min'),
+                    'min': minAmount,
                     'max': this.safeNumber(market, 'order_size_max'),
                 },
                 'price': {
@@ -2374,7 +2384,7 @@ class gate extends gate$1["default"] {
             'currency': currency['id'], // todo: currencies have network-junctions
         };
         const response = await this.privateWalletGetDepositAddress(this.extend(request, params));
-        const addresses = this.safeValue(response, 'multichain_addresses');
+        const addresses = this.safeList(response, 'multichain_addresses', []);
         const currencyId = this.safeString(response, 'currency');
         const codeValue = this.safeCurrencyCode(currencyId);
         const result = {};
@@ -2448,7 +2458,7 @@ class gate extends gate$1["default"] {
         const chainsIndexedByIdRaw = await this.fetchDepositAddressesByNetwork(code, paramsNetworkCode);
         const chainsIndexedById = chainsIndexedByIdRaw;
         const selectedNetworkIdOrCode = this.selectNetworkKeyFromNetworks(code, networkCode, chainsIndexedById, true);
-        return chainsIndexedById[selectedNetworkIdOrCode];
+        return this.safeDict(chainsIndexedById, selectedNetworkIdOrCode);
     }
     parseDepositAddress(depositAddress, currency = undefined) {
         //
@@ -2857,7 +2867,8 @@ class gate extends gate$1["default"] {
         const [request, query] = this.prepareRequest(market, this.safeString(market, 'type'), params);
         if (limit !== undefined) {
             // gateeu returns an empty book for a spot limit above 100
-            const maxLimit = (market['spot'] === true) ? this.handleOption('fetchOrderBook', 'maxSpotLimit', 1000) : 300;
+            const maxSpotLimit = this.parseToInt(this.handleOption('fetchOrderBook', 'maxSpotLimit', 1000));
+            const maxLimit = (market['spot'] === true) ? maxSpotLimit : 300;
             request['limit'] = Math.min(limit, maxLimit);
         }
         request['with_id'] = true;
@@ -2941,12 +2952,13 @@ class gate extends gate$1["default"] {
         //         "update": 1634350208.724
         //     }
         //
-        let timestamp = this.safeInteger(response, 'current');
-        if (timestamp === undefined) {
+        const current = this.safeInteger(response, 'current');
+        if (current === undefined) {
             throw new errors.ExchangeError(this.id + ' method() missing timestamp');
         }
+        let timestamp = current;
         if (market['spot'] !== true) {
-            timestamp = timestamp * 1000;
+            timestamp = current * 1000;
         }
         const priceKey = (market['spot'] === true) ? 0 : 'p';
         const amountKey = (market['spot'] === true) ? 1 : 's';
@@ -2994,9 +3006,11 @@ class gate extends gate$1["default"] {
         }
         let ticker = undefined;
         if (market['option'] === true) {
+            const optionMarketId = this.safeString(market, 'id');
             for (let i = 0; i < response.length; i++) {
                 const entry = response[i];
-                if (this.safeString(entry, 'name') === market['id']) {
+                const entryName = this.safeString(entry, 'name');
+                if (entryName === optionMarketId) {
                     ticker = entry;
                     break;
                 }
@@ -3517,9 +3531,10 @@ class gate extends gate$1["default"] {
         request['interval'] = this.safeString(this.timeframes, timeframe, timeframe);
         const maxLimit = (market['contract'] === true) ? 1999 : 1000;
         const limitValue = (limit === undefined) ? maxLimit : Math.min(limit, maxLimit);
-        let until = this.safeInteger(paramsRequest, 'until');
-        if (until !== undefined) {
-            until = this.parseToInt(until / 1000);
+        const untilMs = this.safeInteger(paramsRequest, 'until');
+        let until = undefined;
+        if (untilMs !== undefined) {
+            until = this.parseToInt(untilMs / 1000);
         }
         const paramsOmitted = this.omit(paramsRequest, 'until');
         if (since !== undefined) {
@@ -3840,8 +3855,7 @@ class gate extends gate$1["default"] {
         //          }
         //      ]
         //
-        const response = await this.fetchMyTrades(symbol, since, limit, { 'order_id': id });
-        return response;
+        return await this.fetchMyTrades(symbol, since, limit, { 'order_id': id });
     }
     /**
      * @method
@@ -3879,14 +3893,14 @@ class gate extends gate$1["default"] {
         }
         let marginMode = undefined;
         let request = {};
-        let query = undefined;
+        let query;
         const market = (symbol !== undefined) ? this.market(symbol) : undefined;
         const until = this.safeInteger(paramsPaginate, 'until');
         const paramsOmitted = this.omit(paramsPaginate, ['until']);
         const [type, paramsMarketType] = this.handleMarketTypeAndParams('fetchMyTrades', market, paramsOmitted);
         const contract = (type === 'swap') || (type === 'future') || (type === 'option');
         if (contract) {
-            let contractQuery = undefined;
+            let contractQuery;
             [request, contractQuery] = this.prepareRequest(market, type, paramsMarketType);
             query = (type === 'option') ? this.omit(contractQuery, 'order_id') : contractQuery;
         }
@@ -4627,6 +4641,19 @@ class gate extends gate$1["default"] {
         }
         return this.parseOrders(response);
     }
+    isGateFuturesContractWithDecimalSize(market) {
+        const info = this.safeDict(market, 'info', {});
+        const isSwap = this.safeBool(market, 'swap', false);
+        const enableDecimal = this.safeBool(info, 'enable_decimal', false);
+        return isSwap && enableDecimal;
+    }
+    getGateFuturesSignedAmount(symbol, side, amount) {
+        const amountString = this.amountToPrecision(symbol, amount);
+        if (side === 'sell') {
+            return Precise["default"].stringNeg(amountString);
+        }
+        return amountString;
+    }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
         if (type === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' requires a type argument');
@@ -4650,7 +4677,7 @@ class gate extends gate$1["default"] {
         const exchangeSpecificTimeInForce = this.safeStringLowerN(params, ['timeInForce', 'tif', 'time_in_force']);
         const [postOnly, paramsPostOnly] = this.handlePostOnly(type === 'market', exchangeSpecificTimeInForce === 'poc', params);
         let timeInForce = this.handleTimeInForce(paramsPostOnly);
-        if (postOnly === true) {
+        if (postOnly) {
             timeInForce = 'poc';
         }
         // we only omit the unified params here
@@ -4679,18 +4706,23 @@ class gate extends gate$1["default"] {
             priceResolved = 0;
         }
         let contractAmount = 0;
+        let signedAmount = undefined;
+        let useGateFuturesDecimalSize = false;
         if (contract === true) {
             const isClose = this.safeBool(query, 'close');
             if (isClose !== true) {
-                const amountToPrecision = this.amountToPrecision(symbol, amount);
-                let signedAmount = amountToPrecision;
-                if (side === 'sell') {
-                    signedAmount = Precise["default"].stringNeg(amountToPrecision);
+                signedAmount = this.getGateFuturesSignedAmount(symbol, side, amount);
+                useGateFuturesDecimalSize = this.isGateFuturesContractWithDecimalSize(market);
+                if (!useGateFuturesDecimalSize) {
+                    contractAmount = parseInt(signedAmount);
                 }
-                contractAmount = parseInt(signedAmount);
             }
         }
         const amountResolved = (contract === true) ? contractAmount : amount;
+        let sizeRequest = amountResolved;
+        if (useGateFuturesDecimalSize) {
+            sizeRequest = signedAmount;
+        }
         let request = undefined;
         const nonTriggerOrder = !isTpsl && (trigger === undefined);
         if (nonTriggerOrder) {
@@ -4698,7 +4730,7 @@ class gate extends gate$1["default"] {
                 // contract order
                 request = {
                     'contract': market['id'], // filled in prepareRequest above
-                    'size': amountResolved, // int64, positive = bid, negative = ask
+                    'size': sizeRequest, // int64 (decimal string on enable_decimal markets), positive = bid, negative = ask
                     // 'iceberg': 0, // int64, display size for iceberg order, 0 for non-iceberg, note that you will have to pay the taker fee for the hidden size
                     // 'close': false, // true to close the position, with size set to 0
                     // 'reduce_only': false, // St as true to be reduce-only order
@@ -4788,7 +4820,7 @@ class gate extends gate$1["default"] {
                 request['text'] = clientOrderId;
             }
             else {
-                if (textIsRequired === true) {
+                if (textIsRequired) {
                     // batchOrders requires text in the request
                     request['text'] = 't-' + this.uuid16();
                 }
@@ -4803,7 +4835,7 @@ class gate extends gate$1["default"] {
                 request = {
                     'initial': {
                         'contract': market['id'],
-                        'size': amountResolved, // positive = buy, negative = sell, set to 0 to close the position
+                        // positive = buy, negative = sell, set to 0 to close the position
                         // 'price': (price === 0) ? '0' : this.priceToPrecision (symbol, price), // set to 0 to use market price
                         // 'close': false, // set to true if trying to close the position
                         // 'tif': 'gtc', // gtc, ioc, if using market price, only ioc is supported
@@ -4812,6 +4844,12 @@ class gate extends gate$1["default"] {
                     },
                     'settle': market['settleId'],
                 };
+                if (useGateFuturesDecimalSize) {
+                    request['initial']['amount'] = signedAmount; // FuturesInitialOrder.amount takes precedence over size
+                }
+                else {
+                    request['initial']['size'] = amountResolved;
+                }
                 if (type === 'market') {
                     request['initial']['price'] = '0';
                 }
@@ -4949,11 +4987,12 @@ class gate extends gate$1["default"] {
                 request['amount'] = this.amountToPrecision(symbol, amount);
             }
             else {
-                if (side === 'sell') {
-                    request['size'] = this.parseToNumeric(Precise["default"].stringNeg(this.amountToPrecision(symbol, amount)));
+                const signedAmount = this.getGateFuturesSignedAmount(symbol, side, amount);
+                if (this.isGateFuturesContractWithDecimalSize(market)) {
+                    request['size'] = signedAmount;
                 }
                 else {
-                    request['size'] = this.parseToNumeric(this.amountToPrecision(symbol, amount));
+                    request['size'] = this.parseToNumeric(signedAmount);
                 }
             }
         }
@@ -5243,7 +5282,7 @@ class gate extends gate$1["default"] {
         //     }
         //
         const succeeded = this.safeBool(order, 'succeeded', true);
-        if (succeeded !== true) {
+        if (!succeeded) {
             // cancelOrders response
             return this.safeOrder({
                 'clientOrderId': this.safeString(order, 'text'),
@@ -5453,7 +5492,7 @@ class gate extends gate$1["default"] {
         const [request, requestParams] = this.fetchOrderRequest(id, symbol, params);
         let response;
         if (type === 'spot' || type === 'margin') {
-            if (trigger === true) {
+            if (trigger) {
                 response = await this.privateSpotGetPriceOrdersOrderId(this.extend(request, requestParams));
             }
             else {
@@ -5461,7 +5500,7 @@ class gate extends gate$1["default"] {
             }
         }
         else if (type === 'swap') {
-            if (trigger === true) {
+            if (trigger) {
                 response = await this.privateFuturesGetSettlePriceOrdersOrderId(this.extend(request, requestParams));
             }
             else {
@@ -5469,7 +5508,7 @@ class gate extends gate$1["default"] {
             }
         }
         else if (type === 'future') {
-            if (trigger === true) {
+            if (trigger) {
                 response = await this.privateDeliveryGetSettlePriceOrdersOrderId(this.extend(request, requestParams));
             }
             else {
@@ -5837,7 +5876,7 @@ class gate extends gate$1["default"] {
         request['order_id'] = id;
         let response;
         if (type === 'spot' || type === 'margin') {
-            if (trigger === true) {
+            if (trigger) {
                 response = await this.privateSpotDeletePriceOrdersOrderId(this.extend(request, requestParams));
             }
             else {
@@ -5845,7 +5884,7 @@ class gate extends gate$1["default"] {
             }
         }
         else if (type === 'swap') {
-            if (trigger === true) {
+            if (trigger) {
                 response = await this.privateFuturesDeleteSettlePriceOrdersOrderId(this.extend(request, requestParams));
             }
             else {
@@ -5853,7 +5892,7 @@ class gate extends gate$1["default"] {
             }
         }
         else if (type === 'future') {
-            if (trigger === true) {
+            if (trigger) {
                 response = await this.privateDeliveryDeleteSettlePriceOrdersOrderId(this.extend(request, requestParams));
             }
             else {
@@ -6159,14 +6198,15 @@ class gate extends gate$1["default"] {
             'currency': currency['id'], // todo: currencies have network-junctions
             'amount': truncated,
         };
-        if (!(fromId in this.options['accountsByType'])) {
+        const accountsByType = this.safeDict(this.options, 'accountsByType', {});
+        if (!(fromId in accountsByType)) {
             request['from'] = 'margin';
             request['currency_pair'] = fromId;
         }
         else {
             request['from'] = fromId;
         }
-        if (!(toId in this.options['accountsByType'])) {
+        if (!(toId in accountsByType)) {
             request['to'] = 'margin';
             request['currency_pair'] = toId;
         }
@@ -6404,10 +6444,22 @@ class gate extends gate$1["default"] {
         }
         // gate returns the initial margin requirement in the initial_margin field (= value / leverage + taker fee), see https://github.com/ccxt/ccxt/issues/27152
         const marginBalance = this.safeString(position, 'margin');
-        const initialMarginString = this.omitZero(this.safeString(position, 'initial_margin'));
+        let initialMarginString = this.omitZero(this.safeString(position, 'initial_margin'));
         // gate returns the actual maintenance margin requirement in the maintenance_margin field (= value * (average_maintenance_rate + taker fee))
         // it is the exact liquidation threshold: the position is liquidated when margin + unrealised_pnl drops to maintenance_margin
-        const maintenanceMarginString = this.omitZero(this.safeString(position, 'maintenance_margin'));
+        let maintenanceMarginString = this.omitZero(this.safeString(position, 'maintenance_margin'));
+        const marketInfo = this.safeDict(marketResolved, 'info', {});
+        const takerFeeRate = this.safeString(marketInfo, 'taker_fee_rate', '0.00075');
+        const hasPositiveMarginBalance = (marginBalance === undefined) || Precise["default"].stringGt(marginBalance, '0');
+        if ((initialMarginString === undefined) && hasPositiveMarginBalance && (notional !== undefined) && (leverage !== undefined) && Precise["default"].stringGt(leverage, '0')) {
+            const closeFee = Precise["default"].stringMul(notional, takerFeeRate);
+            initialMarginString = Precise["default"].stringAdd(Precise["default"].stringDiv(notional, leverage), closeFee);
+        }
+        const liqPriceString = this.omitZero(this.safeString(position, 'liq_price'));
+        const maintenanceRate = this.omitZero(this.safeString(position, 'maintenance_rate'));
+        if ((maintenanceMarginString === undefined) && (liqPriceString === undefined) && hasPositiveMarginBalance && (notional !== undefined) && (maintenanceRate !== undefined)) {
+            maintenanceMarginString = Precise["default"].stringMul(notional, Precise["default"].stringAdd(maintenanceRate, takerFeeRate));
+        }
         // the margin field is the position margin balance, which excludes the unrealized pnl,
         // the position is liquidated when margin + unrealised_pnl drops to the maintenance margin,
         // so the unified collateral (the amount that can be lost, affected by pnl) includes it
@@ -6439,9 +6491,10 @@ class gate extends gate$1["default"] {
             'contracts': this.parseNumber(Precise["default"].stringAbs(size)),
             'contractSize': this.safeNumber(marketResolved, 'contractSize'),
             'marginRatio': undefined,
-            'liquidationPrice': this.safeNumber(position, 'liq_price'),
+            'liquidationPrice': this.parseNumber(liqPriceString),
             'markPrice': this.safeNumber(position, 'mark_price'),
             'lastPrice': undefined,
+            'positionMargin': this.parseNumber(marginBalance),
             'collateral': this.parseNumber(collateral),
             'marginMode': marginMode,
             'side': side,
@@ -6681,7 +6734,8 @@ class gate extends gate$1["default"] {
         if (type !== 'future' && type !== 'swap') {
             throw new errors.BadRequest(this.id + ' fetchLeverageTiers only supports swap and future');
         }
-        const limit = Math.max(1, Math.min(this.safeInteger(requestParams, 'limit', 100), 100));
+        const requestedLimit = this.safeInteger(requestParams, 'limit', 100);
+        const limit = this.parseToInt((requestedLimit === undefined) ? 100 : Math.max(1, Math.min(requestedLimit, 100)));
         let offset = this.safeInteger(requestParams, 'offset', 0);
         const contract = this.safeString(requestParams, 'contract', '');
         const paramsOmitted = this.omit(requestParams, ['limit', 'offset']);
@@ -7139,7 +7193,7 @@ class gate extends gate$1["default"] {
         let bodyJson = undefined;
         let signedHeaders = undefined;
         const containsSettle = path.indexOf('settle') > -1;
-        if (containsSettle && (path.endsWith('batch_cancel_orders') === true)) { // weird check to prevent $settle in php and converting {settle} to array(settle)
+        if (containsSettle && (path.endsWith('batch_cancel_orders'))) { // weird check to prevent $settle in php and converting {settle} to array(settle)
             // special case where we need to extract the settle from the path
             // but the body is an array of strings
             const settle = this.safeDict(params, 0);
@@ -7237,8 +7291,14 @@ class gate extends gate$1["default"] {
                 'Content-Type': 'application/json',
             };
         }
+        let headersResolved = signedHeaders;
+        if (type === 'futures') {
+            if (headersResolved === undefined) {
+                headersResolved = {};
+            }
+            headersResolved['X-Gate-Size-Decimal'] = '1';
+        }
         const bodyResolved = bodyJson;
-        const headersResolved = signedHeaders;
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
     async modifyMarginHelper(symbol, amount, params = {}) {

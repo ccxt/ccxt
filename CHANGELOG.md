@@ -1,3 +1,95 @@
+<a id="v4.5.90"></a>
+# [v4.5.90](https://github.com/ccxt/ccxt/releases/tag/v4.5.90) - 2026-10-23
+
+## What's Changed
+* kucoin: fix private api issues found in live tests by [@carlotestor](https://github.com/carlotestor) in [#30922](https://github.com/ccxt/ccxt/pull/30922)
+* fix(base): stop cursor, incremental and dynamic pagination in go when a break fires by [@amayvs](https://github.com/amayvs) in [#30924](https://github.com/ccxt/ccxt/pull/30924)
+* fix(rust): pass response headers to handleErrors by [@carlosmiei](https://github.com/carlosmiei) in [#30941](https://github.com/ccxt/ccxt/pull/30941)
+* fix(bingx): map order rejection codes by [@AresArtemius](https://github.com/AresArtemius) in [#30947](https://github.com/ccxt/ccxt/pull/30947)
+* feat(lighter): add fetchTrades by [@rayBastard](https://github.com/rayBastard) in [#30939](https://github.com/ccxt/ccxt/pull/30939)
+* feat(polymarket): add Polymarket perps public REST API by [@rayBastard](https://github.com/rayBastard) in [#30268](https://github.com/ccxt/ccxt/pull/30268)
+* fix(cs): retire a replacement ws client detached by exchange Close by [@carlotestor](https://github.com/carlotestor) in [#30644](https://github.com/ccxt/ccxt/pull/30644)
+* fix(cs): reject futures created on a retired ws client by [@carlotestor](https://github.com/carlotestor) in [#30812](https://github.com/ccxt/ccxt/pull/30812)
+* fix(base): build markets_by_id locally in setMarkets and publish it in one swap by [@carlotestor](https://github.com/carlotestor) in [#30816](https://github.com/ccxt/ccxt/pull/30816)
+* feat(coinbaseinternational): update to global derivatives by [@Dan-krm](https://github.com/Dan-krm) in [#30343](https://github.com/ccxt/ccxt/pull/30343)
+* fix(rust): flaky ws prediction tests by [@carlosmiei](https://github.com/carlosmiei) in [#30954](https://github.com/ccxt/ccxt/pull/30954)
+* fix(blofin): send instId to the mark-price endpoint by [@AresArtemius](https://github.com/AresArtemius) in [#30951](https://github.com/ccxt/ccxt/pull/30951)
+* fix(base): keep paginated-call arithmetic numeric in php by [@amayvs](https://github.com/amayvs) in [#30946](https://github.com/ccxt/ccxt/pull/30946)
+* feat(bitget): stock support by [@Dan-krm](https://github.com/Dan-krm) in [#29958](https://github.com/ccxt/ccxt/pull/29958)
+* chore(eslint): drop strict-boolean-expressions; plain truthiness on boolean-typed checks by [@carlotestor](https://github.com/carlotestor) in [#30949](https://github.com/ccxt/ccxt/pull/30949)
+* test: snap low-signal base tests (sleep timing, constant literals, throttler wall-clock bench) by [@carlotestor](https://github.com/carlotestor) in [#30953](https://github.com/ccxt/ccxt/pull/30953)
+* ci(rust): raise cargo jobs to match 6-CPU runners by [@carlotestor](https://github.com/carlotestor) in [#30961](https://github.com/ccxt/ccxt/pull/30961)
+* feat(go): typed async return channels (AsyncResult[T]); Ticker/Order struct channels by [@carlotestor](https://github.com/carlotestor) in [#30902](https://github.com/ccxt/ccxt/pull/30902)
+* ci(rust): shared sccache across self-hosted rust runners by [@carlotestor](https://github.com/carlotestor) in [#30963](https://github.com/ccxt/ccxt/pull/30963)
+* build: emit native code instead of runtime helpers in Go/Java/C#/Rust (-67% Rust, -60% Java, -53% C#, -38% Go non-plumbing) by [@carlotestor](https://github.com/carlotestor) in [#30919](https://github.com/ccxt/ccxt/pull/30919)
+* build: emit concise native code or a plain helper call instead of inlined helper bodies by [@carlotestor](https://github.com/carlotestor) in [#30966](https://github.com/ccxt/ccxt/pull/30966)
+* refactor(go): drop ExchangeTyped, put base typed methods on Exchange (-54k lines) by [@carlotestor](https://github.com/carlotestor) in [#30964](https://github.com/ccxt/ccxt/pull/30964)
+* fix(blofin): send since as begin in fetchMyTrades by [@AresArtemius](https://github.com/AresArtemius) in [#30962](https://github.com/ccxt/ccxt/pull/30962)
+* fix(blofin): send the since window to the candles endpoint by [@AresArtemius](https://github.com/AresArtemius) in [#30960](https://github.com/ccxt/ccxt/pull/30960)
+* chore: try to mint new token by [@carlosmiei](https://github.com/carlosmiei) in [#30970](https://github.com/ccxt/ccxt/pull/30970)
+
+
+**Full Changelog**: https://github.com/ccxt/ccxt/compare/v4.5.89...v4.5.90
+
+[Changes][v4.5.90]
+
+
+<a id="v4.5.89"></a>
+# [v4.5.89](https://github.com/ccxt/ccxt/releases/tag/v4.5.89) - 2026-10-20
+
+## What's Changed
+* api argument: always string[] across all exchanges by [@carlotestor](https://github.com/carlotestor) in [#30856](https://github.com/ccxt/ccxt/pull/30856)
+* refactor(base): drop unused headers/body args from request, fetch2 and sign by [@carlotestor](https://github.com/carlotestor) in [#30838](https://github.com/ccxt/ccxt/pull/30838)
+* chore(deps): bump rustls from 0.23.40 to 0.23.45 in /examples/rust by [@dependabot](https://github.com/dependabot)[bot] in [#30779](https://github.com/ccxt/ccxt/pull/30779)
+* chore(deps): patch source-map-js, next, sharp, compression, postcss-selector-parser in docs and examples by [@kroitor](https://github.com/kroitor) in [#30871](https://github.com/ccxt/ccxt/pull/30871)
+* fix(python): count aiohttp per-message overhead when draining ws buffer by [@carlotestor](https://github.com/carlotestor) in [#30877](https://github.com/ccxt/ccxt/pull/30877)
+* feat(networks): single unified network code per network + NetworkCode type by [@carlotestor](https://github.com/carlotestor) in [#30848](https://github.com/ccxt/ccxt/pull/30848)
+* fix: remove obsolete props by [@ttodua](https://github.com/ttodua) in [#30868](https://github.com/ccxt/ccxt/pull/30868)
+* docs(krakenfutures): replace dead doc links in urls.doc and five methods by [@rayBastard](https://github.com/rayBastard) in [#30879](https://github.com/ccxt/ccxt/pull/30879)
+* feat(paradex): watchMyTrades, watchPositions and watchBalance over ws by [@amayvs](https://github.com/amayvs) in [#30880](https://github.com/ccxt/ccxt/pull/30880)
+* fix(gate): leverage tier currency is settle, not base by [@carlotestor](https://github.com/carlotestor) in [#30870](https://github.com/ccxt/ccxt/pull/30870)
+* fix(bingx): watchMyTrades sends empty frame on private swap stream by [@carlotestor](https://github.com/carlotestor) in [#30834](https://github.com/ccxt/ccxt/pull/30834)
+* fix(okx): send instFamily instead of deprecated uly in fetchMarketLeverageTiers by [@carlotestor](https://github.com/carlotestor) in [#30863](https://github.com/ccxt/ccxt/pull/30863)
+* fix(gate): fetch actual leverage tiers for all contracts by [@Grivn](https://github.com/Grivn) in [#30882](https://github.com/ccxt/ccxt/pull/30882)
+* feat: add L3 orderbook type by [@ttodua](https://github.com/ttodua) in [#30855](https://github.com/ccxt/ccxt/pull/30855)
+* binance: 'future' means dated contracts only; USDⓈ-M = swap + linear by [@carlotestor](https://github.com/carlotestor) in [#30858](https://github.com/ccxt/ccxt/pull/30858)
+* fix(bybit): read leverage tier symbol from the tier row by [@carlotestor](https://github.com/carlotestor) in [#30867](https://github.com/ccxt/ccxt/pull/30867)
+* fix(bingx): sign the transfer supportCoins endpoint by [@AresArtemius](https://github.com/AresArtemius) in [#30883](https://github.com/ccxt/ccxt/pull/30883)
+* fix(nado): declare the features block for spot and swap markets by [@rayBastard](https://github.com/rayBastard) in [#30887](https://github.com/ccxt/ccxt/pull/30887)
+* fix(toobit): read last price from the 'p' field by [@rayBastard](https://github.com/rayBastard) in [#30851](https://github.com/ccxt/ccxt/pull/30851)
+* feat(poloniex): add fetchTransfer and fetchTransfers by [@rayBastard](https://github.com/rayBastard) in [#30853](https://github.com/ccxt/ccxt/pull/30853)
+* fix(lighter): allow fetchOrderBook limit up to 250 by [@rayBastard](https://github.com/rayBastard) in [#30852](https://github.com/ccxt/ccxt/pull/30852)
+* fix(bittrade): map "trade not open now" to BadSymbol (REST + WS) by [@carlotestor](https://github.com/carlotestor) in [#30894](https://github.com/ccxt/ccxt/pull/30894)
+* fix(mexc): raise NotSupported from the market-type guards by [@rayBastard](https://github.com/rayBastard) in [#30884](https://github.com/ccxt/ccxt/pull/30884)
+* fix(modetrade): derive market active flag from the status field by [@rayBastard](https://github.com/rayBastard) in [#30878](https://github.com/ccxt/ccxt/pull/30878)
+* feat(bingx): add fetchBidsAsks by [@AresArtemius](https://github.com/AresArtemius) in [#30895](https://github.com/ccxt/ccxt/pull/30895)
+* fix(poloniex): skip ws order book deltas when the stored book is undefined by [@carlotestor](https://github.com/carlotestor) in [#30893](https://github.com/ccxt/ccxt/pull/30893)
+* fix(bittrade): guard ws order book handlers against a missing book by [@carlotestor](https://github.com/carlotestor) in [#30892](https://github.com/ccxt/ccxt/pull/30892)
+* docs: remove orjson README section, halve Order Router manual section by [@carlotestor](https://github.com/carlotestor) in [#30890](https://github.com/ccxt/ccxt/pull/30890)
+* refactor: remove incorrect .has values by [@ttodua](https://github.com/ttodua) in [#30866](https://github.com/ccxt/ccxt/pull/30866)
+* fix(okx): load markets in watchTicker, watchMarkPrice and watchFundingRate by [@rayBastard](https://github.com/rayBastard) in [#30872](https://github.com/ccxt/ccxt/pull/30872)
+* feat(base): derive isolated position fields in safePosition and add position relationship tests by [@carlotestor](https://github.com/carlotestor) in [#30873](https://github.com/ccxt/ccxt/pull/30873)
+* fix: reduce recurring live-test failures (Go nil headers, bithumb/foxbit/weex/xt/bitfinex/coinbase/woo/blofin/cex/independentreserve, wtfs harness, skips) by [@carlotestor](https://github.com/carlotestor) in [#30906](https://github.com/ccxt/ccxt/pull/30906)
+* fix(toobit): fetchMarkOHLCV and fetchIndexOHLCV returned no candles by [@rayBastard](https://github.com/rayBastard) in [#30912](https://github.com/ccxt/ccxt/pull/30912)
+* feat(modetrade): add fetchTicker and fetchTickers by [@rayBastard](https://github.com/rayBastard) in [#30903](https://github.com/ccxt/ccxt/pull/30903)
+* refactor(gate): support decimal swap contract sizes when enable_decimal is true by [@carlotestor](https://github.com/carlotestor) in [#30911](https://github.com/ccxt/ccxt/pull/30911)
+* fix(toobit): parse bid and ask in fetchTicker and fetchTickers by [@wavebyrd](https://github.com/wavebyrd) in [#30899](https://github.com/ccxt/ccxt/pull/30899)
+* feat(backpack): stock support by [@Dan-krm](https://github.com/Dan-krm) in [#30901](https://github.com/ccxt/ccxt/pull/30901)
+* chore(bingx): refresh the stale test skips by [@AresArtemius](https://github.com/AresArtemius) in [#30909](https://github.com/ccxt/ccxt/pull/30909)
+* fix(gate): resolve testnet ws market type in getMarketTypeByUrl by [@carlotestor](https://github.com/carlotestor) in [#30898](https://github.com/ccxt/ccxt/pull/30898)
+* feat(okx): editOrders, fetchMySettlementHistory + oco, settlement and ws fixes by [@carlotestor](https://github.com/carlotestor) in [#30914](https://github.com/ccxt/ccxt/pull/30914)
+* fix(bingx): parse the order fee cost as a number by [@AresArtemius](https://github.com/AresArtemius) in [#30910](https://github.com/ccxt/ccxt/pull/30910)
+* fix(hyperliquid): transfer between main <> subAccount by [@carlosmiei](https://github.com/carlosmiei) in [#30920](https://github.com/ccxt/ccxt/pull/30920)
+
+## New Contributors
+* [@Grivn](https://github.com/Grivn) made their first contribution in [#30882](https://github.com/ccxt/ccxt/pull/30882)
+* [@wavebyrd](https://github.com/wavebyrd) made their first contribution in [#30899](https://github.com/ccxt/ccxt/pull/30899)
+
+**Full Changelog**: https://github.com/ccxt/ccxt/compare/v4.5.88...v4.5.89
+
+[Changes][v4.5.89]
+
+
 <a id="v4.5.88"></a>
 # [v4.5.88](https://github.com/ccxt/ccxt/releases/tag/v4.5.88) - 2026-10-14
 
@@ -14576,6 +14668,8 @@
 [Changes][4.3.22]
 
 
+[v4.5.90]: https://github.com/ccxt/ccxt/compare/v4.5.89...v4.5.90
+[v4.5.89]: https://github.com/ccxt/ccxt/compare/v4.5.88...v4.5.89
 [v4.5.88]: https://github.com/ccxt/ccxt/compare/v4.5.87...v4.5.88
 [v4.5.87]: https://github.com/ccxt/ccxt/compare/v4.5.86...v4.5.87
 [v4.5.86]: https://github.com/ccxt/ccxt/compare/v4.5.85...v4.5.86

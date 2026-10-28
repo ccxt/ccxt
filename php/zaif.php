@@ -840,13 +840,13 @@ class zaif extends Exchange {
         );
     }
 
-    public function custom_nonce() {
+    public function custom_nonce(): string {
         $num = $this->number_to_string($this->milliseconds() / 1000);
         $nonce = floatval($num);
         return sprintf('%.8f', $nonce);
     }
 
-    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+    public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
         $apiName = $api[0];
         $baseApiUrl = $this->safe_string($this->urls['api'], 'rest');
         if ($baseApiUrl === null) {
@@ -897,7 +897,7 @@ class zaif extends Exchange {
             throw new ExchangeError($feedback); // unknown message
         }
         $success = $this->safe_bool($response, 'success', true);
-        if ($success !== true) {
+        if (!$success) {
             throw new ExchangeError($feedback);
         }
         return null;

@@ -1,5 +1,5 @@
 import Exchange from './abstract/woofipro.js';
-import type { Balances, Currency, CurrencyInterface, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Leverage, Currencies, TradingFees, OrderRequest, Dict, int, LedgerEntry, FundingRate, FundingRates, FundingHistory, MarginMode, MarginModes, MarginModification, OpenInterest, OpenInterests, Position, FeeString, Status } from './base/types.js';
+import type { Balances, Currency, CurrencyInterface, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Leverage, Currencies, TradingFees, OrderRequest, Dict, int, LedgerEntry, FundingRate, FundingRates, FundingHistory, MarginMode, MarginModes, MarginModification, OpenInterest, OpenInterests, Position, NullableDict, FeeString, Status } from './base/types.js';
 /**
  * @class woofipro
  * @augments Exchange
@@ -113,7 +113,7 @@ export default class woofipro extends Exchange {
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     fetchTickers(symbols?: Strings, params?: Dict): Promise<Tickers>;
-    parseOpenInterest(interest: any, market?: Market): OpenInterest;
+    parseOpenInterest(interest: NullableDict, market?: Market): OpenInterest;
     /**
      * @method
      * @name woofipro#fetchOpenInterest
@@ -198,7 +198,7 @@ export default class woofipro extends Exchange {
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
     parseOrder(order: Dict, market?: Market): Order;
     parseTimeInForce(timeInForce: Str): Str;
-    parseOrderStatus(status: Str): string | undefined;
+    parseOrderStatus(status: Str): Str;
     parseOrderType(type: Str): Str;
     createOrderRequest(symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: Dict): Dict;
     /**
@@ -401,7 +401,7 @@ export default class woofipro extends Exchange {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     fetchBalance(params?: Dict): Promise<Balances>;
-    getAssetHistoryRows(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    getAssetHistoryRows(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<any>;
     parseLedgerEntry(item: Dict, currency?: Currency): LedgerEntry;
     parseLedgerEntryType(type: Str): Str;
     /**

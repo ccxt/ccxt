@@ -756,7 +756,7 @@ public class Btcmarkets extends BtcmarketsApi
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
-        for (var i = 0; i < Helpers.getArrayLength(response); i++)
+        for (var i = 0; i < (switch ((Object)(response)) { case null -> 0; case List<?> j39v1 -> j39v1.size(); case String j39v2 -> j39v2.length(); case Object j39v3 -> j39v3.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v3) : 0; }); i++)
         {
             Map<String, Object> balance = (Map<String, Object>) this.safeDict(response, i, (Object) null);
             String currencyId = this.safeString(balance, "assetName");
@@ -1074,10 +1074,12 @@ public class Btcmarkets extends BtcmarketsApi
         String feeCostString = this.safeString(trade, "fee");
         if (!java.util.Objects.equals(feeCostString, null))
         {
-            fee = Helpers.newMap(
-                "cost", feeCostString,
-                "currency", feeCurrencyCode
-            );
+            {
+                HashMap<String, Object> hx4NewMap0 = new HashMap<String, Object>();
+                hx4NewMap0.put("cost", feeCostString);
+                hx4NewMap0.put("currency", feeCurrencyCode);
+                fee = hx4NewMap0;
+            }
         }
         String takerOrMaker = this.safeStringLower(trade, "liquidityType");
         HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
@@ -1163,7 +1165,7 @@ public class Btcmarkets extends BtcmarketsApi
             request.put("amount", this.amountToPrecision(symbol, amount));
             request.put("side", (((java.util.Objects.equals(side, "buy")))) ? "Bid" : "Ask");
             String lowercaseType = ((String)type).toLowerCase();
-            Object orderTypes = this.safeDict(this.options, "orderTypes", new HashMap<String, Object>() {{
+            Map<String, Object> orderTypes = (Map<String, Object>) this.safeDict(this.options, "orderTypes", new HashMap<String, Object>() {{
                 put( "limit", "Limit" );
                 put( "market", "Market" );
                 put( "stop", "Stop" );

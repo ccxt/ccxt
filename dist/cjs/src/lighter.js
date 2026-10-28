@@ -114,7 +114,7 @@ class lighter extends lighter$1["default"] {
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
-                'fetchTrades': false,
+                'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
                 'fetchTransfer': false,
@@ -264,6 +264,7 @@ class lighter extends lighter$1["default"] {
             'httpExceptions': {},
             'exceptions': {
                 'exact': {
+                    '20001': errors.BadRequest, // invalid param
                     '21146': errors.ExchangeError, // system account cannot be an integrator
                     '21500': errors.ExchangeError, // transaction not found
                     '21501': errors.ExchangeError, // invalid tx info
@@ -336,10 +337,12 @@ class lighter extends lighter$1["default"] {
                     '21904': errors.InvalidOrder, // invalid deleverage size
                     '21905': errors.InvalidOrder, // invalid deleverage price
                     '21906': errors.InvalidOrder, // invalid deleverage side
+                    '22400': errors.BadRequest, // invalid timestamps: end_timestamp must be greater than start_timestamp
                     '23000': errors.RateLimitExceeded, // Too Many Requests!
                     '23001': errors.RateLimitExceeded, // Too Many Subscriptions!
                     '23002': errors.RateLimitExceeded, // Too Many Different Accounts!
                     '23003': errors.RateLimitExceeded, // Too Many Connections!
+                    '29404': errors.BadRequest, // not found
                 },
                 'broad': {},
             },
@@ -439,19 +442,10 @@ class lighter extends lighter$1["default"] {
         }
     }
     getLighterPrivateKey(strAccountIndex, strApiKeyIndex) {
-        if (!('auths' in this.options)) {
-            return undefined;
-        }
-        if (!(strAccountIndex in this.options['auths'])) {
-            return undefined;
-        }
-        if (!(strApiKeyIndex in this.options['auths'][strAccountIndex])) {
-            return undefined;
-        }
-        if (!('lighterPrivateKey' in this.options['auths'][strAccountIndex][strApiKeyIndex])) {
-            return undefined;
-        }
-        return this.options['auths'][strAccountIndex][strApiKeyIndex]['lighterPrivateKey'];
+        const auths = this.safeDict(this.options, 'auths');
+        const accountAuths = this.safeDict(auths, strAccountIndex);
+        const apiKeyAuths = this.safeDict(accountAuths, strApiKeyIndex);
+        return this.safeString(apiKeyAuths, 'lighterPrivateKey');
     }
     /**
      * @method
@@ -476,17 +470,19 @@ class lighter extends lighter$1["default"] {
         }
         signer = await this.loadAccount(this.options['chainId'], this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex);
         await this.handleBuilderFeeApproval(accountIndex, apiKeyIndex);
-        return (signer !== undefined);
+        const loaded = (signer !== undefined);
+        return loaded;
     }
     handleApiKeyIndex(params, methodName1, optionName1, optionName2, defaultValue = undefined) {
         const [apiKeyIndexOption, paramsApiKeyIndex] = this.handleOptionAndParams2(params, methodName1, optionName1, optionName2, defaultValue);
-        let apiKeyIndex = apiKeyIndexOption;
-        if ((apiKeyIndex === undefined) || (apiKeyIndex < 4) || (apiKeyIndex > 254)) {
-            // apiKeyIndex = this.randNumber (2);
-            apiKeyIndex = 254;
-            this.options['apiKeyIndex'] = apiKeyIndex; // default to a value to avoid overriding other keys
+        const apiKeyIndex = this.safeInteger([apiKeyIndexOption], 0);
+        if ((apiKeyIndex !== undefined) && (apiKeyIndex >= 4) && (apiKeyIndex <= 254)) {
+            return [this.parseToInt(apiKeyIndex), paramsApiKeyIndex];
         }
-        return [this.parseToInt(apiKeyIndex), paramsApiKeyIndex];
+        // apiKeyIndex = this.randNumber (2);
+        const defaultApiKeyIndex = 254;
+        this.options['apiKeyIndex'] = defaultApiKeyIndex; // default to a value to avoid overriding other keys
+        return [defaultApiKeyIndex, paramsApiKeyIndex];
     }
     async handleAccountIndex(params, methodName1, optionName1, optionName2, defaultValue = undefined) {
         const [accountIndexOption, paramsAccountIndex] = this.handleOptionAndParams2(params, methodName1, optionName1, optionName2, defaultValue);
@@ -573,11 +569,9 @@ class lighter extends lighter$1["default"] {
         const accountAuths = this.safeDict(auths, accountIndex);
         const cachedAuth = this.safeDict(accountAuths, apiKeyIndex);
         const cachedDeadline = this.safeInteger(cachedAuth, 'deadline');
-        if (cachedDeadline !== undefined) {
-            const minimumDeadline = this.seconds() + this.safeInteger(this.options, 'authDeadlineMinimumRemaining', 60);
-            if (cachedDeadline >= minimumDeadline) {
-                return this.safeString(cachedAuth, 'token');
-            }
+        const minimumRemaining = this.safeInteger(this.options, 'authDeadlineMinimumRemaining', 60);
+        if ((cachedDeadline !== undefined) && (minimumRemaining !== undefined) && (cachedDeadline - minimumRemaining >= this.seconds())) {
+            return this.safeString(cachedAuth, 'token');
         }
         const deadline = this.seconds() + this.safeInteger(this.options, 'authDeadlineExpiry', 28800);
         const request = {
@@ -632,11 +626,11 @@ class lighter extends lighter$1["default"] {
     }
     async handleBuilderFeeApproval(accountIndex, apiKeyIndex) {
         const buildFee = this.safeBool(this.options, 'builderFee', true);
-        if (buildFee !== true) {
+        if (!buildFee) {
             return false;
         }
         const approvedBuilderFee = this.safeBool(this.options, 'approvedBuilderFee', false);
-        if (approvedBuilderFee === true) {
+        if (approvedBuilderFee) {
             return true;
         }
         let standardTier = false;
@@ -667,7 +661,8 @@ class lighter extends lighter$1["default"] {
         const accountIndexStr = accountIndex.toString();
         const isStandardTier = this.safeBool(tiersForAccountIndexes, accountIndexStr);
         if (isStandardTier !== undefined) {
-            return isStandardTier;
+            const cachedIsStandard = (isStandardTier === true);
+            return cachedIsStandard;
         }
         const accountLimits = await this.privateGetAccountLimits({ 'account_index': accountIndex });
         //
@@ -793,8 +788,8 @@ class lighter extends lighter$1["default"] {
         request['api_key_index'] = apiKeyIndex;
         request['account_index'] = this.parseToInt(accountIndex);
         const triggerPrice = this.safeString2(paramsOrderExpiry, 'triggerPrice', 'stopPrice');
-        const stopLossPrice = this.safeValue(paramsOrderExpiry, 'stopLossPrice', triggerPrice);
-        const takeProfitPrice = this.safeValue(paramsOrderExpiry, 'takeProfitPrice');
+        const stopLossPrice = this.safeString(paramsOrderExpiry, 'stopLossPrice', triggerPrice);
+        const takeProfitPrice = this.safeString(paramsOrderExpiry, 'takeProfitPrice');
         const stopLoss = this.safeDict(paramsOrderExpiry, 'stopLoss');
         const takeProfit = this.safeDict(paramsOrderExpiry, 'takeProfit');
         const hasStopLoss = (stopLoss !== undefined);
@@ -871,7 +866,7 @@ class lighter extends lighter$1["default"] {
         request['order_expiry'] = orderExpiry;
         request['order_type'] = orderTypeNum;
         request['time_in_force'] = timeInForceNum;
-        request['reduce_only'] = (reduceOnly === true) ? 1 : 0;
+        request['reduce_only'] = (reduceOnly) ? 1 : 0;
         request['client_order_index'] = clientOrderId;
         request['base_amount'] = this.parseToInt(Precise["default"].stringMul(amountStr, amountScale));
         request['avg_execution_price'] = this.parseToInt(Precise["default"].stringMul(priceStr, priceScale));
@@ -924,11 +919,11 @@ class lighter extends lighter$1["default"] {
             throw new errors.ArgumentsRequired(this.id + ' fetchNonce() requires accountIndex and apiKeyIndex.');
         }
         if ('nonce' in params) {
-            return this.safeInteger(params, 'nonce');
+            return this.parseToInt(this.safeInteger(params, 'nonce'));
         }
         const nonceInOptions = this.safeInteger(this.options, 'nonce');
         if (nonceInOptions !== undefined) {
-            return nonceInOptions;
+            return this.parseToInt(nonceInOptions);
         }
         // avoid skipNonce for l1 operations
         const skipNonce = this.handleOptionBoolAndParams(params, 'fetchNonce', 'skipNonce', true)[0];
@@ -936,7 +931,7 @@ class lighter extends lighter$1["default"] {
             return this.milliseconds();
         }
         const response = await this.publicGetNextNonce({ 'account_index': accountIndex, 'api_key_index': apiKeyIndex });
-        return this.safeInteger(response, 'nonce');
+        return this.parseToInt(this.safeInteger(response, 'nonce'));
     }
     async signAndCreateOrder(method, symbol, type, side, amount, price = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -1251,9 +1246,10 @@ class lighter extends lighter$1["default"] {
             if (type === 'perp') {
                 type = 'swap';
             }
-            let baseId = this.safeString(market, 'symbol');
-            if (baseId !== undefined && baseId.indexOf('/') !== -1) {
-                baseId = baseId.split('/')[0];
+            const marketSymbol = this.safeString(market, 'symbol');
+            let baseId = marketSymbol;
+            if (marketSymbol !== undefined && marketSymbol.indexOf('/') !== -1) {
+                baseId = marketSymbol.split('/')[0];
             }
             const quoteId = 'USDC';
             const settleId = (type === 'swap') ? 'USDC' : undefined;
@@ -1418,7 +1414,7 @@ class lighter extends lighter$1["default"] {
             'limit': 100,
         };
         if (limit !== undefined) {
-            request['limit'] = Math.min(limit, 100);
+            request['limit'] = Math.min(limit, 250);
         }
         const response = await this.publicGetOrderBookOrders(this.extend(request, params));
         //
@@ -1705,13 +1701,16 @@ class lighter extends lighter$1["default"] {
             }
         }
         else {
-            endTs = (until !== undefined) ? until : now;
-            const defaultLimit = 100;
-            if (limit !== undefined) {
-                startTs = endTs - this.parseTimeframe(timeframe) * 1000 * limit;
+            const count = this.safeInteger({ 'limit': limit }, 'limit', 100);
+            const timeframeMs = this.parseTimeframe(timeframe) * 1000;
+            const span = timeframeMs * count;
+            if (until !== undefined) {
+                endTs = until;
+                startTs = until - span;
             }
             else {
-                startTs = endTs - this.parseTimeframe(timeframe) * 1000 * defaultLimit;
+                endTs = now;
+                startTs = now - span;
             }
         }
         const request = {
@@ -1817,7 +1816,7 @@ class lighter extends lighter$1["default"] {
     }
     /**
      * @method
-     * @name ligher#fetchBalance
+     * @name lighter#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://apidocs.lighter.xyz/reference/account-1
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2049,6 +2048,14 @@ class lighter extends lighter$1["default"] {
                 leverage = 100 / imf;
             }
         }
+        const contractsString = this.safeString(position, 'position');
+        const positionValueString = this.safeString(position, 'position_value');
+        const markPriceString = Precise["default"].stringDiv(positionValueString, contractsString);
+        // allocated_margin is the isolated collateral balance (0 for cross)
+        let positionMargin = undefined;
+        if (marginMode === 'isolated') {
+            positionMargin = this.safeNumber(position, 'allocated_margin');
+        }
         return this.safePosition({
             'info': position,
             'id': undefined,
@@ -2058,13 +2065,14 @@ class lighter extends lighter$1["default"] {
             'isolated': (marginMode === 'isolated'),
             'hedged': undefined,
             'side': side,
-            'contracts': this.safeNumber(position, 'position'),
+            'contracts': this.parseNumber(contractsString),
             'contractSize': undefined,
             'entryPrice': this.safeNumber(position, 'avg_entry_price'),
-            'markPrice': undefined,
-            'notional': this.safeNumber(position, 'position_value'),
+            'markPrice': this.parseNumber(markPriceString),
+            'notional': this.parseNumber(positionValueString),
             'leverage': leverage,
-            'collateral': this.safeNumber(position, 'allocated_margin'),
+            'positionMargin': positionMargin,
+            'collateral': undefined,
             'initialMargin': undefined,
             'maintenanceMargin': undefined,
             'initialMarginPercentage': undefined,
@@ -2358,16 +2366,14 @@ class lighter extends lighter$1["default"] {
         const marketId = this.safeString(order, 'market_index');
         const marketResolved = this.safeMarket(marketId, market);
         const timestamp = this.safeTimestamp(order, 'timestamp');
-        let isAsk = this.safeBool(order, 'is_ask');
-        if (isAsk === undefined) {
-            const isAskAsInteger = this.safeInteger(order, 'is_ask');
-            if (isAskAsInteger !== undefined) {
-                isAsk = isAskAsInteger === 1;
-            }
-        }
+        const isAsk = this.safeBool(order, 'is_ask');
+        const isAskAsInteger = this.safeInteger(order, 'is_ask');
         let side = undefined;
         if (isAsk !== undefined) {
-            side = isAsk ? 'sell' : 'buy';
+            side = (isAsk === true) ? 'sell' : 'buy';
+        }
+        else if (isAskAsInteger !== undefined) {
+            side = (isAskAsInteger === 1) ? 'sell' : 'buy';
         }
         let type = this.safeString(order, 'type');
         if (type === undefined) {
@@ -2386,20 +2392,13 @@ class lighter extends lighter$1["default"] {
             }
         }
         // Try to parse to integer first, because parsing an integer to a string wouldn't result in undefined
-        let tif = undefined;
         const tifAsInteger = this.safeInteger(order, 'time_in_force');
-        if (tifAsInteger !== undefined) {
-            tif = this.parseOrderTimeInForceInteger(tifAsInteger);
-        }
-        else {
-            tif = this.safeString(order, 'time_in_force');
-        }
-        let reduceOnly = this.safeBool(order, 'reduce_only');
-        if (reduceOnly === undefined) {
-            const reduceOnlyAsInteger = this.safeInteger(order, 'reduce_only');
-            if (reduceOnlyAsInteger !== undefined) {
-                reduceOnly = reduceOnlyAsInteger === 1;
-            }
+        const tif = (tifAsInteger !== undefined) ? this.parseOrderTimeInForceInteger(tifAsInteger) : this.safeString(order, 'time_in_force');
+        const reduceOnlyAsBool = this.safeBool(order, 'reduce_only');
+        const reduceOnlyAsInteger = this.safeInteger(order, 'reduce_only');
+        let reduceOnly = reduceOnlyAsBool;
+        if ((reduceOnlyAsBool === undefined) && (reduceOnlyAsInteger !== undefined)) {
+            reduceOnly = (reduceOnlyAsInteger === 1);
         }
         const status = this.safeString(order, 'status');
         return this.safeOrder({
@@ -2895,6 +2894,54 @@ class lighter extends lighter$1["default"] {
     }
     /**
      * @method
+     * @name lighter#fetchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://apidocs.lighter.xyz/reference/recenttrades
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch, default 100, max 100
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+     */
+    async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const market = this.market(symbol);
+        const request = {
+            'market_id': market['id'],
+            'limit': 100,
+        };
+        if (limit !== undefined) {
+            request['limit'] = Math.min(limit, 100);
+        }
+        const response = await this.publicGetRecentTrades(this.extend(request, params));
+        //
+        //     {
+        //         "code": 200,
+        //         "trades": [
+        //             {
+        //                 "trade_id": 35564491385,
+        //                 "type": "trade",
+        //                 "market_id": 0,
+        //                 "size": "0.0003",
+        //                 "price": "2385.57",
+        //                 "usd_amount": "0.715671",
+        //                 "ask_id": 281478054267183,
+        //                 "bid_id": 562946767299880,
+        //                 "ask_account_id": 723632,
+        //                 "bid_account_id": 317087,
+        //                 "is_maker_ask": false,
+        //                 "timestamp": 1792497687525
+        //             }
+        //         ]
+        //     }
+        //
+        const trades = this.safeList(response, 'trades', []);
+        return this.parseTrades(trades, market, since, limit);
+    }
+    /**
+     * @method
      * @name lighter#fetchMyTrades
      * @description fetch all trades made by the user
      * @see https://apidocs.lighter.xyz/reference/trades
@@ -3026,9 +3073,13 @@ class lighter extends lighter$1["default"] {
                 orderId = this.safeString(trade, 'bid_id');
             }
         }
+        // public trades use Lighter's taker-side convention
+        if ((side === undefined) && (isMakerAsk !== undefined)) {
+            side = (isMakerAsk) ? 'buy' : 'sell';
+        }
         let takerOrMaker = undefined;
         if (side !== undefined && isMakerAsk !== undefined) {
-            const isMaker = (side === 'sell') ? isMakerAsk : !isMakerAsk;
+            const isMaker = (side === 'sell') ? (isMakerAsk === true) : (isMakerAsk === false);
             takerOrMaker = isMaker ? 'maker' : 'taker';
         }
         return this.safeTrade({
@@ -3408,7 +3459,7 @@ class lighter extends lighter$1["default"] {
         //     }
         //
         const code = this.safeString(response, 'code');
-        const message = this.safeString(response, 'msg');
+        const message = this.safeString(response, 'message');
         if (code !== undefined && code !== '0' && code !== '200') {
             const feedback = this.id + ' ' + body;
             this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);

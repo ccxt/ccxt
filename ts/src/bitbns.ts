@@ -579,7 +579,7 @@ export default class bitbns extends Exchange {
         return this.parseBalance (response);
     }
 
-    parseStatus (status: Str) {
+    parseStatus (status: Str): Str {
         const statuses: Dict = {
             '-1': 'cancelled',
             '0': 'open',
@@ -1158,7 +1158,7 @@ export default class bitbns extends Exchange {
         return this.parseTransactions (data, currency, since, limit);
     }
 
-    parseTransactionStatusByType (status: Str, type: Str = undefined) {
+    parseTransactionStatusByType (status: Str, type: Str = undefined): Str {
         const statusesByType: Dict = {
             'deposit': {
                 '0': 'pending',
@@ -1290,7 +1290,7 @@ export default class bitbns extends Exchange {
         return this.milliseconds ();
     }
 
-    override sign (path: string, api: string[] = [ 'www' ], method = 'GET', params: Dict = {}): Dict {
+    override sign (path: string, api: string[] = [ 'www' ], method: string = 'GET', params: Dict = {}): Dict {
         const urls = this.urls;
         const apiName = api[0];
         if (!(apiName in urls['api'])) {

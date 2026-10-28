@@ -8,6 +8,15 @@
     },
     "isSandboxModeEnabled": true,
     "methods": {
+        "fetchLedger": [
+            {
+                "description": "ledger direction from signed amount",
+                "method": "fetchLedger",
+                "url": "https://test-api.pacifica.fi/api/v1/account/balance/history?account=bNMBfVAEjgxhNruYTR2vSZ92UdVKP2pdZewEG7978Vt",
+                "input": [],
+                "output": null
+            }
+        ],
         "fetchFundingHistory": [
             {
                 "description": "funding history amount is the payout",

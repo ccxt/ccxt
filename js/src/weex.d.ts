@@ -1,5 +1,5 @@
 import Exchange from './abstract/weex.js';
-import type { Balances, Currencies, Currency, CurrencyInterface, Dict, FundingHistory, FundingRate, FundingRateHistory, FundingRates, LastPrice, LastPrices, LedgerEntry, Int, int, Market, Num, OHLCV, OpenInterest, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TransferEntry, Position, TradingFeeInterface, MarginMode, MarginModes, Leverage, Leverages, MarginModification, Status, PositionModeInfo } from './base/types.js';
+import type { Balances, Currencies, Currency, CurrencyInterface, Dict, FundingHistory, FundingRate, FundingRateHistory, FundingRates, LastPrice, LastPrices, LedgerEntry, Int, int, Market, NullableDict, Num, OHLCV, OpenInterest, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TransferEntry, Position, TradingFeeInterface, MarginMode, MarginModes, Leverage, Leverages, MarginModification, Status, PositionModeInfo } from './base/types.js';
 /**
  * @class weex
  * @augments Exchange
@@ -165,7 +165,7 @@ export default class weex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @param {boolean} [params.paginate] whether to automatically paginate requests until the required number of candles is returned
-     * @param {boolean} [params.historical] whether to fetch historical klines (default is false). If false, will fetch last price klines
+     * @param {boolean} [params.historical] whether to fetch historical klines (default is false, forced to true when since or until is set because the recent klines endpoints ignore time filters). If false, will fetch last price klines
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     fetchContractOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
@@ -194,7 +194,7 @@ export default class weex extends Exchange {
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
     fetchOpenInterest(symbol: string, params?: Dict): Promise<OpenInterest>;
-    parseOpenInterest(interest: any, market?: Market): OpenInterest;
+    parseOpenInterest(interest: NullableDict, market?: Market): OpenInterest;
     /**
      * @method
      * @name weex#fetchFundingRates
@@ -317,7 +317,7 @@ export default class weex extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     createContractOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: Dict): Promise<Order>;
-    createContractOrderRequest(symbol: Str, type: OrderType, side: OrderSide, amount: Num, price?: Num, params?: Dict): any;
+    createContractOrderRequest(symbol: Str, type: OrderType, side: OrderSide, amount: Num, price?: Num, params?: Dict): Dict;
     encodeTriggerPriceType(triggerPriceType: Str): Str;
     /**
      * @method

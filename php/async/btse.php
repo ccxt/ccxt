@@ -838,7 +838,7 @@ class btse extends Exchange {
         $maxLimit = 300;
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchOHLCV', 'paginate', false);
         if ($paginate) {
-            return $this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $paramsPaginate, $maxLimit);
+            return Async\await($this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $paramsPaginate, $maxLimit));
         }
         $market = $this->market($symbol);
         $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
@@ -863,8 +863,7 @@ class btse extends Exchange {
                 // if so, just omit until for correct paginated calls for not to get an error from the exchange
                 $duration = $this->parse_timeframe($timeframe);
                 $maxDelta = $duration * $maxLimit * 1000; // parseTimeframe returns seconds, the difference below is in milliseconds
-                $difference = $until - $since;
-                if ($difference < $maxDelta) {
+                if (($until - $since) < $maxDelta) {
                     $request['end'] = $this->parse_to_int($until / 1000);
                 }
             } else {
@@ -891,8 +890,7 @@ class btse extends Exchange {
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
-        $result = $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
-        return $result;
+        return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
     public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
@@ -994,11 +992,12 @@ class btse extends Exchange {
         if ($period === null) {
             $period = '7D';
             if ($since !== null) {
-                $age = $this->milliseconds() - $since;
-                $day = 86400000;
-                if ($age > 14 * $day) {
+                $now = $this->milliseconds();
+                $twoWeeksAgo = $now - 1209600000; // 14 days in ms
+                $oneWeekAgo = $now - 604800000; // 7 days in ms
+                if ($since < $twoWeeksAgo) {
                     $period = '1M';
-                } elseif ($age > 7 * $day) {
+                } elseif ($since < $oneWeekAgo) {
                     $period = '2W';
                 }
             }
@@ -1024,10 +1023,10 @@ class btse extends Exchange {
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
-        $rates = $this->parse_funding_rate_histories($data, $market, $since, $limit);
         if ($until === null) {
-            return $rates;
+            return $this->parse_funding_rate_histories($data, $market, $since, $limit);
         }
+        $rates = $this->parse_funding_rate_histories($data, $market, $since, $limit);
         $result = array();
         for ($i = 0; $i < count($rates); $i++) {
             $rate = $rates[$i];
@@ -1222,11 +1221,8 @@ class btse extends Exchange {
         //
         // a single-symbol request returns the entry directly in data
         //
-        $data = $this->safe_list($response, 'data');
-        if ($data === null) {
-            $single = $this->safe_dict($response, 'data', array());
-            $data = array( $single );
-        }
+        $single = $this->safe_dict($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array( $single ));
         $result = array();
         for ($i = 0; $i < count($data); $i++) {
             $entry = $this->safe_dict($data, $i);
@@ -1236,40 +1232,27 @@ class btse extends Exchange {
             if ($symbolsNormalized === null || $this->in_array($symbol, $symbolsNormalized)) {
                 $levels = $this->safe_list($entry, 'riskLimits', array());
                 $tiers = array();
+                // each tier's floor is the previous tier's cap (0 for the first)
+                $minNotional = null;
                 for ($j = 0; $j < count($levels); $j++) {
                     $level = $levels[$j];
+                    $maxNotional = $this->safe_number($level, 'value');
                     // the endpoint only reports the notional ladder, the
                     // per-tier leverage and margin rates are not available
                     $tiers[] = array(
                         'tier' => $this->safe_integer($level, 'level'),
                         'symbol' => $symbol,
                         'currency' => $market['settle'],
-                        'minNotional' => null,
-                        'maxNotional' => $this->safe_number($level, 'value'),
+                        'minNotional' => ($j === 0) ? 0 : $minNotional,
+                        'maxNotional' => $maxNotional,
                         'maintenanceMarginRate' => null,
                         'maxLeverage' => null,
                         'info' => $level,
                     );
+                    $minNotional = $maxNotional;
                 }
                 $result[$symbol] = $tiers; // rows arrive ordered by level ascending, avoid sortBy which compares numeric keys lexicographically in some transpiled runtimes
             }
-        }
-        // the exchange only provides the cap of each risk tier, so the floor
-        // is derived from the previous tier: 0 for the first tier, and the
-        // previous tier's maxNotional for every subsequent tier
-        $symbolKeys = is_array($result) ? array_keys($result) : array();
-        for ($i = 0; $i < count($symbolKeys); $i++) {
-            $symbolKey = $symbolKeys[$i];
-            $tiersList = $result[$symbolKey];
-            for ($j = 0; $j < count($tiersList); $j++) {
-                if ($j === 0) {
-                    $tiersList[$j]['minNotional'] = 0;
-                } else {
-                    $tiersList[$j]['minNotional'] = $tiersList[$j - 1]['maxNotional'];
-                }
-            }
-            // php copies arrays by value, so the mutated list must be written back explicitly
-            $result[$symbolKey] = $tiersList;
         }
         return $result;
     }
@@ -1286,7 +1269,7 @@ class btse extends Exchange {
          *
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/?id=leverage-tiers-structure leverage tiers structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=leverage-$tiers-structure leverage $tiers structure~
          */
         Async\await($this->load_markets());
         $market = $this->market($symbol);
@@ -1294,7 +1277,8 @@ class btse extends Exchange {
             throw new BadRequest($this->id . ' fetchMarketLeverageTiers() supports contract markets only');
         }
         $result = Async\await($this->fetch_leverage_tiers(array( $symbol ), $params));
-        return $result[$symbol];
+        $tiers = $this->safe_list($result, $symbol);
+        return $tiers;
     }
 
     public function fetch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
@@ -1373,11 +1357,8 @@ class btse extends Exchange {
         //     }
         //
         // a single-symbol query returns data as one object, a multi-symbol or bare query returns an array
-        $data = $this->safe_dict($response, 'data');
-        if ($data === null) {
-            $rows = $this->safe_list($response, 'data', array());
-            $data = $this->safe_dict($rows, 0, array());
-        }
+        $rows = $this->safe_list($response, 'data', array());
+        $data = $this->safe_dict($response, 'data', $this->safe_dict($rows, 0, array()));
         return $this->parse_ticker($data, $market);
     }
 
@@ -1450,11 +1431,8 @@ class btse extends Exchange {
             'symbol' => $market['id'],
         );
         $response = Async\await($this->publicGetPublicApiMarketV1Ticker24hr($this->extend($request, $params)));
-        $interest = $this->safe_dict($response, 'data');
-        if ($interest === null) {
-            $rows = $this->safe_list($response, 'data', array());
-            $interest = $this->safe_dict($rows, 0, array());
-        }
+        $rows = $this->safe_list($response, 'data', array());
+        $interest = $this->safe_dict($response, 'data', $this->safe_dict($rows, 0, array()));
         return $this->parse_open_interest($interest, $market);
     }
 
@@ -1487,7 +1465,7 @@ class btse extends Exchange {
         return $this->parse_open_interests($rows, $symbolsNormalized);
     }
 
-    public function parse_open_interest(mixed $interest, ?array $market = null): array {
+    public function parse_open_interest(?array $interest, ?array $market = null): array {
         //
         // ticker/24hr contract rows, see parseFundingRate for the full shape
         //
@@ -1527,11 +1505,8 @@ class btse extends Exchange {
             'symbol' => $market['id'],
         );
         $response = Async\await($this->publicGetPublicApiMarketV1Ticker24hr($this->extend($request, $params)));
-        $data = $this->safe_dict($response, 'data');
-        if ($data === null) {
-            $rows = $this->safe_list($response, 'data', array());
-            $data = $this->safe_dict($rows, 0, array());
-        }
+        $rows = $this->safe_list($response, 'data', array());
+        $data = $this->safe_dict($response, 'data', $this->safe_dict($rows, 0, array()));
         return $this->parse_funding_rate($data, $market);
     }
 
@@ -1674,10 +1649,10 @@ class btse extends Exchange {
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
-        $trades = $this->parse_trades($data, $market, $since, $limit);
         if ($until === null) {
-            return $trades;
+            return $this->parse_trades($data, $market, $since, $limit);
         }
+        $trades = $this->parse_trades($data, $market, $since, $limit);
         $result = array();
         for ($i = 0; $i < count($trades); $i++) {
             $trade = $trades[$i];
@@ -1710,7 +1685,7 @@ class btse extends Exchange {
          */
         Async\await($this->load_markets());
         $paginate = $this->safe_bool($params, 'paginate', false);
-        if ($paginate === true) {
+        if ($paginate) {
             return Async\await($this->fetch_paginated_call_dynamic('fetchMyTrades', $symbol, $since, $limit, $this->omit($params, 'paginate')));
         }
         $market = null;
@@ -1806,10 +1781,7 @@ class btse extends Exchange {
             //
             $response = Async\await($this->privateGetFuturesApiV3TradeTradeHistory($this->extend($request, $paramsMarketType)));
         }
-        $rows = $this->safe_list($response, 'data');
-        if ($rows === null) {
-            $rows = $response;
-        }
+        $rows = $this->safe_list($response, 'data', $response);
         return $this->parse_trades($rows, $market, $since, $limit);
     }
 
@@ -2411,7 +2383,7 @@ class btse extends Exchange {
         return $this->parse_order($order, $market);
     }
 
-    public function encode_trigger_price_type(?string $priceType) {
+    public function encode_trigger_price_type(?string $priceType): ?string {
         $priceTypes = array(
             'last' => 'LAST_PRICE',
             'mark' => 'MARK_PRICE',
@@ -2522,7 +2494,7 @@ class btse extends Exchange {
             $request['orderPrice'] = $this->price_to_precision($symbol, $price);
         }
         $isSlide = $this->safe_bool($query, 'slide', false);
-        if (($amount === null) && ($price === null) && ($triggerPrice === null) && ($isSlide !== true)) {
+        if (($amount === null) && ($price === null) && ($triggerPrice === null) && (!$isSlide)) {
             throw new ArgumentsRequired($this->id . ' editOrder() requires an amount argument, a price argument or a triggerPrice parameter');
         }
         $response = null;
@@ -2837,7 +2809,7 @@ class btse extends Exchange {
         ), $marketResolved);
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             '2' => 'open', // Order Inserted
             '3' => 'closed', // Order Transacted
@@ -2862,7 +2834,7 @@ class btse extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order_type(?string $type) {
+    public function parse_order_type(?string $type): ?string {
         $types = array(
             // the unified futures place order response reports a degenerate 0
             // in the type field regardless of the real order type, observed
@@ -2874,7 +2846,7 @@ class btse extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_time_in_force(?string $timeInForce) {
+    public function parse_time_in_force(?string $timeInForce): ?string {
         $values = array(
             'GTC' => 'GTC',
             'IOC' => 'IOC',
@@ -3397,10 +3369,7 @@ class btse extends Exchange {
         //
         // the response is a bare array of position rows
         //
-        $rows = $this->safe_list($response, 'data');
-        if ($rows === null) {
-            $rows = $response;
-        }
+        $rows = $this->safe_list($response, 'data', $response);
         return $this->parse_positions($rows, $symbolsNormalized);
     }
 
@@ -3517,7 +3486,7 @@ class btse extends Exchange {
         ));
     }
 
-    public function parse_margin_mode_type(?string $marginMode) {
+    public function parse_margin_mode_type(?string $marginMode): ?string {
         $marginModes = array(
             '91' => 'cross',
             '92' => 'isolated',
@@ -3527,7 +3496,7 @@ class btse extends Exchange {
         return $this->safe_string($marginModes, $marginMode, $marginMode);
     }
 
-    public function parse_position_side(?string $side) {
+    public function parse_position_side(?string $side): ?string {
         $sides = array(
             'buy' => 'long',
             'sell' => 'short',
@@ -3750,10 +3719,7 @@ class btse extends Exchange {
         }
         $paramsOmitted = ($typeUpper === 'LIMIT') ? $this->omit($paramsOrderType, 'price') : $paramsOrderType;
         $response = Async\await($this->privateDeleteFuturesApiV3TradePositions($this->extend($request, $paramsOmitted)));
-        $order = $this->safe_dict($response, 0);
-        if ($order === null) {
-            $order = $response;
-        }
+        $order = $this->safe_dict($response, 0, $response);
         return $this->parse_order($order, $market);
     }
 
@@ -3878,7 +3844,7 @@ class btse extends Exchange {
         //     {"status":400,"errorCode":-7,"message":"Authenticate failed","extraData":null}
         //
         $success = $this->safe_bool($response, 'success', true);
-        if ($success !== true) {
+        if (!$success) {
             $spotErrorCode = $this->safe_string($response, 'code');
             $spotMessage = $this->safe_string($response, 'msg');
             $feedback = $this->id . ' ' . $body;
@@ -3938,7 +3904,7 @@ class btse extends Exchange {
         return null;
     }
 
-    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()) {
+    public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()) {
         $apiName = $api[0];
         $requestBody = null;
         $requestHeaders = null;
@@ -3953,7 +3919,7 @@ class btse extends Exchange {
         // body like its POST and PUT counterparts, while the spot v4 and the
         // legacy apis keep DELETE params in the query string, verified live
         // in both directions
-        $isBodyDelete = ($method === 'DELETE') && (str_starts_with($path, 'futures/api/v3/') === true);
+        $isBodyDelete = ($method === 'DELETE') && (str_starts_with($path, 'futures/api/v3/'));
         $queryString = '';
         if ((($method === 'GET') || ($method === 'DELETE')) && !$isBodyDelete) {
             if (count($query) > 0) {
@@ -3975,7 +3941,7 @@ class btse extends Exchange {
             // sign the /api/v... remainder, while the public-api wallet, otc and markets
             // endpoints mount on the bare host and sign the full path with the leading slash
             $signPath = null;
-            if (str_starts_with($path, 'public-api/') === true) {
+            if (str_starts_with($path, 'public-api/')) {
                 $signPath = '/' . $path;
             } else {
                 $signPath = $this->clean_path($path);
@@ -4002,7 +3968,7 @@ class btse extends Exchange {
         return $this->safe_string($market['info'], 'tradeCurrency', $market['id']);
     }
 
-    public function clean_path(string $path) {
+    public function clean_path(string $path): string {
         $result = str_replace('spot', '', $path);
         $result = str_replace('futures', '', $result);
         $result = str_replace('otc', '', $result);

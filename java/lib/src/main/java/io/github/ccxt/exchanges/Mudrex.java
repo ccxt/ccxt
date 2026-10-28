@@ -313,7 +313,7 @@ public class Mudrex extends MudrexApi
                 }
             }
         }
-        if (Helpers.objectKeys(query).size() > 0)
+        if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v1 -> { synchronized (j39v1) { yield new ArrayList<Object>(j39v1.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
         {
             url = (url + ("?" + this.urlencode(query)));
         }
@@ -334,7 +334,7 @@ public class Mudrex extends MudrexApi
             return null;
         }
         Boolean success = (Boolean) this.safeBool(response, "success", true);
-        if (!java.util.Objects.equals(success, true))
+        if (!Boolean.TRUE.equals(success))
         {
             List<Object> errors = (List<Object>) this.safeList(response, "errors", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> first = (Map<String, Object>) this.safeDict(errors, 0, new HashMap<String, Object>() {{}});
@@ -345,11 +345,11 @@ public class Mudrex extends MudrexApi
             this.throwBroadlyMatchedException(this.exceptions.get("broad"), text, ((this.id + " ") + text));
             String msg = ((this.id + " ") + text);
             String low = text.toLowerCase();
-            if (Helpers.isEqual(code, 401) || ((String)low).indexOf("auth") >= 0)
+            if ((code != null && ((Number) code).doubleValue() == 401) || ((String)low).indexOf("auth") >= 0)
             {
                 throw new AuthenticationError(msg) ;
             }
-            if (Helpers.isEqual(code, 429) || ((String)low).indexOf("rate") >= 0)
+            if ((code != null && ((Number) code).doubleValue() == 429) || ((String)low).indexOf("rate") >= 0)
             {
                 throw new RateLimitExceeded(msg) ;
             }
@@ -357,7 +357,7 @@ public class Mudrex extends MudrexApi
             {
                 throw new InsufficientFunds(msg) ;
             }
-            if (Helpers.isEqual(code, 400))
+            if ((code != null && ((Number) code).doubleValue() == 400))
             {
                 throw new BadRequest(msg) ;
             }
@@ -408,34 +408,16 @@ public class Mudrex extends MudrexApi
             }};
             // the endpoint requires an explicit time window (in seconds)
             int duration = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
-            Long requestLimit = limit;
-            if (java.util.Objects.equals(requestLimit, null))
-            {
-                requestLimit = 500L;
-            }
+            Long requestLimit = (((java.util.Objects.equals(limit, null)))) ? 500L : limit;
             Long now = this.seconds();
-            Object startTime = null;
-            if (!java.util.Objects.equals(since, null))
-            {
-                startTime = this.parseToInt((((double) since) / ((double) 1000)));
-            } else
-            {
-                startTime = Helpers.subtract(now, Helpers.multiply(duration, requestLimit));
-            }
-            if (java.util.Objects.equals(startTime, null))
-            {
-                throw new ExchangeError((this.id + " fetchOHLCV() missing startTime")) ;
-            }
-            Object endTime = Helpers.add(startTime, Helpers.multiply(duration, requestLimit));
+            Long windowLength = (duration * requestLimit);
+            Object defaultStart = (now - windowLength);
+            Long startTime = this.parseToInt((((!java.util.Objects.equals(since, null)))) ? ((((double) since) / ((double) 1000))) : defaultStart);
+            Long windowEnd = this.parseToInt(((java.util.function.BinaryOperator<Object>) (hx4J40v0A, hx4J40v0B) -> { Object hx4J40v0P = hx4J40v0A instanceof Integer hx4J40v0i ? (Object) Long.valueOf(hx4J40v0i.longValue()) : hx4J40v0A; Object hx4J40v0Q = hx4J40v0B instanceof Integer hx4J40v0i ? (Object) Long.valueOf(hx4J40v0i.longValue()) : hx4J40v0B; if (hx4J40v0P instanceof Long hx4J40v0l && hx4J40v0Q instanceof Long hx4J40v0r) { return hx4J40v0l + hx4J40v0r; } if (hx4J40v0P instanceof Double || hx4J40v0Q instanceof Double) { java.util.function.ToDoubleFunction<Object> hx4J40v0D = hx4J40v0o -> { if (hx4J40v0o instanceof Double || hx4J40v0o instanceof Float || hx4J40v0o instanceof Long || hx4J40v0o instanceof Integer || hx4J40v0o instanceof java.math.BigDecimal) { return ((Number) hx4J40v0o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v0o)); } catch (NumberFormatException hx4J40v0e) { return 0.0; } }; return hx4J40v0D.applyAsDouble(hx4J40v0P) + hx4J40v0D.applyAsDouble(hx4J40v0Q); } if (hx4J40v0P instanceof String || hx4J40v0Q instanceof String) { return String.valueOf(hx4J40v0P) + String.valueOf(hx4J40v0Q); } return null; }).apply(startTime, (duration * requestLimit)));
             Long until = this.safeInteger(parameters, "until");
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("price", "until")));
-            if (!java.util.Objects.equals(until, null))
-            {
-                endTime = this.parseToInt((((double) until) / ((double) 1000)));
-            } else if (Helpers.isGreaterThan(endTime, now))
-            {
-                endTime = now;
-            }
+            Long cappedEnd = ((((windowEnd != null && (now == null || windowEnd > now))))) ? now : windowEnd;
+            Long endTime = this.parseToInt((((!java.util.Objects.equals(until, null)))) ? ((((double) until) / ((double) 1000))) : cappedEnd);
             request.put("start_time", startTime);
             request.put("end_time", endTime);
             Map<String, Object> response = null;
@@ -609,7 +591,7 @@ public class Mudrex extends MudrexApi
             Object offset = 0;
             Integer pageLimit = 100;
             Boolean paging = true;
-            while (java.util.Objects.equals(paging, true))
+            while (paging)
             {
                 HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
                 mapLiteral2.put("limit", pageLimit);
@@ -628,7 +610,7 @@ public class Mudrex extends MudrexApi
                         items = (List<Object>) this.safeList(data, "results", new ArrayList<Object>(Arrays.asList()));
                         itemsLength = ((List<?>)items).size();
                     }
-                    if ((java.util.Objects.equals(itemsLength, 0)) && (Helpers.inOp(data, "symbol")))
+                    if ((java.util.Objects.equals(itemsLength, 0)) && ((switch ((Object)(data)) { case List<?> j39v3 -> j39v3.contains("symbol"); case Map<?, ?> j39v2 -> j39v2.containsKey("symbol"); case null, default -> false; })))
                     {
                         items = new ArrayList<Object>(Arrays.asList(data));
                     }
@@ -702,8 +684,8 @@ public class Mudrex extends MudrexApi
         mapLiteral3.put("contract", true);
         mapLiteral3.put("linear", true);
         mapLiteral3.put("inverse", false);
-        mapLiteral3.put("taker", this.safeNumber(Helpers.GetValue(this.fees, "trading"), "taker", (Object) null));
-        mapLiteral3.put("maker", this.safeNumber(Helpers.GetValue(this.fees, "trading"), "maker", (Object) null));
+        mapLiteral3.put("taker", this.safeNumber((this.fees == null ? null : ((Map<?, ?>)this.fees).get("trading")), "taker", (Object) null));
+        mapLiteral3.put("maker", this.safeNumber((this.fees == null ? null : ((Map<?, ?>)this.fees).get("trading")), "maker", (Object) null));
         mapLiteral3.put("contractSize", this.safeNumber(asset, "contract_size", 1));
         mapLiteral3.put("expiry", null);
         mapLiteral3.put("expiryDatetime", null);
@@ -945,7 +927,7 @@ public class Mudrex extends MudrexApi
                     riskRequest.put("stoploss_price", this.priceToPrecision(symbol, stopLossPrice));
                 }
                 Map<String, Object> riskResponse = (this.privatePostFuturesPositionsPositionIdRiskorder(this.extend(riskRequest, paramsOmitted))).join();
-                Object riskData = this.safeDict(riskResponse, "data", riskResponse);
+                Map<String, Object> riskData = (Map<String, Object>) this.safeDict(riskResponse, "data", riskResponse);
                 return this.parseOrder(riskData, market);
             }
             Long lev = this.safeInteger(parameters, "leverage", 1);
@@ -977,7 +959,7 @@ public class Mudrex extends MudrexApi
             }
             Map<String, Object> orderParams = this.omit(parameters, new ArrayList<Object>(Arrays.asList("leverage", "reduceOnly", "takeProfit", "stopLoss")));
             Map<String, Object> response = (this.privatePostFuturesAssetIdOrder(this.extend(request, orderParams))).join();
-            Object data = this.safeDict(response, "data", response);
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", response);
             // the create response omits the order/trigger type, so parse a merged copy - the base derivations, like timeInForce, need to see them - then keep the untouched raw payload under info
             Map<String, Object> merged = this.extend(data, new HashMap<String, Object>() {{
                 put( "order_type", request.get("order_type") );
@@ -1030,7 +1012,7 @@ public class Mudrex extends MudrexApi
                 request.put("order_price", this.priceToPrecision(symbol, price));
             }
             Map<String, Object> response = (this.privatePatchFuturesOrdersOrderId(this.extend(request, parameters))).join();
-            Object data = this.safeDict(response, "data", response);
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", response);
             return this.parseOrder(data, market);
         }).thenApply(Order::new);
 
@@ -1157,7 +1139,7 @@ public class Mudrex extends MudrexApi
                 put( "order_id", id );
             }};
             Map<String, Object> response = (this.privateDeleteFuturesOrdersOrderId(this.extend(request, parameters))).join();
-            Object data = this.safeDict(response, "data", response);
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", response);
             return this.parseOrder(data, market);
         }).thenApply(Order::new);
 
@@ -1191,7 +1173,7 @@ public class Mudrex extends MudrexApi
                 put( "order_id", id );
             }};
             Map<String, Object> response = (this.privateGetFuturesOrdersOrderId(this.extend(request, parameters))).join();
-            Object data = this.safeDict(response, "data", response);
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", response);
             return this.parseOrder(data, market);
         }).thenApply(Order::new);
 
@@ -1455,6 +1437,7 @@ public class Mudrex extends MudrexApi
             h2kMap3.put("lastPrice", this.safeNumber(position, "closed_price", (Object) null));
             h2kMap3.put("notional", notional);
             h2kMap3.put("leverage", this.safeInteger(position, "leverage"));
+            h2kMap3.put("positionMargin", this.parseNumber(initialMargin));
             h2kMap3.put("collateral", this.parseNumber(initialMargin));
             h2kMap3.put("initialMargin", this.parseNumber(initialMargin));
             h2kMap3.put("initialMarginPercentage", null);
@@ -1490,11 +1473,11 @@ public class Mudrex extends MudrexApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
+            Map<String, Object> market = this.market(symbol);
             String positionId = this.safeString(parameters, "position_id");
             Object amount = this.safeValue(parameters, "amount");
             if (java.util.Objects.equals(positionId, null))
             {
-                Map<String, Object> market = this.market(symbol);
                 List<Position> positions = (this.fetchPositions(new ArrayList<String>(Arrays.asList(symbol)), parameters)).join();
                 for (var i = 0; i < ((List<?>)positions).size(); i++)
                 {
@@ -1527,12 +1510,14 @@ public class Mudrex extends MudrexApi
                     request.put("limit_price", lp);
                 }
                 Map<String, Object> partialParams = this.omit(parameters, new ArrayList<Object>(Arrays.asList("order_type", "limit_price", "amount", "position_id")));
-                Object partialResponse = (this.privatePostFuturesPositionsPositionIdClosePartial(this.extend(request, partialParams))).join();
-                return partialResponse;
+                Map<String, Object> partialResponse = (this.privatePostFuturesPositionsPositionIdClosePartial(this.extend(request, partialParams))).join();
+                Map<String, Object> partialData = (Map<String, Object>) this.safeDict(partialResponse, "data", partialResponse);
+                return this.parseOrder(partialData, market);
             }
             Map<String, Object> closeParams = this.omit(parameters, new ArrayList<Object>(Arrays.asList("position_id")));
-            Object response = (this.privatePostFuturesPositionsPositionIdClose(this.extend(request, closeParams))).join();
-            return response;
+            Map<String, Object> response = (this.privatePostFuturesPositionsPositionIdClose(this.extend(request, closeParams))).join();
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", response);
+            return this.parseOrder(data, market);
         }).thenApply(Order::new);
 
     }
@@ -1600,7 +1585,7 @@ public class Mudrex extends MudrexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.addMargin(symbol, Helpers.opNeg(amount), parameters)).join();
+            return (this.addMargin(symbol, ((java.util.function.UnaryOperator<Object>) (j37a) -> { if (j37a instanceof Byte j37v) return (byte) -j37v; if (j37a instanceof Short j37v) return (short) -j37v; if (j37a instanceof Integer j37v) return -j37v; if (j37a instanceof Long j37v) return -j37v; if (j37a instanceof Float j37v) return -j37v; if (j37a instanceof Double j37v) return -j37v; return null; }).apply(amount), parameters)).join();
         }).thenApply(MarginModification::new);
 
     }
@@ -1635,21 +1620,17 @@ public class Mudrex extends MudrexApi
             List<Object> maxCallsparamsPaginationCallsVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, "fetchMyTrades", "paginationCalls", 10L);
             Long maxCalls = (Long) ((List<Object>) maxCallsparamsPaginationCallsVariable).get(0);
             Map<String, Object> paramsPaginationCalls = (Map<String, Object>) ((List<Object>) maxCallsparamsPaginationCallsVariable).get(1);
-            Object pageSize = 0;
-            if (!java.util.Objects.equals(limit, null))
-            {
-                // every fill produces a TRANSACTION row plus a REBATE row and funding rows share the page, so over-request and paginate until the unified limit is satisfied
-                pageSize = (limit * 2L);
-            }
+            // every fill produces a TRANSACTION row plus a REBATE row and funding rows share the page, so over-request and paginate until the unified limit is satisfied
+            Object pageSize = (((java.util.Objects.equals(limit, null)))) ? 0 : (limit * 2L);
             List<Object> allRows = new ArrayList<Object>(Arrays.asList());
-            Object transactionsCount = 0;
-            Object calls = 0;
+            long transactionsCount = 0;
+            long calls = 0;
             Object offset = 0;
             Boolean paging = true;
-            while (java.util.Objects.equals(paging, true))
+            while (paging)
             {
                 Map<String, Object> request = new HashMap<String, Object>() {{}};
-                if (Helpers.isGreaterThan(pageSize, 0))
+                if ((!java.util.Objects.equals(limit, null)) && ((limit > 0)))
                 {
                     request.put("limit", pageSize);
                     request.put("offset", offset);
@@ -1657,7 +1638,7 @@ public class Mudrex extends MudrexApi
                 Map<String, Object> response = (this.privateGetFuturesFeeHistory(this.extend(request, paramsPaginationCalls))).join();
                 List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
                 Object dataLength = ((List<?>)data).size();
-                for (var i = 0; Helpers.isLessThan(i, dataLength); i++)
+                for (var i = 0; i < ((List<?>)data).size(); i++)
                 {
                     Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                     ((List<Object>)allRows).add(entry);
@@ -1666,18 +1647,21 @@ public class Mudrex extends MudrexApi
                         // count only rows the client-side symbol filter keeps, otherwise a symbol-filtered call under-returns
                         if ((java.util.Objects.equals(market, null)) || (java.util.Objects.equals(this.safeString(entry, "symbol"), market.get("id"))))
                         {
-                            transactionsCount = this.sum(transactionsCount, 1);
+                            transactionsCount = (transactionsCount + 1L);
                         }
                     }
                 }
-                calls = this.sum(calls, 1);
+                calls = (calls + 1L);
                 paging = false;
                 // the page cap bounds the walk when the requested symbol has few or no rows anywhere near the top of the history
-                if ((!java.util.Objects.equals(limit, null)) && (Helpers.isEqual(dataLength, pageSize)) && (Helpers.isLessThan(transactionsCount, limit)) && (Helpers.isLessThan(calls, maxCalls)))
+                if ((!java.util.Objects.equals(limit, null)) && ((((Number) dataLength).longValue() == ((Number) pageSize).longValue())))
                 {
-                    // this.sum keeps the offset numeric across the php transpile, see https://github.com/ccxt/ccxt/pull/29684
-                    offset = this.sum(offset, pageSize);
-                    paging = true;
+                    if (((transactionsCount < limit)) && ((maxCalls != null && calls < maxCalls)))
+                    {
+                        // this.sum keeps the offset numeric across the php transpile, see https://github.com/ccxt/ccxt/pull/29684
+                        offset = this.sum(offset, pageSize);
+                        paging = true;
+                    }
                 }
             }
             // a REBATE row is a partial refund of one fill's TRANSACTION fee, matched by symbol, time and notional - each rebate is consumed once, so equal fills sharing a key net exactly one refund apiece
@@ -1719,9 +1703,7 @@ public class Mudrex extends MudrexApi
                     ((List<Object>)rows).add((transactions == null || i < 0 || i >= transactions.size() ? null : transactions.get(i)));
                 } else
                 {
-                    ((List<Object>)rows).add(this.extend((transactions == null || i < 0 || i >= transactions.size() ? null : transactions.get(i)), Helpers.newMap(
-                        "rebate_amount", rebate
-                    )));
+                    ((List<Object>)rows).add(this.extend((transactions == null || i < 0 || i >= transactions.size() ? null : transactions.get(i)), (switch (0) { default -> { HashMap<String, Object> j39v4 = new HashMap<String, Object>(); j39v4.put("rebate_amount", rebate); yield j39v4; } })));
                 }
             }
             return this.parseTrades(rows, market, since, limit, new HashMap<String, Object>() {{}});
@@ -1777,10 +1759,12 @@ public class Mudrex extends MudrexApi
         }
         if (!java.util.Objects.equals(feeCostString, null))
         {
-            fee = Helpers.newMap(
-                "cost", feeCostString,
-                "currency", this.safeString(trade, "trade_currency")
-            );
+            {
+                HashMap<String, Object> hx4NewMap0 = new HashMap<String, Object>();
+                hx4NewMap0.put("cost", feeCostString);
+                hx4NewMap0.put("currency", this.safeString(trade, "trade_currency"));
+                fee = hx4NewMap0;
+            }
         }
         HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
         mapLiteral5.put("info", trade);

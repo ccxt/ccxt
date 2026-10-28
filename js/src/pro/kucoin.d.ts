@@ -12,7 +12,7 @@ export default class kucoin extends kucoinRest {
     subscribePrivateUta(messageHashes: string[], subscribeHash: string, channel: string, symbol?: Str, params?: Dict, subscription?: NullableDict): Promise<any>;
     getUtaUrl(): Promise<string>;
     authenticateUta(): Promise<Str>;
-    unSubscribe(url: any, messageHash: any, topic: any, subscriptionHash: any, params?: {}, subscription?: NullableDict): Promise<any>;
+    unSubscribe(url: string, messageHash: string, topic: string, subscriptionHash: string, params?: Dict, subscription?: NullableDict): Promise<any>;
     subscribeMultiple(url: string, messageHashes: string[], topic: string, subscriptionHashes: string[], params?: Dict, subscription?: NullableDict): Promise<any>;
     unSubscribeMultiple(url: string, messageHashes: string[], topic: string, subscriptionHashes: string[], params?: Dict, subscription?: NullableDict): Promise<any>;
     /**
@@ -326,7 +326,7 @@ export default class kucoin extends kucoinRest {
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
     watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: Dict): Promise<Position[]>;
-    getCurrentPosition(symbol: string): import("../base/types.js").Dictionary<any> | undefined;
+    getCurrentPosition(symbol: string): NullableDict;
     setPositionsCache(client: Client, uta: boolean): void;
     loadPositionsSnapshot(client: Client, messageHash: string, uta: boolean): Promise<void>;
     setPositionCache(client: Client, symbol: string): void;

@@ -505,7 +505,7 @@ class upbit extends \ccxt\async\upbit {
         return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limitResolved, true);
     }
 
-    public function parse_ws_order_status(?string $status) {
+    public function parse_ws_order_status(?string $status): ?string {
         $statuses = array(
             'wait' => 'open',
             'done' => 'closed',

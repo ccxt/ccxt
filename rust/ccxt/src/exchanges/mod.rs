@@ -191,6 +191,8 @@ pub mod paymium_typed;
 pub mod phemex_typed;
 #[cfg(feature = "poloniex")]
 pub mod poloniex_typed;
+#[cfg(feature = "polymarket")]
+pub mod polymarket_typed;
 #[cfg(feature = "revolutx")]
 pub mod revolutx_typed;
 #[cfg(feature = "tokocrypto")]

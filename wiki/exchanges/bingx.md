@@ -17,6 +17,7 @@
 * [fetchFundingHistory](#fetchfundinghistory)
 * [fetchOpenInterest](#fetchopeninterest)
 * [fetchTicker](#fetchticker)
+* [fetchBidsAsks](#fetchbidsasks)
 * [fetchTickers](#fetchtickers)
 * [fetchMarkPrice](#fetchmarkprice)
 * [fetchMarkPrices](#fetchmarkprices)
@@ -54,6 +55,7 @@
 * [withdraw](#withdraw)
 * [fetchMyLiquidations](#fetchmyliquidations)
 * [closePosition](#closeposition)
+* [closeAllPositions](#closeallpositions)
 * [fetchPositionMode](#fetchpositionmode)
 * [setPositionMode](#setpositionmode)
 * [editOrder](#editorder)
@@ -373,6 +375,31 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 ```javascript
 bingx.fetchTicker (symbol, params?)
+```
+
+
+<a name="fetchBidsAsks" id="fetchbidsasks"></a>
+
+### fetchBidsAsks{docsify-ignore}
+fetches the bid and ask price and volume for multiple markets
+
+**Kind**: instance method of [<code>bingx</code>](#bingx)  
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
+
+**See**
+
+- https://bingx-api.github.io/docs-v3/#/en/Spot/Market%20Data/Symbol%20Order%20Book%20Ticker
+- https://bingx-api.github.io/docs-v3/#/en/Swap/Market%20Data/Symbol%20Order%20Book%20Ticker
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | unified symbols of the markets to fetch the bids and asks for, all spot markets are returned if not assigned, swap requires exactly one symbol |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bingx.fetchBidsAsks (symbols?, params?)
 ```
 
 
@@ -1367,6 +1394,31 @@ bingx.closePosition (symbol, side?, params?)
 ```
 
 
+<a name="closeAllPositions" id="closeallpositions"></a>
+
+### closeAllPositions{docsify-ignore}
+closes open positions for a market
+
+**Kind**: instance method of [<code>bingx</code>](#bingx)  
+**Returns**: <code>Array&lt;object&gt;</code> - [a list of position structures](https://docs.ccxt.com/?id=position-structure)
+
+**See**
+
+- https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Close%20All%20Positions
+- https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Close%20all%20positions%20in%20bulk
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.recvWindow | <code>string</code> | No | request valid time window value |
+
+
+```javascript
+bingx.closeAllPositions (params?)
+```
+
+
 <a name="fetchPositionMode" id="fetchpositionmode"></a>
 
 ### fetchPositionMode{docsify-ignore}
@@ -1439,6 +1491,7 @@ cancels an order and places a new order
 | params.stopLoss | <code>object</code> | No | *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered |
 | params.stopLoss.triggerPrice | <code>float</code> | No | stop loss trigger price EXCHANGE SPECIFIC PARAMETERS |
 | params.cancelClientOrderID | <code>string</code> | No | the user-defined id of the order to be canceled, 1-40 characters, different orders cannot use the same clientOrderID, only supports a query range of 2 hours |
+| params.cancelClientOrderId | <code>string</code> | No | the client order id of the order to cancel |
 | params.cancelRestrictions | <code>string</code> | No | cancel orders with specified status, NEW: New order, PENDING: Pending order, PARTIALLY_FILLED: Partially filled |
 | params.cancelReplaceMode | <code>string</code> | No | STOP_ON_FAILURE - if the cancel order fails, it will not continue to place a new order, ALLOW_FAILURE - regardless of whether the cancel order succeeds or fails, it will continue to place a new order |
 | params.quoteOrderQty | <code>float</code> | No | order amount |

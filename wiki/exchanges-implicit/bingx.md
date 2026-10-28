@@ -319,10 +319,12 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `apiV3PrivateGetCapitalDepositHisrec` | GET | `capital/deposit/hisrec` | 1 |
 | `apiV3PrivateGetCapitalWithdrawHistory` | GET | `capital/withdraw/history` | 1 |
 | `apiV3PrivatePostPostAssetTransfer` | POST | `post/asset/transfer` | 1 |
+| `apiAssetV1PrivateGetTransferSupportCoins` | GET | `transfer/supportCoins` | 5 |
 | `apiAssetV1PrivatePostTransfer` | POST | `transfer` | 5 |
-| `apiAssetV1PublicGetTransferSupportCoins` | GET | `transfer/supportCoins` | 5 |
 
 ## agent
+
+**Base URL**: `https://open-api.{hostname}/openApi`
 
 | Method | HTTP | Endpoint | Cost |
 | --- | --- | --- | --- |
@@ -336,6 +338,8 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `agentV1PrivateGetAccountSuperiorCheck` | GET | `account/superiorCheck` | 5 |
 
 ## wealth
+
+**Base URL**: `https://open-api.{hostname}/openApi`
 
 | Method | HTTP | Endpoint | Cost |
 | --- | --- | --- | --- |

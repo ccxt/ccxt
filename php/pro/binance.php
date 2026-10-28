@@ -91,11 +91,11 @@ class binance extends \ccxt\async\binance {
                     'ws' => array(
                         'spot' => 'wss://stream.testnet.binance.vision/ws',
                         'margin' => 'wss://stream.testnet.binance.vision/ws',
-                        'future' => 'wss://fstream.binancefuture.com/ws',
+                        'linear' => 'wss://fstream.binancefuture.com/ws',
                         'inverse' => 'wss://dstream.binancefuture.com/ws',
                         'ws-api' => array(
                             'spot' => 'wss://ws-api.testnet.binance.vision/ws-api/v3',
-                            'future' => 'wss://testnet.binancefuture.com/ws-fapi/v1',
+                            'linear' => 'wss://testnet.binancefuture.com/ws-fapi/v1',
                             'inverse' => 'wss://testnet.binancefuture.com/ws-dapi/v1',
                         ),
                     ),
@@ -104,11 +104,11 @@ class binance extends \ccxt\async\binance {
                     'ws' => array(
                         'spot' => 'wss://demo-stream.binance.com/ws',
                         'margin' => 'wss://demo-stream.binance.com/ws',
-                        'future' => 'wss://fstream.binancefuture.com/ws',
+                        'linear' => 'wss://fstream.binancefuture.com/ws',
                         'inverse' => 'wss://dstream.binancefuture.com/ws',
                         'ws-api' => array(
                             'spot' => 'wss://demo-ws-api.binance.com/ws-api/v3',
-                            'future' => 'wss://testnet.binancefuture.com/ws-fapi/v1',
+                            'linear' => 'wss://testnet.binancefuture.com/ws-fapi/v1',
                             'inverse' => 'wss://testnet.binancefuture.com/ws-dapi/v1',
                         ),
                     ),
@@ -117,7 +117,7 @@ class binance extends \ccxt\async\binance {
                     'ws' => array(
                         'spot' => 'wss://stream.binance.com:9443/ws',
                         'margin' => 'wss://stream.binance.com:9443/ws',
-                        'future' => 'wss://fstream.binance.com/ws',
+                        'linear' => 'wss://fstream.binance.com/ws',
                         'inverse' => 'wss://dstream.binance.com/ws',
                         'stock' => 'wss://nbstream.binance.com/equity/ws',
                         'option' => 'wss://fstream.binance.com/public/ws',
@@ -125,7 +125,7 @@ class binance extends \ccxt\async\binance {
                         'optionPrivate' => 'wss://fstream.binance.com/private/ws',
                         'ws-api' => array(
                             'spot' => 'wss://ws-api.binance.com:443/ws-api/v3',
-                            'future' => 'wss://ws-fapi.binance.com/ws-fapi/v1',
+                            'linear' => 'wss://ws-fapi.binance.com/ws-fapi/v1',
                             'inverse' => 'wss://ws-dapi.binance.com/ws-dapi/v1',
                         ),
                         'papi' => 'wss://fstream.binance.com/pm/ws',
@@ -141,7 +141,7 @@ class binance extends \ccxt\async\binance {
                 'streamLimits' => array(
                     'spot' => 50, // max 1024
                     'margin' => 50, // max 1024
-                    'future' => 50, // max 200
+                    'linear' => 50, // max 200
                     'inverse' => 50, // max 200
                     'stock' => 50,
                     'option' => 50, // max 200
@@ -150,7 +150,7 @@ class binance extends \ccxt\async\binance {
                 'subscriptionLimitByStream' => array(
                     'spot' => 200,
                     'margin' => 200,
-                    'future' => 200,
+                    'linear' => 200,
                     'inverse' => 200,
                     'stock' => 200,
                     'option' => 200,
@@ -238,10 +238,10 @@ class binance extends \ccxt\async\binance {
         $streamBySubscriptionsHash = $this->safe_dict($this->options, 'streamBySubscriptionsHash', $this->create_safe_dictionary());
         $stream = $this->safe_string($streamBySubscriptionsHash, $subscriptionHash);
         if ($stream === null) {
-            $streamIndex = $this->safe_integer($this->options, 'streamIndex', -1);
+            $previousStreamIndex = $this->safe_integer($this->options, 'streamIndex', -1);
             $streamLimits = $this->safe_dict($this->options, 'streamLimits');
             $streamLimit = $this->safe_integer($streamLimits, $type);
-            $streamIndex = $streamIndex + 1;
+            $streamIndex = $previousStreamIndex + 1;
             $normalizedIndex = fmod($streamIndex, $streamLimit);
             $this->options['streamIndex'] = $streamIndex;
             $stream = $this->number_to_string($normalizedIndex);
@@ -258,19 +258,19 @@ class binance extends \ccxt\async\binance {
             if ($newNumSubscriptions > $subscriptionLimitByStream) {
                 throw new BadRequest($this->id . ' reached the limit of subscriptions by stream. Increase the number of streams, or increase the stream limit or subscription limit by stream if the exchange allows.');
             }
-            $this->options['numSubscriptionsByStream'][$stream] = $subscriptionsByStream . $numSubscriptions;
+            $this->options['numSubscriptionsByStream'][$stream] = $newNumSubscriptions;
         }
         return $stream;
     }
 
-    public function get_ws_url(mixed $type, string $category): string {
+    public function get_ws_url(string $type, string $category): string {
         if (($type === 'option') || ($type === 'optionMarket') || ($type === 'optionPrivate')) {
             // eOptions urls are stored as full public/market/private paths, no category rewrite needed,
             // see https://github.com/ccxt/ccxt/pull/27982 and https://github.com/ccxt/ccxt/issues/26333
             return $this->urls['api']['ws'][$type];
         }
         $baseUrl = $this->urls['api']['ws'][$type];
-        if ($type === 'future') {
+        if ($type === 'linear') {
             // skip URL manipulation for proxied/bridge URLs (contain an embedded protocol)
             // const firstProtocol = baseUrl.indexOf ('://');
             // if (firstProtocol !== -1 && baseUrl.indexOf ('://', firstProtocol + 3) !== -1) {
@@ -292,7 +292,7 @@ class binance extends \ccxt\async\binance {
         return $baseUrl;
     }
 
-    public function get_future_ws_category(?string $channel) {
+    public function get_future_ws_category(?string $channel): string {
         if ($channel === 'depth' || $channel === 'rpiDepth' || $channel === 'bookTicker' || $channel === 'trade') {
             return 'public';
         }
@@ -303,7 +303,7 @@ class binance extends \ccxt\async\binance {
         if ($listenKey === null) {
             throw new AuthenticationError($this->id . ' getPrivateWsUrl() requires a listenKey from authenticate()');
         }
-        if ($type === 'future') {
+        if ($type === 'linear') {
             return $this->get_ws_url($type, 'private') . '?listenKey=' . $listenKey;
         }
         $wsUrl = $this->safe_string($this->urls['api']['ws'], $type);
@@ -313,7 +313,7 @@ class binance extends \ccxt\async\binance {
         return $wsUrl . '/' . $listenKey;
     }
 
-    public function get_stock_ws_url(?string $streamType = 'market') {
+    public function get_stock_ws_url(?string $streamType = 'market'): string {
         $baseUrl = $this->urls['api']['ws']['stock'];
         if ($streamType === 'combined') {
             return str_replace('/ws', '/stream', $baseUrl);
@@ -799,7 +799,7 @@ class binance extends \ccxt\async\binance {
         if ($firstMarket['option'] === true) {
             $type = 'option';
         } elseif ($firstMarket['contract'] === true) {
-            $type = ($firstMarket['linear'] === true) ? 'future' : 'inverse';
+            $type = ($firstMarket['linear'] === true) ? 'linear' : 'inverse';
         }
         $name = 'depth';
         $streamHash = 'multipleOrderbook';
@@ -813,7 +813,7 @@ class binance extends \ccxt\async\binance {
         list($watchOrderBookRateOption, $paramsRate) = $this->handle_option_string_and_params($params, 'watchOrderBookForSymbols', 'watchOrderBookRate', '100');
         $watchOrderBookRate = $watchOrderBookRateOption;
         list($rpi, $paramsRpi) = $this->handle_option_bool_and_params($paramsRate, 'watchOrderBookForSymbols', 'rpi', false);
-        if ($rpi && $type === 'future') {
+        if ($rpi && $type === 'linear') {
             $name = 'rpiDepth';
             $watchOrderBookRate = '500';
         }
@@ -883,7 +883,7 @@ class binance extends \ccxt\async\binance {
         if ($firstMarket['option'] === true) {
             $type = 'option';
         } elseif ($firstMarket['contract'] === true) {
-            $type = ($firstMarket['linear'] === true) ? 'future' : 'inverse';
+            $type = ($firstMarket['linear'] === true) ? 'linear' : 'inverse';
         }
         $name = 'depth';
         $streamHash = 'multipleOrderbook';
@@ -972,7 +972,7 @@ class binance extends \ccxt\async\binance {
             $payload['limit'] = $limit;
         }
         $marketType = $this->get_market_type('fetchOrderBookWs', $market, $params);
-        if ($marketType !== 'future') {
+        if ($marketType !== 'linear') {
             throw new BadRequest($this->id . ' fetchOrderBookWs only supports swap markets');
         }
         $url = $this->safe_string($this->urls['api']['ws']['ws-api'], $marketType);
@@ -992,8 +992,9 @@ class binance extends \ccxt\async\binance {
         $subscription = array(
             'method' => array($this, 'handle_fetch_order_book'),
         );
-        $orderbook = Async\await($this->watch($url, $messageHash, $message, $messageHash, $subscription));
-        $orderbook['symbol'] = $market['symbol'];
+        $snapshot = Async\await($this->watch($url, $messageHash, $message, $messageHash, $subscription));
+        $snapshot['symbol'] = $market['symbol'];
+        $orderbook = $this->order_book($snapshot);
         return $orderbook;
     }
 
@@ -1062,22 +1063,30 @@ class binance extends \ccxt\async\binance {
                     continue;
                 }
                 $pu = $this->safe_integer($messageItem, 'pu');
-                if ($type === 'future') {
+                $snapshotNonce = $this->safe_integer($orderbook, 'nonce');
+                if ($snapshotNonce === null) {
+                    // every comparison against an undefined nonce is false, only pu === undefined matches
+                    if (($type === 'linear') && ($pu === null)) {
+                        $this->handle_order_book_message($client, $messageItem, $orderbook);
+                    }
+                    continue;
+                }
+                if ($type === 'linear') {
                     // 4. Drop any event where u is < lastUpdateId in the snapshot
-                    if ($u < $orderbook['nonce']) {
+                    if ($u < $snapshotNonce) {
                         continue;
                     }
                     // 5. The first processed event should have U <= lastUpdateId AND u >= lastUpdateId
-                    if (($U <= $orderbook['nonce']) && ($u >= $orderbook['nonce']) || ($pu === $orderbook['nonce'])) {
+                    if (($U <= $snapshotNonce) && ($u >= $snapshotNonce) || ($pu === $snapshotNonce)) {
                         $this->handle_order_book_message($client, $messageItem, $orderbook);
                     }
                 } else {
                     // 4. Drop any event where u is <= lastUpdateId in the snapshot
-                    if ($u <= $orderbook['nonce']) {
+                    if ($u <= $snapshotNonce) {
                         continue;
                     }
                     // 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1
-                    if ((($U - 1) <= $orderbook['nonce']) && (($u - 1) >= $orderbook['nonce'])) {
+                    if ((($U - 1) <= $snapshotNonce) && (($u - 1) >= $snapshotNonce)) {
                         $this->handle_order_book_message($client, $messageItem, $orderbook);
                     }
                 }
@@ -1098,7 +1107,7 @@ class binance extends \ccxt\async\binance {
         $bookside->store($price, $amount);
     }
 
-    public function handle_deltas(mixed $bookside, mixed $deltas) {
+    public function handle_deltas(mixed $bookside, array $deltas) {
         for ($i = 0; $i < count($deltas); $i++) {
             $this->handle_delta($bookside, $deltas[$i]);
         }
@@ -1115,7 +1124,7 @@ class binance extends \ccxt\async\binance {
         return $orderbook;
     }
 
-    public function handle_order_book(Client $client, mixed $message) {
+    public function handle_order_book(Client $client, array $message) {
         //
         // initial snapshot is fetched with ccxt's fetchOrderBook
         // the feed does not include a snapshot, just the deltas
@@ -1190,7 +1199,8 @@ class binance extends \ccxt\async\binance {
                         }
                         if ($conditional) {
                             $this->handle_order_book_message($client, $message, $orderbook);
-                            if ($nonce < $this->safe_integer($orderbook, 'nonce', 0)) {
+                            $newNonce = $this->safe_integer($orderbook, 'nonce', 0);
+                            if ($nonce < $newNonce) {
                                 $client->resolve($orderbook, $messageHash);
                             }
                         } else {
@@ -1209,7 +1219,8 @@ class binance extends \ccxt\async\binance {
                         // 6. While listening to the stream, each new event's pu should be equal to the previous event's u, otherwise initialize the process from step 3
                         if (($U <= $nonce) || ($pu === $nonce)) {
                             $this->handle_order_book_message($client, $message, $orderbook);
-                            if ($nonce <= $this->safe_integer($orderbook, 'nonce', 0)) {
+                            $newNonce = $this->safe_integer($orderbook, 'nonce', 0);
+                            if ($nonce <= $newNonce) {
                                 $client->resolve($orderbook, $messageHash);
                             }
                         } else {
@@ -1233,7 +1244,7 @@ class binance extends \ccxt\async\binance {
         }
     }
 
-    public function handle_order_book_subscription(Client $client, mixed $message, mixed $subscription) {
+    public function handle_order_book_subscription(Client $client, mixed $message, array $subscription) {
         $defaultLimit = $this->safe_integer($this->options, 'watchOrderBookLimit', 1000);
         // const messageHash = this.safeString (subscription, 'messageHash');
         $symbolOfSubscription = $this->safe_string($subscription, 'symbol'); // watchOrderBook
@@ -1269,7 +1280,7 @@ class binance extends \ccxt\async\binance {
             $method($client, $message, $subscription);
         }
         $isUnSubMessage = $this->safe_bool($subscription, 'unsubscribe', false);
-        if ($isUnSubMessage === true) {
+        if ($isUnSubMessage) {
             $this->handle_un_subscription($client, $subscription);
         }
         return $message;
@@ -1328,7 +1339,7 @@ class binance extends \ccxt\async\binance {
         if ($isOption === true) {
             $type = 'option';
         } elseif ($firstMarket['contract'] === true) {
-            $type = ($firstMarket['linear'] === true) ? 'future' : 'inverse';
+            $type = ($firstMarket['linear'] === true) ? 'linear' : 'inverse';
         }
         $messageHashes = array();
         $subParams = array();
@@ -1419,7 +1430,7 @@ class binance extends \ccxt\async\binance {
         if ($isOption === true) {
             $type = 'option';
         } elseif ($firstMarket['contract'] === true) {
-            $type = ($firstMarket['linear'] === true) ? 'future' : 'inverse';
+            $type = ($firstMarket['linear'] === true) ? 'linear' : 'inverse';
         }
         $subMessageHashes = array();
         $subParams = array();
@@ -1815,7 +1826,7 @@ class binance extends \ccxt\async\binance {
             $type = 'option';
             $wsUrlType = 'optionMarket'; // eOptions klines are served from /market/ws
         } elseif ($firstMarket['contract'] === true) {
-            $type = ($firstMarket['linear'] === true) ? 'future' : 'inverse';
+            $type = ($firstMarket['linear'] === true) ? 'linear' : 'inverse';
             $wsUrlType = $type;
         }
         $isSpot = ($type === 'spot');
@@ -1899,7 +1910,7 @@ class binance extends \ccxt\async\binance {
             $type = 'option';
             $wsUrlType = 'optionMarket'; // eOptions klines are served from /market/ws
         } elseif ($firstMarket['contract'] === true) {
-            $type = ($firstMarket['linear'] === true) ? 'future' : 'inverse';
+            $type = ($firstMarket['linear'] === true) ? 'linear' : 'inverse';
             $wsUrlType = $type;
         }
         $isSpot = ($type === 'spot');
@@ -2075,7 +2086,7 @@ class binance extends \ccxt\async\binance {
             'symbol' => $market['id'],
         );
         $type = $this->get_market_type('fetchTickerWs', $market, $params);
-        if ($type !== 'future') {
+        if ($type !== 'linear') {
             throw new BadRequest($this->id . ' fetchTickerWs only supports swap markets');
         }
         $url = $this->safe_string($this->urls['api']['ws']['ws-api'], $type);
@@ -2126,7 +2137,7 @@ class binance extends \ccxt\async\binance {
         }
         $market = $this->market($symbol);
         $marketType = $this->get_market_type('fetchOHLCVWs', $market, $params);
-        if ($marketType !== 'spot' && $marketType !== 'future') {
+        if ($marketType !== 'spot' && $marketType !== 'linear') {
             throw new BadRequest($this->id . ' fetchOHLCVWs only supports spot or swap markets');
         }
         $url = $this->safe_string($this->urls['api']['ws']['ws-api'], $marketType);
@@ -2515,7 +2526,7 @@ class binance extends \ccxt\async\binance {
             // eOptions: mark price and klines stream from /market/stream; tickers/bids-asks/depth/trades from /public/stream
             $rawMarketType = ($isOptionMarkPrice) ? 'optionMarket' : 'option';
         } elseif ($this->isLinear($marketType, $subType)) {
-            $rawMarketType = 'future';
+            $rawMarketType = 'linear';
         } elseif ($this->isInverse($marketType, $subType)) {
             $rawMarketType = 'inverse';
         } elseif ($marketType === 'spot') {
@@ -2534,7 +2545,7 @@ class binance extends \ccxt\async\binance {
         $unsubscribeMessageHashes = array();
         $suffix = '';
         if ($isMarkPrice && !$isOptionMarkPrice) {
-            $suffix = ($use1sFreq === true) ? '@1s' : '';
+            $suffix = ($use1sFreq) ? '@1s' : '';
         }
         $unifiedPrefix = null;
         if ($isBidAsk) {
@@ -2668,7 +2679,7 @@ class binance extends \ccxt\async\binance {
         }
     }
 
-    public function parse_ws_ticker(mixed $message, mixed $marketType): array {
+    public function parse_ws_ticker(?array $message, ?string $marketType): array {
         // markPrice
         //   {
         //       "e": "markPriceUpdate",   // Event type
@@ -2834,7 +2845,7 @@ class binance extends \ccxt\async\binance {
         //
         $messageHash = $this->safe_string($message, 'id');
         $result = $this->safe_dict($message, 'result', array());
-        $ticker = $this->parse_ws_ticker($result, 'future');
+        $ticker = $this->parse_ws_ticker($result, 'contract');
         $client->resolve($ticker, $messageHash);
     }
 
@@ -3119,7 +3130,7 @@ class binance extends \ccxt\async\binance {
                 $isIsolated = $this->safe_bool($params, 'isIsolated', false);
                 $validity = $this->safe_integer($params, 'validity');
                 $request = array();
-                if ($isIsolated === true) {
+                if ($isIsolated) {
                     if ($symbol === null) {
                         throw new ArgumentsRequired($this->id . ' ensureUserDataStreamWsSubscribeListenToken() requires a symbol argument for isolated margin mode');
                     }
@@ -3193,7 +3204,7 @@ class binance extends \ccxt\async\binance {
         if ($symbol !== null) {
             $renewParams['symbol'] = $symbol;
         }
-        if ($isIsolated === true) {
+        if ($isIsolated) {
             $renewParams['isIsolated'] = $isIsolated;
         }
         if ($validity !== null) {
@@ -3269,7 +3280,7 @@ class binance extends \ccxt\async\binance {
                     $response = Async\await($this->sapiPostEquityListenKey($requestParams));
                 } elseif ($isPortfolioMargin) {
                     $response = Async\await($this->papiPostListenKey($paramsOmitted));
-                } elseif ($type === 'future') {
+                } elseif ($type === 'linear') {
                     $response = Async\await($this->fapiPrivatePostListenKey($paramsOmitted));
                 } elseif ($type === 'inverse') {
                     $response = Async\await($this->dapiPrivatePostListenKey($paramsOmitted));
@@ -3326,14 +3337,14 @@ class binance extends \ccxt\async\binance {
         $subType = $this->handle_sub_type_and_params('keepAliveListenKey', null, $paramsPortfolioMargin)[0];
         if ($type !== 'option' && $type !== 'stock') {
             // guard options first: isLinear returns true for linear-settled options (subType='linear')
-            // which would incorrectly convert type='option' to 'future'.
+            // which would incorrectly convert type='option' to 'linear'.
             // stock needs the same exemption: with a defaultSubType of 'linear' -
             // always on binanceusdm, common on mixed instances - isLinear keys off
-            // subType alone and would flip 'stock' to 'future' - the stock branch
+            // subType alone and would flip 'stock' to 'linear' - the stock branch
             // below would never run, and the bucket lookup would renew the
             // FUTURES listen key while the stock key silently expires
             if ($this->isLinear($type, $subType)) {
-                $type = 'future';
+                $type = 'linear';
             } elseif ($this->isInverse($type, $subType)) {
                 $type = 'inverse';
             }
@@ -3363,7 +3374,7 @@ class binance extends \ccxt\async\binance {
                 Async\await($this->sapiPostEquityListenKey($requestParams));
             } elseif ($isPortfolioMargin) {
                 Async\await($this->papiPutListenKey($this->extend($request, $paramsOmitted)));
-            } elseif ($type === 'future') {
+            } elseif ($type === 'linear') {
                 Async\await($this->fapiPrivatePutListenKey($this->extend($request, $paramsOmitted)));
             } elseif ($type === 'inverse') {
                 Async\await($this->dapiPrivatePutListenKey($this->extend($request, $paramsOmitted)));
@@ -3440,7 +3451,7 @@ class binance extends \ccxt\async\binance {
         }
         $options = $this->safe_dict($this->options, 'watchBalance');
         $fetchBalanceSnapshot = $this->safe_bool($options, 'fetchBalanceSnapshot', false);
-        if ($fetchBalanceSnapshot === true) {
+        if ($fetchBalanceSnapshot) {
             $messageHash = $type . ':fetchBalanceSnapshot';
             if (!(is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures))) {
                 $client->future($messageHash);
@@ -3459,7 +3470,7 @@ class binance extends \ccxt\async\binance {
         $params = array(
             'type' => $type,
         );
-        if ($isPortfolioMargin === true) {
+        if ($isPortfolioMargin) {
             $params['portfolioMargin'] = true;
         }
         $response = Async\await($this->fetch_balance($params));
@@ -3495,7 +3506,7 @@ class binance extends \ccxt\async\binance {
             Async\await($this->load_markets());
         }
         $type = $this->get_market_type('fetchBalanceWs', null, $params);
-        if ($type !== 'spot' && $type !== 'future' && $type !== 'inverse') {
+        if ($type !== 'spot' && $type !== 'linear' && $type !== 'inverse') {
             throw new BadRequest($this->id . ' fetchBalanceWs only supports spot or swap markets');
         }
         $url = $this->safe_string($this->urls['api']['ws']['ws-api'], $type);
@@ -3637,9 +3648,9 @@ class binance extends \ccxt\async\binance {
         if ($symbolsNormalized === null && ($type === 'spot')) {
             // when symbols aren't provide
             // we shouldn't rely on the defaultType
-            $type = 'future';
+            $type = 'linear';
         }
-        if ($type !== 'future' && $type !== 'inverse') {
+        if ($type !== 'linear' && $type !== 'inverse') {
             throw new BadRequest($this->id . ' fetchPositionsWs only supports swap markets');
         }
         $url = $this->safe_string($this->urls['api']['ws']['ws-api'], $type);
@@ -3738,7 +3749,7 @@ class binance extends \ccxt\async\binance {
                 $urlType = 'papi';
             } elseif ($type === 'option') {
                 $demoMode = $this->safe_bool($this->options, 'enableDemoTrading', false);
-                if (($demoMode === true) || $this->isSandboxModeEnabled) {
+                if (($demoMode) || $this->isSandboxModeEnabled) {
                     throw new NotSupported($this->id . ' watchBalance() does not support option markets in demo/testnet mode');
                 }
                 $urlType = 'optionPrivate';
@@ -3751,7 +3762,7 @@ class binance extends \ccxt\async\binance {
         $options = $this->safe_dict($this->options, 'watchBalance');
         $fetchBalanceSnapshot = $this->safe_bool($options, 'fetchBalanceSnapshot', false);
         $awaitBalanceSnapshot = $this->safe_bool($options, 'awaitBalanceSnapshot', true);
-        if (($fetchBalanceSnapshot === true) && ($awaitBalanceSnapshot === true)) {
+        if (($fetchBalanceSnapshot) && ($awaitBalanceSnapshot)) {
             Async\await($client->future($type . ':fetchBalanceSnapshot'));
         }
         $messageHash = $type . ':balance';
@@ -3759,7 +3770,7 @@ class binance extends \ccxt\async\binance {
         return Async\await($this->watch($url, $messageHash, $message, $type));
     }
 
-    public function handle_balance(Client $client, mixed $message) {
+    public function handle_balance(Client $client, array $message) {
         //
         // sent upon a balance update not related to orders
         //
@@ -3884,7 +3895,7 @@ class binance extends \ccxt\async\binance {
         $accountType = '';
         for ($i = 0; $i < count($subscriptions); $i++) {
             $subscription = $subscriptions[$i];
-            if (($subscription === 'spot') || ($subscription === 'margin') || ($subscription === 'future') || ($subscription === 'inverse') || ($subscription === 'option')) {
+            if (($subscription === 'spot') || ($subscription === 'margin') || ($subscription === 'linear') || ($subscription === 'inverse') || ($subscription === 'option')) {
                 $accountType = $subscription;
                 break;
             }
@@ -3905,7 +3916,7 @@ class binance extends \ccxt\async\binance {
         $type = $marketType;
         if ($type !== 'option' && $type !== 'stock') {
             if ($this->isLinear($type, $subType)) {
-                $type = 'future';
+                $type = 'linear';
             } elseif ($this->isInverse($type, $subType)) {
                 $type = 'inverse';
             }
@@ -3915,13 +3926,13 @@ class binance extends \ccxt\async\binance {
         return array( $type, $subType, $paramsSubType );
     }
 
-    public function get_market_type(mixed $method, mixed $market, $params = array()): string {
+    public function get_market_type(string $method, array $market, $params = array()): string {
         $type = null;
         $paramsMarketType = array();
         list($type, $paramsMarketType) = $this->handle_market_type_and_params($method, $market, $params);
         $subType = $this->handle_sub_type_and_params($method, $market, $paramsMarketType)[0];
         if ($this->isLinear($type, $subType)) {
-            $type = 'future';
+            $type = 'linear';
         } elseif ($this->isInverse($type, $subType)) {
             $type = 'inverse';
         }
@@ -3956,7 +3967,7 @@ class binance extends \ccxt\async\binance {
         }
         $market = $this->market($symbol);
         $marketType = $this->get_market_type('createOrderWs', $market, $params);
-        if ($marketType !== 'spot' && $marketType !== 'future' && $marketType !== 'inverse') {
+        if ($marketType !== 'spot' && $marketType !== 'linear' && $marketType !== 'inverse') {
             throw new BadRequest($this->id . ' createOrderWs only supports spot or swap markets');
         }
         $url = $this->safe_string($this->urls['api']['ws']['ws-api'], $marketType);
@@ -3985,8 +3996,8 @@ class binance extends \ccxt\async\binance {
             'method' => 'order.place',
             'params' => $this->sign_params($this->extend($payload, $paramsOmitted2)),
         );
-        if ($test === true) {
-            if ($sor === true) {
+        if ($test) {
+            if ($sor) {
                 $message['method'] = 'sor.order.test';
             } else {
                 $message['method'] = 'order.test';
@@ -4125,7 +4136,7 @@ class binance extends \ccxt\async\binance {
         }
         $market = $this->market($symbol);
         $marketType = $this->get_market_type('editOrderWs', $market, $params);
-        if ($marketType !== 'spot' && $marketType !== 'future' && $marketType !== 'inverse') {
+        if ($marketType !== 'spot' && $marketType !== 'linear' && $marketType !== 'inverse') {
             throw new BadRequest($this->id . ' editOrderWs only supports spot or swap markets');
         }
         $url = $this->safe_string($this->urls['api']['ws']['ws-api'], $marketType);
@@ -4134,7 +4145,7 @@ class binance extends \ccxt\async\binance {
         }
         $requestId = $this->request_id($url);
         $messageHash = (string) $requestId;
-        $isSwap = ($marketType === 'future' || $marketType === 'inverse');
+        $isSwap = ($marketType === 'linear' || $marketType === 'inverse');
         $payload = array();
         if ($marketType === 'spot') {
             $payload = $this->editSpotOrderRequest($id, $symbol, $type, $side, $amount, $price, $params);
@@ -4307,13 +4318,13 @@ class binance extends \ccxt\async\binance {
         $clientOrderId = $this->safe_string_n($paramsReturnRateLimits, array( 'clientAlgoId', 'origClientOrderId', 'clientOrderId' ));
         $shouldUseAlgoOrder = ($market['linear'] === true) && (($market['swap'] === true) || ($market['future'] === true)) && ($isConditional === true);
         if ($clientOrderId !== null) {
-            if ($shouldUseAlgoOrder === true) {
+            if ($shouldUseAlgoOrder) {
                 $payload['clientAlgoId'] = $clientOrderId;
             } else {
                 $payload['origClientOrderId'] = $clientOrderId;
             }
         } else {
-            if ($shouldUseAlgoOrder === true) {
+            if ($shouldUseAlgoOrder) {
                 $payload['algoId'] = $this->number_to_string($id);
             } else {
                 $payload['orderId'] = $this->number_to_string($id);
@@ -4325,7 +4336,7 @@ class binance extends \ccxt\async\binance {
             'method' => 'order.cancel',
             'params' => $this->sign_params($this->extend($payload, $paramsOmitted)),
         );
-        if ($shouldUseAlgoOrder === true) {
+        if ($shouldUseAlgoOrder) {
             $message['method'] = 'algoOrder.cancel';
         }
         $subscription = array(
@@ -4406,7 +4417,7 @@ class binance extends \ccxt\async\binance {
         }
         $market = $this->market($symbol);
         $type = $this->get_market_type('fetchOrderWs', $market, $params);
-        if ($type !== 'spot' && $type !== 'future' && $type !== 'inverse') {
+        if ($type !== 'spot' && $type !== 'linear' && $type !== 'inverse') {
             throw new BadRequest($this->id . ' fetchOrderWs only supports spot or swap markets');
         }
         $url = $this->safe_string($this->urls['api']['ws']['ws-api'], $type);
@@ -4653,7 +4664,7 @@ class binance extends \ccxt\async\binance {
                 $urlType = 'papi';
             } elseif ($type === 'option') {
                 $demoMode = $this->safe_bool($this->options, 'enableDemoTrading', false);
-                if (($demoMode === true) || $this->isSandboxModeEnabled) {
+                if (($demoMode) || $this->isSandboxModeEnabled) {
                     throw new NotSupported($this->id . ' watchOrders() does not support option markets in demo/testnet mode');
                 }
                 $urlType = 'optionPrivate';
@@ -4942,7 +4953,7 @@ class binance extends \ccxt\async\binance {
         ));
     }
 
-    public function handle_order_update(Client $client, mixed $message) {
+    public function handle_order_update(Client $client, array $message) {
         //
         // spot
         //
@@ -5275,9 +5286,9 @@ class binance extends \ccxt\async\binance {
         // arrive here as future or inverse and pass untouched, which lands on
         // the same stream the old raw-type ordering produced in every case
         if ($type === 'spot' || $type === 'margin') {
-            $type = ($subType === 'inverse') ? 'inverse' : 'future';
+            $type = ($subType === 'inverse') ? 'inverse' : 'linear';
         }
-        // 'option' stays as 'option', don't redirect to 'future' - the helper's
+        // 'option' stays as 'option', don't redirect to 'linear' - the helper's
         // guard finally makes this comment true
         $marketTypeObject = array();
         $marketTypeObject['type'] = $type;
@@ -5291,7 +5302,7 @@ class binance extends \ccxt\async\binance {
             $urlType = 'papi';
         } elseif ($type === 'option') {
             $demoMode = $this->safe_bool($this->options, 'enableDemoTrading', false);
-            if (($demoMode === true) || $this->isSandboxModeEnabled) {
+            if (($demoMode) || $this->isSandboxModeEnabled) {
                 throw new NotSupported($this->id . ' watchPositions() does not support option markets in demo/testnet mode');
             }
             $urlType = 'optionPrivate';
@@ -5344,7 +5355,7 @@ class binance extends \ccxt\async\binance {
         $params = array(
             'type' => $type,
         );
-        if ($isPortfolioMargin === true) {
+        if ($isPortfolioMargin) {
             $params['portfolioMargin'] = true;
         }
         $positions = Async\await($this->fetch_positions(null, $params));
@@ -5486,7 +5497,7 @@ class binance extends \ccxt\async\binance {
         ));
     }
 
-    public function parse_ws_options_position(mixed $position, mixed $market = null) {
+    public function parse_ws_options_position(?array $position, ?array $market = null): array {
         //
         //  from BALANCE_POSITION_UPDATE event P[] array:
         //  {
@@ -5560,7 +5571,7 @@ class binance extends \ccxt\async\binance {
         }
         $market = $this->market($symbol);
         $type = $this->get_market_type('fetchMyTradesWs', $market, $params);
-        if ($type !== 'spot' && $type !== 'future') {
+        if ($type !== 'spot' && $type !== 'linear') {
             throw new BadRequest($this->id . ' fetchMyTradesWs does not support ' . $type . ' markets');
         }
         $url = $this->safe_string($this->urls['api']['ws']['ws-api'], $type);
@@ -5620,7 +5631,7 @@ class binance extends \ccxt\async\binance {
         }
         $market = $this->market($symbol);
         $type = $this->get_market_type('fetchTradesWs', $market, $params);
-        if ($type !== 'spot' && $type !== 'future') {
+        if ($type !== 'spot' && $type !== 'linear') {
             throw new BadRequest($this->id . ' fetchTradesWs does not support ' . $type . ' markets');
         }
         $url = $this->safe_string($this->urls['api']['ws']['ws-api'], $type);
@@ -5746,7 +5757,7 @@ class binance extends \ccxt\async\binance {
                 $urlType = 'papi';
             } elseif ($type === 'option') {
                 $demoMode = $this->safe_bool($this->options, 'enableDemoTrading', false);
-                if (($demoMode === true) || $this->isSandboxModeEnabled) {
+                if (($demoMode) || $this->isSandboxModeEnabled) {
                     throw new NotSupported($this->id . ' watchMyTrades() does not support option markets in demo/testnet mode');
                 }
                 $urlType = 'optionPrivate';
@@ -5771,8 +5782,7 @@ class binance extends \ccxt\async\binance {
         if ($executionType === 'TRADE') {
             $trade = $this->parse_ws_trade($message);
             $orderId = $this->safe_string($trade, 'order');
-            $tradeFee = $this->safe_dict($trade, 'fee', array());
-            $tradeFee = $this->extend(array(), $tradeFee);
+            $tradeFee = $this->extend(array(), $this->safe_dict($trade, 'fee', array()));
             $symbol = $this->safe_string($trade, 'symbol');
             if ($orderId !== null && $tradeFee !== null && $symbol !== null) {
                 $cachedOrders = $this->orders;
@@ -5781,9 +5791,9 @@ class binance extends \ccxt\async\binance {
                     $order = $this->safe_dict($orders, $orderId);
                     if ($order !== null) {
                         // accumulate order fees
-                        $fees = $this->safe_value($order, 'fees');
+                        $fees = $this->safe_list($order, 'fees');
                         $fee = $this->safe_dict($order, 'fee');
-                        if (!$this->is_empty($fees)) {
+                        if (($fees !== null) && !$this->is_empty($fees)) {
                             $insertNewFeeCurrency = true;
                             for ($i = 0; $i < count($fees); $i++) {
                                 $orderFee = $fees[$i];
@@ -5882,7 +5892,7 @@ class binance extends \ccxt\async\binance {
         }
     }
 
-    public function handle_acount_update(Client $client, mixed $message) {
+    public function handle_acount_update(Client $client, array $message) {
         $this->handle_balance($client, $message);
         $this->handle_positions($client, $message);
     }

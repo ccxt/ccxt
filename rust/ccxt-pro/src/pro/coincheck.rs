@@ -161,6 +161,9 @@ impl crate::exchange::DerivedExchange for CoincheckCore {
     fn create_expired_option_market(&self, symbol: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::create_expired_option_market(&self.parent, symbol)
     }
+    fn market(&self, symbol: crate::Value) -> crate::Value {
+        crate::exchange::DerivedExchange::market(&self.parent, symbol)
+    }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::sign(&self.parent, path, api, method, params, headers, body)
     }
@@ -335,7 +338,7 @@ impl CoincheckCore {
             orderbook = self.order_book(&[snapshot.clone()]);
             if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), orderbook.clone()); }
         }  else {
-            orderbook = get_value(&self.orderbooks, &symbol);
+            orderbook = self.orderbooks.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
             orderbook.reset(snapshot);
         }
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook:".into()), symbol).into());
@@ -376,7 +379,7 @@ impl CoincheckCore {
         let mut message: Value = self.extend(request, &[params]);
         let mut trades: Value = self.watch(url, messageHash.clone(), &[message, messageHash.clone()]).await;
         let mut limitResolved: Value = limit.clone();
-        if is_true(&self.newUpdates) {
+        if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolValue, limit);
         }
         return self.filter_by_since_limit(trades, &[since, limitResolved, Value::Str("timestamp".into()), Value::Bool(true)]);
@@ -409,8 +412,8 @@ impl CoincheckCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_258: bool = true;
-            while { if !__for_first_258 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_258 = false; i.as_f64().unwrap_or(f64::NAN) < ((message.len() as i64) as f64) } {
+            let mut __for_first_279: bool = true;
+            while { if !__for_first_279 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_279 = false; i.as_f64().unwrap_or(f64::NAN) < ((message.len() as i64) as f64) } {
             let mut data: Value = self.safe_value(message.clone(), i.clone(), &[]);
             let mut trade: Value = self.parse_ws_trade(data, &[]);
             stored.append(trade);
@@ -461,7 +464,7 @@ impl CoincheckCore {
 }
 
     pub fn handle_message(&mut self, mut client: Value, mut message: Value) {
-        let mut data: Value = self.safe_value(message.clone(), Value::Int(0), &[]);
+        let mut data: Value = self.safe_list(message.clone(), Value::Int(0), &[]);
         if !(matches!(&data, Value::Arr(_))) {
             self.handle_order_book(client.clone(), message.clone());
         }  else {

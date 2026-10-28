@@ -116,7 +116,7 @@
             {
                 "description": "spot orderbook",
                 "method": "fetchOrderBook",
-                "url": "https://api.blockchain.com/v3/exchange/l3/BTC-USDT",
+                "url": "https://api.blockchain.com/v3/exchange/l2/BTC-USDT",
                 "input": [
                     "BTC/USDT"
                 ]

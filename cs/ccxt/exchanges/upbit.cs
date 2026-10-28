@@ -465,16 +465,16 @@ public partial class upbit : Exchange
         bool? walletLocked = this.safeBool(memberInfo, "wallet_locked");
         bool? locked = this.safeBool(memberInfo, "locked");
         bool active = true;
-        if (((canWithdraw != null)) && ((canWithdraw != true)))
+        if (((canWithdraw != null)) && (canWithdraw != true))
         {
             active = false;
         } else if (walletState != "working")
         {
             active = false;
-        } else if (((walletLocked != null)) && ((walletLocked == true)))
+        } else if (((walletLocked != null)) && (walletLocked == true))
         {
             active = false;
-        } else if (((locked != null)) && ((locked == true)))
+        } else if (((locked != null)) && (locked == true))
         {
             active = false;
         }
@@ -923,7 +923,7 @@ public partial class upbit : Exchange
             {
                 if (!(quoteCurrencies is ""))
                 {
-                    quoteCurrencies = add(quoteCurrencies, ",");
+                    quoteCurrencies = (quoteCurrencies + ",");
                 }
                 quoteCurrencies = add(quoteCurrencies, (sortedQuoteIds != null && i < sortedQuoteIds.Count ? sortedQuoteIds[i] : null));
             }
@@ -1441,7 +1441,7 @@ public partial class upbit : Exchange
         };
         if ((type == "limit"))
         {
-            if ((price == null) || isEqual(amount, null))
+            if ((price == null) || (((object)(amount)) == null))
             {
                 throw new ArgumentsRequired ((this.id + " the limit type order in createOrder() is required price and amount.")) ;
             }
@@ -1457,7 +1457,7 @@ public partial class upbit : Exchange
                 request["price"] = orderPrice;
             } else
             {
-                if (isEqual(amount, null))
+                if ((((object)(amount)) == null))
                 {
                     throw new ArgumentsRequired ((this.id + " the market sell type order in createOrder() is required amount.")) ;
                 }
@@ -1478,7 +1478,7 @@ public partial class upbit : Exchange
                 request["price"] = orderPrice;
             } else
             {
-                if (isEqual(amount, null))
+                if ((((object)(amount)) == null))
                 {
                     throw new ArgumentsRequired ((this.id + " the best sell type order in createOrder() is required amount.")) ;
                 }
@@ -1623,7 +1623,7 @@ public partial class upbit : Exchange
         {
             throw new ExchangeError ((this.id + " editOrder() does not support post_only and selfTradePrevention simultaneously.")) ;
         }
-        object paramsOmitted = this.omit(parameters, "clientOrderId");
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "clientOrderId"));
         if ((id != null))
         {
             request["prev_order_uuid"] = id;
@@ -1800,7 +1800,7 @@ public partial class upbit : Exchange
      * @param {string} [params.txid] withdrawal transaction id, the id argument is reserved for uuid
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async virtual Task<ccxt.Transaction> FetchDeposit(string id, string code = null, object parameters = null)
+    public async virtual Task<ccxt.Transaction> FetchDeposit(string id, string code = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1898,7 +1898,7 @@ public partial class upbit : Exchange
      * @param {string} [params.txid] withdrawal transaction id, the id argument is reserved for uuid
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async virtual Task<ccxt.Transaction> FetchWithdrawal(string id, string code = null, object parameters = null)
+    public async virtual Task<ccxt.Transaction> FetchWithdrawal(string id, string code = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -2142,7 +2142,7 @@ public partial class upbit : Exchange
         if (numTrades > 0)
         {
             // the timestamp in fetchOrder trades is missing
-            lastTradeTimestamp = getValue(getValue(trades, (numTrades - 1)), "timestamp");
+            lastTradeTimestamp = getValue((trades != null && (numTrades - 1) < trades.Count ? trades[(numTrades - 1)] : null), "timestamp");
             bool getFeesFromTrades = false;
             if ((feeCost == null))
             {

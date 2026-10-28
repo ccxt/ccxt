@@ -39,7 +39,7 @@ public class TestWatchPosition extends BaseTest {
                 // continue;
                 success = false;
             }
-            if ((java.util.Objects.equals(success, true)) && (!java.util.Objects.equals(response, null)))
+            if (Boolean.TRUE.equals(success) && (!java.util.Objects.equals(response, null)))
             {
                 Assert(exchange.isDictionary(response), ((((((exchange.id + " ") + method) + " ") + symbol) + " must return a dictionary. ") + exchange.json(response)));
                 now = exchange.milliseconds();

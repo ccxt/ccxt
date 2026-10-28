@@ -19,7 +19,10 @@ func testFetchTradingFeesBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICore
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	fees := r.Value
+	var fees any = nil
+	if !ccxt.StructAbsent(r.Value) {
+		fees = ccxt.StructBox(r.Value, ccxt.TradingFeeInterfaceMapToMap)
+	}
 	var symbols []string = ObjectKeys(fees)
 	AssertNonEmtpyArray(exchange, skippedProperties, method, symbols)
 	for i := 0; i < len(symbols); i++ {

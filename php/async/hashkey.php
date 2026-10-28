@@ -2247,7 +2247,7 @@ class hashkey extends Exchange {
         $status = $this->safe_string($transaction, 'status'); // for fetchDeposits
         if ($status === null) {
             $success = $this->safe_bool($transaction, 'success', false); // for withdraw
-            if ($success === true) {
+            if ($success) {
                 $status = 'ok';
             } else {
                 $addressUrl = $this->safe_string($transaction, 'addressUrl'); // for fetchWithdrawals
@@ -2293,7 +2293,7 @@ class hashkey extends Exchange {
         );
     }
 
-    public function parse_transaction_status(?string $status) {
+    public function parse_transaction_status(?string $status): ?string {
         $statuses = array(
             '1' => 'pending',
             '2' => 'pending',
@@ -2357,7 +2357,7 @@ class hashkey extends Exchange {
         $currencyId = $this->safe_string($currency, 'id');
         $status = null;
         $success = $this->safe_bool($transfer, 'success', false);
-        if ($success === true) {
+        if ($success) {
             $status = 'ok';
         }
         return array(
@@ -2422,7 +2422,7 @@ class hashkey extends Exchange {
         );
     }
 
-    public function parse_account_type(?string $type) {
+    public function parse_account_type(?string $type): ?string {
         $types = array(
             '1' => 'spot account',
             '3' => 'swap account',
@@ -3927,7 +3927,7 @@ class hashkey extends Exchange {
         return array( $side, $reduceOnly );
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             'NEW' => 'open',
             'PARTIALLY_FILLED' => 'open',
@@ -4713,7 +4713,7 @@ class hashkey extends Exchange {
         );
     }
 
-    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+    public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
         $apiName = $api[0];
         $apiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($apiUrl === null) {

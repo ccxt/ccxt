@@ -910,9 +910,11 @@ class krakenfutures extends \ccxt\async\krakenfutures {
                     $messageHash = 'orders:verbose';
                 }
                 // get order without symbol
+                $cancelledOrderId = $this->safe_string($message, 'order_id');
                 for ($i = 0; $i < count($orders); $i++) {
                     $currentOrder = $orders[$i];
-                    if ($currentOrder['id'] === $message['order_id']) {
+                    $currentOrderId = $this->safe_string($currentOrder, 'id');
+                    if ($currentOrderId === $cancelledOrderId) {
                         $info = $this->extend($this->safe_dict($currentOrder, 'info', array()), array(
                             'reason' => $reason,
                         ));
@@ -1090,7 +1092,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         $status = null;
         if ($isCancelled !== null) {
             $unparsedOrder = $this->safe_value($order, 'order');
-            if ($isCancelled === true) {
+            if ($isCancelled) {
                 $status = 'cancelled';
             }
         }
@@ -1672,8 +1674,9 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         for ($i = 0; $i < count($trades); $i++) {
             $trade = $trades[$i];
             $parsedTrade = $this->parse_ws_my_trade($trade);
-            if ($parsedTrade['symbol'] !== null) {
-                $tradeSymbols[$parsedTrade['symbol']] = true;
+            $tradeSymbol = $this->safe_string($parsedTrade, 'symbol');
+            if ($tradeSymbol !== null) {
+                $tradeSymbols[$tradeSymbol] = true;
             }
             $stored->append($parsedTrade);
         }

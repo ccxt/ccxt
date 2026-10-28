@@ -1926,7 +1926,7 @@ class bitrue extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             'INIT' => 'open',
             'PENDING_CREATE' => 'open',
@@ -2639,8 +2639,9 @@ class bitrue extends Exchange {
         if ($since !== null) {
             $request['startTime'] = $since;
         }
-        $limitResolved = ($limit === null) ? null : min($limit, 1000);
-        if ($limitResolved !== null) {
+        $limitResolved = null;
+        if ($limit !== null) {
+            $limitResolved = ($limit > 1000) ? 1000 : $limit;
             $request['limit'] = $limitResolved;
         }
         if ($market['swap'] === true) {
@@ -3056,7 +3057,7 @@ class bitrue extends Exchange {
         return $this->parse_transaction($data, $currency);
     }
 
-    public function parse_deposit_withdraw_fee(mixed $fee, ?array $currency = null): mixed {
+    public function parse_deposit_withdraw_fee(?array $fee, ?array $currency = null): mixed {
         //
         //   {
         //       "coin": "adx",
@@ -3194,8 +3195,9 @@ class bitrue extends Exchange {
         if ($since !== null) {
             $request['beginTime'] = $since;
         }
-        $limitResolved = ($limit === null) ? null : min($limit, 200);
-        if ($limitResolved !== null) {
+        $limitResolved = null;
+        if ($limit !== null) {
+            $limitResolved = ($limit > 200) ? 200 : $limit;
             $request['limit'] = $limitResolved;
         }
         $until = $this->safe_integer($params, 'until');
@@ -3372,7 +3374,7 @@ class bitrue extends Exchange {
         return $this->parse_margin_modification($response, $market);
     }
 
-    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+    public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
         $requestBody = null;
         $requestHeaders = null;
         $type = $this->safe_string($api, 0);
@@ -3462,7 +3464,8 @@ class bitrue extends Exchange {
         // error response in a form: { "code": -1013, "msg": "Invalid quantity." }
         // following block contains legacy checks against message patterns in "msg" property
         // will switch "code" checks eventually, when we know all of them
-        if ($code >= 400) {
+        $statusCode = $this->parse_to_int($code);
+        if ($statusCode >= 400) {
             if (mb_strpos($body, 'Price * QTY is zero or less') !== false) {
                 throw new InvalidOrder($this->id . ' order cost = amount * price is zero or less ' . $body);
             }
@@ -3480,7 +3483,7 @@ class bitrue extends Exchange {
         // response in format {'msg': 'The coin does not exist.', 'success': true/false}
         $success = $this->safe_bool($response, 'success', true);
         $parsedMessage = null;
-        if ($success !== true) {
+        if (!$success) {
             $messageInner = $this->safe_string($response, 'msg');
             if ($messageInner !== null) {
                 try {
@@ -3515,7 +3518,7 @@ class bitrue extends Exchange {
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $error, $feedback);
             throw new ExchangeError($feedback);
         }
-        if ($success !== true) {
+        if (!$success) {
             throw new ExchangeError($this->id . ' ' . $body);
         }
         return null;
@@ -3525,11 +3528,12 @@ class bitrue extends Exchange {
         if ((is_array($config) && array_key_exists('noSymbol' ?? '', $config)) && !(is_array($params) && array_key_exists('symbol' ?? '', $params))) {
             return $config['noSymbol'];
         } elseif ((is_array($config) && array_key_exists('byLimit' ?? '', $config)) && (is_array($params) && array_key_exists('limit' ?? '', $params))) {
-            $limit = $params['limit'];
+            $limit = $this->safe_integer($params, 'limit');
             $byLimit = $this->safe_list($config, 'byLimit', array());
             for ($i = 0; $i < count($byLimit); $i++) {
                 $entry = $byLimit[$i];
-                if ($limit <= $entry[0]) {
+                $threshold = $this->safe_integer($entry, 0);
+                if ($limit !== null && $threshold !== null && $limit <= $threshold) {
                     return $entry[1];
                 }
             }

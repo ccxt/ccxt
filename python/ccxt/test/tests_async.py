@@ -1110,10 +1110,10 @@ class testMainClass:
     def test_has_props(self, exchange):
         watch_order_book_skips = self.get_skips(exchange, 'watchOrderBook')
         fetch_order_book_skips = self.get_skips(exchange, 'fetchOrderBook')
-        if self.ws_tests and (exchange.safe_bool(exchange.has, 'watchOrderBook', False) is not True) and not isinstance(watch_order_book_skips, str):
+        if self.ws_tests and (not exchange.safe_bool(exchange.has, 'watchOrderBook', False)) and not isinstance(watch_order_book_skips, str):
             dump('[TEST_FAILURE] Method "watchOrderBook" is not set in "has", please check the "has" property of exchange')
             exit_script(1)
-        elif not self.ws_tests and (exchange.safe_bool(exchange.has, 'fetchOrderBook', False) is not True) and not isinstance(fetch_order_book_skips, str):
+        elif not self.ws_tests and (not exchange.safe_bool(exchange.has, 'fetchOrderBook', False)) and not isinstance(fetch_order_book_skips, str):
             dump('[TEST_FAILURE] Method "fetchOrderBook" is not set in "has", please check the "has" property of exchange')
             exit_script(1)
 
@@ -1480,6 +1480,64 @@ class testMainClass:
         self.assert_new_and_stored_output(exchange, skip_keys, new_output, stored_output)
         return True
 
+    def assert_static_isolated_position(self, exchange, entry):
+        if not exchange.is_dictionary(entry):
+            return True
+        margin_mode = exchange.safe_string(entry, 'marginMode')
+        if margin_mode != 'isolated':
+            return True
+        side = exchange.safe_string(entry, 'side')
+        entry_price = exchange.safe_number(entry, 'entryPrice')
+        liquidation_price = exchange.safe_number(entry, 'liquidationPrice')
+        contracts = exchange.safe_number(entry, 'contracts')
+        contract_size = exchange.safe_number(entry, 'contractSize')
+        maintenance_margin = exchange.safe_number(entry, 'maintenanceMargin')
+        collateral = exchange.safe_number(entry, 'collateral')
+        initial_margin = exchange.safe_number(entry, 'initialMargin')
+        unrealized_pnl = exchange.safe_number(entry, 'unrealizedPnl')
+        if (entry_price is not None) and (liquidation_price is not None) and (entry_price > 0) and (liquidation_price > 0):
+            if side == 'long':
+                self.assert_static_error(liquidation_price < entry_price, 'isolated long liquidationPrice should be less than entryPrice', entry_price, liquidation_price)
+            elif side == 'short':
+                self.assert_static_error(liquidation_price > entry_price, 'isolated short liquidationPrice should be greater than entryPrice', entry_price, liquidation_price)
+        entry_margin = None
+        if collateral is not None:
+            if (unrealized_pnl is not None) and (collateral != initial_margin):
+                entry_margin = collateral - unrealized_pnl
+            else:
+                entry_margin = collateral
+        elif initial_margin is not None:
+            entry_margin = initial_margin
+        if (entry_margin is not None) and (entry_price is not None) and (liquidation_price is not None) and (contracts is not None) and (contract_size is not None) and (maintenance_margin is not None):
+            if (entry_margin > 0) and (entry_price > 0) and (liquidation_price > 0) and (contracts > 0) and (contract_size > 0) and (maintenance_margin > 0):
+                symbol = exchange.safe_string(entry, 'symbol')
+                market = exchange.safe_dict(exchange.markets, symbol) if (symbol is not None) else None
+                is_inverse = (market is not None) and exchange.safe_bool(market, 'inverse', False)
+                price_diff = 0
+                if is_inverse:
+                    inv_entry = 1 / entry_price
+                    inv_liq = 1 / liquidation_price
+                    price_diff = (inv_entry - inv_liq) if (inv_entry > inv_liq) else (inv_liq - inv_entry)
+                else:
+                    price_diff = (entry_price - liquidation_price) if (entry_price > liquidation_price) else (liquidation_price - entry_price)
+                loss_from_entry = price_diff * contracts * contract_size
+                calculated_mm = entry_margin - loss_from_entry
+                self.assert_static_error(calculated_mm > 0, 'isolated position remaining collateral at liquidationPrice should be greater than 0', maintenance_margin, calculated_mm)
+                mm_diff = (calculated_mm - maintenance_margin) if (calculated_mm > maintenance_margin) else (maintenance_margin - calculated_mm)
+                max_tolerance = entry_margin * 0.05
+                self.assert_static_error(mm_diff <= max_tolerance, 'isolated position maintenanceMargin does not match remaining collateral at liquidationPrice', maintenance_margin, calculated_mm)
+        return True
+
+    def assert_static_isolated_positions(self, exchange, method, output):
+        if (method == 'fetchPosition') or (method == 'fetchPositions') or (method == 'fetchPositionsForSymbol') or (method == 'fetchPositionsRisk'):
+            if isinstance(output, list):
+                output_length = len(output)
+                for i in range(0, output_length):
+                    self.assert_static_isolated_position(exchange, output[i])
+            elif exchange.is_dictionary(output):
+                self.assert_static_isolated_position(exchange, output)
+        return True
+
     def assert_static_response_output(self, exchange, skip_keys, computed_result, stored_result):
         self.assert_new_and_stored_output(exchange, skip_keys, computed_result, stored_result, False)
 
@@ -1550,9 +1608,11 @@ class testMainClass:
             if not is_sync():
                 unified_result = await call_exchange_method_dynamically(exchange, method, self.sanitize_data_input(data['input']))
                 self.assert_static_response_output(mocked_exchange, skip_keys, unified_result, expected_result)
+                self.assert_static_isolated_positions(mocked_exchange, method, expected_result)
             else:
                 unified_result_sync = call_exchange_method_dynamically_sync(exchange, method, self.sanitize_data_input(data['input']))
                 self.assert_static_response_output(mocked_exchange, skip_keys, unified_result_sync, expected_result)
+                self.assert_static_isolated_positions(mocked_exchange, method, expected_result)
         except Exception as e:
             self.response_tests_failed = True
             error_message = '[' + self.lang + '][STATIC_RESPONSE]' + '[' + exchange.id + ']' + '[' + method + ']' + '[' + data['description'] + ']' + exception_message(e)
@@ -1731,6 +1791,12 @@ class testMainClass:
                 exchange.extend_exchange_options(global_options)
                 test_exchange_options = exchange.safe_value(result, 'options', {})
                 exchange.extend_exchange_options(test_exchange_options)
+                api_key = exchange.safe_string(result, 'apiKey')
+                if not exchange.is_empty_string(api_key):
+                    exchange.apiKey = str(api_key)
+                secret = exchange.safe_string(result, 'secret')
+                if not exchange.is_empty_string(secret):
+                    exchange.secret = str(secret)
                 skip_keys = self.effective_skip_keys(exchange, exchange_data, result)
                 await self.test_ws_statically(exchange, method, skip_keys, result)
                 if not is_sync():
@@ -1811,6 +1877,8 @@ class testMainClass:
         if exchange_name == 'grvt':
             options['apiKey'] = ''
             options['secret'] = ''
+        if exchange_name == 'backpack':
+            options['secret'] = 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA='
         exchange = init_exchange(exchange_name, options, is_ws)
         if currencies is not None:
             exchange.currencies = currencies
@@ -2112,6 +2180,43 @@ class testMainClass:
         # inverse swap
         client_order_id_inverse = swap_inverse_order_request['newClientOrderId']
         assert client_order_id_inverse.startswith(inverse_swap_id), 'binance - swap clientOrderIdInverse: ' + client_order_id_inverse + ' does not start with swapId' + inverse_swap_id
+        # defaultType swap routes spot-style symbols by defaultSubType: unset or linear -> USDⓈ-M, inverse -> COIN-M
+        exchange.extend_exchange_options({
+            'defaultType': 'swap',
+        })
+        swap_no_sub_type_request = {}
+        try:
+            await exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
+        except Exception as e:
+            swap_no_sub_type_request = self.urlencoded_to_dict(exchange.last_request_body)
+        swap_no_sub_type_id = swap_no_sub_type_request['newClientOrderId']
+        assert swap_no_sub_type_id.startswith(swap_id), 'binance - defaultType swap without subType clientOrderId: ' + swap_no_sub_type_id + ' does not start with swapId' + swap_id
+        exchange.extend_exchange_options({
+            'defaultSubType': 'linear',
+        })
+        swap_linear_request = {}
+        try:
+            await exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
+        except Exception as e:
+            swap_linear_request = self.urlencoded_to_dict(exchange.last_request_body)
+        swap_linear_id = swap_linear_request['newClientOrderId']
+        assert swap_linear_id.startswith(swap_id), 'binance - defaultType swap linear clientOrderId: ' + swap_linear_id + ' does not start with swapId' + swap_id
+        exchange.extend_exchange_options({
+            'defaultSubType': 'inverse',
+        })
+        swap_inverse_request = {}
+        try:
+            await exchange.create_order('BTC/USD', 'limit', 'buy', 1, 20000)
+        except Exception as e:
+            swap_inverse_request = self.urlencoded_to_dict(exchange.last_request_body)
+        swap_inverse_id = swap_inverse_request['newClientOrderId']
+        assert swap_inverse_id.startswith(inverse_swap_id), 'binance - defaultType swap inverse clientOrderId: ' + swap_inverse_id + ' does not start with inverseSwapId' + inverse_swap_id
+        exchange.extend_exchange_options({
+            'defaultType': 'spot',
+        })
+        exchange.extend_exchange_options({
+            'defaultSubType': 'linear',
+        })
         # linear swap conditional order
         swap_algo_order_request = {}
         try:
@@ -2975,16 +3080,27 @@ class testMainClass:
     # }
     async def test_coinbaseinternational(self):
         exchange = self.init_offline_exchange('coinbaseinternational')
+        # ECDSA (P-256) auth-token signing needs a hex-encoded secret, unlike the generic dummy one
+        exchange.secret = '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
+        # pre-seed the gateway access token so createOrder signs the order directly instead of
+        # making a prior (offline-unreachable) public/auth network call
+        exchange.token = 'token'
+        token_expires = exchange.milliseconds() + 100000
+        exchange.options['v2TokenExpires'] = token_expires
         exchange.options['portfolio'] = 'random'
         id = 'nfqkvdjp'
         assert exchange.options['brokerId'] == id, 'id not in options'
-        request = {}
+        client_order_id = None
         try:
             await exchange.create_order('BTC/USDC:USDC', 'limit', 'buy', 1, 20000)
         except Exception as e:
-            request = json_parse(exchange.last_request_body)
-        client_order_id = request['client_order_id']
-        assert client_order_id.startswith(str(id)), 'clientOrderId does not start with id'
+            # buy/sell are GET endpoints, so the label is in the query string, not a JSON body
+            url = exchange.last_request_url
+            url_parts = url.split('?')
+            assert len(url_parts) > 1, 'last_request_url has no query string: ' + url
+            query = self.urlencoded_to_dict(url_parts[1])
+            client_order_id = query['label']
+        assert client_order_id is not None and client_order_id.startswith(str(id)), 'clientOrderId does not start with id'
         if not is_sync():
             await close(exchange)
         return True

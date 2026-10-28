@@ -49,6 +49,9 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
                 put( "watchBidsAsks", true );
                 put( "watchTrades", true );
                 put( "watchTradesForSymbols", true );
+                put( "unWatchOHLCV", true );
+                put( "unWatchTrades", true );
+                put( "unWatchTradesForSymbols", true );
                 put( "createOrderWs", true );
                 put( "editOrderWs", true );
                 put( "cancelOrderWs", true );
@@ -138,7 +141,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         }});
     }
 
-    public Object orderRequestWs(Object method, String symbol, Object type, Map<String, Object> request, Object amount, Object price, Map<String, Object> parameters)
+    public Object orderRequestWs(String method, String symbol, String type, Map<String, Object> request, Object amount, Object price, Map<String, Object> parameters)
     {
         Boolean isLimitOrder = ((String)type).endsWith("limit"); // supporting limit, stop-loss-limit, take-profit-limit, etc
         if (Boolean.TRUE.equals(isLimitOrder))
@@ -153,7 +156,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         List<Object> postOnlyparamsPostOnlyVariable = (List<Object>) this.handlePostOnly(isMarket, false, parameters);
         Boolean postOnly = (Boolean) ((List<Object>) postOnlyparamsPostOnlyVariable).get(0);
         Map<String, Object> paramsPostOnly = (Map<String, Object>) ((List<Object>) postOnlyparamsPostOnlyVariable).get(1);
-        if (java.util.Objects.equals(postOnly, true))
+        if (Boolean.TRUE.equals(postOnly))
         {
             Helpers.addElementToObject(request.get("params"), "post_only", true);
         }
@@ -777,12 +780,12 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
     public Long requestId()
     {
         // their support said that reqid must be an int32, not documented
-        Object reqid;
+        Long reqid;
         synchronized (this) {
-        reqid = this.sum(this.safeInteger(this.options, "reqid", 0), 1);
+        reqid = (Long) this.sum(this.safeInteger(this.options, "reqid", 0), 1);
         Helpers.addElementToObject(this.options, "reqid", reqid);
         }
-        return Helpers.toLongOrNull(reqid);
+        return reqid;
     }
 
     /**
@@ -909,7 +912,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
 
         return BaseExchange.supplyAsync(() -> {
 
-            List<Object> trades = (List<Object>) (this.watchMultiHelper("trade", "trade", Helpers.toStringListArg(symbols), (Object) null, parameters)).join();
+            List<Object> trades = (List<Object>) (this.watchMultiHelper("trade", "trade", ((List<String>) (switch ((Object) (symbols)) { case null -> (List<String>) null; case List<?> hx4J40v5 -> (List<String>) hx4J40v5; case Object hx4J40v5 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v5.getClass().getName()); })), (Object) null, parameters)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -919,6 +922,62 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             }
             return this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+
+    }
+
+    /**
+     * @method
+     * @name kraken#unWatchTrades
+     * @description stop watching the list of most recent trades for a particular symbol
+     * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/trade
+     * @param {string} symbol unified symbol of the market to stop watching the trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    public CompletableFuture<Object> unWatchTrades(String symbol, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            return (this.unWatchTradesForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
+        });
+
+    }
+
+    /**
+     * @method
+     * @name kraken#unWatchTradesForSymbols
+     * @description stop watching the list of most recent trades for a list of symbols
+     * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/trade
+     * @param {string[]} symbols unified symbols of the markets to stop watching the trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    public CompletableFuture<Object> unWatchTradesForSymbols(Object symbols, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, true, false);
+            List<String> unsubMessageHashes = new ArrayList<String>(Arrays.asList());
+            for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
+            {
+                unsubMessageHashes.add(("unsubscribe:" + this.getMessageHash("trade", (String) null, (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i)))));
+            }
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "method", "unsubscribe" );
+                put( "params", new HashMap<String, Object>() {{
+                    put( "channel", "trade" );
+                    put( "symbol", symbolsNormalized );
+                }} );
+                put( "req_id", Kraken.this.requestId() );
+            }};
+            request.put("params", this.deepExtend(request.get("params"), parameters));
+            String url = (String)Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "publicV2");
+            // kraken acknowledges each symbol separately, see handleUnsubscriptionStatus
+            return (this.watchMultiple(url, unsubMessageHashes, request, unsubMessageHashes, null)).join();
+        });
 
     }
 
@@ -968,9 +1027,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
                     throw new NotSupported((this.id + " watchOrderBook accepts limit values of 10, 25, 100, 500 and 1000 only")) ;
                 }
             }
-            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchMultiHelper("orderbook", "book", Helpers.toStringListArg(symbols), Helpers.newMap(
-                "limit", limit
-            ), this.extend(requiredParams, parameters))).join();
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchMultiHelper("orderbook", "book", ((List<String>) (switch ((Object) (symbols)) { case null -> (List<String>) null; case List<?> hx4J40v4 -> (List<String>) hx4J40v4; case Object hx4J40v4 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v4.getClass().getName()); })), (switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>(); j39v1.put("limit", limit); yield j39v1; } }), this.extend(requiredParams, parameters))).join();
             return orderbook.limit();
         }).thenApply(OrderBook::new);
 
@@ -1018,6 +1075,42 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             }
             return this.filterBySinceLimit(ohlcv, since, limitResolved, "timestamp", true);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
+
+    }
+
+    /**
+     * @method
+     * @name kraken#unWatchOHLCV
+     * @description stop watching historical candlestick data for a market
+     * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/ohlc
+     * @param {string} symbol unified symbol of the market to stop watching the candles for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    public CompletableFuture<Object> unWatchOHLCV(String symbol, String timeframe, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            Map<String, Object> market = this.market(symbol);
+            String symbolValue = (String) market.get("symbol");
+            String interval = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
+            String unsubMessageHash = ("unsubscribe:" + this.getMessageHash("ohlcv", interval, symbolValue));
+            Map<String, Object> unsubscribe = new HashMap<String, Object>() {{
+                put( "method", "unsubscribe" );
+                put( "params", new HashMap<String, Object>() {{
+                    put( "channel", "ohlc" );
+                    put( "symbol", new ArrayList<Object>(Arrays.asList(symbolValue)) );
+                    put( "interval", Kraken.this.safeValue(Kraken.this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")) );
+                }} );
+                put( "req_id", Kraken.this.requestId() );
+            }};
+            Map<String,Object> request = this.deepExtend(unsubscribe, parameters);
+            String url = (String)Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "publicV2");
+            return (this.watch(url, unsubMessageHash, request, unsubMessageHash, null)).join();
+        });
 
     }
 
@@ -1154,11 +1247,11 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         String type = this.safeString(message, "type");
         List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> first = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
-        Object symbol = this.safeString(first, "symbol");
+        String symbol = this.safeString(first, "symbol");
         List<Object> a = (List<Object>) this.safeList(first, "asks", new ArrayList<Object>(Arrays.asList()));
         List<Object> b = (List<Object>) this.safeList(first, "bids", new ArrayList<Object>(Arrays.asList()));
         Long c = this.safeInteger(first, "checksum");
-        String messageHash = this.getMessageHash("orderbook", (String) null, Helpers.toStringArg(symbol));
+        String messageHash = this.getMessageHash("orderbook", (String) null, symbol);
         Object orderbook = null;
         if (java.util.Objects.equals(type, "update"))
         {
@@ -1186,10 +1279,10 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             // carry fewer levels than the subscription and must not cap the book
             Long limit = this.safeInteger(subscription, "limit", 10);
             Object asksLength = ((List<?>)a).size();
-            Object depth = (((Helpers.isGreaterThan(asksLength, limit)))) ? asksLength : limit;
+            Object depth = (((((limit == null || ((Number) asksLength).doubleValue() > limit))))) ? asksLength : limit;
             Map<String, Object> depths = (Map<String, Object>) this.safeDict(this.options, "wsOrderBookDepths", new HashMap<String, Object>() {{}});
             Long storedDepth = this.safeInteger(depths, symbol);
-            if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)) || (!Helpers.isEqual(storedDepth, depth)))
+            if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)) || (!java.util.Objects.equals(storedDepth, (depth == null ? null : ((Number) depth).longValue()))))
             {
                 // rebuild only on the first snapshot or when the depth changes,
                 // e.g. a re-subscription with a different limit
@@ -1230,13 +1323,13 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
                 for (var i = 0; i < 10; i++)
                 {
                     Object currentAsk = this.safeValue(checkAsks, i, new HashMap<String, Object>() {{}});
-                    Object formattedAsk = Helpers.add(this.formatNumber(Helpers.GetValue(currentAsk, 0)), this.formatNumber(Helpers.GetValue(currentAsk, 1)));
+                    Object formattedAsk = ((java.util.function.BinaryOperator<Object>) (hx4J40v2A, hx4J40v2B) -> { Object hx4J40v2P = hx4J40v2A instanceof Integer hx4J40v2i ? (Object) Long.valueOf(hx4J40v2i.longValue()) : hx4J40v2A; Object hx4J40v2Q = hx4J40v2B instanceof Integer hx4J40v2i ? (Object) Long.valueOf(hx4J40v2i.longValue()) : hx4J40v2B; if (hx4J40v2P instanceof Long hx4J40v2l && hx4J40v2Q instanceof Long hx4J40v2r) { return hx4J40v2l + hx4J40v2r; } if (hx4J40v2P instanceof Double || hx4J40v2Q instanceof Double) { java.util.function.ToDoubleFunction<Object> hx4J40v2D = hx4J40v2o -> { if (hx4J40v2o instanceof Double || hx4J40v2o instanceof Float || hx4J40v2o instanceof Long || hx4J40v2o instanceof Integer || hx4J40v2o instanceof java.math.BigDecimal) { return ((Number) hx4J40v2o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v2o)); } catch (NumberFormatException hx4J40v2e) { return 0.0; } }; return hx4J40v2D.applyAsDouble(hx4J40v2P) + hx4J40v2D.applyAsDouble(hx4J40v2Q); } if (hx4J40v2P instanceof String || hx4J40v2Q instanceof String) { return String.valueOf(hx4J40v2P) + String.valueOf(hx4J40v2Q); } return null; }).apply(this.formatNumber(Helpers.GetValue(currentAsk, 0)), this.formatNumber(Helpers.GetValue(currentAsk, 1)));
                     ((List<Object>)payloadArray).add(formattedAsk);
                 }
                 for (var i = 0; i < 10; i++)
                 {
                     Object currentBid = this.safeValue(checkBids, i, new HashMap<String, Object>() {{}});
-                    Object formattedBid = Helpers.add(this.formatNumber(Helpers.GetValue(currentBid, 0)), this.formatNumber(Helpers.GetValue(currentBid, 1)));
+                    Object formattedBid = ((java.util.function.BinaryOperator<Object>) (hx4J40v1A, hx4J40v1B) -> { Object hx4J40v1P = hx4J40v1A instanceof Integer hx4J40v1i ? (Object) Long.valueOf(hx4J40v1i.longValue()) : hx4J40v1A; Object hx4J40v1Q = hx4J40v1B instanceof Integer hx4J40v1i ? (Object) Long.valueOf(hx4J40v1i.longValue()) : hx4J40v1B; if (hx4J40v1P instanceof Long hx4J40v1l && hx4J40v1Q instanceof Long hx4J40v1r) { return hx4J40v1l + hx4J40v1r; } if (hx4J40v1P instanceof Double || hx4J40v1Q instanceof Double) { java.util.function.ToDoubleFunction<Object> hx4J40v1D = hx4J40v1o -> { if (hx4J40v1o instanceof Double || hx4J40v1o instanceof Float || hx4J40v1o instanceof Long || hx4J40v1o instanceof Integer || hx4J40v1o instanceof java.math.BigDecimal) { return ((Number) hx4J40v1o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v1o)); } catch (NumberFormatException hx4J40v1e) { return 0.0; } }; return hx4J40v1D.applyAsDouble(hx4J40v1P) + hx4J40v1D.applyAsDouble(hx4J40v1Q); } if (hx4J40v1P instanceof String || hx4J40v1Q instanceof String) { return String.valueOf(hx4J40v1P) + String.valueOf(hx4J40v1Q); } return null; }).apply(this.formatNumber(Helpers.GetValue(currentBid, 0)), this.formatNumber(Helpers.GetValue(currentBid, 1)));
                     ((List<Object>)payloadArray).add(formattedBid);
                 }
             }
@@ -1269,17 +1362,12 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
     public Object formatNumber(Object data)
     {
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)data).split(java.util.regex.Pattern.quote("."))));
-        String integer = this.safeString(parts, 0);
+        String integer = this.safeString(parts, 0, "");
         String decimals = this.safeString(parts, 1, "");
         Object joinedResult = (integer + decimals);
-        Object i = 0;
-        while (java.util.Objects.equals(Helpers.GetValue(joinedResult, i), "0"))
+        while (((String)joinedResult).startsWith("0"))
         {
-            i = Helpers.add(i, 1);
-        }
-        if (Helpers.isGreaterThan(i, 0))
-        {
-            joinedResult = Helpers.slice(joinedResult, i, null);
+            joinedResult = (joinedResult == null ? null : ((String)joinedResult).substring(Math.min(1, ((String)joinedResult).length())));
         }
         return joinedResult;
     }
@@ -1325,9 +1413,10 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             String authenticated = "authenticated";
             Object subscription = this.safeValue(client.subscriptions, authenticated);
             Long now = this.seconds();
-            Object start = this.safeInteger(subscription, "start");
-            Object expires = this.safeInteger(subscription, "expires");
-            if ((java.util.Objects.equals(subscription, null)) || ((!java.util.Objects.equals(subscription, null)) && Helpers.isLessThanOrEqual((Helpers.add(start, expires)), now)))
+            Long start = this.safeInteger(subscription, "start");
+            Long expires = this.safeInteger(subscription, "expires", -1);
+            Boolean expired = (!java.util.Objects.equals(start, null)) && (((expires != null && expires >= 0))) && ((start == null || start <= ((now - expires))));
+            if ((java.util.Objects.equals(subscription, null)) || Boolean.TRUE.equals(expired))
             {
                 // single-flight leader election, see
                 // https://github.com/ccxt/ccxt/issues/29393: the staleness gate
@@ -1649,20 +1738,21 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
                 String symbol = this.safeString(order, "symbol");
                 Map<String, Object> previousOrders = (Map<String, Object>) this.safeDict(((io.github.ccxt.ws.ArrayCache)stored).hashmap, symbol, (Object) null);
                 Map<String, Object> previousOrder = (Map<String, Object>) this.safeDict(previousOrders, id, (Object) null);
-                Object newOrder = parsed;
+                Map<String, Object> newOrder = parsed;
                 if (!java.util.Objects.equals(previousOrder, null))
                 {
-                    Map<String, Object> newRawOrder = this.extend(previousOrder.get("info"), ((Map<String, Object>)newOrder).get("info"));
-                    newOrder = this.parseWsOrder((Map<String, Object>) (newRawOrder), (Map<String, Object>) null);
+                    Map<String, Object> newRawOrder = this.extend(previousOrder.get("info"), newOrder.get("info"));
+                    newOrder = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (newRawOrder), (Map<String, Object>) null);
                 }
                 Object length = ((List<?>)stored).size();
-                if (Helpers.isEqual(length, limit) && (java.util.Objects.equals(previousOrder, null)))
+                if (java.util.Objects.equals(((Number) length).longValue(), limit) && (java.util.Objects.equals(previousOrder, null)))
                 {
                     Object first = (stored == null || 0 >= ((List<?>)stored).size() ? null : ((List<?>)stored).get(0));
                     Object symbolsByOrderId = this.safeDict(this.options, "symbolsByOrderId", new HashMap<String, Object>() {{}});
-                    if (Helpers.inOp(symbolsByOrderId, Helpers.GetValue(first, "id")))
+                    String firstId = this.safeString(first, "id");
+                    if ((!java.util.Objects.equals(firstId, null)) && (((Map<?, ?>)symbolsByOrderId).containsKey(firstId)))
                     {
-                        ((Map<String,Object>)symbolsByOrderId).remove((String)Helpers.GetValue(first, "id"));
+                        ((Map<String,Object>)symbolsByOrderId).remove((String)firstId);
                     }
                 }
                 stored.append(newOrder);
@@ -1848,10 +1938,19 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         //         "sequence": 1
         //     }
         //
+        // merge updates into the existing balance object instead of building a
+        // fresh one: a consumer awakened by an earlier message holds a reference
+        // to this.balance[type], and Client.resolve is a no-op while nobody is
+        // awaiting, so a replaced object would make updates landing in that
+        // window invisible to the consumer forever (issue #26773)
+        String type = "spot";
+        if (java.util.Objects.equals(this.balance, null))
+        {
+            this.balance = new HashMap<String, Object>() {{}};
+        }
+        Helpers.addElementToObject(this.balance, type, this.safeDict(this.balance, type, new HashMap<String, Object>() {{}}));
+        Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(type)), "info", message);
         List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
-        Map<String, Object> result = new HashMap<String, Object>() {{
-            put( "info", message );
-        }};
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
             String currencyId = this.safeString((data == null || i < 0 || i >= data.size() ? null : data.get(i)), "asset");
@@ -1859,13 +1958,9 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             Map<String, Object> account = this.account();
             String eq = this.safeString((data == null || i < 0 || i >= data.size() ? null : data.get(i)), "balance");
             account.put("total", eq);
-            result.put((String)code, account);
+            Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(type)), code, account);
         }
-        String type = "spot";
-        Balances balance = this.safeBalance(result);
-        Map<String, Object> oldBalance = (Map<String, Object>) this.safeDict(this.balance, type, new HashMap<String, Object>() {{}});
-        Map<String,Object> newBalance = this.deepExtend(oldBalance, balance);
-        Helpers.addElementToObject(this.balance, type, this.safeBalance(newBalance));
+        Helpers.addElementToObject(this.balance, type, this.safeBalance((this.balance == null ? null : ((Map<?, ?>)this.balance).get(type))));
         String channel = this.safeString(message, "channel");
         client.resolve((this.balance == null ? null : ((Map<?, ?>)this.balance).get(type)), channel);
     }
@@ -1920,6 +2015,46 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         {
             ((Map)client.subscriptions).put(channelId, message);
         }
+    }
+
+    public Map<String, Object> handleUnsubscriptionStatus(Client client, Map<String, Object> message)
+    {
+        //
+        // one acknowledgement per symbol in the unsubscribe request
+        //
+        //     {
+        //         "method": "unsubscribe",
+        //         "req_id": 4,
+        //         "result": { "channel": "ohlc", "interval": 5, "symbol": "BTC/USD" },
+        //         "success": true,
+        //         "time_in": "2026-10-26T16:12:36.610481Z",
+        //         "time_out": "2026-10-26T16:12:36.610502Z"
+        //     }
+        //
+        Map<String, Object> result = (Map<String, Object>) this.safeDict(message, "result", new HashMap<String, Object>() {{}});
+        String channel = this.safeString(result, "channel");
+        String symbol = this.safeSymbol(this.safeString(result, "symbol"), (Map<String, Object>) null, (String) null, (String) null);
+        if (java.util.Objects.equals(channel, "trade"))
+        {
+            String subMessageHash = this.getMessageHash("trade", (String) null, symbol);
+            this.cleanCache(new HashMap<String, Object>() {{
+                put( "topic", "trades" );
+                put( "symbols", new ArrayList<Object>(Arrays.asList(symbol)) );
+            }});
+            this.cleanUnsubscription(client, (String) (subMessageHash), ("unsubscribe:" + subMessageHash), false);
+        } else if (java.util.Objects.equals(channel, "ohlc"))
+        {
+            Long interval = this.safeInteger(result, "interval");
+            String timeframe = this.findTimeframe(interval, (Object) null);
+            String subMessageHash = this.getMessageHash("ohlcv", (String) null, symbol);
+            String unsubMessageHash = ("unsubscribe:" + this.getMessageHash("ohlcv", this.numberToString(interval), symbol));
+            this.cleanCache(new HashMap<String, Object>() {{
+                put( "topic", "ohlcv" );
+                put( "symbolsAndTimeframes", new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbol, timeframe)))) );
+            }});
+            this.cleanUnsubscription(client, (String) (subMessageHash), unsubMessageHash, false);
+        }
+        return message;
     }
 
     public Boolean handleErrorMessage(Client client, Object message)
@@ -2000,6 +2135,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
                 put( "heartbeat", "handleHeartbeat");
                 put( "systemStatus", "handleSystemStatus");
                 put( "subscriptionStatus", "handleSubscriptionStatus");
+                put( "unsubscribe", "handleUnsubscriptionStatus");
                 put( "add_order", "handleCreateEditOrder");
                 put( "amend_order", "handleCreateEditOrder");
                 put( "cancel_order", "handleCancelOrder");

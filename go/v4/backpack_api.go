@@ -77,6 +77,21 @@ func (this *Backpack) PublicGetApiV1MarketHolidays(args ...any) <-chan EndpointR
 	return Fetch2Result[[]any](this, "api/v1/market-holidays", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
+// PublicGetApiV1StockSessions returns a channel that yields a JSON array.
+func (this *Backpack) PublicGetApiV1StockSessions(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "api/v1/stockSessions", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PublicGetApiV1StockHolidays returns a channel that yields a JSON array.
+func (this *Backpack) PublicGetApiV1StockHolidays(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "api/v1/stockHolidays", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
+// PublicGetApiV1StockIndicativeQuote returns a channel that yields a JSON object.
+func (this *Backpack) PublicGetApiV1StockIndicativeQuote(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "api/v1/stockIndicativeQuote", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+}
+
 // PublicGetApiV1Securities returns a channel that yields a JSON array.
 func (this *Backpack) PublicGetApiV1Securities(args ...any) <-chan EndpointResult[[]any] {
 	return Fetch2Result[[]any](this, "api/v1/securities", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
@@ -320,11 +335,6 @@ func (this *Backpack) PrivatePostApiV1Rfq(args ...any) <-chan EndpointResult[map
 // PrivatePostApiV1RfqAccept returns a channel that yields a JSON object.
 func (this *Backpack) PrivatePostApiV1RfqAccept(args ...any) <-chan EndpointResult[map[string]any] {
 	return Fetch2Result[map[string]any](this, "api/v1/rfq/accept", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
-}
-
-// PrivatePostApiV1RfqRefresh returns a channel that yields a JSON object.
-func (this *Backpack) PrivatePostApiV1RfqRefresh(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "api/v1/rfq/refresh", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostApiV1RfqCancel returns a channel that yields a JSON object.

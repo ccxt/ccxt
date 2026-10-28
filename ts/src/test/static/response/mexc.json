@@ -2204,6 +2204,74 @@
         ],
         "fetchMyTrades": [
             {
+                "description": "swap close long trade side",
+                "method": "fetchMyTrades",
+                "input": [
+                    "ADA/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "code": 0,
+                    "data": [
+                        {
+                            "id": "14002211778",
+                            "symbol": "ADA_USDT",
+                            "side": 4,
+                            "vol": 1,
+                            "price": 0.2475,
+                            "fee": 0.000198,
+                            "feeCurrency": "USDT",
+                            "profit": -0.0003,
+                            "category": 1,
+                            "orderId": "864240633639040000",
+                            "timestamp": 1791721424000,
+                            "positionMode": 1,
+                            "taker": true
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "id": "14002211778",
+                        "order": "864240633639040000",
+                        "timestamp": 1791721424000,
+                        "datetime": "2026-10-11T12:23:44.000Z",
+                        "symbol": "ADA/USDT:USDT",
+                        "type": null,
+                        "side": "sell",
+                        "takerOrMaker": "taker",
+                        "price": 0.2475,
+                        "amount": 1,
+                        "cost": 0.2475,
+                        "fee": {
+                            "currency": "USDT",
+                            "cost": 0.000198
+                        },
+                        "info": {
+                            "id": "14002211778",
+                            "symbol": "ADA_USDT",
+                            "side": 4,
+                            "vol": 1,
+                            "price": 0.2475,
+                            "fee": 0.000198,
+                            "feeCurrency": "USDT",
+                            "profit": -0.0003,
+                            "category": 1,
+                            "orderId": "864240633639040000",
+                            "timestamp": 1791721424000,
+                            "positionMode": 1,
+                            "taker": true
+                        },
+                        "fees": [
+                            {
+                                "currency": "USDT",
+                                "cost": 0.000198
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
                 "description": "user trade",
                 "method": "fetchMyTrades",
                 "input": [
@@ -2341,6 +2409,149 @@
             }
         ],
         "fetchOrders": [
+            {
+                "description": "swap close long order side",
+                "method": "fetchOrders",
+                "input": [
+                    "ADA/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "code": 0,
+                    "data": [
+                        {
+                            "orderId": "864240633639040000",
+                            "symbol": "ADA_USDT",
+                            "positionId": 1518072479,
+                            "price": 0.2475,
+                            "priceStr": "0.247500000000000000",
+                            "vol": 1,
+                            "leverage": 2,
+                            "side": 4,
+                            "category": 1,
+                            "orderType": 6,
+                            "dealAvgPrice": 0.2475,
+                            "dealAvgPriceStr": "0.247500000000000000",
+                            "dealVol": 1,
+                            "orderMargin": 0,
+                            "takerFee": 0.000198,
+                            "makerFee": 0,
+                            "profit": -0.0003,
+                            "feeCurrency": "USDT",
+                            "openType": 2,
+                            "state": 3,
+                            "externalOid": "_m_e0d988800caa4bb8aa5a04efd11517fe",
+                            "errorCode": 0,
+                            "usedMargin": 0,
+                            "createTime": 1791721424000,
+                            "updateTime": 1791721424000,
+                            "positionMode": 1,
+                            "version": 2,
+                            "showCancelReason": 1,
+                            "showProfitRateShare": 1,
+                            "pnlRate": -0.0024,
+                            "openAvgPrice": 0.2478,
+                            "bboTypeNum": 0,
+                            "totalFee": 0.0001,
+                            "zeroSaveTotalFeeBinance": 0,
+                            "zeroTradeTotalFeeBinance": 0.0001,
+                            "lowSaveTotalFee": 0,
+                            "fee": -0.0001,
+                            "positionDrop": false,
+                            "takerFeeRate": 0.0008,
+                            "makerFeeRate": 0.0006,
+                            "feeRates": {
+                                "min": 0.0006,
+                                "max": 0.0008
+                            }
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "id": "864240633639040000",
+                        "clientOrderId": null,
+                        "timestamp": 1791721424000,
+                        "datetime": "2026-10-11T12:23:44.000Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": 1791721424000,
+                        "status": "closed",
+                        "symbol": "ADA/USDT:USDT",
+                        "type": null,
+                        "timeInForce": null,
+                        "side": "sell",
+                        "price": 0.2475,
+                        "triggerPrice": null,
+                        "average": 0.2475,
+                        "amount": 1,
+                        "cost": 0.2475,
+                        "filled": 1,
+                        "remaining": 0,
+                        "fee": {
+                            "currency": "USDT",
+                            "cost": 0.000198
+                        },
+                        "trades": [],
+                        "info": {
+                            "orderId": "864240633639040000",
+                            "symbol": "ADA_USDT",
+                            "positionId": 1518072479,
+                            "price": 0.2475,
+                            "priceStr": "0.247500000000000000",
+                            "vol": 1,
+                            "leverage": 2,
+                            "side": 4,
+                            "category": 1,
+                            "orderType": 6,
+                            "dealAvgPrice": 0.2475,
+                            "dealAvgPriceStr": "0.247500000000000000",
+                            "dealVol": 1,
+                            "orderMargin": 0,
+                            "takerFee": 0.000198,
+                            "makerFee": 0,
+                            "profit": -0.0003,
+                            "feeCurrency": "USDT",
+                            "openType": 2,
+                            "state": 3,
+                            "externalOid": "_m_e0d988800caa4bb8aa5a04efd11517fe",
+                            "errorCode": 0,
+                            "usedMargin": 0,
+                            "createTime": 1791721424000,
+                            "updateTime": 1791721424000,
+                            "positionMode": 1,
+                            "version": 2,
+                            "showCancelReason": 1,
+                            "showProfitRateShare": 1,
+                            "pnlRate": -0.0024,
+                            "openAvgPrice": 0.2478,
+                            "bboTypeNum": 0,
+                            "totalFee": 0.0001,
+                            "zeroSaveTotalFeeBinance": 0,
+                            "zeroTradeTotalFeeBinance": 0.0001,
+                            "lowSaveTotalFee": 0,
+                            "fee": -0.0001,
+                            "positionDrop": false,
+                            "takerFeeRate": 0.0008,
+                            "makerFeeRate": 0.0006,
+                            "feeRates": {
+                                "min": 0.0006,
+                                "max": 0.0008
+                            }
+                        },
+                        "fees": [
+                            {
+                                "currency": "USDT",
+                                "cost": 0.000198
+                            }
+                        ],
+                        "postOnly": null,
+                        "reduceOnly": null,
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
+                ]
+            },
             {
                 "description": "fetch orders",
                 "method": "fetchOrders",

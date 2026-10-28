@@ -35,14 +35,14 @@ import { Precise }   from './src/base/Precise.js'
 import { OrderRouter } from './src/base/OrderRouter.js'
 import * as functions from './src/base/functions.js'
 import * as errors   from './src/base/errors.js'
-import type { Int, int, Str, NetworkCode, Strings, Num, Bool, IndexType, NullableIndexType, OrderSide, OrderType, MarketType, SubType, DefaultType, DefaultSubType, ExchangeOptions, Dict, NullableDict, List, NullableList, Fee, FeeString, OHLCV, OHLCVC, safeInputType, Market, Currency, Dictionary, Endpoint, NestedDictionary, MinMax, FeeInterface, FeeStringInterface, TradingFeeInterface, MarketInterface, Precision, PredictionEvent, PredictionOutcome, PredictionOutcomeMarket, PredictionMarket, PredictionSettlement, PredictionFees, PredictionOrder, PredictionTrade, PredictionPosition, PredictionTicker, PredictionOrderBook, PredictionTickers, PredictionTradingFee, PredictionOpenInterest, PredictionOrderRequest, fetchEventsParams, Trade, Order, OrderBook, Ticker, Transaction, Tickers, CurrencyInterface, Balance, BalanceAccount, Account, PartialBalances, Balances, DepositAddress, DepositAddresses, WithdrawalResponse, FundingRate, FundingRates, Position, BorrowInterest, LeverageTier, LedgerEntry, DepositWithdrawFeeNetwork, DepositWithdrawFee, DepositWithdrawFees, TransferEntry, CrossBorrowRate, IsolatedBorrowRate, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, CancellationRequest, FundingHistory, MarketMarginModes, MarginMode, Greeks, AllGreeks, Conversion, Option, LastPrice, Leverage, MarginModification, MarginLoan, Leverages, LastPrices, Currencies, TradingFees, MarginModes, OptionChain, IsolatedBorrowRates, CrossBorrowRates, LeverageTiers, LongShortRatio, OrderBooks, OpenInterests, ConstructorArgs, ADL, Status, PositionModeInfo } from './src/base/types.js'
+import type { Int, int, Str, NetworkCode, Strings, Num, Bool, IndexType, NullableIndexType, OrderSide, OrderType, MarketType, SubType, DefaultType, DefaultSubType, ExchangeOptions, Dict, NullableDict, List, NullableList, Fee, FeeString, OHLCV, OHLCVC, safeInputType, Market, Currency, Dictionary, Endpoint, NestedDictionary, MinMax, FeeInterface, FeeStringInterface, TradingFeeInterface, MarketInterface, Precision, PredictionEvent, PredictionOutcome, PredictionOutcomeMarket, PredictionMarket, PredictionSettlement, PredictionFees, PredictionOrder, PredictionTrade, PredictionPosition, PredictionTicker, PredictionOrderBook, PredictionTickers, PredictionTradingFee, PredictionOpenInterest, PredictionOrderRequest, fetchEventsParams, Trade, Order, OrderBook, OrderBookL3, Ticker, Transaction, Tickers, CurrencyInterface, Balance, BalanceAccount, Account, PartialBalances, Balances, DepositAddress, DepositAddresses, WithdrawalResponse, FundingRate, FundingRates, Position, BorrowInterest, LeverageTier, LedgerEntry, DepositWithdrawFeeNetwork, DepositWithdrawFeeNetworkEntry, DepositWithdrawFee, DepositWithdrawFees, TransferEntry, CrossBorrowRate, IsolatedBorrowRate, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, CancellationRequest, FundingHistory, MarketMarginModes, MarginMode, Greeks, AllGreeks, Conversion, Option, LastPrice, Leverage, MarginModification, MarginLoan, Leverages, LastPrices, Currencies, TradingFees, MarginModes, OptionChain, IsolatedBorrowRates, CrossBorrowRates, LeverageTiers, LongShortRatio, OrderBooks, OpenInterests, ConstructorArgs, ADL, Status, PositionModeInfo } from './src/base/types.js'
 import {BaseError, ExchangeError, AuthenticationError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, OperationRejected, NoChange, MarginModeAlreadySet, MarketClosed, ManualInteractionNeeded, RestrictedLocation, InsufficientFunds, InvalidAddress, AddressPending, InvalidOrder, OrderNotFound, OrderNotCached, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, ContractUnavailable, NotSupported, InvalidProxySettings, ExchangeClosedByUser, OperationFailed, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, ChecksumError, RequestTimeout, BadResponse, NullResponse, CancelPending, UnsubscribeError}  from './src/base/errors.js'
 
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '4.5.88';
+const version = '4.5.90';
 
 //-----------------------------------------------------------------------------
 
@@ -138,6 +138,7 @@ import paradex from  './src/paradex.js'
 import paymium from  './src/paymium.js'
 import phemex from  './src/phemex.js'
 import poloniex from  './src/poloniex.js'
+import polymarket from  './src/polymarket.js'
 import revolutx from  './src/revolutx.js'
 import tokocrypto from  './src/tokocrypto.js'
 import toobit from  './src/toobit.js'
@@ -220,6 +221,7 @@ import pacificaPro from  './src/pro/pacifica.js'
 import paradexPro from  './src/pro/paradex.js'
 import phemexPro from  './src/pro/phemex.js'
 import poloniexPro from  './src/pro/poloniex.js'
+import polymarketPro from  './src/pro/polymarket.js'
 import toobitPro from  './src/pro/toobit.js'
 import upbitPro from  './src/pro/upbit.js'
 import weexPro from  './src/pro/weex.js'
@@ -331,6 +333,7 @@ const exchanges = {
     'paymium':                paymium,
     'phemex':                 phemex,
     'poloniex':               poloniex,
+    'polymarket':             polymarket,
     'revolutx':               revolutx,
     'tokocrypto':             tokocrypto,
     'toobit':                 toobit,
@@ -413,6 +416,7 @@ const pro = {
     'paradex':                paradexPro,
     'phemex':                 phemexPro,
     'poloniex':               poloniexPro,
+    'polymarket':             polymarketPro,
     'toobit':                 toobitPro,
     'upbit':                  upbitPro,
     'weex':                   weexPro,
@@ -555,6 +559,7 @@ export {
     Trade,
     Order,
     OrderBook,
+    OrderBookL3,
     OrderBooks,
     Ticker,
     Transaction,
@@ -575,6 +580,7 @@ export {
     LeverageTier,
     LedgerEntry,
     DepositWithdrawFeeNetwork,
+    DepositWithdrawFeeNetworkEntry,
     DepositWithdrawFee,
     DepositWithdrawFees,
     TransferEntry,
@@ -702,6 +708,7 @@ export {
     paymium,
     phemex,
     poloniex,
+    polymarket,
     revolutx,
     tokocrypto,
     toobit,

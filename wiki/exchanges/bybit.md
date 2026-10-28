@@ -22,7 +22,7 @@
 * [fetchOrderBook](#fetchorderbook)
 * [fetchBalance](#fetchbalance)
 * [createMarketBuyOrderWithCost](#createmarketbuyorderwithcost)
-* [createMarkeSellOrderWithCost](#createmarkesellorderwithcost)
+* [createMarketSellOrderWithCost](#createmarketsellorderwithcost)
 * [createOrder](#createorder)
 * [createOrders](#createorders)
 * [editOrder](#editorder)
@@ -499,9 +499,9 @@ bybit.createMarketBuyOrderWithCost (symbol, cost, params?)
 ```
 
 
-<a name="createMarkeSellOrderWithCost" id="createmarkesellorderwithcost"></a>
+<a name="createMarketSellOrderWithCost" id="createmarketsellorderwithcost"></a>
 
-### createMarkeSellOrderWithCost{docsify-ignore}
+### createMarketSellOrderWithCost{docsify-ignore}
 create a market sell order by providing the symbol and cost
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
@@ -517,7 +517,7 @@ create a market sell order by providing the symbol and cost
 
 
 ```javascript
-bybit.createMarkeSellOrderWithCost (symbol, cost, params?)
+bybit.createMarketSellOrderWithCost (symbol, cost, params?)
 ```
 
 

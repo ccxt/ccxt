@@ -81,7 +81,7 @@ export default class deribit extends deribitRest {
     /**
      * @method
      * @name deribit#watchBalance
-     * @see https://docs.deribit.com/#user-portfolio-currency
+     * @see https://docs.deribit.com/subscriptions/user/userportfoliocurrency
      * @description watch balance and get the amount of funds available for trading or funds locked in orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
@@ -168,7 +168,7 @@ export default class deribit extends deribitRest {
     /**
      * @method
      * @name deribit#watchTicker
-     * @see https://docs.deribit.com/#ticker-instrument_name-interval
+     * @see https://docs.deribit.com/subscriptions/market-data/tickerinstrument_nameinterval
      * @description watches a price ticker, a statistical calculation with the information for a specific market.
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -205,7 +205,7 @@ export default class deribit extends deribitRest {
     /**
      * @method
      * @name deribit#watchTickers
-     * @see https://docs.deribit.com/#ticker-instrument_name-interval
+     * @see https://docs.deribit.com/subscriptions/market-data/tickerinstrument_nameinterval
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
      * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -295,7 +295,7 @@ export default class deribit extends deribitRest {
     /**
      * @method
      * @name deribit#watchBidsAsks
-     * @see https://docs.deribit.com/#quote-instrument_name
+     * @see https://docs.deribit.com/subscriptions/market-data/quoteinstrument_name
      * @description watches best bid & ask for symbols
      * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -381,7 +381,7 @@ export default class deribit extends deribitRest {
      * @method
      * @name deribit#watchTrades
      * @description get the list of most recent trades for a particular symbol
-     * @see https://docs.deribit.com/#trades-instrument_name-interval
+     * @see https://docs.deribit.com/subscriptions/trades/tradesinstrument_nameinterval
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
@@ -398,7 +398,7 @@ export default class deribit extends deribitRest {
      * @method
      * @name deribit#watchTradesForSymbols
      * @description get the list of most recent trades for a list of symbols
-     * @see https://docs.deribit.com/#trades-instrument_name-interval
+     * @see https://docs.deribit.com/subscriptions/trades/tradesinstrument_nameinterval
      * @param {string[]} symbols unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
@@ -469,7 +469,7 @@ export default class deribit extends deribitRest {
      * @method
      * @name deribit#watchMyTrades
      * @description get the list of trades associated with the user
-     * @see https://docs.deribit.com/#user-trades-instrument_name-interval
+     * @see https://docs.deribit.com/subscriptions/user/usertradesinstrument_nameinterval
      * @param {string} symbol unified symbol of the market to fetch trades for. Use 'any' to watch all trades
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
@@ -555,7 +555,7 @@ export default class deribit extends deribitRest {
     /**
      * @method
      * @name deribit#watchOrderBook
-     * @see https://docs.deribit.com/#book-instrument_name-group-depth-interval
+     * @see https://docs.deribit.com/subscriptions/orderbook/bookinstrument_namegroupdepthinterval
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
@@ -572,7 +572,7 @@ export default class deribit extends deribitRest {
      * @method
      * @name deribit#watchOrderBookForSymbols
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://docs.deribit.com/#book-instrument_name-group-depth-interval
+     * @see https://docs.deribit.com/subscriptions/orderbook/bookinstrument_namegroupdepthinterval
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -708,7 +708,7 @@ export default class deribit extends deribitRest {
         }
     }
 
-    override handleDeltas (bookside: any, deltas: any) {
+    override handleDeltas (bookside: any, deltas: any[]) {
         for (let i = 0; i < deltas.length; i++) {
             this.handleDelta (bookside, deltas[i]);
         }
@@ -717,7 +717,7 @@ export default class deribit extends deribitRest {
     /**
      * @method
      * @name deribit#watchOrders
-     * @see https://docs.deribit.com/#user-orders-instrument_name-raw
+     * @see https://docs.deribit.com/subscriptions/user/userordersinstrument_nameraw
      * @description watches information on multiple orders made by the user
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
@@ -813,7 +813,7 @@ export default class deribit extends deribitRest {
     /**
      * @method
      * @name deribit#watchOHLCV
-     * @see https://docs.deribit.com/#chart-trades-instrument_name-resolution
+     * @see https://docs.deribit.com/subscriptions/market-data/charttradesinstrument_nameresolution
      * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
@@ -835,7 +835,7 @@ export default class deribit extends deribitRest {
      * @method
      * @name deribit#watchOHLCVForSymbols
      * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://docs.deribit.com/#chart-trades-instrument_name-resolution
+     * @see https://docs.deribit.com/subscriptions/market-data/charttradesinstrument_nameresolution
      * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
@@ -964,7 +964,7 @@ export default class deribit extends deribitRest {
             'id': this.requestId (),
         };
         const extendedRequest = this.deepExtend (request, params);
-        const maxMessageByteLimit = 32768 - 1; // 'Message Too Big: limit 32768B'
+        const maxMessageByteLimit = 32767; // 'Message Too Big: limit 32768B'
         const jsonedText = this.json (extendedRequest);
         if (jsonedText.length >= maxMessageByteLimit) {
             throw new ExchangeError (this.id + ' requested subscription length over limit, try to reduce symbols amount');

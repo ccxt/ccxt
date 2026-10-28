@@ -1,5 +1,5 @@
 import Exchange from './abstract/hyperliquid.js';
-import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, List, Num, Bool, MarginModification, Currencies, CancellationRequest, int, Transaction, Currency, CurrencyInterface, TradingFeeInterface, Ticker, Tickers, LedgerEntry, Liquidation, FundingRates, FundingRate, OpenInterests, OpenInterest, MarketInterface, Status, FundingHistory } from './base/types.js';
+import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, NullableDict, List, Num, Bool, MarginModification, Currencies, CancellationRequest, int, Transaction, Currency, CurrencyInterface, TradingFeeInterface, Ticker, Tickers, LedgerEntry, Liquidation, FundingRates, FundingRate, OpenInterests, OpenInterest, MarketInterface, Status, FundingHistory } from './base/types.js';
 /**
  * @class hyperliquid
  * @augments Exchange
@@ -73,7 +73,7 @@ export default class hyperliquid extends Exchange {
      * @param {int} maxDecimals the maxDecimals to use in the calculation
      * @returns {int} The calculated price precision
      */
-    calculatePricePrecision(price: number, amountPrecision: number, maxDecimals: number): number;
+    calculatePricePrecision(price: number, amountPrecision: int, maxDecimals: int): number;
     /**
      * @method
      * @name hyperliquid#fetchSpotMarkets
@@ -185,20 +185,18 @@ export default class hyperliquid extends Exchange {
     hashMessage(message: any): string;
     signHash(hash: string, privateKey: string): Dict;
     signMessage(message: any, privateKey: string): Dict;
-    constructPhantomAgent(hash: any, isTestnet?: boolean): {
-        source: string;
-        connectionId: any;
-    };
-    actionHash(action: any, vaultAddress: any, nonce: any, expiresAfter?: Int): Uint8Array<ArrayBufferLike>;
+    constructPhantomAgent(hash: any, isTestnet?: boolean): Dict;
+    actionHash(action: any, vaultAddress: Str, nonce: any, expiresAfter?: Int): Uint8Array<ArrayBufferLike>;
     signL1Action(action: any, nonce: any, vaultAdress?: Str, expiresAfter?: Int): object;
     signUserSignedAction(messageTypes: Dict, message: Dict): Dict;
     buildUsdSendSig(message: Dict): Dict;
     buildUsdClassSendSig(message: Dict): Dict;
+    buildSendAssetSig(message: Dict): Dict;
     buildWithdrawSig(message: Dict): Dict;
     buildUserDexAbstractionSig(message: Dict): Dict;
     buildUserAbstractionSig(message: Dict): Dict;
     buildApproveBuilderFeeSig(message: Dict): Dict;
-    setRef(): Promise<true | Dict | undefined>;
+    setRef(): Promise<boolean>;
     approveBuilderFee(builder: string, maxFeeRate: string): Promise<Dict>;
     initializeClient(): Promise<boolean>;
     handleBuilderFeeApproval(): Promise<boolean>;
@@ -502,7 +500,7 @@ export default class hyperliquid extends Exchange {
      */
     fetchOrder(id: string, symbol?: Str, params?: Dict): Promise<Order>;
     parseOrder(order: Dict, market?: Market): Order;
-    parseOrderStatus(status: Str): string | undefined;
+    parseOrderStatus(status: Str): Str;
     parseOrderType(status: Str): Str;
     /**
      * @method
@@ -618,13 +616,21 @@ export default class hyperliquid extends Exchange {
      * @method
      * @name hyperliquid#transfer
      * @description transfer currency internally between wallets on the same account
-     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#l1-usdc-transfer
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#transfer-from-spot-account-to-perp-account-and-vice-versa
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#transfer-between-sub-accounts
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#send-asset
      * @param {string} code unified currency code
      * @param {float} amount amount to transfer
-     * @param {string} fromAccount account to transfer from *spot, swap*
-     * @param {string} toAccount account to transfer to *swap, spot or address*
+     * @param {string} fromAccount account to transfer from *spot, swap, main or a sub-account address*
+     * @param {string} toAccount account to transfer to *swap, spot, main or a sub-account address*
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.vaultAddress] the vault address for order
+     * @param {string} [params.vaultAddress] spot <> swap only, moves the balance inside this vault or sub-account instead of the main account
+     * @param {string} [params.type] main <> sub-account only, 'spot' moves the spot ledger instead of the perp ledger
+     * @param {string} [params.method] main <> sub-account only, 'sendAsset' forces the unified-account route, 'subAccountTransfer' forces the legacy sub-account actions; defaults to sendAsset when the account abstraction is unifiedAccount
+     * @param {boolean} [params.enableUnifiedMargin] main <> sub-account only, skips the abstraction lookup and states whether the account is unified
+     * @param {string} [params.sourceDex] sendAsset only, perp dex to move from, '' for the default USDC perp dex or 'spot', defaults to 'spot'
+     * @param {string} [params.destinationDex] sendAsset only, perp dex to move to, '' for the default USDC perp dex or 'spot', defaults to 'spot'
+     * @param {string} [params.user] sendAsset only, the master wallet address, defaults to walletAddress
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: Dict): Promise<TransferEntry>;
@@ -719,7 +725,7 @@ export default class hyperliquid extends Exchange {
      * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
     fetchOpenInterest(symbol: string, params?: Dict): Promise<OpenInterest>;
-    parseOpenInterest(interest: any, market?: Market): OpenInterest;
+    parseOpenInterest(interest: NullableDict, market?: Market): OpenInterest;
     /**
      * @method
      * @name hyperliquid#fetchFundingHistory
@@ -744,7 +750,7 @@ export default class hyperliquid extends Exchange {
     reserveRequestWeight(weight: Num, params?: Dict): Promise<Dict>;
     /**
      * @method
-     * @name hyperliquid#createAccount
+     * @name hyperliquid#createSubAccount
      * @description creates a sub-account under the main account
      * @param {string} name the name of the sub-account
      * @param {object} [params] extra parameters specific to the exchange API endpoint

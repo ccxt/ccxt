@@ -1,0 +1,348 @@
+{
+    "exchange": "blofin",
+    "skipKeys": [],
+    "options": {},
+    "methods": {
+        "watchBalance": [
+            {
+                "description": "account snapshot followed by a partial update - updates arriving while no consumer is awaiting must still reach the object handed to the consumer, and currencies absent from the partial update must be kept (same class as issue 26773); frame shape from the documented account channel payload",
+                "disabledPHP": "php arrays are value types - the consumer holds a copy, so updates resolved with no waiter can only be delivered by a client-level queue (see issue 30220)",
+                "disabledCS": "the typed WatchBalance wrapper copies the dict into a Balances struct at resolve time, freezing the consumer's view - only a client-level queue can deliver later updates (see issue 30220)",
+                "disabledGO": "since the go typed-returns campaign the WatchBalance wrapper copies the map into a Balances struct at resolve time (NewBalances), freezing the consumer's view - only a client-level queue can deliver later updates (see issue 30220)",
+                "disabledRS": "the rust Value runtime is copy-on-write (Arc-backed dicts) - the in-place merge detaches from the clone the consumer received at resolve time, and the typed watch_balance wrapper additionally copies into a Balances struct (Balances::from_value), freezing the consumer's view - only a client-level queue can deliver later updates (see issue 30220)",
+                "input": [],
+                "url": "wss://openapi.blofin.com/ws/private",
+                "messages": [
+                    {
+                        "event": "login",
+                        "code": "0",
+                        "msg": ""
+                    },
+                    {
+                        "event": "subscribe",
+                        "arg": {
+                            "channel": "account"
+                        }
+                    },
+                    {
+                        "event": "subscribe",
+                        "arg": {
+                            "channel": "account"
+                        }
+                    },
+                    {
+                        "event": "subscribe",
+                        "arg": {
+                            "channel": "account"
+                        }
+                    },
+                    {
+                        "arg": {
+                            "channel": "account"
+                        },
+                        "data": {
+                            "ts": "1792489400000",
+                            "totalEquity": "11250.50",
+                            "isolatedEquity": "0",
+                            "details": [
+                                {
+                                    "currency": "USDT",
+                                    "equity": "10000.50",
+                                    "balance": "10000.50",
+                                    "ts": "1792489400000",
+                                    "isolatedEquity": "0",
+                                    "available": "9000.25",
+                                    "availableEquity": "9000.25",
+                                    "frozen": "1000.25",
+                                    "orderFrozen": "1000.25",
+                                    "equityUsd": "10000.50",
+                                    "isolatedUnrealizedPnl": "0",
+                                    "unrealizedPnl": "0"
+                                },
+                                {
+                                    "currency": "ETH",
+                                    "equity": "0.50000000",
+                                    "balance": "0.50000000",
+                                    "ts": "1792489400000",
+                                    "isolatedEquity": "0",
+                                    "available": "0.50000000",
+                                    "availableEquity": "0.50000000",
+                                    "frozen": "0",
+                                    "orderFrozen": "0",
+                                    "equityUsd": "1250.00",
+                                    "isolatedUnrealizedPnl": "0",
+                                    "unrealizedPnl": "0"
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "arg": {
+                            "channel": "account"
+                        },
+                        "data": {
+                            "ts": "1792489405000",
+                            "totalEquity": "11150.50",
+                            "isolatedEquity": "0",
+                            "details": [
+                                {
+                                    "currency": "USDT",
+                                    "equity": "9900.50",
+                                    "balance": "9900.50",
+                                    "ts": "1792489405000",
+                                    "isolatedEquity": "0",
+                                    "available": "8900.25",
+                                    "availableEquity": "8900.25",
+                                    "frozen": "1000.25",
+                                    "orderFrozen": "1000.25",
+                                    "equityUsd": "9900.50",
+                                    "isolatedUnrealizedPnl": "0",
+                                    "unrealizedPnl": "0"
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "op": "login",
+                        "args": [
+                            {
+                                "apiKey": "key",
+                                "passphrase": "password",
+                                "timestamp": "TS",
+                                "sign": "SIGNATURE",
+                                "nonce": "NONCE"
+                            }
+                        ]
+                    },
+                    {
+                        "op": "subscribe",
+                        "args": [
+                            {
+                                "channel": "account"
+                            }
+                        ]
+                    }
+                ],
+                "sentSkipKeys": [
+                    "timestamp",
+                    "sign",
+                    "nonce"
+                ],
+                "parsedResponse": {
+                    "info": {
+                        "arg": {
+                            "channel": "account"
+                        },
+                        "data": {
+                            "ts": "1792489405000",
+                            "totalEquity": "11150.50",
+                            "isolatedEquity": "0",
+                            "details": [
+                                {
+                                    "currency": "USDT",
+                                    "equity": "9900.50",
+                                    "balance": "9900.50",
+                                    "ts": "1792489405000",
+                                    "isolatedEquity": "0",
+                                    "available": "8900.25",
+                                    "availableEquity": "8900.25",
+                                    "frozen": "1000.25",
+                                    "orderFrozen": "1000.25",
+                                    "equityUsd": "9900.50",
+                                    "isolatedUnrealizedPnl": "0",
+                                    "unrealizedPnl": "0"
+                                }
+                            ]
+                        }
+                    },
+                    "USDT": {
+                        "free": 8900.25,
+                        "used": 1000.25,
+                        "total": 9900.5
+                    },
+                    "ETH": {
+                        "free": 0.5,
+                        "used": 0,
+                        "total": 0.5
+                    },
+                    "timestamp": 1792489405000,
+                    "datetime": "2026-10-20T09:43:25.000Z",
+                    "free": {
+                        "USDT": 8900.25,
+                        "ETH": 0.5
+                    },
+                    "used": {
+                        "USDT": 1000.25,
+                        "ETH": 0
+                    },
+                    "total": {
+                        "USDT": 9900.5,
+                        "ETH": 0.5
+                    }
+                }
+            }
+        ],
+        "unWatchTrades": [
+            {
+                "description": "swap trades unsubscribe acknowledged for the symbol; frame shape from a live public channel unsubscribe",
+                "disabledCS": "the c# base leaves the unsubscribe future unresolved - cs/ccxt/base/Exchange.BaseMethods.cs cleanUnsubscription ends with a commented-out `// client.resolve(true, unsubHash);` while ts/src/base/Exchange.ts resolves, so every unWatch* fixture hangs in c# only - pre-existing on master, see lighter.json",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "url": "wss://openapi.blofin.com/ws/public",
+                "messages": [
+                    {
+                        "event": "unsubscribe",
+                        "arg": {
+                            "channel": "trades",
+                            "instId": "BTC-USDT"
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "op": "unsubscribe",
+                        "args": [
+                            {
+                                "channel": "trades",
+                                "instId": "BTC-USDT"
+                            }
+                        ]
+                    }
+                ],
+                "parsedResponse": true
+            }
+        ],
+        "unWatchTradesForSymbols": [
+            {
+                "description": "swap trades unsubscribe for two symbols in one request, blofin acknowledges each topic separately",
+                "disabledCS": "the c# base leaves the unsubscribe future unresolved - cs/ccxt/base/Exchange.BaseMethods.cs cleanUnsubscription ends with a commented-out `// client.resolve(true, unsubHash);` while ts/src/base/Exchange.ts resolves, so every unWatch* fixture hangs in c# only - pre-existing on master, see lighter.json",
+                "input": [
+                    [
+                        "BTC/USDT:USDT",
+                        "ETH/USDT:USDT"
+                    ]
+                ],
+                "url": "wss://openapi.blofin.com/ws/public",
+                "messages": [
+                    {
+                        "event": "unsubscribe",
+                        "arg": {
+                            "channel": "trades",
+                            "instId": "BTC-USDT"
+                        }
+                    },
+                    {
+                        "event": "unsubscribe",
+                        "arg": {
+                            "channel": "trades",
+                            "instId": "ETH-USDT"
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "op": "unsubscribe",
+                        "args": [
+                            {
+                                "channel": "trades",
+                                "instId": "BTC-USDT"
+                            },
+                            {
+                                "channel": "trades",
+                                "instId": "ETH-USDT"
+                            }
+                        ]
+                    }
+                ],
+                "parsedResponse": true
+            }
+        ],
+        "unWatchOHLCV": [
+            {
+                "description": "swap ohlcv 1h unsubscribe, the channel carries blofin's interval name (candle1H)",
+                "disabledCS": "the c# base leaves the unsubscribe future unresolved - cs/ccxt/base/Exchange.BaseMethods.cs cleanUnsubscription ends with a commented-out `// client.resolve(true, unsubHash);` while ts/src/base/Exchange.ts resolves, so every unWatch* fixture hangs in c# only - pre-existing on master, see lighter.json",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1h"
+                ],
+                "url": "wss://openapi.blofin.com/ws/public",
+                "messages": [
+                    {
+                        "event": "unsubscribe",
+                        "arg": {
+                            "channel": "candle1H",
+                            "instId": "BTC-USDT"
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "op": "unsubscribe",
+                        "args": [
+                            {
+                                "channel": "candle1H",
+                                "instId": "BTC-USDT"
+                            }
+                        ]
+                    }
+                ],
+                "parsedResponse": true
+            }
+        ],
+        "unWatchOHLCVForSymbols": [
+            {
+                "description": "swap ohlcv unsubscribe for two symbol/timeframe pairs in one request, acknowledged per topic",
+                "disabledCS": "the c# base leaves the unsubscribe future unresolved - cs/ccxt/base/Exchange.BaseMethods.cs cleanUnsubscription ends with a commented-out `// client.resolve(true, unsubHash);` while ts/src/base/Exchange.ts resolves, so every unWatch* fixture hangs in c# only - pre-existing on master, see lighter.json",
+                "disabledPHP": "the php __call camelCase to snake_case fallback splits only on [a-z0-9][A-Z], so unWatchOHLCVForSymbols is looked up as un_watch_ohlcvfor_symbols instead of the transpiled un_watch_ohlcv_for_symbols - pre-existing harness limitation, no other ws fixture covers *OHLCVForSymbols",
+                "input": [
+                    [
+                        [
+                            "BTC/USDT:USDT",
+                            "1m"
+                        ],
+                        [
+                            "ETH/USDT:USDT",
+                            "5m"
+                        ]
+                    ]
+                ],
+                "url": "wss://openapi.blofin.com/ws/public",
+                "messages": [
+                    {
+                        "event": "unsubscribe",
+                        "arg": {
+                            "channel": "candle1m",
+                            "instId": "BTC-USDT"
+                        }
+                    },
+                    {
+                        "event": "unsubscribe",
+                        "arg": {
+                            "channel": "candle5m",
+                            "instId": "ETH-USDT"
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "op": "unsubscribe",
+                        "args": [
+                            {
+                                "channel": "candle1m",
+                                "instId": "BTC-USDT"
+                            },
+                            {
+                                "channel": "candle5m",
+                                "instId": "ETH-USDT"
+                            }
+                        ]
+                    }
+                ],
+                "parsedResponse": true
+            }
+        ]
+    }
+}

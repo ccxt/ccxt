@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official bitget API documentation:** [bitget.com](https://www.bitget.com/docs/uta/Introduction) · [bitget.com](https://www.bitget.com/docs/classic/Introduction)
 
-> 791 implicit endpoints across 2 access groups.
+> 802 implicit endpoints across 2 access groups.
 
 ## public
 
@@ -176,6 +176,17 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `publicUtaGetV3MarketFuturesLongShort` | GET | `v3/market/futures-long-short` | 20 |
 | `publicUtaGetV3MarketFuturesPositionLongShort` | GET | `v3/market/futures-position-long-short` | 20 |
 | `publicUtaGetV3MarketFuturesAccountLongShort` | GET | `v3/market/futures-account-long-short` | 20 |
+| `publicUtaGetV3StockplusMarketStatic` | GET | `v3/stockplus/market/static` | 2 |
+| `publicUtaGetV3StockplusMarketQuote` | GET | `v3/stockplus/market/quote` | 2 |
+| `publicUtaGetV3StockplusMarketIntraday` | GET | `v3/stockplus/market/intraday` | 2 |
+| `publicUtaGetV3StockplusMarketDepth` | GET | `v3/stockplus/market/depth` | 2 |
+| `publicUtaGetV3StockplusMarketCandlestick` | GET | `v3/stockplus/market/candlestick` | 2 |
+| `publicUtaGetV3StockplusMarketHistoryCandlestick` | GET | `v3/stockplus/market/history-candlestick` | 2 |
+| `publicUtaGetV3StockplusMarketTrade` | GET | `v3/stockplus/market/trade` | 2 |
+| `publicUtaGetV3StockplusMarketOptionQuote` | GET | `v3/stockplus/market/option-quote` | 2 |
+| `publicUtaGetV3StockplusMarketOptionChainInfo` | GET | `v3/stockplus/market/option-chain-info` | 2 |
+| `publicUtaGetV3StockplusMarketOptionExpiryDate` | GET | `v3/stockplus/market/option-expiry-date` | 2 |
+| `publicUtaGetV3StockplusMarketOptionVolume` | GET | `v3/stockplus/market/option-volume` | 2 |
 | `publicUtaGetV3RealityMarketStockInfo` | GET | `v3/reality/market/stock-info` | 20 |
 | `publicUtaGetV3RealityMarketStates` | GET | `v3/reality/market/states` | 20 |
 | `publicUtaGetV3RealityMarketCalendar` | GET | `v3/reality/market/calendar` | 20 |
@@ -706,6 +717,17 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateUtaGetV3PositionCurrentPosition` | GET | `v3/position/current-position` | 1 |
 | `privateUtaGetV3PositionHistoryPosition` | GET | `v3/position/history-position` | 1 |
 | `privateUtaGetV3PositionAdlRank` | GET | `v3/position/adlRank` | 20 |
+| `privateUtaGetV3AccountRealityOrderbook` | GET | `v3/account/reality-orderbook` | 2 |
+| `privateUtaGetV3AccountRealityFills` | GET | `v3/account/reality-fills` | 2 |
+| `privateUtaGetV3StockplusAssetTransferRecords` | GET | `v3/stockplus/asset/transfer-records` | 2 |
+| `privateUtaGetV3StockplusAssetAccount` | GET | `v3/stockplus/asset/account` | 2 |
+| `privateUtaGetV3StockplusAssetStockPosition` | GET | `v3/stockplus/asset/stock-position` | 2 |
+| `privateUtaGetV3StockplusAssetCashFlow` | GET | `v3/stockplus/asset/cash-flow` | 2 |
+| `privateUtaGetV3StockplusTradeTodayOrders` | GET | `v3/stockplus/trade/today-orders` | 20 |
+| `privateUtaGetV3StockplusTradeHistoryOrders` | GET | `v3/stockplus/trade/history-orders` | 20 |
+| `privateUtaGetV3StockplusTradeOrderDetail` | GET | `v3/stockplus/trade/order-detail` | 20 |
+| `privateUtaGetV3StockplusTradeTodayExecutions` | GET | `v3/stockplus/trade/today-executions` | 20 |
+| `privateUtaGetV3StockplusTradeHistoryExecutions` | GET | `v3/stockplus/trade/history-executions` | 20 |
 | `privateUtaGetV3TaxRecords` | GET | `v3/tax/records` | 20 |
 | `privateUtaGetV3TradeOrderInfo` | GET | `v3/trade/order-info` | 1 |
 | `privateUtaGetV3TradeUnfilledOrders` | GET | `v3/trade/unfilled-orders` | 1 |
@@ -728,8 +750,6 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateUtaGetV3AccountEligibleLoanInfo` | GET | `v3/account/eligible-loan-info` | 2 |
 | `privateUtaGetV3AccountEligibleDiscountRate` | GET | `v3/account/eligible-discount-rate` | 1 |
 | `privateUtaGetV3AccountFundingFinancialRecords` | GET | `v3/account/funding-financial-records` | 2 |
-| `privateUtaGetV3AccountRealityOrderbook` | GET | `v3/account/reality-orderbook` | 2 |
-| `privateUtaGetV3AccountRealityFills` | GET | `v3/account/reality-fills` | 2 |
 | `privateUtaGetV3CopyFuturesTradingPairs` | GET | `v3/copy/futures/trading-pairs` | 4 |
 | `privateUtaGetV3CopyFuturesPositionSummary` | GET | `v3/copy/futures/position-summary` | 4 |
 | `privateUtaGetV3CopyFuturesMaxTransferable` | GET | `v3/copy/futures/max-transferable` | 20 |
@@ -764,15 +784,6 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateUtaGetV3StockplusMarketIntraday` | GET | `v3/stockplus/market/intraday` | 2 |
 | `privateUtaGetV3StockplusMarketHistoryCandlestick` | GET | `v3/stockplus/market/history-candlestick` | 2 |
 | `privateUtaGetV3StockplusMarketCandlestick` | GET | `v3/stockplus/market/candlestick` | 2 |
-| `privateUtaGetV3StockplusTradeTodayOrders` | GET | `v3/stockplus/trade/today-orders` | 20 |
-| `privateUtaGetV3StockplusTradeHistoryOrders` | GET | `v3/stockplus/trade/history-orders` | 20 |
-| `privateUtaGetV3StockplusTradeOrderDetail` | GET | `v3/stockplus/trade/order-detail` | 20 |
-| `privateUtaGetV3StockplusTradeTodayExecutions` | GET | `v3/stockplus/trade/today-executions` | 20 |
-| `privateUtaGetV3StockplusTradeHistoryExecutions` | GET | `v3/stockplus/trade/history-executions` | 20 |
-| `privateUtaGetV3StockplusAssetAccount` | GET | `v3/stockplus/asset/account` | 2 |
-| `privateUtaGetV3StockplusAssetCashFlow` | GET | `v3/stockplus/asset/cash-flow` | 2 |
-| `privateUtaGetV3StockplusAssetStockPosition` | GET | `v3/stockplus/asset/stock-position` | 2 |
-| `privateUtaGetV3StockplusAssetTransferRecords` | GET | `v3/stockplus/asset/transfer-records` | 2 |
 | `privateUtaGetV3P2pAdList` | GET | `v3/p2p/ad-list` | 2 |
 | `privateUtaGetV3P2pAdInfo` | GET | `v3/p2p/ad-info` | 2 |
 | `privateUtaGetV3P2pAdLimit` | GET | `v3/p2p/ad-limit` | 2 |
@@ -808,6 +819,10 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateUtaPostV3LoanBorrow` | POST | `v3/loan/borrow` | 2 |
 | `privateUtaPostV3LoanRepay` | POST | `v3/loan/repay` | 2 |
 | `privateUtaPostV3LoanRevisePledge` | POST | `v3/loan/revise-pledge` | 2 |
+| `privateUtaPostV3StockplusAssetTransfer` | POST | `v3/stockplus/asset/transfer` | 4 |
+| `privateUtaPostV3StockplusTradePlaceOrder` | POST | `v3/stockplus/trade/place-order` | 20 |
+| `privateUtaPostV3StockplusTradeModifyOrder` | POST | `v3/stockplus/trade/modify-order` | 20 |
+| `privateUtaPostV3StockplusTradeCancelOrder` | POST | `v3/stockplus/trade/cancel-order` | 20 |
 | `privateUtaPostV3TradePlaceOrder` | POST | `v3/trade/place-order` | 2 |
 | `privateUtaPostV3TradePlaceStrategyOrder` | POST | `v3/trade/place-strategy-order` | 2 |
 | `privateUtaPostV3TradeModifyOrder` | POST | `v3/trade/modify-order` | 2 |
@@ -847,10 +862,6 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateUtaPostV3TradeGridModifyNeutralGridInterval` | POST | `v3/trade/grid/modify-neutral-grid-interval` | 20 |
 | `privateUtaPostV3UserSetRateLimitQuota` | POST | `v3/user/set-rate-limit-quota` | 4 |
 | `privateUtaPostV3UserSubAccountAgentCreate` | POST | `v3/user/sub-account/agent-create` | 20 |
-| `privateUtaPostV3StockplusTradePlaceOrder` | POST | `v3/stockplus/trade/place-order` | 20 |
-| `privateUtaPostV3StockplusTradeCancelOrder` | POST | `v3/stockplus/trade/cancel-order` | 20 |
-| `privateUtaPostV3StockplusTradeModifyOrder` | POST | `v3/stockplus/trade/modify-order` | 20 |
-| `privateUtaPostV3StockplusAssetTransfer` | POST | `v3/stockplus/asset/transfer` | 4 |
 | `privateUtaPostV3P2pAdCreate` | POST | `v3/p2p/ad-create` | 2 |
 | `privateUtaPostV3P2pAdUpdate` | POST | `v3/p2p/ad-update` | 2 |
 | `privateUtaPostV3P2pAdOperate` | POST | `v3/p2p/ad-operate` | 2 |

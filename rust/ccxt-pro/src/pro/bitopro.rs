@@ -161,6 +161,9 @@ impl crate::exchange::DerivedExchange for BitoproCore {
     fn create_expired_option_market(&self, symbol: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::create_expired_option_market(&self.parent, symbol)
     }
+    fn market(&self, symbol: crate::Value) -> crate::Value {
+        crate::exchange::DerivedExchange::market(&self.parent, symbol)
+    }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::sign(&self.parent, path, api, method, params, headers, body)
     }
@@ -403,7 +406,7 @@ impl BitoproCore {
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("TRADE".into()), Value::Str(":".into())).into()), symbolValue).into());
         let mut trades: Value = self.watch_public(Value::Str("trades".into()), messageHash, market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).await;
         let mut limitResolved: Value = limit.clone();
-        if is_true(&self.newUpdates) {
+        if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolValue, limit);
         }
         return self.filter_by_since_limit(trades, &[since, limitResolved, Value::Str("timestamp".into()), Value::Bool(true)]);
@@ -446,8 +449,8 @@ impl BitoproCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_133: bool = true;
-            while { if !__for_first_133 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_133 = false; i.as_f64().unwrap_or(f64::NAN) < ((trades.len() as i64) as f64) } {
+            let mut __for_first_134: bool = true;
+            while { if !__for_first_134 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_134 = false; i.as_f64().unwrap_or(f64::NAN) < ((trades.len() as i64) as f64) } {
             tradesCache.append(trades.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
         }
         }
@@ -494,7 +497,7 @@ impl BitoproCore {
         self.authenticate(url.clone());
         let mut trades: Value = self.watch(url, messageHash.clone(), &[Value::Null, messageHash.clone()]).await;
         let mut limitResolved: Value = limit.clone();
-        if is_true(&self.newUpdates) {
+        if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbol, limit);
         }
         return self.filter_by_since_limit(trades, &[since, limitResolved, Value::Str("timestamp".into()), Value::Bool(true)]);
@@ -612,7 +615,7 @@ impl BitoproCore {
         let mut isMaker: Value = self.safe_bool_k(trade.clone(), "isMaker", &[]);
         let mut takerOrMaker: Value = Value::Null;
         if (isMaker != Value::Null) {
-            if (isMaker.as_bool() == Some(true)) {
+            if isMaker.as_bool() == Some(true) {
                 takerOrMaker = Value::Str("maker".into());
             }  else {
                 takerOrMaker = Value::Str("taker".into());
@@ -706,7 +709,7 @@ impl BitoproCore {
 }
 
     pub fn authenticate(&mut self, mut url: Value) {
-        if (self.clients.clone() != Value::Null) && (in_op(&self.clients, &url)) {
+        if (self.clients.clone() != Value::Null) && (matches!((&self.clients, &url), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             return;
         }
         self.check_required_credentials(&[]);
@@ -808,17 +811,25 @@ impl BitoproCore {
         let mut timestamp: Value = self.safe_integer_k(message.clone(), "timestamp", &[]);
         let mut datetime: Value = self.safe_string_k(message, "datetime", &[]);
         let mut currencies: Value = object_keys(&data);
-        let mut result: Value = Value::Map({
-            let mut m = indexmap::IndexMap::new();
-                m.insert("info".to_string(), data.clone());
-                m.insert("timestamp".to_string(), timestamp);
-                m.insert("datetime".to_string(), datetime);
-            m
-        });
+        // merge updates into the existing balance object instead of building a
+        // fresh one: a consumer awakened by an earlier message holds a
+        // reference to this.balance, and Client.resolve is a no-op while
+        // nobody is awaiting, so a replaced object would make updates landing
+        // in that window invisible to the consumer forever (same class as
+        // issue #26773)
+        if (self.balance.clone() == Value::Null) {
+            self.balance = Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                m
+            });
+        }
+        if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("info".into(), data.clone()); }
+        if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("timestamp".into(), timestamp); }
+        if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("datetime".into(), datetime); }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_134: bool = true;
-            while { if !__for_first_134 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_134 = false; i.as_f64().unwrap_or(f64::NAN) < ((currencies.len() as i64) as f64) } {
+            let mut __for_first_135: bool = true;
+            while { if !__for_first_135 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_135 = false; i.as_f64().unwrap_or(f64::NAN) < ((currencies.len() as i64) as f64) } {
             let mut currency: Value = self.safe_string(currencies.clone(), i.clone(), &[]);
             let mut balance: Value = self.safe_dict(data.clone(), currency, &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -830,11 +841,11 @@ impl BitoproCore {
             if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".into(), self.safe_string_k(balance.clone(), "available", &[])); }
             if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".into(), self.safe_string_k(balance.clone(), "amount", &[])); }
             if (code != Value::Null) {
-                if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), account); }
+                if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), account); }
             }
         }
         }
-        { let __t = self.safe_balance(result); self.balance = __t; }
+        { let __t = self.safe_balance(self.balance.clone()); self.balance = __t; }
         client.resolve(&[self.balance.clone(), event]);
 }
 

@@ -1198,10 +1198,16 @@ class lbank extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        $limitResolved = ($limit === null) ? 100 : min($limit, 2000);
+        $limitResolved = $this->parse_to_int(($limit === null) ? 100 : min($limit, 2000));
         $duration = $this->parse_timeframe($timeframe);
-        $sinceResolved = ($since === null) ? ($this->milliseconds() - ($duration * 1000 * $limitResolved)) : $since;
-        $parsedSince = $this->parse_to_int($sinceResolved / 1000);
+        $now = $this->milliseconds();
+        $defaultSince = $now - ($duration * 1000 * $limitResolved);
+        $sinceResolved = $defaultSince;
+        $parsedSince = $this->parse_to_int($defaultSince / 1000);
+        if ($since !== null) {
+            $sinceResolved = $since;
+            $parsedSince = $this->parse_to_int($since / 1000);
+        }
         $parsedLimit = min($limitResolved + 1, 2000); // max 2000;
         $request = array(
             'symbol' => $market['id'],
@@ -1321,7 +1327,7 @@ class lbank extends Exchange {
         );
         $data = $this->safe_dict($response, 'data');
         // from spotPrivatePostUserInfo
-        $toBtc = $this->safe_value($data, 'toBtc');
+        $toBtc = $this->safe_dict($data, 'toBtc');
         if ($toBtc !== null) {
             $used = $this->safe_dict($data, 'freeze', array());
             $free = $this->safe_dict($data, 'free', array());
@@ -1356,7 +1362,7 @@ class lbank extends Exchange {
         }
         // from spotPrivatePostSupplementUserInfo
         $isArray = (gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data)));
-        if ($isArray === true) {
+        if ($isArray) {
             for ($i = 0; $i < count($data); $i++) {
                 $item = $this->safe_dict($data, $i);
                 $currencyId = $this->safe_string($item, 'coin');
@@ -1658,7 +1664,7 @@ class lbank extends Exchange {
         );
         $ioc = ($timeInForce === 'IOC');
         $fok = ($timeInForce === 'FOK');
-        $maker = (($postOnly === true) || ($timeInForce === 'PO'));
+        $maker = (($postOnly) || ($timeInForce === 'PO'));
         if (($type === 'market') && ($ioc || $fok || $maker)) {
             throw new InvalidOrder($this->id . ' createOrder () does not allow market FOK, IOC, or postOnly orders. Only limit IOC, FOK, and postOnly orders are allowed');
         }
@@ -1732,7 +1738,7 @@ class lbank extends Exchange {
         ), $market);
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             '-1' => 'canceled', // canceled
             '0' => 'open', // not traded
@@ -2687,20 +2693,17 @@ class lbank extends Exchange {
             $this->load_markets();
         }
         $isAuthorized = $this->check_required_credentials(false);
-        if ($isAuthorized === true) {
+        if ($isAuthorized) {
             $options = $this->safe_dict($this->options, 'fetchTransactionFees', array());
             $defaultMethod = $this->safe_string($options, 'method', 'fetchPrivateTransactionFees');
             $method = $this->safe_string($params, 'method', $defaultMethod);
             $paramsOmitted = $this->omit($params, 'method');
             if ($method === 'fetchPublicTransactionFees') {
-                $result = $this->fetch_public_transaction_fees($paramsOmitted);
-            } else {
-                $result = $this->fetch_private_transaction_fees($paramsOmitted);
+                return $this->fetch_public_transaction_fees($paramsOmitted);
             }
-        } else {
-            $result = $this->fetch_public_transaction_fees($params);
+            return $this->fetch_private_transaction_fees($paramsOmitted);
         }
-        return $result;
+        return $this->fetch_public_transaction_fees($params);
     }
 
     public function fetch_private_transaction_fees($params = array()): array {
@@ -2850,20 +2853,17 @@ class lbank extends Exchange {
             $this->load_markets();
         }
         $isAuthorized = $this->check_required_credentials(false);
-        if ($isAuthorized === true) {
+        if ($isAuthorized) {
             $options = $this->safe_dict($this->options, 'fetchDepositWithdrawFees', array());
             $defaultMethod = $this->safe_string($options, 'method', 'fetchPrivateDepositWithdrawFees');
             $method = $this->safe_string($params, 'method', $defaultMethod);
             $paramsOmitted = $this->omit($params, 'method');
             if ($method === 'fetchPublicDepositWithdrawFees') {
-                $response = $this->fetch_public_deposit_withdraw_fees($codes, $paramsOmitted);
-            } else {
-                $response = $this->fetch_private_deposit_withdraw_fees($codes, $paramsOmitted);
+                return $this->fetch_public_deposit_withdraw_fees($codes, $paramsOmitted);
             }
-        } else {
-            $response = $this->fetch_public_deposit_withdraw_fees($codes, $params);
+            return $this->fetch_private_deposit_withdraw_fees($codes, $paramsOmitted);
         }
-        return $response;
+        return $this->fetch_public_deposit_withdraw_fees($codes, $params);
     }
 
     public function fetch_private_deposit_withdraw_fees(?array $codes = null, $params = array()): array {
@@ -2999,7 +2999,7 @@ class lbank extends Exchange {
         return $result;
     }
 
-    public function parse_deposit_withdraw_fee(mixed $fee, ?array $currency = null): mixed {
+    public function parse_deposit_withdraw_fee(?array $fee, ?array $currency = null): mixed {
         //
         // * only used for fetchPrivateDepositWithdrawFees
         //
@@ -3058,7 +3058,7 @@ class lbank extends Exchange {
         return $result;
     }
 
-    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+    public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
         $query = $this->omit($params, $this->extract_params($path));
         $apiUrl = $this->safe_string($this->urls['api'], 'rest');
         if ($apiUrl === null) {
@@ -3105,11 +3105,13 @@ class lbank extends Exchange {
             if ($signatureMethod === 'RSA') {
                 $cacheSecretAsPem = $this->safe_bool($this->options, 'cacheSecretAsPem', true);
                 $pem = null;
-                if ($cacheSecretAsPem === true) {
-                    $pem = $this->safe_string($this->options, 'pem');
-                    if ($pem === null) {
+                if ($cacheSecretAsPem) {
+                    $cachedPem = $this->safe_string($this->options, 'pem');
+                    if ($cachedPem === null) {
                         $pem = $this->convert_secret_to_pem($this->encode($this->secret));
                         $this->options['pem'] = $pem;
+                    } else {
+                        $pem = $cachedPem;
                     }
                 } else {
                     $pem = $this->convert_secret_to_pem($this->encode($this->secret));
@@ -3131,15 +3133,13 @@ class lbank extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => null, 'headers' => null );
     }
 
-    public function convert_secret_to_pem(mixed $secret) {
-        $lineLength = 64;
+    public function convert_secret_to_pem(mixed $secret): string {
         $secretLength = strlen($secret) - 0;
-        $numLines = $this->parse_to_int($secretLength / $lineLength);
-        $numLines = $this->sum($numLines, 1);
+        $fullLines = $this->parse_to_int($secretLength / 64);
         $pem = "-----BEGIN PRIVATE KEY-----\n"; // eslint-disable-line
-        for ($i = 0; $i < $numLines; $i++) {
-            $start = $i * $lineLength;
-            $end = $this->sum($start, $lineLength);
+        for ($i = 0; $i <= $fullLines; $i++) {
+            $start = $i * 64;
+            $end = $this->sum($start, 64);
             $pem .= mb_substr($this->secret, $start, $end - $start) . "\n"; // eslint-disable-line
         }
         return $pem . '-----END PRIVATE KEY-----';

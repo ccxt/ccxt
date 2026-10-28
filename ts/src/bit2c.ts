@@ -884,7 +884,7 @@ export default class bit2c extends Exchange {
         return this.parseTrades (responseList, market, since, limit);
     }
 
-    removeCommaFromValue (str: string) {
+    removeCommaFromValue (str: string): string {
         let newString = '';
         const strParts = str.split (',');
         for (let i = 0; i < strParts.length; i++) {
@@ -1054,7 +1054,7 @@ export default class bit2c extends Exchange {
         return this.milliseconds ();
     }
 
-    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
         const apiUrl = this.safeString (this.urls['api'], 'rest');
         if (apiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');

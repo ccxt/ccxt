@@ -309,7 +309,7 @@ export default class weex extends weexRest {
      */
     watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: Dict): Promise<Position[]>;
     setPositionsCache(client: Client, params?: Dict): void;
-    loadPositionsSnapshot(client: Client, messageHash: string, params: any): Promise<void>;
+    loadPositionsSnapshot(client: Client, messageHash: string, params: Dict): Promise<void>;
     /**
      * @method
      * @name weex#unWatchPositions

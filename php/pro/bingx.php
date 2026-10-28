@@ -331,12 +331,7 @@ class bingx extends \ccxt\async\bingx {
         // Coin-M m is coin volume; v is contracts and q is already USD turnover.
         // prefer the caller's stream-derived flag so an unresolved market id on
         // the Coin-M endpoint does not silently fall back to the contract count
-        $inverse = false;
-        if ($isInverse === null) {
-            $inverse = $marketResolved['inverse'] === true;
-        } else {
-            $inverse = $isInverse;
-        }
+        $inverse = ($isInverse === true) || (($isInverse === null) && ($marketResolved['inverse'] === true));
         $baseVolumeKey = $inverse ? 'm' : 'v';
         return $this->safe_ticker(array(
             'symbol' => $marketResolved['symbol'],
@@ -918,7 +913,7 @@ class bingx extends \ccxt\async\bingx {
         $marketOptions = $this->safe_dict($this->options, $marketType);
         $timeframes = $this->safe_dict($marketOptions, 'timeframes', array());
         $unifiedTimeframe = $this->find_timeframe($rawTimeframe, $timeframes);
-        if ($this->safe_value($this->ohlcvs[$symbol], $rawTimeframe) === null) {
+        if ($this->safe_value($this->ohlcvs[$symbol], $unifiedTimeframe) === null) {
             $subscriptionHash = $dataType;
             $subscription = $this->safe_dict($client->subscriptions, $subscriptionHash);
             // subscription.limit is only set when watchOHLCV registers the subscription;
@@ -1385,7 +1380,7 @@ class bingx extends \ccxt\async\bingx {
         for ($i = 0; $i < count($positions); $i++) {
             $position = $positions[$i];
             $contracts = $this->safe_number($position, 'contracts', 0);
-            if ($contracts > 0) {
+            if (($contracts !== null) && ($contracts > 0)) {
                 $cache->append($position);
             }
         }
@@ -1579,7 +1574,7 @@ class bingx extends \ccxt\async\bingx {
         $time = $this->milliseconds();
         $lastAuthenticatedTime = $this->safe_integer($this->options, 'lastAuthenticatedTime', 0);
         $listenKeyRefreshRate = $this->safe_integer($this->options, 'listenKeyRefreshRate', 3600000); // 1 hour
-        if ($time - $lastAuthenticatedTime > $listenKeyRefreshRate) {
+        if (($listenKeyRefreshRate !== null) && ($time - $lastAuthenticatedTime > $listenKeyRefreshRate)) {
             // single-flight leader election on a never-dialed client, see
             // https://github.com/ccxt/ccxt/issues/29393: racing fetches mint
             // different keys and the key rides the private url, so losers
@@ -2020,7 +2015,7 @@ class bingx extends \ccxt\async\bingx {
         $subscriptionsById = $this->index_by($client->subscriptions, 'id');
         $subscription = $this->safe_dict($subscriptionsById, $id, array());
         $isUnSubMessage = $this->safe_bool($subscription, 'unsubscribe', false);
-        if ($isUnSubMessage === true) {
+        if ($isUnSubMessage) {
             $this->handle_un_subscription($client, $subscription);
         }
         return $message;

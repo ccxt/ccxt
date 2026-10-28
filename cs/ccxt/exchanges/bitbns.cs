@@ -664,7 +664,7 @@ public partial class bitbns : Exchange
         return ccxt.BaseExchange.ToBalances(this.parseBalance(response));
     }
 
-    public virtual string? parseStatus(object status)
+    public virtual string? parseStatus(string? status)
     {
         Dictionary<string, object> statuses = new Dictionary<string, object>() {
             { "-1", "cancelled" },
@@ -788,7 +788,7 @@ public partial class bitbns : Exchange
         string? triggerPrice = this.safeStringN(parameters, new List<object>() {"triggerPrice", "stopPrice", "t_rate"});
         string? targetRate = this.safeString(parameters, "target_rate");
         string? trailRate = this.safeString(parameters, "trail_rate");
-        object paramsOmitted = this.omit(parameters, new List<object>() {"triggerPrice", "stopPrice", "trail_rate", "target_rate", "t_rate"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"triggerPrice", "stopPrice", "trail_rate", "target_rate", "t_rate"}));
         this.checkRequiredArgument("createOrder", side, "side");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "side", side.ToUpper() },
@@ -860,7 +860,7 @@ public partial class bitbns : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         bool? isTrigger = this.safeBool2(parameters, "trigger", "stop");
-        object paramsOmitted = this.omit(parameters, new List<object>() {"trigger", "stop"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"trigger", "stop"}));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "entry_id", id },
             { "symbol", (market.ContainsKey("uppercaseId") ? market["uppercaseId"] : null) },
@@ -963,7 +963,7 @@ public partial class bitbns : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         bool? isTrigger = this.safeBool2(parameters, "trigger", "stop");
-        object paramsOmitted = this.omit(parameters, new List<object>() {"trigger", "stop"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"trigger", "stop"}));
         string quoteSide = "listOpen";
         if ((((market.ContainsKey("quoteId") ? market["quoteId"] : null) as string) == "USDT"))
         {
@@ -1288,7 +1288,7 @@ public partial class bitbns : Exchange
         return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(data, currency, since, limit));
     }
 
-    public virtual object parseTransactionStatusByType(string? status, string? type = null)
+    public virtual string? parseTransactionStatusByType(string? status, string? type = null)
     {
         Dictionary<string, object> statusesByType = new Dictionary<string, object>() {
             { "deposit", new Dictionary<string, object>() {
@@ -1306,7 +1306,7 @@ public partial class bitbns : Exchange
             } },
         };
         IDictionary<string, object> statuses = this.safeDict(statusesByType, type, new Dictionary<string, object>() {});
-        return this.safeString(statuses, status, status);
+        return ((string?)((object)(this.safeString(statuses, status, status))));
     }
 
     public override Dictionary<string, object> parseTransaction(object transaction, object currency = null)

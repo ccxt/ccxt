@@ -657,7 +657,7 @@ public partial class krakenfutures : ccxt.krakenfutures
                 for (Int64 i = 0; i < length; i++)
                 {
                     Int64 index = ((length - 1) - i); // need reverse to correct chronology
-                    object item = getValue(trades, index);
+                    object item = (trades != null && index < trades.Count ? trades[(int)index] : null);
                     ccxt.Trade trade = this.parseWsTrade(item);
                     tradesArray.append(ccxt.BaseExchange.FromTrade(trade));
                 }
@@ -878,15 +878,15 @@ public partial class krakenfutures : ccxt.krakenfutures
             } else
             {
                 ccxt.Trade trade = this.parseWsTrade(order);
-                if (isEqual(GetValue(previousOrder, "trades"), null))
+                if (((previousOrder != null && previousOrder.ContainsKey("trades") ? previousOrder["trades"] : null) == null))
                 {
                     previousOrder["trades"] = new List<object>() {};
                 }
-                ((IList<object>)GetValue(previousOrder, "trades")).Add(ccxt.BaseExchange.FromTrade(trade));
+                ((IList<object>)(previousOrder != null && previousOrder.ContainsKey("trades") ? previousOrder["trades"] : null)).Add(ccxt.BaseExchange.FromTrade(trade));
                 previousOrder["lastTradeTimestamp"] = (((object)trade.timestamp));
                 string? totalCost = "0";
                 string? totalAmount = "0";
-                object trades = GetValue(previousOrder, "trades");
+                object trades = (previousOrder != null && previousOrder.ContainsKey("trades") ? previousOrder["trades"] : null);
                 for (int i = 0; i < getArrayLength(trades); i++)
                 {
                     object currentTrade = getValue(trades, i);
@@ -905,7 +905,7 @@ public partial class krakenfutures : ccxt.krakenfutures
                 string? prevAmountString = this.safeString(previousOrder, "amount");
                 string? remaining = Precise.stringSub(prevAmountString, totalFilled);
                 previousOrder["remaining"] = remaining;
-                if (isEqual(GetValue(previousOrder, "fee"), null))
+                if (((previousOrder != null && previousOrder.ContainsKey("fee") ? previousOrder["fee"] : null) == null))
                 {
                     previousOrder["fee"] = new Dictionary<string, object>() {
                         { "rate", null },
@@ -913,11 +913,11 @@ public partial class krakenfutures : ccxt.krakenfutures
                         { "currency", this.numberToString(this.safeString((ccxt.BaseExchange.FromFee((object)trade.fee)), "currency")) },
                     };
                 }
-                if ((!isEqual(getValue(GetValue(previousOrder, "fee"), "cost"), null)) && (!isEqual(this.safeNumber((ccxt.BaseExchange.FromFee((object)trade.fee)), "cost"), null)))
+                if ((!(getValue((previousOrder != null && previousOrder.ContainsKey("fee") ? previousOrder["fee"] : null), "cost") == null)) && (!(this.safeNumber((ccxt.BaseExchange.FromFee((object)trade.fee)), "cost") == null)))
                 {
-                    string? stringOrderCost = this.numberToString(getValue(GetValue(previousOrder, "fee"), "cost"));
+                    string? stringOrderCost = this.numberToString(getValue((previousOrder != null && previousOrder.ContainsKey("fee") ? previousOrder["fee"] : null), "cost"));
                     string? stringTradeCost = this.numberToString(this.safeNumber((ccxt.BaseExchange.FromFee((object)trade.fee)), "cost"));
-                    ((IDictionary<string,object>)GetValue(previousOrder, "fee"))["cost"] = Precise.stringAdd(stringOrderCost, stringTradeCost);
+                    ((IDictionary<string,object>)(previousOrder != null && previousOrder.ContainsKey("fee") ? previousOrder["fee"] : null))["cost"] = Precise.stringAdd(stringOrderCost, stringTradeCost);
                 }
                 // update the newUpdates count
                 orders.append(ccxt.BaseExchange.FromOrder(this.safeOrder(previousOrder)));
@@ -946,10 +946,12 @@ public partial class krakenfutures : ccxt.krakenfutures
                     messageHash = "orders:verbose";
                 }
                 // get order without symbol
+                string? cancelledOrderId = this.safeString(message, "order_id");
                 for (int i = 0; i < (orders?.Count ?? 0); i++)
                 {
-                    object currentOrder = getValue(orders, i);
-                    if (isEqual(getValue(currentOrder, "id"), (message != null && message.ContainsKey("order_id") ? message["order_id"] : null)))
+                    object currentOrder = (orders != null && i < orders.Count ? orders[i] : null);
+                    string? currentOrderId = this.safeString(currentOrder, "id");
+                    if ((currentOrderId == cancelledOrderId))
                     {
                         Dictionary<string, object> info = this.extend(this.safeDict(currentOrder, "info", new Dictionary<string, object>() {}), new Dictionary<string, object>() {
                             { "reason", reason },
@@ -1082,7 +1084,7 @@ public partial class krakenfutures : ccxt.krakenfutures
                 }
             }
         }
-        int length = getArrayLength(this.orders);
+        int length = (this.orders?.Count ?? 0);
         if (length > 0)
         {
             client.resolve(this.orders, messageHash);
@@ -1760,9 +1762,10 @@ public partial class krakenfutures : ccxt.krakenfutures
         {
             IDictionary<string, object> trade = ((IDictionary<string, object>)trades[i]);
             Dictionary<string, object> parsedTrade = this.parseWsMyTrade(trade);
-            if (!isEqual((parsedTrade != null && parsedTrade.ContainsKey("symbol") ? parsedTrade["symbol"] : null), null))
+            string? tradeSymbol = this.safeString(parsedTrade, "symbol");
+            if ((tradeSymbol != null))
             {
-                tradeSymbols[(string)(parsedTrade != null && parsedTrade.ContainsKey("symbol") ? parsedTrade["symbol"] : null)] = true;
+                tradeSymbols[(string)tradeSymbol] = true;
             }
             stored.append(parsedTrade);
         }

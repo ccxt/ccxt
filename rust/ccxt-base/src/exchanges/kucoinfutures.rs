@@ -160,6 +160,9 @@ impl crate::exchange::DerivedExchange for KucoinfuturesCore {
     fn create_expired_option_market(&self, symbol: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::create_expired_option_market(&self.parent, symbol)
     }
+    fn market(&self, symbol: crate::Value) -> crate::Value {
+        crate::exchange::DerivedExchange::market(&self.parent, symbol)
+    }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::sign(&self.parent, path, api, method, params, headers, body)
     }
@@ -213,6 +216,7 @@ impl KucoinfuturesCore {
         m.insert("swap".to_string(), Value::Bool(true));
         m.insert("future".to_string(), Value::Bool(true));
         m.insert("option".to_string(), Value::Null);
+        m.insert("editOrder".to_string(), Value::Bool(false));
         m.insert("fetchBidsAsks".to_string(), Value::Bool(true));
         m.insert("transfer".to_string(), Value::Bool(true));
     m

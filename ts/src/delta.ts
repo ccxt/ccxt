@@ -350,20 +350,20 @@ export default class delta extends Exchange {
         const quote = 'USDT';
         const optionParts = symbol.split ('-');
         const symbolBase = symbol.split ('/');
+        const hasSlash = symbol.indexOf ('/') > -1;
         let base: Str = undefined;
-        let expiry: Str = undefined;
         let optionType: Str = undefined;
-        if (symbol.indexOf ('/') > -1) {
+        if (hasSlash) {
             base = this.safeString (symbolBase, 0);
-            expiry = this.safeString (optionParts, 1);
             optionType = this.safeString (optionParts, 3);
         } else {
             base = this.safeString (optionParts, 1);
-            expiry = this.safeString (optionParts, 3);
             optionType = this.safeString (optionParts, 0);
         }
-        if (expiry !== undefined) {
-            expiry = expiry.slice (4) + expiry.slice (2, 4) + expiry.slice (0, 2);
+        const rawExpiry = this.safeString (optionParts, hasSlash ? 1 : 3);
+        let expiry: Str = undefined;
+        if (rawExpiry !== undefined) {
+            expiry = rawExpiry.slice (4) + rawExpiry.slice (2, 4) + rawExpiry.slice (0, 2);
         }
         const settle = quote;
         const strike = this.safeString (optionParts, 2);
@@ -651,7 +651,7 @@ export default class delta extends Exchange {
         return markets;
     }
 
-    indexByStringifiedNumericId (input: NullableDict) {
+    indexByStringifiedNumericId (input: NullableDict): NullableDict {
         const result: Dict = {};
         if (input === undefined) {
             return undefined;
@@ -903,7 +903,7 @@ export default class delta extends Exchange {
             }
             const linear = (settle === quote);
             let optionType: Str = undefined;
-            let symbol = base + '/' + quote;
+            let symbol: string = base + '/' + quote;
             if (swap || future || option) {
                 symbol = symbol + ':' + settle;
                 if (future || option) {
@@ -1664,25 +1664,30 @@ export default class delta extends Exchange {
         };
         const duration = this.parseTimeframe (timeframe);
         let limitValue: Int = 2000;
+        let windowSeconds = 2000 * duration;
         if (limit !== undefined && limit !== null && limit !== 0) {
             limitValue = limit; // max 2000
+            windowSeconds = limit * duration;
         }
         let until = this.safeIntegerProduct (params, 'until', 0.001);
-        const untilIsDefined = (until !== undefined);
+        const untilIsDefined = until !== undefined;
         if (untilIsDefined) {
             until = this.parseToInt (until);
         }
         if (since === undefined) {
-            const end = untilIsDefined ? until : this.seconds ();
+            let end: Int = this.seconds ();
+            if (untilIsDefined) {
+                end = this.parseToInt (until);
+            }
             request['end'] = end;
             if (end === undefined) {
                 throw new ExchangeError (this.id + ' fetchOHLCV() missing end');
             }
-            request['start'] = end - limitValue * duration;
+            request['start'] = end - windowSeconds;
         } else {
             const start = this.parseToInt (since / 1000);
             request['start'] = start;
-            request['end'] = untilIsDefined ? until : this.sum (start, limitValue * duration);
+            request['end'] = untilIsDefined ? until : this.sum (start, windowSeconds);
         }
         const price = this.safeString (params, 'price');
         if (price === 'mark') {
@@ -1863,9 +1868,9 @@ export default class delta extends Exchange {
         let side: Str = undefined;
         if (sizeString !== undefined) {
             if (Precise.stringGt (sizeString, '0')) {
-                side = 'buy';
+                side = 'long';
             } else if (Precise.stringLt (sizeString, '0')) {
-                side = 'sell';
+                side = 'short';
             }
         }
         return this.safePosition ({
@@ -1873,7 +1878,7 @@ export default class delta extends Exchange {
             'id': undefined,
             'symbol': symbol,
             'notional': undefined,
-            'marginMode': undefined,
+            'marginMode': this.safeString (position, 'margin_mode'),
             'liquidationPrice': this.safeNumber (position, 'liquidation_price'),
             'entryPrice': this.safeNumber (position, 'entry_price'),
             'unrealizedPnl': undefined, // todo - realized_pnl ?
@@ -1887,6 +1892,7 @@ export default class delta extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'maintenanceMargin': undefined,
             'maintenanceMarginPercentage': undefined,
+            'positionMargin': this.safeNumber (position, 'margin'),
             'collateral': undefined,
             'initialMargin': undefined,
             'initialMarginPercentage': undefined,
@@ -1897,7 +1903,7 @@ export default class delta extends Exchange {
         });
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             'open': 'open',
             'pending': 'open',
@@ -2544,7 +2550,7 @@ export default class delta extends Exchange {
         return this.parseLedger (result, currency, since, limit);
     }
 
-    parseLedgerEntryType (type: Str) {
+    parseLedgerEntryType (type: Str): Str {
         const types: Dict = {
             'pnl': 'pnl',
             'deposit': 'transaction',
@@ -3069,7 +3075,7 @@ export default class delta extends Exchange {
         return this.parseOpenInterest (result, market);
     }
 
-    override parseOpenInterest (interest: any, market: Market = undefined): OpenInterest {
+    override parseOpenInterest (interest: NullableDict, market: Market = undefined): OpenInterest {
         //
         //     {
         //         "close": 894.0,
@@ -4177,7 +4183,7 @@ export default class delta extends Exchange {
         } as ADL;
     }
 
-    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
         const apiName = api[0];
         const requestPath = '/' + this.version + '/' + this.implodeParams (path, params);
         const apiUrl = this.safeString (this.urls['api'], apiName);
@@ -4199,7 +4205,7 @@ export default class delta extends Exchange {
                 'api-key': this.apiKey,
                 'timestamp': timestamp,
             };
-            let auth = method + timestamp + requestPath;
+            let auth: string = method + timestamp + requestPath;
             if (method === 'GET') {
                 if (Object.keys (query).length > 0) {
                     const queryString = '?' + this.urlencode (query);

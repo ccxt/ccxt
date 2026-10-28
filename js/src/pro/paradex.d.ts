@@ -1,13 +1,23 @@
 import paradexRest from '../paradex.js';
-import type { Int, Str, Trade, Order, Dict, OrderBook, Ticker, Strings, Tickers, Bool, Market, FundingRate, FundingRates, Position, Balances } from '../base/types.js';
+import type { Int, int, Str, Trade, Order, Dict, NullableDict, OrderBook, Ticker, Strings, Tickers, Bool, Market, FundingRate, FundingRates, Position, Balances } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class paradex extends paradexRest {
     describe(): any;
     getWsUrl(): string;
     getOrderBookChannel(marketId: Str): string;
     requestId(): number;
+    /**
+     * @ignore
+     * @method
+     * @name paradex#subscribeRequest
+     * @description builds a json-rpc subscribe request, its id is kept in the subscription passed to watch, so an error reply reaches only the watchers of that request
+     * @param {string} channel the channel to subscribe to
+     * @returns {object} the subscribe request
+     */
+    subscribeRequest(channel: string): Dict;
     authenticate(params?: Dict): Promise<any>;
     handleAuthenticationMessage(client: Client, message: Dict): void;
+    handleRequestReply(client: Client, message: Dict): void;
     /**
      * @method
      * @name paradex#watchTrades
@@ -128,7 +138,7 @@ export default class paradex extends paradexRest {
     handleFundingRate(client: Client, message: Dict): void;
     parseFundingRateWs(contract: Dict, market?: Market): FundingRate;
     parseSbeMessage(message: any): any;
-    sbeReadUint(frameHex: string, offset: number, length: number): any;
+    sbeReadUint(frameHex: string, offset: number, length: number): int;
     sbeReadInt64(frameHex: string, offset: number): Str;
     sbeReadDecimal(frameHex: string, offset: number): Str;
     sbeReadTimestamp(frameHex: string, offset: number): Int;
@@ -136,15 +146,15 @@ export default class paradex extends paradexRest {
     sbeReadString(frameHex: string, offset: number, length: number): string;
     sbeReadAddress(frameHex: string, offset: number): string;
     sbeReadVarStrings(frameHex: string, offset: number, count: number, frameLength: number): any;
-    parseSbeTrade(frameHex: string, blockLength: number, frameLength: number): any;
-    parseSbeOrderBook(frameHex: string, blockLength: number, frameLength: number): any;
-    parseSbeMarketSummary(frameHex: string, blockLength: number, frameLength: number): any;
-    parseSbeFundingData(frameHex: string, blockLength: number, frameLength: number): any;
-    parseSbeOrder(frameHex: string, blockLength: number, frameLength: number): any;
+    parseSbeTrade(frameHex: string, blockLength: number, frameLength: number): NullableDict;
+    parseSbeOrderBook(frameHex: string, blockLength: number, frameLength: number): NullableDict;
+    parseSbeMarketSummary(frameHex: string, blockLength: number, frameLength: number): NullableDict;
+    parseSbeFundingData(frameHex: string, blockLength: number, frameLength: number): NullableDict;
+    parseSbeOrder(frameHex: string, blockLength: number, frameLength: number): NullableDict;
     sbeReadFlags(frameHex: string, offset: number, names: string[]): string[];
-    parseSbeFill(frameHex: string, blockLength: number, frameLength: number): any;
-    parseSbePosition(frameHex: string, blockLength: number, frameLength: number): any;
-    parseSbeAccount(frameHex: string, blockLength: number, frameLength: number): any;
+    parseSbeFill(frameHex: string, blockLength: number, frameLength: number): NullableDict;
+    parseSbePosition(frameHex: string, blockLength: number, frameLength: number): NullableDict;
+    parseSbeAccount(frameHex: string, blockLength: number, frameLength: number): NullableDict;
     handleErrorMessage(client: Client, message: Dict): Bool;
     handleMessage(client: Client, message: any): void;
 }

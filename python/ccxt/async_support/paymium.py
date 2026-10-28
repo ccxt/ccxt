@@ -603,7 +603,7 @@ class paymium(Exchange, ImplicitAPI):
         # the venue accepts any strictly-increasing integer, so use milliseconds: with the second-resolution base nonce a burst of N calls would leave incrementingNonce N seconds ahead of the clock
         return self.milliseconds()
 
-    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
         baseApiUrl = self.safe_string(self.urls['api'], 'rest')
         if baseApiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')

@@ -199,9 +199,9 @@ async function testBinanceAuthenticateEmptyKeyRejection () {
     // same hollow-200 class on binance's consolidated authenticate ():
     // the leader must reject the flight before writing the per-type
     // options bucket, both concurrent callers observe the typed error,
-    // and a good retry re-leads. uses the 'future' type: spot routes to
+    // and a good retry re-leads. uses swap + linear: spot routes to
     // the signature-subscribe path and margin to listenToken, so the
-    // listenKey branch under test is the futures one
+    // listenKey branch under test is the usd-m (linear) one
     const state = { 'fetches': 0 };
     const exchange = new ccxt.pro.binance ({
         'apiKey': 'test-api-key',
@@ -213,7 +213,7 @@ async function testBinanceAuthenticateEmptyKeyRejection () {
         return {}; // hollow response, no listenKey
     };
     (exchange as any).delay = () => {};
-    const params = { 'type': 'future' };
+    const params = { 'type': 'swap', 'subType': 'linear' };
     const outcomes = await Promise.allSettled ([
         exchange.authenticate (params),
         exchange.authenticate (params),
@@ -222,7 +222,7 @@ async function testBinanceAuthenticateEmptyKeyRejection () {
     assert (outcomes[0].status === 'rejected' && outcomes[1].status === 'rejected', 'both the leader and the waiter must throw on an empty listenKey');
     assert ((outcomes[0] as any).reason instanceof AuthenticationError, 'the binance leader must reject with AuthenticationError');
     assert ((outcomes[1] as any).reason instanceof AuthenticationError, 'the binance waiter must observe the same AuthenticationError');
-    const bucket = exchange.safeValue (exchange.options, 'future', {});
+    const bucket = exchange.safeValue (exchange.options, 'linear', {});
     assert (exchange.safeString (bucket, 'listenKey') === undefined, 'an empty listenKey must never be cached');
     assert (exchange.safeInteger (bucket, 'lastAuthenticatedTime', 0) === 0, 'a failed flight must not stamp lastAuthenticatedTime');
     assert (flightCount (exchange) === 0, 'a rejected flight must be cleared');
@@ -233,7 +233,7 @@ async function testBinanceAuthenticateEmptyKeyRejection () {
         return { 'listenKey': 'FUTURE-KEY-RETRY' };
     };
     await exchange.authenticate (params);
-    assert (exchange.options['future']['listenKey'] === 'FUTURE-KEY-RETRY', 'a retry after a rejected flight must re-lead and cache');
+    assert (exchange.options['linear']['listenKey'] === 'FUTURE-KEY-RETRY', 'a retry after a rejected flight must re-lead and cache');
 }
 
 async function testBingxAuthenticateSingleFlight () {

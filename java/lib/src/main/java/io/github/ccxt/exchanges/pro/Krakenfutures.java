@@ -473,10 +473,10 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             ((List<Object>)newPositions).add(position);
             cache.append(position);
         }
-        Object messageHashes = this.findMessageHashes(client, "positions::");
+        List<Object> messageHashes = (List<Object>) this.findMessageHashes(client, "positions::");
         for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
         {
-            Object messageHash = (messageHashes == null || i < 0 || i >= ((List<?>)messageHashes).size() ? null : ((List<?>)messageHashes).get(i));
+            Object messageHash = (messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i));
             List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)messageHash).split(java.util.regex.Pattern.quote("::"))));
             String symbolsString = (String) (parts == null || 1 >= parts.size() ? null : parts.get(1));
             List<Object> symbols = new ArrayList<Object>(Arrays.asList(((String)symbolsString).split(java.util.regex.Pattern.quote(","))));
@@ -970,7 +970,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
                 String totalCost = "0";
                 String totalAmount = "0";
                 Object trades = previousOrder.get("trades");
-                for (var i = 0; i < Helpers.getArrayLength(trades); i++)
+                for (var i = 0; i < (switch ((Object)(trades)) { case null -> 0; case List<?> j39v1 -> j39v1.size(); case String j39v2 -> j39v2.length(); case Object j39v3 -> j39v3.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v3) : 0; }); i++)
                 {
                     Object currentTrade = Helpers.GetValue(trades, i);
                     totalCost = Precise.stringAdd(totalCost, this.numberToString(Helpers.GetValue(currentTrade, "cost")));
@@ -1029,10 +1029,12 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
                     messageHash = "orders:verbose";
                 }
                 // get order without symbol
+                String cancelledOrderId = this.safeString(message, "order_id");
                 for (var i = 0; i < ((List<?>)orders).size(); i++)
                 {
                     Object currentOrder = (orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i));
-                    if (Helpers.isEqual(Helpers.GetValue(currentOrder, "id"), message.get("order_id")))
+                    String currentOrderId = this.safeString(currentOrder, "id");
+                    if (java.util.Objects.equals(currentOrderId, cancelledOrderId))
                     {
                         HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
                         mapLiteral2.put("reason", reason);
@@ -1138,7 +1140,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         // no longer open on the venue - it filled or was cancelled while we were
         // disconnected. the snapshot does not say which, so mark it canceled
         // instead of leaving it open in the cache forever
-        List<Object> cachedSymbols = Helpers.objectKeys(((io.github.ccxt.ws.ArrayCache)cachedOrders).hashmap);
+        List<Object> cachedSymbols = ((List<Object>) switch ((Object)(((io.github.ccxt.ws.ArrayCache)cachedOrders).hashmap)) { case Map<?, ?> j39v4 -> { synchronized (j39v4) { yield new ArrayList<Object>(j39v4.keySet()); } } case null, default -> new ArrayList<Object>(); });
         for (var i = 0; i < ((List<?>)cachedSymbols).size(); i++)
         {
             Object cachedSymbol = (cachedSymbols == null || i < 0 || i >= cachedSymbols.size() ? null : cachedSymbols.get(i));
@@ -1225,7 +1227,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         if (!java.util.Objects.equals(isCancelled, null))
         {
             unparsedOrder = this.safeValue(order, "order");
-            if (java.util.Objects.equals(isCancelled, true))
+            if (Boolean.TRUE.equals(isCancelled))
             {
                 status = "cancelled";
             }
@@ -1843,9 +1845,10 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         {
             Object trade = (trades == null || i < 0 || i >= trades.size() ? null : trades.get(i));
             Object parsedTrade = this.parseWsMyTrade((Map<String, Object>) (trade), (Map<String, Object>) null);
-            if (!java.util.Objects.equals(((Map<String, Object>)parsedTrade).get("symbol"), null))
+            String tradeSymbol = this.safeString(parsedTrade, "symbol");
+            if (!java.util.Objects.equals(tradeSymbol, null))
             {
-                tradeSymbols.put((String)((Map<String, Object>)parsedTrade).get("symbol"), true);
+                tradeSymbols.put(tradeSymbol, true);
             }
             stored.append(parsedTrade);
         }
@@ -1944,7 +1947,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
 
     }
 
-    public Boolean subscriptionExistsForHash(Object url, Object hash)
+    public Boolean subscriptionExistsForHash(String url, String hash)
     {
         Client client = this.client(url);
         return (((Map<?, ?>)client.subscriptions).containsKey(hash));

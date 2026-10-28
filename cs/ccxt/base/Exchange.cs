@@ -772,7 +772,11 @@ public partial class BaseExchange
     private async Task closeClient(string key, WebSocketClient client)
     {
         await client.Close();
-        this.clients.TryRemove(key, out _);
+        // the slot may hold a replacement installed while closing; never detach it unclosed
+        if (this.clients.TryRemove(key, out var removed) && !ReferenceEquals(removed, client))
+        {
+            await removed.Close();
+        }
     }
 
     public async Task Close(bool cleanInstanceCache = false)
@@ -1376,6 +1380,15 @@ public partial class BaseExchange
         if (value is bool b)
         {
             return b;
+        }
+        // "true"/"false" strings and 1/0 numbers read as booleans; anything else throws
+        if ((value is string s && s == "true") || ((value is int || value is long || value is double) && System.Convert.ToDouble(value) == 1))
+        {
+            return true;
+        }
+        if ((value is string s2 && s2 == "false") || ((value is int || value is long || value is double) && System.Convert.ToDouble(value) == 0))
+        {
+            return false;
         }
         throw new BadRequest(this.id + " " + (methodName == null ? "exchange-wide" : methodName + "()") + " option " + optionName + " must be a boolean");
     }

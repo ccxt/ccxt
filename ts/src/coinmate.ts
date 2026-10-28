@@ -666,7 +666,7 @@ export default class coinmate extends Exchange {
         return this.parseTransactions (items, undefined, since, limit);
     }
 
-    parseTransactionStatus (status: Str) {
+    parseTransactionStatus (status: Str): Str {
         const statuses: Dict = {
             'COMPLETED': 'ok',
             'WAITING': 'pending',
@@ -824,7 +824,7 @@ export default class coinmate extends Exchange {
         const data = this.safeDict (response, 'data', {});
         const transaction = this.parseTransaction (data, currency);
         const fillResponseFromRequest = this.safeBool (withdrawOptions, 'fillResponseFromRequest', true);
-        if (fillResponseFromRequest === true) {
+        if (fillResponseFromRequest) {
             transaction['amount'] = amount;
             transaction['currency'] = code;
             transaction['address'] = address;
@@ -1060,7 +1060,7 @@ export default class coinmate extends Exchange {
         return this.parseOrders (data, market, since, limit);
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             'FILLED': 'closed',
             'CANCELLED': 'canceled',
@@ -1070,7 +1070,7 @@ export default class coinmate extends Exchange {
         return this.safeString (statuses, status as string, status);
     }
 
-    parseOrderType (type: Str) {
+    parseOrderType (type: Str): Str {
         const types: Dict = {
             'LIMIT': 'limit',
             'MARKET': 'market',
@@ -1281,7 +1281,7 @@ export default class coinmate extends Exchange {
         return this.milliseconds ();
     }
 
-    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
         const apiName = api[0];
         let bodySigned: Str = undefined;
         let headersSigned: NullableDict = undefined;

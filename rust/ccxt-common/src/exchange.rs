@@ -139,6 +139,7 @@ pub trait DerivedExchange {
     fn parse_market_leverage_tiers(&self, _info: Value, _market: Value) -> Value { Value::Null }
     fn parse_deposit_withdraw_fee(&self, _fee: Value, _currency: Value) -> Value { Value::Null }
     fn create_expired_option_market(&self, _symbol: Value) -> Value { Value::Null }
+    fn market(&self, _symbol: Value) -> Value { Value::Null }
     // ── prediction-tier parsers (overridden by prediction venues) ────────
     fn parse_prediction_trade(&self, _trade: Value, _market: Value) -> Value { Value::Null }
     fn parse_prediction_order(&self, _order: Value, _market: Value) -> Value { Value::Null }
@@ -1179,7 +1180,17 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
             .find_map(|v| match v { Value::Str(s) if !s.is_empty() => Some(s.to_string()), _ => None });
         // binary frames are decompressed unless the exchange opts out (mexc, paradex)
         let __decompress_binary = !matches!(crate::get_value(&self.options, &Value::Str("decompressBinary".into())), Value::Bool(false));
-        let client = match crate::pro::ws_client::ensure_client(&url, __ws_proxy, __decompress_binary).await {
+        // options.ws.options.headers ride on the upgrade request, as in the other ports
+        let __ws_options = crate::get_value(&crate::get_value(&self.options, &Value::Str("ws".into())), &Value::Str("options".into()));
+        let __ws_headers: Vec<(String, String)> = match crate::get_value(&__ws_options, &Value::Str("headers".into())) {
+            Value::Dict(m) => m.iter().filter_map(|(k, v)| match v {
+                Value::Str(s) => Some((k.clone(), s.to_string())),
+                Value::Int(n) => Some((k.clone(), n.to_string())),
+                _ => None,
+            }).collect(),
+            _ => Vec::new(),
+        };
+        let client = match crate::pro::ws_client::ensure_client_with_headers(&url, &__ws_headers, __ws_proxy, __decompress_binary).await {
             Ok(c) => c,
             Err(e) => panic!("{}", e),
         };
@@ -1456,6 +1467,20 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
         let resp = req.send().await?;
         let status = resp.status().as_u16();
         let reason = resp.status().canonical_reason().unwrap_or("");
+        // expose the response headers the way the other ports do (last_response_headers and
+        // the `headers` argument of handle_errors): venues read them, e.g. grvt takes its
+        // session cookie and account id from Set-Cookie / X-Grvt-Account-Id on sign-in.
+        // reqwest lowercases header names; repeated headers are joined with ", " like node-fetch
+        let mut response_headers: HashMap<String, Value> = HashMap::new();
+        for name in resp.headers().keys() {
+            let joined = resp.headers().get_all(name).iter()
+                .filter_map(|v| v.to_str().ok())
+                .collect::<Vec<&str>>()
+                .join(", ");
+            response_headers.insert(name.as_str().to_string(), Value::Str(joined.into()));
+        }
+        let response_headers_value = Value::Map(response_headers.into_iter().collect());
+        self.last_response_headers = response_headers_value.clone();
         let text   = resp.text().await?;
         HTTP_NANOS.fetch_add(__http_t0.elapsed().as_nanos() as u64,
             std::sync::atomic::Ordering::Relaxed);
@@ -1485,7 +1510,7 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
             Value::Str(reason.into()),
             Value::Str(url.to_string().into()),
             Value::Str(method.to_string().into()),
-            Value::Null,
+            response_headers_value,
             Value::Str(text.clone().into()),
             json.clone(),
             Value::Null,
@@ -1721,7 +1746,7 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
         <Self as crate::exchange_generated::ExchangeBase>::handle_market_type_and_params(self, method_name, &[market, params, default_value])
     }
     fn super_market(&self, symbol: Value) -> Value {
-        <Self as crate::exchange_generated::ExchangeBase>::market(self, symbol)
+        <Self as crate::exchange_generated::ExchangeBase>::market_non_virtual(self, symbol)
     }
     fn super_amount_to_precision(&self, symbol: Value, amount: Value) -> Value {
         <Self as crate::exchange_generated::ExchangeBase>::amount_to_precision(self, symbol, amount)

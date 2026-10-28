@@ -179,7 +179,6 @@ export default class mexc extends mexcRest {
         //         "s": "BTCUSDT"
         //     }
         //
-        this.handleBidAsk (client, message);
         const rawTicker = this.safeDictN (message, [ 'd', 'data', 'publicAggreBookTicker' ]);
         const marketId = this.safeString2 (message, 's', 'symbol');
         const timestamp = this.safeInteger2 (message, 't', 'sendTime');
@@ -187,6 +186,7 @@ export default class mexc extends mexcRest {
         const symbol = market['symbol'];
         let ticker: Ticker;
         if (market['spot'] === true) {
+            this.handleBidAsk (client, message); // the bids-asks channel is spot only
             ticker = this.parseWsTicker (rawTicker as Dict, market);
             ticker['timestamp'] = timestamp;
             ticker['datetime'] = this.iso8601 (timestamp);
@@ -474,6 +474,22 @@ export default class mexc extends mexcRest {
 
     handleBidAsk (client: Client, message: Dict) {
         //
+        // protobuf
+        //
+        //    {
+        //        "channel": "spot@public.aggre.bookTicker.v3.api.pb@100ms@BTCUSDT",
+        //        "symbol": "BTCUSDT",
+        //        "sendTime": "1792779974344",
+        //        "publicAggreBookTicker": {
+        //            "bidPrice": "81577.79",
+        //            "bidQuantity": "0.11985594",
+        //            "askPrice": "81577.8",
+        //            "askQuantity": "0.12200121"
+        //        }
+        //    }
+        //
+        // retired json channel
+        //
         //    {
         //        "c": "spot@public.bookTicker.v3.api@BTCUSDT",
         //        "d": {
@@ -497,19 +513,19 @@ export default class mexc extends mexcRest {
     }
 
     parseWsBidAsk (ticker: Dict, market: Market = undefined): Ticker {
-        const data = this.safeDict (ticker, 'd');
-        const marketId = this.safeString (ticker, 's');
+        const data = this.safeDictN (ticker, [ 'd', 'data', 'publicAggreBookTicker' ]);
+        const marketId = this.safeString2 (ticker, 's', 'symbol');
         const marketResolved: Market = this.safeMarket (marketId, market);
         const symbol = this.safeString (marketResolved, 'symbol');
-        const timestamp = this.safeInteger (ticker, 't');
+        const timestamp = this.safeInteger2 (ticker, 't', 'sendTime');
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'ask': this.safeNumber (data, 'a'),
-            'askVolume': this.safeNumber (data, 'A'),
-            'bid': this.safeNumber (data, 'b'),
-            'bidVolume': this.safeNumber (data, 'B'),
+            'ask': this.safeNumber2 (data, 'a', 'askPrice'),
+            'askVolume': this.safeNumber2 (data, 'A', 'askQuantity'),
+            'bid': this.safeNumber2 (data, 'b', 'bidPrice'),
+            'bidVolume': this.safeNumber2 (data, 'B', 'bidQuantity'),
             'info': ticker,
         }, marketResolved);
     }
@@ -519,14 +535,17 @@ export default class mexc extends mexcRest {
         const paramsOmitted: Dict = this.omit (params, [ 'unsubscribed' ]);
         const url = this.urls['api']['ws']['spot'];
         let method: Str = 'SUBSCRIPTION';
-        if (unsubscribed === true) {
+        if (unsubscribed) {
             method = 'UNSUBSCRIPTION';
         }
         const request: Dict = {
             'method': method,
             'params': [ channel ],
         };
-        return await this.watch (url, messageHash, this.extend (request, paramsOmitted), messageHash);
+        const subscription: Dict = {
+            'channel': channel, // the rejection frame names the channel, this maps it back to the hash
+        };
+        return await this.watch (url, messageHash, this.extend (request, paramsOmitted), messageHash, subscription);
     }
 
     async watchSpotPrivate (channel: string, messageHash: string, params: Dict = {}) {
@@ -811,12 +830,15 @@ export default class mexc extends mexcRest {
     }
 
     handleOrderBookSubscription (client: Client, message: Dict) {
-        // spot
+        // the ack echoes the subscribed channel, the market id is always its last segment
+        //
+        //     { id: 0, code: 0, msg: "spot@public.aggre.depth.v3.api.pb@100ms@BTCUSDT" }
         //     { id: 0, code: 0, msg: "spot@public.increase.depth.v3.api@BTCUSDT" }
         //
         const msg = this.safeString (message, 'msg', '');
         const parts = msg.split ('@');
-        const marketId = this.safeString (parts, 2);
+        const partsLength = parts.length; // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
+        const marketId = this.safeString (parts, partsLength - 1);
         const symbol = this.safeSymbol (marketId);
         if (!(symbol in this.orderbooks)) {
             this.orderbooks[symbol] = this.orderBook ({});
@@ -834,7 +856,7 @@ export default class mexc extends mexcRest {
         if ((nonce === undefined) || (firstDeltaNonce === undefined)) {
             return -1;
         }
-        if (nonce < firstDeltaNonce - 1) {
+        if ((nonce !== undefined) && (firstDeltaNonce !== undefined) && (nonce < firstDeltaNonce - 1)) {
             return -1;
         }
         for (let i = 0; i < cache.length; i++) {
@@ -2058,7 +2080,7 @@ export default class mexc extends mexcRest {
         const client = this.client (this.urls['api']['ws']['spot']);
         const messageHash = 'authenticate:listenKey';
         const isFetching = this.safeBool (this.options, 'listenKeyFetching', false);
-        if (isFetching === true) {
+        if (isFetching) {
             await client.future (messageHash);
             return this.safeString (this.options, 'listenKey');
         }
@@ -2122,10 +2144,38 @@ export default class mexc extends mexcRest {
         //        "code": 0,
         //        "msg": "spot@public.increase.depth.v3.api@BTCUSDT"
         //    }
+        //
+        // a rejected subscription answers with code 0 as well, the failure is only in the text
+        //
+        //    {
+        //        "id": 0,
+        //        "code": 0,
+        //        "msg": "Not Subscribed successfully! [spot@public.aggre.depth.v3.api.pb@999ms@BTCUSDT].  Reason： Blocked! "
+        //    }
+        //
         // Set the default to an empty string if the message is empty during the test.
         const msg = this.safeString (message, 'msg', '');
         if (msg === 'PONG') {
             this.handlePong (client, message);
+        } else if (msg.indexOf ('Not Subscribed successfully') > -1) {
+            // the venue names the refused channel between brackets, reject only that watcher
+            // and drop its subscription so a corrected retry sends a new frame
+            const error = new ExchangeError (this.id + ' ' + msg);
+            const subscriptionHashes = Object.keys (client.subscriptions);
+            let rejected = false;
+            for (let i = 0; i < subscriptionHashes.length; i++) {
+                const subscriptionHash = subscriptionHashes[i];
+                const subscribedChannel = this.safeString (client.subscriptions[subscriptionHash], 'channel');
+                if ((subscribedChannel !== undefined) && (msg.indexOf ('[' + subscribedChannel + ']') >= 0)) {
+                    delete client.subscriptions[subscriptionHash];
+                    client.reject (error, subscriptionHash);
+                    rejected = true;
+                }
+            }
+            if (!rejected) {
+                // nothing matched, the caller would hang otherwise
+                client.reject (error);
+            }
         } else if (msg.indexOf ('@') > -1) {
             const parts = msg.split ('@');
             const channel = this.safeString (parts, 1);

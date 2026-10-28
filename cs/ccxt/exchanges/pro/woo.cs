@@ -85,7 +85,7 @@ public partial class woo : ccxt.woo
     public async virtual Task<object> watchPublic(object messageHash, IDictionary<string, object> message)
     {
         string urlUid = "";
-        if (!isEqual(this.uid, ""))
+        if (((this.uid != null)) && (!(this.uid == "")))
         {
             urlUid = ("/" + this.uid);
         }
@@ -102,7 +102,7 @@ public partial class woo : ccxt.woo
     {
         parameters ??= new Dictionary<string, object>();
         string urlUid = "";
-        if (!isEqual(this.uid, ""))
+        if (((this.uid != null)) && (!(this.uid == "")))
         {
             urlUid = ("/" + this.uid);
         }
@@ -156,7 +156,7 @@ public partial class woo : ccxt.woo
         Dictionary<string, object> market = this.market(symbol);
         string? topic = ((string)add(add((market.ContainsKey("id") ? market["id"] : null), "@"), method));
         string urlUid = "";
-        if (!isEqual(this.uid, ""))
+        if (((this.uid != null)) && (!(this.uid == "")))
         {
             urlUid = ("/" + this.uid);
         }
@@ -341,7 +341,8 @@ public partial class woo : ccxt.woo
                 {
                     continue;
                 }
-                if (isLessThan(ts, getValue(orderbook, "timestamp")))
+                Int64? orderbookTimestamp = this.safeInteger(orderbook, "timestamp");
+                if (((orderbookTimestamp != null)) && ((ts < orderbookTimestamp)))
                 {
                     continue;
                 } else
@@ -594,14 +595,14 @@ public partial class woo : ccxt.woo
         //     }
         //
         string? topic = this.safeString(message, "topic");
-        object data = this.safeValue(message, "data");
+        List<object> data = this.safeList(message, "data", new List<object>() {});
         Int64? timestamp = this.safeInteger(message, "ts");
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(data); i++)
+        for (int i = 0; i < data.Count; i++)
         {
-            string? marketId = this.safeString(getValue(data, i), "symbol");
+            string? marketId = this.safeString(data[i], "symbol");
             Dictionary<string, object> market = this.safeMarket(marketId);
-            ccxt.Ticker ticker = this.parseWsTicker(this.extend(getValue(data, i), new Dictionary<string, object>() {
+            ccxt.Ticker ticker = this.parseWsTicker(this.extend(data[i], new Dictionary<string, object>() {
                 { "date", timestamp },
             }), market);
             this.tickers[(string)(market.ContainsKey("symbol") ? market["symbol"] : null)] = ccxt.BaseExchange.FromTicker(ticker);
@@ -1020,7 +1021,7 @@ public partial class woo : ccxt.woo
     public virtual bool checkRequiredUid(bool? error = null)
     {
         error ??= true;
-        if (((this.uid == null)) || (isEqual(this.uid, "")))
+        if (((this.uid == null)) || ((this.uid == "")))
         {
             if (error == true)
             {
@@ -1114,12 +1115,12 @@ public partial class woo : ccxt.woo
         {
             topic = "algoexecutionreportv2";
         }
-        object paramsOmitted = this.omit(parameters, new List<object>() {"stop", "trigger"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"stop", "trigger"}));
         string messageHash = topic;
-        object symbolResolved = ((symbol != null)) ? this.symbol(symbol) : symbol;
+        string? symbolResolved = ((symbol != null)) ? this.symbol(symbol) : null;
         if ((symbolResolved != null))
         {
-            messageHash = messageHash + (":" + (symbolResolved));
+            messageHash = messageHash + (":" + symbolResolved);
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "event", "subscribe" },
@@ -1161,12 +1162,12 @@ public partial class woo : ccxt.woo
         {
             topic = "algoexecutionreportv2";
         }
-        object paramsOmitted = this.omit(parameters, new List<object>() {"stop", "trigger"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"stop", "trigger"}));
         string messageHash = "myTrades";
-        object symbolResolved = ((symbol != null)) ? this.symbol(symbol) : symbol;
+        string? symbolResolved = ((symbol != null)) ? this.symbol(symbol) : null;
         if ((symbolResolved != null))
         {
-            messageHash = messageHash + (":" + (symbolResolved));
+            messageHash = messageHash + (":" + symbolResolved);
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "event", "subscribe" },
@@ -1538,7 +1539,7 @@ public partial class woo : ccxt.woo
             }
         }
         // don't remove the future from the .futures cache
-        if (inOp(client.futures, messageHash))
+        if ((client.futures != null && messageHash != null && client.futures.ContainsKey((string)messageHash)))
         {
             Future future = ((Future)getValue(client.futures, messageHash));
             (future as Future).resolve(cache);
@@ -1652,8 +1653,8 @@ public partial class woo : ccxt.woo
         //    }
         //
         IDictionary<string, object> data = this.safeDict(message, "data");
-        object balances = this.safeValue(data, "balances");
-        List<object> keys = new List<object>(((IDictionary<string,object>)balances).Keys);
+        IDictionary<string, object> balances = this.safeDict(data, "balances", new Dictionary<string, object>() {});
+        List<object> keys = new List<object>(balances.Keys);
         Int64? ts = this.safeInteger(message, "ts");
         this.balance["info"] = data;
         this.balance["timestamp"] = ts;
@@ -1800,7 +1801,7 @@ public partial class woo : ccxt.woo
 
     public override void handleMessage(WebSocketClient client, object message)
     {
-        if (isEqual(this.handleErrorMessage(client, message), true))
+        if ((this.handleErrorMessage(client, message) == true))
         {
             return;
         }

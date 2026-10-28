@@ -2496,7 +2496,7 @@ public class Bybit extends BybitApi
         }
         String strike = this.safeString(optionParts, 2);
         String optionType = this.safeString(optionParts, 3);
-        Object datetime = this.convertExpireDate((String) (expiry));
+        String datetime = (String) this.convertExpireDate((String) (expiry));
         Long timestamp = this.parse8601(datetime);
         Double amountPrecision = null;
         Double pricePrecision = null;
@@ -2575,10 +2575,10 @@ public class Bybit extends BybitApi
 
     public List<Object> getBybitType(Object method, Object market, Map<String, Object> parameters)
     {
-        Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams(method, Helpers.toMapArg(market), parameters, (String) null);
+        Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams(method, ((Map<String, Object>) (switch ((Object) (market)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v8 -> (Map<String, Object>) hx4J40v8; case Object hx4J40v8 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v8.getClass().getName()); })), parameters, (String) null);
         String type = typeparamsMarketTypeVariable.first();
         Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
-        Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams(method, Helpers.toMapArg(market), paramsMarketType, (Object) null);
+        Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams(method, ((Map<String, Object>) (switch ((Object) (market)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v7 -> (Map<String, Object>) hx4J40v7; case Object hx4J40v7 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v7.getClass().getName()); })), paramsMarketType, (Object) null);
         String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
         Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
         if (java.util.Objects.equals(type, "option") || java.util.Objects.equals(type, "spot"))
@@ -2593,7 +2593,7 @@ public class Bybit extends BybitApi
         // some markets like options might not have the precision available
         // and we shouldn't crash in those cases
         Map<String, Object> market = this.market(symbol);
-        Boolean emptyPrecisionAmount = (java.util.Objects.equals(((Map<String, Object>)market.get("precision")).get("amount"), null));
+        Boolean emptyPrecisionAmount = (java.util.Objects.equals(this.safeNumber(market.get("precision"), "amount", (Object) null), null));
         String amountString = this.numberToString(amount);
         if (!Boolean.TRUE.equals(emptyPrecisionAmount) && (!java.util.Objects.equals(amountString, "0")))
         {
@@ -2609,7 +2609,7 @@ public class Bybit extends BybitApi
             return price;
         }
         Map<String, Object> market = this.market(symbol);
-        Boolean emptyPrecisionPrice = (java.util.Objects.equals(((Map<String, Object>)market.get("precision")).get("price"), null));
+        Boolean emptyPrecisionPrice = (java.util.Objects.equals(this.safeNumber(market.get("precision"), "price", (Object) null), null));
         if (!Boolean.TRUE.equals(emptyPrecisionPrice))
         {
             return this.priceToPrecision(symbol, price);
@@ -2620,7 +2620,7 @@ public class Bybit extends BybitApi
     public Object getCost(String symbol, String cost)
     {
         Map<String, Object> market = this.market(symbol);
-        Boolean emptyPrecisionPrice = (java.util.Objects.equals(((Map<String, Object>)market.get("precision")).get("price"), null));
+        Boolean emptyPrecisionPrice = (java.util.Objects.equals(this.safeNumber(market.get("precision"), "price", (Object) null), null));
         if (!Boolean.TRUE.equals(emptyPrecisionPrice))
         {
             return this.costToPrecision(symbol, cost);
@@ -2917,11 +2917,11 @@ public class Bybit extends BybitApi
                 }
             }
             Object promises = (((List<?>)(promisesUnresolved)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
-            Object result = new ArrayList<Object>(Arrays.asList());
+            List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)promises).size(); i++)
             {
                 Object parsedMarket = (promises == null || i < 0 || i >= ((List<?>)promises).size() ? null : ((List<?>)promises).get(i));
-                result = this.arrayConcat(result, parsedMarket);
+                result = (List<Object>) this.arrayConcat(result, parsedMarket);
             }
             // const spotMarkets = this.safeList (promises, 0, []);
             // const linearMarkets = this.safeList (promises, 1, []);
@@ -3013,37 +3013,37 @@ public class Bybit extends BybitApi
                 Double quotePrecision = this.safeNumber(lotSizeFilter, "quotePrecision", (Object) null);
                 String marginTrading = this.safeString(market, "marginTrading", "none");
                 Boolean allowsMargin = !java.util.Objects.equals(marginTrading, "none");
-                ((List<Object>)result).add(this.safeMarketStructure(Helpers.newMap(
-                    "id", id,
-                    "symbol", symbol,
-                    "base", base,
-                    "quote", quote,
-                    "settle", null,
-                    "baseId", baseId,
-                    "quoteId", quoteId,
-                    "settleId", null,
-                    "type", "spot",
-                    "spot", true,
-                    "margin", allowsMargin,
-                    "swap", false,
-                    "future", false,
-                    "option", false,
-                    "active", active,
-                    "contract", false,
-                    "linear", null,
-                    "inverse", null,
-                    "taker", takerFee,
-                    "maker", makerFee,
-                    "contractSize", null,
-                    "expiry", null,
-                    "expiryDatetime", null,
-                    "strike", null,
-                    "optionType", null,
-                    "precision", new HashMap<String, Object>() {{
+                ((List<Object>)result).add(this.safeMarketStructure((switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+                    j39v1.put("id", id);
+                    j39v1.put("symbol", symbol);
+                    j39v1.put("base", base);
+                    j39v1.put("quote", quote);
+                    j39v1.put("settle", null);
+                    j39v1.put("baseId", baseId);
+                    j39v1.put("quoteId", quoteId);
+                    j39v1.put("settleId", null);
+                    j39v1.put("type", "spot");
+                    j39v1.put("spot", true);
+                    j39v1.put("margin", allowsMargin);
+                    j39v1.put("swap", false);
+                    j39v1.put("future", false);
+                    j39v1.put("option", false);
+                    j39v1.put("active", active);
+                    j39v1.put("contract", false);
+                    j39v1.put("linear", null);
+                    j39v1.put("inverse", null);
+                    j39v1.put("taker", takerFee);
+                    j39v1.put("maker", makerFee);
+                    j39v1.put("contractSize", null);
+                    j39v1.put("expiry", null);
+                    j39v1.put("expiryDatetime", null);
+                    j39v1.put("strike", null);
+                    j39v1.put("optionType", null);
+                    j39v1.put("precision", new HashMap<String, Object>() {{
                         put( "amount", Bybit.this.safeNumber(lotSizeFilter, "basePrecision", (Object) null) );
                         put( "price", Bybit.this.safeNumber(priceFilter, "tickSize", quotePrecision) );
-                    }},
-                    "limits", new HashMap<String, Object>() {{
+                    }});
+                    j39v1.put("limits", new HashMap<String, Object>() {{
                         put( "leverage", new HashMap<String, Object>() {{
                             put( "min", Bybit.this.parseNumber("1") );
                             put( "max", null );
@@ -3060,10 +3060,10 @@ public class Bybit extends BybitApi
                             put( "min", Bybit.this.safeNumber(lotSizeFilter, "minOrderAmt", (Object) null) );
                             put( "max", Bybit.this.safeNumber(lotSizeFilter, "maxOrderAmt", (Object) null) );
                         }} );
-                    }},
-                    "created", null,
-                    "info", market
-                )));
+                    }});
+                    j39v1.put("created", null);
+                    j39v1.put("info", market);
+                    yield j39v1; } })));
             }
             return result;
         });
@@ -3220,14 +3220,14 @@ public class Bybit extends BybitApi
                 {
                     type = "future";
                 }
-                Object expiry = null;
+                Long expiry = null;
                 // some swaps have deliveryTime meaning delisting time
                 if (!Boolean.TRUE.equals(swap))
                 {
-                    expiry = this.omitZero(this.safeString(market, "deliveryTime"));
-                    if (!java.util.Objects.equals(expiry, null))
+                    String deliveryTime = this.omitZero(this.safeString(market, "deliveryTime"));
+                    if (!java.util.Objects.equals(deliveryTime, null))
                     {
-                        expiry = Helpers.parseInt(expiry);
+                        expiry = this.parseToInt(deliveryTime);
                     }
                 }
                 String expiryDatetime = this.iso8601(expiry);
@@ -3410,38 +3410,38 @@ public class Bybit extends BybitApi
                 Object loadExpiredOptions = this.handleOption("fetchMarkets", "loadExpiredOptions", (Object) null);
                 if (Boolean.TRUE.equals(isActive) || (java.util.Objects.equals(loadAllOptions, true)) || (java.util.Objects.equals(loadExpiredOptions, true)))
                 {
-                    ((List<Object>)result).add(this.safeMarketStructure(Helpers.newMap(
-                        "id", id,
-                        "symbol", ((((((((((base + "/") + quote) + ":") + settle) + "-") + this.yymmdd(expiry)) + "-") + strike) + "-") + optionLetter),
-                        "base", base,
-                        "quote", quote,
-                        "settle", settle,
-                        "baseId", baseId,
-                        "quoteId", quoteId,
-                        "settleId", settleId,
-                        "type", "option",
-                        "subType", null,
-                        "spot", false,
-                        "margin", false,
-                        "swap", false,
-                        "future", false,
-                        "option", true,
-                        "active", isActive,
-                        "contract", true,
-                        "linear", !Boolean.TRUE.equals(isInverse),
-                        "inverse", isInverse,
-                        "taker", this.safeNumber(market, "takerFee", this.parseNumber("0.0006")),
-                        "maker", this.safeNumber(market, "makerFee", this.parseNumber("0.0001")),
-                        "contractSize", this.parseNumber("1"),
-                        "expiry", expiry,
-                        "expiryDatetime", this.iso8601(expiry),
-                        "strike", this.parseNumber(strike),
-                        "optionType", this.safeStringLower(market, "optionsType"),
-                        "precision", new HashMap<String, Object>() {{
+                    ((List<Object>)result).add(this.safeMarketStructure((switch (0) { default -> { HashMap<String, Object> j39v2 = new HashMap<String, Object>();
+                        j39v2.put("id", id);
+                        j39v2.put("symbol", ((((((((((base + "/") + quote) + ":") + settle) + "-") + this.yymmdd(expiry)) + "-") + strike) + "-") + optionLetter));
+                        j39v2.put("base", base);
+                        j39v2.put("quote", quote);
+                        j39v2.put("settle", settle);
+                        j39v2.put("baseId", baseId);
+                        j39v2.put("quoteId", quoteId);
+                        j39v2.put("settleId", settleId);
+                        j39v2.put("type", "option");
+                        j39v2.put("subType", null);
+                        j39v2.put("spot", false);
+                        j39v2.put("margin", false);
+                        j39v2.put("swap", false);
+                        j39v2.put("future", false);
+                        j39v2.put("option", true);
+                        j39v2.put("active", isActive);
+                        j39v2.put("contract", true);
+                        j39v2.put("linear", !Boolean.TRUE.equals(isInverse));
+                        j39v2.put("inverse", isInverse);
+                        j39v2.put("taker", this.safeNumber(market, "takerFee", this.parseNumber("0.0006")));
+                        j39v2.put("maker", this.safeNumber(market, "makerFee", this.parseNumber("0.0001")));
+                        j39v2.put("contractSize", this.parseNumber("1"));
+                        j39v2.put("expiry", expiry);
+                        j39v2.put("expiryDatetime", this.iso8601(expiry));
+                        j39v2.put("strike", this.parseNumber(strike));
+                        j39v2.put("optionType", this.safeStringLower(market, "optionsType"));
+                        j39v2.put("precision", new HashMap<String, Object>() {{
                             put( "amount", Bybit.this.safeNumber(lotSizeFilter, "qtyStep", (Object) null) );
                             put( "price", Bybit.this.safeNumber(priceFilter, "tickSize", (Object) null) );
-                        }},
-                        "limits", new HashMap<String, Object>() {{
+                        }});
+                        j39v2.put("limits", new HashMap<String, Object>() {{
                             put( "leverage", new HashMap<String, Object>() {{
                                 put( "min", null );
                                 put( "max", null );
@@ -3458,10 +3458,10 @@ public class Bybit extends BybitApi
                                 put( "min", null );
                                 put( "max", null );
                             }} );
-                        }},
-                        "created", this.safeInteger(market, "launchTime"),
-                        "info", market
-                    )));
+                        }});
+                        j39v2.put("created", this.safeInteger(market, "launchTime"));
+                        j39v2.put("info", market);
+                        yield j39v2; } })));
                 }
             }
             return result;
@@ -3706,7 +3706,7 @@ public class Bybit extends BybitApi
                     String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                     // using safeMarket here because if the user provides for instance BTCUSDT and "type": "spot" in params we should
                     // infer the market type from the type provided and not from the conflicting id (BTCUSDT might be swap or spot)
-                    Boolean isExchangeSpecificSymbol = ((((String)symbol).indexOf("/") == -1));
+                    Boolean isExchangeSpecificSymbol = (((String)symbol).indexOf("/") < 0);
                     if (Boolean.TRUE.equals(isExchangeSpecificSymbol))
                     {
                         market = this.safeMarket(symbol, (Map<String, Object>) null, (String) null, defaultType);
@@ -3717,13 +3717,14 @@ public class Bybit extends BybitApi
                     if (java.util.Objects.equals(currentType, null))
                     {
                         currentType = this.safeString(market, "type");
-                    } else if (!java.util.Objects.equals(market.get("type"), currentType))
+                    } else if (!java.util.Objects.equals(this.safeString(market, "type"), currentType))
                     {
                         throw new BadRequest((this.id + " fetchTickers can only accept a list of symbols of the same type")) ;
                     }
                     if (java.util.Objects.equals(market.get("option"), true))
                     {
-                        if (!java.util.Objects.equals(code, null) && !java.util.Objects.equals(code, market.get("base")))
+                        String marketBase = this.safeString(market, "base");
+                        if (!java.util.Objects.equals(code, null) && !java.util.Objects.equals(code, marketBase))
                         {
                             throw new BadRequest((this.id + " fetchTickers the base currency must be the same for all symbols, this endpoint only supports one base currency at a time. Read more about it here: https://bybit-exchange.github.io/docs/v5/market/tickers")) ;
                         }
@@ -3796,7 +3797,7 @@ public class Bybit extends BybitApi
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> tickerList = (List<Object>) this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTickers(tickerList, Helpers.toStringListArg(parsedSymbols), new HashMap<String, Object>() {{}});
+            return this.parseTickers(tickerList, ((List<String>) (switch ((Object) (parsedSymbols)) { case null -> (List<String>) null; case List<?> hx4J40v6 -> (List<String>) hx4J40v6; case Object hx4J40v6 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v6.getClass().getName()); })), new HashMap<String, Object>() {{}});
         }).thenApply(Tickers::new);
 
     }
@@ -3896,7 +3897,7 @@ public class Bybit extends BybitApi
                 // start up to the interval boundary so that the exchange returns
                 // candles from the first bucket at or after `since`
                 Long duration = (((long) this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"))) * 1000L);
-                request.put("start", Helpers.multiply(this.parseToInt(Math.ceil(Double.parseDouble(String.valueOf((((double) since) / ((double) duration)))))), duration));
+                request.put("start", ((this.parseToInt(Math.ceil(Double.parseDouble(String.valueOf((((double) since) / ((double) duration))))))) * duration));
             }
             request.put("limit", limitResolved); // max 1000, default 1000
             Map<String, Object> paramsUntil = null;
@@ -4176,8 +4177,9 @@ public class Bybit extends BybitApi
                 return (this.fetchPaginatedCallDynamic("fetchFundingRateHistory", symbol, since, limit, paramsPaginate, 200L, true)).join();
             }
             Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? 200L : limit;
-            Map<String, Object> request = new HashMap<String, Object>();
-            request.put("limit", limitResolved);
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "limit", limitResolved );
+            }};
             Map<String, Object> market = this.market(symbol);
             Long fundingTimeFrameMins = this.safeInteger(market.get("info"), "fundingInterval");
             String symbolValue = (String) market.get("symbol");
@@ -4210,7 +4212,13 @@ public class Bybit extends BybitApi
                     {
                         fundingInterval = ((fundingTimeFrameMins * 60L) * 1000L);
                     }
-                    request.put("endTime", this.sum(since, Helpers.multiply(limitResolved, fundingInterval)));
+                    if (java.util.Objects.equals(limit, null))
+                    {
+                        request.put("endTime", this.sum(since, (200L * fundingInterval)));
+                    } else
+                    {
+                        request.put("endTime", this.sum(since, (limit * fundingInterval)));
+                    }
                 }
             }
             Map<String, Object> response = (this.publicGetV5MarketFundingHistory(this.extend(request, paramsOmitted))).join();
@@ -4492,11 +4500,13 @@ public class Bybit extends BybitApi
             {
                 feeCurrencyCode = (((java.util.Objects.equals(marketResolved.get("inverse"), true)))) ? marketResolved.get("base") : marketResolved.get("settle");
             }
-            fee = Helpers.newMap(
-                "cost", feeCostString,
-                "currency", this.safeString(trade, "feeCoin", feeCurrencyCode),
-                "rate", feeRateString
-            );
+            {
+                HashMap<String, Object> hx4NewMap0 = new HashMap<String, Object>();
+                hx4NewMap0.put("cost", feeCostString);
+                hx4NewMap0.put("currency", this.safeString(trade, "feeCoin", feeCurrencyCode));
+                hx4NewMap0.put("rate", feeRateString);
+                fee = hx4NewMap0;
+            }
         }
         HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
         mapLiteral6.put("id", id);
@@ -4878,12 +4888,11 @@ public class Bybit extends BybitApi
             var enableUnifiedMargin = ((List<Object>) enableUnifiedMarginenableUnifiedAccountVariable).get(0);
             var enableUnifiedAccount = ((List<Object>) enableUnifiedMarginenableUnifiedAccountVariable).get(1);
             Boolean isUnifiedAccount = (java.util.Objects.equals(enableUnifiedMargin, true)) || (java.util.Objects.equals(enableUnifiedAccount, true));
-            Object type = null;
-            Map<String, Object> paramsMarketType = null;
             // don't use getBybitType here
-            Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchBalance", (Map<String, Object>) null, parameters, (String) null);
-            type = typeparamsMarketTypeVariable.first();
-            paramsMarketType = typeparamsMarketTypeVariable.second();
+            Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchBalance", (Map<String, Object>) null, parameters, (String) null);
+            String marketType = marketTypeparamsMarketTypeVariable.first();
+            Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
+            String type = marketType;
             Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchBalance", (Map<String, Object>) null, paramsMarketType, (Object) null);
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
@@ -5231,7 +5240,7 @@ public class Bybit extends BybitApi
         String amount = null;
         String cost = null;
         Boolean qtyIsQuote = (java.util.Objects.equals(marketResolved.get("spot"), true)) && (java.util.Objects.equals(type, "market")) && ((java.util.Objects.equals(marketUnit, "quoteCoin")) || ((java.util.Objects.equals(marketUnit, null)) && (java.util.Objects.equals(side, "buy"))));
-        if (java.util.Objects.equals(qtyIsQuote, true))
+        if (Boolean.TRUE.equals(qtyIsQuote))
         {
             // qty is denominated in the quote currency, safeOrder derives amount from filled + remaining
             cost = this.safeString(order, "cumExecValue");
@@ -5251,10 +5260,12 @@ public class Bybit extends BybitApi
         String feeCoinId = this.safeString(feeCoins, 0);
         if (!java.util.Objects.equals(feeCoinId, null))
         {
-            fee = Helpers.newMap(
-                "cost", this.safeNumber(cumFeeDetail, feeCoinId, (Object) null),
-                "currency", feeCoinId
-            );
+            {
+                HashMap<String, Object> hx4NewMap1 = new HashMap<String, Object>();
+                hx4NewMap1.put("cost", this.safeNumber(cumFeeDetail, feeCoinId, (Object) null));
+                hx4NewMap1.put("currency", feeCoinId);
+                fee = hx4NewMap1;
+            }
         }
         String clientOrderId = this.safeString(order, "orderLinkId");
         if ((!java.util.Objects.equals(clientOrderId, null)) && (clientOrderId.length() < 1))
@@ -5362,7 +5373,7 @@ public class Bybit extends BybitApi
 
     /**
      * @method
-     * @name bybit#createMarkeSellOrderWithCost
+     * @name bybit#createMarketSellOrderWithCost
      * @description create a market sell order by providing the symbol and cost
      * @see https://bybit-exchange.github.io/docs/v5/order/create-order
      * @param {string} symbol unified symbol of the market to create an order in
@@ -5380,7 +5391,7 @@ public class Bybit extends BybitApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Object types = (this.isUnifiedEnabled(new HashMap<String, Object>() {{}})).join();
-            Object enableUnifiedAccount = (types == null || 1 >= ((List<?>)types).size() ? null : ((List<?>)types).get(1));
+            Object enableUnifiedAccount = ((List<Object>)types).get(1);
             if (!java.util.Objects.equals(enableUnifiedAccount, true))
             {
                 throw new NotSupported((this.id + " createMarketSellOrderWithCost() supports UTA accounts only")) ;
@@ -5445,14 +5456,14 @@ public class Bybit extends BybitApi
             }
             Map<String, Object> market = this.market(symbol);
             Object parts = (this.isUnifiedEnabled(new HashMap<String, Object>() {{}})).join();
-            Object enableUnifiedAccount = (parts == null || 1 >= ((List<?>)parts).size() ? null : ((List<?>)parts).get(1));
+            Object enableUnifiedAccount = ((List<Object>)parts).get(1);
             Boolean isTrailingOrder = !java.util.Objects.equals(this.safeString2(parameters, "trailingAmount", "trailingStop"), null);
             Boolean isStopLossOrder = !java.util.Objects.equals(this.safeString(parameters, "stopLossPrice"), null);
             Boolean isTakeProfitOrder = !java.util.Objects.equals(this.safeString(parameters, "takeProfitPrice"), null);
             Map<String, Object> orderRequest = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters, enableUnifiedAccount);
             Boolean switchToOco = (Boolean.TRUE.equals(isStopLossOrder) && Boolean.TRUE.equals(isTakeProfitOrder)) || Boolean.TRUE.equals(this.safeBool(parameters, "tradingStopEndpoint", false));
             String defaultMethod = null;
-            if ((Boolean.TRUE.equals(isTrailingOrder) || (java.util.Objects.equals(switchToOco, true))) && (!java.util.Objects.equals(market.get("spot"), true)))
+            if ((Boolean.TRUE.equals(isTrailingOrder) || Boolean.TRUE.equals(switchToOco)) && (!java.util.Objects.equals(market.get("spot"), true)))
             {
                 defaultMethod = "privatePostV5PositionTradingStop";
             } else
@@ -5522,7 +5533,7 @@ public class Bybit extends BybitApi
         Boolean isBuy = java.util.Objects.equals(side, "buy");
         Boolean switchToOco = (Boolean.TRUE.equals(isStopLossOrder) && Boolean.TRUE.equals(isTakeProfitOrder)) || Boolean.TRUE.equals(this.safeBool(parameters, "tradingStopEndpoint", false));
         String defaultMethod = null;
-        if (Boolean.TRUE.equals(isTrailingOrder) || (java.util.Objects.equals(switchToOco, true)))
+        if (Boolean.TRUE.equals(isTrailingOrder) || Boolean.TRUE.equals(switchToOco))
         {
             defaultMethod = "privatePostV5PositionTradingStop";
         } else
@@ -5622,10 +5633,10 @@ public class Bybit extends BybitApi
             request.put("orderType", this.capitalize(lowerCaseType));
             String timeInForce = this.safeStringLower(query, "timeInForce"); // this is same as exchange specific param
             Boolean postOnly = null;
-            List<Object> postOnlyqueryVariable = (List<Object>) this.handlePostOnly(isMarket, java.util.Objects.equals(timeInForce, "postonly"), Helpers.toMapArg(query));
+            List<Object> postOnlyqueryVariable = (List<Object>) this.handlePostOnly(isMarket, java.util.Objects.equals(timeInForce, "postonly"), ((Map<String, Object>) (switch ((Object) (query)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v5 -> (Map<String, Object>) hx4J40v5; case Object hx4J40v5 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v5.getClass().getName()); })));
             postOnly = (Boolean) ((List<Object>) postOnlyqueryVariable).get(0);
             query = ((List<Object>) postOnlyqueryVariable).get(1);
-            if (java.util.Objects.equals(postOnly, true))
+            if (Boolean.TRUE.equals(postOnly))
             {
                 request.put("timeInForce", "PostOnly");
             } else if (java.util.Objects.equals(timeInForce, "gtc"))
@@ -5664,7 +5675,7 @@ public class Bybit extends BybitApi
             }
         }
         String category = null;
-        var categoryqueryVariable = this.getBybitType("createOrderRequest", market, Helpers.toMapArg(query));
+        var categoryqueryVariable = this.getBybitType("createOrderRequest", market, ((Map<String, Object>) (switch ((Object) (query)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v4 -> (Map<String, Object>) hx4J40v4; case Object hx4J40v4 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v4.getClass().getName()); })));
         category = (String) ((List<Object>) categoryqueryVariable).get(0);
         query = ((List<Object>) categoryqueryVariable).get(1);
         request.put("category", category);
@@ -5834,7 +5845,7 @@ public class Bybit extends BybitApi
                 }
             }
         }
-        if ((!java.util.Objects.equals(market.get("spot"), true)) && (java.util.Objects.equals(hedged, true)))
+        if ((!java.util.Objects.equals(market.get("spot"), true)) && Boolean.TRUE.equals(hedged))
         {
             if (java.util.Objects.equals(reduceOnly, true))
             {
@@ -5874,7 +5885,7 @@ public class Bybit extends BybitApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Object accounts = (this.isUnifiedEnabled(new HashMap<String, Object>() {{}})).join();
-            Object isUta = (accounts == null || 1 >= ((List<?>)accounts).size() ? null : ((List<?>)accounts).get(1));
+            Object isUta = ((List<Object>)accounts).get(1);
             List<Object> ordersRequests = new ArrayList<Object>(Arrays.asList());
             List<String> orderSymbols = new ArrayList<String>(Arrays.asList());
             for (var i = 0; i < ((List<?>)orders).size(); i++)
@@ -6140,8 +6151,8 @@ public class Bybit extends BybitApi
                 ((Map<String,Object>)orderRequest).remove("category");
                 ((List<Object>)ordersRequests).add(orderRequest);
             }
-            orderSymbols = this.marketSymbols(orderSymbols, (Object) null, false, true, true);
-            Map<String, Object> market = this.market((orderSymbols == null || 0 >= ((List<?>)orderSymbols).size() ? null : ((List<?>)orderSymbols).get(0)));
+            List<String> symbols = this.marketSymbols(orderSymbols, (Object) null, false, true, true);
+            Map<String, Object> market = this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
             Long unifiedMarginStatus = this.safeInteger(this.options, "unifiedMarginStatus", 6);
             var categoryparamsValueVariable = this.getBybitType("editOrders", market, parameters);
             String category = (String) ((List<Object>) categoryparamsValueVariable).get(0);
@@ -6218,7 +6229,7 @@ public class Bybit extends BybitApi
         {
             // only works for spot market
             Boolean isTrigger = (Boolean) this.safeBool2(parameters, "stop", "trigger", false);
-            request.put("orderFilter", (((java.util.Objects.equals(isTrigger, true)))) ? "StopOrder" : "Order");
+            request.put("orderFilter", ((Boolean.TRUE.equals(isTrigger))) ? "StopOrder" : "Order");
         }
         if (!java.util.Objects.equals(id, null))
         {
@@ -6259,7 +6270,7 @@ public class Bybit extends BybitApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            Object requestExtended = this.cancelOrderRequest(id, symbol, parameters);
+            Map<String, Object> requestExtended = (Map<String, Object>) this.cancelOrderRequest(id, symbol, parameters);
             Map<String, Object> response = (this.privatePostV5OrderCancel(requestExtended)).join();
             //
             //     {
@@ -6305,7 +6316,7 @@ public class Bybit extends BybitApi
             }
             Map<String, Object> market = this.market(symbol);
             Object types = (this.isUnifiedEnabled(new HashMap<String, Object>() {{}})).join();
-            Object enableUnifiedAccount = (types == null || 1 >= ((List<?>)types).size() ? null : ((List<?>)types).get(1));
+            Object enableUnifiedAccount = ((List<Object>)types).get(1);
             if (!java.util.Objects.equals(enableUnifiedAccount, true))
             {
                 throw new NotSupported((this.id + " cancelOrders() supports UTA accounts only")) ;
@@ -6322,17 +6333,17 @@ public class Bybit extends BybitApi
             Map<String, Object> paramsOmitted = this.omit(paramsValue, new ArrayList<Object>(Arrays.asList("clientOrderIds", "clientOids")));
             for (var i = 0; i < ((List<?>)clientOrderIds).size(); i++)
             {
-                ((List<Object>)ordersRequests).add(Helpers.newMap(
-                    "symbol", market.get("id"),
-                    "orderLinkId", this.safeString(clientOrderIds, i)
-                ));
+                ((List<Object>)ordersRequests).add((switch (0) { default -> { HashMap<String, Object> j39v4 = new HashMap<String, Object>();
+                    j39v4.put("symbol", market.get("id"));
+                    j39v4.put("orderLinkId", this.safeString(clientOrderIds, i));
+                    yield j39v4; } }));
             }
             for (var i = 0; i < ((List<?>)ids).size(); i++)
             {
-                ((List<Object>)ordersRequests).add(Helpers.newMap(
-                    "symbol", market.get("id"),
-                    "orderId", this.safeString(ids, i)
-                ));
+                ((List<Object>)ordersRequests).add((switch (0) { default -> { HashMap<String, Object> j39v3 = new HashMap<String, Object>();
+                    j39v3.put("symbol", market.get("id"));
+                    j39v3.put("orderId", this.safeString(ids, i));
+                    yield j39v3; } }));
             }
             Map<String, Object> request = new HashMap<String, Object>();
             request.put("category", category);
@@ -6404,7 +6415,7 @@ public class Bybit extends BybitApi
                 throw new ExchangeError((this.id + " cancelAllOrdersAfter() missing timeout")) ;
             }
             Map<String, Object> request = new HashMap<String, Object>();
-            request.put("timeWindow", this.parseToInt(Helpers.divide(timeout, 1000)));
+            request.put("timeWindow", this.parseToInt((timeout == null ? null : ((Number) timeout).doubleValue() / 1000)));
             Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("cancelAllOrdersAfter", (Map<String, Object>) null, parameters, "swap");
             String type = typeparamsMarketTypeVariable.first();
             Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
@@ -6446,7 +6457,7 @@ public class Bybit extends BybitApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Object types = (this.isUnifiedEnabled(new HashMap<String, Object>() {{}})).join();
-            Object enableUnifiedAccount = (types == null || 1 >= ((List<?>)types).size() ? null : ((List<?>)types).get(1));
+            Object enableUnifiedAccount = ((List<Object>)types).get(1);
             if (!java.util.Objects.equals(enableUnifiedAccount, true))
             {
                 throw new NotSupported((this.id + " cancelOrdersForSymbols() supports UTA accounts only")) ;
@@ -6461,7 +6472,7 @@ public class Bybit extends BybitApi
                 String symbol = this.safeString(order, "symbol");
                 Map<String, Object> market = this.market(symbol);
                 String currentCategory = null;
-                var currentCategoryqueryVariable = this.getBybitType("cancelOrders", market, Helpers.toMapArg(query));
+                var currentCategoryqueryVariable = this.getBybitType("cancelOrders", market, ((Map<String, Object>) (switch ((Object) (query)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v2 -> (Map<String, Object>) hx4J40v2; case Object hx4J40v2 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v2.getClass().getName()); })));
                 currentCategory = (String) ((List<Object>) currentCategoryqueryVariable).get(0);
                 query = ((List<Object>) currentCategoryqueryVariable).get(1);
                 if (java.util.Objects.equals(currentCategory, "inverse"))
@@ -6586,7 +6597,7 @@ public class Bybit extends BybitApi
             }
             Boolean isTrigger = (Boolean) this.safeBool2(paramsValue, "stop", "trigger", false);
             Map<String, Object> paramsOmitted = this.omit(paramsValue, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
-            if (java.util.Objects.equals(isTrigger, true))
+            if (Boolean.TRUE.equals(isTrigger))
             {
                 request.put("orderFilter", "StopOrder");
             }
@@ -6668,14 +6679,14 @@ public class Bybit extends BybitApi
             if (java.util.Objects.equals(length, 0))
             {
                 Boolean isTrigger = (Boolean) this.safeBool2(parameters, "trigger", "stop", false);
-                String extra = (((java.util.Objects.equals(isTrigger, true)))) ? "" : " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true";
+                String extra = ((Boolean.TRUE.equals(isTrigger))) ? "" : " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true";
                 throw new OrderNotFound(((("Order " + String.valueOf(id)) + " was not found.") + extra)) ;
             }
             if ((length != null && length > 1))
             {
                 throw new InvalidOrder((this.id + " returned more than one order")) ;
             }
-            return this.safeValue(result, 0);
+            return this.safeDict(result, 0, (Object) null);
         });
 
     }
@@ -6852,7 +6863,7 @@ public class Bybit extends BybitApi
             request.put("category", type);
             Boolean isTrigger = (Boolean) this.safeBool2(paramsValue, "trigger", "stop", false);
             Map<String, Object> paramsOmitted = this.omit(paramsValue, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
-            if (java.util.Objects.equals(isTrigger, true))
+            if (Boolean.TRUE.equals(isTrigger))
             {
                 request.put("orderFilter", "StopOrder");
             }
@@ -6960,14 +6971,15 @@ public class Bybit extends BybitApi
             if (java.util.Objects.equals(length, 0))
             {
                 Boolean isTrigger = (Boolean) this.safeBool2(parameters, "trigger", "stop", false);
-                String extra = (((java.util.Objects.equals(isTrigger, true)))) ? "" : " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true";
+                String extra = ((Boolean.TRUE.equals(isTrigger))) ? "" : " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true";
                 throw new OrderNotFound(((("Order " + String.valueOf(id)) + " was not found.") + extra)) ;
             }
             if ((length != null && length > 1))
             {
                 throw new InvalidOrder((this.id + " returned more than one order")) ;
             }
-            return this.safeValue(result, 0);
+            Map<String, Object> order = (Map<String, Object>) this.safeDict(result, 0, (Object) null);
+            return order;
         });
 
     }
@@ -7006,14 +7018,15 @@ public class Bybit extends BybitApi
             if (java.util.Objects.equals(length, 0))
             {
                 Boolean isTrigger = (Boolean) this.safeBool2(parameters, "trigger", "stop", false);
-                String extra = (((java.util.Objects.equals(isTrigger, true)))) ? "" : " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true";
+                String extra = ((Boolean.TRUE.equals(isTrigger))) ? "" : " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true";
                 throw new OrderNotFound(((("Order " + String.valueOf(id)) + " was not found.") + extra)) ;
             }
             if ((length != null && length > 1))
             {
                 throw new InvalidOrder((this.id + " returned more than one order")) ;
             }
-            return this.safeValue(result, 0);
+            Map<String, Object> order = (Map<String, Object>) this.safeDict(result, 0, (Object) null);
+            return order;
         });
 
     }
@@ -7065,7 +7078,7 @@ public class Bybit extends BybitApi
             request.put("category", type);
             Boolean isTrigger = (Boolean) this.safeBool2(paramsValue, "trigger", "stop", false);
             Map<String, Object> paramsOmitted = this.omit(paramsValue, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
-            if (java.util.Objects.equals(isTrigger, true))
+            if (Boolean.TRUE.equals(isTrigger))
             {
                 request.put("orderFilter", "StopOrder");
             }
@@ -7283,7 +7296,7 @@ public class Bybit extends BybitApi
             request.put("category", type);
             Boolean isTrigger = (Boolean) this.safeBool2(paramsValue, "stop", "trigger", false);
             Map<String, Object> paramsOmitted = this.omit(paramsValue, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
-            if (java.util.Objects.equals(isTrigger, true))
+            if (Boolean.TRUE.equals(isTrigger))
             {
                 request.put("orderFilter", "StopOrder");
             }
@@ -7545,7 +7558,7 @@ public class Bybit extends BybitApi
             Map<String, Object> paramsNetworkCode = (Map<String, Object>) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(1);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                request.put("chainType", this.networkCodeToId(networkCode, Helpers.toStringArg(code)));
+                request.put("chainType", this.networkCodeToId(networkCode, java.util.Objects.toString(code, null)));
             }
             Map<String, Object> response = (this.privateGetV5AssetDepositQueryAddress(this.extend(request, paramsNetworkCode))).join();
             //
@@ -7603,7 +7616,7 @@ public class Bybit extends BybitApi
             Map<String, Object> paramsOmited = (Map<String, Object>) ((List<Object>) networkCodeparamsOmitedVariable).get(1);
             Object indexedAddresses = (this.fetchDepositAddressesByNetwork(code, paramsOmited)).join();
             Object selectedNetworkCode = this.selectNetworkKeyFromNetworks(currency.get("code"), networkCode, indexedAddresses, true);
-            return this.safeValue(indexedAddresses, selectedNetworkCode);
+            return this.safeDict(indexedAddresses, selectedNetworkCode, (Object) null);
         }).thenApply(DepositAddress::new);
 
     }
@@ -7861,10 +7874,12 @@ public class Bybit extends BybitApi
         Map<String, Object> fee = null;
         if (!java.util.Objects.equals(feeCost, null))
         {
-            fee = Helpers.newMap(
-                "cost", feeCost,
-                "currency", code
-            );
+            {
+                HashMap<String, Object> hx4NewMap2 = new HashMap<String, Object>();
+                hx4NewMap2.put("cost", feeCost);
+                hx4NewMap2.put("currency", code);
+                fee = hx4NewMap2;
+            }
         }
         String toAddress = this.safeString(transaction, "toAddress");
         {
@@ -7927,7 +7942,7 @@ public class Bybit extends BybitApi
             Object enableUnified = (this.isUnifiedEnabled(new HashMap<String, Object>() {{}})).join();
             Map<String, Object> currency = null;
             String currencyKey = "coin";
-            if (java.util.Objects.equals((enableUnified == null || 1 >= ((List<?>)enableUnified).size() ? null : ((List<?>)enableUnified).get(1)), true))
+            if (java.util.Objects.equals(((List<Object>)enableUnified).get(1), true))
             {
                 currencyKey = "currency";
                 if (!java.util.Objects.equals(since, null))
@@ -7954,7 +7969,7 @@ public class Bybit extends BybitApi
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
             Map<String, Object> response = null;
-            if (java.util.Objects.equals((enableUnified == null || 1 >= ((List<?>)enableUnified).size() ? null : ((List<?>)enableUnified).get(1)), true))
+            if (java.util.Objects.equals(((List<Object>)enableUnified).get(1), true))
             {
                 Long unifiedMarginStatus = this.safeInteger(this.options, "unifiedMarginStatus", 5); // 3/4 uta 1.0, 5/6 uta 2.0
                 if (java.util.Objects.equals(subType, "inverse") && (((unifiedMarginStatus == null || unifiedMarginStatus < 5))))
@@ -8169,7 +8184,7 @@ public class Bybit extends BybitApi
         return this.safeLedgerEntry(mapLiteral9, currencyResolved);
     }
 
-    public Object parseLedgerEntryType(String type)
+    public String parseLedgerEntryType(String type)
     {
         Map<String, Object> types = new HashMap<String, Object>() {{
             put( "Deposit", "transaction" );
@@ -8217,7 +8232,7 @@ public class Bybit extends BybitApi
             String tagWithdrawTag = (String) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(0);
             Map<String, Object> paramsWithdrawTag = (Map<String, Object>) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(1);
             Object accounts = (this.isUnifiedEnabled(new HashMap<String, Object>() {{}})).join();
-            Object isUta = (accounts == null || 1 >= ((List<?>)accounts).size() ? null : ((List<?>)accounts).get(1));
+            Object isUta = ((List<Object>)accounts).get(1);
             Pair<String, Map<String, Object>> accountTypeOptionparamsAccountTypeVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsWithdrawTag), "withdraw", "accountType", (String) null);
             String accountTypeOption = accountTypeOptionparamsAccountTypeVariable.first();
             Map<String, Object> paramsAccountType = accountTypeOptionparamsAccountTypeVariable.second();
@@ -8476,7 +8491,7 @@ public class Bybit extends BybitApi
             for (var i = 0; i < ((List<?>)positions).size(); i++)
             {
                 Object rawPosition = (positions == null || i < 0 || i >= ((List<?>)positions).size() ? null : ((List<?>)positions).get(i));
-                if ((Helpers.inOp(rawPosition, "data")) && (Helpers.inOp(rawPosition, "is_valid")))
+                if (((switch ((Object)(rawPosition)) { case List<?> j39v8 -> j39v8.contains("data"); case Map<?, ?> j39v7 -> j39v7.containsKey("data"); case null, default -> false; })) && ((switch ((Object)(rawPosition)) { case List<?> j39v6 -> j39v6.contains("is_valid"); case Map<?, ?> j39v5 -> j39v5.containsKey("is_valid"); case null, default -> false; })))
                 {
                     // futures only
                     rawPosition = this.safeDict(rawPosition, "data", (Object) null);
@@ -8672,13 +8687,24 @@ public class Bybit extends BybitApi
         {
             lastUpdateTimestamp = (Long) this.safeInteger2(position, "updatedTime", "updatedAt");
         }
-        String collateralString = this.safeString(position, "positionBalance");
+        // positionBalance is position margin excluding uPnL (deprecated, often '' on UTA)
+        String positionMarginString = this.omitZero(this.safeString(position, "positionBalance"));
+        String collateralString = null;
+        if (!java.util.Objects.equals(positionMarginString, null))
+        {
+            collateralString = positionMarginString;
+            if (!java.util.Objects.equals(unrealisedPnl, null))
+            {
+                collateralString = Precise.stringAdd(positionMarginString, unrealisedPnl);
+            }
+        }
         String entryPrice = this.omitZero(this.safeStringN(position, new ArrayList<Object>(Arrays.asList("entryPrice", "avgPrice", "avgEntryPrice"))));
         String liquidationPrice = this.omitZero(this.safeString(position, "liqPrice"));
         String leverage = this.safeString(position, "leverage");
         if (!java.util.Objects.equals(liquidationPrice, null))
         {
-            if (java.util.Objects.equals(marketResolved.get("settle"), "USDC"))
+            String settle = this.safeString(marketResolved, "settle");
+            if (java.util.Objects.equals(settle, "USDC"))
             {
                 //  (Entry price - Liq price) * Contracts + Maintenance Margin + (unrealised pnl) = Collateral
                 Boolean useMarkPrice = (Boolean) this.safeBool(this.options, "useMarkPriceForPositionCollateral", false);
@@ -8689,21 +8715,30 @@ public class Bybit extends BybitApi
                 }
                 Object difference = Precise.stringAbs(Precise.stringSub(price, liquidationPrice));
                 collateralString = Precise.stringAdd(Precise.stringAdd(Precise.stringMul(difference, size), maintenanceMarginString), unrealisedPnl);
+                positionMarginString = null; // derived from collateral by safePosition
             } else
             {
-                String bustPrice = this.safeString(position, "bustPrice");
+                String bustPrice = this.omitZero(this.safeString(position, "bustPrice"));
+                String closingFee = this.omitZero(this.safeString(position, "occClosingFee"));
                 if (java.util.Objects.equals(marketResolved.get("linear"), true))
                 {
-                    // derived from the following formulas
+                    // derived from the following formula:
                     //  (Entry price - Bust price) * Contracts = Collateral
                     //  (Entry price - Liq price) * Contracts = Collateral - Maintenance Margin
                     // Maintenance Margin = (Bust price - Liq price) x Contracts
-                    String maintenanceMarginPriceDifference = Precise.stringAbs(Precise.stringSub(liquidationPrice, bustPrice));
-                    maintenanceMarginString = Precise.stringMul(maintenanceMarginPriceDifference, size);
-                    // Initial Margin = Contracts x Entry Price / Leverage
+                    if ((java.util.Objects.equals(maintenanceMarginString, null)) && (!java.util.Objects.equals(bustPrice, null)) && !Precise.stringEq(bustPrice, liquidationPrice))
+                    {
+                        String maintenanceMarginPriceDifference = Precise.stringAbs(Precise.stringSub(liquidationPrice, bustPrice));
+                        maintenanceMarginString = Precise.stringMul(maintenanceMarginPriceDifference, size);
+                    }
+                    // Initial Margin = Contracts x Entry Price / Leverage + Closing Fee
                     if ((!java.util.Objects.equals(entryPrice, null)) && (java.util.Objects.equals(initialMarginString, null)))
                     {
                         initialMarginString = Precise.stringDiv(Precise.stringMul(size, entryPrice), leverage);
+                        if (!java.util.Objects.equals(closingFee, null))
+                        {
+                            initialMarginString = Precise.stringAdd(initialMarginString, closingFee);
+                        }
                     }
                 } else
                 {
@@ -8711,13 +8746,20 @@ public class Bybit extends BybitApi
                     // Contracts * (1 / Entry price - 1 / Liq price) = Collateral - Maintenance Margin
                     // Maintenance Margin = Contracts * (1 / Liq price - 1 / Bust price)
                     // Maintenance Margin = Contracts * (Bust price - Liq price) / (Liq price x Bust price)
-                    Object difference = Precise.stringAbs(Precise.stringSub(bustPrice, liquidationPrice));
-                    String multiply = Precise.stringMul(bustPrice, liquidationPrice);
-                    maintenanceMarginString = Precise.stringDiv(Precise.stringMul(size, difference), multiply);
-                    // Initial Margin = Leverage x Contracts / EntryPrice
+                    if ((java.util.Objects.equals(maintenanceMarginString, null)) && (!java.util.Objects.equals(bustPrice, null)) && !Precise.stringEq(bustPrice, liquidationPrice))
+                    {
+                        Object difference = Precise.stringAbs(Precise.stringSub(bustPrice, liquidationPrice));
+                        String multiply = Precise.stringMul(bustPrice, liquidationPrice);
+                        maintenanceMarginString = Precise.stringDiv(Precise.stringMul(size, difference), multiply);
+                    }
+                    // Initial Margin = Contracts / (EntryPrice x Leverage) + Closing Fee
                     if ((!java.util.Objects.equals(entryPrice, null)) && (java.util.Objects.equals(initialMarginString, null)))
                     {
                         initialMarginString = Precise.stringDiv(size, Precise.stringMul(entryPrice, leverage));
+                        if (!java.util.Objects.equals(closingFee, null))
+                        {
+                            initialMarginString = Precise.stringAdd(initialMarginString, closingFee);
+                        }
                     }
                 }
             }
@@ -8747,6 +8789,7 @@ public class Bybit extends BybitApi
         mapLiteral10.put("markPrice", this.parseNumber(markPrice));
         mapLiteral10.put("lastPrice", this.safeNumber(position, "avgExitPrice", (Object) null));
         mapLiteral10.put("collateral", this.parseNumber(collateralString));
+        mapLiteral10.put("positionMargin", this.parseNumber(positionMarginString));
         mapLiteral10.put("marginMode", null);
         mapLiteral10.put("side", side);
         mapLiteral10.put("percentage", null);
@@ -8843,7 +8886,8 @@ public class Bybit extends BybitApi
                     throw new ArgumentsRequired((this.id + " setMarginMode() requires a symbol parameter for non unified account")) ;
                 }
                 market = this.market(symbol);
-                Boolean isUsdcSettled = java.util.Objects.equals(market.get("settle"), "USDC");
+                String marketSettle = this.safeString(market, "settle");
+                Boolean isUsdcSettled = java.util.Objects.equals(marketSettle, "USDC");
                 if (Boolean.TRUE.equals(isUsdcSettled))
                 {
                     if ((!java.util.Objects.equals(marginMode, "cross")) && (!java.util.Objects.equals(marginMode, "portfolio")))
@@ -9073,8 +9117,13 @@ public class Bybit extends BybitApi
             {
                 // the endpoint walks backwards from endTime and ignores a lone startTime
                 int duration = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1h"));
-                Long requestedLimit = (((java.util.Objects.equals(limit, null)))) ? 50L : limit; // exchange default
-                request.put("endTime", this.sum(since, ((duration * requestedLimit) * 1000L)));
+                if (java.util.Objects.equals(limit, null))
+                {
+                    request.put("endTime", this.sum(since, ((((long) duration) * 50L) * 1000L))); // exchange default
+                } else
+                {
+                    request.put("endTime", this.sum(since, ((((long) duration) * limit) * 1000L)));
+                }
             }
             if (!java.util.Objects.equals(limit, null))
             {
@@ -9321,7 +9370,7 @@ public class Bybit extends BybitApi
             Map<String, Object> firstVip = (Map<String, Object>) this.safeDict(vipCoinList, 0, new HashMap<String, Object>() {{}});
             List<Object> coins = (List<Object>) this.safeList(firstVip, "list", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> coin = (Map<String, Object>) this.safeDict(coins, 0, new HashMap<String, Object>() {{}});
-            Helpers.addElementToObject(coin, "timestamp", timestamp);
+            coin.put("timestamp", timestamp);
             return this.parseBorrowRate(coin, currency);
         }).thenApply(CrossBorrowRate::new);
 
@@ -9447,13 +9496,13 @@ public class Bybit extends BybitApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency", currency.get("id") );
             }};
-            Object sinceResolved = (((java.util.Objects.equals(since, null)))) ? (this.milliseconds() - (86400000L * 30L)) : since; // last 30 days
+            Object sinceResolved = (((java.util.Objects.equals(since, null)))) ? (this.milliseconds() - 2592000000L) : since; // last 30 days
             request.put("startTime", sinceResolved);
             Object endTime = this.safeInteger2(parameters, "until", "endTime");
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
             if (java.util.Objects.equals(endTime, null))
             {
-                endTime = Helpers.add(sinceResolved, (86400000L * 30L)); // since + 30 days
+                endTime = ((Object) (switch ((Object) (sinceResolved)) { case null -> (Object) null; case Long hx4J40v0 -> (Object) (hx4J40v0 + 2592000000L); case Integer hx4J40v0 -> (Object) (hx4J40v0.longValue() + 2592000000L); case Double hx4J40v0 -> (Object) (hx4J40v0 + ((double) 2592000000L)); case String hx4J40v0 -> (Object) (hx4J40v0 + "2592000000"); default -> (Object) null; })); // since + 30 days
             }
             request.put("endTime", endTime);
             Map<String, Object> response = (this.privateGetV5SpotMarginTradeInterestRateHistory(this.extend(request, paramsOmitted))).join();
@@ -9534,7 +9583,7 @@ public class Bybit extends BybitApi
             String fromId = this.safeString(accountTypes, fromAccount, fromAccount);
             String toId = this.safeString(accountTypes, toAccount, toAccount);
             Map<String, Object> currency = this.currency((String) (code));
-            Object amountToPrecision = this.currencyToPrecision((String) (code), amount, (String) null);
+            String amountToPrecision = (String) this.currencyToPrecision((String) (code), amount, (String) null);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "transferId", transferId );
                 put( "fromAccountType", fromId );
@@ -10220,7 +10269,7 @@ public class Bybit extends BybitApi
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> data = (List<Object>) this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
-            Object settlements = this.parseSettlements(data, (Map<String, Object>) (market));
+            List<Object> settlements = (List<Object>) this.parseSettlements(data, (Map<String, Object>) (market));
             List<Object> sorted = this.sortBy(settlements, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, this.safeString(market, "symbol"), since, limit, false);
         });
@@ -10295,7 +10344,7 @@ public class Bybit extends BybitApi
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> data = (List<Object>) this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
-            Object settlements = this.parseSettlements(data, (Map<String, Object>) (market));
+            List<Object> settlements = (List<Object>) this.parseSettlements(data, (Map<String, Object>) (market));
             List<Object> sorted = this.sortBy(settlements, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, this.safeString(market, "symbol"), since, limit, false);
         });
@@ -10509,7 +10558,7 @@ public class Bybit extends BybitApi
             Long timestamp = this.safeInteger(response, "time");
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> data = (List<Object>) this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
-            Object greeks = this.parseGreeks((Map<String, Object>) ((data == null || 0 >= ((List<?>)data).size() ? null : ((List<?>)data).get(0))), market);
+            Map<String, Object> greeks = (Map<String, Object>) this.parseGreeks((Map<String, Object>) ((data == null || 0 >= ((List<?>)data).size() ? null : ((List<?>)data).get(0))), market);
             return this.extend(greeks, new HashMap<String, Object>() {{
                 put( "timestamp", timestamp );
                 put( "datetime", Bybit.this.iso8601(timestamp) );
@@ -10846,7 +10895,7 @@ public class Bybit extends BybitApi
         put( "nextPageCursor", cursorValue );
     }});
             Helpers.addElementToObject(result, lastIndex, last);
-            return result;
+            return this.toArray(result);
         });
 
     }
@@ -10917,7 +10966,7 @@ public class Bybit extends BybitApi
         {
             String marketId = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             Object entry = (grouped == null || marketId == null ? null : grouped.get(marketId));
-            for (var j = 0; j < Helpers.getArrayLength(entry); j++)
+            for (var j = 0; j < (switch ((Object)(entry)) { case null -> 0; case List<?> j39v9 -> j39v9.size(); case String j39v10 -> j39v10.length(); case Object j39v11 -> j39v11.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v11) : 0; }); j++)
             {
                 Long id = this.safeInteger(Helpers.GetValue(entry, j), "id");
                 Helpers.addElementToObject(Helpers.GetValue(entry, j), "id", id);
@@ -10945,26 +10994,26 @@ public class Bybit extends BybitApi
         //  ]
         //
         List<Object> tiers = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < Helpers.getArrayLength(info); i++)
+        for (var i = 0; i < (switch ((Object)(info)) { case null -> 0; case List<?> j39v13 -> j39v13.size(); case String j39v14 -> j39v14.length(); case Object j39v15 -> j39v15.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v15) : 0; }); i++)
         {
             Map<String, Object> tier = (Map<String, Object>) this.safeDict(info, i, (Object) null);
-            String marketId = this.safeString(info, "symbol");
-            Map<String, Object> marketResolved = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+            String marketId = this.safeString(tier, "symbol");
+            Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, "contract");
             Double minNotional = this.parseNumber("0");
             if ((i != 0))
             {
                 minNotional = this.safeNumber(Helpers.GetValue(info, (((long) i) - 1L)), "riskLimitValue", (Object) null);
             }
-            ((List<Object>)tiers).add(Helpers.newMap(
-                "tier", this.safeInteger(tier, "id"),
-                "symbol", this.safeSymbol(marketId, marketResolved, (String) null, (String) null),
-                "currency", marketResolved.get("settle"),
-                "minNotional", minNotional,
-                "maxNotional", this.safeNumber(tier, "riskLimitValue", (Object) null),
-                "maintenanceMarginRate", this.safeNumber(tier, "maintenanceMargin", (Object) null),
-                "maxLeverage", this.safeNumber(tier, "maxLeverage", (Object) null),
-                "info", tier
-            ));
+            ((List<Object>)tiers).add((switch (0) { default -> { HashMap<String, Object> j39v12 = new HashMap<String, Object>();
+                j39v12.put("tier", this.safeInteger(tier, "id"));
+                j39v12.put("symbol", this.safeSymbol(marketId, marketResolved, (String) null, (String) null));
+                j39v12.put("currency", marketResolved.get("settle"));
+                j39v12.put("minNotional", minNotional);
+                j39v12.put("maxNotional", this.safeNumber(tier, "riskLimitValue", (Object) null));
+                j39v12.put("maintenanceMarginRate", this.safeNumber(tier, "maintenanceMargin", (Object) null));
+                j39v12.put("maxLeverage", this.safeNumber(tier, "maxLeverage", (Object) null));
+                j39v12.put("info", tier);
+                yield j39v12; } }));
         }
         return tiers;
     }
@@ -11900,7 +11949,7 @@ public class Bybit extends BybitApi
         //     }
         //
         String marketId = this.safeString(info, "symbol");
-        Object timestamp = this.safeIntegerOmitZero(info, "timestamp", (Long) null);
+        Long timestamp = (Long) this.safeIntegerOmitZero(info, "timestamp", (Long) null);
         String longString = this.safeString(info, "buyRatio");
         String shortString = this.safeString(info, "sellRatio");
         return new HashMap<String, Object>() {{
@@ -12161,20 +12210,24 @@ public class Bybit extends BybitApi
                 }
                 String payload = ((timestamp + this.apiKey) + requestBody);
                 String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "hex");
-                requestHeaders = Helpers.newMap(
-                    "Content-Type", "application/json",
-                    "X-BAPI-API-KEY", this.apiKey,
-                    "X-BAPI-TIMESTAMP", timestamp,
-                    "X-BAPI-SIGN", signature
-                );
+                {
+                    HashMap<String, Object> hx4NewMap3 = new HashMap<String, Object>();
+                    hx4NewMap3.put("Content-Type", "application/json");
+                    hx4NewMap3.put("X-BAPI-API-KEY", this.apiKey);
+                    hx4NewMap3.put("X-BAPI-TIMESTAMP", timestamp);
+                    hx4NewMap3.put("X-BAPI-SIGN", signature);
+                    requestHeaders = hx4NewMap3;
+                }
             } else if (Boolean.TRUE.equals(isV3UnifiedMargin) || Boolean.TRUE.equals(isV3Contract) || Boolean.TRUE.equals(isV5UnifiedAccount))
             {
-                requestHeaders = Helpers.newMap(
-                    "Content-Type", "application/json",
-                    "X-BAPI-API-KEY", this.apiKey,
-                    "X-BAPI-TIMESTAMP", timestamp,
-                    "X-BAPI-RECV-WINDOW", String.valueOf(this.options.get("recvWindow"))
-                );
+                {
+                    HashMap<String, Object> hx4NewMap4 = new HashMap<String, Object>();
+                    hx4NewMap4.put("Content-Type", "application/json");
+                    hx4NewMap4.put("X-BAPI-API-KEY", this.apiKey);
+                    hx4NewMap4.put("X-BAPI-TIMESTAMP", timestamp);
+                    hx4NewMap4.put("X-BAPI-RECV-WINDOW", String.valueOf(this.options.get("recvWindow")));
+                    requestHeaders = hx4NewMap4;
+                }
                 if (Boolean.TRUE.equals(isV3UnifiedMargin) || Boolean.TRUE.equals(isV3Contract))
                 {
                     ((Map<String, Object>)requestHeaders).put("X-BAPI-SIGN-TYPE", "2");
@@ -12203,11 +12256,11 @@ public class Bybit extends BybitApi
                 ((Map<String, Object>)requestHeaders).put("X-BAPI-SIGN", signature);
             } else
             {
-                Map<String, Object> query = this.extend(parameters, Helpers.newMap(
-                    "api_key", this.apiKey,
-                    "recv_window", this.options.get("recvWindow"),
-                    "timestamp", timestamp
-                ));
+                Map<String, Object> query = this.extend(parameters, (switch (0) { default -> { HashMap<String, Object> j39v16 = new HashMap<String, Object>();
+                    j39v16.put("api_key", this.apiKey);
+                    j39v16.put("recv_window", this.options.get("recvWindow"));
+                    j39v16.put("timestamp", timestamp);
+                    yield j39v16; } }));
                 Map<String,Object> sortedQuery = this.keysort(query);
                 String auth = this.rawencode(sortedQuery, true);
                 Object signature = null;

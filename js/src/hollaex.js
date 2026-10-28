@@ -279,7 +279,7 @@ export default class hollaex extends Exchange {
             },
             'options': {
                 // how many seconds before the authenticated request expires
-                'api-expires': this.parseToInt(this.timeout / 1000),
+                'api-expires': this.parseToInt(this.parseToInt(this.timeout) / 1000),
                 'networks': {
                     'BTC': 'btc',
                     'ERC20': 'eth',
@@ -938,17 +938,16 @@ export default class hollaex extends Exchange {
         if (paginateOption) {
             return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, maxLimit);
         }
-        let until = this.safeInteger(paramsPaginate, 'until');
-        const timeDelta = this.parseTimeframe(timeframe) * maxLimit * 1000;
-        let start = since;
         const now = this.milliseconds();
-        if (until === undefined) {
-            until = now; // the exchange has not a lot of trades, so if we count until by limit and limit is small, it may return empty result
+        // the exchange has not a lot of trades, so if we count until by limit and limit is small, it may return empty result
+        const until = this.safeInteger(paramsPaginate, 'until', now);
+        const timeDelta = this.parseTimeframe(timeframe) * maxLimit * 1000;
+        if (since === undefined) {
+            request['from'] = this.parseToInt((until - timeDelta) / 1000); // convert to seconds
         }
-        if (start === undefined) {
-            start = until - timeDelta;
+        else {
+            request['from'] = this.parseToInt(since / 1000); // convert to seconds
         }
-        request['from'] = this.parseToInt(start / 1000); // convert to seconds
         request['to'] = this.parseToInt(until / 1000); // convert to seconds
         const paramsOmitted = this.omit(paramsPaginate, 'until');
         const response = await this.publicGetChart(this.extend(request, paramsOmitted));
@@ -1830,10 +1829,11 @@ export default class hollaex extends Exchange {
         }
         const currencyId = this.safeString(transaction, 'currency');
         const currencyResolved = this.safeCurrency(currencyId, currency);
-        let status = this.safeValue(transaction, 'status');
+        const completed = this.safeBool(transaction, 'status');
         const dismissed = this.safeBool(transaction, 'dismissed');
         const rejected = this.safeBool(transaction, 'rejected');
-        if (status === true) {
+        let status = undefined;
+        if (completed === true) {
             status = 'ok';
         }
         else if (dismissed === true) {
@@ -2061,7 +2061,8 @@ export default class hollaex extends Exchange {
         let requestHeaders = undefined;
         if (api[0] === 'private') {
             this.checkRequiredCredentials();
-            const defaultExpires = this.safeInteger2(this.options, 'api-expires', 'expires', this.parseToInt(this.timeout / 1000));
+            const timeoutMs = this.parseToInt(this.timeout);
+            const defaultExpires = this.safeInteger2(this.options, 'api-expires', 'expires', this.parseToInt(timeoutMs / 1000));
             const expires = this.sum(this.seconds(), defaultExpires);
             const expiresString = expires.toString();
             let auth = method + requestPath + expiresString;
@@ -2088,7 +2089,8 @@ export default class hollaex extends Exchange {
         if (response === undefined) {
             return undefined;
         }
-        if ((code >= 400) && (code <= 503)) {
+        const statusCode = this.parseToInt(code);
+        if ((statusCode >= 400) && (statusCode <= 503)) {
             //
             //  { "message": "Invalid token" }
             //
