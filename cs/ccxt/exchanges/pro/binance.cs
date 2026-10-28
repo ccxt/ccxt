@@ -2023,7 +2023,7 @@ public partial class binance : ccxt.binance
                 utcSuffix = suffix;
             }
             rawHashes.Add(add(add(add(add(((object)(marketId == null ? null : marketId + "@")), klineType), "_"), interval), utcSuffix));
-            messageHashes.Add(((("ohlcv::" + ((market.ContainsKey("symbol") ? market["symbol"] : null))) + "::") + timeframeString));
+            messageHashes.Add(((("ohlcv::" + this.safeString(market, "symbol", "")) + "::") + timeframeString));
         }
         string? url = ((string)((this.getWsUrl(wsUrlType, this.getFutureWsCategory(klineType)) + "/") + this.stream(wsUrlType, "multipleOHLCV")));
         Int64 requestId = this.requestId(url);
@@ -2121,8 +2121,8 @@ public partial class binance : ccxt.binance
                 utcSuffix = suffix;
             }
             rawHashes.Add(add(add(add(add(((object)(marketId == null ? null : marketId + "@")), klineType), "_"), interval), utcSuffix));
-            subMessageHashes.Add(((("ohlcv::" + ((market.ContainsKey("symbol") ? market["symbol"] : null))) + "::") + timeframeString));
-            messageHashes.Add(((("unsubscribe::ohlcv::" + ((market.ContainsKey("symbol") ? market["symbol"] : null))) + "::") + timeframeString));
+            subMessageHashes.Add(((("ohlcv::" + this.safeString(market, "symbol", "")) + "::") + timeframeString));
+            messageHashes.Add(((("unsubscribe::ohlcv::" + this.safeString(market, "symbol", "")) + "::") + timeframeString));
         }
         string? url = ((string)((this.getWsUrl(wsUrlType, this.getFutureWsCategory(klineType)) + "/") + this.stream(wsUrlType, "multipleOHLCV")));
         Int64 requestId = this.requestId(url);
@@ -2714,14 +2714,16 @@ public partial class binance : ccxt.binance
     {
         parameters ??= new Dictionary<string, object>();
         isUnsubscribe ??= false;
+        string channel = ((string)this.safeString(new Dictionary<string, object>() {
+            { "name", channelName },
+        }, "name", ""));
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         IList<object> symbolsNormalized = this.marketSymbols(symbols, null, true, false, true);
-        bool isBidAsk = ((channelName is "bookTicker"));
-        bool isMarkPrice = ((channelName is "markPrice"));
-        bool? use1sFreq = this.safeBool(parameters, "use1sFreq", true);
+        bool isBidAsk = (channel == "bookTicker");
+        bool isMarkPrice = (channel == "markPrice");
         IDictionary<string, object> firstMarket = null;
         bool symbolsDefined = ((symbolsNormalized != null));
         if ((symbolsNormalized != null))
@@ -2762,7 +2764,7 @@ public partial class binance : ccxt.binance
             throw new NotSupported ((((this.id + " ") + (methodName)) + "() does not support options markets")) ;
         }
         // eOptions tickers have a different stream name (@optionTicker) but the same event type (24hrTicker)
-        // so only the subscription arg changes — channelName stays as-is to keep messageHashes aligned
+        // so only the subscription arg changes — channel stays as-is to keep messageHashes aligned
         bool isOptionTicker = ((marketType == "option") && !isMarkPrice && !isBidAsk);
         if (isMarkPrice && !this.inArray(marketType, new List<object>() {"swap", "future", "option"}))
         {
@@ -2774,18 +2776,15 @@ public partial class binance : ccxt.binance
         string suffix = "";
         if (isMarkPrice && !isOptionMarkPrice)
         {
-            suffix = use1sFreq == true ? "@1s" : "";
+            suffix = (this.safeBool(parameters, "use1sFreq", true) == true) ? "@1s" : "";
         }
-        string? unifiedPrefix = null;
+        string unifiedPrefix = "ticker";
         if (isBidAsk)
         {
             unifiedPrefix = "bidask";
         } else if (isMarkPrice)
         {
             unifiedPrefix = "markPrice";
-        } else
-        {
-            unifiedPrefix = "ticker";
         }
         if ((symbolsNormalized != null))
         {
@@ -2794,10 +2793,10 @@ public partial class binance : ccxt.binance
             {
                 string? symbol = ((string)symbolsNormalized[i]);
                 Dictionary<string, object> market = this.market(symbol);
-                messageHashes.Add(((((unifiedPrefix + ":") + (channelName)) + "@") + symbol));
+                messageHashes.Add(((((unifiedPrefix + ":") + channel) + "@") + symbol));
                 if (isUnsubscribe == true)
                 {
-                    unsubscribeMessageHashes.Add(((((("unsubscribe::" + unifiedPrefix) + ":") + (channelName)) + "@") + symbol));
+                    unsubscribeMessageHashes.Add(((((("unsubscribe::" + unifiedPrefix) + ":") + channel) + "@") + symbol));
                 }
                 if (isOptionMarkPrice)
                 {
@@ -2828,7 +2827,7 @@ public partial class binance : ccxt.binance
                     }
                 } else
                 {
-                    subscriptionArgs.Add((((this.safeString(market, "lowercaseId", "") + "@") + (channelName)) + suffix));
+                    subscriptionArgs.Add((((this.safeString(market, "lowercaseId", "") + "@") + channel) + suffix));
                 }
             }
         } else
@@ -2854,35 +2853,35 @@ public partial class binance : ccxt.binance
                     // isOptionMarkPrice: one stream covers all contracts for the underlying
                     subscriptionArgs.Add((underlying + "@optionMarkPrice"));
                 }
-                messageHashes.Add(((unifiedPrefix + "s:") + (channelName)));
-                unsubscribeMessageHashes.Add(("unsubscribe::" + (channelName)));
+                messageHashes.Add(((unifiedPrefix + "s:") + channel));
+                unsubscribeMessageHashes.Add(("unsubscribe::" + channel));
             } else if (isBidAsk)
             {
                 if ((marketType == "spot"))
                 {
                     throw new ArgumentsRequired ((((this.id + " ") + (methodName)) + "() requires symbols for this channel for spot markets")) ;
                 }
-                subscriptionArgs.Add(("!" + (channelName)));
-                messageHashes.Add(((unifiedPrefix + "s:") + (channelName)));
-                unsubscribeMessageHashes.Add(("unsubscribe::" + (channelName)));
+                subscriptionArgs.Add(("!" + channel));
+                messageHashes.Add(((unifiedPrefix + "s:") + channel));
+                unsubscribeMessageHashes.Add(("unsubscribe::" + channel));
             } else if (isMarkPrice)
             {
-                subscriptionArgs.Add(((("!" + (channelName)) + "@arr") + suffix));
-                messageHashes.Add(((unifiedPrefix + "s:") + (channelName)));
-                unsubscribeMessageHashes.Add(("unsubscribe::" + (channelName)));
+                subscriptionArgs.Add(((("!" + channel) + "@arr") + suffix));
+                messageHashes.Add(((unifiedPrefix + "s:") + channel));
+                unsubscribeMessageHashes.Add(("unsubscribe::" + channel));
             } else
             {
-                subscriptionArgs.Add((("!" + (channelName)) + "@arr"));
-                messageHashes.Add(((unifiedPrefix + "s:") + (channelName)));
-                unsubscribeMessageHashes.Add(("unsubscribe::" + (channelName)));
+                subscriptionArgs.Add((("!" + channel) + "@arr"));
+                messageHashes.Add(((unifiedPrefix + "s:") + channel));
+                unsubscribeMessageHashes.Add(("unsubscribe::" + channel));
             }
         }
         object streamHash = channelName;
         if ((symbolsNormalized != null))
         {
-            streamHash = add(add(channelName, "::"), String.Join(",", symbolsNormalized.ToArray()));
+            streamHash = ((channel + "::") + String.Join(",", symbolsNormalized.ToArray()));
         }
-        string? url = ((string)((this.getWsUrl(rawMarketType, this.getFutureWsCategory(channelName)) + "/") + this.stream(rawMarketType, streamHash)));
+        string? url = ((string)((this.getWsUrl(rawMarketType, this.getFutureWsCategory(channel)) + "/") + this.stream(rawMarketType, streamHash)));
         Int64 requestId = this.requestId(url);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", isUnsubscribe == true ? "UNSUBSCRIBE" : "SUBSCRIBE" },
@@ -2910,7 +2909,7 @@ public partial class binance : ccxt.binance
         List<object> waitHashes = hashes;
         if (isOptionMarkPrice && isUnsubscribe != true)
         {
-            waitHashes = new List<object>() {((unifiedPrefix + "s:") + (channelName))};
+            waitHashes = new List<object>() {((unifiedPrefix + "s:") + channel)};
         }
         object result = await this.watchMultiple(url, waitHashes, this.deepExtend(request, paramsSubType), hashes, subscription);
         if (isUnsubscribe == true)
