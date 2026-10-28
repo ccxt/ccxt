@@ -546,7 +546,8 @@ export default class bitget extends bitgetRest {
         const [ uta, paramsUta ] = this.handleOptionBoolAndParams (params, 'watchOHLCV', 'uta', false);
         const isStock = market['stock'];
         const paramsStock = this.omit (paramsUta, 'stock');
-        const isStockOrUta = (isStock || (uta === true));
+        const isStockSpot = isStock && market['spot'];
+        const isStockOrUta = (isStockSpot || (uta === true));
         const [ instType, paramsInstType ] = this.getInstType ('watchOHLCV', market, isStockOrUta, paramsStock);
         let paramsRequest = paramsInstType;
         if (isStockOrUta) {
@@ -599,7 +600,8 @@ export default class bitget extends bitgetRest {
         const uta: Bool = values[0];
         const isStock = market['stock'];
         const paramsStock = this.omit (params, 'stock');
-        const isStockOrUta = (isStock || (uta === true));
+        const isStockSpot = isStock && market['spot'];
+        const isStockOrUta = (isStockSpot || (uta === true));
         const [ instType, paramsInstType ] = this.getInstType ('watchOHLCV', market, isStockOrUta, paramsStock);
         let paramsRequest = paramsInstType;
         if (isStockOrUta) {
@@ -810,7 +812,8 @@ export default class bitget extends bitgetRest {
         const isStock = market['stock'];
         const paramsStock = this.omit (params, 'stock');
         const [ uta, paramsUta ] = this.handleOptionBoolAndParams (paramsStock, 'unWatchOrderBook', 'uta', false);
-        const isStockOrUta = (isStock || (uta === true));
+        const isStockSpot = isStock && market['spot'];
+        const isStockOrUta = (isStockSpot || (uta === true));
         let paramsRequest = paramsUta;
         if (isStockOrUta) {
             paramsRequest = this.extend (paramsUta, { 'uta': true });
@@ -879,14 +882,15 @@ export default class bitget extends bitgetRest {
         }
         const symbolsNormalized: string[] = this.marketSymbols (symbols);
         const symbolsLength = symbolsNormalized.length;
-        let isStock: Bool = false;
+        let isStockSpot: Bool = false;
         if (symbolsLength > 0) {
             const market = this.market (symbolsNormalized[0]);
-            isStock = market['stock'];
+            const isStock = market['stock'];
+            isStockSpot = isStock && market['spot'];
         }
         const paramsStock = this.omit (params, 'stock');
         const [ uta, paramsUta ] = this.handleOptionBoolAndParams (paramsStock, 'watchOrderBookForSymbols', 'uta', false);
-        const isStockOrUta = (isStock || (uta === true));
+        const isStockOrUta = (isStockSpot || (uta === true));
         let channel = 'books';
         let incrementalFeed = true;
         if ((limit === 1) || (limit === 5) || (limit === 15) || (limit === 50)) {

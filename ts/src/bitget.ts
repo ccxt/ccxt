@@ -2186,11 +2186,24 @@ export default class bitget extends Exchange {
                 throw new NotSupported (this.id + ' does not support ' + type + ' market');
             }
         }
+        const spotInstrumentsIndex = promises.length;
+        if (fetchMargins) {
+            promises.push (this.publicUtaGetV3MarketInstruments ({ 'category': 'SPOT' }));
+        }
         const results = await Promise.all (promises);
+        let spotInstruments: Dict = {};
+        if (fetchMargins) {
+            const instrumentsResponse = this.safeDict (results, spotInstrumentsIndex);
+            const instruments = this.safeList (instrumentsResponse, 'data', []);
+            spotInstruments = this.indexBy (instruments, 'symbol');
+        }
         let markets: List = [];
         this.options['crossMarginPairsData'] = [];
         this.options['isolatedMarginPairsData'] = [];
         for (let i = 0; i < results.length; i++) {
+            if (i === spotInstrumentsIndex) {
+                continue;
+            }
             const res = this.safeDict (results, i);
             const data = this.safeList (res, 'data', []);
             const firstData = this.safeDict (data, 0, {});
@@ -2290,6 +2303,16 @@ export default class bitget extends Exchange {
                 continue;
             }
             const parsedMarket = this.parseMarket (market);
+            if ((parsedMarket !== undefined) && parsedMarket['spot']) {
+                const marketId = parsedMarket['id'];
+                const instrument = this.safeDict (spotInstruments, marketId);
+                if (instrument !== undefined) {
+                    const parsedInstrument = this.parseMarket (instrument);
+                    if (parsedInstrument !== undefined) {
+                        parsedMarket['stock'] = parsedInstrument['stock'];
+                    }
+                }
+            }
             result.push (parsedMarket);
         }
         return result;
