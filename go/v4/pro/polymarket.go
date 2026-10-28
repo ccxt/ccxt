@@ -1649,7 +1649,7 @@ func (this *Polymarket) HandleAck(client any, message any) {
 				var timeframe *string = this.SafeString(pending, "timeframe")
 				if _, ok := this.Ohlcvs[*symbol]; (timeframe != nil) && ok {
 					if _, ok := this.Ohlcvs[*symbol][*timeframe]; ok {
-						ccxt.Remove(this.Ohlcvs[*symbol], timeframe)
+						delete(this.Ohlcvs[*symbol], *timeframe)
 					}
 				}
 			}

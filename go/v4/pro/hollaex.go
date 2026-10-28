@@ -128,7 +128,7 @@ func (this *Hollaex) HandleOrderBook(client any, message map[string]any) {
 	var channel *string = this.SafeString(message, "topic")
 	var market map[string]any = this.SafeMarket(marketId)
 	var marketIdValue *string = this.SafeString(market, "id", "")
-	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
+	var symbol *string = this.SafeString(market, "symbol")
 	if symbol != nil {
 		var data map[string]any = ccxt.SafeMapTyped(message, "data")
 		var timestamp *string = this.SafeString(data, "timestamp")

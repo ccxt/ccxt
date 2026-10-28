@@ -9228,7 +9228,7 @@ func (this *BaseExchange) CleanCache(subscription any) {
 			}
 			if _, ok := this.Ohlcvs[*symbol]; ok {
 				if InOp(this.Ohlcvs[*symbol], timeframe) {
-					Remove(this.Ohlcvs[*symbol], timeframe)
+					delete(this.Ohlcvs[*symbol], *timeframe)
 				}
 			}
 		}
@@ -9237,9 +9237,7 @@ func (this *BaseExchange) CleanCache(subscription any) {
 			var symbol *string = this.SafeString(symbols, i, "")
 			if topic != nil && *topic == "trades" {
 				if InOp(this.Trades, symbol) {
-					if symbol != nil {
-						delete(this.Trades, *symbol)
-					}
+					delete(this.Trades, *symbol)
 				}
 			} else if topic != nil && *topic == "orderbook" {
 				if InOp(this.Orderbooks, symbol) {

@@ -3775,7 +3775,7 @@ func (this *Okx) HandleUnsubscriptionOHLCV(client any, symbol string, channel st
 	// watchOHLCV subscribes through subscribe () under channel:marketId
 	this.CleanUnsubscription(ccxt.AsClient(client), ccxt.Add(channel+":", this.MarketId(symbol)), nil)
 	if ccxt.InOp(this.Ohlcvs[symbol], timeframe) {
-		ccxt.Remove(this.Ohlcvs[symbol], timeframe)
+		delete(this.Ohlcvs[symbol], *timeframe)
 	}
 }
 func (this *Okx) HandleUnsubscriptionTicker(client any, symbol string, channel string) {

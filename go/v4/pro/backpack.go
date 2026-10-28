@@ -422,7 +422,7 @@ func (this *Backpack) HandleUnsubscriptions(url any, messageHashes any, message 
 			var timeframe *string = this.SafeString(splitHashes, 3)
 			if (symbol != nil) && (timeframe != nil) && (ccxt.InOp(this.Ohlcvs, symbol)) {
 				if _, ok := this.Ohlcvs[*symbol][*timeframe]; ok {
-					ccxt.Remove(this.Ohlcvs[*symbol], timeframe)
+					delete(this.Ohlcvs[*symbol], *timeframe)
 				}
 			}
 		} else if strings.Index(*messageHash, "orderbook") >= 0 {
