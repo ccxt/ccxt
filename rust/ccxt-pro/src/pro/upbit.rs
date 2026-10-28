@@ -299,7 +299,7 @@ impl UpbitCore {
         let mut client: Value = self.client(&[url.clone()]);
         let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         let mut subscriptionsKey: Value = Value::Str("upbitPublicSubscriptions".into());
-        if !(matches!((&__ch.subscriptions.clone(), &subscriptionsKey), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+        if !(__ch.has_subscription(&subscriptionsKey)) {
             __ch.add_subscription(&subscriptionsKey, self.create_safe_dictionary(&[Value::Bool(true)]));
         }
         let mut subscriptions: Value = self.safe_dict(get_value(&client, &Value::Str("subscriptions".into())), subscriptionsKey, &[Value::Map({
@@ -737,7 +737,7 @@ impl UpbitCore {
         let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         // Track private channel subscriptions to support multiple concurrent watches
         let mut subscriptionsKey: Value = Value::Str("upbitPrivateSubscriptions".into());
-        if !(matches!((&__ch.subscriptions.clone(), &subscriptionsKey), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+        if !(__ch.has_subscription(&subscriptionsKey)) {
             __ch.add_subscription(&subscriptionsKey, self.create_safe_dictionary(&[Value::Bool(true)]));
         }
         let mut subscriptions: Value = self.safe_dict(get_value(&client, &Value::Str("subscriptions".into())), subscriptionsKey, &[Value::Map({

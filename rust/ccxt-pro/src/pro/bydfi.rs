@@ -1484,7 +1484,7 @@ impl BydfiCore {
         let mut fetchBalanceSnapshot: Value = self.safe_bool_k(options, "fetchBalanceSnapshot", &[Value::Bool(false)]);
         if fetchBalanceSnapshot.as_bool() == Some(true) {
             let mut messageHash: Value = Value::Str("fetchBalanceSnapshot".into());
-            if !(matches!((&__ch.futures.clone(), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+            if !(__ch.has_future(&messageHash)) {
                 client.future(&[messageHash.clone()]);
                 self.spawn(&[Value::Str("load_balance_snapshot".into()).clone(), client.clone(), messageHash.clone()]);
             }
@@ -1531,7 +1531,7 @@ impl BydfiCore {
         }
         { let __t = self.safe_balance(self.balance.clone()); self.balance = __t; }
         // don't remove the future from the .futures cache
-        let mut future: Value = get_value(&__ch.futures.clone(), &messageHash);
+        let mut future: Value = __ch.get_future(&messageHash);
         future.resolve(&[]);
         client.resolve(&[self.balance.clone(), Value::Str("balance".into())]);
 

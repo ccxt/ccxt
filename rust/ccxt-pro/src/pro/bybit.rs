@@ -2292,7 +2292,7 @@ impl BybitCore {
         let mut fetchPositionsSnapshot: Value = self.handle_option(Value::Str("watchPositions".into()), Value::Str("fetchPositionsSnapshot".into()), &[Value::Bool(true)]);
         if (match &(fetchPositionsSnapshot) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 1.0) }) {
             let mut messageHash: Value = Value::Str("fetchPositionsSnapshot".into());
-            if !(matches!((&__ch.futures.clone(), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+            if !(__ch.has_future(&messageHash)) {
                 client.future(&[messageHash.clone()]);
                 self.spawn(&[Value::Str("load_positions_snapshot".into()).clone(), client.clone(), messageHash.clone()]);
             }
@@ -2334,8 +2334,8 @@ impl BybitCore {
         }
         }
         // don't remove the future from the .futures cache
-        if (matches!((&__ch.futures.clone(), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-            let mut future: Value = get_value(&__ch.futures.clone(), &messageHash);
+        if (__ch.has_future(&messageHash)) {
+            let mut future: Value = __ch.get_future(&messageHash);
             future.resolve(&[cache.clone()]);
             client.resolve(&[cache, Value::Str("position".into())]);
         }
@@ -3239,7 +3239,7 @@ impl BybitCore {
                 let mut __for_first_209: bool = true;
                 while { if !__for_first_209 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_209 = false; i.as_f64().unwrap_or(f64::NAN) < topicsLength.as_f64().unwrap_or(f64::NAN) } {
                 let mut messageHash: Value = messageHashes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-                if !(matches!((&__ch.subscriptions.clone(), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+                if !(__ch.has_subscription(&messageHash)) {
                     newTopics.push(get_value(&topics, &i));
                 }
             }
@@ -3252,7 +3252,7 @@ impl BybitCore {
                 let mut m = indexmap::IndexMap::new();
                 m
             });
-            let mut subscriptionHashes: Vec<Value> = object_keys(&__ch.subscriptions.clone()).as_array().cloned().unwrap_or_default();
+            let mut subscriptionHashes: Vec<Value> = __ch.subscription_keys();
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_211: bool = true;
@@ -3449,13 +3449,13 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut reqId: Value = self.safe_string2(message.clone(), Value::Str("req_id".into()), Value::Str("reqId".into()), &[]);
             let mut foundSubscription: bool = false;
             if (reqId != Value::Null) {
-                let mut keys: Vec<Value> = object_keys(&__ch.subscriptions.clone()).as_array().cloned().unwrap_or_default();
+                let mut keys: Vec<Value> = __ch.subscription_keys();
                 {
                                         let mut i: Value = Value::Int(0);
                     let mut __for_first_213: bool = true;
                     while { if !__for_first_213 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_213 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
                     let mut messageHash: Value = keys.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
-                    if !(matches!((&__ch.subscriptions.clone(), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+                    if !(__ch.has_subscription(&messageHash)) {
                         continue;
                     }
                     let mut subscription: Value = self.safe_dict(__ch.subscriptions.clone(), messageHash.clone(), &[]);
@@ -3656,7 +3656,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }  else {
             let mut error = Value::from(crate::exchange_errors::authentication_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&message))));
             client.reject(&[Value::from(error), messageHash.clone()]);
-            if (matches!((&__ch.subscriptions.clone(), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+            if (__ch.has_subscription(&messageHash)) {
                 __ch.remove_subscription(&messageHash);
             }
         }
@@ -3688,17 +3688,17 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //     },
         // }
         let mut reqId: Value = (match __pro_message.get("req_id").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
-        let mut keys: Vec<Value> = object_keys(&__ch.subscriptions.clone()).as_array().cloned().unwrap_or_default();
+        let mut keys: Vec<Value> = __ch.subscription_keys();
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_216: bool = true;
             while { if !__for_first_216 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_216 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
             let mut messageHash: Value = keys.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
-            if !(matches!((&__ch.subscriptions.clone(), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+            if !(__ch.has_subscription(&messageHash)) {
                 continue;
             }
             if (messageHash.as_str().unwrap_or("").starts_with("unsubscribe")) {
-                let mut subscription: Value = get_value(&__ch.subscriptions.clone(), &messageHash);
+                let mut subscription: Value = __ch.get_subscription(&messageHash);
                 let mut subId: Value = self.safe_string_k(subscription.clone(), "id", &[]);
                 if (reqId != subId) {
                     continue;

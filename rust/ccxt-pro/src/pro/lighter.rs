@@ -2116,14 +2116,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut id: Value = (match __pro_message.get("id").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
             let mut handled: bool = false;
             if (id != Value::Null) {
-                let mut subscriptionKeys: Vec<Value> = object_keys(&__ch.subscriptions.clone()).as_array().cloned().unwrap_or_default();
+                let mut subscriptionKeys: Vec<Value> = __ch.subscription_keys();
                 {
                                         let mut i: Value = Value::Int(0);
                     let mut __for_first_487: bool = true;
                     while { if !__for_first_487 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_487 = false; i.as_f64().unwrap_or(f64::NAN) < ((subscriptionKeys.len() as i64) as f64) } {
                     let mut subscriptionHash: Value = subscriptionKeys.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
-                    let mut subscriptionId: Value = self.safe_string(get_value(&__ch.subscriptions.clone(), &subscriptionHash), Value::Str("id".into()), &[]);
-                    let mut subscription: Option<String> = self.safe_string_opt(get_value(&__ch.subscriptions.clone(), &subscriptionHash), Value::Str("subscription".into()), &[]);
+                    let mut subscriptionId: Value = self.safe_string(__ch.get_subscription(&subscriptionHash), Value::Str("id".into()), &[]);
+                    let mut subscription: Option<String> = self.safe_string_opt(__ch.get_subscription(&subscriptionHash), Value::Str("subscription".into()), &[]);
                     if (id == subscriptionId) {
                         client.reject(&[e.clone(), subscriptionHash]);
                         handled = true;
@@ -2257,7 +2257,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             // it here would make the next watchTicker re-subscribe a channel the venue still
             // considers subscribed, and its "30003 Already Subscribed" frame carries no id,
             // so handleErrorMessage rejects every future on the socket
-            let mut subscriptionHashes: Vec<Value> = object_keys(&__ch.subscriptions.clone()).as_array().cloned().unwrap_or_default();
+            let mut subscriptionHashes: Vec<Value> = __ch.subscription_keys();
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_488: bool = true;
@@ -2269,7 +2269,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     let mut subscribedChannel: Option<String> = self.safe_string_k(subscriptionParams, "channel", &[]).as_str().map(str::to_owned);
                     if (subscribedChannel.as_deref() == Some("market_stats/all")) {
                         __ch.remove_subscription(&subscriptionHash);
-                        if (matches!((&__ch.futures.clone(), &subscriptionHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+                        if (__ch.has_future(&subscriptionHash)) {
                             let mut error = Value::from(crate::exchange_errors::unsubscribe_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), subscriptionHash)));
                             client.reject(&[Value::from(error.clone()), subscriptionHash.clone()]);
                         }

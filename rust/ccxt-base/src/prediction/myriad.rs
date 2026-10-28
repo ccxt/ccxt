@@ -4462,7 +4462,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         self.connect_centrifugo(url.clone().map(Value::from).unwrap_or(Value::Null)).await;
         let mut client: Value = self.client(&[url.clone().map(Value::from).unwrap_or(Value::Null)]);
         let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
-        let mut isNewSubscription: bool = !(matches!((&__ch.subscriptions.clone(), &channel), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref())));
+        let mut isNewSubscription: bool = !(__ch.has_subscription(&channel));
         if isNewSubscription {
             // the channel only streams deltas, so (re)seed the live book from the REST snapshot on a
             // fresh subscription (first call or after a reconnect that cleared client.subscriptions)
@@ -5078,7 +5078,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         self.connect_centrifugo(url.clone().map(Value::from).unwrap_or(Value::Null)).await;
         let mut client: Value = self.client(&[url.clone().map(Value::from).unwrap_or(Value::Null)]);
         let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
-        let mut isNewSubscription: bool = !(matches!((&__ch.subscriptions.clone(), &channel), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref())));
+        let mut isNewSubscription: bool = !(__ch.has_subscription(&channel));
         if isNewSubscription {
             // the channel pushes only signed deltas; seed absolute share balances from REST so
             // handlePosition can maintain a running contracts figure

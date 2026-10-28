@@ -755,7 +755,7 @@ impl LunoCore {
             let symbolValue: String = self.safe_string_k_opt(market.clone(), "symbol", &[Value::Str("".into())]).unwrap_or_default();
             let marketId: String = self.safe_string_k_opt(market, "id", &[Value::Str("".into())]).unwrap_or_default();
             let mut subscriptionHash: Value = Value::Str(format!("{}{}", Value::Str("/stream/".into()), marketId).into());
-            if (matches!((&__ch.subscriptions.clone(), &subscriptionHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+            if (__ch.has_subscription(&subscriptionHash)) {
                 __ch.remove_subscription(&subscriptionHash);
             }
             let mut error = Value::from(crate::exchange_errors::invalid_nonce(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBook() received an out-of-sequence update for ".into())).into()), symbolValue).into()),

@@ -477,7 +477,7 @@ impl CexCore {
         let mut client: Value = self.safe_value(self.clients.clone(), url.clone(), &[]);
         let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         if (client != Value::Null) {
-            let mut subscriptionKeys: Vec<Value> = object_keys(&__ch.subscriptions.clone()).as_array().cloned().unwrap_or_default();
+            let mut subscriptionKeys: Vec<Value> = __ch.subscription_keys();
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_231: bool = true;

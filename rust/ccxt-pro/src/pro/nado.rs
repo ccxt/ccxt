@@ -2577,7 +2577,7 @@ impl NadoCore {
         let mut maxTimestamp: Value = self.safe_string_k(orderbook.clone(), "maxTimestamp", &[]);
         let mut lastMaxTimestamp: Value = (match __pro_message.get("last_max_timestamp").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
         if (maxTimestamp != Value::Null) && (lastMaxTimestamp != Value::Null) && (maxTimestamp != lastMaxTimestamp) {
-            let mut subscriptions: Vec<Value> = object_keys(&__ch.subscriptions.clone()).as_array().cloned().unwrap_or_default();
+            let mut subscriptions: Vec<Value> = __ch.subscription_keys();
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_524: bool = true;

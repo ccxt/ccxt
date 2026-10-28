@@ -1468,7 +1468,7 @@ impl BitvavoCore {
         // subscription - drop it so a later unsubscribe/subscribe re-fetches the snapshot
         // instead of suppressing the request as an already-active subscription
         let mut snapshotHash: Value = Value::Str(format!("{}{}", Value::Str("getBook@".into()), self.safe_string_k(response, "market", &[Value::Str("".into())])).into());
-        if (matches!((&__ch.subscriptions.clone(), &snapshotHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+        if (__ch.has_subscription(&snapshotHash)) {
             __ch.remove_subscription(&snapshotHash);
         }
 }
@@ -1566,13 +1566,13 @@ impl BitvavoCore {
         //
         // the confirmation carries the remaining subscriptions without identifying
         // which unsubscribe request it belongs to, so settle every pending unsubscription
-        let mut keys: Vec<Value> = object_keys(&__ch.subscriptions.clone()).as_array().cloned().unwrap_or_default();
+        let mut keys: Vec<Value> = __ch.subscription_keys();
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_161: bool = true;
             while { if !__for_first_161 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_161 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
             let mut key: Value = keys.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
-            if !(matches!((&__ch.subscriptions.clone(), &key), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+            if !(__ch.has_subscription(&key)) {
                 continue;
             }
             if !(key.as_str().unwrap_or("").starts_with("unsubscribe:")) {
@@ -2685,7 +2685,7 @@ impl BitvavoCore {
             let mut error = Value::from(crate::exchange_errors::authentication_error(json_stringify(&message)));
             client.reject(&[Value::from(error), messageHash.clone()]);
             // allows further authentication attempts
-            if (matches!((&__ch.subscriptions.clone(), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+            if (__ch.has_subscription(&messageHash)) {
                 __ch.remove_subscription(&messageHash);
             }
         }

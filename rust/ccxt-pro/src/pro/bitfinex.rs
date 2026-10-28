@@ -341,7 +341,7 @@ impl BitfinexCore {
         })]).await;
         let mut checksum: Value = self.safe_bool_k(self.options.clone(), "checksum", &[Value::Bool(true)]);
         if checksum.as_bool() == Some(true) && (channel.as_str() == Some("book")) {
-            let mut sub: Value = get_value(&__ch.subscriptions.clone(), &messageHash);
+            let mut sub: Value = __ch.get_subscription(&messageHash);
             let mut subChecksum: Value = self.safe_bool_k(sub.clone(), "checksum", &[]);
             if (sub != Value::Null) && (subChecksum.as_bool() != Some(true)) {
                 add_element_to_object(get_value_mut(&mut __ch.subscriptions, &messageHash), &Value::Str("checksum".into()), Value::Bool(true));
@@ -1554,7 +1554,7 @@ impl BitfinexCore {
             let mut error = Value::from(crate::exchange_errors::authentication_error(json_stringify(&message)));
             client.reject(&[Value::from(error), messageHash.clone()]);
             // allows further authentication attempts
-            if (matches!((&__ch.subscriptions.clone(), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+            if (__ch.has_subscription(&messageHash)) {
                 __ch.remove_subscription(&messageHash);
             }
         }

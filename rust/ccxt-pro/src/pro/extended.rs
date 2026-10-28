@@ -739,7 +739,7 @@ impl ExtendedCore {
         }
         }
         client.resolve(&[stored.clone(), Value::Str("myTrades".into())]);
-        let mut subscriptions: Vec<Value> = object_keys(&__ch.subscriptions.clone()).as_array().cloned().unwrap_or_default();
+        let mut subscriptions: Vec<Value> = __ch.subscription_keys();
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_323: bool = true;
@@ -941,7 +941,7 @@ impl ExtendedCore {
         }
         }
         client.resolve(&[orders.clone(), Value::Str("orders".into())]);
-        let mut subscriptions: Vec<Value> = object_keys(&__ch.subscriptions.clone()).as_array().cloned().unwrap_or_default();
+        let mut subscriptions: Vec<Value> = __ch.subscription_keys();
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_328: bool = true;
@@ -1359,7 +1359,7 @@ impl ExtendedCore {
 
     pub fn find_subscription(&self, mut client: Value, mut name: Value) -> Value {
         let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
-        let mut keys: Vec<Value> = object_keys(&__ch.subscriptions.clone()).as_array().cloned().unwrap_or_default();
+        let mut keys: Vec<Value> = __ch.subscription_keys();
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_331: bool = true;

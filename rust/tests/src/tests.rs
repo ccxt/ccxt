@@ -1538,7 +1538,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 if let Value::Dict(__d) = &mut tests { std::sync::Arc::make_mut(__d).insert("fetchPositions".into(), Value::from(vec![symbol.clone()])); }; // this test fetches all positions for 1 symbol
                 if let Value::Dict(__d) = &mut tests { std::sync::Arc::make_mut(__d).insert("fetchPosition".into(), Value::from(vec![symbol.clone()])); }
                 if let Value::Dict(__d) = &mut tests { std::sync::Arc::make_mut(__d).insert("fetchPositionRisk".into(), Value::from(vec![symbol.clone()])); }
-                if let Value::Dict(__d) = &mut tests { std::sync::Arc::make_mut(__d).insert("setPositionMode".into(), Value::from(vec![symbol.clone()])); }
+                if let Value::Dict(__d) = &mut tests { std::sync::Arc::make_mut(__d).insert("setPositionMode".into(), Value::from(vec![Value::Bool(false), symbol.clone()])); }
                 if let Value::Dict(__d) = &mut tests { std::sync::Arc::make_mut(__d).insert("setMarginMode".into(), Value::from(vec![symbol.clone()])); }
                 if let Value::Dict(__d) = &mut tests { std::sync::Arc::make_mut(__d).insert("fetchOpenInterestHistory".into(), Value::from(vec![symbol.clone()])); }
                 if let Value::Dict(__d) = &mut tests { std::sync::Arc::make_mut(__d).insert("fetchFundingRateHistory".into(), Value::from(vec![symbol.clone()])); }

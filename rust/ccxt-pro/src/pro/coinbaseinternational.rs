@@ -2141,7 +2141,7 @@ impl CoinbaseinternationalCore {
             if (type_var.as_deref() != Some("snapshot")) && (nonce != Value::Null) && (previousChangeId.as_f64() != nonce.as_f64()) {
                 // drop the stale book and reject only this channels future
                 if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.orderbooks, &symbol) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
-                if (matches!((&__ch.subscriptions.clone(), &channel), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+                if (__ch.has_subscription(&channel)) {
                     __ch.remove_subscription(&channel);
                 }
                 client.reject(&[Value::from(crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" order book update has a nonce mismatch".into())))), channel.clone()]);
@@ -2185,7 +2185,7 @@ impl CoinbaseinternationalCore {
         let mut client: Value = self.client(&[url]);
         let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         client.send(&[request]);
-        if (matches!((&__ch.subscriptions.clone(), &channel), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+        if (__ch.has_subscription(&channel)) {
             __ch.remove_subscription(&channel);
         }
         self.subscribe(Value::from(vec![channel.clone()]), Value::from(vec![channel]), &[Value::Bool(isPrivate), Value::Map({
@@ -2236,7 +2236,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut requestId: Value = self.safe_string_k(message, "id", &[]);
             let mut authRequestId: Value = self.safe_string_k(self.options.clone(), "wsAuthRequestId", &[]);
             let mut messageHash: Value = (if (requestId == authRequestId) { Value::Str("authenticated".into()) } else { requestId });
-            if (messageHash.as_str() == Some("authenticated")) && (matches!((&__ch.subscriptions.clone(), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+            if (messageHash.as_str() == Some("authenticated")) && (__ch.has_subscription(&messageHash)) {
                 // allow the next authenticate () call to retry
                 __ch.remove_subscription(&messageHash);
             }
@@ -2382,7 +2382,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut future: Value = self.safe_value(__ch.subscriptions.clone(), messageHash.clone(), &[]);
         if (future != Value::Null) {
             let mut refreshAt: Value = self.safe_integer_k(self.options.clone(), "wsAuthRefreshAt", &[]);
-            if (refreshAt != Value::Null) && (self.milliseconds().as_f64().unwrap_or(f64::NAN) >= refreshAt.as_f64().unwrap_or(f64::NAN)) && !(matches!((&__ch.futures.clone(), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+            if (refreshAt != Value::Null) && (self.milliseconds().as_f64().unwrap_or(f64::NAN) >= refreshAt.as_f64().unwrap_or(f64::NAN)) && !(__ch.has_future(&messageHash)) {
                 __ch.remove_subscription(&messageHash);
                 future = Value::Null;
             }

@@ -2235,7 +2235,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut requestId: Value = (match message.get("id") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
             let mut handled: bool = false;
             if (requestId != Value::Null) {
-                let mut subscribeHashes: Vec<Value> = object_keys(&__ch.subscriptions.clone()).as_array().cloned().unwrap_or_default();
+                let mut subscribeHashes: Vec<Value> = __ch.subscription_keys();
                 {
                                         let mut i: Value = Value::Int(0);
                     let mut __for_first_605: bool = true;

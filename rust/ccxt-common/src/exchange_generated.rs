@@ -2098,7 +2098,7 @@ pub trait ExchangeBase:
         // sanbox mode
         let mut isSandbox: Value = self.safe_bool2(self.options.clone(), Value::Str("sandbox".into()), Value::Str("testnet".into()), &[Value::Bool(false)]);
         if isSandbox.as_bool() == Some(true) {
-            self.set_sandbox_mode(isSandbox);
+            self.set_sandbox_mode(Value::Bool(true));
         }
         // compatibility for sandbox/testnet options in userConfig
         if matches!(((match userConfig.get("sandbox") { Some(Value::Bool(__b)) => Value::Bool(*__b), _ => Value::Bool(false) })), Value::Bool(true)) || matches!(((match userConfig.get("testnet") { Some(Value::Bool(__b)) => Value::Bool(*__b), _ => Value::Bool(false) })), Value::Bool(true)) {

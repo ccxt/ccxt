@@ -3262,7 +3262,7 @@ impl SxbetCore {
                 if (subscription.as_deref() == Some("connect")) {
                     if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsConnected".into(), Value::Bool(false)); }
                 }
-                if (subscription.is_some()) && (matches!((&__ch.subscriptions.clone(), &subscription.clone().map(Value::from).unwrap_or(Value::Null)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+                if (subscription.is_some()) && (__ch.has_subscription(&subscription.clone().map(Value::from).unwrap_or(Value::Null))) {
                     __ch.remove_subscription(&subscription.clone().map(Value::from).unwrap_or(Value::Null));
                 }
                 { let __be_tmp = self.omit(pendingRequests.clone(), requestIdString.clone(), &[]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsPendingRequests".into(), __be_tmp); } }

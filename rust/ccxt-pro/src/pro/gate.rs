@@ -2241,7 +2241,7 @@ impl GateCore {
         let mut fetchPositionsSnapshot: Value = self.handle_option(Value::Str("watchPositions".into()), Value::Str("fetchPositionsSnapshot".into()), &[Value::Bool(false)]);
         if (fetchPositionsSnapshot.as_bool() == Some(true)) {
             let mut messageHash: Value = Value::Str(format!("{}{}", type_var, Value::Str(":fetchPositionsSnapshot".into())).into());
-            if !(matches!((&__ch.futures.clone(), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+            if !(__ch.has_future(&messageHash)) {
                 client.future(&[messageHash.clone()]);
                 self.spawn(&[Value::Str("load_positions_snapshot".into()).clone(), client.clone(), messageHash.clone(), type_var.clone()]);
             }
@@ -2271,8 +2271,8 @@ impl GateCore {
         }
         }
         // don't remove the future from the .futures cache
-        if (matches!((&__ch.futures.clone(), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-            let mut future: Value = get_value(&__ch.futures.clone(), &messageHash);
+        if (__ch.has_future(&messageHash)) {
+            let mut future: Value = __ch.get_future(&messageHash);
             future.resolve(&[cache.clone()]);
             client.resolve(&[cache, Value::Str(format!("{}{}", type_var, Value::Str(":position".into())).into())]);
         }
@@ -2842,7 +2842,7 @@ impl GateCore {
              #[allow(unreachable_code)] { Value::Null }}));
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 client.reject(&[e, messageHash.clone().map(Value::from).unwrap_or(Value::Null)]);
-                if (messageHash.is_some()) && (matches!((&__ch.subscriptions.clone(), &messageHash.clone().map(Value::from).unwrap_or(Value::Null)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+                if (messageHash.is_some()) && (__ch.has_subscription(&messageHash.clone().map(Value::from).unwrap_or(Value::Null))) {
                     __ch.remove_subscription(&messageHash.clone().map(Value::from).unwrap_or(Value::Null));
                 }
                 // remove subscriptions for watchSymbols
@@ -2910,7 +2910,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut method: Value = methods.as_map().and_then(|__m| channel.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
             self.dispatch_ws_handler(&method, &[client.clone(), message.clone(), subscription]);
         }
-        if (matches!((&__ch.subscriptions.clone(), &id), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+        if (__ch.has_subscription(&id)) {
             if (id != Value::Null) {
                 __ch.remove_subscription(&id);
             }
@@ -2940,17 +2940,17 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // }
         //
         let mut id: Value = (match message.get("id") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
-        let mut keys: Vec<Value> = object_keys(&__ch.subscriptions.clone()).as_array().cloned().unwrap_or_default();
+        let mut keys: Vec<Value> = __ch.subscription_keys();
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_352: bool = true;
             while { if !__for_first_352 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_352 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
             let mut messageHash: Value = keys.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
-            if !(matches!((&__ch.subscriptions.clone(), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+            if !(__ch.has_subscription(&messageHash)) {
                 continue;
             }
             if (messageHash.as_str().unwrap_or("").starts_with("unsubscribe")) {
-                let mut subscription: Value = get_value(&__ch.subscriptions.clone(), &messageHash);
+                let mut subscription: Value = __ch.get_subscription(&messageHash);
                 let mut subId: Value = self.safe_string_k(subscription.clone(), "id", &[]);
                 if (id != subId) {
                     continue;
@@ -3217,7 +3217,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (subscription != Value::Null) {
             let mut client: Value = self.client(&[url.clone()]);
             let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
-            if !(matches!((&__ch.subscriptions.clone(), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+            if !(__ch.has_subscription(&messageHash)) {
                 let mut tempSubscriptionHash: Value = Value::Str(format!("{}", requestId).into());
                 __ch.add_subscription(&tempSubscriptionHash, messageHash.clone());
             }
@@ -3390,7 +3390,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut client: Value = self.client(&[url.clone()]);
         let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
-        if !(matches!((&__ch.subscriptions.clone(), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+        if !(__ch.has_subscription(&messageHash)) {
             let mut tempSubscriptionHash: Value = Value::Str(format!("{}", requestId).into());
             // in case of authenticationError we will throw
             __ch.add_subscription(&tempSubscriptionHash, messageHash.clone());

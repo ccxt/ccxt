@@ -965,7 +965,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 return self.dispatch_ws_handler(&method, &[client.clone(), message.clone(), subscription]);
             }
             // clean up
-            if (matches!((&__ch.subscriptions.clone(), &id), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+            if (__ch.has_subscription(&id)) {
                 __ch.remove_subscription(&id);
             }
         }
@@ -1079,7 +1079,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     let mut messageHash: Option<String> = self.safe_string_k_opt(subscription, "messageHash", &[]);
                     client.reject(&[e.clone(), messageHash.map(Value::from).unwrap_or(Value::Null)]);
                     client.reject(&[e, id.clone()]);
-                    if (matches!((&__ch.subscriptions.clone(), &id), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+                    if (__ch.has_subscription(&id)) {
                         __ch.remove_subscription(&id);
                     }
                 }

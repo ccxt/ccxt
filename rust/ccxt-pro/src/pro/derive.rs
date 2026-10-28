@@ -438,7 +438,7 @@ impl DeriveCore {
         let mut topic: Option<String> = self.safe_string_k_opt(params, "channel", &[]);
         if !(matches!((&self.orderbooks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             let mut defaultLimit: Value = self.safe_integer_k(self.options.clone(), "watchOrderBookLimit", &[Value::Int(1000)]);
-            let mut subscription: Value = (if (topic.is_none()) { Value::Null } else { get_value(&__ch.subscriptions.clone(), &topic.clone().map(Value::from).unwrap_or(Value::Null)) });
+            let mut subscription: Value = (if (topic.is_none()) { Value::Null } else { __ch.get_subscription(&topic.clone().map(Value::from).unwrap_or(Value::Null)) });
             let mut limit: Value = self.safe_integer_k(subscription, "limit", &[defaultLimit]);
             { let __be_tmp = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -815,7 +815,7 @@ impl DeriveCore {
         }
         // the bid ask stream shares the ticker_slim channel, so its waiters must not be left hanging either
         let mut bidAskHash: Value = Value::Str(format!("{}{}", Value::Str("bidask:".into()), symbol).into());
-        if (matches!((&__ch.futures.clone(), &bidAskHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+        if (__ch.has_future(&bidAskHash)) {
             let mut error = Value::from(crate::exchange_errors::unsubscribe_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), bidAskHash)));
             client.reject(&[Value::from(error), bidAskHash.clone()]);
         }
@@ -1683,7 +1683,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             if is_instance(&error, &Value::Str("AuthenticationError".into())) {
                 let mut messageHash: Value = Value::Str("authenticated".into());
                 client.reject(&[Value::from(error.clone()), messageHash.clone()]);
-                if (matches!((&__ch.subscriptions.clone(), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+                if (__ch.has_subscription(&messageHash)) {
                     __ch.remove_subscription(&messageHash);
                 }
             }  else {
@@ -1739,7 +1739,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (matches!(&message, Value::Dict(__d) if __d.contains_key("id"))) {
             let mut id: Value = (match __pro_message.get("id").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
             // the subscriptions are scanned with safeString comparisons: an indexBy over the integer ids would need an integer lookup key in python while the object keys are always strings in javascript
-            let mut subscriptionKeys: Vec<Value> = object_keys(&__ch.subscriptions.clone()).as_array().cloned().unwrap_or_default();
+            let mut subscriptionKeys: Vec<Value> = __ch.subscription_keys();
             let mut matched: bool = false;
             {
                                 let mut i: Value = Value::Int(0);
@@ -1794,7 +1794,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut error = Value::from(crate::exchange_errors::authentication_error(json_stringify(&message)));
             client.reject(&[Value::from(error), messageHash.clone()]);
             // allows further authentication attempts
-            if (matches!((&__ch.subscriptions.clone(), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+            if (__ch.has_subscription(&messageHash)) {
                 __ch.remove_subscription(&Value::Str("authenticated".into()));
             }
         }

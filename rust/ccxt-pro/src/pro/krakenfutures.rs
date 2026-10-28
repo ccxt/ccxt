@@ -2325,7 +2325,7 @@ impl KrakenfuturesCore {
     pub fn subscription_exists_for_hash(&mut self, mut url: Value, mut hash: Value) -> Value {
         let mut client: Value = self.client(&[url]);
         let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
-        return (Value::Bool(matches!((&__ch.subscriptions.clone(), &hash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))));
+        return (Value::Bool(__ch.has_subscription(&hash)));
 
     Value::Null
 }
@@ -2448,7 +2448,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         }  else {
             let mut error = Value::from(crate::exchange_errors::authentication_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&message))));
             client.reject(&[Value::from(error), messageHash.clone()]);
-            if (matches!((&__ch.subscriptions.clone(), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+            if (__ch.has_subscription(&messageHash)) {
                 __ch.remove_subscription(&messageHash);
             }
         }

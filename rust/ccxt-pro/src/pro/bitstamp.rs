@@ -1448,7 +1448,7 @@ impl BitstampCore {
             let mut messageHash: Value = Value::Str("authenticateFlight".into());
             let mut client: Value = self.client(&[Value::Str("authenticationFlights".into())]);
             let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
-            if (matches!((&__ch.futures.clone(), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+            if (__ch.has_future(&messageHash)) {
                 // a flight is already in progress - wake when the leader
                 // settles it: the token is then in this.options
                 crate::exchange_stubs::ws_await_flight(&client.future(&[messageHash.clone()])).await;
