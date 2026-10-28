@@ -1709,7 +1709,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         this.cleanUnsubscription(client, subMessageHash, messageHash, false);
         if ((!java.util.Objects.equals(symbol, null)) && (((Map<?, ?>)this.ohlcvs).containsKey(symbol)))
         {
-            if ((!java.util.Objects.equals(timeframe, null)) && (((Map<?, ?>)((Map<?, ?>)this.ohlcvs).get(symbol)).containsKey(timeframe)))
+            if (((Map<?, ?>)((Map<?, ?>)this.ohlcvs).get(symbol)).containsKey(timeframe))
             {
                 ((Map<String,Object>)((Map<?, ?>)this.ohlcvs).get(symbol)).remove((String)timeframe);
             }

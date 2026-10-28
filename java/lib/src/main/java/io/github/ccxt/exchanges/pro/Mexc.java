@@ -2297,7 +2297,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
                 Integer splitHashesLength = ((List<?>)splitHashes).size(); // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
                 if ((splitHashesLength != null && splitHashesLength > 4))
                 {
-                    candlesSymbol = ((candlesSymbol + ":") + this.safeString(splitHashes, 3, ""));
+                    candlesSymbol = (candlesSymbol + (":" + this.safeString(splitHashes, 3, "")));
                 }
                 if (((Map<?, ?>)this.ohlcvs).containsKey(candlesSymbol))
                 {

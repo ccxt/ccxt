@@ -176,7 +176,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            String symbolValue = (String) market.get("symbol");
+            String symbolValue = this.safeString(market, "symbol", "");
             String marketId = this.safeString(market, "id", "");
             String messageHash = (("trade" + ":") + marketId);
             List<Object> trades = (List<Object>) (this.watchPublic(messageHash, parameters)).join();
@@ -211,7 +211,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
         String marketId = this.safeString(message, "symbol");
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String marketIdValue = this.safeString(market, "id", "");
-        String symbol = (String) market.get("symbol");
+        String symbol = this.safeString(market, "symbol", "");
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
         if (java.util.Objects.equals(stored, null))
         {
@@ -320,7 +320,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
             stored.append(parsed);
             String symbol = this.safeString(trade, "symbol");
             Map<String, Object> market = this.market(symbol);
-            String marketId = (String) market.get("id");
+            String marketId = this.safeString(market, "id");
             if (!java.util.Objects.equals(marketId, null))
             {
                 marketIds.put(marketId, true);
@@ -469,7 +469,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
             stored.append(parsed);
             String symbol = this.safeString(order, "symbol");
             Map<String, Object> market = this.market(symbol);
-            String marketId = (String) market.get("id");
+            String marketId = this.safeString(market, "id");
             if (!java.util.Objects.equals(marketId, null))
             {
                 marketIds.put(marketId, true);

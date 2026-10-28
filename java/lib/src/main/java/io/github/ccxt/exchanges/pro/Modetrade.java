@@ -1518,19 +1518,11 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
             Map<String, Object> value = (Map<String, Object>) this.safeDict(balances, key, (Object) null);
             String code = this.safeCurrencyCode(key, (Map<String, Object>) null);
             Map<String, Object> account = this.account();
-            if ((!java.util.Objects.equals(code, null)) && (((Map<?, ?>)this.balance).containsKey(code)))
-            {
-                Map<String, Object> cachedAccount = (Map<String, Object>) this.safeDict(this.balance, code, (Object) null);
-                if (!java.util.Objects.equals(cachedAccount, null))
-                {
-                    account = cachedAccount;
-                }
-            }
             String total = this.safeString(value, "holding");
             String used = this.safeString(value, "frozen");
-            Helpers.addElementToObject(account, "total", total);
-            Helpers.addElementToObject(account, "used", used);
-            Helpers.addElementToObject(account, "free", Precise.stringSub(total, used));
+            account.put("total", total);
+            account.put("used", used);
+            account.put("free", Precise.stringSub(total, used));
             if (!java.util.Objects.equals(code, null))
             {
                 this.balance.put(code, account);

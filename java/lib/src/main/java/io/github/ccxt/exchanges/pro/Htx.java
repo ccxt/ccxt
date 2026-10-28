@@ -1064,7 +1064,8 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             Boolean isV5Linear = (Boolean.TRUE.equals(linear) && (Boolean.TRUE.equals(swap) || Boolean.TRUE.equals(future)));
             if (java.util.Objects.equals(type, "spot"))
             {
-                String mode = this.safeString(paramsRequest, "mode", this.safeString2(this.options, "watchMyTrades", "mode", "0"));
+                String mode = this.safeString2(this.options, "watchMyTrades", "mode", "0");
+                mode = this.safeString(paramsRequest, "mode", mode);
                 paramsRequest = this.omit(paramsRequest, "mode");
                 messageHash = (((("trade.clearing" + "#") + marketId) + "#") + mode);
                 channel = messageHash;
@@ -3467,7 +3468,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 }
                 signatureParams = this.keysort(signatureParams);
                 String auth = this.urlencode(signatureParams, true); // true required in go
-                String payload = String.join("\n", (List<String>)(List)new ArrayList<Object>(Arrays.asList("GET", hostname, relativePath, auth))); // eslint-disable-line quotes
+                String payload = (((((("GET" + "\n") + hostname) + "\n") + relativePath) + "\n") + auth); // eslint-disable-line quotes
                 String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "base64");
                 Map<String, Object> request = null;
                 if (java.util.Objects.equals(type, "spot"))

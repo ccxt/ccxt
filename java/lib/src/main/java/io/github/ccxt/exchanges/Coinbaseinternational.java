@@ -3816,9 +3816,9 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             Boolean forceRefresh = (Boolean) this.safeBool(paramsResolved, "forceRefresh", false);
             Map<String, Object> paramsOmitted = this.omit(paramsResolved, "forceRefresh");
             Long now = this.milliseconds();
-            Object token = this.getV2AccessToken();
+            String token = this.getV2AccessToken();
             Long tokenExpires = this.safeInteger(this.options, "v2TokenExpires");
-            if (!Boolean.TRUE.equals(forceRefresh) && (!java.util.Objects.equals(token, null)) && (!java.util.Objects.equals(tokenExpires, null)) && ((tokenExpires != null && (now == null || now < tokenExpires))))
+            if (!Boolean.TRUE.equals(forceRefresh) && (!java.util.Objects.equals(token, null)) && (!java.util.Objects.equals(token, "")) && (!java.util.Objects.equals(tokenExpires, null)) && ((tokenExpires != null && (now == null || now < tokenExpires))))
             {
                 return token;
             }
@@ -3862,18 +3862,9 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
      * @description the cached gateway access token, options.v2AccessToken takes precedence over exchange.token
      * @returns {string|undefined} the access token
      */
-    public Object getV2AccessToken()
+    public String getV2AccessToken()
     {
-        String token = this.safeString(this.options, "v2AccessToken");
-        if ((!java.util.Objects.equals(token, null)) && (!java.util.Objects.equals(token, "")))
-        {
-            return token;
-        }
-        if (java.util.Objects.equals(this.token, ""))
-        {
-            return null;
-        }
-        return this.token;
+        return this.safeString(this.options, "v2AccessToken", this.token);
     }
 
     public Object sign(Object path, Object api, Object method, Object parameters)
@@ -3931,8 +3922,8 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             }
         } else if (java.util.Objects.equals(access, "private"))
         {
-            Object accessToken = this.getV2AccessToken();
-            if (java.util.Objects.equals(accessToken, null))
+            String accessToken = this.getV2AccessToken();
+            if ((java.util.Objects.equals(accessToken, null)) || (java.util.Objects.equals(accessToken, "")))
             {
                 throw new AuthenticationError((this.id + " requires an access token from public/auth")) ;
             }
@@ -4013,7 +4004,8 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         Boolean deribit = this.resolveRoute(route);
         Boolean previousBackend = (Boolean) this.safeBool(this.options, "routeBackend", (Object) null);
         Boolean configuredBackend = this.isNativeDeribitCredentials();
-        Boolean hasToken = !java.util.Objects.equals(this.getV2AccessToken(), null);
+        String currentToken = this.getV2AccessToken();
+        Boolean hasToken = (!java.util.Objects.equals(currentToken, null)) && (!java.util.Objects.equals(currentToken, ""));
         Boolean hasWsState = !java.util.Objects.equals(this.safeInteger(this.options, "wsAuthRefreshAt"), null);
         if ((!java.util.Objects.equals(previousBackend, null)) && (!java.util.Objects.equals(previousBackend, deribit)))
         {
