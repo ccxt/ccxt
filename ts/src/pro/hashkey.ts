@@ -136,7 +136,7 @@ export default class hashkey extends hashkeyRest {
         //
         const marketId = this.safeString (message, 'symbol');
         const market = this.safeMarket (marketId);
-        const symbol = this.safeString (market, 'symbol', '');
+        const symbol: string = this.safeString (market, 'symbol', '');
         const params = this.safeDict (message, 'params');
         const klineType = this.safeString (params, 'klineType');
         const timeframe = this.findTimeframe (klineType);
@@ -297,7 +297,7 @@ export default class hashkey extends hashkeyRest {
         //
         const marketId = this.safeString (message, 'symbol');
         const market = this.safeMarket (marketId);
-        const symbol = market['symbol'];
+        const symbol: string = this.safeString (market, 'symbol', '');
         if (!(symbol in this.trades)) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             this.trades[symbol] = new ArrayCache (limit);
