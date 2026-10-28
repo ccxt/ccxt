@@ -536,7 +536,10 @@ export default class mexc extends mexcRest {
             'method': method,
             'params': [channel],
         };
-        return await this.watch(url, messageHash, this.extend(request, paramsOmitted), messageHash);
+        const subscription = {
+            'channel': channel, // the rejection frame names the channel, this maps it back to the hash
+        };
+        return await this.watch(url, messageHash, this.extend(request, paramsOmitted), messageHash, subscription);
     }
     async watchSpotPrivate(channel, messageHash, params = {}) {
         this.checkRequiredCredentials();
@@ -816,12 +819,15 @@ export default class mexc extends mexcRest {
         return orderbook.limit();
     }
     handleOrderBookSubscription(client, message) {
-        // spot
+        // the ack echoes the subscribed channel, the market id is always its last segment
+        //
+        //     { id: 0, code: 0, msg: "spot@public.aggre.depth.v3.api.pb@100ms@BTCUSDT" }
         //     { id: 0, code: 0, msg: "spot@public.increase.depth.v3.api@BTCUSDT" }
         //
         const msg = this.safeString(message, 'msg', '');
         const parts = msg.split('@');
-        const marketId = this.safeString(parts, 2);
+        const partsLength = parts.length; // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
+        const marketId = this.safeString(parts, partsLength - 1);
         const symbol = this.safeSymbol(marketId);
         if (!(symbol in this.orderbooks)) {
             this.orderbooks[symbol] = this.orderBook({});
@@ -2120,10 +2126,39 @@ export default class mexc extends mexcRest {
         //        "code": 0,
         //        "msg": "spot@public.increase.depth.v3.api@BTCUSDT"
         //    }
+        //
+        // a rejected subscription answers with code 0 as well, the failure is only in the text
+        //
+        //    {
+        //        "id": 0,
+        //        "code": 0,
+        //        "msg": "Not Subscribed successfully! [spot@public.aggre.depth.v3.api.pb@999ms@BTCUSDT].  Reason： Blocked! "
+        //    }
+        //
         // Set the default to an empty string if the message is empty during the test.
         const msg = this.safeString(message, 'msg', '');
         if (msg === 'PONG') {
             this.handlePong(client, message);
+        }
+        else if (msg.indexOf('Not Subscribed successfully') > -1) {
+            // the venue names the refused channel between brackets, reject only that watcher
+            // and drop its subscription so a corrected retry sends a new frame
+            const error = new ExchangeError(this.id + ' ' + msg);
+            const subscriptionHashes = Object.keys(client.subscriptions);
+            let rejected = false;
+            for (let i = 0; i < subscriptionHashes.length; i++) {
+                const subscriptionHash = subscriptionHashes[i];
+                const subscribedChannel = this.safeString(client.subscriptions[subscriptionHash], 'channel');
+                if ((subscribedChannel !== undefined) && (msg.indexOf('[' + subscribedChannel + ']') >= 0)) {
+                    delete client.subscriptions[subscriptionHash];
+                    client.reject(error, subscriptionHash);
+                    rejected = true;
+                }
+            }
+            if (!rejected) {
+                // nothing matched, the caller would hang otherwise
+                client.reject(error);
+            }
         }
         else if (msg.indexOf('@') > -1) {
             const parts = msg.split('@');
