@@ -1102,7 +1102,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         //     }
         //
         string? errMsg = this.safeString(message, "message");
-        string? reason = this.safeString(message, "reason");
+        string? reason = this.safeString(message, "reason", "");
         try
         {
             if (errMsg == "Authentication Failed")

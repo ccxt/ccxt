@@ -4005,10 +4005,10 @@ public partial class deribit : Exchange
             int dataLength = data?.Count ?? 0;
             if (dataLength > 0)
             {
-                object first = (data != null && 0 < data.Count ? data[0] : null);
-                object last = (data != null && (dataLength - 1) < data.Count ? data[(dataLength - 1)] : null);
-                ((IDictionary<string,object>)first)["continuation"] = cursor;
-                ((IDictionary<string,object>)last)["continuation"] = cursor;
+                IDictionary<string, object> first = this.safeDict(data, 0, new Dictionary<string, object>() {});
+                IDictionary<string, object> last = this.safeDict(data, (dataLength - 1), new Dictionary<string, object>() {});
+                first["continuation"] = cursor;
+                last["continuation"] = cursor;
                 ((List<object>)data)[Convert.ToInt32(0)] = first;
                 ((List<object>)data)[Convert.ToInt32((dataLength - 1))] = last;
             }

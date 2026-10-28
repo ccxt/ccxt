@@ -555,7 +555,7 @@ public partial class krakenfutures : Exchange
             bool future = (type == "future");
             string? symbol = id;
             List<object> split = id.Split(new [] {"_"}, StringSplitOptions.None).ToList<object>();
-            string? splitMarket = this.safeString(split, 1);
+            string? splitMarket = this.safeString(split, 1, "");
             string? baseId = slice(splitMarket, 0, (splitMarket.Length - 3));
             string quoteId = "usd"; // always USD
             string? bs = this.safeCurrencyCode(baseId);

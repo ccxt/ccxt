@@ -145,14 +145,18 @@ public partial class hashkey : ccxt.hashkey
         //
         string? marketId = this.safeString(message, "symbol");
         Dictionary<string, object> market = this.safeMarket(marketId);
-        string? symbol = this.safeSymbol(marketId, market);
-        if (!((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol))))
-        {
-            this.ohlcvs[(string)symbol] = new Dictionary<string, object>() {};
-        }
+        string? symbol = this.safeString(market, "symbol", "");
         IDictionary<string, object> parameters = this.safeDict(message, "params");
         string? klineType = this.safeString(parameters, "klineType");
         string? timeframe = this.findTimeframe(klineType);
+        if ((timeframe == null))
+        {
+            return;
+        }
+        if (!(((symbol != null) && ((IDictionary<string, object>)this.ohlcvs).ContainsKey(symbol))))
+        {
+            this.ohlcvs[(string)symbol] = new Dictionary<string, object>() {};
+        }
         if (!(inOp((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), timeframe)))
         {
             Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
