@@ -291,14 +291,15 @@ export default class hyperliquid extends Exchange {
                 const expiryParts = expiry.split ('-');
                 expiryDate = expiryParts[0];
             }
-            let base = underlying.toUpperCase ();
+            let targetPart = '';
             if (targetPrice !== '') {
-                base = base + '_ABOVE_' + targetPrice;
+                targetPart = '_ABOVE_' + targetPrice;
             }
+            let expiryPart = '';
             if (expiryDate !== '') {
-                base = base + '_' + expiryDate;
+                expiryPart = '_' + expiryDate;
             }
-            return base;
+            return underlying.toUpperCase () + targetPart + expiryPart;
         }
         const questionDescription = this.safeString (question, 'description');
         if ((questionDescription !== undefined) && (questionDescription !== '')) {
@@ -311,6 +312,10 @@ export default class hyperliquid extends Exchange {
                 if (questionExpiry !== '') {
                     const questionExpiryParts = questionExpiry.split ('-');
                     questionExpiryDate = questionExpiryParts[0];
+                }
+                let questionExpiryPart = '';
+                if (questionExpiryDate !== '') {
+                    questionExpiryPart = '_' + questionExpiryDate;
                 }
                 const thresholdsRaw = this.safeString (questionDesc, 'priceThresholds', '');
                 const indexStr = this.safeString (desc, 'index');
@@ -337,20 +342,12 @@ export default class hyperliquid extends Exchange {
                         } else {
                             bucketLabel = 'BETWEEN_' + thresholds[index - 1] + '_' + thresholds[index];
                         }
-                        let base = questionUnderlying.toUpperCase () + '_' + bucketLabel;
-                        if (questionExpiryDate !== '') {
-                            base = base + '_' + questionExpiryDate;
-                        }
-                        return base;
+                        return questionUnderlying.toUpperCase () + '_' + bucketLabel + questionExpiryPart;
                     }
                 }
                 const isFallbackLike = (rawDescription === 'other') || (nameLower.indexOf ('fallback') >= 0) || (nameLower.indexOf ('other') >= 0);
                 if ((questionUnderlying !== undefined && questionUnderlying !== '') && isFallbackLike) {
-                    let base = questionUnderlying.toUpperCase () + '_OTHER';
-                    if (questionExpiryDate !== '') {
-                        base = base + '_' + questionExpiryDate;
-                    }
-                    return base;
+                    return questionUnderlying.toUpperCase () + '_OTHER' + questionExpiryPart;
                 }
             }
         }
