@@ -405,7 +405,7 @@ impl HollaexCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        let mut symbolValue: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+        let mut symbolValue: Value = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]);
         let marketId: String = self.safe_string_k_opt(market, "id", &[Value::Str("".into())]).unwrap_or_default();
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("trade".into()), Value::Str(":".into())).into()), marketId).into());
         let mut trades: Value = self.watch_public(messageHash, &[params]).await;
@@ -440,7 +440,7 @@ impl HollaexCore {
         let mut marketId: Option<String> = self.safe_string_k_opt(message, "symbol", &[]);
         let mut market: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]);
         let marketIdValue: String = self.safe_string_k_opt(market.clone(), "id", &[Value::Str("".into())]).unwrap_or_default();
-        let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+        let mut symbol: Value = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]);
         let mut stored: Value = self.safe_value(self.trades.clone(), symbol.clone(), &[]);
         if (stored == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
@@ -554,10 +554,10 @@ impl HollaexCore {
             let mut parsed: Value = self.parse_trade(trade.clone(), &[]);
             stored.append(parsed);
             let mut symbol: Option<String> = self.safe_string_k_opt(trade, "symbol", &[]);
-            let mut market: indexmap::IndexMap<String, Value> = self.market(symbol.map(Value::from).unwrap_or(Value::Null)).as_map().cloned().unwrap_or_default();
-            let mut marketId: Value = market.get("id").cloned().unwrap_or(Value::Null);
-            if (marketId != Value::Null) {
-                marketIds.insert(crate::runtime::stringify_param(&marketId), Value::Bool(true));
+            let mut market: Value = self.market(symbol.map(Value::from).unwrap_or(Value::Null));
+            let mut marketId: Option<String> = self.safe_string_k_opt(market, "id", &[]);
+            if (marketId.is_some()) {
+                marketIds.insert(marketId.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
             }
         }
         }
@@ -711,10 +711,10 @@ impl HollaexCore {
             let mut parsed: Value = self.parse_order(order.clone(), &[]);
             stored.append(parsed);
             let mut symbol: Option<String> = self.safe_string_k_opt(order, "symbol", &[]);
-            let mut market: indexmap::IndexMap<String, Value> = self.market(symbol.map(Value::from).unwrap_or(Value::Null)).as_map().cloned().unwrap_or_default();
-            let mut marketId: Value = market.get("id").cloned().unwrap_or(Value::Null);
-            if (marketId != Value::Null) {
-                marketIds.insert(crate::runtime::stringify_param(&marketId), Value::Bool(true));
+            let mut market: Value = self.market(symbol.map(Value::from).unwrap_or(Value::Null));
+            let mut marketId: Option<String> = self.safe_string_k_opt(market, "id", &[]);
+            if (marketId.is_some()) {
+                marketIds.insert(marketId.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
             }
         }
         }

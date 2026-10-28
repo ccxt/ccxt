@@ -1902,20 +1902,14 @@ impl ModetradeCore {
             let mut key: Value = keys.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
             let mut value: Value = self.safe_dict(balances.clone(), key.clone(), &[]);
             let mut code: Value = self.safe_currency_code(key, &[]);
-            let mut account: Value = self.account();
-            if (code != Value::Null) && (matches!((&self.balance, &code), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                let mut cachedAccount: Value = self.safe_dict(self.balance.clone(), code.clone(), &[]);
-                if (cachedAccount != Value::Null) {
-                    account = cachedAccount;
-                }
-            }
+            let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             let mut total: Option<String> = self.safe_string_k_opt(value.clone(), "holding", &[]);
             let mut used: Option<String> = self.safe_string_k_opt(value, "frozen", &[]);
-            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".into(), total.clone().map(Value::from).unwrap_or(Value::Null)); }
-            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".into(), used.clone().map(Value::from).unwrap_or(Value::Null)); }
-            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".into(), crate::precise::Precise::stringSub(&total.clone().map(Value::from).unwrap_or(Value::Null), &used.clone().map(Value::from).unwrap_or(Value::Null))); }
+            account.insert("total".into(), total.clone().map(Value::from).unwrap_or(Value::Null));
+            account.insert("used".into(), used.clone().map(Value::from).unwrap_or(Value::Null));
+            account.insert("free".into(), crate::precise::Precise::stringSub(&total.clone().map(Value::from).unwrap_or(Value::Null), &used.clone().map(Value::from).unwrap_or(Value::Null)));
             if (code != Value::Null) {
-                if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), account); }
+                if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), Value::Map(account)); }
             }
         }
         }

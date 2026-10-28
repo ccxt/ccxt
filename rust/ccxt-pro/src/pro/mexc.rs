@@ -2610,7 +2610,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut candlesSymbol: Value = self.safe_string(splitHashes.clone(), Value::Int(2), &[Value::Str("".into())]);
                 let mut splitHashesLength: f64 = ((splitHashes.len() as i64) as f64); // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
                 if splitHashesLength > ((4i64) as f64) {
-                    candlesSymbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", candlesSymbol, Value::Str(":".into())).into()), self.safe_string(splitHashes, Value::Int(3), &[Value::Str("".into())])).into());
+                    candlesSymbol = Value::Str(format!("{}{}", candlesSymbol, Value::Str(format!("{}{}", Value::Str(":".into()), self.safe_string(splitHashes, Value::Int(3), &[Value::Str("".into())])).into())).into());
                 }
                 if (matches!((&self.ohlcvs, &candlesSymbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                     if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.ohlcvs, &candlesSymbol) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }

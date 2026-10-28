@@ -4430,7 +4430,7 @@ impl CoinbaseinternationalCore {
         let mut now: Value = self.milliseconds();
         let mut token: Value = self.get_v2_access_token().map(Value::from).unwrap_or(Value::Null);
         let mut tokenExpires: Value = self.safe_integer_k(self.options.clone(), "v2TokenExpires", &[]);
-        if !(forceRefresh.as_bool() == Some(true)) && (token != Value::Null) && (tokenExpires != Value::Null) && (now.as_f64().unwrap_or(f64::NAN) < tokenExpires.as_f64().unwrap_or(f64::NAN)) {
+        if !(forceRefresh.as_bool() == Some(true)) && (token != Value::Null) && (token.as_str() != Some("")) && (tokenExpires != Value::Null) && (now.as_f64().unwrap_or(f64::NAN) < tokenExpires.as_f64().unwrap_or(f64::NAN)) {
             return token;
         }
         let mut response: Value = self.public_post_auth(&[paramsOmitted]).await;
@@ -4476,14 +4476,7 @@ impl CoinbaseinternationalCore {
  * @returns {string|undefined} the access token
  */
     pub fn get_v2_access_token(&self) -> Option<String> {
-        let mut token: Value = self.safe_string_k(self.options.clone(), "v2AccessToken", &[]);
-        if (token != Value::Null) && (token.as_str() != Some("")) {
-            return token.as_str().map(str::to_owned);
-        }
-        if (self.token.as_str() == Some("")) {
-            return None;
-        }
-        return self.token.as_str().map(str::to_owned);
+        return self.safe_string_k(self.options.clone(), "v2AccessToken", &[self.token.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn sign(&self, mut path: Value, optional_args: &[Value]) -> Value {
@@ -4547,7 +4540,7 @@ impl CoinbaseinternationalCore {
             });
         }  else if (access.as_str() == Some("private")) {
             let mut accessToken: Value = self.get_v2_access_token().map(Value::from).unwrap_or(Value::Null);
-            if (accessToken == Value::Null) {
+            if (accessToken == Value::Null) || (accessToken.as_str() == Some("")) {
                 panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), Value::Str(" requires an access token from public/auth".into()))));
             }
             requestHeaders = Value::Map({
@@ -4635,7 +4628,8 @@ impl CoinbaseinternationalCore {
         let mut deribit: Value = self.resolve_route(&[route]);
         let mut previousBackend: Value = self.safe_bool_k(self.options.clone(), "routeBackend", &[]);
         let mut configuredBackend: Value = self.is_native_deribit_credentials();
-        let mut hasToken: bool = self.get_v2_access_token().map(Value::from).unwrap_or(Value::Null) != Value::Null;
+        let mut currentToken: Option<String> = self.get_v2_access_token();
+        let mut hasToken: bool = (currentToken.is_some()) && (currentToken.as_deref() != Some(""));
         let mut hasWsState: bool = self.safe_integer_k(self.options.clone(), "wsAuthRefreshAt", &[]) != Value::Null;
         if (previousBackend != Value::Null) && (previousBackend.as_bool() != deribit.as_bool()) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" cannot switch route backend on an initialized instance; use a separate exchange instance".into()))));
