@@ -353,19 +353,6 @@ export default class interactivebrokers extends interactivebrokersRest {
 
     /**
      * @method
-     * @name interactivebrokers#unWatchTicker
-     * @description unWatches a price ticker
-     * @see https://www.interactivebrokers.com/docs/web-api/ws/streaming-data
-     * @param {string} symbol unified symbol of the market
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {boolean} true
-     */
-    override async unWatchTicker (symbol: string, params: Dict = {}): Promise<any> {
-        return await this.unWatchTickers ([ symbol ], params);
-    }
-
-    /**
-     * @method
      * @name interactivebrokers#unWatchTickers
      * @description unWatches the price tickers of the markets
      * @see https://www.interactivebrokers.com/docs/web-api/ws/streaming-data
