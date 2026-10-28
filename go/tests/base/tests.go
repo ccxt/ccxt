@@ -1763,7 +1763,7 @@ func (this *testMainClass) runPrivateTestsBody(ch chan ccxt.AsyncResult[any], ex
 			tests["fetchPositions"] = []any{symbol} // this test fetches all positions for 1 symbol
 			tests["fetchPosition"] = []any{symbol}
 			tests["fetchPositionRisk"] = []any{symbol}
-			tests["setPositionMode"] = []any{symbol}
+			tests["setPositionMode"] = []any{false, symbol}
 			tests["setMarginMode"] = []any{symbol}
 			tests["fetchOpenInterestHistory"] = []any{symbol}
 			tests["fetchFundingRateHistory"] = []any{symbol}

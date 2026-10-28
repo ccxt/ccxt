@@ -195,8 +195,8 @@ type IBaseExchange interface {
 	GetCurrencies() map[string]any
 	GetMarkets() map[string]any
 	GetNetworkAliases() map[string]any
-	SetSandboxMode(enable any)
-	EnableDemoTrading(enable any)
+	SetSandboxMode(enable bool)
+	EnableDemoTrading(enable bool)
 	LoadMarkets(params ...any) (map[string]MarketInterface, error)
 	SetProxyUrl(proxyUrl any)
 	SetSocksProxy(proxyUrl any)
@@ -278,7 +278,7 @@ type ICoreExchange interface {
 	SafeBool(value any, key any, defaultValue ...any) *bool
 	SafeString(obj any, key any, defaultValue ...any) *string
 	Describe() map[string]any
-	SetSandboxMode(enable any)
+	SetSandboxMode(enable bool)
 	FeatureValue(symbol any, optionalArgs ...any) any
 	Market(symbol any) map[string]any
 	Nonce() int64
@@ -497,7 +497,7 @@ type IDerivedExchange interface {
 	FetchMarketsAsync(optionalArgs ...any) <-chan AsyncResult[[]MarketInterface]
 	FetchCurrenciesAsync(optionalArgs ...any) <-chan AsyncResult[map[string]any]
 	FetchAccountsAsync(optionalArgs ...any) <-chan AsyncResult[[]Account]
-	SetSandboxMode(enabled any)
+	SetSandboxMode(enabled bool)
 	Market(symbol any) map[string]any
 	ParseConversion(conversion any, optionalArgs ...any) Conversion
 	SafeCurrencyCode(currencyId any, optionalArgs ...any) *string

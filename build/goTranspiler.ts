@@ -140,6 +140,10 @@ const GO_UNIFIED_STRING_PARAMS: { [method: string]: number[] } = {
     'fetchOHLCV': [ 0 ], 'watchOrderBook': [ 0 ], 'watchTicker': [ 0 ], 'fetchTradingFee': [ 0 ], 'fetchFundingRate': [ 0 ],
 };
 // required int params whose public typed wrapper already takes int64: body and Async print `int64`
+// required boolean params that print `bool` on the base, every override and go/v4/exchange_interface.go
+const GO_UNIFIED_BOOL_PARAMS: { [method: string]: number[] } = {
+    'setSandboxMode': [ 0 ], 'enableDemoTrading': [ 0 ], 'setPositionMode': [ 0 ],
+};
 const GO_UNIFIED_INT64_PARAMS: { [method: string]: number[] } = {
     'setLeverage': [ 0 ], 'cancelAllOrdersAfter': [ 0 ],
 };
@@ -6015,6 +6019,7 @@ class NewTranspiler {
                 // base, every override and go/v4/exchange_interface.go (audit: no override nil-compares them)
                 "unifiedStringParams": GO_UNIFIED_STRING_PARAMS,
                 "unifiedInt64Params": GO_UNIFIED_INT64_PARAMS,
+                "unifiedBoolParams": GO_UNIFIED_BOOL_PARAMS,
                 // hx10w9 GP13: the ws watch family's symbols list prints `[]string`/`[][]string`
                 "unifiedSliceParams": GO_UNIFIED_SLICE_PARAMS,
             //     "parser": {

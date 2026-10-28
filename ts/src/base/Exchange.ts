@@ -4110,7 +4110,7 @@ export class BaseExchange {
         // sanbox mode
         const isSandbox = this.safeBool2 (this.options, 'sandbox', 'testnet', false);
         if (isSandbox) {
-            this.setSandboxMode (isSandbox);
+            this.setSandboxMode (true);
         }
         // compatibility for sandbox/testnet options in userConfig
         if ((this.safeBool (userConfig, 'sandbox', false)) || (this.safeBool (userConfig, 'testnet', false))) {

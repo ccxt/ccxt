@@ -1479,6 +1479,20 @@ func StringArg(v any) string {
 	panic(ArgumentsRequired(fmt.Sprintf("expected a string argument, got %T: %v", v, v)))
 }
 
+// BoolArg converts a dynamically passed required boolean argument; nil or any other type
+// panics (ArgumentsRequired) instead of coercing
+func BoolArg(v any) bool {
+	switch value := v.(type) {
+	case bool:
+		return value
+	case *bool:
+		if value != nil {
+			return *value
+		}
+	}
+	panic(ArgumentsRequired(fmt.Sprintf("expected a boolean argument, got %T: %v", v, v)))
+}
+
 // Int64Arg converts a dynamically passed required integer argument; nil, a fraction or any
 // other type panics (ArgumentsRequired) instead of coercing
 func Int64Arg(v any) int64 {
@@ -3009,6 +3023,13 @@ func CallInternalMethod(methods map[string]any, itf any, name2 string, args ...a
 					arg = args[k]
 				}
 				in = append(in, reflect.ValueOf(StringArg(arg)).Convert(paramType))
+			} else if paramType.Kind() == reflect.Bool {
+				// a required boolean parameter: no zero-value default, a wrong type panics
+				var arg any = nil
+				if k < len(args) {
+					arg = args[k]
+				}
+				in = append(in, reflect.ValueOf(BoolArg(arg)).Convert(paramType))
 			} else if paramType.Kind() == reflect.Int64 {
 				// a required int parameter: decoded JSON numbers arrive as float64, nil panics
 				var arg any = nil
