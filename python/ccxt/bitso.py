@@ -1893,7 +1893,7 @@ class bitso(Exchange, ImplicitAPI):
             }
         return {'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         if response is None:
             return None  # fallback to default error handler
         if 'success' in response:
@@ -1906,7 +1906,7 @@ class bitso(Exchange, ImplicitAPI):
                 error = self.safe_dict(response, 'error')
                 if error is None:
                     raise ExchangeError(feedback)
-                code = self.safe_string(error, 'code')
-                self.throw_exactly_matched_exception(self.exceptions, code, feedback)
+                codeError = self.safe_string(error, 'code')
+                self.throw_exactly_matched_exception(self.exceptions, codeError, feedback)
                 raise ExchangeError(feedback)
         return None

@@ -2949,7 +2949,7 @@ class bitfinex(Exchange, ImplicitAPI):
         headersResolved = requestHeaders
         return {'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved}
 
-    def handle_errors(self, statusCode: int, statusText: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         # ["error", 11010, "ratelimit: error"]
         if response is not None:
             if not isinstance(response, list):
@@ -2960,9 +2960,9 @@ class bitfinex(Exchange, ImplicitAPI):
                 raise ExchangeError(self.id + ' ' + body)
         elif response == '':
             raise ExchangeError(self.id + ' returned empty response')
-        if statusCode == 429:
+        if code == 429:
             raise RateLimitExceeded(self.id + ' ' + body)
-        if statusCode == 500:
+        if code == 500:
             # See https://docs.bitfinex.com/docs/abbreviations-glossary#section-errorinfo-codes
             errorCode = self.safe_string(response, 1, '')
             errorText = self.safe_string(response, 2, '')

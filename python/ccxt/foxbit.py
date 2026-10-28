@@ -1969,11 +1969,11 @@ class foxbit(Exchange, ImplicitAPI):
             headersValue['X-FB-ACCESS-SIGNATURE'] = signature
         return {'url': url, 'method': method, 'body': requestBody, 'headers': headersValue}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         if response is None:
             return None
         error = self.safe_dict(response, 'error')
-        code = self.safe_string(error, 'code')
+        codeError = self.safe_string(error, 'code')
         details = self.safe_list(error, 'details')
         message = self.safe_string(error, 'message', '')
         detailsString = ''
@@ -1984,6 +1984,6 @@ class foxbit(Exchange, ImplicitAPI):
             feedback = self.id + ' ' + message + ' details: ' + detailsString
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], detailsString, feedback)
-            self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], codeError, feedback)
             raise ExchangeError(feedback)
         return None

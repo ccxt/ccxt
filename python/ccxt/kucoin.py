@@ -1863,8 +1863,7 @@ class kucoin(Exchange, ImplicitAPI):
                 'info': market,
             })
         if fetchContractMarkets:
-            contractMarkets = self.safe_list(responses, contractIndex, [])
-            result = self.array_concat(result, contractMarkets)
+            result = self.array_concat(result, self.safe_list(responses, contractIndex, []))
         if self.safe_bool(self.options, 'adjustForTimeDifference', False):
             self.load_time_difference()
         return result
@@ -2317,9 +2316,8 @@ class kucoin(Exchange, ImplicitAPI):
             #    }
             #
             response = self.publicGetCurrencies(paramsUta)
-        currenciesData = self.safe_list(response, 'data', [])
         brokenCurrencies = self.handle_option('fetchCurrencies', 'brokenCurrencies', [])
-        filteredCurrencies = self.filter_out_by_array(currenciesData, 'currency', brokenCurrencies)  # remove broken entries
+        filteredCurrencies = self.filter_out_by_array(self.safe_list(response, 'data', []), 'currency', brokenCurrencies)  # remove broken entries
         return self.parse_currencies(filteredCurrencies)
 
     def parse_currency(self, currency: dict) -> CurrencyInterface:
@@ -2405,8 +2403,7 @@ class kucoin(Exchange, ImplicitAPI):
             #         }
             #     }
             #
-            dataDict = self.safe_dict(response, 'data', {})
-            data = [dataDict]
+            data = [self.safe_dict(response, 'data', {})]
         else:
             #
             #     {
@@ -4497,8 +4494,9 @@ class kucoin(Exchange, ImplicitAPI):
             self.load_markets()
         isSpot = False
         isContract = False
-        for i in range(0, len(orders)):
-            order = self.safe_dict(orders, i)
+        ordersList = self.to_array(orders)
+        for i in range(0, len(ordersList)):
+            order = self.safe_dict(ordersList, i)
             symbol = self.safe_string(order, 'symbol')
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' createOrders() requires a symbol for each order')
@@ -4534,8 +4532,9 @@ class kucoin(Exchange, ImplicitAPI):
             self.load_markets()
         ordersRequests = []
         symbol = None
-        for i in range(0, len(orders)):
-            rawOrder = self.safe_dict(orders, i)
+        ordersList = self.to_array(orders)
+        for i in range(0, len(ordersList)):
+            rawOrder = self.safe_dict(ordersList, i)
             marketId = self.safe_string(rawOrder, 'symbol')
             if marketId is None:
                 raise ArgumentsRequired(self.id + ' createOrders() requires a symbol for each order')
@@ -4616,8 +4615,9 @@ class kucoin(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         ordersRequests = []
-        for i in range(0, len(orders)):
-            rawOrder = self.safe_dict(orders, i)
+        ordersList = self.to_array(orders)
+        for i in range(0, len(ordersList)):
+            rawOrder = self.safe_dict(ordersList, i)
             symbol = self.safe_string(rawOrder, 'symbol')
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' createOrders() requires a symbol for each order')
@@ -10359,8 +10359,9 @@ class kucoin(Exchange, ImplicitAPI):
                 'symbol': self.safe_string(market, 'id'),
                 'clientOid': self.safe_string(clientOrderIds, i),
             })
-        for i in range(0, len(ids)):
-            orderId = self.safe_string(ids, i)
+        idsList = self.to_array(ids)
+        for i in range(0, len(idsList)):
+            orderId = self.safe_string(idsList, i)
             if uta:
                 ordersRequests.append({
                     'orderId': orderId,
@@ -11135,7 +11136,7 @@ class kucoin(Exchange, ImplicitAPI):
             headersResult = headersSigned
         return {'url': apiUrl + endpoint, 'method': method, 'body': bodyJson, 'headers': headersResult}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         if (response is None) or (response is None):
             self.throw_broadly_matched_exception(self.exceptions['broad'], body, body)
             return None
@@ -11146,9 +11147,8 @@ class kucoin(Exchange, ImplicitAPI):
         #     { code: '200000', data: { ... }}
         #
         errorCode = self.safe_string(response, 'code')
-        message = self.safe_string_2(response, 'msg', 'data', '')
         feedback = self.id + ' ' + body
-        self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
+        self.throw_exactly_matched_exception(self.exceptions['exact'], self.safe_string_2(response, 'msg', 'data', ''), feedback)
         self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
         self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)
         if errorCode != '200000' and errorCode != '200':

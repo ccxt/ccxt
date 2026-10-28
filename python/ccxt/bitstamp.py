@@ -2656,7 +2656,7 @@ class bitstamp(Exchange, ImplicitAPI):
         requestHeaders = None if (apiName == 'public') else privateHeaders
         return {'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         if response is None:
             return None
         #
@@ -2686,8 +2686,8 @@ class bitstamp(Exchange, ImplicitAPI):
                 all = self.safe_list(reasonInner, '__all__', [])
                 for i in range(0, len(all)):
                     errors.append(all[i])
-            code = self.safe_string(response, 'code')
-            if code == 'API0005':
+            codeError = self.safe_string(response, 'code')
+            if codeError == 'API0005':
                 raise AuthenticationError(self.id + ' invalid signature, use the uid for the main account if you have subaccounts')
             feedback = self.id + ' ' + body
             for i in range(0, len(errors)):

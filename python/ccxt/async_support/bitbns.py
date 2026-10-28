@@ -1242,19 +1242,19 @@ class bitbns(Exchange, ImplicitAPI):
             requestHeaders['Content-Type'] = 'application/x-www-form-urlencoded'
         return {'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         if response is None:
             return None  # fallback to default error handler
         #
         #     {"msg":"Invalid Request","status":-1,"code":400}
         #     {"data":[],"status":0,"error":"Nothing to show","code":417}
         #
-        code = self.safe_string(response, 'code')
+        codeError = self.safe_string(response, 'code')
         message = self.safe_string(response, 'msg')
-        error = (code is not None) and (code != '200') and (code != '204')
+        error = (codeError is not None) and (codeError != '200') and (codeError != '204')
         if error or (message is not None):
             feedback = self.id + ' ' + body
-            self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], codeError, feedback)
             self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
             raise ExchangeError(feedback)  # unknown message

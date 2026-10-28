@@ -2031,7 +2031,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
             bodyValue = self.json(params)
         return {'url': url, 'method': method, 'body': bodyValue, 'headers': headersValue}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         if response is None:
             return None
         status = self.safe_string(response, 'status', '')

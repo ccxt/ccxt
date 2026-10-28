@@ -1241,7 +1241,7 @@ class pacifica(ccxt.async_support.pacifica):
         wsHeaders = self.safe_dict(wsOptions, 'options', {})
         wsHeadersFinal = self.safe_dict(wsHeaders, 'headers', {})
         try:
-            self.handle_errors(0, error, '', postType, wsHeadersFinal, self.json(data), message, {}, {})
+            self.handle_errors(0, error, '', postType, wsHeadersFinal, self.json(data), message, {}, '')
         except Exception as e:
             client.reject(e, id)
             return True

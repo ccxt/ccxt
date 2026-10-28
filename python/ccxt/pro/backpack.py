@@ -653,10 +653,9 @@ class backpack(ccxt.async_support.backpack):
         topics = []
         messageHashes = []
         for i in range(0, symbolsLength):
-            symbolAndTimeframe = self.safe_list(symbolsAndTimeframes, i)
-            marketId = self.safe_string(symbolAndTimeframe, 0)
+            marketId = self.safe_string(self.safe_list(symbolsAndTimeframes, i), 0)
             market = self.market(marketId)
-            tf = self.safe_string(symbolAndTimeframe, 1)
+            tf = self.safe_string(self.safe_list(symbolsAndTimeframes, i), 1, '')
             interval = self.safe_string(self.timeframes, tf, tf)
             self.ws_venue_market_id('watchOHLCVForSymbols', market, query)
             topics.append('kline.' + interval + '.' + self.safe_string(market, 'id', ''))
@@ -689,10 +688,9 @@ class backpack(ccxt.async_support.backpack):
         topics = []
         messageHashes = []
         for i in range(0, symbolsLength):
-            symbolAndTimeframe = self.safe_list(symbolsAndTimeframes, i)
-            marketId = self.safe_string(symbolAndTimeframe, 0)
+            marketId = self.safe_string(self.safe_list(symbolsAndTimeframes, i), 0)
             market = self.market(marketId)
-            tf = self.safe_string(symbolAndTimeframe, 1)
+            tf = self.safe_string(self.safe_list(symbolsAndTimeframes, i), 1, '')
             interval = self.safe_string(self.timeframes, tf, tf)
             self.ws_venue_market_id('watchOHLCVForSymbols', market, query)
             topics.append('kline.' + interval + '.' + self.safe_string(market, 'id', ''))

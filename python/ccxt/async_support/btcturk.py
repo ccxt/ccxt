@@ -1078,7 +1078,7 @@ class btcturk(Exchange, ImplicitAPI):
             }
         return {'url': url, 'method': method, 'body': requestBody, 'headers': privateHeaders}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         errorCode = self.safe_string(response, 'code', '0')
         message = self.safe_string(response, 'message')
         feedback = self.id + ' ' + body

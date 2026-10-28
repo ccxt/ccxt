@@ -2485,16 +2485,16 @@ class predictfun(PredictionExchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def handle_errors(self, statusCode: Int, statusText: str, url: str, method: str, responseHeaders: dict, responseBody: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         """
  @ignore
         maps the venue's error slugs and messages onto the unified exceptions
-        :param int statusCode: the http status code
-        :param str statusText: the http status text
+        :param int code: the http status code
+        :param str reason: the http status text
         :param str url: the request url
         :param str method: the http method
-        :param dict responseHeaders: the response headers
-        :param str responseBody: the raw response body
+        :param dict headers: the response headers
+        :param str body: the raw response body
         :param dict response: the parsed response
         :param dict requestHeaders: the request headers
         :param dict requestBody: the request body
@@ -2505,7 +2505,7 @@ class predictfun(PredictionExchange, ImplicitAPI):
         success = self.safe_bool(response, 'success', True)
         if success:
             return None
-        feedback = self.id + ' ' + responseBody
+        feedback = self.id + ' ' + body
         # the message is matched first because it is the more specific of the two: several
         # distinct failures share a generic slug, notably 'unauthorized', which the venue also
         # returns for a hash belonging to another wallet, and 'not_found' for an unknown market
@@ -2515,14 +2515,14 @@ class predictfun(PredictionExchange, ImplicitAPI):
         # order - that case is matched above and has already thrown, so reaching here with a 401
         # means the credential itself was refused. drop the cached JWT, otherwise a token revoked
         # or aged out before its window closes is replayed for the life of the process
-        if statusCode == 401:
+        if code == 401:
             self.options['jwtToken'] = None
             self.options['jwtTokenExpiresAt'] = 0
         error = self.safe_string(response, 'error')
         self.throw_exactly_matched_exception(self.exceptions['exact'], error, feedback)
         # a 400 is a rejected request or a business rule, not a transport outage - the base would
         # otherwise map the bare status onto a retryable network error
-        if statusCode == 400:
+        if code == 400:
             raise BadRequest(feedback)
         raise ExchangeError(feedback)
 

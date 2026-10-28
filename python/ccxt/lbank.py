@@ -2971,7 +2971,7 @@ class lbank(Exchange, ImplicitAPI):
             pem += self.secret[start:end] + "\n"  # eslint-disable-line
         return pem + '-----END PRIVATE KEY-----'
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         if response is None:
             raise NullResponse(self.id + ' parseBalance() returned empty response')
         success = self.safe_string(response, 'result')

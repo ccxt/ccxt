@@ -3216,7 +3216,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
             return False
         return(len(self.apiKey) == 8) and (len(self.secret) == 43)
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         #
         #     { "jsonrpc": "2.0", "id": 1, "error": { "code": 13004, "message": "invalid_credentials" } }
         #

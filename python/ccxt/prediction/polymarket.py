@@ -2467,7 +2467,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
             result.append(self.parse_event(rawEvent))
         return result
 
-    def handle_errors(self, code: Int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         # the CLOB api returns { "error": "..." } (and createOrder variants use "errorMsg");
         # map the known messages so callers can distinguish a dead book or a rejected order
         # from a transport outage (the base otherwise maps a bare 404 to a retryable error)

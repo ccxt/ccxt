@@ -580,7 +580,7 @@ class myriad(PredictionExchange, ImplicitAPI):
             'hedged': False,
         })
 
-    async def fetch_trade_quote(self, outcome: Str, side: Str, amount: Num, params: dict = {}) -> dict:
+    async def fetch_trade_quote(self, outcome: str, side: str, amount: Num, params: dict = {}) -> dict:
         """
         fetches a trade quote — price, shares, fees and the on-chain calldata — for buying or selling an outcome. Myriad settles trades on-chain, so self returns the calldata to submit to the prediction-market contract rather than placing an off-chain order
 
@@ -937,7 +937,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         await self.cancel_order(id, outcome, params)
         return await self.create_orderbook_order(outcome, type, side, amount, price, params)
 
-    async def create_amm_order(self, outcome: str, type: Str, side: Str, amount: Num, price: Num = None, params: dict = {}) -> PredictionOrder:
+    async def create_amm_order(self, outcome: str, type: Str, side: str, amount: Num, price: Num = None, params: dict = {}) -> PredictionOrder:
         """
  @ignore
         buys or sells outcome shares by submitting the quote's calldata as an on-chain AMM transaction. Requires a privateKey with gas + collateral on the market's network
@@ -957,7 +957,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         # would silently size `amount` as dollars (inconsistent with every other venue and the wiki).
         # route dollar-sizing through createMarketBuyOrderWithCost (which sets costDenominated); a
         # plain createOrder buy on the AMM is rejected so it can't misinterpret shares as collateral
-        sideLower = side.lower() if (side is not None) else None
+        sideLower = side.lower()
         isCostDenominated = self.safe_bool(params, 'costDenominated', False)
         if (sideLower == 'buy') and (not isCostDenominated):
             raise NotSupported(self.id + ' createOrder() market buy on the AMM sizes by collateral, not shares — use createMarketBuyOrderWithCost(outcome, collateral) for a dollar buy, or the default order book (omit enableAmm) for a share-denominated order')
@@ -1814,7 +1814,7 @@ class myriad(PredictionExchange, ImplicitAPI):
             scale = scale + '0'
         return Precise.string_div(decimalString, scale)
 
-    def parse_trade_tx(self, txHash: Str, quote: dict, market: dict, side: Str) -> PredictionOrder:
+    def parse_trade_tx(self, txHash: Str, quote: dict, market: dict, side: str) -> PredictionOrder:
         return self.safe_prediction_order({
             'id': txHash,
             'clientOrderId': None,
@@ -3497,7 +3497,7 @@ class myriad(PredictionExchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' requires a walletAddress or privateKey to watch private channels')
         return self.eth_get_address_from_private_key(self.privateKey).lower()
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         # Myriad error responses are { "error": "<message>", "details": [...] } with a 4xx status
         if response is None:
             return None

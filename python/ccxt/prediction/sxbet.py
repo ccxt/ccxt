@@ -2435,7 +2435,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
             if sym is not None:
                 client.resolve(stored, 'orders::' + sym)
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         # sx.bet returns { "error": "Bad Request", "message": <code or [strings]>, "statusCode": 4xx };
         # map the known codes to ccxt errors so callers can distinguish a rejected order or a
         # validation problem from a transport outage (the base otherwise maps a bare 4xx to the

@@ -6456,7 +6456,7 @@ class BaseExchange(object):
                     return key
         return None
 
-    def handle_errors(self, statusCode: int, statusText: str, url: str, method: str, responseHeaders: dict, responseBody: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         # it is a stub method that must be overrided in the derived exchange classes
         # throw new NotSupported (this.id + ' handleErrors() not implemented yet');
         return None

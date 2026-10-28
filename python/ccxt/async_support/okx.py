@@ -8994,7 +8994,7 @@ class okx(Exchange, ImplicitAPI):
                 }
         return result
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         if response is None:
             return None  # fallback to default error handler
         #
@@ -9017,8 +9017,8 @@ class okx(Exchange, ImplicitAPI):
         #        "msg": "Incorrect trade password"
         #    }
         #
-        code = self.safe_string(response, 'code')
-        if (code != '0') and (code != '2'):  # 2 means that bulk operation partially succeeded
+        codeError = self.safe_string(response, 'code')
+        if (codeError != '0') and (codeError != '2'):  # 2 means that bulk operation partially succeeded
             feedback = self.id + ' ' + body
             data = self.safe_list(response, 'data', [])
             for i in range(0, len(data)):
@@ -9027,7 +9027,7 @@ class okx(Exchange, ImplicitAPI):
                 message = self.safe_string(error, 'sMsg')
                 self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
                 self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
-            self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], codeError, feedback)
             raise ExchangeError(feedback)  # unknown message
         return None
 

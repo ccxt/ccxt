@@ -3156,7 +3156,7 @@ class backpack(Exchange, ImplicitAPI):
                 payload += 'timestamp=' + ts + '&window=' + recvWindow
         return payload
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         if response is None:
             return None  # fallback to default error handler
         #

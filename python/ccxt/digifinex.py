@@ -4430,15 +4430,15 @@ class digifinex(Exchange, ImplicitAPI):
                 url += '?' + urlencoded
         return {'url': url, 'method': method, 'body': None, 'headers': None}
 
-    def handle_errors(self, statusCode: int, statusText: str, url: str, method: str, responseHeaders: dict, responseBody: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         if response is None:
             return None  # fall back to default error handler
-        code = self.safe_string(response, 'code')
-        if (code == '0') or (code == '200'):
+        codeError = self.safe_string(response, 'code')
+        if (codeError == '0') or (codeError == '200'):
             return None  # no error
-        feedback = self.id + ' ' + responseBody
-        if code is None:
+        feedback = self.id + ' ' + body
+        if codeError is None:
             raise BadResponse(feedback)
         unknownError = [ExchangeError, feedback]
-        ExceptionClass, message = self.safe_value(self.exceptions['exact'], code, unknownError)
+        ExceptionClass, message = self.safe_value(self.exceptions['exact'], codeError, unknownError)
         raise ExceptionClass(message)

@@ -5296,7 +5296,7 @@ class binance(ccxt.async_support.binance):
         msg = self.safe_string(error, 'msg')
         codeValue = 0 if (code is None) else code
         try:
-            self.handle_errors(codeValue, msg, client.url, '', {}, self.json(error), error, {}, {})
+            self.handle_errors(codeValue, msg, client.url, '', {}, self.json(error), error, {}, '')
         except Exception as e:
             rejected = True
             # private endpoint uses id as messageHash

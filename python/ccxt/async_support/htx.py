@@ -7236,7 +7236,7 @@ class htx(Exchange, ImplicitAPI):
         bodyResolved = signedBody
         return {'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         if response is None:
             return None  # fallback to default error handler
         if 'status' in response:
@@ -7246,18 +7246,18 @@ class htx(Exchange, ImplicitAPI):
             #
             status = self.safe_string(response, 'status')
             if status == 'error':
-                code = self.safe_string_2(response, 'err-code', 'err_code')
+                codeError = self.safe_string_2(response, 'err-code', 'err_code')
                 feedback = self.id + ' ' + body
                 self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)
-                self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
+                self.throw_exactly_matched_exception(self.exceptions['exact'], codeError, feedback)
                 message = self.safe_string_2(response, 'err-msg', 'err_msg')
                 self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
                 raise ExchangeError(feedback)
         if 'code' in response:
             # {code: '1003', message: 'invalid signature'}
             feedback = self.id + ' ' + body
-            code = self.safe_string(response, 'code')
-            self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
+            codeError = self.safe_string(response, 'code')
+            self.throw_exactly_matched_exception(self.exceptions['exact'], codeError, feedback)
         data = self.safe_dict(response, 'data')
         errorsList = self.safe_list(data, 'errors')
         if errorsList is not None:

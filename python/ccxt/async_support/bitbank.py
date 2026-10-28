@@ -1101,7 +1101,7 @@ class bitbank(Exchange, ImplicitAPI):
         headersResolved = requestHeaders
         return {'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         if response is None:
             return None
         success = self.safe_integer(response, 'success')
@@ -1169,8 +1169,8 @@ class bitbank(Exchange, ImplicitAPI):
                 '70009': 'We are currently temporarily restricting orders to be carried out. Please use the limit order.',
                 '70010': 'We are temporarily raising the minimum order quantity as the system load is now rising.',
             }
-            code = self.safe_string(data, 'code')
-            message = self.safe_string(errorMessages, code, 'Error')
-            self.throw_exactly_matched_exception(self.exceptions['exact'], code, message)
+            codeError = self.safe_string(data, 'code')
+            message = self.safe_string(errorMessages, codeError, 'Error')
+            self.throw_exactly_matched_exception(self.exceptions['exact'], codeError, message)
             raise ExchangeError(self.id + ' ' + self.json(response))
         return None

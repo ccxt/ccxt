@@ -3255,7 +3255,7 @@ class kucoin(ccxt.async_support.kucoin):
             if client.url.find('connectId=' + type + 'Futures') >= 0:
                 type += 'Futures'
             self.options['urls'][type] = None
-        self.handle_errors(1, '', client.url, '', {}, data, message, {}, {})
+        self.handle_errors(1, '', client.url, '', {}, data, message, {}, '')
         return False
 
     def handle_message(self, client: Client, message: dict):

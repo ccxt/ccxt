@@ -422,7 +422,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
                 await self.fetch_outcome(outcomeSymbols[i])
         return self.outcomes
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         # kalshi returns { "error": { "code": "...", ... } } with a 4xx; map known codes to ccxt
         # errors (e.g. not_found -> BadSymbol) so callers can distinguish them from a transport
         # outage (the base otherwise maps a bare 404 to the exchange-not-available error). unmapped codes fall

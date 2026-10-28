@@ -1695,7 +1695,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         messageHash = self.safe_string(message, 'requestId', buildMessage)
         rejected = False
         try:
-            self.handle_errors(code, error, client.url, '', {}, error, message, {}, {})
+            self.handle_errors(code, error, client.url, '', {}, error, message, {}, '')
         except Exception as e:
             rejected = True
             client.reject(e, messageHash)

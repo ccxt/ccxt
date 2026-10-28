@@ -1327,7 +1327,7 @@ class revolutx(Exchange, ImplicitAPI):
         }), market)
         return order
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         statusCode = self.parse_to_int(code)
         if statusCode >= 400:
             if response is None:

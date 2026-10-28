@@ -1738,7 +1738,7 @@ class hibachi(Exchange, ImplicitAPI):
             headersValue['Authorization'] = self.apiKey
         return {'url': url, 'method': method, 'body': bodyResult, 'headers': headersValue}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         if response is None:
             return None  # fallback to default error handler
         status = self.safe_string(response, 'status')
@@ -1747,10 +1747,10 @@ class hibachi(Exchange, ImplicitAPI):
         #
         if status is not None:
             if status == 'failed':
-                code = self.safe_string(response, 'errorCode')
+                codeError = self.safe_string(response, 'errorCode')
                 feedback = self.id + ' ' + body
                 self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)
-                self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
+                self.throw_exactly_matched_exception(self.exceptions['exact'], codeError, feedback)
                 message = self.safe_string(response, 'message')
                 self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
                 raise ExchangeError(feedback)

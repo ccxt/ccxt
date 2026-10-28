@@ -3355,7 +3355,7 @@ class paradex(Exchange, ImplicitAPI):
             return {'url': url, 'method': method, 'body': bodyResolved, 'headers': privateHeaders}
         return {'url': url, 'method': method, 'body': None, 'headers': None}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         if response is None:
             return None  # fallback to default error handler
         #
@@ -3366,7 +3366,7 @@ class paradex(Exchange, ImplicitAPI):
         #     }
         #
         errorCode = self.safe_string(response, 'error')
-        if (errorCode is None) and (httpCode == 400):
+        if (errorCode is None) and (code == 400):
             #
             # a batch where every order was rejected, errors are index-aligned with the request
             #

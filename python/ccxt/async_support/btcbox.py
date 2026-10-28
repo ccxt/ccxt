@@ -805,18 +805,18 @@ class btcbox(Exchange, ImplicitAPI):
             return {'url': url, 'method': method, 'body': signedBody, 'headers': signedHeaders}
         return {'url': url, 'method': method, 'body': None, 'headers': None}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         if response is None:
             return None  # resort to defaultErrorHandler
         # typical error response: {"result":false,"code":"401"}
-        if httpCode >= 400:
+        if code >= 400:
             return None  # resort to defaultErrorHandler
         result = self.safe_bool(response, 'result')
         if result is None or result:
             return None  # either public API (no error codes expected) or success
-        code = self.safe_string(response, 'code')
+        codeError = self.safe_string(response, 'code')
         feedback = self.id + ' ' + body
-        self.throw_exactly_matched_exception(self.exceptions, code, feedback)
+        self.throw_exactly_matched_exception(self.exceptions, codeError, feedback)
         raise ExchangeError(feedback)  # unknown message
 
     async def request(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}, config: dict = {}):

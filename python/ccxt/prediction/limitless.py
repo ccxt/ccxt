@@ -2951,22 +2951,22 @@ class limitless(PredictionExchange, ImplicitAPI):
         url = baseUrl + url
         return {'url': url, 'method': method, 'body': bodyValue, 'headers': headersValue}
 
-    def handle_errors(self, statusCode: int, statusText: str, url: str, method: str, responseHeaders: dict, responseBody: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         """
  @ignore
         maps limitless error responses to ccxt exceptions
         """
         if response is None:
             return None
-        statusCodeInt = self.parse_to_int(statusCode)
+        statusCodeInt = self.parse_to_int(code)
         if (statusCodeInt >= 200) and (statusCodeInt < 300):
             return None
-        feedback = self.id + ' ' + responseBody
+        feedback = self.id + ' ' + body
         # the API returns either a string message or an array of field-validation errors
         message = self.safe_string(response, 'message')
         if message is not None:
             self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
-        self.throw_broadly_matched_exception(self.exceptions['broad'], responseBody, feedback)
+        self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)
         # a 400 is a client-side bad request (bad params, or a business rule like "market not
         # resolved"), not a transport outage — throw BadRequest with the exchange message instead
         # of letting the base map the bare 400 to a retryable network-unavailable error

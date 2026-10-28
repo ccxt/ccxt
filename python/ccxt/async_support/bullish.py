@@ -2937,7 +2937,7 @@ class bullish(Exchange, ImplicitAPI):
         else:
             return self.token
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         if response is None:
             return None  # fallback to default error handler
         #
@@ -2953,9 +2953,9 @@ class bullish(Exchange, ImplicitAPI):
         #             "errorCodeName": "ORDER_SIZE_OUTSIDE_VALID_RANGE"
         #         }
         #
-        code = self.safe_string(response, 'errorCode')
+        codeError = self.safe_string(response, 'errorCode')
         type = self.safe_string(response, 'type')
-        if (code is not None and code != '0' and code != '1001') or (type is not None and type == 'HttpInvalidParameterException'):
+        if (codeError is not None and codeError != '0' and codeError != '1001') or (type is not None and type == 'HttpInvalidParameterException'):
             message = ''
             errorCodeName = self.safe_string(response, 'errorCodeName')
             if errorCodeName is not None:
@@ -2965,6 +2965,6 @@ class bullish(Exchange, ImplicitAPI):
             feedback = self.id + ' ' + body
             self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
-            self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], codeError, feedback)
             raise ExchangeError(feedback)  # unknown message
         return None

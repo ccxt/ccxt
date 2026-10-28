@@ -1023,7 +1023,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         marketId = self.safe_string(parts, 1)
         market = self.safe_market(marketId)
         symbol = self.safe_string(market, 'symbol', '')
-        if not (symbol in self.trades):
+        if symbol is not None and not (symbol in self.trades):
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
             tradesArrayCache = ArrayCache(limit)
             self.trades[symbol] = tradesArrayCache
