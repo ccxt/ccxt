@@ -1854,7 +1854,7 @@ class bingx extends \ccxt\async\bingx {
         $marketId = $this->safe_string($result, 's');
         $market = $this->safe_market($marketId, null, '-', $type);
         $parsed = $this->parse_trade($result, $market);
-        $symbol = $this->safe_string($parsed, 'symbol');
+        $symbol = $this->safe_string($parsed, 'symbol', '');
         $spotHash = 'spot:mytrades';
         $swapHash = 'swap:mytrades';
         $messageHash = $swapHash;

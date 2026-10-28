@@ -1098,7 +1098,7 @@ class derive extends \ccxt\async\derive {
         //     }
         //
         $params = $this->safe_dict($message, 'params');
-        $topic = $this->safe_string($params, 'channel');
+        $topic = $this->safe_string($params, 'channel', '');
         $topicParts = explode('.', $topic);
         $subaccountIdKey = $this->safe_string($topicParts, 0);
         $data = $this->safe_list($params, 'data', array());

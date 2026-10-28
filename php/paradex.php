@@ -909,7 +909,7 @@ class paradex extends Exchange {
                 $requestUntil['end_at'] = $sinceInt . $windowLength - 1;
             }
         } else {
-            $endAtRaw = $hasEnd ? $this->safe_integer($requestUntil, 'end_at', 0) : $this->milliseconds();
+            $endAtRaw = $this->safe_integer($requestUntil, 'end_at', $this->milliseconds());
             $endAt = $this->parse_to_int($endAtRaw);
             $requestUntil['end_at'] = $endAt;
             $requestUntil['start_at'] = $endAt - $windowLength + 1;

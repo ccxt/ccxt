@@ -1102,7 +1102,7 @@ class xt extends \ccxt\async\xt {
             }
             $newTickers[] = $ticker;
         }
-        $messageHashStart = $this->safe_string($message, 'topic') . '::' . $tradeType;
+        $messageHashStart = $this->safe_string($message, 'topic', '') . '::' . $tradeType;
         $messageHashes = $this->find_message_hashes($client, $messageHashStart . '::');
         for ($i = 0; $i < count($messageHashes); $i++) {
             $messageHash = $messageHashes[$i];

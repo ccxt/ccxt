@@ -666,7 +666,7 @@ class delta extends Exchange {
         $keys = is_array($input) ? array_keys($input) : array();
         for ($i = 0; $i < count($keys); $i++) {
             $key = $keys[$i];
-            $item = $input[$key];
+            $item = $this->safe_dict($input, $key, array());
             $numericIdString = $this->safe_string($item, 'numericId');
             if ($numericIdString === null) {
                 continue;

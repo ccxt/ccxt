@@ -950,7 +950,7 @@ class deribit extends \ccxt\async\deribit {
         $stored->append($parsed);
         $this->ohlcvs[$symbol][$unifiedTimeframe] = $stored;
         $resolveData = array( $symbol, $unifiedTimeframe, $stored );
-        $messageHash = 'chart.trades|' . $symbol . '|' . $rawTimeframe;
+        $messageHash = 'chart.trades|' . $symbol . '|' . $this->safe_string($parts, 3, '');
         $client->resolve($resolveData, $messageHash);
     }
 

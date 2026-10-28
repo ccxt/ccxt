@@ -1018,15 +1018,11 @@ class kalshi extends Exchange {
         }
         // batch-resolve the uncached outcomes (one markets request per 100 tickers)
         Async\await($this->load_outcomes($outcomes));
-        $targets = array();
-        for ($i = 0; $i < count($outcomes); $i++) {
-            $targets[] = $outcomes[$i];
-        }
         // group requested outcomes by their market ticker, yes and no outcomes share one market
         $outcomesByTicker = array();
         $tickers = array();
-        for ($i = 0; $i < count($targets); $i++) {
-            $outcomeObj = $this->outcome($targets[$i]);
+        for ($i = 0; $i < count($outcomes); $i++) {
+            $outcomeObj = $this->outcome($outcomes[$i]);
             $ticker = $this->safe_string($outcomeObj['info'], 'ticker');
             if ($ticker === null) {
                 continue;

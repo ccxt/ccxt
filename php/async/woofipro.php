@@ -1254,7 +1254,7 @@ class woofipro extends Exchange {
         for ($i = 0; $i < count($rows); $i++) {
             $row = $rows[$i];
             $marketId = $this->safe_string($row, 'symbol', '');
-            if ($this->safe_value($this->markets_by_id, $marketId) === null) {
+            if (($this->markets_by_id === null) || !(is_array($this->markets_by_id) && array_key_exists($marketId ?? '', $this->markets_by_id))) {
                 continue; // the endpoint returns entries for markets missing from public/info, e.g. pre-TGE symbols
             }
             $ticker = $this->extend(array( 'timestamp' => $timestamp ), $row);
@@ -1375,7 +1375,7 @@ class woofipro extends Exchange {
         for ($i = 0; $i < count($rows); $i++) {
             $row = $rows[$i];
             $marketId = $this->safe_string($row, 'symbol', '');
-            if ($this->safe_value($this->markets_by_id, $marketId) === null) {
+            if (($this->markets_by_id === null) || !(is_array($this->markets_by_id) && array_key_exists($marketId ?? '', $this->markets_by_id))) {
                 continue; // the endpoint returns entries for markets missing from public/info, e.g. pre-TGE symbols
             }
             $interest = $this->extend(array( 'timestamp' => $timestamp ), $row);

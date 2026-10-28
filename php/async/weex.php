@@ -1684,9 +1684,12 @@ class weex extends Exchange {
             if ($priceType !== null) {
                 $request['priceType'] = $priceType;
             }
-            $startTime = $since;
-            $endTime = $until;
             $now = $this->milliseconds();
+            $startTime = $since;
+            $endTime = $now;
+            if ($until !== null) {
+                $endTime = $until;
+            }
             if (($since === null) || ($until === null)) {
                 $duration = $this->parse_to_int($this->parse_timeframe($timeframe) * 1000);
                 // the history endpoint returns at most maxHistoricalLimit candles and serves the
@@ -1711,7 +1714,7 @@ class weex extends Exchange {
                 }
             }
             // the endpoint rejects an endTime in the future (-1142), which a recent since would produce
-            if (($endTime !== null) && ($endTime > $now)) {
+            if ($endTime > $now) {
                 $endTime = $now;
             }
             $request['startTime'] = $startTime;

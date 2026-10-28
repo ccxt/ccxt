@@ -276,14 +276,15 @@ class hyperliquid extends Exchange {
                 $expiryParts = explode('-', $expiry);
                 $expiryDate = $expiryParts[0];
             }
-            $base = strtoupper($underlying);
+            $targetPart = '';
             if ($targetPrice !== '') {
-                $base = $base . '_ABOVE_' . $targetPrice;
+                $targetPart = '_ABOVE_' . $targetPrice;
             }
+            $expiryPart = '';
             if ($expiryDate !== '') {
-                $base = $base . '_' . $expiryDate;
+                $expiryPart = '_' . $expiryDate;
             }
-            return $base;
+            return strtoupper($underlying) . $targetPart . $expiryPart;
         }
         $questionDescription = $this->safe_string($question, 'description');
         if (($questionDescription !== null) && ($questionDescription !== '')) {
@@ -296,6 +297,10 @@ class hyperliquid extends Exchange {
                 if ($questionExpiry !== '') {
                     $questionExpiryParts = explode('-', $questionExpiry);
                     $questionExpiryDate = $questionExpiryParts[0];
+                }
+                $questionExpiryPart = '';
+                if ($questionExpiryDate !== '') {
+                    $questionExpiryPart = '_' . $questionExpiryDate;
                 }
                 $thresholdsRaw = $this->safe_string($questionDesc, 'priceThresholds', '');
                 $indexStr = $this->safe_string($desc, 'index');
@@ -321,20 +326,12 @@ class hyperliquid extends Exchange {
                         } else {
                             $bucketLabel = 'BETWEEN_' . $thresholds[$index - 1] . '_' . $thresholds[$index];
                         }
-                        $base = strtoupper($questionUnderlying) . '_' . $bucketLabel;
-                        if ($questionExpiryDate !== '') {
-                            $base = $base . '_' . $questionExpiryDate;
-                        }
-                        return $base;
+                        return strtoupper($questionUnderlying) . '_' . $bucketLabel . $questionExpiryPart;
                     }
                 }
                 $isFallbackLike = ($rawDescription === 'other') || (mb_strpos($nameLower, 'fallback') !== false) || (mb_strpos($nameLower, 'other') !== false);
                 if (($questionUnderlying !== null && $questionUnderlying !== '') && $isFallbackLike) {
-                    $base = strtoupper($questionUnderlying) . '_OTHER';
-                    if ($questionExpiryDate !== '') {
-                        $base = $base . '_' . $questionExpiryDate;
-                    }
-                    return $base;
+                    return strtoupper($questionUnderlying) . '_OTHER' . $questionExpiryPart;
                 }
             }
         }

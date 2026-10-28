@@ -642,6 +642,7 @@ class grvt extends \ccxt\async\grvt {
         $market = $this->safe_market($marketId);
         $symbol = $this->safe_string($market, 'symbol', '');
         $timestamp = $this->safe_integer_product($data, 'event_time', 0.000001);
+        $messageHash = 'orderbook::' . $symbol;
         if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $this->orderbooks[$symbol] = $this->order_book();
         }
@@ -670,7 +671,6 @@ class grvt extends \ccxt\async\grvt {
         // unconditional assignment is correct for every language.
         $orderbook['symbol'] = $symbol;
         $orderbook['nonce'] = $sequenceNumber;
-        $messageHash = 'orderbook::' . $symbol;
         $this->orderbooks[$symbol] = $orderbook;
         $client->resolve($orderbook, $messageHash);
     }

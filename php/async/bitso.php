@@ -1871,7 +1871,7 @@ class bitso extends Exchange {
             $entry = $depositResponse[$i];
             $currencyId = $this->safe_string($entry, 'currency');
             $code = $this->safe_currency_code($currencyId);
-            if (($codes === null) || (($code !== null) && (is_array($codes) && array_key_exists($code ?? '', $codes)))) {
+            if (($codes === null) || (($code !== null) && $this->in_array($code, $codes))) {
                 if ($code !== null) {
                     $result[$code] = array(
                         'deposit' => array(
@@ -1892,7 +1892,7 @@ class bitso extends Exchange {
         for ($i = 0; $i < count($withdrawalKeys); $i++) {
             $currencyId = $withdrawalKeys[$i];
             $code = $this->safe_currency_code($currencyId);
-            if (($code !== null) && (($codes === null) || (is_array($codes) && array_key_exists($code ?? '', $codes)))) {
+            if (($code !== null) && (($codes === null) || $this->in_array($code, $codes))) {
                 $withdrawFee = $this->parse_number($withdrawalResponse[$currencyId]);
                 $resultValue = $this->safe_dict($result, $code);
                 if ($resultValue === null) {
