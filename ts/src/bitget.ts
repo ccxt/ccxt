@@ -29,7 +29,7 @@ export default class bitget extends Exchange {
                 'spot': true,
                 'margin': true,
                 'swap': true,
-                'future': true,
+                'future': false,
                 'option': false,
                 'addMargin': true,
                 'borrowCrossMargin': true,
