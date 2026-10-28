@@ -1267,7 +1267,7 @@ class hibachi(Exchange, ImplicitAPI):
             'internal': None,
         }
 
-    def nonce(self) -> float:
+    def nonce(self) -> int:
         return self.milliseconds()
 
     def sign_message(self, message: object, privateKey: str) -> str:

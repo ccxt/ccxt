@@ -147,7 +147,7 @@ class binance(PredictionExchange, ImplicitAPI):
             },
         })
 
-    def nonce(self) -> float:
+    def nonce(self) -> int:
         return self.milliseconds()
 
     async def fetch_markets(self, params: dict = {}) -> list[Market]:

@@ -3044,7 +3044,7 @@ class bithumb(Exchange, ImplicitAPI):
             finalNumberStr = finalNumberStr.replace(',', '')
         return finalNumberStr
 
-    def nonce(self) -> float:
+    def nonce(self) -> int:
         return self.milliseconds()
 
     def urlencode_with_array_brackets(self, query: dict) -> str:

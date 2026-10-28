@@ -773,7 +773,7 @@ class btcbox(Exchange, ImplicitAPI):
         """
         return self.fetch_orders_by_type('open', symbol, since, limit, params)
 
-    def nonce(self) -> float:
+    def nonce(self) -> int:
         return self.milliseconds()
 
     def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:

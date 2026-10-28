@@ -2900,7 +2900,7 @@ class limitless(PredictionExchange, ImplicitAPI):
                     allRaw.append(raw)
         return allRaw
 
-    def nonce(self) -> float:
+    def nonce(self) -> int:
         # the order salt is a millisecond timestamp; incrementingNonce () reads this and keeps salts
         # unique when two orders are signed within the same millisecond
         return self.milliseconds()

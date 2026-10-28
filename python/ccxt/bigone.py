@@ -1879,7 +1879,7 @@ class bigone(Exchange, ImplicitAPI):
         }
         return self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
-    def nonce(self) -> float:
+    def nonce(self) -> int:
         exchangeMillisecondsCorrection = self.safe_integer(self.options, 'exchangeMillisecondsCorrection', 0)
         exchangeTimeCorrection = exchangeMillisecondsCorrection * 1000000
         return self.sum(self.microseconds() * 1000, exchangeTimeCorrection)

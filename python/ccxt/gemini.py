@@ -1779,7 +1779,7 @@ class gemini(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' withdraw() failed: ' + self.json(response))
         return self.parse_transaction(response, currency)
 
-    def nonce(self) -> float:
+    def nonce(self) -> int:
         nonceMethod = self.safe_string(self.options, 'nonce', 'milliseconds')
         if nonceMethod == 'milliseconds':
             return self.milliseconds()

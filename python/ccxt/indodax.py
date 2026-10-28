@@ -317,7 +317,7 @@ class indodax(Exchange, ImplicitAPI):
             'precisionMode': TICK_SIZE,
         })
 
-    def nonce(self) -> float:
+    def nonce(self) -> int:
         return self.milliseconds() - self.safe_integer(self.options, 'timeDifference', 0)
 
     def fetch_time(self, params: dict = {}) -> Int:

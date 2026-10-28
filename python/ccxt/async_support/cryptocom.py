@@ -3210,7 +3210,7 @@ class cryptocom(Exchange, ImplicitAPI):
             'takeProfitPrice': None,
         })
 
-    def nonce(self) -> float:
+    def nonce(self) -> int:
         return self.milliseconds()
 
     def params_to_string(self, object: object, level: float) -> str:

@@ -5831,10 +5831,10 @@ class BaseExchange(object):
         code = currency['code'] if (currency is not None) else None
         return self.filter_by_currency_since_limit(result, code, since, limit)
 
-    def nonce(self) -> float:
+    def nonce(self) -> int:
         return self.seconds()
 
-    def incrementing_nonce(self):
+    def incrementing_nonce(self) -> int:
         """
  @ignore
         returns a strictly-increasing nonce for venues that reject duplicate nonces per signer

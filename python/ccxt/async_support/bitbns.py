@@ -1205,7 +1205,7 @@ class bitbns(Exchange, ImplicitAPI):
             'tag': tag,
         }
 
-    def nonce(self) -> float:
+    def nonce(self) -> int:
         return self.milliseconds()
 
     def sign(self, path: str, api: list[str] = ['www'], method: str = 'GET', params: dict = {}) -> dict:

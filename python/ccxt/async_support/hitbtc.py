@@ -786,7 +786,7 @@ class hitbtc(Exchange, ImplicitAPI):
             'rollingWindowSize': 1000.0,
         })
 
-    def nonce(self) -> float:
+    def nonce(self) -> int:
         return self.milliseconds()
 
     async def fetch_markets(self, params: dict = {}) -> list[Market]:

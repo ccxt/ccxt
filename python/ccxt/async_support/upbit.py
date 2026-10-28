@@ -2274,7 +2274,7 @@ class upbit(Exchange, ImplicitAPI):
         #
         return self.parse_transaction(response)
 
-    def nonce(self) -> float:
+    def nonce(self) -> int:
         return self.milliseconds()
 
     def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:

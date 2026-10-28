@@ -3572,5 +3572,5 @@ class btse(Exchange, ImplicitAPI):
         result = result.replace('otc', '')
         return result
 
-    def nonce(self) -> float:
+    def nonce(self) -> int:
         return self.milliseconds() - self.safe_integer(self.options, 'timeDifference', 0)

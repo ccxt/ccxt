@@ -377,7 +377,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         super(hyperliquid, self).set_sandbox_mode(enabled)
         self.options['sandboxMode'] = enabled
 
-    def nonce(self) -> float:
+    def nonce(self) -> int:
         # the venue nonce is a millisecond timestamp and must be strictly increasing per signer
         # incrementingNonce () reads this and bumps past the previous value when two signed actions share a millisecond
         return self.milliseconds()
