@@ -7058,12 +7058,6 @@ public partial class mexc : Exchange
                 this.checkRequiredCredentials();
                 string timestamp = this.nonce().ToString();
                 string auth = "";
-                requestHeaders = new Dictionary<string, object>() {
-                    { "ApiKey", this.apiKey },
-                    { "Request-Time", timestamp },
-                    { "Content-Type", "application/json" },
-                    { "source", this.safeString(this.options, "broker", "CCXT") },
-                };
                 if ((method == "POST"))
                 {
                     auth = this.json(paramsOmitted);
@@ -7079,7 +7073,13 @@ public partial class mexc : Exchange
                 }
                 auth = ((this.apiKey + timestamp) + auth);
                 string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
-                requestHeaders["Signature"] = signature;
+                requestHeaders = new Dictionary<string, object>() {
+                    { "ApiKey", this.apiKey },
+                    { "Request-Time", timestamp },
+                    { "Content-Type", "application/json" },
+                    { "source", this.safeString(this.options, "broker", "CCXT") },
+                    { "Signature", signature },
+                };
             }
         }
         return new Dictionary<string, object>() {

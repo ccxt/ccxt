@@ -526,27 +526,23 @@ public partial class lighter : Exchange
 
     public virtual void setAuthEntry(object accIdx, object keyIdx, IDictionary<string, object> entry)
     {
-        ((IDictionary<string,object>)getValue((this.options.ContainsKey("auths") ? this.options["auths"] : null), accIdx))[(string)keyIdx] = this.extend(this.safeDict(this.safeDict(this.safeDict(this.options, "auths", new Dictionary<string, object>() {}), accIdx, new Dictionary<string, object>() {}), keyIdx, new Dictionary<string, object>() {}), entry);
+        Dictionary<string, object> updated = new Dictionary<string, object>() {};
+        updated[(string)keyIdx] = this.extend(this.safeDict(this.safeDict(this.safeDict(this.options, "auths", new Dictionary<string, object>() {}), accIdx, new Dictionary<string, object>() {}), keyIdx, new Dictionary<string, object>() {}), entry);
+        Dictionary<string, object> auths = new Dictionary<string, object>() {};
+        auths[(string)accIdx] = this.extend(this.safeDict(this.safeDict(this.options, "auths", new Dictionary<string, object>() {}), accIdx, new Dictionary<string, object>() {}), updated);
+        this.options["auths"] = this.extend(this.safeDict(this.options, "auths", new Dictionary<string, object>() {}), auths);
     }
 
     public virtual void initAuthObject(object strAccountIndex, object strApiKeyIndex)
     {
-        if (!(this.options.ContainsKey("auths")))
+        if ((this.safeDict(this.safeDict(this.safeDict(this.options, "auths", new Dictionary<string, object>() {}), strAccountIndex, new Dictionary<string, object>() {}), strApiKeyIndex) == null))
         {
-            this.options["auths"] = new Dictionary<string, object>() {};
-        }
-        if (!(inOp((this.options.ContainsKey("auths") ? this.options["auths"] : null), strAccountIndex)))
-        {
-            ((IDictionary<string,object>)(this.options.ContainsKey("auths") ? this.options["auths"] : null))[(string)strAccountIndex] = new Dictionary<string, object>() {};
-        }
-        if (!(inOp(getValue((this.options.ContainsKey("auths") ? this.options["auths"] : null), strAccountIndex), strApiKeyIndex)))
-        {
-            ((IDictionary<string,object>)getValue((this.options.ContainsKey("auths") ? this.options["auths"] : null), strAccountIndex))[(string)strApiKeyIndex] = new Dictionary<string, object>() {
+            this.setAuthEntry(strAccountIndex, strApiKeyIndex, new Dictionary<string, object>() {
                 { "signer", null },
                 { "lighterPrivateKey", null },
                 { "deadline", null },
                 { "token", null },
-            };
+            });
         }
     }
 

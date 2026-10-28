@@ -375,7 +375,7 @@ public partial class hyperliquid : Exchange
         {
             throw new ExchangeError ((this.id + " markets not loaded")) ;
         }
-        if (((symbol != null)) && !((this.markets != null && symbol is string inOpKey0 && this.markets.ContainsKey(inOpKey0))))
+        if (!((this.markets != null && symbol is string inOpKey0 && this.markets.ContainsKey(inOpKey0))))
         {
             List<object> symbolParts = ((string)symbol).Split(new [] {"/"}, StringSplitOptions.None).ToList<object>();
             string? baseName = this.safeString(symbolParts, 0);
@@ -662,7 +662,7 @@ public partial class hyperliquid : Exchange
         for (int i = 0; i < (promises?.Count ?? 0); i++)
         {
             object dexName = (fetchDexesList != null && i < fetchDexesList.Count ? fetchDexesList[i] : null);
-            object offset = (perpDexesOffset != null && dexName != null && perpDexesOffset.ContainsKey((string)dexName) ? perpDexesOffset[(string)dexName] : null);
+            Int64? offset = this.safeInteger(perpDexesOffset, dexName);
             List<object> response = this.safeList(promises, i);
             IDictionary<string, object> meta = this.safeDict(response, 0, new Dictionary<string, object>() {});
             string? collateralToken = this.safeString(meta, "collateralToken");
@@ -1826,8 +1826,7 @@ public partial class hyperliquid : Exchange
         }
         if ((expiresAfter != null))
         {
-            data = (data + "00");
-            data = (data + ("00000" + this.intToBase16(expiresAfter)));
+            data = (data + ("0000000" + this.intToBase16(expiresAfter)));
         }
         return this.hash(this.base16ToBinary(data), keccak, "binary");
     }
