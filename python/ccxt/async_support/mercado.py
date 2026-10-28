@@ -959,7 +959,7 @@ class mercado(Exchange, ImplicitAPI):
         url = apiUrl + '/'
         query = self.omit(params, self.extract_params(path))
         isPublic = (apiName == 'public') or (apiName == 'v4Public') or (apiName == 'v4PublicNet')
-        privateBody = None
+        privateBody = ''
         privateHeaders = None
         if isPublic:
             url += self.implode_params(path, params)

@@ -1074,20 +1074,20 @@ class tokocrypto(Exchange, ImplicitAPI):
         if buyerMaker is not None:
             side = 'sell' if (buyerMaker) else 'buy'  # this is reversed intentionally
             takerOrMaker = 'taker'
-        elif 'side' in trade:
+        elif self.safe_string(trade, 'side') is not None:
             side = self.safe_string_lower(trade, 'side')
         else:
-            if 'isBuyer' in trade:
+            if self.safe_string(trade, 'isBuyer') is not None:
                 side = 'buy' if (self.safe_bool(trade, 'isBuyer', False)) else 'sell'  # this is a true side
         fee = None
-        if 'commission' in trade:
+        if self.safe_string(trade, 'commission') is not None:
             fee = {
                 'cost': self.safe_string(trade, 'commission'),
                 'currency': self.safe_currency_code(self.safe_string(trade, 'commissionAsset')),
             }
-        if 'isMaker' in trade:
+        if self.safe_string(trade, 'isMaker') is not None:
             takerOrMaker = 'maker' if (self.safe_bool(trade, 'isMaker', False)) else 'taker'
-        if 'maker' in trade:
+        if self.safe_string(trade, 'maker') is not None:
             takerOrMaker = 'maker' if (self.safe_bool(trade, 'maker', False)) else 'taker'
         return self.safe_trade({
             'info': trade,
@@ -1265,7 +1265,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         marketId = self.safe_string(ticker, 'symbol')
         symbol = self.safe_symbol(marketId, market)
         last = self.safe_string(ticker, 'lastPrice')
-        isCoinm = ('baseVolume' in ticker)
+        isCoinm = (self.safe_string(ticker, 'baseVolume') is not None)
         baseVolume = None
         quoteVolume = None
         if isCoinm:
@@ -1924,7 +1924,9 @@ class tokocrypto(Exchange, ImplicitAPI):
                 request['stopPrice'] = self.price_to_precision(symbol, triggerPrice)
         if timeInForceIsRequired:
             defaultTimeInForce = self.safe_string(self.options, 'defaultTimeInForce', 'GTC')
-            timeInForce = defaultTimeInForce if (timeInForceResolved is None) else timeInForceResolved
+            timeInForce = defaultTimeInForce
+            if timeInForceResolved is not None:
+                timeInForce = timeInForceResolved
             # the endpoint takes the time force as a numeric code, post only is
             # placed as a LIMIT_MAKER order rather than as the GTX code
             timeInForceCodes = {

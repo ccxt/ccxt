@@ -96,12 +96,8 @@ class coincheck(ccxt.async_support.coincheck):
         data = self.safe_dict(message, 1, {})
         timestamp = self.safe_timestamp(data, 'last_update_at')
         snapshot = self.parse_order_book(data, symbol, timestamp)
-        orderbook = self.safe_value(self.orderbooks, symbol)
-        if orderbook is None:
-            orderbook = self.order_book(snapshot)
-            self.orderbooks[symbol] = orderbook
-        else:
-            orderbook.reset(snapshot)
+        orderbook = self.order_book(snapshot)
+        self.orderbooks[symbol] = orderbook
         messageHash = 'orderbook:' + symbol
         client.resolve(orderbook, messageHash)
 
