@@ -1400,7 +1400,7 @@ func (this *Coinbase) HandleSubscriptionStatus(client any, message map[string]an
 	var subKeys []string = ccxt.ObjectKeys(firstEvent["subscriptions"])
 	var subKeysLength int = len(subKeys)
 	if isUnsub && (subKeysLength == 0) {
-		var unSubObject any = this.SafeDict(this.Options, "unSubscription", map[string]any{})
+		var unSubObject map[string]any = this.SafeDictMap(this.Options, "unSubscription", map[string]any{})
 		var messageHashes []any = ccxt.SafeListTyped(unSubObject, "messageHashes")
 		var subMessageHashes []any = ccxt.SafeListTyped(unSubObject, "subMessageHashes")
 		for i := 0; i < len(messageHashes); i++ {

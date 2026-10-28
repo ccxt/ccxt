@@ -1250,7 +1250,7 @@ func (this *Deribit) HandleOHLCV(client any, message map[string]any) {
 		this.Ohlcvs[*symbol][*unifiedTimeframe] = stored
 	}
 	var resolveData []any = []any{symbol, unifiedTimeframe, stored}
-	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("chart.trades|"+*symbol+"|", rawTimeframe))
+	var messageHash string = "chart.trades|" + *symbol + "|" + *this.SafeString(parts, 3, "")
 	client.(ccxt.ClientInterface).Resolve(resolveData, messageHash)
 }
 func (this *Deribit) ParseWsOHLCV(ohlcv any, optionalArgs ...any) any {

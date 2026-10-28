@@ -119,7 +119,7 @@ func (this *Kucoin) negotiateBody(ch chan ccxt.AsyncResult[*string], privateChan
 	if isFuturesMethod == true {
 		connectId += "Futures"
 	}
-	var urls any = this.SafeDict(this.Options, "urls", map[string]any{})
+	var urls map[string]any = this.SafeDictMap(this.Options, "urls", map[string]any{})
 	var future any = this.SafeValue(urls, connectId)
 	if !ccxt.IsEqual(future, nil) {
 
@@ -2680,7 +2680,7 @@ func (this *Kucoin) HandleOrderBookSubscription(client any, message map[string]a
 	if symbols == nil {
 		symbols = []any{this.SafeString(subscription, "symbol")}
 	}
-	var limits any = this.SafeDict(this.Options, "orderBookLimits", map[string]any{})
+	var limits map[string]any = this.SafeDictMap(this.Options, "orderBookLimits", map[string]any{})
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 		var symbol any = ccxt.GetValue(symbols, i)
 		var storedLimit *int64 = this.SafeInteger(limits, symbol)

@@ -823,10 +823,9 @@ func (this *Grvt) HandleOrderBook(client any, message map[string]any) {
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = this.SafeString(market, "symbol", "")
 	var timestamp *int64 = this.SafeIntegerProduct(data, "event_time", 0.000001)
-	if !(ccxt.InOp(this.Orderbooks, symbol)) {
-		if symbol != nil {
-			this.Orderbooks[*symbol] = this.OrderBook()
-		}
+	var messageHash string = "orderbook::" + *symbol
+	if _, ok := this.Orderbooks[*symbol]; !ok {
+		this.Orderbooks[*symbol] = this.OrderBook()
 	}
 	var orderbook ccxt.OrderBookInterface
 	if symbol != nil {
@@ -856,8 +855,9 @@ func (this *Grvt) HandleOrderBook(client any, message map[string]any) {
 	// unconditional assignment is correct for every language.
 	ccxt.AddElementToObject(orderbook, "symbol", symbol)
 	ccxt.AddElementToObject(orderbook, "nonce", sequenceNumber)
-	var messageHash string = "orderbook::" + *symbol
-	this.Orderbooks[*symbol] = orderbook
+	if symbol != nil {
+		this.Orderbooks[*symbol] = orderbook
+	}
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
 func (this *Grvt) AuthenticateAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[*string] {

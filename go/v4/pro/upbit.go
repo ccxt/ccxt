@@ -501,7 +501,7 @@ func (this *Upbit) Authenticate(optionalArgs ...any) {
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	this.CheckRequiredCredentials()
-	var wsOptions any = this.SafeDict(this.Options, "ws", map[string]any{})
+	var wsOptions map[string]any = this.SafeDictMap(this.Options, "ws", map[string]any{})
 	var authenticated *string = this.SafeString(wsOptions, "token")
 	if authenticated == nil {
 		var auth map[string]any = map[string]any{
@@ -509,12 +509,12 @@ func (this *Upbit) Authenticate(optionalArgs ...any) {
 			"nonce":      this.Uuid(),
 		}
 		var token string = ccxt.Jwt(auth, this.Encode(this.Secret), ccxt.Sha256, false)
-		ccxt.AddElementToObject(wsOptions, "token", token)
-		ccxt.AddElementToObject(wsOptions, "options", map[string]any{
+		wsOptions["token"] = token
+		wsOptions["options"] = map[string]any{
 			"headers": map[string]any{
 				"authorization": "Bearer " + token,
 			},
-		})
+		}
 		this.Options["ws"] = wsOptions
 	}
 }

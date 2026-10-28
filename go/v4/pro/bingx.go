@@ -2356,7 +2356,7 @@ func (this *Bingx) HandleMyTrades(client any, message any) {
 	var marketId *string = this.SafeString(result, "s")
 	var market map[string]any = this.SafeMarket(marketId, nil, "-", typeVar)
 	var parsed map[string]any = ccxt.TradeToMap(this.ParseTrade(result, market))
-	var symbol *string = this.SafeString(parsed, "symbol")
+	var symbol *string = this.SafeString(parsed, "symbol", "")
 	var spotHash string = "spot:mytrades"
 	var swapHash string = "swap:mytrades"
 	var messageHash string = swapHash
@@ -2365,7 +2365,7 @@ func (this *Bingx) HandleMyTrades(client any, message any) {
 	}
 	cachedTrades.(ccxt.Appender).Append(parsed)
 	client.(ccxt.ClientInterface).Resolve(cachedTrades, messageHash)
-	client.(ccxt.ClientInterface).Resolve(cachedTrades, ccxt.Add(messageHash+":", symbol))
+	client.(ccxt.ClientInterface).Resolve(cachedTrades, messageHash+":"+*symbol)
 }
 func (this *Bingx) HandleBalance(client any, message any) {
 	// spot

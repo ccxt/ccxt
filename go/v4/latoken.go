@@ -594,7 +594,7 @@ func (this *Latoken) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 			panic(r.Err)
 		}
 	}
-	var currencies any = this.SafeDict(this.Options, "cachedCurrencies", map[string]any{})
+	var currencies map[string]any = this.SafeDictMap(this.Options, "cachedCurrencies", map[string]any{})
 	var currenciesById map[string]any = this.IndexBy(currencies, "id")
 	var result []any = []any{}
 	var rawMarkets []any = this.ToArray(response)

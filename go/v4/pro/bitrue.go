@@ -810,7 +810,7 @@ func (this *Bitrue) HandleOHLCV(client any, message map[string]any) {
 		return
 	}
 	var wsInterval *string = this.SafeString(parts, 4)
-	var futuresTimeframes any = this.SafeDict(this.Options, "futuresTimeframes", map[string]any{})
+	var futuresTimeframes map[string]any = this.SafeDictMap(this.Options, "futuresTimeframes", map[string]any{})
 	var timeframe *string = this.FindTimeframe(wsInterval, futuresTimeframes)
 	if timeframe == nil {
 		return

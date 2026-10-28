@@ -1701,7 +1701,7 @@ func (this *Woofipro) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], o
 	for i := 0; i < len(rows); i++ {
 		var row any = DerefScalar(rows[i])
 		var marketId *string = this.SafeString(row, "symbol", "")
-		if IsEqual(this.SafeValue(this.Markets_by_id(), marketId), nil) {
+		if _, ok := this.Markets_by_id()[*marketId]; (this.Markets_by_id() == nil) || !ok {
 			continue
 		}
 		var ticker map[string]any = this.Extend(map[string]any{
@@ -1859,7 +1859,7 @@ func (this *Woofipro) fetchOpenInterestsBody(ch chan AsyncResult[map[string]Open
 	for i := 0; i < len(rows); i++ {
 		var row any = DerefScalar(rows[i])
 		var marketId *string = this.SafeString(row, "symbol", "")
-		if IsEqual(this.SafeValue(this.Markets_by_id(), marketId), nil) {
+		if _, ok := this.Markets_by_id()[*marketId]; (this.Markets_by_id() == nil) || !ok {
 			continue
 		}
 		var interest map[string]any = this.Extend(map[string]any{

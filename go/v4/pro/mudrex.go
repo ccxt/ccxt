@@ -64,12 +64,12 @@ func (this *Mudrex) SetBrokerHeaders() {
 	if brokerId == nil {
 		return
 	}
-	var wsOptions any = this.SafeDict(this.Options, "ws", map[string]any{})
+	var wsOptions map[string]any = this.SafeDictMap(this.Options, "ws", map[string]any{})
 	var innerOptions map[string]any = this.SafeDictMap(wsOptions, "options", map[string]any{})
 	var headers map[string]any = this.SafeDictMap(innerOptions, "headers", map[string]any{})
 	headers["Partner-Id"] = *brokerId
 	innerOptions["headers"] = headers
-	ccxt.AddElementToObject(wsOptions, "options", innerOptions)
+	wsOptions["options"] = innerOptions
 	this.Options["ws"] = wsOptions
 }
 func (this *Mudrex) WatchTickerAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.Ticker] {

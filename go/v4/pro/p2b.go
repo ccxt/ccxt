@@ -447,7 +447,7 @@ func (this *P2b) HandleOHLCV(client any, message map[string]any) any {
 	var channel *string = this.SafeString(splitMethod, 0)
 	var marketId *string = this.SafeString(data, 7)
 	var market map[string]any = this.SafeMarket(marketId)
-	var timeframes any = this.SafeDict(this.Options, "timeframes", map[string]any{})
+	var timeframes map[string]any = this.SafeDictMap(this.Options, "timeframes", map[string]any{})
 	var timeframe *string = this.FindTimeframe(channel, timeframes)
 	var symbol *string = this.SafeString(market, "symbol")
 	var parsed any = ccxt.OHLCVToList(this.ParseOHLCV(data, market))

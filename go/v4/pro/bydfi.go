@@ -669,7 +669,7 @@ func (this *Bydfi) HandleOHLCV(client any, message map[string]any) {
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = this.SafeString(market, "symbol", "")
 	var interval *string = this.SafeString(message, "i")
-	var timeframes any = this.SafeDict(this.Options, "timeframes", map[string]any{})
+	var timeframes map[string]any = this.SafeDictMap(this.Options, "timeframes", map[string]any{})
 	var timeframe *string = this.FindTimeframe(interval, timeframes)
 	if timeframe == nil {
 		return

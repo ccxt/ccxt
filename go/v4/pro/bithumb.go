@@ -1099,10 +1099,10 @@ func (this *Bithumb) HandleBalance(client any, message map[string]any) {
  * @returns {object[]} the SUBSCRIBE frame to send
  */
 func (this *Bithumb) BuildGen2SubscriptionRequest(subscriptionType string, subscription map[string]any) []any {
-	var wsOptions any = this.SafeDict(this.Options, "ws", map[string]any{})
+	var wsOptions map[string]any = this.SafeDictMap(this.Options, "ws", map[string]any{})
 	var subscriptions map[string]any = this.SafeDictMap(wsOptions, "gen2Subscriptions", map[string]any{})
 	ccxt.AddElementToObject(subscriptions, subscriptionType, subscription)
-	ccxt.AddElementToObject(wsOptions, "gen2Subscriptions", subscriptions)
+	wsOptions["gen2Subscriptions"] = subscriptions
 	this.Options["ws"] = wsOptions
 	var request []any = []any{map[string]any{
 		"ticket": "ccxt",
@@ -1130,7 +1130,7 @@ func (this *Bithumb) authenticateBody(ch chan ccxt.AsyncResult[ccxt.ClientInterf
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	this.CheckRequiredCredentials()
-	var wsOptions any = this.SafeDict(this.Options, "ws", map[string]any{})
+	var wsOptions map[string]any = this.SafeDictMap(this.Options, "ws", map[string]any{})
 	var authenticated *string = this.SafeString(wsOptions, "token")
 	if authenticated == nil {
 		var payload map[string]any = map[string]any{
@@ -1139,12 +1139,12 @@ func (this *Bithumb) authenticateBody(ch chan ccxt.AsyncResult[ccxt.ClientInterf
 			"timestamp":  this.Milliseconds(),
 		}
 		var jwtToken string = ccxt.Jwt(payload, this.Encode(this.Secret), ccxt.Sha256)
-		ccxt.AddElementToObject(wsOptions, "token", jwtToken)
-		ccxt.AddElementToObject(wsOptions, "options", map[string]any{
+		wsOptions["token"] = jwtToken
+		wsOptions["options"] = map[string]any{
 			"headers": map[string]any{
 				"authorization": "Bearer " + jwtToken,
 			},
-		})
+		}
 		this.Options["ws"] = wsOptions
 	}
 	var wsUrls map[string]any = ccxt.SafeMapTyped(this.SafeDict(this.Urls, "api", map[string]any{}), "ws")

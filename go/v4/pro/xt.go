@@ -1577,8 +1577,8 @@ func (this *Xt) HandleTickers(client any, message map[string]any) any {
 		}
 		newTickers = append(newTickers, ticker)
 	}
-	var messageHashStart any = ccxt.Add(ccxt.Add(this.SafeString(message, "topic"), "::"), tradeType)
-	var messageHashes []any = ccxt.ArrayTyped(this.FindMessageHashes(ccxt.AsClient(client), ccxt.Add(messageHashStart, "::")))
+	var messageHashStart string = *this.SafeString(message, "topic", "") + "::" + tradeType
+	var messageHashes []any = ccxt.ArrayTyped(this.FindMessageHashes(ccxt.AsClient(client), messageHashStart+"::"))
 	for i := 0; i < len(messageHashes); i++ {
 		var messageHash *string = ccxt.SafeStringPtr(ccxt.DerefScalar(messageHashes[i]))
 		var parts []string = strings.Split(*messageHash, "::")

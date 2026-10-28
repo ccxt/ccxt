@@ -1501,7 +1501,7 @@ func (this *Kraken) HandleOrderBook(client any, message map[string]any) {
 			}
 			return limit
 		}())
-		var depths any = this.SafeDict(this.Options, "wsOrderBookDepths", map[string]any{})
+		var depths map[string]any = this.SafeDictMap(this.Options, "wsOrderBookDepths", map[string]any{})
 		var storedDepth *int64 = this.SafeInteger(depths, symbol)
 		if !(ccxt.InOp(this.Orderbooks, symbol)) || (storedDepth == nil || *storedDepth != depth) {
 			// rebuild only on the first snapshot or when the depth changes,
@@ -1509,7 +1509,9 @@ func (this *Kraken) HandleOrderBook(client any, message map[string]any) {
 			if symbol != nil {
 				this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, depth)
 			}
-			ccxt.AddElementToObject(depths, symbol, depth)
+			if symbol != nil {
+				depths[*symbol] = depth
+			}
 			this.Options["wsOrderBookDepths"] = depths
 		}
 		// reset in place so that references held by users keep receiving
@@ -2048,7 +2050,7 @@ func (this *Kraken) HandleOrders(client any, message map[string]any, optionalArg
 			var length int = ccxt.GetArrayLength(stored)
 			if (limit != nil && *limit == int64(length)) && (previousOrder == nil) {
 				var first any = ccxt.GetValue(stored, 0)
-				var symbolsByOrderId any = this.SafeDict(this.Options, "symbolsByOrderId", map[string]any{})
+				var symbolsByOrderId map[string]any = this.SafeDictMap(this.Options, "symbolsByOrderId", map[string]any{})
 				var firstId *string = this.SafeString(first, "id")
 				if (firstId != nil) && (ccxt.InOp(symbolsByOrderId, firstId)) {
 					ccxt.Remove(symbolsByOrderId, firstId)

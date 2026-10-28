@@ -1272,7 +1272,7 @@ func (this *Poloniex) HandleOHLCV(client any, message map[string]any) any {
 	var marketId *string = this.SafeString(data, "symbol")
 	var symbol *string = this.SafeSymbol(marketId)
 	var market map[string]any = this.SafeMarket(symbol)
-	var timeframes any = this.SafeDict(this.Options, "timeframes", map[string]any{})
+	var timeframes map[string]any = this.SafeDictMap(this.Options, "timeframes", map[string]any{})
 	var timeframe *string = this.FindTimeframe(channel, timeframes)
 	var parsed any = this.ParseWsOHLCV(data, market)
 	if symbol != nil {
@@ -1981,7 +1981,7 @@ func (this *Poloniex) HandleUnsubscription(client any, message map[string]any) {
 	//
 	var channel *string = this.SafeString(message, "channel")
 	var marketIds []any = ccxt.SafeListTyped(message, "symbols")
-	var timeframes any = this.SafeDict(this.Options, "timeframes", map[string]any{})
+	var timeframes map[string]any = this.SafeDictMap(this.Options, "timeframes", map[string]any{})
 	var timeframe *string = this.FindTimeframe(channel, timeframes)
 	for i := 0; i < len(marketIds); i++ {
 		var symbol *string = this.SafeSymbol(this.SafeString(marketIds, i))

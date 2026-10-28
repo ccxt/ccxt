@@ -3977,7 +3977,7 @@ func (this *Binance) ensureUserDataStreamWsSubscribeListenTokenBody(ch chan ccxt
 	if url == nil {
 		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
 	}
-	var options any = this.SafeDict(this.Options, marketType, map[string]any{})
+	var options map[string]any = this.SafeDictMap(this.Options, marketType, map[string]any{})
 	var lastAuthenticatedTime int64 = *this.SafeInteger(options, "lastAuthenticatedTime", 0)
 	var listenTokenRefreshRate *int64 = this.SafeInteger(this.Options, "listenTokenRefreshRate", 82800000) // 23 hours default
 	var time int64 = this.Milliseconds()
@@ -4175,7 +4175,7 @@ func (this *Binance) authenticateBody(ch chan ccxt.AsyncResult[*string], optiona
 	}
 	var paramsOmitted map[string]any = this.OmitDict(paramsMarginMode, "symbol")
 	var isStock bool = (typeVar != nil && *typeVar == "stock")
-	var options any = this.SafeDict(this.Options, typeVar, map[string]any{})
+	var options map[string]any = this.SafeDictMap(this.Options, typeVar, map[string]any{})
 	var lastAuthenticatedTime int64 = *this.SafeInteger(options, "lastAuthenticatedTime", 0)
 	var refreshRateKey string = "listenKeyRefreshRate"
 	if isStock {
@@ -4346,7 +4346,7 @@ func (this *Binance) keepAliveListenKeyBody(ch chan ccxt.AsyncResult[bool], opti
 		return nil
 	}
 	var isStock bool = (typeVar != nil && *typeVar == "stock")
-	var options any = this.SafeDict(this.Options, typeVar, map[string]any{})
+	var options map[string]any = this.SafeDictMap(this.Options, typeVar, map[string]any{})
 	var listenKey *string = this.SafeString(options, "listenKey")
 	if listenKey == nil {
 

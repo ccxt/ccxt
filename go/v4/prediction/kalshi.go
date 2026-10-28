@@ -1401,15 +1401,11 @@ func (this *Kalshi) fetchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Pr
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var targets []any = []any{}
-	for i := 0; i < len(outcomes); i++ {
-		targets = append(targets, outcomes[i])
-	}
 	// group requested outcomes by their market ticker, yes and no outcomes share one market
 	var outcomesByTicker map[string]any = map[string]any{}
 	var tickers []any = []any{}
-	for i := 0; i < len(targets); i++ {
-		var outcomeObj map[string]any = this.Outcome(ccxt.DerefScalar(targets[i]))
+	for i := 0; i < len(outcomes); i++ {
+		var outcomeObj map[string]any = this.Outcome(outcomes[i])
 		var ticker *string = this.SafeString(outcomeObj["info"], "ticker")
 		if ticker == nil {
 			continue

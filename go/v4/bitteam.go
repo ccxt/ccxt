@@ -765,7 +765,7 @@ func (this *Bitteam) ParseCurrency(currency any) map[string]any {
 	// if only one blockChain
 	if (blockChain != nil) && (blockChain == nil || *blockChain != "") {
 		fee = this.ParseNumber(withdrawCommissionFixed)
-		AddElementToObject(feesByNetworkId, blockChain, fee)
+		feesByNetworkId[*blockChain] = fee
 	} else {
 		feesByNetworkId = this.Extend(withdrawCommissionFixed, map[string]any{})
 	}

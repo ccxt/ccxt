@@ -1315,11 +1315,11 @@ func (this *Bitfinex) HandleBalance(client any, message []any, subscription map[
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var balance any = this.ParseWsBalance(rawBalance)
 		var balanceType *string = this.SafeString(rawBalance, 0)
-		var oldBalance any = this.SafeDict(this.Balance, balanceType, map[string]any{})
+		var oldBalance map[string]any = this.SafeDictMap(this.Balance, balanceType, map[string]any{})
 		if code != nil {
 			ccxt.AddElementToObject(oldBalance, code, balance)
 		}
-		ccxt.AddElementToObject(oldBalance, "info", message)
+		oldBalance["info"] = message
 		ccxt.AddElementToObject(this.Balance, balanceType, this.SafeBalance(oldBalance))
 		if balanceType != nil {
 			updatedTypes[*balanceType] = true

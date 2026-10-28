@@ -2223,12 +2223,12 @@ func (this *Backpack) HandleBalance(client any, message any) bool {
 	if assetId == nil {
 		return false
 	}
-	var assets any = this.SafeDict(this.Options, "wsBalanceAssets", map[string]any{})
-	ccxt.AddElementToObject(assets, assetId, map[string]any{
+	var assets map[string]any = this.SafeDictMap(this.Options, "wsBalanceAssets", map[string]any{})
+	assets[*assetId] = map[string]any{
 		"available": this.SafeString(data, "A"),
 		"locked":    this.SafeString(data, "L"),
 		"staked":    this.SafeString(data, "S"),
-	})
+	}
 	this.Options["wsBalanceAssets"] = assets
 	var response any = this.ParseBalance(assets)
 	var parsed any = this.SafeDict(map[string]any{

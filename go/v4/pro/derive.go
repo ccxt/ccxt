@@ -1323,7 +1323,7 @@ func (this *Derive) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position]
 	if !(ccxt.InOp(this.WsCacheObjGet("Positions"), subaccountIdKey)) {
 		ccxt.AddElementToObject(this.WsCacheObjGet("Positions"), subaccountIdKey, ccxt.NewArrayCacheBySymbolBySide())
 	}
-	var loadedSnapshots any = this.SafeDict(this.Options, "loadedPositionsSnapshots", map[string]any{})
+	var loadedSnapshots map[string]any = this.SafeDictMap(this.Options, "loadedPositionsSnapshots", map[string]any{})
 	if fetchSnapshot && !(ccxt.InOp(loadedSnapshots, subaccountIdKey)) {
 		var snapshotRequest map[string]any = map[string]any{
 			"subaccount_id": subaccountId,
@@ -1340,7 +1340,9 @@ func (this *Derive) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position]
 			var snapshotPosition any = this.SafeValue(positionsSnapshot, i)
 			cache.(ccxt.Appender).Append(snapshotPosition)
 		}
-		ccxt.AddElementToObject(loadedSnapshots, subaccountIdKey, true)
+		if subaccountIdKey != nil {
+			loadedSnapshots[*subaccountIdKey] = true
+		}
 		this.Options["loadedPositionsSnapshots"] = loadedSnapshots
 	}
 	var subaccountIdString *string = this.NumberToString(subaccountId)
@@ -1450,14 +1452,14 @@ func (this *Derive) HandleBalance(client any, message map[string]any) {
 	//     }
 	//
 	var params map[string]any = ccxt.SafeMapTyped(message, "params")
-	var topic *string = this.SafeString(params, "channel")
+	var topic *string = this.SafeString(params, "channel", "")
 	var topicParts []string = strings.Split(*topic, ".")
 	var subaccountIdKey *string = this.SafeString(topicParts, 0)
 	var data []any = ccxt.SafeListTyped(params, "data")
 	if ccxt.IsEqual(this.Balance, nil) {
 		this.Balance = map[string]any{}
 	}
-	var subBalance any = this.SafeDict(this.Balance, subaccountIdKey, map[string]any{})
+	var subBalance map[string]any = this.SafeDictMap(this.Balance, subaccountIdKey, map[string]any{})
 	var updated bool = false
 	var positionUpdates []any = []any{}
 	for i := 0; i < len(data); i++ {
@@ -1484,7 +1486,7 @@ func (this *Derive) HandleBalance(client any, message map[string]any) {
 		// the margin requirements the rest free/used model needs are not part of the stream, so stale snapshot values are dropped instead of reporting free + used != total
 		ccxt.AddElementToObject(account, "free", nil)
 		ccxt.AddElementToObject(account, "used", nil)
-		ccxt.AddElementToObject(subBalance, code, account)
+		subBalance[*code] = account
 		updated = true
 	}
 	if updated {
@@ -1493,7 +1495,7 @@ func (this *Derive) HandleBalance(client any, message map[string]any) {
 	}
 	var positionUpdatesLength int = len(positionUpdates)
 	if positionUpdatesLength > 0 {
-		client.(ccxt.ClientInterface).Resolve(positionUpdates, ccxt.Add("positions:", topic))
+		client.(ccxt.ClientInterface).Resolve(positionUpdates, "positions:"+*topic)
 	}
 }
 func (this *Derive) HandleErrorMessage(client any, message map[string]any) any {

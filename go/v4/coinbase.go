@@ -2574,7 +2574,7 @@ func (this *Coinbase) fetchCurrenciesFromCacheBody(ch chan AsyncResult[Currencie
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var options any = this.SafeDict(this.Options, "fetchCurrencies", map[string]any{})
+	var options map[string]any = this.SafeDictMap(this.Options, "fetchCurrencies", map[string]any{})
 	var timestamp *int64 = this.SafeInteger(options, "timestamp")
 	var expires int64 = *this.SafeInteger(options, "expires", 1000)
 	var now int64 = this.Milliseconds()

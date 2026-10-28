@@ -1315,12 +1315,7 @@ func (this *Paradex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 			AddElementToObject(requestUntil, "end_at", (sinceInt+windowLength)-1)
 		}
 	} else {
-		var endAtRaw *int64 = func() *int64 {
-			if hasEnd {
-				return this.SafeInteger(requestUntil, "end_at", 0)
-			}
-			return Int64PtrTyped(this.Milliseconds())
-		}()
+		var endAtRaw *int64 = this.SafeInteger(requestUntil, "end_at", this.Milliseconds())
 		var endAt int64 = this.ParseToInt(endAtRaw)
 		requestUntil["end_at"] = endAt
 		AddElementToObject(requestUntil, "start_at", (endAt-windowLength)+1)

@@ -845,7 +845,7 @@ func (this *Delta) IndexByStringifiedNumericId(input any) any {
 	var keys []string = ObjectKeys(input)
 	for i := 0; i < len(keys); i++ {
 		var key string = keys[i]
-		var item any = GetValue(input, key)
+		var item map[string]any = this.SafeDictMap(input, key, map[string]any{})
 		var numericIdString *string = this.SafeString(item, "numericId")
 		if numericIdString == nil {
 			continue

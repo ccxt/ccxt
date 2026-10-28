@@ -2351,7 +2351,7 @@ func (this *Bitso) ParseDepositWithdrawFees(response any, optionalArgs ...any) m
 	//        }
 	//    }
 	//
-	codes := GetArg(optionalArgs, 0, nil)
+	var codes []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = codes
 	var currencyIdKey *string = GetArgStringPtr(optionalArgs, 1, nil)
 	_ = currencyIdKey
@@ -2362,7 +2362,7 @@ func (this *Bitso) ParseDepositWithdrawFees(response any, optionalArgs ...any) m
 		var entry any = depositResponse[i]
 		var currencyId *string = this.SafeString(entry, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
-		if (codes == nil) || ((code != nil) && (InOp(codes, code))) {
+		if (codes == nil) || ((code != nil) && this.InArray(code, codes)) {
 			if code != nil {
 				result[*code] = map[string]any{
 					"deposit": map[string]any{
@@ -2389,7 +2389,7 @@ func (this *Bitso) ParseDepositWithdrawFees(response any, optionalArgs ...any) m
 	for i := 0; i < len(withdrawalKeys); i++ {
 		var currencyId string = withdrawalKeys[i]
 		var code *string = this.SafeCurrencyCode(currencyId)
-		if (code != nil) && ((codes == nil) || (InOp(codes, code))) {
+		if (code != nil) && ((codes == nil) || this.InArray(code, codes)) {
 			var withdrawFee *float64
 			if derefNum, isNum := this.ParseNumber(withdrawalResponse[currencyId]).(float64); isNum {
 				withdrawFee = &derefNum

@@ -1577,7 +1577,7 @@ func (this *Lighter) HandleBalance(client any, message map[string]any) bool {
 	if strings.Index(*channel, "user_stats:") >= 0 {
 		typeVar = "swap"
 	}
-	var balance any = this.SafeDict(this.Balance, typeVar, map[string]any{})
+	var balance map[string]any = this.SafeDictMap(this.Balance, typeVar, map[string]any{})
 	if typeVar == "spot" {
 		var assets map[string]any = ccxt.SafeMapTyped(message, "assets")
 		var assetIds []string = nil
@@ -1596,7 +1596,7 @@ func (this *Lighter) HandleBalance(client any, message map[string]any) bool {
 			account["used"] = this.SafeString(asset, "locked_balance")
 			account["total"] = this.SafeString(asset, "balance")
 			if code != nil {
-				ccxt.AddElementToObject(balance, code, account)
+				balance[*code] = account
 			}
 		}
 	} else {
@@ -1605,10 +1605,15 @@ func (this *Lighter) HandleBalance(client any, message map[string]any) bool {
 		account["free"] = this.SafeString(stats, "available_balance")
 		account["total"] = this.SafeString(stats, "collateral")
 		account["info"] = stats
-		ccxt.AddElementToObject(balance, "USDC", account)
+		balance["USDC"] = account
 	}
 	var timestamp *int64 = this.SafeInteger(message, "timestamp")
-	ccxt.AddElementToObject(balance, "timestamp", timestamp)
+	balance["timestamp"] = func() any {
+		if v := timestamp; v != nil {
+			return *v
+		}
+		return nil
+	}()
 	ccxt.AddElementToObject(balance, "datetime", this.Iso8601(timestamp))
 	this.Balance[typeVar] = this.SafeBalance(balance)
 	var messageHash string = this.GetMessageHash("balances", nil, typeVar)
