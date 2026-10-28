@@ -3227,7 +3227,7 @@ export default class coinbaseinternational extends Exchange {
         const now = this.milliseconds ();
         const token = this.getV2AccessToken ();
         const tokenExpires = this.safeInteger (this.options, 'v2TokenExpires');
-        if (!forceRefresh && (token !== undefined) && (tokenExpires !== undefined) && (now < tokenExpires)) {
+        if (!forceRefresh && (token !== undefined) && (token !== '') && (tokenExpires !== undefined) && (now < tokenExpires)) {
             return token;
         }
         const response = await this.publicPostAuth (paramsOmitted);
@@ -3267,14 +3267,7 @@ export default class coinbaseinternational extends Exchange {
      * @returns {string|undefined} the access token
      */
     getV2AccessToken (): Str {
-        const token = this.safeString (this.options, 'v2AccessToken');
-        if ((token !== undefined) && (token !== '')) {
-            return token;
-        }
-        if (this.token === '') {
-            return undefined;
-        }
-        return this.token;
+        return this.safeString (this.options, 'v2AccessToken', this.token);
     }
 
     override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
@@ -3322,7 +3315,7 @@ export default class coinbaseinternational extends Exchange {
             };
         } else if (access === 'private') {
             const accessToken = this.getV2AccessToken ();
-            if (accessToken === undefined) {
+            if ((accessToken === undefined) || (accessToken === '')) {
                 throw new AuthenticationError (this.id + ' requires an access token from public/auth');
             }
             requestHeaders = {
@@ -3378,7 +3371,8 @@ export default class coinbaseinternational extends Exchange {
         const deribit = this.resolveRoute (route);
         const previousBackend = this.safeBool (this.options, 'routeBackend');
         const configuredBackend = this.isNativeDeribitCredentials ();
-        const hasToken = this.getV2AccessToken () !== undefined;
+        const currentToken = this.getV2AccessToken ();
+        const hasToken = (currentToken !== undefined) && (currentToken !== '');
         const hasWsState = this.safeInteger (this.options, 'wsAuthRefreshAt') !== undefined;
         if ((previousBackend !== undefined) && (previousBackend !== deribit)) {
             throw new BadRequest (this.id + ' cannot switch route backend on an initialized instance; use a separate exchange instance');
