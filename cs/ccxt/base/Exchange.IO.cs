@@ -12,10 +12,11 @@ public partial class BaseExchange
     {
         var tempDir = getTempDir();
         var sanitized = Path.GetFullPath(filePath as string);
-        if (sanitized.StartsWith(tempDir) && sanitized.EndsWith(".ccxtfile")) {
+        var allowedExtensions = new string[] { ".ccxtfile", ".pem" };
+        if (sanitized.StartsWith(tempDir) && Array.Exists(allowedExtensions, ext => sanitized.EndsWith(ext))) {
             return;
         }
-        throw new InvalidOperationException($"invalid file path: {filePath as string}");
+        throw new InvalidOperationException($"invalid file path: {filePath as string}, allowed extensions are: {string.Join(", ", allowedExtensions)}");
     }
 
     public string readFile(object filePath)

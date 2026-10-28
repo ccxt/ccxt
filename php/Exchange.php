@@ -1441,10 +1441,15 @@ class BaseExchange {
             throw new \RuntimeException('dir path does not exist: ' . $filePath);
         }
         $sanitized = $dir . DIRECTORY_SEPARATOR . basename($filePath);
-        if (str_starts_with($sanitized, $tempDir) && str_ends_with($sanitized, '.ccxtfile')) {
-            return;
+        $allowedExtensions = array('.ccxtfile', '.pem');
+        if (str_starts_with($sanitized, $tempDir)) {
+            foreach ($allowedExtensions as $ext) {
+                if (str_ends_with($sanitized, $ext)) {
+                    return;
+                }
+            }
         }
-        throw new \RuntimeException('invalid file path: ' . $filePath);
+        throw new \RuntimeException('invalid file path: ' . $filePath . ', allowed extensions are: ' . implode(', ', $allowedExtensions));
     }
 
     public function read_file(string $filePath) {

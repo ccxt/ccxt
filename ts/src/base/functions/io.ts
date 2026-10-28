@@ -74,7 +74,7 @@ function ensureWhitelistedFile(filePath: string) {
         throw new Error ('path module is not available');
     }
     const resolvedInputFilePath = pathSyncModule.resolve (filePath);
-    const allowedExtensions = [ '.ccxtfile', '.wasm' ];
+    const allowedExtensions = [ '.ccxtfile', '.wasm', '.pem' ]; // ibkr needs PEM file
     if (!allowedExtensions.some (ext => resolvedInputFilePath.endsWith (ext))) {
         throw new Error ('File path is not permitted: ' + filePath + ', allowed extensions are: ' + allowedExtensions.join (', '));
     }

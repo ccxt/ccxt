@@ -2617,13 +2617,39 @@ impl Exchange {
         let hash = crate::exchange::hash_raw(pubkey, "keccak");
         Value::Str(format!("0x{}", hex::encode(&hash[12..32])).into())
     }
+    /// Ensures the file path is a ccxt file inside the temp dir, so users would be safeguarded
+    pub fn ensure_whitelisted_file(&self, p: &Value) {
+        let raw = match p {
+            Value::Str(s) => s.to_string(),
+            other => stringify_param(other).into(),
+        };
+        let allowed_extensions: [&str; 2] = [".ccxtfile", ".pem"];
+        let path = std::path::Path::new(&raw);
+        let sanitized = if path.is_absolute() {
+            path.to_path_buf()
+        } else {
+            match std::env::current_dir() {
+                Ok(cwd) => cwd.join(path),
+                Err(_) => panic!("invalid file path: {}", raw),
+            }
+        };
+        let sanitized_str = sanitized.to_string_lossy();
+        let temp_dir = std::env::temp_dir();
+        let in_temp_dir = sanitized.starts_with(&temp_dir);
+        if in_temp_dir && allowed_extensions.iter().any(|ext| sanitized_str.ends_with(ext)) {
+            return;
+        }
+        panic!("invalid file path: {}, allowed extensions are: {}", raw, allowed_extensions.join(", "));
+    }
     pub fn exists_file(&self, p: Value) -> Value {
+        self.ensure_whitelisted_file(&p);
         match &p {
             Value::Str(path) => Value::Bool(std::path::Path::new(path.as_ref()).is_file()),
             _ => Value::Bool(false),
         }
     }
     pub fn read_file(&self, p: Value) -> Value {
+        self.ensure_whitelisted_file(&p);
         match &p {
             Value::Str(path) => match std::fs::read_to_string(path.as_ref()) {
                 Ok(s) => Value::Str(s.into()),
@@ -2633,6 +2659,7 @@ impl Exchange {
         }
     }
     pub fn write_file(&self, p: Value, content: Value) -> Value {
+        self.ensure_whitelisted_file(&p);
         let path = match &p {
             Value::Str(s) => s.to_string(),
             _ => return Value::Bool(false),
