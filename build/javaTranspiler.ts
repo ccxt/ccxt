@@ -9514,6 +9514,21 @@ function j39Unparen (e: string): string {
     return e;
 }
 
+// hx11 w8: a newMap literal that is the whole argument of a statement-level `((List<Object>)x).add(...)` becomes
+// statement-level puts instead of a `switch (0)` lambda blob. Unbraced control bodies keep the switch form.
+function j39HoistStatement (t: string, at: number, close: number, args: string[], lineStart: number, indent: string, fresh: () => string): { text: string, end: number } | undefined {
+    if (args.length === 0 || args.length % 2 !== 0 || args.some ((a, i) => i % 2 === 0 && !/^"(?:[^"\\]|\\.)*"$/.test (a))) return undefined;
+    const prefix = t.slice (lineStart, at);
+    if (!/^[ \t]*\(\([A-Za-z.<>?, ]+\)[A-Za-z_]\w*\)\.add\($/.test (prefix) || t.slice (close + 1, close + 3) !== ');') return undefined;
+    const before = t.slice (0, lineStart).trimEnd ();
+    if (!/[;{}]$/.test (before) || /^\s*\/\//.test (before.slice (before.lastIndexOf ('\n') + 1))) return undefined;
+    const n = fresh ();
+    const lines: string[] = [ `${indent}java.util.HashMap<String, Object> ${n} = new java.util.HashMap<String, Object>();` ];
+    for (let i = 0; i < args.length; i += 2) lines.push (`${indent}${n}.put(${args[i]}, ${args[i + 1]});`);
+    lines.push (`${prefix}${n});`);
+    return { text: lines.join ('\n'), end: close + 3 };
+}
+
 function j39Member (member: string, fresh: () => string): string {
     const typeCache = new Map<string, string | undefined> ();
     const declaredType = (name: string): string | undefined => {
@@ -9590,6 +9605,8 @@ function j39Member (member: string, fresh: () => string): string {
         const lineStart = out.lastIndexOf ('\n', at - 1) + 1;
         const indent = /^\s*/.exec (out.slice (lineStart))![0];
         const statement = out.slice (lineStart, at).trim () === '' && out[close + 1] === ';';
+        const hoisted = helper === 'newMap' ? j39HoistStatement (out, at, close, args, lineStart, indent, fresh) : undefined;
+        if (hoisted !== undefined) { out = out.slice (0, lineStart) + hoisted.text + out.slice (hoisted.end); continue; }
         const text = rewrite (helper, args, statement, indent);
         if (text === undefined) continue;
         out = statement && helper === 'addElementToObject' ? out.slice (0, at) + text + out.slice (close + 2) : out.slice (0, at) + text + out.slice (close + 1);
@@ -9621,6 +9638,9 @@ function j39SelfTest (): string[] {
         [ 'inOp lit', '        return Helpers.inOp(o, "a");', 'j39v2.contains("a"); case java.util.Map<?, ?> j39v1 -> j39v1.containsKey("a")' ],
         [ 'inOp id', '        return Helpers.inOp(o, s);', '((Object)(s)) instanceof String && j39v1.containsKey(s)' ],
         [ 'newMap', '        return this.f(Helpers.newMap("a", o));', 'switch (0) { default -> { java.util.HashMap<String, Object> j39v1 = new java.util.HashMap<String, Object>(); j39v1.put("a", o); yield j39v1; } }' ],
+        [ 'newMap add hoist', '        Object r = null;\n        ((List<Object>)r).add(Helpers.newMap(\"a\", o));\n        return r;', 'j39v1.put(\"a\", o);\n        ((List<Object>)r).add(j39v1);' ],
+        [ 'newMap add unbraced', '        if (o != null)\n            ((List<Object>)l).add(Helpers.newMap(\"a\", o));\n        return l;', 'add((switch (0) { default -> {' ],
+        [ 'newMap add in call', '        ((List<Object>)l).add(this.f(Helpers.newMap(\"a\", o)));\n        return l;', 'add(this.f((switch (0) { default -> {' ],
         [ 'nested', '        return Helpers.inOp(Helpers.newMap("a", Helpers.getArrayLength(o)), "a");', 'j39v4.put("a", (switch ((Object)(o))' ],
         // negatives: Object receiver put/get, impure inOp key, odd newMap, string-literal content, expression GetValue
         [ 'put Object', '        Helpers.addElementToObject(o, "a", 1);', undefined ],
