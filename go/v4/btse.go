@@ -5016,7 +5016,7 @@ func (this *Btse) CleanPath(path string) string {
 	result = strings.Replace(result, "otc", "", 1)
 	return result
 }
-func (this *Btse) Nonce() any {
+func (this *Btse) Nonce() int64 {
 	return this.Milliseconds() - *this.SafeInteger(this.Options, "timeDifference", 0)
 }
 

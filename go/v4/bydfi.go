@@ -4039,7 +4039,8 @@ func (this *Bydfi) Sign(path string, optionalArgs ...any) any {
 				"X-API-SIGNATURE": signature,
 			}
 		} else {
-			requestBody = SafeStringPtr(this.Json(sortedParams))
+			jsonText := this.Json(sortedParams)
+			requestBody = &jsonText
 			var payload string = this.ApiKey + timestamp + *requestBody
 			var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha256, "hex")
 			requestHeaders = map[string]any{

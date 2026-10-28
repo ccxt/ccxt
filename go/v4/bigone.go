@@ -2448,10 +2448,10 @@ func (this *Bigone) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optional
 	}
 	return nil
 }
-func (this *Bigone) Nonce() any {
+func (this *Bigone) Nonce() int64 {
 	var exchangeMillisecondsCorrection int64 = *this.SafeInteger(this.Options, "exchangeMillisecondsCorrection", 0)
 	var exchangeTimeCorrection int64 = exchangeMillisecondsCorrection * 1000000
-	return this.Sum(this.Microseconds()*1000, exchangeTimeCorrection)
+	return this.Microseconds()*1000 + exchangeTimeCorrection
 }
 func (this *Bigone) Sign(path string, optionalArgs ...any) any {
 	var api []string = GetArgStringSlice(optionalArgs, 0, []string{"public"})
@@ -2490,7 +2490,8 @@ func (this *Bigone) Sign(path string, optionalArgs ...any) any {
 			}
 		} else if method == "POST" {
 			headersValue["Content-Type"] = "application/json"
-			bodySigned = SafeStringPtr(this.Json(query))
+			jsonText := this.Json(query)
+			bodySigned = &jsonText
 		}
 	}
 	headersValue["User-Agent"] = "ccxt/" + this.Id + "-" + this.Version

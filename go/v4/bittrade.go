@@ -3038,7 +3038,8 @@ func (this *Bittrade) Sign(path string, optionalArgs ...any) any {
 		})
 		url += "?" + auth
 		if method == "POST" {
-			requestBody = SafeStringPtr(this.Json(query))
+			jsonText := this.Json(query)
+			requestBody = &jsonText
 			requestHeaders = map[string]any{
 				"Content-Type": "application/json",
 			}

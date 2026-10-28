@@ -3948,7 +3948,7 @@ func (this *Polymarket) HandleErrors(code int64, reason any, url string, method 
 	}
 	return nil
 }
-func (this *Polymarket) Nonce() any {
+func (this *Polymarket) Nonce() int64 {
 	// the order salt is a millisecond timestamp; incrementingNonce () reads this and keeps salts
 	// unique when two identical orders are signed within the same millisecond
 	return this.Milliseconds()
@@ -4011,12 +4011,14 @@ func (this *Polymarket) Sign(path string, optionalArgs ...any) any {
 			url = ccxt.Add(url, "?"+querystring)
 		}
 	} else if isArrayBody {
-		bodyValue = ccxt.SafeStringPtr(this.Json(params))
+		jsonText := this.Json(params)
+		bodyValue = &jsonText
 	} else {
 		var queryKeys []string = ccxt.ObjectKeys(query)
 		var queryKeysLength int = len(queryKeys)
 		if queryKeysLength > 0 {
-			bodyValue = ccxt.SafeStringPtr(this.Json(query))
+			jsonText2 := this.Json(query)
+			bodyValue = &jsonText2
 		}
 	}
 	var headerDefaults map[string]any = map[string]any{}

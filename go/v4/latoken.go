@@ -501,7 +501,7 @@ func (this *Latoken) Describe() map[string]any {
 		},
 	})
 }
-func (this *Latoken) Nonce() any {
+func (this *Latoken) Nonce() int64 {
 	var timeDifference *int64 = this.SafeInteger(this.Options, "timeDifference")
 	if timeDifference == nil {
 		panic(ExchangeError(this.Id + " nonce() requires a numeric options[\"timeDifference\"]"))
@@ -2653,7 +2653,8 @@ func (this *Latoken) Sign(path string, optionalArgs ...any) any {
 			if requestHeaders != nil {
 				requestHeaders["Content-Type"] = "application/json"
 			}
-			requestBody = SafeStringPtr(this.Json(query))
+			jsonText := this.Json(query)
+			requestBody = &jsonText
 		}
 	}
 	var apiUrl *string = this.SafeString(this.Urls["api"], "rest")

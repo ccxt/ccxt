@@ -846,7 +846,7 @@ func (this *Weex) Describe() map[string]any {
 		},
 	})
 }
-func (this *Weex) Nonce() any {
+func (this *Weex) Nonce() int64 {
 	return this.Milliseconds() - *this.SafeInteger(this.Options, "timeDifference", 0)
 }
 

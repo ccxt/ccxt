@@ -5212,7 +5212,8 @@ func (this *Pacifica) Sign(path string, optionalArgs ...any) any {
 		headersValue["Accept"] = "*/*"
 	}
 	if method == "POST" {
-		requestBody = SafeStringPtr(this.Json(paramsOmitted))
+		jsonText := this.Json(paramsOmitted)
+		requestBody = &jsonText
 	}
 	if !IsEqual(this.HandleOption("sign", "apiKey"), nil) {
 		headersValue["PF-API-KEY"] = this.Options["apiKey"]

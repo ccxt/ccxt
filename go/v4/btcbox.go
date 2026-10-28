@@ -1131,7 +1131,7 @@ func (this *Btcbox) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 	}
 	return nil
 }
-func (this *Btcbox) Nonce() any {
+func (this *Btcbox) Nonce() int64 {
 	return this.Milliseconds()
 }
 func (this *Btcbox) Sign(path string, optionalArgs ...any) any {

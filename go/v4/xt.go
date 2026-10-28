@@ -1219,7 +1219,7 @@ func (this *Xt) Describe() map[string]any {
 		},
 	})
 }
-func (this *Xt) Nonce() any {
+func (this *Xt) Nonce() int64 {
 	return this.Milliseconds() - *this.SafeInteger(this.Options, "timeDifference", 0)
 }
 

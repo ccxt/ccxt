@@ -2811,7 +2811,7 @@ func (this *Grvt) createOrderBody(ch chan AsyncResult[Order], symbol string, typ
 	}
 	var clientOrderId *string = this.SafeString(params, "clientOrderId")
 	if clientOrderId == nil {
-		clientOrderId = SafeStringPtr(ToString(this.Nonce()) + "000" + strconv.FormatInt(this.RequestId(), 10))
+		clientOrderId = SafeStringPtr(strconv.FormatInt(this.Nonce(), 10) + "000" + strconv.FormatInt(this.RequestId(), 10))
 	}
 	var paramsOmitted3 map[string]any = this.OmitDict(params, []any{"clientOrderId"})
 	var isMarketOrder bool = (typeVar == "market")
@@ -4478,7 +4478,8 @@ func (this *Grvt) Sign(path string, optionalArgs ...any) any {
 		if paramsMap, _ := params.(map[string]any); len(paramsMap) == 0 {
 			requestBody = SafeStringPtr("{}")
 		} else {
-			requestBody = SafeStringPtr(this.Json(params))
+			jsonText := this.Json(params)
+			requestBody = &jsonText
 		}
 	}
 	var isPrivate bool = strings.HasPrefix(apiName, "private")

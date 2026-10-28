@@ -1706,7 +1706,7 @@ func (this *Hibachi) withdrawBody(ch chan AsyncResult[Transaction], code string,
 	})}
 	return nil
 }
-func (this *Hibachi) Nonce() any {
+func (this *Hibachi) Nonce() int64 {
 	return this.Milliseconds()
 }
 func (this *Hibachi) SignMessage(message any, privateKey any) string {
@@ -2408,7 +2408,8 @@ func (this *Hibachi) Sign(path string, optionalArgs ...any) any {
 	}
 	var bodyResult *string = nil
 	if hasJsonBody {
-		bodyResult = SafeStringPtr(this.Json(params))
+		jsonText := this.Json(params)
+		bodyResult = &jsonText
 	}
 	if apiName == "private" {
 		this.CheckRequiredCredentials()

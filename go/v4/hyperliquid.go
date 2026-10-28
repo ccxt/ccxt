@@ -364,7 +364,7 @@ func (this *Hyperliquid) SetSandboxMode(enabled any) {
 	this.Exchange.SetSandboxMode(enabled)
 	this.Options["sandboxMode"] = enabled
 }
-func (this *Hyperliquid) Nonce() any {
+func (this *Hyperliquid) Nonce() int64 {
 	// the venue nonce is a millisecond timestamp and must be strictly increasing per signer
 	// incrementingNonce () reads this and bumps past the previous value when two signed actions share a millisecond
 	return this.Milliseconds()
@@ -7036,7 +7036,8 @@ func (this *Hyperliquid) Sign(path string, optionalArgs ...any) any {
 	}
 	var requestBody *string = nil
 	if isPost {
-		requestBody = SafeStringPtr(this.Json(params))
+		jsonText := this.Json(params)
+		requestBody = &jsonText
 	}
 	return map[string]any{
 		"url":     url,

@@ -4099,7 +4099,7 @@ func (this *Bithumb) FixCommaNumber(numberStr *string) any {
 	}
 	return finalNumberStr
 }
-func (this *Bithumb) Nonce() any {
+func (this *Bithumb) Nonce() int64 {
 	return this.Milliseconds()
 }
 func (this *Bithumb) UrlencodeWithArrayBrackets(query any) string {
@@ -4114,7 +4114,8 @@ func (this *Bithumb) UrlencodeWithArrayBrackets(query any) string {
 				var item any = GetValue(value, j)
 				var valueString *string = this.SafeString(value, j)
 				if valueString == nil {
-					valueString = SafeStringPtr(this.Json(item))
+					jsonText := this.Json(item)
+					valueString = &jsonText
 				}
 				if len(result) > 0 {
 					result += "&"
@@ -4177,7 +4178,8 @@ func (this *Bithumb) Sign(path string, optionalArgs ...any) any {
 			if (method != "GET") && (method != "DELETE") {
 				requestHeaders["Content-Type"] = "application/json"
 				if hasQuery {
-					requestBody = SafeStringPtr(this.Json(query))
+					jsonText := this.Json(query)
+					requestBody = &jsonText
 					auth = this.UrlencodeWithArrayBrackets(query)
 				}
 			} else if hasQuery {

@@ -4136,7 +4136,8 @@ func (this *Bullish) Sign(path string, optionalArgs ...any) any {
 				"BX-SIGNATURE": signature,
 			}
 		} else if method == "POST" {
-			requestBody = SafeStringPtr(this.Json(params))
+			jsonText := this.Json(params)
+			requestBody = &jsonText
 			var payload string = timestamp + nonce + method + "/trading-api/" + path + *requestBody
 			var signature string = this.Hmac(this.Encode(this.Hash(this.Encode(payload), sha256, "hex")), this.Encode(this.Secret), sha256, "hex")
 			headers = map[string]any{

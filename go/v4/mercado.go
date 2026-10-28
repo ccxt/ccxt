@@ -1414,7 +1414,7 @@ func (this *Mercado) OrdersToTrades(orders any) any {
 	}
 	return result
 }
-func (this *Mercado) Nonce() any {
+func (this *Mercado) Nonce() int64 {
 	// the venue accepts any strictly-increasing integer tonce, so use milliseconds: with the second-resolution base nonce a burst of N calls would leave incrementingNonce N seconds ahead of the clock
 	return this.Milliseconds()
 }

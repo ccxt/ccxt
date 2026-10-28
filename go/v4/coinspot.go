@@ -1259,7 +1259,7 @@ func (this *Coinspot) HandleErrors(httpCode int64, reason any, url string, metho
 	}
 	return nil
 }
-func (this *Coinspot) Nonce() any {
+func (this *Coinspot) Nonce() int64 {
 	// the venue accepts any strictly-increasing integer, so use milliseconds: with the second-resolution base nonce a burst of N calls would leave incrementingNonce N seconds ahead of the clock
 	return this.Milliseconds()
 }

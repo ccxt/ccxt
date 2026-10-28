@@ -3062,7 +3062,8 @@ func (this *Alpaca) Sign(path string, optionalArgs ...any) any {
 		if (method == "GET") || (method == "DELETE") {
 			endpoint += "?" + this.Urlencode(query)
 		} else {
-			bodyJson = SafeStringPtr(this.Json(query))
+			jsonText := this.Json(query)
+			bodyJson = &jsonText
 			headersValue["Content-Type"] = "application/json"
 		}
 	}

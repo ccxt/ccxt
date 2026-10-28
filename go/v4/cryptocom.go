@@ -4555,7 +4555,7 @@ func (this *Cryptocom) ParsePosition(position any, optionalArgs ...any) Position
 		"takeProfitPrice":             nil,
 	})
 }
-func (this *Cryptocom) Nonce() any {
+func (this *Cryptocom) Nonce() int64 {
 	return this.Milliseconds()
 }
 func (this *Cryptocom) ParamsToString(object any, level any) any {

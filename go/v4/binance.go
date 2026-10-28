@@ -4456,7 +4456,7 @@ func (this *Binance) SafeMarket(optionalArgs ...any) map[string]any {
 	}
 	return this.Exchange.SafeMarket(marketId, market, delimiter, marketType)
 }
-func (this *Binance) Nonce() any {
+func (this *Binance) Nonce() int64 {
 	var timeDifference *int64 = this.SafeInteger(this.Options, "timeDifference")
 	if timeDifference == nil {
 		panic(ExchangeError(this.Id + " nonce() requires a numeric options[\"timeDifference\"]"))

@@ -5887,7 +5887,7 @@ func (this *Whitebit) ParseFundingRateHistory(info any, optionalArgs ...any) any
 		"datetime":    this.Iso8601(timestamp),
 	}
 }
-func (this *Whitebit) Nonce() any {
+func (this *Whitebit) Nonce() int64 {
 	return this.Milliseconds() - *this.SafeInteger(this.Options, "timeDifference", 0)
 }
 func (this *Whitebit) Sign(path string, optionalArgs ...any) any {
@@ -5918,7 +5918,7 @@ func (this *Whitebit) Sign(path string, optionalArgs ...any) any {
 	if accessibility == "private" {
 		this.CheckRequiredCredentials()
 		// whitebit requires each nonce to be greater than the previous one unless nonceWindow is enabled
-		var nonce string = ToString(this.IncrementingNonce())
+		var nonce string = strconv.FormatInt(this.IncrementingNonce(), 10)
 		var secret string = this.Encode(this.Secret)
 		var request string = "/" + "api" + "/" + version + pathWithParams
 		nonceWindow, requestParams := this.HandleOptionBoolAndParams(params, "sign", "nonceWindow", false)

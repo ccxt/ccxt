@@ -776,7 +776,7 @@ func (this *Tokocrypto) Describe() map[string]any {
 		},
 	})
 }
-func (this *Tokocrypto) Nonce() any {
+func (this *Tokocrypto) Nonce() int64 {
 	return this.Milliseconds() - *this.SafeInteger(this.Options, "timeDifference", 0)
 }
 

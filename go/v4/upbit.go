@@ -3201,7 +3201,7 @@ func (this *Upbit) withdrawBody(ch chan AsyncResult[Transaction], code string, a
 	ch <- AsyncResult[Transaction]{Value: this.ParseTransaction(response)}
 	return nil
 }
-func (this *Upbit) Nonce() any {
+func (this *Upbit) Nonce() int64 {
 	return this.Milliseconds()
 }
 func (this *Upbit) Sign(path string, optionalArgs ...any) any {
@@ -3231,7 +3231,8 @@ func (this *Upbit) Sign(path string, optionalArgs ...any) any {
 	var hasBody bool = (apiName == "private") && (method != "GET") && (method != "DELETE")
 	var requestBody *string = nil
 	if hasBody {
-		requestBody = SafeStringPtr(this.Json(params))
+		jsonText := this.Json(params)
+		requestBody = &jsonText
 	}
 	var headers map[string]any = map[string]any{}
 	if apiName == "private" {

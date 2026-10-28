@@ -10163,7 +10163,7 @@ func (this *Htx) ParseBorrowInterest(info any, optionalArgs ...any) any {
 		"datetime":       this.Iso8601(timestamp),
 	}
 }
-func (this *Htx) Nonce() any {
+func (this *Htx) Nonce() int64 {
 	return this.Milliseconds() - *this.SafeInteger(this.Options, "timeDifference", 0)
 }
 func (this *Htx) Sign(path string, optionalArgs ...any) any {

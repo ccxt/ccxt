@@ -5347,7 +5347,7 @@ func (this *Poloniex) addMarginBody(ch chan AsyncResult[MarginModification], sym
 	ch <- AsyncResult[MarginModification]{Value: r.Value}
 	return nil
 }
-func (this *Poloniex) Nonce() any {
+func (this *Poloniex) Nonce() int64 {
 	return this.Milliseconds()
 }
 func (this *Poloniex) Sign(path string, optionalArgs ...any) any {
@@ -5385,7 +5385,8 @@ func (this *Poloniex) Sign(path string, optionalArgs ...any) any {
 		if (method == "POST") || (method == "PUT") || (method == "DELETE") {
 			auth += "\n" // eslint-disable-line quotes
 			if queryMap, _ := query.(map[string]any); isArray || (len(queryMap) > 0) {
-				bodyJson = SafeStringPtr(this.Json(query))
+				jsonText := this.Json(query)
+				bodyJson = &jsonText
 				auth += "requestBody=" + *bodyJson + "&"
 			}
 			auth += "signTimestamp=" + *timestamp

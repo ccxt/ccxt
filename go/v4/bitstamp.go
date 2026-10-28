@@ -4062,7 +4062,7 @@ func (this *Bitstamp) ParseTransferStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Bitstamp) Nonce() any {
+func (this *Bitstamp) Nonce() int64 {
 	return this.Milliseconds()
 }
 func (this *Bitstamp) Sign(path string, optionalArgs ...any) any {

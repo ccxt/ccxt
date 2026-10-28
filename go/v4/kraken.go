@@ -4878,7 +4878,7 @@ func (this *Kraken) Sign(path string, optionalArgs ...any) any {
 		var isBatchOrder bool = (path == "AddOrderBatch")
 		this.CheckRequiredCredentials()
 		// kraken rejects a nonce that is not greater than the previous one for the key (EAPI:Invalid nonce)
-		var nonce string = ToString(this.IncrementingNonce())
+		var nonce string = strconv.FormatInt(this.IncrementingNonce(), 10)
 		var isJsonBody bool = isCancelOrderBatch || isTriggerPercent || isBatchOrder
 		// rawencode is used to address https://github.com/ccxt/ccxt/issues/12872
 		var bodySigned string
@@ -4931,7 +4931,7 @@ func (this *Kraken) Sign(path string, optionalArgs ...any) any {
 		"headers": nil,
 	}
 }
-func (this *Kraken) Nonce() any {
+func (this *Kraken) Nonce() int64 {
 	return this.Milliseconds() - *this.SafeInteger(this.Options, "timeDifference", 0)
 }
 func (this *Kraken) HandleErrors(code int64, reason any, url string, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {

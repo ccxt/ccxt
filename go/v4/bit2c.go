@@ -1396,7 +1396,7 @@ func (this *Bit2c) ParseDepositAddress(depositAddress any, optionalArgs ...any) 
 		"tag":      nil,
 	})
 }
-func (this *Bit2c) Nonce() any {
+func (this *Bit2c) Nonce() int64 {
 	return this.Milliseconds()
 }
 func (this *Bit2c) Sign(path string, optionalArgs ...any) any {

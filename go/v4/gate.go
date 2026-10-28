@@ -9924,7 +9924,7 @@ func (this *Gate) ParseBorrowInterest(info any, optionalArgs ...any) any {
 		"datetime":       this.Iso8601(timestamp),
 	}
 }
-func (this *Gate) Nonce() any {
+func (this *Gate) Nonce() int64 {
 	var timeDifference *int64 = this.SafeInteger(this.Options, "timeDifference")
 	if timeDifference == nil {
 		panic(ExchangeError(this.Id + " nonce() requires a numeric options[\"timeDifference\"]"))

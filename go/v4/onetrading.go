@@ -2486,7 +2486,8 @@ func (this *Onetrading) Sign(path string, optionalArgs ...any) any {
 		}
 		var bodyJson *string = func() *string {
 			if method == "POST" {
-				return SafeStringPtr(this.Json(query))
+				jsonText := this.Json(query)
+				return &jsonText
 			}
 			return nil
 		}()

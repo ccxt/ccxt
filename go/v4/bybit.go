@@ -2274,7 +2274,7 @@ func (this *Bybit) EnableDemoTrading(enable any) {
 	}
 	this.Options["enableDemoTrading"] = enable
 }
-func (this *Bybit) Nonce() any {
+func (this *Bybit) Nonce() int64 {
 	return this.Milliseconds() - *this.SafeInteger(this.Options, "timeDifference", 0)
 }
 func (this *Bybit) AddPaginationCursorToResult(response any) any {
@@ -13513,10 +13513,11 @@ func (this *Bybit) Sign(path string, optionalArgs ...any) any {
 		var isV3UnifiedMargin bool = (GetIndexOf(url, "unified/v3") >= 0)
 		var isV3Contract bool = (GetIndexOf(url, "contract/v3") >= 0)
 		var isV5UnifiedAccount bool = (GetIndexOf(url, "v5") >= 0)
-		var timestamp string = ToString(this.Nonce())
+		var timestamp string = strconv.FormatInt(this.Nonce(), 10)
 		if isOpenapi {
 			if paramsMap, _ := params.(map[string]any); len(paramsMap) > 0 {
-				requestBody = SafeStringPtr(this.Json(params))
+				jsonText := this.Json(params)
+				requestBody = &jsonText
 			} else {
 				// this fix for PHP is required otherwise it generates
 				// '[]' on empty arrays even when forced to use objects
@@ -13545,7 +13546,8 @@ func (this *Bybit) Sign(path string, optionalArgs ...any) any {
 			var auth_base string = timestamp + this.ApiKey + *this.SafeString(this.Options, "recvWindow", "")
 			var authFull string
 			if method == "POST" {
-				requestBody = SafeStringPtr(this.Json(query))
+				jsonText2 := this.Json(query)
+				requestBody = &jsonText2
 				authFull = auth_base + *requestBody
 			} else {
 				authFull = auth_base + queryEncoded
@@ -13583,7 +13585,8 @@ func (this *Bybit) Sign(path string, optionalArgs ...any) any {
 						"Content-Type": "application/x-www-form-urlencoded",
 					}
 				} else {
-					requestBody = SafeStringPtr(this.Json(extendedQuery))
+					jsonText3 := this.Json(extendedQuery)
+					requestBody = &jsonText3
 					requestHeaders = map[string]any{
 						"Content-Type": "application/json",
 					}

@@ -1587,7 +1587,7 @@ func (this *Independentreserve) ParseTransaction(transaction any, optionalArgs .
 		"internal": false,
 	})
 }
-func (this *Independentreserve) Nonce() any {
+func (this *Independentreserve) Nonce() int64 {
 	// the venue accepts any strictly-increasing integer, so use milliseconds: with the second-resolution base nonce a burst of N calls would leave incrementingNonce N seconds ahead of the clock
 	return this.Milliseconds()
 }

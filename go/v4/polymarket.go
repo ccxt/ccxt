@@ -4073,7 +4073,8 @@ func (this *Polymarket) Sign(path string, optionalArgs ...any) any {
 	if apiType == "trade" {
 		// the params hold the signed operation envelope assembled by the
 		// calling method, the signature authenticates so no headers apply
-		bodyResolved = SafeStringPtr(this.Json(query))
+		jsonText := this.Json(query)
+		bodyResolved = &jsonText
 		headersResolved["Content-Type"] = "application/json"
 	} else {
 		if method == "GET" {

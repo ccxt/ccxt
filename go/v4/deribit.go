@@ -5325,7 +5325,7 @@ func (this *Deribit) ParseOpenInterest(interest any, optionalArgs ...any) OpenIn
 		"info":               interest,
 	}, marketResolved)
 }
-func (this *Deribit) Nonce() any {
+func (this *Deribit) Nonce() int64 {
 	return this.Milliseconds()
 }
 func (this *Deribit) Sign(path string, optionalArgs ...any) any {
@@ -5344,7 +5344,7 @@ func (this *Deribit) Sign(path string, optionalArgs ...any) any {
 	}
 	if apiName == "private" {
 		this.CheckRequiredCredentials()
-		var nonce string = ToString(this.Nonce())
+		var nonce string = strconv.FormatInt(this.Nonce(), 10)
 		var timestamp string = strconv.FormatInt(this.Milliseconds(), 10)
 		var requestBody string = ""
 		if paramsMap, _ := params.(map[string]any); len(paramsMap) > 0 {

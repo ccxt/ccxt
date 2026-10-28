@@ -3761,7 +3761,8 @@ func (this *Kalshi) Sign(path string, optionalArgs ...any) any {
 		})
 		if (method != "GET") && (querystring != "") {
 			// kalshi expects a JSON body; the signature covers only timestamp+method+path
-			bodyValue = ccxt.SafeStringPtr(this.Json(query))
+			jsonText := this.Json(query)
+			bodyValue = &jsonText
 		}
 	}
 	return map[string]any{

@@ -1718,7 +1718,7 @@ func (this *Bitbns) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress],
 	})}
 	return nil
 }
-func (this *Bitbns) Nonce() any {
+func (this *Bitbns) Nonce() int64 {
 	return this.Milliseconds()
 }
 func (this *Bitbns) Sign(path string, optionalArgs ...any) any {

@@ -4167,7 +4167,8 @@ func (this *Nado) Sign(path string, optionalArgs ...any) any {
 		}
 	} else {
 		headersValue["Content-Type"] = "application/json"
-		requestBody = SafeStringPtr(this.Json(query))
+		jsonText := this.Json(query)
+		requestBody = &jsonText
 	}
 	var bodyResult *string = requestBody
 	return map[string]any{

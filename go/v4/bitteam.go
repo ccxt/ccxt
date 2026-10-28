@@ -2935,7 +2935,8 @@ func (this *Bitteam) Sign(path string, optionalArgs ...any) any {
 	if apiName == "private" {
 		this.CheckRequiredCredentials()
 		if method == "POST" {
-			requestBody = SafeStringPtr(this.Json(request))
+			jsonText := this.Json(request)
+			requestBody = &jsonText
 		} else if len(query) != 0 {
 			url += "?" + query
 		}

@@ -4782,7 +4782,7 @@ func (this *Predictfun) HandleMessage(client any, message map[string]any) {
 		this.HandleWalletEvent(client, message)
 	}
 }
-func (this *Predictfun) Nonce() any {
+func (this *Predictfun) Nonce() int64 {
 	// the order salt is a millisecond timestamp; incrementingNonce () reads this and keeps salts
 	// unique when two identical orders are signed within the same millisecond
 	return this.Milliseconds()
@@ -4852,7 +4852,8 @@ func (this *Predictfun) Sign(path string, optionalArgs ...any) any {
 			this.CheckRequiredCredentials()
 		}
 		authHeaders["Content-Type"] = "application/json"
-		bodyValue = ccxt.SafeStringPtr(this.Json(params))
+		jsonText := this.Json(params)
+		bodyValue = &jsonText
 	}
 	var headersExtended map[string]any = this.Extend(headersValue, authHeaders)
 	return map[string]any{

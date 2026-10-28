@@ -1713,7 +1713,7 @@ func (this *P2b) Sign(path string, optionalArgs ...any) any {
 		// the nonce deliberately stays on the second-resolution base nonce: the venue documents second-scale (int32-range) nonce values and millisecond nonces are unverified against the live API
 		paramsOmitted = this.Extend(paramsOmitted, map[string]any{
 			"request": "/api/v2/" + path,
-			"nonce":   ToString(this.IncrementingNonce()),
+			"nonce":   strconv.FormatInt(this.IncrementingNonce(), 10),
 		})
 		var payload string = this.StringToBase64(this.Json(paramsOmitted)) // Body json encoded in base64
 		var headersSigned map[string]any = map[string]any{

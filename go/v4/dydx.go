@@ -3401,7 +3401,7 @@ func (this *Dydx) ParseBalance(response map[string]any) map[string]any {
 	}
 	return this.SafeBalance(result).(map[string]any)
 }
-func (this *Dydx) Nonce() any {
+func (this *Dydx) Nonce() int64 {
 	var timeDifference *int64 = this.SafeInteger(this.Options, "timeDifference")
 	if timeDifference == nil {
 		panic(ExchangeError(this.Id + " nonce() requires a numeric options[\"timeDifference\"]"))
@@ -3444,7 +3444,8 @@ func (this *Dydx) Sign(path string, optionalArgs ...any) any {
 			url = *apiUrl + "/" + pathWithParams + "?" + this.Urlencode(paramsSorted)
 		}
 	} else {
-		requestBody = SafeStringPtr(this.Json(paramsSorted))
+		jsonText := this.Json(paramsSorted)
+		requestBody = &jsonText
 		requestHeaders = map[string]any{
 			"Content-type": "application/json",
 		}

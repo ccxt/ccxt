@@ -5083,9 +5083,10 @@ func (this *Paradex) Sign(path string, optionalArgs ...any) any {
 			privateHeaders["PARADEX-STARKNET-SIGNATURE"] = this.SafeString(query, "signature")
 			privateHeaders["PARADEX-TIMESTAMP"] = this.NumberToString(this.Nonce())
 			privateHeaders["Content-Type"] = "application/json"
-			privateBody = SafeStringPtr(this.Json(map[string]any{
+			jsonText := this.Json(map[string]any{
 				"public_key": this.SafeString(query, "public_key"),
-			}))
+			})
+			privateBody = &jsonText
 		} else {
 			var token *string = this.SafeString(this.Options, "authToken")
 			if token == nil {
@@ -5094,7 +5095,8 @@ func (this *Paradex) Sign(path string, optionalArgs ...any) any {
 			privateHeaders["Authorization"] = "Bearer " + *token
 			if (method == "POST") || (method == "PUT") || ((method == "DELETE") && (pathValue == "orders/batch")) {
 				privateHeaders["Content-Type"] = "application/json"
-				privateBody = SafeStringPtr(this.Json(query))
+				jsonText2 := this.Json(query)
+				privateBody = &jsonText2
 			} else {
 				url = url + "?" + this.Urlencode(query)
 			}

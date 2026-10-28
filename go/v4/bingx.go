@@ -8659,7 +8659,8 @@ func (this *Bingx) Sign(path string, optionalArgs ...any) any {
 				"Content-Type": "application/json",
 			})
 			paramsSorted["signature"] = signature
-			requestBody = SafeStringPtr(this.Json(paramsSorted))
+			jsonText := this.Json(paramsSorted)
+			requestBody = &jsonText
 		} else {
 			var query string = this.Urlencode(parsedParams, true)
 			url += "?" + query + "&" + "signature=" + signature
@@ -8674,7 +8675,7 @@ func (this *Bingx) Sign(path string, optionalArgs ...any) any {
 		"headers": headersResult,
 	}
 }
-func (this *Bingx) Nonce() any {
+func (this *Bingx) Nonce() int64 {
 	return this.Milliseconds()
 }
 func (this *Bingx) SetSandboxMode(enable any) {

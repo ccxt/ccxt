@@ -4903,7 +4903,8 @@ func (this *Extended) Sign(path string, optionalArgs ...any) any {
 			"X-Api-Key": this.ApiKey,
 		}
 		if ((method == "POST") || (method == "PATCH")) && !queryPost {
-			requestBody = SafeStringPtr(this.Json(query))
+			jsonText := this.Json(query)
+			requestBody = &jsonText
 			if requestHeaders != nil {
 				requestHeaders["Content-Type"] = "application/json"
 			}

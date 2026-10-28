@@ -16635,7 +16635,7 @@ func (this *Bitget) HandleErrors(code int64, reason any, url string, method any,
 	}
 	return nil
 }
-func (this *Bitget) Nonce() any {
+func (this *Bitget) Nonce() int64 {
 	var timeDifference *int64 = this.SafeInteger(this.Options, "timeDifference")
 	if timeDifference == nil {
 		panic(ExchangeError(this.Id + " nonce() requires a numeric options[\"timeDifference\"]"))

@@ -4797,7 +4797,7 @@ func (this *BaseExchange) ParseLedger(data any, optionalArgs ...any) []any {
 	}()
 	return this.FilterByCurrencySinceLimit(result, code, since, limit)
 }
-func (this *BaseExchange) Nonce() any {
+func (this *BaseExchange) Nonce() int64 {
 	return this.Seconds()
 }
 
@@ -4812,10 +4812,9 @@ func (this *BaseExchange) Nonce() any {
  * so it narrows the duplicate-nonce race but does not remove it across instances or processes.
  * @returns {int} a strictly-increasing nonce in the unit returned by nonce ()
  */
-func (this *BaseExchange) IncrementingNonce() any {
-	var currentNonce any = this.DerivedExchange.Nonce()
-	PanicOnError(currentNonce)
-	var result any = this.nextNonce(currentNonce)
+func (this *BaseExchange) IncrementingNonce() int64 {
+	var currentNonce int64 = this.DerivedExchange.Nonce()
+	var result int64 = this.nextNonce(currentNonce)
 	return result
 }
 func (this *BaseExchange) SetHeaders(headers any) any {

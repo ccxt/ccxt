@@ -823,7 +823,7 @@ func (this *Hitbtc) Describe() map[string]any {
 		"rollingWindowSize": 1000,
 	})
 }
-func (this *Hitbtc) Nonce() any {
+func (this *Hitbtc) Nonce() int64 {
 	return this.Milliseconds()
 }
 

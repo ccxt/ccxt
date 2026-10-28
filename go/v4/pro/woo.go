@@ -1330,7 +1330,7 @@ func (this *Woo) authenticateBody(ch chan ccxt.AsyncResult[*string], optionalArg
 	var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
 	var authenticated any = this.SafeValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), messageHash)
 	if authenticated == nil {
-		var ts string = ccxt.ToString(this.Nonce())
+		var ts string = strconv.FormatInt(this.Nonce(), 10)
 		var auth string = "|" + ts
 		var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), ccxt.Sha256)
 		var request map[string]any = map[string]any{

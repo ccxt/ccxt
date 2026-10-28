@@ -2696,7 +2696,7 @@ func (this *Okx) fetchAccountsBody(ch chan AsyncResult[[]Account], optionalArgs 
 	ch <- AsyncResult[[]Account]{Value: AccountsFromList(result)}
 	return nil
 }
-func (this *Okx) Nonce() any {
+func (this *Okx) Nonce() int64 {
 	var timeDifference *int64 = this.SafeInteger(this.Options, "timeDifference")
 	if timeDifference == nil {
 		panic(ExchangeError(this.Id + " nonce() requires a numeric options[\"timeDifference\"]"))

@@ -7144,7 +7144,7 @@ func (this *Coinbase) CreateAuthToken(seconds any, optionalArgs ...any) string {
 		})
 	}
 }
-func (this *Coinbase) Nonce() any {
+func (this *Coinbase) Nonce() int64 {
 	var timeDifference *int64 = this.SafeInteger(this.Options, "timeDifference")
 	if timeDifference == nil {
 		panic(ExchangeError(this.Id + " nonce() requires a numeric options[\"timeDifference\"]"))
@@ -7257,7 +7257,8 @@ func (this *Coinbase) Sign(path string, optionalArgs ...any) any {
 			}
 			if method != "GET" {
 				if queryLength > 0 {
-					requestBody = SafeStringPtr(this.Json(query))
+					jsonText := this.Json(query)
+					requestBody = &jsonText
 				}
 			}
 		}

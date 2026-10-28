@@ -741,7 +741,7 @@ func (this *Bitrue) Describe() map[string]any {
 		},
 	})
 }
-func (this *Bitrue) Nonce() any {
+func (this *Bitrue) Nonce() int64 {
 	return this.Milliseconds() - *this.SafeInteger(this.Options, "timeDifference", 0)
 }
 
@@ -4058,7 +4058,7 @@ func (this *Bitrue) Sign(path string, optionalArgs ...any) any {
 				}
 			}
 		} else {
-			var timestamp string = ToString(this.Nonce())
+			var timestamp string = strconv.FormatInt(this.Nonce(), 10)
 			var signPrefix string = ""
 			if typeVar == "fapi" {
 				signPrefix = "/fapi"

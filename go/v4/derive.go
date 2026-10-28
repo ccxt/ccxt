@@ -5520,7 +5520,7 @@ func (this *Derive) HandleErrors(httpCode int64, reason any, url string, method 
 	}
 	return nil
 }
-func (this *Derive) Nonce() any {
+func (this *Derive) Nonce() int64 {
 	// signs the auth timestamp and feeds incrementingNonce (), which nonceString () extends to the nanosecond-scale action nonce; must be unique per wallet (error 11017) while staying a valid date (error 11018)
 	return this.Milliseconds() - *this.SafeInteger(this.Options, "timeDifference", 0)
 }

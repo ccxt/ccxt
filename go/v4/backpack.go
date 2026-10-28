@@ -4593,7 +4593,7 @@ func (this *Backpack) ParseIncome(income any, optionalArgs ...any) any {
 		"rate":      rate,
 	}
 }
-func (this *Backpack) Nonce() any {
+func (this *Backpack) Nonce() int64 {
 	var timeDifference *int64 = this.SafeInteger(this.Options, "timeDifference")
 	if timeDifference == nil {
 		panic(ExchangeError(this.Id + " nonce() requires a numeric options[\"timeDifference\"]"))
@@ -4655,7 +4655,8 @@ func (this *Backpack) Sign(path string, optionalArgs ...any) any {
 			"X-Broker-Id": "1400",
 		}
 		if method != "GET" {
-			bodySigned = SafeStringPtr(this.Json(sortedParams))
+			jsonText := this.Json(sortedParams)
+			bodySigned = &jsonText
 			headersSigned["Content-Type"] = "application/json"
 		}
 	}

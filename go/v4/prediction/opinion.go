@@ -3212,7 +3212,8 @@ func (this *Opinion) Sign(path string, optionalArgs ...any) any {
 			url += "?" + this.Urlencode(query)
 		}
 	} else {
-		bodyValue = ccxt.SafeStringPtr(this.Json(query))
+		jsonText := this.Json(query)
+		bodyValue = &jsonText
 	}
 	return map[string]any{
 		"url":     url,

@@ -3995,7 +3995,8 @@ func (this *Sxbet) Sign(path string, optionalArgs ...any) any {
 		}
 	} else {
 		if queryMap, _ := query.(map[string]any); len(queryMap) > 0 {
-			bodyValue = ccxt.SafeStringPtr(this.Json(query))
+			jsonText := this.Json(query)
+			bodyValue = &jsonText
 		}
 	}
 	return map[string]any{

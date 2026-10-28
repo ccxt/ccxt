@@ -1467,7 +1467,7 @@ func (this *Bitbank) ParseTransaction(transaction any, optionalArgs ...any) Tran
 		"info":        transaction,
 	})
 }
-func (this *Bitbank) Nonce() any {
+func (this *Bitbank) Nonce() int64 {
 	return this.Milliseconds()
 }
 func (this *Bitbank) Sign(path string, optionalArgs ...any) any {
@@ -1501,7 +1501,7 @@ func (this *Bitbank) Sign(path string, optionalArgs ...any) any {
 		var isTimeWindow bool = (authMethod != nil && *authMethod == "timeWindow")
 		var requestTime string = strconv.FormatInt(this.Milliseconds(), 10)
 		var timeWindow *string = this.SafeString(this.Options, "timeWindow", "5000")
-		var nonce string = ToString(this.IncrementingNonce())
+		var nonce string = strconv.FormatInt(this.IncrementingNonce(), 10)
 		var auth string = nonce
 		if isTimeWindow {
 			auth = requestTime + *timeWindow

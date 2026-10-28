@@ -1841,7 +1841,8 @@ func (this *Blockchaincom) Sign(path string, optionalArgs ...any) any {
 	var isPrivatePost bool = isPrivate && (method != "GET")
 	var requestBody *string = nil
 	if isPrivatePost {
-		requestBody = SafeStringPtr(this.Json(query))
+		jsonText := this.Json(query)
+		requestBody = &jsonText
 	}
 	if apiName == "public" {
 		if queryMap, _ := query.(map[string]any); len(queryMap) > 0 {

@@ -348,7 +348,7 @@ func (this *Indodax) Describe() map[string]any {
 		"precisionMode": TICK_SIZE,
 	})
 }
-func (this *Indodax) Nonce() any {
+func (this *Indodax) Nonce() int64 {
 	return this.Milliseconds() - *this.SafeInteger(this.Options, "timeDifference", 0)
 }
 

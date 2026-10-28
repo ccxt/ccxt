@@ -169,7 +169,7 @@ func (this *Binance) Describe() map[string]any {
 		},
 	})
 }
-func (this *Binance) Nonce() any {
+func (this *Binance) Nonce() int64 {
 	return this.Milliseconds()
 }
 

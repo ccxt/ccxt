@@ -2587,7 +2587,7 @@ func (this *Gemini) withdrawBody(ch chan AsyncResult[Transaction], code string, 
 	ch <- AsyncResult[Transaction]{Value: this.ParseTransaction(response, currency)}
 	return nil
 }
-func (this *Gemini) Nonce() any {
+func (this *Gemini) Nonce() int64 {
 	var nonceMethod *string = this.SafeString(this.Options, "nonce", "milliseconds")
 	if nonceMethod != nil && *nonceMethod == "milliseconds" {
 		return this.Milliseconds()
@@ -2876,7 +2876,8 @@ func (this *Gemini) Sign(path string, optionalArgs ...any) any {
 	}()
 	var bodyResolved *string = nil
 	if (method == "POST") || (method == "DELETE") {
-		bodyResolved = SafeStringPtr(this.Json(query))
+		jsonText := this.Json(query)
+		bodyResolved = &jsonText
 	}
 	return map[string]any{
 		"url":     fullUrl,

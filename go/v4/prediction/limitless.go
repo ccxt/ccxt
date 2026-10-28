@@ -4092,7 +4092,7 @@ func (this *Limitless) fetchRawMarketsByTagsBody(ch chan ccxt.AsyncResult[[]map[
 	ch <- ccxt.AsyncResult[[]map[string]any]{Value: ccxt.MapSliceFromList(allRaw)}
 	return nil
 }
-func (this *Limitless) Nonce() any {
+func (this *Limitless) Nonce() int64 {
 	// the order salt is a millisecond timestamp; incrementingNonce () reads this and keeps salts
 	// unique when two orders are signed within the same millisecond
 	return this.Milliseconds()
