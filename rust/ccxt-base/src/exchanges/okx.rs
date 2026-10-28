@@ -13021,7 +13021,7 @@ impl OkxCore {
     Value::Null
 }
 
-    pub fn handle_errors(&self, mut httpCode: Value, mut reason: Value, mut url: Value, mut method: Value, mut headers: Value, mut body: Value, mut response: Value, mut requestHeaders: Value, mut requestBody: Value) -> Value {
+    pub fn handle_errors(&self, mut code: Value, mut reason: Value, mut url: Value, mut method: Value, mut headers: Value, mut body: Value, mut response: Value, mut requestHeaders: Value, mut requestBody: Value) -> Value {
         if (response == Value::Null) {
             return Value::Null;
         }
@@ -13045,8 +13045,8 @@ impl OkxCore {
         //        "msg": "Incorrect trade password"
         //    }
         //
-        let mut code: Option<String> = self.safe_string_k_opt(response.clone(), "code", &[]);
-        if (code.as_deref() != Some("0")) && (code.as_deref() != Some("2")) {
+        let mut codeError: Option<String> = self.safe_string_k_opt(response.clone(), "code", &[]);
+        if (codeError.as_deref() != Some("0")) && (codeError.as_deref() != Some("2")) {
             let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body).into());
             let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
             {
@@ -13060,7 +13060,7 @@ impl OkxCore {
                 self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), message.map(Value::from).unwrap_or(Value::Null), feedback.clone());
             }
             }
-            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null), feedback.clone());
+            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), codeError.clone().map(Value::from).unwrap_or(Value::Null), feedback.clone());
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         return Value::Null;

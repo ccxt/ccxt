@@ -3455,18 +3455,18 @@ impl PredictfunCore {
  * @method
  * @name predictfun#handleErrors
  * @description maps the venue's error slugs and messages onto the unified exceptions
- * @param {int} statusCode the http status code
- * @param {string} statusText the http status text
+ * @param {int} code the http status code
+ * @param {string} reason the http status text
  * @param {string} url the request url
  * @param {string} method the http method
- * @param {object} responseHeaders the response headers
- * @param {string} responseBody the raw response body
+ * @param {object} headers the response headers
+ * @param {string} body the raw response body
  * @param {object} response the parsed response
  * @param {object} requestHeaders the request headers
  * @param {object} requestBody the request body
  * @returns {undefined} nothing, it throws when the venue reported a failure
  */
-    pub fn handle_errors(&mut self, mut statusCode: Value, mut statusText: Value, mut url: Value, mut method: Value, mut responseHeaders: Value, mut responseBody: Value, mut response: Value, mut requestHeaders: Value, mut requestBody: Value) -> Value {
+    pub fn handle_errors(&mut self, mut code: Value, mut reason: Value, mut url: Value, mut method: Value, mut headers: Value, mut body: Value, mut response: Value, mut requestHeaders: Value, mut requestBody: Value) -> Value {
         if (response == Value::Null) {
             return Value::Null;
         }
@@ -3474,7 +3474,7 @@ impl PredictfunCore {
         if success.as_bool() == Some(true) {
             return Value::Null;
         }
-        let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), responseBody).into());
+        let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body).into());
         // the message is matched first because it is the more specific of the two: several
         // distinct failures share a generic slug, notably 'unauthorized', which the venue also
         // returns for a hash belonging to another wallet, and 'not_found' for an unknown market
@@ -3484,7 +3484,7 @@ impl PredictfunCore {
         // order - that case is matched above and has already thrown, so reaching here with a 401
         // means the credential itself was refused. drop the cached JWT, otherwise a token revoked
         // or aged out before its window closes is replayed for the life of the process
-        if (statusCode.as_f64() == Some(401.0)) {
+        if (code.as_f64() == Some(401.0)) {
             if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("jwtToken".into(), Value::Null); }
             if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("jwtTokenExpiresAt".into(), Value::Int(0)); }
         }
@@ -3492,7 +3492,7 @@ impl PredictfunCore {
         self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), error.map(Value::from).unwrap_or(Value::Null), feedback.clone());
         // a 400 is a rejected request or a business rule, not a transport outage - the base would
         // otherwise map the bare status onto a retryable network error
-        if (statusCode.as_f64() == Some(400.0)) {
+        if (code.as_f64() == Some(400.0)) {
             panic!("{}", crate::exchange_errors::bad_request(feedback));
         }
         panic!("{}", crate::exchange_errors::exchange_error(feedback));

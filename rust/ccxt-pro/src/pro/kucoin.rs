@@ -4587,10 +4587,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }), data, message, Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        }), Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        }));
+        }), Value::Str("".into()));
         return Value::Bool(false);
 
     Value::Null

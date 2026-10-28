@@ -5003,7 +5003,7 @@ impl ParadexCore {
     Value::Null
 }
 
-    pub fn handle_errors(&self, mut httpCode: Value, mut reason: Value, mut url: Value, mut method: Value, mut headers: Value, mut body: Value, mut response: Value, mut requestHeaders: Value, mut requestBody: Value) -> Value {
+    pub fn handle_errors(&self, mut code: Value, mut reason: Value, mut url: Value, mut method: Value, mut headers: Value, mut body: Value, mut response: Value, mut requestHeaders: Value, mut requestBody: Value) -> Value {
         if (response == Value::Null) {
             return Value::Null;
         }
@@ -5015,7 +5015,7 @@ impl ParadexCore {
         //     }
         //
         let mut errorCode: Value = self.safe_string_k(response.clone(), "error", &[]);
-        if (errorCode == Value::Null) && (httpCode.as_f64() == Some(400.0)) {
+        if (errorCode == Value::Null) && (code.as_f64() == Some(400.0)) {
             //
             // a batch where every order was rejected, errors are index-aligned with the request
             //

@@ -2737,7 +2737,7 @@ impl BitsoCore {
     Value::Null
 }
 
-    pub fn handle_errors(&self, mut httpCode: Value, mut reason: Value, mut url: Value, mut method: Value, mut headers: Value, mut body: Value, mut response: Value, mut requestHeaders: Value, mut requestBody: Value) -> Value {
+    pub fn handle_errors(&self, mut code: Value, mut reason: Value, mut url: Value, mut method: Value, mut headers: Value, mut body: Value, mut response: Value, mut requestHeaders: Value, mut requestBody: Value) -> Value {
         if (response == Value::Null) {
             return Value::Null;
         }
@@ -2752,8 +2752,8 @@ impl BitsoCore {
                 if (error == Value::Null) {
                     panic!("{}", crate::exchange_errors::exchange_error(feedback));
                 }
-                let mut code: Option<String> = self.safe_string_k_opt(error, "code", &[]);
-                self.throw_exactly_matched_exception(self.exceptions.clone(), code.map(Value::from).unwrap_or(Value::Null), feedback.clone());
+                let mut codeError: Option<String> = self.safe_string_k_opt(error, "code", &[]);
+                self.throw_exactly_matched_exception(self.exceptions.clone(), codeError.map(Value::from).unwrap_or(Value::Null), feedback.clone());
                 panic!("{}", crate::exchange_errors::exchange_error(feedback));
             }
         }

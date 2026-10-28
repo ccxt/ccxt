@@ -3289,10 +3289,7 @@ impl OkxCore {
             }), stringMsg, message, Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            }), Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            }));
+            }), Value::Str("".into()));
         }
         let mut orders: Value = self.parse_orders(args, &[Value::Null, Value::Null, Value::Null]);
         let mut first: Value = self.safe_dict(orders, Value::Int(0), &[Value::Map({
@@ -3544,10 +3541,7 @@ impl OkxCore {
             }), stringMsg, message, Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            }), Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            }));
+            }), Value::Str("".into()));
         }
         let mut orders: Value = self.parse_orders(args, &[Value::Null, Value::Null, Value::Null]);
         client.resolve(&[orders, messageHash]);

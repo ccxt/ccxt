@@ -1236,21 +1236,21 @@ impl BtcboxCore {
     Value::Null
 }
 
-    pub fn handle_errors(&self, mut httpCode: Value, mut reason: Value, mut url: Value, mut method: Value, mut headers: Value, mut body: Value, mut response: Value, mut requestHeaders: Value, mut requestBody: Value) -> Value {
+    pub fn handle_errors(&self, mut code: Value, mut reason: Value, mut url: Value, mut method: Value, mut headers: Value, mut body: Value, mut response: Value, mut requestHeaders: Value, mut requestBody: Value) -> Value {
         if (response == Value::Null) {
             return Value::Null;
         }
         // typical error response: {"result":false,"code":"401"}
-        if httpCode.as_f64().unwrap_or(f64::NAN) >= ((400i64) as f64) {
+        if code.as_f64().unwrap_or(f64::NAN) >= ((400i64) as f64) {
             return Value::Null;
         }
         let mut result: Value = self.safe_bool_k(response.clone(), "result", &[]);
         if (result == Value::Null) || result.as_bool() == Some(true) {
             return Value::Null;
         }
-        let mut code: Option<String> = self.safe_string_k_opt(response, "code", &[]);
+        let mut codeError: Option<String> = self.safe_string_k_opt(response, "code", &[]);
         let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body).into());
-        self.throw_exactly_matched_exception(self.exceptions.clone(), code.map(Value::from).unwrap_or(Value::Null), feedback.clone());
+        self.throw_exactly_matched_exception(self.exceptions.clone(), codeError.map(Value::from).unwrap_or(Value::Null), feedback.clone());
         panic!("{}", crate::exchange_errors::exchange_error(feedback));
 
     Value::Null
