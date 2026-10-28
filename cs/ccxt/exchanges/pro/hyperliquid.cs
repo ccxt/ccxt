@@ -1840,7 +1840,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         }
         try
         {
-            this.handleErrors(0L, "", "", "", new Dictionary<string, object>() {}, this.json(payload), payload, new Dictionary<string, object>() {}, new Dictionary<string, object>() {});
+            this.handleErrors(0L, "", "", "", new Dictionary<string, object>() {}, this.json(payload), payload, new Dictionary<string, object>() {}, "");
         } catch(Exception e)
         {
             client.reject(e, id);

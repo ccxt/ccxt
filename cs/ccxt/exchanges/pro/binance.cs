@@ -6656,7 +6656,7 @@ public partial class binance : ccxt.binance
         Int64? codeValue = ((code == null)) ? 0 : code;
         try
         {
-            this.handleErrors(codeValue, msg,((string)client.url), "", new Dictionary<string, object>() {}, this.json(error), error, new Dictionary<string, object>() {}, new Dictionary<string, object>() {});
+            this.handleErrors(codeValue, msg,((string)client.url), "", new Dictionary<string, object>() {}, this.json(error), error, new Dictionary<string, object>() {}, "");
         } catch(Exception e)
         {
             rejected = true;

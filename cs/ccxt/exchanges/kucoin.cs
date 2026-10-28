@@ -2333,8 +2333,7 @@ public partial class kucoin : Exchange
         }
         if (fetchContractMarkets)
         {
-            List<object> contractMarkets = this.safeList(responses, contractIndex, new List<object>() {});
-            result = this.arrayConcat(result, contractMarkets);
+            result = this.arrayConcat(result, this.safeList(responses, contractIndex, new List<object>() {}));
         }
         if ((this.safeBool(this.options, "adjustForTimeDifference", false) == true))
         {
@@ -2819,9 +2818,8 @@ public partial class kucoin : Exchange
             //
             response = await this.publicGetCurrencies(paramsUta);
         }
-        List<object> currenciesData = this.safeList(response, "data", new List<object>() {});
         object brokenCurrencies = this.handleOption("fetchCurrencies", "brokenCurrencies", new List<object>() {});
-        object filteredCurrencies = this.filterOutByArray(currenciesData, "currency", brokenCurrencies); // remove broken entries
+        object filteredCurrencies = this.filterOutByArray(this.safeList(response, "data", new List<object>() {}), "currency", brokenCurrencies); // remove broken entries
         return this.parseCurrencies(filteredCurrencies);
     }
 
@@ -2921,8 +2919,7 @@ public partial class kucoin : Exchange
             //         }
             //     }
             //
-            IDictionary<string, object> dataDict = this.safeDict(response, "data", new Dictionary<string, object>() {});
-            data = new List<object>() {dataDict};
+            data = new List<object> {this.safeDict(response, "data", new Dictionary<string, object>() {})};
         } else
         {
             //
@@ -5444,9 +5441,10 @@ public partial class kucoin : Exchange
         }
         bool isSpot = false;
         bool isContract = false;
-        for (int i = 0; i < (orders?.Count ?? 0); i++)
+        IList<object> ordersList = this.toArray(orders);
+        for (int i = 0; i < (ordersList?.Count ?? 0); i++)
         {
-            IDictionary<string, object> order = this.safeDict(orders, i);
+            IDictionary<string, object> order = this.safeDict(ordersList, i);
             string? symbol = this.safeString(order, "symbol");
             if ((symbol == null))
             {
@@ -5498,9 +5496,10 @@ public partial class kucoin : Exchange
         }
         List<object> ordersRequests = new List<object>() {};
         string? symbol = null;
-        for (int i = 0; i < (orders?.Count ?? 0); i++)
+        IList<object> ordersList = this.toArray(orders);
+        for (int i = 0; i < (ordersList?.Count ?? 0); i++)
         {
-            IDictionary<string, object> rawOrder = this.safeDict(orders, i);
+            IDictionary<string, object> rawOrder = this.safeDict(ordersList, i);
             string? marketId = this.safeString(rawOrder, "symbol");
             if ((marketId == null))
             {
@@ -5606,9 +5605,10 @@ public partial class kucoin : Exchange
             await this.loadMarkets();
         }
         List<object> ordersRequests = new List<object>() {};
-        for (int i = 0; i < (orders?.Count ?? 0); i++)
+        IList<object> ordersList = this.toArray(orders);
+        for (int i = 0; i < (ordersList?.Count ?? 0); i++)
         {
-            IDictionary<string, object> rawOrder = this.safeDict(orders, i);
+            IDictionary<string, object> rawOrder = this.safeDict(ordersList, i);
             string? symbol = this.safeString(rawOrder, "symbol");
             if ((symbol == null))
             {
@@ -12512,9 +12512,10 @@ public partial class kucoin : Exchange
                 { "clientOid", this.safeString(clientOrderIds, i) },
             });
         }
-        for (int i = 0; i < (ids?.Count ?? 0); i++)
+        IList<object> idsList = this.toArray(ids);
+        for (int i = 0; i < (idsList?.Count ?? 0); i++)
         {
-            string? orderId = this.safeString(ids, i);
+            string? orderId = this.safeString(idsList, i);
             if ((uta == true))
             {
                 ordersRequests.Add(new Dictionary<string, object>() {
@@ -13477,9 +13478,8 @@ public partial class kucoin : Exchange
         //     { code: '200000', data: { ... }}
         //
         string? errorCode = this.safeString(response, "code");
-        string? message = this.safeString2(response, "msg", "data", "");
         string feedback = ((this.id + " ") + (body));
-        this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), message, feedback);
+        this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), this.safeString2(response, "msg", "data", ""), feedback);
         this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorCode, feedback);
         this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), body, feedback);
         if (errorCode != "200000" && errorCode != "200")

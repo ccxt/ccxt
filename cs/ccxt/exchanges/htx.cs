@@ -9196,7 +9196,7 @@ public partial class htx : Exchange
         };
     }
 
-    public override object handleErrors(Int64? httpCode, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
     {
         if ((response == null))
         {
@@ -9211,10 +9211,10 @@ public partial class htx : Exchange
             string? status = this.safeString(response, "status");
             if (status == "error")
             {
-                string? code = this.safeString2(response, "err-code", "err_code");
+                string? codeError = this.safeString2(response, "err-code", "err_code");
                 string feedback = ((this.id + " ") + (body));
                 this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), body, feedback);
-                this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), code, feedback);
+                this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), codeError, feedback);
                 string? message = this.safeString2(response, "err-msg", "err_msg");
                 this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), message, feedback);
                 throw new ExchangeError (feedback) ;
@@ -9224,8 +9224,8 @@ public partial class htx : Exchange
         {
             // {code: '1003', message: 'invalid signature'}
             string feedback = ((this.id + " ") + (body));
-            string? code = this.safeString(response, "code");
-            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), code, feedback);
+            string? codeError = this.safeString(response, "code");
+            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), codeError, feedback);
         }
         IDictionary<string, object> data = this.safeDict(response, "data");
         List<object> errorsList = this.safeList(data, "errors");

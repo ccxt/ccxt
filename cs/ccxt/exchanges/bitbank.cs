@@ -1280,7 +1280,7 @@ public partial class bitbank : Exchange
         };
     }
 
-    public override object handleErrors(Int64? httpCode, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
     {
         if ((response == null))
         {
@@ -1352,9 +1352,9 @@ public partial class bitbank : Exchange
                 { "70009", "We are currently temporarily restricting orders to be carried out. Please use the limit order." },
                 { "70010", "We are temporarily raising the minimum order quantity as the system load is now rising." },
             };
-            string? code = this.safeString(data, "code");
-            string? message = this.safeString(errorMessages, code, "Error");
-            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), code, message);
+            string? codeError = this.safeString(data, "code");
+            string? message = this.safeString(errorMessages, codeError, "Error");
+            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), codeError, message);
             throw new ExchangeError (((this.id + " ") + this.json(response))) ;
         }
         return null;

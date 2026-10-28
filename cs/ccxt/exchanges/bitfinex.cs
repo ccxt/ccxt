@@ -3582,7 +3582,7 @@ public partial class bitfinex : Exchange
         };
     }
 
-    public override object handleErrors(Int64? statusCode, string statusText, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
     {
         // ["error", 11010, "ratelimit: error"]
         if ((response != null))
@@ -3599,11 +3599,11 @@ public partial class bitfinex : Exchange
         {
             throw new ExchangeError ((this.id + " returned empty response")) ;
         }
-        if ((statusCode == 429))
+        if ((code == 429))
         {
             throw new RateLimitExceeded ((string)((this.id + " ") + (body))) ;
         }
-        if ((statusCode == 500))
+        if ((code == 500))
         {
             // See https://docs.bitfinex.com/docs/abbreviations-glossary#section-errorinfo-codes
             string? errorCode = this.safeString(response, 1, "");

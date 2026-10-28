@@ -1485,7 +1485,7 @@ public partial class bitbns : Exchange
         };
     }
 
-    public override object handleErrors(Int64? httpCode, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
     {
         if ((response == null))
         {
@@ -1495,13 +1495,13 @@ public partial class bitbns : Exchange
         //     {"msg":"Invalid Request","status":-1,"code":400}
         //     {"data":[],"status":0,"error":"Nothing to show","code":417}
         //
-        string? code = this.safeString(response, "code");
+        string? codeError = this.safeString(response, "code");
         string? message = this.safeString(response, "msg");
-        bool error = ((code != null)) && (code != "200") && (code != "204");
+        bool error = ((codeError != null)) && (codeError != "200") && (codeError != "204");
         if (error || ((message != null)))
         {
             string feedback = ((this.id + " ") + (body));
-            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), code, feedback);
+            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), codeError, feedback);
             this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), message, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), message, feedback);
             throw new ExchangeError (feedback) ;

@@ -3692,25 +3692,25 @@ public partial class limitless : PredictionExchange
      * @name limitless#handleErrors
      * @description maps limitless error responses to ccxt exceptions
      */
-    public override object handleErrors(Int64? statusCode, string statusText, string url, string method, object responseHeaders, object responseBody, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
     {
         if ((response == null))
         {
             return null;
         }
-        Int64? statusCodeInt = this.parseToInt(statusCode);
+        Int64? statusCodeInt = this.parseToInt(code);
         if (((statusCodeInt >= 200)) && (((statusCodeInt == null || statusCodeInt < 300))))
         {
             return null;
         }
-        string feedback = ((this.id + " ") + (responseBody));
+        string feedback = ((this.id + " ") + (body));
         // the API returns either a string message or an array of field-validation errors
         string? message = this.safeString(response, "message");
         if ((message != null))
         {
             this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), message, feedback);
         }
-        this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), responseBody, feedback);
+        this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), body, feedback);
         // a 400 is a client-side bad request (bad params, or a business rule like "market not
         // resolved"), not a transport outage — throw BadRequest with the exchange message instead
         // of letting the base map the bare 400 to a retryable network-unavailable error

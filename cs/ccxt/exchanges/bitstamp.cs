@@ -3580,7 +3580,7 @@ public partial class bitstamp : Exchange
         };
     }
 
-    public override object handleErrors(Int64? httpCode, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
     {
         if ((response == null))
         {
@@ -3627,8 +3627,8 @@ public partial class bitstamp : Exchange
                     errors.Add(all[i]);
                 }
             }
-            string? code = this.safeString(response, "code");
-            if (code == "API0005")
+            string? codeError = this.safeString(response, "code");
+            if (codeError == "API0005")
             {
                 throw new AuthenticationError ((this.id + " invalid signature, use the uid for the main account if you have subaccounts")) ;
             }

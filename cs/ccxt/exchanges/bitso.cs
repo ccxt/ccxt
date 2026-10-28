@@ -2212,7 +2212,7 @@ public partial class bitso : Exchange
         };
     }
 
-    public override object handleErrors(Int64? httpCode, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
     {
         if ((response == null))
         {
@@ -2232,8 +2232,8 @@ public partial class bitso : Exchange
                 {
                     throw new ExchangeError (feedback) ;
                 }
-                string? code = this.safeString(error, "code");
-                this.throwExactlyMatchedException(this.exceptions, code, feedback);
+                string? codeError = this.safeString(error, "code");
+                this.throwExactlyMatchedException(this.exceptions, codeError, feedback);
                 throw new ExchangeError (feedback) ;
             }
         }

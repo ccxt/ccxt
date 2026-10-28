@@ -2062,7 +2062,7 @@ public partial class bitvavo : ccxt.bitvavo
         bool rejected = false;
         try
         {
-            this.handleErrors(code,error,((string)client.url), "", new Dictionary<string, object>() {}, error, message, new Dictionary<string, object>() {}, new Dictionary<string, object>() {});
+            this.handleErrors(code,error,((string)client.url), "", new Dictionary<string, object>() {}, error, message, new Dictionary<string, object>() {}, "");
         } catch(Exception e)
         {
             rejected = true;

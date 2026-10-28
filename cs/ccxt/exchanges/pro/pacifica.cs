@@ -1531,7 +1531,7 @@ public partial class pacifica : ccxt.pacifica
         IDictionary<string, object> wsHeadersFinal = this.safeDict(wsHeaders, "headers", new Dictionary<string, object>() {});
         try
         {
-            this.handleErrors(0L,error, "",postType, wsHeadersFinal, this.json(data), message, new Dictionary<string, object>() {}, new Dictionary<string, object>() {});
+            this.handleErrors(0L,error, "",postType, wsHeadersFinal, this.json(data), message, new Dictionary<string, object>() {}, "");
         } catch(Exception e)
         {
             client.reject(e, id);

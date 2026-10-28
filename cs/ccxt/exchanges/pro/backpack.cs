@@ -848,10 +848,9 @@ public partial class backpack : ccxt.backpack
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; i < symbolsLength; i++)
         {
-            List<object> symbolAndTimeframe = this.safeList(symbolsAndTimeframes, i);
-            string? marketId = this.safeString(symbolAndTimeframe, 0);
+            string? marketId = this.safeString(this.safeList(symbolsAndTimeframes, i), 0);
             Dictionary<string, object> market = this.market(marketId);
-            string? tf = this.safeString(symbolAndTimeframe, 1);
+            string? tf = this.safeString(this.safeList(symbolsAndTimeframes, i), 1, "");
             string? interval = this.safeString(this.timeframes, tf, tf);
             this.wsVenueMarketId("watchOHLCVForSymbols", market, query);
             topics.Add(((("kline." + interval) + ".") + this.safeString(market, "id", "")));
@@ -898,10 +897,9 @@ public partial class backpack : ccxt.backpack
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; i < symbolsLength; i++)
         {
-            List<object> symbolAndTimeframe = this.safeList(symbolsAndTimeframes, i);
-            string? marketId = this.safeString(symbolAndTimeframe, 0);
+            string? marketId = this.safeString(this.safeList(symbolsAndTimeframes, i), 0);
             Dictionary<string, object> market = this.market(marketId);
-            string? tf = this.safeString(symbolAndTimeframe, 1);
+            string? tf = this.safeString(this.safeList(symbolsAndTimeframes, i), 1, "");
             string? interval = this.safeString(this.timeframes, tf, tf);
             this.wsVenueMarketId("watchOHLCVForSymbols", market, query);
             topics.Add(((("kline." + interval) + ".") + this.safeString(market, "id", "")));

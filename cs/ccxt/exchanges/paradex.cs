@@ -4151,7 +4151,7 @@ public partial class paradex : Exchange
         };
     }
 
-    public override object handleErrors(Int64? httpCode, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
     {
         if ((response == null))
         {
@@ -4165,7 +4165,7 @@ public partial class paradex : Exchange
         //     }
         //
         string? errorCode = this.safeString(response, "error");
-        if (((errorCode == null)) && ((httpCode == 400)))
+        if (((errorCode == null)) && ((code == 400)))
         {
             //
             // a batch where every order was rejected, errors are index-aligned with the request

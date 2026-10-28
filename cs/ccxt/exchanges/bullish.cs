@@ -3482,7 +3482,7 @@ public partial class bullish : Exchange
         }
     }
 
-    public override object handleErrors(Int64? httpCode, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
     {
         if ((response == null))
         {
@@ -3501,9 +3501,9 @@ public partial class bullish : Exchange
         //             "errorCodeName": "ORDER_SIZE_OUTSIDE_VALID_RANGE"
         //         }
         //
-        string? code = this.safeString(response, "errorCode");
+        string? codeError = this.safeString(response, "errorCode");
         string? type = this.safeString(response, "type");
-        if (((code != null) && code != "0" && code != "1001") || ((type != null) && type == "HttpInvalidParameterException"))
+        if (((codeError != null) && codeError != "0" && codeError != "1001") || ((type != null) && type == "HttpInvalidParameterException"))
         {
             string? message = "";
             string? errorCodeName = this.safeString(response, "errorCodeName");
@@ -3517,7 +3517,7 @@ public partial class bullish : Exchange
             string feedback = ((this.id + " ") + (body));
             this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), message, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), message, feedback);
-            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), code, feedback);
+            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), codeError, feedback);
             throw new ExchangeError (feedback) ;
         }
         return null;

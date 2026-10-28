@@ -11149,7 +11149,7 @@ public partial class okx : Exchange
         return ccxt.BaseExchange.ToCurrencies(result);
     }
 
-    public override object handleErrors(Int64? httpCode, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
     {
         if ((response == null))
         {
@@ -11175,8 +11175,8 @@ public partial class okx : Exchange
         //        "msg": "Incorrect trade password"
         //    }
         //
-        string? code = this.safeString(response, "code");
-        if ((code != "0") && (code != "2"))
+        string? codeError = this.safeString(response, "code");
+        if ((codeError != "0") && (codeError != "2"))
         {
             string feedback = ((this.id + " ") + (body));
             List<object> data = this.safeList(response, "data", new List<object>() {});
@@ -11188,7 +11188,7 @@ public partial class okx : Exchange
                 this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorCode, feedback);
                 this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), message, feedback);
             }
-            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), code, feedback);
+            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), codeError, feedback);
             throw new ExchangeError (feedback) ;
         }
         return null;

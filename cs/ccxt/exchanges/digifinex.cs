@@ -5436,24 +5436,24 @@ public partial class digifinex : Exchange
         };
     }
 
-    public override object handleErrors(Int64? statusCode, string statusText, string url, string method, object responseHeaders, object responseBody, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
     {
         if ((response == null))
         {
             return null;  // fall back to default error handler
         }
-        string? code = this.safeString(response, "code");
-        if ((code == "0") || (code == "200"))
+        string? codeError = this.safeString(response, "code");
+        if ((codeError == "0") || (codeError == "200"))
         {
             return null;  // no error
         }
-        string feedback = ((this.id + " ") + (responseBody));
-        if ((code == null))
+        string feedback = ((this.id + " ") + (body));
+        if ((codeError == null))
         {
             throw new BadResponse (feedback) ;
         }
         List<object> unknownError = new List<object>() {typeof(ExchangeError), feedback};
-        var ExceptionClassmessageVariable = this.safeValue((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), code, unknownError);
+        var ExceptionClassmessageVariable = this.safeValue((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), codeError, unknownError);
         var ExceptionClass = ((IList<object>) ExceptionClassmessageVariable)[0];
         var message = ((IList<object>) ExceptionClassmessageVariable)[1];
         throwDynamicException(ExceptionClass, message);return null;

@@ -2641,7 +2641,7 @@ public partial class okx : ccxt.okx
         {
             string? method = this.safeString(message, "op");
             string stringMsg = this.json(message);
-            this.handleErrors(1L, "",((string)client.url), method, new Dictionary<string, object>() {}, stringMsg, message, new Dictionary<string, object>() {}, new Dictionary<string, object>() {});
+            this.handleErrors(1L, "",((string)client.url), method, new Dictionary<string, object>() {}, stringMsg, message, new Dictionary<string, object>() {}, "");
         }
         IList<object> orders = ccxt.BaseExchange.FromOrderList(this.parseOrders(args, null, null, null));
         IDictionary<string, object> first = this.safeDict(orders, 0, new Dictionary<string, object>() {});
@@ -2853,7 +2853,7 @@ public partial class okx : ccxt.okx
         {
             string? method = this.safeString(message, "op");
             string stringMsg = this.json(message);
-            this.handleErrors(1L, "",((string)client.url), method, new Dictionary<string, object>() {}, stringMsg, message, new Dictionary<string, object>() {}, new Dictionary<string, object>() {});
+            this.handleErrors(1L, "",((string)client.url), method, new Dictionary<string, object>() {}, stringMsg, message, new Dictionary<string, object>() {}, "");
         }
         IList<object> orders = ccxt.BaseExchange.FromOrderList(this.parseOrders(args, null, null, null));
         client.resolve(orders, messageHash);

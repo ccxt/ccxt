@@ -935,14 +935,14 @@ public partial class btcbox : Exchange
         };
     }
 
-    public override object handleErrors(Int64? httpCode, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
     {
         if ((response == null))
         {
             return null;  // resort to defaultErrorHandler
         }
         // typical error response: {"result":false,"code":"401"}
-        if ((httpCode >= 400))
+        if ((code >= 400))
         {
             return null;  // resort to defaultErrorHandler
         }
@@ -951,9 +951,9 @@ public partial class btcbox : Exchange
         {
             return null;  // either public API (no error codes expected) or success
         }
-        string? code = this.safeString(response, "code");
+        string? codeError = this.safeString(response, "code");
         string feedback = ((this.id + " ") + (body));
-        this.throwExactlyMatchedException(this.exceptions, code, feedback);
+        this.throwExactlyMatchedException(this.exceptions, codeError, feedback);
         throw new ExchangeError (feedback) ;
     }
 

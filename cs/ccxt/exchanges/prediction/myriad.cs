@@ -1210,7 +1210,7 @@ public partial class myriad : PredictionExchange
         // route dollar-sizing through createMarketBuyOrderWithCost (which sets costDenominated); a
         // plain createOrder buy on the AMM is rejected so it can't misinterpret shares as collateral
         parameters ??= new Dictionary<string, object>();
-        string? sideLower = ((side != null)) ? side.ToLower() : null;
+        string sideLower = side.ToLower();
         bool? isCostDenominated = this.safeBool(parameters, "costDenominated", false);
         if ((sideLower == "buy") && (isCostDenominated != true))
         {
@@ -1234,7 +1234,7 @@ public partial class myriad : PredictionExchange
         string? predictionMarket = this.safeString(chainConfig, "predictionMarket");
         string? tokenAddress = this.safeString2(parameters, "token", "tokenAddress", this.safeString(info, "tokenAddress"));
         string? gasLimit = this.safeString(parameters, "gasLimit", "0xaae60");
-        string? sideStr = sideLower;
+        string sideStr = sideLower;
         IDictionary<string, object> quoteParams = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"rpcUrl", "rpc", "token", "tokenAddress", "gasLimit", "costDenominated", "quote", "transactionHash", "txHash", "skipAllowance", "skipWaitForReceipt"}));
         object quote = this.safeDict(parameters, "quote");
         if ((quote == null))
@@ -3403,10 +3403,10 @@ public partial class myriad : PredictionExchange
         if (queriesLength > 0)
         {
             // some markets are only discoverable through the questions search endpoint
-            var hxauTask154882_0 = this.FetchRawMarketsBySearch(queries, rest);
-            var hxauTask154882_1 = this.FetchRawQuestionsBySearch(queries, rest);
-            await Task.WhenAll(hxauTask154882_0, hxauTask154882_1);
-            List<object> responses = new List<object> { hxauTask154882_0.Result, hxauTask154882_1.Result };
+            var hxauTask154835_0 = this.FetchRawMarketsBySearch(queries, rest);
+            var hxauTask154835_1 = this.FetchRawQuestionsBySearch(queries, rest);
+            await Task.WhenAll(hxauTask154835_0, hxauTask154835_1);
+            List<object> responses = new List<object> { hxauTask154835_0.Result, hxauTask154835_1.Result };
             rawMarkets = this.safeList(responses, 0, new List<object>() {});
             rawQuestions = this.safeList(responses, 1, new List<object>() {});
         } else if ((eventId != null))
@@ -3427,10 +3427,10 @@ public partial class myriad : PredictionExchange
             if ((requestedTagsLength == 0))
             {
                 // unscoped mode: fetch bounded open lists from both sources and merge
-                var hxauTask155860_0 = this.FetchRawMarketsList(rest);
-                var hxauTask155860_1 = this.FetchRawQuestionsList(rest);
-                await Task.WhenAll(hxauTask155860_0, hxauTask155860_1);
-                List<object> listResponses = new List<object> { hxauTask155860_0.Result, hxauTask155860_1.Result };
+                var hxauTask155813_0 = this.FetchRawMarketsList(rest);
+                var hxauTask155813_1 = this.FetchRawQuestionsList(rest);
+                await Task.WhenAll(hxauTask155813_0, hxauTask155813_1);
+                List<object> listResponses = new List<object> { hxauTask155813_0.Result, hxauTask155813_1.Result };
                 rawMarkets = this.safeList(listResponses, 0, new List<object>() {});
                 rawQuestions = this.safeList(listResponses, 1, new List<object>() {});
             } else
@@ -3444,10 +3444,10 @@ public partial class myriad : PredictionExchange
                 }
                 // run both searches in parallel; some events are only discoverable from questions,
                 // while market search is still the primary source for market-level data
-                var hxauTask156643_0 = this.FetchRawMarketsBySearch(tagQueries, rest);
-                var hxauTask156643_1 = this.FetchRawQuestionsBySearch(tagQueries, rest);
-                await Task.WhenAll(hxauTask156643_0, hxauTask156643_1);
-                List<object> responses = new List<object> { hxauTask156643_0.Result, hxauTask156643_1.Result };
+                var hxauTask156596_0 = this.FetchRawMarketsBySearch(tagQueries, rest);
+                var hxauTask156596_1 = this.FetchRawQuestionsBySearch(tagQueries, rest);
+                await Task.WhenAll(hxauTask156596_0, hxauTask156596_1);
+                List<object> responses = new List<object> { hxauTask156596_0.Result, hxauTask156596_1.Result };
                 rawMarkets = this.safeList(responses, 0, new List<object>() {});
                 rawQuestions = this.safeList(responses, 1, new List<object>() {});
             }
