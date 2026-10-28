@@ -2448,7 +2448,8 @@ function goNativeMapWrite (lines: string[], masked: string[], start: number, end
     } else if (!nilKeyGuardable && goMapWriteMapResultCall (lines, valueMasked) && (goMapWriteGroupEnd (valueMasked, valueMasked.indexOf ('(')) === valueMasked.length)) {
         valueOut = value;
     } else if ((valueType === 'any') && goMapWriteDerefedAnyLocal (maskedFunc, declOf (value), value)) {
-        valueOut = value; // every write is already deref'd (derefScalar is idempotent), so the helper's deref is a no-op
+        valueOut = value; // every write is already deref'd (derefScalar is idempotent), so the helper's deref is a no-op} else if (goMapWriteParseNumberNoDefault (valueMasked)) {
+        valueOut = value; // float64 or nil: the helper's deref is a no-op
     }
     if ((valueOut === undefined) && !nilKeyGuardable && (lastLine === k)) {
         valueOut = hx4G39PointerValue (lines, value, valueMasked, typeAt (value, k))?.replace (/\n/g, '\n' + head[1]);  // hx4 G39
@@ -2611,6 +2612,21 @@ function goMapWriteMapResultCall (lines: string[], text: string, depth: number =
 // stored value is then the identity
 const GO_MAPWRITE_DEREFED_ANY_PRODUCER = /^(?:(?:ccxt\.)?(?:DerefScalar|GetValue)\(|this\.(?:SafeDict|SafeList|SafeValue|Extend|Account)\(|nil$)/;
 
+// `this.ParseNumber(x)` without a default answers a float64 or nil (exchange.go derefs x first): deref'd already
+function goMapWriteParseNumberNoDefault (text: string): boolean {
+    if (!text.startsWith ('this.ParseNumber(') || (goMapWriteGroupEnd (text, 16) !== text.length)) {
+        return false;
+    }
+    let depth = 0;
+    for (const c of text.substring (16, text.length - 1)) {
+        depth += ('([{'.indexOf (c) >= 0) ? 1 : ((')]}'.indexOf (c) >= 0) ? -1 : 0);
+        if ((depth === 0) && (c === ',')) {
+            return false;
+        }
+    }
+    return true;
+}
+
 // a single-declaration `any` local whose declaration and every later write is a deref'd producer,
 // and whose address is never taken (AppendToArray(&x, ..) rewrites it)
 function goMapWriteDerefedAnyLocal (maskedFunc: string, decl: any, name: string): boolean {
@@ -2625,7 +2641,7 @@ function goMapWriteDerefedAnyLocal (maskedFunc: string, decl: any, name: string)
     for (const w of maskedFunc.matchAll (new RegExp ('(?:^|[^\\w.&*])' + n + '\\s*=(?!=)\\s*([^\\n]*)', 'gm'))) {
         writes.push (w[1].trim ());
     }
-    return writes.every ((init: string) => GO_MAPWRITE_DEREFED_ANY_PRODUCER.test (init));
+    return writes.every ((init: string) => GO_MAPWRITE_DEREFED_ANY_PRODUCER.test (init) || goMapWriteParseNumberNoDefault (init));
 }
 
 // a single-declaration `any` local initialised by a map producer call
