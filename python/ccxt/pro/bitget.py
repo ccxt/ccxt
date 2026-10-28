@@ -506,7 +506,6 @@ class bitget(ccxt.async_support.bitget):
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
-        :param boolean [params.stock]: set to True for tokenized stock symbols, defaults to market['stock']
         :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
@@ -517,9 +516,10 @@ class bitget(ccxt.async_support.bitget):
         interval = self.safe_string(timeframes, timeframe)
         messageHash = None
         uta, paramsUta = self.handle_option_bool_and_params(params, 'watchOHLCV', 'uta', False)
-        stockDefault = self.safe_bool(market, 'stock', False)
-        stock, paramsStock = self.handle_option_bool_and_params(paramsUta, 'watchOHLCV', 'stock', stockDefault)
-        isStockOrUta = ((stock is True) or (uta is True))
+        isStock = market['stock']
+        paramsStock = self.omit(paramsUta, 'stock')
+        isStockSpot = isStock and market['spot']
+        isStockOrUta = (isStockSpot or (uta is True))
         instType, paramsInstType = self.get_inst_type('watchOHLCV', market, isStockOrUta, paramsStock)
         paramsRequest = paramsInstType
         if isStockOrUta:
@@ -554,7 +554,6 @@ class bitget(ccxt.async_support.bitget):
         :param str [timeframe]: the period for the ratio, default is 1 minute
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
-        :param boolean [params.stock]: set to True for tokenized stock symbols, defaults to market['stock']
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
@@ -566,9 +565,10 @@ class bitget(ccxt.async_support.bitget):
         messageHash = None
         values = self.handle_option_bool_and_params(params, 'watchOHLCV', 'uta', False)
         uta = values[0]
-        stockDefault = self.safe_bool(market, 'stock', False)
-        stock, paramsStock = self.handle_option_bool_and_params(params, 'watchOHLCV', 'stock', stockDefault)
-        isStockOrUta = ((stock is True) or (uta is True))
+        isStock = market['stock']
+        paramsStock = self.omit(params, 'stock')
+        isStockSpot = isStock and market['spot']
+        isStockOrUta = (isStockSpot or (uta is True))
         instType, paramsInstType = self.get_inst_type('watchOHLCV', market, isStockOrUta, paramsStock)
         paramsRequest = paramsInstType
         if isStockOrUta:
@@ -714,13 +714,19 @@ class bitget(ccxt.async_support.bitget):
         isInverse = self.safe_bool(market, 'inverse', False)
         if isInverse is True:
             volumeIndex = 6
+        timestamp = self.safe_integer_2(ohlcv, 'start', 0)
+        open = self.safe_number_2(ohlcv, 'open', 1)
+        high = self.safe_number_2(ohlcv, 'high', 2)
+        low = self.safe_number_2(ohlcv, 'low', 3)
+        close = self.safe_number_2(ohlcv, 'close', 4)
+        volume = self.safe_number_2(ohlcv, 'volume', volumeIndex)
         return [
-            self.safe_integer_2(ohlcv, 'start', 0),
-            self.safe_number_2(ohlcv, 'open', 1),
-            self.safe_number_2(ohlcv, 'high', 2),
-            self.safe_number_2(ohlcv, 'low', 3),
-            self.safe_number_2(ohlcv, 'close', 4),
-            self.safe_number_2(ohlcv, 'volume', volumeIndex),
+            timestamp,
+            open,
+            high,
+            low,
+            close,
+            volume,
         ]
 
     def watch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
@@ -735,7 +741,6 @@ class bitget(ccxt.async_support.bitget):
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
-        :param boolean [params.stock]: set to True for tokenized stock symbols, defaults to market['stock']
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         return self.watch_order_book_for_symbols([symbol], limit, params)
@@ -752,16 +757,16 @@ class bitget(ccxt.async_support.bitget):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.limit]: orderbook limit, default is None
         :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
-        :param boolean [params.stock]: set to True for tokenized stock symbols, defaults to market['stock']
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        stockDefault = self.safe_bool(market, 'stock', False)
-        stock, paramsStock = self.handle_option_bool_and_params(params, 'unWatchOrderBook', 'stock', stockDefault)
+        isStock = market['stock']
+        paramsStock = self.omit(params, 'stock')
         uta, paramsUta = self.handle_option_bool_and_params(paramsStock, 'unWatchOrderBook', 'uta', False)
-        isStockOrUta = ((stock is True) or (uta is True))
+        isStockSpot = isStock and market['spot']
+        isStockOrUta = (isStockSpot or (uta is True))
         paramsRequest = paramsUta
         if isStockOrUta:
             paramsRequest = self.extend(paramsUta, {'uta': True})
@@ -813,20 +818,20 @@ class bitget(ccxt.async_support.bitget):
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
-        :param boolean [params.stock]: set to True for tokenized stock symbols, defaults to market['stock']
         :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             await self.load_markets()
         symbolsNormalized = self.market_symbols(symbols)
         symbolsLength = len(symbolsNormalized)
-        firstMarket = None
+        isStockSpot = False
         if symbolsLength > 0:
-            firstMarket = self.market(symbolsNormalized[0])
-        stockDefault = self.safe_bool(firstMarket, 'stock', False)
-        stock, paramsStock = self.handle_option_bool_and_params(params, 'watchOrderBookForSymbols', 'stock', stockDefault)
+            market = self.market(symbolsNormalized[0])
+            isStock = market['stock']
+            isStockSpot = isStock and market['spot']
+        paramsStock = self.omit(params, 'stock')
         uta, paramsUta = self.handle_option_bool_and_params(paramsStock, 'watchOrderBookForSymbols', 'uta', False)
-        isStockOrUta = ((stock is True) or (uta is True))
+        isStockOrUta = (isStockSpot or (uta is True))
         channel = 'books'
         incrementalFeed = True
         if (limit == 1) or (limit == 5) or (limit == 15) or (limit == 50):
@@ -933,7 +938,8 @@ class bitget(ccxt.async_support.bitget):
                 ob['symbol'] = symbol
                 self.orderbooks[symbol] = ob
             storedOrderBook = self.orderbooks[symbol]
-            isSnapshot = self.safe_string(message, 'action') == 'snapshot'  # snapshot does not have a checksum
+            action = self.safe_string(message, 'action')
+            isSnapshot = (action == 'snapshot')  # snapshot does not have a checksum
             if isSnapshot:
                 # a snapshot replaces the book, e.g. after a reconnect, levels absent from it must not survive
                 storedOrderBook.reset({'symbol': symbol})
@@ -1272,8 +1278,9 @@ class bitget(ccxt.async_support.bitget):
         if first is not None:
             feeCurrencyId = self.safe_string(first, 'feeCoin')
             feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
+            feeCost = self.safe_string_2(first, 'totalFee', 'fee')
             fee = {
-                'cost': Precise.string_abs(self.safe_string_2(first, 'totalFee', 'fee')),
+                'cost': Precise.string_abs(feeCost),
                 'currency': feeCurrencyCode,
             }
         return self.safe_trade({
@@ -1977,8 +1984,10 @@ class bitget(ccxt.async_support.bitget):
         avgPrice = None if (avgPriceString is None) else self.omit_zero(avgPriceString)
         side = self.safe_string(order, 'side')
         type = self.safe_string(order, 'orderType')
-        accBaseVolume = self.omit_zero(self.safe_string_2(order, 'accBaseVolume', 'cumExecQty'))
-        newSizeValue = self.omit_zero(self.safe_string_2(order, 'newSize', 'cumExecValue'))
+        accBaseVolumeString = self.safe_string_2(order, 'accBaseVolume', 'cumExecQty')
+        accBaseVolume = self.omit_zero(accBaseVolumeString)
+        newSizeString = self.safe_string_2(order, 'newSize', 'cumExecValue')
+        newSizeValue = self.omit_zero(newSizeString)
         isMarketOrder = (type == 'market')
         isBuy = (side == 'buy')
         totalAmount = None
@@ -2862,7 +2871,8 @@ class bitget(ccxt.async_support.bitget):
         #
         argsList = self.safe_list(message, 'args')
         if argsList is None:
-            argsList = [self.safe_dict(message, 'arg', {})]
+            arg = self.safe_dict(message, 'arg', {})
+            argsList = [arg]
         for i in range(0, len(argsList)):
             arg = self.safe_dict(argsList, i)
             channel = self.safe_string_2(arg, 'channel', 'topic', '')
