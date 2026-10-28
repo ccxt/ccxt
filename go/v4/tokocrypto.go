@@ -1211,10 +1211,10 @@ func (this *Tokocrypto) ParseTrade(trade any, optionalArgs ...any) Trade {
 			return "buy"
 		}()) // this is reversed intentionally
 		takerOrMaker = SafeStringPtr("taker")
-	} else if InOp(trade, "side") {
+	} else if this.SafeString(trade, "side") != nil {
 		side = this.SafeStringLower(trade, "side")
 	} else {
-		if InOp(trade, "isBuyer") {
+		if this.SafeString(trade, "isBuyer") != nil {
 			side = SafeStringPtr(func() string {
 				if *this.SafeBool(trade, "isBuyer", false) {
 					return "buy"
@@ -1224,13 +1224,13 @@ func (this *Tokocrypto) ParseTrade(trade any, optionalArgs ...any) Trade {
 		}
 	}
 	var fee map[string]any = nil
-	if InOp(trade, "commission") {
+	if this.SafeString(trade, "commission") != nil {
 		fee = map[string]any{
 			"cost":     this.SafeString(trade, "commission"),
 			"currency": this.SafeCurrencyCode(this.SafeString(trade, "commissionAsset")),
 		}
 	}
-	if InOp(trade, "isMaker") {
+	if this.SafeString(trade, "isMaker") != nil {
 		takerOrMaker = SafeStringPtr(func() string {
 			if *this.SafeBool(trade, "isMaker", false) {
 				return "maker"
@@ -1238,7 +1238,7 @@ func (this *Tokocrypto) ParseTrade(trade any, optionalArgs ...any) Trade {
 			return "taker"
 		}())
 	}
-	if InOp(trade, "maker") {
+	if this.SafeString(trade, "maker") != nil {
 		takerOrMaker = SafeStringPtr(func() string {
 			if *this.SafeBool(trade, "maker", false) {
 				return "maker"
@@ -1461,7 +1461,7 @@ func (this *Tokocrypto) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	var marketId *string = this.SafeString(ticker, "symbol")
 	var symbol *string = this.SafeSymbol(marketId, market)
 	var last *string = this.SafeString(ticker, "lastPrice")
-	var isCoinm bool = (InOp(ticker, "baseVolume"))
+	var isCoinm bool = (this.SafeString(ticker, "baseVolume") != nil)
 	var baseVolume *string = nil
 	var quoteVolume *string = nil
 	if isCoinm {
@@ -2320,12 +2320,10 @@ func (this *Tokocrypto) createOrderBody(ch chan AsyncResult[Order], symbol strin
 	}
 	if timeInForceIsRequired {
 		var defaultTimeInForce *string = this.SafeString(this.Options, "defaultTimeInForce", "GTC")
-		var timeInForce any = func() any {
-			if timeInForceResolved == nil {
-				return defaultTimeInForce
-			}
-			return timeInForceResolved
-		}()
+		var timeInForce *string = defaultTimeInForce
+		if timeInForceResolved != nil {
+			timeInForce = timeInForceResolved
+		}
 		// the endpoint takes the time force as a numeric code, post only is
 		// placed as a LIMIT_MAKER order rather than as the GTX code
 		var timeInForceCodes map[string]any = map[string]any{
@@ -2335,7 +2333,7 @@ func (this *Tokocrypto) createOrderBody(ch chan AsyncResult[Order], symbol strin
 		}
 		var timeInForceCode *string = this.SafeString(timeInForceCodes, timeInForce)
 		if timeInForceCode == nil {
-			panic(InvalidOrder(Add(Add(this.Id+" createOrder() does not support the ", timeInForce), " timeInForce, use GTC, IOC, FOK or the postOnly parameter")))
+			panic(InvalidOrder(this.Id + " createOrder() does not support the " + *timeInForce + " timeInForce, use GTC, IOC, FOK or the postOnly parameter"))
 		}
 		request["timeInForce"] = timeInForceCode
 	} else if timeInForceResolved != nil {
@@ -2584,11 +2582,11 @@ func (this *Tokocrypto) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], option
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes218515 []any = OrdersToList(r.Value)
-	if retRes218515 == nil {
+	var retRes218815 []any = OrdersToList(r.Value)
+	if retRes218815 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes218515)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes218815)}
 	}
 	return nil
 }
@@ -2628,11 +2626,11 @@ func (this *Tokocrypto) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], opti
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes220115 []any = OrdersToList(r.Value)
-	if retRes220115 == nil {
+	var retRes220415 []any = OrdersToList(r.Value)
+	if retRes220415 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes220115)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes220415)}
 	}
 	return nil
 }

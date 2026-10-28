@@ -3848,7 +3848,7 @@ func (this *Bitfinex) withdrawBody(ch chan AsyncResult[Transaction], code string
 	// if not provided explicitly we will try to match using the currency name
 	var networkParam *string = this.SafeString(paramsWithdrawTag, "network", code)
 	var network *string = this.SafeString(this.NetworkAliases, networkParam, networkParam)
-	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsWithdrawTag, "network"))
+	var paramsOmitted map[string]any = this.OmitDict(paramsWithdrawTag, "network")
 	var currencyNetworks map[string]any = SafeMapTyped(currency, "networks")
 	var currencyNetwork map[string]any = SafeMapTyped(currencyNetworks, network)
 	var networkId *string = this.SafeString(currencyNetwork, "id")

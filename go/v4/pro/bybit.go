@@ -323,7 +323,7 @@ func (this *Bybit) createOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], symbo
 			panic(r.Err)
 		}
 	}
-	var orderRequest map[string]any = ccxt.MapTyped(this.CreateOrderRequest(symbol, typeVar, ccxt.SafeStringPtr(side), amount, price, params, true))
+	var orderRequest map[string]any = this.CreateOrderRequest(symbol, typeVar, ccxt.SafeStringPtr(side), amount, price, params, true)
 	var url string = this.ImplodeHostname(this.SafeString(this.UrlsApiSections["ws"]["private"], "trade", ""))
 
 	r1 := <-this.AuthenticateAsync(url)

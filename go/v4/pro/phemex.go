@@ -62,7 +62,7 @@ func (this *Phemex) FromEn(en any, scale any) any {
 	precise := ccxt.NewPrecise(en)
 	precise.Decimals = this.Sum(precise.Decimals, scale)
 	precise.Reduce()
-	return ccxt.ToString(precise)
+	return precise.String()
 }
 func (this *Phemex) FromEp(ep any, optionalArgs ...any) any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)

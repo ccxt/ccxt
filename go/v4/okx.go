@@ -7839,7 +7839,7 @@ func (this *Okx) withdrawBody(ch chan AsyncResult[Transaction], code string, amo
 	if fee != nil {
 		request["fee"] = this.NumberToString(fee)
 	}
-	var query map[string]any = MapTyped(this.Omit(paramsWithdrawTag, omitKeys))
+	var query map[string]any = this.OmitDict(paramsWithdrawTag, omitKeys)
 
 	r1 := <-this.PrivatePostAssetWithdrawal(this.Extend(request, query))
 	if r1.Err != nil {

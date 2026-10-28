@@ -2325,7 +2325,7 @@ func (this *Binance) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[strin
 	var subscribe map[string]any = map[string]any{
 		"id": requestId,
 	}
-	var paramsOmitted map[string]any = ccxt.MapTyped(this.Omit(paramsTimezone, "callerMethodName"))
+	var paramsOmitted map[string]any = this.OmitDict(paramsTimezone, "callerMethodName")
 
 	r2 := <-this.WatchMultiple(url, messageHashes, this.Extend(request, paramsOmitted), messageHashes, subscribe)
 	if r2.Err != nil {
@@ -2448,7 +2448,7 @@ func (this *Binance) unWatchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[bool], 
 		"messageHashes":        messageHashes,
 		"topic":                "ohlcv",
 	}
-	var paramsOmitted map[string]any = ccxt.MapTyped(this.Omit(paramsTimezone, "callerMethodName"))
+	var paramsOmitted map[string]any = this.OmitDict(paramsTimezone, "callerMethodName")
 
 	r1 := <-this.WatchMultiple(url, messageHashes, this.Extend(request, paramsOmitted), messageHashes, subscribe)
 	if r1.Err != nil {
@@ -5156,9 +5156,9 @@ func (this *Binance) createOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], sym
 		panic(ccxt.NotSupported(this.Id + " createOrderWs() does not support conditional orders for inverse markets, the exchange only accepts them through the REST API, use createOrder() instead"))
 	}
 	var isAlgoOrder bool = (market["linear"] == true) && ((market["swap"] == true) || (market["future"] == true)) && (isConditional == true)
-	var payload map[string]any = ccxt.MapTyped(this.CreateOrderRequest(symbol, typeVar, ccxt.SafeStringPtr(side), amount, price, this.Extend(paramsOmitted, map[string]any{
+	var payload map[string]any = this.CreateOrderRequest(symbol, typeVar, ccxt.SafeStringPtr(side), amount, price, this.Extend(paramsOmitted, map[string]any{
 		"isAlgoOrder": isAlgoOrder,
-	})))
+	}))
 	returnRateLimits, paramsReturnRateLimits := this.HandleOptionBoolAndParams(paramsOmitted, "createOrderWs", "returnRateLimits", false)
 	payload["returnRateLimits"] = returnRateLimits
 	var test *bool = this.SafeBool(paramsReturnRateLimits, "test", false)
@@ -7588,7 +7588,7 @@ func (this *Binance) HandleWsError(client any, message any) {
 				}
 			}()
 			// try block:
-			this.HandleErrors(this.ParseToInt(codeValue), msg, ccxt.StringArg(client.(ccxt.ClientInterface).GetUrl()), "", map[string]any{}, this.Json(error), error, map[string]any{}, map[string]any{})
+			this.HandleErrors(this.ParseToInt(codeValue), msg, client.(ccxt.ClientInterface).GetUrl(), "", map[string]any{}, this.Json(error), error, map[string]any{}, map[string]any{})
 			return nil
 		}(this)
 

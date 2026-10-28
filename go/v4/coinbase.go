@@ -5805,7 +5805,7 @@ func (this *Coinbase) withdrawBody(ch chan AsyncResult[Transaction], code string
 		"currency": currency["id"],
 	}
 	var accountId *string = this.SafeString2(paramsWithdrawTag, "account_id", "accountId")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsWithdrawTag, []any{"account_id", "accountId"}))
+	var paramsOmitted map[string]any = this.OmitDict(paramsWithdrawTag, []any{"account_id", "accountId"})
 	if accountId == nil {
 		if false {
 			panic(ArgumentsRequired(this.Id + " withdraw() requires an account_id (or accountId) parameter OR a currency code argument"))

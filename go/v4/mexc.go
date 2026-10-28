@@ -7510,7 +7510,7 @@ func (this *Mexc) withdrawBody(ch chan AsyncResult[Transaction], code string, am
 	tagResolved, paramsWithdrawTag := this.HandleParamString(params, "tag")
 	var internal *bool = this.SafeBool(paramsWithdrawTag, "internal", false)
 	if internal != nil && *internal {
-		var paramsInternal map[string]any = MapTyped(this.Omit(paramsWithdrawTag, "internal"))
+		var paramsInternal map[string]any = this.OmitDict(paramsWithdrawTag, "internal")
 		var requestForInternal map[string]any = map[string]any{
 			"asset":     currency["id"],
 			"amount":    amount,
@@ -7552,7 +7552,7 @@ func (this *Mexc) withdrawBody(ch chan AsyncResult[Transaction], code string, am
 	}
 	var paramsOmitted map[string]any = func() map[string]any {
 		if network != nil {
-			return MapTyped(this.Omit(paramsWithdrawTag, []any{"network", "netWork"}))
+			return this.OmitDict(paramsWithdrawTag, []any{"network", "netWork"})
 		}
 		return paramsWithdrawTag
 	}()

@@ -2066,7 +2066,7 @@ func (this *Deepcoin) createOrderBody(ch chan AsyncResult[Order], symbol string,
 	}
 	var market map[string]any = this.Market(symbol)
 	var triggerPrice *string = this.SafeString(params, "triggerPrice")
-	var request map[string]any = MapTyped(this.CreateOrderRequest(symbol, typeVar, side, amount, price, params))
+	var request map[string]any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
 	var response map[string]any = nil
 	if triggerPrice != nil {
 		// trigger orders
@@ -2103,7 +2103,7 @@ func (this *Deepcoin) createOrderBody(ch chan AsyncResult[Order], symbol string,
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(data, market)}
 	return nil
 }
-func (this *Deepcoin) CreateOrderRequest(symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Deepcoin) CreateOrderRequest(symbol string, typeVar string, side string, amount any, optionalArgs ...any) map[string]any {
 	/**
 	 * @method
 	 * @ignore

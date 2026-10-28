@@ -3227,7 +3227,7 @@ func (this *Lbank) withdrawBody(ch chan AsyncResult[Transaction], code string, a
 		}
 	}
 	var fee *string = this.SafeString(paramsWithdrawTag, "fee")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsWithdrawTag, "fee"))
+	var paramsOmitted map[string]any = this.OmitDict(paramsWithdrawTag, "fee")
 	// The relevant coin network fee can be found by calling fetchDepositWithdrawFees (), note: if no network param is supplied then the default network will be used, this can also be found in fetchDepositWithdrawFees ().
 	this.CheckRequiredArgument("withdraw", fee, "fee")
 	var currency map[string]any = this.Currency(code)

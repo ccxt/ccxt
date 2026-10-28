@@ -232,7 +232,7 @@ func (this *Grvt) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Tick
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var symbol string = symbolsNormalized[i]
 		var market map[string]any = this.Market(symbol)
-		rawHashes = append(rawHashes, *this.SafeString(market, "id", "")+"@"+ccxt.ToString(intervalOption))
+		rawHashes = append(rawHashes, *this.SafeString(market, "id", "")+"@"+strconv.FormatInt(intervalOption, 10))
 		messageHashes = append(messageHashes, "ticker::"+market["symbol"].(string))
 	}
 	var request map[string]any = map[string]any{
@@ -763,9 +763,9 @@ func (this *Grvt) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.Ord
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var extraPart string
 	if isSnapshot {
-		extraPart = ccxt.ToString(interval) + "-" + ccxt.ToString(limitResolved)
+		extraPart = strconv.FormatInt(interval, 10) + "-" + ccxt.ToString(limitResolved)
 	} else {
-		extraPart = ccxt.ToString(interval)
+		extraPart = strconv.FormatInt(interval, 10)
 	}
 	var rawHashes []any = []any{}
 	var messageHashes []any = []any{}

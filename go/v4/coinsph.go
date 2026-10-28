@@ -2590,7 +2590,7 @@ func (this *Coinsph) withdrawBody(ch chan AsyncResult[Transaction], code string,
 	if tag != nil {
 		request["withdrawOrderId"] = tag
 	}
-	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsWithdrawTag, "network"))
+	var paramsOmitted map[string]any = this.OmitDict(paramsWithdrawTag, "network")
 
 	r1 := <-this.PrivatePostOpenapiWalletV1WithdrawApply(this.Extend(request, paramsOmitted))
 	if r1.Err != nil {

@@ -1647,7 +1647,7 @@ func (this *Cryptocom) createOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], s
 			panic(r.Err)
 		}
 	}
-	var paramsValue map[string]any = ccxt.MapTyped(this.CreateOrderRequest(symbol, typeVar, side, amount, price, params))
+	var paramsValue map[string]any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
 	var request map[string]any = map[string]any{
 		"method": "private/create-order",
 		"params": paramsValue,

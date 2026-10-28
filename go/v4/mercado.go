@@ -1433,7 +1433,7 @@ func (this *Mercado) Sign(path string, optionalArgs ...any) any {
 	var url string = *apiUrl + "/"
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var isPublic bool = (apiName == "public") || (apiName == "v4Public") || (apiName == "v4PublicNet")
-	var privateBody any = nil
+	var privateBody string = ""
 	var privateHeaders any = nil
 	if isPublic {
 		url += this.ImplodeParams(path, params)
@@ -1449,7 +1449,7 @@ func (this *Mercado) Sign(path string, optionalArgs ...any) any {
 			"tapi_method": path,
 			"tapi_nonce":  nonce,
 		}, params))
-		var auth *string = SafeStringPtr(Add("/tapi/"+this.Version+"/"+"?", privateBody))
+		var auth string = "/tapi/" + this.Version + "/" + "?" + privateBody
 		privateHeaders = map[string]any{
 			"Content-Type": "application/x-www-form-urlencoded",
 			"TAPI-ID":      this.ApiKey,

@@ -4023,7 +4023,7 @@ func (this *Myriad) fetchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Pr
 	var responses []any = ccxt.ListTyped(r1.Value)
 	for i := 0; i < len(marketKeys); i++ {
 		var key string = marketKeys[i]
-		var response any = ccxt.GetValue(responses, i)
+		var response any = responses[i]
 		var grouped any = outcomesByMarket[key]
 		for j := 0; j < ccxt.GetArrayLength(grouped); j++ {
 			var outcomeObj any = ccxt.GetValue(grouped, j)

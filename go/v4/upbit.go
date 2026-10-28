@@ -3162,7 +3162,7 @@ func (this *Upbit) withdrawBody(ch chan AsyncResult[Transaction], code string, a
 		if network == nil {
 			panic(ArgumentsRequired(this.Id + " withdraw() requires a network argument"))
 		}
-		var paramsOmitted map[string]any = MapTyped(this.Omit(paramsTag, []any{"network"}))
+		var paramsOmitted map[string]any = this.OmitDict(paramsTag, []any{"network"})
 		request["net_type"] = network
 		request["currency"] = currency["id"]
 		request["address"] = address

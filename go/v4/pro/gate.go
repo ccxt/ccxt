@@ -210,7 +210,7 @@ func (this *Gate) createOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], symbol
 	var channel any = ccxt.Add(messageType, ".order_place")
 	var url any = this.GetUrlByMarket(market)
 	params["textIsRequired"] = true
-	var request map[string]any = ccxt.MapTyped(this.CreateOrderRequest(symbolValue, typeVar, ccxt.SafeStringPtr(side), amount, price, params))
+	var request map[string]any = this.CreateOrderRequest(symbolValue, typeVar, ccxt.SafeStringPtr(side), amount, price, params)
 
 	r1 := <-this.AuthenticateAsync(url, messageType)
 	if r1.Err != nil {

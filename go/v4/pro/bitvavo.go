@@ -1589,7 +1589,7 @@ func (this *Bitvavo) createOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], sym
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var request map[string]any = ccxt.MapTyped(this.CreateOrderRequest(symbol, typeVar, side, amount, price, params))
+	var request map[string]any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
 
 	r2 := <-this.WatchRequestAsync("privateCreateOrder", request)
 	if r2.Err != nil {
@@ -2824,7 +2824,7 @@ func (this *Bitvavo) HandleErrorMessage(client any, message map[string]any) any 
 				}
 			}()
 			// try block:
-			this.HandleErrors(this.ParseToInt(code), error, ccxt.StringArg(client.(ccxt.ClientInterface).GetUrl()), "", map[string]any{}, *error, message, map[string]any{}, map[string]any{})
+			this.HandleErrors(this.ParseToInt(code), error, client.(ccxt.ClientInterface).GetUrl(), "", map[string]any{}, *error, message, map[string]any{}, map[string]any{})
 			return nil
 		}(this)
 

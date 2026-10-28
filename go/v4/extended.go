@@ -2558,7 +2558,7 @@ func (this *Extended) withdrawBody(ch chan AsyncResult[Transaction], code string
 		"asset":      currency["id"],
 		"settlement": settlement,
 	}
-	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsWithdrawTag, []any{"chainId", "network", "settlementExpiration", "nonce", "recipient", "positionId", "l2Vault", "collateralId", "resolution"}))
+	var paramsOmitted map[string]any = this.OmitDict(paramsWithdrawTag, []any{"chainId", "network", "settlementExpiration", "nonce", "recipient", "positionId", "l2Vault", "collateralId", "resolution"})
 
 	r2 := <-this.V1PrivatePostUserWithdrawal(this.Extend(request, paramsOmitted))
 	if r2.Err != nil {

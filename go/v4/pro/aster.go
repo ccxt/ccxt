@@ -441,7 +441,7 @@ func (this *Aster) watchMarkPricesBody(ch chan ccxt.AsyncResult[map[string]ccxt.
 	var symbolsList []string = symbolsNormalized
 	var firstMarket map[string]any = this.GetMarketFromSymbols(symbolsList)
 	var typeVar *string = this.SafeString(firstMarket, "type", "swap")
-	var paramsOmitted map[string]any = ccxt.MapTyped(this.Omit(paramsCallerMethodName, "callerMethodName"))
+	var paramsOmitted map[string]any = this.OmitDict(paramsCallerMethodName, "callerMethodName")
 	var url *string = this.SafeString(this.UrlsApiSections["ws"]["public"], typeVar)
 	if url == nil {
 		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
@@ -521,7 +521,7 @@ func (this *Aster) unWatchMarkPricesBody(ch chan ccxt.AsyncResult[bool], optiona
 	var symbolsList []string = symbolsNormalized
 	var firstMarket map[string]any = this.GetMarketFromSymbols(symbolsList)
 	var typeVar *string = this.SafeString(firstMarket, "type", "swap")
-	var paramsOmitted map[string]any = ccxt.MapTyped(this.Omit(paramsCallerMethodName, "callerMethodName"))
+	var paramsOmitted map[string]any = this.OmitDict(paramsCallerMethodName, "callerMethodName")
 	var url *string = this.SafeString(this.UrlsApiSections["ws"]["public"], typeVar)
 	if url == nil {
 		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
@@ -1426,7 +1426,7 @@ func (this *Aster) unWatchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[bool]
 	var typeVar *string = this.SafeString(firstMarket, "type", "swap")
 	var symbolsLength int = len(symbolsNormalized)
 	methodName, paramsCallerMethodName := this.HandleParamString(params, "callerMethodName", "unWatchOrderBookForSymbols")
-	var paramsOmitted map[string]any = ccxt.MapTyped(this.Omit(paramsCallerMethodName, "callerMethodName"))
+	var paramsOmitted map[string]any = this.OmitDict(paramsCallerMethodName, "callerMethodName")
 	if symbolsLength == 0 {
 		panic(ccxt.ArgumentsRequired(this.Id + " " + *methodName + "() requires a non-empty array of symbols"))
 	}

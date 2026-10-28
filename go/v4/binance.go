@@ -15022,7 +15022,7 @@ func (this *Binance) ParseAccountPosition(position map[string]any, optionalArgs 
 		var pricePrecisionPlusOneString string = strconv.Itoa(pricePrecisionPlusOne)
 		// round half up
 		rounder := NewPrecise("5e-" + pricePrecisionPlusOneString)
-		var rounderString string = ToString(rounder)
+		var rounderString string = rounder.String()
 		var liquidationPriceRoundedString *string = Precise.StringAdd(rounderString, liquidationPriceStringRaw)
 		var truncatedLiquidationPrice *string = Precise.StringDiv(liquidationPriceRoundedString, "1", pricePrecision)
 		if (truncatedLiquidationPrice != nil) && (this.SafeValue(truncatedLiquidationPrice, 0) == "-") {

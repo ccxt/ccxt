@@ -3227,7 +3227,7 @@ func (this *Hashkey) createSpotOrderBody(ch chan AsyncResult[Order], symbol stri
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(response, market)}
 	return nil
 }
-func (this *Hashkey) CreateOrderRequest(symbol *string, typeVar *string, side *string, amount *float64, optionalArgs ...any) any {
+func (this *Hashkey) CreateOrderRequest(symbol *string, typeVar *string, side *string, amount *float64, optionalArgs ...any) map[string]any {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -3489,7 +3489,7 @@ func (this *Hashkey) createOrdersBody(ch chan AsyncResult[[]Order], orders any, 
 		var amount *float64 = this.SafeNumber(rawOrder, "amount")
 		var price *float64 = this.SafeNumber(rawOrder, "price")
 		var orderParams map[string]any = this.SafeDictMap(rawOrder, "params", map[string]any{})
-		var orderRequest map[string]any = MapTyped(this.CreateOrderRequest(symbol, typeVar, side, amount, price, orderParams))
+		var orderRequest map[string]any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, orderParams)
 		var clientOrderId *string = this.SafeString(orderRequest, "clientOrderId")
 		if clientOrderId == nil {
 			orderRequest["clientOrderId"] = this.Uuid() // both spot and swap endpoints require clientOrderId

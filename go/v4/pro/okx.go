@@ -3181,7 +3181,7 @@ func (this *Okx) createOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], symbol 
 	var url string = this.GetUrl("private", "private")
 	var messageHash string = this.RequestId()
 	op, paramsOp := this.HandleOptionStringAndParams(params, "createOrderWs", "op", "batch-orders")
-	var args map[string]any = ccxt.MapTyped(this.CreateOrderRequest(symbol, typeVar, side, amount, price, paramsOp))
+	var args map[string]any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, paramsOp)
 	var market map[string]any = this.Market(symbol)
 	var instIdCode *int64 = this.SafeInteger(market, "instIdCode")
 	if instIdCode != nil {
@@ -3235,7 +3235,7 @@ func (this *Okx) HandlePlaceOrders(client any, message map[string]any) {
 	if this.IsEmpty(args) {
 		var method *string = this.SafeString(message, "op")
 		var stringMsg string = this.Json(message)
-		this.HandleErrors(1, "", ccxt.StringArg(client.(ccxt.ClientInterface).GetUrl()), method, map[string]any{}, stringMsg, message, map[string]any{}, map[string]any{})
+		this.HandleErrors(1, "", client.(ccxt.ClientInterface).GetUrl(), method, map[string]any{}, stringMsg, message, map[string]any{}, map[string]any{})
 	}
 	var orders []any = ccxt.ArrayTyped(this.ParseOrders(args, nil, nil, nil))
 	var first map[string]any = this.SafeDictMap(orders, 0, map[string]any{})
@@ -3523,7 +3523,7 @@ func (this *Okx) HandleCancelOrders(client any, message map[string]any) {
 	if this.IsEmpty(args) {
 		var method *string = this.SafeString(message, "op")
 		var stringMsg string = this.Json(message)
-		this.HandleErrors(1, "", ccxt.StringArg(client.(ccxt.ClientInterface).GetUrl()), method, map[string]any{}, stringMsg, message, map[string]any{}, map[string]any{})
+		this.HandleErrors(1, "", client.(ccxt.ClientInterface).GetUrl(), method, map[string]any{}, stringMsg, message, map[string]any{}, map[string]any{})
 	}
 	var orders []any = this.ParseOrders(args, nil, nil, nil)
 	client.(ccxt.ClientInterface).Resolve(orders, messageHash)

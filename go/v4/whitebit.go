@@ -2860,7 +2860,7 @@ func (this *Whitebit) createOrderBody(ch chan AsyncResult[Order], symbol string,
 	}
 	var paramsOmitted map[string]any = func() map[string]any {
 		if clientOrderId != nil {
-			return MapTyped(this.Omit(paramsCost, []any{"clientOrderId"}))
+			return this.OmitDict(paramsCost, []any{"clientOrderId"})
 		}
 		return paramsCost
 	}()

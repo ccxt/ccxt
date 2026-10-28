@@ -730,7 +730,7 @@ func (this *testMainClass) runTestsBody(ch chan ccxt.AsyncResult[any], exchange 
 	var failedMethods []any = []any{}
 	for i := 0; i < len(testNames); i++ {
 		var testName string = testNames[i]
-		var testReturnedValue any = GetValue(results, i)
+		var testReturnedValue any = results[i]
 		if testReturnedValue != true {
 			failedMethods = append(failedMethods, testName)
 		}

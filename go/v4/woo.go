@@ -4428,7 +4428,7 @@ func (this *Woo) withdrawBody(ch chan AsyncResult[Transaction], code string, amo
 	if network == nil {
 		panic(ArgumentsRequired(this.Id + " withdraw() requires a network parameter for " + code))
 	}
-	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsWithdrawTag, "network"))
+	var paramsOmitted map[string]any = this.OmitDict(paramsWithdrawTag, "network")
 	request["token"] = currency["id"]
 	request["network"] = this.NetworkCodeToId(network, this.SafeString(currency, "code"))
 

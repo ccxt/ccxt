@@ -2975,7 +2975,7 @@ func (this *Bittrade) withdrawBody(ch chan AsyncResult[Transaction], code string
 	}
 	var paramsNetwork map[string]any = func() map[string]any {
 		if network != nil {
-			return MapTyped(this.Omit(paramsWithdrawTag, "network"))
+			return this.OmitDict(paramsWithdrawTag, "network")
 		}
 		return paramsWithdrawTag
 	}()

@@ -1134,7 +1134,7 @@ func (this *Cex) FromPrecision(amount any, scale any) any {
 	precise := ccxt.NewPrecise(amount)
 	precise.Decimals = this.Sum(precise.Decimals, scale)
 	precise.Reduce()
-	return ccxt.ToString(precise)
+	return precise.String()
 }
 func (this *Cex) CurrencyFromPrecision(currency any, amount any) any {
 	var scale *int64 = this.SafeInteger(ccxt.GetValue(this.Currencies(), currency), "precision", 0)

@@ -5649,7 +5649,7 @@ func (this *Aster) withdrawBody(ch chan AsyncResult[Transaction], code string, a
 		panic(ArgumentsRequired(this.Id + " withdraw require fee parameter"))
 	}
 	request["fee"] = fee
-	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsWithdrawTag, []any{"chainId", "network", "fee"}))
+	var paramsOmitted map[string]any = this.OmitDict(paramsWithdrawTag, []any{"chainId", "network", "fee"})
 	request["amount"] = this.CurrencyToPrecision(code, amount, network)
 	request["userSignature"] = this.SignWithdrawPayload(request, network)
 
