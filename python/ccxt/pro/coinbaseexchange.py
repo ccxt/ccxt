@@ -896,7 +896,7 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
         #     }
         #
         errMsg = self.safe_string(message, 'message')
-        reason = self.safe_string(message, 'reason')
+        reason = self.safe_string(message, 'reason', '')
         try:
             if errMsg == 'Authentication Failed':
                 raise AuthenticationError('Authentication failed: ' + reason)

@@ -3320,8 +3320,8 @@ class deribit(Exchange, ImplicitAPI):
         if cursor is not None:
             dataLength = len(data)
             if dataLength > 0:
-                first = data[0]
-                last = data[dataLength - 1]
+                first = self.safe_dict(data, 0, {})
+                last = self.safe_dict(data, dataLength - 1, {})
                 first['continuation'] = cursor
                 last['continuation'] = cursor
                 data[0] = first

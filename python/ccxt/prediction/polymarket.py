@@ -1394,7 +1394,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         :returns dict[]: a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
         """
         outcomeObj = await self.load_outcome(outcome)
-        tokenId = self.safe_string(outcomeObj, 'outcomeId')
+        tokenId = self.safe_string(outcomeObj, 'outcomeId', '')
         outcomeInfo = self.safe_dict(outcomeObj, 'info', {})
         conditionId = self.safe_string(outcomeInfo, 'conditionId')
         if conditionId is None:

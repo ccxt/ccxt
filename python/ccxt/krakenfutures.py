@@ -482,7 +482,7 @@ class krakenfutures(Exchange, ImplicitAPI):
             future = (type == 'future')
             symbol = id
             split = id.split('_')
-            splitMarket = self.safe_string(split, 1)
+            splitMarket = self.safe_string(split, 1, '')
             baseId = splitMarket[0:len(splitMarket) - 3]
             quoteId = 'usd'  # always USD
             base = self.safe_currency_code(baseId)

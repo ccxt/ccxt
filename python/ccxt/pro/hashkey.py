@@ -130,12 +130,14 @@ class hashkey(ccxt.async_support.hashkey):
         #
         marketId = self.safe_string(message, 'symbol')
         market = self.safe_market(marketId)
-        symbol = self.safe_symbol(marketId, market)
-        if not (symbol in self.ohlcvs):
-            self.ohlcvs[symbol] = {}
+        symbol = self.safe_string(market, 'symbol', '')
         params = self.safe_dict(message, 'params')
         klineType = self.safe_string(params, 'klineType')
         timeframe = self.find_timeframe(klineType)
+        if timeframe is None:
+            return
+        if not (symbol in self.ohlcvs):
+            self.ohlcvs[symbol] = {}
         if not (timeframe in self.ohlcvs[symbol]):
             limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
             self.ohlcvs[symbol][timeframe] = ArrayCacheByTimestamp(limit)
