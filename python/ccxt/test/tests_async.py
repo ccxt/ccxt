@@ -1024,7 +1024,7 @@ class testMainClass:
                 tests['fetchPositions'] = [symbol]  # this test fetches all positions for 1 symbol
                 tests['fetchPosition'] = [symbol]
                 tests['fetchPositionRisk'] = [symbol]
-                tests['setPositionMode'] = [symbol]
+                tests['setPositionMode'] = [False, symbol]
                 tests['setMarginMode'] = [symbol]
                 tests['fetchOpenInterestHistory'] = [symbol]
                 tests['fetchFundingRateHistory'] = [symbol]

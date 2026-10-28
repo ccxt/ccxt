@@ -3844,7 +3844,7 @@ class BaseExchange(object):
         # sanbox mode
         isSandbox = self.safe_bool_2(self.options, 'sandbox', 'testnet', False)
         if isSandbox:
-            self.set_sandbox_mode(isSandbox)
+            self.set_sandbox_mode(True)
         # compatibility for sandbox/testnet options in userConfig
         if (self.safe_bool(userConfig, 'sandbox', False)) or (self.safe_bool(userConfig, 'testnet', False)):
             self.set_sandbox_mode(True)
