@@ -651,7 +651,7 @@ export default class delta extends Exchange {
         const keys = Object.keys (input);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            const item = input[key];
+            const item = this.safeDict (input, key, {});
             const numericIdString = this.safeString (item, 'numericId');
             if (numericIdString === undefined) {
                 continue;
