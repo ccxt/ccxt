@@ -490,10 +490,10 @@ public partial class bitopro : ccxt.bitopro
             { "X-BITOPRO-PAYLOAD", payload },
             { "X-BITOPRO-SIGNATURE", signature },
         };
-        ((IDictionary<string,object>)getValue((this.options.ContainsKey("ws") ? this.options["ws"] : null), "options"))["headers"] = headers;
+        wsInnerOptions["headers"] = headers;
         // instantiate client
         this.client(url);
-        ((IDictionary<string,object>)getValue((this.options.ContainsKey("ws") ? this.options["ws"] : null), "options"))["headers"] = originalHeaders;
+        wsInnerOptions["headers"] = originalHeaders;
     }
 
     /**

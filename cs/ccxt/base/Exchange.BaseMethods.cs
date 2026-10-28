@@ -6470,7 +6470,7 @@ public partial class BaseExchange
         List<object> interests = new List<object>() {};
         for (int i = 0; i < getArrayLength(response); i++)
         {
-            object row = getValue(response, i);
+            object row = this.safeValue(response, i);
             interests.Add(this.parseBorrowInterest(row, market));
         }
         return interests;
@@ -6486,7 +6486,7 @@ public partial class BaseExchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < getArrayLength(response); i++)
         {
-            object item = getValue(response, i);
+            object item = this.safeValue(response, i);
             Dictionary<string, object> borrowRate = this.parseBorrowRate(item);
             result.Add(borrowRate);
         }
@@ -6499,7 +6499,7 @@ public partial class BaseExchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < getArrayLength(info); i++)
         {
-            object item = getValue(info, i);
+            object item = this.safeValue(info, i);
             IDictionary<string, object> borrowRate = ((IDictionary<string, object>)this.parseIsolatedBorrowRate(item));
             string? symbol = this.safeString(borrowRate, "symbol");
             result[(string)symbol] = borrowRate;

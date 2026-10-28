@@ -1618,15 +1618,15 @@ public partial class poloniex : ccxt.poloniex
         //        "symbols": [ "ETH_USDT", "BTC_USDT" ]
         //    }
         //
-        object channel = this.safeString(message, "channel");
+        string channel = this.safeString(message, "channel", "");
         List<object> marketIds = this.safeList(message, "symbols", new List<object>() {});
         IDictionary<string, object> timeframes = this.safeDict(this.options, "timeframes", new Dictionary<string, object>() {});
         string? timeframe = this.findTimeframe(channel, timeframes);
         for (int i = 0; i < marketIds.Count; i++)
         {
             string? symbol = this.safeSymbol(this.safeString(marketIds, i));
-            string? subMessageHash = ((string)add(((object)(channel == null ? null : channel + "::")), symbol));
-            if ((channel is "trades"))
+            string subMessageHash = ((channel + "::") + symbol);
+            if (channel == "trades")
             {
                 this.cleanCache(new Dictionary<string, object>() {
                     { "topic", "trades" },

@@ -1760,11 +1760,12 @@ public partial class pacifica : ccxt.pacifica
             throw new ArgumentsRequired ((this.id + "postAction() requires a \"operationType\" argument!")) ;
         }
         string requestId = this.requestId();
+        Dictionary<string, object> postParams = new Dictionary<string, object>() {};
+        postParams[(string)operationType] = request;
         Dictionary<string, object> payload = new Dictionary<string, object>() {
             { "id", requestId },
-            { "params", new Dictionary<string, object>() {} },
+            { "params", postParams },
         };
-        ((IDictionary<string,object>)payload["params"])[(string)operationType] = request;
         return payload;
     }
 

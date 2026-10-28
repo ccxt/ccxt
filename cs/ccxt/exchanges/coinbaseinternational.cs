@@ -3612,7 +3612,7 @@ public partial class coinbaseinternational : Exchange
     {
         useEddsa ??= false;
         object uri = null;
-        if ((url != null))
+        if (((url != null)) && ((method != null)))
         {
             uri = add(add(method, " "), url.Replace("https://", (string)""));
             int quesPos = getIndexOf(uri, "?");

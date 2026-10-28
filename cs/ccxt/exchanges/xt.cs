@@ -6837,45 +6837,44 @@ public partial class xt : Exchange
             string payloadString = "";
             if ((endpoint == "spot") || (endpoint == "user"))
             {
-                payloadString = (((((("xt-validate-algorithms=HmacSHA256&xt-validate-appkey=" + this.apiKey) + "&xt-validate-recvwindow=") + recvWindow) + "&xt-validate-t") + "imestamp=") + timestamp);
+                string spotPrefix = (((((("xt-validate-algorithms=HmacSHA256&xt-validate-appkey=" + this.apiKey) + "&xt-validate-recvwindow=") + recvWindow) + "&xt-validate-t") + "imestamp=") + timestamp);
                 if (isUndefinedBody)
                 {
                     if (urlencoded != "")
                     {
                         url = (((apiUrl + payload) + "?") + urlencoded);
-                        payloadString = payloadString + ((((("#" + method) + "#") + payload) + "#") + this.rawencode(this.keysort(query)));
+                        payloadString = ((((((spotPrefix + "#") + method) + "#") + payload) + "#") + this.rawencode(this.keysort(query)));
                     } else
                     {
-                        payloadString = payloadString + ((("#" + method) + "#") + payload);
+                        payloadString = ((((spotPrefix + "#") + method) + "#") + payload);
                     }
                 } else
                 {
-                    payloadString = payloadString + ((((("#" + method) + "#") + payload) + "#") + signedBody);
+                    payloadString = ((((((spotPrefix + "#") + method) + "#") + payload) + "#") + signedBody);
                 }
                 headersValue["xt-validate-algorithms"] = "HmacSHA256";
                 headersValue["xt-validate-recvwindow"] = recvWindow;
             } else
             {
-                payloadString = (((("xt-validate-appkey=" + this.apiKey) + "&xt-validate-t") + "imestamp=") + timestamp); // we can't glue timestamp, breaks in php
+                string futurePrefix = (((("xt-validate-appkey=" + this.apiKey) + "&xt-validate-t") + "imestamp=") + timestamp); // we can't glue timestamp, breaks in php
                 if ((method == "GET"))
                 {
                     if (urlencoded != "")
                     {
                         url = (((apiUrl + payload) + "?") + urlencoded);
-                        payloadString = payloadString + ((("#" + payload) + "#") + urlencoded);
+                        payloadString = ((((futurePrefix + "#") + payload) + "#") + urlencoded);
                     } else
                     {
-                        payloadString = payloadString + ("#" + payload);
+                        payloadString = ((futurePrefix + "#") + payload);
                     }
                 } else
                 {
-                    payloadString = payloadString + ((("#" + payload) + "#") + signedBody);
+                    payloadString = ((((futurePrefix + "#") + payload) + "#") + signedBody);
                 }
             }
-            string signature = this.hmac(this.encode(payloadString), this.encode(this.secret), sha256);
             headersValue["xt-validate-appkey"] = this.apiKey;
             headersValue["xt-validate-timestamp"] = timestamp;
-            headersValue["xt-validate-signature"] = signature;
+            headersValue["xt-validate-signature"] = this.hmac(this.encode(payloadString), this.encode(this.secret), sha256);
         } else
         {
             if (urlencoded != "")
@@ -6883,15 +6882,10 @@ public partial class xt : Exchange
                 url = (((apiUrl + payload) + "?") + urlencoded);
             }
         }
-        string? bodyValue = null;
-        if (signed)
-        {
-            bodyValue = signedBody;
-        }
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
-            { "body", bodyValue },
+            { "body", signedBody },
             { "headers", headersValue },
         };
     }

@@ -419,17 +419,13 @@ public partial class kalshi : PredictionExchange
                 List<object> parsed = this.parseBinaryMarketToOutcomes(raw);
                 string? eventTicker = this.safeString(raw, "event_ticker");
                 string? eventTitle = this.safeString(raw, "title", eventTicker);
-                string eventKey = "";
-                if ((eventTitle != null) && eventTitle != "")
-                {
-                    eventKey = this.shortenSlug(eventTitle);
-                }
                 for (int j = 0; j < (parsed?.Count ?? 0); j++)
                 {
                     object m = parsed[j];
                     flatMarkets.Add(m);
-                    if (eventKey != "")
+                    if ((eventTitle != null) && eventTitle != "")
                     {
+                        string eventKey = this.shortenSlug(eventTitle);
                         if (!(((eventKey != null) && (eventsDict?.ContainsKey(eventKey) == true))))
                         {
                             eventsDict[(string)eventKey] = new Dictionary<string, object>() {
