@@ -2335,7 +2335,7 @@ public partial class mexc : ccxt.mexc
             {
                 string? subscriptionHash = ((string)subscriptionHashes[i]);
                 string? subscribedChannel = this.safeString((client.subscriptions != null && subscriptionHash != null && client.subscriptions.ContainsKey(subscriptionHash) ? client.subscriptions[subscriptionHash] : null), "channel");
-                if (((subscribedChannel != null)) && (getIndexOf(msg, (("[" + subscribedChannel) + "]")) >= 0))
+                if (((subscribedChannel != null)) && ((msg?.IndexOf((("[" + subscribedChannel) + "]"), StringComparison.Ordinal) ?? -1) >= 0))
                 {
                     ((IDictionary<string,object>)client.subscriptions).Remove(subscriptionHash);
                     client.reject(error, subscriptionHash);

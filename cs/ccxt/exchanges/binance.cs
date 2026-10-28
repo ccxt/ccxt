@@ -5565,7 +5565,7 @@ public partial class binance : Exchange
         return account;
     }
 
-    public virtual object parseBalanceCustom(object response, object type = null, object marginMode = null, object isPortfolioMargin = null)
+    public virtual object parseBalanceCustom(object response, object type = null, object marginMode = null, bool? isPortfolioMargin = null)
     {
         isPortfolioMargin ??= false;
         Dictionary<string, object> result = new Dictionary<string, object>() {
@@ -5574,7 +5574,7 @@ public partial class binance : Exchange
         Int64? timestamp = null;
         bool isolated = (marginMode is "isolated");
         bool cross = ((type is "margin")) || ((marginMode is "cross"));
-        if (isTrue(isPortfolioMargin))
+        if (isPortfolioMargin == true)
         {
             for (int i = 0; i < getArrayLength(response); i++)
             {

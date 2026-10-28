@@ -99,15 +99,8 @@ public partial class coincheck : ccxt.coincheck
         IDictionary<string, object> data = this.safeDict(message, 1, new Dictionary<string, object>() {});
         Int64? timestamp = this.safeTimestamp(data, "last_update_at");
         ccxt.OrderBook snapshot = this.parseOrderBook(data, symbol, timestamp);
-        ccxt.pro.IOrderBook orderbook = this.safeOrderBook(this.orderbooks, symbol);
-        if ((orderbook == null))
-        {
-            orderbook = this.orderBook(ccxt.BaseExchange.FromOrderBook(snapshot));
-            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
-        } else
-        {
-            (orderbook as IOrderBook).reset(ccxt.BaseExchange.FromOrderBook(snapshot));
-        }
+        ccxt.pro.OrderBook orderbook = this.orderBook(ccxt.BaseExchange.FromOrderBook(snapshot));
+        ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
         string messageHash = ("orderbook:" + symbol);
         client.resolve(orderbook, messageHash);
     }

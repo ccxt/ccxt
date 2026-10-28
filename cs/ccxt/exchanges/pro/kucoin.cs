@@ -88,7 +88,7 @@ public partial class kucoin : ccxt.kucoin
         });
     }
 
-    public async virtual Task<object> negotiate(bool privateChannel, object isFuturesMethod = null, IDictionary<string, object>? parameters = null)
+    public async virtual Task<object> negotiate(bool privateChannel, bool? isFuturesMethod = null, IDictionary<string, object>? parameters = null)
     {
         isFuturesMethod ??= false;
         parameters ??= new Dictionary<string, object>();
@@ -97,7 +97,7 @@ public partial class kucoin : ccxt.kucoin
         {
             connectId = "private";
         }
-        if (isTrue(isFuturesMethod))
+        if (isFuturesMethod == true)
         {
             connectId = connectId + "Futures";
         }
@@ -865,7 +865,7 @@ public partial class kucoin : ccxt.kucoin
         return ccxt.BaseExchange.ToTickers(this.filterByArray(this.bidsasks, "symbol", symbolsNormalized));
     }
 
-    public async virtual Task<object> watchMultiHelper(string methodName, object channelName, object isFuturesChannel, object symbols = null, object parameters = null)
+    public async virtual Task<object> watchMultiHelper(string methodName, object channelName, bool? isFuturesChannel, object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))

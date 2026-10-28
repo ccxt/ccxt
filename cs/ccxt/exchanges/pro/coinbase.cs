@@ -272,9 +272,9 @@ public partial class coinbase : ccxt.coinbase
         object timestamp = this.numberToString(this.seconds());
         this.checkRequiredCredentials();
         bool isCloudAPiKey = (this.apiKey.IndexOf("organizations/", StringComparison.Ordinal) >= 0) || (this.secret.StartsWith("-----BEGIN"));
-        object isV2CloudAPiKey = this.isEddsaApiKey();
+        bool isV2CloudAPiKey = this.isEddsaApiKey();
         string? auth = ((string)add(((object)(timestamp == null ? null : timestamp + (string)(object)(name))), String.Join(",", ((IList<object>)productIds).ToArray())));
-        if (!isCloudAPiKey && !isTrue(isV2CloudAPiKey))
+        if (!isCloudAPiKey && !isV2CloudAPiKey)
         {
             subscribe["api_key"] = this.apiKey;
             subscribe["timestamp"] = timestamp;

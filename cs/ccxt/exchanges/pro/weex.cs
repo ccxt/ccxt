@@ -87,7 +87,7 @@ public partial class weex : ccxt.weex
         return this.numberToString(requestId);
     }
 
-    public async virtual Task<object> subscribePublic(object messageHashes, object channels, object isContract = null, object parameters = null, IDictionary<string, object>? subscription = null)
+    public async virtual Task<object> subscribePublic(object messageHashes, object channels, bool? isContract = null, object parameters = null, IDictionary<string, object>? subscription = null)
     {
         isContract ??= false;
         parameters ??= new Dictionary<string, object>();
@@ -108,7 +108,7 @@ public partial class weex : ccxt.weex
             { "id", id },
         });
         string type = "spot";
-        if (isTrue(isContract))
+        if (isContract == true)
         {
             type = "contract";
         }

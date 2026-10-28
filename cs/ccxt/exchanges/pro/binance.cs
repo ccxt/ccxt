@@ -3830,12 +3830,12 @@ public partial class binance : ccxt.binance
         }
     }
 
-    public async virtual Task loadBalanceSnapshot(WebSocketClient client, object messageHash, object type, object isPortfolioMargin)
+    public async virtual Task loadBalanceSnapshot(WebSocketClient client, object messageHash, object type, bool? isPortfolioMargin)
     {
         Dictionary<string, object> parameters = new Dictionary<string, object>() {
             { "type", type },
         };
-        if (isTrue(isPortfolioMargin))
+        if (isPortfolioMargin == true)
         {
             parameters["portfolioMargin"] = true;
         }
@@ -4419,12 +4419,12 @@ public partial class binance : ccxt.binance
         string messageHash = requestId.ToString();
         bool? sor = this.safeBool2(parameters, "sor", "SOR", false);
         IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "sor", "SOR"));
-        object isConditional = this.isConditionalOrder(paramsOmitted);
-        if (((((market.ContainsKey("inverse") ? market["inverse"] : null) as bool?) == true)) && isTrue(isConditional))
+        bool isConditional = this.isConditionalOrder(paramsOmitted);
+        if (((((market.ContainsKey("inverse") ? market["inverse"] : null) as bool?) == true)) && isConditional)
         {
             throw new NotSupported ((this.id + " createOrderWs() does not support conditional orders for inverse markets, the exchange only accepts them through the REST API, use createOrder() instead")) ;
         }
-        bool isAlgoOrder = ((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true)) && (((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true)) || ((((market.ContainsKey("future") ? market["future"] : null) as bool?) == true))) && isTrue(isConditional);
+        bool isAlgoOrder = ((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true)) && (((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true)) || ((((market.ContainsKey("future") ? market["future"] : null) as bool?) == true))) && isConditional;
         Dictionary<string, object> payload = this.createOrderRequest(symbol, type, side, amount, price, this.extend(paramsOmitted, new Dictionary<string, object>() {
             { "isAlgoOrder", isAlgoOrder },
         }));
@@ -5927,12 +5927,12 @@ public partial class binance : ccxt.binance
         }
     }
 
-    public async virtual Task loadPositionsSnapshot(WebSocketClient client, object messageHash, object type, object isPortfolioMargin)
+    public async virtual Task loadPositionsSnapshot(WebSocketClient client, object messageHash, object type, bool? isPortfolioMargin)
     {
         Dictionary<string, object> parameters = new Dictionary<string, object>() {
             { "type", type },
         };
-        if (isTrue(isPortfolioMargin))
+        if (isPortfolioMargin == true)
         {
             parameters["portfolioMargin"] = true;
         }

@@ -113,7 +113,7 @@ public partial class grvt : ccxt.grvt
         }
     }
 
-    public async virtual Task<object> subscribeMultiple(object messageHashes, IDictionary<string, object> request, object rawHashes, object publicOrPrivate = null)
+    public async virtual Task<object> subscribeMultiple(object messageHashes, IDictionary<string, object> request, object rawHashes, bool? publicOrPrivate = null)
     {
         publicOrPrivate ??= true;
         Dictionary<string, object> payload = new Dictionary<string, object>() {
@@ -123,7 +123,7 @@ public partial class grvt : ccxt.grvt
             { "id", this.requestId() },
         };
         string apiPart = "privateTrading";
-        if (isTrue(publicOrPrivate))
+        if (publicOrPrivate == true)
         {
             apiPart = "publicMarket";
         }

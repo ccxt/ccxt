@@ -3753,7 +3753,7 @@ public partial class bitget : Exchange
             // for backward-compatibility
             types = this.safeList(this.options, "fetchMarkets", defaultMarkets);
         }
-        List<object> promises = new List<object>() {};
+        List<Task<Dictionary<string, object>>> promises = new List<Task<Dictionary<string, object>>>() {};
         bool fetchMargins = false;
         for (int i = 0; i < (types?.Count ?? 0); i++)
         {
@@ -3784,7 +3784,7 @@ public partial class bitget : Exchange
                 { "category", "SPOT" },
             }));
         }
-        List<object> results = await promiseAll(promises);
+        List<object> results = new List<object>(await Task.WhenAll(promises));
         Dictionary<string, object> spotInstruments = new Dictionary<string, object>() {};
         if (fetchMargins)
         {

@@ -1155,29 +1155,29 @@ public partial class tokocrypto : Exchange
         {
             side = buyerMaker == true ? "sell" : "buy"; // this is reversed intentionally
             takerOrMaker = "taker";
-        } else if ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("side")))
+        } else if ((this.safeString(trade, "side") != null))
         {
             side = this.safeStringLower(trade, "side");
         } else
         {
-            if ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("isBuyer")))
+            if ((this.safeString(trade, "isBuyer") != null))
             {
                 side = (this.safeBool(trade, "isBuyer", false) == true) ? "buy" : "sell"; // this is a true side
             }
         }
         Dictionary<string, object> fee = null;
-        if ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("commission")))
+        if ((this.safeString(trade, "commission") != null))
         {
             fee = new Dictionary<string, object>() {
                 { "cost", this.safeString(trade, "commission") },
                 { "currency", this.safeCurrencyCode(this.safeString(trade, "commissionAsset")) },
             };
         }
-        if ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("isMaker")))
+        if ((this.safeString(trade, "isMaker") != null))
         {
             takerOrMaker = (this.safeBool(trade, "isMaker", false) == true) ? "maker" : "taker";
         }
-        if ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("maker")))
+        if ((this.safeString(trade, "maker") != null))
         {
             takerOrMaker = (this.safeBool(trade, "maker", false) == true) ? "maker" : "taker";
         }
@@ -1368,7 +1368,7 @@ public partial class tokocrypto : Exchange
         string? marketId = this.safeString(ticker, "symbol");
         string? symbol = this.safeSymbol(marketId, market);
         string? last = this.safeString(ticker, "lastPrice");
-        bool isCoinm = ((ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("baseVolume")));
+        bool isCoinm = ((this.safeString(ticker, "baseVolume") != null));
         string? baseVolume = null;
         string? quoteVolume = null;
         if (isCoinm)
@@ -2166,7 +2166,11 @@ public partial class tokocrypto : Exchange
         if (timeInForceIsRequired)
         {
             string? defaultTimeInForce = this.safeString(this.options, "defaultTimeInForce", "GTC");
-            string? timeInForce = ((timeInForceResolved == null)) ? defaultTimeInForce : timeInForceResolved;
+            string? timeInForce = defaultTimeInForce;
+            if ((timeInForceResolved != null))
+            {
+                timeInForce = timeInForceResolved;
+            }
             // the endpoint takes the time force as a numeric code, post only is
             // placed as a LIMIT_MAKER order rather than as the GTX code
             Dictionary<string, object> timeInForceCodes = new Dictionary<string, object>() {

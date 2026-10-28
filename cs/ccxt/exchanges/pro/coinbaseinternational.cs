@@ -1758,13 +1758,13 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
      * @param {boolean} [isPrivate] whether to authenticate before sending the request
      * @returns {object} the exchange response
      */
-    public async virtual Task<object> requestWs(object method, object parameters = null, object isPrivate = null)
+    public async virtual Task<object> requestWs(object method, object parameters = null, bool? isPrivate = null)
     {
         parameters ??= new Dictionary<string, object>();
         isPrivate ??= false;
         object paramsResolved = this.handleRouteAndParams("requestWs", parameters);
         object url = this.getWsUrl(true);
-        if (isTrue(isPrivate))
+        if (isPrivate == true)
         {
             await this.authenticate();
         }
@@ -2282,12 +2282,12 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} the exchange response
      */
-    public async virtual Task<object> unsubscribeAllWs(object isPrivate = null, IDictionary<string, object>? parameters = null)
+    public async virtual Task<object> unsubscribeAllWs(bool? isPrivate = null, IDictionary<string, object>? parameters = null)
     {
         isPrivate ??= false;
         parameters ??= new Dictionary<string, object>();
         object paramsResolved = this.handleRouteAndParams("unsubscribeAllWs", parameters);
-        string method = isTrue(isPrivate) ? "private/unsubscribe_all" : "public/unsubscribe_all";
+        string method = isPrivate == true ? "private/unsubscribe_all" : "public/unsubscribe_all";
         return await this.requestWs(method, paramsResolved, isPrivate);
     }
 
