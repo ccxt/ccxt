@@ -2356,10 +2356,10 @@ public partial class weex : Exchange
                 response = await this.contractPrivateGetCapiV3AccountBalance(paramsMarketType);
             }
         }
-        return ccxt.BaseExchange.ToBalances(this.parseBalance(response));
+        return ccxt.BaseExchange.ToBalances(this.parseBalanceList(response));
     }
 
-    public override Dictionary<string, object> parseBalance(object response)
+    public virtual Dictionary<string, object> parseBalanceList(object response)
     {
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },

@@ -1731,15 +1731,15 @@ public partial class extended : Exchange
         //     }
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        return ccxt.BaseExchange.ToBalances(this.parseBalance(data));
+        return ccxt.BaseExchange.ToBalances(this.parseBalanceList(data));
     }
 
-    public override Dictionary<string, object> parseBalance(object response)
+    public virtual Dictionary<string, object> parseBalanceList(IList<object> response)
     {
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        for (int i = 0; i < getArrayLength(response); i++)
+        for (int i = 0; i < (response?.Count ?? 0); i++)
         {
             IDictionary<string, object> balance = this.safeDict(response, i, new Dictionary<string, object>() {});
             string? currencyId = this.safeString(balance, "asset");

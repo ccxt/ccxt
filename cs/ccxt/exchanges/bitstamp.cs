@@ -1997,7 +1997,7 @@ public partial class bitstamp : Exchange
         return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(ohlc, market,timeframeVar, since, limitResolved));
     }
 
-    public override Dictionary<string, object> parseBalance(object response)
+    public virtual Dictionary<string, object> parseBalanceList(IList<object> response)
     {
         object finalResponse = response; // java req
         Dictionary<string, object> result = new Dictionary<string, object>() {
@@ -2038,7 +2038,7 @@ public partial class bitstamp : Exchange
         {
             await this.loadMarkets();
         }
-        Dictionary<string, object> response = await this.privatePostAccountBalances(parameters);
+        List<object> response = await this.privatePostAccountBalances(parameters);
         //
         //     [
         //         {
@@ -2050,7 +2050,7 @@ public partial class bitstamp : Exchange
         //         ...
         //     ]
         //
-        return ccxt.BaseExchange.ToBalances(this.parseBalance(response));
+        return ccxt.BaseExchange.ToBalances(this.parseBalanceList(response));
     }
 
     /**

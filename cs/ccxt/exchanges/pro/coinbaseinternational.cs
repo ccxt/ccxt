@@ -280,7 +280,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
     {
         IDictionary<string, object> parameters = this.safeDict(message, "params", new Dictionary<string, object>() {});
         IDictionary<string, object> data = this.safeDict(parameters, "data", new Dictionary<string, object>() {});
-        Dictionary<string, object> parsed = this.parseBalance(data);
+        Dictionary<string, object> parsed = this.parseBalanceList(data);
         this.balance = this.deepExtend(this.balance, parsed);
         client.resolve(this.balance, "balance");
     }
@@ -2115,7 +2115,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         int summariesLength = summaries.Count;
         for (int i = 0; i < summariesLength; i++)
         {
-            balance = this.deepExtend(balance, this.parseBalance((summaries != null && i < summaries.Count ? summaries[i] : null)));
+            balance = this.deepExtend(balance, this.parseBalanceList((summaries != null && i < summaries.Count ? summaries[i] : null)));
         }
         return ccxt.BaseExchange.ToBalances(this.safeBalance(balance));
     }

@@ -1046,7 +1046,7 @@ public partial class bitopro : Exchange
         return result;
     }
 
-    public override Dictionary<string, object> parseBalance(object response)
+    public virtual Dictionary<string, object> parseBalanceList(IList<object> response)
     {
         //
         //     [{
@@ -1110,7 +1110,7 @@ public partial class bitopro : Exchange
         //         ]
         //     }
         //
-        return ccxt.BaseExchange.ToBalances(this.parseBalance(balances));
+        return ccxt.BaseExchange.ToBalances(this.parseBalanceList(balances));
     }
 
     public virtual string? parseOrderStatus(string? status)
@@ -1378,7 +1378,7 @@ public partial class bitopro : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? id = ((string)(market.ContainsKey("uppercaseId") ? market["uppercaseId"] : null));
+        string? id = this.safeString(market, "uppercaseId");
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if ((id != null))
         {

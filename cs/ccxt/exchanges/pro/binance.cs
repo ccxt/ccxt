@@ -340,21 +340,17 @@ public partial class binance : ccxt.binance
 
     public virtual string? getStockUnifiedSymbol(object stockSymbol, string? quote = null)
     {
+        quote ??= "USDC";
         if ((stockSymbol == null))
         {
             return null;
-        }
-        string? safeQuote = quote;
-        if ((quote == null))
-        {
-            safeQuote = "USDC";
         }
         string? parsed = this.safeSymbol(stockSymbol, null, "/", "spot");
         if (((parsed != null)) && (parsed.IndexOf("/", StringComparison.Ordinal) >= 0))
         {
             return parsed;
         }
-        return ((string?)((object)(add(add(stockSymbol, "/"), safeQuote))));
+        return ((string?)((object)(add(add(stockSymbol, "/"), quote))));
     }
 
     /**

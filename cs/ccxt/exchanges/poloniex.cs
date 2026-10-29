@@ -3041,7 +3041,7 @@ public partial class poloniex : Exchange
         return this.parseTrades(trades);
     }
 
-    public override Dictionary<string, object> parseBalance(object response)
+    public virtual Dictionary<string, object> parseBalanceList(object response)
     {
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
@@ -3149,7 +3149,7 @@ public partial class poloniex : Exchange
             //    }
             //
             IDictionary<string, object> data = this.safeDict(responseRaw, "data", new Dictionary<string, object>() {});
-            return ccxt.BaseExchange.ToBalances(this.parseBalance(data));
+            return ccxt.BaseExchange.ToBalances(this.parseBalanceList(data));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "accountType", "SPOT" },
@@ -3171,7 +3171,7 @@ public partial class poloniex : Exchange
         //         }
         //     ]
         //
-        return ccxt.BaseExchange.ToBalances(this.parseBalance(response));
+        return ccxt.BaseExchange.ToBalances(this.parseBalanceList(response));
     }
 
     /**

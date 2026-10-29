@@ -2993,10 +2993,10 @@ public partial class xt : Exchange
             IDictionary<string, object> data = this.safeDict(response, "result", new Dictionary<string, object>() {});
             balances = this.safeList(data, "assets", new List<object>() {});
         }
-        return ccxt.BaseExchange.ToBalances(this.parseBalance(balances));
+        return ccxt.BaseExchange.ToBalances(this.parseBalanceList(balances));
     }
 
-    public override Dictionary<string, object> parseBalance(object response)
+    public virtual Dictionary<string, object> parseBalanceList(object response)
     {
         //
         // spot

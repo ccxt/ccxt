@@ -315,7 +315,7 @@ public partial class bitget : ccxt.bitget
         {
             this.tickers[(string)symbol] = ccxt.BaseExchange.FromTicker(ticker);
         }
-        string messageHash = ("ticker:" + symbol);
+        string messageHash = ("ticker:" + this.safeString(ccxt.BaseExchange.FromTicker(ticker), "symbol", ""));
         client.resolve(ccxt.BaseExchange.FromTicker(ticker), messageHash);
     }
 
@@ -529,7 +529,7 @@ public partial class bitget : ccxt.bitget
         {
             this.bidsasks[(string)symbol] = ticker;
         }
-        string messageHash = ("bidask:" + symbol);
+        string messageHash = ("bidask:" + this.safeString(ticker, "symbol", ""));
         client.resolve(ticker, messageHash);
     }
 
@@ -2707,7 +2707,7 @@ public partial class bitget : ccxt.bitget
             }
             ccxt.Trade parsed = this.parseWsTrade(trade, market);
             stored.append(ccxt.BaseExchange.FromTrade(parsed));
-            string? symbol = parsed.symbol;
+            string? symbol = this.safeString(ccxt.BaseExchange.FromTrade(parsed), "symbol", "");
             string symbolSpecificMessageHash = ("myTrades:" + symbol);
             client.resolve(stored, symbolSpecificMessageHash);
         }

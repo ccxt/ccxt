@@ -1508,14 +1508,14 @@ public partial class ndax : Exchange
         return ccxt.BaseExchange.ToAccountList(result);
     }
 
-    public override Dictionary<string, object> parseBalance(object response)
+    public virtual Dictionary<string, object> parseBalanceList(IList<object> response)
     {
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
             { "timestamp", null },
             { "datetime", null },
         };
-        for (int i = 0; i < getArrayLength(response); i++)
+        for (int i = 0; i < (response?.Count ?? 0); i++)
         {
             IDictionary<string, object> balance = this.safeDict(response, i);
             string? currencyId = this.safeString(balance, "ProductId");
@@ -1558,7 +1558,7 @@ public partial class ndax : Exchange
             { "omsId", omsId },
             { "AccountId", accountId },
         };
-        Dictionary<string, object> response = await this.privateGetGetAccountPositions(this.extend(request, paramsOmitted));
+        List<object> response = await this.privateGetGetAccountPositions(this.extend(request, paramsOmitted));
         //
         //     [
         //         {
@@ -1590,7 +1590,7 @@ public partial class ndax : Exchange
         //         },
         //     ]
         //
-        return ccxt.BaseExchange.ToBalances(this.parseBalance(response));
+        return ccxt.BaseExchange.ToBalances(this.parseBalanceList(response));
     }
 
     public virtual string? parseLedgerEntryType(string? type)

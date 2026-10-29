@@ -1194,10 +1194,10 @@ public partial class btse : Exchange
             };
             response = await this.privateGetFuturesApiV23UserWallet(this.extend(request, paramsWallet));
         }
-        return ccxt.BaseExchange.ToBalances(this.parseBalance(response));
+        return ccxt.BaseExchange.ToBalances(this.parseBalanceList(response));
     }
 
-    public override Dictionary<string, object> parseBalance(object response)
+    public virtual Dictionary<string, object> parseBalanceList(IList<object> response)
     {
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
@@ -1205,7 +1205,7 @@ public partial class btse : Exchange
         Dictionary<string, object> totals = new Dictionary<string, object>() {};
         Dictionary<string, object> frees = new Dictionary<string, object>() {};
         Dictionary<string, object> useds = new Dictionary<string, object>() {};
-        for (int i = 0; i < getArrayLength(response); i++)
+        for (int i = 0; i < (response?.Count ?? 0); i++)
         {
             IDictionary<string, object> row = this.safeDict(response, i);
             List<object> assets = this.safeList(row, "assets");

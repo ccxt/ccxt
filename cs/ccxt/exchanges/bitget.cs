@@ -5396,7 +5396,7 @@ public partial class bitget : Exchange
         var utaparamsUTAVariable = await this.handleUTAAndParams(paramsStock, "fetchOrderBook", false);
         var uta = ((IList<object>) utaparamsUTAVariable)[0];
         var paramsUTA = ((IList<object>) utaparamsUTAVariable)[1];
-        bool isStockSpot = (isStock == true) && isTrue((market.ContainsKey("spot") ? market["spot"] : null));
+        bool isStockSpot = (isStock == true) && ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true));
         bool isStockOrUta = (isStockSpot || ((uta is true)));
         if (isStockSpot)
         {
@@ -5637,7 +5637,7 @@ public partial class bitget : Exchange
         var utaparamsUTAVariable = await this.handleUTAAndParams(paramsStock, "fetchTicker", false);
         var uta = ((IList<object>) utaparamsUTAVariable)[0];
         var paramsUTA = ((IList<object>) utaparamsUTAVariable)[1];
-        bool isStockOrUta = (((isStock == true) && isTrue((market.ContainsKey("spot") ? market["spot"] : null))) || ((uta is true)));
+        bool isStockOrUta = (((isStock == true) && ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))) || ((uta is true)));
         if (isStockOrUta)
         {
             request["category"] = productType;
@@ -6218,7 +6218,7 @@ public partial class bitget : Exchange
         paramsPaginate = paginateparamsPaginateVariable.Item2;
         Dictionary<string, object> market = this.market(symbol);
         bool? isStock = ((bool?)(market.ContainsKey("stock") ? market["stock"] : null));
-        bool isStockSpot = (isStock == true) && isTrue((market.ContainsKey("spot") ? market["spot"] : null));
+        bool isStockSpot = (isStock == true) && ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true));
         paramsPaginate = this.omit(paramsPaginate, "stock");
         if ((paginate == true))
         {
@@ -6761,7 +6761,7 @@ public partial class bitget : Exchange
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         bool? isStock = ((bool?)(market.ContainsKey("stock") ? market["stock"] : null));
-        bool isStockSpot = (isStock == true) && isTrue((market.ContainsKey("spot") ? market["spot"] : null));
+        bool isStockSpot = (isStock == true) && ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true));
         object paramsStock = this.omit(paramsUTA, "stock");
         string? marketType = null;
         IDictionary<string, object> timeframes = null;
@@ -7139,7 +7139,7 @@ public partial class bitget : Exchange
         //     }
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        return ccxt.BaseExchange.ToBalances(this.parseBalance(data));
+        return ccxt.BaseExchange.ToBalances(this.parseBalanceList(data));
     }
 
     public virtual object parseUtaBalance(IList<object> balance, object response = null)
@@ -7189,7 +7189,7 @@ public partial class bitget : Exchange
         return this.safeBalance(result);
     }
 
-    public override Dictionary<string, object> parseBalance(object balance)
+    public virtual Dictionary<string, object> parseBalanceList(IList<object> balance)
     {
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", balance },
@@ -7241,7 +7241,7 @@ public partial class bitget : Exchange
         //           // "symbol": "BTCUSDT" // only for isolated margin
         //       }
         //
-        for (int i = 0; i < getArrayLength(balance); i++)
+        for (int i = 0; i < (balance?.Count ?? 0); i++)
         {
             IDictionary<string, object> entry = this.safeDict(balance, i);
             Dictionary<string, object> account = this.account();
@@ -7757,7 +7757,7 @@ public partial class bitget : Exchange
         (string?, object) marginParams = this.handleMarginModeAndParams("createOrder", parameters);
         string? marginMode = marginParams.Item1;
         bool? isStock = ((bool?)(market.ContainsKey("stock") ? market["stock"] : null));
-        bool isStockSpot = (isStock == true) && isTrue((market.ContainsKey("spot") ? market["spot"] : null));
+        bool isStockSpot = (isStock == true) && ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true));
         IDictionary<string, object> paramsStock = ((IDictionary<string, object>)this.omit(parameters, "stock"));
         double? triggerPrice = this.safeNumber2(paramsStock, "stopPrice", "triggerPrice");
         double? stopLossTriggerPrice = this.safeNumber(paramsStock, "stopLossPrice");
@@ -8867,7 +8867,7 @@ public partial class bitget : Exchange
         marginMode = marginModeparamsMarginModeVariable.Item1;
         paramsMarginMode = marginModeparamsMarginModeVariable.Item2;
         bool? isStock = ((bool?)(market.ContainsKey("stock") ? market["stock"] : null));
-        bool isStockSpot = (isStock == true) && isTrue((market.ContainsKey("spot") ? market["spot"] : null));
+        bool isStockSpot = (isStock == true) && ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true));
         paramsMarginMode = this.omit(paramsMarginMode, "stock");
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         bool? trailing = this.safeBool(paramsMarginMode, "trailing");

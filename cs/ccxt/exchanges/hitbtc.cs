@@ -1187,7 +1187,7 @@ public partial class hitbtc : Exchange
         return ccxt.BaseExchange.ToDepositAddress(new Dictionary<string, object>() {             { "info", response },             { "currency", parsedCode },             { "network", null },             { "address", address },             { "tag", tag },         });
     }
 
-    public override Dictionary<string, object> parseBalance(object response)
+    public virtual Dictionary<string, object> parseBalanceList(object response)
     {
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
@@ -1225,7 +1225,7 @@ public partial class hitbtc : Exchange
         IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"type"}));
         IDictionary<string, object> accountsByType = this.safeDict(this.options, "accountsByType", new Dictionary<string, object>() {});
         string? account = ((type == null)) ? null : this.safeString(accountsByType, type, type);
-        Dictionary<string, object> response = null;
+        List<object> response = null;
         if (account == "wallet")
         {
             response = await this.privateGetWalletBalance(paramsOmitted);
@@ -1251,7 +1251,7 @@ public partial class hitbtc : Exchange
         //       ...
         //     ]
         //
-        return ccxt.BaseExchange.ToBalances(this.parseBalance(response));
+        return ccxt.BaseExchange.ToBalances(this.parseBalanceList(response));
     }
 
     /**

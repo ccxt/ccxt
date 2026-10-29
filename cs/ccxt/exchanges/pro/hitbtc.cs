@@ -1464,7 +1464,7 @@ public partial class hitbtc : ccxt.hitbtc
         // in that window invisible to the consumer forever (same class as
         // issue #26773); the free/used/total aggregates are rebuilt from the
         // merged currencies by safeBalance
-        Dictionary<string, object> balance = this.parseBalance(parameters);
+        Dictionary<string, object> balance = this.parseBalanceList(parameters);
         if ((this.balance == null))
         {
             this.balance = new Dictionary<string, object>() {};

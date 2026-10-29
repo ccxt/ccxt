@@ -1278,7 +1278,7 @@ public partial class bitvavo : Exchange
         return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(this.toArray(response), market,timeframeVar, since, limit));
     }
 
-    public override Dictionary<string, object> parseBalance(object response)
+    public virtual Dictionary<string, object> parseBalanceList(object response)
     {
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
@@ -1326,7 +1326,7 @@ public partial class bitvavo : Exchange
         //         }
         //     ]
         //
-        return ccxt.BaseExchange.ToBalances(this.parseBalance(response));
+        return ccxt.BaseExchange.ToBalances(this.parseBalanceList(response));
     }
 
     /**

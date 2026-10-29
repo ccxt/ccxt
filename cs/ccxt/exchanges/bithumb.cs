@@ -743,7 +743,7 @@ public partial class bithumb : Exchange
         return ccxt.BaseExchange.ToMarketInterfaceList(result);
     }
 
-    public override Dictionary<string, object> parseBalance(object response)
+    public virtual Dictionary<string, object> parseBalanceList(object response)
     {
         //
         // generation 1
@@ -839,7 +839,7 @@ public partial class bithumb : Exchange
             };
             response = await this.privatePostInfoBalance(this.extend(request, paramsGeneration));
         }
-        return ccxt.BaseExchange.ToBalances(this.parseBalance(response));
+        return ccxt.BaseExchange.ToBalances(this.parseBalanceList(response));
     }
 
     /**

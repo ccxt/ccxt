@@ -2451,7 +2451,7 @@ public partial class aster : Exchange
         string? marketType = (string)marketTypeparamsMarketTypeVariable[0];
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)marketTypeparamsMarketTypeVariable[1]);
         Dictionary<string, object> response = null;
-        List<object> data = null;
+        List<object> data = new List<object>() {};
         if ((marketType == "swap"))
         {
             data = await this.fapiPrivateGetV3Balance(paramsMarketType);
@@ -2460,10 +2460,10 @@ public partial class aster : Exchange
             response = await this.sapiPrivateGetV3Account(paramsMarketType);
             data = this.safeList(response, "balances", new List<object>() {});
         }
-        return ccxt.BaseExchange.ToBalances(this.parseBalance(data));
+        return ccxt.BaseExchange.ToBalances(this.parseBalanceList(data));
     }
 
-    public override Dictionary<string, object> parseBalance(object response)
+    public virtual Dictionary<string, object> parseBalanceList(IList<object> response)
     {
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },

@@ -678,14 +678,14 @@ public partial class upbit : Exchange
         });
     }
 
-    public override Dictionary<string, object> parseBalance(object response)
+    public virtual Dictionary<string, object> parseBalanceList(IList<object> response)
     {
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
             { "timestamp", null },
             { "datetime", null },
         };
-        for (int i = 0; i < getArrayLength(response); i++)
+        for (int i = 0; i < (response?.Count ?? 0); i++)
         {
             IDictionary<string, object> balance = this.safeDict(response, i);
             string? currencyId = this.safeString(balance, "currency");
@@ -717,7 +717,7 @@ public partial class upbit : Exchange
         {
             await this.loadMarkets();
         }
-        Dictionary<string, object> response = await this.privateGetAccounts(parameters);
+        List<object> response = await this.privateGetAccounts(parameters);
         //
         //     [ {          currency: "BTC",
         //                   "balance": "0.005",
@@ -730,7 +730,7 @@ public partial class upbit : Exchange
         //         "avg_krw_buy_price": "250000",
         //                  "modified":  false    }   ]
         //
-        return ccxt.BaseExchange.ToBalances(this.parseBalance(response));
+        return ccxt.BaseExchange.ToBalances(this.parseBalanceList(response));
     }
 
     /**

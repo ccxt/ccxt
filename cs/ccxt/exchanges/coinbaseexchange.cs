@@ -910,7 +910,7 @@ public partial class coinbaseexchange : Exchange
         {
             await this.loadMarkets();
         }
-        Dictionary<string, object> response = await this.privateGetAccounts(parameters);
+        List<object> response = await this.privateGetAccounts(parameters);
         //
         //     [
         //         {
@@ -956,7 +956,7 @@ public partial class coinbaseexchange : Exchange
         };
     }
 
-    public override Dictionary<string, object> parseBalance(object response)
+    public virtual Dictionary<string, object> parseBalanceList(IList<object> response)
     {
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
@@ -994,8 +994,8 @@ public partial class coinbaseexchange : Exchange
         {
             await this.loadMarkets();
         }
-        Dictionary<string, object> response = await this.privateGetAccounts(parameters);
-        return ccxt.BaseExchange.ToBalances(this.parseBalance(response));
+        List<object> response = await this.privateGetAccounts(parameters);
+        return ccxt.BaseExchange.ToBalances(this.parseBalanceList(response));
     }
 
     /**

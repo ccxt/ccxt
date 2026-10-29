@@ -313,8 +313,8 @@ public partial class paradex : ccxt.paradex
         string? marketId = this.safeString(data, "market");
         Dictionary<string, object> market = this.safeMarket(marketId);
         Int64? timestamp = this.safeInteger(data, "last_updated_at");
-        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-        if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
+        string? symbol = this.safeString(market, "symbol", "");
+        if (!(((symbol != null) && ((IDictionary<string, object>)this.orderbooks).ContainsKey(symbol))))
         {
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook();
         }

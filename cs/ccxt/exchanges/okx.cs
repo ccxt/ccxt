@@ -4597,10 +4597,10 @@ public partial class okx : Exchange
             }
         }
         // unified stp
-        object selfTradePrevention = null;
-        IList<object> selfTradePreventionorderParamsVariable = (IList<object>)this.handleOptionAndParams(orderParams, "createOrder", "selfTradePrevention");
-        selfTradePrevention = selfTradePreventionorderParamsVariable[0];
-        orderParams = selfTradePreventionorderParamsVariable[1];
+        string? selfTradePrevention = null;
+        (string?, object) selfTradePreventionorderParamsVariable = this.handleOptionStringAndParams(orderParams, "createOrder", "selfTradePrevention");
+        selfTradePrevention = selfTradePreventionorderParamsVariable.Item1;
+        orderParams = selfTradePreventionorderParamsVariable.Item2;
         if ((selfTradePrevention != null))
         {
             Dictionary<string, object> stpModes = new Dictionary<string, object>() {
@@ -4608,12 +4608,12 @@ public partial class okx : Exchange
                 { "EXPIRE_TAKER", "cancel_taker" },
                 { "EXPIRE_BOTH", "cancel_both" },
             };
-            string selfTradePreventionUpper = ((string)selfTradePrevention).ToUpper();
+            string selfTradePreventionUpper = selfTradePrevention.ToUpper();
             if (selfTradePreventionUpper == "NONE")
             {
                 throw new NotSupported ((this.id + " createOrder() does not support NONE for selfTradePrevention, okx enforces self trade prevention at the account level and it cannot be turned off per order")) ;
             }
-            string? stpMode = this.safeString(stpModes, selfTradePreventionUpper, ((string)selfTradePrevention).ToLower());
+            string? stpMode = this.safeString(stpModes, selfTradePreventionUpper, selfTradePrevention.ToLower());
             IDictionary<string, object> algoOrderTypes = this.safeDict(this.options, "algoOrderTypes", new Dictionary<string, object>() {});
             string? requestOrdType = this.safeString(request, "ordType");
             if (((requestOrdType != null)) && (((requestOrdType != null) && algoOrderTypes.ContainsKey(requestOrdType))))

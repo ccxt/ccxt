@@ -65,8 +65,9 @@ public partial class coinbase : ccxt.coinbase
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} subscription to a websocket channel
      */
-    public async virtual Task<object> subscribe(object name, bool? isPrivate, object symbol = null, object parameters = null)
+    public async virtual Task<object> subscribe(object name, bool? isPrivate = null, object symbol = null, object parameters = null)
     {
+        isPrivate ??= false;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
@@ -105,8 +106,9 @@ public partial class coinbase : ccxt.coinbase
      * @param {string} [symbol] unified market symbol
      * @returns {object} subscription to a websocket channel
      */
-    public async virtual Task<object> unSubscribe(object topic, object name, bool? isPrivate, object symbol = null)
+    public async virtual Task<object> unSubscribe(object topic, object name, bool? isPrivate = null, object symbol = null)
     {
+        isPrivate ??= false;
         if ((this.markets == null))
         {
             await this.loadMarkets();
@@ -163,8 +165,9 @@ public partial class coinbase : ccxt.coinbase
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} subscription to a websocket channel
      */
-    public async virtual Task<object> subscribeMultiple(object name, bool? isPrivate, object symbols = null, object parameters = null)
+    public async virtual Task<object> subscribeMultiple(object name, bool? isPrivate = null, object symbols = null, object parameters = null)
     {
+        isPrivate ??= false;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
@@ -206,8 +209,9 @@ public partial class coinbase : ccxt.coinbase
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} subscription to a websocket channel
      */
-    public async virtual Task<object> unSubscribeMultiple(object topic, object name, bool? isPrivate, IList<object> symbols = null, object parameters = null)
+    public async virtual Task<object> unSubscribeMultiple(object topic, object name, bool? isPrivate = null, IList<object> symbols = null, object parameters = null)
     {
+        isPrivate ??= false;
         parameters ??= new Dictionary<string, object>();
         if ((this.safeBool(this.options, "unSubscriptionPending", false) == true))
         {

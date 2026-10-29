@@ -2982,17 +2982,17 @@ public partial class bydfi : Exchange
             response = await this.privateGetV1FapiAccountBalance(this.extend(request, paramsWallet));
         }
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        return ccxt.BaseExchange.ToBalances(this.parseBalance(data));
+        return ccxt.BaseExchange.ToBalances(this.parseBalanceList(data));
     }
 
-    public override Dictionary<string, object> parseBalance(object response)
+    public virtual Dictionary<string, object> parseBalanceList(IList<object> response)
     {
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
             { "timestamp", null },
             { "datetime", null },
         };
-        int responseLength = getArrayLength(response);
+        int responseLength = response?.Count ?? 0;
         for (int i = 0; i < responseLength; i++)
         {
             IDictionary<string, object> balance = this.safeDict(response, i);

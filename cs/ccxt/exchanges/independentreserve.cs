@@ -503,7 +503,7 @@ public partial class independentreserve : Exchange
         return ccxt.BaseExchange.ToMarketInterfaceList(result);
     }
 
-    public override Dictionary<string, object> parseBalance(object response)
+    public virtual Dictionary<string, object> parseBalanceList(IList<object> response)
     {
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
@@ -539,8 +539,8 @@ public partial class independentreserve : Exchange
         {
             await this.loadMarkets();
         }
-        Dictionary<string, object> response = await this.privatePostGetAccounts(parameters);
-        return ccxt.BaseExchange.ToBalances(this.parseBalance(response));
+        List<object> response = await this.privatePostGetAccounts(parameters);
+        return ccxt.BaseExchange.ToBalances(this.parseBalanceList(response));
     }
 
     /**

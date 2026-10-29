@@ -1382,7 +1382,7 @@ public partial class deribit : Exchange
             { "info", balance },
         };
         List<object> summaries = new List<object>() {};
-        if (inOp(balance, "summaries"))
+        if ((balance != null && ((IDictionary<string, object>)balance).ContainsKey("summaries")))
         {
             summaries = this.safeList(balance, "summaries", new List<object>() {});
         } else

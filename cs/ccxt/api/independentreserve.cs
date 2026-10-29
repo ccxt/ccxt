@@ -173,10 +173,10 @@ public partial class independentreserve : Exchange
     }
 
     /// <summary>Calls the privatePostGetAccounts endpoint.</summary>
-    /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> privatePostGetAccounts (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privatePostGetAccounts (object parameters = null)
     {
-        return await this.callAsync<Dictionary<string, object>> ("privatePostGetAccounts",parameters);
+        return await this.callAsync<List<object>> ("privatePostGetAccounts",parameters);
     }
 
     /// <summary>Calls the privatePostGetTransactions endpoint.</summary>

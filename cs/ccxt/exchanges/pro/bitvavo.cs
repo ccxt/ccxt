@@ -1778,7 +1778,7 @@ public partial class bitvavo : ccxt.bitvavo
         //
         string? messageHash = this.safeString(message, "requestId");
         List<object> response = this.safeList(message, "response", new List<object>() {});
-        Dictionary<string, object> balance = this.parseBalance(response);
+        Dictionary<string, object> balance = this.parseBalanceList(response);
         client.resolve(balance, messageHash);
     }
 

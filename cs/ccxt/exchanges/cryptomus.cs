@@ -771,10 +771,10 @@ public partial class cryptomus : Exchange
         //     }
         //
         List<object> result = this.safeList(response, "result", new List<object>() {});
-        return ccxt.BaseExchange.ToBalances(this.parseBalance(result));
+        return ccxt.BaseExchange.ToBalances(this.parseBalanceList(result));
     }
 
-    public override Dictionary<string, object> parseBalance(object balance)
+    public virtual Dictionary<string, object> parseBalanceList(IList<object> balance)
     {
         //
         //     {
@@ -786,7 +786,7 @@ public partial class cryptomus : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", balance },
         };
-        for (int i = 0; i < getArrayLength(balance); i++)
+        for (int i = 0; i < (balance?.Count ?? 0); i++)
         {
             IDictionary<string, object> balanceEntry = this.safeDict(balance, i);
             string? currencyId = this.safeString(balanceEntry, "ticker");

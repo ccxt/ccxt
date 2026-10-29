@@ -1018,7 +1018,7 @@ public partial class digifinex : Exchange
         return ccxt.BaseExchange.ToMarketInterfaceList(result);
     }
 
-    public override Dictionary<string, object> parseBalance(object response)
+    public virtual Dictionary<string, object> parseBalanceList(IList<object> response)
     {
         //
         // spot and margin
@@ -1148,7 +1148,7 @@ public partial class digifinex : Exchange
             balanceRequest = "data";
         }
         List<object> balances = this.safeList(response, balanceRequest, new List<object>() {});
-        return ccxt.BaseExchange.ToBalances(this.parseBalance(balances));
+        return ccxt.BaseExchange.ToBalances(this.parseBalanceList(balances));
     }
 
     /**

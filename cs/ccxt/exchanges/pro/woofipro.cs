@@ -148,9 +148,9 @@ public partial class woofipro : ccxt.woofipro
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         string? marketId = this.safeString(data, "symbol");
         Dictionary<string, object> market = this.safeMarket(marketId);
-        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbol = this.safeString(market, "symbol", "");
         string? topic = this.safeString(message, "topic");
-        if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
+        if (!(((symbol != null) && ((IDictionary<string, object>)this.orderbooks).ContainsKey(symbol))))
         {
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook();
         }
@@ -548,11 +548,11 @@ public partial class woofipro : ccxt.woofipro
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         string? marketId = this.safeString(data, "symbol");
         Dictionary<string, object> market = this.safeMarket(marketId);
-        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbol = this.safeString(market, "symbol", "");
         ccxt.Trade trade = this.parseWsTrade(this.extend(data, new Dictionary<string, object>() {
             { "timestamp", timestamp },
         }), market);
-        if (!((this.trades != null && symbol != null && this.trades.ContainsKey(symbol))))
+        if (!(((symbol != null) && ((IDictionary<string, object>)this.trades).ContainsKey(symbol))))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             var stored = new ArrayCache(limit);

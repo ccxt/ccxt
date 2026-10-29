@@ -1410,9 +1410,10 @@ public partial class kraken : ccxt.kraken
         string? token = await this.authenticate();
         string subscriptionHash = "executions";
         object messageHash = name;
-        string? symbolResolved = ((symbol != null)) ? this.symbol(symbol) : null;
-        if ((symbolResolved != null))
+        string? symbolResolved = null;
+        if ((symbol != null))
         {
+            symbolResolved = this.symbol(symbol);
             messageHash = ((name + ":") + symbolResolved);
         }
         string? url = ((string)(this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("privateV2") ? this.urlsApiSections["ws"]["privateV2"] : null));

@@ -124,10 +124,10 @@ public partial class coinbaseexchange : Exchange
     }
 
     /// <summary>Calls the privateGetAccounts endpoint.</summary>
-    /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> privateGetAccounts (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privateGetAccounts (object parameters = null)
     {
-        return await this.callAsync<Dictionary<string, object>> ("privateGetAccounts",parameters);
+        return await this.callAsync<List<object>> ("privateGetAccounts",parameters);
     }
 
     /// <summary>Calls the privateGetAccountsId endpoint.</summary>

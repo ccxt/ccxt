@@ -3759,7 +3759,7 @@ public partial class derive : Exchange
             Dictionary<string, object> subaccountResponse = await this.privatePostGetSubaccount(this.extend(subaccountRequest, subaccountParams));
             // the result is a single portfolio object shaped exactly like one element of the get_all_portfolios sample below
             IDictionary<string, object> subaccountResult = this.safeDict(subaccountResponse, "result", new Dictionary<string, object>() {});
-            return ccxt.BaseExchange.ToBalances(this.parseBalance(new List<object>() {subaccountResult}));
+            return ccxt.BaseExchange.ToBalances(this.parseBalanceList(new List<object>() {subaccountResult}));
         }
         IList<object> deriveWalletAddressparamsDeriveWalletAddressVariable = (IList<object>)this.handleDeriveWalletAddress("fetchBalance", parameters);
         var deriveWalletAddress = deriveWalletAddressparamsDeriveWalletAddressVariable[0];
@@ -4017,10 +4017,10 @@ public partial class derive : Exchange
         //     }
         //
         List<object> result = this.safeList(response, "result");
-        return ccxt.BaseExchange.ToBalances(this.parseBalance(result));
+        return ccxt.BaseExchange.ToBalances(this.parseBalanceList(result));
     }
 
-    public override Dictionary<string, object> parseBalance(object response)
+    public virtual Dictionary<string, object> parseBalanceList(object response)
     {
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },

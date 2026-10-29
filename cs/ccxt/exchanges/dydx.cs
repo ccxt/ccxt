@@ -2785,7 +2785,7 @@ public partial class dydx : Exchange
         //     }
         // }
         //
-        IDictionary<string, object> data = this.safeDict(response, "subaccount");
+        IDictionary<string, object> data = this.safeDict(response, "subaccount", new Dictionary<string, object>() {});
         return ccxt.BaseExchange.ToBalances(this.parseBalance(data));
     }
 

@@ -3177,7 +3177,7 @@ public partial class woofipro : Exchange
         //     }
         // }
         //
-        IDictionary<string, object> data = this.safeDict(response, "data");
+        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return ccxt.BaseExchange.ToBalances(this.parseBalance(data));
     }
 

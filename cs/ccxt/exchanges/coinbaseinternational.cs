@@ -1846,14 +1846,14 @@ public partial class coinbaseinternational : Exchange
             List<object> summaries = this.safeList(result, "summaries");
             if ((summaries != null))
             {
-                return ccxt.BaseExchange.ToBalances(this.parseBalance(summaries));
+                return ccxt.BaseExchange.ToBalances(this.parseBalanceList(summaries));
             }
-            return ccxt.BaseExchange.ToBalances(this.parseBalance(this.safeDict(result, "summaries", new List<object>() {})));
+            return ccxt.BaseExchange.ToBalances(this.parseBalanceList(this.safeDict(result, "summaries", new List<object>() {})));
         }
-        return ccxt.BaseExchange.ToBalances(this.parseBalance(result));
+        return ccxt.BaseExchange.ToBalances(this.parseBalanceList(result));
     }
 
-    public override Dictionary<string, object> parseBalance(object response)
+    public virtual Dictionary<string, object> parseBalanceList(object response)
     {
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
