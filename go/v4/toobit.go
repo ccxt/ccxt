@@ -746,7 +746,6 @@ func (this *Toobit) Describe() any {
  * @method
  * @name toobit#fetchStatus
  * @description the latest known information on the availability of the exchange API
- * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#test-connectivity
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
@@ -1439,11 +1438,11 @@ func (this *Toobit) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, op
 		request["limit"] = limit
 	}
 
-	listEp1418 := <-this.CommonGetQuoteV1Trades(this.Extend(request, params))
-	if listEp1418.Err != nil {
-		panic(listEp1418.Err)
+	listEp1417 := <-this.CommonGetQuoteV1Trades(this.Extend(request, params))
+	if listEp1417.Err != nil {
+		panic(listEp1417.Err)
 	}
-	var response []any = listEp1418.Value
+	var response []any = listEp1417.Value
 
 	//
 	//    [
@@ -1731,18 +1730,18 @@ func (this *Toobit) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], opt
 	var response []any = nil
 	if typeVar != nil && *typeVar == "spot" {
 
-		listEp1691 := <-this.CommonGetQuoteV1Ticker24hr(this.Extend(request, paramsMarketType))
-		if listEp1691.Err != nil {
-			panic(listEp1691.Err)
+		listEp1690 := <-this.CommonGetQuoteV1Ticker24hr(this.Extend(request, paramsMarketType))
+		if listEp1690.Err != nil {
+			panic(listEp1690.Err)
 		}
-		response = listEp1691.Value
+		response = listEp1690.Value
 	} else {
 
-		listEp1694 := <-this.CommonGetQuoteV1ContractTicker24hr(this.Extend(request, paramsMarketType))
-		if listEp1694.Err != nil {
-			panic(listEp1694.Err)
+		listEp1693 := <-this.CommonGetQuoteV1ContractTicker24hr(this.Extend(request, paramsMarketType))
+		if listEp1693.Err != nil {
+			panic(listEp1693.Err)
 		}
-		response = listEp1694.Value
+		response = listEp1693.Value
 	}
 	//
 	//    [
@@ -1814,7 +1813,7 @@ func (this *Toobit) ParseTicker(ticker any, optionalArgs ...any) Ticker {
  * @name toobit#fetchLastPrices
  * @description fetches the last price for multiple markets
  * @see https://api-docs.toobit.com/api/spot-market-data.html#symbol-price-ticker
- * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#symbol-price-ticker
+ * @see https://api-docs.toobit.com/api/usdt-m-market-data.html#symbol-price-ticker
  * @param {string[]|undefined} symbols unified symbols of the markets to fetch the last prices
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of lastprices structures
@@ -1853,11 +1852,11 @@ func (this *Toobit) fetchLastPricesBody(ch chan AsyncResult[map[string]LastPrice
 		}
 	}
 
-	listEp1802 := <-this.CommonGetQuoteV1TickerPrice(this.Extend(request, params))
-	if listEp1802.Err != nil {
-		panic(listEp1802.Err)
+	listEp1801 := <-this.CommonGetQuoteV1TickerPrice(this.Extend(request, params))
+	if listEp1801.Err != nil {
+		panic(listEp1801.Err)
 	}
-	var response []any = listEp1802.Value
+	var response []any = listEp1801.Value
 
 	//
 	//    [
@@ -1890,7 +1889,7 @@ func (this *Toobit) ParseLastPrice(entry any, optionalArgs ...any) any {
  * @name toobit#fetchBidsAsks
  * @description fetches the bid and ask price and volume for multiple markets
  * @see https://api-docs.toobit.com/api/spot-market-data.html#symbol-order-book-ticker
- * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#symbol-order-book-ticker
+ * @see https://api-docs.toobit.com/api/usdt-m-market-data.html#symbol-order-book-ticker
  * @param {string[]} [symbols] unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -1929,11 +1928,11 @@ func (this *Toobit) fetchBidsAsksBody(ch chan AsyncResult[map[string]Ticker], op
 		}
 	}
 
-	listEp1871 := <-this.CommonGetQuoteV1TickerBookTicker(this.Extend(request, params))
-	if listEp1871.Err != nil {
-		panic(listEp1871.Err)
+	listEp1870 := <-this.CommonGetQuoteV1TickerBookTicker(this.Extend(request, params))
+	if listEp1870.Err != nil {
+		panic(listEp1870.Err)
 	}
-	var response []any = listEp1871.Value
+	var response []any = listEp1870.Value
 
 	//
 	//    [
@@ -2024,11 +2023,11 @@ func (this *Toobit) fetchFundingRatesBody(ch chan AsyncResult[map[string]Funding
 		}
 	}
 
-	listEp1959 := <-this.CommonGetApiV1FuturesFundingRate(this.Extend(request, params))
-	if listEp1959.Err != nil {
-		panic(listEp1959.Err)
+	listEp1958 := <-this.CommonGetApiV1FuturesFundingRate(this.Extend(request, params))
+	if listEp1958.Err != nil {
+		panic(listEp1958.Err)
 	}
-	var response []any = listEp1959.Value
+	var response []any = listEp1958.Value
 
 	//
 	//    [
@@ -2113,11 +2112,11 @@ func (this *Toobit) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRat
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes165919 []any = r1.Value
-		if retRes165919 == nil {
+		var retRes165819 []any = r1.Value
+		if retRes165819 == nil {
 			ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes165919)}
+			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes165819)}
 		}
 		return nil
 	}
@@ -2132,11 +2131,11 @@ func (this *Toobit) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRat
 		request["limit"] = limit
 	}
 
-	listEp2056 := <-this.CommonGetApiV1FuturesHistoryFundingRate(this.Extend(request, paramsPaginate))
-	if listEp2056.Err != nil {
-		panic(listEp2056.Err)
+	listEp2055 := <-this.CommonGetApiV1FuturesHistoryFundingRate(this.Extend(request, paramsPaginate))
+	if listEp2055.Err != nil {
+		panic(listEp2055.Err)
 	}
-	var response []any = listEp2056.Value
+	var response []any = listEp2055.Value
 
 	//
 	//    [
@@ -3291,18 +3290,18 @@ func (this *Toobit) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optional
 	var response []any = nil
 	if marketType != nil && *marketType == "spot" {
 
-		listEp3110 := <-this.PrivateGetApiV1AccountBalanceFlow(this.Extend(requestUntil, paramsMarketType))
-		if listEp3110.Err != nil {
-			panic(listEp3110.Err)
+		listEp3109 := <-this.PrivateGetApiV1AccountBalanceFlow(this.Extend(requestUntil, paramsMarketType))
+		if listEp3109.Err != nil {
+			panic(listEp3109.Err)
 		}
-		response = listEp3110.Value
+		response = listEp3109.Value
 	} else {
 
-		listEp3113 := <-this.PrivateGetApiV1FuturesBalanceFlow(this.Extend(requestUntil, paramsMarketType))
-		if listEp3113.Err != nil {
-			panic(listEp3113.Err)
+		listEp3112 := <-this.PrivateGetApiV1FuturesBalanceFlow(this.Extend(requestUntil, paramsMarketType))
+		if listEp3112.Err != nil {
+			panic(listEp3112.Err)
 		}
-		response = listEp3113.Value
+		response = listEp3112.Value
 	}
 
 	//
@@ -3485,11 +3484,11 @@ func (this *Toobit) fetchDepositsBody(ch chan AsyncResult[[]Transaction], option
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes277015 []any = TransactionsToList(r.Value)
-	if retRes277015 == nil {
+	var retRes276915 []any = TransactionsToList(r.Value)
+	if retRes276915 == nil {
 		ch <- AsyncResult[[]Transaction]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes277015)}
+		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes276915)}
 	}
 	return nil
 }
@@ -3526,11 +3525,11 @@ func (this *Toobit) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], opt
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes278515 []any = TransactionsToList(r.Value)
-	if retRes278515 == nil {
+	var retRes278415 []any = TransactionsToList(r.Value)
+	if retRes278415 == nil {
 		ch <- AsyncResult[[]Transaction]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes278515)}
+		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes278415)}
 	}
 	return nil
 }
@@ -4010,11 +4009,11 @@ func (this *Toobit) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol any,
 		"symbol": market["id"],
 	}
 
-	listEp3761 := <-this.PrivateGetApiV1FuturesAccountLeverage(this.Extend(request, params))
-	if listEp3761.Err != nil {
-		panic(listEp3761.Err)
+	listEp3760 := <-this.PrivateGetApiV1FuturesAccountLeverage(this.Extend(request, params))
+	if listEp3760.Err != nil {
+		panic(listEp3760.Err)
 	}
-	var response []any = listEp3761.Value
+	var response []any = listEp3760.Value
 	//
 	// [
 	//     {
@@ -4276,7 +4275,6 @@ func (this *Toobit) Init(userConfig map[string]any) {
  * @method
  * @name toobit#fetchStatus
  * @description the latest known information on the availability of the exchange API
- * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#test-connectivity
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
@@ -4456,7 +4454,7 @@ func (this *Toobit) FetchTickers(options ...FetchTickersOptions) (Tickers, error
  * @name toobit#fetchLastPrices
  * @description fetches the last price for multiple markets
  * @see https://api-docs.toobit.com/api/spot-market-data.html#symbol-price-ticker
- * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#symbol-price-ticker
+ * @see https://api-docs.toobit.com/api/usdt-m-market-data.html#symbol-price-ticker
  * @param {string[]|undefined} symbols unified symbols of the markets to fetch the last prices
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of lastprices structures
@@ -4481,7 +4479,7 @@ func (this *Toobit) FetchLastPrices(options ...FetchLastPricesOptions) (LastPric
  * @name toobit#fetchBidsAsks
  * @description fetches the bid and ask price and volume for multiple markets
  * @see https://api-docs.toobit.com/api/spot-market-data.html#symbol-order-book-ticker
- * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#symbol-order-book-ticker
+ * @see https://api-docs.toobit.com/api/usdt-m-market-data.html#symbol-order-book-ticker
  * @param {string[]} [symbols] unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
