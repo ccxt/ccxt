@@ -4536,12 +4536,12 @@ func (this *Krakenfutures) transferOutBody(ch chan AsyncResult[TransferEntry], c
  * @param {object} [params] Exchange specific parameters
  * @returns a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Krakenfutures) TransferAsync(code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) <-chan AsyncResult[TransferEntry] {
+func (this *Krakenfutures) TransferAsync(code string, amount any, fromAccount string, toAccount string, optionalArgs ...any) <-chan AsyncResult[TransferEntry] {
 	ch := make(chan AsyncResult[TransferEntry], 1)
 	go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
 	return ch
 }
-func (this *Krakenfutures) transferBody(ch chan AsyncResult[TransferEntry], code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) any {
+func (this *Krakenfutures) transferBody(ch chan AsyncResult[TransferEntry], code string, amount any, fromAccount string, toAccount string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4554,7 +4554,7 @@ func (this *Krakenfutures) transferBody(ch chan AsyncResult[TransferEntry], code
 		}
 	}
 	var currency map[string]any = this.Currency(code)
-	if IsEqual(fromAccount, "spot") {
+	if fromAccount == "spot" {
 		panic(BadRequest(this.Id + " transfer does not yet support transfers from spot"))
 	}
 	var request map[string]any = map[string]any{
@@ -4563,7 +4563,7 @@ func (this *Krakenfutures) transferBody(ch chan AsyncResult[TransferEntry], code
 	var response map[string]any = nil
 	if toAccount == "spot" {
 		if this.ParseKrakenAccountName(fromAccount) != "cash" {
-			panic(BadRequest(Add(Add(Add(this.Id+" transfer cannot transfer from ", fromAccount), " to "), toAccount)))
+			panic(BadRequest(this.Id + " transfer cannot transfer from " + fromAccount + " to " + toAccount))
 		}
 		request["currency"] = currency["id"]
 

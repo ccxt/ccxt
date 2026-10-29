@@ -2926,7 +2926,7 @@ export default class krakenfutures extends Exchange {
                 type = symbol;
             }
         }
-        const accountName = this.parseKrakenAccountName (type);
+        const accountName = this.parseKrakenAccountName (type as string);
         const accounts = this.safeDict (response, 'accounts');
         const account = this.safeDict (accounts, accountName);
         if (account === undefined) {
