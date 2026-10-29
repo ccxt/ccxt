@@ -659,7 +659,9 @@ export const CORE_NUMERIC_ARGS = {
     'fetchMySpotTrades': { 1: 'Int64?', 2: 'Int64?' },
     'fetchMyTrades': { 1: 'Int64?', 2: 'Int64?' },
     'fetchMyUtaTrades': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchIndexOHLCV': { 2: 'Int64?', 3: 'Int64?' },
     'fetchOHLCV': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchPremiumIndexOHLCV': { 2: 'Int64?', 3: 'Int64?' },
     'fetchOpenInterestHistory': { 2: 'Int64?', 3: 'Int64?' },
     'fetchOpenOrders': { 1: 'Int64?', 2: 'Int64?' },
     'fetchOpenOrdersV1': { 1: 'Int64?', 2: 'Int64?' },
@@ -703,6 +705,7 @@ export const CORE_NUMERIC_ARGS = {
     'repayMargin': { 1: 'double' },
     'setMargin': { 1: 'double' },
     'transfer': { 1: 'double' },
+    'transferOut': { 1: 'double' },
     'watchLiquidations': { 1: 'Int64?', 2: 'Int64?' },
     'watchLiquidationsForSymbols': { 1: 'Int64?', 2: 'Int64?' },
     'watchMyLiquidations': { 1: 'Int64?', 2: 'Int64?' },
@@ -726,6 +729,7 @@ export const CORE_NUMERIC_ARGS = {
 // `Int` -> Int64?, required `int` -> Int64, `number` -> double). Name-keyed, so the base method and every
 // override (CS0115/CS0508 invariance) take the same type; call sites are wrapped by castCoreArgCallSites.
 export const RETYPE_CS_DIVIDE_NUMERIC_ARGS = {
+    'safeDeterministicCall': { 2: 'Int64?', 3: 'Int64?' },
     'fetchPaginatedCallDeterministic': { 2: 'Int64?' },
     'createTwapOrder': { 3: 'double' },
 };
