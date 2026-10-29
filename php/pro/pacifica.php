@@ -607,13 +607,13 @@ class pacifica extends \ccxt\async\pacifica {
         if (($nonce !== null) && ($nonce !== 0)) {
             $snapshot['nonce'] = $nonce;
         }
+        $messageHash = 'orderbook:' . $symbol;
         if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $ob = $this->order_book($snapshot);
             $this->orderbooks[$symbol] = $ob;
         }
         $orderbook = $this->orderbooks[$symbol];
         $orderbook->reset($snapshot);
-        $messageHash = 'orderbook:' . $symbol;
         $client->resolve($orderbook, $messageHash);
     }
 
@@ -1029,6 +1029,7 @@ class pacifica extends \ccxt\async\pacifica {
         $marketId = $this->safe_string($first, 's');
         $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
+        $messageHash = 'trade:' . $symbol;
         if (!(is_array($this->trades) && array_key_exists($symbol ?? '', $this->trades))) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
             $stored = new ArrayCache($limit);
@@ -1040,7 +1041,6 @@ class pacifica extends \ccxt\async\pacifica {
             $trade = $this->parse_ws_trade($data);
             $trades->append($trade);
         }
-        $messageHash = 'trade:' . $symbol;
         $client->resolve($trades, $messageHash);
     }
 
@@ -1247,6 +1247,7 @@ class pacifica extends \ccxt\async\pacifica {
         if ($timeframe === null) {
             return;
         }
+        $messageHash = 'candles:' . $timeframe . ':' . $symbol;
         if (!(is_array($this->ohlcvs) && array_key_exists($symbol ?? '', $this->ohlcvs))) {
             $this->ohlcvs[$symbol] = array();
         }
@@ -1259,7 +1260,6 @@ class pacifica extends \ccxt\async\pacifica {
         }
         $parsed = $this->parse_ohlcv($data);
         $ohlcv->append($parsed);
-        $messageHash = 'candles:' . $timeframe . ':' . $symbol;
         $client->resolve($ohlcv, $messageHash);
     }
 

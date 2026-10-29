@@ -4162,15 +4162,17 @@ class mexc extends Exchange {
         //         "tradeEnabled": true
         //     }
         //
-        if ($marketType === 'margin') {
+        $isMarginType = $marketType === 'margin';
+        $isSwapType = $marketType === 'swap';
+        if ($isMarginType) {
             $wallet = $this->safe_list($response, 'assets', array());
-        } elseif ($marketType === 'swap') {
+        } elseif ($isSwapType) {
             $wallet = $this->safe_list($response, 'data', array());
         } else {
             $wallet = $this->safe_list($response, 'balances', array());
         }
         $result = array( 'info' => $response );
-        if ($marketType === 'margin') {
+        if ($isMarginType) {
             for ($i = 0; $i < count($wallet); $i++) {
                 $entry = $this->safe_dict($wallet, $i);
                 $base = $this->safe_dict($entry, 'baseAsset', array());
@@ -4185,7 +4187,7 @@ class mexc extends Exchange {
                 }
             }
             return $this->safe_balance($result);
-        } elseif ($marketType === 'swap') {
+        } elseif ($isSwapType) {
             for ($i = 0; $i < count($wallet); $i++) {
                 $entry = $this->safe_dict($wallet, $i);
                 $currencyId = $this->safe_string($entry, 'currency');
