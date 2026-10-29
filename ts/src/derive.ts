@@ -1672,7 +1672,7 @@ export default class derive extends Exchange {
             //     }
             //
         }
-        const result = this.safeList (response, 'result', []);
+        const result = this.safeList (response, 'result');
         return this.parseOHLCVs (result, market, timeframe, since, limit);
     }
 
@@ -3597,11 +3597,11 @@ export default class derive extends Exchange {
         //         ]
         //     }
         //
-        const result = this.safeList (response, 'result', []);
+        const result = this.safeList (response, 'result');
         return this.parseBalanceList (result);
     }
 
-    parseBalanceList (response: Dict[]): Balances {
+    parseBalanceList (response: any): Balances {
         const result: Dict = {
             'info': response,
         };
