@@ -2230,7 +2230,7 @@ func (this *BaseExchange) SafeLedgerEntry(entry map[string]any, optionalArgs ...
 		"info":             info,
 	})
 }
-func (this *BaseExchange) SafeCurrencyStructure(currency any) map[string]any {
+func (this *BaseExchange) SafeCurrencyStructure(currency map[string]any) map[string]any {
 	// derive data from networks: deposit, withdraw, active, fee, limits, precision
 	var networks map[string]any = SafeMapTyped(currency, "networks")
 	var keys []string = nil
@@ -2248,24 +2248,24 @@ func (this *BaseExchange) SafeCurrencyStructure(currency any) map[string]any {
 			var deposit *bool = this.SafeBool(network, "deposit")
 			var currencyDeposit *bool = this.SafeBool(currency, "deposit")
 			if (currencyDeposit == nil) || (deposit != nil && *deposit == true) {
-				AddElementToObject(currency, "deposit", deposit)
+				currency["deposit"] = deposit
 			}
 			var withdraw *bool = this.SafeBool(network, "withdraw")
 			var currencyWithdraw *bool = this.SafeBool(currency, "withdraw")
 			if (currencyWithdraw == nil) || (withdraw != nil && *withdraw == true) {
-				AddElementToObject(currency, "withdraw", withdraw)
+				currency["withdraw"] = withdraw
 			}
 			// find lowest fee (which is more desired)
 			var fee *string = this.SafeString(network, "fee")
 			var feeMain *string = this.SafeString(currency, "fee")
 			if (feeMain == nil) || Precise.StringLt(fee, feeMain) {
-				AddElementToObject(currency, "fee", this.ParseNumber(fee))
+				currency["fee"] = this.ParseNumber(fee)
 			}
 			// find lowest precision (which is more desired)
 			var precision *string = this.SafeString(network, "precision")
 			var precisionMain *string = this.SafeString(currency, "precision")
 			if (precisionMain == nil) || Precise.StringGt(precision, precisionMain) {
-				AddElementToObject(currency, "precision", this.ParseNumber(precision))
+				currency["precision"] = this.ParseNumber(precision)
 			}
 			// limits
 			var limits map[string]any = SafeMapTyped(network, "limits")
@@ -2302,13 +2302,13 @@ func (this *BaseExchange) SafeCurrencyStructure(currency any) map[string]any {
 			if (limitsWithdrawMaxMain == nil) || Precise.StringGt(limitsWithdrawMax, limitsWithdrawMaxMain) {
 				limitsWithdrawNew["max"] = this.ParseNumber(limitsWithdrawMax)
 			}
-			AddElementToObject(currency, "limits", this.Extend(limitsMain, map[string]any{
+			currency["limits"] = this.Extend(limitsMain, map[string]any{
 				"deposit":  this.Extend(limitsDepositMain, limitsDepositNew),
 				"withdraw": this.Extend(limitsWithdrawMain, limitsWithdrawNew),
-			}))
+			})
 		}
 	}
-	return CurrencyTyped(this.Extend(map[string]any{
+	return this.Extend(map[string]any{
 		"info":      nil,
 		"id":        nil,
 		"numericId": nil,
@@ -2332,7 +2332,7 @@ func (this *BaseExchange) SafeCurrencyStructure(currency any) map[string]any {
 				"max": nil,
 			},
 		},
-	}, currency))
+	}, currency)
 }
 func (this *BaseExchange) SafeMarketStructure(optionalArgs ...any) map[string]any {
 	market := GetArg(optionalArgs, 0, nil)
