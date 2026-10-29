@@ -771,18 +771,16 @@ func (this *Pacifica) HandleOrderBook(client any, message map[string]any) {
 	if (nonce != nil) && (nonce == nil || *nonce != 0) {
 		snapshot["nonce"] = nonce
 	}
-	if !(ccxt.InOp(this.Orderbooks, symbol)) {
+	var messageHash string = "orderbook:" + *symbol
+	if _, ok := this.Orderbooks[*symbol]; !ok {
 		var ob ccxt.OrderBookInterface = this.OrderBook(snapshot)
-		if symbol != nil {
-			this.Orderbooks[*symbol] = ob
-		}
+		this.Orderbooks[*symbol] = ob
 	}
 	var orderbook any
 	if symbol != nil {
 		orderbook = this.Orderbooks[*symbol]
 	}
 	orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
-	var messageHash string = "orderbook:" + *symbol
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
 
@@ -1365,12 +1363,11 @@ func (this *Pacifica) HandleTrades(client any, message map[string]any) {
 	var marketId *string = this.SafeString(first, "s")
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
-	if !(ccxt.InOp(this.Trades, symbol)) {
+	var messageHash string = "trade:" + *symbol
+	if _, ok := this.Trades[*symbol]; !ok {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		var stored *ccxt.ArrayCache = ccxt.NewArrayCache(limit)
-		if symbol != nil {
-			this.Trades[*symbol] = stored
-		}
+		this.Trades[*symbol] = stored
 	}
 	var trades any
 	if symbol != nil {
@@ -1381,7 +1378,6 @@ func (this *Pacifica) HandleTrades(client any, message map[string]any) {
 		var trade map[string]any = this.ParseWsTrade(data)
 		trades.(ccxt.Appender).Append(trade)
 	}
-	var messageHash string = "trade:" + *symbol
 	client.(ccxt.ClientInterface).Resolve(trades, messageHash)
 }
 func (this *Pacifica) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
@@ -1647,32 +1643,22 @@ func (this *Pacifica) HandleOHLCV(client any, message map[string]any) {
 	if timeframe == nil {
 		return
 	}
-	if !(ccxt.InOp(this.Ohlcvs, symbol)) {
-		if symbol != nil {
-			this.Ohlcvs[*symbol] = map[string]any{}
-		}
+	var messageHash string = "candles:" + *timeframe + ":" + *symbol
+	if _, ok := this.Ohlcvs[*symbol]; !ok {
+		this.Ohlcvs[*symbol] = map[string]any{}
 	}
-	var symbolOhlcvs map[string]any
-	if symbol != nil {
-		symbolOhlcvs = this.Ohlcvs[*symbol]
-	}
+	var symbolOhlcvs map[string]any = this.Ohlcvs[*symbol]
 	if symbolOhlcvs == nil {
 		symbolOhlcvs = map[string]any{}
 	}
-	var ohlcv any
-	if timeframe != nil {
-		ohlcv = symbolOhlcvs[*timeframe]
-	}
+	var ohlcv any = symbolOhlcvs[*timeframe]
 	if ohlcv == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		ohlcv = ccxt.NewArrayCacheByTimestamp(limit)
-		if timeframe != nil {
-			symbolOhlcvs[*timeframe] = ohlcv
-		}
+		symbolOhlcvs[*timeframe] = ohlcv
 	}
 	var parsed any = ccxt.OHLCVToList(this.ParseOHLCV(data))
 	ohlcv.(ccxt.Appender).Append(parsed)
-	var messageHash string = "candles:" + *timeframe + ":" + *symbol
 	client.(ccxt.ClientInterface).Resolve(ohlcv, messageHash)
 }
 

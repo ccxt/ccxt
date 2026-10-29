@@ -1274,12 +1274,10 @@ func (this *Coinspot) Sign(path string, optionalArgs ...any) map[string]any {
 	var requestBody any = nil
 	var apiLength int = len(api)
 	var isVersionedApi bool = (apiLength > 1)
-	var accessType any = func() any {
-		if isVersionedApi {
-			return api[1]
-		}
-		return api[0]
-	}()
+	var accessType string = api[0]
+	if isVersionedApi {
+		accessType = api[1]
+	}
 	var endpoint string = "/" + this.ImplodeParams(path, params)
 	var fullPath string = endpoint
 	if isVersionedApi {
@@ -1290,7 +1288,7 @@ func (this *Coinspot) Sign(path string, optionalArgs ...any) map[string]any {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var url string = *apiUrl + fullPath
-	if IsEqual(accessType, "private") {
+	if accessType == "private" {
 		this.CheckRequiredCredentials()
 		// coinspot requires an increasing nonce
 		var nonce any = this.IncrementingNonce()
