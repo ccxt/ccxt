@@ -2132,10 +2132,10 @@ public class Opinion extends OpinionApi
         {
             Map<String, Object> market = (Map<String, Object>) this.safeDict(this.markets, (marketKeys == null || i < 0 || i >= marketKeys.size() ? null : marketKeys.get(i)), (Object) null);
             Map<String, Object> info = (Map<String, Object>) this.safeDict(market, "info", new HashMap<String, Object>() {{}});
-            if (Helpers.isEqual(this.safeInteger(info, "marketId"), marketId))
+            if (java.util.Objects.equals(this.safeInteger(info, "marketId"), marketId))
             {
                 List<Object> outcomes = (List<Object>) this.safeList(market, "outcomes", new ArrayList<Object>(Arrays.asList()));
-                Integer index = (((Helpers.isEqual(outcomeSide, 2)))) ? 1 : 0;
+                Integer index = ((((outcomeSide != null && ((Number) outcomeSide).doubleValue() == 2)))) ? 1 : 0;
                 return this.safeDict(outcomes, index, (Object) null);
             }
         }

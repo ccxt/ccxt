@@ -18716,6 +18716,8 @@ export function installJ17StringReturns (transpiler) {
 // a Number box or null at runtime); a comparison / divide / mod of that unwritten parameter against an integer
 // literal prints the double compare with the helper's null arm (isLessThan(null, N) is true, isGreaterThan false).
 const J20_MEMBER = /^    public \S+(?:<[^>]*>)? (?:setLeverage|cancelAllOrdersAfter|handleErrors|parseWsOrderStatus)\(Object (\w+)[,)]/;
+// hx11 w8: Opinion.opinionOutcomeByMarketIdSide(marketId, outcomeSide): both callers pass safeInteger (Long/null); 2nd param.
+const J20_MEMBER_B = /^    public \S+ opinionOutcomeByMarketIdSide\(Object (\w+), Object (\w+)\)/;
 
 function j20Rewrite (line, p) {
     const v = `((Number) ${p}).doubleValue()`;
@@ -18735,11 +18737,12 @@ function j20Rewrite (line, p) {
 }
 
 export function nativeJavaJ20ParamCompare (content) {
-    if (!/ (?:setLeverage|cancelAllOrdersAfter|handleErrors|parseWsOrderStatus)\(Object /.test (content)) return content;
+    if (!/ (?:setLeverage|cancelAllOrdersAfter|handleErrors|parseWsOrderStatus)\(Object |opinionOutcomeByMarketIdSide\(Object /.test (content)) return content;
     const lines = content.split ('\n');
     let changed = false;
     for (let i = 0; i < lines.length; i++) {
-        const m = J20_MEMBER.exec (lines[i]);
+        const mb = J20_MEMBER_B.exec (lines[i]);
+        const m = mb === null ? J20_MEMBER.exec (lines[i]) : [ mb[0], mb[2] ];
         if (m === null) continue;
         const p = m[1];
         let end = i + 1;
@@ -18750,7 +18753,9 @@ export function nativeJavaJ20ParamCompare (content) {
         for (let k = i + 1; k < end; k++) if (write.test (lines[k].replace (/"(?:[^"\\]|\\.)*"/g, '""'))) { written = true; break; }
         if (!written) {
             for (let k = i + 1; k < end; k++) {
-                const next = j20Rewrite (lines[k], p);
+                let next = j20Rewrite (lines[k], p);
+                // marketId is non-null past the guard and compared with a Long: value equality
+                if (mb !== null) next = next.replace (`Helpers.isEqual(this.safeInteger(info, "marketId"), ${mb[1]})`, `java.util.Objects.equals(this.safeInteger(info, "marketId"), ${mb[1]})`);
                 if (next !== lines[k]) { lines[k] = next; changed = true; }
             }
         }
