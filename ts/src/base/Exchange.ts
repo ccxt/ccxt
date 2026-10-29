@@ -3362,7 +3362,7 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' handleDelta not supported yet');
     }
 
-    handleBookDeltas (orderbook: WsOrderBook, deltas: any) {
+    handleBookDeltas (orderbook: WsOrderBook, deltas: any[]) {
         for (let i = 0; i < deltas.length; i++) {
             this.handleBookDelta (orderbook, this.safeValue (deltas, i));
         }
