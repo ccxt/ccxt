@@ -1929,7 +1929,7 @@ func (this *Polymarket) fetchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], o
 		if _, ok := buckets[bucketKey]; !ok {
 			buckets[bucketKey] = []any{snappedMs, price, price, price, price, vol}
 		} else {
-			var candle any = buckets[bucketKey]
+			var candle any = this.SafeList(buckets, bucketKey, []any{})
 			ccxt.AddElementToObject(candle, 2, ccxt.MathMax(ccxt.GetValue(candle, 2), price)) // high
 			ccxt.AddElementToObject(candle, 3, ccxt.MathMin(ccxt.GetValue(candle, 3), price)) // low
 			ccxt.AddElementToObject(candle, 4, price)                                         // close (last tick wins)

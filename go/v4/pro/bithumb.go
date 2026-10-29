@@ -1011,8 +1011,8 @@ func (this *Bithumb) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], o
 			panic(r.Err)
 		}
 	}
-	var generation any = ccxt.GetValue(ccxt.TupleSlice(this.HandleOptionIntegerAndParams(params, "watchBalance", "generation", 2)), 0)
-	if !ccxt.IsEqual(generation, 2) {
+	generation, _ := this.HandleOptionIntegerAndParams(params, "watchBalance", "generation", 2)
+	if generation != 2 {
 		panic(ccxt.BadRequest(this.Id + " watchBalance() is only supported for the generation 2 API"))
 	}
 
@@ -1181,8 +1181,8 @@ func (this *Bithumb) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opt
 			panic(r.Err)
 		}
 	}
-	var generation any = ccxt.GetValue(ccxt.TupleSlice(this.HandleOptionIntegerAndParams(params, "watchOrders", "generation", 2)), 0)
-	if !ccxt.IsEqual(generation, 2) {
+	generation, _ := this.HandleOptionIntegerAndParams(params, "watchOrders", "generation", 2)
+	if generation != 2 {
 		panic(ccxt.BadRequest(this.Id + " watchOrders() is only supported for the generation 2 API"))
 	}
 

@@ -1963,7 +1963,7 @@ func (this *Bitvavo) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 			cost = this.SafeNumber(paramsOmitted, "cost")
 		}
 		if cost != nil {
-			var precision any = this.Currency(market["quote"])["precision"]
+			var precision *float64 = this.SafeNumber(this.Currency(market["quote"]), "precision")
 			request["amountQuote"] = this.DecimalToPrecision(cost, TRUNCATE, precision, this.PrecisionMode)
 		} else {
 			request["amount"] = this.AmountToPrecision(symbol, amount)

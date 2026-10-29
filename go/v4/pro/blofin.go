@@ -1376,14 +1376,13 @@ func (this *Blofin) unsubscribeMultipleWrapperBody(ch chan ccxt.AsyncResult[any]
 		return nil
 	}()
 	var isOHLCV bool = (channelName == "candle")
-	var symbols any = func() any {
-		if isOHLCV {
-			return this.GetListFromObjectValues(symbolsArray, 0)
-		}
-		return symbolsArray
-	}()
-	symbols = this.MarketSymbols(symbols, nil, false, true)
-	var firstMarket map[string]any = this.Market(ccxt.GetValue(symbols, 0))
+	var symbols any = []any{}
+	if isOHLCV {
+		symbols = this.MarketSymbols(this.GetListFromObjectValues(symbolsArray, 0), nil, false, true)
+	} else {
+		symbols = this.MarketSymbols(symbolsArray, nil, false, true)
+	}
+	var firstMarket map[string]any = this.Market(this.SafeString(symbols, 0))
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams(callerMethodNameOption, firstMarket, paramsCallerMethodName)
 	if marketType == nil || *marketType != "swap" {
 		panic(ccxt.NotSupported(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(this.Id+" ", callerMethodNameOption), "() does not support "), marketType), " markets yet")))
@@ -1391,7 +1390,7 @@ func (this *Blofin) unsubscribeMultipleWrapperBody(ch chan ccxt.AsyncResult[any]
 	var topics []any = []any{}
 	var messageHashes []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
-		var market map[string]any = this.Market(ccxt.GetValue(symbols, i))
+		var market map[string]any = this.Market(this.SafeString(symbols, i))
 		var channel any = channelName
 		if isOHLCV {
 			var tfArray any = ccxt.GetValue(symbolsArray, i)

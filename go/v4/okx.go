@@ -11669,16 +11669,14 @@ func (this *Okx) fetchMySettlementHistoryBody(ch chan AsyncResult[[]map[string]a
 	if limit != nil {
 		request["limit"] = limit
 	}
-	var methodparamsMethodVariable []any = this.HandleOptionAndParams(params, "fetchMySettlementHistory", "method", "privateGetAccountBillsArchive")
-	method := GetValue(methodparamsMethodVariable, 0)
-	var paramsMethod map[string]any = MapTyped(methodparamsMethodVariable[1])
+	method, paramsMethod := this.HandleOptionStringAndParams(params, "fetchMySettlementHistory", "method", "privateGetAccountBillsArchive")
 	var until *int64 = this.SafeInteger(paramsMethod, "until")
 	if until != nil {
 		request["end"] = until
 	}
 	var query map[string]any = this.OmitDict(paramsMethod, "until")
 	var response any = map[string]any{}
-	if method == "privateGetAccountBills" {
+	if method != nil && *method == "privateGetAccountBills" {
 
 		r1 := <-this.PrivateGetAccountBills(this.Extend(request, query))
 		if r1.Err != nil {

@@ -608,29 +608,25 @@ func (this *Binance) fetchEventsByQueryBody(ch chan ccxt.AsyncResult[[]map[strin
 	var seen map[string]any = map[string]any{}
 	var collected []any = []any{}
 	var queriesLength int = ccxt.GetArrayLength(queries)
-	var limitValue any = func() any {
-		if ccxt.IsEqual(limit, nil) {
-			return 20
-		}
-		return limit
-	}()
-	var limitResolved any = func() any {
-		if ccxt.IsGreaterThan(limitValue, 50) {
-			return 50
-		}
-		return limitValue
-	}()
+	var limitValue int64 = this.ParseToInt(20)
+	if !ccxt.IsEqual(limit, nil) {
+		limitValue = this.ParseToInt(limit)
+	}
+	var limitResolved int64 = limitValue
+	if limitValue > 50 {
+		limitResolved = this.ParseToInt(50)
+	}
 	for qi := 0; qi < queriesLength; qi++ {
 		var request map[string]any = map[string]any{
 			"query": ccxt.GetValue(queries, qi),
 		}
 		request["topK"] = limitResolved
 
-		listEp610 := <-this.SapiPrivateGetMarketSearch(this.Extend(request, rest))
-		if listEp610.Err != nil {
-			panic(listEp610.Err)
+		listEp606 := <-this.SapiPrivateGetMarketSearch(this.Extend(request, rest))
+		if listEp606.Err != nil {
+			panic(listEp606.Err)
 		}
-		var response []any = listEp610.Value
+		var response []any = listEp606.Value
 		//
 		//     [
 		//         {
@@ -658,7 +654,7 @@ func (this *Binance) fetchEventsByQueryBody(ch chan ccxt.AsyncResult[[]map[strin
 	}
 	var capped []any = collected
 	var collectedLength int = len(collected)
-	if ccxt.IsGreaterThan(collectedLength, limitResolved) {
+	if int64(collectedLength) > limitResolved {
 		capped = this.ArraySlice(collected, 0, limitResolved)
 	}
 
@@ -666,11 +662,11 @@ func (this *Binance) fetchEventsByQueryBody(ch chan ccxt.AsyncResult[[]map[strin
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes48515 []any = ccxt.MapSliceToList(r.Value)
-	if retRes48515 == nil {
+	var retRes49115 []any = ccxt.MapSliceToList(r.Value)
+	if retRes49115 == nil {
 		ch <- ccxt.AsyncResult[[]map[string]any]{Value: nil}
 	} else {
-		ch <- ccxt.AsyncResult[[]map[string]any]{Value: ccxt.MapSliceFromList(retRes48515)}
+		ch <- ccxt.AsyncResult[[]map[string]any]{Value: ccxt.MapSliceFromList(retRes49115)}
 	}
 	return nil
 }
@@ -1398,11 +1394,11 @@ func (this *Binance) fetchOpenOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predict
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		var retRes106619 []any = r.Value
-		if retRes106619 == nil {
+		var retRes107219 []any = r.Value
+		if retRes107219 == nil {
 			ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: nil}
 		} else {
-			ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(retRes106619)}
+			ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(retRes107219)}
 		}
 		return nil
 	}
@@ -1526,11 +1522,11 @@ func (this *Binance) fetchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionO
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		var retRes114919 []any = r.Value
-		if retRes114919 == nil {
+		var retRes115519 []any = r.Value
+		if retRes115519 == nil {
 			ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: nil}
 		} else {
-			ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(retRes114919)}
+			ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(retRes115519)}
 		}
 		return nil
 	}
@@ -1906,11 +1902,11 @@ func (this *Binance) fetchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Predictio
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		var retRes141519 []any = r.Value
-		if retRes141519 == nil {
+		var retRes142119 []any = r.Value
+		if retRes142119 == nil {
 			ch <- ccxt.AsyncResult[[]ccxt.PredictionTrade]{Value: nil}
 		} else {
-			ch <- ccxt.AsyncResult[[]ccxt.PredictionTrade]{Value: ccxt.PredictionTradesFromList(retRes141519)}
+			ch <- ccxt.AsyncResult[[]ccxt.PredictionTrade]{Value: ccxt.PredictionTradesFromList(retRes142119)}
 		}
 		return nil
 	}
