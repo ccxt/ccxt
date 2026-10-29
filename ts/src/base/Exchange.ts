@@ -8666,17 +8666,15 @@ export class BaseExchange {
     }
 
     async fetchPaginatedCallDynamic (method: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}, maxEntriesPerRequest: Int = undefined, removeRepeated = true): Promise<any[]> {
-        const maxCalls = 10;
-        const [ maxCallsPaginationCalls, paramsPaginationCalls ] = this.handleOptionIntegerAndParams (params, method, 'paginationCalls', maxCalls);
-        const maxRetries = 3;
-        const [ maxRetriesOption, paramsMaxRetries ] = this.handleOptionIntegerAndParams (paramsPaginationCalls, method, 'maxRetries', maxRetries);
-        const [ paginationDirection, paramsPaginationDirection ] = this.handleOptionAndParams (paramsMaxRetries, method, 'paginationDirection', 'backward');
+        const [ maxCallsPaginationCalls, paramsPaginationCalls ] = this.handleOptionIntegerAndParams (params, method, 'paginationCalls', 10);
+        const [ maxRetriesOption, paramsMaxRetries ] = this.handleOptionIntegerAndParams (paramsPaginationCalls, method, 'maxRetries', 3);
+        const [ removeRepeatedOption, paramsRemoveRepeated ] = this.handleOptionAndParams (paramsMaxRetries, method, 'removeRepeated', removeRepeated);
+        const [ paginationDirection, paramsPaginationDirection ] = this.handleOptionStringAndParams (paramsRemoveRepeated, method, 'paginationDirection', 'backward');
         let paginationTimestamp: Int = undefined;
-        const [ removeRepeatedOption, paramsRemoveRepeated ] = this.handleOptionAndParams (paramsPaginationDirection, method, 'removeRepeated', removeRepeated);
         let result: any[] = [];
         let errors = 0;
-        const until = this.safeIntegerN (paramsRemoveRepeated, [ 'until', 'untill', 'till' ]); // do not omit it from params here
-        const [ maxEntriesPerRequestOption, paramsMaxEntriesPerRequest ] = this.handleMaxEntriesPerRequestAndParams (method, maxEntriesPerRequest, paramsRemoveRepeated);
+        const until = this.safeIntegerN (paramsPaginationDirection, [ 'until', 'untill', 'till' ]); // do not omit it from params here
+        const [ maxEntriesPerRequestOption, paramsMaxEntriesPerRequest ] = this.handleMaxEntriesPerRequestAndParams (method, maxEntriesPerRequest, paramsPaginationDirection);
         if ((paginationDirection === 'forward')) {
             if (since === undefined) {
                 throw new ArgumentsRequired (this.id + ' pagination requires a since argument when paginationDirection set to forward');
