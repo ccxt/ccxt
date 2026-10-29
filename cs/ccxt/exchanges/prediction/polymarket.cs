@@ -1727,13 +1727,13 @@ public partial class polymarket : PredictionExchange
                 buckets[(string)bucketKey] = new List<object>() {snappedMs, price, price, price, price, vol};
             } else
             {
-                object candle = (bucketKey != null && buckets.ContainsKey(bucketKey) ? buckets[bucketKey] : null);
-                ((List<object>)candle)[Convert.ToInt32(2)] = mathMax(getValue(candle, 2), price); // high
-                ((List<object>)candle)[Convert.ToInt32(3)] = mathMin(getValue(candle, 3), price); // low
+                List<object> candle = this.safeList(buckets, bucketKey, new List<object>() {});
+                ((List<object>)candle)[Convert.ToInt32(2)] = mathMax((candle != null && 2 < candle.Count ? candle[2] : null), price); // high
+                ((List<object>)candle)[Convert.ToInt32(3)] = mathMin((candle != null && 3 < candle.Count ? candle[3] : null), price); // low
                 ((List<object>)candle)[Convert.ToInt32(4)] = price; // close (last tick wins)
                 if ((vol != null))
                 {
-                    object prevVol = getValue(candle, 5);
+                    object prevVol = (candle != null && 5 < candle.Count ? candle[5] : null);
                     ((List<object>)candle)[Convert.ToInt32(5)] = ((prevVol == null)) ? vol : this.sum(prevVol, vol); // volume
                 }
                 buckets[(string)bucketKey] = candle; // reassign after mutation, php arrays are value types

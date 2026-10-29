@@ -515,8 +515,16 @@ public partial class binance : PredictionExchange
         Dictionary<string, object> seen = new Dictionary<string, object>() {};
         List<object> collected = new List<object>() {};
         int queriesLength = queries?.Count ?? 0;
-        Int64? limitValue = ((limit == null)) ? 20 : limit;
-        Int64? limitResolved = ((limitValue > 50)) ? 50 : limitValue;
+        Int64? limitValue = this.parseToInt(20);
+        if ((limit != null))
+        {
+            limitValue = this.parseToInt(limit);
+        }
+        Int64? limitResolved = limitValue;
+        if ((limitValue > 50))
+        {
+            limitResolved = this.parseToInt(50);
+        }
         for (int qi = 0; qi < queriesLength; qi++)
         {
             Dictionary<string, object> request = new Dictionary<string, object>() {

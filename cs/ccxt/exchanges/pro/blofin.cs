@@ -989,9 +989,15 @@ public partial class blofin : ccxt.blofin
         string? callerMethodNameOption = (string)callerMethodNameOptionparamsCallerMethodNameVariable[0];
         IDictionary<string, object> paramsCallerMethodName = ((IDictionary<string, object>)callerMethodNameOptionparamsCallerMethodNameVariable[1]);
         bool isOHLCV = ((channelName is "candle"));
-        object symbols = isOHLCV ? this.getListFromObjectValues(symbolsArray, 0) : symbolsArray;
-        symbols = this.marketSymbols(symbols, null, false, true);
-        Dictionary<string, object> firstMarket = this.market(getValue(symbols, 0));
+        IList<object> symbols = new List<object>() {};
+        if (isOHLCV)
+        {
+            symbols = this.marketSymbols(this.getListFromObjectValues(symbolsArray, 0), null, false, true);
+        } else
+        {
+            symbols = this.marketSymbols(symbolsArray, null, false, true);
+        }
+        Dictionary<string, object> firstMarket = this.market(this.safeString(symbols, 0));
         IList<object> marketTypeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams(callerMethodNameOption, firstMarket, paramsCallerMethodName);
         string? marketType = (string)marketTypeparamsMarketTypeVariable[0];
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)marketTypeparamsMarketTypeVariable[1]);
@@ -1001,9 +1007,9 @@ public partial class blofin : ccxt.blofin
         }
         List<object> topics = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
-        for (int i = 0; i < getArrayLength(symbols); i++)
+        for (int i = 0; i < (symbols?.Count ?? 0); i++)
         {
-            Dictionary<string, object> market = this.market(getValue(symbols, i));
+            Dictionary<string, object> market = this.market(this.safeString(symbols, i));
             object channel = channelName;
             if (isOHLCV)
             {

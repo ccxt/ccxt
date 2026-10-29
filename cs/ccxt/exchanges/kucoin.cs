@@ -4557,7 +4557,7 @@ public partial class kucoin : Exchange
         return orderbook;
     }
 
-    public virtual List<object> handleTriggerPrices(object parameters)
+    public virtual void checkTriggerPrices(object parameters)
     {
         double? triggerPrice = this.safeNumber2(parameters, "triggerPrice", "stopPrice");
         double? stopLossPrice = this.safeNumber(parameters, "stopLossPrice");
@@ -4568,7 +4568,6 @@ public partial class kucoin : Exchange
         {
             throw new ExchangeError ((this.id + " createOrder() - you should use either triggerPrice or stopLossPrice or takeProfitPrice")) ;
         }
-        return new List<object>() {triggerPrice, stopLossPrice, takeProfitPrice};
     }
 
     /**
@@ -4683,12 +4682,12 @@ public partial class kucoin : Exchange
         (bool?, object) useSyncparamsSyncVariable = this.handleOptionBoolAndParams(paramsHf, "createOrder", "sync", false);
         bool? useSync = useSyncparamsSyncVariable.Item1;
         IDictionary<string, object> paramsSync = ((IDictionary<string, object>)useSyncparamsSyncVariable.Item2);
-        IList<object> triggerPricestopLossPricetakeProfitPriceVariable = (IList<object>)this.handleTriggerPrices(paramsSync);
-        var triggerPrice = triggerPricestopLossPricetakeProfitPriceVariable[0];
-        var stopLossPrice = triggerPricestopLossPricetakeProfitPriceVariable[1];
-        var takeProfitPrice = triggerPricestopLossPricetakeProfitPriceVariable[2];
+        this.checkTriggerPrices(paramsSync);
+        double? triggerPrice = this.safeNumber2(paramsSync, "triggerPrice", "stopPrice");
+        double? stopLossPrice = this.safeNumber(paramsSync, "stopLossPrice");
+        double? takeProfitPrice = this.safeNumber(paramsSync, "takeProfitPrice");
         string? tradeType = this.safeString(paramsSync, "tradeType"); // keep it for backward compatibility
-        bool isTriggerOrder = (!(triggerPrice == null)) || (!(stopLossPrice == null)) || (!(takeProfitPrice == null));
+        bool isTriggerOrder = ((triggerPrice != null)) || ((stopLossPrice != null)) || ((takeProfitPrice != null));
         string? marginMode = this.handleMarginModeAndParams("createOrder", paramsSync).Item1;
         bool isMarginOrder = tradeType == "MARGIN_TRADE" || (marginMode != null);
         // don't omit anything before calling createOrderRequest
@@ -4789,21 +4788,21 @@ public partial class kucoin : Exchange
             request["price"] = this.priceToPrecision(symbol, price);
         }
         string? tradeType = this.safeString(paramsOmitted, "tradeType"); // keep it for backward compatibility
-        IList<object> triggerPricestopLossPricetakeProfitPriceVariable = (IList<object>)this.handleTriggerPrices(paramsOmitted);
-        var triggerPrice = triggerPricestopLossPricetakeProfitPriceVariable[0];
-        var stopLossPrice = triggerPricestopLossPricetakeProfitPriceVariable[1];
-        var takeProfitPrice = triggerPricestopLossPricetakeProfitPriceVariable[2];
-        bool isTriggerOrder = (!(triggerPrice == null)) || (!(stopLossPrice == null)) || (!(takeProfitPrice == null));
+        this.checkTriggerPrices(paramsOmitted);
+        double? triggerPrice = this.safeNumber2(paramsOmitted, "triggerPrice", "stopPrice");
+        double? stopLossPrice = this.safeNumber(paramsOmitted, "stopLossPrice");
+        double? takeProfitPrice = this.safeNumber(paramsOmitted, "takeProfitPrice");
+        bool isTriggerOrder = ((triggerPrice != null)) || ((stopLossPrice != null)) || ((takeProfitPrice != null));
         bool isMarginOrder = tradeType == "MARGIN_TRADE" || (marginMode != null);
         paramsOmitted = this.omit(paramsOmitted, new List<object>() {"stopLossPrice", "takeProfitPrice", "triggerPrice", "stopPrice"});
         if (isTriggerOrder)
         {
-            if (!(triggerPrice == null))
+            if ((triggerPrice != null))
             {
                 request["stopPrice"] = this.priceToPrecision(symbol, triggerPrice);
-            } else if ((!(stopLossPrice == null)) || (!(takeProfitPrice == null)))
+            } else if (((stopLossPrice != null)) || ((takeProfitPrice != null)))
             {
-                if (!(stopLossPrice == null))
+                if ((stopLossPrice != null))
                 {
                     request["stop"] = ((side == "buy")) ? "entry" : "loss";
                     request["stopPrice"] = this.priceToPrecision(symbol, stopLossPrice);
@@ -4976,10 +4975,10 @@ public partial class kucoin : Exchange
                 request["size"] = JsParse.parseInt(sizeString);
             }
         }
-        IList<object> triggerPricestopLossPricetakeProfitPriceVariable = (IList<object>)this.handleTriggerPrices(paramsOmitted);
-        var triggerPrice = triggerPricestopLossPricetakeProfitPriceVariable[0];
-        var stopLossPrice = triggerPricestopLossPricetakeProfitPriceVariable[1];
-        var takeProfitPrice = triggerPricestopLossPricetakeProfitPriceVariable[2];
+        this.checkTriggerPrices(paramsOmitted);
+        double? triggerPrice = this.safeNumber2(paramsOmitted, "triggerPrice", "stopPrice");
+        double? stopLossPrice = this.safeNumber(paramsOmitted, "stopLossPrice");
+        double? takeProfitPrice = this.safeNumber(paramsOmitted, "takeProfitPrice");
         IDictionary<string, object> stopLoss = this.safeDict(paramsOmitted, "stopLoss");
         IDictionary<string, object> takeProfit = this.safeDict(paramsOmitted, "takeProfit");
         bool hasStopLoss = (stopLoss != null);
@@ -4993,7 +4992,7 @@ public partial class kucoin : Exchange
         string? triggerPriceType = this.safeString(paramsOmitted, "triggerPriceType", "mark");
         string? triggerPriceTypeValue = this.safeString(triggerPriceTypes, triggerPriceType, triggerPriceType);
         paramsOmitted = this.omit(paramsOmitted, new List<object>() {"stopLossPrice", "takeProfitPrice", "triggerPrice", "stopPrice", "takeProfit", "stopLoss"});
-        if (!(triggerPrice == null))
+        if ((triggerPrice != null))
         {
             request["stop"] = ((side == "buy")) ? "up" : "down";
             request["stopPrice"] = this.priceToPrecision(symbol, triggerPrice);
@@ -5016,9 +5015,9 @@ public partial class kucoin : Exchange
                 priceType = this.safeString(triggerPriceTypes, priceType, priceType);
             }
             request["stopPriceType"] = priceType;
-        } else if ((!(stopLossPrice == null)) || (!(takeProfitPrice == null)))
+        } else if (((stopLossPrice != null)) || ((takeProfitPrice != null)))
         {
-            if (!(stopLossPrice == null))
+            if ((stopLossPrice != null))
             {
                 request["stop"] = ((side == "buy")) ? "up" : "down";
                 request["stopPrice"] = this.priceToPrecision(symbol, stopLossPrice);
@@ -5282,10 +5281,10 @@ public partial class kucoin : Exchange
             }
         }
         // handling with conditional orders
-        IList<object> triggerPricestopLossPricetakeProfitPriceVariable = (IList<object>)this.handleTriggerPrices(paramsOmitted);
-        var triggerPrice = triggerPricestopLossPricetakeProfitPriceVariable[0];
-        var stopLossPrice = triggerPricestopLossPricetakeProfitPriceVariable[1];
-        var takeProfitPrice = triggerPricestopLossPricetakeProfitPriceVariable[2];
+        this.checkTriggerPrices(paramsOmitted);
+        double? triggerPrice = this.safeNumber2(paramsOmitted, "triggerPrice", "stopPrice");
+        double? stopLossPrice = this.safeNumber(paramsOmitted, "stopLossPrice");
+        double? takeProfitPrice = this.safeNumber(paramsOmitted, "takeProfitPrice");
         IDictionary<string, object> stopLoss = this.safeDict(paramsOmitted, "stopLoss");
         IDictionary<string, object> takeProfit = this.safeDict(paramsOmitted, "takeProfit");
         bool hasStopLoss = (stopLoss != null);
@@ -5295,7 +5294,7 @@ public partial class kucoin : Exchange
             { "last", "TP" },
             { "index", "IP" },
         };
-        if (!(triggerPrice == null))
+        if ((triggerPrice != null))
         {
             string? triggerDirection = this.safeString(paramsOmitted, "triggerDirection");
             if ((triggerDirection == null))
@@ -5324,9 +5323,9 @@ public partial class kucoin : Exchange
                 request["tpTriggerPrice"] = this.priceToPrecision(symbol, tpTriggerPrice);
                 request["tpTriggerPriceType"] = this.safeString(triggerPriceTypes, tpTriggerPriceType, tpTriggerPriceType);
             }
-        } else if ((!(stopLossPrice == null)) || (!(takeProfitPrice == null)))
+        } else if (((stopLossPrice != null)) || ((takeProfitPrice != null)))
         {
-            if (!(stopLossPrice == null))
+            if ((stopLossPrice != null))
             {
                 request["triggerDirection"] = ((side == "buy")) ? "UP" : "DOWN";
                 request["triggerPrice"] = this.priceToPrecision(symbol, stopLossPrice);

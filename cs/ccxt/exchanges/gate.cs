@@ -6024,18 +6024,6 @@ public partial class gate : Exchange
                         { "rule", rule },
                     };
                 }
-                if ((reduceOnly != null))
-                {
-                    ((IDictionary<string,object>)(request != null && request.ContainsKey("initial") ? request["initial"] : null))["reduce_only"] = reduceOnly;
-                }
-                if ((timeInForce != null))
-                {
-                    ((IDictionary<string,object>)(request != null && request.ContainsKey("initial") ? request["initial"] : null))["tif"] = timeInForce;
-                }
-                if ((clientOrderId != null))
-                {
-                    ((IDictionary<string,object>)(request != null && request.ContainsKey("initial") ? request["initial"] : null))["text"] = clientOrderId;
-                }
             } else
             {
                 // spot conditional order

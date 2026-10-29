@@ -1683,7 +1683,7 @@ public partial class bitvavo : Exchange
             }
             if ((cost != null))
             {
-                object precision = getValue(this.currency(((string)(market.ContainsKey("quote") ? market["quote"] : null))), "precision");
+                double? precision = this.safeNumber(this.currency(((string)(market.ContainsKey("quote") ? market["quote"] : null))), "precision");
                 request["amountQuote"] = this.decimalToPrecision(cost, TRUNCATE, precision, this.precisionMode);
             } else
             {

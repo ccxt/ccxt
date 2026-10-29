@@ -10190,9 +10190,9 @@ public partial class okx : Exchange
         {
             request["limit"] = limit;
         }
-        IList<object> methodparamsMethodVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchMySettlementHistory", "method", "privateGetAccountBillsArchive");
-        var method = methodparamsMethodVariable[0];
-        IDictionary<string, object> paramsMethod = ((IDictionary<string, object>)methodparamsMethodVariable[1]);
+        (string?, object) methodparamsMethodVariable = this.handleOptionStringAndParams(parameters, "fetchMySettlementHistory", "method", "privateGetAccountBillsArchive");
+        string? method = methodparamsMethodVariable.Item1;
+        IDictionary<string, object> paramsMethod = ((IDictionary<string, object>)methodparamsMethodVariable.Item2);
         Int64? until = this.safeInteger(paramsMethod, "until");
         if ((until != null))
         {
@@ -10200,7 +10200,7 @@ public partial class okx : Exchange
         }
         Dictionary<string, object> query = this.omit(paramsMethod, "until");
         Dictionary<string, object> response = new Dictionary<string, object>() {};
-        if ((method is "privateGetAccountBills"))
+        if ((method == "privateGetAccountBills"))
         {
             response = await this.privateGetAccountBills(this.extend(request, query));
         } else

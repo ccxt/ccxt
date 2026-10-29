@@ -860,8 +860,9 @@ public partial class bithumb : ccxt.bithumb
         {
             await this.loadMarkets();
         }
-        Int64? generation = this.handleOptionIntegerAndParams(parameters, "watchBalance", "generation", 2).Item1;
-        if ((generation != 2))
+        (Int64?, object) generationVariable = this.handleOptionIntegerAndParams(parameters, "watchBalance", "generation", 2);
+        Int64? generation = generationVariable.Item1;
+        if (!(generation == 2))
         {
             throw new BadRequest ((this.id + " watchBalance() is only supported for the generation 2 API")) ;
         }
@@ -998,8 +999,9 @@ public partial class bithumb : ccxt.bithumb
         {
             await this.loadMarkets();
         }
-        Int64? generation = this.handleOptionIntegerAndParams(parameters, "watchOrders", "generation", 2).Item1;
-        if ((generation != 2))
+        (Int64?, object) generationVariable = this.handleOptionIntegerAndParams(parameters, "watchOrders", "generation", 2);
+        Int64? generation = generationVariable.Item1;
+        if (!(generation == 2))
         {
             throw new BadRequest ((this.id + " watchOrders() is only supported for the generation 2 API")) ;
         }
