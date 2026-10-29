@@ -2,7 +2,7 @@
 
 import xtRest from '../xt.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import { Balances, Dict, FundingRate, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
+import { Balances, Dict, NullableDict, FundingRate, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { AuthenticationError, ExchangeError, NotSupported } from '../base/errors.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
@@ -148,7 +148,7 @@ export default class xt extends xtRest {
         return client.subscriptions['token'];
     }
 
-    override getCacheIndex (orderbook: any, cache: any): number {
+    override getCacheIndex (orderbook: NullableDict, cache: any[]): number {
         // return the first index of the cache that can be applied to the orderbook or -1 if not possible
         const nonce = this.safeInteger (orderbook, 'nonce');
         const firstDelta = this.safeDict (cache, 0);

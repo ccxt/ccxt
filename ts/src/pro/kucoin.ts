@@ -1786,7 +1786,7 @@ export default class kucoin extends kucoinRest {
         client.resolve (book, messageHash);
     }
 
-    override getCacheIndex (orderbook: any, cache: any): number {
+    override getCacheIndex (orderbook: NullableDict, cache: any[]): number {
         const firstDelta = this.safeDict (cache, 0);
         const nonce = this.safeInteger (orderbook, 'nonce');
         const firstDeltaStart = this.safeIntegerN (firstDelta, [ 'sequenceStart', 'sequence', 'O' ]);

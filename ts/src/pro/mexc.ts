@@ -847,7 +847,7 @@ export default class mexc extends mexcRest {
         orderbook.cache = [];
     }
 
-    override getCacheIndex (orderbook: any, cache: any): number {
+    override getCacheIndex (orderbook: NullableDict, cache: any[]): number {
         // return the first index of the cache that can be applied to the orderbook or -1 if not possible
         const nonce = this.safeInteger (orderbook, 'nonce');
         const firstDelta = this.safeDict (cache, 0);

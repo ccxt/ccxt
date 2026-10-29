@@ -3379,7 +3379,7 @@ export class BaseExchange {
         }
     }
 
-    getCacheIndex (orderbook: any, deltas: any): number {
+    getCacheIndex (orderbook: NullableDict, deltas: any[]): number {
         // return the first index of the cache that can be applied to the orderbook or -1 if not possible.
         return -1;
     }

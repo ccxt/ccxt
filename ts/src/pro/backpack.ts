@@ -3,7 +3,7 @@
 import { ed25519 } from '@noble/curves/ed25519.js';
 import backpackRest from '../backpack.js';
 import { ArgumentsRequired, BadRequest, BadSymbol, ExchangeError, NotSupported } from '../base/errors.js';
-import type { Balances, Bool, Dict, Fee, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
+import type { Balances, Bool, Dict, NullableDict, Fee, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
 import { eddsa } from '../base/functions/crypto.js';
@@ -1220,7 +1220,7 @@ export default class backpack extends backpackRest {
         }
     }
 
-    override getCacheIndex (orderbook: any, cache: any): number {
+    override getCacheIndex (orderbook: NullableDict, cache: any[]): number {
         //
         // {"E":"1759338824897386","T":"1759338824895616","U":1662976171,"a":[],"b":[["117357.0","0.00000"]],"e":"depth","s":"BTC_USDC_PERP","u":1662976171}
         const firstDelta = this.safeDict (cache, 0);

@@ -728,7 +728,7 @@ export default class gate extends gateRest {
         client.resolve (storedOrderBook, messageHash);
     }
 
-    override getCacheIndex (orderBook: any, cache: any): number {
+    override getCacheIndex (orderBook: NullableDict, cache: any[]): number {
         const nonce = this.safeInteger (orderBook, 'nonce');
         const firstDelta = this.safeDict (cache, 0);
         const firstDeltaStart = this.safeInteger (firstDelta, 'U');
