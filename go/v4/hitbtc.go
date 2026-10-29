@@ -3369,18 +3369,18 @@ func (this *Hitbtc) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(response, market)}
 	return nil
 }
-func (this *Hitbtc) CreateOrderRequest(market map[string]any, marketType any, typeVar any, side any, amount any, optionalArgs ...any) []any {
+func (this *Hitbtc) CreateOrderRequest(market map[string]any, marketType any, typeVar string, side string, amount any, optionalArgs ...any) []any {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	marginMode := GetArg(optionalArgs, 1, nil)
 	_ = marginMode
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	var isLimit bool = (IsEqual(typeVar, "limit"))
+	var isLimit bool = (typeVar == "limit")
 	var reduceOnly *bool = this.SafeBool(params, "reduceOnly")
 	var timeInForce *string = this.SafeString(params, "timeInForce")
 	var triggerPrice *float64 = this.SafeNumberN(params, []any{"triggerPrice", "stopPrice", "stop_price"})
-	var isPostOnly bool = this.IsPostOnly((IsEqual(typeVar, "market")), nil, params)
+	var isPostOnly bool = this.IsPostOnly((typeVar == "market"), nil, params)
 	var resolvedMarketType *string = this.SafeString(market, "type")
 	var request map[string]any = map[string]any{
 		"type":     typeVar,
@@ -3402,7 +3402,7 @@ func (this *Hitbtc) CreateOrderRequest(market map[string]any, marketType any, ty
 	if timeInForce != nil {
 		request["time_in_force"] = timeInForce
 	}
-	if isLimit || (IsEqual(typeVar, "stopLimit")) || (IsEqual(typeVar, "takeProfitLimit")) {
+	if isLimit || (typeVar == "stopLimit") || (typeVar == "takeProfitLimit") {
 		if price == nil {
 			panic(ExchangeError(this.Id + " createOrder() requires a price argument for limit orders"))
 		}
@@ -3418,10 +3418,10 @@ func (this *Hitbtc) CreateOrderRequest(market map[string]any, marketType any, ty
 		request["stop_price"] = this.PriceToPrecision(market["symbol"], triggerPrice)
 		if isLimit {
 			request["type"] = "stopLimit"
-		} else if IsEqual(typeVar, "market") {
+		} else if typeVar == "market" {
 			request["type"] = "stopMarket"
 		}
-	} else if (IsEqual(typeVar, "stopLimit")) || (IsEqual(typeVar, "stopMarket")) || (IsEqual(typeVar, "takeProfitLimit")) || (IsEqual(typeVar, "takeProfitMarket")) {
+	} else if (typeVar == "stopLimit") || (typeVar == "stopMarket") || (typeVar == "takeProfitLimit") || (typeVar == "takeProfitMarket") {
 		panic(ExchangeError(this.Id + " createOrder() requires a triggerPrice parameter for stop-loss and take-profit orders"))
 	}
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"triggerPrice", "timeInForce", "stopPrice", "stop_price", "reduceOnly", "postOnly"})

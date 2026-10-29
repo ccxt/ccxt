@@ -1923,15 +1923,15 @@ func (this *Bitvavo) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress]
 	})}
 	return nil
 }
-func (this *Bitvavo) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) map[string]any {
+func (this *Bitvavo) CreateOrderRequest(symbol string, typeVar string, side string, amount any, optionalArgs ...any) map[string]any {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(typeVar, nil) {
+	if false {
 		panic(ArgumentsRequired(this.Id + " requires a type argument"))
 	}
-	if IsEqual(side, nil) {
+	if false {
 		panic(ArgumentsRequired(this.Id + " requires a side argument"))
 	}
 	var market map[string]any = this.Market(symbol)
@@ -1940,8 +1940,8 @@ func (this *Bitvavo) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 		"side":      side,
 		"orderType": typeVar,
 	}
-	var isMarketOrder bool = (IsEqual(typeVar, "market")) || (IsEqual(typeVar, "stopLoss")) || (IsEqual(typeVar, "takeProfit"))
-	var isLimitOrder bool = (IsEqual(typeVar, "limit")) || (IsEqual(typeVar, "stopLossLimit")) || (IsEqual(typeVar, "takeProfitLimit"))
+	var isMarketOrder bool = (typeVar == "market") || (typeVar == "stopLoss") || (typeVar == "takeProfit")
+	var isLimitOrder bool = (typeVar == "limit") || (typeVar == "stopLossLimit") || (typeVar == "takeProfitLimit")
 	var timeInForce *string = this.SafeString(params, "timeInForce")
 	var triggerPrice *string = this.SafeStringN(params, []any{"triggerPrice", "stopPrice", "triggerAmount"})
 	var postOnly bool = this.IsPostOnly(isMarketOrder, false, params)
@@ -1972,8 +1972,8 @@ func (this *Bitvavo) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 		request["price"] = this.PriceToPrecision(symbol, price)
 		request["amount"] = this.AmountToPrecision(symbol, amount)
 	}
-	var isTakeProfit bool = (takeProfitPrice != nil) || (IsEqual(typeVar, "takeProfit")) || (IsEqual(typeVar, "takeProfitLimit"))
-	var isStopLoss bool = (stopLossPrice != nil) || (triggerPrice != nil) && (!isTakeProfit) || (IsEqual(typeVar, "stopLoss")) || (IsEqual(typeVar, "stopLossLimit"))
+	var isTakeProfit bool = (takeProfitPrice != nil) || (typeVar == "takeProfit") || (typeVar == "takeProfitLimit")
+	var isStopLoss bool = (stopLossPrice != nil) || (triggerPrice != nil) && (!isTakeProfit) || (typeVar == "stopLoss") || (typeVar == "stopLossLimit")
 	if isStopLoss {
 		if stopLossPrice != nil {
 			triggerPrice = stopLossPrice

@@ -1918,16 +1918,16 @@ func (this *Cryptocom) fetchOrderBody(ch chan AsyncResult[Order], id string, opt
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(order, market)}
 	return nil
 }
-func (this *Cryptocom) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) map[string]any {
+func (this *Cryptocom) CreateOrderRequest(symbol string, typeVar string, side string, amount any, optionalArgs ...any) map[string]any {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var market map[string]any = this.Market(symbol)
-	var uppercaseType string = ToUpper(typeVar)
+	var uppercaseType string = strings.ToUpper(typeVar)
 	var request map[string]any = map[string]any{
 		"instrument_name": market["id"],
-		"side":            ToUpper(side),
+		"side":            strings.ToUpper(side),
 		"quantity":        this.AmountToPrecision(symbol, amount),
 	}
 	if (uppercaseType == "LIMIT") || (uppercaseType == "STOP_LIMIT") || (uppercaseType == "TAKE_PROFIT_LIMIT") {
@@ -1971,7 +1971,7 @@ func (this *Cryptocom) CreateOrderRequest(symbol any, typeVar any, side any, amo
 		request["ref_price"] = this.PriceToPrecision(symbol, triggerPrice)
 		var priceString *string = this.NumberToString(price)
 		if (uppercaseType == "LIMIT") || (uppercaseType == "STOP_LIMIT") || (uppercaseType == "TAKE_PROFIT_LIMIT") {
-			if IsEqual(side, "buy") {
+			if side == "buy" {
 				if Precise.StringLt(priceString, triggerPrice) {
 					request["type"] = "TAKE_PROFIT_LIMIT"
 				} else {
@@ -1985,7 +1985,7 @@ func (this *Cryptocom) CreateOrderRequest(symbol any, typeVar any, side any, amo
 				}
 			}
 		} else {
-			if IsEqual(side, "buy") {
+			if side == "buy" {
 				if Precise.StringLt(priceString, triggerPrice) {
 					request["type"] = "TAKE_PROFIT"
 				} else {

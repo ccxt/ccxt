@@ -34,6 +34,7 @@ import { installHx11w8AsyncBool } from './hx11w8-async-bool.js';
 import { hx11w8NonceInt64, hx11w8NonceInt64Check, hx11w8NonceLocals, hx11w8NonceLocalsCheck } from './hx11w8-nonce-int64.js';  // hx11 w8 m172: Nonce() is int64 end to end  // hx10 wave-6 OG02: id/nonce counters + last-response fields owned by the request book
 import { hx10w4OG01Pass, hx10w4OG01Check } from './hx10w4-OG01.js';
 import { hx10w4OG03Pass, og03selfcheck } from './hx10w4-OG03.js';
+import { installHx11w8CorParams } from './hx11w8-cor-params.js';  // hx11 w8 printer-go-createorderrequest-params-typed
 import { hx11w8JsonString, hx11w8JsonStringCheck } from './hx11w8-json-string.js';  // hx11 w8 m172: Json() is a string, no SafeStringPtr box
 import { hx11w8EthEncodeBytes, hx11w8EthEncodeBytesCheck } from './hx11w8-eth-encode-bytes.js';  // hx11 w8: EthEncodeStructuredData locals are []uint8
 import { hx11w8JsonOrigin, hx11w8JsonOriginCheck } from './hx11w8-json-origin.js';  // hx11 w8: DerefScalar on JSON-origin list elements
@@ -6184,6 +6185,7 @@ class NewTranspiler {
         installCcxtGoSignTyping (this.transpiler.goTranspiler);
         installHx11w8AsyncBool (this.transpiler.goTranspiler);
         installHx10w10GP24BaseImportSeam (this.transpiler.goTranspiler);
+        installHx11w8CorParams (this.transpiler.goTranspiler);
     }
 
     createGeneratedHeader() {
