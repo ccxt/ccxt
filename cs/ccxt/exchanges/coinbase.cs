@@ -89,7 +89,7 @@ public partial class coinbase : Exchange
                 { "fetchIsolatedBorrowRate", false },
                 { "fetchIsolatedBorrowRates", false },
                 { "fetchIsolatedPositions", false },
-                { "fetchL2OrderBook", false },
+                { "fetchL2OrderBook", true },
                 { "fetchLedger", true },
                 { "fetchLeverage", false },
                 { "fetchLeverages", false },
