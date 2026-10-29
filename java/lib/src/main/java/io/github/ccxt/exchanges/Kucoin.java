@@ -48,6 +48,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
+import io.github.ccxt.base.JsParse;
 
 public class Kucoin extends KucoinApi
 {
@@ -5140,7 +5141,7 @@ public class Kucoin extends KucoinApi
             String sizeString = this.amountToPrecision(symbol, amount);
             if (!java.util.Objects.equals(sizeString, null))
             {
-                request.put("size", Helpers.parseInt(sizeString));
+                request.put("size", JsParse.parseInt(sizeString));
             }
         }
         this.checkTriggerPrices((Map<String, Object>) (paramsOmitted));
@@ -9095,7 +9096,7 @@ public class Kucoin extends KucoinApi
             String amountString = (String) this.currencyToPrecision((String) (code), amount, networkCode);
             if (!java.util.Objects.equals(amountString, null))
             {
-                request.put("amount", Helpers.parseFloat(amountString));
+                request.put("amount", JsParse.parseFloat(amountString));
             }
             Pair<Boolean, Map<String, Object>> includeFeeparamsIncludeFeeVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsNetworkCode), "withdraw", "includeFee", false);
             Boolean includeFee = includeFeeparamsIncludeFeeVariable.first();

@@ -47,6 +47,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
+import io.github.ccxt.base.JsParse;
 
 public class Gate extends GateApi
 {
@@ -6022,7 +6023,7 @@ public class Gate extends GateApi
                 useGateFuturesDecimalSize = this.isGateFuturesContractWithDecimalSize((Map<String, Object>) (market));
                 if (!Boolean.TRUE.equals(useGateFuturesDecimalSize))
                 {
-                    contractAmount = Helpers.parseInt(((String)signedAmount));
+                    contractAmount = JsParse.parseInt(((String)signedAmount));
                 }
             }
         }
@@ -9716,10 +9717,10 @@ public class Gate extends GateApi
         Object timestamp = null;
         if (rawTimestamp.length() > 10)
         {
-            timestamp = Helpers.parseInt(rawTimestamp);
+            timestamp = JsParse.parseInt(rawTimestamp);
         } else
         {
-            timestamp = Helpers.multiply(Helpers.parseInt(rawTimestamp), 1000);
+            timestamp = Helpers.multiply(JsParse.parseInt(rawTimestamp), 1000);
         }
         String balanceString = this.safeString(item, "balance");
         String changeString = this.safeString(item, "change");
