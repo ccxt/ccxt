@@ -1191,7 +1191,7 @@ class bitopro(Exchange, ImplicitAPI):
         #
         return self.parse_order(response, market)
 
-    def parse_cancel_orders(self, data: object) -> list[Order]:
+    def parse_cancel_orders(self, data: dict) -> list[Order]:
         dataKeys = list(data.keys())
         orders = []
         for i in range(0, len(dataKeys)):
@@ -1236,7 +1236,7 @@ class bitopro(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_dict(response, 'data')
+        data = self.safe_dict(response, 'data', {})
         return self.parse_cancel_orders(data)
 
     async def cancel_all_orders(self, symbol: Str = None, params: dict = {}) -> list[Order]:

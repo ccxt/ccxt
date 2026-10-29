@@ -170,6 +170,8 @@ class bullish(ccxt.async_support.bullish):
         data = self.safe_dict(message, 'data', {})
         marketId = self.safe_string(data, 'symbol')
         symbol = self.safe_symbol(marketId)
+        if symbol is None:
+            return
         market = self.market(symbol)
         rawTrades = self.safe_list(data, 'trades', [])
         trades = self.parse_trades(rawTrades, market)

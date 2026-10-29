@@ -735,9 +735,7 @@ class revolutx(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        market = None
-        if symbol is not None:
-            market = self.market(symbol)
+        market = self.market(symbol)
         request = {}
         if market is not None:
             request['symbol'] = market['id']

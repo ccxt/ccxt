@@ -2171,8 +2171,7 @@ class okx(Exchange, ImplicitAPI):
         isFullBook = (method == 'publicGetMarketBooksFull')
         largeLimit = ((limit is None) and isFullBook) or ((limit is not None) and (limit > 400))
         limitResolved = 400 if (rpi and largeLimit) else requestedLimit
-        if limitResolved is not None:
-            request['sz'] = limitResolved  # max 400
+        request['sz'] = limitResolved  # max 400
         response: dict
         if rpi:
             response = self.publicGetMarketBooksRpi(self.extend(request, paramsMethod))
