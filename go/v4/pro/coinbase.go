@@ -85,7 +85,7 @@ func (this *Coinbase) SubscribeAsync(name string, isPrivate any, optionalArgs ..
 func (this *Coinbase) subscribeBody(ch chan ccxt.AsyncResult[any], name string, isPrivate any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -97,15 +97,11 @@ func (this *Coinbase) subscribeBody(ch chan ccxt.AsyncResult[any], name string, 
 		}
 	}
 	var market map[string]any = nil
-	var messageHash any = name
-	var productIds any = []any{}
-	if ccxt.IsArray(symbol) {
-		var symbols []string = this.MarketSymbols(symbol)
-		productIds = this.MarketIds(symbols)
-		messageHash = name + "::" + strings.Join(symbols, ",")
-	} else if symbol != nil {
+	var messageHash string = name
+	var productIds []any = []any{}
+	if symbol != nil {
 		market = this.Market(symbol)
-		messageHash = ccxt.Add(name+"::", symbol)
+		messageHash = name + "::" + *symbol
 		productIds = []any{this.SafeString(market, "id")}
 	}
 	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
@@ -161,13 +157,8 @@ func (this *Coinbase) unSubscribeBody(ch chan ccxt.AsyncResult[bool], topic stri
 	var market map[string]any = nil
 	var watchMessageHash any = name
 	var unWatchMessageHash any = "unsubscribe:" + name
-	var productIds any = []any{}
-	if ccxt.IsArray(symbol) {
-		var symbols []string = this.MarketSymbols(symbol)
-		productIds = this.MarketIds(symbols)
-		watchMessageHash = name + "::" + strings.Join(symbols, ",")
-		unWatchMessageHash = "unsubscribe:" + name + "::" + strings.Join(symbols, ",")
-	} else if symbol != nil {
+	var productIds []any = []any{}
+	if symbol != nil {
 		market = this.Market(symbol)
 		watchMessageHash = ccxt.Add(name+"::", symbol)
 		unWatchMessageHash = ccxt.Add("unsubscribe:"+name+"::", symbol)

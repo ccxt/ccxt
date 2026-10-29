@@ -1518,8 +1518,14 @@ func (this *Bitopro) cancelOrderBody(ch chan AsyncResult[Order], id any, optiona
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(response, market)}
 	return nil
 }
-func (this *Bitopro) ParseCancelOrders(data any) []any {
-	var dataKeys []string = ObjectKeys(data)
+func (this *Bitopro) ParseCancelOrders(data map[string]any) []any {
+	var dataKeys []string = nil
+	if data != nil {
+		dataKeys = make([]string, 0, len(data))
+		for objectKey := range data {
+			dataKeys = append(dataKeys, objectKey)
+		}
+	}
 	var orders []any = []any{}
 	for i := 0; i < len(dataKeys); i++ {
 		var marketId string = dataKeys[i]
@@ -1589,7 +1595,7 @@ func (this *Bitopro) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any, opt
 	//         }
 	//     }
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
+	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseCancelOrders(data))}
 	return nil

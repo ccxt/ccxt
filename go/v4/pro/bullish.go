@@ -247,20 +247,18 @@ func (this *Bullish) HandleTrades(client any, message any) {
 	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	var marketId *string = this.SafeString(data, "symbol")
 	var symbol *string = this.SafeSymbol(marketId)
+	if symbol == nil {
+		return
+	}
 	var market map[string]any = this.Market(symbol)
 	var rawTrades []any = ccxt.SafeListTypedDefault(data, "trades", []any{})
 	var trades []any = this.ParseTrades(rawTrades, market)
-	if !(ccxt.InOp(this.Trades, symbol)) {
+	if _, ok := this.Trades[*symbol]; !ok {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		tradesArrayCache := ccxt.NewArrayCache(limit)
-		if symbol != nil {
-			this.Trades[*symbol] = tradesArrayCache
-		}
+		this.Trades[*symbol] = tradesArrayCache
 	}
-	var tradesArray any
-	if symbol != nil {
-		tradesArray = this.Trades[*symbol]
-	}
+	var tradesArray any = this.Trades[*symbol]
 	var tradesList []any = this.ToArray(trades)
 	for i := 0; i < len(tradesList); i++ {
 		tradesArray.(ccxt.Appender).Append(ccxt.DerefScalar(tradesList[i]))

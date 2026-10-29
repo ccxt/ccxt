@@ -1021,10 +1021,7 @@ func (this *Revolutx) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, 
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = nil
-	if !IsEqual(symbol, nil) {
-		market = this.Market(symbol)
-	}
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{}
 	if market != nil {
 		request["symbol"] = market["id"]
@@ -1721,11 +1718,11 @@ func (this *Revolutx) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], option
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes128015 []any = OrdersToList(r.Value)
-	if retRes128015 == nil {
+	var retRes127715 []any = OrdersToList(r.Value)
+	if retRes127715 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes128015)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes127715)}
 	}
 	return nil
 }
