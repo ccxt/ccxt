@@ -5,7 +5,7 @@
     "methods": {
         "unWatchTrades": [
             {
-                "description": "spot trades unsubscribe with nothing subscribed: no frame is sent and the call resolves true (the subscribed path is covered by ts/src/pro/test/base/test.unWatch.lbank.ts)",
+                "description": "spot trades unsubscribe with nothing subscribed: no frame is sent and the call resolves true",
                 "input": [
                     "BTC/USDT"
                 ],
@@ -17,7 +17,7 @@
         ],
         "unWatchOHLCV": [
             {
-                "description": "spot 1h kbar unsubscribe with nothing subscribed: no frame is sent and the call resolves true (the subscribed path is covered by ts/src/pro/test/base/test.unWatch.lbank.ts)",
+                "description": "spot 1h kbar unsubscribe with nothing subscribed: no frame is sent and the call resolves true",
                 "input": [
                     "BTC/USDT",
                     "1h"
