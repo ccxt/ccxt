@@ -542,12 +542,6 @@ export default class bithumb extends bithumbRest {
         orderbookSide.storeArray (bidAsk);
     }
 
-    override handleBookDeltas (orderbook: WsOrderBook, deltas: any) {
-        for (let i = 0; i < deltas.length; i++) {
-            this.handleBookDelta (orderbook, deltas[i]);
-        }
-    }
-
     /**
      * @method
      * @name bithumb#watchTrades
