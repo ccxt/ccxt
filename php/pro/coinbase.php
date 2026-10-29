@@ -292,7 +292,7 @@ class coinbase extends \ccxt\async\coinbase {
             $tokenExpiry = $tokenTimestamp + 90;
             if ($currentToken === null || $tokenExpiry < $seconds) {
                 // we should generate new token
-                $token = $this->create_auth_token($seconds, null, null, $this->isEddsaApiKey());
+                $token = $this->create_auth_token($seconds, '', null, $this->isEddsaApiKey());
                 $this->options['wsToken'] = $token;
                 $this->options['wsTokenTimestamp'] = $seconds;
             }

@@ -474,9 +474,13 @@ class gemini extends \ccxt\async\gemini {
             $delta = $changes[$i];
             $price = $this->safe_number($delta, 1);
             $size = $this->safe_number($delta, 2);
-            $side = ($this->safe_string($delta, 0) === 'buy') ? 'bids' : 'asks';
-            $bookside = $orderbook[$side];
-            $bookside->store($price, $size);
+            if ($this->safe_string($delta, 0) === 'buy') {
+                $bids = $orderbook['bids'];
+                $bids->store($price, $size);
+            } else {
+                $asks = $orderbook['asks'];
+                $asks->store($price, $size);
+            }
         }
         $orderbook['symbol'] = $symbol;
         $this->orderbooks[$symbol] = $orderbook;

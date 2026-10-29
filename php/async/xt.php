@@ -6084,8 +6084,7 @@ class xt extends Exchange {
         $signedBody = null;
         if ($signed) {
             $this->check_required_credentials();
-            $defaultRecvWindow = $this->safe_string($this->options, 'recvWindow', '5000');
-            $recvWindow = $this->safe_string($query, 'recvWindow', $defaultRecvWindow);
+            $recvWindow = $this->safe_string($query, 'recvWindow', $this->safe_string($this->options, 'recvWindow', '5000'));
             $timestamp = $this->number_to_string($this->nonce());
             if (($payload === '/v4/order') || ($payload === '/future/trade/v1/order/create') || ($payload === '/future/trade/v1/entrust/create-plan') || ($payload === '/future/trade/v1/entrust/create-profit') || ($payload === '/future/trade/v1/order/create-batch')) {
                 $id = 'CCXT';
@@ -6099,7 +6098,8 @@ class xt extends Exchange {
             if (($method === 'PUT') && ($endpoint === 'spot')) {
                 $isUndefinedBody = false;
             }
-            $signedBody = $isUndefinedBody ? null : $this->json($query);
+            $jsonBody = $this->json($query);
+            $signedBody = $isUndefinedBody ? null : $jsonBody;
             $payloadString = '';
             if (($endpoint === 'spot') || ($endpoint === 'user')) {
                 $spotPrefix = 'xt-validate-algorithms=HmacSHA256&xt-validate-appkey=' . $this->apiKey . '&xt-validate-recvwindow=' . $recvWindow . '&xt-validate-t' . 'imestamp=' . $timestamp;
@@ -6111,7 +6111,7 @@ class xt extends Exchange {
                         $payloadString = $spotPrefix . '#' . $method . '#' . $payload;
                     }
                 } else {
-                    $payloadString = $spotPrefix . '#' . $method . '#' . $payload . '#' . $signedBody;
+                    $payloadString = $spotPrefix . '#' . $method . '#' . $payload . '#' . $jsonBody;
                 }
                 $headersValue['xt-validate-algorithms'] = 'HmacSHA256';
                 $headersValue['xt-validate-recvwindow'] = $recvWindow;
@@ -6125,7 +6125,7 @@ class xt extends Exchange {
                         $payloadString = $futurePrefix . '#' . $payload;
                     }
                 } else {
-                    $payloadString = $futurePrefix . '#' . $payload . '#' . $signedBody;
+                    $payloadString = $futurePrefix . '#' . $payload . '#' . $jsonBody;
                 }
             }
             $headersValue['xt-validate-appkey'] = $this->apiKey;

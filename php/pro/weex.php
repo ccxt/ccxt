@@ -151,8 +151,8 @@ class weex extends \ccxt\async\weex {
         if (($this->clients !== null) && (is_array($this->clients) && array_key_exists($url ?? '', $this->clients))) {
             return;
         }
-        $timestamp = $this->nonce();
-        $payload = $this->number_to_string($timestamp) . '/v3/ws/private';
+        $timestamp = (string) $this->nonce();
+        $payload = $timestamp . '/v3/ws/private';
         $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256', 'base64');
         $originalHeaders = $this->safe_dict($this->options['ws']['options'], 'headers');
         $userAgent = $this->safe_string($originalHeaders, 'User-Agent', 'ccxt');
@@ -164,7 +164,7 @@ class weex extends \ccxt\async\weex {
                         'ACCESS-KEY' => $this->apiKey,
                         'ACCESS-SIGN' => $signature,
                         'ACCESS-PASSPHRASE' => $this->password,
-                        'ACCESS-TIMESTAMP' => $this->number_to_string($timestamp),
+                        'ACCESS-TIMESTAMP' => $timestamp,
                     ),
                 ),
             ),
@@ -1856,7 +1856,7 @@ class weex extends \ccxt\async\weex {
             $accountType = 'swap';
         }
         $messageHash = $accountType . ':balance';
-        if ($this->balance[$accountType] === null) {
+        if (!(is_array($this->balance) && array_key_exists($accountType ?? '', $this->balance))) {
             $this->balance[$accountType] = array();
         }
         $this->balance[$accountType]['info'] = $message;

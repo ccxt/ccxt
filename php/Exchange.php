@@ -3880,7 +3880,7 @@ class BaseExchange {
     }
 
     public function filter_by_limit(array $array, ?int $limit = null, int|string $key = 'timestamp', bool $fromStart = false) {
-        if ($this->value_is_defined($limit)) {
+        if ($limit !== null && $limit !== null) {
             $arrayLength = count($array);
             if ($arrayLength > 0) {
                 $ascending = true;
@@ -3911,7 +3911,7 @@ class BaseExchange {
         if ($array === null) {
             return array();
         }
-        $sinceIsDefined = $this->value_is_defined($since);
+        $sinceIsDefined = $since !== null && $since !== null;
         $parsedArray = $this->to_array($array);
         $result = $parsedArray;
         if ($sinceIsDefined) {
@@ -3935,7 +3935,7 @@ class BaseExchange {
 
     public function filter_by_value_since_limit(mixed $array, int|string $field, mixed $value = null, ?int $since = null, ?int $limit = null, $key = 'timestamp', $tail = false) {
         $valueIsDefined = $this->value_is_defined($value);
-        $sinceIsDefined = $this->value_is_defined($since);
+        $sinceIsDefined = $since !== null && $since !== null;
         $parsedArray = $this->to_array($array);
         $result = $parsedArray;
         // single-pass filter for both symbol and since
@@ -5069,13 +5069,16 @@ class BaseExchange {
             $freeBalance[$code] = $this->parse_number($free);
             $usedBalance[$code] = $this->parse_number($used);
             $totalBalance[$code] = $this->parse_number($total);
-            $balance[$code]['free'] = $freeBalance[$code];
-            $balance[$code]['used'] = $usedBalance[$code];
-            $balance[$code]['total'] = $totalBalance[$code];
+            $entry = array(
+                'free' => $freeBalance[$code],
+                'used' => $usedBalance[$code],
+                'total' => $totalBalance[$code],
+            );
             if ($debt !== null) {
                 $debtBalance[$code] = $this->parse_number($debt);
-                $balance[$code]['debt'] = $debtBalance[$code];
+                $entry['debt'] = $debtBalance[$code];
             }
+            $balance[$code] = $this->extend($balances[$code], $entry);
         }
         $balance['free'] = $freeBalance;
         $balance['used'] = $usedBalance;

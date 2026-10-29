@@ -3566,6 +3566,7 @@ class poloniex extends Exchange {
             if (($code !== null) && (($codesValue === null) || ($this->in_array($code, $codesValue)))) {
                 $currency = $this->currency($code);
                 $depositWithdrawFees[$code] = $this->parse_deposit_withdraw_fee($feeInfo, $currency);
+                $parsedFee = $this->safe_dict($depositWithdrawFees, $code, array());
                 $childChains = $this->safe_list($feeInfo, 'childChains', array());
                 $chainsLength = count($childChains);
                 if ($chainsLength > 0) {
@@ -3588,9 +3589,10 @@ class poloniex extends Exchange {
                                 ),
                             );
                         }
-                        $depositWithdrawFees[$code]['networks'] = $this->extend($this->safe_dict($depositWithdrawFees[$code], 'networks', array()), $networkObject);
+                        $parsedFee['networks'] = $this->extend($this->safe_dict($parsedFee, 'networks', array()), $networkObject);
                     }
                 }
+                $depositWithdrawFees[$code] = $parsedFee;
             }
         }
         return $depositWithdrawFees;

@@ -1318,14 +1318,13 @@ class kraken extends \ccxt\async\kraken {
                 //         }
                 //     }
                 //
-                $subscription = $this->safe_dict($response, 'result');
+                $subscription = $this->extend($this->safe_dict($response, 'result'), array( 'start' => $now ));
                 $token = $this->safe_string($subscription, 'token');
                 if ($token === null) {
                     // reject instead of caching an empty credential, so
                     // waiters retry rather than proceed unauthenticated
                     throw new AuthenticationError($this->id . ' authenticate() received an empty token');
                 }
-                $subscription['start'] = $now;
                 $client->subscriptions[$authenticated] = $subscription;
                 // settle the flight and wake every waiter - resolve () also
                 // clears the registry entry, so the next refresh re-leads

@@ -5218,11 +5218,11 @@ class coinbase extends Exchange {
         return strlen($this->secret) === 88 || $this->safe_bool($this->options, 'v2CloudAPiKey', false) || str_ends_with($this->secret, '=');
     }
 
-    public function create_auth_token(int $seconds, ?string $method = null, ?string $url = null, $useEddsa = false): string {
+    public function create_auth_token(int $seconds, string $url, ?string $method = null, $useEddsa = false): string {
         // v1 https://docs.cdp.coinbase.com/api-reference/authentication#php-2
         // v2  https://docs.cdp.coinbase.com/api-reference/v2/authentication
         $uri = null;
-        if ($url !== null) {
+        if ($url !== '') {
             $uri = $method . ' ' . str_replace('https://', '', $url);
             $quesPos = mb_strpos($uri, '?');
             // Due to we use mb_strpos, quesPos could be false in php. In that case, the quesPos >= 0 is true
@@ -5349,7 +5349,7 @@ class coinbase extends Exchange {
                     //     'uri': uri,
                     //     'iat': seconds,
                     // };
-                    $token = $this->create_auth_token($seconds, $method, $url, $isV2CloudAPiKey);
+                    $token = $this->create_auth_token($seconds, $url, $method, $isV2CloudAPiKey);
                     // const token = jwt (request, this.encode (this.secret), sha256, false, { 'kid': this.apiKey, 'nonce': nonce, 'alg': 'ES256' });
                     $authorizationString = 'Bearer ' . $token;
                 } else {

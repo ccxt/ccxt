@@ -1376,20 +1376,17 @@ class opinion extends Exchange {
         return $this->parse_prediction_trades($trades, $outcomeObj, $since, $limit);
     }
 
-    public function load_trade_market(?int $marketId): PromiseInterface {
+    public function load_trade_market(int $marketId): PromiseInterface {
         return Async\async(self::do_load_trade_market(...))($marketId);
     }
 
-    private function do_load_trade_market(?int $marketId) {
+    private function do_load_trade_market(int $marketId) {
         /**
          * @ignore
          * fetches and caches a single $market by its numeric $marketId, and indexes its outcomes
          * @param {int} $marketId the numeric $market id
          * @return {array} the parsed $market
          */
-        if ($marketId === null) {
-            throw new ArgumentsRequired($this->id . ' loadTradeMarket() requires a marketId');
-        }
         $cacheKey = 'tradeMarketsById';
         $cached = $this->safe_dict($this->options, $cacheKey, array());
         $idStr = (string) $marketId;

@@ -1029,7 +1029,7 @@ class kalshi extends Exchange {
                 $tickers[] = $ticker;
             }
             // reassign after push, plain mutation through a local is lost in transpiled php (arrays are value types there)
-            $grouped = $outcomesByTicker[$ticker];
+            $grouped = $this->safe_list($outcomesByTicker, $ticker, array());
             $grouped[] = $outcomeObj;
             $outcomesByTicker[$ticker] = $grouped;
         }

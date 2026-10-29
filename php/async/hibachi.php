@@ -672,8 +672,7 @@ class hibachi extends Exchange {
             $this->publicGetMarketDataPrices($this->extend($request, $params)),
             $this->publicGetMarketDataStats($this->extend($request, $params)),
         );
-        $promises = Async\await(Promise\all($rawPromises));
-        $pricesResponse = $promises[0];
+        list($pricesResponse, $statsResponse) = Async\await(Promise\all($rawPromises));
         // {
         //     "askPrice": "3514.650296",
         //     "bidPrice": "3513.596112",
@@ -686,7 +685,6 @@ class hibachi extends Exchange {
         //     "symbol": "ETH/USDT-P",
         //     "tradePrice": "2372.746570"
         // }
-        $statsResponse = $promises[1];
         // {
         //     "high24h": "3819.507827",
         //     "low24h": "3754.474162",

@@ -2838,23 +2838,38 @@ class ndax extends Exchange {
         } elseif ($apiName === 'private') {
             $this->check_required_credentials();
             $sessionToken = $this->safe_string($this->options, 'sessionToken');
+            $isPost = ($method === 'POST');
             if ($sessionToken === null) {
                 $nonce = (string) $this->nonce();
                 $auth = $nonce . $this->uid . $this->apiKey;
                 $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
+                if ($isPost) {
+                    $headersSigned = array(
+                        'Nonce' => $nonce,
+                        'APIKey' => $this->apiKey,
+                        'Signature' => $signature,
+                        'UserId' => $this->uid,
+                        'Content-Type' => 'application/json',
+                    );
+                } else {
+                    $headersSigned = array(
+                        'Nonce' => $nonce,
+                        'APIKey' => $this->apiKey,
+                        'Signature' => $signature,
+                        'UserId' => $this->uid,
+                    );
+                }
+            } elseif ($isPost) {
                 $headersSigned = array(
-                    'Nonce' => $nonce,
-                    'APIKey' => $this->apiKey,
-                    'Signature' => $signature,
-                    'UserId' => $this->uid,
+                    'APToken' => $sessionToken,
+                    'Content-Type' => 'application/json',
                 );
             } else {
                 $headersSigned = array(
                     'APToken' => $sessionToken,
                 );
             }
-            if ($method === 'POST') {
-                $headersSigned['Content-Type'] = 'application/json';
+            if ($isPost) {
                 $bodySigned = $this->json($query);
             } else {
                 if (count($query) > 0) {
