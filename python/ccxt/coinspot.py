@@ -726,7 +726,9 @@ class coinspot(Exchange, ImplicitAPI):
         requestBody = None
         apiLength = len(api)
         isVersionedApi = apiLength > 1
-        accessType = api[1] if isVersionedApi else api[0]
+        accessType = api[0]
+        if isVersionedApi:
+            accessType = api[1]
         endpoint = '/' + self.implode_params(path, params)
         fullPath = endpoint
         if isVersionedApi:

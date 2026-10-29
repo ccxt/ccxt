@@ -533,12 +533,12 @@ class pacifica(ccxt.async_support.pacifica):
         nonce = self.safe_integer(entry, 'li')
         if (nonce is not None) and (nonce != 0):
             snapshot['nonce'] = nonce
+        messageHash = 'orderbook:' + symbol
         if not (symbol in self.orderbooks):
             ob = self.order_book(snapshot)
             self.orderbooks[symbol] = ob
         orderbook = self.orderbooks[symbol]
         orderbook.reset(snapshot)
-        messageHash = 'orderbook:' + symbol
         client.resolve(orderbook, messageHash)
 
     async def watch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
@@ -886,6 +886,7 @@ class pacifica(ccxt.async_support.pacifica):
         marketId = self.safe_string(first, 's')
         market = self.safe_market(marketId)
         symbol = market['symbol']
+        messageHash = 'trade:' + symbol
         if not (symbol in self.trades):
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
             stored = ArrayCache(limit)
@@ -895,7 +896,6 @@ class pacifica(ccxt.async_support.pacifica):
             data = self.safe_dict(entry, i, {})
             trade = self.parse_ws_trade(data)
             trades.append(trade)
-        messageHash = 'trade:' + symbol
         client.resolve(trades, messageHash)
 
     def parse_ws_trade(self, trade: dict, market: Market = None) -> Trade:
@@ -1079,6 +1079,7 @@ class pacifica(ccxt.async_support.pacifica):
         timeframe = self.safe_string(data, 'i')
         if timeframe is None:
             return
+        messageHash = 'candles:' + timeframe + ':' + symbol
         if not (symbol in self.ohlcvs):
             self.ohlcvs[symbol] = {}
         symbolOhlcvs = self.safe_dict(self.ohlcvs, symbol, {})
@@ -1089,7 +1090,6 @@ class pacifica(ccxt.async_support.pacifica):
             symbolOhlcvs[timeframe] = ohlcv
         parsed = self.parse_ohlcv(data)
         ohlcv.append(parsed)
-        messageHash = 'candles:' + timeframe + ':' + symbol
         client.resolve(ohlcv, messageHash)
 
     async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:

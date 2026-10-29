@@ -3838,15 +3838,17 @@ class mexc(Exchange, ImplicitAPI):
         #         "tradeEnabled": true
         #     }
         #
+        isMarginType = marketType == 'margin'
+        isSwapType = marketType == 'swap'
         wallet: List
-        if marketType == 'margin':
+        if isMarginType:
             wallet = self.safe_list(response, 'assets', [])
-        elif marketType == 'swap':
+        elif isSwapType:
             wallet = self.safe_list(response, 'data', [])
         else:
             wallet = self.safe_list(response, 'balances', [])
         result = {'info': response}
-        if marketType == 'margin':
+        if isMarginType:
             for i in range(0, len(wallet)):
                 entry = self.safe_dict(wallet, i)
                 base = self.safe_dict(entry, 'baseAsset', {})
@@ -3858,7 +3860,7 @@ class mexc(Exchange, ImplicitAPI):
                 if quoteCode is not None:
                     result = self.merge_balance_account(result, quoteCode, self.parse_balance_helper(quote))
             return self.safe_balance(result)
-        elif marketType == 'swap':
+        elif isSwapType:
             for i in range(0, len(wallet)):
                 entry = self.safe_dict(wallet, i)
                 currencyId = self.safe_string(entry, 'currency')
