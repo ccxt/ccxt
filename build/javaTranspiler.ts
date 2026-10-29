@@ -8852,6 +8852,17 @@ function j33SelfTest (): string[] {
     return problems;
 }
 
+// hx11w8 requestid-sandbox: every write to this.urls in the file is the base ctor deepExtend read or an omit() result (never a ConcurrentHashMap)
+function hx11w8UrlsPlainMap (content: string): boolean {
+    for (const m of content.matchAll (/\bthis\.urls\s*=(?!=)\s*([^;]*);/g)) {
+        const rhs = m[1].trim ();
+        if (rhs === 'newUrls') {
+            if (!/Map<String, Object> newUrls = this\.omit\(this\.urls, /.test (content)) return false;
+        } else if (!/^\(Map<String, Object>\) this\.safeValue\(extendedProperties, "urls"\)$/.test (rhs)) return false;
+    }
+    return !/\bConcurrentHashMap<[^>]*>\s*\([^)]*\)[^;]*\burls\b/.test (content);
+}
+
 // hx4 J34
 // Helpers.addElementToObject / GetValue / inOp / objectKeys on locals declared once per member as Map<String, Object>.
 // put keeps the helper's ConcurrentHashMap null-remove semantics: a nullable value needs a provably fresh (non-concurrent) map.
@@ -8947,7 +8958,9 @@ export function nativeJavaJ34MapLocals (content: string): string {
                 const call = v.match (/^this\.(extend|safeBalance|orderBook)\(/);
                 const closed = call !== null && j26Close (v, call[0].length - 1) === v.length - 1;
                 const twoArgExtend = call === null || call[1] !== 'extend' || (j26Args (v, call[0].length - 1) ?? []).length === 2;
-                if (!(nonNull (value) || (closed && twoArgExtend))) return whole;
+                // hx11w8 requestid-sandbox: this.urls is only ever a HashMap/LinkedHashMap (deepExtend / omit), so a null value is a plain put
+                const plainUrls = recv === 'this.urls' && (stringKey (key) || declaredType (key) === 'String') && hx11w8UrlsPlainMap (content);
+                if (!(nonNull (value) || (closed && twoArgExtend) || plainUrls)) return whole;
                 if (!stringKey (key) && !/^[A-Za-z_]\w*$/.test (key)) return whole;
                 if (stringKey (key) || declaredType (key) === 'String') return `${ind}${recv}.put(${key}, ${value});${tail ?? ''}`;
                 return `${ind}((java.util.Map<Object, Object>) (java.util.Map<?, ?>) ${recv}).put(${key}, ${value});${tail ?? ''}`;
@@ -8991,6 +9004,9 @@ function j34MapLocalsSelfTest (): string[] {
         [ 'field put extend', 'Object r, Object k', '        Helpers.addElementToObject(this.balance, \"spot\", this.extend(r, this.safeDict(this.balance, \"spot\", new HashMap<String, Object>() {{}})));', '        this.balance.put(\"spot\", this.extend(' ],
         [ 'field put Object key', 'Object k', '        Helpers.addElementToObject(this.orderbooks, k, this.orderBook(new HashMap<String, Object>() {{}}, 5));', '(java.util.Map<?, ?>) this.orderbooks).put(k, this.orderBook(' ],
         [ 'field put String key', 'String k', '        Helpers.addElementToObject(this.balance, k, this.safeBalance(null));', '        this.balance.put(k, this.safeBalance(null));' ],
+        [ 'urls nullable value', 'Object v', '        Helpers.addElementToObject(this.urls, "apiBackup", v);', '        this.urls.put(' ],
+        [ 'urls foreign assignment keeps helper', 'Object v', '        this.urls = (Map<String, Object>) v;\n        Helpers.addElementToObject(this.urls, "apiBackup", v);', undefined ],
+        [ 'urls Object key keeps helper', 'Object k, Object v', '        Helpers.addElementToObject(this.urls, k, v);', undefined ],
         [ 'field nullable value', 'Object v', '        Helpers.addElementToObject(this.balance, \"info\", v);', undefined ],
         [ 'field options', 'Object v', '        Helpers.addElementToObject(this.options, \"a\", \"x\");', undefined ],
         [ 'field extend of 3', 'Object p, Object q', '        Helpers.addElementToObject(this.balance, \"a\", this.extend(p, q, p));', undefined ],
