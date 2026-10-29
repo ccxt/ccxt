@@ -9520,19 +9520,19 @@ public Map<String, Object> describe()
                     String quoteId = this.safeString(parts, 1);
                     String base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
                     String quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);
-                    Helpers.addElementToObject(result, "baseId", baseId);
-                    Helpers.addElementToObject(result, "quoteId", quoteId);
+                    result.put("baseId", baseId);
+                    result.put("quoteId", quoteId);
                     if (!java.util.Objects.equals(base, null))
                     {
-                        Helpers.addElementToObject(result, "base", base);
+                        result.put("base", base);
                     }
                     if (!java.util.Objects.equals(quote, null))
                     {
-                        Helpers.addElementToObject(result, "quote", quote);
+                        result.put("quote", quote);
                     }
                     if ((!java.util.Objects.equals(base, null)) && (!java.util.Objects.equals(quote, null)))
                     {
-                        Helpers.addElementToObject(result, "symbol", ((base + "/") + quote));
+                        result.put("symbol", ((base + "/") + quote));
                     }
                 }
                 return (Map<String, Object>) (result);

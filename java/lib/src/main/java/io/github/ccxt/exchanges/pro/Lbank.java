@@ -558,7 +558,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
         for (var i = 0; i < ((List<?>)rawTrades).size(); i++)
         {
             Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) ((rawTrades == null || i < 0 || i >= rawTrades.size() ? null : rawTrades.get(i))), market);
-            Helpers.addElementToObject(trade, "symbol", symbol);
+            trade.put("symbol", symbol);
             stored.append(trade);
         }
         this.trades.put(symbol, stored);

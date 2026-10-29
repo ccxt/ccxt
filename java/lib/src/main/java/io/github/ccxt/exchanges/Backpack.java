@@ -3209,7 +3209,7 @@ public class Backpack extends BackpackApi
             Map<String, Object> query = this.omit(paramsResolved, "clientOrderId");
             Map<String, Object> response = (this.privatePostApiV1Rfq(this.extend(query, request))).join();
             Map<String, Object> order = (Map<String, Object>) this.parseOrder(response, market);
-            Helpers.addElementToObject(order, "type", type);
+            order.put("type", type);
             return order;
         });
 
@@ -3776,7 +3776,7 @@ public class Backpack extends BackpackApi
         if (!java.util.Objects.equals(rfq, null))
         {
             Map<String, Object> parsed = (Map<String, Object>) this.parseOrder(rfq, market);
-            Helpers.addElementToObject(parsed, "info", order);
+            parsed.put("info", order);
             return (Order) parsed;
         }
         //

@@ -303,8 +303,8 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
             Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
             String symbol = this.safeString(market, "symbol", "");
             Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) (rawTrade), market);
-            Helpers.addElementToObject(trade, "timestamp", timestamp);
-            Helpers.addElementToObject(trade, "datetime", this.iso8601(timestamp));
+            trade.put("timestamp", timestamp);
+            trade.put("datetime", this.iso8601(timestamp));
             io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
             if (java.util.Objects.equals(stored, null))
             {
