@@ -815,7 +815,7 @@ class kraken extends \ccxt\async\kraken {
         $trades = Async\await($this->watch_multi_helper('trade', 'trade', $symbols, null, $params));
         $limitResolved = $limit;
         if ($this->newUpdates) {
-            $first = $this->safe_list($trades, 0);
+            $first = $this->safe_dict($trades, 0);
             $tradeSymbol = $this->safe_string($first, 'symbol');
             $limitResolved = $trades->getLimit($tradeSymbol, $limit);
         }
