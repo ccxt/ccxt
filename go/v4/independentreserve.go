@@ -523,7 +523,7 @@ func (this *Independentreserve) fetchMarketsBody(ch chan AsyncResult[[]MarketInt
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(result)}
 	return nil
 }
-func (this *Independentreserve) ParseBalance(response any) map[string]any {
+func (this *Independentreserve) ParseBalanceList(response any) map[string]any {
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
@@ -567,13 +567,13 @@ func (this *Independentreserve) fetchBalanceBody(ch chan AsyncResult[Balances], 
 		}
 	}
 
-	r1 := <-this.PrivatePostGetAccounts(params)
-	if r1.Err != nil {
-		panic(r1.Err)
+	listEp562 := <-this.PrivatePostGetAccounts(params)
+	if listEp562.Err != nil {
+		panic(listEp562.Err)
 	}
-	var response map[string]any = r1.Value
+	var response []any = listEp562.Value
 
-	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalance(response))}
+	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalanceList(response))}
 	return nil
 }
 

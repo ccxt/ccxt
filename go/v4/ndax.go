@@ -1684,7 +1684,7 @@ func (this *Ndax) fetchAccountsBody(ch chan AsyncResult[[]Account], optionalArgs
 	ch <- AsyncResult[[]Account]{Value: AccountsFromList(result)}
 	return nil
 }
-func (this *Ndax) ParseBalance(response any) map[string]any {
+func (this *Ndax) ParseBalanceList(response any) map[string]any {
 	var result map[string]any = map[string]any{
 		"info":      response,
 		"timestamp": nil,
@@ -1745,11 +1745,11 @@ func (this *Ndax) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs .
 		"AccountId": accountId,
 	}
 
-	r2 := <-this.PrivateGetGetAccountPositions(this.Extend(request, paramsOmitted))
-	if r2.Err != nil {
-		panic(r2.Err)
+	listEp1684 := <-this.PrivateGetGetAccountPositions(this.Extend(request, paramsOmitted))
+	if listEp1684.Err != nil {
+		panic(listEp1684.Err)
 	}
-	var response map[string]any = r2.Value
+	var response []any = listEp1684.Value
 
 	//
 	//     [
@@ -1782,7 +1782,7 @@ func (this *Ndax) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs .
 	//         },
 	//     ]
 	//
-	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalance(response))}
+	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalanceList(response))}
 	return nil
 }
 func (this *Ndax) ParseLedgerEntryType(typeVar *string) *string {

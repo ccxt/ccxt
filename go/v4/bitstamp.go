@@ -2130,7 +2130,7 @@ func (this *Bitstamp) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(ohlc, market, timeframe, since, limitResolved))}
 	return nil
 }
-func (this *Bitstamp) ParseBalance(response any) map[string]any {
+func (this *Bitstamp) ParseBalanceList(response any) map[string]any {
 	var finalResponse any = response // java req
 	var result map[string]any = map[string]any{
 		"info":      finalResponse,
@@ -2179,11 +2179,11 @@ func (this *Bitstamp) fetchBalanceBody(ch chan AsyncResult[Balances], optionalAr
 		}
 	}
 
-	r1 := <-this.PrivatePostAccountBalances(params)
-	if r1.Err != nil {
-		panic(r1.Err)
+	listEp2119 := <-this.PrivatePostAccountBalances(params)
+	if listEp2119.Err != nil {
+		panic(listEp2119.Err)
 	}
-	var response map[string]any = r1.Value
+	var response []any = listEp2119.Value
 
 	//
 	//     [
@@ -2196,7 +2196,7 @@ func (this *Bitstamp) fetchBalanceBody(ch chan AsyncResult[Balances], optionalAr
 	//         ...
 	//     ]
 	//
-	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalance(response))}
+	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalanceList(response))}
 	return nil
 }
 

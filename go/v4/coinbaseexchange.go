@@ -959,11 +959,11 @@ func (this *Coinbaseexchange) fetchAccountsBody(ch chan AsyncResult[[]Account], 
 		}
 	}
 
-	r1 := <-this.PrivateGetAccounts(params)
-	if r1.Err != nil {
-		panic(r1.Err)
+	listEp963 := <-this.PrivateGetAccounts(params)
+	if listEp963.Err != nil {
+		panic(listEp963.Err)
 	}
-	var response map[string]any = r1.Value
+	var response []any = listEp963.Value
 	//
 	//     [
 	//         {
@@ -1008,7 +1008,7 @@ func (this *Coinbaseexchange) ParseAccount(account any) map[string]any {
 		"info": account,
 	}
 }
-func (this *Coinbaseexchange) ParseBalance(response any) map[string]any {
+func (this *Coinbaseexchange) ParseBalanceList(response any) map[string]any {
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
@@ -1054,13 +1054,13 @@ func (this *Coinbaseexchange) fetchBalanceBody(ch chan AsyncResult[Balances], op
 		}
 	}
 
-	r1 := <-this.PrivateGetAccounts(params)
-	if r1.Err != nil {
-		panic(r1.Err)
+	listEp1051 := <-this.PrivateGetAccounts(params)
+	if listEp1051.Err != nil {
+		panic(listEp1051.Err)
 	}
-	var response map[string]any = r1.Value
+	var response []any = listEp1051.Value
 
-	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalance(response))}
+	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalanceList(response))}
 	return nil
 }
 

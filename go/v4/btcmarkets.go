@@ -820,7 +820,7 @@ func (this *Btcmarkets) fetchTimeBody(ch chan AsyncResult[*int64], optionalArgs 
 	ch <- AsyncResult[*int64]{Value: this.Parse8601(this.SafeString(response, "timestamp"))}
 	return nil
 }
-func (this *Btcmarkets) ParseBalance(response any) map[string]any {
+func (this *Btcmarkets) ParseBalanceList(response any) map[string]any {
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
@@ -864,13 +864,13 @@ func (this *Btcmarkets) fetchBalanceBody(ch chan AsyncResult[Balances], optional
 		}
 	}
 
-	r1 := <-this.PrivateGetAccountsMeBalances(params)
-	if r1.Err != nil {
-		panic(r1.Err)
+	listEp836 := <-this.PrivateGetAccountsMeBalances(params)
+	if listEp836.Err != nil {
+		panic(listEp836.Err)
 	}
-	var response map[string]any = r1.Value
+	var response []any = listEp836.Value
 
-	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalance(response))}
+	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalanceList(response))}
 	return nil
 }
 func (this *Btcmarkets) ParseOHLCV(ohlcv any, optionalArgs ...any) OHLCV {

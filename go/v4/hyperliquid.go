@@ -5780,11 +5780,9 @@ func (this *Hyperliquid) transferBody(ch chan AsyncResult[TransferEntry], code s
 	var transferType *string = this.SafeString(params, "type")
 	// subAccountTransfer and subAccountSpotTransfer are rejected with "Action disabled when
 	// unified account is active", a unified account has to move balances with sendAsset instead
-	var transferMethod any = nil
+	var transferMethod *string = nil
 	var query any = params
-	var transferMethodqueryVariable []any = this.HandleOptionAndParams(query, "transfer", "method")
-	transferMethod = GetValue(transferMethodqueryVariable, 0)
-	query = transferMethodqueryVariable[1]
+	transferMethod, query = this.HandleOptionStringAndParams(query, "transfer", "method")
 	var masterAddress any = nil
 	if derefPtr := this.SafeString(this.HandlePublicAddress("transfer", query), 0); derefPtr != nil {
 		masterAddress = *derefPtr
@@ -5792,15 +5790,15 @@ func (this *Hyperliquid) transferBody(ch chan AsyncResult[TransferEntry], code s
 		masterAddress = nil
 	}
 	query = this.SafeDict(this.HandlePublicAddress("transfer", query), 1, map[string]any{})
-	var useSendAsset bool = (transferMethod == "sendAsset")
+	var useSendAsset bool = (transferMethod != nil && *transferMethod == "sendAsset")
 	if transferMethod == nil {
 		var isUnified any = nil
 		r2 := <-this.IsUnifiedEnabledAsync("transfer", masterAddress, false, query)
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		listRecv5479, _ := r2.Value, r2.Value != nil
-		var isUnifiedqueryVariable []any = listRecv5479
+		listRecv5477, _ := r2.Value, r2.Value != nil
+		var isUnifiedqueryVariable []any = listRecv5477
 		isUnified = GetValue(isUnifiedqueryVariable, 0)
 		query = isUnifiedqueryVariable[1]
 		useSendAsset = (isUnified == true)

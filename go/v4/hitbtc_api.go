@@ -157,9 +157,9 @@ func (this *Hitbtc) PublicGetPublicFuturesCandlesOpenInterestSymbol(args ...any)
 	return Fetch2Result[[]any](this, "public/futures/candles/open_interest/{symbol}", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
-// PrivateGetSpotBalance returns a channel that yields a JSON object.
-func (this *Hitbtc) PrivateGetSpotBalance(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "spot/balance", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(15)})
+// PrivateGetSpotBalance returns a channel that yields a JSON array.
+func (this *Hitbtc) PrivateGetSpotBalance(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "spot/balance", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(15)})
 }
 
 // PrivateGetSpotBalanceCurrency returns a channel that yields a JSON object.
@@ -252,9 +252,9 @@ func (this *Hitbtc) PrivateGetMarginSettings(args ...any) <-chan EndpointResult[
 	return Fetch2Result[map[string]any](this, "margin-settings", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(15)})
 }
 
-// PrivateGetFuturesBalance returns a channel that yields a JSON object.
-func (this *Hitbtc) PrivateGetFuturesBalance(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "futures/balance", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(15)})
+// PrivateGetFuturesBalance returns a channel that yields a JSON array.
+func (this *Hitbtc) PrivateGetFuturesBalance(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "futures/balance", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(15)})
 }
 
 // PrivateGetFuturesBalanceCurrency returns a channel that yields a JSON object.
@@ -322,9 +322,9 @@ func (this *Hitbtc) PrivateGetUserApiKeys(args ...any) <-chan EndpointResult[[]a
 	return Fetch2Result[[]any](this, "user/api-keys", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(15)})
 }
 
-// PrivateGetWalletBalance returns a channel that yields a JSON object.
-func (this *Hitbtc) PrivateGetWalletBalance(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "wallet/balance", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(30)})
+// PrivateGetWalletBalance returns a channel that yields a JSON array.
+func (this *Hitbtc) PrivateGetWalletBalance(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "wallet/balance", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(30)})
 }
 
 // PrivateGetWalletBalanceCurrency returns a channel that yields a JSON object.

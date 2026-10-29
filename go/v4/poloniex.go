@@ -3471,7 +3471,7 @@ func (this *Poloniex) fetchOrderTradesBody(ch chan AsyncResult[[]Trade], id stri
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(trades))}
 	return nil
 }
-func (this *Poloniex) ParseBalance(response any) map[string]any {
+func (this *Poloniex) ParseBalanceList(response any) map[string]any {
 	var result map[string]any = map[string]any{
 		"info":      response,
 		"timestamp": nil,
@@ -3586,7 +3586,7 @@ func (this *Poloniex) fetchBalanceBody(ch chan AsyncResult[Balances], optionalAr
 		//
 		var data map[string]any = this.SafeDictMap(responseRaw, "data", map[string]any{})
 
-		ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalance(data))}
+		ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalanceList(data))}
 		return nil
 	}
 	var request map[string]any = map[string]any{
@@ -3615,7 +3615,7 @@ func (this *Poloniex) fetchBalanceBody(ch chan AsyncResult[Balances], optionalAr
 	//         }
 	//     ]
 	//
-	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalance(response))}
+	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalanceList(response))}
 	return nil
 }
 

@@ -778,7 +778,7 @@ func (this *Bithumb) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(result)}
 	return nil
 }
-func (this *Bithumb) ParseBalance(response any) map[string]any {
+func (this *Bithumb) ParseBalanceList(response any) map[string]any {
 	//
 	// generation 1
 	//
@@ -890,7 +890,7 @@ func (this *Bithumb) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArg
 		response = r2.Raw
 	}
 
-	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalance(response))}
+	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalanceList(response))}
 	return nil
 }
 

@@ -1812,7 +1812,7 @@ func (this *Hitbtc) HandleBalance(client any, message map[string]any) {
 	// in that window invisible to the consumer forever (same class as
 	// issue #26773); the free/used/total aggregates are rebuilt from the
 	// merged currencies by safeBalance
-	var balance map[string]any = this.ParseBalance(params)
+	var balance map[string]any = this.ParseBalanceList(params)
 	if ccxt.IsEqual(this.Balance, nil) {
 		this.Balance = map[string]any{}
 	}

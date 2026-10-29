@@ -797,7 +797,7 @@ func (this *Upbit) ParseMarket(market any) map[string]any {
 		"info":    market,
 	})
 }
-func (this *Upbit) ParseBalance(response any) map[string]any {
+func (this *Upbit) ParseBalanceList(response any) map[string]any {
 	var result map[string]any = map[string]any{
 		"info":      response,
 		"timestamp": nil,
@@ -844,11 +844,11 @@ func (this *Upbit) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs 
 		}
 	}
 
-	r1 := <-this.PrivateGetAccounts(params)
-	if r1.Err != nil {
-		panic(r1.Err)
+	listEp827 := <-this.PrivateGetAccounts(params)
+	if listEp827.Err != nil {
+		panic(listEp827.Err)
 	}
-	var response map[string]any = r1.Value
+	var response []any = listEp827.Value
 
 	//
 	//     [ {          currency: "BTC",
@@ -862,7 +862,7 @@ func (this *Upbit) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs 
 	//         "avg_krw_buy_price": "250000",
 	//                  "modified":  false    }   ]
 	//
-	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalance(response))}
+	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalanceList(response))}
 	return nil
 }
 

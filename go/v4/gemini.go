@@ -1812,7 +1812,7 @@ func (this *Gemini) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, op
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(response, market, since, limit))}
 	return nil
 }
-func (this *Gemini) ParseBalance(response any) map[string]any {
+func (this *Gemini) ParseBalanceList(response any) map[string]any {
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
@@ -1939,13 +1939,13 @@ func (this *Gemini) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs
 		}
 	}
 
-	r1 := <-this.PrivatePostV1Balances(params)
-	if r1.Err != nil {
-		panic(r1.Err)
+	listEp1885 := <-this.PrivatePostV1Balances(params)
+	if listEp1885.Err != nil {
+		panic(listEp1885.Err)
 	}
-	var response map[string]any = r1.Value
+	var response []any = listEp1885.Value
 
-	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalance(response))}
+	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalanceList(response))}
 	return nil
 }
 func (this *Gemini) ParseOrder(order any, optionalArgs ...any) Order {

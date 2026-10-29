@@ -4367,7 +4367,7 @@ func (this *Derive) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs
 		// the result is a single portfolio object shaped exactly like one element of the get_all_portfolios sample below
 		var subaccountResult map[string]any = this.SafeDictMap(subaccountResponse, "result", map[string]any{})
 
-		ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalance([]any{subaccountResult}))}
+		ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalanceList([]any{subaccountResult}))}
 		return nil
 	}
 	deriveWalletAddressparamsDeriveWalletAddressVariable := this.HandleDeriveWalletAddress("fetchBalance", params)
@@ -4632,10 +4632,10 @@ func (this *Derive) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs
 	//
 	var result []any = SafeListTyped(response, "result")
 
-	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalance(result))}
+	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalanceList(result))}
 	return nil
 }
-func (this *Derive) ParseBalance(response any) map[string]any {
+func (this *Derive) ParseBalanceList(response any) map[string]any {
 	var result map[string]any = map[string]any{
 		"info": response,
 	}

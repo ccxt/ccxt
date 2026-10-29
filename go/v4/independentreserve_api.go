@@ -122,9 +122,9 @@ func (this *Independentreserve) PrivatePostGetOrderDetails(args ...any) <-chan E
 	return Fetch2Result[map[string]any](this, "GetOrderDetails", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-// PrivatePostGetAccounts returns a channel that yields a JSON object.
-func (this *Independentreserve) PrivatePostGetAccounts(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "GetAccounts", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+// PrivatePostGetAccounts returns a channel that yields a JSON array.
+func (this *Independentreserve) PrivatePostGetAccounts(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "GetAccounts", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostGetTransactions returns a channel that yields a JSON object.

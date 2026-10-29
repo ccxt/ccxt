@@ -3471,16 +3471,16 @@ func (this *Bydfi) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs 
 	}
 	var data []any = SafeListTypedDefault(response, "data", []any{})
 
-	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalance(data))}
+	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalanceList(data))}
 	return nil
 }
-func (this *Bydfi) ParseBalance(response any) map[string]any {
+func (this *Bydfi) ParseBalanceList(response []any) map[string]any {
 	var result map[string]any = map[string]any{
 		"info":      response,
 		"timestamp": nil,
 		"datetime":  nil,
 	}
-	var responseLength int = GetArrayLength(response)
+	var responseLength int = len(response)
 	for i := 0; i < responseLength; i++ {
 		var balance map[string]any = SafeMapTyped(response, i)
 		var symbol *string = this.SafeString(balance, "asset")

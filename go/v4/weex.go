@@ -2726,10 +2726,10 @@ func (this *Weex) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs .
 		}
 	}
 
-	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalance(response))}
+	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalanceList(response))}
 	return nil
 }
-func (this *Weex) ParseBalance(response any) map[string]any {
+func (this *Weex) ParseBalanceList(response any) map[string]any {
 	var result map[string]any = map[string]any{
 		"info": response,
 	}

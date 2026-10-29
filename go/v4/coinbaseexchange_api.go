@@ -87,9 +87,9 @@ func (this *Coinbaseexchange) PrivateGetAddressBookCounterparty(args ...any) <-c
 	return Fetch2Result[[]any](this, "address-book/counterparty", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-// PrivateGetAccounts returns a channel that yields a JSON object.
-func (this *Coinbaseexchange) PrivateGetAccounts(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "accounts", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+// PrivateGetAccounts returns a channel that yields a JSON array.
+func (this *Coinbaseexchange) PrivateGetAccounts(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "accounts", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetAccountsId returns a channel that yields a JSON object.

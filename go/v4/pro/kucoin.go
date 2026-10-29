@@ -4272,12 +4272,18 @@ func (this *Kucoin) HandleUtaPosition(client any, message map[string]any) {
 	var symbol *string = this.SafeSymbol(marketId)
 	var cache any = this.Positions
 	var currentPosition any = this.GetCurrentPosition(symbol)
-	var newPosition any = this.ParseWsUtaPosition(data)
-	var keys []string = ccxt.ObjectKeys(newPosition)
+	var newPosition map[string]any = this.ParseWsUtaPosition(data)
+	var keys []string = nil
+	if newPosition != nil {
+		keys = make([]string, 0, len(newPosition))
+		for objectKey := range newPosition {
+			keys = append(keys, objectKey)
+		}
+	}
 	for i := 0; i < len(keys); i++ {
 		var key string = keys[i]
-		if ccxt.IsEqual(ccxt.GetValue(newPosition, key), nil) {
-			ccxt.Remove(newPosition, key)
+		if ccxt.IsEqual(newPosition[key], nil) {
+			delete(newPosition, key)
 		}
 	}
 	var position map[string]any = this.Extend(currentPosition, newPosition)
@@ -4287,7 +4293,7 @@ func (this *Kucoin) HandleUtaPosition(client any, message map[string]any) {
 	client.(ccxt.ClientInterface).Resolve(this.Positions, messageHash)
 	client.(ccxt.ClientInterface).Resolve(this.Positions, symbolMessageHash)
 }
-func (this *Kucoin) ParseWsUtaPosition(position map[string]any, optionalArgs ...any) any {
+func (this *Kucoin) ParseWsUtaPosition(position map[string]any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "pi": "30000000000084845",

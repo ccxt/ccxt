@@ -3387,7 +3387,7 @@ func (this *Dydx) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs .
 	//     }
 	// }
 	//
-	var data map[string]any = SafeMapTyped(response, "subaccount")
+	var data map[string]any = this.SafeDictMap(response, "subaccount", map[string]any{})
 
 	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalance(data))}
 	return nil

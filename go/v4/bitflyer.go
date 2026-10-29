@@ -583,7 +583,7 @@ func (this *Bitflyer) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(result)}
 	return nil
 }
-func (this *Bitflyer) ParseBalance(response any) map[string]any {
+func (this *Bitflyer) ParseBalanceList(response any) map[string]any {
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
@@ -627,11 +627,11 @@ func (this *Bitflyer) fetchBalanceBody(ch chan AsyncResult[Balances], optionalAr
 		}
 	}
 
-	r1 := <-this.PrivateGetGetbalance(params)
-	if r1.Err != nil {
-		panic(r1.Err)
+	listEp601 := <-this.PrivateGetGetbalance(params)
+	if listEp601.Err != nil {
+		panic(listEp601.Err)
 	}
-	var response map[string]any = r1.Value
+	var response []any = listEp601.Value
 
 	//
 	//     [
@@ -652,7 +652,7 @@ func (this *Bitflyer) fetchBalanceBody(ch chan AsyncResult[Balances], optionalAr
 	//         }
 	//     ]
 	//
-	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalance(response))}
+	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalanceList(response))}
 	return nil
 }
 

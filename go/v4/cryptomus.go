@@ -888,10 +888,10 @@ func (this *Cryptomus) fetchBalanceBody(ch chan AsyncResult[Balances], optionalA
 	//
 	var result []any = SafeListTypedDefault(response, "result", []any{})
 
-	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalance(result))}
+	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalanceList(result))}
 	return nil
 }
-func (this *Cryptomus) ParseBalance(balance any) map[string]any {
+func (this *Cryptomus) ParseBalanceList(balance []any) map[string]any {
 	//
 	//     {
 	//         "ticker": "AVAX",
@@ -902,7 +902,7 @@ func (this *Cryptomus) ParseBalance(balance any) map[string]any {
 	var result map[string]any = map[string]any{
 		"info": balance,
 	}
-	for i := 0; i < GetArrayLength(balance); i++ {
+	for i := 0; i < len(balance); i++ {
 		var balanceEntry map[string]any = SafeMapTyped(balance, i)
 		var currencyId *string = this.SafeString(balanceEntry, "ticker")
 		var code *string = this.SafeCurrencyCode(currencyId)

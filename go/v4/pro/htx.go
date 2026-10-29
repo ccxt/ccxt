@@ -1151,7 +1151,6 @@ func (this *Htx) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], optio
 		}
 	}
 	var typeVar any = nil
-	var marketId any = "*" // wildcard
 	var market map[string]any = nil
 	var messageHash any = nil
 	var channel any = nil
@@ -1169,7 +1168,6 @@ func (this *Htx) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], optio
 		} else {
 			subType = "inverse"
 		}
-		marketId = this.SafeString(market, "lowercaseId", "*")
 	} else {
 		if derefPtr := this.SafeString(this.Options, "defaultType", "spot"); derefPtr != nil {
 			typeVar = *derefPtr
@@ -1200,7 +1198,7 @@ func (this *Htx) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], optio
 		var mode *string = this.SafeString2(this.Options, "watchMyTrades", "mode", "0")
 		mode = this.SafeString(paramsRequest, "mode", mode)
 		paramsRequest = this.Omit(paramsRequest, "mode")
-		messageHash = ccxt.Add(ccxt.Add(ccxt.Add("trade.clearing"+"#", marketId), "#"), mode)
+		messageHash = "trade.clearing" + "#" + *this.SafeString(market, "lowercaseId", "*") + "#" + *mode
 		channel = messageHash
 	} else if isV5Linear {
 		var channelAndMessageHashAndParams []any = this.GetV5LinearChannelAndMessageHash("trade", market, paramsRequest)
@@ -1367,7 +1365,6 @@ func (this *Htx) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], optiona
 	var typeVar any = nil
 	var subType any = nil
 	var market map[string]any = nil
-	var suffix any = "*" // wildcard
 	if symbol != nil {
 		market = this.Market(symbol)
 		if derefPtr := this.SafeString(market, "type"); derefPtr != nil {
@@ -1375,7 +1372,6 @@ func (this *Htx) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], optiona
 		} else {
 			typeVar = nil
 		}
-		suffix = this.SafeString(market, "lowercaseId", "*")
 		if market["linear"] == true {
 			subType = "linear"
 		} else {
@@ -1410,7 +1406,7 @@ func (this *Htx) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], optiona
 	var messageHash any = nil
 	var channel any = nil
 	if typeVar == "spot" {
-		messageHash = ccxt.Add("orders"+"#", suffix)
+		messageHash = "orders" + "#" + *this.SafeString(market, "lowercaseId", "*")
 		channel = messageHash
 	} else if isV5Linear {
 		var channelAndMessageHashAndParams []any = this.GetV5LinearChannelAndMessageHash("orders", market, paramsRequest)
@@ -2270,13 +2266,13 @@ func (this *Htx) HandlePositions(client any, message map[string]any) {
 		}
 		newPositions = append(newPositions, position)
 		ccxt.AddElementToObject(positionsByMarginMode, marginMode, this.SafeList(positionsByMarginMode, marginMode, []any{}))
-		retRes181512 := func() any {
+		retRes181112 := func() any {
 			if marginMode == nil {
 				return nil
 			}
 			return positionsByMarginMode[*marginMode]
 		}()
-		ccxt.AppendToArray(&retRes181512, position)
+		ccxt.AppendToArray(&retRes181112, position)
 		cache.(ccxt.Appender).Append(position)
 	}
 	var marginModes []string = nil

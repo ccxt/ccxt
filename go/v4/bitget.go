@@ -5732,7 +5732,7 @@ func (this *Bitget) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol st
 	var utaparamsUTAVariable []any = listRecv5581
 	uta := utaparamsUTAVariable[0]
 	var paramsUTA map[string]any = MapTyped(utaparamsUTAVariable[1])
-	var isStockSpot bool = (isStock != nil && *isStock) && EvalTruthy(market["spot"])
+	var isStockSpot bool = (isStock != nil && *isStock) && (market["spot"] == true)
 	var isStockOrUta bool = (isStockSpot || (uta == true))
 	if isStockSpot {
 		if limit != nil {
@@ -6001,7 +6001,7 @@ func (this *Bitget) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, 
 	var utaparamsUTAVariable []any = listRecv5826
 	uta := utaparamsUTAVariable[0]
 	var paramsUTA map[string]any = MapTyped(utaparamsUTAVariable[1])
-	var isStockOrUta bool = (((isStock != nil && *isStock) && EvalTruthy(market["spot"])) || (uta == true))
+	var isStockOrUta bool = (((isStock != nil && *isStock) && (market["spot"] == true)) || (uta == true))
 	if isStockOrUta {
 		request["category"] = productType
 
@@ -6669,7 +6669,7 @@ func (this *Bitget) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, op
 	paginate, paramsPaginate = this.HandleOptionBoolAndParams(params, "fetchTrades", "paginate", false)
 	var market map[string]any = this.Market(symbol)
 	var isStock *bool = SafeBoolPtr(market["stock"])
-	var isStockSpot bool = (isStock != nil && *isStock) && EvalTruthy(market["spot"])
+	var isStockSpot bool = (isStock != nil && *isStock) && (market["spot"] == true)
 	paramsPaginate = this.Omit(paramsPaginate, "stock")
 	if paginate {
 		if isStockSpot {
@@ -7316,7 +7316,7 @@ func (this *Bitget) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 		"symbol": market["id"],
 	}
 	var isStock *bool = SafeBoolPtr(market["stock"])
-	var isStockSpot bool = (isStock != nil && *isStock) && EvalTruthy(market["spot"])
+	var isStockSpot bool = (isStock != nil && *isStock) && (market["spot"] == true)
 	var paramsStock map[string]any = this.OmitDict(paramsUTA, "stock")
 	var marketType string
 	var timeframes map[string]any = nil
@@ -7774,7 +7774,7 @@ func (this *Bitget) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs
 	//
 	var data []any = SafeListTypedDefault(response, "data", []any{})
 
-	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalance(data))}
+	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalanceList(data))}
 	return nil
 }
 func (this *Bitget) ParseUtaBalance(balance any, optionalArgs ...any) map[string]any {
@@ -7827,7 +7827,7 @@ func (this *Bitget) ParseUtaBalance(balance any, optionalArgs ...any) map[string
 	}
 	return this.SafeBalance(result).(map[string]any)
 }
-func (this *Bitget) ParseBalance(balance any) map[string]any {
+func (this *Bitget) ParseBalanceList(balance []any) map[string]any {
 	var result map[string]any = map[string]any{
 		"info": balance,
 	}
@@ -7878,7 +7878,7 @@ func (this *Bitget) ParseBalance(balance any) map[string]any {
 	//           // "symbol": "BTCUSDT" // only for isolated margin
 	//       }
 	//
-	for i := 0; i < GetArrayLength(balance); i++ {
+	for i := 0; i < len(balance); i++ {
 		var entry map[string]any = SafeMapTyped(balance, i)
 		var account map[string]any = this.Account()
 		var currencyId *string = this.SafeString2(entry, "marginCoin", "coin")
@@ -8410,7 +8410,7 @@ func (this *Bitget) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 	var marginMode *string = nil
 	marginMode, _ = this.HandleMarginModeAndParams("createOrder", params)
 	var isStock *bool = SafeBoolPtr(market["stock"])
-	var isStockSpot bool = (isStock != nil && *isStock) && EvalTruthy(market["spot"])
+	var isStockSpot bool = (isStock != nil && *isStock) && (market["spot"] == true)
 	var paramsStock map[string]any = this.OmitDict(params, "stock")
 	var triggerPrice *float64 = this.SafeNumber2(paramsStock, "stopPrice", "triggerPrice")
 	var stopLossTriggerPrice *float64 = this.SafeNumber(paramsStock, "stopLossPrice")
@@ -9557,7 +9557,7 @@ func (this *Bitget) cancelOrderBody(ch chan AsyncResult[Order], id any, optional
 	var paramsMarginMode any = nil
 	marginMode, paramsMarginMode = this.HandleMarginModeAndParams("cancelOrder", params)
 	var isStock *bool = SafeBoolPtr(market["stock"])
-	var isStockSpot bool = (isStock != nil && *isStock) && EvalTruthy(market["spot"])
+	var isStockSpot bool = (isStock != nil && *isStock) && (market["spot"] == true)
 	paramsMarginMode = this.Omit(paramsMarginMode, "stock")
 	var request map[string]any = map[string]any{}
 	var trailing *bool = this.SafeBool(paramsMarginMode, "trailing")

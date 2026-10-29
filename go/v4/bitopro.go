@@ -1180,7 +1180,7 @@ func (this *Bitopro) InsertMissingCandles(candles any, distanceInMs int64, since
 	}
 	return result
 }
-func (this *Bitopro) ParseBalance(response any) map[string]any {
+func (this *Bitopro) ParseBalanceList(response []any) map[string]any {
 	//
 	//     [{
 	//         "currency":"twd",
@@ -1257,7 +1257,7 @@ func (this *Bitopro) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArg
 	//         ]
 	//     }
 	//
-	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalance(balances))}
+	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalanceList(balances))}
 	return nil
 }
 func (this *Bitopro) ParseOrderStatus(status *string) any {
@@ -1574,7 +1574,7 @@ func (this *Bitopro) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any, opt
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var id *string = SafeStringPtr(market["uppercaseId"])
+	var id *string = this.SafeString(market, "uppercaseId")
 	var request map[string]any = map[string]any{}
 	if id != nil {
 		AddElementToObject(request, id, ids)

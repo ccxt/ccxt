@@ -1756,13 +1756,9 @@ func (this *Kraken) watchPrivateBody(ch chan ccxt.AsyncResult[[]any], name strin
 	var token *string = ccxt.SafeStringPtr(r1.Value)
 	var subscriptionHash string = "executions"
 	var messageHash any = name
-	var symbolResolved any = func() any {
-		if symbol != nil {
-			return this.Symbol(symbol)
-		}
-		return nil
-	}()
-	if symbolResolved != nil {
+	var symbolResolved any = nil
+	if symbol != nil {
+		symbolResolved = this.Symbol(symbol)
 		messageHash = ccxt.Add(name+":", symbolResolved)
 	}
 	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["privateV2"])
@@ -1993,8 +1989,8 @@ func (this *Kraken) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opti
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	retRes144515 := r.Value
-	ch <- ccxt.AsyncResult[[]ccxt.Order]{Value: ccxt.OrdersFromList(retRes144515)}
+	retRes144615 := r.Value
+	ch <- ccxt.AsyncResult[[]ccxt.Order]{Value: ccxt.OrdersFromList(retRes144615)}
 	return nil
 }
 func (this *Kraken) HandleOrders(client any, message map[string]any, optionalArgs ...any) {

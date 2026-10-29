@@ -117,9 +117,9 @@ func (this *Upbit) PublicGetOrderbookInstruments(args ...any) <-chan EndpointRes
 	return Fetch2Result[[]any](this, "orderbook/instruments", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
-// PrivateGetAccounts returns a channel that yields a JSON object.
-func (this *Upbit) PrivateGetAccounts(args ...any) <-chan EndpointResult[map[string]any] {
-	return EndpointTyped[map[string]any](this.callEndpointAsync("privateGetAccounts", args...))
+// PrivateGetAccounts returns a channel that yields a JSON array.
+func (this *Upbit) PrivateGetAccounts(args ...any) <-chan EndpointResult[[]any] {
+	return EndpointTyped[[]any](this.callEndpointAsync("privateGetAccounts", args...))
 }
 
 // PrivateGetOrdersChance returns a channel that yields a JSON object.

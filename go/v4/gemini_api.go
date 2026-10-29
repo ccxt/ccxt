@@ -302,9 +302,9 @@ func (this *Gemini) PrivatePostV1ClearingConfirm(args ...any) <-chan EndpointRes
 	return Fetch2Result[map[string]any](this, "v1/clearing/confirm", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-// PrivatePostV1Balances returns a channel that yields a JSON object.
-func (this *Gemini) PrivatePostV1Balances(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/balances", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+// PrivatePostV1Balances returns a channel that yields a JSON array.
+func (this *Gemini) PrivatePostV1Balances(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "v1/balances", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostV1BalancesStaking returns a channel that yields a JSON array.

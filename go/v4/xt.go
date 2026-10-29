@@ -3261,10 +3261,10 @@ func (this *Xt) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs ...
 		balances = this.SafeList(data, "assets", []any{})
 	}
 
-	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalance(balances))}
+	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalanceList(balances))}
 	return nil
 }
-func (this *Xt) ParseBalance(response any) map[string]any {
+func (this *Xt) ParseBalanceList(response any) map[string]any {
 	//
 	// spot
 	//

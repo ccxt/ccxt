@@ -364,7 +364,7 @@ func (this *Bitget) HandleTicker(client any, message map[string]any) {
 	if symbol != nil {
 		this.Tickers.Store(symbol, ticker)
 	}
-	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ticker:", symbol))
+	var messageHash string = "ticker:" + *this.SafeString(ticker, "symbol", "")
 	client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
 }
 func (this *Bitget) ParseWsTicker(message map[string]any, optionalArgs ...any) map[string]any {
@@ -593,7 +593,7 @@ func (this *Bitget) HandleBidAsk(client any, message map[string]any) {
 	if symbol != nil {
 		this.Bidsasks.Store(symbol, ticker)
 	}
-	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("bidask:", symbol))
+	var messageHash string = "bidask:" + *this.SafeString(ticker, "symbol", "")
 	client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
 }
 func (this *Bitget) ParseWsBidAsk(message map[string]any, optionalArgs ...any) any {
@@ -2938,8 +2938,8 @@ func (this *Bitget) HandleMyTrades(client any, message map[string]any) {
 		}
 		var parsed map[string]any = this.ParseWsTrade(trade, market)
 		stored.(ccxt.Appender).Append(parsed)
-		var symbol *string = ccxt.SafeStringPtr(parsed["symbol"])
-		var symbolSpecificMessageHash *string = ccxt.SafeStringPtr(ccxt.Add("myTrades:", symbol))
+		var symbol *string = this.SafeString(parsed, "symbol", "")
+		var symbolSpecificMessageHash string = "myTrades:" + *symbol
 		client.(ccxt.ClientInterface).Resolve(stored, symbolSpecificMessageHash)
 	}
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)

@@ -887,7 +887,7 @@ func (this *Bullish) HandleBalance(client any, message any) {
 	var messageType *string = this.SafeString(message, "type")
 	if messageType != nil && *messageType == "snapshot" {
 		var data []any = ccxt.SafeListTypedDefault(message, "data", []any{})
-		var parsed map[string]any = this.ParseBalance(data)
+		var parsed map[string]any = this.ParseBalanceList(data)
 		var parsedKeys []string = nil
 		if parsed != nil {
 			parsedKeys = make([]string, 0, len(parsed))

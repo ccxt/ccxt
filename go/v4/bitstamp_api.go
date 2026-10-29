@@ -132,9 +132,9 @@ func (this *Bitstamp) PrivateGetTradeHistoryPair(args ...any) <-chan EndpointRes
 	return Fetch2Result[[]any](this, "trade_history/{pair}", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-// PrivatePostAccountBalances returns a channel that yields a JSON object.
-func (this *Bitstamp) PrivatePostAccountBalances(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "account_balances/", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+// PrivatePostAccountBalances returns a channel that yields a JSON array.
+func (this *Bitstamp) PrivatePostAccountBalances(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "account_balances/", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostAccountBalancesCurrency returns a channel that yields a JSON object.

@@ -3706,7 +3706,7 @@ func (this *Modetrade) fetchBalanceBody(ch chan AsyncResult[Balances], optionalA
 	//     }
 	// }
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
+	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
 	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalance(data))}
 	return nil

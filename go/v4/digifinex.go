@@ -1103,7 +1103,7 @@ func (this *Digifinex) fetchMarketsV1Body(ch chan AsyncResult[[]MarketInterface]
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(result)}
 	return nil
 }
-func (this *Digifinex) ParseBalance(response any) map[string]any {
+func (this *Digifinex) ParseBalanceList(response []any) map[string]any {
 	//
 	// spot and margin
 	//
@@ -1247,7 +1247,7 @@ func (this *Digifinex) fetchBalanceBody(ch chan AsyncResult[Balances], optionalA
 	}
 	var balances []any = SafeListTypedDefault(response, balanceRequest, []any{})
 
-	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalance(balances))}
+	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalanceList(balances))}
 	return nil
 }
 

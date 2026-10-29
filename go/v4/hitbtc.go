@@ -1273,7 +1273,7 @@ func (this *Hitbtc) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress],
 	})}
 	return nil
 }
-func (this *Hitbtc) ParseBalance(response any) map[string]any {
+func (this *Hitbtc) ParseBalanceList(response any) map[string]any {
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
@@ -1320,28 +1320,28 @@ func (this *Hitbtc) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs
 		}
 		return this.SafeString(accountsByType, typeVar, typeVar)
 	}()
-	var response map[string]any = nil
+	var response []any = nil
 	if account != nil && *account == "wallet" {
 
-		r := <-this.PrivateGetWalletBalance(paramsOmitted)
-		if r.Err != nil {
-			panic(r.Err)
+		listEp1309 := <-this.PrivateGetWalletBalance(paramsOmitted)
+		if listEp1309.Err != nil {
+			panic(listEp1309.Err)
 		}
-		response = r.Value
+		response = listEp1309.Value
 	} else if account != nil && *account == "spot" {
 
-		r1 := <-this.PrivateGetSpotBalance(paramsOmitted)
-		if r1.Err != nil {
-			panic(r1.Err)
+		listEp1312 := <-this.PrivateGetSpotBalance(paramsOmitted)
+		if listEp1312.Err != nil {
+			panic(listEp1312.Err)
 		}
-		response = r1.Value
+		response = listEp1312.Value
 	} else if account != nil && *account == "derivatives" {
 
-		r2 := <-this.PrivateGetFuturesBalance(paramsOmitted)
-		if r2.Err != nil {
-			panic(r2.Err)
+		listEp1315 := <-this.PrivateGetFuturesBalance(paramsOmitted)
+		if listEp1315.Err != nil {
+			panic(listEp1315.Err)
 		}
-		response = r2.Value
+		response = listEp1315.Value
 	} else {
 		var keys []string = nil
 		if accountsByType != nil {
@@ -1364,7 +1364,7 @@ func (this *Hitbtc) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs
 	//       ...
 	//     ]
 	//
-	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalance(response))}
+	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalanceList(response))}
 	return nil
 }
 

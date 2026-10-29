@@ -77,17 +77,19 @@ func (this *Coinbase) Describe() map[string]any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} subscription to a websocket channel
  */
-func (this *Coinbase) SubscribeAsync(name string, isPrivate any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+func (this *Coinbase) SubscribeAsync(name string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
-	go this.subscribeBody(ch, name, isPrivate, optionalArgs...)
+	go this.subscribeBody(ch, name, optionalArgs...)
 	return ch
 }
-func (this *Coinbase) subscribeBody(ch chan ccxt.AsyncResult[any], name string, isPrivate any, optionalArgs ...any) any {
+func (this *Coinbase) subscribeBody(ch chan ccxt.AsyncResult[any], name string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
+	var isPrivate bool = ccxt.GetArgBool(optionalArgs, 0, false)
+	_ = isPrivate
+	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 1, nil)
 	_ = symbol
-	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 	if this.Markets() == nil {
 
@@ -110,7 +112,7 @@ func (this *Coinbase) subscribeBody(ch chan ccxt.AsyncResult[any], name string, 
 		"product_ids": productIds,
 		"channel":     name,
 	}
-	if ccxt.EvalTruthy(isPrivate) {
+	if isPrivate == true {
 		subscribe = this.Extend(subscribe, this.CreateWSAuth(name, productIds))
 	}
 
@@ -133,15 +135,17 @@ func (this *Coinbase) subscribeBody(ch chan ccxt.AsyncResult[any], name string, 
  * @param {string} [symbol] unified market symbol
  * @returns {object} subscription to a websocket channel
  */
-func (this *Coinbase) UnSubscribeAsync(topic string, name string, isPrivate any, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+func (this *Coinbase) UnSubscribeAsync(topic string, name string, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
-	go this.unSubscribeBody(ch, topic, name, isPrivate, optionalArgs...)
+	go this.unSubscribeBody(ch, topic, name, optionalArgs...)
 	return ch
 }
-func (this *Coinbase) unSubscribeBody(ch chan ccxt.AsyncResult[bool], topic string, name string, isPrivate any, optionalArgs ...any) any {
+func (this *Coinbase) unSubscribeBody(ch chan ccxt.AsyncResult[bool], topic string, name string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	var isPrivate bool = ccxt.GetArgBool(optionalArgs, 0, false)
+	_ = isPrivate
+	symbol := ccxt.GetArg(optionalArgs, 1, nil)
 	_ = symbol
 	if this.Markets() == nil {
 
@@ -178,7 +182,7 @@ func (this *Coinbase) unSubscribeBody(ch chan ccxt.AsyncResult[bool], topic stri
 		"unsubscribe":      true,
 		"symbols":          []any{symbol},
 	}
-	if ccxt.EvalTruthy(isPrivate) {
+	if isPrivate == true {
 		message = this.Extend(message, this.CreateWSAuth(name, productIds))
 	}
 	this.Options["unSubscription"] = subscription
@@ -218,17 +222,19 @@ func (this *Coinbase) unSubscribeBody(ch chan ccxt.AsyncResult[bool], topic stri
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} subscription to a websocket channel
  */
-func (this *Coinbase) SubscribeMultipleAsync(name string, isPrivate any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+func (this *Coinbase) SubscribeMultipleAsync(name string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
-	go this.subscribeMultipleBody(ch, name, isPrivate, optionalArgs...)
+	go this.subscribeMultipleBody(ch, name, optionalArgs...)
 	return ch
 }
-func (this *Coinbase) subscribeMultipleBody(ch chan ccxt.AsyncResult[any], name string, isPrivate any, optionalArgs ...any) any {
+func (this *Coinbase) subscribeMultipleBody(ch chan ccxt.AsyncResult[any], name string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	var symbols []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
+	var isPrivate bool = ccxt.GetArgBool(optionalArgs, 0, false)
+	_ = isPrivate
+	var symbols []string = ccxt.GetArgStringSlice(optionalArgs, 1, nil)
 	_ = symbols
-	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 	if this.Markets() == nil {
 
@@ -253,7 +259,7 @@ func (this *Coinbase) subscribeMultipleBody(ch chan ccxt.AsyncResult[any], name 
 		"product_ids": productIds,
 		"channel":     name,
 	}
-	if ccxt.EvalTruthy(isPrivate) {
+	if isPrivate == true {
 		subscribe = this.Extend(subscribe, this.CreateWSAuth(name, productIds))
 	}
 
@@ -277,17 +283,19 @@ func (this *Coinbase) subscribeMultipleBody(ch chan ccxt.AsyncResult[any], name 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} subscription to a websocket channel
  */
-func (this *Coinbase) UnSubscribeMultipleAsync(topic string, name string, isPrivate any, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+func (this *Coinbase) UnSubscribeMultipleAsync(topic string, name string, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
-	go this.unSubscribeMultipleBody(ch, topic, name, isPrivate, optionalArgs...)
+	go this.unSubscribeMultipleBody(ch, topic, name, optionalArgs...)
 	return ch
 }
-func (this *Coinbase) unSubscribeMultipleBody(ch chan ccxt.AsyncResult[bool], topic string, name string, isPrivate any, optionalArgs ...any) any {
+func (this *Coinbase) unSubscribeMultipleBody(ch chan ccxt.AsyncResult[bool], topic string, name string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	var symbols []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
+	var isPrivate bool = ccxt.GetArgBool(optionalArgs, 0, false)
+	_ = isPrivate
+	var symbols []string = ccxt.GetArgStringSlice(optionalArgs, 1, nil)
 	_ = symbols
-	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 	if *this.SafeBool(this.Options, "unSubscriptionPending", false) {
 		panic(ccxt.ExchangeError(this.Id + " another unSubscription is pending, coinbase does not support concurrent unSubscriptions"))
@@ -318,7 +326,7 @@ func (this *Coinbase) unSubscribeMultipleBody(ch chan ccxt.AsyncResult[bool], to
 		"product_ids": productIds,
 		"channel":     name,
 	}
-	if ccxt.EvalTruthy(isPrivate) {
+	if isPrivate == true {
 		message = this.Extend(message, this.CreateWSAuth(name, productIds))
 	}
 	var subscription map[string]any = map[string]any{

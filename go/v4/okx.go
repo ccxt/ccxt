@@ -5039,10 +5039,8 @@ func (this *Okx) CreateOrderRequest(symbol any, typeVar any, side any, amount an
 		}
 	}
 	// unified stp
-	var selfTradePrevention any = nil
-	var selfTradePreventionorderParamsVariable []any = this.HandleOptionAndParams(orderParams, "createOrder", "selfTradePrevention")
-	selfTradePrevention = GetValue(selfTradePreventionorderParamsVariable, 0)
-	orderParams = selfTradePreventionorderParamsVariable[1]
+	var selfTradePrevention *string = nil
+	selfTradePrevention, orderParams = this.HandleOptionStringAndParams(orderParams, "createOrder", "selfTradePrevention")
 	if selfTradePrevention != nil {
 		var stpModes map[string]any = map[string]any{
 			"EXPIRE_MAKER": "cancel_maker",

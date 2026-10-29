@@ -3479,7 +3479,7 @@ func (this *Bullish) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArg
 		//         }, ...
 		//     ]
 		//
-		ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalance(response))}
+		ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalanceList(response))}
 		return nil
 	}
 }
@@ -3495,7 +3495,7 @@ func (this *Bullish) ParseBalanceForSingleCurrency(response any, code *string) m
 	}
 	return this.SafeBalance(result).(map[string]any)
 }
-func (this *Bullish) ParseBalance(response any) map[string]any {
+func (this *Bullish) ParseBalanceList(response any) map[string]any {
 	var result map[string]any = map[string]any{
 		"info": response,
 	}

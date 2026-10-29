@@ -327,20 +327,16 @@ func (this *Binance) GetStockTickerFromSymbol(symbol string) any {
 	}()
 }
 func (this *Binance) GetStockUnifiedSymbol(stockSymbol *string, optionalArgs ...any) any {
-	quote := ccxt.GetArg(optionalArgs, 0, nil)
+	var quote string = ccxt.GetArgString(optionalArgs, 0, "USDC")
 	_ = quote
 	if stockSymbol == nil {
 		return nil
-	}
-	var safeQuote any = quote
-	if quote == nil {
-		safeQuote = "USDC"
 	}
 	var parsed *string = this.SafeSymbol(stockSymbol, nil, "/", "spot")
 	if (parsed != nil) && (strings.Index(*parsed, "/") >= 0) {
 		return parsed
 	}
-	return ccxt.Add(*stockSymbol+"/", safeQuote)
+	return *stockSymbol + "/" + quote
 }
 
 /**
@@ -4699,11 +4695,11 @@ func (this *Binance) fetchPositionWsBody(ch chan ccxt.AsyncResult[[]ccxt.Positio
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes349515 []any = ccxt.PositionsToList(r.Value)
-	if retRes349515 == nil {
+	var retRes349115 []any = ccxt.PositionsToList(r.Value)
+	if retRes349115 == nil {
 		ch <- ccxt.AsyncResult[[]ccxt.Position]{Value: nil}
 	} else {
-		ch <- ccxt.AsyncResult[[]ccxt.Position]{Value: ccxt.PositionsFromList(retRes349515)}
+		ch <- ccxt.AsyncResult[[]ccxt.Position]{Value: ccxt.PositionsFromList(retRes349115)}
 	}
 	return nil
 }
@@ -7367,9 +7363,9 @@ func (this *Binance) HandleMyTrade(client any, message any) {
 							}
 						}
 						if insertNewFeeCurrency {
-							retRes566632 := ccxt.GetValue(order, "fees")
-							ccxt.AppendToArray(&retRes566632, tradeFee)
-							ccxt.AddElementToObject(order, "fees", retRes566632)
+							retRes566232 := ccxt.GetValue(order, "fees")
+							ccxt.AppendToArray(&retRes566232, tradeFee)
+							ccxt.AddElementToObject(order, "fees", retRes566232)
 						}
 					} else if fee != nil {
 						if this.SafeString(fee, "currency") == this.SafeString(tradeFee, "currency") || (this.SafeString(fee, "currency") != nil && this.SafeString(tradeFee, "currency") != nil && *this.SafeString(fee, "currency") == *this.SafeString(tradeFee, "currency")) {

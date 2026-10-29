@@ -3622,7 +3622,7 @@ func (this *Woo) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs ..
 	//         "timestamp": 1673323746259
 	//     }
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
+	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
 	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalance(data))}
 	return nil

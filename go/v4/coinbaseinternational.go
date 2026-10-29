@@ -2020,18 +2020,18 @@ func (this *Coinbaseinternational) fetchBalanceBody(ch chan AsyncResult[Balances
 		var summaries []any = SafeListTyped(result, "summaries")
 		if summaries != nil {
 
-			ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalance(summaries))}
+			ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalanceList(summaries))}
 			return nil
 		}
 
-		ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalance(this.SafeDict(result, "summaries", []any{})))}
+		ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalanceList(this.SafeDict(result, "summaries", []any{})))}
 		return nil
 	}
 
-	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalance(result))}
+	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalanceList(result))}
 	return nil
 }
-func (this *Coinbaseinternational) ParseBalance(response any) map[string]any {
+func (this *Coinbaseinternational) ParseBalanceList(response any) map[string]any {
 	var result map[string]any = map[string]any{
 		"info": response,
 	}

@@ -1330,10 +1330,10 @@ func (this *Btse) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs .
 		response = r2.Raw
 	}
 
-	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalance(response))}
+	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalanceList(response))}
 	return nil
 }
-func (this *Btse) ParseBalance(response any) map[string]any {
+func (this *Btse) ParseBalanceList(response any) map[string]any {
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
