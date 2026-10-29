@@ -3295,7 +3295,8 @@ export default class polymarket extends Exchange {
         if (outcomeResolved !== undefined) {
             const outcomeObj = await this.loadOutcome (outcomeResolved);
             outcomeResolved = this.safeString (outcomeObj, 'outcome');
-            messageHash = 'orders::' + outcomeResolved;
+            const outcomeName = this.safeString (outcomeObj, 'outcome', '');
+            messageHash = 'orders::' + outcomeName;
         }
         const orders = await this.subscribeUserChannel (messageHash, params);
         let limitResolved: Int = limit;
@@ -3323,7 +3324,8 @@ export default class polymarket extends Exchange {
         if (outcomeResolved !== undefined) {
             const outcomeObj = await this.loadOutcome (outcomeResolved);
             outcomeResolved = this.safeString (outcomeObj, 'outcome');
-            messageHash = 'myTrades::' + outcomeResolved;
+            const outcomeName = this.safeString (outcomeObj, 'outcome', '');
+            messageHash = 'myTrades::' + outcomeName;
         }
         const trades = await this.subscribeUserChannel (messageHash, params);
         let limitResolved: Int = limit;
