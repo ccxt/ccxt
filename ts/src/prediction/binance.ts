@@ -445,8 +445,14 @@ export default class binance extends Exchange {
         const seen: Dict = {};
         const collected: List = [];
         const queriesLength = queries.length;
-        const limitValue = (limit === undefined) ? 20 : limit;
-        const limitResolved = (limitValue > 50) ? 50 : limitValue;
+        let limitValue = this.parseToInt (20);
+        if (limit !== undefined) {
+            limitValue = this.parseToInt (limit);
+        }
+        let limitResolved = limitValue;
+        if (limitValue > 50) {
+            limitResolved = this.parseToInt (50);
+        }
         for (let qi = 0; qi < queriesLength; qi++) {
             const request: Dict = {
                 'query': queries[qi],
