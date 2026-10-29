@@ -4885,10 +4885,8 @@ export class BaseExchange {
                     }
                     const tradeTimestamp = this.safeInteger (trade, 'timestamp');
                     if (parseLastTradeTimeTimestamp && (tradeTimestamp !== undefined)) {
-                        if (lastTradeTimeTimestamp === undefined) {
+                        if (lastTradeTimeTimestamp === undefined || tradeTimestamp > lastTradeTimeTimestamp) {
                             lastTradeTimeTimestamp = tradeTimestamp;
-                        } else {
-                            lastTradeTimeTimestamp = Math.max (lastTradeTimeTimestamp, tradeTimestamp);
                         }
                     }
                     if (shouldParseFees) {
