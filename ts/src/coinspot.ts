@@ -766,7 +766,10 @@ export default class coinspot extends Exchange {
         let requestBody: Str = undefined;
         const apiLength = api.length;
         const isVersionedApi = apiLength > 1;
-        const accessType: string = isVersionedApi ? api[1] : api[0];
+        let accessType: string = api[0];
+        if (isVersionedApi) {
+            accessType = api[1];
+        }
         const endpoint = '/' + this.implodeParams (path, params);
         let fullPath: string = endpoint;
         if (isVersionedApi) {
