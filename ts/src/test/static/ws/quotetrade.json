@@ -1,0 +1,950 @@
+{
+    "exchange": "quotetrade",
+    "skipKeys": [],
+    "options": {
+        "account": "12345",
+        "requestTimeout": 1000
+    },
+    "methods": {
+        "watchTicker": [
+            {
+                "description": "native watchTicker protocol and units",
+                "input": [
+                    "BTC/USD:USD"
+                ],
+                "url": "wss://app.quote.trade/ws/liquidity",
+                "messages": [
+                    {
+                        "s": "BTC",
+                        "e": 5,
+                        "bids": [
+                            {
+                                "p": "59999",
+                                "q": "1"
+                            },
+                            {
+                                "p": "59998",
+                                "q": "3"
+                            }
+                        ],
+                        "asks": [
+                            {
+                                "p": "60000",
+                                "q": "1"
+                            },
+                            {
+                                "p": "60001",
+                                "q": "3"
+                            }
+                        ]
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "symbol": "BTC",
+                        "unsubscribe": 0
+                    }
+                ],
+                "parsedResponse": {
+                    "symbol": "BTC/USD:USD",
+                    "timestamp": null,
+                    "datetime": null,
+                    "bid": 59999,
+                    "ask": 60000,
+                    "info": {
+                        "s": "BTC",
+                        "e": 5,
+                        "bids": [
+                            {
+                                "p": "59999",
+                                "q": "1"
+                            },
+                            {
+                                "p": "59998",
+                                "q": "3"
+                            }
+                        ],
+                        "asks": [
+                            {
+                                "p": "60000",
+                                "q": "1"
+                            },
+                            {
+                                "p": "60001",
+                                "q": "3"
+                            }
+                        ]
+                    },
+                    "bidVolume": null,
+                    "askVolume": null,
+                    "high": null,
+                    "low": null,
+                    "open": null,
+                    "close": null,
+                    "last": null,
+                    "change": null,
+                    "percentage": null,
+                    "average": null,
+                    "vwap": null,
+                    "baseVolume": null,
+                    "quoteVolume": null,
+                    "previousClose": null,
+                    "indexPrice": null,
+                    "markPrice": null
+                }
+            }
+        ],
+        "watchOrders": [
+            {
+                "description": "native watchOrders protocol and units",
+                "input": [
+                    "BTC/USD:USD"
+                ],
+                "url": "wss://app.quote.trade/ws/listenKey",
+                "messages": [
+                    {
+                        "userId": 12345,
+                        "unsubscribe": 0,
+                        "listenKey": "fixture-listen-key"
+                    },
+                    {
+                        "e": "ORDER_TRADE_UPDATE",
+                        "E": 1700000000000,
+                        "is": false,
+                        "o": {
+                            "s": "BTC/USD",
+                            "c": "ws-client",
+                            "S": "1",
+                            "o": "2",
+                            "f": "4",
+                            "q": "0.003",
+                            "p": "60000",
+                            "ap": "60000",
+                            "x": "F",
+                            "X": "2",
+                            "i": "9007199254740993",
+                            "l": "0.003",
+                            "z": "0.003",
+                            "L": "60000",
+                            "N": "1",
+                            "n": "0",
+                            "T": 1700000000000,
+                            "t": "9007199254740995",
+                            "m": false,
+                            "us": "9007199254740999",
+                            "lv": "0"
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "account": "12345",
+                        "unsubscribe": 0,
+                        "requestToken": "key"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "e": "ORDER_TRADE_UPDATE",
+                            "E": 1700000000000,
+                            "is": false,
+                            "o": {
+                                "s": "BTC/USD",
+                                "c": "ws-client",
+                                "S": "1",
+                                "o": "2",
+                                "f": "4",
+                                "q": "0.003",
+                                "p": "60000",
+                                "ap": "60000",
+                                "x": "F",
+                                "X": "2",
+                                "i": "9007199254740993",
+                                "l": "0.003",
+                                "z": "0.003",
+                                "L": "60000",
+                                "N": "1",
+                                "n": "0",
+                                "T": 1700000000000,
+                                "t": "9007199254740995",
+                                "m": false,
+                                "us": "9007199254740999",
+                                "lv": "0"
+                            }
+                        },
+                        "id": "9007199254740993",
+                        "clientOrderId": "ws-client",
+                        "symbol": "BTC/USD:USD",
+                        "timestamp": 1700000000000,
+                        "datetime": "2023-11-14T22:13:20.000Z",
+                        "lastUpdateTimestamp": 1700000000000,
+                        "type": "limit",
+                        "timeInForce": "FOK",
+                        "side": "buy",
+                        "price": 60000,
+                        "amount": 0.003,
+                        "filled": 0.003,
+                        "remaining": 0,
+                        "average": 60000,
+                        "status": "closed",
+                        "fees": [],
+                        "lastTradeTimestamp": null,
+                        "cost": 180,
+                        "postOnly": false,
+                        "trades": [],
+                        "reduceOnly": null,
+                        "stopPrice": null,
+                        "triggerPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null,
+                        "fee": null
+                    }
+                ]
+            }
+        ],
+        "watchMyTrades": [
+            {
+                "description": "native watchMyTrades protocol and units",
+                "input": [
+                    "BTC/USD:USD"
+                ],
+                "url": "wss://app.quote.trade/ws/listenKey",
+                "messages": [
+                    {
+                        "userId": 12345,
+                        "unsubscribe": 0,
+                        "listenKey": "fixture-listen-key"
+                    },
+                    {
+                        "e": "ORDER_TRADE_UPDATE",
+                        "E": 1700000000000,
+                        "is": false,
+                        "o": {
+                            "s": "BTC/USD",
+                            "c": "ws-client",
+                            "S": "1",
+                            "o": "2",
+                            "f": "4",
+                            "q": "0.003",
+                            "p": "60000",
+                            "ap": "60000",
+                            "x": "F",
+                            "X": "2",
+                            "i": "9007199254740993",
+                            "l": "0.003",
+                            "z": "0.003",
+                            "L": "60000",
+                            "N": "1",
+                            "n": "0",
+                            "T": 1700000000000,
+                            "t": "9007199254740995",
+                            "m": false,
+                            "us": "9007199254740999",
+                            "lv": "0"
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "account": "12345",
+                        "unsubscribe": 0,
+                        "requestToken": "key"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "id": "9007199254740995",
+                        "order": "9007199254740993",
+                        "info": {
+                            "e": "ORDER_TRADE_UPDATE",
+                            "E": 1700000000000,
+                            "is": false,
+                            "o": {
+                                "s": "BTC/USD",
+                                "c": "ws-client",
+                                "S": "1",
+                                "o": "2",
+                                "f": "4",
+                                "q": "0.003",
+                                "p": "60000",
+                                "ap": "60000",
+                                "x": "F",
+                                "X": "2",
+                                "i": "9007199254740993",
+                                "l": "0.003",
+                                "z": "0.003",
+                                "L": "60000",
+                                "N": "1",
+                                "n": "0",
+                                "T": 1700000000000,
+                                "t": "9007199254740995",
+                                "m": false,
+                                "us": "9007199254740999",
+                                "lv": "0"
+                            }
+                        },
+                        "symbol": "BTC/USD:USD",
+                        "timestamp": 1700000000000,
+                        "side": "buy",
+                        "type": "limit",
+                        "amount": 0.003,
+                        "price": 60000,
+                        "takerOrMaker": "taker",
+                        "fee": {
+                            "currency": null,
+                            "cost": 0
+                        },
+                        "fees": [
+                            {
+                                "currency": null,
+                                "cost": 0
+                            }
+                        ],
+                        "cost": 180
+                    }
+                ]
+            }
+        ],
+        "watchBalance": [
+            {
+                "description": "native watchBalance protocol and units",
+                "input": [],
+                "url": "wss://app.quote.trade/ws/listenKey",
+                "messages": [
+                    {
+                        "userId": 12345,
+                        "unsubscribe": 0,
+                        "listenKey": "fixture-listen-key"
+                    },
+                    {
+                        "e": "ACCOUNT_UPDATE",
+                        "E": 1700000000000,
+                        "T": 1700000000000,
+                        "a": {
+                            "B": [
+                                {
+                                    "a": "USD",
+                                    "wb": "1000",
+                                    "aq": "1000"
+                                },
+                                {
+                                    "a": "BTC",
+                                    "wb": "-0.003",
+                                    "m": "60000",
+                                    "uacb": "61000",
+                                    "up": "3"
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "account": "12345",
+                        "unsubscribe": 0,
+                        "requestToken": "key"
+                    }
+                ],
+                "parsedResponse": {
+                    "info": {
+                        "e": "ACCOUNT_UPDATE",
+                        "E": 1700000000000,
+                        "T": 1700000000000,
+                        "a": {
+                            "B": [
+                                {
+                                    "a": "USD",
+                                    "wb": "1000",
+                                    "aq": "1000"
+                                },
+                                {
+                                    "a": "BTC",
+                                    "wb": "-0.003",
+                                    "m": "60000",
+                                    "uacb": "61000",
+                                    "up": "3"
+                                }
+                            ]
+                        }
+                    },
+                    "timestamp": 1700000000000,
+                    "datetime": "2023-11-14T22:13:20.000Z",
+                    "USD": {
+                        "free": 1000,
+                        "used": 0,
+                        "total": 1000
+                    },
+                    "free": {
+                        "USD": 1000
+                    },
+                    "used": {
+                        "USD": 0
+                    },
+                    "total": {
+                        "USD": 1000
+                    }
+                }
+            }
+        ],
+        "watchPositions": [
+            {
+                "description": "native watchPositions protocol and units",
+                "input": [],
+                "url": "wss://app.quote.trade/ws/listenKey",
+                "messages": [
+                    {
+                        "userId": 12345,
+                        "unsubscribe": 0,
+                        "listenKey": "fixture-listen-key"
+                    },
+                    {
+                        "e": "ACCOUNT_UPDATE",
+                        "E": 1700000000000,
+                        "T": 1700000000000,
+                        "a": {
+                            "B": [
+                                {
+                                    "a": "USD",
+                                    "wb": "1000",
+                                    "aq": "1000"
+                                },
+                                {
+                                    "a": "BTC",
+                                    "wb": "-0.003",
+                                    "m": "60000",
+                                    "uacb": "61000",
+                                    "up": "3"
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "account": "12345",
+                        "unsubscribe": 0,
+                        "requestToken": "key"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "E": 1700000000000,
+                            "a": "BTC",
+                            "wb": "-0.003",
+                            "m": "60000",
+                            "uacb": "61000",
+                            "up": "3"
+                        },
+                        "symbol": "BTC/USD:USD",
+                        "timestamp": 1700000000000,
+                        "datetime": "2023-11-14T22:13:20.000Z",
+                        "side": "short",
+                        "contracts": 0.003,
+                        "contractSize": 1,
+                        "entryPrice": 61000,
+                        "markPrice": 60000,
+                        "notional": 180,
+                        "unrealizedPnl": 3
+                    }
+                ]
+            }
+        ],
+        "createOrderWs": [
+            {
+                "description": "FOK WS request signs exact scalar fields and returns fill",
+                "input": [
+                    "BTC/USD:USD",
+                    "limit",
+                    "buy",
+                    0.003,
+                    60000,
+                    {
+                        "account": "12345",
+                        "clientOrderId": "ws-created",
+                        "timestamp": 1700000000000
+                    }
+                ],
+                "url": "wss://app.quote.trade/ws/listenKey",
+                "messages": [
+                    {
+                        "id": "1",
+                        "status": 200,
+                        "result": {
+                            "orderId": "9007199254740993",
+                            "clientOrderId": "ws-created",
+                            "symbol": "BTC",
+                            "status": "FILLED",
+                            "origQty": "0.003",
+                            "executedQty": "0.003",
+                            "price": "60000",
+                            "side": "BUY",
+                            "type": "LIMIT",
+                            "timeInForce": "FOK",
+                            "updateTime": 1700000000000
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "id": "1",
+                        "method": "order.place",
+                        "params": {
+                            "account": 12345,
+                            "apiKey": "key",
+                            "disableLeverage": 1,
+                            "liquidityOrder": 1,
+                            "newClientOrderId": "ws-created",
+                            "paymentCurrency": "USD",
+                            "price": "60000",
+                            "quantity": "0.003",
+                            "side": "BUY",
+                            "symbol": "BTC",
+                            "timeInForce": "FOK",
+                            "timestamp": 1700000000000,
+                            "type": "LIMIT",
+                            "signature": "f92c65b4306eba8a97279dc0732151728ce9a0232c05b39fd6f4593ef8bdde55"
+                        }
+                    }
+                ],
+                "parsedResponse": {
+                    "info": {
+                        "orderId": "9007199254740993",
+                        "clientOrderId": "ws-created",
+                        "symbol": "BTC",
+                        "status": "FILLED",
+                        "origQty": "0.003",
+                        "executedQty": "0.003",
+                        "price": "60000",
+                        "side": "BUY",
+                        "type": "LIMIT",
+                        "timeInForce": "FOK",
+                        "updateTime": 1700000000000
+                    },
+                    "id": "9007199254740993",
+                    "clientOrderId": "ws-created",
+                    "symbol": "BTC/USD:USD",
+                    "timestamp": 1700000000000,
+                    "datetime": "2023-11-14T22:13:20.000Z",
+                    "lastUpdateTimestamp": 1700000000000,
+                    "type": "limit",
+                    "timeInForce": "FOK",
+                    "side": "buy",
+                    "price": 60000,
+                    "amount": 0.003,
+                    "filled": 0.003,
+                    "remaining": 0,
+                    "average": null,
+                    "status": "closed",
+                    "fees": [],
+                    "lastTradeTimestamp": null,
+                    "cost": 180,
+                    "postOnly": false,
+                    "trades": [],
+                    "reduceOnly": null,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "fee": null
+                },
+                "options": {
+                    "wsRequestId": 0
+                }
+            },
+            {
+                "description": "zero legacy paper ACK reconciles from its exact private client id",
+                "input": [
+                    "BTC/USD:USD",
+                    "limit",
+                    "buy",
+                    0.003,
+                    60000,
+                    {
+                        "account": "12345",
+                        "clientOrderId": "ws-created",
+                        "timestamp": 1700000000000
+                    }
+                ],
+                "url": "wss://app.quote.trade/ws/listenKey",
+                "messages": [
+                    {
+                        "e": "ORDER_TRADE_UPDATE",
+                        "E": 1700000000000,
+                        "o": {
+                            "s": "BTC/USD",
+                            "c": "ws-created",
+                            "S": "1",
+                            "o": "2",
+                            "f": "4",
+                            "q": "0.003",
+                            "p": "60000",
+                            "ap": "60000",
+                            "x": "F",
+                            "X": "2",
+                            "i": "9007199254740993",
+                            "l": "0.003",
+                            "z": "0.003",
+                            "L": "60000",
+                            "n": "0",
+                            "T": 1700000000000,
+                            "t": "9007199254740995",
+                            "us": "1",
+                            "lv": "0"
+                        }
+                    },
+                    {
+                        "id": "1",
+                        "status": 200,
+                        "result": {
+                            "orderId": "0",
+                            "clientOrderId": "ws-created",
+                            "symbol": "BTC",
+                            "status": "ACCOUNT_ACTIVE",
+                            "origQty": "0.003",
+                            "executedQty": "0.003",
+                            "price": "60000",
+                            "side": "BUY",
+                            "type": "LIMIT",
+                            "timeInForce": "FOK",
+                            "updateTime": 1700000000000
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "id": "1",
+                        "method": "order.place",
+                        "params": {
+                            "account": 12345,
+                            "apiKey": "key",
+                            "disableLeverage": 1,
+                            "liquidityOrder": 1,
+                            "newClientOrderId": "ws-created",
+                            "paymentCurrency": "USD",
+                            "price": "60000",
+                            "quantity": "0.003",
+                            "side": "BUY",
+                            "symbol": "BTC",
+                            "timeInForce": "FOK",
+                            "timestamp": 1700000000000,
+                            "type": "LIMIT",
+                            "signature": "f92c65b4306eba8a97279dc0732151728ce9a0232c05b39fd6f4593ef8bdde55"
+                        }
+                    }
+                ],
+                "parsedResponse": {
+                    "info": {
+                        "e": "ORDER_TRADE_UPDATE",
+                        "E": 1700000000000,
+                        "o": {
+                            "s": "BTC/USD",
+                            "c": "ws-created",
+                            "S": "1",
+                            "o": "2",
+                            "f": "4",
+                            "q": "0.003",
+                            "p": "60000",
+                            "ap": "60000",
+                            "x": "F",
+                            "X": "2",
+                            "i": "9007199254740993",
+                            "l": "0.003",
+                            "z": "0.003",
+                            "L": "60000",
+                            "n": "0",
+                            "T": 1700000000000,
+                            "t": "9007199254740995",
+                            "us": "1",
+                            "lv": "0"
+                        }
+                    },
+                    "id": "9007199254740993",
+                    "clientOrderId": "ws-created",
+                    "symbol": "BTC/USD:USD",
+                    "timestamp": 1700000000000,
+                    "datetime": "2023-11-14T22:13:20.000Z",
+                    "lastUpdateTimestamp": 1700000000000,
+                    "type": "limit",
+                    "timeInForce": "FOK",
+                    "side": "buy",
+                    "price": 60000,
+                    "amount": 0.003,
+                    "filled": 0.003,
+                    "remaining": 0,
+                    "average": 60000,
+                    "status": "closed",
+                    "fees": [],
+                    "lastTradeTimestamp": null,
+                    "cost": 180,
+                    "postOnly": false,
+                    "trades": [],
+                    "reduceOnly": null,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "fee": null
+                },
+                "options": {
+                    "wsRequestId": 0
+                }
+            }
+        ],
+        "fetchManagedOrdersWs": [
+            {
+                "description": "native openOrders.status scalar request",
+                "input": [
+                    {
+                        "timestamp": 1700000000000
+                    }
+                ],
+                "url": "wss://app.quote.trade/ws/listenKey",
+                "messages": [
+                    {
+                        "id": "1",
+                        "status": 200,
+                        "result": {
+                            "apiManaged": true,
+                            "includesHistory": true,
+                            "newestFirst": true,
+                            "total": 0,
+                            "nextOrderId": 0,
+                            "orders": []
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "id": "1",
+                        "method": "openOrders.status",
+                        "params": {
+                            "afterOrderId": "0",
+                            "apiKey": "key",
+                            "apiManaged": true,
+                            "includeHistory": true,
+                            "limit": 100,
+                            "newestFirst": true,
+                            "timestamp": 1700000000000,
+                            "signature": "9bf7ef7c00964ce6888da2a2958c86583232bba1d627416e172932da6609243b"
+                        }
+                    }
+                ],
+                "parsedResponse": {
+                    "apiManaged": true,
+                    "includesHistory": true,
+                    "newestFirst": true,
+                    "total": 0,
+                    "nextOrderId": 0,
+                    "orders": []
+                },
+                "options": {
+                    "wsRequestId": 0
+                }
+            }
+        ],
+        "fetchOrderListWs": [
+            {
+                "description": "native orderList.status scalar request",
+                "input": [
+                    {
+                        "orderListId": "-9007199254740993",
+                        "timestamp": 1700000000000
+                    }
+                ],
+                "url": "wss://app.quote.trade/ws/listenKey",
+                "messages": [
+                    {
+                        "id": "1",
+                        "status": 200,
+                        "result": {
+                            "orderListId": "-9007199254740993",
+                            "listStatusType": "ALL_DONE",
+                            "listOrderStatus": "ALL_DONE",
+                            "orders": [],
+                            "orderReports": []
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "id": "1",
+                        "method": "orderList.status",
+                        "params": {
+                            "apiKey": "key",
+                            "orderListId": "-9007199254740993",
+                            "timestamp": 1700000000000,
+                            "signature": "d9b52d2c45a755cefd245b73cb7b0dc99bb3cd225633935286c03d1b7beab55a"
+                        }
+                    }
+                ],
+                "parsedResponse": {
+                    "orderListId": "-9007199254740993",
+                    "listStatusType": "ALL_DONE",
+                    "listOrderStatus": "ALL_DONE",
+                    "orders": [],
+                    "orderReports": []
+                },
+                "options": {
+                    "wsRequestId": 0
+                }
+            }
+        ],
+        "cancelOrderListWs": [
+            {
+                "description": "native orderList.cancel scalar request",
+                "input": [
+                    {
+                        "orderListId": "-9007199254740993",
+                        "timestamp": 1700000000000
+                    }
+                ],
+                "url": "wss://app.quote.trade/ws/listenKey",
+                "messages": [
+                    {
+                        "id": "1",
+                        "status": 200,
+                        "result": {
+                            "orderListId": "-9007199254740993",
+                            "listStatusType": "ALL_DONE",
+                            "listOrderStatus": "ALL_DONE",
+                            "orders": [],
+                            "orderReports": []
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "id": "1",
+                        "method": "orderList.cancel",
+                        "params": {
+                            "apiKey": "key",
+                            "orderListId": "-9007199254740993",
+                            "timestamp": 1700000000000,
+                            "signature": "d9b52d2c45a755cefd245b73cb7b0dc99bb3cd225633935286c03d1b7beab55a"
+                        }
+                    }
+                ],
+                "parsedResponse": {
+                    "orderListId": "-9007199254740993",
+                    "listStatusType": "ALL_DONE",
+                    "listOrderStatus": "ALL_DONE",
+                    "orders": [],
+                    "orderReports": []
+                },
+                "options": {
+                    "wsRequestId": 0
+                }
+            }
+        ],
+        "cancelManagedOrdersWs": [
+            {
+                "description": "native openOrders.cancelAll scalar request",
+                "input": [
+                    {
+                        "timestamp": 1700000000000
+                    }
+                ],
+                "url": "wss://app.quote.trade/ws/listenKey",
+                "messages": [
+                    {
+                        "id": "1",
+                        "status": 200,
+                        "result": {
+                            "matchedCount": 1,
+                            "canceledCount": 1,
+                            "cancelPendingCount": 0
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "id": "1",
+                        "method": "openOrders.cancelAll",
+                        "params": {
+                            "apiKey": "key",
+                            "apiManaged": true,
+                            "timestamp": 1700000000000,
+                            "signature": "29763f1bc5a8c2769332886cca9a8a7b44d5d24afc65275478a1547a0e2be114"
+                        }
+                    }
+                ],
+                "parsedResponse": {
+                    "matchedCount": 1,
+                    "canceledCount": 1,
+                    "cancelPendingCount": 0
+                },
+                "options": {
+                    "wsRequestId": 0
+                }
+            }
+        ],
+        "createOrderListWs": [
+            {
+                "description": "native orderList.place.oco scalar request",
+                "input": [
+                    {
+                        "symbol": "BTC/USD:USD",
+                        "kind": "oco",
+                        "side": "BUY",
+                        "quantity": "0.003",
+                        "aboveType": "STOP_LOSS_LIMIT",
+                        "aboveStopPrice": "61000",
+                        "abovePrice": "61010",
+                        "belowType": "TAKE_PROFIT_LIMIT",
+                        "belowStopPrice": "59000",
+                        "belowPrice": "59010",
+                        "listClientOrderId": "ws-list",
+                        "timestamp": 1700000000000
+                    }
+                ],
+                "url": "wss://app.quote.trade/ws/listenKey",
+                "messages": [
+                    {
+                        "id": "1",
+                        "status": 200,
+                        "result": {
+                            "orderListId": "-9007199254740993",
+                            "listStatusType": "EXEC_STARTED",
+                            "listOrderStatus": "EXECUTING",
+                            "orders": [],
+                            "orderReports": []
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "id": "1",
+                        "method": "orderList.place.oco",
+                        "params": {
+                            "abovePrice": "61010",
+                            "aboveStopPrice": "61000",
+                            "aboveType": "STOP_LOSS_LIMIT",
+                            "apiKey": "key",
+                            "belowPrice": "59010",
+                            "belowStopPrice": "59000",
+                            "belowType": "TAKE_PROFIT_LIMIT",
+                            "listClientOrderId": "ws-list",
+                            "quantity": "0.003",
+                            "side": "BUY",
+                            "symbol": "BTC/USD",
+                            "timestamp": 1700000000000,
+                            "signature": "10880da3520c92272a74603c106f1bee8af1e0d3f40ced44969fa7cf0d4a5ac7"
+                        }
+                    }
+                ],
+                "parsedResponse": {
+                    "orderListId": "-9007199254740993",
+                    "listStatusType": "EXEC_STARTED",
+                    "listOrderStatus": "EXECUTING",
+                    "orders": [],
+                    "orderReports": []
+                },
+                "options": {
+                    "wsRequestId": 0
+                }
+            }
+        ]
+    }
+}
