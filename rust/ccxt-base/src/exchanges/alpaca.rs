@@ -1510,8 +1510,8 @@ impl AlpacaCore {
                 let mut pageToken: Value = self.safe_string_k(response.clone(), "next_page_token", &[]);
                 {
                                         let mut i: Value = Value::Int(1);
-                    let mut __for_first_219: bool = true;
-                    while { if !__for_first_219 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_219 = false; i.as_f64().unwrap_or(f64::NAN) < paginationCalls.as_f64().unwrap_or(f64::NAN) } {
+                    let mut __for_first_220: bool = true;
+                    while { if !__for_first_220 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_220 = false; i.as_f64().unwrap_or(f64::NAN) < paginationCalls.as_f64().unwrap_or(f64::NAN) } {
                     let mut ohlcvsLength: f64 = ((ohlcvs.len() as i64) as f64);
                     if (pageToken == Value::Null) || ((limit != Value::Null) && (ohlcvsLength >= limit.as_f64().unwrap_or(f64::NAN))) {
                         break;
@@ -1710,8 +1710,8 @@ impl AlpacaCore {
         let mut marketIds: Vec<Value> = Value::Array(snapshots.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_220: bool = true;
-            while { if !__for_first_220 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_220 = false; i.as_f64().unwrap_or(f64::NAN) < ((marketIds.len() as i64) as f64) } {
+            let mut __for_first_221: bool = true;
+            while { if !__for_first_221 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_221 = false; i.as_f64().unwrap_or(f64::NAN) < ((marketIds.len() as i64) as f64) } {
             let mut marketId: Value = marketIds.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.safe_market(&[marketId.clone()]);
             let mut entry: Value = self.safe_dict(snapshots.clone(), marketId, &[]);
@@ -2606,10 +2606,10 @@ impl AlpacaCore {
                 ledger = activities.clone();
             }
             {
-                                let mut i: Value = Value::Int(0);
-                let mut __for_first_221: bool = true;
-                while { if !__for_first_221 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_221 = false; i.as_f64().unwrap_or(f64::NAN) < ((ledger.len() as i64) as f64) } {
-                let mut entry: Value = ledger.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+                                let mut i: i64 = 0;
+                let mut __for_first_222: bool = true;
+                while { if !__for_first_222 { i += 1; } __for_first_222 = false; i < (ledger.len() as i64) } {
+                let mut entry: Value = ledger.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut activityType: Option<String> = self.safe_string_k(entry.clone(), "activity_type", &[]).as_str().map(str::to_owned);
                 let mut amount: Option<String> = self.safe_string_k_opt(entry.clone(), "net_amount", &[]);
                 let mut isIncoming: bool = (activityType.as_deref() == Some("CSD")) || ((activityType.as_deref() == Some("TRANS")) && !(crate::precise::Precise::stringLt(&amount.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true)));
@@ -2648,10 +2648,10 @@ impl AlpacaCore {
             transfers = response.clone();
         }
         {
-                        let mut i: Value = Value::Int(0);
-            let mut __for_first_222: bool = true;
-            while { if !__for_first_222 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_222 = false; i.as_f64().unwrap_or(f64::NAN) < ((transfers.len() as i64) as f64) } {
-            let mut entry: Value = transfers.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+                        let mut i: i64 = 0;
+            let mut __for_first_223: bool = true;
+            while { if !__for_first_223 { i += 1; } __for_first_223 = false; i < (transfers.len() as i64) } {
+            let mut entry: Value = transfers.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
             let mut direction: Option<String> = self.safe_string_k_opt(entry.clone(), "direction", &[]);
             if (direction.as_deref() == type_var.as_str()) {
                 results.push(entry.clone());
@@ -3010,8 +3010,8 @@ impl AlpacaCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_223: bool = true;
-            while { if !__for_first_223 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_223 = false; i.as_f64().unwrap_or(f64::NAN) < ((positions.len() as i64) as f64) } {
+            let mut __for_first_224: bool = true;
+            while { if !__for_first_224 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_224 = false; i.as_f64().unwrap_or(f64::NAN) < ((positions.len() as i64) as f64) } {
             let mut position: Value = self.safe_dict(positions.clone(), i.clone(), &[]);
             let mut positionSymbol: Value = self.safe_string_k(position.clone(), "symbol", &[Value::Str("".into())]);
             if (positionSymbol.as_str() == Some("")) {

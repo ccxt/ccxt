@@ -679,13 +679,13 @@ impl HollaexCore {
         //       }
         //
         let mut channel: Value = (match message.get("topic") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
-        let mut data: Value = (match message.get("data") { Some(__v) if !matches!(__v, Value::Null) && !matches!(__v, Value::Str(__s) if __s.is_empty()) => __v.clone(), _ => Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}) });
+        let mut dataDict: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Null });
+        let mut rawOrders: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
+        if (dataDict != Value::Null) {
+            rawOrders = Value::from(vec![dataDict]);
+        }
         // usually the first message is an empty array
-        let mut dataLength: Value = get_array_length(&data);
-        if (dataLength.as_f64() == Some(0.0)) {
+        if (Value::Int(rawOrders.len() as i64).as_f64() == Some(0.0)) {
             return;
         }
         if (self.orders.clone() == Value::Null) {
@@ -693,12 +693,6 @@ impl HollaexCore {
             self.orders = ArrayCacheBySymbolById::new(limit);
         }
         let mut stored: Value = self.orders.clone();
-        let mut rawOrders: Value = Value::Null;
-        if !(matches!(&data, Value::Arr(_))) {
-            rawOrders = Value::from(vec![data.clone()]);
-        }  else {
-            rawOrders = data;
-        }
         let mut marketIds: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -779,10 +773,7 @@ impl HollaexCore {
 }) });
         let mut keys: Vec<Value> = object_keys(&data).as_array().cloned().unwrap_or_default();
         let mut timestamp: Value = self.safe_timestamp_k(message, "time", &[]);
-        if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("info".into(), (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}) })); }
+        if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("info".into(), data.clone()); }
         if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("timestamp".into(), timestamp.clone()); }
         { let __be_tmp = self.iso8601(timestamp); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("datetime".into(), __be_tmp); } }
         {

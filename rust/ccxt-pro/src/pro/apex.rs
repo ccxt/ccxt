@@ -382,10 +382,10 @@ impl ApexCore {
         let mut topics: Vec<Value> = Vec::new();
         let mut messageHashes: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_1: bool = true;
-            while { if !__for_first_1 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
-            let mut symbol: Value = symbolsNormalized.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < (symbolsNormalized.len() as i64) } {
+            let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.market(symbol.clone());
             let marketId: String = self.safe_string_k_opt(market, "id2", &[Value::Str("".into())]).unwrap_or_default();
             topics.push(Value::Str(format!("{}{}", Value::Str("recentlyTrade.H.".into()), marketId).into()));
@@ -552,10 +552,10 @@ impl ApexCore {
         let mut messageHashes: Vec<Value> = Vec::new();
         let mut limitValue: Value = (if (limit == Value::Null) { Value::Int(25) } else { limit.clone() });
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_3: bool = true;
-            while { if !__for_first_3 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_3 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
-            let mut symbol: Value = symbolsNormalized.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < (symbolsNormalized.len() as i64) } {
+            let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.market(symbol.clone());
             let marketId: String = self.safe_string_k_opt(market, "id2", &[Value::Str("".into())]).unwrap_or_default();
             topics.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderBook".into()), self.number_to_string(limitValue.clone())).into()), Value::Str(".H.".into())).into()), marketId).into()));
@@ -769,10 +769,10 @@ impl ApexCore {
         let mut url: Value = self.get_ws_public_url().map(Value::from).unwrap_or(Value::Null);
         let mut topics: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_6: bool = true;
-            while { if !__for_first_6 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_6 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
-            let mut symbol: Value = symbolsNormalized.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_6 { i += 1; } __for_first_6 = false; i < (symbolsNormalized.len() as i64) } {
+            let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.market(symbol.clone());
             let marketId: String = self.safe_string_k_opt(market, "id2", &[Value::Str("".into())]).unwrap_or_default();
             topics.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("instrumentInfo".into()), Value::Str(".H.".into())).into()), marketId).into()));
@@ -1288,10 +1288,10 @@ impl ApexCore {
             while { if !__for_first_14 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_14 = false; i.as_f64().unwrap_or(f64::NAN) < ((promises.len() as i64) as f64) } {
             let mut positions: Value = promises.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
             {
-                                let mut ii: Value = Value::Int(0);
+                                let mut ii: i64 = 0;
                 let mut __for_first_13: bool = true;
-                while { if !__for_first_13 { if let Value::Int(n) = &mut ii { *n += 1; } } __for_first_13 = false; ii.as_f64().unwrap_or(f64::NAN) < ((positions.len() as i64) as f64) } {
-                cache.append(positions.as_array().and_then(|__arr| match &ii { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
+                while { if !__for_first_13 { ii += 1; } __for_first_13 = false; ii < (positions.len() as i64) } {
+                cache.append(positions.as_array().map(Vec::as_slice).unwrap_or(&[]).get(ii as usize).cloned().unwrap_or(Value::Null));
             }
             }
         }

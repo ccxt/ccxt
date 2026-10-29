@@ -877,8 +877,8 @@ impl LatokenCore {
         let mut rawMarkets: Value = self.to_array(response);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_909: bool = true;
-            while { if !__for_first_909 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_909 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawMarkets.len() as i64) as f64) } {
+            let mut __for_first_910: bool = true;
+            while { if !__for_first_910 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_910 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawMarkets.len() as i64) as f64) } {
             let mut market: Value = self.safe_value(rawMarkets.clone(), i.clone(), &[]);
             let mut id: Option<String> = self.safe_string_k_opt(market.clone(), "id", &[]);
             // the exchange shows them inverted
@@ -1043,8 +1043,8 @@ impl LatokenCore {
         let mut merged: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_910: bool = true;
-            while { if !__for_first_910 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_910 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawCurrencies.len() as i64) as f64) } {
+            let mut __for_first_911: bool = true;
+            while { if !__for_first_911 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_911 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawCurrencies.len() as i64) as f64) } {
             let mut rawCurrency: Value = self.safe_value(rawCurrencies.clone(), i.clone(), &[]);
             let mut bindingEntry: Value = self.safe_dict(bindingsById.clone(), self.safe_string_k(rawCurrency.clone(), "id", &[]), &[]);
             let mut bindings: Value = self.safe_list_k(bindingEntry, "bindings", &[]);
@@ -1077,8 +1077,8 @@ impl LatokenCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_911: bool = true;
-            while { if !__for_first_911 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_911 = false; i.as_f64().unwrap_or(f64::NAN) < ((bindings.len() as i64) as f64) } {
+            let mut __for_first_912: bool = true;
+            while { if !__for_first_912 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_912 = false; i.as_f64().unwrap_or(f64::NAN) < ((bindings.len() as i64) as f64) } {
             let mut binding: Value = bindings.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
             let mut networkId: Option<String> = self.safe_string_k_opt(binding.clone(), "providerName", &[]);
             let mut networkCode: Value = self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), code.clone()]);
@@ -1212,8 +1212,8 @@ impl LatokenCore {
         let mut maxTimestamp: Value = self.safe_integer_k(firstBalance, "timestamp", &[]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_912: bool = true;
-            while { if !__for_first_912 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_912 = false; i.as_f64().unwrap_or(f64::NAN) < ((balances.len() as i64) as f64) } {
+            let mut __for_first_913: bool = true;
+            while { if !__for_first_913 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_913 = false; i.as_f64().unwrap_or(f64::NAN) < ((balances.len() as i64) as f64) } {
             let mut balance: Value = self.safe_dict(balances.clone(), i.clone(), &[]);
             let mut currencyId: Option<String> = self.safe_string_k_opt(balance.clone(), "currency", &[]);
             let mut timestamp: Value = self.safe_integer_k(balance.clone(), "timestamp", &[]);
@@ -1299,8 +1299,8 @@ impl LatokenCore {
         let mut bids: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_913: bool = true;
-            while { if !__for_first_913 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_913 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawAsks.len() as i64) as f64) } {
+            let mut __for_first_914: bool = true;
+            while { if !__for_first_914 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_914 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawAsks.len() as i64) as f64) } {
             let mut askEntry: Value = rawAsks.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
             let mut askQuantity: Option<String> = self.safe_string_k_opt(askEntry.clone(), "quantity", &[]);
             if crate::precise::Precise::stringGt(&askQuantity.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
@@ -1310,8 +1310,8 @@ impl LatokenCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_914: bool = true;
-            while { if !__for_first_914 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_914 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawBids.len() as i64) as f64) } {
+            let mut __for_first_915: bool = true;
+            while { if !__for_first_915 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_915 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawBids.len() as i64) as f64) } {
             let mut bidEntry: Value = rawBids.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
             let mut bidQuantity: Option<String> = self.safe_string_k_opt(bidEntry.clone(), "quantity", &[]);
             if crate::precise::Precise::stringGt(&bidQuantity.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {

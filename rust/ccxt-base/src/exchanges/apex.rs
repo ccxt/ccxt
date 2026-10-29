@@ -908,14 +908,14 @@ impl ApexCore {
         let mut chains: Value = self.safe_list_k(self.options.clone(), "_temp_currencies_chains", &[Value::from(vec![])]);
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_225: bool = true;
-            while { if !__for_first_225 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_225 = false; j.as_f64().unwrap_or(f64::NAN) < ((chains.len() as i64) as f64) } {
+            let mut __for_first_226: bool = true;
+            while { if !__for_first_226 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_226 = false; j.as_f64().unwrap_or(f64::NAN) < ((chains.len() as i64) as f64) } {
             let mut chain: Value = self.safe_dict(chains.clone(), j.clone(), &[]);
             let mut tokens: Value = self.safe_list_k(chain.clone(), "tokens", &[Value::from(vec![])]);
             {
                                 let mut f: Value = Value::Int(0);
-                let mut __for_first_224: bool = true;
-                while { if !__for_first_224 { if let Value::Int(n) = &mut f { *n += 1; } } __for_first_224 = false; f.as_f64().unwrap_or(f64::NAN) < ((tokens.len() as i64) as f64) } {
+                let mut __for_first_225: bool = true;
+                while { if !__for_first_225 { if let Value::Int(n) = &mut f { *n += 1; } } __for_first_225 = false; f.as_f64().unwrap_or(f64::NAN) < ((tokens.len() as i64) as f64) } {
                 let mut token: Value = self.safe_dict(tokens.clone(), f.clone(), &[]);
                 let mut tokenName: Value = self.safe_string_k(token.clone(), "token", &[]);
                 if (tokenName == currencyId) {
@@ -1606,8 +1606,8 @@ impl ApexCore {
         let mut resultList: Vec<Value> = self.safe_list_k(data, "historyFunds", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_226: bool = true;
-            while { if !__for_first_226 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_226 = false; i.as_f64().unwrap_or(f64::NAN) < ((resultList.len() as i64) as f64) } {
+            let mut __for_first_227: bool = true;
+            while { if !__for_first_227 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_227 = false; i.as_f64().unwrap_or(f64::NAN) < ((resultList.len() as i64) as f64) } {
             let mut entry: Value = resultList.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
             let mut timestamp: Value = self.safe_integer_k(entry.clone(), "fundingTimestamp", &[]);
             let mut marketId: Option<String> = self.safe_string_k_opt(entry.clone(), "symbol", &[]);
@@ -2058,8 +2058,8 @@ impl ApexCore {
         let mut numAssets: f64 = ((assets.len() as i64) as f64);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_227: bool = true;
-            while { if !__for_first_227 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_227 = false; i.as_f64().unwrap_or(f64::NAN) < numAssets } {
+            let mut __for_first_228: bool = true;
+            while { if !__for_first_228 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_228 = false; i.as_f64().unwrap_or(f64::NAN) < numAssets } {
             let mut asset: Value = self.safe_dict(assets.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

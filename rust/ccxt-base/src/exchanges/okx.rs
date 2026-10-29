@@ -3922,8 +3922,8 @@ impl OkxCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_998: bool = true;
-            while { if !__for_first_998 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_998 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
+            let mut __for_first_999: bool = true;
+            while { if !__for_first_999 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_999 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             let mut event: Value = self.safe_dict(data.clone(), i.clone(), &[]);
             let mut state: Option<String> = self.safe_string_k(event.clone(), "state", &[]).as_str().map(str::to_owned);
             update.insert("eta".into(), self.safe_integer_k(event.clone(), "end", &[]));
@@ -4033,8 +4033,8 @@ impl OkxCore {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_999: bool = true;
-            while { if !__for_first_999 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_999 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
+            let mut __for_first_1000: bool = true;
+            while { if !__for_first_1000 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1000 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             let mut account: Value = data.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
             let mut accountId: Option<String> = self.safe_string_k_opt(account.clone(), "uid", &[]);
             let mut type_var: Option<String> = self.safe_string_k_opt(account.clone(), "acctLv", &[]);
@@ -4091,16 +4091,16 @@ impl OkxCore {
         let mut result: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1000: bool = true;
-            while { if !__for_first_1000 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1000 = false; i.as_f64().unwrap_or(f64::NAN) < ((types.len() as i64) as f64) } {
+            let mut __for_first_1001: bool = true;
+            while { if !__for_first_1001 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1001 = false; i.as_f64().unwrap_or(f64::NAN) < ((types.len() as i64) as f64) } {
             promises.push(self.fetch_markets_by_type(self.safe_string(types.clone(), i.clone(), &[Value::Str("".into())]), &[params.clone()]).await);
         }
         }
         let mut responses: Vec<Value> = promise_all(&Value::from(promises)).await.as_array().cloned().unwrap_or_default();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1001: bool = true;
-            while { if !__for_first_1001 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1001 = false; i.as_f64().unwrap_or(f64::NAN) < ((responses.len() as i64) as f64) } {
+            let mut __for_first_1002: bool = true;
+            while { if !__for_first_1002 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1002 = false; i.as_f64().unwrap_or(f64::NAN) < ((responses.len() as i64) as f64) } {
             result = self.array_concat(result.clone(), responses.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null));
         }
         }
@@ -4333,8 +4333,8 @@ impl OkxCore {
             let mut promises: Vec<Value> = Vec::new();
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1002: bool = true;
-                while { if !__for_first_1002 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1002 = false; i.as_f64().unwrap_or(f64::NAN) < ((optionsUnderlying.len() as i64) as f64) } {
+                let mut __for_first_1003: bool = true;
+                while { if !__for_first_1003 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1003 = false; i.as_f64().unwrap_or(f64::NAN) < ((optionsUnderlying.len() as i64) as f64) } {
                 let mut underlying: Value = optionsUnderlying.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
                 request.insert("uly".into(), underlying);
                 let __ws_arg_10 = self.extend(Value::Map(request.clone()), &[params.clone()]);
@@ -4345,8 +4345,8 @@ impl OkxCore {
             let mut markets: Value = Value::from(vec![]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1003: bool = true;
-                while { if !__for_first_1003 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1003 = false; i.as_f64().unwrap_or(f64::NAN) < ((promisesResult.len() as i64) as f64) } {
+                let mut __for_first_1004: bool = true;
+                while { if !__for_first_1004 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1004 = false; i.as_f64().unwrap_or(f64::NAN) < ((promisesResult.len() as i64) as f64) } {
                 let mut res: Value = self.safe_dict(promisesResult.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4396,8 +4396,8 @@ impl OkxCore {
         let mut marketsWithoutTest: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1004: bool = true;
-            while { if !__for_first_1004 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1004 = false; i.as_f64().unwrap_or(f64::NAN) < ((dataResponse.len() as i64) as f64) } {
+            let mut __for_first_1005: bool = true;
+            while { if !__for_first_1005 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1005 = false; i.as_f64().unwrap_or(f64::NAN) < ((dataResponse.len() as i64) as f64) } {
             let mut data: Value = dataResponse.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
             let mut instId: Option<String> = self.safe_string_k(data.clone(), "instId", &[Value::Str("".into())]).as_str().map(str::to_owned);
             if (instId.as_deref() == Some("")) {
@@ -4515,8 +4515,8 @@ impl OkxCore {
         let mut chainsLength: f64 = ((chains.len() as i64) as f64);
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_1005: bool = true;
-            while { if !__for_first_1005 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_1005 = false; j.as_f64().unwrap_or(f64::NAN) < chainsLength } {
+            let mut __for_first_1006: bool = true;
+            while { if !__for_first_1006 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_1006 = false; j.as_f64().unwrap_or(f64::NAN) < chainsLength } {
             let mut chain: Value = self.safe_dict(chains.clone(), j.clone(), &[]);
             // allow empty string for rare fiat-currencies, e.g. TRY
             let mut networkId: Value = self.safe_string_k(chain.clone(), "chain", &[Value::Str("".into())]); // USDT-BEP20, USDT-Avalance-C, etc
@@ -5411,8 +5411,8 @@ impl OkxCore {
         let mut data: Vec<Value> = self.safe_list_k(response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1006: bool = true;
-            while { if !__for_first_1006 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1006 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
+            let mut __for_first_1007: bool = true;
+            while { if !__for_first_1007 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1007 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             let mut rate: Value = data.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
             let mut timestamp: Value = self.safe_integer_k(rate.clone(), "fundingTime", &[]);
             rates.push(Value::Map({
@@ -5457,8 +5457,8 @@ impl OkxCore {
         let mut details: Value = self.safe_list_k(first, "details", &[Value::from(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1007: bool = true;
-            while { if !__for_first_1007 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1007 = false; i.as_f64().unwrap_or(f64::NAN) < ((details.len() as i64) as f64) } {
+            let mut __for_first_1008: bool = true;
+            while { if !__for_first_1008 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1008 = false; i.as_f64().unwrap_or(f64::NAN) < ((details.len() as i64) as f64) } {
             let mut balance: Value = self.safe_dict(details.clone(), i.clone(), &[]);
             let mut currencyId: Option<String> = self.safe_string_k_opt(balance.clone(), "ccy", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
@@ -5494,8 +5494,8 @@ impl OkxCore {
         let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1008: bool = true;
-            while { if !__for_first_1008 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1008 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
+            let mut __for_first_1009: bool = true;
+            while { if !__for_first_1009 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1009 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             let mut balance: Value = self.safe_dict(data.clone(), i.clone(), &[]);
             let mut currencyId: Option<String> = self.safe_string_k_opt(balance.clone(), "ccy", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
@@ -5712,7 +5712,7 @@ impl OkxCore {
         let mut takeProfitPrice: Value = self.safe_value2(params.clone(), Value::Str("takeProfitPrice".into()), Value::Str("tpTriggerPx".into()), &[]);
         let mut stopLossPrice: Value = self.safe_value2(params.clone(), Value::Str("stopLossPrice".into()), Value::Str("slTriggerPx".into()), &[]);
         let mut conditional: bool = (stopLossPrice != Value::Null) || (takeProfitPrice != Value::Null) || (type_var.as_str() == Some("conditional"));
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("instId".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                 m.insert("side".to_string(), side.clone());
@@ -5723,7 +5723,7 @@ impl OkxCore {
         let mut closeFraction: Option<String> = self.safe_string_k(params.clone(), "closeFraction", &[]).as_str().map(str::to_owned);
         let mut shouldOmitSize: bool = isConditionalOrOCO && (closeFraction.is_some());
         if !shouldOmitSize {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("sz".into(), self.amount_to_precision(symbol.clone(), amount.clone())); }
+            request.insert("sz".into(), self.amount_to_precision(symbol.clone(), amount.clone()));
         }
         let mut spot: Value = self.safe_bool_k(market.clone(), "spot", &[]);
         let mut contract: Value = self.safe_bool_k(market.clone(), "contract", &[]);
@@ -5780,14 +5780,14 @@ impl OkxCore {
             if margin {
                 let mut defaultCurrency: Value = (if (side.as_str() == Some("buy")) { market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null) } else { market.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null) });
                 let mut currency: Value = self.safe_string_k(params, "ccy", &[defaultCurrency]);
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("ccy".into(), self.safe_currency_code(currency, &[])); }
+                request.insert("ccy".into(), self.safe_currency_code(currency, &[]));
             }
             let mut tradeMode: Value = (if (margin) { marginMode.clone() } else { Value::Str("cash".into()) });
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("tdMode".into(), tradeMode); }
+            request.insert("tdMode".into(), tradeMode);
         }  else if (contract.as_bool() == Some(true)) {
             if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) || (market.as_map().and_then(|__m| __m.get("future")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
                 if (positionSide != Value::Null) {
-                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("posSide".into(), positionSide); }
+                    request.insert("posSide".into(), positionSide);
                 }  else {
                     if (hedged.as_bool() == Some(true)) {
                         let mut isBuy: bool = side.as_str() == Some("buy");
@@ -5795,14 +5795,14 @@ impl OkxCore {
                         if isProtective {
                             // in case of protective orders, the posSide should be opposite of position side
                             // reduceOnly is emulated and not natively supported by the exchange
-                            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("posSide".into(), (if isBuy { Value::Str("short".into()) } else { Value::Str("long".into()) })); }
+                            request.insert("posSide".into(), (if isBuy { Value::Str("short".into()) } else { Value::Str("long".into()) }));
                         }  else {
-                            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("posSide".into(), (if isBuy { Value::Str("long".into()) } else { Value::Str("short".into()) })); }
+                            request.insert("posSide".into(), (if isBuy { Value::Str("long".into()) } else { Value::Str("short".into()) }));
                         }
                     }
                 }
             }
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("tdMode".into(), marginMode.clone()); }
+            request.insert("tdMode".into(), marginMode.clone());
         }
         let mut isMarketOrder: bool = type_var.as_str() == Some("market");
         let postOnlyparamsPostOnlyVariable: Vec<Value> = self.handle_post_only(Value::Bool(isMarketOrder.clone()), Value::Bool(type_var.as_str() == Some("post_only")), &[paramsReduceOnly]).as_array().cloned().unwrap_or_default();
@@ -5816,11 +5816,12 @@ impl OkxCore {
         let mut marketIOC: bool = (isMarketOrder && ioc) || (type_var.as_str() == Some("optimal_limit_ioc"));
         let mut defaultTgtCcy: Value = self.safe_string_k(self.options.clone(), "tgtCcy", &[Value::Str("base_ccy".into())]);
         let mut tgtCcy: Value = self.safe_string_k(orderParams.clone(), "tgtCcy", &[defaultTgtCcy]);
-        if (contract.as_bool() != Some(true)) && (!margin) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("tgtCcy".into(), tgtCcy.clone()); }
+        // conditional sell orders must not carry tgtCcy
+        if (contract.as_bool() != Some(true)) && (!margin) && (trigger || (!(conditional)) || (side.as_str() != Some("sell"))) {
+            request.insert("tgtCcy".into(), tgtCcy.clone());
         }
         if isMarketOrder || marketIOC {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("ordType".into(), Value::Str("market".into())); }
+            request.insert("ordType".into(), Value::Str("market".into()));
             if (spot.as_bool() == Some(true)) && (side.as_str() == Some("buy")) {
                 // spot market buy: "sz" can refer either to base currency units or to quote currency units
                 // see documentation: https://www.okx.com/docs-v5/en/#rest-api-trade-place-order
@@ -5847,31 +5848,31 @@ impl OkxCore {
                     }  else {
                         notional = (if (notional == Value::Null) { amount } else { notional.clone() });
                     }
-                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("sz".into(), self.cost_to_precision(symbol.clone(), notional)); }
+                    request.insert("sz".into(), self.cost_to_precision(symbol.clone(), notional));
                 }
             }
             if marketIOC && (contract.as_bool() == Some(true)) {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("ordType".into(), Value::Str("optimal_limit_ioc".into())); }
+                request.insert("ordType".into(), Value::Str("optimal_limit_ioc".into()));
             }
         }  else {
             if (!trigger) && (!(conditional)) {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("px".into(), self.price_to_precision(symbol.clone(), price.clone())); }
+                request.insert("px".into(), self.price_to_precision(symbol.clone(), price.clone()));
             }
         }
         if postOnly.as_bool() == Some(true) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("ordType".into(), Value::Str("post_only".into())); }
+            request.insert("ordType".into(), Value::Str("post_only".into()));
         }  else if ioc && !marketIOC {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("ordType".into(), Value::Str("ioc".into())); }
+            request.insert("ordType".into(), Value::Str("ioc".into()));
         }  else if fok {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("ordType".into(), Value::Str("fok".into())); }
+            request.insert("ordType".into(), Value::Str("fok".into()));
         }
         if isTrailingPercentOrder {
             let mut convertedTrailingPercent: Value = crate::precise::Precise::stringDiv(&trailingPercent, &Value::Str("100".into()));
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("callbackRatio".into(), convertedTrailingPercent); }
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("ordType".into(), Value::Str("move_order_stop".into())); }
+            request.insert("callbackRatio".into(), convertedTrailingPercent);
+            request.insert("ordType".into(), Value::Str("move_order_stop".into()));
         }  else if isTrailingPriceOrder {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("callbackSpread".into(), trailingPrice); }
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("ordType".into(), Value::Str("move_order_stop".into())); }
+            request.insert("callbackSpread".into(), trailingPrice);
+            request.insert("ordType".into(), Value::Str("move_order_stop".into()));
         }  else if hasStopLoss || hasTakeProfit {
             let mut attachAlgoOrd: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -5963,48 +5964,45 @@ impl OkxCore {
             let mut attachOrdKeys: Vec<Value> = Value::Array(attachAlgoOrd.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
             let mut attachOrdLen: f64 = ((attachOrdKeys.len() as i64) as f64);
             if attachOrdLen > ((0i64) as f64) {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("attachAlgoOrds".into(), Value::from(vec![attachAlgoOrd])); }
+                request.insert("attachAlgoOrds".into(), Value::from(vec![attachAlgoOrd]));
             }
         }
         // algo order details
         if trigger {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("ordType".into(), Value::Str("trigger".into())); }
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("triggerPx".into(), self.price_to_precision(symbol.clone(), triggerPrice)); }
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("orderPx".into(), (if isMarketOrder { Value::Str("-1".into()) } else { self.price_to_precision(symbol.clone(), price) })); }
+            request.insert("ordType".into(), Value::Str("trigger".into()));
+            request.insert("triggerPx".into(), self.price_to_precision(symbol.clone(), triggerPrice));
+            request.insert("orderPx".into(), (if isMarketOrder { Value::Str("-1".into()) } else { self.price_to_precision(symbol.clone(), price) }));
         }  else if conditional {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("ordType".into(), Value::Str("conditional".into())); }
+            request.insert("ordType".into(), Value::Str("conditional".into()));
             let mut twoWayCondition: bool = (takeProfitPrice != Value::Null) && (stopLossPrice != Value::Null);
             // if TP and SL are sent together
             // as ordType 'conditional' only stop-loss order will be applied
             // tpOrdKind is 'condition' which is the default
             if twoWayCondition {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("ordType".into(), Value::Str("oco".into())); }
+                request.insert("ordType".into(), Value::Str("oco".into()));
             }
-            if (side.as_str() == Some("sell")) {
-                request = self.omit(request.clone(), Value::Str("tgtCcy".into()), &[]);
-            }
-            if (self.safe_string_k(request.clone(), "tdMode", &[]).as_str() == Some("cash")) {
+            if (spot.as_bool() == Some(true)) && (!margin) {
                 // for some reason tdMode = cash throws
                 // {"code":"1","data":[{"algoClOrdId":"","algoId":"","clOrdId":"","sCode":"51000","sMsg":"Parameter tdMode error ","tag":""}],"msg":""}
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("tdMode".into(), marginMode); }
+                request.insert("tdMode".into(), marginMode);
             }
             if (takeProfitPrice != Value::Null) {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("tpTriggerPx".into(), self.price_to_precision(symbol.clone(), takeProfitPrice)); }
+                request.insert("tpTriggerPx".into(), self.price_to_precision(symbol.clone(), takeProfitPrice));
                 let mut tpOrdPxReq: Value = Value::Str("-1".into());
                 if (tpOrdPx != Value::Null) {
                     tpOrdPxReq = self.price_to_precision(symbol.clone(), tpOrdPx);
                 }
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("tpOrdPx".into(), tpOrdPxReq); }
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("tpTriggerPxType".into(), tpTriggerPxType); }
+                request.insert("tpOrdPx".into(), tpOrdPxReq);
+                request.insert("tpTriggerPxType".into(), tpTriggerPxType);
             }
             if (stopLossPrice != Value::Null) {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("slTriggerPx".into(), self.price_to_precision(symbol.clone(), stopLossPrice)); }
+                request.insert("slTriggerPx".into(), self.price_to_precision(symbol.clone(), stopLossPrice));
                 let mut slOrdPxReq: Value = Value::Str("-1".into());
                 if (slOrdPx != Value::Null) {
                     slOrdPxReq = self.price_to_precision(symbol, slOrdPx);
                 }
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("slOrdPx".into(), slOrdPxReq); }
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("slTriggerPxType".into(), slTriggerPxType); }
+                request.insert("slOrdPx".into(), slOrdPxReq);
+                request.insert("slTriggerPxType".into(), slTriggerPxType);
             }
         }
         // unified stp
@@ -6027,26 +6025,26 @@ impl OkxCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut requestOrdType: Option<String> = self.safe_string_k_opt(request.clone(), "ordType", &[]);
+            let mut requestOrdType: Option<String> = self.safe_string_opt(Value::Map(request.clone()), Value::Str("ordType".into()), &[]);
             if (requestOrdType.is_some()) && (matches!((&algoOrderTypes, &requestOrdType.clone().map(Value::from).unwrap_or(Value::Null)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createOrder() selfTradePrevention is not supported for algo orders, the venue silently ignores stpMode on that endpoint".into()))));
             }
             if (stpMode.as_str() == Some("cancel_both")) && (requestOrdType.as_deref() == Some("fok")) {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() EXPIRE_BOTH for selfTradePrevention is not supported for fok orders".into()))));
             }
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("stpMode".into(), stpMode); }
+            request.insert("stpMode".into(), stpMode);
         }
         if (clientOrderId == Value::Null) {
             let mut brokerId: Option<String> = self.safe_string_k_opt(self.options.clone(), "brokerId", &[]);
             if (brokerId.is_some()) {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("clOrdId".into(), Value::Str(format!("{}{}", brokerId.clone().map(Value::from).unwrap_or(Value::Null), self.uuid16(&[])).into())); }
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("tag".into(), brokerId.map(Value::from).unwrap_or(Value::Null)); }
+                request.insert("clOrdId".into(), Value::Str(format!("{}{}", brokerId.clone().map(Value::from).unwrap_or(Value::Null), self.uuid16(&[])).into()));
+                request.insert("tag".into(), brokerId.map(Value::from).unwrap_or(Value::Null));
             }
         }  else {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("clOrdId".into(), clientOrderId); }
+            request.insert("clOrdId".into(), clientOrderId);
             orderParams = self.omit(orderParams.clone(), Value::from(vec![Value::Str("clOrdId".into()), Value::Str("clientOrderId".into())]), &[]);
         }
-        return self.extend(request, &[orderParams]);
+        return self.extend(Value::Map(request), &[orderParams]);
 
     Value::Null
 }
@@ -6150,8 +6148,8 @@ impl OkxCore {
         let mut ordersRequests: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1009: bool = true;
-            while { if !__for_first_1009 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1009 = false; i.as_f64().unwrap_or(f64::NAN) < ((orders.len() as i64) as f64) } {
+            let mut __for_first_1010: bool = true;
+            while { if !__for_first_1010 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1010 = false; i.as_f64().unwrap_or(f64::NAN) < ((orders.len() as i64) as f64) } {
             let mut rawOrder: Value = self.safe_dict(orders.clone(), i.clone(), &[]);
             let mut marketId: Option<String> = self.safe_string_k_opt(rawOrder.clone(), "symbol", &[]);
             if (marketId.is_none()) {
@@ -6412,8 +6410,8 @@ impl OkxCore {
         let mut ordersRequests: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1010: bool = true;
-            while { if !__for_first_1010 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1010 = false; i.as_f64().unwrap_or(f64::NAN) < ((orders.len() as i64) as f64) } {
+            let mut __for_first_1011: bool = true;
+            while { if !__for_first_1011 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1011 = false; i.as_f64().unwrap_or(f64::NAN) < ((orders.len() as i64) as f64) } {
             let mut rawOrder: Value = self.safe_dict(orders.clone(), i.clone(), &[]);
             let mut symbol: Option<String> = self.safe_string_k_opt(rawOrder.clone(), "symbol", &[]);
             if (symbol.is_none()) {
@@ -6584,8 +6582,8 @@ impl OkxCore {
             if (algoIds != Value::Null) {
                 {
                                         let mut i: Value = Value::Int(0);
-                    let mut __for_first_1011: bool = true;
-                    while { if !__for_first_1011 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1011 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(algoIds.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+                    let mut __for_first_1012: bool = true;
+                    while { if !__for_first_1012 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1012 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(algoIds.len() as i64).as_f64().unwrap_or(f64::NAN) } {
                     request.push(Value::Map({
                         let mut m = indexmap::IndexMap::new();
                             m.insert("algoId".to_string(), self.safe_string(algoIds.clone(), i.clone(), &[]));
@@ -6597,8 +6595,8 @@ impl OkxCore {
             }
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1012: bool = true;
-                while { if !__for_first_1012 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1012 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(orderIds.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+                let mut __for_first_1013: bool = true;
+                while { if !__for_first_1013 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1013 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(orderIds.len() as i64).as_f64().unwrap_or(f64::NAN) } {
                 if trailing.as_bool() == Some(true) || isTrigger {
                     request.push(Value::Map({
                         let mut m = indexmap::IndexMap::new();
@@ -6619,8 +6617,8 @@ impl OkxCore {
         }  else {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1013: bool = true;
-                while { if !__for_first_1013 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1013 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(clientOrderIds.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+                let mut __for_first_1014: bool = true;
+                while { if !__for_first_1014 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1014 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(clientOrderIds.len() as i64).as_f64().unwrap_or(f64::NAN) } {
                 if trailing.as_bool() == Some(true) || isTrigger {
                     request.push(Value::Map({
                         let mut m = indexmap::IndexMap::new();
@@ -6718,8 +6716,8 @@ impl OkxCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1014: bool = true;
-            while { if !__for_first_1014 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1014 = false; i.as_f64().unwrap_or(f64::NAN) < ((orders.len() as i64) as f64) } {
+            let mut __for_first_1015: bool = true;
+            while { if !__for_first_1015 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1015 = false; i.as_f64().unwrap_or(f64::NAN) < ((orders.len() as i64) as f64) } {
             let mut order: Value = self.safe_dict(orders.clone(), i.clone(), &[]);
             let mut id: Value = self.safe_string_k(order.clone(), "id", &[]);
             let mut clientOrderId: Value = self.safe_string2(order.clone(), Value::Str("clOrdId".into()), Value::Str("clientOrderId".into()), &[]);
@@ -7098,8 +7096,8 @@ impl OkxCore {
         let mut attachAlgoOrds: Vec<Value> = self.safe_list_k(order.clone(), "attachAlgoOrds", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1015: bool = true;
-            while { if !__for_first_1015 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1015 = false; i.as_f64().unwrap_or(f64::NAN) < ((attachAlgoOrds.len() as i64) as f64) } {
+            let mut __for_first_1016: bool = true;
+            while { if !__for_first_1016 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1016 = false; i.as_f64().unwrap_or(f64::NAN) < ((attachAlgoOrds.len() as i64) as f64) } {
             let mut attached: Value = attachAlgoOrds.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
             if (stopLossPrice == Value::Null) {
                 stopLossPrice = self.safe_number_k(attached.clone(), "slTriggerPx", &[]);
@@ -9049,8 +9047,8 @@ impl OkxCore {
         let mut shortLeverage: Value = Value::Null;
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1016: bool = true;
-            while { if !__for_first_1016 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1016 = false; i.as_f64().unwrap_or(f64::NAN) < ((leverage.len() as i64) as f64) } {
+            let mut __for_first_1017: bool = true;
+            while { if !__for_first_1017 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1017 = false; i.as_f64().unwrap_or(f64::NAN) < ((leverage.len() as i64) as f64) } {
             let mut entry: Value = self.safe_dict(leverage.clone(), i.clone(), &[]);
             marginMode = self.safe_string_lower_k(entry.clone(), "mgnMode", &[]);
             marketId = self.safe_string_k(entry.clone(), "instId", &[]);
@@ -9193,10 +9191,10 @@ impl OkxCore {
         if (symbols != Value::Null) {
             let mut marketIds: Vec<Value> = Vec::new();
             {
-                                let mut i: Value = Value::Int(0);
-                let mut __for_first_1017: bool = true;
-                while { if !__for_first_1017 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1017 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
-                let mut entry: Value = symbols.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+                                let mut i: i64 = 0;
+                let mut __for_first_1018: bool = true;
+                while { if !__for_first_1018 { i += 1; } __for_first_1018 = false; i < (symbols.len() as i64) } {
+                let mut entry: Value = symbols.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut market: indexmap::IndexMap<String, Value> = self.market(entry).as_map().cloned().unwrap_or_default();
                 marketIds.push(market.get("id").cloned().unwrap_or(Value::Null));
             }
@@ -9269,8 +9267,8 @@ impl OkxCore {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1018: bool = true;
-            while { if !__for_first_1018 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1018 = false; i.as_f64().unwrap_or(f64::NAN) < ((positions.len() as i64) as f64) } {
+            let mut __for_first_1019: bool = true;
+            while { if !__for_first_1019 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1019 = false; i.as_f64().unwrap_or(f64::NAN) < ((positions.len() as i64) as f64) } {
             result.push(self.parse_position(positions.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null), &[]));
         }
         }
@@ -9824,8 +9822,8 @@ impl OkxCore {
                 if (matches!(&params, Value::Arr(_))) {
                     {
                                                 let mut i: Value = Value::Int(0);
-                        let mut __for_first_1019: bool = true;
-                        while { if !__for_first_1019 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1019 = false; i.as_f64().unwrap_or(f64::NAN) < ((params.len() as i64) as f64) } {
+                        let mut __for_first_1020: bool = true;
+                        while { if !__for_first_1020 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1020 = false; i.as_f64().unwrap_or(f64::NAN) < ((params.len() as i64) as f64) } {
                         let mut entry: Value = params.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                         let mut clientOrderId: Option<String> = self.safe_string_k_opt(entry.clone(), "clOrdId", &[]);
                         if (clientOrderId.is_none()) {
@@ -10065,8 +10063,8 @@ impl OkxCore {
         if (symbolsNormalized != Value::Null) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1020: bool = true;
-                while { if !__for_first_1020 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1020 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
+                let mut __for_first_1021: bool = true;
+                while { if !__for_first_1021 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1021 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
                 let mut market: Value = self.market(symbolsNormalized.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
                 let mut marketInfo: Value = self.safe_dict_k(market.clone(), "info", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -10198,8 +10196,8 @@ impl OkxCore {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1021: bool = true;
-            while { if !__for_first_1021 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1021 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
+            let mut __for_first_1022: bool = true;
+            while { if !__for_first_1022 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1022 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             let mut entry: Value = data.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
             let mut timestamp: Value = self.safe_integer_k(entry.clone(), "ts", &[]);
             let mut instId: Option<String> = self.safe_string_k_opt(entry.clone(), "instId", &[]);
@@ -10459,8 +10457,8 @@ impl OkxCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1022: bool = true;
-            while { if !__for_first_1022 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1022 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
+            let mut __for_first_1023: bool = true;
+            while { if !__for_first_1023 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1023 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             let mut rate: Value = self.parse_borrow_rate(data.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null), &[]);
             let mut code: Option<String> = self.safe_string_k_opt(rate.clone(), "currency", &[]);
             if (code.is_some()) {
@@ -10565,8 +10563,8 @@ impl OkxCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1023: bool = true;
-            while { if !__for_first_1023 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1023 = false; i.as_f64().unwrap_or(f64::NAN) < ((response.len() as i64) as f64) } {
+            let mut __for_first_1024: bool = true;
+            while { if !__for_first_1024 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1024 = false; i.as_f64().unwrap_or(f64::NAN) < ((response.len() as i64) as f64) } {
             let mut item: Value = self.safe_dict(response.clone(), i.clone(), &[]);
             let mut code: Value = self.safe_currency_code(self.safe_string_k(item.clone(), "ccy", &[]), &[]);
             if (code != Value::Null) && ((codes == Value::Null) || self.in_array(code.clone(), codes.clone()).as_bool() == Some(true)) {
@@ -10585,8 +10583,8 @@ impl OkxCore {
         let mut keys: Vec<Value> = Value::Array(borrowRateHistories.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1024: bool = true;
-            while { if !__for_first_1024 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1024 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
+            let mut __for_first_1025: bool = true;
+            while { if !__for_first_1025 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1025 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
             let mut code: Value = keys.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
             { let __be_tmp = self.filter_by_currency_since_limit(borrowRateHistories.as_map().and_then(|__m| code.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), &[code.clone(), since.clone(), limit.clone()]); if let Value::Dict(__d) = &mut borrowRateHistories { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), __be_tmp); } }
         }
@@ -10976,8 +10974,8 @@ impl OkxCore {
         let mut tiers: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1025: bool = true;
-            while { if !__for_first_1025 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1025 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&info).as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_1026: bool = true;
+            while { if !__for_first_1026 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1026 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&info).as_f64().unwrap_or(f64::NAN) } {
             let mut tier: Value = self.safe_dict(info.clone(), i.clone(), &[]);
             let mut marketId: Option<String> = self.safe_string_k_opt(tier.clone(), "instId", &[]);
             if let Value::Arr(__a) = &mut tiers { std::sync::Arc::make_mut(__a).push(Value::Map({
@@ -11760,8 +11758,8 @@ impl OkxCore {
         let mut codesValue: Value = self.market_codes(&[codes]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1026: bool = true;
-            while { if !__for_first_1026 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1026 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&response).as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_1027: bool = true;
+            while { if !__for_first_1027 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1027 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&response).as_f64().unwrap_or(f64::NAN) } {
             let mut feeInfo: Value = get_value(&response, &i);
             let mut feeInfo: Value = get_value(&response, &i);
             let mut currencyId: Option<String> = self.safe_string_k_opt(feeInfo.clone(), "ccy", &[]);
@@ -11811,8 +11809,8 @@ impl OkxCore {
         let mut depositWithdrawCodes: Vec<Value> = Value::Array(depositWithdrawFees.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1027: bool = true;
-            while { if !__for_first_1027 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1027 = false; i.as_f64().unwrap_or(f64::NAN) < ((depositWithdrawCodes.len() as i64) as f64) } {
+            let mut __for_first_1028: bool = true;
+            while { if !__for_first_1028 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1028 = false; i.as_f64().unwrap_or(f64::NAN) < ((depositWithdrawCodes.len() as i64) as f64) } {
             let mut code: Value = depositWithdrawCodes.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
             let mut currency: Value = self.currency(code.clone());
             { let __be_tmp = self.assign_default_deposit_withdraw_fees(depositWithdrawFees.as_map().and_then(|__m| code.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), &[currency]); if let Value::Dict(__d) = &mut depositWithdrawFees { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), __be_tmp); } }
@@ -11962,8 +11960,8 @@ impl OkxCore {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1028: bool = true;
-            while { if !__for_first_1028 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1028 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
+            let mut __for_first_1029: bool = true;
+            while { if !__for_first_1029 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1029 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             result.push(self.parse_settlement(data.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null), market.clone()));
         }
         }
@@ -12027,15 +12025,15 @@ impl OkxCore {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1030: bool = true;
-            while { if !__for_first_1030 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1030 = false; i.as_f64().unwrap_or(f64::NAN) < ((settlements.len() as i64) as f64) } {
+            let mut __for_first_1031: bool = true;
+            while { if !__for_first_1031 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1031 = false; i.as_f64().unwrap_or(f64::NAN) < ((settlements.len() as i64) as f64) } {
             let mut entry: Value = self.safe_dict(settlements.clone(), i.clone(), &[]);
             let mut timestamp: Value = self.safe_integer_k(entry.clone(), "ts", &[]);
             let mut details: Vec<Value> = self.safe_list_k(entry, "details", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_1029: bool = true;
-                while { if !__for_first_1029 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_1029 = false; j.as_f64().unwrap_or(f64::NAN) < ((details.len() as i64) as f64) } {
+                let mut __for_first_1030: bool = true;
+                while { if !__for_first_1030 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_1030 = false; j.as_f64().unwrap_or(f64::NAN) < ((details.len() as i64) as f64) } {
                 let mut settlement: Value = self.parse_settlement(details.get(j.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null), market.clone());
                 let __ws_arg_89 = self.iso8601(timestamp.clone());
                 result.push(self.extend(settlement, &[Value::Map({
@@ -12171,8 +12169,8 @@ impl OkxCore {
         let mut data: Vec<Value> = self.safe_list_k(response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1031: bool = true;
-            while { if !__for_first_1031 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1031 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
+            let mut __for_first_1032: bool = true;
+            while { if !__for_first_1032 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1032 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             let mut entry: Value = data.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
             let mut entryMarketId: Value = self.safe_string_k(entry.clone(), "instId", &[]);
             if (entryMarketId == marketId) {
@@ -12967,8 +12965,8 @@ impl OkxCore {
         let mut data: Vec<Value> = self.safe_list_k(response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1032: bool = true;
-            while { if !__for_first_1032 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1032 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
+            let mut __for_first_1033: bool = true;
+            while { if !__for_first_1033 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1033 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             let mut entry: Value = data.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
             let mut id: Option<String> = self.safe_string_k_opt(entry.clone(), "ccy", &[]);
             let mut code: Value = self.safe_currency_code(id.clone().map(Value::from).unwrap_or(Value::Null), &[]);
@@ -13049,8 +13047,8 @@ impl OkxCore {
             let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1033: bool = true;
-                while { if !__for_first_1033 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1033 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
+                let mut __for_first_1034: bool = true;
+                while { if !__for_first_1034 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1034 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
                 let mut error: Value = self.safe_dict(data.clone(), i.clone(), &[]);
                 let mut errorCode: Option<String> = self.safe_string_k_opt(error.clone(), "sCode", &[]);
                 let mut message: Option<String> = self.safe_string_k_opt(error, "sMsg", &[]);
@@ -13337,8 +13335,8 @@ impl OkxCore {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1034: bool = true;
-            while { if !__for_first_1034 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1034 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
+            let mut __for_first_1035: bool = true;
+            while { if !__for_first_1035 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1035 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             let mut entry: Value = self.safe_list(data.clone(), i.clone(), &[]);
             result.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();

@@ -597,8 +597,8 @@ impl BtcturkCore {
         let mut minCost: Value = Value::Null;
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_473: bool = true;
-            while { if !__for_first_473 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_473 = false; j.as_f64().unwrap_or(f64::NAN) < ((filters.len() as i64) as f64) } {
+            let mut __for_first_474: bool = true;
+            while { if !__for_first_474 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_474 = false; j.as_f64().unwrap_or(f64::NAN) < ((filters.len() as i64) as f64) } {
             let mut filter: Value = self.safe_dict(filters.clone(), j.clone(), &[]);
             let mut filterType: Option<String> = self.safe_string_k(filter.clone(), "filterType", &[]).as_str().map(str::to_owned);
             if (filterType.as_deref() == Some("PRICE_FILTER")) {
@@ -689,8 +689,8 @@ impl BtcturkCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_474: bool = true;
-            while { if !__for_first_474 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_474 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
+            let mut __for_first_475: bool = true;
+            while { if !__for_first_475 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_475 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             let mut entry: Value = self.safe_dict(data.clone(), i.clone(), &[]);
             let mut currencyId: Option<String> = self.safe_string_k_opt(entry.clone(), "asset", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
@@ -1116,8 +1116,8 @@ impl BtcturkCore {
         let mut volume: Value = self.safe_list_k(ohlcvs, "v", &[Value::from(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_475: bool = true;
-            while { if !__for_first_475 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_475 = false; i.as_f64().unwrap_or(f64::NAN) < ((timestamp.len() as i64) as f64) } {
+            let mut __for_first_476: bool = true;
+            while { if !__for_first_476 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_476 = false; i.as_f64().unwrap_or(f64::NAN) < ((timestamp.len() as i64) as f64) } {
             let mut ohlcv: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("timestamp".to_string(), self.safe_integer(timestamp.clone(), i.clone(), &[]));

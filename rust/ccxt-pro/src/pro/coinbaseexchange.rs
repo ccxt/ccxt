@@ -382,10 +382,10 @@ impl CoinbaseexchangeCore {
         let mut messageHashes: Value = Value::from(vec![]);
         let mut productIds: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_248: bool = true;
-            while { if !__for_first_248 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_248 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
-            let mut symbol: Value = symbolsNormalized.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_248 { i += 1; } __for_first_248 = false; i < (symbolsNormalized.len() as i64) } {
+            let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
             market = self.market(symbol);
             let mut marketId: Value = self.safe_string_k(market.clone(), "id", &[Value::Str("".into())]);
             productIds.push(marketId);
@@ -1404,8 +1404,8 @@ impl CoinbaseexchangeCore {
                 let mut __for_first_253: bool = true;
                 while { if !__for_first_253 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_253 = false; i.as_f64().unwrap_or(f64::NAN) < ((changes.len() as i64) as f64) } {
                 let mut change: Value = self.safe_list(changes.clone(), i.clone(), &[]);
-                let mut key: Option<String> = self.safe_string_opt(change.clone(), Value::Int(0), &[]);
-                let mut side: Option<String> = self.safe_string_opt(Value::Map(sides.clone()), key.map(Value::from).unwrap_or(Value::Null), &[]);
+                let mut key: Value = self.safe_string(change.clone(), Value::Int(0), &[]);
+                let mut side: Option<String> = self.safe_string_opt(Value::Map(sides.clone()), key, &[]);
                 let mut price: Value = self.safe_number(change.clone(), Value::Int(1), &[]);
                 let mut amount: Value = self.safe_number(change, Value::Int(2), &[]);
                 let mut bookside: Value = self.safe_value(orderbook.clone(), side.map(Value::from).unwrap_or(Value::Null), &[]);
