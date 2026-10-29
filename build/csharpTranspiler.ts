@@ -3359,6 +3359,37 @@ class NewTranspiler {
         return names;
     }
 
+    // `List<object> x = FromDictList(await this.core(...))` -> `List<Dictionary<string, object>> x =
+    // await this.core(...)` when every read of x is one that takes the typed list as is
+    // (count, element read, getValue / getArrayLength / filterBy / parseLedger / parseCurrencies);
+    // safeDict / safeValue and every other consumer keep the reboxing helper.
+    declareDictListLocals (lines: string[], bodyStart: number, bodyEnd: number): void {
+        const declRe = /^(\s*)List<object> (\w+) = ccxt\.BaseExchange\.FromDictList\((await this\.\w+\(.*\))\);$/;
+        for (let j = bodyStart + 1; j < bodyEnd; j++) {
+            const decl = lines[j] === null ? null : declRe.exec (lines[j]);
+            if (decl === null) {
+                continue;
+            }
+            const name = decl[2];
+            const nameRe = new RegExp ('\\b' + name + '\\b');
+            const allowed = new RegExp ('(?:getArrayLength|getValue|this\\.filterBy|this\\.parseLedger|this\\.parseCurrencies)\\(' + name + '(?=[,)])|\\b' + name + '\\?\\.Count|\\b' + name + '\\.Count|\\b' + name + ' (?:!=|==) null|\\b' + name + '\\[[^\\]=]*\\](?!\\s*=[^=])', 'g');
+            let sound = true;
+            for (let k = j + 1; k < bodyEnd && sound; k++) {
+                const text = lines[k];
+                if (text === null || !nameRe.test (text) || text.trim ().startsWith ('//')) {
+                    continue;
+                }
+                const rest = text.replace (allowed, '');
+                if (nameRe.test (rest) || new RegExp ('\\b' + name + ' = ').test (text)) {
+                    sound = false;
+                }
+            }
+            if (sound) {
+                lines[j] = decl[1] + 'List<Dictionary<string, object>> ' + name + ' = ' + decl[3] + ';';
+            }
+        }
+    }
+
     typeCores (content: string, predictionTier = this.isPrediction): string {
         const names = this.typedCoreNames ();
         if (!names.some (name => content.includes (' ' + name + '('))) {
@@ -3487,6 +3518,7 @@ class NewTranspiler {
                 }
                 lines[j] = this.wrapTypedCoreConsumers (lines[j], names, predictionTier, tailOk[j] === true);
             }
+            this.declareDictListLocals (lines, bodyStart, bodyEnd);
             i = bodyEnd;
         }
         return lines.filter (line => line !== null).join ('\n');
