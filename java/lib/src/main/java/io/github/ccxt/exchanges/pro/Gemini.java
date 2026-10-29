@@ -127,7 +127,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         return BaseExchange.supplyAsync(() -> {
 
             List<Object> trades = (List<Object>) (this.helperForWatchMultipleConstruct("trades", ((List<String>) (switch ((Object) (symbols)) { case null -> (List<String>) null; case List<?> hx4J40v1 -> (List<String>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v1.getClass().getName()); })), parameters)).join();
-            List<Object> first = (List<Object>) this.safeList(trades, 0, (Object) null);
+            Map<String, Object> first = (Map<String, Object>) this.safeDict(trades, 0, (Object) null);
             String tradeSymbol = this.safeString(first, "symbol");
             Long limitResolved = limit;
             if (this.newUpdates)

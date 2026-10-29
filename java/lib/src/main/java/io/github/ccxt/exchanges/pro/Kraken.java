@@ -916,7 +916,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             Long limitResolved = limit;
             if (this.newUpdates)
             {
-                List<Object> first = (List<Object>) this.safeList(trades, 0, (Object) null);
+                Map<String, Object> first = (Map<String, Object>) this.safeDict(trades, 0, (Object) null);
                 String tradeSymbol = this.safeString(first, "symbol");
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, tradeSymbol, limit);
             }
