@@ -1469,10 +1469,10 @@ impl HollaexCore {
                 m.insert("datetime".to_string(), self.iso8601(timestamp));
             m
         });
-        let mut currenciesById: Value = self.currencies_by_id.clone();
-        if (currenciesById == Value::Null) {
+        if (self.currencies_by_id.clone() == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" currencies not loaded".into()))));
         }
+        let mut currenciesById: Value = self.currencies_by_id.clone();
         let mut currencyIds: Value = Value::Array(currenciesById.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
         {
                         let mut i: Value = Value::Int(0);

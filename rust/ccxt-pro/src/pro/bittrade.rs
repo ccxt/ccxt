@@ -516,8 +516,8 @@ impl BittradeCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_143: bool = true;
-            while { if !__for_first_143 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_143 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
+            let mut __for_first_142: bool = true;
+            while { if !__for_first_142 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_142 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             let mut trade: Value = self.parse_trade(data.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null), &[market.clone()]);
             tradesCache.append(trade);
         }
@@ -757,8 +757,8 @@ impl BittradeCore {
         let mut messages: Value = get_value(&orderbook, &Value::Str("cache".into()));
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_144: bool = true;
-            while { if !__for_first_144 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_144 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&messages).as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_143: bool = true;
+            while { if !__for_first_143 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_143 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&messages).as_f64().unwrap_or(f64::NAN) } {
             self.handle_order_book_message(client.clone(), get_value(&messages, &i), orderbook.clone());
         }
         }

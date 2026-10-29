@@ -1263,8 +1263,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut asks: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_297: bool = true;
-            while { if !__for_first_297 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_297 = false; i.as_f64().unwrap_or(f64::NAN) < ((entries.len() as i64) as f64) } {
+            let mut __for_first_296: bool = true;
+            while { if !__for_first_296 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_296 = false; i.as_f64().unwrap_or(f64::NAN) < ((entries.len() as i64) as f64) } {
             let mut entry: Value = self.safe_dict(entries.clone(), i.clone(), &[]);
             let mut entryData: Value = self.safe_dict_k(entry, "d", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -1294,8 +1294,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut cachedMessages: Value = get_value(&orderbook, &Value::Str("cache".into()));
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_298: bool = true;
-            while { if !__for_first_298 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_298 = false; j.as_f64().unwrap_or(f64::NAN) < ((cachedMessages.len() as i64) as f64) } {
+            let mut __for_first_297: bool = true;
+            while { if !__for_first_297 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_297 = false; j.as_f64().unwrap_or(f64::NAN) < ((cachedMessages.len() as i64) as f64) } {
             let mut cachedMessage: Value = cachedMessages.as_array().and_then(|__arr| match &j { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             self.handle_order_book_message(client.clone(), cachedMessage, orderbook.clone());
         }
@@ -1651,8 +1651,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (symbolsNormalized != Value::Null) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_299: bool = true;
-                while { if !__for_first_299 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_299 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
+                let mut __for_first_298: bool = true;
+                while { if !__for_first_298 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_298 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsNormalized.len() as i64) as f64) } {
                 let mut symbol: Value = symbolsNormalized.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 let mut symbolMessageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str("::".into())).into()), symbol).into());
                 messageHashes.push(symbolMessageHash);

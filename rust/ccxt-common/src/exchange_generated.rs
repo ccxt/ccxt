@@ -698,7 +698,7 @@ pub trait ExchangeBase:
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_72: bool = true;
-            while { if !__for_first_72 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_72 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&deltas).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_72 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_72 = false; i.as_f64().unwrap_or(f64::NAN) < ((deltas.len() as i64) as f64) } {
             self.handle_book_delta(orderbook.clone(), self.safe_value(deltas.clone(), i.clone(), &[]));
         }
         }

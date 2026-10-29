@@ -514,8 +514,8 @@ impl IndependentreserveCore {
             let mut payload: Value = Value::Str("".into());
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_423: bool = true;
-                while { if !__for_first_423 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_423 = false; i.as_f64().unwrap_or(f64::NAN) < ((10i64) as f64) } {
+                let mut __for_first_422: bool = true;
+                while { if !__for_first_422 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_422 = false; i.as_f64().unwrap_or(f64::NAN) < ((10i64) as f64) } {
                 if i.as_f64().unwrap_or(f64::NAN) < bidsLength.as_f64().unwrap_or(f64::NAN) {
                     payload = Value::Str(format!("{}{}", Value::Str(format!("{}{}", payload, self.value_to_checksum(self.safe_number(get_value(&storedBids, &i), Value::Int(0), &[]))).into()), self.value_to_checksum(self.safe_number(get_value(&storedBids, &i), Value::Int(1), &[]))).into());
                 }
@@ -523,8 +523,8 @@ impl IndependentreserveCore {
             }
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_424: bool = true;
-                while { if !__for_first_424 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_424 = false; i.as_f64().unwrap_or(f64::NAN) < ((10i64) as f64) } {
+                let mut __for_first_423: bool = true;
+                while { if !__for_first_423 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_423 = false; i.as_f64().unwrap_or(f64::NAN) < ((10i64) as f64) } {
                 if i.as_f64().unwrap_or(f64::NAN) < asksLength.as_f64().unwrap_or(f64::NAN) {
                     payload = Value::Str(format!("{}{}", Value::Str(format!("{}{}", payload, self.value_to_checksum(self.safe_number(get_value(&storedAsks, &i), Value::Int(0), &[]))).into()), self.value_to_checksum(self.safe_number(get_value(&storedAsks, &i), Value::Int(1), &[]))).into());
                 }
@@ -569,8 +569,8 @@ impl IndependentreserveCore {
         let deltas = deltas.as_array().unwrap_or(&__deltas_empty);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_425: bool = true;
-            while { if !__for_first_425 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_425 = false; i.as_f64().unwrap_or(f64::NAN) < ((deltas.len() as i64) as f64) } {
+            let mut __for_first_424: bool = true;
+            while { if !__for_first_424 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_424 = false; i.as_f64().unwrap_or(f64::NAN) < ((deltas.len() as i64) as f64) } {
             self.handle_delta(bookside.clone(), deltas.get((i).as_i64().map_or(usize::MAX, |__n| __n as usize)).cloned().unwrap_or(Value::Null));
         }
         }

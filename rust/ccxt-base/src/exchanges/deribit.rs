@@ -2415,16 +2415,12 @@ impl DeribitCore {
             m
         });
         if (type_var != Value::Null) {
-            let mut requestType: Value = Value::Null;
             if (type_var.as_str() == Some("spot")) {
-                requestType = Value::Str("spot".into());
+                request.insert("kind".into(), Value::Str("spot".into()));
             }  else if (type_var.as_str() == Some("future")) || (type_var.as_str() == Some("contract")) {
-                requestType = Value::Str("future".into());
+                request.insert("kind".into(), Value::Str("future".into()));
             }  else if (type_var.as_str() == Some("option")) {
-                requestType = Value::Str("option".into());
-            }
-            if (requestType != Value::Null) {
-                request.insert("kind".into(), requestType);
+                request.insert("kind".into(), Value::Str("option".into()));
             }
         }
         let __ws_arg_5 = self.extend(Value::Map(request), &[paramsOmitted]);
@@ -4055,8 +4051,7 @@ impl DeribitCore {
         //
         let mut contract: Option<String> = self.safe_string_k_opt(position.clone(), "instrument_name", &[]);
         let mut marketResolved: Value = self.safe_market(&[contract.map(Value::from).unwrap_or(Value::Null), market]);
-        let mut side: Value = self.safe_string_k(position.clone(), "direction", &[]);
-        side = (if (side.as_str() == Some("buy")) { Value::Str("long".into()) } else { Value::Str("short".into()) });
+        let mut side: Value = (if (self.safe_string_k(position.clone(), "direction", &[]).as_str() == Some("buy")) { Value::Str("long".into()) } else { Value::Str("short".into()) });
         let mut unrealizedPnl: Option<String> = self.safe_string_k_opt(position.clone(), "floating_profit_loss", &[]);
         let mut initialMarginString: Option<String> = self.safe_string_k_opt(position.clone(), "initial_margin", &[]);
         let mut notionalString: Option<String> = self.safe_string_k_opt(position.clone(), "size_currency", &[]);

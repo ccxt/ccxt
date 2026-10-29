@@ -4907,9 +4907,6 @@ impl KucoinCore {
                 m.insert("swap".to_string(), Value::Str("FUTURES".into()));
             m
         });
-        if (type_var == Value::Null) {
-            return None;
-        }
         return self.safe_string(Value::Map(tradeTypes), type_var.clone(), &[type_var.clone()]).as_str().map(str::to_owned);
 }
 

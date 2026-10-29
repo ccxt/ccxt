@@ -209,7 +209,6 @@ impl BithumbCore {
             "build_gen2_subscription_request" => self.build_gen2_subscription_request(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
             "handle_balance" => { self.handle_balance(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_book_delta" => { self.handle_book_delta(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-            "handle_book_deltas" => { self.handle_book_deltas(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_error_message" => self.handle_error_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
             "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_order_book" => { self.handle_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
@@ -899,16 +898,6 @@ impl BithumbCore {
         orderbookSide.store_array(bidAsk);
 }
 
-    pub fn handle_book_deltas(&self, mut orderbook: Value, mut deltas: Value) {
-        {
-                        let mut i: Value = Value::Int(0);
-            let mut __for_first_129: bool = true;
-            while { if !__for_first_129 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_129 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&deltas).as_f64().unwrap_or(f64::NAN) } {
-            self.handle_book_delta(orderbook.clone(), get_value(&deltas, &i));
-        }
-        }
-}
-
 /*
  * @method
  * @name bithumb#watchTrades
@@ -1024,8 +1013,8 @@ impl BithumbCore {
         let mut rawTrades: Vec<Value> = self.safe_list_k(content, "list", &[Value::from(vec![message])]).as_array().cloned().unwrap_or_default();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_130: bool = true;
-            while { if !__for_first_130 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_130 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawTrades.len() as i64) as f64) } {
+            let mut __for_first_129: bool = true;
+            while { if !__for_first_129 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_129 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawTrades.len() as i64) as f64) } {
             let mut rawTrade: Value = rawTrades.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
             let mut marketId: Value = self.safe_string2(rawTrade.clone(), Value::Str("symbol".into()), Value::Str("code".into()), &[]);
             if (marketId == Value::Null) {
@@ -1243,8 +1232,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_131: bool = true;
-            while { if !__for_first_131 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_131 = false; i.as_f64().unwrap_or(f64::NAN) < ((assets.len() as i64) as f64) } {
+            let mut __for_first_130: bool = true;
+            while { if !__for_first_130 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_130 = false; i.as_f64().unwrap_or(f64::NAN) < ((assets.len() as i64) as f64) } {
             let mut asset: Value = self.safe_dict(assets.clone(), i.clone(), &[]);
             let mut currencyId: Option<String> = self.safe_string_k_opt(asset.clone(), "currency", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
@@ -1296,8 +1285,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut keys: Vec<Value> = Value::Array(subscriptions.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_132: bool = true;
-            while { if !__for_first_132 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_132 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
+            let mut __for_first_131: bool = true;
+            while { if !__for_first_131 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_131 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
             request.push(get_value(&subscriptions, &keys.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null)));
         }
         }

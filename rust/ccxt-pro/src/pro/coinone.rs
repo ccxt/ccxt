@@ -721,8 +721,8 @@ impl CoinoneCore {
             let mut keys: Vec<Value> = Value::Array(methods.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_278: bool = true;
-                while { if !__for_first_278 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_278 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
+                let mut __for_first_277: bool = true;
+                while { if !__for_first_277 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_277 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
                 let mut key: Value = keys.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
                 if Value::Int(topic.as_str().zip(key.as_str()).and_then(|(__s, __n)| __s.find(__n)).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
                     let mut method: Value = methods.get(key.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null);

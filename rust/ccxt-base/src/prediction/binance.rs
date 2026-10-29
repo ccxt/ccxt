@@ -460,7 +460,10 @@ impl BinanceCore {
             maxTopicsResolved = self.parse_to_int(maxTopics);
         }
         let mut pageLimitOption: Value = self.safe_integer_k(self.options.clone(), "marketsPageLimit", &[Value::Int(100)]);
-        let mut pageLimit: Value = (if (pageLimitOption.as_f64().unwrap_or(f64::NAN) > ((100i64) as f64)) { Value::Int(100) } else { pageLimitOption });
+        let mut pageLimit: Value = self.parse_to_int(Value::Int(100));
+        if pageLimitOption.as_f64().unwrap_or(f64::NAN) < ((100i64) as f64) {
+            pageLimit = self.parse_to_int(pageLimitOption);
+        }
         let mut collected: Vec<Value> = Vec::new();
         let mut offset: Value = Value::Int(0);
         loop {
@@ -2324,16 +2327,17 @@ impl BinanceCore {
         })]);
         let mut quote: Value = self.fetch_quote(quoteRequest, &[paramsOmitted.clone()]).await;
         let mut quoteId: Option<String> = self.safe_string_k_opt(quote, "quoteId", &[]);
+        let __ws_arg_15 = self.safe_string_k(wallet, "walletId", &[]);
         let mut orderRequest: Value = self.extend(Value::Map(commonRequest), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("walletId".to_string(), crate::value::get_value_k(&wallet, "walletId"));
+                m.insert("walletId".to_string(), __ws_arg_15);
                 m.insert("quoteId".to_string(), quoteId.map(Value::from).unwrap_or(Value::Null));
                 m.insert("timeInForce".to_string(), timeInForce);
                 m.insert("accountType".to_string(), accountType.map(Value::from).unwrap_or(Value::Null));
             m
         })]);
-        let __ws_arg_15 = self.extend(orderRequest, &[paramsOmitted]);
-        let mut response: Value = self.sapi_private_post_trade_place_order_bundle(&[__ws_arg_15]).await;
+        let __ws_arg_16 = self.extend(orderRequest, &[paramsOmitted]);
+        let mut response: Value = self.sapi_private_post_trade_place_order_bundle(&[__ws_arg_16]).await;
         return self.safe_prediction_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string_k(response.clone(), "orderId", &[]));
@@ -2382,8 +2386,8 @@ impl BinanceCore {
                 m.insert("cost".to_string(), cost.clone());
             m
         });
-        let __ws_arg_16 = self.extend(Value::Map(req), &[params]);
-        return self.create_order(symbol, Value::Str("market".into()), side, cost, &[Value::Null, __ws_arg_16]).await;
+        let __ws_arg_17 = self.extend(Value::Map(req), &[params]);
+        return self.create_order(symbol, Value::Str("market".into()), side, cost, &[Value::Null, __ws_arg_17]).await;
 
     Value::Null
 }
@@ -2441,7 +2445,7 @@ impl BinanceCore {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("walletAddress".to_string(), self.safe_string_k(wallet.clone(), "walletAddress", &[]));
-                m.insert("walletId".to_string(), crate::value::get_value_k(&wallet, "walletId"));
+                m.insert("walletId".to_string(), self.safe_string_k(wallet, "walletId", &[]));
             m
         });
         {
@@ -2452,8 +2456,8 @@ impl BinanceCore {
             request.insert(crate::runtime::stringify_param(&key), ids.get((i).as_i64().map_or(usize::MAX, |__n| __n as usize)).cloned().unwrap_or(Value::Null));
         }
         }
-        let __ws_arg_17 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.sapi_private_post_trade_batch_cancel(&[__ws_arg_17]).await;
+        let __ws_arg_18 = self.extend(Value::Map(request), &[params]);
+        let mut response: Value = self.sapi_private_post_trade_batch_cancel(&[__ws_arg_18]).await;
         //
         // {
         //     "canceled": [
@@ -2557,10 +2561,10 @@ impl BinanceCore {
         let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseUrl, Value::Str("/".into())).into()), self.implode_params(path.clone(), params.clone())).into());
         let mut query: Value = self.omit(params, self.extract_params(path), &[]);
         self.check_required_credentials(&[]);
-        let __ws_arg_18 = self.nonce();
+        let __ws_arg_19 = self.nonce();
         let mut extendedParams: Value = self.extend(Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("timestamp".to_string(), __ws_arg_18);
+                m.insert("timestamp".to_string(), __ws_arg_19);
             m
         }), &[query]);
         let mut defaultRecvWindow: Value = self.safe_integer_k(self.options.clone(), "recvWindow", &[]);

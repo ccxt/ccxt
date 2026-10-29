@@ -501,8 +501,8 @@ impl BitstampCore {
         let bidAsks = bidAsks.as_array().unwrap_or(&__bidAsks_empty);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_139: bool = true;
-            while { if !__for_first_139 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_139 = false; i.as_f64().unwrap_or(f64::NAN) < ((bidAsks.len() as i64) as f64) } {
+            let mut __for_first_138: bool = true;
+            while { if !__for_first_138 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_138 = false; i.as_f64().unwrap_or(f64::NAN) < ((bidAsks.len() as i64) as f64) } {
             let mut bidAsk: Value = self.parse_order_book_bid_ask(bidAsks.get((i).as_i64().map_or(usize::MAX, |__n| __n as usize)).cloned().unwrap_or(Value::Null), &[]);
             bookSide.store_array(bidAsk);
         }
@@ -522,8 +522,8 @@ impl BitstampCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_140: bool = true;
-            while { if !__for_first_140 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_140 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&deltas).as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_139: bool = true;
+            while { if !__for_first_139 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_139 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&deltas).as_f64().unwrap_or(f64::NAN) } {
             let mut delta: Value = self.safe_dict(deltas.clone(), i.clone(), &[]);
             let mut deltaNonce: Value = self.safe_integer_k(delta, "microtimestamp", &[]);
             if (deltaNonce.as_f64() == nonce.as_f64()) {
@@ -1274,8 +1274,8 @@ impl BitstampCore {
         let mut entries: Value = self.to_array(cache);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_141: bool = true;
-            while { if !__for_first_141 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_141 = false; i.as_f64().unwrap_or(f64::NAN) < ((entries.len() as i64) as f64) } {
+            let mut __for_first_140: bool = true;
+            while { if !__for_first_140 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_140 = false; i.as_f64().unwrap_or(f64::NAN) < ((entries.len() as i64) as f64) } {
             let mut entry: Value = entries.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut entrySymbol: Option<String> = self.safe_string_k_opt(entry.clone(), "symbol", &[]);
             if !(self.in_array(entrySymbol.map(Value::from).unwrap_or(Value::Null), symbols.clone()).as_bool() == Some(true)) {
@@ -1344,8 +1344,8 @@ impl BitstampCore {
         let mut keys: Vec<Value> = Value::Array(methods.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_142: bool = true;
-            while { if !__for_first_142 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_142 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
+            let mut __for_first_141: bool = true;
+            while { if !__for_first_141 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_141 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
             let mut key: Value = keys.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
             if Value::Int(channel.as_str().zip(key.as_str()).and_then(|(__s, __n)| __s.find(__n)).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64) {
                 let mut method: Value = methods.get(key.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null);
