@@ -11,6 +11,7 @@ import log from 'ololog'
 import ansi from 'ansicolor'
 import { Transpiler as OldTranspiler } from "./transpile.js";
 import { hx11w8BasePinnedListParams } from './hx11w8-base-pinned-list-params.js';
+import { hx11w8ObjectValuesListLocals } from './hx11w8-objectvalues-list-local.js';
 import errorHierarchy from '../js/src/base/errorHierarchy.js'
 import Piscina from 'piscina';
 import os from 'os';
@@ -3659,6 +3660,7 @@ class NewTranspiler {
 
         // retype the raw-text `final Object` hoists (see retypeFinalVarDeclarations)
         content = this.retypeFinalVarDeclarations(content);
+        content = hx11w8ObjectValuesListLocals(content);
         content = nativeJavaDeclaredElementReads(content);
         content = nativeJavaJ03ElementReads(content);
         content = nativeJavaJ02ElementReads(content); // hx10 w2 J02
@@ -7587,6 +7589,7 @@ function hx4J21BaseNativePasses (transpiler: any, body: string, sourcePath?: str
     let content = body;
     content = transpiler.retypeFinalVarDeclarations(content);
     content = hx11w8BasePinnedListParams(content);
+    content = hx11w8ObjectValuesListLocals(content);
     content = nativeJavaDeclaredElementReads(content);
     content = nativeJavaJ03ElementReads(content);
     content = nativeJavaJ02ElementReads(content, sourcePath); // hx10 w2 J02
