@@ -13211,11 +13211,18 @@ impl std::ops::DerefMut for ${coreName} {
             const body = content.slice(bodyStart, k);
             const esc = v.replace(/[$]/g, '\\$');
             const readRe = new RegExp(`\\.as_array\\(\\)\\.and_then\\(\\|__arr\\| match &${esc} \\{ Value::Int\\(__n\\) => __arr\\.get\\(\\*__n as usize\\), Value::Str\\(__s\\) => __s\\.parse::<usize>\\(\\)\\.ok\\(\\)\\.and_then\\(\\|__n\\| __arr\\.get\\(__n\\)\\), _ => None \\}\\)`, 'g');
-            const reads = (body.match(readRe) || []).length;
+            // Other proven-Int uses: Vec `.get(i.as_i64().unwrap_or(-1) as usize)` and the boxed `i.clone()`.
+            const vecRe = new RegExp(`\\.get\\(${esc}\\.as_i64\\(\\)\\.unwrap_or\\(-1\\) as usize\\)`, 'g');
+            const boxRe = new RegExp(`(?<![\\w.])${esc}\\.clone\\(\\)`, 'g');
+            const count = (re: RegExp): number => (body.match(re) || []).length;
+            const reads = count(readRe) + count(vecRe) + count(boxRe);
             const useRe = new RegExp(`(?<![\\w.])${esc}(?![\\w])`, 'g');
             const uses = (this.maskStringsAndComments(body).match(useRe) || []).length;
             if (reads === 0 || uses !== reads) continue;
-            const newBody = body.replace(readRe, `.as_array().map(Vec::as_slice).unwrap_or(&[]).get(${v} as usize)`);
+            const newBody = body
+                .replace(readRe, `.as_array().map(Vec::as_slice).unwrap_or(&[]).get(${v} as usize)`)
+                .replace(vecRe, `.get(${v} as usize)`)
+                .replace(boxRe, `Value::Int(${v})`);
             const head = whole
                 .replace(`let mut ${v}: Value = Value::Int(${init});`, `let mut ${v}: i64 = ${init};`)
                 .replace(`if let Value::Int(n) = &mut ${v} { *n += 1; }`, `${v} += 1;`)
