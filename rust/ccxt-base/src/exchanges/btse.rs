@@ -1635,20 +1635,20 @@ impl BtseCore {
             m
         });
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_480: bool = true;
-            while { if !__for_first_480 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_480 = false; i.as_f64().unwrap_or(f64::NAN) < ((response.len() as i64) as f64) } {
-            let mut row: Value = self.safe_dict(response.clone(), i.clone(), &[]);
+            while { if !__for_first_480 { i += 1; } __for_first_480 = false; i < (response.len() as i64) } {
+            let mut row: Value = self.safe_dict(response.clone(), Value::Int(i), &[]);
             let mut assets: Value = self.safe_list_k(row.clone(), "assets", &[]);
             if (assets != Value::Null) {
                 // futures wallet row: per-currency totals in assets, locked amounts in assetsInUse
                 // several wallet rows can report the same currency, so amounts are aggregated
                 let mut inUse: Value = self.safe_list_k(row.clone(), "assetsInUse", &[Value::from(vec![])]);
                 {
-                                        let mut j: Value = Value::Int(0);
+                                        let mut j: i64 = 0;
                     let mut __for_first_478: bool = true;
-                    while { if !__for_first_478 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_478 = false; j.as_f64().unwrap_or(f64::NAN) < ((inUse.len() as i64) as f64) } {
-                    let mut usedRow: Value = self.safe_dict(inUse.clone(), j.clone(), &[]);
+                    while { if !__for_first_478 { j += 1; } __for_first_478 = false; j < (inUse.len() as i64) } {
+                    let mut usedRow: Value = self.safe_dict(inUse.clone(), Value::Int(j), &[]);
                     let mut usedCode: Value = self.safe_currency_code(self.safe_string_k(usedRow.clone(), "currency", &[]), &[]);
                     if (usedCode == Value::Null) {
                         continue;
@@ -1657,10 +1657,10 @@ impl BtseCore {
                 }
                 }
                 {
-                                        let mut j: Value = Value::Int(0);
+                                        let mut j: i64 = 0;
                     let mut __for_first_479: bool = true;
-                    while { if !__for_first_479 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_479 = false; j.as_f64().unwrap_or(f64::NAN) < ((assets.len() as i64) as f64) } {
-                    let mut assetRow: Value = self.safe_dict(assets.clone(), j.clone(), &[]);
+                    while { if !__for_first_479 { j += 1; } __for_first_479 = false; j < (assets.len() as i64) } {
+                    let mut assetRow: Value = self.safe_dict(assets.clone(), Value::Int(j), &[]);
                     let mut code: Value = self.safe_currency_code(self.safe_string_k(assetRow.clone(), "currency", &[]), &[]);
                     if (code == Value::Null) {
                         continue;
@@ -1683,10 +1683,10 @@ impl BtseCore {
         }
         let mut codes: Vec<Value> = Value::Array(totals.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_481: bool = true;
-            while { if !__for_first_481 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_481 = false; i.as_f64().unwrap_or(f64::NAN) < ((codes.len() as i64) as f64) } {
-            let mut code: Value = codes.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_481 { i += 1; } __for_first_481 = false; i < (codes.len() as i64) } {
+            let mut code: Value = codes.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             account.insert("total".into(), self.safe_string(Value::Map(totals.clone()), code.clone(), &[]));
             account.insert("free".into(), self.safe_string(Value::Map(frees.clone()), code.clone(), &[]));
@@ -1759,10 +1759,10 @@ impl BtseCore {
             m
         });
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_483: bool = true;
-            while { if !__for_first_483 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_483 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
-            let mut entry: Value = self.safe_dict(data.clone(), i.clone(), &[]);
+            while { if !__for_first_483 { i += 1; } __for_first_483 = false; i < (data.len() as i64) } {
+            let mut entry: Value = self.safe_dict(data.clone(), Value::Int(i), &[]);
             let mut marketId: Option<String> = self.safe_string_k_opt(entry.clone(), "symbol", &[]);
             let mut market: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]);
             let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
@@ -2027,10 +2027,10 @@ impl BtseCore {
         let mut data: Vec<Value> = self.safe_list_k(response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut rows: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_484: bool = true;
-            while { if !__for_first_484 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_484 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
-            let mut row: Value = data.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_484 { i += 1; } __for_first_484 = false; i < (data.len() as i64) } {
+            let mut row: Value = data.get(i as usize).cloned().unwrap_or(Value::Null);
             // spot rows do not carry an open interest
             if (self.safe_string_k(row.clone(), "openInterest", &[]) != Value::Null) {
                 rows.push(row);
@@ -2121,10 +2121,10 @@ impl BtseCore {
         let mut data: Vec<Value> = self.safe_list_k(response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut rows: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_485: bool = true;
-            while { if !__for_first_485 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_485 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
-            let mut row: Value = data.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_485 { i += 1; } __for_first_485 = false; i < (data.len() as i64) } {
+            let mut row: Value = data.get(i as usize).cloned().unwrap_or(Value::Null);
             // spot rows do not carry a funding rate
             if (self.safe_string_k(row.clone(), "fundingRate", &[]) != Value::Null) {
                 rows.push(row);
@@ -3663,10 +3663,10 @@ impl BtseCore {
             m
         });
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_487: bool = true;
-            while { if !__for_first_487 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_487 = false; i.as_f64().unwrap_or(f64::NAN) < ((responseList.len() as i64) as f64) } {
-            let mut feeInfo: Value = self.safe_dict(responseList.clone(), i.clone(), &[Value::Map({
+            while { if !__for_first_487 { i += 1; } __for_first_487 = false; i < (responseList.len() as i64) } {
+            let mut feeInfo: Value = self.safe_dict(responseList.clone(), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -3775,20 +3775,20 @@ impl BtseCore {
             m
         });
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_488: bool = true;
-            while { if !__for_first_488 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_488 = false; i.as_f64().unwrap_or(f64::NAN) < ((typesList.len() as i64) as f64) } {
-            let mut historyType: Value = self.safe_string(typesList.clone(), i.clone(), &[Value::Str("".into())]);
+            while { if !__for_first_488 { i += 1; } __for_first_488 = false; i < (typesList.len() as i64) } {
+            let mut historyType: Value = self.safe_string(typesList.clone(), Value::Int(i), &[Value::Str("".into())]);
             if let Value::Dict(__d) = &mut allowed { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&historyType), Value::Bool(true)); }
             add_element_to_object(&mut allowed, &self.capitalize(historyType.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null)), Value::Bool(true));
         }
         }
         let mut rows: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_489: bool = true;
-            while { if !__for_first_489 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_489 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawRows.len() as i64) as f64) } {
-            let mut entry: Value = self.safe_dict(rawRows.clone(), i.clone(), &[Value::Map({
+            while { if !__for_first_489 { i += 1; } __for_first_489 = false; i < (rawRows.len() as i64) } {
+            let mut entry: Value = self.safe_dict(rawRows.clone(), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -4695,10 +4695,10 @@ impl BtseCore {
         let mut shortLeverage: Value = Value::Null;
         let mut marginMode: Value = Value::Null;
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_490: bool = true;
-            while { if !__for_first_490 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_490 = false; i.as_f64().unwrap_or(f64::NAN) < ((safeResponse.len() as i64) as f64) } {
-            let mut entrty: Value = self.safe_dict(safeResponse.clone(), i.clone(), &[]);
+            while { if !__for_first_490 { i += 1; } __for_first_490 = false; i < (safeResponse.len() as i64) } {
+            let mut entrty: Value = self.safe_dict(safeResponse.clone(), Value::Int(i), &[]);
             let mut leverageValue: Value = self.safe_integer_k(entrty.clone(), "leverage", &[]);
             let mut positionDirection: Option<String> = self.safe_string_k(entrty.clone(), "positionDirection", &[]).as_str().map(str::to_owned);
             marginMode = self.safe_string_lower_k(entrty, "marginMode", &[]);
@@ -4826,10 +4826,10 @@ impl BtseCore {
             rows = Value::from(vec![response]);
         }
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_491: bool = true;
-            while { if !__for_first_491 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_491 = false; i.as_f64().unwrap_or(f64::NAN) < ((rows.len() as i64) as f64) } {
-            let mut row: Value = self.safe_dict(rows.clone(), i.clone(), &[]);
+            while { if !__for_first_491 { i += 1; } __for_first_491 = false; i < (rows.len() as i64) } {
+            let mut row: Value = self.safe_dict(rows.clone(), Value::Int(i), &[]);
             let mut status: Option<String> = self.safe_string_k_opt(row.clone(), "status", &[]);
             if (status.is_some()) {
                 let mut message: Value = self.safe_string_k(row, "message", &[]);

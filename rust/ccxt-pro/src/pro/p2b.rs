@@ -666,10 +666,10 @@ impl P2bCore {
             if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), tradesArray.clone()); }
         }
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_579: bool = true;
-            while { if !__for_first_579 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_579 = false; i.as_f64().unwrap_or(f64::NAN) < ((trades.len() as i64) as f64) } {
-            let mut item: Value = trades.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_579 { i += 1; } __for_first_579 = false; i < (trades.len() as i64) } {
+            let mut item: Value = trades.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut trade: Value = self.parse_trade(item, &[market.clone()]);
             tradesArray.append(trade);
         }
@@ -803,10 +803,10 @@ impl P2bCore {
         }
         if (bids != Value::Null) {
             {
-                                let mut i: Value = Value::Int(0);
+                                let mut i: i64 = 0;
                 let mut __for_first_580: bool = true;
-                while { if !__for_first_580 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_580 = false; i.as_f64().unwrap_or(f64::NAN) < ((bids.len() as i64) as f64) } {
-                let mut bid: Value = self.safe_list(bids.clone(), i.clone(), &[]);
+                while { if !__for_first_580 { i += 1; } __for_first_580 = false; i < (bids.len() as i64) } {
+                let mut bid: Value = self.safe_list(bids.clone(), Value::Int(i), &[]);
                 let mut price: Value = self.safe_number(bid.clone(), Value::Int(0), &[]);
                 let mut amount: Value = self.safe_number(bid, Value::Int(1), &[]);
                 let mut bookSide: Value = crate::value::get_value_k(&orderbook, "bids");
@@ -816,10 +816,10 @@ impl P2bCore {
         }
         if (asks != Value::Null) {
             {
-                                let mut i: Value = Value::Int(0);
+                                let mut i: i64 = 0;
                 let mut __for_first_581: bool = true;
-                while { if !__for_first_581 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_581 = false; i.as_f64().unwrap_or(f64::NAN) < ((asks.len() as i64) as f64) } {
-                let mut ask: Value = self.safe_list(asks.clone(), i.clone(), &[]);
+                while { if !__for_first_581 { i += 1; } __for_first_581 = false; i < (asks.len() as i64) } {
+                let mut ask: Value = self.safe_list(asks.clone(), Value::Int(i), &[]);
                 let mut price: Value = self.safe_number(ask.clone(), Value::Int(0), &[]);
                 let mut amount: Value = self.safe_number(ask, Value::Int(1), &[]);
                 let mut bookside: Value = crate::value::get_value_k(&orderbook, "asks");
@@ -827,7 +827,7 @@ impl P2bCore {
             }
             }
         }
-        add_element_to_object(&mut orderbook, &Value::Str("symbol".into()), symbol);
+        orderbook.set_book_meta("symbol", symbol);
         client.resolve(&[orderbook, messageHash]);
 }
 

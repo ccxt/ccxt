@@ -1588,13 +1588,13 @@ impl BittradeCore {
             m
         };
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_445: bool = true;
-            while { if !__for_first_445 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_445 = false; i.as_f64().unwrap_or(f64::NAN) < ((tickers.len() as i64) as f64) } {
-            let mut marketId: Option<String> = self.safe_string_opt(tickers.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null), Value::Str("symbol".into()), &[]);
+            while { if !__for_first_445 { i += 1; } __for_first_445 = false; i < (tickers.len() as i64) } {
+            let mut marketId: Option<String> = self.safe_string_opt(tickers.get(i as usize).cloned().unwrap_or(Value::Null), Value::Str("symbol".into()), &[]);
             let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
             let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-            let mut ticker: indexmap::IndexMap<String, Value> = self.parse_ticker(tickers.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null), &[market]).as_map().cloned().unwrap_or_default();
+            let mut ticker: indexmap::IndexMap<String, Value> = self.parse_ticker(tickers.get(i as usize).cloned().unwrap_or(Value::Null), &[market]).as_map().cloned().unwrap_or_default();
             ticker.insert("timestamp".into(), timestamp.clone());
             ticker.insert("datetime".into(), self.iso8601(timestamp.clone()));
             result.insert(crate::runtime::stringify_param(&symbol), Value::Map(ticker));
@@ -1833,15 +1833,15 @@ impl BittradeCore {
         let mut data: Vec<Value> = self.safe_list_k(response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut result: Value = Value::from(vec![]);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_447: bool = true;
-            while { if !__for_first_447 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_447 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
-            let mut trades: Vec<Value> = self.safe_list(data.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null), Value::Str("data".into()), &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+            while { if !__for_first_447 { i += 1; } __for_first_447 = false; i < (data.len() as i64) } {
+            let mut trades: Vec<Value> = self.safe_list(data.get(i as usize).cloned().unwrap_or(Value::Null), Value::Str("data".into()), &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
             {
-                                let mut j: Value = Value::Int(0);
+                                let mut j: i64 = 0;
                 let mut __for_first_446: bool = true;
-                while { if !__for_first_446 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_446 = false; j.as_f64().unwrap_or(f64::NAN) < ((trades.len() as i64) as f64) } {
-                let mut trade: Value = self.parse_trade(trades.get(j.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null), &[market.clone()]);
+                while { if !__for_first_446 { j += 1; } __for_first_446 = false; j < (trades.len() as i64) } {
+                let mut trade: Value = self.parse_trade(trades.get(j as usize).cloned().unwrap_or(Value::Null), &[market.clone()]);
                 if let Value::Arr(__a) = &mut result { std::sync::Arc::make_mut(__a).push(trade); }
             }
             }
@@ -2062,10 +2062,10 @@ impl BittradeCore {
             m
         });
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_448: bool = true;
-            while { if !__for_first_448 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_448 = false; i.as_f64().unwrap_or(f64::NAN) < ((balances.len() as i64) as f64) } {
-            let mut balance: Value = balances.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_448 { i += 1; } __for_first_448 = false; i < (balances.len() as i64) } {
+            let mut balance: Value = balances.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut currencyId: Option<String> = self.safe_string_k_opt(balance.clone(), "currency", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
             let mut account: indexmap::IndexMap<String, Value> = self.safe_dict(Value::Map(result.clone()), code.clone(), &[self.account()]).as_map().cloned().unwrap_or_default();
@@ -2707,10 +2707,10 @@ impl BittradeCore {
         let mut failed: Value = self.safe_list2(orders, Value::Str("errors".into()), Value::Str("failed".into()), &[Value::from(vec![])]);
         let mut result: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_450: bool = true;
-            while { if !__for_first_450 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_450 = false; i.as_f64().unwrap_or(f64::NAN) < ((success.len() as i64) as f64) } {
-            let mut order: Option<String> = self.safe_string_opt(success.clone(), i.clone(), &[]);
+            while { if !__for_first_450 { i += 1; } __for_first_450 = false; i < (success.len() as i64) } {
+            let mut order: Option<String> = self.safe_string_opt(success.clone(), Value::Int(i), &[]);
             result.push(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order.clone().map(Value::from).unwrap_or(Value::Null));

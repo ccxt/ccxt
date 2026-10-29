@@ -443,10 +443,10 @@ impl NdaxCore {
             m
         });
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_527: bool = true;
-            while { if !__for_first_527 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_527 = false; i.as_f64().unwrap_or(f64::NAN) < ((payload.len() as i64) as f64) } {
-            let mut trade: Value = self.parse_trade(payload.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null), &[]);
+            while { if !__for_first_527 { i += 1; } __for_first_527 = false; i < (payload.len() as i64) } {
+            let mut trade: Value = self.parse_trade(payload.get(i as usize).cloned().unwrap_or(Value::Null), &[]);
             let mut symbol: Option<String> = self.safe_string_k_opt(trade.clone(), "symbol", &[]);
             let mut tradesArray: Value = (if (symbol.is_none()) { Value::Null } else { self.safe_value(self.trades.clone(), symbol.clone().map(Value::from).unwrap_or(Value::Null), &[]) });
             if (tradesArray == Value::Null) {
@@ -464,10 +464,10 @@ impl NdaxCore {
         }
         let mut symbols: Vec<Value> = Value::Array(updates.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_528: bool = true;
-            while { if !__for_first_528 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_528 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
-            let mut symbol: Value = symbols.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_528 { i += 1; } __for_first_528 = false; i < (symbols.len() as i64) } {
+            let mut symbol: Value = symbols.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.market(symbol.clone());
             let marketId: String = self.safe_string_k_opt(market, "id", &[Value::Str("".into())]).unwrap_or_default();
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str(":".into())).into()), marketId).into());
@@ -571,10 +571,10 @@ impl NdaxCore {
             m
         });
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_530: bool = true;
-            while { if !__for_first_530 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_530 = false; i.as_f64().unwrap_or(f64::NAN) < ((payload.len() as i64) as f64) } {
-            let mut ohlcv: Value = self.safe_list(payload.clone(), i.clone(), &[]);
+            while { if !__for_first_530 { i += 1; } __for_first_530 = false; i < (payload.len() as i64) } {
+            let mut ohlcv: Value = self.safe_list(payload.clone(), Value::Int(i), &[]);
             let mut marketId: Option<String> = self.safe_string_opt(ohlcv.clone(), Value::Int(8), &[]);
             let mut market: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]);
             let mut symbol: Value = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]);
@@ -588,10 +588,10 @@ impl NdaxCore {
 })]); if let Value::Dict(__d) = &mut self.ohlcvs { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
             let mut keys: Vec<Value> = Value::Array(self.timeframes.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
             {
-                                let mut j: Value = Value::Int(0);
+                                let mut j: i64 = 0;
                 let mut __for_first_529: bool = true;
-                while { if !__for_first_529 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_529 = false; j.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
-                let mut timeframe: Value = keys.get(j.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+                while { if !__for_first_529 { j += 1; } __for_first_529 = false; j < (keys.len() as i64) } {
+                let mut timeframe: Value = keys.get(j as usize).cloned().unwrap_or(Value::Null);
                 let mut interval: Value = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
                 let mut duration: Value = (match (&(self.parse_to_int(interval)), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
                 let mut timestamp: Value = self.safe_integer(ohlcv.clone(), Value::Int(0), &[]);
@@ -655,16 +655,16 @@ impl NdaxCore {
         let mut name: Value = Value::Str("SubscribeTicker".into());
         let mut marketIds: Vec<Value> = Value::Array(updates.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_532: bool = true;
-            while { if !__for_first_532 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_532 = false; i.as_f64().unwrap_or(f64::NAN) < ((marketIds.len() as i64) as f64) } {
-            let mut marketId: Value = marketIds.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_532 { i += 1; } __for_first_532 = false; i < (marketIds.len() as i64) } {
+            let mut marketId: Value = marketIds.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut timeframes: Vec<Value> = object_keys(&updates.get(marketId.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null)).as_array().cloned().unwrap_or_default();
             {
-                                let mut j: Value = Value::Int(0);
+                                let mut j: i64 = 0;
                 let mut __for_first_531: bool = true;
-                while { if !__for_first_531 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_531 = false; j.as_f64().unwrap_or(f64::NAN) < ((timeframes.len() as i64) as f64) } {
-                let mut timeframe: Value = timeframes.get(j.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+                while { if !__for_first_531 { j += 1; } __for_first_531 = false; j < (timeframes.len() as i64) } {
+                let mut timeframe: Value = timeframes.get(j as usize).cloned().unwrap_or(Value::Null);
                 let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str(":".into())).into()), timeframe).into()), Value::Str(":".into())).into()), marketId).into());
                 let mut market: Value = self.safe_market(&[marketId.clone()]);
                 let mut symbol: Value = self.safe_string_k(market, "symbol", &[Value::Str("".into())]);
@@ -782,10 +782,10 @@ impl NdaxCore {
         let mut timestamp: Value = self.safe_integer(firstBidAsk.clone(), Value::Int(2), &[]);
         let mut nonce: Value = self.safe_integer(firstBidAsk, Value::Int(0), &[]);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_533: bool = true;
-            while { if !__for_first_533 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_533 = false; i.as_f64().unwrap_or(f64::NAN) < ((payload.len() as i64) as f64) } {
-            let mut bidask: Value = self.safe_list(payload.clone(), i.clone(), &[]);
+            while { if !__for_first_533 { i += 1; } __for_first_533 = false; i < (payload.len() as i64) } {
+            let mut bidask: Value = self.safe_list(payload.clone(), Value::Int(i), &[]);
             if (timestamp == Value::Null) {
                 timestamp = self.safe_integer(bidask.clone(), Value::Int(2), &[]);
             }  else {
@@ -819,9 +819,9 @@ impl NdaxCore {
             }
         }
         }
-        add_element_to_object(&mut orderbook, &Value::Str("nonce".into()), nonce);
-        add_element_to_object(&mut orderbook, &Value::Str("timestamp".into()), timestamp.clone());
-        add_element_to_object(&mut orderbook, &Value::Str("datetime".into()), self.iso8601(timestamp));
+        orderbook.set_book_meta("nonce", nonce);
+        orderbook.set_book_meta("timestamp", timestamp.clone());
+        orderbook.set_book_meta("datetime", self.iso8601(timestamp));
         let mut name: Value = Value::Str("SubscribeLevel2".into());
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str(":".into())).into()), marketId.clone().map(Value::from).unwrap_or(Value::Null)).into());
         if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), orderbook.clone()); }

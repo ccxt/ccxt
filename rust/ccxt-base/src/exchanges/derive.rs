@@ -1318,10 +1318,10 @@ impl DeriveCore {
         let mut subaccountIds: Value = self.safe_list_k(result.clone(), "subaccount_ids", &[Value::from(vec![])]);
         let mut accounts: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_630: bool = true;
-            while { if !__for_first_630 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_630 = false; i.as_f64().unwrap_or(f64::NAN) < ((subaccountIds.len() as i64) as f64) } {
-            let mut subaccountId: Option<String> = self.safe_string_opt(subaccountIds.clone(), i.clone(), &[]);
+            while { if !__for_first_630 { i += 1; } __for_first_630 = false; i < (subaccountIds.len() as i64) } {
+            let mut subaccountId: Option<String> = self.safe_string_opt(subaccountIds.clone(), Value::Int(i), &[]);
             accounts.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), subaccountId.map(Value::from).unwrap_or(Value::Null));
@@ -2823,10 +2823,10 @@ impl DeriveCore {
         let mut data: Vec<Value> = self.safe_list_k(result, "funding_rate_history", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut rates: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_634: bool = true;
-            while { if !__for_first_634 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_634 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
-            let mut entry: Value = data.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_634 { i += 1; } __for_first_634 = false; i < (data.len() as i64) } {
+            let mut entry: Value = data.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut timestamp: Value = self.safe_integer_k(entry.clone(), "timestamp", &[]);
             rates.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -4848,17 +4848,17 @@ impl DeriveCore {
         let mut usedUsd: Value = Value::Str("0".into());
         let mut subaccounts: Value = self.to_array(response);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_636: bool = true;
-            while { if !__for_first_636 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_636 = false; i.as_f64().unwrap_or(f64::NAN) < ((subaccounts.len() as i64) as f64) } {
-            let mut subaccount: Value = self.safe_dict(subaccounts.clone(), i.clone(), &[]);
+            while { if !__for_first_636 { i += 1; } __for_first_636 = false; i < (subaccounts.len() as i64) } {
+            let mut subaccount: Value = self.safe_dict(subaccounts.clone(), Value::Int(i), &[]);
             usedUsd = crate::precise::Precise::stringSub(&usedUsd, &crate::precise::Precise::stringAdd(&self.safe_string_k(subaccount.clone(), "positions_initial_margin", &[Value::Str("0".into())]), &self.safe_string_k(subaccount.clone(), "open_orders_margin", &[Value::Str("0".into())])));
             let mut collaterals: Value = self.safe_list_k(subaccount, "collaterals", &[Value::from(vec![])]);
             {
-                                let mut j: Value = Value::Int(0);
+                                let mut j: i64 = 0;
                 let mut __for_first_635: bool = true;
-                while { if !__for_first_635 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_635 = false; j.as_f64().unwrap_or(f64::NAN) < ((collaterals.len() as i64) as f64) } {
-                let mut balance: Value = self.safe_dict(collaterals.clone(), j.clone(), &[]);
+                while { if !__for_first_635 { j += 1; } __for_first_635 = false; j < (collaterals.len() as i64) } {
+                let mut balance: Value = self.safe_dict(collaterals.clone(), Value::Int(j), &[]);
                 let mut code: Value = self.safe_currency_code(self.safe_string_k(balance.clone(), "currency", &[]), &[]);
                 let mut account: Value = self.safe_dict(Value::Map(result.clone()), code.clone(), &[]);
                 if (account == Value::Null) {
@@ -5088,10 +5088,10 @@ impl DeriveCore {
         let mut transfers: Value = self.safe_list_k(result, "transfers", &[Value::from(vec![])]);
         let mut parsed: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_637: bool = true;
-            while { if !__for_first_637 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_637 = false; i.as_f64().unwrap_or(f64::NAN) < ((transfers.len() as i64) as f64) } {
-            parsed.push(self.parse_transfer(self.safe_dict(transfers.clone(), i.clone(), &[Value::Map({
+            while { if !__for_first_637 { i += 1; } __for_first_637 = false; i < (transfers.len() as i64) } {
+            parsed.push(self.parse_transfer(self.safe_dict(transfers.clone(), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]), &[]));
@@ -5181,11 +5181,11 @@ impl DeriveCore {
         let mut rows: Value = self.safe_list_k(result, "interest_rate_history", &[Value::from(vec![])]);
         let mut rates: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_638: bool = true;
-            while { if !__for_first_638 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_638 = false; i.as_f64().unwrap_or(f64::NAN) < ((rows.len() as i64) as f64) } {
+            while { if !__for_first_638 { i += 1; } __for_first_638 = false; i < (rows.len() as i64) } {
             // the base history helper parses without a currency, while the rows carry none, so the rate entries are built here with the requested currency attached
-            rates.push(self.parse_borrow_rate(self.safe_dict(rows.clone(), i.clone(), &[Value::Map({
+            rates.push(self.parse_borrow_rate(self.safe_dict(rows.clone(), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]), &[currency.clone()]));

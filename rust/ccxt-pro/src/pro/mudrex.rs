@@ -518,10 +518,10 @@ impl MudrexCore {
         let message = message.as_map().unwrap_or(&__message_empty);
         let mut data: Vec<Value> = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_510: bool = true;
-            while { if !__for_first_510 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_510 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
-            let mut t: Value = data.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_510 { i += 1; } __for_first_510 = false; i < (data.len() as i64) } {
+            let mut t: Value = data.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut s: Option<String> = self.safe_string_k_opt(t.clone(), "s", &[]);
             if (s.is_none()) {
                 continue;

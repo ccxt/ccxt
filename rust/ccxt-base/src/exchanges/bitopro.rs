@@ -1328,10 +1328,10 @@ impl BitoproCore {
         });
         let mut rows: Value = self.to_array(response);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_409: bool = true;
-            while { if !__for_first_409 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_409 = false; i.as_f64().unwrap_or(f64::NAN) < ((rows.len() as i64) as f64) } {
-            let mut balance: Value = self.safe_dict(rows.clone(), i.clone(), &[]);
+            while { if !__for_first_409 { i += 1; } __for_first_409 = false; i < (rows.len() as i64) } {
+            let mut balance: Value = self.safe_dict(rows.clone(), Value::Int(i), &[]);
             let mut currencyId: Option<String> = self.safe_string_k_opt(balance.clone(), "currency", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
             let mut amount: Option<String> = self.safe_string_k_opt(balance.clone(), "amount", &[]);
@@ -1593,19 +1593,19 @@ impl BitoproCore {
         let mut dataKeys: Vec<Value> = Value::Array(data.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         let mut orders: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_411: bool = true;
-            while { if !__for_first_411 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_411 = false; i.as_f64().unwrap_or(f64::NAN) < ((dataKeys.len() as i64) as f64) } {
-            let mut marketId: Value = dataKeys.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_411 { i += 1; } __for_first_411 = false; i < (dataKeys.len() as i64) } {
+            let mut marketId: Value = dataKeys.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut orderIds: Vec<Value> = self.safe_list(data.clone(), marketId.clone(), &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
             {
-                                let mut j: Value = Value::Int(0);
+                                let mut j: i64 = 0;
                 let mut __for_first_410: bool = true;
-                while { if !__for_first_410 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_410 = false; j.as_f64().unwrap_or(f64::NAN) < ((orderIds.len() as i64) as f64) } {
+                while { if !__for_first_410 { j += 1; } __for_first_410 = false; j < (orderIds.len() as i64) } {
                 orders.push(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), orderIds.get(j.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null));
-        m.insert("id".to_string(), orderIds.get(j.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null));
+        m.insert("info".to_string(), orderIds.get(j as usize).cloned().unwrap_or(Value::Null));
+        m.insert("id".to_string(), orderIds.get(j as usize).cloned().unwrap_or(Value::Null));
         m.insert("symbol".to_string(), self.safe_symbol(marketId.clone(), &[]));
     m
 }), &[]));

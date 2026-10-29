@@ -2655,12 +2655,12 @@ if _try_result.is_err() {
         let mut data: Vec<Value> = self.safe_list_k(response, "funding_rates", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut result: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_932: bool = true;
-            while { if !__for_first_932 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_932 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
-            let mut exchange: Option<String> = self.safe_string(data.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null), Value::Str("exchange".into()), &[]).as_str().map(str::to_owned);
+            while { if !__for_first_932 { i += 1; } __for_first_932 = false; i < (data.len() as i64) } {
+            let mut exchange: Option<String> = self.safe_string(data.get(i as usize).cloned().unwrap_or(Value::Null), Value::Str("exchange".into()), &[]).as_str().map(str::to_owned);
             if (exchange.as_deref() == Some("lighter")) {
-                result.push(data.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null));
+                result.push(data.get(i as usize).cloned().unwrap_or(Value::Null));
             }
         }
         }
@@ -2752,17 +2752,17 @@ if _try_result.is_err() {
         });
         let mut accounts: Value = self.safe_list_k(response, "accounts", &[Value::from(vec![])]);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_934: bool = true;
-            while { if !__for_first_934 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_934 = false; i.as_f64().unwrap_or(f64::NAN) < ((accounts.len() as i64) as f64) } {
-            let mut account: Value = self.safe_dict(accounts.clone(), i.clone(), &[]);
+            while { if !__for_first_934 { i += 1; } __for_first_934 = false; i < (accounts.len() as i64) } {
+            let mut account: Value = self.safe_dict(accounts.clone(), Value::Int(i), &[]);
             if (type_var.as_deref() == Some("spot")) {
                 let mut assets: Value = self.safe_list_k(account.clone(), "assets", &[Value::from(vec![])]);
                 {
-                                        let mut j: Value = Value::Int(0);
+                                        let mut j: i64 = 0;
                     let mut __for_first_933: bool = true;
-                    while { if !__for_first_933 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_933 = false; j.as_f64().unwrap_or(f64::NAN) < ((assets.len() as i64) as f64) } {
-                    let mut asset: Value = self.safe_dict(assets.clone(), j.clone(), &[]);
+                    while { if !__for_first_933 { j += 1; } __for_first_933 = false; j < (assets.len() as i64) } {
+                    let mut asset: Value = self.safe_dict(assets.clone(), Value::Int(j), &[]);
                     let mut codeId: Option<String> = self.safe_string_k_opt(asset.clone(), "symbol", &[]);
                     let mut code: Value = self.safe_currency_code(codeId.map(Value::from).unwrap_or(Value::Null), &[]);
                     let __ws_arg_17 = self.account();
@@ -2908,16 +2908,16 @@ if _try_result.is_err() {
         let mut allPositions: Vec<Value> = Vec::new();
         let mut accounts: Value = self.safe_list_k(response, "accounts", &[Value::from(vec![])]);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_936: bool = true;
-            while { if !__for_first_936 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_936 = false; i.as_f64().unwrap_or(f64::NAN) < ((accounts.len() as i64) as f64) } {
-            let mut account: Value = self.safe_dict(accounts.clone(), i.clone(), &[]);
+            while { if !__for_first_936 { i += 1; } __for_first_936 = false; i < (accounts.len() as i64) } {
+            let mut account: Value = self.safe_dict(accounts.clone(), Value::Int(i), &[]);
             let mut positions: Vec<Value> = self.safe_list_k(account, "positions", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
             {
-                                let mut j: Value = Value::Int(0);
+                                let mut j: i64 = 0;
                 let mut __for_first_935: bool = true;
-                while { if !__for_first_935 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_935 = false; j.as_f64().unwrap_or(f64::NAN) < ((positions.len() as i64) as f64) } {
-                allPositions.push(positions.get(j.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null));
+                while { if !__for_first_935 { j += 1; } __for_first_935 = false; j < (positions.len() as i64) } {
+                allPositions.push(positions.get(j as usize).cloned().unwrap_or(Value::Null));
             }
             }
         }

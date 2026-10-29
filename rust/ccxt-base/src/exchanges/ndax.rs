@@ -1888,10 +1888,10 @@ impl NdaxCore {
         //
         let mut result: Value = Value::from(vec![]);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_997: bool = true;
-            while { if !__for_first_997 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_997 = false; i.as_f64().unwrap_or(f64::NAN) < ((response.len() as i64) as f64) } {
-            let mut accountId: Option<String> = self.safe_string_opt(response.clone(), i.clone(), &[]);
+            while { if !__for_first_997 { i += 1; } __for_first_997 = false; i < (response.len() as i64) } {
+            let mut accountId: Option<String> = self.safe_string_opt(response.clone(), Value::Int(i), &[]);
             if let Value::Arr(__a) = &mut result { std::sync::Arc::make_mut(__a).push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), accountId.clone().map(Value::from).unwrap_or(Value::Null));
@@ -1916,10 +1916,10 @@ impl NdaxCore {
             m
         });
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_998: bool = true;
-            while { if !__for_first_998 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_998 = false; i.as_f64().unwrap_or(f64::NAN) < ((response.len() as i64) as f64) } {
-            let mut balance: Value = self.safe_dict(response.clone(), i.clone(), &[]);
+            while { if !__for_first_998 { i += 1; } __for_first_998 = false; i < (response.len() as i64) } {
+            let mut balance: Value = self.safe_dict(response.clone(), Value::Int(i), &[]);
             let mut currencyId: Option<String> = self.safe_string_k_opt(balance.clone(), "ProductId", &[]);
             if (currencyId.is_some()) && (self.currencies_by_id.clone() != Value::Null) && (matches!((&self.currencies_by_id, &currencyId.clone().map(Value::from).unwrap_or(Value::Null)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);

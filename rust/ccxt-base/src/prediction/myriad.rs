@@ -1050,10 +1050,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut data: Vec<Value> = self.safe_list_k(response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut result: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_1340: bool = true;
-            while { if !__for_first_1340 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1340 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
-            let mut position: Value = self.parse_prediction_position(data.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null), &[]);
+            while { if !__for_first_1340 { i += 1; } __for_first_1340 = false; i < (data.len() as i64) } {
+            let mut position: Value = self.parse_prediction_position(data.get(i as usize).cloned().unwrap_or(Value::Null), &[]);
             if (outcomes == Value::Null) || self.in_array(position.as_map().and_then(|__m| __m.get("outcome")).cloned().unwrap_or(Value::Null), outcomes.clone()).as_bool() == Some(true) {
                 result.push(position);
             }
@@ -3378,10 +3378,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut previousClose: Value = Value::Null;
         let mut percentage: Value = Value::Null;
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_1351: bool = true;
-            while { if !__for_first_1351 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1351 = false; i.as_f64().unwrap_or(f64::NAN) < ((outcomes.len() as i64) as f64) } {
-            let mut o: Value = self.safe_dict(outcomes.clone(), i.clone(), &[]);
+            while { if !__for_first_1351 { i += 1; } __for_first_1351 = false; i < (outcomes.len() as i64) } {
+            let mut o: Value = self.safe_dict(outcomes.clone(), Value::Int(i), &[]);
             if (self.safe_string_k(o.clone(), "outcomeId", &[self.safe_string(o.clone(), Value::Str("id".into()), &[])]).as_str() == outcomeId.as_str()) {
                 let mut priceValue: Value = self.safe_number_k(o.clone(), "price", &[]);
                 let mut changeValue: Value = self.safe_number_k(o, "priceChange24h", &[]);
@@ -3549,10 +3549,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut bid: Value = Value::Null;
         let mut ask: Value = Value::Null;
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_1352: bool = true;
-            while { if !__for_first_1352 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1352 = false; i.as_f64().unwrap_or(f64::NAN) < ((outcomes.len() as i64) as f64) } {
-            let mut o: Value = self.safe_dict(outcomes.clone(), i.clone(), &[]);
+            while { if !__for_first_1352 { i += 1; } __for_first_1352 = false; i < (outcomes.len() as i64) } {
+            let mut o: Value = self.safe_dict(outcomes.clone(), Value::Int(i), &[]);
             if (self.safe_string_k(o.clone(), "outcomeId", &[self.safe_string(o.clone(), Value::Str("id".into()), &[])]).as_str() == outcomeId.as_deref()) {
                 let mut price: Value = self.safe_number_k(o, "price", &[]);
                 if (price != Value::Null) {
@@ -3608,10 +3608,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut rawAsks: Value = (match response.get("asks") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
         let mut bids: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_1353: bool = true;
-            while { if !__for_first_1353 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1353 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawBids.len() as i64) as f64) } {
-            let mut row: Value = self.safe_list(rawBids.clone(), i.clone(), &[]);
+            while { if !__for_first_1353 { i += 1; } __for_first_1353 = false; i < (rawBids.len() as i64) } {
+            let mut row: Value = self.safe_list(rawBids.clone(), Value::Int(i), &[]);
             let mut rowPrice: Value = crate::precise::Precise::stringDiv(&self.safe_string(row.clone(), Value::Int(0), &[]), &Value::Str("1000000000000000000".into()));
             let mut rowAmount: Value = crate::precise::Precise::stringDiv(&self.safe_string(row.clone(), Value::Int(1), &[]), &Value::Str("1000000000000000000".into()));
             bids.push(Value::from(vec![self.parse_number(rowPrice.clone(), &[]), self.parse_number(rowAmount.clone(), &[])]));
@@ -3619,10 +3619,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut asks: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_1354: bool = true;
-            while { if !__for_first_1354 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1354 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawAsks.len() as i64) as f64) } {
-            let mut row: Value = self.safe_list(rawAsks.clone(), i.clone(), &[]);
+            while { if !__for_first_1354 { i += 1; } __for_first_1354 = false; i < (rawAsks.len() as i64) } {
+            let mut row: Value = self.safe_list(rawAsks.clone(), Value::Int(i), &[]);
             let mut rowPrice: Value = crate::precise::Precise::stringDiv(&self.safe_string(row.clone(), Value::Int(0), &[]), &Value::Str("1000000000000000000".into()));
             let mut rowAmount: Value = crate::precise::Precise::stringDiv(&self.safe_string(row, Value::Int(1), &[]), &Value::Str("1000000000000000000".into()));
             asks.push(Value::from(vec![self.parse_number(rowPrice, &[]), self.parse_number(rowAmount, &[])]));
@@ -3719,10 +3719,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut outcomes: Vec<Value> = self.safe_list_k(response.clone(), "outcomes", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut selectedOutcome: Value = Value::Null;
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_1355: bool = true;
-            while { if !__for_first_1355 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1355 = false; i.as_f64().unwrap_or(f64::NAN) < ((outcomes.len() as i64) as f64) } {
-            let mut oc: Value = outcomes.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_1355 { i += 1; } __for_first_1355 = false; i < (outcomes.len() as i64) } {
+            let mut oc: Value = outcomes.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut currentId: Value = self.safe_string_k(oc.clone(), "id", &[self.safe_string(oc.clone(), Value::Str("outcomeId".into()), &[])]);
             let mut currentTitle: Value = self.safe_string_k(oc.clone(), "title", &[self.safe_string(oc.clone(), Value::Str("label".into()), &[])]);
             if (outcomeId != Value::Null) && (currentId.as_str() == outcomeId.as_str()) {
@@ -3984,10 +3984,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut rows: Value = (if (responseIsArray) { response.clone() } else { self.safe_list_k(response, "data", &[Value::from(vec![])]) });
         let mut trades: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_1362: bool = true;
-            while { if !__for_first_1362 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1362 = false; i.as_f64().unwrap_or(f64::NAN) < ((rows.len() as i64) as f64) } {
-            let mut row: Value = self.safe_dict(rows.clone(), i.clone(), &[]);
+            while { if !__for_first_1362 { i += 1; } __for_first_1362 = false; i < (rows.len() as i64) } {
+            let mut row: Value = self.safe_dict(rows.clone(), Value::Int(i), &[]);
             let mut action: Option<String> = self.safe_string_k(row.clone(), "action", &[]).as_str().map(str::to_owned);
             if (action.as_deref() != Some("buy")) && (action.as_deref() != Some("sell")) {
                 continue;
@@ -4210,10 +4210,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut rawMarkets: Vec<Value> = self.safe_list_k(rawEvent.clone(), "markets", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut marketsList: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_1367: bool = true;
-            while { if !__for_first_1367 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1367 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawMarkets.len() as i64) as f64) } {
-            let mut rawMarket: Value = rawMarkets.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_1367 { i += 1; } __for_first_1367 = false; i < (rawMarkets.len() as i64) } {
+            let mut rawMarket: Value = rawMarkets.get(i as usize).cloned().unwrap_or(Value::Null);
             marketsList.push(self.parse_myriad_market(rawMarket, &[questionSlug.clone()]));
         }
         }
@@ -4533,7 +4533,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut price: Value = self.from_wei(self.safe_string_k(change.clone(), "price", &[]));
             let mut amount: Value = self.from_wei(self.safe_string_k(change.clone(), "amount", &[]));
             let mut sideStr: Option<String> = self.safe_string_k(change, "side", &[]).as_str().map(str::to_owned);
-            let mut bookSide: Value = (if (sideStr.as_deref() == Some("bid")) { get_value(&orderbook, &Value::Str("bids".into())) } else { get_value(&orderbook, &Value::Str("asks".into())) });
+            let mut bookSide: Value = (if (sideStr.as_deref() == Some("bid")) { orderbook.book_field("bids") } else { orderbook.book_field("asks") });
             bookSide.store_array(Value::from(vec![price, amount]));
             orderbook.set_book_meta("timestamp", ts.clone());
             orderbook.set_book_meta("datetime", self.iso8601(ts.clone()));

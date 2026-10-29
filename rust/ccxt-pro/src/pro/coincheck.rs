@@ -404,10 +404,10 @@ impl CoincheckCore {
             if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), stored.clone()); }
         }
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_276: bool = true;
-            while { if !__for_first_276 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_276 = false; i.as_f64().unwrap_or(f64::NAN) < ((message.len() as i64) as f64) } {
-            let mut data: Value = self.safe_value(message.clone(), i.clone(), &[]);
+            while { if !__for_first_276 { i += 1; } __for_first_276 = false; i < (message.len() as i64) } {
+            let mut data: Value = self.safe_value(message.clone(), Value::Int(i), &[]);
             let mut trade: Value = self.parse_ws_trade(data, &[]);
             stored.append(trade);
         }

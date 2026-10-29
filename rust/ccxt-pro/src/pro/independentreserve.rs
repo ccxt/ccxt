@@ -500,15 +500,15 @@ impl IndependentreserveCore {
         }  else {
             let mut asks: Value = self.safe_list_k(orderBook.clone(), "Offers", &[Value::from(vec![])]);
             let mut bids: Value = self.safe_list_k(orderBook.clone(), "Bids", &[Value::from(vec![])]);
-            self.handle_deltas(get_value(&orderbook, &Value::Str("asks".into())), asks);
-            self.handle_deltas(get_value(&orderbook, &Value::Str("bids".into())), bids);
+            self.handle_deltas(orderbook.book_field("asks"), asks);
+            self.handle_deltas(orderbook.book_field("bids"), bids);
             orderbook.set_book_meta("timestamp", timestamp.clone());
             orderbook.set_book_meta("datetime", self.iso8601(timestamp));
         }
         let mut checksum: Value = self.handle_option(Value::Str("watchOrderBook".into()), Value::Str("checksum".into()), &[Value::Bool(true)]);
         if (checksum).as_bool() == Some(true) && receivedSnapshot.as_bool() == Some(true) {
-            let mut storedAsks: Value = get_value(&orderbook, &Value::Str("asks".into()));
-            let mut storedBids: Value = get_value(&orderbook, &Value::Str("bids".into()));
+            let mut storedAsks: Value = orderbook.book_field("asks");
+            let mut storedBids: Value = orderbook.book_field("bids");
             let mut asksLength: Value = get_array_length(&storedAsks);
             let mut bidsLength: Value = get_array_length(&storedBids);
             let mut payload: Value = Value::Str("".into());

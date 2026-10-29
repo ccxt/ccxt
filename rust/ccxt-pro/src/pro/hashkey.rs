@@ -440,10 +440,10 @@ impl HashkeyCore {
         let mut data: Value = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
         let mut stored: Value = self.ohlcvs.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| timeframe.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_369: bool = true;
-            while { if !__for_first_369 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_369 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
-            let mut candle: Value = self.safe_dict(data.clone(), i.clone(), &[Value::Map({
+            while { if !__for_first_369 { i += 1; } __for_first_369 = false; i < (data.len() as i64) } {
+            let mut candle: Value = self.safe_dict(data.clone(), Value::Int(i), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
@@ -606,10 +606,10 @@ impl HashkeyCore {
         if (data != Value::Null) {
             data = self.sort_by(data.clone(), Value::Str("t".into()), &[]);
             {
-                                let mut i: Value = Value::Int(0);
+                                let mut i: i64 = 0;
                 let mut __for_first_370: bool = true;
-                while { if !__for_first_370 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_370 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
-                let mut trade: Value = self.safe_dict(data.clone(), i.clone(), &[]);
+                while { if !__for_first_370 { i += 1; } __for_first_370 = false; i < (data.len() as i64) } {
+                let mut trade: Value = self.safe_dict(data.clone(), Value::Int(i), &[]);
                 let mut parsed: Value = self.parse_ws_trade(trade, &[market.clone()]);
                 stored.append(parsed);
             }

@@ -654,10 +654,10 @@ impl ParadexCore {
         let mut asks: Vec<Value> = Vec::new();
         let mut inserts: Value = self.safe_list_k(data.clone(), "inserts", &[]);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_591: bool = true;
-            while { if !__for_first_591 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_591 = false; i.as_f64().unwrap_or(f64::NAN) < ((inserts.len() as i64) as f64) } {
-            let mut insert: Value = self.safe_dict(inserts.clone(), i.clone(), &[]);
+            while { if !__for_first_591 { i += 1; } __for_first_591 = false; i < (inserts.len() as i64) } {
+            let mut insert: Value = self.safe_dict(inserts.clone(), Value::Int(i), &[]);
             let mut side: Option<String> = self.safe_string_k(insert.clone(), "side", &[]).as_str().map(str::to_owned);
             let mut price: Option<String> = self.safe_string_k_opt(insert.clone(), "price", &[]);
             let mut size: Option<String> = self.safe_string_k_opt(insert.clone(), "size", &[]);
@@ -1196,10 +1196,10 @@ impl ParadexCore {
         let mut reserved: Value = Value::from(vec![Value::Str("free".into()), Value::Str("used".into()), Value::Str("total".into())]);
         let mut keys: Vec<Value> = object_keys(&balance).as_array().cloned().unwrap_or_default();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_595: bool = true;
-            while { if !__for_first_595 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_595 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
-            let mut key: Value = keys.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_595 { i += 1; } __for_first_595 = false; i < (keys.len() as i64) } {
+            let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
             if self.in_array(key.clone(), reserved.clone()).as_bool() == Some(true) {
                 continue;
             }
@@ -2237,10 +2237,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if (requestId != Value::Null) {
                 let mut subscribeHashes: Vec<Value> = __ch.subscription_keys();
                 {
-                                        let mut i: Value = Value::Int(0);
+                                        let mut i: i64 = 0;
                     let mut __for_first_604: bool = true;
-                    while { if !__for_first_604 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_604 = false; i.as_f64().unwrap_or(f64::NAN) < ((subscribeHashes.len() as i64) as f64) } {
-                    let mut subscribeHash: Value = subscribeHashes.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+                    while { if !__for_first_604 { i += 1; } __for_first_604 = false; i < (subscribeHashes.len() as i64) } {
+                    let mut subscribeHash: Value = subscribeHashes.get(i as usize).cloned().unwrap_or(Value::Null);
                     let mut subscription: Value = self.safe_dict(__ch.subscriptions.clone(), subscribeHash.clone(), &[]);
                     if (self.safe_string_k(subscription.clone(), "id", &[]).as_str() == requestId.as_str()) {
                         handled = true;
@@ -2248,10 +2248,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         // watchMultiple subscribes per message hash, so the subscribe hash is what its watcher waits on
                         let mut messageHashes: Vec<Value> = self.safe_list_k(subscription, "messageHashes", &[Value::from(vec![subscribeHash])]).as_array().cloned().unwrap_or_default();
                         {
-                                                        let mut j: Value = Value::Int(0);
+                                                        let mut j: i64 = 0;
                             let mut __for_first_603: bool = true;
-                            while { if !__for_first_603 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_603 = false; j.as_f64().unwrap_or(f64::NAN) < ((messageHashes.len() as i64) as f64) } {
-                            client.reject(&[e.clone(), messageHashes.get(j.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null)]);
+                            while { if !__for_first_603 { j += 1; } __for_first_603 = false; j < (messageHashes.len() as i64) } {
+                            client.reject(&[e.clone(), messageHashes.get(j as usize).cloned().unwrap_or(Value::Null)]);
                         }
                         }
                     }

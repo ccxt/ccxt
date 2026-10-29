@@ -1493,10 +1493,10 @@ impl HibachiCore {
         let mut ret: Vec<Value> = Vec::new();
         let mut responseOrders: Vec<Value> = self.safe_list_k(response, "orders", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_737: bool = true;
-            while { if !__for_first_737 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_737 = false; i.as_f64().unwrap_or(f64::NAN) < ((responseOrders.len() as i64) as f64) } {
-            let mut responseOrder: Value = responseOrders.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_737 { i += 1; } __for_first_737 = false; i < (responseOrders.len() as i64) } {
+            let mut responseOrder: Value = responseOrders.get(i as usize).cloned().unwrap_or(Value::Null);
             ret.push(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), responseOrder.clone());
@@ -1640,10 +1640,10 @@ impl HibachiCore {
         let mut ret: Vec<Value> = Vec::new();
         let mut responseOrders: Vec<Value> = self.safe_list_k(response, "orders", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_739: bool = true;
-            while { if !__for_first_739 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_739 = false; i.as_f64().unwrap_or(f64::NAN) < ((responseOrders.len() as i64) as f64) } {
-            let mut responseOrder: Value = responseOrders.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_739 { i += 1; } __for_first_739 = false; i < (responseOrders.len() as i64) } {
+            let mut responseOrder: Value = responseOrders.get(i as usize).cloned().unwrap_or(Value::Null);
             ret.push(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), responseOrder.clone());
@@ -1723,10 +1723,10 @@ impl HibachiCore {
 }));
         let mut orders: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_740: bool = true;
-            while { if !__for_first_740 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_740 = false; i.as_f64().unwrap_or(f64::NAN) < ((ids.len() as i64) as f64) } {
-            let mut orderRequest: Value = self.cancel_order_request(self.safe_string(ids.clone(), i.clone(), &[Value::Str("".into())]));
+            while { if !__for_first_740 { i += 1; } __for_first_740 = false; i < (ids.len() as i64) } {
+            let mut orderRequest: Value = self.cancel_order_request(self.safe_string(ids.clone(), Value::Int(i), &[Value::Str("".into())]));
             if let Value::Dict(__d) = &mut orderRequest { std::sync::Arc::make_mut(__d).insert("action".into(), Value::Str("cancel".into())); }
             orders.push(orderRequest);
         }
@@ -1745,10 +1745,10 @@ impl HibachiCore {
         let mut ret: Value = Value::from(vec![]);
         let mut responseOrders: Vec<Value> = self.safe_list_k(response, "orders", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_741: bool = true;
-            while { if !__for_first_741 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_741 = false; i.as_f64().unwrap_or(f64::NAN) < ((responseOrders.len() as i64) as f64) } {
-            let mut responseOrder: Value = responseOrders.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_741 { i += 1; } __for_first_741 = false; i < (responseOrders.len() as i64) } {
+            let mut responseOrder: Value = responseOrders.get(i as usize).cloned().unwrap_or(Value::Null);
             if let Value::Arr(__a) = &mut ret { std::sync::Arc::make_mut(__a).push(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), responseOrder.clone());
@@ -3182,10 +3182,10 @@ impl HibachiCore {
         let mut data: Vec<Value> = self.safe_list_k(response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut rates: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_743: bool = true;
-            while { if !__for_first_743 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_743 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
-            let mut entry: Value = data.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_743 { i += 1; } __for_first_743 = false; i < (data.len() as i64) } {
+            let mut entry: Value = data.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut timestamp: Value = self.safe_integer_product_k(entry.clone(), "fundingTimestamp", Value::Int(1000), &[]);
             rates.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();

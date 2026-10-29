@@ -890,10 +890,10 @@ impl ExtendedCore {
         }
         let mut keys: Vec<Value> = Value::Array(input.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_662: bool = true;
-            while { if !__for_first_662 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_662 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
-            let mut key: Value = keys.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_662 { i += 1; } __for_first_662 = false; i < (keys.len() as i64) } {
+            let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut item: Value = self.safe_dict(input.clone(), key, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1415,10 +1415,10 @@ impl ExtendedCore {
             m
         };
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_664: bool = true;
-            while { if !__for_first_664 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_664 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
-            let mut marketData: Value = self.safe_dict(data.clone(), i.clone(), &[]);
+            while { if !__for_first_664 { i += 1; } __for_first_664 = false; i < (data.len() as i64) } {
+            let mut marketData: Value = self.safe_dict(data.clone(), Value::Int(i), &[]);
             let mut marketId: Option<String> = self.safe_string_k_opt(marketData.clone(), "name", &[]);
             let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
             let mut stats: Value = self.safe_dict_k(marketData, "marketStats", &[Value::Map({
@@ -1854,10 +1854,10 @@ impl ExtendedCore {
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut result: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_667: bool = true;
-            while { if !__for_first_667 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_667 = false; i.as_f64().unwrap_or(f64::NAN) < ((histories.len() as i64) as f64) } {
-            result.push(self.parse_funding_history(self.safe_dict(histories.clone(), i.clone(), &[Value::Map({
+            while { if !__for_first_667 { i += 1; } __for_first_667 = false; i < (histories.len() as i64) } {
+            result.push(self.parse_funding_history(self.safe_dict(histories.clone(), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]), &[market.clone()]));
@@ -2299,10 +2299,10 @@ impl ExtendedCore {
             m
         });
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_669: bool = true;
-            while { if !__for_first_669 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_669 = false; i.as_f64().unwrap_or(f64::NAN) < ((response.len() as i64) as f64) } {
-            let mut balance: Value = self.safe_dict(response.clone(), i.clone(), &[Value::Map({
+            while { if !__for_first_669 { i += 1; } __for_first_669 = false; i < (response.len() as i64) } {
+            let mut balance: Value = self.safe_dict(response.clone(), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -3173,10 +3173,10 @@ impl ExtendedCore {
             m
         });
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_673: bool = true;
-            while { if !__for_first_673 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_673 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
-            let mut fee: Value = self.safe_dict(data.clone(), i.clone(), &[Value::Map({
+            while { if !__for_first_673 { i += 1; } __for_first_673 = false; i < (data.len() as i64) } {
+            let mut fee: Value = self.safe_dict(data.clone(), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);

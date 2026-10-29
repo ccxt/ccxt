@@ -578,8 +578,8 @@ impl AlpacaCore {
         }  else {
             let mut asks: Value = (match __pro_message.get("a").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
             let mut bids: Value = (match __pro_message.get("b").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
-            self.handle_deltas(get_value(&orderbook, &Value::Str("asks".into())), asks);
-            self.handle_deltas(get_value(&orderbook, &Value::Str("bids".into())), bids);
+            self.handle_deltas(orderbook.book_field("asks"), asks);
+            self.handle_deltas(orderbook.book_field("bids"), bids);
             orderbook.set_book_meta("timestamp", timestamp);
             orderbook.set_book_meta("datetime", datetime);
         }

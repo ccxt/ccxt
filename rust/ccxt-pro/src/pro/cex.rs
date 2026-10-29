@@ -425,10 +425,10 @@ impl CexCore {
         if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("info".into(), data); }
         let mut currencyIds: Vec<Value> = Value::Array(freeBalance.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_229: bool = true;
-            while { if !__for_first_229 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_229 = false; i.as_f64().unwrap_or(f64::NAN) < ((currencyIds.len() as i64) as f64) } {
-            let mut currencyId: Value = currencyIds.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_229 { i += 1; } __for_first_229 = false; i < (currencyIds.len() as i64) } {
+            let mut currencyId: Value = currencyIds.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             account.insert("free".into(), self.safe_string(freeBalance.clone(), currencyId.clone(), &[]));
             account.insert("used".into(), self.safe_string(usedBalance.clone(), currencyId.clone(), &[]));
@@ -479,10 +479,10 @@ impl CexCore {
         if (client != Value::Null) {
             let mut subscriptionKeys: Vec<Value> = __ch.subscription_keys();
             {
-                                let mut i: Value = Value::Int(0);
+                                let mut i: i64 = 0;
                 let mut __for_first_230: bool = true;
-                while { if !__for_first_230 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_230 = false; i.as_f64().unwrap_or(f64::NAN) < ((subscriptionKeys.len() as i64) as f64) } {
-                let mut subscriptionKey: Value = subscriptionKeys.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+                while { if !__for_first_230 { i += 1; } __for_first_230 = false; i < (subscriptionKeys.len() as i64) } {
+                let mut subscriptionKey: Value = subscriptionKeys.get(i as usize).cloned().unwrap_or(Value::Null);
                 if (subscriptionKey.as_str() == subscriptionHash.as_str()) {
                     continue;
                 }
@@ -1409,10 +1409,10 @@ impl CexCore {
         }
         let mut myOrders: Value = self.orders.clone();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_232: bool = true;
-            while { if !__for_first_232 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_232 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawOrders.len() as i64) as f64) } {
-            let mut rawOrder: Value = rawOrders.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_232 { i += 1; } __for_first_232 = false; i < (rawOrders.len() as i64) } {
+            let mut rawOrder: Value = rawOrders.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.safe_market(&[symbol.clone()]);
             let mut order: Value = self.parse_order(rawOrder, &[market]);
             if let Value::Dict(__rda) = &mut order { std::sync::Arc::make_mut(__rda).insert("status".to_string(), Value::Str("open".into())); }
@@ -1584,9 +1584,9 @@ impl CexCore {
         let mut bids: Value = self.safe_list_k(data, "bids", &[Value::from(vec![])]);
         self.handle_deltas(storedOrderBook.as_map().and_then(|__m| __m.get("asks")).cloned().unwrap_or(Value::Null), asks);
         self.handle_deltas(storedOrderBook.as_map().and_then(|__m| __m.get("bids")).cloned().unwrap_or(Value::Null), bids);
-        add_element_to_object(&mut storedOrderBook, &Value::Str("timestamp".into()), timestamp.clone());
-        add_element_to_object(&mut storedOrderBook, &Value::Str("datetime".into()), self.iso8601(timestamp));
-        add_element_to_object(&mut storedOrderBook, &Value::Str("nonce".into()), incrementalId);
+        storedOrderBook.set_book_meta("timestamp", timestamp.clone());
+        storedOrderBook.set_book_meta("datetime", self.iso8601(timestamp));
+        storedOrderBook.set_book_meta("nonce", incrementalId);
         client.resolve(&[storedOrderBook, messageHash]);
 }
 
@@ -1779,12 +1779,11 @@ impl CexCore {
         // const stored = this.safeValue (this.ohlcvs, symbol);
         let mut stored: Value = self.ohlcvs.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("unknown")).cloned().unwrap_or(Value::Null);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_235: bool = true;
-            while { if !__for_first_235 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_235 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
-            let mut ohlcv: Value = Value::from(vec![self.safe_timestamp(data.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null), Value::Int(0), &[]), self.safe_number(data.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null), Value::Int(1), &[]),
-                self.safe_number(data.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null), Value::Int(2), &[]), self.safe_number(data.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null), Value::Int(3), &[]), self.safe_number(data.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null), Value::Int(4), &[]),
-                self.safe_number(data.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null), Value::Int(5), &[])]);
+            while { if !__for_first_235 { i += 1; } __for_first_235 = false; i < (data.len() as i64) } {
+            let mut ohlcv: Value = Value::from(vec![self.safe_timestamp(data.get(i as usize).cloned().unwrap_or(Value::Null), Value::Int(0), &[]), self.safe_number(data.get(i as usize).cloned().unwrap_or(Value::Null), Value::Int(1), &[]), self.safe_number(data.get(i as usize).cloned().unwrap_or(Value::Null), Value::Int(2), &[]),
+                self.safe_number(data.get(i as usize).cloned().unwrap_or(Value::Null), Value::Int(3), &[]), self.safe_number(data.get(i as usize).cloned().unwrap_or(Value::Null), Value::Int(4), &[]), self.safe_number(data.get(i as usize).cloned().unwrap_or(Value::Null), Value::Int(5), &[])]);
             stored.append(ohlcv);
         }
         }

@@ -1529,10 +1529,10 @@ impl CoinbaseinternationalCore {
             m
         });
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_559: bool = true;
-            while { if !__for_first_559 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_559 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawNetworks.len() as i64) as f64) } {
-            let mut rawNetwork: Value = rawNetworks.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_559 { i += 1; } __for_first_559 = false; i < (rawNetworks.len() as i64) } {
+            let mut rawNetwork: Value = rawNetworks.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut networkId: Option<String> = self.safe_string_k_opt(rawNetwork.clone(), "resource_name", &[]);
             let mut network: Value = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone()]);
             if (network != Value::Null) {
@@ -1903,10 +1903,10 @@ impl CoinbaseinternationalCore {
             m
         };
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_560: bool = true;
-            while { if !__for_first_560 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_560 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsResolved.len() as i64) as f64) } {
-            let mut symbol: Option<String> = self.safe_string_opt(symbolsResolved.clone(), i.clone(), &[]);
+            while { if !__for_first_560 { i += 1; } __for_first_560 = false; i < (symbolsResolved.len() as i64) } {
+            let mut symbol: Option<String> = self.safe_string_opt(symbolsResolved.clone(), Value::Int(i), &[]);
             if (symbol.is_none()) {
                 continue;
             }
@@ -2091,11 +2091,11 @@ impl CoinbaseinternationalCore {
                     panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchOrderBook() limit must be between 1 and 10000".into()))));
                 }
                 {
-                                        let mut i: Value = Value::Int(0);
+                                        let mut i: i64 = 0;
                     let mut __for_first_561: bool = true;
-                    while { if !__for_first_561 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_561 = false; i.as_f64().unwrap_or(f64::NAN) < ((depths.len() as i64) as f64) } {
-                    if limit.as_f64().unwrap_or(f64::NAN) <= self.parse_to_int(depths.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null)).as_f64().unwrap_or(f64::NAN) {
-                        request.insert("depth".into(), self.safe_integer(depths.clone(), i.clone(), &[Value::Int(0)]));
+                    while { if !__for_first_561 { i += 1; } __for_first_561 = false; i < (depths.len() as i64) } {
+                    if limit.as_f64().unwrap_or(f64::NAN) <= self.parse_to_int(depths.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null)).as_f64().unwrap_or(f64::NAN) {
+                        request.insert("depth".into(), self.safe_integer(depths.clone(), Value::Int(i), &[Value::Int(0)]));
                         break;
                     }
                 }
@@ -2469,10 +2469,10 @@ impl CoinbaseinternationalCore {
             summaries = self.safe_list_k(response.clone(), "summaries", &[Value::from(vec![response.clone()])]);
         }
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_562: bool = true;
-            while { if !__for_first_562 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_562 = false; i.as_f64().unwrap_or(f64::NAN) < ((summaries.len() as i64) as f64) } {
-            let mut data: Value = self.safe_dict(summaries.clone(), i.clone(), &[]);
+            while { if !__for_first_562 { i += 1; } __for_first_562 = false; i < (summaries.len() as i64) } {
+            let mut data: Value = self.safe_dict(summaries.clone(), Value::Int(i), &[]);
             let mut currencyId: Option<String> = self.safe_string_k_opt(data.clone(), "currency", &[]);
             let mut currencyCode: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();

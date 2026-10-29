@@ -1156,10 +1156,10 @@ impl BitfinexCore {
             }  else {
                 let mut deltas: Value = self.safe_list(message.clone(), Value::Int(1), &[Value::from(vec![])]);
                 {
-                                        let mut i: Value = Value::Int(0);
+                                        let mut i: i64 = 0;
                     let mut __for_first_104: bool = true;
-                    while { if !__for_first_104 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_104 = false; i.as_f64().unwrap_or(f64::NAN) < ((deltas.len() as i64) as f64) } {
-                    let mut delta: Value = self.safe_list(deltas.clone(), i.clone(), &[]);
+                    while { if !__for_first_104 { i += 1; } __for_first_104 = false; i < (deltas.len() as i64) } {
+                    let mut delta: Value = self.safe_list(deltas.clone(), Value::Int(i), &[]);
                     let mut deltaAmount: Value = self.safe_number(delta.clone(), Value::Int(2), &[]);
                     if (deltaAmount == Value::Null) {
                         continue;
@@ -1380,10 +1380,10 @@ impl BitfinexCore {
         }
         let mut updatesKeys: Vec<Value> = Value::Array(updatedTypes.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_107: bool = true;
-            while { if !__for_first_107 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_107 = false; i.as_f64().unwrap_or(f64::NAN) < ((updatesKeys.len() as i64) as f64) } {
-            let mut type_var: Value = updatesKeys.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_107 { i += 1; } __for_first_107 = false; i < (updatesKeys.len() as i64) } {
+            let mut type_var: Value = updatesKeys.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("balance:".into()), type_var).into());
             client.resolve(&[self.balance.as_map().and_then(|__m| type_var.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), messageHash]);
         }
@@ -1439,11 +1439,11 @@ impl BitfinexCore {
         let mut messageHashes: Vec<Value> = self.safe_list_k(subscription.clone(), "messageHashes", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut subMessageHashes: Vec<Value> = self.safe_list_k(subscription.clone(), "subMessageHashes", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_108: bool = true;
-            while { if !__for_first_108 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_108 = false; i.as_f64().unwrap_or(f64::NAN) < ((messageHashes.len() as i64) as f64) } {
-            let mut messageHash: Value = messageHashes.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
-            let mut subHash: Value = subMessageHashes.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_108 { i += 1; } __for_first_108 = false; i < (messageHashes.len() as i64) } {
+            let mut messageHash: Value = messageHashes.get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut subHash: Value = subMessageHashes.get(i as usize).cloned().unwrap_or(Value::Null);
             self.clean_unsubscription(client.clone(), subHash, messageHash, &[]);
         }
         }
@@ -1675,10 +1675,10 @@ impl BitfinexCore {
         client.resolve(&[self.orders.clone(), name.clone()]);
         let mut keys: Vec<Value> = Value::Array(symbolIds.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_110: bool = true;
-            while { if !__for_first_110 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_110 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
-            let mut symbol: Value = keys.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_110 { i += 1; } __for_first_110 = false; i < (keys.len() as i64) } {
+            let mut symbol: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.market(symbol);
             let marketId: String = self.safe_string_k_opt(market, "id", &[Value::Str("".into())]).unwrap_or_default();
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str(":".into())).into()), marketId).into());

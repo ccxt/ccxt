@@ -864,10 +864,10 @@ impl CoinoneCore {
         let mut tickers: Value = self.safe_list_k(response, "tickers", &[Value::from(vec![])]);
         let mut result: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_571: bool = true;
-            while { if !__for_first_571 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_571 = false; i.as_f64().unwrap_or(f64::NAN) < ((tickers.len() as i64) as f64) } {
-            let mut entry: Value = self.safe_dict(tickers.clone(), i.clone(), &[]);
+            while { if !__for_first_571 { i += 1; } __for_first_571 = false; i < (tickers.len() as i64) } {
+            let mut entry: Value = self.safe_dict(tickers.clone(), Value::Int(i), &[]);
             let mut id: Option<String> = self.safe_string_k_opt(entry.clone(), "id", &[]);
             let mut baseId: Option<String> = self.safe_string_upper_k_opt(entry.clone(), "target_currency", &[]);
             let mut quoteId: Option<String> = self.safe_string_upper_k_opt(entry.clone(), "quote_currency", &[]);
@@ -956,10 +956,10 @@ impl CoinoneCore {
         let mut balances: Value = self.omit(response, Value::from(vec![Value::Str("errorCode".into()), Value::Str("result".into()), Value::Str("normalWallets".into())]), &[]);
         let mut currencyIds: Vec<Value> = Value::Array(balances.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_572: bool = true;
-            while { if !__for_first_572 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_572 = false; i.as_f64().unwrap_or(f64::NAN) < ((currencyIds.len() as i64) as f64) } {
-            let mut currencyId: Value = currencyIds.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_572 { i += 1; } __for_first_572 = false; i < (currencyIds.len() as i64) } {
+            let mut currencyId: Value = currencyIds.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut balance: Value = self.safe_dict(balances.clone(), currencyId.clone(), &[]);
             let mut code: Value = self.safe_currency_code(currencyId, &[]);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
@@ -1829,10 +1829,10 @@ impl CoinoneCore {
             m
         });
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_573: bool = true;
-            while { if !__for_first_573 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_573 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
-            let mut key: Value = keys.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_573 { i += 1; } __for_first_573 = false; i < (keys.len() as i64) } {
+            let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut value: Value = self.safe_string(walletAddress.clone(), key.clone(), &[]);
             if (value == Value::Null) || (value == Value::Null) || (value.as_str() == Some("")) || (value.as_str() == Some("-1")) {
                 continue;

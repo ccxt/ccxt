@@ -1194,10 +1194,10 @@ impl OnetradingCore {
         let mut takerFees: Vec<Value> = Vec::new();
         let mut makerFees: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_1038: bool = true;
-            while { if !__for_first_1038 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1038 = false; i.as_f64().unwrap_or(f64::NAN) < ((feeTiers.len() as i64) as f64) } {
-            let mut tier: Value = self.safe_dict(feeTiers.clone(), i.clone(), &[]);
+            while { if !__for_first_1038 { i += 1; } __for_first_1038 = false; i < (feeTiers.len() as i64) } {
+            let mut tier: Value = self.safe_dict(feeTiers.clone(), Value::Int(i), &[]);
             let mut volume: Value = self.safe_number_k(tier.clone(), "volume", &[]);
             let mut taker: Value = self.safe_string_k(tier.clone(), "taker_fee", &[]);
             let mut maker: Value = self.safe_string_k(tier, "maker_fee", &[]);
@@ -1673,10 +1673,10 @@ impl OnetradingCore {
             m
         });
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_1040: bool = true;
-            while { if !__for_first_1040 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1040 = false; i.as_f64().unwrap_or(f64::NAN) < ((balances.len() as i64) as f64) } {
-            let mut balance: Value = self.safe_dict(balances.clone(), i.clone(), &[]);
+            while { if !__for_first_1040 { i += 1; } __for_first_1040 = false; i < (balances.len() as i64) } {
+            let mut balance: Value = self.safe_dict(balances.clone(), Value::Int(i), &[]);
             let mut currencyId: Option<String> = self.safe_string_k_opt(balance.clone(), "currency_code", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();

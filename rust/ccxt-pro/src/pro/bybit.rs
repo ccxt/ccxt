@@ -851,12 +851,12 @@ impl BybitCore {
         let mut marketIds: Value = self.market_ids(&[symbolsValue.clone()]);
         let mut topics: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_184: bool = true;
-            while { if !__for_first_184 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_184 = false; i.as_f64().unwrap_or(f64::NAN) < ((marketIds.len() as i64) as f64) } {
-            let marketId: String = self.safe_string_opt(marketIds.clone(), i.clone(), &[Value::Str("".into())]).unwrap_or_default();
+            while { if !__for_first_184 { i += 1; } __for_first_184 = false; i < (marketIds.len() as i64) } {
+            let marketId: String = self.safe_string_opt(marketIds.clone(), Value::Int(i), &[Value::Str("".into())]).unwrap_or_default();
             topics.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", topic, Value::Str(".".into())).into()), marketId).into()));
-            messageHashes.push(Value::Str(format!("{}{}", Value::Str("ticker:".into()), self.safe_string(symbolsValue.clone(), i.clone(), &[Value::Str("".into())])).into()));
+            messageHashes.push(Value::Str(format!("{}{}", Value::Str("ticker:".into()), self.safe_string(symbolsValue.clone(), Value::Int(i), &[Value::Str("".into())])).into()));
         }
         }
         let mut ticker: Value = self.watch_topics(url, Value::from(messageHashes), Value::from(topics), &[paramsValue]).await;
@@ -906,11 +906,11 @@ impl BybitCore {
         let mut marketIds: Value = self.market_ids(&[symbolsValue.clone()]);
         let mut topics: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_185: bool = true;
-            while { if !__for_first_185 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_185 = false; i.as_f64().unwrap_or(f64::NAN) < ((marketIds.len() as i64) as f64) } {
-            let marketId: String = self.safe_string_opt(marketIds.clone(), i.clone(), &[Value::Str("".into())]).unwrap_or_default();
-            let mut symbol: Value = symbolsValue.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_185 { i += 1; } __for_first_185 = false; i < (marketIds.len() as i64) } {
+            let marketId: String = self.safe_string_opt(marketIds.clone(), Value::Int(i), &[Value::Str("".into())]).unwrap_or_default();
+            let mut symbol: Value = symbolsValue.as_array().map(Vec::as_slice).unwrap_or(&[]).get(i as usize).cloned().unwrap_or(Value::Null);
             topics.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", topic, Value::Str(".".into())).into()), marketId).into()));
             subMessageHashes.push(Value::Str(format!("{}{}", Value::Str("ticker:".into()), symbol).into()));
             messageHashes.push(Value::Str(format!("{}{}", Value::Str("unsubscribe:ticker:".into()), symbol).into()));
@@ -1129,13 +1129,13 @@ impl BybitCore {
         let mut marketIds: Value = self.market_ids(&[symbolsValue.clone()]);
         let mut topics: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_186: bool = true;
-            while { if !__for_first_186 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_186 = false; i.as_f64().unwrap_or(f64::NAN) < ((marketIds.len() as i64) as f64) } {
-            let marketId: String = self.safe_string_opt(marketIds.clone(), i.clone(), &[Value::Str("".into())]).unwrap_or_default();
+            while { if !__for_first_186 { i += 1; } __for_first_186 = false; i < (marketIds.len() as i64) } {
+            let marketId: String = self.safe_string_opt(marketIds.clone(), Value::Int(i), &[Value::Str("".into())]).unwrap_or_default();
             let mut topic: Value = Value::Str(format!("{}{}", Value::Str("orderbook.1.".into()), marketId).into());
             topics.push(topic);
-            messageHashes.push(Value::Str(format!("{}{}", Value::Str("bidask:".into()), self.safe_string(symbolsValue.clone(), i.clone(), &[Value::Str("".into())])).into()));
+            messageHashes.push(Value::Str(format!("{}{}", Value::Str("bidask:".into()), self.safe_string(symbolsValue.clone(), Value::Int(i), &[Value::Str("".into())])).into()));
         }
         }
         let mut ticker: Value = self.watch_topics(url, Value::from(messageHashes), Value::from(topics), &[paramsValue]).await;
@@ -1150,8 +1150,8 @@ impl BybitCore {
     pub fn parse_ws_bid_ask(&self, mut orderbook: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut timestamp: Value = self.safe_integer_k(orderbook.clone(), "timestamp", &[]);
-        let mut bids: Value = self.sort_by(self.aggregate(get_value(&orderbook, &Value::Str("bids".into()))), Value::Int(0), &[]);
-        let mut asks: Value = self.sort_by(self.aggregate(get_value(&orderbook, &Value::Str("asks".into()))), Value::Int(0), &[]);
+        let mut bids: Value = self.sort_by(self.aggregate(orderbook.book_field("bids")), Value::Int(0), &[]);
+        let mut asks: Value = self.sort_by(self.aggregate(orderbook.book_field("asks")), Value::Int(0), &[]);
         let mut bestBid: Value = self.safe_list(bids, Value::Int(0), &[Value::from(vec![])]);
         let mut bestAsk: Value = self.safe_list(asks, Value::Int(0), &[Value::from(vec![])]);
         return self.safe_ticker(Value::Map({
@@ -1383,10 +1383,10 @@ impl BybitCore {
         }
         let mut stored: Value = self.ohlcvs.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| timeframe.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_189: bool = true;
-            while { if !__for_first_189 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_189 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
-            let mut parsed: Value = self.parse_ws_ohlcv(data.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null), &[market.clone()]);
+            while { if !__for_first_189 { i += 1; } __for_first_189 = false; i < (data.len() as i64) } {
+            let mut parsed: Value = self.parse_ws_ohlcv(data.get(i as usize).cloned().unwrap_or(Value::Null), &[market.clone()]);
             stored.append(parsed);
         }
         }
@@ -1644,8 +1644,8 @@ impl BybitCore {
         }  else {
             let mut asks: Value = self.safe_list_k(data.clone(), "a", &[Value::from(vec![])]);
             let mut bids: Value = self.safe_list_k(data, "b", &[Value::from(vec![])]);
-            self.handle_deltas(get_value(&orderbook, &Value::Str("asks".into())), asks);
-            self.handle_deltas(get_value(&orderbook, &Value::Str("bids".into())), bids);
+            self.handle_deltas(orderbook.book_field("asks"), asks);
+            self.handle_deltas(orderbook.book_field("bids"), bids);
             orderbook.set_book_meta("timestamp", timestamp.clone());
             orderbook.set_book_meta("datetime", self.iso8601(timestamp));
         }
@@ -1861,10 +1861,10 @@ impl BybitCore {
             if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), stored.clone()); }
         }
         {
-                        let mut j: Value = Value::Int(0);
+                        let mut j: i64 = 0;
             let mut __for_first_195: bool = true;
-            while { if !__for_first_195 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_195 = false; j.as_f64().unwrap_or(f64::NAN) < ((trades.len() as i64) as f64) } {
-            let mut parsed: Value = self.parse_ws_trade(trades.get(j.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null), &[market.clone()]);
+            while { if !__for_first_195 { j += 1; } __for_first_195 = false; j < (trades.len() as i64) } {
+            let mut parsed: Value = self.parse_ws_trade(trades.get(j as usize).cloned().unwrap_or(Value::Null), &[market.clone()]);
             stored.append(parsed);
         }
         }
@@ -2188,10 +2188,10 @@ impl BybitCore {
             execTypes = execTypeOption;
         }
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_196: bool = true;
-            while { if !__for_first_196 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_196 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
-            let mut rawTrade: Value = self.safe_dict(data.clone(), i.clone(), &[Value::Map({
+            while { if !__for_first_196 { i += 1; } __for_first_196 = false; i < (data.len() as i64) } {
+            let mut rawTrade: Value = self.safe_dict(data.clone(), Value::Int(i), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
@@ -2219,10 +2219,10 @@ impl BybitCore {
         }
         let mut keys: Vec<Value> = Value::Array(symbols.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_197: bool = true;
-            while { if !__for_first_197 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_197 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
-            let mut currentMessageHash: Value = Value::Str(format!("{}{}", Value::Str("myTrades:".into()), keys.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null)).into());
+            while { if !__for_first_197 { i += 1; } __for_first_197 = false; i < (keys.len() as i64) } {
+            let mut currentMessageHash: Value = Value::Str(format!("{}{}", Value::Str("myTrades:".into()), keys.get(i as usize).cloned().unwrap_or(Value::Null)).into());
             client.resolve(&[trades.clone(), currentMessageHash]);
         }
         }
@@ -2322,10 +2322,10 @@ impl BybitCore {
         self.positions = ArrayCacheBySymbolBySide::new(Value::Null);
         let mut cache: Value = self.positions.clone();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_199: bool = true;
-            while { if !__for_first_199 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_199 = false; i.as_f64().unwrap_or(f64::NAN) < ((promises.len() as i64) as f64) } {
-            let mut positions: Value = promises.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_199 { i += 1; } __for_first_199 = false; i < (promises.len() as i64) } {
+            let mut positions: Value = promises.get(i as usize).cloned().unwrap_or(Value::Null);
             {
                                 let mut ii: i64 = 0;
                 let mut __for_first_198: bool = true;
@@ -2395,10 +2395,10 @@ impl BybitCore {
         let mut newPositions: Value = Value::from(vec![]);
         let mut rawPositions: Vec<Value> = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_200: bool = true;
-            while { if !__for_first_200 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_200 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawPositions.len() as i64) as f64) } {
-            let mut rawPosition: Value = rawPositions.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_200 { i += 1; } __for_first_200 = false; i < (rawPositions.len() as i64) } {
+            let mut rawPosition: Value = rawPositions.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut position: Value = self.parse_position(rawPosition, &[]);
             let mut side: Option<String> = self.safe_string_k(position.clone(), "side", &[]).as_str().map(str::to_owned);
             // hacky solution to handle closing positions
@@ -2420,10 +2420,10 @@ impl BybitCore {
         }
         let mut messageHashes: Vec<Value> = self.find_message_hashes(client.clone(), Value::Str("positions::".into())).as_array().cloned().unwrap_or_default();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_201: bool = true;
-            while { if !__for_first_201 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_201 = false; i.as_f64().unwrap_or(f64::NAN) < ((messageHashes.len() as i64) as f64) } {
-            let mut messageHash: Value = messageHashes.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_201 { i += 1; } __for_first_201 = false; i < (messageHashes.len() as i64) } {
+            let mut messageHash: Value = messageHashes.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut parts: Vec<Value> = Value::Array(messageHash.as_str().map(|__s| __s.split("::").map(Value::from).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
             let mut symbolsString: Value = parts.get(1).cloned().unwrap_or(Value::Null);
             let mut symbols: Value = Value::Array(symbolsString.as_str().map(|__s| __s.split(",").map(Value::from).collect()).unwrap_or_default());
@@ -2543,10 +2543,10 @@ impl BybitCore {
         if (matches!(&message.get("data").cloned().unwrap_or(Value::Null), Value::Arr(_))) {
             let mut rawLiquidations: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
             {
-                                let mut i: Value = Value::Int(0);
+                                let mut i: i64 = 0;
                 let mut __for_first_202: bool = true;
-                while { if !__for_first_202 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_202 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawLiquidations.len() as i64) as f64) } {
-                let mut rawLiquidation: Value = self.safe_dict(rawLiquidations.clone(), i.clone(), &[]);
+                while { if !__for_first_202 { i += 1; } __for_first_202 = false; i < (rawLiquidations.len() as i64) } {
+                let mut rawLiquidation: Value = self.safe_dict(rawLiquidations.clone(), Value::Int(i), &[]);
                 let mut marketId: Option<String> = self.safe_string_k_opt(rawLiquidation.clone(), "s", &[]);
                 let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Str("".into()), Value::Str("contract".into())]);
                 let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
@@ -2866,10 +2866,10 @@ impl BybitCore {
         }
         let mut symbolsArray: Vec<Value> = Value::Array(symbols.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_204: bool = true;
-            while { if !__for_first_204 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_204 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsArray.len() as i64) as f64) } {
-            let mut currentMessageHash: Value = Value::Str(format!("{}{}", Value::Str("orders:".into()), symbolsArray.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null)).into());
+            while { if !__for_first_204 { i += 1; } __for_first_204 = false; i < (symbolsArray.len() as i64) } {
+            let mut currentMessageHash: Value = Value::Str(format!("{}{}", Value::Str("orders:".into()), symbolsArray.get(i as usize).cloned().unwrap_or(Value::Null)).into());
             client.resolve(&[orders.clone(), currentMessageHash]);
         }
         }
@@ -3257,10 +3257,10 @@ impl BybitCore {
             });
             let mut subscriptionHashes: Vec<Value> = __ch.subscription_keys();
             {
-                                let mut i: Value = Value::Int(0);
+                                let mut i: i64 = 0;
                 let mut __for_first_210: bool = true;
-                while { if !__for_first_210 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_210 = false; i.as_f64().unwrap_or(f64::NAN) < ((subscriptionHashes.len() as i64) as f64) } {
-                let mut existing: Value = self.safe_dict(__ch.subscriptions.clone(), subscriptionHashes.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null), &[Value::Map({
+                while { if !__for_first_210 { i += 1; } __for_first_210 = false; i < (subscriptionHashes.len() as i64) } {
+                let mut existing: Value = self.safe_dict(__ch.subscriptions.clone(), subscriptionHashes.get(i as usize).cloned().unwrap_or(Value::Null), &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
                 })]);
@@ -3454,10 +3454,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             if (reqId != Value::Null) {
                 let mut keys: Vec<Value> = __ch.subscription_keys();
                 {
-                                        let mut i: Value = Value::Int(0);
+                                        let mut i: i64 = 0;
                     let mut __for_first_212: bool = true;
-                    while { if !__for_first_212 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_212 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
-                    let mut messageHash: Value = keys.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+                    while { if !__for_first_212 { i += 1; } __for_first_212 = false; i < (keys.len() as i64) } {
+                    let mut messageHash: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
                     if !(__ch.has_subscription(&messageHash)) {
                         continue;
                     }
@@ -3568,10 +3568,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         let mut keys: Vec<Value> = Value::Array(methods.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_213: bool = true;
-            while { if !__for_first_213 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_213 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
-            let mut key: Value = keys.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_213 { i += 1; } __for_first_213 = false; i < (keys.len() as i64) } {
+            let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
             if Value::Int(topic.as_str().zip(key.as_str()).and_then(|(__s, __n)| __s.find(__n)).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
                 let mut method: Value = methods.get(key.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null);
                 self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);
@@ -3693,10 +3693,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut reqId: Value = (match __pro_message.get("req_id").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
         let mut keys: Vec<Value> = __ch.subscription_keys();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_215: bool = true;
-            while { if !__for_first_215 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_215 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
-            let mut messageHash: Value = keys.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_215 { i += 1; } __for_first_215 = false; i < (keys.len() as i64) } {
+            let mut messageHash: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
             if !(__ch.has_subscription(&messageHash)) {
                 continue;
             }
@@ -3709,11 +3709,11 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 let mut messageHashes: Vec<Value> = self.safe_list_k(subscription.clone(), "messageHashes", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
                 let mut subMessageHashes: Value = self.safe_list_k(subscription.clone(), "subMessageHashes", &[Value::from(vec![])]);
                 {
-                                        let mut j: Value = Value::Int(0);
+                                        let mut j: i64 = 0;
                     let mut __for_first_214: bool = true;
-                    while { if !__for_first_214 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_214 = false; j.as_f64().unwrap_or(f64::NAN) < ((messageHashes.len() as i64) as f64) } {
-                    let mut unsubHash: Value = messageHashes.get(j.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
-                    let mut subHash: Value = self.safe_string(subMessageHashes.clone(), j.clone(), &[]);
+                    while { if !__for_first_214 { j += 1; } __for_first_214 = false; j < (messageHashes.len() as i64) } {
+                    let mut unsubHash: Value = messageHashes.get(j as usize).cloned().unwrap_or(Value::Null);
+                    let mut subHash: Value = self.safe_string(subMessageHashes.clone(), Value::Int(j), &[]);
                     let mut usePrefix: Value = Value::Bool((subHash.as_str() == Some("orders")) || (subHash.as_str() == Some("myTrades")) || (subHash.as_str() == Some("positions")));
                     self.clean_unsubscription(client.clone(), subHash, unsubHash, &[usePrefix]);
                 }

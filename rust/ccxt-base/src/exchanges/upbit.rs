@@ -1125,10 +1125,10 @@ impl UpbitCore {
             m
         });
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_1130: bool = true;
-            while { if !__for_first_1130 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1130 = false; i.as_f64().unwrap_or(f64::NAN) < ((response.len() as i64) as f64) } {
-            let mut balance: Value = self.safe_dict(response.clone(), i.clone(), &[]);
+            while { if !__for_first_1130 { i += 1; } __for_first_1130 = false; i < (response.len() as i64) } {
+            let mut balance: Value = self.safe_dict(response.clone(), Value::Int(i), &[]);
             let mut currencyId: Option<String> = self.safe_string_k_opt(balance.clone(), "currency", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
@@ -1241,10 +1241,10 @@ impl UpbitCore {
         });
         let mut orderbooks: Value = self.to_array(response);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_1131: bool = true;
-            while { if !__for_first_1131 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1131 = false; i.as_f64().unwrap_or(f64::NAN) < ((orderbooks.len() as i64) as f64) } {
-            let mut orderbook: Value = self.safe_dict(orderbooks.clone(), i.clone(), &[Value::Map({
+            while { if !__for_first_1131 { i += 1; } __for_first_1131 = false; i < (orderbooks.len() as i64) } {
+            let mut orderbook: Value = self.safe_dict(orderbooks.clone(), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -1396,13 +1396,13 @@ impl UpbitCore {
             let mut sortedQuoteIds: Value = self.sort(quoteIds, &[]); // market iteration order differs per language
             let mut quoteCurrencies: String = "".to_string();
             {
-                                let mut i: Value = Value::Int(0);
+                                let mut i: i64 = 0;
                 let mut __for_first_1133: bool = true;
-                while { if !__for_first_1133 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1133 = false; i.as_f64().unwrap_or(f64::NAN) < ((sortedQuoteIds.len() as i64) as f64) } {
+                while { if !__for_first_1133 { i += 1; } __for_first_1133 = false; i < (sortedQuoteIds.len() as i64) } {
                 if ((quoteCurrencies != "")) {
                     quoteCurrencies = format!("{}{}", quoteCurrencies, Value::Str(",".into())).into();
                 }
-                quoteCurrencies = format!("{}{}", quoteCurrencies, self.safe_string(sortedQuoteIds.clone(), i.clone(), &[Value::Str("".into())])).into();
+                quoteCurrencies = format!("{}{}", quoteCurrencies, self.safe_string(sortedQuoteIds.clone(), Value::Int(i), &[Value::Str("".into())])).into();
             }
             }
             let mut request: indexmap::IndexMap<String, Value> = ({
@@ -1417,12 +1417,12 @@ impl UpbitCore {
             let mut promises: Vec<Value> = Vec::new();
             let mut queries: Value = self.ids_query_strings(ids); // the url is limited to about 8000 characters once the commas are percent-encoded
             {
-                                let mut i: Value = Value::Int(0);
+                                let mut i: i64 = 0;
                 let mut __for_first_1134: bool = true;
-                while { if !__for_first_1134 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1134 = false; i.as_f64().unwrap_or(f64::NAN) < ((queries.len() as i64) as f64) } {
+                while { if !__for_first_1134 { i += 1; } __for_first_1134 = false; i < (queries.len() as i64) } {
                 let __ws_arg_4 = self.extend(Value::Map({
                     let mut m = indexmap::IndexMap::new();
-                        m.insert("markets".to_string(), self.safe_string(queries.clone(), i.clone(), &[Value::Str("".into())]));
+                        m.insert("markets".to_string(), self.safe_string(queries.clone(), Value::Int(i), &[Value::Str("".into())]));
                     m
                 }), &[params.clone()]);
                 promises.push(self.public_get_ticker(&[__ws_arg_4]).await);
@@ -1440,13 +1440,13 @@ impl UpbitCore {
         let mut idsString: Value = Value::Str("".into());
         let mut queries: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_1135: bool = true;
-            while { if !__for_first_1135 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1135 = false; i.as_f64().unwrap_or(f64::NAN) < ((ids.len() as i64) as f64) } {
+            while { if !__for_first_1135 { i += 1; } __for_first_1135 = false; i < (ids.len() as i64) } {
             if (idsString.as_str() != Some("")) {
                 idsString = Value::Str(format!("{}{}", idsString, Value::Str(",".into())).into());
             }
-            idsString = Value::Str(format!("{}{}", idsString, self.safe_string(ids.clone(), i.clone(), &[Value::Str("".into())])).into());
+            idsString = Value::Str(format!("{}{}", idsString, self.safe_string(ids.clone(), Value::Int(i), &[Value::Str("".into())])).into());
             if ((idsString.len() as i64) as f64) >= ((4000i64) as f64) {
                 queries.push(idsString.clone());
                 idsString = Value::Str("".into());
@@ -1700,10 +1700,10 @@ impl UpbitCore {
             m
         });
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_1136: bool = true;
-            while { if !__for_first_1136 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1136 = false; i.as_f64().unwrap_or(f64::NAN) < ((fetchMarketResponse.len() as i64) as f64) } {
-            let mut item: Value = self.safe_dict(fetchMarketResponse.clone(), i.clone(), &[]);
+            while { if !__for_first_1136 { i += 1; } __for_first_1136 = false; i < (fetchMarketResponse.len() as i64) } {
+            let mut item: Value = self.safe_dict(fetchMarketResponse.clone(), Value::Int(i), &[]);
             let mut element: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                 m

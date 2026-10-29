@@ -1728,10 +1728,10 @@ impl PredictfunCore {
             let mut noBids: Vec<Value> = Vec::new();
             let mut noAsks: Vec<Value> = Vec::new();
             {
-                                let mut i: Value = Value::Int(0);
+                                let mut i: i64 = 0;
                 let mut __for_first_1460: bool = true;
-                while { if !__for_first_1460 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1460 = false; i.as_f64().unwrap_or(f64::NAN) < ((bids.len() as i64) as f64) } {
-                let mut bid: Value = self.safe_list(bids.clone(), i.clone(), &[]);
+                while { if !__for_first_1460 { i += 1; } __for_first_1460 = false; i < (bids.len() as i64) } {
+                let mut bid: Value = self.safe_list(bids.clone(), Value::Int(i), &[]);
                 let mut bidPrice: Option<String> = self.safe_string_opt(bid.clone(), Value::Int(0), &[]);
                 let mut bidSize: Value = self.parse_number(self.safe_string(bid, Value::Int(1), &[]), &[]);
                 let mut complementPrice: Value = self.parse_number(crate::precise::Precise::stringSub(&Value::Str("1".into()), &bidPrice.clone().map(Value::from).unwrap_or(Value::Null)), &[]);
@@ -1739,10 +1739,10 @@ impl PredictfunCore {
             }
             }
             {
-                                let mut i: Value = Value::Int(0);
+                                let mut i: i64 = 0;
                 let mut __for_first_1461: bool = true;
-                while { if !__for_first_1461 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1461 = false; i.as_f64().unwrap_or(f64::NAN) < ((asks.len() as i64) as f64) } {
-                let mut ask: Value = self.safe_list(asks.clone(), i.clone(), &[]);
+                while { if !__for_first_1461 { i += 1; } __for_first_1461 = false; i < (asks.len() as i64) } {
+                let mut ask: Value = self.safe_list(asks.clone(), Value::Int(i), &[]);
                 let mut askPrice: Option<String> = self.safe_string_opt(ask.clone(), Value::Int(0), &[]);
                 let mut askSize: Value = self.parse_number(self.safe_string(ask, Value::Int(1), &[]), &[]);
                 let mut complementPrice: Value = self.parse_number(crate::precise::Precise::stringSub(&Value::Str("1".into()), &askPrice.clone().map(Value::from).unwrap_or(Value::Null)), &[]);

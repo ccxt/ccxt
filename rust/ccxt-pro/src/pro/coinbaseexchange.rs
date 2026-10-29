@@ -1104,10 +1104,10 @@ impl CoinbaseexchangeCore {
                         let mut totalCost: Value = Value::Str("0".into());
                         let mut totalAmount: Value = Value::Str("0".into());
                         {
-                                                        let mut i: Value = Value::Int(0);
+                                                        let mut i: i64 = 0;
                             let mut __for_first_250: bool = true;
-                            while { if !__for_first_250 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_250 = false; i.as_f64().unwrap_or(f64::NAN) < ((previousTrades.len() as i64) as f64) } {
-                            let mut tradeEntry: Value = self.safe_dict(previousTrades.clone(), i.clone(), &[]);
+                            while { if !__for_first_250 { i += 1; } __for_first_250 = false; i < (previousTrades.len() as i64) } {
+                            let mut tradeEntry: Value = self.safe_dict(previousTrades.clone(), Value::Int(i), &[]);
                             totalCost = self.safe_string_k(tradeEntry.clone(), "cost", &[Value::Str("0".into())]);
                             totalAmount = self.safe_string_k(tradeEntry, "amount", &[Value::Str("0".into())]);
                         }
@@ -1146,10 +1146,10 @@ impl CoinbaseexchangeCore {
                         let mut order: indexmap::IndexMap<String, Value> = self.parse_ws_order(info, &[]).as_map().cloned().unwrap_or_default();
                         let mut keys: Vec<Value> = Value::Array(order.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
                         {
-                                                        let mut i: Value = Value::Int(0);
+                                                        let mut i: i64 = 0;
                             let mut __for_first_251: bool = true;
-                            while { if !__for_first_251 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_251 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
-                            let mut key: Value = keys.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+                            while { if !__for_first_251 { i += 1; } __for_first_251 = false; i < (keys.len() as i64) } {
+                            let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
                             if (order.get(key.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null) != Value::Null) {
                                 add_element_to_object(&mut previousOrder, &key, order.get(key.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null));
                             }
@@ -1400,10 +1400,10 @@ impl CoinbaseexchangeCore {
                 m
             });
             {
-                                let mut i: Value = Value::Int(0);
+                                let mut i: i64 = 0;
                 let mut __for_first_253: bool = true;
-                while { if !__for_first_253 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_253 = false; i.as_f64().unwrap_or(f64::NAN) < ((changes.len() as i64) as f64) } {
-                let mut change: Value = self.safe_list(changes.clone(), i.clone(), &[]);
+                while { if !__for_first_253 { i += 1; } __for_first_253 = false; i < (changes.len() as i64) } {
+                let mut change: Value = self.safe_list(changes.clone(), Value::Int(i), &[]);
                 let mut key: Value = self.safe_string(change.clone(), Value::Int(0), &[]);
                 let mut side: Option<String> = self.safe_string_opt(Value::Map(sides.clone()), key, &[]);
                 let mut price: Value = self.safe_number(change.clone(), Value::Int(1), &[]);

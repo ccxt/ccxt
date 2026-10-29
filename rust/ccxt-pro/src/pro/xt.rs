@@ -472,23 +472,23 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         orderbook.set_book_meta("nonce", self.safe_integer2(delta.clone(), Value::Str("i".into()), Value::Str("u".into()), &[]));
         let mut obAsks: Value = self.safe_list_k(delta.clone(), "a", &[Value::from(vec![])]);
         let mut obBids: Value = self.safe_list_k(delta, "b", &[Value::from(vec![])]);
-        let mut bids: Value = get_value(&orderbook, &Value::Str("bids".into()));
-        let mut asks: Value = get_value(&orderbook, &Value::Str("asks".into()));
+        let mut bids: Value = orderbook.book_field("bids");
+        let mut asks: Value = orderbook.book_field("asks");
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_715: bool = true;
-            while { if !__for_first_715 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_715 = false; i.as_f64().unwrap_or(f64::NAN) < ((obBids.len() as i64) as f64) } {
-            let mut bid: Value = self.safe_list(obBids.clone(), i.clone(), &[]);
+            while { if !__for_first_715 { i += 1; } __for_first_715 = false; i < (obBids.len() as i64) } {
+            let mut bid: Value = self.safe_list(obBids.clone(), Value::Int(i), &[]);
             let mut price: Value = self.safe_number(bid.clone(), Value::Int(0), &[]);
             let mut quantity: Value = self.safe_number(bid, Value::Int(1), &[]);
             bids.store(price.clone(), quantity.clone());
         }
         }
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_716: bool = true;
-            while { if !__for_first_716 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_716 = false; i.as_f64().unwrap_or(f64::NAN) < ((obAsks.len() as i64) as f64) } {
-            let mut ask: Value = self.safe_list(obAsks.clone(), i.clone(), &[]);
+            while { if !__for_first_716 { i += 1; } __for_first_716 = false; i < (obAsks.len() as i64) } {
+            let mut ask: Value = self.safe_list(obAsks.clone(), Value::Int(i), &[]);
             let mut price: Value = self.safe_number(ask.clone(), Value::Int(0), &[]);
             let mut quantity: Value = self.safe_number(ask, Value::Int(1), &[]);
             asks.store(price, quantity);
@@ -1321,10 +1321,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         cache.append(position.clone());
         let mut messageHashes: Vec<Value> = self.find_message_hashes(client.clone(), Value::Str("position::contract".into())).as_array().cloned().unwrap_or_default();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_718: bool = true;
-            while { if !__for_first_718 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_718 = false; i.as_f64().unwrap_or(f64::NAN) < ((messageHashes.len() as i64) as f64) } {
-            let mut messageHash: Value = messageHashes.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_718 { i += 1; } __for_first_718 = false; i < (messageHashes.len() as i64) } {
+            let mut messageHash: Value = messageHashes.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut parts: Vec<Value> = Value::Array(messageHash.as_str().map(|__s| __s.split("::").map(Value::from).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
             let mut symbolsString: Value = parts.get(1).cloned().unwrap_or(Value::Null);
             let mut symbols: Value = Value::Array(symbolsString.as_str().map(|__s| __s.split(",").map(Value::from).collect()).unwrap_or_default());
@@ -1523,10 +1523,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             Value::Str("::".into())).into()), tradeType).into());
         let mut messageHashes: Vec<Value> = self.find_message_hashes(client.clone(), Value::Str(format!("{}{}", messageHashStart, Value::Str("::".into())).into())).as_array().cloned().unwrap_or_default();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_720: bool = true;
-            while { if !__for_first_720 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_720 = false; i.as_f64().unwrap_or(f64::NAN) < ((messageHashes.len() as i64) as f64) } {
-            let mut messageHash: Value = messageHashes.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_720 { i += 1; } __for_first_720 = false; i < (messageHashes.len() as i64) } {
+            let mut messageHash: Value = messageHashes.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut parts: Vec<Value> = Value::Array(messageHash.as_str().map(|__s| __s.split("::").map(Value::from).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
             let mut symbolsString: Value = parts.get(2).cloned().unwrap_or(Value::Null);
             let mut symbols: Value = Value::Array(symbolsString.as_str().map(|__s| __s.split(",").map(Value::from).collect()).unwrap_or_default());
@@ -1786,12 +1786,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 return;
             }
             if (obAsks != Value::Null) {
-                let mut asks: Value = get_value(&orderbook, &Value::Str("asks".into()));
+                let mut asks: Value = orderbook.book_field("asks");
                 {
-                                        let mut i: Value = Value::Int(0);
+                                        let mut i: i64 = 0;
                     let mut __for_first_721: bool = true;
-                    while { if !__for_first_721 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_721 = false; i.as_f64().unwrap_or(f64::NAN) < ((obAsks.len() as i64) as f64) } {
-                    let mut ask: Value = self.safe_list(obAsks.clone(), i.clone(), &[]);
+                    while { if !__for_first_721 { i += 1; } __for_first_721 = false; i < (obAsks.len() as i64) } {
+                    let mut ask: Value = self.safe_list(obAsks.clone(), Value::Int(i), &[]);
                     let mut price: Value = self.safe_number(ask.clone(), Value::Int(0), &[]);
                     let mut quantity: Value = self.safe_number(ask, Value::Int(1), &[]);
                     asks.store(price.clone(), quantity.clone());
@@ -1799,12 +1799,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 }
             }
             if (obBids != Value::Null) {
-                let mut bids: Value = get_value(&orderbook, &Value::Str("bids".into()));
+                let mut bids: Value = orderbook.book_field("bids");
                 {
-                                        let mut i: Value = Value::Int(0);
+                                        let mut i: i64 = 0;
                     let mut __for_first_722: bool = true;
-                    while { if !__for_first_722 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_722 = false; i.as_f64().unwrap_or(f64::NAN) < ((obBids.len() as i64) as f64) } {
-                    let mut bid: Value = self.safe_list(obBids.clone(), i.clone(), &[]);
+                    while { if !__for_first_722 { i += 1; } __for_first_722 = false; i < (obBids.len() as i64) } {
+                    let mut bid: Value = self.safe_list(obBids.clone(), Value::Int(i), &[]);
                     let mut price: Value = self.safe_number(bid.clone(), Value::Int(0), &[]);
                     let mut quantity: Value = self.safe_number(bid, Value::Int(1), &[]);
                     bids.store(price, quantity);
@@ -2252,11 +2252,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut messageHashes: Vec<Value> = (match __pro_message.get("messageHashes").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
         let mut subMessageHashes: Vec<Value> = (match __pro_message.get("subMessageHashes").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
         {
-                        let mut j: Value = Value::Int(0);
+                        let mut j: i64 = 0;
             let mut __for_first_723: bool = true;
-            while { if !__for_first_723 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_723 = false; j.as_f64().unwrap_or(f64::NAN) < ((messageHashes.len() as i64) as f64) } {
-            let mut unsubHash: Value = messageHashes.get(j.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
-            let mut subHash: Value = subMessageHashes.get(j.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_723 { j += 1; } __for_first_723 = false; j < (messageHashes.len() as i64) } {
+            let mut unsubHash: Value = messageHashes.get(j as usize).cloned().unwrap_or(Value::Null);
+            let mut subHash: Value = subMessageHashes.get(j as usize).cloned().unwrap_or(Value::Null);
             self.clean_unsubscription(client.clone(), subHash, unsubHash, &[]);
         }
         }

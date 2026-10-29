@@ -748,10 +748,10 @@ impl CryptomusCore {
             m
         });
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_603: bool = true;
-            while { if !__for_first_603 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_603 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawCurrency.len() as i64) as f64) } {
-            let mut networkEntry: Value = self.safe_dict(rawCurrency.clone(), i.clone(), &[]);
+            while { if !__for_first_603 { i += 1; } __for_first_603 = false; i < (rawCurrency.len() as i64) } {
+            let mut networkEntry: Value = self.safe_dict(rawCurrency.clone(), Value::Int(i), &[]);
             // set ID on first loop
             if (id == Value::Null) {
                 id = self.safe_string_k(networkEntry.clone(), "currency_code", &[]);
@@ -1089,10 +1089,10 @@ impl CryptomusCore {
             m
         });
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_604: bool = true;
-            while { if !__for_first_604 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_604 = false; i.as_f64().unwrap_or(f64::NAN) < ((balance.len() as i64) as f64) } {
-            let mut balanceEntry: Value = self.safe_dict(balance.clone(), i.clone(), &[]);
+            while { if !__for_first_604 { i += 1; } __for_first_604 = false; i < (balance.len() as i64) } {
+            let mut balanceEntry: Value = self.safe_dict(balance.clone(), Value::Int(i), &[]);
             let mut currencyId: Option<String> = self.safe_string_k_opt(balanceEntry.clone(), "ticker", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
@@ -1310,10 +1310,10 @@ impl CryptomusCore {
         let mut result: Vec<Value> = self.safe_list_k(response, "result", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut orders: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_605: bool = true;
-            while { if !__for_first_605 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_605 = false; i.as_f64().unwrap_or(f64::NAN) < ((result.len() as i64) as f64) } {
-            orders.push(self.parse_order(result.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null), &[market.clone()]));
+            while { if !__for_first_605 { i += 1; } __for_first_605 = false; i < (result.len() as i64) } {
+            orders.push(self.parse_order(result.get(i as usize).cloned().unwrap_or(Value::Null), &[market.clone()]));
         }
         }
         return Value::from(orders);
@@ -1633,10 +1633,10 @@ impl CryptomusCore {
         let mut takerFees: Vec<Value> = Vec::new();
         let mut makerFees: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_607: bool = true;
-            while { if !__for_first_607 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_607 = false; i.as_f64().unwrap_or(f64::NAN) < ((feeTiers.len() as i64) as f64) } {
-            let mut tier: Value = self.safe_dict(feeTiers.clone(), i.clone(), &[]);
+            while { if !__for_first_607 { i += 1; } __for_first_607 = false; i < (feeTiers.len() as i64) } {
+            let mut tier: Value = self.safe_dict(feeTiers.clone(), Value::Int(i), &[]);
             let mut turnover: Value = self.safe_number_k(tier.clone(), "from_turnover", &[]);
             let mut taker: Value = self.safe_string_k(tier.clone(), "taker_percent", &[]);
             let mut maker: Value = self.safe_string_k(tier, "maker_percent", &[]);

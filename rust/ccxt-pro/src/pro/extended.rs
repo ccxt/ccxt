@@ -398,8 +398,8 @@ impl ExtendedCore {
             client.reject(&[Value::from(error), messageHash.clone()]);
             return;
         }
-        self.handle_deltas(get_value(&orderbook, &Value::Str("bids".into())), self.safe_list_k(data.clone(), "b", &[Value::from(vec![])]));
-        self.handle_deltas(get_value(&orderbook, &Value::Str("asks".into())), self.safe_list_k(data, "a", &[Value::from(vec![])]));
+        self.handle_deltas(orderbook.book_field("bids"), self.safe_list_k(data.clone(), "b", &[Value::from(vec![])]));
+        self.handle_deltas(orderbook.book_field("asks"), self.safe_list_k(data, "a", &[Value::from(vec![])]));
         orderbook.set_book_meta("timestamp", timestamp.clone());
         orderbook.set_book_meta("datetime", self.iso8601(timestamp));
         orderbook.set_book_meta("nonce", nonce);
@@ -599,10 +599,10 @@ impl ExtendedCore {
         }
         let mut spotBalances: Value = self.safe_list_k(data, "spotBalances", &[Value::from(vec![])]);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_319: bool = true;
-            while { if !__for_first_319 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_319 = false; i.as_f64().unwrap_or(f64::NAN) < ((spotBalances.len() as i64) as f64) } {
-            let mut spotBalance: Value = self.safe_dict(spotBalances.clone(), i.clone(), &[Value::Map({
+            while { if !__for_first_319 { i += 1; } __for_first_319 = false; i < (spotBalances.len() as i64) } {
+            let mut spotBalance: Value = self.safe_dict(spotBalances.clone(), Value::Int(i), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
@@ -716,10 +716,10 @@ impl ExtendedCore {
             return;
         }
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_320: bool = true;
-            while { if !__for_first_320 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_320 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawTrades.len() as i64) as f64) } {
-            let mut trade: Value = self.parse_trade(self.safe_dict(rawTrades.clone(), i.clone(), &[Value::Map({
+            while { if !__for_first_320 { i += 1; } __for_first_320 = false; i < (rawTrades.len() as i64) } {
+            let mut trade: Value = self.parse_trade(self.safe_dict(rawTrades.clone(), Value::Int(i), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]), &[]);
@@ -730,10 +730,10 @@ impl ExtendedCore {
         }
         let mut keys: Vec<Value> = Value::Array(symbols.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_321: bool = true;
-            while { if !__for_first_321 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_321 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
-            let mut key: Value = keys.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_321 { i += 1; } __for_first_321 = false; i < (keys.len() as i64) } {
+            let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("myTrades:".into()), key).into());
             client.resolve(&[stored.clone(), messageHash.clone()]);
         }
@@ -741,10 +741,10 @@ impl ExtendedCore {
         client.resolve(&[stored.clone(), Value::Str("myTrades".into())]);
         let mut subscriptions: Vec<Value> = __ch.subscription_keys();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_322: bool = true;
-            while { if !__for_first_322 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_322 = false; i.as_f64().unwrap_or(f64::NAN) < ((subscriptions.len() as i64) as f64) } {
-            let mut messageHash: Value = subscriptions.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_322 { i += 1; } __for_first_322 = false; i < (subscriptions.len() as i64) } {
+            let mut messageHash: Value = subscriptions.get(i as usize).cloned().unwrap_or(Value::Null);
             if (Value::Int(messageHash.as_str().and_then(|__s| __s.find("myTrades:")).map(|__i| __i as i64).unwrap_or(-1)).as_f64() == Some(0.0)) {
                 client.resolve(&[stored.clone(), messageHash]);
             }
@@ -849,10 +849,10 @@ impl ExtendedCore {
         }
         let mut messageHashes: Vec<Value> = self.find_message_hashes(client.clone(), Value::Str("positions::".into())).as_array().cloned().unwrap_or_default();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_324: bool = true;
-            while { if !__for_first_324 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_324 = false; i.as_f64().unwrap_or(f64::NAN) < ((messageHashes.len() as i64) as f64) } {
-            let mut messageHash: Value = messageHashes.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_324 { i += 1; } __for_first_324 = false; i < (messageHashes.len() as i64) } {
+            let mut messageHash: Value = messageHashes.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut parts: Vec<Value> = Value::Array(messageHash.as_str().map(|__s| __s.split("::").map(Value::from).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
             let mut symbolsString: Value = parts.get(1).cloned().unwrap_or(Value::Null);
             let mut symbols: Value = Value::Array(symbolsString.as_str().map(|__s| __s.split(",").map(Value::from).collect()).unwrap_or_default());
@@ -918,10 +918,10 @@ impl ExtendedCore {
             return;
         }
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_325: bool = true;
-            while { if !__for_first_325 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_325 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawOrders.len() as i64) as f64) } {
-            let mut order: Value = self.parse_order(self.safe_dict(rawOrders.clone(), i.clone(), &[Value::Map({
+            while { if !__for_first_325 { i += 1; } __for_first_325 = false; i < (rawOrders.len() as i64) } {
+            let mut order: Value = self.parse_order(self.safe_dict(rawOrders.clone(), Value::Int(i), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]), &[]);
@@ -932,10 +932,10 @@ impl ExtendedCore {
         }
         let mut keys: Vec<Value> = Value::Array(symbols.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_326: bool = true;
-            while { if !__for_first_326 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_326 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
-            let mut key: Value = keys.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_326 { i += 1; } __for_first_326 = false; i < (keys.len() as i64) } {
+            let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orders:".into()), key).into());
             client.resolve(&[orders.clone(), messageHash.clone()]);
         }
@@ -943,10 +943,10 @@ impl ExtendedCore {
         client.resolve(&[orders.clone(), Value::Str("orders".into())]);
         let mut subscriptions: Vec<Value> = __ch.subscription_keys();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_327: bool = true;
-            while { if !__for_first_327 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_327 = false; i.as_f64().unwrap_or(f64::NAN) < ((subscriptions.len() as i64) as f64) } {
-            let mut messageHash: Value = subscriptions.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_327 { i += 1; } __for_first_327 = false; i < (subscriptions.len() as i64) } {
+            let mut messageHash: Value = subscriptions.get(i as usize).cloned().unwrap_or(Value::Null);
             if (Value::Int(messageHash.as_str().and_then(|__s| __s.find("orders:")).map(|__i| __i as i64).unwrap_or(-1)).as_f64() == Some(0.0)) {
                 client.resolve(&[orders.clone(), messageHash]);
             }
@@ -1347,10 +1347,10 @@ impl ExtendedCore {
         add_element_to_object(&mut subscription, &Value::Str("nonce".into()), nonce);
         let mut data: Vec<Value> = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_329: bool = true;
-            while { if !__for_first_329 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_329 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
-            let mut parsed: Value = self.parse_ohlcv(data.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null), &[]);
+            while { if !__for_first_329 { i += 1; } __for_first_329 = false; i < (data.len() as i64) } {
+            let mut parsed: Value = self.parse_ohlcv(data.get(i as usize).cloned().unwrap_or(Value::Null), &[]);
             stored.append(parsed);
         }
         }
@@ -1361,10 +1361,10 @@ impl ExtendedCore {
         let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         let mut keys: Vec<Value> = __ch.subscription_keys();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_330: bool = true;
-            while { if !__for_first_330 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_330 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
-            let mut key: Value = keys.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_330 { i += 1; } __for_first_330 = false; i < (keys.len() as i64) } {
+            let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut subscription: Value = self.safe_dict(__ch.subscriptions.clone(), key, &[]);
             let mut subscriptionName: Option<String> = self.safe_string_k_opt(subscription.clone(), "name", &[]);
             if (subscriptionName.as_deref() == name.as_str()) {

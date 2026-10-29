@@ -3030,10 +3030,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut response: Value = self.private_get_v1_accounts_trading_accounts(&[paramsTradingAccountId]).await;
             let mut accounts: Value = self.to_array(response);
             {
-                                let mut i: Value = Value::Int(0);
+                                let mut i: i64 = 0;
                 let mut __for_first_493: bool = true;
-                while { if !__for_first_493 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_493 = false; i.as_f64().unwrap_or(f64::NAN) < ((accounts.len() as i64) as f64) } {
-                let mut account: Value = self.safe_dict(accounts.clone(), i.clone(), &[]);
+                while { if !__for_first_493 { i += 1; } __for_first_493 = false; i < (accounts.len() as i64) } {
+                let mut account: Value = self.safe_dict(accounts.clone(), Value::Int(i), &[]);
                 let mut name: Option<String> = self.safe_string_k(account.clone(), "tradingAccountName", &[]).as_str().map(str::to_owned);
                 if (name.as_deref() == Some("Primary Account")) {
                     tradingAccountId = self.safe_string_k(account, "tradingAccountId", &[]);
@@ -3138,10 +3138,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             }
             if (network != Value::Null) {
                 {
-                                        let mut i: Value = Value::Int(0);
+                                        let mut i: i64 = 0;
                     let mut __for_first_494: bool = true;
-                    while { if !__for_first_494 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_494 = false; i.as_f64().unwrap_or(f64::NAN) < ((safeResponse.len() as i64) as f64) } {
-                    let mut entry: Value = self.safe_dict(safeResponse.clone(), i.clone(), &[Value::Map({
+                    while { if !__for_first_494 { i += 1; } __for_first_494 = false; i < (safeResponse.len() as i64) } {
+                    let mut entry: Value = self.safe_dict(safeResponse.clone(), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -3246,10 +3246,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         });
         let mut rows: Value = self.to_array(response);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_495: bool = true;
-            while { if !__for_first_495 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_495 = false; i.as_f64().unwrap_or(f64::NAN) < ((rows.len() as i64) as f64) } {
-            let mut balance: Value = self.safe_dict(rows.clone(), i.clone(), &[]);
+            while { if !__for_first_495 { i += 1; } __for_first_495 = false; i < (rows.len() as i64) } {
+            let mut balance: Value = self.safe_dict(rows.clone(), Value::Int(i), &[]);
             let mut symbol: Option<String> = self.safe_string_k_opt(balance.clone(), "assetSymbol", &[]);
             let mut code: Value = self.safe_currency_code(symbol.map(Value::from).unwrap_or(Value::Null), &[]);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();

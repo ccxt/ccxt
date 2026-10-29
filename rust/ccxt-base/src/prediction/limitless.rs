@@ -628,10 +628,10 @@ impl LimitlessCore {
                 m
             });
             {
-                                let mut i: Value = Value::Int(0);
+                                let mut i: i64 = 0;
                 let mut __for_first_1293: bool = true;
-                while { if !__for_first_1293 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1293 = false; i.as_f64().unwrap_or(f64::NAN) < ((queries.len() as i64) as f64) } {
-                let mut q: Value = queries.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+                while { if !__for_first_1293 { i += 1; } __for_first_1293 = false; i < (queries.len() as i64) } {
+                let mut q: Value = queries.get(i as usize).cloned().unwrap_or(Value::Null);
                 let __ws_arg_0 = self.extend(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("query".to_string(), q);
@@ -641,10 +641,10 @@ impl LimitlessCore {
                 let mut response: Value = self.limitless_public_get_markets_search(&[__ws_arg_0]).await;
                 let mut found: Vec<Value> = self.safe_list_k(response.clone(), "markets", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
                 {
-                                        let mut j: Value = Value::Int(0);
+                                        let mut j: i64 = 0;
                     let mut __for_first_1292: bool = true;
-                    while { if !__for_first_1292 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_1292 = false; j.as_f64().unwrap_or(f64::NAN) < ((found.len() as i64) as f64) } {
-                    let mut raw: Value = found.get(j.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+                    while { if !__for_first_1292 { j += 1; } __for_first_1292 = false; j < (found.len() as i64) } {
+                    let mut raw: Value = found.get(j as usize).cloned().unwrap_or(Value::Null);
                     let mut slug: Option<String> = self.safe_string_k_opt(raw.clone(), "slug", &[]);
                     if ((slug.is_some()) && (slug.as_deref() != Some(""))) && !(matches!((&seen, &slug.clone().map(Value::from).unwrap_or(Value::Null)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                         if let Value::Dict(__d) = &mut seen { std::sync::Arc::make_mut(__d).insert(slug.as_deref().unwrap_or("null").to_string(), Value::Bool(true)); }
@@ -738,10 +738,10 @@ impl LimitlessCore {
         // into regular rows before parsing (a group row itself has no tokens)
         let mut expandedRaw: Vec<Value> = self.expand_group_rows(Value::Array(allRaw)).as_array().cloned().unwrap_or_default();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_1297: bool = true;
-            while { if !__for_first_1297 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1297 = false; i.as_f64().unwrap_or(f64::NAN) < ((expandedRaw.len() as i64) as f64) } {
-            let mut raw: Value = expandedRaw.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_1297 { i += 1; } __for_first_1297 = false; i < (expandedRaw.len() as i64) } {
+            let mut raw: Value = expandedRaw.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut groupId: Value = self.safe_string_n(raw.clone(), Value::from(vec![Value::Str("groupSlug".into()), Value::Str("groupId".into())]), &[self.safe_string_k(raw.clone(), "slug", &[])]);
             let mut eventKey: Value = Value::Null;
             if (groupId != Value::Null) && (groupId.as_str() != Some("")) {
@@ -776,10 +776,10 @@ impl LimitlessCore {
         });
         let mut eventKeys: Vec<Value> = Value::Array(eventGroups.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_1298: bool = true;
-            while { if !__for_first_1298 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1298 = false; i.as_f64().unwrap_or(f64::NAN) < ((eventKeys.len() as i64) as f64) } {
-            let mut eventKey: Value = eventKeys.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_1298 { i += 1; } __for_first_1298 = false; i < (eventKeys.len() as i64) } {
+            let mut eventKey: Value = eventKeys.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut g: Value = eventGroups.as_map().and_then(|__m| eventKey.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
             if let Value::Dict(__d) = &mut eventsDict { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&eventKey), self.parse_event(g)); }
         }
@@ -912,10 +912,10 @@ impl LimitlessCore {
         let mut outcomes: Vec<Value> = Vec::new();
         let mut tokenEntries: Vec<Value> = Value::Array(tokens.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_1299: bool = true;
-            while { if !__for_first_1299 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1299 = false; i.as_f64().unwrap_or(f64::NAN) < ((tokenEntries.len() as i64) as f64) } {
-            let mut outcomeLabel: Value = tokenEntries.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_1299 { i += 1; } __for_first_1299 = false; i < (tokenEntries.len() as i64) } {
+            let mut outcomeLabel: Value = tokenEntries.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut tokenData: Value = tokens.as_map().and_then(|__m| outcomeLabel.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
             let mut tokenId: Value = tokenData;
             let mut outcomeHandle: Value = self.slug_to_outcome_symbol(groupId.clone(), slug.clone().map(Value::from).unwrap_or(Value::Null), outcomeLabel.clone());
@@ -924,7 +924,7 @@ impl LimitlessCore {
             // languages (Go randomizes map iteration), so map the leg to its canonical index by
             // label rather than by loop position — otherwise Go/Java flag the wrong winner
             let mut labelLower: Value = outcomeLabel.as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
-            let mut legIndex: Value = i.clone();
+            let mut legIndex: Value = Value::Int(i);
             if (labelLower.as_str() == Some("yes")) {
                 legIndex = Value::Int(0);
             }  else if (labelLower.as_str() == Some("no")) {
@@ -1377,10 +1377,10 @@ impl LimitlessCore {
         // aggregate 24h volume across the markets so sort by volume works
         let mut totalVolume: Value = Value::Int(0);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_1302: bool = true;
-            while { if !__for_first_1302 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1302 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawMarkets.len() as i64) as f64) } {
-            let mut rawMarket: Value = rawMarkets.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_1302 { i += 1; } __for_first_1302 = false; i < (rawMarkets.len() as i64) } {
+            let mut rawMarket: Value = rawMarkets.get(i as usize).cloned().unwrap_or(Value::Null);
             // an already-parsed ccxt market row carries the unified 'market' handle + outcomes
             // with 'symbol' kept as a legacy fallback — don't run it through parseMarket again
             let mut marketSymbol: Option<String> = self.safe_string2(rawMarket.clone(), Value::Str("market".into()), Value::Str("symbol".into()), &[]).as_str().map(str::to_owned);
@@ -1889,10 +1889,10 @@ impl LimitlessCore {
         let mut rows: Vec<Value> = self.safe_list_k(response, "events", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut filtered: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_1307: bool = true;
-            while { if !__for_first_1307 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1307 = false; i.as_f64().unwrap_or(f64::NAN) < ((rows.len() as i64) as f64) } {
-            let mut row: Value = rows.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_1307 { i += 1; } __for_first_1307 = false; i < (rows.len() as i64) } {
+            let mut row: Value = rows.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut rowTokenId: Value = self.safe_string_k(row.clone(), "tokenId", &[]);
             if (tokenId != Value::Null) && (rowTokenId != Value::Null) && (rowTokenId != tokenId) {
                 continue;
@@ -1970,14 +1970,14 @@ impl LimitlessCore {
         let mut bids: Vec<Value> = Vec::new();
         let mut asks: Vec<Value> = Vec::new();
         {
-                        let mut bi: Value = Value::Int(0);
+                        let mut bi: i64 = 0;
             let mut __for_first_1308: bool = true;
-            while { if !__for_first_1308 { if let Value::Int(n) = &mut bi { *n += 1; } } __for_first_1308 = false; bi.as_f64().unwrap_or(f64::NAN) < ((bidsSource.len() as i64) as f64) } {
-            let mut priceStr: Value = self.safe_string(self.safe_value(bidsSource.clone(), bi.clone(), &[]), Value::Str("price".into()), &[]);
+            while { if !__for_first_1308 { bi += 1; } __for_first_1308 = false; bi < (bidsSource.len() as i64) } {
+            let mut priceStr: Value = self.safe_string(self.safe_value(bidsSource.clone(), Value::Int(bi), &[]), Value::Str("price".into()), &[]);
             if !isYes && (priceStr != Value::Null) {
                 priceStr = crate::precise::Precise::stringSub(&Value::Str("1".into()), &priceStr);
             }
-            let mut sizeStr: Value = self.safe_string(self.safe_value(bidsSource.clone(), bi.clone(), &[]), Value::Str("size".into()), &[]);
+            let mut sizeStr: Value = self.safe_string(self.safe_value(bidsSource.clone(), Value::Int(bi), &[]), Value::Str("size".into()), &[]);
             if (sizeStr != Value::Null) {
                 sizeStr = crate::precise::Precise::stringDiv(&sizeStr, &scaleStr);
             }
@@ -1985,14 +1985,14 @@ impl LimitlessCore {
         }
         }
         {
-                        let mut ai: Value = Value::Int(0);
+                        let mut ai: i64 = 0;
             let mut __for_first_1309: bool = true;
-            while { if !__for_first_1309 { if let Value::Int(n) = &mut ai { *n += 1; } } __for_first_1309 = false; ai.as_f64().unwrap_or(f64::NAN) < ((asksSource.len() as i64) as f64) } {
-            let mut priceStr: Value = self.safe_string(self.safe_value(asksSource.clone(), ai.clone(), &[]), Value::Str("price".into()), &[]);
+            while { if !__for_first_1309 { ai += 1; } __for_first_1309 = false; ai < (asksSource.len() as i64) } {
+            let mut priceStr: Value = self.safe_string(self.safe_value(asksSource.clone(), Value::Int(ai), &[]), Value::Str("price".into()), &[]);
             if !isYes && (priceStr != Value::Null) {
                 priceStr = crate::precise::Precise::stringSub(&Value::Str("1".into()), &priceStr);
             }
-            let mut sizeStr: Value = self.safe_string(self.safe_value(asksSource.clone(), ai.clone(), &[]), Value::Str("size".into()), &[]);
+            let mut sizeStr: Value = self.safe_string(self.safe_value(asksSource.clone(), Value::Int(ai), &[]), Value::Str("size".into()), &[]);
             if (sizeStr != Value::Null) {
                 sizeStr = crate::precise::Precise::stringDiv(&sizeStr, &scaleStr);
             }
@@ -2118,10 +2118,10 @@ impl LimitlessCore {
         // timeframe-aligned candles (single points would carry unaligned timestamps)
         let mut pseudoTrades: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_1311: bool = true;
-            while { if !__for_first_1311 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1311 = false; i.as_f64().unwrap_or(f64::NAN) < ((history.len() as i64) as f64) } {
-            let mut point: Value = self.safe_dict(history.clone(), i.clone(), &[]);
+            while { if !__for_first_1311 { i += 1; } __for_first_1311 = false; i < (history.len() as i64) } {
+            let mut point: Value = self.safe_dict(history.clone(), Value::Int(i), &[]);
             let mut pointPrice: Value = self.safe_number_k(point.clone(), "price", &[]);
             let mut rawTs: Value = self.safe_integer_k(point.clone(), "timestamp", &[]);
             let mut pointTs: Value = rawTs.clone();
@@ -2155,10 +2155,10 @@ impl LimitlessCore {
         });
         let mut bucketOrder: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_1312: bool = true;
-            while { if !__for_first_1312 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1312 = false; i.as_f64().unwrap_or(f64::NAN) < ((sorted.len() as i64) as f64) } {
-            let mut point: Value = self.safe_dict(sorted.clone(), i.clone(), &[]);
+            while { if !__for_first_1312 { i += 1; } __for_first_1312 = false; i < (sorted.len() as i64) } {
+            let mut point: Value = self.safe_dict(sorted.clone(), Value::Int(i), &[]);
             let mut pTs: Value = self.safe_integer_k(point.clone(), "timestamp", &[]);
             let mut pPrice: Value = self.safe_number_k(point, "price", &[]);
             if (pTs == Value::Null) {
@@ -2451,10 +2451,10 @@ impl LimitlessCore {
         let mut results: Value = self.safe_list_k(response, "results", &[Value::from(vec![])]);
         let mut found: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_1315: bool = true;
-            while { if !__for_first_1315 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1315 = false; i.as_f64().unwrap_or(f64::NAN) < ((results.len() as i64) as f64) } {
-            let mut item: Value = self.safe_dict(results.clone(), i.clone(), &[Value::Map({
+            while { if !__for_first_1315 { i += 1; } __for_first_1315 = false; i < (results.len() as i64) } {
+            let mut item: Value = self.safe_dict(results.clone(), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -3464,10 +3464,10 @@ if _try_result.is_err() {
         // we filter out the settlements here and only return the trades
         let mut trades: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_1317: bool = true;
-            while { if !__for_first_1317 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1317 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
-            let mut item: Value = self.safe_dict(data.clone(), i.clone(), &[]);
+            while { if !__for_first_1317 { i += 1; } __for_first_1317 = false; i < (data.len() as i64) } {
+            let mut item: Value = self.safe_dict(data.clone(), Value::Int(i), &[]);
             let mut strategy: Option<String> = self.safe_string_lower_k_opt(item.clone(), "strategy", &[]);
             if (strategy.is_some()) {
                 let mut buyIndex: i64 = strategy.as_deref().and_then(|__s| __s.find("buy")).map(|__i| __i as i64).unwrap_or(-1);
@@ -3635,10 +3635,10 @@ if _try_result.is_err() {
         let mut mkt: Value = self.safe_market(&[slug, market]);
         let mut outcomes: Value = self.safe_list_k(mkt, "outcomes", &[Value::from(vec![])]);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_1318: bool = true;
-            while { if !__for_first_1318 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1318 = false; i.as_f64().unwrap_or(f64::NAN) < ((outcomes.len() as i64) as f64) } {
-            let mut outcome: Value = self.safe_dict(outcomes.clone(), i.clone(), &[]);
+            while { if !__for_first_1318 { i += 1; } __for_first_1318 = false; i < (outcomes.len() as i64) } {
+            let mut outcome: Value = self.safe_dict(outcomes.clone(), Value::Int(i), &[]);
             let mut outcomeLabel: Option<String> = self.safe_string_k_opt(outcome.clone(), "label", &[]);
             if (outcomeLabel.as_deref() == label.as_str()) {
                 return outcome;
@@ -3759,15 +3759,15 @@ if _try_result.is_err() {
         let mut result: Vec<Value> = Vec::new();
         let mut labels: Value = Value::from(vec![Value::Str("yes".into()), Value::Str("no".into())]);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_1320: bool = true;
-            while { if !__for_first_1320 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1320 = false; i.as_f64().unwrap_or(f64::NAN) < ((clob.len() as i64) as f64) } {
-            let mut entry: Value = self.safe_dict(clob.clone(), i.clone(), &[]);
+            while { if !__for_first_1320 { i += 1; } __for_first_1320 = false; i < (clob.len() as i64) } {
+            let mut entry: Value = self.safe_dict(clob.clone(), Value::Int(i), &[]);
             {
-                                let mut j: Value = Value::Int(0);
+                                let mut j: i64 = 0;
                 let mut __for_first_1319: bool = true;
-                while { if !__for_first_1319 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_1319 = false; j.as_f64().unwrap_or(f64::NAN) < ((labels.len() as i64) as f64) } {
-                let mut label: Option<String> = self.safe_string_opt(labels.clone(), j.clone(), &[]);
+                while { if !__for_first_1319 { j += 1; } __for_first_1319 = false; j < (labels.len() as i64) } {
+                let mut label: Option<String> = self.safe_string_opt(labels.clone(), Value::Int(j), &[]);
                 let mut position: Value = self.get_position_from_clob_entry(label.map(Value::from).unwrap_or(Value::Null), &[entry.clone()]);
                 if (position != Value::Null) {
                     result.push(position);
@@ -3934,10 +3934,10 @@ if _try_result.is_err() {
                 let mut response: Value = self.limitless_public_get_markets_search(&[__ws_arg_30]).await;
                 let mut found: Vec<Value> = self.safe_list_k(response.clone(), "markets", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
                 {
-                                        let mut j: Value = Value::Int(0);
+                                        let mut j: i64 = 0;
                     let mut __for_first_1321: bool = true;
-                    while { if !__for_first_1321 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_1321 = false; j.as_f64().unwrap_or(f64::NAN) < ((found.len() as i64) as f64) } {
-                    let mut raw: Value = found.get(j.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+                    while { if !__for_first_1321 { j += 1; } __for_first_1321 = false; j < (found.len() as i64) } {
+                    let mut raw: Value = found.get(j as usize).cloned().unwrap_or(Value::Null);
                     let mut rawSlug: Option<String> = self.safe_string_k_opt(raw.clone(), "slug", &[]);
                     if ((rawSlug.is_some()) && (rawSlug.as_deref() != Some(""))) && !(matches!((&seen, &rawSlug.clone().map(Value::from).unwrap_or(Value::Null)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                         if let Value::Dict(__d) = &mut seen { std::sync::Arc::make_mut(__d).insert(rawSlug.as_deref().unwrap_or("null").to_string(), Value::Bool(true)); }

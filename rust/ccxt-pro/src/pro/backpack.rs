@@ -662,10 +662,10 @@ impl BackpackCore {
         let mut client: Value = self.client(&[url.clone()]);
         self.watch_multiple(url, messageHashes.clone(), &[message, messageHashes.clone()]).await;
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_40: bool = true;
-            while { if !__for_first_40 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_40 = false; i.as_f64().unwrap_or(f64::NAN) < ((messageHashes.len() as i64) as f64) } {
-            let mut messageHash: Value = self.safe_string(messageHashes.clone(), i.clone(), &[Value::Str("".into())]);
+            while { if !__for_first_40 { i += 1; } __for_first_40 = false; i < (messageHashes.len() as i64) } {
+            let mut messageHash: Value = self.safe_string(messageHashes.clone(), Value::Int(i), &[Value::Str("".into())]);
             let mut subMessageHash: Value = messageHash.as_str().map(|__s| Value::Str(__s.replace("unsubscribe:", "").into())).unwrap_or_else(|| messageHash.clone());
             self.clean_unsubscription(client.clone(), subMessageHash, messageHash.clone(), &[]);
             if Value::Int(messageHash.as_str().and_then(|__s| __s.find("ticker")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
@@ -1830,8 +1830,8 @@ impl BackpackCore {
         orderbook.set_book_meta("nonce", self.safe_integer_k(delta.clone(), "u", &[]));
         let mut bids: Value = self.safe_list_k(delta.clone(), "b", &[Value::from(vec![])]);
         let mut asks: Value = self.safe_list_k(delta, "a", &[Value::from(vec![])]);
-        let mut storedBids: Value = get_value(&orderbook, &Value::Str("bids".into()));
-        let mut storedAsks: Value = get_value(&orderbook, &Value::Str("asks".into()));
+        let mut storedBids: Value = orderbook.book_field("bids");
+        let mut storedAsks: Value = orderbook.book_field("asks");
         self.handle_bid_asks(storedBids, bids);
         self.handle_bid_asks(storedAsks, asks);
 }
@@ -2124,10 +2124,10 @@ impl BackpackCore {
                 m
             });
             {
-                                let mut i: Value = Value::Int(0);
+                                let mut i: i64 = 0;
                 let mut __for_first_52: bool = true;
-                while { if !__for_first_52 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_52 = false; i.as_f64().unwrap_or(f64::NAN) < ((securities.len() as i64) as f64) } {
-                let mut security: Value = self.safe_dict(securities.clone(), i.clone(), &[Value::Map({
+                while { if !__for_first_52 { i += 1; } __for_first_52 = false; i < (securities.len() as i64) } {
+                let mut security: Value = self.safe_dict(securities.clone(), Value::Int(i), &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
                 })]);

@@ -168,10 +168,10 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         if (eventId != Value::Null) || (slug != Value::Null) {
             let mut filtered: Value = Value::from(vec![]);
             {
-                                let mut i: Value = Value::Int(0);
+                                let mut i: i64 = 0;
                 let mut __for_first_188: bool = true;
-                while { if !__for_first_188 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_188 = false; i.as_f64().unwrap_or(f64::NAN) < ((result.len() as i64) as f64) } {
-                let mut event: Value = self.safe_value(result.clone(), i.clone(), &[]);
+                while { if !__for_first_188 { i += 1; } __for_first_188 = false; i < (result.len() as i64) } {
+                let mut event: Value = self.safe_value(result.clone(), Value::Int(i), &[]);
                 let mut idMatch: bool = (eventId != Value::Null) && (self.safe_string_k(event.clone(), "id", &[]).as_str() == eventId.as_str());
                 let mut slugMatch: bool = (slug != Value::Null) && (self.safe_string_k(event.clone(), "slug", &[]).as_str() == slug.as_str());
                 if idMatch || slugMatch {
@@ -238,10 +238,10 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         let mut wantActive: Value = (Value::Bool(status.as_str() == Some("active")));
         let mut result: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_190: bool = true;
-            while { if !__for_first_190 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_190 = false; i.as_f64().unwrap_or(f64::NAN) < ((events.len() as i64) as f64) } {
-            let mut event: Value = self.safe_value(events.clone(), i.clone(), &[]);
+            while { if !__for_first_190 { i += 1; } __for_first_190 = false; i < (events.len() as i64) } {
+            let mut event: Value = self.safe_value(events.clone(), Value::Int(i), &[]);
             let mut isActive: Value = self.safe_bool_k(event.clone(), "active", &[]);
             // keep events whose status is unknown (already filtered server-side, no `active` field)
             if (isActive == Value::Null) || (isActive.as_bool() == wantActive.as_bool()) {
@@ -269,10 +269,10 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         let mut checkDescription: bool = (searchIn.as_str() == Some("description")) || (searchIn.as_str() == Some("both"));
         let mut result: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_192: bool = true;
-            while { if !__for_first_192 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_192 = false; i.as_f64().unwrap_or(f64::NAN) < ((events.len() as i64) as f64) } {
-            let mut event: Value = self.safe_value(events.clone(), i.clone(), &[]);
+            while { if !__for_first_192 { i += 1; } __for_first_192 = false; i < (events.len() as i64) } {
+            let mut event: Value = self.safe_value(events.clone(), Value::Int(i), &[]);
             let mut title: Value = self.safe_string_lower_k(event.clone(), "title", &[Value::Str("".into())]);
             let mut description: Value = self.safe_string_lower_k(event.clone(), "description", &[Value::Str("".into())]);
             let mut matched: bool = false;
@@ -319,10 +319,10 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         let mut s: Value = Value::Str("".into());
         let mut pendingSep: bool = false;
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_193: bool = true;
-            while { if !__for_first_193 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_193 = false; i.as_f64().unwrap_or(f64::NAN) < ((chars.len() as i64) as f64) } {
-            let mut ch: Value = chars.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_193 { i += 1; } __for_first_193 = false; i < (chars.len() as i64) } {
+            let mut ch: Value = chars.get(i as usize).cloned().unwrap_or(Value::Null);
             if Value::Int(allowed.as_str().zip(ch.as_str()).and_then(|(__s, __n)| __s.find(__n)).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
                 if pendingSep && (s.as_str() != Some("")) {
                     s = Value::Str(format!("{}{}", s, Value::Str(" ".into())).into());
@@ -364,17 +364,17 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         }
         let mut result: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_197: bool = true;
-            while { if !__for_first_197 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_197 = false; i.as_f64().unwrap_or(f64::NAN) < ((events.len() as i64) as f64) } {
-            let mut event: Value = self.safe_value(events.clone(), i.clone(), &[]);
+            while { if !__for_first_197 { i += 1; } __for_first_197 = false; i < (events.len() as i64) } {
+            let mut event: Value = self.safe_value(events.clone(), Value::Int(i), &[]);
             let mut eventTags: Vec<Value> = self.safe_list_k(event.clone(), "tags", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
             let mut matched: bool = false;
             {
-                                let mut ti: Value = Value::Int(0);
+                                let mut ti: i64 = 0;
                 let mut __for_first_196: bool = true;
-                while { if !__for_first_196 { if let Value::Int(n) = &mut ti { *n += 1; } } __for_first_196 = false; ti.as_f64().unwrap_or(f64::NAN) < ((eventTags.len() as i64) as f64) } {
-                let mut tag: Value = eventTags.get(ti.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+                while { if !__for_first_196 { ti += 1; } __for_first_196 = false; ti < (eventTags.len() as i64) } {
+                let mut tag: Value = eventTags.get(ti as usize).cloned().unwrap_or(Value::Null);
                 let mut tagLabel: Value = Value::Null;
                 if matches!(&tag, Value::Str(_)) {
                     tagLabel = tag.clone();
@@ -459,10 +459,10 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
             });
         }
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_198: bool = true;
-            while { if !__for_first_198 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_198 = false; i.as_f64().unwrap_or(f64::NAN) < ((events.len() as i64) as f64) } {
-            let mut event: Value = self.safe_value(events.clone(), i.clone(), &[]);
+            while { if !__for_first_198 { i += 1; } __for_first_198 = false; i < (events.len() as i64) } {
+            let mut event: Value = self.safe_value(events.clone(), Value::Int(i), &[]);
             let mut id: Option<String> = self.safe_string_k_opt(event.clone(), "id", &[]);
             let mut slug: Option<String> = self.safe_string_k_opt(event.clone(), "slug", &[]);
             let mut handle: Option<String> = self.safe_string_k_opt(event.clone(), "event", &[]);
@@ -495,11 +495,11 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         });
         let mut keys: Vec<Value> = Value::Array(self.pred().events.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_199: bool = true;
-            while { if !__for_first_199 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_199 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
-            let mut event: Value = get_value(&self.pred().events, &keys.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null));
-            let mut identity: Value = self.safe_string2(event.clone(), Value::Str("id".into()), Value::Str("event".into()), &[keys.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null)]);
+            while { if !__for_first_199 { i += 1; } __for_first_199 = false; i < (keys.len() as i64) } {
+            let mut event: Value = get_value(&self.pred().events, &keys.get(i as usize).cloned().unwrap_or(Value::Null));
+            let mut identity: Value = self.safe_string2(event.clone(), Value::Str("id".into()), Value::Str("event".into()), &[keys.get(i as usize).cloned().unwrap_or(Value::Null)]);
             if !(matches!((&seen, &identity), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 if let Value::Dict(__d) = &mut seen { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&identity), Value::Bool(true)); }
                 result.push(event);
@@ -669,10 +669,10 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         let mut s: Value = Value::Str("".into());
         let mut lastDash: bool = true; // start true to drop leading separators
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_200: bool = true;
-            while { if !__for_first_200 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_200 = false; i.as_f64().unwrap_or(f64::NAN) < ((chars.len() as i64) as f64) } {
-            let mut ch: Value = chars.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_200 { i += 1; } __for_first_200 = false; i < (chars.len() as i64) } {
+            let mut ch: Value = chars.get(i as usize).cloned().unwrap_or(Value::Null);
             if Value::Int(allowed.as_str().zip(ch.as_str()).and_then(|(__s, __n)| __s.find(__n)).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
                 s = Value::Str(format!("{}{}", s, ch).into());
                 lastDash = false;
@@ -684,10 +684,10 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         }
         let mut replacementKeys: Vec<Value> = Value::Array(replacements.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_201: bool = true;
-            while { if !__for_first_201 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_201 = false; i.as_f64().unwrap_or(f64::NAN) < ((replacementKeys.len() as i64) as f64) } {
-            let mut replacementKey: Value = replacementKeys.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_201 { i += 1; } __for_first_201 = false; i < (replacementKeys.len() as i64) } {
+            let mut replacementKey: Value = replacementKeys.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut replacementValue: Option<String> = self.safe_string_opt(Value::Map(replacements.clone()), replacementKey.clone(), &[]);
             if (replacementValue.is_some()) {
                 s = match (s.as_str(), replacementKey.as_str(), replacementValue.as_deref()) { (Some(__s), Some(__p), Some(__r)) => Value::Str(__s.replace(__p, __r).into()), _ => s.clone() }
@@ -697,10 +697,10 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         let mut rawParts: Vec<Value> = Value::Array(s.as_str().map(|__s| __s.split("-").map(Value::from).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         let mut parts: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_202: bool = true;
-            while { if !__for_first_202 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_202 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawParts.len() as i64) as f64) } {
-            let mut w: Value = rawParts.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_202 { i += 1; } __for_first_202 = false; i < (rawParts.len() as i64) } {
+            let mut w: Value = rawParts.get(i as usize).cloned().unwrap_or(Value::Null);
             if ((w.len() as i64) as f64) > ((0i64) as f64) && !(self.in_array(w.clone(), stopWords.clone()).as_bool() == Some(true)) {
                 parts.push(w);
             }
@@ -745,10 +745,10 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         let mut label: Value = Value::Str("".into());
         let mut pendingSep: bool = false;
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_203: bool = true;
-            while { if !__for_first_203 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_203 = false; i.as_f64().unwrap_or(f64::NAN) < ((chars.len() as i64) as f64) } {
-            let mut ch: Value = chars.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_203 { i += 1; } __for_first_203 = false; i < (chars.len() as i64) } {
+            let mut ch: Value = chars.get(i as usize).cloned().unwrap_or(Value::Null);
             if Value::Int(allowed.as_str().zip(ch.as_str()).and_then(|(__s, __n)| __s.find(__n)).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
                 if pendingSep && (label.as_str() != Some("")) {
                     label = Value::Str(format!("{}{}", label, Value::Str("_".into())).into());
@@ -795,10 +795,10 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         // so a leftover 'symbol' key would leak the deprecated field back to the caller
         let mut marketKeys: Vec<Value> = object_keys(&stored).as_array().cloned().unwrap_or_default();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_205: bool = true;
-            while { if !__for_first_205 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_205 = false; i.as_f64().unwrap_or(f64::NAN) < ((marketKeys.len() as i64) as f64) } {
-            let mut key: Value = marketKeys.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_205 { i += 1; } __for_first_205 = false; i < (marketKeys.len() as i64) } {
+            let mut key: Value = marketKeys.get(i as usize).cloned().unwrap_or(Value::Null);
             { let __be_tmp = self.omit(self.safe_dict(stored.clone(), key.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -832,10 +832,10 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         }
         let mut outcomesList: Vec<Value> = self.safe_list_k(market, "outcomes", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         {
-                        let mut j: Value = Value::Int(0);
+                        let mut j: i64 = 0;
             let mut __for_first_206: bool = true;
-            while { if !__for_first_206 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_206 = false; j.as_f64().unwrap_or(f64::NAN) < ((outcomesList.len() as i64) as f64) } {
-            let mut oc: Value = outcomesList.get(j.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_206 { j += 1; } __for_first_206 = false; j < (outcomesList.len() as i64) } {
+            let mut oc: Value = outcomesList.get(j as usize).cloned().unwrap_or(Value::Null);
             let mut ocSymbol: Value = self.safe_string2(oc.clone(), Value::Str("outcome".into()), Value::Str("symbol".into()), &[]);
             let mut ocId: Value = self.safe_string2(oc.clone(), Value::Str("outcomeId".into()), Value::Str("id".into()), &[]);
             // assign unconditionally — safeString2 keeps the canonical key when present
@@ -894,10 +894,10 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         }
         let mut marketKeys: Vec<Value> = Value::Array(self.markets.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_207: bool = true;
-            while { if !__for_first_207 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_207 = false; i.as_f64().unwrap_or(f64::NAN) < ((marketKeys.len() as i64) as f64) } {
-            self.index_market_outcomes(self.markets.as_map().and_then(|__m| marketKeys.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null).as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null));
+            while { if !__for_first_207 { i += 1; } __for_first_207 = false; i < (marketKeys.len() as i64) } {
+            self.index_market_outcomes(self.markets.as_map().and_then(|__m| marketKeys.get(i as usize).cloned().unwrap_or(Value::Null).as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null));
         }
         }
 }
@@ -1083,10 +1083,10 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         let mut hasLetters: bool = false;
         let mut letters: Value = Value::Str("abcdefghijklmnopqrstuvwxyz".into());
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_213: bool = true;
-            while { if !__for_first_213 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_213 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawWords.len() as i64) as f64) } {
-            let mut word: Value = rawWords.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_213 { i += 1; } __for_first_213 = false; i < (rawWords.len() as i64) } {
+            let mut word: Value = rawWords.get(i as usize).cloned().unwrap_or(Value::Null);
             // inline .length so the php transpiler emits strlen() — the standalone
             // `const n = str.length;` statement form wrongly becomes count() (array)
             if (Value::Int(word.len() as i64).as_f64() == Some(0.0)) {
@@ -1095,11 +1095,11 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
             let mut wordHasLetters: bool = false;
             let mut chars: Vec<Value> = self.string_to_chars_array(word.clone()).as_array().cloned().unwrap_or_default();
             {
-                                let mut ci: Value = Value::Int(0);
+                                let mut ci: i64 = 0;
                 let mut __for_first_212: bool = true;
-                while { if !__for_first_212 { if let Value::Int(n) = &mut ci { *n += 1; } } __for_first_212 = false; ci.as_f64().unwrap_or(f64::NAN) < ((chars.len() as i64) as f64) } {
-                if (match (&(letters), &(chars.get(ci.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null))) { (Value::Arr(__a), __nd) => Value::Int(__a.iter().position(|__it| match (__it, __nd) { (Value::Null, Value::Null) => true, (Value::Bool(__x), Value::Bool(__y)) => __x == __y, (Value::Str(__x), Value::Str(__y)) => __x == __y,
-                    (Value::Int(__x), Value::Int(__y)) => __x == __y, (Value::Float(__x), Value::Float(__y)) => __x == __y, (__p, __q) => match ((match __p { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }),
+                while { if !__for_first_212 { ci += 1; } __for_first_212 = false; ci < (chars.len() as i64) } {
+                if (match (&(letters), &(chars.get(ci as usize).cloned().unwrap_or(Value::Null))) { (Value::Arr(__a), __nd) => Value::Int(__a.iter().position(|__it| match (__it, __nd) { (Value::Null, Value::Null) => true, (Value::Bool(__x), Value::Bool(__y)) => __x == __y, (Value::Str(__x), Value::Str(__y)) => __x == __y, (Value::Int(__x),
+                    Value::Int(__y)) => __x == __y, (Value::Float(__x), Value::Float(__y)) => __x == __y, (__p, __q) => match ((match __p { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }),
                     (match __q { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None })) { (Some(__x), Some(__y)) => __x == __y, _ => false } }).map(|__i| __i as i64).unwrap_or(-1)), (Value::Str(__s),
                     Value::Str(__nd)) => Value::Int(__s.find(&**__nd).map(|__i| __i as i64).unwrap_or(-1)), _ => Value::Int(-1) }).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
                     wordHasLetters = true;
@@ -2401,10 +2401,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     fn rlp_encode_list(&self, mut items: Value) -> Value {
         let mut concatenated: Value = Value::Str("".into());
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_218: bool = true;
-            while { if !__for_first_218 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_218 = false; i.as_f64().unwrap_or(f64::NAN) < ((items.len() as i64) as f64) } {
-            concatenated = Value::Str(format!("{}{}", concatenated, self.safe_string(items.clone(), i.clone(), &[Value::Str("".into())])).into());
+            while { if !__for_first_218 { i += 1; } __for_first_218 = false; i < (items.len() as i64) } {
+            concatenated = Value::Str(format!("{}{}", concatenated, self.safe_string(items.clone(), Value::Int(i), &[Value::Str("".into())])).into());
         }
         }
         let mut byteLength: Value = self.parse_to_int((match ((Value::Int(concatenated.len() as i64)).as_f64(), (Value::Int(2)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));

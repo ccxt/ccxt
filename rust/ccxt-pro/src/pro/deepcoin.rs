@@ -1228,7 +1228,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut orderbook: Value = self.orderbooks.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
         let mut type_var: Option<String> = (match __pro_message.get("t").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        if (get_value(&orderbook, &Value::Str("timestamp".into())) == Value::Null) {
+        if (orderbook.book_field("timestamp") == Value::Null) {
             if (type_var.as_deref() == Some("f")) {
                 // snapshot
                 self.handle_order_book_snapshot(client.clone(), message.clone());
@@ -1262,10 +1262,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut bids: Vec<Value> = Vec::new();
         let mut asks: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_296: bool = true;
-            while { if !__for_first_296 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_296 = false; i.as_f64().unwrap_or(f64::NAN) < ((entries.len() as i64) as f64) } {
-            let mut entry: Value = self.safe_dict(entries.clone(), i.clone(), &[]);
+            while { if !__for_first_296 { i += 1; } __for_first_296 = false; i < (entries.len() as i64) } {
+            let mut entry: Value = self.safe_dict(entries.clone(), Value::Int(i), &[]);
             let mut entryData: Value = self.safe_dict_k(entry, "d", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m

@@ -1429,8 +1429,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         orderbook.set_book_meta("nonce", deltaNonce);
         let mut asks: Value = self.safe_list_k(delta.clone(), "asks", &[Value::from(vec![])]);
         let mut bids: Value = self.safe_list_k(delta, "bids", &[Value::from(vec![])]);
-        let mut asksOrderSide: Value = get_value(&orderbook, &Value::Str("asks".into()));
-        let mut bidsOrderSide: Value = get_value(&orderbook, &Value::Str("bids".into()));
+        let mut asksOrderSide: Value = orderbook.book_field("asks");
+        let mut bidsOrderSide: Value = orderbook.book_field("bids");
         self.handle_bookside_delta(asksOrderSide, asks);
         self.handle_bookside_delta(bidsOrderSide, bids);
 }
@@ -2579,10 +2579,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 
     pub fn handle_unsubscriptions(&mut self, mut client: Value, mut messageHashes: Value) {
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_500: bool = true;
-            while { if !__for_first_500 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_500 = false; i.as_f64().unwrap_or(f64::NAN) < ((messageHashes.len() as i64) as f64) } {
-            let mut messageHash: Value = self.safe_string(messageHashes.clone(), i.clone(), &[Value::Str("".into())]);
+            while { if !__for_first_500 { i += 1; } __for_first_500 = false; i < (messageHashes.len() as i64) } {
+            let mut messageHash: Value = self.safe_string(messageHashes.clone(), Value::Int(i), &[Value::Str("".into())]);
             let mut subMessageHash: Value = messageHash.as_str().map(|__s| Value::Str(__s.replace("unsubscribe:", "").into())).unwrap_or_else(|| messageHash.clone());
             self.clean_unsubscription(client.clone(), subMessageHash, messageHash.clone(), &[]);
             if Value::Int(messageHash.as_str().and_then(|__s| __s.find("ticker")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
@@ -2591,10 +2591,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     // unWatchTickers
                     let mut symbols: Vec<Value> = Value::Array(self.tickers.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
                     {
-                                                let mut j: Value = Value::Int(0);
+                                                let mut j: i64 = 0;
                         let mut __for_first_499: bool = true;
-                        while { if !__for_first_499 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_499 = false; j.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
-                        if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.tickers, &symbols.get(j.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null)) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
+                        while { if !__for_first_499 { j += 1; } __for_first_499 = false; j < (symbols.len() as i64) } {
+                        if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.tickers, &symbols.get(j as usize).cloned().unwrap_or(Value::Null)) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
                     }
                     }
                 }  else if (matches!((&self.tickers, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
@@ -2755,10 +2755,10 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             let mut subscriptionHashes: Vec<Value> = __ch.subscription_keys();
             let mut rejected: bool = false;
             {
-                                let mut i: Value = Value::Int(0);
+                                let mut i: i64 = 0;
                 let mut __for_first_501: bool = true;
-                while { if !__for_first_501 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_501 = false; i.as_f64().unwrap_or(f64::NAN) < ((subscriptionHashes.len() as i64) as f64) } {
-                let mut subscriptionHash: Value = subscriptionHashes.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+                while { if !__for_first_501 { i += 1; } __for_first_501 = false; i < (subscriptionHashes.len() as i64) } {
+                let mut subscriptionHash: Value = subscriptionHashes.get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut subscribedChannel: Option<String> = self.safe_string_opt(__ch.get_subscription(&subscriptionHash), Value::Str("channel".into()), &[]);
                 if (subscribedChannel.is_some()) && ((match (&(msg), &(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("[".into()), subscribedChannel.map(Value::from).unwrap_or(Value::Null)).into()), Value::Str("]".into())).into()))) { (Value::Arr(__a), __nd) => Value::Int(__a.iter().position(|__it| match (__it, __nd) { (Value::Null,
                     Value::Null) => true, (Value::Bool(__x), Value::Bool(__y)) => __x == __y, (Value::Str(__x), Value::Str(__y)) => __x == __y, (Value::Int(__x), Value::Int(__y)) => __x == __y, (Value::Float(__x), Value::Float(__y)) => __x == __y, (__p, __q) => match ((match __p { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f),

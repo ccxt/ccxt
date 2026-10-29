@@ -1109,10 +1109,10 @@ impl CoinbaseexchangeCore {
         });
         let mut supportedNetworks: Vec<Value> = self.safe_list_k(rawCurrency.clone(), "supported_networks", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         {
-                        let mut j: Value = Value::Int(0);
+                        let mut j: i64 = 0;
             let mut __for_first_551: bool = true;
-            while { if !__for_first_551 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_551 = false; j.as_f64().unwrap_or(f64::NAN) < ((supportedNetworks.len() as i64) as f64) } {
-            let mut network: Value = supportedNetworks.get(j.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_551 { j += 1; } __for_first_551 = false; j < (supportedNetworks.len() as i64) } {
+            let mut network: Value = supportedNetworks.get(j as usize).cloned().unwrap_or(Value::Null);
             let mut networkId: Option<String> = self.safe_string_k_opt(network.clone(), "id", &[]);
             let mut networkCode: Value = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone()]);
             if (networkCode != Value::Null) {
@@ -1410,10 +1410,10 @@ impl CoinbaseexchangeCore {
         });
         let mut rawBalances: Value = self.to_array(response);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_553: bool = true;
-            while { if !__for_first_553 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_553 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawBalances.len() as i64) as f64) } {
-            let mut balance: Value = self.safe_dict(rawBalances.clone(), i.clone(), &[]);
+            while { if !__for_first_553 { i += 1; } __for_first_553 = false; i < (rawBalances.len() as i64) } {
+            let mut balance: Value = self.safe_dict(rawBalances.clone(), Value::Int(i), &[]);
             let mut currencyId: Option<String> = self.safe_string_k_opt(balance.clone(), "currency", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
@@ -1641,10 +1641,10 @@ impl CoinbaseexchangeCore {
         let mut marketIds: Vec<Value> = Value::Array(response.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         let mut delimiter: Value = Value::Str("-".into());
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_554: bool = true;
-            while { if !__for_first_554 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_554 = false; i.as_f64().unwrap_or(f64::NAN) < ((marketIds.len() as i64) as f64) } {
-            let mut marketId: Value = marketIds.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_554 { i += 1; } __for_first_554 = false; i < (marketIds.len() as i64) } {
+            let mut marketId: Value = marketIds.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut entry: Value = self.safe_list(response.clone(), marketId.clone(), &[Value::from(vec![])]);
             let mut first: Value = self.safe_list(entry, Value::Int(0), &[Value::from(vec![])]);
             let mut market: Value = self.safe_market(&[marketId, Value::Null, delimiter.clone()]);

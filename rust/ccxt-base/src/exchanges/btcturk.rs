@@ -596,10 +596,10 @@ impl BtcturkCore {
         let mut maxAmount: Value = Value::Null;
         let mut minCost: Value = Value::Null;
         {
-                        let mut j: Value = Value::Int(0);
+                        let mut j: i64 = 0;
             let mut __for_first_474: bool = true;
-            while { if !__for_first_474 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_474 = false; j.as_f64().unwrap_or(f64::NAN) < ((filters.len() as i64) as f64) } {
-            let mut filter: Value = self.safe_dict(filters.clone(), j.clone(), &[]);
+            while { if !__for_first_474 { j += 1; } __for_first_474 = false; j < (filters.len() as i64) } {
+            let mut filter: Value = self.safe_dict(filters.clone(), Value::Int(j), &[]);
             let mut filterType: Option<String> = self.safe_string_k(filter.clone(), "filterType", &[]).as_str().map(str::to_owned);
             if (filterType.as_deref() == Some("PRICE_FILTER")) {
                 minPrice = self.safe_number_k(filter.clone(), "minPrice", &[]);
@@ -688,10 +688,10 @@ impl BtcturkCore {
             m
         });
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_475: bool = true;
-            while { if !__for_first_475 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_475 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
-            let mut entry: Value = self.safe_dict(data.clone(), i.clone(), &[]);
+            while { if !__for_first_475 { i += 1; } __for_first_475 = false; i < (data.len() as i64) } {
+            let mut entry: Value = self.safe_dict(data.clone(), Value::Int(i), &[]);
             let mut currencyId: Option<String> = self.safe_string_k_opt(entry.clone(), "asset", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
@@ -1115,17 +1115,17 @@ impl BtcturkCore {
         let mut close: Value = self.safe_list_k(ohlcvs.clone(), "c", &[Value::from(vec![])]);
         let mut volume: Value = self.safe_list_k(ohlcvs, "v", &[Value::from(vec![])]);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_476: bool = true;
-            while { if !__for_first_476 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_476 = false; i.as_f64().unwrap_or(f64::NAN) < ((timestamp.len() as i64) as f64) } {
+            while { if !__for_first_476 { i += 1; } __for_first_476 = false; i < (timestamp.len() as i64) } {
             let mut ohlcv: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("timestamp".to_string(), self.safe_integer(timestamp.clone(), i.clone(), &[]));
-                    m.insert("high".to_string(), self.safe_number(high.clone(), i.clone(), &[]));
-                    m.insert("open".to_string(), self.safe_number(open.clone(), i.clone(), &[]));
-                    m.insert("low".to_string(), self.safe_number(low.clone(), i.clone(), &[]));
-                    m.insert("close".to_string(), self.safe_number(close.clone(), i.clone(), &[]));
-                    m.insert("volume".to_string(), self.safe_number(volume.clone(), i.clone(), &[]));
+                    m.insert("timestamp".to_string(), self.safe_integer(timestamp.clone(), Value::Int(i), &[]));
+                    m.insert("high".to_string(), self.safe_number(high.clone(), Value::Int(i), &[]));
+                    m.insert("open".to_string(), self.safe_number(open.clone(), Value::Int(i), &[]));
+                    m.insert("low".to_string(), self.safe_number(low.clone(), Value::Int(i), &[]));
+                    m.insert("close".to_string(), self.safe_number(close.clone(), Value::Int(i), &[]));
+                    m.insert("volume".to_string(), self.safe_number(volume.clone(), Value::Int(i), &[]));
                 m
             });
             results.push(self.parse_ohlcv(Value::Map(ohlcv), &[market.clone()]));

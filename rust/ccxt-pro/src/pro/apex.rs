@@ -691,8 +691,8 @@ impl ApexCore {
         }  else {
             let mut asks: Value = self.safe_list_k(data.clone(), "a", &[Value::from(vec![])]);
             let mut bids: Value = self.safe_list_k(data, "b", &[Value::from(vec![])]);
-            self.handle_deltas(get_value(&orderbook, &Value::Str("asks".into())), asks);
-            self.handle_deltas(get_value(&orderbook, &Value::Str("bids".into())), bids);
+            self.handle_deltas(orderbook.book_field("asks"), asks);
+            self.handle_deltas(orderbook.book_field("bids"), bids);
             orderbook.set_book_meta("timestamp", timestamp.clone());
             orderbook.set_book_meta("datetime", self.iso8601(timestamp));
         }
@@ -909,10 +909,10 @@ impl ApexCore {
         let mut rawHashes: Vec<Value> = Vec::new();
         let mut messageHashes: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_7: bool = true;
-            while { if !__for_first_7 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_7 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsAndTimeframes.len() as i64) as f64) } {
-            let mut data: Value = self.safe_list(symbolsAndTimeframes.clone(), i.clone(), &[]);
+            while { if !__for_first_7 { i += 1; } __for_first_7 = false; i < (symbolsAndTimeframes.len() as i64) } {
+            let mut data: Value = self.safe_list(symbolsAndTimeframes.clone(), Value::Int(i), &[]);
             let mut symbolString: Option<String> = self.safe_string_opt(data.clone(), Value::Int(0), &[]);
             let mut market: Value = self.market(symbolString.map(Value::from).unwrap_or(Value::Null));
             let marketId: String = self.safe_string_k_opt(market.clone(), "id2", &[Value::Str("".into())]).unwrap_or_default();
@@ -987,10 +987,10 @@ impl ApexCore {
             if let Value::Dict(__bf03d0) = &mut self.ohlcvs { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(crate::runtime::stringify_param(&symbol)).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&timeframe), stored.clone()); } }
         }
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_8: bool = true;
-            while { if !__for_first_8 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_8 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
-            let mut parsed: Value = self.parse_ws_ohlcv(data.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null), &[]);
+            while { if !__for_first_8 { i += 1; } __for_first_8 = false; i < (data.len() as i64) } {
+            let mut parsed: Value = self.parse_ws_ohlcv(data.get(i as usize).cloned().unwrap_or(Value::Null), &[]);
             stored.append(parsed);
         }
         }
@@ -1168,10 +1168,10 @@ impl ApexCore {
             m
         });
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_9: bool = true;
-            while { if !__for_first_9 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_9 = false; i.as_f64().unwrap_or(f64::NAN) < ((lists.len() as i64) as f64) } {
-            let mut rawTrade: Value = self.safe_dict(lists.clone(), i.clone(), &[Value::Map({
+            while { if !__for_first_9 { i += 1; } __for_first_9 = false; i < (lists.len() as i64) } {
+            let mut rawTrade: Value = self.safe_dict(lists.clone(), Value::Int(i), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
@@ -1183,10 +1183,10 @@ impl ApexCore {
         }
         let mut keys: Vec<Value> = Value::Array(symbols.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_10: bool = true;
-            while { if !__for_first_10 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_10 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
-            let mut key: Value = keys.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_10 { i += 1; } __for_first_10 = false; i < (keys.len() as i64) } {
+            let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut currentMessageHash: Value = Value::Str(format!("{}{}", Value::Str("myTrades:".into()), key).into());
             client.resolve(&[trades.clone(), currentMessageHash]);
         }
@@ -1236,10 +1236,10 @@ impl ApexCore {
             m
         });
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_11: bool = true;
-            while { if !__for_first_11 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_11 = false; i.as_f64().unwrap_or(f64::NAN) < ((lists.len() as i64) as f64) } {
-            let mut parsed: Value = self.parse_order(self.safe_dict(lists.clone(), i.clone(), &[Value::Map({
+            while { if !__for_first_11 { i += 1; } __for_first_11 = false; i < (lists.len() as i64) } {
+            let mut parsed: Value = self.parse_order(self.safe_dict(lists.clone(), Value::Int(i), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]), &[]);
@@ -1250,10 +1250,10 @@ impl ApexCore {
         }
         let mut symbolsArray: Vec<Value> = Value::Array(symbols.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_12: bool = true;
-            while { if !__for_first_12 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_12 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsArray.len() as i64) as f64) } {
-            let mut orderKey: Value = symbolsArray.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_12 { i += 1; } __for_first_12 = false; i < (symbolsArray.len() as i64) } {
+            let mut orderKey: Value = symbolsArray.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut currentMessageHash: Value = Value::Str(format!("{}{}", Value::Str("orders:".into()), orderKey).into());
             client.resolve(&[orders.clone(), currentMessageHash]);
         }
@@ -1283,10 +1283,10 @@ impl ApexCore {
         self.positions = ArrayCacheBySymbolBySide::new(Value::Null);
         let mut cache: Value = self.positions.clone();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_14: bool = true;
-            while { if !__for_first_14 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_14 = false; i.as_f64().unwrap_or(f64::NAN) < ((promises.len() as i64) as f64) } {
-            let mut positions: Value = promises.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_14 { i += 1; } __for_first_14 = false; i < (promises.len() as i64) } {
+            let mut positions: Value = promises.get(i as usize).cloned().unwrap_or(Value::Null);
             {
                                 let mut ii: i64 = 0;
                 let mut __for_first_13: bool = true;
@@ -1335,10 +1335,10 @@ impl ApexCore {
         let mut cache: Value = self.positions.clone();
         let mut newPositions: Value = Value::from(vec![]);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_15: bool = true;
-            while { if !__for_first_15 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_15 = false; i.as_f64().unwrap_or(f64::NAN) < ((lists.len() as i64) as f64) } {
-            let mut rawPosition: Value = self.safe_dict(lists.clone(), i.clone(), &[Value::Map({
+            while { if !__for_first_15 { i += 1; } __for_first_15 = false; i < (lists.len() as i64) } {
+            let mut rawPosition: Value = self.safe_dict(lists.clone(), Value::Int(i), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
@@ -1363,10 +1363,10 @@ impl ApexCore {
         }
         let mut messageHashes: Vec<Value> = self.find_message_hashes(client.clone(), Value::Str("positions::".into())).as_array().cloned().unwrap_or_default();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_16: bool = true;
-            while { if !__for_first_16 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_16 = false; i.as_f64().unwrap_or(f64::NAN) < ((messageHashes.len() as i64) as f64) } {
-            let mut messageHash: Value = messageHashes.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_16 { i += 1; } __for_first_16 = false; i < (messageHashes.len() as i64) } {
+            let mut messageHash: Value = messageHashes.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut parts: Value = Value::Array(messageHash.as_str().map(|__s| __s.split("::").map(Value::from).collect()).unwrap_or_default());
             let mut symbolsString: Value = self.safe_string(parts, Value::Int(1), &[Value::Str("".into())]);
             let mut symbols: Value = Value::Array(symbolsString.as_str().map(|__s| __s.split(",").map(Value::from).collect()).unwrap_or_default());
@@ -1553,11 +1553,11 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         let mut keys: Vec<Value> = Value::Array(methods.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_17: bool = true;
-            while { if !__for_first_17 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_17 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
-            let mut key: Value = keys.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
-            if (match (&(topic), &(keys.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null))) { (Value::Arr(__a), __nd) => Value::Int(__a.iter().position(|__it| match (__it, __nd) { (Value::Null, Value::Null) => true, (Value::Bool(__x), Value::Bool(__y)) => __x == __y, (Value::Str(__x), Value::Str(__y)) => __x == __y, (Value::Int(__x),
+            while { if !__for_first_17 { i += 1; } __for_first_17 = false; i < (keys.len() as i64) } {
+            let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
+            if (match (&(topic), &(keys.get(i as usize).cloned().unwrap_or(Value::Null))) { (Value::Arr(__a), __nd) => Value::Int(__a.iter().position(|__it| match (__it, __nd) { (Value::Null, Value::Null) => true, (Value::Bool(__x), Value::Bool(__y)) => __x == __y, (Value::Str(__x), Value::Str(__y)) => __x == __y, (Value::Int(__x),
                 Value::Int(__y)) => __x == __y, (Value::Float(__x), Value::Float(__y)) => __x == __y, (__p, __q) => match ((match __p { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }),
                 (match __q { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None })) { (Some(__x), Some(__y)) => __x == __y, _ => false } }).map(|__i| __i as i64).unwrap_or(-1)), (Value::Str(__s),
                 Value::Str(__nd)) => Value::Int(__s.find(&**__nd).map(|__i| __i as i64).unwrap_or(-1)), _ => Value::Int(-1) }).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {

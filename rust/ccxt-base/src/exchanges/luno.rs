@@ -826,10 +826,10 @@ impl LunoCore {
             m
         });
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_938: bool = true;
-            while { if !__for_first_938 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_938 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawCurrency.len() as i64) as f64) } {
-            let mut networkEntry: Value = self.safe_dict(rawCurrency.clone(), i.clone(), &[]);
+            while { if !__for_first_938 { i += 1; } __for_first_938 = false; i < (rawCurrency.len() as i64) } {
+            let mut networkEntry: Value = self.safe_dict(rawCurrency.clone(), Value::Int(i), &[]);
             let mut networkId: Option<String> = self.safe_string_k_opt(networkEntry.clone(), "name", &[]);
             let mut networkCode: Value = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone()]);
             if (networkCode != Value::Null) {
@@ -935,10 +935,10 @@ impl LunoCore {
         let mut result: Vec<Value> = Vec::new();
         let mut markets: Vec<Value> = self.safe_list_k(response, "markets", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_939: bool = true;
-            while { if !__for_first_939 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_939 = false; i.as_f64().unwrap_or(f64::NAN) < ((markets.len() as i64) as f64) } {
-            let mut market: Value = markets.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_939 { i += 1; } __for_first_939 = false; i < (markets.len() as i64) } {
+            let mut market: Value = markets.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut id: Option<String> = self.safe_string_k_opt(market.clone(), "market_id", &[]);
             let mut baseId: Option<String> = self.safe_string_k_opt(market.clone(), "base_currency", &[]);
             let mut quoteId: Option<String> = self.safe_string_k_opt(market.clone(), "counter_currency", &[]);
@@ -1063,10 +1063,10 @@ impl LunoCore {
         let mut wallets: Vec<Value> = self.safe_list_k(response, "balance", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut result: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_940: bool = true;
-            while { if !__for_first_940 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_940 = false; i.as_f64().unwrap_or(f64::NAN) < ((wallets.len() as i64) as f64) } {
-            let mut account: Value = wallets.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_940 { i += 1; } __for_first_940 = false; i < (wallets.len() as i64) } {
+            let mut account: Value = wallets.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut accountId: Option<String> = self.safe_string_k_opt(account.clone(), "account_id", &[]);
             let mut currencyId: Option<String> = self.safe_string_k_opt(account.clone(), "asset", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
@@ -1095,10 +1095,10 @@ impl LunoCore {
             m
         });
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_941: bool = true;
-            while { if !__for_first_941 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_941 = false; i.as_f64().unwrap_or(f64::NAN) < ((wallets.len() as i64) as f64) } {
-            let mut wallet: Value = self.safe_dict(wallets.clone(), i.clone(), &[]);
+            while { if !__for_first_941 { i += 1; } __for_first_941 = false; i < (wallets.len() as i64) } {
+            let mut wallet: Value = self.safe_dict(wallets.clone(), Value::Int(i), &[]);
             let mut currencyId: Option<String> = self.safe_string_k_opt(wallet.clone(), "asset", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
             let mut reserved: Option<String> = self.safe_string_k_opt(wallet.clone(), "reserved", &[]);
@@ -1486,10 +1486,10 @@ impl LunoCore {
             m
         };
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_942: bool = true;
-            while { if !__for_first_942 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_942 = false; i.as_f64().unwrap_or(f64::NAN) < ((ids.len() as i64) as f64) } {
-            let mut id: Value = ids.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_942 { i += 1; } __for_first_942 = false; i < (ids.len() as i64) } {
+            let mut id: Value = ids.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.safe_market(&[id.clone()]);
             let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             let mut ticker: Value = tickers.as_map().and_then(|__m| id.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);

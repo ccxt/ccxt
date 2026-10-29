@@ -2005,10 +2005,10 @@ impl BingxCore {
         let mut rawPositions: Vec<Value> = self.safe_list_k(data, "P", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut newPositions: Value = Value::from(vec![]);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_94: bool = true;
-            while { if !__for_first_94 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_94 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawPositions.len() as i64) as f64) } {
-            let mut rawPosition: Value = rawPositions.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_94 { i += 1; } __for_first_94 = false; i < (rawPositions.len() as i64) } {
+            let mut rawPosition: Value = rawPositions.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut position: Value = self.parse_ws_position(rawPosition, &[]);
             let mut symbol: Option<String> = self.safe_string_k(position.clone(), "symbol", &[]).as_str().map(str::to_owned);
             if (symbol.is_none()) {
@@ -2023,10 +2023,10 @@ impl BingxCore {
         }
         let mut messageHashes: Value = self.find_message_hashes(client.clone(), Value::Str("swap:positions::".into()));
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_95: bool = true;
-            while { if !__for_first_95 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_95 = false; i.as_f64().unwrap_or(f64::NAN) < ((messageHashes.len() as i64) as f64) } {
-            let mut messageHash: Value = self.safe_string(messageHashes.clone(), i.clone(), &[Value::Str("".into())]);
+            while { if !__for_first_95 { i += 1; } __for_first_95 = false; i < (messageHashes.len() as i64) } {
+            let mut messageHash: Value = self.safe_string(messageHashes.clone(), Value::Int(i), &[Value::Str("".into())]);
             let mut parts: Vec<Value> = Value::Array(messageHash.as_str().map(|__s| __s.split("::").map(Value::from).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
             let mut symbolsString: Value = parts.get(1).cloned().unwrap_or(Value::Null);
             let mut filteredSymbols: Value = Value::Array(symbolsString.as_str().map(|__s| __s.split(",").map(Value::from).collect()).unwrap_or_default());
@@ -2098,10 +2098,10 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                 let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
                 let mut messageHashes: Vec<Value> = Value::Array(__ch.futures.clone().as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
                 {
-                                        let mut j: Value = Value::Int(0);
+                                        let mut j: i64 = 0;
                     let mut __for_first_96: bool = true;
-                    while { if !__for_first_96 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_96 = false; j.as_f64().unwrap_or(f64::NAN) < ((messageHashes.len() as i64) as f64) } {
-                    let mut messageHash: Value = messageHashes.get(j.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+                    while { if !__for_first_96 { j += 1; } __for_first_96 = false; j < (messageHashes.len() as i64) } {
+                    let mut messageHash: Value = messageHashes.get(j as usize).cloned().unwrap_or(Value::Null);
                     client.reject(&[Value::from(error.clone()), messageHash]);
                 }
                 }
@@ -2613,11 +2613,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut messageHashes: Value = (match __pro_message.get("messageHashes").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
         let mut subMessageHashes: Value = (match __pro_message.get("subMessageHashes").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_100: bool = true;
-            while { if !__for_first_100 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_100 = false; i.as_f64().unwrap_or(f64::NAN) < ((messageHashes.len() as i64) as f64) } {
-            let mut unsubHash: Value = self.safe_string(messageHashes.clone(), i.clone(), &[Value::Str("".into())]);
-            let mut subHash: Value = self.safe_string(subMessageHashes.clone(), i.clone(), &[Value::Str("".into())]);
+            while { if !__for_first_100 { i += 1; } __for_first_100 = false; i < (messageHashes.len() as i64) } {
+            let mut unsubHash: Value = self.safe_string(messageHashes.clone(), Value::Int(i), &[Value::Str("".into())]);
+            let mut subHash: Value = self.safe_string(subMessageHashes.clone(), Value::Int(i), &[Value::Str("".into())]);
             self.clean_unsubscription(client.clone(), subHash, unsubHash, &[]);
         }
         }

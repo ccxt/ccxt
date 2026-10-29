@@ -1165,10 +1165,10 @@ impl BitgetCore {
         }
         let mut data: Vec<Value> = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_113: bool = true;
-            while { if !__for_first_113 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_113 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
-            let mut parsed: Value = self.parse_ws_ohlcv(data.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null), &[market.clone()]);
+            while { if !__for_first_113 { i += 1; } __for_first_113 = false; i < (data.len() as i64) } {
+            let mut parsed: Value = self.parse_ws_ohlcv(data.get(i as usize).cloned().unwrap_or(Value::Null), &[market.clone()]);
             stored.append(parsed);
         }
         }
@@ -1530,8 +1530,8 @@ impl BitgetCore {
             }
             let mut asks: Value = self.safe_list2(rawOrderBook.clone(), Value::Str("asks".into()), Value::Str("a".into()), &[Value::from(vec![])]);
             let mut bids: Value = self.safe_list2(rawOrderBook.clone(), Value::Str("bids".into()), Value::Str("b".into()), &[Value::from(vec![])]);
-            self.handle_deltas(get_value(&storedOrderBook, &Value::Str("asks".into())), asks);
-            self.handle_deltas(get_value(&storedOrderBook, &Value::Str("bids".into())), bids);
+            self.handle_deltas(storedOrderBook.book_field("asks"), asks);
+            self.handle_deltas(storedOrderBook.book_field("bids"), bids);
             storedOrderBook.set_book_meta("timestamp", timestamp.clone());
             storedOrderBook.set_book_meta("datetime", self.iso8601(timestamp.clone()));
             let mut checksum: Value = self.handle_option(Value::Str("watchOrderBook".into()), Value::Str("checksum".into()), &[Value::Bool(true)]);
@@ -1539,8 +1539,8 @@ impl BitgetCore {
             // so only validate the checksum when the exchange actually sends one
             let mut responseChecksum: Value = self.safe_integer_k(rawOrderBook.clone(), "checksum", &[]);
             if !isSnapshot && ((match &(checksum) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 1.0) })) && (responseChecksum != Value::Null) {
-                let mut storedAsks: Value = get_value(&storedOrderBook, &Value::Str("asks".into()));
-                let mut storedBids: Value = get_value(&storedOrderBook, &Value::Str("bids".into()));
+                let mut storedAsks: Value = storedOrderBook.book_field("asks");
+                let mut storedBids: Value = storedOrderBook.book_field("bids");
                 let mut asksLength: Value = get_array_length(&storedAsks);
                 let mut bidsLength: Value = get_array_length(&storedBids);
                 let mut payloadArray: Vec<Value> = Vec::new();
@@ -2167,10 +2167,10 @@ impl BitgetCore {
         let mut rawPositions: Vec<Value> = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
         let mut newPositions: Value = Value::from(vec![]);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_119: bool = true;
-            while { if !__for_first_119 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_119 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawPositions.len() as i64) as f64) } {
-            let mut rawPosition: Value = rawPositions.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_119 { i += 1; } __for_first_119 = false; i < (rawPositions.len() as i64) } {
+            let mut rawPosition: Value = rawPositions.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut marketId: Value = self.safe_string2(rawPosition.clone(), Value::Str("instId".into()), Value::Str("symbol".into()), &[]);
             let mut market: Value = self.safe_market(&[marketId, Value::Null, Value::Null, Value::Str("contract".into())]);
             let mut position: Value = self.parse_ws_position(rawPosition, &[market]);
@@ -2180,10 +2180,10 @@ impl BitgetCore {
         }
         let mut messageHashes: Vec<Value> = self.find_message_hashes(client.clone(), Value::Str(format!("{}{}", instType, Value::Str(":positions::".into())).into())).as_array().cloned().unwrap_or_default();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_120: bool = true;
-            while { if !__for_first_120 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_120 = false; i.as_f64().unwrap_or(f64::NAN) < ((messageHashes.len() as i64) as f64) } {
-            let mut messageHash: Value = messageHashes.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_120 { i += 1; } __for_first_120 = false; i < (messageHashes.len() as i64) } {
+            let mut messageHash: Value = messageHashes.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut parts: Vec<Value> = Value::Array(messageHash.as_str().map(|__s| __s.split("::").map(Value::from).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
             let mut symbolsString: Value = parts.get(1).cloned().unwrap_or(Value::Null);
             let mut symbols: Value = Value::Array(symbolsString.as_str().map(|__s| __s.split(",").map(Value::from).collect()).unwrap_or_default());
@@ -2595,10 +2595,10 @@ impl BitgetCore {
         }
         let mut keys: Vec<Value> = Value::Array(marketSymbols.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_122: bool = true;
-            while { if !__for_first_122 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_122 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
-            let mut symbol: Value = keys.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_122 { i += 1; } __for_first_122 = false; i < (keys.len() as i64) } {
+            let mut symbol: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut innerMessageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), symbol).into());
             if (channel.as_deref() == Some("orders-crossed")) {
                 innerMessageHash = Value::Str(format!("{}{}", innerMessageHash, Value::Str(":cross".into())).into());
@@ -3316,17 +3316,17 @@ impl BitgetCore {
         let mut instType: Option<String> = self.safe_string_lower_k_opt(arg, "instType", &[]);
         let mut data: Vec<Value> = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_125: bool = true;
-            while { if !__for_first_125 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_125 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
-            let mut rawBalance: Value = data.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_125 { i += 1; } __for_first_125 = false; i < (data.len() as i64) } {
+            let mut rawBalance: Value = data.get(i as usize).cloned().unwrap_or(Value::Null);
             if (instType.as_deref() == Some("uta")) {
                 let mut coins: Value = self.safe_list_k(rawBalance.clone(), "coin", &[Value::from(vec![])]);
                 {
-                                        let mut j: Value = Value::Int(0);
+                                        let mut j: i64 = 0;
                     let mut __for_first_124: bool = true;
-                    while { if !__for_first_124 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_124 = false; j.as_f64().unwrap_or(f64::NAN) < ((coins.len() as i64) as f64) } {
-                    let mut entry: Value = self.safe_dict(coins.clone(), j.clone(), &[]);
+                    while { if !__for_first_124 { j += 1; } __for_first_124 = false; j < (coins.len() as i64) } {
+                    let mut entry: Value = self.safe_dict(coins.clone(), Value::Int(j), &[]);
                     let mut currencyId: Option<String> = self.safe_string_k_opt(entry.clone(), "coin", &[]);
                     let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
                     let mut account: Value = self.account();
@@ -3985,10 +3985,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             argsList = Value::from(vec![arg.clone()]);
         }
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_126: bool = true;
-            while { if !__for_first_126 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_126 = false; i.as_f64().unwrap_or(f64::NAN) < ((argsList.len() as i64) as f64) } {
-            let mut arg: Value = self.safe_dict(argsList.clone(), i.clone(), &[]);
+            while { if !__for_first_126 { i += 1; } __for_first_126 = false; i < (argsList.len() as i64) } {
+            let mut arg: Value = self.safe_dict(argsList.clone(), Value::Int(i), &[]);
             let mut channel: Value = self.safe_string2(arg, Value::Str("channel".into()), Value::Str("topic".into()), &[Value::Str("".into())]);
             if Value::Int(channel.as_str().and_then(|__s| __s.find("books")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
                 // for now only unWatchOrderBook is supported

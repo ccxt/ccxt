@@ -1134,10 +1134,10 @@ impl TokocryptoCore {
         let mut list: Vec<Value> = self.safe_list_k(data, "list", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut result: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_1119: bool = true;
-            while { if !__for_first_1119 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1119 = false; i.as_f64().unwrap_or(f64::NAN) < ((list.len() as i64) as f64) } {
-            let mut market: Value = list.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_1119 { i += 1; } __for_first_1119 = false; i < (list.len() as i64) } {
+            let mut market: Value = list.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut baseId: Option<String> = self.safe_string_k_opt(market.clone(), "baseAsset", &[]);
             let mut quoteId: Option<String> = self.safe_string_k_opt(market.clone(), "quoteAsset", &[]);
             let mut id: Option<String> = self.safe_string_k_opt(market.clone(), "symbol", &[]);
@@ -1156,10 +1156,10 @@ impl TokocryptoCore {
             let mut active: Value = (Value::Bool(status.as_deref() == Some("1")));
             let mut permissions: Value = self.safe_list_k(market.clone(), "permissions", &[Value::from(vec![])]);
             {
-                                let mut j: Value = Value::Int(0);
+                                let mut j: i64 = 0;
                 let mut __for_first_1118: bool = true;
-                while { if !__for_first_1118 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_1118 = false; j.as_f64().unwrap_or(f64::NAN) < ((permissions.len() as i64) as f64) } {
-                if (self.safe_string(permissions.clone(), j.clone(), &[]).as_str() == Some("TRD_GRP_003")) {
+                while { if !__for_first_1118 { j += 1; } __for_first_1118 = false; j < (permissions.len() as i64) } {
+                if (self.safe_string(permissions.clone(), Value::Int(j), &[]).as_str() == Some("TRD_GRP_003")) {
                     active = Value::Bool(false);
                     break;
                 }
@@ -2040,10 +2040,10 @@ impl TokocryptoCore {
 })]);
         let mut balances: Value = self.safe_list_k(data, "accountAssets", &[Value::from(vec![])]);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_1120: bool = true;
-            while { if !__for_first_1120 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1120 = false; i.as_f64().unwrap_or(f64::NAN) < ((balances.len() as i64) as f64) } {
-            let mut balance: Value = self.safe_dict(balances.clone(), i.clone(), &[]);
+            while { if !__for_first_1120 { i += 1; } __for_first_1120 = false; i < (balances.len() as i64) } {
+            let mut balance: Value = self.safe_dict(balances.clone(), Value::Int(i), &[]);
             let mut currencyId: Option<String> = self.safe_string_k_opt(balance.clone(), "asset", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
@@ -3509,10 +3509,10 @@ if _try_result.is_err() {
         }  else if (matches!(&paramsDict, Value::Dict(__d) if __d.contains_key("limit"))) {
             let mut limit: Value = self.safe_integer_k(paramsDict.clone(), "limit", &[]);
             {
-                                let mut i: Value = Value::Int(0);
+                                let mut i: i64 = 0;
                 let mut __for_first_1121: bool = true;
-                while { if !__for_first_1121 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1121 = false; i.as_f64().unwrap_or(f64::NAN) < ((byLimit.len() as i64) as f64) } {
-                let mut entry: Value = byLimit.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+                while { if !__for_first_1121 { i += 1; } __for_first_1121 = false; i < (byLimit.len() as i64) } {
+                let mut entry: Value = byLimit.get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut entryLimit: Value = self.safe_integer(entry.clone(), Value::Int(0), &[]);
                 if (limit != Value::Null) && (entryLimit != Value::Null) && (limit.as_f64().unwrap_or(f64::NAN) <= entryLimit.as_f64().unwrap_or(f64::NAN)) {
                     return self.safe_integer(entry, Value::Int(1), &[]);

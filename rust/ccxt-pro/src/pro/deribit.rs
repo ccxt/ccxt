@@ -368,10 +368,10 @@ impl DeribitCore {
         let mut currencies: Value = self.safe_list_k(self.options.clone(), "currencies", &[Value::from(vec![])]);
         let mut channels: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_299: bool = true;
-            while { if !__for_first_299 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_299 = false; i.as_f64().unwrap_or(f64::NAN) < ((currencies.len() as i64) as f64) } {
-            let currencyCode: String = self.safe_string_opt(currencies.clone(), i.clone(), &[Value::Str("".into())]).unwrap_or_default();
+            while { if !__for_first_299 { i += 1; } __for_first_299 = false; i < (currencies.len() as i64) } {
+            let currencyCode: String = self.safe_string_opt(currencies.clone(), Value::Int(i), &[Value::Str("".into())]).unwrap_or_default();
             channels.push(Value::Str(format!("{}{}", Value::Str("user.portfolio.".into()), currencyCode).into()));
         }
         }
@@ -839,10 +839,10 @@ impl DeribitCore {
         }
         let mut stored: Value = self.trades.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_302: bool = true;
-            while { if !__for_first_302 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_302 = false; i.as_f64().unwrap_or(f64::NAN) < ((trades.len() as i64) as f64) } {
-            let mut trade: Value = trades.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_302 { i += 1; } __for_first_302 = false; i < (trades.len() as i64) } {
+            let mut trade: Value = trades.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut parsed: Value = self.parse_trade(trade, &[market.clone()]);
             stored.append(parsed);
         }
@@ -1110,8 +1110,8 @@ impl DeribitCore {
         let mut storedOrderBook: Value = self.orderbooks.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
         let mut asks: Value = self.safe_list_k(data.clone(), "asks", &[Value::from(vec![])]);
         let mut bids: Value = self.safe_list_k(data, "bids", &[Value::from(vec![])]);
-        self.handle_deltas(get_value(&storedOrderBook, &Value::Str("asks".into())), asks);
-        self.handle_deltas(get_value(&storedOrderBook, &Value::Str("bids".into())), bids);
+        self.handle_deltas(storedOrderBook.book_field("asks"), asks);
+        self.handle_deltas(storedOrderBook.book_field("bids"), bids);
         storedOrderBook.set_book_meta("nonce", timestamp.clone());
         storedOrderBook.set_book_meta("timestamp", timestamp.clone());
         storedOrderBook.set_book_meta("datetime", self.iso8601(timestamp));
@@ -1126,19 +1126,19 @@ impl DeribitCore {
         let mut asks: Value = self.safe_list_k(data.clone(), "asks", &[Value::from(vec![])]);
         let mut cleanedBids: Value = Value::from(vec![]);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_304: bool = true;
-            while { if !__for_first_304 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_304 = false; i.as_f64().unwrap_or(f64::NAN) < ((bids.len() as i64) as f64) } {
-            let mut bid: Vec<Value> = self.safe_list(bids.clone(), i.clone(), &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+            while { if !__for_first_304 { i += 1; } __for_first_304 = false; i < (bids.len() as i64) } {
+            let mut bid: Vec<Value> = self.safe_list(bids.clone(), Value::Int(i), &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
             if let Value::Arr(__a) = &mut cleanedBids { std::sync::Arc::make_mut(__a).push(Value::from(vec![bid.get(1).cloned().unwrap_or(Value::Null), bid.get(2).cloned().unwrap_or(Value::Null)])); }
         }
         }
         let mut cleanedAsks: Value = Value::from(vec![]);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_305: bool = true;
-            while { if !__for_first_305 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_305 = false; i.as_f64().unwrap_or(f64::NAN) < ((asks.len() as i64) as f64) } {
-            let mut ask: Vec<Value> = self.safe_list(asks.clone(), i.clone(), &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+            while { if !__for_first_305 { i += 1; } __for_first_305 = false; i < (asks.len() as i64) } {
+            let mut ask: Vec<Value> = self.safe_list(asks.clone(), Value::Int(i), &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
             if let Value::Arr(__a) = &mut cleanedAsks { std::sync::Arc::make_mut(__a).push(Value::from(vec![ask.get(1).cloned().unwrap_or(Value::Null), ask.get(2).cloned().unwrap_or(Value::Null)])); }
         }
         }

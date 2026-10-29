@@ -5854,10 +5854,10 @@ if _try_result.is_err() {
         let mut promises: Vec<Value> = Vec::new();
         let mut fetchMargins: bool = false;
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_365: bool = true;
-            while { if !__for_first_365 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_365 = false; i.as_f64().unwrap_or(f64::NAN) < ((types.len() as i64) as f64) } {
-            let mut type_var: Option<String> = self.safe_string_opt(types.clone(), i.clone(), &[]);
+            while { if !__for_first_365 { i += 1; } __for_first_365 = false; i < (types.len() as i64) } {
+            let mut type_var: Option<String> = self.safe_string_opt(types.clone(), Value::Int(i), &[]);
             if (type_var.as_deref() == Some("swap")) || (type_var.as_deref() == Some("future")) {
                 let mut subTypes: Value = Value::from(vec![Value::Str("USDT-FUTURES".into()), Value::Str("COIN-FUTURES".into()), Value::Str("USDC-FUTURES".into()), Value::Str("SUSDT-FUTURES".into()), Value::Str("SCOIN-FUTURES".into()), Value::Str("SUSDC-FUTURES".into())]);
                 {
@@ -5924,10 +5924,10 @@ if _try_result.is_err() {
                 let mut crossKeys: Value = Value::from(vec![]);
                 let mut isolatedKeys: Value = Value::from(vec![]);
                 {
-                                        let mut j: Value = Value::Int(0);
+                                        let mut j: i64 = 0;
                     let mut __for_first_366: bool = true;
-                    while { if !__for_first_366 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_366 = false; j.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
-                    let mut entry: Value = self.safe_dict(data.clone(), j.clone(), &[Value::Map({
+                    while { if !__for_first_366 { j += 1; } __for_first_366 = false; j < (data.len() as i64) } {
+                    let mut entry: Value = self.safe_dict(data.clone(), Value::Int(j), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -6255,10 +6255,10 @@ if _try_result.is_err() {
         let mut results: Value = promise_all(&Value::from(promises)).await;
         let mut markets: Value = Value::from(vec![]);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_370: bool = true;
-            while { if !__for_first_370 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_370 = false; i.as_f64().unwrap_or(f64::NAN) < ((results.len() as i64) as f64) } {
-            let mut res: Value = self.safe_dict(results.clone(), i.clone(), &[]);
+            while { if !__for_first_370 { i += 1; } __for_first_370 = false; i < (results.len() as i64) } {
+            let mut res: Value = self.safe_dict(results.clone(), Value::Int(i), &[]);
             let mut data: Value = self.safe_list_k(res, "data", &[Value::from(vec![])]);
             markets = self.array_concat(markets.clone(), data);
         }
@@ -8781,10 +8781,10 @@ if _try_result.is_err() {
                 m
             });
             {
-                                let mut i: Value = Value::Int(0);
+                                let mut i: i64 = 0;
                 let mut __for_first_375: bool = true;
-                while { if !__for_first_375 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_375 = false; i.as_f64().unwrap_or(f64::NAN) < ((rows.len() as i64) as f64) } {
-                let mut entry: Value = rows.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+                while { if !__for_first_375 { i += 1; } __for_first_375 = false; i < (rows.len() as i64) } {
+                let mut entry: Value = rows.get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut entryMarketId: Value = self.safe_string_k(entry.clone(), "symbol", &[]);
                 if (entryMarketId == Value::Null) || (self.markets_by_id.clone() == Value::Null) || !(matches!((&self.markets_by_id, &entryMarketId), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                     continue;
@@ -8892,10 +8892,10 @@ if _try_result.is_err() {
             m
         });
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_376: bool = true;
-            while { if !__for_first_376 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_376 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
-            let mut entry: Value = data.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_376 { i += 1; } __for_first_376 = false; i < (data.len() as i64) } {
+            let mut entry: Value = data.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut marketId: Option<String> = self.safe_string_k_opt(entry.clone(), "symbol", &[]);
             let mut symbol: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[Value::Null, Value::Null, marketType.clone()]);
             let mut market: Value = self.market(symbol.clone());
@@ -9388,10 +9388,10 @@ if _try_result.is_err() {
             m
         });
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_377: bool = true;
-            while { if !__for_first_377 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_377 = false; i.as_f64().unwrap_or(f64::NAN) < ((balance.len() as i64) as f64) } {
-            let mut entry: Value = self.safe_dict(balance.clone(), i.clone(), &[]);
+            while { if !__for_first_377 { i += 1; } __for_first_377 = false; i < (balance.len() as i64) } {
+            let mut entry: Value = self.safe_dict(balance.clone(), Value::Int(i), &[]);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             let mut currencyId: Option<String> = self.safe_string_k_opt(entry.clone(), "coin", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
@@ -9416,10 +9416,10 @@ if _try_result.is_err() {
             m
         });
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_378: bool = true;
-            while { if !__for_first_378 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_378 = false; i.as_f64().unwrap_or(f64::NAN) < ((balance.len() as i64) as f64) } {
-            let mut entry: Value = self.safe_dict(balance.clone(), i.clone(), &[]);
+            while { if !__for_first_378 { i += 1; } __for_first_378 = false; i < (balance.len() as i64) } {
+            let mut entry: Value = self.safe_dict(balance.clone(), Value::Int(i), &[]);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             let mut currencyId: Value = self.safe_string2(entry.clone(), Value::Str("marginCoin".into()), Value::Str("coin".into()), &[]);
             let mut code: Value = self.safe_currency_code(currencyId, &[]);
@@ -9748,10 +9748,10 @@ if _try_result.is_err() {
                 let mut feeValues: Vec<Value> = Value::Array(parsedFeeDetail.as_map().map(|__m| __m.values().cloned().collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
                 let mut feeObject: Value = Value::Null;
                 {
-                                        let mut i: Value = Value::Int(0);
+                                        let mut i: i64 = 0;
                     let mut __for_first_379: bool = true;
-                    while { if !__for_first_379 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_379 = false; i.as_f64().unwrap_or(f64::NAN) < ((feeValues.len() as i64) as f64) } {
-                    let mut feeValue: Value = feeValues.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+                    while { if !__for_first_379 { i += 1; } __for_first_379 = false; i < (feeValues.len() as i64) } {
+                    let mut feeValue: Value = feeValues.get(i as usize).cloned().unwrap_or(Value::Null);
                     let mut feeValueCoinCode: Option<String> = self.safe_string_k(feeValue.clone(), "feeCoinCode", &[]).as_str().map(str::to_owned);
                     if (feeValueCoinCode.is_some()) {
                         feeObject = feeValue;
@@ -10430,10 +10430,10 @@ if _try_result.is_err() {
         let mut symbol: Value = self.safe_string_k(firstOrder, "symbol", &[]);
         let mut marginMode: Value = Value::Null;
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_380: bool = true;
-            while { if !__for_first_380 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_380 = false; i.as_f64().unwrap_or(f64::NAN) < ((orders.len() as i64) as f64) } {
-            let mut rawOrder: Value = self.safe_dict(orders.clone(), i.clone(), &[]);
+            while { if !__for_first_380 { i += 1; } __for_first_380 = false; i < (orders.len() as i64) } {
+            let mut rawOrder: Value = self.safe_dict(orders.clone(), Value::Int(i), &[]);
             let mut marketId: Option<String> = self.safe_string_k_opt(rawOrder.clone(), "symbol", &[]);
             if (symbol == Value::Null) {
                 symbol = marketId.clone().map(Value::from).unwrap_or(Value::Null);
@@ -10519,10 +10519,10 @@ if _try_result.is_err() {
         let mut symbol: Value = self.safe_string_k(firstOrder, "symbol", &[]);
         let mut marginMode: Value = Value::Null;
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_381: bool = true;
-            while { if !__for_first_381 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_381 = false; i.as_f64().unwrap_or(f64::NAN) < ((orders.len() as i64) as f64) } {
-            let mut rawOrder: Value = self.safe_dict(orders.clone(), i.clone(), &[]);
+            while { if !__for_first_381 { i += 1; } __for_first_381 = false; i < (orders.len() as i64) } {
+            let mut rawOrder: Value = self.safe_dict(orders.clone(), Value::Int(i), &[]);
             let mut marketId: Option<String> = self.safe_string_k_opt(rawOrder.clone(), "symbol", &[]);
             if (symbol == Value::Null) {
                 symbol = marketId.clone().map(Value::from).unwrap_or(Value::Null);
@@ -11098,10 +11098,10 @@ if _try_result.is_err() {
         let mut productType: Value = self.handle_product_type_and_params(&[market.clone(), params]).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut requestList: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_382: bool = true;
-            while { if !__for_first_382 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_382 = false; i.as_f64().unwrap_or(f64::NAN) < ((ids.len() as i64) as f64) } {
-            let mut individualId: Option<String> = self.safe_string_opt(ids.clone(), i.clone(), &[]);
+            while { if !__for_first_382 { i += 1; } __for_first_382 = false; i < (ids.len() as i64) } {
+            let mut individualId: Option<String> = self.safe_string_opt(ids.clone(), Value::Int(i), &[]);
             let mut order: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("orderId".to_string(), individualId.map(Value::from).unwrap_or(Value::Null));
@@ -11175,10 +11175,10 @@ if _try_result.is_err() {
         paramsUTA = self.omit(paramsUTA.clone(), Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]);
         let mut orderIdList: Value = Value::from(vec![]);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_383: bool = true;
-            while { if !__for_first_383 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_383 = false; i.as_f64().unwrap_or(f64::NAN) < ((ids.len() as i64) as f64) } {
-            let mut individualId: Option<String> = self.safe_string_opt(ids.clone(), i.clone(), &[]);
+            while { if !__for_first_383 { i += 1; } __for_first_383 = false; i < (ids.len() as i64) } {
+            let mut individualId: Option<String> = self.safe_string_opt(ids.clone(), Value::Int(i), &[]);
             let mut orderId: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("orderId".to_string(), individualId.map(Value::from).unwrap_or(Value::Null));
@@ -14445,10 +14445,10 @@ if _try_result.is_err() {
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut result: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_386: bool = true;
-            while { if !__for_first_386 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_386 = false; i.as_f64().unwrap_or(f64::NAN) < ((contracts.len() as i64) as f64) } {
-            let mut contract: Value = self.safe_dict(contracts.clone(), i.clone(), &[]);
+            while { if !__for_first_386 { i += 1; } __for_first_386 = false; i < (contracts.len() as i64) } {
+            let mut contract: Value = self.safe_dict(contracts.clone(), Value::Int(i), &[]);
             // for non-uta, we've set bussinessType in request payload. Not sure why this existed.
             // const business = this.safeString (contract, 'businessType');
             // if (business !== 'contract_settle_fee') {
@@ -16802,10 +16802,10 @@ if _try_result.is_err() {
         });
         let mut data: Vec<Value> = self.safe_list_k(response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_388: bool = true;
-            while { if !__for_first_388 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_388 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
-            let mut entry: Value = data.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_388 { i += 1; } __for_first_388 = false; i < (data.len() as i64) } {
+            let mut entry: Value = data.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut id: Option<String> = self.safe_string_k_opt(entry.clone(), "coin", &[]);
             let mut code: Value = self.safe_currency_code(id.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             if (code != Value::Null) {

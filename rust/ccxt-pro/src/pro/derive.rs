@@ -849,10 +849,10 @@ impl DeriveCore {
         if (status != Value::Null) {
             let mut topics: Vec<Value> = Value::Array(status.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
             {
-                                let mut i: Value = Value::Int(0);
+                                let mut i: i64 = 0;
                 let mut __for_first_310: bool = true;
-                while { if !__for_first_310 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_310 = false; i.as_f64().unwrap_or(f64::NAN) < ((topics.len() as i64) as f64) } {
-                let mut topic: Value = topics.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+                while { if !__for_first_310 { i += 1; } __for_first_310 = false; i < (topics.len() as i64) } {
+                let mut topic: Value = topics.get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut parsedTopic: Value = Value::Array(topic.as_str().map(|__s| __s.split(".").map(Value::from).collect()).unwrap_or_default());
                 let mut suffix: Option<String> = self.safe_string(parsedTopic, Value::Int(1), &[]).as_str().map(str::to_owned);
                 if (Value::Int(topic.as_str().and_then(|__s| __s.find("orderbook")).map(|__i| __i as i64).unwrap_or(-1)).as_f64() == Some(0.0)) {
@@ -1131,10 +1131,10 @@ impl DeriveCore {
         let mut topic: Option<String> = self.safe_string_k_opt(params.clone(), "channel", &[]);
         let mut rawOrders: Vec<Value> = self.safe_list_k(params, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_312: bool = true;
-            while { if !__for_first_312 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_312 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawOrders.len() as i64) as f64) } {
-            let mut data: Value = rawOrders.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_312 { i += 1; } __for_first_312 = false; i < (rawOrders.len() as i64) } {
+            let mut data: Value = rawOrders.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut parsed: Value = self.parse_order(data, &[]);
             let mut symbol: Option<String> = self.safe_string_k_opt(parsed.clone(), "symbol", &[]);
             let mut orderId: Option<String> = self.safe_string_k_opt(parsed.clone(), "id", &[]);
@@ -1295,10 +1295,10 @@ impl DeriveCore {
         let mut topic: Option<String> = self.safe_string_k_opt(params.clone(), "channel", &[]);
         let mut rawTrades: Vec<Value> = self.safe_list_k(params, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_313: bool = true;
-            while { if !__for_first_313 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_313 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawTrades.len() as i64) as f64) } {
-            let mut trade: Value = self.parse_trade(rawTrades.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null), &[]);
+            while { if !__for_first_313 { i += 1; } __for_first_313 = false; i < (rawTrades.len() as i64) } {
+            let mut trade: Value = self.parse_trade(rawTrades.get(i as usize).cloned().unwrap_or(Value::Null), &[]);
             myTrades.append(trade.clone());
             client.resolve(&[myTrades.clone(), topic.clone().map(Value::from).unwrap_or(Value::Null)]);
             if (topic.is_some()) {
@@ -1489,10 +1489,10 @@ impl DeriveCore {
             let mut positionsSnapshot: Value = self.fetch_positions(&[Value::Null, snapshotParams]).await;
             let mut cache: Value = self.safe_value(self.positions.clone(), subaccountIdKey.clone(), &[]);
             {
-                                let mut i: Value = Value::Int(0);
+                                let mut i: i64 = 0;
                 let mut __for_first_314: bool = true;
-                while { if !__for_first_314 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_314 = false; i.as_f64().unwrap_or(f64::NAN) < ((positionsSnapshot.len() as i64) as f64) } {
-                let mut snapshotPosition: Value = self.safe_value(positionsSnapshot.clone(), i.clone(), &[]);
+                while { if !__for_first_314 { i += 1; } __for_first_314 = false; i < (positionsSnapshot.len() as i64) } {
+                let mut snapshotPosition: Value = self.safe_value(positionsSnapshot.clone(), Value::Int(i), &[]);
                 cache.append(snapshotPosition);
             }
             }
@@ -1613,10 +1613,10 @@ impl DeriveCore {
         let mut updated: bool = false;
         let mut positionUpdates: Vec<Value> = vec![];
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_315: bool = true;
-            while { if !__for_first_315 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_315 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
-            let mut entry: Value = self.safe_dict(data.clone(), i.clone(), &[Value::Map({
+            while { if !__for_first_315 { i += 1; } __for_first_315 = false; i < (data.len() as i64) } {
+            let mut entry: Value = self.safe_dict(data.clone(), Value::Int(i), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
@@ -1742,10 +1742,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut subscriptionKeys: Vec<Value> = __ch.subscription_keys();
             let mut matched: bool = false;
             {
-                                let mut i: Value = Value::Int(0);
+                                let mut i: i64 = 0;
                 let mut __for_first_316: bool = true;
-                while { if !__for_first_316 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_316 = false; i.as_f64().unwrap_or(f64::NAN) < ((subscriptionKeys.len() as i64) as f64) } {
-                let mut subscription: Value = self.safe_dict(__ch.subscriptions.clone(), subscriptionKeys.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null), &[Value::Map({
+                while { if !__for_first_316 { i += 1; } __for_first_316 = false; i < (subscriptionKeys.len() as i64) } {
+                let mut subscription: Value = self.safe_dict(__ch.subscriptions.clone(), subscriptionKeys.get(i as usize).cloned().unwrap_or(Value::Null), &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
                 })]);

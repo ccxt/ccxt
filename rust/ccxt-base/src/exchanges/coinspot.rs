@@ -934,10 +934,10 @@ impl CoinspotCore {
 })]);
                 let mut currencyIdsList: Vec<Value> = Value::Array(currencies.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
                 {
-                                        let mut j: Value = Value::Int(0);
+                                        let mut j: i64 = 0;
                     let mut __for_first_582: bool = true;
-                    while { if !__for_first_582 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_582 = false; j.as_f64().unwrap_or(f64::NAN) < ((currencyIdsList.len() as i64) as f64) } {
-                    let mut currencyId: Value = currencyIdsList.get(j.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+                    while { if !__for_first_582 { j += 1; } __for_first_582 = false; j < (currencyIdsList.len() as i64) } {
+                    let mut currencyId: Value = currencyIdsList.get(j as usize).cloned().unwrap_or(Value::Null);
                     let mut balance: Value = self.safe_dict(currencies.clone(), currencyId.clone(), &[]);
                     let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
                     let mut account: Value = self.account();
@@ -952,10 +952,10 @@ impl CoinspotCore {
         }  else {
             let mut currencyIdsMap: Vec<Value> = Value::Array(balances.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
             {
-                                let mut i: Value = Value::Int(0);
+                                let mut i: i64 = 0;
                 let mut __for_first_584: bool = true;
-                while { if !__for_first_584 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_584 = false; i.as_f64().unwrap_or(f64::NAN) < ((currencyIdsMap.len() as i64) as f64) } {
-                let mut currencyId: Value = currencyIdsMap.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+                while { if !__for_first_584 { i += 1; } __for_first_584 = false; i < (currencyIdsMap.len() as i64) } {
+                let mut currencyId: Value = currencyIdsMap.get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
                 let mut account: Value = self.account();
                 if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".into(), self.safe_string(balances.clone(), currencyId, &[])); }
@@ -1163,10 +1163,10 @@ impl CoinspotCore {
 })]).as_map().cloned().unwrap_or_default();
         let mut ids: Vec<Value> = Value::Array(prices.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_585: bool = true;
-            while { if !__for_first_585 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_585 = false; i.as_f64().unwrap_or(f64::NAN) < ((ids.len() as i64) as f64) } {
-            let mut id: Value = ids.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_585 { i += 1; } __for_first_585 = false; i < (ids.len() as i64) } {
+            let mut id: Value = ids.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.safe_market(&[id.clone()]);
             if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
                 let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);

@@ -1377,10 +1377,10 @@ impl CoinbaseCore {
         let mut portfolios: Vec<Value> = self.safe_list_k(response, "portfolios", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut result: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_533: bool = true;
-            while { if !__for_first_533 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_533 = false; i.as_f64().unwrap_or(f64::NAN) < ((portfolios.len() as i64) as f64) } {
-            let mut portfolio: Value = portfolios.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_533 { i += 1; } __for_first_533 = false; i < (portfolios.len() as i64) } {
+            let mut portfolio: Value = portfolios.get(i as usize).cloned().unwrap_or(Value::Null);
             result.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), self.safe_string_k(portfolio.clone(), "uuid", &[]));
@@ -2217,10 +2217,10 @@ impl CoinbaseCore {
         let mut baseIds: Vec<Value> = Value::Array(rates.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
         let mut result: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_536: bool = true;
-            while { if !__for_first_536 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_536 = false; i.as_f64().unwrap_or(f64::NAN) < ((baseIds.len() as i64) as f64) } {
-            let mut baseId: Value = baseIds.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_536 { i += 1; } __for_first_536 = false; i < (baseIds.len() as i64) } {
+            let mut baseId: Value = baseIds.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
             if (base == Value::Null) {
                 continue;
@@ -2476,10 +2476,10 @@ if _try_result.is_err() {
         let mut data: Vec<Value> = self.safe_list_k(spot, "products", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut result: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_537: bool = true;
-            while { if !__for_first_537 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_537 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
-            let mut spotMarket: Value = self.parse_spot_market(data.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null), feeTier.clone());
+            while { if !__for_first_537 { i += 1; } __for_first_537 = false; i < (data.len() as i64) } {
+            let mut spotMarket: Value = self.parse_spot_market(data.get(i as usize).cloned().unwrap_or(Value::Null), feeTier.clone());
             if (spotMarket != Value::Null) {
                 result.push(spotMarket);
             }
@@ -2487,10 +2487,10 @@ if _try_result.is_err() {
         }
         let mut futureData: Vec<Value> = self.safe_list_k(expiringFutures, "products", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_538: bool = true;
-            while { if !__for_first_538 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_538 = false; i.as_f64().unwrap_or(f64::NAN) < ((futureData.len() as i64) as f64) } {
-            let mut futureMarket: Value = self.parse_contract_market(futureData.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null), expiringFeeTier.clone());
+            while { if !__for_first_538 { i += 1; } __for_first_538 = false; i < (futureData.len() as i64) } {
+            let mut futureMarket: Value = self.parse_contract_market(futureData.get(i as usize).cloned().unwrap_or(Value::Null), expiringFeeTier.clone());
             if (futureMarket != Value::Null) {
                 result.push(futureMarket);
             }
@@ -2498,10 +2498,10 @@ if _try_result.is_err() {
         }
         let mut perpetualData: Vec<Value> = self.safe_list_k(perpetualFutures, "products", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_539: bool = true;
-            while { if !__for_first_539 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_539 = false; i.as_f64().unwrap_or(f64::NAN) < ((perpetualData.len() as i64) as f64) } {
-            let mut perpetualMarket: Value = self.parse_contract_market(perpetualData.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null), perpetualFeeTier.clone());
+            while { if !__for_first_539 { i += 1; } __for_first_539 = false; i < (perpetualData.len() as i64) } {
+            let mut perpetualMarket: Value = self.parse_contract_market(perpetualData.get(i as usize).cloned().unwrap_or(Value::Null), perpetualFeeTier.clone());
             if (perpetualMarket != Value::Null) {
                 result.push(perpetualMarket);
             }
@@ -3096,10 +3096,10 @@ if _try_result.is_err() {
         }
         }
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_542: bool = true;
-            while { if !__for_first_542 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_542 = false; i.as_f64().unwrap_or(f64::NAN) < ((ratesIds.len() as i64) as f64) } {
-            let mut currencyId: Value = ratesIds.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_542 { i += 1; } __for_first_542 = false; i < (ratesIds.len() as i64) } {
+            let mut currencyId: Value = ratesIds.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
             if (code == Value::Null) || !(matches!((&result, &code), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 if (code != Value::Null) {
@@ -3202,10 +3202,10 @@ if _try_result.is_err() {
         let mut baseIds: Vec<Value> = Value::Array(rates.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
         let mut delimiter: Value = Value::Str("-".into());
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_543: bool = true;
-            while { if !__for_first_543 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_543 = false; i.as_f64().unwrap_or(f64::NAN) < ((baseIds.len() as i64) as f64) } {
-            let mut baseId: Value = baseIds.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_543 { i += 1; } __for_first_543 = false; i < (baseIds.len() as i64) } {
+            let mut baseId: Value = baseIds.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut marketId: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseId, delimiter).into()), quoteId).into());
             let mut market: Value = self.safe_market(&[marketId, Value::Null, delimiter.clone()]);
             let mut symbol: Value = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]);
@@ -3294,10 +3294,10 @@ if _try_result.is_err() {
             m
         };
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_544: bool = true;
-            while { if !__for_first_544 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_544 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
-            let mut entry: Value = data.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_544 { i += 1; } __for_first_544 = false; i < (data.len() as i64) } {
+            let mut entry: Value = data.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut marketId: Option<String> = self.safe_string_k_opt(entry.clone(), "product_id", &[]);
             let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Str("-".into())]);
             let mut symbol: Value = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]);
@@ -3634,10 +3634,10 @@ if _try_result.is_err() {
             m
         });
         {
-                        let mut b: Value = Value::Int(0);
+                        let mut b: i64 = 0;
             let mut __for_first_545: bool = true;
-            while { if !__for_first_545 { if let Value::Int(n) = &mut b { *n += 1; } } __for_first_545 = false; b.as_f64().unwrap_or(f64::NAN) < ((balances.len() as i64) as f64) } {
-            let mut balance: Value = self.safe_dict(balances.clone(), b.clone(), &[]);
+            while { if !__for_first_545 { b += 1; } __for_first_545 = false; b < (balances.len() as i64) } {
+            let mut balance: Value = self.safe_dict(balances.clone(), Value::Int(b), &[]);
             let mut type_var: Option<String> = self.safe_string_k_opt(balance.clone(), "type", &[]);
             if self.in_array(type_var.clone().map(Value::from).unwrap_or(Value::Null), accounts.clone()).as_bool() == Some(true) {
                 let mut value: Value = self.safe_dict_k(balance.clone(), "balance", &[]);
@@ -6801,10 +6801,10 @@ if _try_result.is_err() {
             m
         });
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_549: bool = true;
-            while { if !__for_first_549 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_549 = false; i.as_f64().unwrap_or(f64::NAN) < ((self.symbols.len() as i64) as f64) } {
-            let mut symbol: Value = self.safe_string(self.symbols.clone(), i.clone(), &[Value::Str("".into())]);
+            while { if !__for_first_549 { i += 1; } __for_first_549 = false; i < (self.symbols.len() as i64) } {
+            let mut symbol: Value = self.safe_string(self.symbols.clone(), Value::Int(i), &[Value::Str("".into())]);
             let mut market: Value = self.market(symbol.clone());
             if (isSpot && (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true))) || (!isSpot && (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() != Some(true))) {
                 if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map({
@@ -6867,10 +6867,10 @@ if _try_result.is_err() {
         let mut spotPositions: Vec<Value> = self.safe_list_k(breakdown, "spot_positions", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut parsedPositions: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_550: bool = true;
-            while { if !__for_first_550 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_550 = false; i.as_f64().unwrap_or(f64::NAN) < ((spotPositions.len() as i64) as f64) } {
-            let mut position: Value = spotPositions.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_550 { i += 1; } __for_first_550 = false; i < (spotPositions.len() as i64) } {
+            let mut position: Value = spotPositions.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut currencyCode: Value = self.safe_string_k(position.clone(), "asset", &[Value::Str("Unknown".into())]);
             let mut availableBalanceStr: Value = self.safe_string_k(position.clone(), "available_to_trade_fiat", &[Value::Str("0".into())]);
             let mut availableBalance: Value = self.parse_number(availableBalanceStr, &[]);

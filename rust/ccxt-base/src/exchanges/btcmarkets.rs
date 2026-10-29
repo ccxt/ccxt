@@ -1010,10 +1010,10 @@ impl BtcmarketsCore {
             m
         });
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_472: bool = true;
-            while { if !__for_first_472 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_472 = false; i.as_f64().unwrap_or(f64::NAN) < ((response.len() as i64) as f64) } {
-            let mut balance: Value = self.safe_dict(response.clone(), i.clone(), &[]);
+            while { if !__for_first_472 { i += 1; } __for_first_472 = false; i < (response.len() as i64) } {
+            let mut balance: Value = self.safe_dict(response.clone(), Value::Int(i), &[]);
             let mut currencyId: Option<String> = self.safe_string_k_opt(balance.clone(), "assetName", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
@@ -1477,11 +1477,11 @@ impl BtcmarketsCore {
         }
         let mut numericIds: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_473: bool = true;
-            while { if !__for_first_473 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_473 = false; i.as_f64().unwrap_or(f64::NAN) < ((ids.len() as i64) as f64) } {
+            while { if !__for_first_473 { i += 1; } __for_first_473 = false; i < (ids.len() as i64) } {
             // numericIds[i] = parseInt (ids[i]);
-            numericIds.push(self.parse_to_int(self.safe_string(ids.clone(), i.clone(), &[])));
+            numericIds.push(self.parse_to_int(self.safe_string(ids.clone(), Value::Int(i), &[])));
         }
         }
         let mut request: indexmap::IndexMap<String, Value> = ({

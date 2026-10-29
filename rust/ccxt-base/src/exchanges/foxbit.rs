@@ -712,10 +712,10 @@ impl FoxbitCore {
             m
         });
         {
-                        let mut j: Value = Value::Int(0);
+                        let mut j: i64 = 0;
             let mut __for_first_676: bool = true;
-            while { if !__for_first_676 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_676 = false; j.as_f64().unwrap_or(f64::NAN) < ((networks.len() as i64) as f64) } {
-            let mut network: Value = self.safe_dict(networks.clone(), j.clone(), &[]);
+            while { if !__for_first_676 { j += 1; } __for_first_676 = false; j < (networks.len() as i64) } {
+            let mut network: Value = self.safe_dict(networks.clone(), Value::Int(j), &[]);
             let mut networkId: Option<String> = self.safe_string_k_opt(network.clone(), "code", &[]);
             let mut networkCode: Value = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone()]);
             let mut networkWithdrawInfo: Value = self.safe_dict_k(network.clone(), "withdraw_info", &[]);
@@ -1059,10 +1059,10 @@ impl FoxbitCore {
             m
         });
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_677: bool = true;
-            while { if !__for_first_677 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_677 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
-            let mut entry: Value = data.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_677 { i += 1; } __for_first_677 = false; i < (data.len() as i64) } {
+            let mut entry: Value = data.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut marketId: Option<String> = self.safe_string_k_opt(entry.clone(), "market_symbol", &[]);
             let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
             let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
@@ -1264,10 +1264,10 @@ impl FoxbitCore {
             m
         });
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_678: bool = true;
-            while { if !__for_first_678 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_678 = false; i.as_f64().unwrap_or(f64::NAN) < ((accounts.len() as i64) as f64) } {
-            let mut account: Value = self.safe_dict(accounts.clone(), i.clone(), &[]);
+            while { if !__for_first_678 { i += 1; } __for_first_678 = false; i < (accounts.len() as i64) } {
+            let mut account: Value = self.safe_dict(accounts.clone(), Value::Int(i), &[]);
             let mut currencyId: Option<String> = self.safe_string_k_opt(account.clone(), "currency_symbol", &[]);
             let mut currencyCode: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
             let mut total: Option<String> = self.safe_string_k_opt(account.clone(), "balance", &[]);
@@ -1488,10 +1488,10 @@ impl FoxbitCore {
         }
         let mut ordersRequests: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_679: bool = true;
-            while { if !__for_first_679 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_679 = false; i.as_f64().unwrap_or(f64::NAN) < ((orders.len() as i64) as f64) } {
-            let mut order: Value = self.safe_dict(orders.clone(), i.clone(), &[]);
+            while { if !__for_first_679 { i += 1; } __for_first_679 = false; i < (orders.len() as i64) } {
+            let mut order: Value = self.safe_dict(orders.clone(), Value::Int(i), &[]);
             let mut symbol: Option<String> = self.safe_string_k_opt(order.clone(), "symbol", &[]);
             let mut market: indexmap::IndexMap<String, Value> = self.market(symbol.clone().map(Value::from).unwrap_or(Value::Null)).as_map().cloned().unwrap_or_default();
             let mut type_var: Value = self.safe_string_upper_k(order.clone(), "type", &[Value::Str("".into())]);
@@ -2807,10 +2807,10 @@ impl FoxbitCore {
         let mut detailsString: Value = Value::Str("".into());
         if (details != Value::Null) {
             {
-                                let mut i: Value = Value::Int(0);
+                                let mut i: i64 = 0;
                 let mut __for_first_681: bool = true;
-                while { if !__for_first_681 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_681 = false; i.as_f64().unwrap_or(f64::NAN) < ((details.len() as i64) as f64) } {
-                detailsString = Value::Str(format!("{}{}", Value::Str(format!("{}{}", detailsString, self.safe_string(details.clone(), i.clone(), &[Value::Str("".into())])).into()), Value::Str(" ".into())).into());
+                while { if !__for_first_681 { i += 1; } __for_first_681 = false; i < (details.len() as i64) } {
+                detailsString = Value::Str(format!("{}{}", Value::Str(format!("{}{}", detailsString, self.safe_string(details.clone(), Value::Int(i), &[Value::Str("".into())])).into()), Value::Str(" ".into())).into());
             }
             }
         }

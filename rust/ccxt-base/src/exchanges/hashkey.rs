@@ -1781,10 +1781,10 @@ impl HashkeyCore {
             m
         });
         {
-                        let mut j: Value = Value::Int(0);
+                        let mut j: i64 = 0;
             let mut __for_first_727: bool = true;
-            while { if !__for_first_727 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_727 = false; j.as_f64().unwrap_or(f64::NAN) < ((networks.len() as i64) as f64) } {
-            let mut network: Value = networks.get(j.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_727 { j += 1; } __for_first_727 = false; j < (networks.len() as i64) } {
+            let mut network: Value = networks.get(j as usize).cloned().unwrap_or(Value::Null);
             let mut networkId: Option<String> = self.safe_string_k_opt(network.clone(), "chainType", &[]);
             let mut networkCode: Value = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone()]);
             if (networkCode != Value::Null) {
@@ -2492,10 +2492,10 @@ impl HashkeyCore {
         });
         let mut balances: Value = self.safe_list_k(balance, "balances", &[Value::from(vec![])]);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_728: bool = true;
-            while { if !__for_first_728 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_728 = false; i.as_f64().unwrap_or(f64::NAN) < ((balances.len() as i64) as f64) } {
-            let mut balanceEntry: Value = self.safe_dict(balances.clone(), i.clone(), &[]);
+            while { if !__for_first_728 { i += 1; } __for_first_728 = false; i < (balances.len() as i64) } {
+            let mut balanceEntry: Value = self.safe_dict(balances.clone(), Value::Int(i), &[]);
             let mut currencyId: Option<String> = self.safe_string_k_opt(balanceEntry.clone(), "asset", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
@@ -3555,10 +3555,10 @@ impl HashkeyCore {
         }
         let mut ordersRequests: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_729: bool = true;
-            while { if !__for_first_729 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_729 = false; i.as_f64().unwrap_or(f64::NAN) < ((orders.len() as i64) as f64) } {
-            let mut rawOrder: Value = self.safe_dict(orders.clone(), i.clone(), &[]);
+            while { if !__for_first_729 { i += 1; } __for_first_729 = false; i < (orders.len() as i64) } {
+            let mut rawOrder: Value = self.safe_dict(orders.clone(), Value::Int(i), &[]);
             let mut symbol: Option<String> = self.safe_string_k_opt(rawOrder.clone(), "symbol", &[]);
             let mut type_var: Option<String> = self.safe_string_k_opt(rawOrder.clone(), "type", &[]);
             let mut side: Option<String> = self.safe_string_k_opt(rawOrder.clone(), "side", &[]);
@@ -3598,10 +3598,10 @@ impl HashkeyCore {
         let mut result: Value = self.safe_list_k(response, "result", &[Value::from(vec![])]);
         let mut responseOrders: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_730: bool = true;
-            while { if !__for_first_730 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_730 = false; i.as_f64().unwrap_or(f64::NAN) < ((result.len() as i64) as f64) } {
-            let mut responseEntry: Value = self.safe_dict(result.clone(), i.clone(), &[Value::Map({
+            while { if !__for_first_730 { i += 1; } __for_first_730 = false; i < (result.len() as i64) } {
+            let mut responseEntry: Value = self.safe_dict(result.clone(), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -5067,14 +5067,14 @@ impl HashkeyCore {
         let mut marketResolved: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market]);
         let mut tiers: Value = Value::from(vec![]);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_732: bool = true;
-            while { if !__for_first_732 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_732 = false; i.as_f64().unwrap_or(f64::NAN) < ((riskLimits.len() as i64) as f64) } {
-            let mut tier: Value = riskLimits.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_732 { i += 1; } __for_first_732 = false; i < (riskLimits.len() as i64) } {
+            let mut tier: Value = riskLimits.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut initialMarginRate: Option<String> = self.safe_string_k_opt(tier.clone(), "initialMargin", &[]);
             if let Value::Arr(__a) = &mut tiers { std::sync::Arc::make_mut(__a).push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("tier".to_string(), self.sum(&[i.clone(), Value::Int(1)]));
+                    m.insert("tier".to_string(), self.sum(&[Value::Int(i), Value::Int(1)]));
                     m.insert("symbol".to_string(), self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), &[marketResolved.clone()]));
                     m.insert("currency".to_string(), marketResolved.as_map().and_then(|__m| __m.get("settle")).cloned().unwrap_or(Value::Null));
                     m.insert("minNotional".to_string(), Value::Null);
@@ -5177,10 +5177,10 @@ impl HashkeyCore {
             m
         });
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_733: bool = true;
-            while { if !__for_first_733 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_733 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
-            let mut fee: Value = self.safe_dict(data.clone(), i.clone(), &[Value::Map({
+            while { if !__for_first_733 { i += 1; } __for_first_733 = false; i < (data.len() as i64) } {
+            let mut fee: Value = self.safe_dict(data.clone(), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -5339,10 +5339,10 @@ impl HashkeyCore {
         if (responseCodeInteger == Some(0)) {
             let mut result: Value = self.safe_list_k(response, "result", &[Value::from(vec![])]); // for batch methods
             {
-                                let mut i: Value = Value::Int(0);
+                                let mut i: i64 = 0;
                 let mut __for_first_734: bool = true;
-                while { if !__for_first_734 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_734 = false; i.as_f64().unwrap_or(f64::NAN) < ((result.len() as i64) as f64) } {
-                let mut entry: Value = self.safe_dict(result.clone(), i.clone(), &[]);
+                while { if !__for_first_734 { i += 1; } __for_first_734 = false; i < (result.len() as i64) } {
+                let mut entry: Value = self.safe_dict(result.clone(), Value::Int(i), &[]);
                 let mut entryCodeInteger: Option<i64> = self.safe_integer_k(entry.clone(), "code", &[]).as_i64();
                 if (entryCodeInteger != Some(0)) {
                     errorInArray = true;

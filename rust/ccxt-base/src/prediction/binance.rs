@@ -638,10 +638,10 @@ impl BinanceCore {
         let mut tagsLength: f64 = ((tags.len() as i64) as f64);
         let mut allQueries: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_1206: bool = true;
-            while { if !__for_first_1206 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1206 = false; i.as_f64().unwrap_or(f64::NAN) < ((queries.len() as i64) as f64) } {
-            allQueries.push(queries.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null));
+            while { if !__for_first_1206 { i += 1; } __for_first_1206 = false; i < (queries.len() as i64) } {
+            allQueries.push(queries.get(i as usize).cloned().unwrap_or(Value::Null));
         }
         }
         {
@@ -1387,10 +1387,10 @@ impl BinanceCore {
         });
         let mut balances: Value = self.safe_list_k(response, "items", &[Value::from(vec![])]);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_1215: bool = true;
-            while { if !__for_first_1215 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1215 = false; i.as_f64().unwrap_or(f64::NAN) < ((balances.len() as i64) as f64) } {
-            let mut balance: Value = self.safe_dict(balances.clone(), i.clone(), &[]);
+            while { if !__for_first_1215 { i += 1; } __for_first_1215 = false; i < (balances.len() as i64) } {
+            let mut balance: Value = self.safe_dict(balances.clone(), Value::Int(i), &[]);
             let mut accountType: Option<String> = self.safe_string_k_opt(balance.clone(), "accountType", &[]);
             if (accountType.as_deref() == type_var.as_str()) {
                 let mut free: Option<String> = self.safe_string_k_opt(balance, "availableBalanceDisplay", &[]);

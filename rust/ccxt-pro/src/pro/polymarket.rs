@@ -1073,10 +1073,10 @@ impl PolymarketCore {
         }
         let mut ohlcv: Value = self.ohlcvs.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| timeframe.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_637: bool = true;
-            while { if !__for_first_637 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_637 = false; i.as_f64().unwrap_or(f64::NAN) < ((rows.len() as i64) as f64) } {
-            let mut parsed: Value = self.parse_ohlcv(rows.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null), &[market.clone()]);
+            while { if !__for_first_637 { i += 1; } __for_first_637 = false; i < (rows.len() as i64) } {
+            let mut parsed: Value = self.parse_ohlcv(rows.get(i as usize).cloned().unwrap_or(Value::Null), &[market.clone()]);
             ohlcv.append(parsed);
         }
         }
@@ -1248,10 +1248,10 @@ impl PolymarketCore {
         client.resolve(&[stored.clone(), Value::Str("orders".into())]);
         let mut symbolKeys: Value = Value::Array(symbols.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_639: bool = true;
-            while { if !__for_first_639 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_639 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolKeys.len() as i64) as f64) } {
-            let symbol: String = self.safe_string_opt(symbolKeys.clone(), i.clone(), &[Value::Str("".into())]).unwrap_or_default();
+            while { if !__for_first_639 { i += 1; } __for_first_639 = false; i < (symbolKeys.len() as i64) } {
+            let symbol: String = self.safe_string_opt(symbolKeys.clone(), Value::Int(i), &[Value::Str("".into())]).unwrap_or_default();
             client.resolve(&[stored.clone(), Value::Str(format!("{}{}", Value::Str("orders:".into()), symbol).into())]);
         }
         }
@@ -1370,10 +1370,10 @@ impl PolymarketCore {
         client.resolve(&[stored.clone(), Value::Str("myTrades".into())]);
         let mut symbolKeys: Value = Value::Array(symbols.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_641: bool = true;
-            while { if !__for_first_641 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_641 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolKeys.len() as i64) as f64) } {
-            let symbol: String = self.safe_string_opt(symbolKeys.clone(), i.clone(), &[Value::Str("".into())]).unwrap_or_default();
+            while { if !__for_first_641 { i += 1; } __for_first_641 = false; i < (symbolKeys.len() as i64) } {
+            let symbol: String = self.safe_string_opt(symbolKeys.clone(), Value::Int(i), &[Value::Str("".into())]).unwrap_or_default();
             client.resolve(&[stored.clone(), Value::Str(format!("{}{}", Value::Str("myTrades:".into()), symbol).into())]);
         }
         }
@@ -1588,10 +1588,10 @@ impl PolymarketCore {
         let mut rows: Value = self.safe_list_k(data.clone(), "positions", &[Value::from(vec![])]);
         let mut newPositions: Vec<Value> = vec![];
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_643: bool = true;
-            while { if !__for_first_643 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_643 = false; i.as_f64().unwrap_or(f64::NAN) < ((rows.len() as i64) as f64) } {
-            let mut row: Value = self.safe_dict(rows.clone(), i.clone(), &[Value::Map({
+            while { if !__for_first_643 { i += 1; } __for_first_643 = false; i < (rows.len() as i64) } {
+            let mut row: Value = self.safe_dict(rows.clone(), Value::Int(i), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
@@ -1688,10 +1688,10 @@ impl PolymarketCore {
         let mut action: Option<String> = self.safe_string_k(pending.clone(), "method", &[]).as_str().map(str::to_owned);
         let mut errorMessage: Value = Value::Null;
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_644: bool = true;
-            while { if !__for_first_644 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_644 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
-            let mut entry: Value = self.safe_dict(data.clone(), i.clone(), &[Value::Map({
+            while { if !__for_first_644 { i += 1; } __for_first_644 = false; i < (data.len() as i64) } {
+            let mut entry: Value = self.safe_dict(data.clone(), Value::Int(i), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
@@ -1704,20 +1704,20 @@ impl PolymarketCore {
         if (errorMessage != Value::Null) {
             let mut error = Value::from(crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), errorMessage)));
             {
-                                let mut i: Value = Value::Int(0);
+                                let mut i: i64 = 0;
                 let mut __for_first_645: bool = true;
-                while { if !__for_first_645 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_645 = false; i.as_f64().unwrap_or(f64::NAN) < ((messageHashes.len() as i64) as f64) } {
-                client.reject(&[Value::from(error.clone()), messageHashes.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null)]);
+                while { if !__for_first_645 { i += 1; } __for_first_645 = false; i < (messageHashes.len() as i64) } {
+                client.reject(&[Value::from(error.clone()), messageHashes.get(i as usize).cloned().unwrap_or(Value::Null)]);
                 // clearing the awaited hash lets a later call resend, and a
                 // failed subscribe must also clear the shared hash the base
                 // watch registered - a failed unsubscribe keeps the live
                 // subscription untouched instead
-                let mut messageHash: Value = messageHashes.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+                let mut messageHash: Value = messageHashes.get(i as usize).cloned().unwrap_or(Value::Null);
                 if (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                     __ch.remove_subscription(&messageHash);
                 }
                 if (action.as_deref() == Some("sub")) {
-                    let mut subMessageHash: Value = subMessageHashes.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+                    let mut subMessageHash: Value = subMessageHashes.get(i as usize).cloned().unwrap_or(Value::Null);
                     if (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &subMessageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                         __ch.remove_subscription(&subMessageHash);
                     }
@@ -1752,10 +1752,10 @@ impl PolymarketCore {
                 }
             }
             {
-                                let mut i: Value = Value::Int(0);
+                                let mut i: i64 = 0;
                 let mut __for_first_646: bool = true;
-                while { if !__for_first_646 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_646 = false; i.as_f64().unwrap_or(f64::NAN) < ((messageHashes.len() as i64) as f64) } {
-                self.clean_unsubscription(client.clone(), subMessageHashes.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null), messageHashes.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null), &[]);
+                while { if !__for_first_646 { i += 1; } __for_first_646 = false; i < (messageHashes.len() as i64) } {
+                self.clean_unsubscription(client.clone(), subMessageHashes.get(i as usize).cloned().unwrap_or(Value::Null), messageHashes.get(i as usize).cloned().unwrap_or(Value::Null), &[]);
             }
             }
         }

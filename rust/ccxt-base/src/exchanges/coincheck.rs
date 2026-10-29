@@ -594,10 +594,10 @@ impl CoincheckCore {
         });
         let mut codes: Vec<Value> = Value::Array(self.currencies.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_564: bool = true;
-            while { if !__for_first_564 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_564 = false; i.as_f64().unwrap_or(f64::NAN) < ((codes.len() as i64) as f64) } {
-            let mut code: Value = codes.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_564 { i += 1; } __for_first_564 = false; i < (codes.len() as i64) } {
+            let mut code: Value = codes.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut currency: indexmap::IndexMap<String, Value> = self.currency(code.clone()).as_map().cloned().unwrap_or_default();
             let mut currencyId: Value = currency.get("id").cloned().unwrap_or(Value::Null);
             let mut free: Option<String> = self.safe_string_opt(response.clone(), currencyId.clone(), &[]);
@@ -649,10 +649,10 @@ impl CoincheckCore {
         let mut status: Value = Value::Str("ok".into());
         let mut updated: Value = Value::Null;
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_565: bool = true;
-            while { if !__for_first_565 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_565 = false; i.as_f64().unwrap_or(f64::NAN) < ((exchangeStatuses.len() as i64) as f64) } {
-            let mut exchangeStatus: Value = self.safe_dict(exchangeStatuses.clone(), i.clone(), &[]);
+            while { if !__for_first_565 { i += 1; } __for_first_565 = false; i < (exchangeStatuses.len() as i64) } {
+            let mut exchangeStatus: Value = self.safe_dict(exchangeStatuses.clone(), Value::Int(i), &[]);
             let mut rawStatus: Option<String> = self.safe_string_k(exchangeStatus.clone(), "status", &[]).as_str().map(str::to_owned);
             if (updated == Value::Null) {
                 updated = self.safe_timestamp_k(exchangeStatus, "timestamp", &[]);

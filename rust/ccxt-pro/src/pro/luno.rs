@@ -363,10 +363,10 @@ impl LunoCore {
             if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbolValue), stored.clone()); }
         }
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_488: bool = true;
-            while { if !__for_first_488 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_488 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawTrades.len() as i64) as f64) } {
-            let mut rawTrade: Value = rawTrades.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_488 { i += 1; } __for_first_488 = false; i < (rawTrades.len() as i64) } {
+            let mut rawTrade: Value = rawTrades.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut trade: Value = self.parse_trade(rawTrade, &[market.clone()]);
             stored.append(trade);
         }
@@ -638,10 +638,10 @@ impl LunoCore {
         // reference luno streaming client
         let mut tradeUpdates: Vec<Value> = self.safe_list_k(message.clone(), "trade_updates", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_490: bool = true;
-            while { if !__for_first_490 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_490 = false; i.as_f64().unwrap_or(f64::NAN) < ((tradeUpdates.len() as i64) as f64) } {
-            let mut tradeUpdate: Value = tradeUpdates.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_490 { i += 1; } __for_first_490 = false; i < (tradeUpdates.len() as i64) } {
+            let mut tradeUpdate: Value = tradeUpdates.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut makerOrderId: Option<String> = self.safe_string_k_opt(tradeUpdate.clone(), "maker_order_id", &[]);
             let mut tradedAmount: Option<String> = self.safe_string_k_opt(tradeUpdate, "base", &[]);
             if (makerOrderId.is_some()) && (tradedAmount.is_some()) {

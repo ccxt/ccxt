@@ -582,10 +582,10 @@ impl PhemexCore {
         }  else if (matches!(&message, Value::Dict(__d) if __d.contains_key("data"))) {
             let mut data: Vec<Value> = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
             {
-                                let mut i: Value = Value::Int(0);
+                                let mut i: i64 = 0;
                 let mut __for_first_605: bool = true;
-                while { if !__for_first_605 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_605 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
-                tickers.push(self.parse_perpetual_ticker(data.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null), &[]));
+                while { if !__for_first_605 { i += 1; } __for_first_605 = false; i < (data.len() as i64) } {
+                tickers.push(self.parse_perpetual_ticker(data.get(i as usize).cloned().unwrap_or(Value::Null), &[]));
             }
             }
         }
@@ -682,10 +682,10 @@ impl PhemexCore {
         //
         if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("info".into(), message.clone()); }
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_607: bool = true;
-            while { if !__for_first_607 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_607 = false; i.as_f64().unwrap_or(f64::NAN) < ((message.len() as i64) as f64) } {
-            let mut balance: Value = self.safe_dict(message.clone(), i.clone(), &[]);
+            while { if !__for_first_607 { i += 1; } __for_first_607 = false; i < (message.len() as i64) } {
+            let mut balance: Value = self.safe_dict(message.clone(), Value::Int(i), &[]);
             let mut currencyId: Option<String> = self.safe_string_k_opt(balance.clone(), "currency", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
             let mut currency: Value = self.safe_dict(self.currencies.clone(), code.clone(), &[Value::Map({
@@ -1208,8 +1208,8 @@ impl PhemexCore {
                 })]);
                 let mut asks: Value = self.safe_list_k(changes.clone(), "asks", &[Value::from(vec![])]);
                 let mut bids: Value = self.safe_list_k(changes, "bids", &[Value::from(vec![])]);
-                self.custom_handle_deltas(get_value(&orderbook, &Value::Str("asks".into())), asks, &[market.clone()]);
-                self.custom_handle_deltas(get_value(&orderbook, &Value::Str("bids".into())), bids, &[market]);
+                self.custom_handle_deltas(orderbook.book_field("asks"), asks, &[market.clone()]);
+                self.custom_handle_deltas(orderbook.book_field("bids"), bids, &[market]);
                 orderbook.set_book_meta("nonce", nonce);
                 orderbook.set_book_meta("timestamp", timestamp.clone());
                 orderbook.set_book_meta("datetime", self.iso8601(timestamp));
@@ -1413,10 +1413,10 @@ impl PhemexCore {
         }
         let mut keys: Vec<Value> = Value::Array(marketIds.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_613: bool = true;
-            while { if !__for_first_613 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_613 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
-            let mut market: Value = keys.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_613 { i += 1; } __for_first_613 = false; i < (keys.len() as i64) } {
+            let mut market: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut hash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(":".into())).into()), market).into());
             client.resolve(&[cachedTrades.clone(), hash]);
         }
@@ -1716,10 +1716,10 @@ impl PhemexCore {
         }
         let mut keys: Vec<Value> = Value::Array(marketIds.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_617: bool = true;
-            while { if !__for_first_617 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_617 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
-            let mut currentMessageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("orders".into()), Value::Str(":".into())).into()), keys.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null)).into());
+            while { if !__for_first_617 { i += 1; } __for_first_617 = false; i < (keys.len() as i64) } {
+            let mut currentMessageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("orders".into()), Value::Str(":".into())).into()), keys.get(i as usize).cloned().unwrap_or(Value::Null)).into());
             client.resolve(&[self.orders.clone(), currentMessageHash]);
         }
         }

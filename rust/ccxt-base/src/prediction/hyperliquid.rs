@@ -412,10 +412,10 @@ impl HyperliquidCore {
             m
         });
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_1222: bool = true;
-            while { if !__for_first_1222 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1222 = false; i.as_f64().unwrap_or(f64::NAN) < ((parts.len() as i64) as f64) } {
-            let mut part: Value = parts.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_1222 { i += 1; } __for_first_1222 = false; i < (parts.len() as i64) } {
+            let mut part: Value = parts.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut colonIndex: Value = Value::Int(part.as_str().and_then(|__s| __s.find(":")).map(|__i| __i as i64).unwrap_or(-1));
             if colonIndex.as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64) {
                 let mut key: Value = (match (&(part), (match &(Value::Int(0)) { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None }).unwrap_or(0), (match &(colonIndex) { Value::Int(__n) => Some(*__n),
@@ -534,10 +534,10 @@ impl HyperliquidCore {
                     let mut thresholdParts: Vec<Value> = Value::Array(thresholdsRaw.as_str().map(|__s| __s.split(",").map(Value::from).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
                     let mut thresholds: Value = Value::from(vec![]);
                     {
-                                                let mut i: Value = Value::Int(0);
+                                                let mut i: i64 = 0;
                         let mut __for_first_1223: bool = true;
-                        while { if !__for_first_1223 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1223 = false; i.as_f64().unwrap_or(f64::NAN) < ((thresholdParts.len() as i64) as f64) } {
-                        let mut trimmed: Value = (thresholdParts.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null)).as_str().map(|__s| Value::Str(__s.trim().to_string().into())).unwrap_or(Value::Null);
+                        while { if !__for_first_1223 { i += 1; } __for_first_1223 = false; i < (thresholdParts.len() as i64) } {
+                        let mut trimmed: Value = (thresholdParts.get(i as usize).cloned().unwrap_or(Value::Null)).as_str().map(|__s| Value::Str(__s.trim().to_string().into())).unwrap_or(Value::Null);
                         if ((trimmed.len() as i64) as f64) > ((0i64) as f64) {
                             if let Value::Arr(__a) = &mut thresholds { std::sync::Arc::make_mut(__a).push(trimmed); }
                         }
@@ -654,10 +654,10 @@ impl HyperliquidCore {
             m
         });
         {
-                        let mut qi: Value = Value::Int(0);
+                        let mut qi: i64 = 0;
             let mut __for_first_1225: bool = true;
-            while { if !__for_first_1225 { if let Value::Int(n) = &mut qi { *n += 1; } } __for_first_1225 = false; qi.as_f64().unwrap_or(f64::NAN) < ((questionsList.len() as i64) as f64) } {
-            let mut question: Value = self.safe_dict(questionsList.clone(), qi.clone(), &[Value::Map({
+            while { if !__for_first_1225 { qi += 1; } __for_first_1225 = false; qi < (questionsList.len() as i64) } {
+            let mut question: Value = self.safe_dict(questionsList.clone(), Value::Int(qi), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -668,10 +668,10 @@ impl HyperliquidCore {
             }
             let mut namedOutcomes: Value = self.safe_list_k(question.clone(), "namedOutcomes", &[Value::from(vec![])]);
             {
-                                let mut ni: Value = Value::Int(0);
+                                let mut ni: i64 = 0;
                 let mut __for_first_1224: bool = true;
-                while { if !__for_first_1224 { if let Value::Int(n) = &mut ni { *n += 1; } } __for_first_1224 = false; ni.as_f64().unwrap_or(f64::NAN) < ((namedOutcomes.len() as i64) as f64) } {
-                let mut namedOutcomeId: Value = self.safe_integer(namedOutcomes.clone(), ni.clone(), &[]);
+                while { if !__for_first_1224 { ni += 1; } __for_first_1224 = false; ni < (namedOutcomes.len() as i64) } {
+                let mut namedOutcomeId: Value = self.safe_integer(namedOutcomes.clone(), Value::Int(ni), &[]);
                 if (namedOutcomeId != Value::Null) {
                     let mut namedKey: Value = Value::Str(format!("{}", namedOutcomeId).into());
                     outcomesToQuestions.insert(crate::runtime::stringify_param(&namedKey), question.clone());
@@ -694,14 +694,14 @@ impl HyperliquidCore {
             });
         }
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_1227: bool = true;
-            while { if !__for_first_1227 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1227 = false; i.as_f64().unwrap_or(f64::NAN) < ((outcomesList.len() as i64) as f64) } {
-            let mut outcomeInfo: Value = self.safe_dict(outcomesList.clone(), i.clone(), &[Value::Map({
+            while { if !__for_first_1227 { i += 1; } __for_first_1227 = false; i < (outcomesList.len() as i64) } {
+            let mut outcomeInfo: Value = self.safe_dict(outcomesList.clone(), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut outcomeId: Value = self.safe_integer_k(outcomeInfo.clone(), "outcome", &[i.clone()]);
+            let mut outcomeId: Value = self.safe_integer_k(outcomeInfo.clone(), "outcome", &[Value::Int(i)]);
             let mut linkedQuestion: Value = self.safe_dict(Value::Map(outcomesToQuestions.clone()), Value::Str(format!("{}", outcomeId).into()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -711,10 +711,10 @@ impl HyperliquidCore {
             // Build outcomes dictionary from market outcomes
             let mut marketOutcomes: Value = self.safe_list_k(market, "outcomes", &[Value::from(vec![])]);
             {
-                                let mut oi: Value = Value::Int(0);
+                                let mut oi: i64 = 0;
                 let mut __for_first_1226: bool = true;
-                while { if !__for_first_1226 { if let Value::Int(n) = &mut oi { *n += 1; } } __for_first_1226 = false; oi.as_f64().unwrap_or(f64::NAN) < ((marketOutcomes.len() as i64) as f64) } {
-                let mut outcome: Value = self.safe_dict(marketOutcomes.clone(), oi.clone(), &[Value::Map({
+                while { if !__for_first_1226 { oi += 1; } __for_first_1226 = false; oi < (marketOutcomes.len() as i64) } {
+                let mut outcome: Value = self.safe_dict(marketOutcomes.clone(), Value::Int(oi), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -1083,10 +1083,10 @@ impl HyperliquidCore {
 }) });
         let mut outcomeHandles: Vec<Value> = object_keys(&outcomesMap).as_array().cloned().unwrap_or_default();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_1230: bool = true;
-            while { if !__for_first_1230 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1230 = false; i.as_f64().unwrap_or(f64::NAN) < ((outcomeHandles.len() as i64) as f64) } {
-            let mut outcomeHandle: Value = outcomeHandles.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_1230 { i += 1; } __for_first_1230 = false; i < (outcomeHandles.len() as i64) } {
+            let mut outcomeHandle: Value = outcomeHandles.get(i as usize).cloned().unwrap_or(Value::Null);
             if (outcomes != Value::Null) && !(matches!((&requestedOutcomeSymbols, &outcomeHandle), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 continue;
             }
@@ -1252,18 +1252,18 @@ impl HyperliquidCore {
         let mut bids: Vec<Value> = Vec::new();
         let mut asks: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_1231: bool = true;
-            while { if !__for_first_1231 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1231 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawBids.len() as i64) as f64) } {
-            let mut entry: Value = self.safe_dict(rawBids.clone(), i.clone(), &[]);
+            while { if !__for_first_1231 { i += 1; } __for_first_1231 = false; i < (rawBids.len() as i64) } {
+            let mut entry: Value = self.safe_dict(rawBids.clone(), Value::Int(i), &[]);
             bids.push(Value::from(vec![self.safe_number_k(entry.clone(), "px", &[]), self.safe_number_k(entry.clone(), "sz", &[])]));
         }
         }
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_1232: bool = true;
-            while { if !__for_first_1232 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1232 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawAsks.len() as i64) as f64) } {
-            let mut entry: Value = self.safe_dict(rawAsks.clone(), i.clone(), &[]);
+            while { if !__for_first_1232 { i += 1; } __for_first_1232 = false; i < (rawAsks.len() as i64) } {
+            let mut entry: Value = self.safe_dict(rawAsks.clone(), Value::Int(i), &[]);
             asks.push(Value::from(vec![self.safe_number_k(entry.clone(), "px", &[]), self.safe_number_k(entry, "sz", &[])]));
         }
         }
@@ -1421,10 +1421,10 @@ impl HyperliquidCore {
         });
         let mut balances: Value = self.safe_list_k(response, "balances", &[Value::from(vec![])]);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_1233: bool = true;
-            while { if !__for_first_1233 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1233 = false; i.as_f64().unwrap_or(f64::NAN) < ((balances.len() as i64) as f64) } {
-            let mut balance: Value = self.safe_dict(balances.clone(), i.clone(), &[]);
+            while { if !__for_first_1233 { i += 1; } __for_first_1233 = false; i < (balances.len() as i64) } {
+            let mut balance: Value = self.safe_dict(balances.clone(), Value::Int(i), &[]);
             let mut coin: Option<String> = self.safe_string_k_opt(balance.clone(), "coin", &[]);
             let mut total: Option<String> = self.safe_string_k_opt(balance.clone(), "total", &[]);
             let mut used: Option<String> = self.safe_string_k_opt(balance, "hold", &[]);
@@ -1511,10 +1511,10 @@ impl HyperliquidCore {
         let mut mids: Value = self.safe_dict_k(allMids.clone(), "mids", &[allMids.clone()]);
         let mut positions: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_1235: bool = true;
-            while { if !__for_first_1235 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1235 = false; i.as_f64().unwrap_or(f64::NAN) < ((balances.len() as i64) as f64) } {
-            let mut balance: Value = self.safe_dict(balances.clone(), i.clone(), &[Value::Map({
+            while { if !__for_first_1235 { i += 1; } __for_first_1235 = false; i < (balances.len() as i64) } {
+            let mut balance: Value = self.safe_dict(balances.clone(), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -1625,10 +1625,10 @@ impl HyperliquidCore {
         let mut normalizedHint: Value = (if ((sideHint != Value::Null) && (sideHint.as_str() != Some(""))) { sideHint.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null) } else { Value::Null });
         if (normalizedHint != Value::Null) {
             {
-                                let mut i: Value = Value::Int(0);
+                                let mut i: i64 = 0;
                 let mut __for_first_1236: bool = true;
-                while { if !__for_first_1236 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1236 = false; i.as_f64().unwrap_or(f64::NAN) < ((outcomesList.len() as i64) as f64) } {
-                let mut oc: Value = self.safe_dict(outcomesList.clone(), i.clone(), &[Value::Map({
+                while { if !__for_first_1236 { i += 1; } __for_first_1236 = false; i < (outcomesList.len() as i64) } {
+                let mut oc: Value = self.safe_dict(outcomesList.clone(), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -1641,10 +1641,10 @@ impl HyperliquidCore {
             }
         }
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_1237: bool = true;
-            while { if !__for_first_1237 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1237 = false; i.as_f64().unwrap_or(f64::NAN) < ((outcomesList.len() as i64) as f64) } {
-            let mut oc: Value = self.safe_dict(outcomesList.clone(), i.clone(), &[Value::Map({
+            while { if !__for_first_1237 { i += 1; } __for_first_1237 = false; i < (outcomesList.len() as i64) } {
+            let mut oc: Value = self.safe_dict(outcomesList.clone(), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -1709,11 +1709,11 @@ impl HyperliquidCore {
         let mut inputCharsLength: f64 = ((inputChars.len() as i64) as f64);
         let mut isNumericInput: bool = inputCharsLength > ((0i64) as f64);
         {
-                        let mut di: Value = Value::Int(0);
+                        let mut di: i64 = 0;
             let mut __for_first_1238: bool = true;
-            while { if !__for_first_1238 { if let Value::Int(n) = &mut di { *n += 1; } } __for_first_1238 = false; di.as_f64().unwrap_or(f64::NAN) < ((inputChars.len() as i64) as f64) } {
-            if (match (&(digitChars), &(inputChars.get(di.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null))) { (Value::Arr(__a), __nd) => Value::Int(__a.iter().position(|__it| match (__it, __nd) { (Value::Null, Value::Null) => true, (Value::Bool(__x), Value::Bool(__y)) => __x == __y, (Value::Str(__x), Value::Str(__y)) => __x == __y,
-                (Value::Int(__x), Value::Int(__y)) => __x == __y, (Value::Float(__x), Value::Float(__y)) => __x == __y, (__p, __q) => match ((match __p { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }),
+            while { if !__for_first_1238 { di += 1; } __for_first_1238 = false; di < (inputChars.len() as i64) } {
+            if (match (&(digitChars), &(inputChars.get(di as usize).cloned().unwrap_or(Value::Null))) { (Value::Arr(__a), __nd) => Value::Int(__a.iter().position(|__it| match (__it, __nd) { (Value::Null, Value::Null) => true, (Value::Bool(__x), Value::Bool(__y)) => __x == __y, (Value::Str(__x), Value::Str(__y)) => __x == __y, (Value::Int(__x),
+                Value::Int(__y)) => __x == __y, (Value::Float(__x), Value::Float(__y)) => __x == __y, (__p, __q) => match ((match __p { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }),
                 (match __q { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None })) { (Some(__x), Some(__y)) => __x == __y, _ => false } }).map(|__i| __i as i64).unwrap_or(-1)), (Value::Str(__s),
                 Value::Str(__nd)) => Value::Int(__s.find(&**__nd).map(|__i| __i as i64).unwrap_or(-1)), _ => Value::Int(-1) }).as_f64().unwrap_or(f64::NAN) < ((0i64) as f64) {
                 isNumericInput = false;
@@ -2076,20 +2076,20 @@ impl HyperliquidCore {
         }
         let mut orders: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_1242: bool = true;
-            while { if !__for_first_1242 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1242 = false; i.as_f64().unwrap_or(f64::NAN) < ((statuses.len() as i64) as f64) } {
-            let mut status: Value = statuses.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_1242 { i += 1; } __for_first_1242 = false; i < (statuses.len() as i64) } {
+            let mut status: Value = statuses.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut error: Option<String> = self.safe_string_k_opt(status.clone(), "error", &[]);
             if (error.is_some()) {
-                panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrders() failed for ".into())).into()), self.safe_string(requestIds.clone(), i.clone(), &[self.safe_string(requestIds.clone(), Value::Int(0), &[])])).into()),
-                    Value::Str(": ".into())).into()), error.map(Value::from).unwrap_or(Value::Null))));
+                panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrders() failed for ".into())).into()), self.safe_string(requestIds.clone(), Value::Int(i), &[self.safe_string(requestIds.clone(), Value::Int(0),
+                    &[])])).into()), Value::Str(": ".into())).into()), error.map(Value::from).unwrap_or(Value::Null))));
             }
             let mut success: bool = (status.as_str() == Some("success")) || (self.safe_string_k(status.clone(), "status", &[]).as_str() == Some("success"));
             if !success {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrders() received an unexpected status: ".into())).into()), json_stringify(&status))));
             }
-            let mut requestId: Value = self.safe_string(requestIds.clone(), i.clone(), &[self.safe_string(requestIds.clone(), Value::Int(0), &[])]);
+            let mut requestId: Value = self.safe_string(requestIds.clone(), Value::Int(i), &[self.safe_string(requestIds.clone(), Value::Int(0), &[])]);
             let mut order: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), requestId.clone());
@@ -2710,11 +2710,10 @@ impl HyperliquidCore {
                 let mut haystack: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", description, Value::Str(" ".into())).into()), symLower).into());
                 let mut matches: bool = false;
                 {
-                                        let mut qi: Value = Value::Int(0);
+                                        let mut qi: i64 = 0;
                     let mut __for_first_1247: bool = true;
-                    while { if !__for_first_1247 { if let Value::Int(n) = &mut qi { *n += 1; } } __for_first_1247 = false; qi.as_f64().unwrap_or(f64::NAN) < ((lowerQueries.len() as i64) as f64) } {
-                    let mut words: Vec<Value> = Value::Array((lowerQueries.as_array().and_then(|__arr| match &qi { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)),
-                        _ => None }).cloned().unwrap_or(Value::Null)).as_str().map(|__s| __s.split(" ").map(Value::from).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+                    while { if !__for_first_1247 { qi += 1; } __for_first_1247 = false; qi < (lowerQueries.len() as i64) } {
+                    let mut words: Vec<Value> = Value::Array((lowerQueries.as_array().map(Vec::as_slice).unwrap_or(&[]).get(qi as usize).cloned().unwrap_or(Value::Null)).as_str().map(|__s| __s.split(" ").map(Value::from).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
                     let mut wordsLength: f64 = ((words.len() as i64) as f64);
                     let mut allWords: bool = true;
                     {
@@ -2760,10 +2759,10 @@ impl HyperliquidCore {
         let mut events: Vec<Value> = Vec::new();
         let mut groupKeys: Vec<Value> = Value::Array(groupMap.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
-                        let mut gi: Value = Value::Int(0);
+                        let mut gi: i64 = 0;
             let mut __for_first_1249: bool = true;
-            while { if !__for_first_1249 { if let Value::Int(n) = &mut gi { *n += 1; } } __for_first_1249 = false; gi.as_f64().unwrap_or(f64::NAN) < ((groupKeys.len() as i64) as f64) } {
-            let mut key: Value = groupKeys.get(gi.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_1249 { gi += 1; } __for_first_1249 = false; gi < (groupKeys.len() as i64) } {
+            let mut key: Value = groupKeys.get(gi as usize).cloned().unwrap_or(Value::Null);
             let mut groupMarkets: Value = groupMap.as_map().and_then(|__m| key.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
             let mut event: Value = self.parse_event(Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -3222,10 +3221,10 @@ if _try_result.is_err() {
 })]);
         let mut statuses: Vec<Value> = self.safe_list_k(data, "statuses", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_1250: bool = true;
-            while { if !__for_first_1250 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1250 = false; i.as_f64().unwrap_or(f64::NAN) < ((statuses.len() as i64) as f64) } {
-            let mut message: Option<String> = self.safe_string_opt(statuses.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null), Value::Str("error".into()), &[]);
+            while { if !__for_first_1250 { i += 1; } __for_first_1250 = false; i < (statuses.len() as i64) } {
+            let mut message: Option<String> = self.safe_string_opt(statuses.get(i as usize).cloned().unwrap_or(Value::Null), Value::Str("error".into()), &[]);
             if (message.is_some()) {
                 let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body).into());
                 self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), message.clone().map(Value::from).unwrap_or(Value::Null), feedback.clone());

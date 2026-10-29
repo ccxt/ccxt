@@ -793,16 +793,16 @@ impl CoinbaseCore {
         let mut timestamp: Value = self.parse8601(datetime.clone().map(Value::from).unwrap_or(Value::Null));
         let mut newTickers: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_239: bool = true;
-            while { if !__for_first_239 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_239 = false; i.as_f64().unwrap_or(f64::NAN) < ((events.len() as i64) as f64) } {
-            let mut tickersObj: Value = self.safe_dict(events.clone(), i.clone(), &[]);
+            while { if !__for_first_239 { i += 1; } __for_first_239 = false; i < (events.len() as i64) } {
+            let mut tickersObj: Value = self.safe_dict(events.clone(), Value::Int(i), &[]);
             let mut tickers: Vec<Value> = self.safe_list_k(tickersObj, "tickers", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
             {
-                                let mut j: Value = Value::Int(0);
+                                let mut j: i64 = 0;
                 let mut __for_first_238: bool = true;
-                while { if !__for_first_238 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_238 = false; j.as_f64().unwrap_or(f64::NAN) < ((tickers.len() as i64) as f64) } {
-                let mut ticker: Value = tickers.get(j.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+                while { if !__for_first_238 { j += 1; } __for_first_238 = false; j < (tickers.len() as i64) } {
+                let mut ticker: Value = tickers.get(j as usize).cloned().unwrap_or(Value::Null);
                 let mut wsMarketId: Option<String> = self.safe_string_k(ticker.clone(), "product_id", &[]).as_str().map(str::to_owned);
                 if (wsMarketId.is_none()) {
                     continue;
@@ -1168,10 +1168,10 @@ impl CoinbaseCore {
             if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), tradesArray.clone()); }
         }
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_241: bool = true;
-            while { if !__for_first_241 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_241 = false; i.as_f64().unwrap_or(f64::NAN) < ((events.len() as i64) as f64) } {
-            let mut currentEvent: Value = self.safe_dict(events.clone(), i.clone(), &[]);
+            while { if !__for_first_241 { i += 1; } __for_first_241 = false; i < (events.len() as i64) } {
+            let mut currentEvent: Value = self.safe_dict(events.clone(), Value::Int(i), &[]);
             let mut currentTrades: Value = self.safe_list_k(currentEvent, "trades", &[]);
             if (currentTrades == Value::Null) {
                 continue;
@@ -1234,10 +1234,10 @@ impl CoinbaseCore {
             self.orders = ArrayCacheBySymbolById::new(limit);
         }
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_243: bool = true;
-            while { if !__for_first_243 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_243 = false; i.as_f64().unwrap_or(f64::NAN) < ((events.len() as i64) as f64) } {
-            let mut event: Value = self.safe_dict(events.clone(), i.clone(), &[]);
+            while { if !__for_first_243 { i += 1; } __for_first_243 = false; i < (events.len() as i64) } {
+            let mut event: Value = self.safe_dict(events.clone(), Value::Int(i), &[]);
             let mut responseOrders: Value = self.safe_list_k(event, "orders", &[]);
             if (responseOrders == Value::Null) {
                 continue;
@@ -1334,10 +1334,10 @@ impl CoinbaseCore {
 
     pub fn handle_order_book_helper(&self, mut orderbook: Value, mut updates: Value) {
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_245: bool = true;
-            while { if !__for_first_245 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_245 = false; i.as_f64().unwrap_or(f64::NAN) < ((updates.len() as i64) as f64) } {
-            let mut trade: Value = self.safe_dict(updates.clone(), i.clone(), &[]);
+            while { if !__for_first_245 { i += 1; } __for_first_245 = false; i < (updates.len() as i64) } {
+            let mut trade: Value = self.safe_dict(updates.clone(), Value::Int(i), &[]);
             let mut sideId: Value = self.safe_string_k(trade.clone(), "side", &[]);
             let mut side: Option<String> = self.safe_string_opt(self.options.as_map().and_then(|__m| __m.get("sides")).cloned().unwrap_or(Value::Null), sideId, &[]);
             let mut price: Value = self.safe_number_k(trade.clone(), "price_level", &[]);
@@ -1386,10 +1386,10 @@ impl CoinbaseCore {
         }
         let mut datetime: Option<String> = self.safe_string_k_opt(message, "timestamp", &[]);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_246: bool = true;
-            while { if !__for_first_246 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_246 = false; i.as_f64().unwrap_or(f64::NAN) < ((events.len() as i64) as f64) } {
-            let mut event: Value = self.safe_dict(events.clone(), i.clone(), &[]);
+            while { if !__for_first_246 { i += 1; } __for_first_246 = false; i < (events.len() as i64) } {
+            let mut event: Value = self.safe_dict(events.clone(), Value::Int(i), &[]);
             let mut updates: Value = self.safe_list_k(event.clone(), "updates", &[Value::from(vec![])]);
             let mut marketId: Option<String> = self.safe_string_k_opt(event.clone(), "product_id", &[]);
             // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD, as they are aliases
@@ -1475,11 +1475,11 @@ impl CoinbaseCore {
             let mut messageHashes: Vec<Value> = self.safe_list_k(unSubObject.clone(), "messageHashes", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
             let mut subMessageHashes: Vec<Value> = self.safe_list_k(unSubObject.clone(), "subMessageHashes", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
             {
-                                let mut i: Value = Value::Int(0);
+                                let mut i: i64 = 0;
                 let mut __for_first_247: bool = true;
-                while { if !__for_first_247 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_247 = false; i.as_f64().unwrap_or(f64::NAN) < ((messageHashes.len() as i64) as f64) } {
-                let mut messageHash: Value = messageHashes.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
-                let mut subHash: Value = subMessageHashes.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+                while { if !__for_first_247 { i += 1; } __for_first_247 = false; i < (messageHashes.len() as i64) } {
+                let mut messageHash: Value = messageHashes.get(i as usize).cloned().unwrap_or(Value::Null);
+                let mut subHash: Value = subMessageHashes.get(i as usize).cloned().unwrap_or(Value::Null);
                 self.clean_unsubscription(client.clone(), subHash, messageHash, &[]);
             }
             }

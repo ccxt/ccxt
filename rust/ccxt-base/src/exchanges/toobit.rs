@@ -1379,10 +1379,10 @@ impl ToobitCore {
             m
         });
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_1122: bool = true;
-            while { if !__for_first_1122 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1122 = false; i.as_f64().unwrap_or(f64::NAN) < ((coins.len() as i64) as f64) } {
-            let mut coin: Value = coins.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_1122 { i += 1; } __for_first_1122 = false; i < (coins.len() as i64) } {
+            let mut coin: Value = coins.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut parsed: Value = self.parse_currency(coin);
             if (parsed != Value::Null) {
                 let mut code: Value = parsed.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null);
@@ -1404,10 +1404,10 @@ impl ToobitCore {
         });
         let mut rawNetworks: Vec<Value> = self.safe_list_k(rawCurrency.clone(), "chainTypes", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         {
-                        let mut j: Value = Value::Int(0);
+                        let mut j: i64 = 0;
             let mut __for_first_1123: bool = true;
-            while { if !__for_first_1123 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_1123 = false; j.as_f64().unwrap_or(f64::NAN) < ((rawNetworks.len() as i64) as f64) } {
-            let mut rawNetwork: Value = rawNetworks.get(j.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_1123 { j += 1; } __for_first_1123 = false; j < (rawNetworks.len() as i64) } {
+            let mut rawNetwork: Value = rawNetworks.get(j as usize).cloned().unwrap_or(Value::Null);
             let mut networkId: Option<String> = self.safe_string_k_opt(rawNetwork.clone(), "chainType", &[]);
             let mut networkCode: Value = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone()]);
             if (networkCode != Value::Null) {
@@ -1632,10 +1632,10 @@ impl ToobitCore {
         let mut all: Value = self.array_concat(symbols, contracts);
         let mut result: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_1124: bool = true;
-            while { if !__for_first_1124 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1124 = false; i.as_f64().unwrap_or(f64::NAN) < ((all.len() as i64) as f64) } {
-            let mut market: Value = self.safe_dict(all.clone(), i.clone(), &[Value::Map({
+            while { if !__for_first_1124 { i += 1; } __for_first_1124 = false; i < (all.len() as i64) } {
+            let mut market: Value = self.safe_dict(all.clone(), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -2483,10 +2483,10 @@ impl ToobitCore {
         });
         let mut balances: Value = self.safe_list_k(response.clone(), "balances", &[response.clone()]);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_1127: bool = true;
-            while { if !__for_first_1127 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1127 = false; i.as_f64().unwrap_or(f64::NAN) < ((balances.len() as i64) as f64) } {
-            let mut balance: Value = self.safe_dict(balances.clone(), i.clone(), &[]);
+            while { if !__for_first_1127 { i += 1; } __for_first_1127 = false; i < (balances.len() as i64) } {
+            let mut balance: Value = self.safe_dict(balances.clone(), Value::Int(i), &[]);
             let mut code: Value = self.safe_currency_code(self.safe_string_k(balance.clone(), "asset", &[]), &[]);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             account.insert("free".into(), self.safe_string2(balance.clone(), Value::Str("free".into()), Value::Str("availableBalance".into()), &[]));
