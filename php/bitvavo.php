@@ -1526,7 +1526,7 @@ class bitvavo extends Exchange {
                 $cost = $this->safe_number($paramsOmitted, 'cost');
             }
             if ($cost !== null) {
-                $precision = $this->currency($market['quote'])['precision'];
+                $precision = $this->safe_number($this->currency($market['quote']), 'precision');
                 $request['amountQuote'] = $this->decimal_to_precision($cost, TRUNCATE, $precision, $this->precisionMode);
             } else {
                 $request['amount'] = $this->amount_to_precision($symbol, $amount);

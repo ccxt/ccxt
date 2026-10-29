@@ -470,8 +470,14 @@ class binance extends Exchange {
         $seen = array();
         $collected = array();
         $queriesLength = count($queries);
-        $limitValue = ($limit === null) ? 20 : $limit;
-        $limitResolved = ($limitValue > 50) ? 50 : $limitValue;
+        $limitValue = $this->parse_to_int(20);
+        if ($limit !== null) {
+            $limitValue = $this->parse_to_int($limit);
+        }
+        $limitResolved = $limitValue;
+        if ($limitValue > 50) {
+            $limitResolved = $this->parse_to_int(50);
+        }
         for ($qi = 0; $qi < $queriesLength; $qi++) {
             $request = array(
                 'query' => $queries[$qi],

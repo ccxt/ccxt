@@ -807,7 +807,7 @@ class bithumb extends \ccxt\async\bithumb {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $generation = $this->handle_option_integer_and_params($params, 'watchBalance', 'generation', 2)[0];
+        list($generation) = $this->handle_option_integer_and_params($params, 'watchBalance', 'generation', 2);
         if ($generation !== 2) {
             throw new BadRequest($this->id . ' watchBalance() is only supported for the generation 2 API');
         }
@@ -932,7 +932,7 @@ class bithumb extends \ccxt\async\bithumb {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $generation = $this->handle_option_integer_and_params($params, 'watchOrders', 'generation', 2)[0];
+        list($generation) = $this->handle_option_integer_and_params($params, 'watchOrders', 'generation', 2);
         if ($generation !== 2) {
             throw new BadRequest($this->id . ' watchOrders() is only supported for the generation 2 API');
         }

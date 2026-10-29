@@ -1370,7 +1370,7 @@ class polymarket extends Exchange {
             if (!(is_array($buckets) && array_key_exists($bucketKey ?? '', $buckets))) {
                 $buckets[$bucketKey] = array( $snappedMs, $price, $price, $price, $price, $vol );
             } else {
-                $candle = $buckets[$bucketKey];
+                $candle = $this->safe_list($buckets, $bucketKey, array());
                 $candle[2] = max($candle[2], $price); // high
                 $candle[3] = min($candle[3], $price); // low
                 $candle[4] = $price;                                  // close (last tick wins)

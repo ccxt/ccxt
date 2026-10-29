@@ -8661,7 +8661,7 @@ class okx extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        list($method, $paramsMethod) = $this->handle_option_and_params($params, 'fetchMySettlementHistory', 'method', 'privateGetAccountBillsArchive');
+        list($method, $paramsMethod) = $this->handle_option_string_and_params($params, 'fetchMySettlementHistory', 'method', 'privateGetAccountBillsArchive');
         $until = $this->safe_integer($paramsMethod, 'until');
         if ($until !== null) {
             $request['end'] = $until;

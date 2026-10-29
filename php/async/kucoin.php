@@ -4068,7 +4068,7 @@ class kucoin extends Exchange {
         return $orderbook;
     }
 
-    public function handle_trigger_prices(array $params): array {
+    public function check_trigger_prices(array $params) {
         $triggerPrice = $this->safe_number_2($params, 'triggerPrice', 'stopPrice');
         $stopLossPrice = $this->safe_number($params, 'stopLossPrice');
         $takeProfitPrice = $this->safe_number($params, 'takeProfitPrice');
@@ -4077,7 +4077,6 @@ class kucoin extends Exchange {
         if (($isStopLoss && $isTakeProfit) || (($triggerPrice !== null) && ($stopLossPrice !== null)) || (($triggerPrice !== null) && $isTakeProfit)) {
             throw new ExchangeError($this->id . ' createOrder() - you should use either triggerPrice or stopLossPrice or takeProfitPrice');
         }
-        return array( $triggerPrice, $stopLossPrice, $takeProfitPrice );
     }
 
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): PromiseInterface {
@@ -4184,7 +4183,10 @@ class kucoin extends Exchange {
         $paramsOmitted = $this->omit($params, 'test');
         list($hf, $paramsHf) = $this->handle_hf_and_params($paramsOmitted);
         list($useSync, $paramsSync) = $this->handle_option_bool_and_params($paramsHf, 'createOrder', 'sync', false);
-        list($triggerPrice, $stopLossPrice, $takeProfitPrice) = $this->handle_trigger_prices($paramsSync);
+        $this->check_trigger_prices($paramsSync);
+        $triggerPrice = $this->safe_number_2($paramsSync, 'triggerPrice', 'stopPrice');
+        $stopLossPrice = $this->safe_number($paramsSync, 'stopLossPrice');
+        $takeProfitPrice = $this->safe_number($paramsSync, 'takeProfitPrice');
         $tradeType = $this->safe_string($paramsSync, 'tradeType'); // keep it for backward compatibility
         $isTriggerOrder = ($triggerPrice !== null) || ($stopLossPrice !== null) || ($takeProfitPrice !== null);
         $marginMode = $this->handle_margin_mode_and_params('createOrder', $paramsSync)[0];
@@ -4265,7 +4267,10 @@ class kucoin extends Exchange {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
         $tradeType = $this->safe_string($paramsOmitted, 'tradeType'); // keep it for backward compatibility
-        list($triggerPrice, $stopLossPrice, $takeProfitPrice) = $this->handle_trigger_prices($paramsOmitted);
+        $this->check_trigger_prices($paramsOmitted);
+        $triggerPrice = $this->safe_number_2($paramsOmitted, 'triggerPrice', 'stopPrice');
+        $stopLossPrice = $this->safe_number($paramsOmitted, 'stopLossPrice');
+        $takeProfitPrice = $this->safe_number($paramsOmitted, 'takeProfitPrice');
         $isTriggerOrder = ($triggerPrice !== null) || ($stopLossPrice !== null) || ($takeProfitPrice !== null);
         $isMarginOrder = $tradeType === 'MARGIN_TRADE' || $marginMode !== null;
         $paramsOmitted = $this->omit($paramsOmitted, array( 'stopLossPrice', 'takeProfitPrice', 'triggerPrice', 'stopPrice' ));
@@ -4421,7 +4426,10 @@ class kucoin extends Exchange {
                 $request['size'] = intval($sizeString);
             }
         }
-        list($triggerPrice, $stopLossPrice, $takeProfitPrice) = $this->handle_trigger_prices($paramsOmitted);
+        $this->check_trigger_prices($paramsOmitted);
+        $triggerPrice = $this->safe_number_2($paramsOmitted, 'triggerPrice', 'stopPrice');
+        $stopLossPrice = $this->safe_number($paramsOmitted, 'stopLossPrice');
+        $takeProfitPrice = $this->safe_number($paramsOmitted, 'takeProfitPrice');
         $stopLoss = $this->safe_dict($paramsOmitted, 'stopLoss');
         $takeProfit = $this->safe_dict($paramsOmitted, 'takeProfit');
         $hasStopLoss = $stopLoss !== null;
@@ -4690,7 +4698,10 @@ class kucoin extends Exchange {
             }
         }
         // handling with conditional orders
-        list($triggerPrice, $stopLossPrice, $takeProfitPrice) = $this->handle_trigger_prices($paramsOmitted);
+        $this->check_trigger_prices($paramsOmitted);
+        $triggerPrice = $this->safe_number_2($paramsOmitted, 'triggerPrice', 'stopPrice');
+        $stopLossPrice = $this->safe_number($paramsOmitted, 'stopLossPrice');
+        $takeProfitPrice = $this->safe_number($paramsOmitted, 'takeProfitPrice');
         $stopLoss = $this->safe_dict($paramsOmitted, 'stopLoss');
         $takeProfit = $this->safe_dict($paramsOmitted, 'takeProfit');
         $hasStopLoss = $stopLoss !== null;

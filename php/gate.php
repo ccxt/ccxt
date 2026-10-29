@@ -4865,15 +4865,6 @@ class gate extends Exchange {
                         // 'expiration': expiration, how many seconds to wait for the condition to be triggered before cancelling the order
                     );
                 }
-                if ($reduceOnly !== null) {
-                    $request['initial']['reduce_only'] = $reduceOnly;
-                }
-                if ($timeInForce !== null) {
-                    $request['initial']['tif'] = $timeInForce;
-                }
-                if ($clientOrderId !== null) {
-                    $request['initial']['text'] = $clientOrderId;
-                }
             } else {
                 // spot conditional order
                 $options = $this->safe_dict($this->options, 'createOrder', array());

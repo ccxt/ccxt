@@ -944,9 +944,13 @@ class blofin extends \ccxt\async\blofin {
         }
         list($callerMethodNameOption, $paramsCallerMethodName) = $this->handle_param_string($params, 'callerMethodName', $callerMethodName);
         $isOHLCV = ($channelName === 'candle');
-        $symbols = $isOHLCV ? $this->get_list_from_object_values($symbolsArray, 0) : $symbolsArray;
-        $symbols = $this->market_symbols($symbols, null, false, true);
-        $firstMarket = $this->market($symbols[0]);
+        $symbols = array();
+        if ($isOHLCV) {
+            $symbols = $this->market_symbols($this->get_list_from_object_values($symbolsArray, 0), null, false, true);
+        } else {
+            $symbols = $this->market_symbols($symbolsArray, null, false, true);
+        }
+        $firstMarket = $this->market($this->safe_string($symbols, 0));
         list($marketType, $paramsMarketType) = $this->handle_market_type_and_params($callerMethodNameOption, $firstMarket, $paramsCallerMethodName);
         if ($marketType !== 'swap') {
             throw new NotSupported($this->id . ' ' . $callerMethodNameOption . '() does not support ' . $marketType . ' markets yet');
@@ -954,7 +958,7 @@ class blofin extends \ccxt\async\blofin {
         $topics = array();
         $messageHashes = array();
         for ($i = 0; $i < count($symbols); $i++) {
-            $market = $this->market($symbols[$i]);
+            $market = $this->market($this->safe_string($symbols, $i));
             $channel = $channelName;
             if ($isOHLCV) {
                 $tfArray = $symbolsArray[$i];
